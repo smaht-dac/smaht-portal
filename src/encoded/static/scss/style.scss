@@ -1,0 +1,49 @@
+
+// Common mixins, some used by base & bootstrap-theme-overrides
+@import "../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/mixins.scss";
+
+// Encoded base - variables & similar config
+@import "encoded/base";
+
+// Bootstrap
+// @import "bootstrap/bootstrap";
+@import "../../../../node_modules/bootstrap/scss/bootstrap";
+
+// Some are used in shared-portal-components scss
+@import "encoded/bootstrap-theme-overrides";
+
+// Font Awesome
+//@import "fontawesome/font-awesome";
+@import "../../../../node_modules/@fortawesome/fontawesome-free/scss/fontawesome";
+@import "../../../../node_modules/@fortawesome/fontawesome-free/scss/solid";
+@import "../../../../node_modules/@fortawesome/fontawesome-free/scss/regular";
+@import "../../../../node_modules/@fortawesome/fontawesome-free/scss/brands";
+
+// Shared Components - own components might override or extend these
+@import "../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/toggle-switch.scss";
+@import "../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/editable-fields.scss";
+@import "../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/submission-view.scss";
+@import "../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/misc-ui-components.scss";
+
+// Imported in encoded/modules/_search.scss:
+// @import "../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/facet-list.scss";
+// @import "../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/search-view-table.scss";
+
+// ENCODE Layout/Components
+
+@import "encoded/typography";
+@import "encoded/layout";
+
+@import "encoded/modules/pedigree-visualization",
+        "encoded/modules/common-visualization-detail-pane",
+        "encoded/modules/forms",
+        "encoded/modules/navbar",
+        "encoded/modules/tables",
+        "encoded/modules/search",
+        "encoded/modules/tooltip",
+        "encoded/modules/pedigree-visualization-detail-pane",   // Requires: common-visualization-detail-pane, pedigree-visualization
+        "encoded/modules/item-pages",                           // Requires: pedigree-visualization
+        "encoded/modules/static-pages",
+        "encoded/modules/slide-in-pane",
+        "encoded/modules/workflow-visualization",
+        "encoded/modules/ingestion-submission";

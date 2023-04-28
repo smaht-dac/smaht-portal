@@ -1,0 +1,525 @@
+$pedigree-viz-bg-color: #f8f8f8 !default;
+$pedigree-viz-node-bg-color: #fff !default;
+$pedigree-viz-node-stroke-color: #444 !default;
+
+
+$pedigree-disease-colors :
+    #f15854,
+    #4d90c1,
+    #faa43a,
+    #e4db06,
+    #b2912f,
+    #4d4d4d,
+    #60bd68,
+    #b276b2;
+
+
+@mixin pedigree-color-cycle-fill {
+    $pedigree-colors-length: length($pedigree-disease-colors);
+    @for $i from 1 through $pedigree-colors-length {
+        $color: nth($pedigree-disease-colors, $i);
+        &[data-disease-index="#{$i}"] {
+            fill: $color;
+        }
+    }
+    @for $i from 1 through $pedigree-colors-length {
+        $color: nth($pedigree-disease-colors, $i);
+        &[data-disease-index="#{$pedigree-colors-length + $i}"] {
+            fill: darken($color, 10%);
+        }
+    }
+    @for $i from 1 through $pedigree-colors-length {
+        $color: nth($pedigree-disease-colors, $i);
+        &[data-disease-index="#{2 * $pedigree-colors-length + $i}"] {
+            fill: lighten($color, 10%);
+        }
+    }
+}
+
+@mixin pedigree-color-cycle-background {
+    $pedigree-colors-length: length($pedigree-disease-colors);
+    @for $i from 1 through $pedigree-colors-length {
+        $color: nth($pedigree-disease-colors, $i);
+        &[data-disease-index="#{$i}"] {
+            background-color: $color;
+            @if lightness($color) > 70% {
+                color: #000;
+            } @else {
+                color: #fff;
+            }
+            /*
+            color: change-color(
+                $color: adjust-hue($color: $color, $degrees: 180),
+                $saturation: 0%
+            );
+            */
+        }
+    }
+    @for $i from 1 through $pedigree-colors-length {
+        $color: nth($pedigree-disease-colors, $i);
+        &[data-disease-index="#{$pedigree-colors-length + $i}"] {
+            background-color: darken($color, 10%);
+            @if lightness(darken($color, 10%)) > 70% {
+                color: #000;
+            } @else {
+                color: #fff;
+            }
+        }
+    }
+    @for $i from 1 through $pedigree-colors-length {
+        $color: nth($pedigree-disease-colors, $i);
+        &[data-disease-index="#{2 * $pedigree-colors-length + $i}"] {
+            background-color: lighten($color, 10%);
+            @if lightness(lighten($color, 10%)) > 70% {
+                color: #000;
+            } @else {
+                color: #fff;
+            }
+        }
+    }
+}
+
+
+.pedigree-viz-container {
+    position: relative;
+
+    .inner-container {
+
+        transform: translate3d(0,0,0);
+        background: $pedigree-viz-bg-color;
+        overflow: auto;
+        min-height: inherit;
+        height: inherit;
+        position: relative;
+        opacity: 1;
+        &:not([data-is-mounted="true"]) {
+            opacity: 0;
+        }
+
+        transition: opacity .4s ease-out;
+
+        // Center viz area, also has align-items: center for .pedigree-viz-container.has-extra-height
+        display: flex;
+        justify-content: center;
+        align-items: start;
+        &[data-has-extra-height="true"]{
+            align-items: center;
+        }
+
+        // For iOS to scroll smoothly horizontally
+        -webkit-overflow-scrolling: touch;
+        -webkit-transform: translate3d(0,0,0);
+
+        &[data-scrollable="true"]{
+            cursor: grab;
+            &[data-mouse-down="true"]{
+                cursor: grabbing;
+            }
+        }
+
+        > .viz-area {
+            transform-origin: 0 0;
+            transform: scale3d(1,1,1);
+            text-rendering: geometricPrecision;
+            position: absolute;
+            left: 0;
+            top: 0;
+
+            > .individuals-layer {
+                position: relative;
+                > .pedigree-individual {
+                    position: absolute;
+
+                    z-index: 100;
+                    overflow: visible;
+                    //transition: overflow 0s .2s;
+
+                    .mouse-event-area {
+                        cursor: pointer;
+                        position: absolute;
+                        width: 100%;
+                        height: 100%;
+                    }
+
+                    .btns-container {
+                        position: absolute;
+                        right: -15px;
+                        bottom: -19px;
+                        opacity: 0;
+                        z-index: -100;
+                        @include transition(z-index .0s .2s, opacity .2s, right .2s, bottom .2s);
+                        > button {
+                            display: block;
+                            border: 1px solid transparent;
+                            color: #fff;
+                            margin-bottom: 5px;
+                            border-radius: 50%;
+                            width: 0px;
+                            height: 0px;
+                            text-align: center;
+                            padding: 0;
+                            background: $primary;
+                            font-size: 0.9rem;
+                            @include transition(width 0s .2s, height 0s .2s);
+                        }
+                    }
+    
+                    .detail-text {
+                        position: absolute;
+                        border: 1px solid transparent;
+                        //left: 100%;
+                        //top: 100%;
+                        text-align: left;
+                        font-size: 0.9rem;
+                        
+                        transition: transform .25s linear, opacity .3s ease-out, padding-top .2s, font-size 0.3s ease-out;
+                        opacity: 1;
+                        transform-origin: 50% 0;
+                        @include no-user-select;
+
+                        div.line-item,
+                        span.line-item {
+                            width: 100%;
+                            display: block;
+                            text-align: left;
+                        }
+
+                        ul {
+                            /* We apply bg color only to this child elem(s), to prevent a background
+                               behind the title element from blocking out the selected-node-identifier shape,
+                               which is on a lower layer (SVG).
+                               Potential future to-do:
+                                Move selected-node-identifier shape to HTML layer (higher). This will also
+                                allow it to transition better on other browsers, such as firefox, which doesnt
+                                support transform (as an ATTRIBUTE) transitions.
+                            */
+                            margin-top: 0.5rem;
+                            background-color: transparent;
+                            transition: background-color .3s ease-out;
+                            padding-left: 0px; /* decrease from default */
+                            list-style-type: none;
+                            line-height: 1.25em;
+                            > li {
+                                /* prevent these from wrapping */
+                                overflow: hidden;
+                                white-space: nowrap;
+                                text-overflow: ellipsis;
+                                &:before {
+                                    content: "\2022"; /* bullet point */
+                                    position: absolute;
+                                    left: -7.5px;
+                                    font-size: 0.75em;
+                                }
+                            }
+                        }
+
+                        h5[data-describing="title"] {
+                            font-size: 1em;
+                            text-align: center;
+                            white-space: nowrap;
+                            overflow: visible;
+                            font-weight: 400;
+                            margin: 0; /** Override any default such as 10px 0; */
+                            &.showing-order-based-name {
+                                font-family: $font-family-monospace;
+                                font-family: $font-family-serif;
+                                font-size: 1.125em;
+                                font-weight: 700;
+                            }
+                        }
+
+                        span.line-item[data-describing="age"] {
+                            text-align: center;
+                            white-space: nowrap;
+                            overflow: visible;
+                        }
+
+
+                    }
+
+                    .above-node-text {
+                        font-size: 1em;
+                        text-align: center;
+                        position: absolute;
+                        transition: font-size 0.3s ease-out;
+                        @include no-user-select;
+                    }
+    
+                    &.is-hovered-over,
+                    &.is-selected {
+                        //overflow: visible;
+                        //transition: overflow 0s;
+                        z-index: 101;
+                        .btns-container {
+                            opacity: 1;
+                            z-index: 1;
+                            right: -15px;
+                            @include transition(z-index 0s, opacity .2s, right .2s, bottom .2s);
+                            > button {
+                                width: 30px;
+                                height: 30px;
+                                @include transition(width 0s 0s, height 0s 0s);
+                            }
+                        }
+                        .detail-text {
+                            /* max-width: none !important; */
+                            width: auto !important;
+                            ul {
+                                background-color: transparentize($pedigree-viz-bg-color, 0.25);
+                                box-shadow: 0 0 10px 6px transparentize($pedigree-viz-bg-color, 0.25);
+                                li {
+                                    /* Overrides hidden + text-ellipsis */
+                                    overflow: visible;
+                                }
+                            }
+
+                        }
+                        &.is-editable {
+                            .detail-text {
+                                padding-top: 12px;
+                            }
+                        }
+                    }
+    
+                    &.is-hovered-over:not(.is-selected) {
+                        .btns-container {
+                            right: -18px;
+                            bottom: -21px;
+                            > button {
+                                
+                            }
+                        }
+                        &.is-editable {
+                            .detail-text {
+                                padding-top: 18px;
+                            }
+                        }
+                    }
+                }
+            }
+
+            > svg.pedigree-viz-shapes-layer.shapes-layer {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
+    
+        }
+
+        &[data-is-min-scale="true"][data-is-mounted="true"]{
+            > .viz-area {
+                transition: transform .3s ease;
+            }
+        }
+    }
+
+    > .zoom-controls-container {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        > .zoom-buttons-row {
+            display: flex;
+            align-items: center;
+            > .zoom-btn,
+            > .zoom-value {
+                box-sizing: content-box;
+                text-align: center;
+                padding: 1px 4px;
+                height: 25px;
+                color: #555;
+                background-color: #fff;
+            }
+            > .zoom-btn {
+                border: 1px solid #999;
+                width: 24px;
+
+                &.zoom-out { // Left btn
+                    border-radius: 5px 0 0 5px;
+                    border-right-color: #ddd !important;
+                }
+                &.zoom-in { // Right btn
+                    border-radius: 0 5px 5px 0;
+                    border-left-color : #ddd !important;
+                }
+
+                &:disabled {
+                    color: #999;
+                    pointer-events: none;
+                }
+                &:hover:not(:disabled),
+                &:focus:not(:disabled), &:active:not(:disabled) {
+                    color: #000;
+                    border-color: #555;
+                    outline: none;
+                }
+                &:focus:not(:disabled), &:active:not(:disabled) {
+                    box-shadow: inset 0px 0px 2px 0px #333;
+                }
+            }
+            > .zoom-value {
+                border-top: 1px solid #999999;
+                border-bottom: 1px solid #999999;
+                width: 36px;
+                font-size: 0.875em;
+                line-height: 25px;
+                white-space: nowrap;
+                text-align: right;
+            }
+        }
+        > .zoom-slider {
+            width: 112px;
+            padding-top: 3px;
+            > input[type="range"] {
+                width: inherit;
+                // If we want to make it vertical later:
+                //&[orient="vertical"] {
+                //    writing-mode: bt-lr; /* IE */
+                //    -webkit-appearance: slider-vertical; /* WebKit */
+                //    height: 120px;
+                //}
+            }
+        }
+    }
+
+    &[data-selection-disabled="true"]{
+        .inner-container {
+            > .viz-area {
+                > .individuals-layer {
+                    > .pedigree-individual {
+                        // Unser cursor: pointer
+                        cursor: default !important;
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+svg.pedigree-viz-shapes-layer.shapes-layer {
+
+    > .individuals-bg-shape-layer {
+
+        > g.pedigree-individual-shape {
+            // Shapes will inherit group styles unless overriding
+            stroke-width: 3px;
+            stroke: $pedigree-viz-node-stroke-color;
+            @include transition(transform .2s, -webkit-transform .2s);
+
+            .bg-shape-copy {
+                stroke-width: 0px;
+                fill: $pedigree-viz-node-bg-color;
+            }
+
+            .fg-shape {
+                stroke-width: 3px;
+                fill: transparent;
+                @include transition(stroke-width .2s);
+            }
+
+            text {
+                stroke-width: 0px;
+                fill: $pedigree-viz-node-stroke-color;
+                &.proband-identifier {
+                    font-weight: 700;
+                }
+            }
+
+            circle.circle-disease-dot,
+            rect.rect-disease-partition {
+                @include pedigree-color-cycle-fill;
+                stroke-width: 1;
+                
+            }
+
+            &.is-hovered-over,
+            &.is-selected {
+                .fg-shape {
+                    stroke-width: 4px;
+                    stroke: darken($pedigree-viz-node-stroke-color, 20%);
+                }
+            }
+
+            &.is-affected {
+                fill: transparent; // Colors of disease-arcs behind it will show through.
+                g.disease-path-arcs {
+                    path.disease-arc {
+                        @include pedigree-color-cycle-fill;
+                        stroke-width: 1;
+                        &:only-of-type {
+                            stroke-width: 0;
+                        }
+                    }
+                }
+
+            }
+
+
+        }
+
+    }
+
+    > .individuals-edge-shape-layer {
+        path.edge-path {
+            stroke: $pedigree-viz-node-stroke-color;
+            fill: none;
+            stroke-width: 2;
+            
+            &.is-adjustable {
+                stroke: #7d0000;
+                //stroke: orange;
+            }
+
+            &.not-adjustable {
+                stroke-linecap: square;
+            }
+        }
+    }
+
+    > .relationships-layer {
+        .pedigree-relationship {
+            cursor: pointer;
+            @include transition(transform .2s, -webkit-transform .2s);
+            > circle {
+                stroke: #521f1f;
+                stroke-width: 2px;
+                fill: rgba(82, 31, 31, 0.7);
+            }
+        }
+    }
+
+    > g.selected-node-identifier {
+        @include transition(transform .3s);
+        > g.identifier-corner {
+            @include transition(transform .3s);
+        }
+        path {
+            stroke: $pedigree-viz-node-stroke-color;
+            stroke-width: 2px;
+            fill: none;
+        }
+    }
+}
+
+
+.pedigree-viz-container[data-is-node-selected="true"]:not([data-is-node-hovered-over="true"]) {
+    .viz-area .individuals-layer {
+        div.pedigree-individual:not(.is-selected):not(.is-hovered-over) {
+            .detail-text {
+                opacity: 0.3;
+            }
+        }
+    }
+}
+
+.pedigree-viz-container[data-is-node-hovered-over="true"] {
+    .viz-area .individuals-layer {
+        div.pedigree-individual:not(.is-hovered-over) {
+            .detail-text {
+                opacity: 0.15;
+            }
+        }
+    }
+}

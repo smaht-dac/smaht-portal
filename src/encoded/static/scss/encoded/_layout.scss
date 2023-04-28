@@ -1,0 +1,476 @@
+@charset "UTF-8";
+@use "sass:math";
+
+/* BASE STYLES */
+/* Note: most base styles handled by Bootstrap, with variable settings in bootstrap/_variables.scss */
+
+:root {
+    /* `rem` units will be based on this. */
+	font-size: 16px;
+	/* Same as Bootstrap's logic for setting default sans-serif and monospace base fonts. */
+	--font-family-serif: #{inspect($font-family-serif)};
+}
+
+html {
+	font-size: $font-size-base * $mobile-font-factor;
+	
+	@include media-breakpoint-up(sm) {
+		font-size: $font-size-base;
+	}
+
+}
+
+body {
+    /* text-rendering: optimizeLegibility; */
+	/* We set this for performance, but override in _print */
+	text-rendering: optimizeSpeed;
+	background: #f8f8f8 !important;
+	overflow-x: hidden;
+}
+
+.float-wrap { overflow: hidden; }
+
+[hidden] { display: none !important; }
+
+#application {
+	min-height: 100%;
+	min-height: 100vh;
+    background-color: $appBackgroundColor;
+}
+
+
+*, *:after, *:before {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#layout {
+	height: auto !important;
+    margin: 0 auto -$footer-height;
+    min-height: 100%;
+	background-color: $appBackgroundColor;
+	// overflow-x: hidden;
+}
+
+
+
+
+/***********************************************************
+		HIGH-LEVEL PAGE ALIGNMENT & RELATED
+************************************************************/
+
+.static-page {
+	margin: 0;
+	margin-top: 30px;
+	&.row {
+		margin-left: -10px;
+		margin-right: -10px;
+		width: auto;
+		> div > .help-entry:first-child {
+			margin-top: 5px;
+			> .fourDN-content:first-child  > div:first-child > h2:first-child { margin-top: 20px; }
+		}
+	}
+
+	.help-entry{
+		margin: 50px 0px 50px 0px;
+	}
+
+	.help-entry:first-of-type,
+	.static-page-breadcrumbs + .help-entry {
+		margin-top: 27px;
+	}
+
+}
+
+
+#content {
+
+	padding-top: 0px;
+	padding-bottom: 0px;
+	position: relative;
+
+	> .alerts {
+		margin-top: 20px;
+		.alert.no-close-button > button.close {
+			display: none;
+		}
+	}
+
+}
+
+/* top padding for small & large screens re: fixed nav */
+#pre-content-placeholder {
+	display: none;
+	height: 0px;
+
+	//@include media-breakpoint-up(md) {
+	//	display: block;
+	//	height: 81px; /* Navbar (80px inner height) + its bottom border (1px) */
+	//}
+}
+
+/** Height is of full page height minus test warning, navbar, & footer heights. **/
+#post-navbar-container {
+	position: relative;
+	padding-top: 0px;
+	padding-bottom: 0px;
+
+	// This is replicated in JS for older browsers. If changing, make sure to make adjustment in BodyElement in App.js as well.
+	@include navbar-static-position {
+		min-height: calc(100vh - 134px) !important;
+	}
+
+	@include navbar-fixed-position {
+		min-height: 100vh !important;
+		.test-warning-visible & {
+			min-height: calc(100vh - 52px) !important;
+		}
+	}
+
+
+	/* top padding for small & large screens re: fixed nav & sticky footer */
+	@include media-breakpoint-up(md) {
+		&:before {
+			content: "";
+			display: block;
+			height: 80px;
+			background-color: $navbar-background-color;
+		}
+		// padding-top: 80px;
+		padding-bottom: 50px;
+		body.scolled-past-top &,
+		body.is-full-screen &,
+		body.is-item-view & {
+			&:before {
+				height: 40px;
+			}
+			// padding-top: 40px;
+		}
+
+	}
+
+	#inner-overlays-container {
+		position: static;
+	}
+}
+
+
+
+/*************** BODY STYLES RE: FULL-SCREEN THINGS ***************/
+
+@mixin make-wide-container {
+	width: auto;
+	padding-left: 1rem; /* == 16px */
+	padding-right: 1rem;
+	@include media-breakpoint-between(md, lg) {
+		max-width: none;
+		padding-left: 1.5rem;
+		padding-right: 1.5rem;
+	}
+	@include media-breakpoint-up(xl) {
+		max-width: none;
+		padding-left: 2rem;
+		padding-right: 2rem;
+	}
+}
+
+/* Like .container-fluid, but slightly more padding; for full browser width */
+.container-wide {
+	@include make-wide-container;
+}
+
+/* Potentially deprecated in this project */
+body.is-full-screen {
+
+	/** Make body non-scrollable for pages which aren't search. **/
+	&:not([data-pathname="/browse/"]):not([data-pathname="/search/"]){
+		overflow: hidden;
+		&::-webkit-scrollbar { 
+			display: none; 
+		}
+	}
+
+	@include media-breakpoint-up(lg) {
+		.container {
+			width: auto;
+			max-width: none;
+			margin-left: 20px;
+			margin-right: 20px;
+		}
+	}
+}
+
+
+/***********************************************************
+		HEADER & TOP AREAS (Navbar, Page Titles, etc.)
+************************************************************/
+
+#page-title-container {
+
+	h1.page-title {
+
+		font-weight: 200;
+
+		&.top-of-page { // Never not this, I think..
+			margin-top: 0px;
+			margin-bottom: 0px;
+			&:first-child {
+				// No breadcrumbs present
+				padding-top: 55px;
+
+				body[data-current-action="multiselect"] &,
+				body[data-current-action="selection"] & {
+					// Decrease height by 20px
+					padding-top: 35px;
+				}
+			}
+
+			body[data-pathname="/"] &,
+			body[data-pathname="/home"] &,
+			&.home-page-title {
+				> .subtitle.page-subtitle {
+					font-size: 1.6rem;
+					margin-top: 2px;
+				}
+			}
+		}
+
+		> .page-subtitle {
+			font-weight: 400;
+			margin-left: 2px;
+			margin-top: 0px;
+			font-size: 18px;
+			//padding-bottom: 10px;
+			> .subtitle-prepend {
+				margin-right: 8px;
+				&.border-right {
+					padding-right : 8px;
+					border-right: 1px solid #ddd;
+				}
+			}
+		}
+	
+		> .subtitle.prominent {
+			/* Subtitles which are part of the title, e.g. Experiment Set <.subtitle>4324ADADF</.subtitle> */
+	
+			font-weight: 400;
+			font-size : 0.75em;
+			display: inline-block;
+			margin-left: 9px;
+			vertical-align: middle;
+	
+			body[data-pathname="/search/"] & {
+				margin-left: 6px;
+			}
+	
+		}
+
+	}
+}
+
+
+/* *********************************************************
+		FOOTER
+********************************************************** */
+
+#page-footer {
+
+	> .page-footer {
+		background-color: $navbar-background-color;
+		//line-height: 0;
+		text-align: center;
+		overflow: hidden;
+		/* border-top: 1px solid darken($navbar-background-color, 10%); */
+		//@include filter-gradient(#ffffff, #f8f8f8, vertical);
+
+
+		a {
+			color: #bfbfbf;
+		}
+		ul {
+			list-style: none;
+			list-style-position: outside;
+			padding: 0;
+		}
+
+		.footer-section {
+			text-align: center;
+			color: #bfbfbf;
+			padding: 15px 0px 14px;
+			@include media-breakpoint-up(sm) {
+
+				text-align: right;
+				&.copy-notice {
+					text-align: left;
+				}
+
+				li:last-child {
+					padding-right: 0;
+				}
+			}
+
+			>div>a:hover {
+				text-decoration: none !important;
+				color:#ffffff;
+			}
+		}
+	}
+	
+}
+
+// make footer look good on larger screens
+	// and activate sticky footer
+	@include media-breakpoint-up(md) {
+
+		#page-footer {
+			height: $footer-height;
+			z-index: 200;
+			> .page-footer {
+				height: $footer-height - $appVersionHeight;
+			}
+		}
+
+		@include sticky-footer($footer-height, "#layout", none, "#page-footer");
+
+	}
+
+
+
+/**********************************************************/
+// Flexbox temporary classes; might be able to change or
+// remove with Bootstrap 4
+
+.flexrow {
+    @extend .row;
+
+    @include media-breakpoint-up(sm) {
+        .flexbox & {
+            display: flex;
+        }
+    }
+}
+
+.flexcol-sm-6 {
+    @extend .col-sm-6;
+
+    @include media-breakpoint-up(sm) {
+        .flexbox & {
+            flex: 1 1 0px;
+            width: auto;
+        }
+    }
+}
+
+
+/***********************************************************
+		Utility/Responsive Classes
+***********************************************************/
+
+
+.left { float: left; }
+.right { float: right; }
+
+
+.clickable {
+	cursor: pointer;
+	> label {
+		cursor: pointer;
+	}
+}
+
+.unclickable {
+	cursor: not-allowed;
+	> label {
+		cursor: not-allowed;
+	}
+}
+
+
+
+.off-screen {
+	position : absolute !important;
+	left : -9999px !important;
+}
+
+.pull-right { // Holdover from Bootstrap 3
+	float: right;
+}
+
+#slow-load-container {
+	position: fixed;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	z-index: -10;
+	background-color: rgba(28,28,30,.7);
+	transform: translate3d(0,0,0);
+	opacity: 0;
+	transition: opacity .5s, z-index 0s 0.5s;
+	.inner {
+		position: absolute;
+		top: 50%;
+		margin-top:-20px;
+		left: 0;
+		right:0;
+		text-align:center;
+		color: #999;
+		> i.icon {
+			font-size: 3rem;
+		}
+	}
+	&.visible {
+		opacity: 1;
+		z-index: 100;
+		transition: opacity .25s, z-index 0s 0s;
+		.inner > i.icon {
+			-webkit-animation: fa-spin 2s infinite linear;
+    		animation: fa-spin 2s infinite linear;
+		}
+	}
+}
+
+
+@include media-breakpoint-down(xs) {
+
+	.text-left-xs {
+		// Make text left-aligned for collapsed mobile view(s),
+		// e.g. if is aligned right on larger screens.
+		text-align: left !important;
+	}
+
+}
+
+
+
+/*
+TODO: Re-enable for split buttons w/ specific className maybe.
+div.dropdown.btn-group {
+	.dropdown-toggle.btn {
+		padding-right: 14px;
+		> span.caret {
+			position: relative;
+			position: static;
+			top: none;
+			right: none;
+		}
+	}
+}
+*/
+
+@mixin button-no-focus-outline {
+	&:active, &:focus, &.focus, &:focus.active, &.focus:active, &.focus:focus {
+		outline: none;
+	}
+}
+
+/** Utility class to move an icon down 1px. Useful for centering vertically in buttons. */
+.shift-down-1 {
+	position: relative;
+	top: 1px;
+}
+
+
+

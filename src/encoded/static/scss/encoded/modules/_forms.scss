@@ -1,0 +1,66 @@
+/*     FORMS      */
+
+
+/* Input Fields */
+$inputBorder: #999999;
+$inputFocusBgColor: #ffffff;
+$inputFocusBorderColor: #000000;
+
+#content form {
+	margin-bottom: 1em;
+	@include clearfix;
+}
+
+
+input[type="text"], input[type="password"], input[type="date"], input[type="datetime"], input[type="email"], input[type="number"], input[type="search"], input[type="tel"], input[type="time"], input[type="url"], textarea, select {
+	font-family: inherit;
+	@include font-size(1rem);
+	font-weight: normal;
+	//@include transition(all 0.15s linear);
+
+	&[disabled] { background-color: #ddd; }
+
+	@include media-breakpoint-up(sm) {
+		font-size: inherit;
+	}
+}
+
+/** Override Bootstrap defaults **/
+label {
+	font-weight: 600;
+}
+
+.form-inline,
+.navbar-form {
+	.form-control {
+		display: inline-block;
+		outline: none !important;
+		box-shadow: none;
+
+	}
+}
+
+
+/** Checkbox Add'l Stylings - used currently for homepage **/
+
+.checkbox-with-label {
+	> label {
+		/* Overrides default above, since we usually don't want bold styling for checkboxes. */
+		font-weight: 400;
+		i.icon-circle-notch {
+			position: absolute;
+			left: 1.075rem;
+			top: 50%;
+			margin-top: -8px;
+		}
+	}
+	> label.hide-checkbox > input[type="checkbox"] {
+		display: none;
+	}
+	> label.is-changing {
+		> input[type="checkbox"] {
+			visibility: hidden;
+		}
+
+	}
+}

@@ -1,0 +1,22 @@
+<svg id="svg2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 59.48 60.22">
+    <defs>
+        <style>
+            .cls-for-circle {
+                fill: url(#fourfront_linear_gradient);
+                stroke: url(#fourfront_linear_gradient);
+            }
+            .cls-for-letter-path {
+                fill:#fff;
+            }
+        </style>
+        <linearGradient id="fourfront_linear_gradient" x1="1" y1="30" x2="59" y2="30" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#238bae"/>
+            <stop offset="1" stop-color="#8ac640"/>
+        </linearGradient>
+    </defs>
+    <title>4DN Logo</title>
+    <ellipse class="cls-for-circle" cx="30" cy="30" rx="29" ry="29"/>
+    <path class="letter-4 cls-for-letter-path" d="M19.13,33.94H16.46v3.88H13.33V33.94H5.11V32.12l7.22-10.8h4.13V31.44h2.67Zm-10.7-2.5h4.9V26.39l.08-2.7h-.05a19,19,0,0,1-1.5,2.73Z"/>
+    <path class="letter-d cls-for-letter-path" d="M33.66,23.47a8.33,8.33,0,0,1,2.12,6.1,8.33,8.33,0,0,1-2.12,6.1,8.08,8.08,0,0,1-6,2.15H21.28V21.32h6.38A8.08,8.08,0,0,1,33.66,23.47ZM31,33.66a6.21,6.21,0,0,0,1.19-4.09A6.21,6.21,0,0,0,31,25.48a4.36,4.36,0,0,0-3.54-1.41H24.73v11h2.75A4.36,4.36,0,0,0,31,33.66Z"/>
+    <path class="letter-n cls-for-letter-path" d="M52.56,37.82h-4l-5.78-9.7-1.42-2.78h0l.1,2.93v9.55h-3.1V21.32h3.93L48.08,31l1.43,2.8h.05l-.1-2.92V21.32h3.1Z"/>
+</svg>
