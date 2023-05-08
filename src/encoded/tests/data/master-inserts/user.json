@@ -1,0 +1,32 @@
+[
+    {
+        "email": "loadxl@hms.harvard.edu",
+        "first_name": "loadxl",
+        "groups": [
+            "admin"
+        ],
+        "institution": "hms-dbmi",
+        "last_name": "loadxl",
+        "status": "current",
+        "timezone": "US/Pacific",
+        "uuid": "3202fd57-44d2-44fb-a131-afb1e43d8ae5"
+    },
+    {
+        "email": "cgap.platform@gmail.com",
+        "first_name": "Genomics Platform",
+        "last_name": "Administration",
+        "groups": [
+            "admin"
+        ],
+        "uuid": "b5f738b6-455a-42e5-bc1c-77fbfd9b15d2"
+    },
+    {
+        "email": "william_ronchetti@hms.harvard.edu",
+        "first_name": "Will",
+        "last_name": "Ronchetti",
+        "uuid": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "groups": [
+            "admin"
+        ]
+    }
+]

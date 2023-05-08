@@ -21,7 +21,7 @@ from snovault.elasticsearch import APP_FACTORY
 from snovault.elasticsearch.interfaces import INVALIDATION_SCOPE_ENABLED
 from dcicutils.misc_utils import VirtualApp
 from .appdefs import APP_VERSION_REGISTRY_KEY
-from .loadxl import load_all
+from snovault.loadxl import load_all
 
 
 # snovault.app.STATIC_MAX_AGE (8 seconds) is WAY too low for /static and /profiles - Will March 15 2022
@@ -149,10 +149,9 @@ def main(global_config, **local_config):
         },
         'allowedConnections': settings['auth0.allowed_connections']
     }
-    # set google reCAPTCHA keys
-    # TODO propagate from GAC
-    settings['g.recaptcha.key'] = os.environ.get('reCaptchaKey')
-    settings['g.recaptcha.secret'] = os.environ.get('reCaptchaSecret')
+    # set google reCAPTCHA keys - these should now come from the GAC
+    # settings['g.recaptcha.key'] = os.environ.get('reCaptchaKey')
+    # settings['g.recaptcha.secret'] = os.environ.get('reCaptchaSecret')
     # enable invalidation scope
     settings[INVALIDATION_SCOPE_ENABLED] = True
 
@@ -175,25 +174,13 @@ def main(global_config, **local_config):
     # must include, as tm.attempts was removed from pyramid_tm
     config.include('pyramid_retry')
 
-    # for CGAP, always enable type=nested mapping
     # NOTE: this MUST occur prior to including Snovault, otherwise it will not work
     config.add_settings({'mappings.use_nested': True})
     config.include(configure_dbsession)
     config.include('snovault')
+    config.include('encoded-core')
     config.commit()  # commit so search can override listing
-
-    # Render an HTML page to browsers and a JSON document for API clients
-    # config.include(add_schemas_to_html_responses)
-    config.include('.renderers')
-    config.include('.authentication')
-    config.include('.server_defaults')
-    config.include('.root')
-    config.include('.types')
-    config.include('.batch_download')
     config.include('.loadxl')
-    config.include('.visualization')
-    config.include('.ingestion_listener')
-    config.include('.custom_embed')
 
     if 'elasticsearch.server' in config.registry.settings:
         config.include('snovault.elasticsearch')
@@ -201,13 +188,9 @@ def main(global_config, **local_config):
         config.include('.search.compound_search')  # could make enabling configurable
 
     # this contains fall back url, so make sure it comes just before static_resoruces
-    config.include('.types.page')
+    config.include('encoded-core.types.page')
     config.include(static_resources)
     config.include(changelogs)
-
-    aws_ip_ranges = json_from_path(settings.get('aws_ip_ranges_path'), {'prefixes': []})
-    config.registry['aws_ipset'] = netaddr.IPSet(
-        record['ip_prefix'] for record in aws_ip_ranges['prefixes'] if record['service'] == 'AMAZON')
 
     if asbool(settings.get('testing', False)):
         config.include('.tests.testing_views')
