@@ -30,7 +30,7 @@ def pytest_configure():
     tempfile.tempdir = '/tmp'
 
 
-USE_SAMPLE_ENVUTILS = environ_bool("USE_SAMPLE_ENVUTILS")
+USE_SAMPLE_ENVUTILS = True # environ_bool("USE_SAMPLE_ENVUTILS")
 
 if USE_SAMPLE_ENVUTILS:
 

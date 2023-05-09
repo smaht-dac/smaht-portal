@@ -1,0 +1,475 @@
+{
+    "title": "Mixin properties",
+    "schema_version": {
+        "schema_version": {
+            "title": "Schema Version",
+            "internal_comment": "Do not submit, value is assigned by the server. The version of the JSON schema that the server uses to validate the object. Schema version indicates generation of schema used to save version to to enable upgrade steps to work. Individual schemas should set the default.",
+            "type": "string",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "pattern": "^\\d+(\\.\\d+)*$",
+            "requestMethod": []
+        }
+    },
+    "uuid": {
+        "uuid": {
+            "title": "UUID",
+            "type": "string",
+            "format": "uuid",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "serverDefault": "uuid4",
+            "permission": "restricted_fields",
+            "requestMethod": "POST"
+        }
+    },
+    "accession": {
+        "accession": {
+            "title": "Accession",
+            "description": "A unique identifier to be used to reference the object.",
+            "internal_comment": "Only admins are allowed to set or update this value.",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "type": "string",
+            "format": "accession",
+            "permission": "restricted_fields",
+            "serverDefault": "accession"
+        },
+        "alternate_accessions": {
+            "title": "Alternate Accessions",
+            "description": "Accessions previously assigned to objects that have been merged with this object.",
+            "type": "array",
+            "lookup": 1000,
+            "internal_comment": "Only admins are allowed to set or update this value.",
+            "items": {
+                "title": "Alternate Accession",
+                "description": "An accession previously assigned to an object that has been merged with this object.",
+                "type": "string",
+                "permission": "restricted_fields",
+                "format": "accession"
+            }
+        }
+    },
+    "aliases": {
+        "aliases": {
+            "title": "Aliases",
+            "description": "Institution-specific ID (e.g. bgm:cohort-1234-a).",
+            "type": "array",
+            "comment": "Colon separated lab name and lab identifier, no slash. (e.g. dcic-lab:42).",
+            "lookup": 1,
+            "uniqueItems": true,
+            "ff_flag": "clear clone",
+            "items": {
+                "uniqueKey": "alias",
+                "title": "ID Alias",
+                "description": "Institution-specific ID (e.g. bgm:cohort-1234-a).",
+                "type": "string",
+                "pattern": "^[^\\s\\\\\\/]+:[^\\s\\\\\\/]+$"
+            }
+        }
+    },
+    "status": {
+        "status": {
+            "title": "Status",
+            "type": "string",
+            "default": "in review",
+            "permission": "restricted_fields",
+            "enum": [
+                "shared",
+                "obsolete",
+                "current",
+                "inactive",
+                "in review",
+                "deleted"
+            ]
+        }
+    },
+    "submitted": {
+        "date_created": {
+            "rdfs:subPropertyOf": "dc:created",
+            "title": "Date Created",
+            "lookup": 1000,
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ],
+            "serverDefault": "now",
+            "permission": "restricted_fields"
+        },
+        "submitted_by": {
+            "rdfs:subPropertyOf": "dc:creator",
+            "title": "Submitted By",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "type": "string",
+            "linkTo": "User",
+            "lookup": 1000,
+            "serverDefault": "userid",
+            "permission": "restricted_fields"
+        }
+    },
+    "modified": {
+        "last_modified": {
+            "title": "Last Modified",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "type": "object",
+            "additionalProperties": false,
+            "lookup": 1000,
+            "properties": {
+                "date_modified": {
+                    "title": "Date Modified",
+                    "description": "Do not submit, value is assigned by the server. The date the object is modified.",
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "format": "date-time"
+                        },
+                        {
+                            "format": "date"
+                        }
+                    ],
+                    "permission": "restricted_fields"
+                },
+                "modified_by": {
+                    "title": "Modified By",
+                    "description": "Do not submit, value is assigned by the server. The user that modfied the object.",
+                    "type": "string",
+                    "linkTo": "User",
+                    "permission": "restricted_fields"
+                }
+            }
+        }
+    },
+    "notes": {
+        "notes": {
+            "title": "Notes",
+            "description": "Internal notes.",
+            "type": "string",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "elasticsearch_mapping_index_type": {
+                "title": "Field mapping index type",
+                "description": "Defines one of three types of indexing available",
+                "type": "string",
+                "default": "analyzed",
+                "enum": [
+                    "analyzed",
+                    "not_analyzed",
+                    "no"
+                ]
+            }
+        }
+    },
+    "documents": {
+        "documents": {
+            "title": "Documents",
+            "description": "Documents that provide additional information (not data file).",
+            "comment": "See Documents sheet or collection for existing items.",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+                "title": "Document",
+                "description": "A document that provides additional information (not data file).",
+                "type": "string",
+                "linkTo": "Document"
+            }
+        }
+    },
+    "attachment": {
+        "attachment": {
+            "title": "Attached File",
+            "description": "File attached to this Item.",
+            "type": "object",
+            "lookup": 1,
+            "additionalProperties": false,
+            "formInput": "file",
+            "attachment": true,
+            "ff_flag": "clear clone",
+            "properties": {
+                "download": {
+                    "title": "File Name",
+                    "description": "File Name of the attachment.",
+                    "type": "string"
+                },
+                "href": {
+                    "internal_comment": "Internal webapp URL for document file",
+                    "title": "href",
+                    "description": "Path to download the file attached to this Item.",
+                    "type": "string"
+                },
+                "type": {
+                    "title": "Media Type",
+                    "type": "string",
+                    "enum": [
+                        "application/msword",
+                        "application/vnd.ms-excel",
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        "application/pdf",
+                        "application/zip",
+                        "application/proband+xml",
+                        "text/plain",
+                        "text/tab-separated-values",
+                        "image/jpeg",
+                        "image/tiff",
+                        "image/gif",
+                        "text/html",
+                        "image/png",
+                        "image/svs",
+                        "text/autosql"
+                    ]
+                },
+                "md5sum": {
+                    "title": "MD5 Checksum",
+                    "description": "Use this to ensure that your file was downloaded without errors or corruption.",
+                    "type": "string",
+                    "format": "md5sum"
+                },
+                "size": {
+                    "title": "Attachment size",
+                    "description": "Size of the attachment on disk",
+                    "type": "integer"
+                },
+                "width": {
+                    "title": "Image width",
+                    "description": "Width of the image attached, in pixels.",
+                    "type": "integer"
+                },
+                "height": {
+                    "title": "Image height",
+                    "description": "Height of the image attached, in pixels.",
+                    "type": "integer"
+                },
+                "blob_id": {
+                    "title": "Blob ID",
+                    "type": "string",
+                    "internal_comment": "blob storage ID. Use to like with s3/rds"
+                }
+            }
+        }
+    },
+    "dbxrefs": {
+        "dbxrefs": {
+            "@type": "@id",
+            "rdfs:subPropertyOf": "rdfs:seeAlso",
+            "title": "External identifiers",
+            "comment": "Enter as a database name:identifier eg. HGNC:PARK2",
+            "description": "Unique identifiers from external resources.",
+            "type": "array",
+            "ff_flag": "clear clone",
+            "uniqueItems": true,
+            "items": {
+                "title": "External identifier",
+                "description": "A unique identifier from external resource.",
+                "type": "string"
+            }
+        }
+    },
+    "alternative_ids": {
+        "alternative_ids": {
+            "title": "Alternative identifiers",
+            "comment": "If an item generated from an owl file is deprecated/obsoleted in the ontology then often the id for the item is added to the new rdf that should replace it as an alternative id",
+            "description": "Alternative id - often referring to a deprecated object which this item replaces.",
+            "type": "array",
+            "uniqueItems": true,
+            "lookup": 1000,
+            "items": {
+                "title": "Alternative identifier",
+                "description": "An alternative identifier from this resource - referring to an object that has been deprecated/obsoleted.",
+                "type": "string"
+            }
+        }
+    },
+    "ingestion_ids": {
+        "ingestion_ids": {
+            "title": "Submission IDs",
+            "description": "uuids of the IngestionSubmission items that created/edited this case",
+            "type": "array",
+            "items": {
+                "title": "Submission ID",
+                "description": "an IngestionSubmission item that created or edited this case",
+                "type": "string"
+            }
+        }
+    },
+    "tags": {
+        "tags": {
+            "title": "Tags",
+            "description": "Key words that can tag an item - useful for filtering.",
+            "type": "array",
+            "lookup": 1000,
+            "uniqueItems": true,
+            "ff_flag": "clear clone",
+            "items": {
+                "title": "Tag",
+                "description": "A tag for the item.",
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 50,
+                "pattern": "^[a-zA-Z0-9_\\-][a-zA-Z0-9_\\-\\s]+[a-zA-Z0-9_\\-]$"
+            }
+        }
+    },
+    "static_embeds": {
+        "static_headers": {
+            "title": "Static Headers",
+            "description": "Array of linkTos for static sections to be displayed at the top of an item page",
+            "type": "array",
+            "uniqueItems": true,
+            "permission": "restricted_fields",
+            "items": {
+                "title": "Static Header",
+                "description": "Static section displayed at the top of an item page",
+                "type": "string",
+                "linkTo": "UserContent"
+            }
+        },
+        "static_content": {
+            "title": "Static Content",
+            "description": "Array of objects containing linkTo UserContent and 'position' to be placed on Item view(s).",
+            "type": "array",
+            "uniqueItems": true,
+            "permission": "restricted_fields",
+            "items": {
+                "title": "Static Content Definition",
+                "description": "Link to UserContent Item plus location.",
+                "type": "object",
+                "required": [
+                    "location",
+                    "content"
+                ],
+                "properties": {
+                    "content": {
+                        "type": "string",
+                        "linkTo": "UserContent",
+                        "title": "Link to Content",
+                        "description": "A UserContent Item."
+                    },
+                    "location": {
+                        "type": "string",
+                        "title": "Location of Content",
+                        "description": "Where this content should be displayed. Item schemas could potentially define an enum to contrain values.",
+                        "default": "header"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description",
+                        "description": "Description or note about this content. Might be displayed as a footnote or caption, if applicable for view."
+                    }
+                }
+            }
+        }
+    },
+    "facets_common": {
+        "project.display_title": {
+            "title": "Project"
+        },
+        "institution.display_title": {
+            "title": "Institution"
+        }
+    },
+    "supplementary_files": {
+        "other_processed_files": {
+            "title": "Supplementary Processed Files",
+            "description": "Additional, archived or preliminary processed filesets that are derived from files in this experiment set.",
+            "type": "array",
+            "lookup": 410,
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "items": {
+                "title": "Supplementary Processed Filesets",
+                "description": "Fileset metadata",
+                "type": "object",
+                "required": [
+                    "title",
+                    "files"
+                ],
+                "properties": {
+                    "title": {
+                        "title": "Fileset Title",
+                        "type": "string",
+                        "lookup": 411
+                    },
+                    "type": {
+                        "title": "Fileset Type",
+                        "type": "string",
+                        "lookup": 412,
+                        "enum": [
+                            "supplementary",
+                            "archived",
+                            "preliminary",
+                            "visualization"
+                        ]
+                    },
+                    "description": {
+                        "title": "Description",
+                        "type": "string",
+                        "lookup": 413
+                    },
+                    "files": {
+                        "title": "Files",
+                        "type": "array",
+                        "lookup": 414,
+                        "items": {
+                            "title": "File",
+                            "type": "string",
+                            "linkTo": "FileProcessed"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "submitted_files": {
+        "files": {
+            "title": "Submitted Files",
+            "description": "Submitted files associated with the item",
+            "type": "array",
+            "items": {
+                "title": "Submitted File",
+                "description": "File metadata.",
+                "type": "string",
+                "linkTo": "File"
+            }
+        }
+    },
+    "meta_workflow_runs": {
+        "meta_workflow_runs": {
+            "title": "MetaWorkflowRuns",
+            "description": "Bioinformatics analysis pipelines associated with this item",
+            "type": "array",
+            "items": {
+                "title": "MetaWorkflowRun",
+                "type": "string",
+                "linkTo": "MetaWorkflowRun"
+            }
+        }
+    },
+    "processed_files": {
+        "processed_files": {
+            "title": "Processed Files",
+            "description": "Processed files from bioinformatics pipelines",
+            "type": "array",
+            "items": {
+                "title": "Processed File",
+                "type": "string",
+                "linkTo": "FileProcessed"
+            }
+        }
+    }
+}

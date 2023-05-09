@@ -178,17 +178,15 @@ def main(global_config, **local_config):
     config.add_settings({'mappings.use_nested': True})
     config.include(configure_dbsession)
     config.include('snovault')
-    config.include('encoded-core')
+    config.include('encoded_core')
+    config.include('.types')
     config.commit()  # commit so search can override listing
-    config.include('.loadxl')
 
     if 'elasticsearch.server' in config.registry.settings:
         config.include('snovault.elasticsearch')
-        config.include('.search.search')
-        config.include('.search.compound_search')  # could make enabling configurable
 
     # this contains fall back url, so make sure it comes just before static_resoruces
-    config.include('encoded-core.types.page')
+    config.include('encoded_core.types.page')
     config.include(static_resources)
     config.include(changelogs)
 
@@ -197,7 +195,8 @@ def main(global_config, **local_config):
 
     # Load upgrades last so that all views (including testing views) are
     # registered.
-    config.include('.upgrade')
+    # uncomment once relevant
+    # config.include('.upgrade')
 
     # initialize sentry reporting
     init_sentry(settings.get('sentry_dsn', None))
