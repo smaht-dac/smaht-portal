@@ -90,6 +90,8 @@ def include_snovault(config: Configurator) -> None:
     if 'redis.server' in config.registry.settings:
         config.include('snovault.redis')
 
+    config.commit()
+
 
 def static_resources(config):
     mimetypes.init()
@@ -238,7 +240,6 @@ def main(global_config, **local_config):
     include_snovault(config)  # controls config inclues from snovault
     config.include('encoded_core')
     config.include('encoded')
-    config.commit()  # commit so search can override listing
 
     if 'elasticsearch.server' in config.registry.settings:
         config.include('snovault.elasticsearch')

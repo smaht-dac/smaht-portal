@@ -5,11 +5,18 @@ from pyramid.security import (
 from snovault import (
     Root, calculated_property, root
 )
-from snovault.root import acl_from_settings, is_accession
+from snovault.root import (
+    acl_from_settings, is_accession, health_check, item_counts, type_metadata, submissions_page
+)
 from .appdefs import APP_VERSION_REGISTRY_KEY
 
 
 def includeme(config):
+    """ Import and include routes from snovault here, do NOT config.include('snovault.root') """
+    config.include(health_check)
+    config.include(item_counts)
+    config.include(type_metadata)
+    config.include(submissions_page)
     config.scan(__name__)
 
 

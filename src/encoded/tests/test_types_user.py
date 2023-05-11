@@ -17,4 +17,4 @@ def admin(testapp):
 
 def test_types_user_succeeds(testapp, admin):
     """ Tests that we can load a user into the system using the snovault user """
-    assert testapp.get(f'/{admin["@graph"][0]["email"]}', status=200)
+    assert testapp.get(f'/user/{admin["email"]}', status=200)
