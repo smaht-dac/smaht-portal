@@ -1,9 +1,14 @@
+
 from snovault.authentication import (
     NamespacedAuthenticationPolicy,
     BasicAuthAuthenticationPolicy,
     basic_auth_check,
     Auth0AuthenticationPolicy,
 )
+
+
+def includeme(config):
+    config.scan()
 
 
 class SMAHTNamespacedAuthenticationPolicy(NamespacedAuthenticationPolicy):

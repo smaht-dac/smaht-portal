@@ -33,6 +33,64 @@ DEFAULT_AUTH0_DOMAIN = 'hms-dbmi.auth0.com'
 DEFAULT_AUTH0_ALLOWED_CONNECTIONS = 'github,google-oauth2,partners,hms-it'
 
 
+def includeme(config):
+    """ Implements the includeme mechanism for encoded
+        For detailed explanation see: https://docs.pylonsproject.org/projects/pyramid/en/latest/api/config.html
+    """
+    config.include('encoded.authentication')
+    config.include('encoded.root')
+    # config.include('encoded.visualization')
+    config.commit()
+
+
+def include_snovault(config: Configurator) -> None:
+    """ Implements the selective include mechanism from Snovault
+        Decide here which modules you want to include from snovault
+
+        Note that because of new conflicts from extended modules, you can no longer
+        do config.include('snovault'), as you will get Configurator conflicts when
+        bringing in duplicates of various modules ie: root.py
+    """
+    config.include('snovault.authentication')
+    config.include('snovault.util')
+    config.include('snovault.drs')
+    config.include('snovault.stats')
+    config.include('snovault.batchupgrade')
+    config.include('snovault.calculated')
+    config.include('snovault.config')
+    config.include('snovault.connection')
+    config.include('snovault.custom_embed')
+    config.include('snovault.embed')
+    config.include('snovault.json_renderer')
+    config.include('snovault.validation')
+    config.include('snovault.predicates')
+    config.include('snovault.invalidation')
+    config.include('snovault.upgrader')
+    config.include('snovault.aggregated_items')
+    config.include('snovault.storage')
+    config.include('snovault.typeinfo')
+    config.include('snovault.types')
+    config.include('snovault.resources')
+    config.include('snovault.attachment')
+    config.include('snovault.schema_graph')
+    config.include('snovault.jsonld_context')
+    config.include('snovault.schema_views')
+    config.include('snovault.crud_views')
+    config.include('snovault.indexing_views')
+    config.include('snovault.resource_views')
+    config.include('snovault.settings')
+    config.include('snovault.server_defaults')
+
+    # make search available if ES is configured
+    if config.registry.settings.get('elasticsearch.server'):
+        config.include('snovault.search.search')
+        config.include('snovault.search.compound_search')
+
+    # configure redis server in production.ini
+    if 'redis.server' in config.registry.settings:
+        config.include('snovault.redis')
+
+
 def static_resources(config):
     mimetypes.init()
     mimetypes.init([pkg_resources.resource_filename('encoded', 'static/mime.types')])
@@ -177,9 +235,9 @@ def main(global_config, **local_config):
     # NOTE: this MUST occur prior to including Snovault, otherwise it will not work
     config.add_settings({'mappings.use_nested': True})
     config.include(configure_dbsession)
-    config.include('snovault')
+    include_snovault(config)  # controls config inclues from snovault
     config.include('encoded_core')
-    config.include('.types')
+    config.include('encoded')
     config.commit()  # commit so search can override listing
 
     if 'elasticsearch.server' in config.registry.settings:
