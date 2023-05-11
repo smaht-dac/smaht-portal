@@ -39,6 +39,7 @@ def includeme(config):
     """
     config.include('encoded.authentication')
     config.include('encoded.root')
+    config.include('encoded.types')
     # config.include('encoded.visualization')
     config.commit()
 
@@ -166,15 +167,7 @@ def init_code_guru(*, group_name, region=ECSUtils.REGION):
     Profiler(profiling_group_name=group_name, region_name=region).start()
 
 
-def main(global_config, **local_config):
-    """
-    This function returns a Pyramid WSGI application.
-    """
-
-    settings = global_config
-    settings.update(local_config)
-
-    # BEGIN PART THAT'S NOT IN FOURFRONT
+def set_logging_main(settings):
     # adjust log levels for some annoying loggers
     lnames = ['boto', 'urllib', 'elasticsearch', 'dcicutils']
     for name in logging.Logger.manager.loggerDict:
@@ -184,13 +177,9 @@ def main(global_config, **local_config):
     set_logging(in_prod=settings.get('production'))
     # set_logging(settings.get('elasticsearch.server'), settings.get('production'))
 
-    # source environment variables on elastic beanstalk
-    source_beanstalk_env_vars()
 
-    # settings['snovault.jsonld.namespaces'] = json_asset('encoded:schemas/namespaces.json')
-    # settings['snovault.jsonld.terms_namespace'] = 'https://www.encodeproject.org/terms/'
-    settings['snovault.jsonld.terms_prefix'] = 'encode'
-    # set auth0 keys
+def set_auth0_config(settings):
+    """ Sets auth0 settings """
     settings['auth0.domain'] = settings.get('auth0.domain', os.environ.get('Auth0Domain', DEFAULT_AUTH0_DOMAIN))
     settings['auth0.client'] = settings.get('auth0.client', os.environ.get('Auth0Client'))
     settings['auth0.secret'] = settings.get('auth0.secret', os.environ.get('Auth0Secret'))
@@ -209,21 +198,43 @@ def main(global_config, **local_config):
         },
         'allowedConnections': settings['auth0.allowed_connections']
     }
-    # set google reCAPTCHA keys - these should now come from the GAC
-    # settings['g.recaptcha.key'] = os.environ.get('reCaptchaKey')
-    # settings['g.recaptcha.secret'] = os.environ.get('reCaptchaSecret')
-    # enable invalidation scope
-    settings[INVALIDATION_SCOPE_ENABLED] = True
 
+
+def set_mirror_settings(settings):
     # set mirrored Elasticsearch location (for staging and production servers)
-    # does not exist for CGAP currently
     mirror = get_mirror_env_from_context(settings)
     if mirror is not None:
         settings['mirror.env.name'] = mirror
         settings['mirror_health'] = get_health_page(ff_env=mirror)
+
+
+
+def main(global_config, **local_config):
+    """
+    This function returns a Pyramid WSGI application.
+    """
+
+    settings = global_config
+    settings.update(local_config)
+    set_logging_main(settings)
+
+    # Set some env vars (should no longer be necessary)
+    source_beanstalk_env_vars()
+    # set google reCAPTCHA keys - these should now come from the GAC
+    settings['g.recaptcha.key'] = os.environ.get('reCaptchaKey')
+    settings['g.recaptcha.secret'] = os.environ.get('reCaptchaSecret')
+    settings['snovault.jsonld.terms_prefix'] = 'encode'
+    set_auth0_config(settings)
+
+    # enable invalidation scope, mirror settings
+    settings[INVALIDATION_SCOPE_ENABLED] = True
+    set_mirror_settings(settings)
+
+    # Create config object for includes
     config = Configurator(settings=settings)
 
-    config.registry[APP_FACTORY] = main  # used by mp_indexer
+    # Set app factory for spawning application
+    config.registry[APP_FACTORY] = main
     config.include(app_version)
 
     config.include('pyramid_multiauth')  # must be before calling set_authorization_policy

@@ -10,7 +10,7 @@ from .base import SMAHTItem
         'description': 'Listing of Submission Centers',
     })
 class SubmissionCenter(SMAHTItem):
-    """Project class."""
+    """ Submission Center class """
 
     item_type = 'submission-center'
     schema = load_schema('encoded:schemas/submission_center.json')

@@ -1,2 +1,2 @@
 def includeme(config):
-    config.scan()
+    config.scan(__name__)
