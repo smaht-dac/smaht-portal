@@ -3,7 +3,7 @@ from copy import deepcopy
 from encoded_core.types.file_submitted import FileSubmitted as CoreFileSubmitted
 from encoded_core.types.file_reference import FileReference as CoreFileReference
 from encoded_core.types.file_processed import FileProcessed as CoreFileProcessed
-from .base import SMAHTItem
+from .base import SMAHTItem, mixin_smaht_permission_types
 
 
 ENCODED_CORE_FILE_SUBMITTED_SCHEMA = deepcopy(CoreFileSubmitted.schema)
@@ -22,7 +22,11 @@ class SMAHTFileSubmitted(SMAHTItem, CoreFileSubmitted):
     """ Overwrites the FileSubmitted type from encoded-core, customizing the schema for smaht-portal """
     item_type = 'smaht_file_submitted'
     base_types = ['SMAHTItem', 'FileSubmitted', 'File']
-    schema = ENCODED_CORE_FILE_SUBMITTED_SCHEMA
+    STATUS_ACL = SMAHTItem.STATUS_ACL
+    schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_SUBMITTED_SCHEMA)
+
+    def __ac_local_roles__(self):
+        return SMAHTItem.__ac_local_roles__(self)
 
 
 @collection(
@@ -36,7 +40,7 @@ class SMAHTFileReference(SMAHTItem, CoreFileReference):
     """ Overwrites the FileReference type from encoded-core, customizing the schema for smaht-portal """
     item_type = 'smaht_file_reference'
     base_types = ['SMAHTItem', 'FileReference', 'File']
-    schema = ENCODED_CORE_FILE_REFERENCE_SCHEMA
+    schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_REFERENCE_SCHEMA)
 
 
 @collection(
@@ -50,4 +54,4 @@ class SMAHTFileReference(SMAHTItem, CoreFileProcessed):
     """ Overwrites the FileProcessed type from encoded-core, customizing the schema for smaht-portal """
     item_type = 'smaht_file_processed'
     base_types = ['SMAHTItem', 'FileProcessed', 'File']
-    schema = ENCODED_CORE_FILE_PROCESSED_SCHEMA
+    schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_PROCESSED_SCHEMA)

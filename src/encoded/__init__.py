@@ -213,7 +213,6 @@ def set_mirror_settings(settings):
         settings['mirror_health'] = get_health_page(ff_env=mirror)
 
 
-
 def main(global_config, **local_config):
     """
     This function returns a Pyramid WSGI application.

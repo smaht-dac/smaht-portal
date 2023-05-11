@@ -12,6 +12,10 @@ from snovault.types.base import (
 
 # ACLs for SMaHT Portal
 # Names should be self-explanatory
+CONSORTIUM_MEMBER = 'role.consortium_member'
+SUBMISSION_CENTER_MEMBER = 'role.submission_center_member'
+
+
 ONLY_ADMIN_VIEW_ACL: Acl = [
     (Allow, 'group.admin', ['view', 'edit']),
     (Allow, 'group.read-only-admin', ['view']),
@@ -37,22 +41,34 @@ ALLOW_OWNER_EDIT_ACL: Acl = [
 
 
 ALLOW_CONSORTIUM_MEMBER_VIEW_ACL: Acl = [
-    (Allow, 'role.consortium_member', ['view'])
+    (Allow, CONSORTIUM_MEMBER, ['view'])
 ] + ONLY_ADMIN_VIEW_ACL
 
 
 ALLOW_CONSORTIUM_MEMBER_EDIT_ACL: Acl = [
-    (Allow, 'role.consortium_member', ['view', 'edit'])
+    (Allow, CONSORTIUM_MEMBER, ['view', 'edit'])
 ] + ONLY_ADMIN_VIEW_ACL
 
 
 ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = [
-    (Allow, 'role.submission_center_member', ['view'])
+    (Allow, SUBMISSION_CENTER_MEMBER, ['view'])
 ] + ONLY_ADMIN_VIEW_ACL
 
 
 ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = [
-    (Allow, 'role.submission_center_member', ['view', 'edit'])
+    (Allow, SUBMISSION_CENTER_MEMBER, ['view', 'edit'])
+] + ONLY_ADMIN_VIEW_ACL
+
+
+ALLOW_CONSORTIUM_AND_SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = [
+    (Allow, SUBMISSION_CENTER_MEMBER, ['view']),
+    (Allow, CONSORTIUM_MEMBER, ['view']),
+] + ONLY_ADMIN_VIEW_ACL
+
+
+ALLOW_CONSORTIUM_AND_SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = [
+    (Allow, SUBMISSION_CENTER_MEMBER, ['view', 'edit']),
+    (Allow, SUBMISSION_CENTER_MEMBER, ['view', 'edit']),
 ] + ONLY_ADMIN_VIEW_ACL
 
 
@@ -89,9 +105,9 @@ class SMAHTItem(Item):
     # Ie: if an item status = public, then the ACL ALLOW_EVERYONE_VIEW applies to its permissions,
     # so anyone (even unauthenticated users) can view it
     STATUS_ACL = {
-        'shared': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'obsolete': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'current': ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
+        'shared': ALLOW_CONSORTIUM_AND_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
+        'obsolete': ALLOW_CONSORTIUM_AND_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
+        'current': ALLOW_CONSORTIUM_AND_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
         'inactive': ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
         'in review': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'uploaded': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
@@ -114,11 +130,11 @@ class SMAHTItem(Item):
         if 'submission_centers' in properties:
             for submission_center in properties['submission_centers']:
                 center = f'submission_center.{submission_center}'
-                roles[center] = 'role.submission_center_member'
+                roles[center] = SUBMISSION_CENTER_MEMBER
         if 'consortiums' in properties:
             for consortium in properties['consortiums']:
                 consortium_identifier = f'consortium.{consortium}'
-                roles[consortium_identifier] = 'role.consortium_member'
+                roles[consortium_identifier] = CONSORTIUM_MEMBER
         if 'submitted_by' in properties:
             submitter = 'userid.%s' % properties['submitted_by']
             roles[submitter] = 'role.owner'

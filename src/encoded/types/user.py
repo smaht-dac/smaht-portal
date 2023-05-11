@@ -19,3 +19,7 @@ class SMaHTUser(SMAHTItem, User):
     """ Overridden user class, adding the Submission Center and Consortium attribution """
     item_type = 'smaht-user'
     schema = mixin_smaht_permission_types(SNOVAULT_USER_SCHEMA)
+    STATUS_ACL = SMAHTItem.STATUS_ACL
+
+    def __ac_local_roles__(self):
+        return SMAHTItem.__ac_local_roles__(self)

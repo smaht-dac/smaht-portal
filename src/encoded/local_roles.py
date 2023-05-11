@@ -9,10 +9,6 @@ from zope.interface import implementer
 DEBUG_PERMISSIONS = environ_bool("DEBUG_PERMISSIONS", default=False)
 
 
-# This code (right now) is identical to that of https://github.com/lrowe/pyramid_localroles
-# We are going to need to rip this out for CGAP. So first let's bring it in so we can debug and
-# modify it while we implement a new permissions structure.
-
 def local_principals(context, principals):
     """ The idea behind this is to process __ac_local_roles__ (and a boolean __ac_local_roles_block__
         to disable) and add local principals. This only works if you're in correct context, though,
