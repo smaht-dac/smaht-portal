@@ -1,7 +1,17 @@
+from webtest import TestApp
 import pytest
 
 
-def post_item_and_return_location(testapp, item, resource_path):
+def remote_user_testapp(app, remote_user: str) -> TestApp:
+    '''Use this to generate testapp fixtures acting as different users (pass uuid) '''
+    environ = {
+        'HTTP_ACCEPT': 'application/json',
+        'REMOTE_USER': str(remote_user),
+    }
+    return TestApp(app, environ)
+
+
+def post_item_and_return_location(testapp: TestApp, item: dict, resource_path: str) -> dict:
     """ Posts item metadata to resource_path using testapp and return a dict response containing the location """
     res = testapp.post_json(f'/{resource_path}', item)
     return testapp.get(res.location).json
@@ -29,6 +39,20 @@ def smaht_admin(testapp):
         'status': 'current'
     }
     # User @@object view has keys omitted.
+    return post_item_and_return_location(testapp, item, 'smaht-user')
+
+
+@pytest.fixture
+def smaht_gcc_user(testapp, test_submission_center):
+    item = {
+        'first_name': 'Test',
+        'last_name': 'User',
+        'email': 'user@example.org',
+        'status': 'current',
+        'submission_centers': [
+            test_submission_center['uuid']
+        ]
+    }
     return post_item_and_return_location(testapp, item, 'smaht-user')
 
 

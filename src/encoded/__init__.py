@@ -94,6 +94,11 @@ def include_snovault(config: Configurator) -> None:
     config.commit()
 
 
+def include_encoded_core(config):
+    """ Customized includes for encoded-core """
+    config.include('encoded_core.types')
+
+
 def static_resources(config):
     mimetypes.init()
     mimetypes.init([pkg_resources.resource_filename('encoded', 'static/mime.types')])
@@ -248,8 +253,8 @@ def main(global_config, **local_config):
     # NOTE: this MUST occur prior to including Snovault, otherwise it will not work
     config.add_settings({'mappings.use_nested': True})
     config.include(configure_dbsession)
-    include_snovault(config)  # controls config inclues from snovault
-    config.include('encoded_core')
+    include_snovault(config)  # controls config includes from snovault
+    include_encoded_core(config)  # controls config includes from encoded-core
     config.include('encoded')
 
     if 'elasticsearch.server' in config.registry.settings:
