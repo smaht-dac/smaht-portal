@@ -8,6 +8,7 @@ from snovault.types.base import (
     DELETED_ACL,
     Acl
 )
+from dcicutils.misc_utils import PRINT
 
 
 # ACLs for SMaHT Portal
@@ -138,4 +139,5 @@ class SMAHTItem(Item):
         if 'submitted_by' in properties:
             submitter = 'userid.%s' % properties['submitted_by']
             roles[submitter] = 'role.owner'
+        PRINT(f'DEBUG_PERMISSIONS: Returning roles {roles} for {self}')
         return roles

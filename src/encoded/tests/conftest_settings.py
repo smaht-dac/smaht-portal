@@ -5,6 +5,7 @@ REPOSITORY_ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".
 
 
 _app_settings = {
+    "env.name": "smaht-testing",
     "collection_datastore": "database",
     "item_datastore": "database",
     "multiauth.policies": "session remoteuser accesskey auth0",

@@ -1,6 +1,7 @@
+import encoded.project_defs  # VERY Important - loads application specific behavior
+
 import logging
 import mimetypes
-import netaddr
 import os
 import pkg_resources
 import sentry_sdk

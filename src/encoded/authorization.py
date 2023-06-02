@@ -1,6 +1,6 @@
 import json
 
-from dcicutils.misc_utils import environ_bool, PRINT
+from dcicutils.misc_utils import PRINT
 from snovault import COLLECTIONS
 from pyramid.security import Authenticated
 from snovault.authorization import DEBUG_PERMISSIONS

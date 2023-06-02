@@ -50,7 +50,7 @@ class SMAHTFileReference(SMAHTItem, CoreFileReference):
         "title": "SMaHT Processed Files",
         "description": "Listing of SMaHT Processed Files",
     })
-class SMAHTFileReference(SMAHTItem, CoreFileProcessed):
+class SMAHTFileProcessed(SMAHTItem, CoreFileProcessed):
     """ Overwrites the FileProcessed type from encoded-core, customizing the schema for smaht-portal """
     item_type = 'smaht_file_processed'
     base_types = ['SMAHTItem', 'FileProcessed', 'File']

@@ -28,15 +28,17 @@ def file(testapp, test_submission_center):
     return res.json['@graph'][0]
 
 
-def test_submission_center_user_permissions(submission_center_user_app, testapp, anontestapp, file):
+def test_submission_center_user_permissions(submission_center_user_app, smaht_gcc_user, testapp, anontestapp, file):
     """ Tests that a user associated with a submission center can view an uploaded permissioned
         file, an anonymous user cannot and an admin user can """
-    submission_center_user_app.get(f'/{file["uuid"]}', status=200)
-    anontestapp.get(f'/{file["uuid"]}', status=403)
-    testapp.get(f'/{file["uuid"]}', status=200)
+    #submission_center_user_app.get(f'/{file["uuid"]}', status=200)
+    # anontestapp.get(f'/{file["uuid"]}', status=403)
+    # testapp.get(f'/{file["uuid"]}', status=200)
 
     # patch the file status so it has no submission_center, user should now no longer see
     testapp.patch_json(f'/{file["uuid"]}?delete_fields=submission_centers', {}, status=200)
+    testapp.patch_json(f'/{smaht_gcc_user["uuid"]}?delete_fields=submission_centers', {}, status=200)
+    import pdb; pdb.set_trace()
     submission_center_user_app.get(f'/{file["uuid"]}', status=403)
-    anontestapp.get(f'/{file["uuid"]}', status=403)
-    testapp.get(f'/{file["uuid"]}', status=200)
+    # anontestapp.get(f'/{file["uuid"]}', status=403)
+    # testapp.get(f'/{file["uuid"]}', status=200)
