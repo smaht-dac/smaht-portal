@@ -1,3 +1,5 @@
+# These first all pass like they should
+
 def test_user(testapp):
     """ Tests that we can post a user under the override type definition """
     testapp.post_json('/user', {
@@ -44,6 +46,66 @@ def test_workflow_types(testapp):
         'run_status': 'started',
     }
     testapp.post_json('/workflow_run', wfl_run, status=201).json['@graph'][0]
+
+
+def test_document(testapp):
+    """ Tests that we can post a document item under the overridden type definition """
+    testapp.post_json('/document', {
+        'description': 'test'
+    }, status=201)
+
+
+def test_higlass_view_config(testapp):
+    """ Tests that we can post a higlass_view_config under the overridden type
+        definition """
+    testapp.post_json('/higlass_view_config', {
+        'genome_assembly': 'GRCh38'
+    }, status=201)
+
+
+def test_image(testapp):
+    """ Tests that we can post an image item under the overridden type definition """
+    testapp.post_json('/image', {
+        'description': 'test'
+    }, status=201)
+
+
+def test_qc_generic(testapp):
+    """ Tests that we can post a qc generic item under the overridden type definition """
+    testapp.post_json('/quality_metric_generic', {
+        'name': 'test qc'
+    }, status=201)
+
+
+def test_software(testapp):
+    """ Tests that we can post a software item under the overridden type definition """
+    testapp.post_json('/software', {
+        'name': 'test software'
+    }, status=201)
+
+
+def test_tracking_item(testapp):
+    """ Tests that we can post a tracking item under the overridden type definition """
+    testapp.post_json('/tracking_item', {
+        'tracking_type': 'other'
+    }, status=201)
+
+
+def test_static_section(testapp):
+    """ Tests that we can post a static section under the overridden type definition """
+    testapp.post_json('/static_section', {
+        'name': 'test section'
+    }, status=201)
+
+
+def test_page(testapp):
+    """ Tests that we can post a page under the overridden type definition """
+    testapp.post_json('/page', {
+        'name': 'test page'
+    }, status=201)
+
+
+# The below all fail with @@object key error
 
 
 def test_meta_workflow(testapp):

@@ -34,7 +34,7 @@ def smaht_admin(testapp):
     item = {
         'first_name': 'Test',
         'last_name': 'Admin',
-        'email': 'admin@example.org',
+        'email': 'smaht_admin@example.org',
         'groups': ['admin'],
         'status': 'current'
     }
