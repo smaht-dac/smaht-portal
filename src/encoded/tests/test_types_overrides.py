@@ -1,3 +1,5 @@
+import pytest
+
 # These first all pass like they should
 
 def test_user(testapp):
@@ -102,6 +104,14 @@ def test_page(testapp):
     """ Tests that we can post a page under the overridden type definition """
     testapp.post_json('/page', {
         'name': 'test page'
+    }, status=201)
+
+
+@pytest.mark.skip  # will not work until attribution issue repaired
+def test_filter_set(testapp):
+    """ Tests that we can post a filter set item under the overridden type definition """
+    testapp.post_json('/filter_set', {
+        'title': 'test filterset'
     }, status=201)
 
 
