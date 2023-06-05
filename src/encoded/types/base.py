@@ -1,12 +1,27 @@
+from pyramid.view import view_config
 from pyramid.security import (
     Allow, Deny, Everyone, Authenticated
 )
-from snovault import abstract_collection
+from snovault import abstract_collection, calculated_property
 from snovault.types.base import (
     Item,
     Collection,
     DELETED_ACL,
     Acl
+)
+from snovault.util import debug_log
+from snovault.validators import (
+    validate_item_content_post,
+    validate_item_content_put,
+    validate_item_content_patch,
+    validate_item_content_in_place,
+    no_validate_item_content_post,
+    no_validate_item_content_put,
+    no_validate_item_content_patch
+)
+from snovault.crud_views import (
+    collection_add as sno_collection_add,
+    item_edit as sno_item_edit,
 )
 from dcicutils.misc_utils import PRINT
 
@@ -141,3 +156,76 @@ class SMAHTItem(Item):
             roles[submitter] = 'role.owner'
         PRINT(f'DEBUG_PERMISSIONS: Returning roles {roles} for {self}')
         return roles
+
+
+@calculated_property(context=SMAHTItem.AbstractCollection, category='action')
+def add(context, request):
+    """smth."""
+    if request.has_permission('add', context):
+        type_name = context.type_info.name
+        return {
+            'name': 'add',
+            'title': 'Add',
+            'profile': '/profiles/{name}.json'.format(name=type_name),
+            'href': '/search/?type={name}&currentAction=add'.format(name=type_name),
+        }
+
+
+@calculated_property(context=SMAHTItem, category='action')
+def edit(context, request):
+    """smth."""
+    if request.has_permission('edit'):
+        return {
+            'name': 'edit',
+            'title': 'Edit',
+            'profile': '/profiles/{ti.name}.json'.format(ti=context.type_info),
+            'href': '{item_uri}?currentAction=edit'.format(item_uri=request.resource_path(context)),
+        }
+
+
+@calculated_property(context=SMAHTItem, category='action')
+def create(context, request):
+    if request.has_permission('create'):
+        return {
+            'name': 'create',
+            'title': 'Create',
+            'profile': '/profiles/{ti.name}.json'.format(ti=context.type_info),
+            'href': '{item_uri}?currentAction=create'.format(item_uri=request.resource_path(context)),
+        }
+
+
+@view_config(
+    context=Collection,
+    permission='add',
+    request_method='POST',
+    # validators=[]  # TURNS OFF VALIDATION HERE ([validate_item_content_post] previously)
+    validators=[validate_item_content_post]
+)
+@view_config(
+    context=Collection,
+    permission='add_unvalidated',
+    request_method='POST',
+    validators=[no_validate_item_content_post],
+    request_param=['validate=false']
+)
+@debug_log
+def collection_add(context, request, render=None):
+    return sno_collection_add(context, request, render)
+
+
+@view_config(context=SMAHTItem, permission='edit', request_method='PUT',
+             validators=[validate_item_content_put])
+@view_config(context=SMAHTItem, permission='edit', request_method='PATCH',
+             validators=[validate_item_content_patch])
+@view_config(context=SMAHTItem, permission='edit_unvalidated', request_method='PUT',
+             validators=[no_validate_item_content_put],
+             request_param=['validate=false'])
+@view_config(context=SMAHTItem, permission='edit_unvalidated', request_method='PATCH',
+             validators=[no_validate_item_content_patch],
+             request_param=['validate=false'])
+@view_config(context=SMAHTItem, permission='index', request_method='GET',
+             validators=[validate_item_content_in_place],
+             request_param=['check_only=true'])
+@debug_log
+def item_edit(context, request, render=None):
+    return sno_item_edit(context, request, render)

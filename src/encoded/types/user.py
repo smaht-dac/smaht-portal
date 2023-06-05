@@ -1,21 +1,21 @@
 from snovault import collection
-from snovault.types.user import User
+from snovault.types.user import User as SnovaultUser
 from copy import deepcopy
 from .base import SMAHTItem, mixin_smaht_permission_types
 
 
-SNOVAULT_USER_SCHEMA = deepcopy(User.schema)
+SNOVAULT_USER_SCHEMA = deepcopy(SnovaultUser.schema)
 
 
 @collection(
-    name='smaht-users',
-    unique_key='smaht-user:email',
+    name='users',
+    unique_key='user:email',
     properties={
         'title': 'SMaHT Users',
         'description': 'Listing of current SMaHT users',
     }
 )
-class SMaHTUser(SMAHTItem, User):
+class User(SMAHTItem, SnovaultUser):
     """ Overridden user class, adding the Submission Center and Consortium attribution """
     item_type = 'smaht-user'
     schema = mixin_smaht_permission_types(SNOVAULT_USER_SCHEMA)

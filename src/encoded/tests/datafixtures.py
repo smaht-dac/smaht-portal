@@ -39,7 +39,7 @@ def smaht_admin(testapp):
         'status': 'current'
     }
     # User @@object view has keys omitted.
-    return post_item_and_return_location(testapp, item, 'smaht-user')
+    return post_item_and_return_location(testapp, item, 'user')
 
 
 @pytest.fixture

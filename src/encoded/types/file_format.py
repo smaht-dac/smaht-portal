@@ -8,19 +8,19 @@ ENCODED_CORE_FILE_FORMAT_SCHEMA = deepcopy(CoreFileFormat.schema)
 
 
 @collection(
-    name="smaht-file-format",
-    unique_key='smaht_file_format:file_format',
+    name='file-formats',
+    unique_key='file_format:file_format',
     properties={
-        "title": "SMaHT File Format",
-        "description": "Listing of SMaHT File Formats",
+        'title': 'SMaHT File Format',
+        'description': 'Listing of SMaHT File Formats',
     })
-class SMAHTFileFormat(SMAHTItem, CoreFileFormat):
+class FileFormat(SMAHTItem, CoreFileFormat):
     """ Overwrites the FileFormat type from encoded-core, customizing the schema for smaht-portal """
-    item_type = 'smaht_file_format'
+    item_type = 'file_format'
     base_types = [
-        'FileFormat', 'SMAHTItem'
+        'SMAHTItem'
     ]
     schema = ENCODED_CORE_FILE_FORMAT_SCHEMA
     schema['properties']['valid_item_types']['items']['enum'] = [
-        'SMAHTFileSubmitted'
+        'FileSubmitted', 'FileProcessed', 'FileReference'
     ]

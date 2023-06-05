@@ -82,6 +82,8 @@ def include_snovault(config: Configurator) -> None:
     config.include('snovault.resource_views')
     config.include('snovault.settings')
     config.include('snovault.server_defaults')
+    # Renderers is giving problems at the moment - Will 6/1/23
+    # config.include('snovault.renderers')
 
     # make search available if ES is configured
     if config.registry.settings.get('elasticsearch.server'):
@@ -97,7 +99,9 @@ def include_snovault(config: Configurator) -> None:
 
 def include_encoded_core(config):
     """ Customized includes for encoded-core """
-    config.include('encoded_core.types')
+    config.include('encoded_core.file_views')
+    config.include('encoded_core.page_views')
+    config.include('encoded_core.qc_views')
 
 
 def static_resources(config):
@@ -254,14 +258,13 @@ def main(global_config, **local_config):
     config.add_settings({'mappings.use_nested': True})
     config.include(configure_dbsession)
     include_snovault(config)  # controls config includes from snovault
-    include_encoded_core(config)  # controls config includes from encoded-core
+    include_encoded_core(config)
     config.include('encoded')
 
     if 'elasticsearch.server' in config.registry.settings:
         config.include('snovault.elasticsearch')
 
     # this contains fall back url, so make sure it comes just before static_resoruces
-    config.include('encoded_core.types.page')
     config.include(static_resources)
     config.include(changelogs)
 
