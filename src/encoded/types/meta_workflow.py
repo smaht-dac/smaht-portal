@@ -1,8 +1,12 @@
+from copy import deepcopy
 from snovault import collection
-from snovault.resources import Collection as SnovaultCollection
 from encoded_core.types.meta_workflow import MetaWorkflow as CoreMetaWorkflow
 from encoded_core.types.meta_workflow import MetaWorkflowRun as CoreMetaWorkflowRun
-from .base import SMAHTItem
+from .base import SMAHTItem, mixin_smaht_permission_types
+
+
+ENCODED_CORE_META_WORKFLOW_SCHEMA = deepcopy(CoreMetaWorkflow.schema)
+ENCODED_CORE_META_WORKFLOW_RUN_SCHEMA = deepcopy(CoreMetaWorkflowRun.schema)
 
 
 @collection(
@@ -13,14 +17,15 @@ from .base import SMAHTItem
         'description': 'Listing of MetaWorkflows',
     })
 class MetaWorkflow(SMAHTItem, CoreMetaWorkflow):
-    pass
+    schema = mixin_smaht_permission_types(ENCODED_CORE_META_WORKFLOW_SCHEMA)
 
 
 @collection(
     name='meta-workflow-runs',
+    unique_key='accession',
     properties={
         'title': 'MetaWorkflowRuns',
         'description': 'Listing of MetaWorkflowRuns',
     })
 class MetaWorkflowRun(SMAHTItem, CoreMetaWorkflowRun):
-    pass
+    schema = mixin_smaht_permission_types(ENCODED_CORE_META_WORKFLOW_RUN_SCHEMA)

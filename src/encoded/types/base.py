@@ -31,6 +31,17 @@ from dcicutils.misc_utils import PRINT
 CONSORTIUM_MEMBER = 'role.consortium_member'
 SUBMISSION_CENTER_MEMBER = 'role.submission_center_member'
 
+#
+# # These two ACLs allow
+# SUBMISSION_CENTER_MEMBER_CREATE_ACL: Acl = [
+#     (Allow, SUBMISSION_CENTER_MEMBER, 'add'),
+#     (Allow, SUBMISSION_CENTER_MEMBER, 'create')
+# ]
+# CONSORTIUM_MEMBER_CREATE_ACL: Acl = [
+#     (Allow, CONSORTIUM_MEMBER, 'add'),
+#     (Allow, CONSORTIUM_MEMBER, 'create')
+# ]
+
 
 ONLY_ADMIN_VIEW_ACL: Acl = [
     (Allow, 'group.admin', ['view', 'edit']),
@@ -106,7 +117,16 @@ def mixin_smaht_permission_types(schema: dict) -> dict:
 
 
 class SMAHTCollection(Collection):
-    pass
+    """ Allows default ACL """
+    def __init__(self, *args, **kw):
+        """smth."""
+        super(Collection, self).__init__(*args, **kw)
+        if hasattr(self, '__acl__'):
+            return
+
+        # If no ACLs are defined for collection, allow project members to create
+        if 'submission_centers' in self.type_info.factory.schema['properties']:
+            self.__acl__ = ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL
 
 
 @abstract_collection(
@@ -137,6 +157,16 @@ class SMAHTItem(Item):
         'draft': ALLOW_OWNER_EDIT_ACL
     }
 
+    def __acl__(self):
+        """This sets the ACL for the item based on mapping of status to ACL.
+           If there is no status or the status is not included in the STATUS_ACL
+           lookup then the access is set to admin only
+        """
+        # Don't finalize to avoid validation here.
+        properties = self.upgrade_properties().copy()
+        status = properties.get('status')
+        return self.STATUS_ACL.get(status, ONLY_ADMIN_VIEW_ACL)
+
     def __ac_local_roles__(self):
         """ Overrides the default permissioning to add some additional roles to the item based on
             properties it may have.
@@ -145,7 +175,7 @@ class SMAHTItem(Item):
         properties = self.upgrade_properties()
         if 'submission_centers' in properties:
             for submission_center in properties['submission_centers']:
-                center = f'submission_center.{submission_center}'
+                center = f'role.submission_center_member.{submission_center}'
                 roles[center] = SUBMISSION_CENTER_MEMBER
         if 'consortiums' in properties:
             for consortium in properties['consortiums']:

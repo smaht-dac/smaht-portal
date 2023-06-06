@@ -13,7 +13,7 @@ def file(testapp, test_submission_center):
         'file_format': 'fastq',
         'standard_file_extension': 'fastq.gz',
         'other_allowed_extensions': ['fq.gz'],
-        'valid_item_types': ["SMAHTFileSubmitted"]
+        'valid_item_types': ["FileSubmitted", "FileReference", "FileProcessed"]
     }, status=201).json['@graph'][0]
     item = {
         'file_format': res['uuid'],
@@ -28,7 +28,7 @@ def file(testapp, test_submission_center):
     return res.json['@graph'][0]
 
 
-def test_submission_center_user_permissions(submission_center_user_app, smaht_gcc_user, testapp, anontestapp, file):
+def test_submission_center_file_permissions(submission_center_user_app, smaht_gcc_user, testapp, anontestapp, file):
     """ Tests that a user associated with a submission center can view an uploaded permissioned
         file, an anonymous user cannot and an admin user can """
     submission_center_user_app.get(f'/{file["uuid"]}', status=200)
@@ -37,6 +37,14 @@ def test_submission_center_user_permissions(submission_center_user_app, smaht_gc
 
     # patch the file status so it has no submission_center, user should now no longer see
     testapp.patch_json(f'/{file["uuid"]}?delete_fields=submission_centers', {}, status=200)
+    submission_center_user_app.get(f'/{file["uuid"]}', status=403)
+    anontestapp.get(f'/{file["uuid"]}', status=403)
+    testapp.get(f'/{file["uuid"]}', status=200)
+
+
+def test_submission_center_user_permissions(submission_center_user_app, smaht_gcc_user, testapp, anontestapp, file):
+    """ Similar to above except tests the opposite case ie: user no longer has submission_center but file does"""
+    # patch the file status so it has no submission_center, user should now no longer see
     testapp.patch_json(f'/{smaht_gcc_user["uuid"]}?delete_fields=submission_centers', {}, status=200)
     submission_center_user_app.get(f'/{file["uuid"]}', status=403)
     anontestapp.get(f'/{file["uuid"]}', status=403)
