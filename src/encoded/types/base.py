@@ -1,13 +1,10 @@
 from pyramid.view import view_config
-from pyramid.security import (
-    Allow, Deny, Everyone, Authenticated
-)
+
 from snovault import abstract_collection, calculated_property
 from snovault.types.base import (
     Item,
     Collection,
     DELETED_ACL,
-    Acl
 )
 from snovault.util import debug_log
 from snovault.validators import (
@@ -24,83 +21,13 @@ from snovault.crud_views import (
     item_edit as sno_item_edit,
 )
 from dcicutils.misc_utils import PRINT
-
-
-# ACLs for SMaHT Portal
-# Names should be self-explanatory
-CONSORTIUM_MEMBER = 'role.consortium_member'
-SUBMISSION_CENTER_MEMBER = 'role.submission_center_member'
-
-#
-# # These two ACLs allow
-# SUBMISSION_CENTER_MEMBER_CREATE_ACL: Acl = [
-#     (Allow, SUBMISSION_CENTER_MEMBER, 'add'),
-#     (Allow, SUBMISSION_CENTER_MEMBER, 'create')
-# ]
-# CONSORTIUM_MEMBER_CREATE_ACL: Acl = [
-#     (Allow, CONSORTIUM_MEMBER, 'add'),
-#     (Allow, CONSORTIUM_MEMBER, 'create')
-# ]
-
-
-ONLY_ADMIN_VIEW_ACL: Acl = [
-    (Allow, 'group.admin', ['view', 'edit']),
-    (Allow, 'group.read-only-admin', ['view']),
-    (Allow, 'remoteuser.INDEXER', ['view']),
-    (Allow, 'remoteuser.EMBED', ['view']),
-    (Deny, Everyone, ['view', 'edit'])
-]
-
-
-ALLOW_EVERYONE_VIEW_ACL: Acl = [
-    (Allow, Everyone, ['view']),
-] + ONLY_ADMIN_VIEW_ACL
-
-
-ALLOW_AUTHENTICATED_VIEW_ACL: Acl = [
-    (Allow, Authenticated, ['view']),
-] + ONLY_ADMIN_VIEW_ACL
-
-
-ALLOW_OWNER_EDIT_ACL: Acl = [
-    (Allow, 'role.owner', ['edit', 'view', 'view_details']),
-]
-
-
-ALLOW_CONSORTIUM_MEMBER_VIEW_ACL: Acl = [
-    (Allow, CONSORTIUM_MEMBER, ['view'])
-] + ONLY_ADMIN_VIEW_ACL
-
-
-ALLOW_CONSORTIUM_MEMBER_EDIT_ACL: Acl = [
-    (Allow, CONSORTIUM_MEMBER, ['view', 'edit'])
-] + ONLY_ADMIN_VIEW_ACL
-
-
-ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = [
-    (Allow, SUBMISSION_CENTER_MEMBER, ['view'])
-] + ONLY_ADMIN_VIEW_ACL
-
-
-ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = [
-    (Allow, SUBMISSION_CENTER_MEMBER, ['view', 'edit'])
-] + ONLY_ADMIN_VIEW_ACL
-
-
-ALLOW_CONSORTIUM_AND_SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = [
-    (Allow, SUBMISSION_CENTER_MEMBER, ['view']),
-    (Allow, CONSORTIUM_MEMBER, ['view']),
-] + ONLY_ADMIN_VIEW_ACL
-
-
-ALLOW_CONSORTIUM_AND_SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = [
-    (Allow, SUBMISSION_CENTER_MEMBER, ['view', 'edit']),
-    (Allow, SUBMISSION_CENTER_MEMBER, ['view', 'edit']),
-] + ONLY_ADMIN_VIEW_ACL
+from .acl import *
 
 
 def mixin_smaht_permission_types(schema: dict) -> dict:
-    """ Runs a manual 'mixin' of attribution entries for SMaHT types """
+    """ Runs a manual 'mixin' of attribution entries for SMaHT types
+        NOTE: this function will be replaced by dynamic dispatch later
+    """
     schema['properties']['submission_centers'] = {
         'type': 'array',
         'items': {
@@ -141,9 +68,9 @@ class SMAHTItem(Item):
     # Ie: if an item status = public, then the ACL ALLOW_EVERYONE_VIEW applies to its permissions,
     # so anyone (even unauthenticated users) can view it
     STATUS_ACL = {
-        'shared': ALLOW_CONSORTIUM_AND_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
-        'obsolete': ALLOW_CONSORTIUM_AND_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
-        'current': ALLOW_CONSORTIUM_AND_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
+        'shared': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'obsolete': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'current': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'inactive': ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
         'in review': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'uploaded': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
@@ -161,6 +88,9 @@ class SMAHTItem(Item):
         """This sets the ACL for the item based on mapping of status to ACL.
            If there is no status or the status is not included in the STATUS_ACL
            lookup then the access is set to admin only
+
+           Note that by default, items cannot be created, they must be specifically overridden
+           in the type definition
         """
         # Don't finalize to avoid validation here.
         properties = self.upgrade_properties().copy()
