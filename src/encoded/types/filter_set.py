@@ -1,6 +1,10 @@
+from copy import deepcopy
 from snovault import collection
 from snovault.types.filter_set import FilterSet as SnovaultFilterSet
-from .base import SMAHTItem
+from .base import SMAHTItem, mixin_smaht_permission_types
+
+
+SNOVAULT_FILTER_SET_SCHEMA = deepcopy(SnovaultFilterSet.schema)
 
 
 @collection(
@@ -12,4 +16,4 @@ from .base import SMAHTItem
     }
 )
 class FilterSet(SMAHTItem, SnovaultFilterSet):
-    pass
+    schema = mixin_smaht_permission_types(SNOVAULT_FILTER_SET_SCHEMA)

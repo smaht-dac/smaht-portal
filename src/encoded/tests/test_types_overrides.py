@@ -1,6 +1,5 @@
 import pytest
 
-# These first all pass like they should
 
 def test_user(testapp):
     """ Tests that we can post a user under the override type definition """
@@ -39,7 +38,7 @@ def test_workflow_types(testapp):
         'awsem_job_id': '1235',
         'run_status': 'started',
     }
-    testapp.post_json('/workflow_run_awsem', wfl_run_awsem, status=201).json['@graph'][0]
+    testapp.post_json('/workflow_run_awsem', wfl_run_awsem, status=201)
     wfl_run = {
         'run_platform': 'SBG',
         'parameters': [],
@@ -47,7 +46,7 @@ def test_workflow_types(testapp):
         'title': u'md5 run 2017-01-20 13:16:11.026176',
         'run_status': 'started',
     }
-    testapp.post_json('/workflow_run', wfl_run, status=201).json['@graph'][0]
+    testapp.post_json('/workflow_run', wfl_run, status=201)
 
 
 def test_document(testapp):
@@ -115,9 +114,6 @@ def test_filter_set(testapp):
     }, status=201)
 
 
-# The below all fail with @@object key error
-
-
 def test_meta_workflow(testapp):
     """ Tests that we can post a workflow under the overridden types definition """
     res = testapp.post_json('/meta_workflow', {
@@ -130,13 +126,13 @@ def test_meta_workflow(testapp):
 
 
 def test_file_types(testapp):
-    """ Tests that we can post files under the overriden type definition """
-    res = testapp.post_json('/file_format', {
+    """ Tests that we can post files under the overriden type definitions """
+    testapp.post_json('/file_format', {
         'file_format': 'fastq',
         'standard_file_extension': 'fastq.gz',
         'other_allowed_extensions': ['fq.gz'],
         'valid_item_types': ["FileSubmitted", "FileProcessed", "FileReference"]
-    }, status=201).json['@graph'][0]
+    }, status=201)
     submitted_file = {
         'uuid': 'f99fe12f-79f9-4c2c-b0b5-07fc20d7ce1c',
         'file_format': 'fastq',
@@ -145,3 +141,19 @@ def test_file_types(testapp):
         'status': 'uploaded',
     }
     testapp.post_json('/file_submitted', submitted_file, status=201)
+    processed_file = {
+        'uuid': 'f99fe12f-79f9-4c2c-b0b5-07fc20d7ce1d',
+        'file_format': 'fastq',
+        'md5sum': '00000000000000000000000000000001',
+        'filename': 'my.fastq.gz',
+        'status': 'uploaded',
+    }
+    testapp.post_json('/file_processed', processed_file, status=201)
+    reference_file = {
+        'uuid': 'f99fe12f-79f9-4c2c-b0b5-07fc20d7ce1e',
+        'file_format': 'fastq',
+        'md5sum': '00000000000000000000000000000002',
+        'filename': 'my.fastq.gz',
+        'status': 'uploaded',
+    }
+    testapp.post_json('/file_reference', reference_file, status=201)

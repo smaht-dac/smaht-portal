@@ -1,6 +1,10 @@
+from copy import deepcopy
 from snovault import collection
 from snovault.types.access_key import AccessKey as SnovaultAccessKey
-from .base import SMAHTItem
+from .base import SMAHTItem, mixin_smaht_permission_types
+
+
+SNOVAULT_ACCESS_KEY_SCHEMA = deepcopy(SnovaultAccessKey.schema)
 
 
 @collection(
@@ -12,4 +16,4 @@ from .base import SMAHTItem
     },)
 class AccessKey(SMAHTItem, SnovaultAccessKey):
     """AccessKey class."""
-    pass
+    schema = mixin_smaht_permission_types(SNOVAULT_ACCESS_KEY_SCHEMA)

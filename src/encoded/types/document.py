@@ -1,6 +1,10 @@
+from copy import deepcopy
 from snovault import collection
 from encoded_core.types.document import Document as CoreDocument
-from .base import SMAHTItem
+from .base import SMAHTItem, mixin_smaht_permission_types
+
+
+ENCODED_CORE_DOCUMENT_SCHEMA = deepcopy(CoreDocument.schema)
 
 
 @collection(
@@ -10,4 +14,4 @@ from .base import SMAHTItem
         'description': 'Listing of Documents',
     })
 class Document(SMAHTItem, CoreDocument):
-    pass
+    schema = mixin_smaht_permission_types(ENCODED_CORE_DOCUMENT_SCHEMA)

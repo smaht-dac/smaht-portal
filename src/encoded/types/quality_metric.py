@@ -1,6 +1,10 @@
+from copy import deepcopy
 from snovault import collection
 from encoded_core.types.quality_metric import QualityMetricGeneric as CoreQualityMetricGeneric
-from .base import SMAHTItem
+from .base import SMAHTItem, mixin_smaht_permission_types
+
+
+ENCODED_CORE_QC_GENERAL_SCHEMA = deepcopy(CoreQualityMetricGeneric.schema)
 
 
 @collection(
@@ -11,4 +15,4 @@ from .base import SMAHTItem
     },
 )
 class QualityMetricGeneric(SMAHTItem, CoreQualityMetricGeneric):
-    pass
+    schema = mixin_smaht_permission_types(ENCODED_CORE_QC_GENERAL_SCHEMA)

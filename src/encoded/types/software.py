@@ -1,6 +1,10 @@
+from copy import deepcopy
 from snovault import collection
 from encoded_core.types.software import Software as CoreSoftware
-from .base import SMAHTItem
+from .base import SMAHTItem, mixin_smaht_permission_types
+
+
+ENCODED_CORE_SOFTWARE_SCHEMA = deepcopy(CoreSoftware.schema)
 
 
 @collection(
@@ -10,4 +14,4 @@ from .base import SMAHTItem
         'description': 'Listing of software for analyses',
     })
 class Software(SMAHTItem, CoreSoftware):
-    pass
+    schema = mixin_smaht_permission_types(ENCODED_CORE_SOFTWARE_SCHEMA)

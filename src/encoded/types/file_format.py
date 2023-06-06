@@ -1,7 +1,7 @@
 from snovault import collection
 from copy import deepcopy
 from encoded_core.types.file_format import FileFormat as CoreFileFormat
-from .base import SMAHTItem
+from .base import SMAHTItem, mixin_smaht_permission_types
 
 
 ENCODED_CORE_FILE_FORMAT_SCHEMA = deepcopy(CoreFileFormat.schema)
@@ -20,7 +20,7 @@ class FileFormat(SMAHTItem, CoreFileFormat):
     base_types = [
         'SMAHTItem'
     ]
-    schema = ENCODED_CORE_FILE_FORMAT_SCHEMA
+    schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_FORMAT_SCHEMA)
     schema['properties']['valid_item_types']['items']['enum'] = [
         'FileSubmitted', 'FileProcessed', 'FileReference'
     ]

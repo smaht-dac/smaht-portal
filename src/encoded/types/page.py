@@ -1,6 +1,10 @@
+from copy import deepcopy
 from snovault import collection
 from encoded_core.types.page import Page as CorePage
-from .base import SMAHTItem
+from .base import SMAHTItem, mixin_smaht_permission_types
+
+
+ENCODED_CORE_PAGE_SCHEMA = deepcopy(CorePage.schema)
 
 
 @collection(
@@ -11,4 +15,4 @@ from .base import SMAHTItem
         'description': 'Static Pages for the Portal',
     })
 class Page(SMAHTItem, CorePage):
-    pass
+    schema = mixin_smaht_permission_types(ENCODED_CORE_PAGE_SCHEMA)
