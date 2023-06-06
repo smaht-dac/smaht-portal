@@ -155,14 +155,14 @@ def create(context, request):
 
 
 @view_config(
-    context=Collection,
+    context=SMAHTCollection,
     permission='add',
     request_method='POST',
     # validators=[]  # TURNS OFF VALIDATION HERE ([validate_item_content_post] previously)
     validators=[validate_item_content_post]
 )
 @view_config(
-    context=Collection,
+    context=SMAHTCollection,
     permission='add_unvalidated',
     request_method='POST',
     validators=[no_validate_item_content_post],

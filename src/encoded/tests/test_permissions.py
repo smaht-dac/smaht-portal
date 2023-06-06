@@ -58,7 +58,6 @@ class TestSubmissionCenterPermissions:
         anontestapp.get(f'/{file["uuid"]}', status=403)
         testapp.get(f'/{file["uuid"]}', status=200)
 
-    @pytest.mark.skip
     @staticmethod
     def test_submission_center_user_create(test_submission_center, submission_center_user_app, smaht_gcc_user):
         submission_center_user_app.post_json('/Image', {
