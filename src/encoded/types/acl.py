@@ -14,7 +14,9 @@ SUBMISSION_CENTER_MEMBER = 'role.submission_center_member'
 
 
 # This ACL is the "global" admin ACL, should be associated with every
-# sub ACL below
+# sub ACL below - while the name is misleading this in fact gives perms
+# beyond view, the name is kept for cross comparison across portal repos
+# Note that ACLs are ordered!
 ONLY_ADMIN_VIEW_ACL: Acl = [
     (Allow, 'group.admin', ['view', 'edit']),
     (Allow, 'group.read-only-admin', ['view']),
@@ -51,6 +53,14 @@ CONSORTIUM_MEMBER_CREATE_ACL: Acl = [
 ]
 
 
+# Use this to restrict creation to admins, consortium or submission center members
+ALLOW_CONSORTIUM_CREATE_ACL: Acl = SUBMISSION_CENTER_MEMBER_CREATE_ACL + CONSORTIUM_MEMBER_CREATE_ACL + ONLY_ADMIN_VIEW_ACL
+
+
+# Use this to restrict creation to admins or submission center members
+ALLOW_SUBMISSION_CENTER_CREATE_ACL: Acl = SUBMISSION_CENTER_MEMBER_CREATE_ACL + ONLY_ADMIN_VIEW_ACL
+
+
 ############################## EDIT ACLS ##############################
 # ACLs here control item editing, typically resolved from STATUS via the
 # __acl__ method on the type definition
@@ -70,12 +80,11 @@ CONSORTIUM_MEMBER_EDIT_ACL: Acl = [
 
 
 # Consortium is a subset of submission centers, so both can edit
-ALLOW_CONSORTIUM_MEMBER_EDIT_ACL: Acl = ONLY_ADMIN_VIEW_ACL + SUBMISSION_CENTER_MEMBER_EDIT_ACL + \
-                                        CONSORTIUM_MEMBER_EDIT_ACL
+ALLOW_CONSORTIUM_MEMBER_EDIT_ACL: Acl = SUBMISSION_CENTER_MEMBER_EDIT_ACL + CONSORTIUM_MEMBER_EDIT_ACL + ONLY_ADMIN_VIEW_ACL
 
 
 # Submission centers can be restricted to only those folks for edit
-ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = ONLY_ADMIN_VIEW_ACL + SUBMISSION_CENTER_MEMBER_EDIT_ACL
+ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = SUBMISSION_CENTER_MEMBER_EDIT_ACL + ONLY_ADMIN_VIEW_ACL
 
 
 ############################## VIEW ACLS ##############################
@@ -104,9 +113,9 @@ CONSORTIUM_MEMBER_VIEW_ACL: Acl = [
 ]
 
 # Consortium is a subset of submission centers, so both can view
-ALLOW_CONSORTIUM_MEMBER_VIEW_ACL: Acl = ONLY_ADMIN_VIEW_ACL + SUBMISSION_CENTER_MEMBER_VIEW_ACL + CONSORTIUM_MEMBER_VIEW_ACL
+ALLOW_CONSORTIUM_MEMBER_VIEW_ACL: Acl = SUBMISSION_CENTER_MEMBER_VIEW_ACL + CONSORTIUM_MEMBER_VIEW_ACL + ONLY_ADMIN_VIEW_ACL
 
 # Submission centers can be restricted to only those folks for view
-ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = ONLY_ADMIN_VIEW_ACL + SUBMISSION_CENTER_MEMBER_VIEW_ACL
+ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = SUBMISSION_CENTER_MEMBER_VIEW_ACL + ONLY_ADMIN_VIEW_ACL
 
 

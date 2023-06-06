@@ -4,6 +4,7 @@ from encoded_core.types.file_submitted import FileSubmitted as CoreFileSubmitted
 from encoded_core.types.file_reference import FileReference as CoreFileReference
 from encoded_core.types.file_processed import FileProcessed as CoreFileProcessed
 from .base import SMAHTItem, mixin_smaht_permission_types
+from .acl import ONLY_ADMIN_VIEW_ACL
 
 
 ENCODED_CORE_FILE_SUBMITTED_SCHEMA = deepcopy(CoreFileSubmitted.schema)
@@ -27,6 +28,7 @@ class FileSubmitted(SMAHTItem, CoreFileSubmitted):
 
 @collection(
     name='files-reference',
+    acl=ONLY_ADMIN_VIEW_ACL,  # only admins can create reference files
     properties={
         'title': 'SMaHT Reference Files',
         'description': 'Listing of SMaHT Reference Files',
@@ -38,6 +40,7 @@ class FileReference(SMAHTItem, CoreFileReference):
 
 @collection(
     name='files-processed',
+    acl=ONLY_ADMIN_VIEW_ACL,  # only admins can create processed files
     properties={
         'title': 'SMaHT Processed Files',
         'description': 'Listing of SMaHT Processed Files',

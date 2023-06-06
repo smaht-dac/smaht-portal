@@ -2,6 +2,7 @@ from snovault import collection
 from copy import deepcopy
 from encoded_core.types.file_format import FileFormat as CoreFileFormat
 from .base import SMAHTItem, mixin_smaht_permission_types
+from .acl import ONLY_ADMIN_VIEW_ACL
 
 
 ENCODED_CORE_FILE_FORMAT_SCHEMA = deepcopy(CoreFileFormat.schema)
