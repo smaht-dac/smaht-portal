@@ -90,7 +90,7 @@ build-after-poetry:  # continuation of build after poetry install
 	poetry run prepare-local-dev
 
 fix-dist-info:
-	@scripts/fix-dist-info
+	@scripts/fix-dist-info.bash
 
 build-dev:  # same as build, but sets up locust as well
 	make build
