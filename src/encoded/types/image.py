@@ -17,7 +17,7 @@ ENCODED_CORE_IMAGE_SCHEMA = deepcopy(CoreImage.schema)
     })
 class Image(SMAHTItem, CoreImage):
     schema = mixin_smaht_permission_types(ENCODED_CORE_IMAGE_SCHEMA)
-    STATUS_ACL = SMAHTItem.STATUS_ACL.update({
+    SMAHTItem.STATUS_ACL.update({
         'in review': SUBMISSION_CENTER_MEMBER_CREATE_ACL,
         'shared': SUBMISSION_CENTER_MEMBER_CREATE_ACL
     })
