@@ -1,0 +1,3 @@
+ACCESSION_FACTORY = __name__ + ':accession_factory'
+ACCESSION_PREFIX = 'SMA'
+ACCESSION_TEST_PREFIX = 'TST'

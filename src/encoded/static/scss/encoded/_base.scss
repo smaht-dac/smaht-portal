@@ -1,0 +1,166 @@
+
+
+/*************************************************************
+ ************ CGAP-Brand-Specific Variables & Config *********
+ *************************************************************/
+ 
+/* Some may overwrite Bootstrap variables */
+/* (some might be deprecated or carried over from ENCODE/4DN) */
+
+$mainThemeColor: 			#ffffff; /* i.e. the background color ..for now */
+
+$appVersionHeight:          0px;
+$footer-height:             50px + $appVersionHeight;
+$appBackgroundColor:        #fff; /* Not sure where $mainThemeColor is used... definitely not #application background-color, so creating new one */
+$appSecondaryBackgroundColor: #f5f5f5;
+
+$tableHeadFootBackgroundColor: #000000;
+
+$mobile-font-factor: 1;
+
+$modal-backdrop-opacity : 0.8;
+
+$facetlist-selected-term-color : #248bac;
+
+$badge-color-warning : #e29302;
+$badge-color-error : #bd0000;
+$badge-color-internal-action: #d0d0d0;
+
+$font-family-sans-serif : "Source Sans Pro", "Work Sans", Helvetica, Arial, sans-serif;
+$font-family-serif : "Yrsa", "Times New Roman", Georgia, Times, serif;
+/** Default monospace fonts for `<code>`, `<kbd>`, and `<pre>`. */
+$font-family-monospace : "Source Code Pro", Consolas, monospace;
+$font-family-base: $font-family-sans-serif;
+
+$font-size-base: 1rem;
+$line-height-base: 1.45;
+
+$dropdown-link-hover-bg: #ddd;
+
+
+
+
+
+/*****************************/
+/**** Bootstrap Variables ****/
+/*****************************/
+
+/* We override these with our own subset */
+$enable-print-styles: false;
+
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1500px        // < xl is overridden from default of 1200px; others are Bootstrap v4 defaults
+);
+
+$border-radius-base:                        3px;
+$border-radius-lg:                          4px;
+$border-radius-sm:                          2px;
+$input-border-radius:                       3px;
+
+$navbar-brand-font-size:                    1.7rem;
+$navbar-height:                             80px;
+
+$navbar-default-bg: #f8f8f8; // Bootstrap default is #F8F8F8
+
+// THese are probably deprecated -- todo: bring up vars from navbar.scss and put em here in place of these...
+//$navbar-fixed-breakpoint: $screen-md-min; // Use instead of Bootstrap's $grid-float-breakpoint as we want nav to become fixed later.
+$navbar-background-color: #20445f;
+$navbar-link-color : rgb(210, 218, 223);
+$navbar-link-hover-color : #fff;
+$navbar-link-active-color : #fff;
+$navbar-link-hover-bg: #0005; //darken($navbar-background-color, 5%);
+//$navbar-link-hover-bg: lighten($navbar-background-color, 10%);
+$navbar-link-active-bg: lighten($navbar-background-color, 5%);
+$navbar-default-brand-color: rgb(210, 218, 223);
+
+// We set navbar to become fixed position @ Bootstrap's medium size.
+@mixin navbar-fixed-position {
+    @include media-breakpoint-up(md) {
+        @content;
+    }
+}
+@mixin navbar-static-position {
+    @include media-breakpoint-down(sm) {
+        @content;
+    }
+}
+
+$headings-font-weight:                      bold;
+$grid-gutter-width:                         20px;
+
+$link-color: #428bca;
+
+/** Setup some other variables for tables, etc. **/
+$expset-table-border-color : #eee;
+
+
+//$primary:       #3691d2; //#2684ad; //#057eaf;
+$primary:       #1b75b9;
+$secondary:     #6c757d;
+$success:       #4C994C;
+//$info:          #4F689E;
+$info:          #4ca6ea;
+$warning:       #E59545;
+$danger:        #B24342;
+$light:         #f8f8f8;
+$dark:          #343a40;
+
+// Extra Additions for CGAP:
+//$primary-dark: darken($primary, 15%);
+$primary-dark: #2b6088; //#0c5979;
+
+
+// Will be extended in bootstrap's _variables.scss with Bootstrap orig colors (warning, success, primary, etc).
+// And then used to create utility classes 'text-primary-dark', 'bg-primary-dark', etc.
+$theme-colors: (
+    "primary-dark": $primary-dark
+);
+
+// override 1.5, to help center text
+$btn-line-height: 1.45rem;
+
+
+/* Cards */
+$card-cap-bg: #fff;
+$card-bg: #fff;
+$card-inner-border-radius: 3px;
+$card-border-color: rgba(0,0,0,0.08); // Lighter
+
+/* Header Font Sizes */
+
+$h1-font-size: 2.6rem;
+$h2-font-size: 2.1rem;
+$h3-font-size: 1.7rem;
+$h4-font-size: 1.3rem;
+$h5-font-size: 1rem;
+$h6-font-size: 0.85rem;
+
+/* Set variables for printing and prevent own print styles clashing with Bootstrap defaults */
+$print-page-size:                   8.5in 11in;
+$print-body-min-width:              8.5in;
+
+/****************************/
+/** FontAwesome Icon Stuff **/
+/****************************/
+
+$fa-font-path: "/static/font/fontawesome5.9" !default;
+$fa-font-size-base: $font-size-base;
+$fa-css-prefix: icon;
+
+$fa-font-family: 'Font Awesome 5 Free';
+
+
+/**************************************************************
+ * TabBar stuff for Item Pages, and maybe some similar places *
+ **************************************************************/
+
+$tabbar-bg-color : #ececec !default;
+$tabbar-text-color : #333 !default;
+$tabbar-text-active-color: #000 !default;
+$tabbar-bg-active-color: #fff !default;
+// If override this, check e.g. CaseView Pedigree Tab height dimensioning (JS) since this 46px is accounted for in calculations
+$tabbar-height: 46px;

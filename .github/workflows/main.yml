@@ -1,0 +1,73 @@
+# Build for smaht-portal
+
+name: CI
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    name: Test Suite for smaht-portal
+
+    # The type of runner that the job will run on
+    runs-on: ubuntu-20.04
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Install/Link Postgres
+        run: |
+          sudo apt-get install curl ca-certificates gnupg
+          curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          sudo apt-get update
+          sudo apt-get install postgresql-11 postgresql-client-11
+          echo "/usr/lib/postgresql/11/bin" >> $GITHUB_PATH
+          sudo ln -s /usr/lib/postgresql/11/bin/initdb /usr/local/bin/initdb
+
+      - name: Install Deps
+        run: |
+          make build
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: QA
+        env:
+          # S3_ENCRYPT_KEY: ${{ secrets.S3_ENCRYPT_KEY }}
+          # # The need for this old environment variable name will go away soon.
+          # TRAVIS_JOB_ID: sno-x-test-${{ github.run_number }}-
+          # This will be the new environment variable name.
+          TEST_JOB_ID: smaht-test-indexing-${{ github.run_number }}-${{ matrix.python_version }}-
+        run: |
+          make test
+
+      - name: Cleanup
+        if: ${{ always() }}
+        env:
+          S3_ENCRYPT_KEY: ${{ secrets.S3_ENCRYPT_KEY }}
+          # The need for this old environment variable name will go away soon.
+          # TRAVIS_JOB_ID: sno-x-test-${{ github.run_number }}-
+          # This will be the new environment variable name.
+          TEST_JOB_ID: sno-test-indexing-${{ github.run_number }}-${{ matrix.python_version }}-
+        run: |
+          poetry run wipe-test-indices $TEST_JOB_ID search-fourfront-testing-opensearch-kqm7pliix4wgiu4druk2indorq.us-east-1.es.amazonaws.com:443
