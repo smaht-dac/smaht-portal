@@ -144,9 +144,7 @@ clean-python:
 test:
 	@git log -1 --decorate | head -1
 	@date
-	make test-unit || echo "unit tests failed"
-	make test-npm || echo "npm tests failed"
-	make test-static || echo "static tests failed"
+	pytest -vv
 	@git log -1 --decorate | head -1
 	@date
 
