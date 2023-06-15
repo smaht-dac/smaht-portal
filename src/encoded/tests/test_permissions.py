@@ -43,7 +43,7 @@ def consortium_file(testapp, fastq_format, test_consortium):
         'file_format': fastq_format['uuid'],
         'md5sum': '00000000000000000000000000000001',
         'filename': 'my.fastq.gz',
-        'status': 'shared',  # this status is important as this will make it viewable by consortium
+        'status': 'shared',    # this status is important as this will make it viewable by consortium
         'consortiums': [
             test_consortium['uuid']
         ]
@@ -134,6 +134,26 @@ class TestConsortiumPermissions(TestPermissionsHelper):
 
         # patch the file status, so it has no submission_center therefore user should no longer see
         testapp.patch_json(f'/{consortium_file["uuid"]}?delete_fields=consortiums', {}, status=200)
+        self.validate_get_permissions(
+            restricted_app=consortium_user_app, restricted_expected_status=403,
+            admin_app=testapp, admin_expected_status=200,
+            anon_app=anontestapp, anon_expected_status=403,
+            item_uuid=uuid
+        )
+
+    def test_consortium_user_permissions_view(self, consortium_user_app, smaht_consortium_user, testapp, anontestapp,
+                                              consortium_file):
+        """ Tests view permissions for consortium, varying permissions on the user """
+        uuid = consortium_file["uuid"]
+        self.validate_get_permissions(
+            restricted_app=consortium_user_app, restricted_expected_status=200,
+            admin_app=testapp, admin_expected_status=200,
+            anon_app=anontestapp, anon_expected_status=403,
+            item_uuid=uuid
+        )
+
+        # patch the file status, so it has no submission_center therefore user should no longer see
+        testapp.patch_json(f'/{smaht_consortium_user["uuid"]}?delete_fields=consortiums', {}, status=200)
         self.validate_get_permissions(
             restricted_app=consortium_user_app, restricted_expected_status=403,
             admin_app=testapp, admin_expected_status=200,

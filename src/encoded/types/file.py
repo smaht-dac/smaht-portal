@@ -28,7 +28,6 @@ class FileSubmitted(SMAHTItem, CoreFileSubmitted):
 
 @collection(
     name='files-reference',
-    acl=ONLY_ADMIN_VIEW_ACL,  # only admins can create reference files
     properties={
         'title': 'SMaHT Reference Files',
         'description': 'Listing of SMaHT Reference Files',
@@ -40,7 +39,6 @@ class FileReference(SMAHTItem, CoreFileReference):
 
 @collection(
     name='files-processed',
-    acl=ONLY_ADMIN_VIEW_ACL,  # only admins can create processed files
     properties={
         'title': 'SMaHT Processed Files',
         'description': 'Listing of SMaHT Processed Files',
