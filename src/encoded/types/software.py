@@ -14,4 +14,5 @@ ENCODED_CORE_SOFTWARE_SCHEMA = deepcopy(CoreSoftware.schema)
         'description': 'Listing of software for analyses',
     })
 class Software(SMAHTItem, CoreSoftware):
+    item_type = 'software'
     schema = mixin_smaht_permission_types(ENCODED_CORE_SOFTWARE_SCHEMA)

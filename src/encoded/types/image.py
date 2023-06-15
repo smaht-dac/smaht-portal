@@ -15,4 +15,5 @@ ENCODED_CORE_IMAGE_SCHEMA = deepcopy(CoreImage.schema)
         'description': 'Listing of portal images',
     })
 class Image(SMAHTItem, CoreImage):
+    item_type = 'image'
     schema = mixin_smaht_permission_types(ENCODED_CORE_IMAGE_SCHEMA)

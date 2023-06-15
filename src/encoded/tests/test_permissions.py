@@ -33,7 +33,7 @@ def submission_center_file(testapp, fastq_format, test_submission_center):
             test_submission_center['uuid']
         ]
     }
-    res = testapp.post_json('/file_submitted', item)
+    res = testapp.post_json('/FileSubmitted', item)
     return res.json['@graph'][0]
 
 
@@ -48,7 +48,7 @@ def consortium_file(testapp, fastq_format, test_consortium):
             test_consortium['uuid']
         ]
     }
-    res = testapp.post_json('/file_submitted', item)
+    res = testapp.post_json('/FileSubmitted', item)
     return res.json['@graph'][0]
 
 
@@ -69,6 +69,12 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
     """ Tests permissions scheme centered around the submission center ie: can they view associated items,
         can they create/edit them etc
     """
+    SUBMISSION_CENTER_SUBMITTABLE_TYPES = [
+        'FileSubmitted',
+        'FileReference',
+        'FilterSet',
+        'Image'
+    ]
 
     def test_submission_center_file_permissions_view(self, submission_center_user_app, smaht_gcc_user, testapp,
                                                      anontestapp, submission_center_file):
@@ -104,9 +110,16 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
             item_uuid=uuid
         )
 
-    @pytest.mark.skip  # wait until permissions are further along
     @staticmethod
-    def test_submission_center_user_create(test_submission_center, submission_center_user_app, smaht_gcc_user):
+    def test_submission_center_user_create_access_key(test_submission_center, submission_center_user_app,
+                                                      smaht_gcc_user, testapp):
+        submission_center_user_app.post_json('/AccessKey', {
+            'user': smaht_gcc_user['@id'],
+            'description': 'test key',
+        }, status=201)
+
+    @staticmethod
+    def test_submission_center_user_create_other(test_submission_center, submission_center_user_app, smaht_gcc_user):
         submission_center_user_app.post_json('/Image', {
             'description': 'test',
             'submission_centers': [
@@ -120,6 +133,11 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
 
 class TestConsortiumPermissions(TestPermissionsHelper):
     """ Similar to above class, tests that consortium members can view (note: NOT edit) items """
+
+    CONSORTIUM_SUBMITTABLE_TYPES = [
+        'AccessKey',
+        'FilterSet'
+    ]
 
     def test_consortium_file_permissions_view(self, consortium_user_app, smaht_consortium_user, testapp, anontestapp,
                                               consortium_file):

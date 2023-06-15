@@ -1,7 +1,7 @@
 from pyramid.security import (
     Allow, Deny, Everyone, Authenticated
 )
-from snovault.types.base import Acl
+from snovault.types.acl import Acl
 
 
 CONSORTIUM_MEMBER = 'role.consortium_member'
@@ -43,13 +43,16 @@ ALLOW_AUTHENTICATED_CREATE_ACL: Acl = [
 # Note that all submission centers are part of the consortium, so anything
 # that is "edit" for consortium can be added/created by anyone who is a part
 # of it
+# Note additionally that generally add/create require view permissions
 SUBMISSION_CENTER_MEMBER_CREATE_ACL: Acl = [
     (Allow, SUBMISSION_CENTER_MEMBER, 'add'),
-    (Allow, SUBMISSION_CENTER_MEMBER, 'create')
+    (Allow, SUBMISSION_CENTER_MEMBER, 'create'),
+    (Allow, SUBMISSION_CENTER_MEMBER, 'view')
 ]
 CONSORTIUM_MEMBER_CREATE_ACL: Acl = [
     (Allow, CONSORTIUM_MEMBER, 'add'),
-    (Allow, CONSORTIUM_MEMBER, 'create')
+    (Allow, CONSORTIUM_MEMBER, 'create'),
+    (Allow, CONSORTIUM_MEMBER, 'view')
 ]
 
 

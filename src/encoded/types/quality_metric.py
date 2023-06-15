@@ -15,4 +15,5 @@ ENCODED_CORE_QC_GENERAL_SCHEMA = deepcopy(CoreQualityMetricGeneric.schema)
     },
 )
 class QualityMetricGeneric(SMAHTItem, CoreQualityMetricGeneric):
+    item_type = 'quality_metric_generic'
     schema = mixin_smaht_permission_types(ENCODED_CORE_QC_GENERAL_SCHEMA)

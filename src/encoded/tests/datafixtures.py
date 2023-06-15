@@ -24,7 +24,7 @@ def test_submission_center(testapp):
         'name': 'SMaHT-Test-GCC',
         'title': 'SMahT Test GCC'
     }
-    return post_item_and_return_location(testapp, item, 'submission-center')
+    return post_item_and_return_location(testapp, item, 'submission_center')
 
 
 @pytest.fixture

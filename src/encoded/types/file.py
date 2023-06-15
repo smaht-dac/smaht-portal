@@ -20,6 +20,7 @@ ENCODED_CORE_FILE_PROCESSED_SCHEMA = deepcopy(CoreFileProcessed.schema)
     })
 class FileSubmitted(SMAHTItem, CoreFileSubmitted):
     """ Overwrites the FileSubmitted type from encoded-core, customizing the schema for smaht-portal """
+    item_type = 'file_submitted'
     schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_SUBMITTED_SCHEMA)
 
     def __ac_local_roles__(self):
@@ -34,6 +35,7 @@ class FileSubmitted(SMAHTItem, CoreFileSubmitted):
     })
 class FileReference(SMAHTItem, CoreFileReference):
     """ Overwrites the FileReference type from encoded-core, customizing the schema for smaht-portal """
+    item_type = 'file_reference'
     schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_REFERENCE_SCHEMA)
 
 
@@ -45,4 +47,5 @@ class FileReference(SMAHTItem, CoreFileReference):
     })
 class FileProcessed(SMAHTItem, CoreFileProcessed):
     """ Overwrites the FileProcessed type from encoded-core, customizing the schema for smaht-portal """
+    item_type = 'file_processed'
     schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_PROCESSED_SCHEMA)

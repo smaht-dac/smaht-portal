@@ -18,4 +18,5 @@ class HiglassViewConfig(SMAHTItem, CoreHiglassViewConfig):
     """
     Item type which contains a `view_config` property and other metadata.
     """
+    item_type = 'higlass_view_config'
     schema = mixin_smaht_permission_types(ENCODED_CORE_HIGLASS_VIEW_CONFIG_SCHEMA)

@@ -16,4 +16,5 @@ SNOVAULT_FILTER_SET_SCHEMA = deepcopy(SnovaultFilterSet.schema)
     }
 )
 class FilterSet(SMAHTItem, SnovaultFilterSet):
+    item_type = 'filter_set'
     schema = mixin_smaht_permission_types(SNOVAULT_FILTER_SET_SCHEMA)

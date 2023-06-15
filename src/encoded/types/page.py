@@ -15,4 +15,5 @@ ENCODED_CORE_PAGE_SCHEMA = deepcopy(CorePage.schema)
         'description': 'Static Pages for the Portal',
     })
 class Page(SMAHTItem, CorePage):
+    item_type = 'page'
     schema = mixin_smaht_permission_types(ENCODED_CORE_PAGE_SCHEMA)

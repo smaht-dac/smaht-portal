@@ -1,6 +1,5 @@
 from pyramid.view import view_config
-
-from snovault import abstract_collection, calculated_property
+from snovault import AbstractCollection, abstract_collection, calculated_property
 from snovault.types.base import (
     Item,
     Collection,
@@ -43,27 +42,33 @@ def mixin_smaht_permission_types(schema: dict) -> dict:
     return schema
 
 
-class SMAHTCollection(Collection):
+class SMAHTCollection(Collection, AbstractCollection):
     """ Allows default ACL """
     def __init__(self, *args, **kw):
-        """smth."""
         super(Collection, self).__init__(*args, **kw)
         if hasattr(self, '__acl__'):
+            PRINT(f'DEBUG_PERMISSIONS: returning {self.__acl__} for {self.type_info.name}')
             return
 
-        # If no ACLs are defined for collection, allow project members to create
+        # If no ACLs are defined for collection, allow submission centers to add/create
         if 'submission_centers' in self.type_info.factory.schema['properties']:
-            self.__acl__ = ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL
+            PRINT(f'DEBUG_PERMISSIONS: returning {ALLOW_SUBMISSION_CENTER_CREATE_ACL} for {self.type_info.name}')
+            self.__acl__ = ALLOW_SUBMISSION_CENTER_CREATE_ACL
+        else:
+            PRINT(f'DEBUG_PERMISSIONS: using default acl for {self.type_info.name}')
 
 
 @abstract_collection(
-    name='smaht-items',
+    name='items',
     properties={
         'title': "SMaHT Item Listing",
         'description': 'Abstract collection of all SMaHT Items.',
     }
 )
 class SMAHTItem(Item):
+    item_type = 'item'
+    AbstractCollection = AbstractCollection
+    Collection = SMAHTCollection
     # This value determines the default status mapping of permissions
     # Ie: if an item status = public, then the ACL ALLOW_EVERYONE_VIEW applies to its permissions,
     # so anyone (even unauthenticated users) can view it
@@ -72,7 +77,7 @@ class SMAHTItem(Item):
         'obsolete': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'current': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'inactive': ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
-        'in review': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'in review': ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
         'uploaded': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'uploading': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'archived': ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
@@ -83,6 +88,10 @@ class SMAHTItem(Item):
         # Only creator can view - restricted to specific items via schemas.
         'draft': ALLOW_OWNER_EDIT_ACL
     }
+
+    def __init__(self, registry, models):
+        super().__init__(registry, models)
+        self.STATUS_ACL = self.__class__.STATUS_ACL
 
     def __acl__(self):
         """This sets the ACL for the item based on mapping of status to ACL.
@@ -95,6 +104,7 @@ class SMAHTItem(Item):
         # Don't finalize to avoid validation here.
         properties = self.upgrade_properties().copy()
         status = properties.get('status')
+        PRINT(f'DEBUG_PERMISSIONS: Using status {status} for {self}')
         return self.STATUS_ACL.get(status, ONLY_ADMIN_VIEW_ACL)
 
     def __ac_local_roles__(self):
