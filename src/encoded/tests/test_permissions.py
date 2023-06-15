@@ -128,6 +128,16 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
         }, status=201)
         submission_center_user_app.post_json('/Image', {
             'description': 'test'
+        }, status=201)
+
+    @staticmethod
+    def test_submission_center_user_cannot_create_other(test_submission_center, submission_center_user_app,
+                                                        smaht_gcc_user, test_second_submission_center):
+        submission_center_user_app.post_json('/Image', {
+            'description': 'test',
+            'submission_centers': [
+                test_second_submission_center['uuid']
+            ]
         }, status=403)
 
 

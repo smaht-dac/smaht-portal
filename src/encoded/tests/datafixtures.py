@@ -28,6 +28,16 @@ def test_submission_center(testapp):
 
 
 @pytest.fixture
+def test_second_submission_center(testapp):
+    """ Tests the posting of a submission center """
+    item = {
+        'name': 'Second-SMaHT-Test-GCC',
+        'title': 'Second-SMahT Test GCC'
+    }
+    return post_item_and_return_location(testapp, item, 'submission_center')
+
+
+@pytest.fixture
 def test_consortium(testapp):
     """ Tests the posting of a consortium """
     item = {

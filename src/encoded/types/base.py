@@ -31,13 +31,15 @@ def mixin_smaht_permission_types(schema: dict) -> dict:
         'type': 'array',
         'items': {
             'linkTo': 'SubmissionCenter'
-        }
+        },
+        'serverDefault': 'user_submission_centers'
     }
     schema['properties']['consortiums'] = {
         'type': 'array',
         'items': {
             'linkTo': 'Consortium'
-        }
+        },
+        'serverDefault': 'user_consortiums'
     }
     return schema
 
@@ -55,7 +57,8 @@ class SMAHTCollection(Collection, AbstractCollection):
             PRINT(f'DEBUG_PERMISSIONS: returning {ALLOW_SUBMISSION_CENTER_CREATE_ACL} for {self.type_info.name}')
             self.__acl__ = ALLOW_SUBMISSION_CENTER_CREATE_ACL
         else:
-            PRINT(f'DEBUG_PERMISSIONS: using default acl for {self.type_info.name}')
+            self.__acl__ = ONLY_ADMIN_VIEW_ACL
+            PRINT(f'DEBUG_PERMISSIONS: using admin acl for {self.type_info.name}')
 
 
 @abstract_collection(

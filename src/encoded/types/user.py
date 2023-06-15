@@ -7,6 +7,35 @@ from .base import SMAHTItem, mixin_smaht_permission_types
 SNOVAULT_USER_SCHEMA = deepcopy(SnovaultUser.schema)
 
 
+# def mixin_smaht_permission_types(schema: dict) -> dict:
+#     """ Override of function from base.py that specifies some special fields
+#         that will differentiate from User and other types
+#     """
+#     # this determines who can edit
+#     schema['properties']['submission_center'] = {
+#         'type': 'array',
+#         'items': {
+#             'linkTo': 'SubmissionCenter'
+#         }
+#     }
+#     # these determine other permissions
+#     schema['properties']['user_submission_centers'] = {
+#         'type': 'array',
+#         'items': {
+#             'linkTo': 'SubmissionCenter'
+#         },
+#         'permission': 'restricted_fields'
+#     }
+#     schema['properties']['user_consortiums'] = {
+#         'type': 'array',
+#         'items': {
+#             'linkTo': 'Consortium'
+#         },
+#         'permission': 'restricted_fields'
+#     }
+#     return schema
+
+
 @collection(
     name='users',
     unique_key='user:email',

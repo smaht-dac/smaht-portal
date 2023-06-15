@@ -41,6 +41,7 @@ def includeme(config):
     config.include('encoded.authentication')
     config.include('encoded.root')
     config.include('encoded.types')
+    config.include('encoded.server_defaults')
     # config.include('encoded.visualization')
     config.commit()
 
