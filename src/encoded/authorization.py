@@ -116,6 +116,7 @@ def smaht_groupfinder(login, request):
         for submission_center in user_properties['submission_centers']:
             add_principal(f'role.submission_center_member.{submission_center}')
     if 'consortium' in user_properties:
-        add_principal('role.consortium_member')
+        for consortium in user_properties['consortiums']:
+            add_principal(f'role.consortium_member.{consortium}')
 
     return principals

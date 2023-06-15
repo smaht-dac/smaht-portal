@@ -8,15 +8,24 @@ def submission_center_user_app(testapp, test_submission_center, smaht_gcc_user):
 
 
 @pytest.fixture
-def file(testapp, test_submission_center):
-    res = testapp.post_json('/file_format', {
+def consortium_user_app(testapp, test_consortium, smaht_consortium_user):
+    return remote_user_testapp(testapp.app, smaht_consortium_user['uuid'])
+
+
+@pytest.fixture
+def fastq_format(testapp):
+    return testapp.post_json('/file_format', {
         'file_format': 'fastq',
         'standard_file_extension': 'fastq.gz',
         'other_allowed_extensions': ['fq.gz'],
         'valid_item_types': ["FileSubmitted", "FileReference", "FileProcessed"]
     }, status=201).json['@graph'][0]
+
+
+@pytest.fixture
+def submission_center_file(testapp, fastq_format, test_submission_center):
     item = {
-        'file_format': res['uuid'],
+        'file_format': fastq_format['uuid'],
         'md5sum': '00000000000000000000000000000000',
         'filename': 'my.fastq.gz',
         'status': 'uploaded',
@@ -28,35 +37,72 @@ def file(testapp, test_submission_center):
     return res.json['@graph'][0]
 
 
-class TestSubmissionCenterPermissions:
+@pytest.fixture
+def consortium_file(testapp, fastq_format, test_consortium):
+    item = {
+        'file_format': fastq_format['uuid'],
+        'md5sum': '00000000000000000000000000000001',
+        'filename': 'my.fastq.gz',
+        'status': 'shared',  # this status is important as this will make it viewable by consortium
+        'consortiums': [
+            test_consortium['uuid']
+        ]
+    }
+    res = testapp.post_json('/file_submitted', item)
+    return res.json['@graph'][0]
+
+
+class TestPermissionsHelper:
+
+    @staticmethod
+    def validate_get_permissions(*, restricted_app, restricted_expected_status,
+                                  admin_app, admin_expected_status,
+                                  anon_app, anon_expected_status,
+                                  item_uuid):
+        """ Tests a series of app/status combinations for GET based on the callers desired behavior """
+        restricted_app.get(f'/{item_uuid}', status=restricted_expected_status)
+        admin_app.get(f'/{item_uuid}', status=admin_expected_status)
+        anon_app.get(f'/{item_uuid}', status=anon_expected_status)
+
+
+class TestSubmissionCenterPermissions(TestPermissionsHelper):
     """ Tests permissions scheme centered around the submission center ie: can they view associated items,
         can they create/edit them etc
     """
 
-    @staticmethod
-    def test_submission_center_file_permissions_view(submission_center_user_app, smaht_gcc_user, testapp,
-                                                     anontestapp, file):
+    def test_submission_center_file_permissions_view(self, submission_center_user_app, smaht_gcc_user, testapp,
+                                                     anontestapp, submission_center_file):
         """ Tests that a user associated with a submission center can view an uploaded permissioned
             file, an anonymous user cannot and an admin user can """
-        submission_center_user_app.get(f'/{file["uuid"]}', status=200)
-        anontestapp.get(f'/{file["uuid"]}', status=403)
-        testapp.get(f'/{file["uuid"]}', status=200)
+        uuid = submission_center_file["uuid"]
+        self.validate_get_permissions(
+            restricted_app=submission_center_user_app, restricted_expected_status=200,
+            admin_app=testapp, admin_expected_status=200,
+            anon_app=anontestapp, anon_expected_status=403,
+            item_uuid=uuid
+        )
 
-        # patch the file status so it has no submission_center, user should now no longer see
-        testapp.patch_json(f'/{file["uuid"]}?delete_fields=submission_centers', {}, status=200)
-        submission_center_user_app.get(f'/{file["uuid"]}', status=403)
-        anontestapp.get(f'/{file["uuid"]}', status=403)
-        testapp.get(f'/{file["uuid"]}', status=200)
+        # patch the file status, so it has no submission_center therefore user should no longer see
+        testapp.patch_json(f'/{submission_center_file["uuid"]}?delete_fields=submission_centers', {}, status=200)
+        self.validate_get_permissions(
+            restricted_app=submission_center_user_app, restricted_expected_status=403,
+            admin_app=testapp, admin_expected_status=200,
+            anon_app=anontestapp, anon_expected_status=403,
+            item_uuid=uuid
+        )
 
-    @staticmethod
-    def test_submission_center_user_permissions_view(submission_center_user_app, smaht_gcc_user, testapp,
-                                                     anontestapp, file):
+    def test_submission_center_user_permissions_view(self, submission_center_user_app, smaht_gcc_user, testapp,
+                                                     anontestapp, submission_center_file):
         """ Similar to above except tests the opposite case ie: user no longer has submission_center but file does"""
-        # patch the file status so it has no submission_center, user should now no longer see
+        uuid = submission_center_file["uuid"]
+        # patch the file status, so it has no submission_center therefore user should no longer see
         testapp.patch_json(f'/{smaht_gcc_user["uuid"]}?delete_fields=submission_centers', {}, status=200)
-        submission_center_user_app.get(f'/{file["uuid"]}', status=403)
-        anontestapp.get(f'/{file["uuid"]}', status=403)
-        testapp.get(f'/{file["uuid"]}', status=200)
+        self.validate_get_permissions(
+            restricted_app=submission_center_user_app, restricted_expected_status=403,
+            admin_app=testapp, admin_expected_status=200,
+            anon_app=anontestapp, anon_expected_status=403,
+            item_uuid=uuid
+        )
 
     @pytest.mark.skip  # wait until permissions are further along
     @staticmethod
@@ -72,6 +118,25 @@ class TestSubmissionCenterPermissions:
         }, status=403)
 
 
-class TestConsortiumPermissions:
+class TestConsortiumPermissions(TestPermissionsHelper):
     """ Similar to above class, tests that consortium members can view (note: NOT edit) items """
-    pass
+
+    def test_consortium_file_permissions_view(self, consortium_user_app, smaht_consortium_user, testapp, anontestapp,
+                                              consortium_file):
+        """ Tests view permissions for consortium, varying permissions on the file """
+        uuid = consortium_file["uuid"]
+        self.validate_get_permissions(
+            restricted_app=consortium_user_app, restricted_expected_status=200,
+            admin_app=testapp, admin_expected_status=200,
+            anon_app=anontestapp, anon_expected_status=403,
+            item_uuid=uuid
+        )
+
+        # patch the file status, so it has no submission_center therefore user should no longer see
+        testapp.patch_json(f'/{consortium_file["uuid"]}?delete_fields=consortiums', {}, status=200)
+        self.validate_get_permissions(
+            restricted_app=consortium_user_app, restricted_expected_status=403,
+            admin_app=testapp, admin_expected_status=200,
+            anon_app=anontestapp, anon_expected_status=403,
+            item_uuid=uuid
+        )

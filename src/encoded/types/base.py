@@ -37,7 +37,7 @@ def mixin_smaht_permission_types(schema: dict) -> dict:
     schema['properties']['consortiums'] = {
         'type': 'array',
         'items': {
-            'linkTo': 'Consortiums'
+            'linkTo': 'Consortium'
         }
     }
     return schema
@@ -109,7 +109,7 @@ class SMAHTItem(Item):
                 roles[center] = SUBMISSION_CENTER_MEMBER
         if 'consortiums' in properties:
             for consortium in properties['consortiums']:
-                consortium_identifier = f'consortium.{consortium}'
+                consortium_identifier = f'role.consortium_member.{consortium}'
                 roles[consortium_identifier] = CONSORTIUM_MEMBER
         if 'submitted_by' in properties:
             submitter = 'userid.%s' % properties['submitted_by']
