@@ -1,6 +1,10 @@
 from dcicutils.misc_utils import PRINT
 from snovault.authorization import DEBUG_PERMISSIONS
 from snovault.project.authorization import SnovaultProjectAuthorization
+from ..types.acl import (
+    SUBMISSION_CENTER_RW, SUBMISSION_CENTER_MEMBER_CREATE,
+    CONSORTIUM_MEMBER_RW, CONSORTIUM_MEMBER_CREATE
+)
 
 
 class SMaHTProjectAuthorization(SnovaultProjectAuthorization):
@@ -16,12 +20,13 @@ class SMaHTProjectAuthorization(SnovaultProjectAuthorization):
 
         # SMaHT Specific stuff begins here (consortium and submission center)
         if 'submission_centers' in user_properties:
-            add_principal('role.submission_center_member')  # for add/create permissions
+            add_principal(SUBMISSION_CENTER_MEMBER_CREATE)  # for add/create permissions
+            add_principal(CONSORTIUM_MEMBER_RW)  # all submission centers can read consortium level data
             # for view permissions
             for submission_center in user_properties['submission_centers']:
-                add_principal(f'role.submission_center_member.{submission_center}')
+                add_principal(f'{SUBMISSION_CENTER_RW}.{submission_center}')
         if 'consortiums' in user_properties:
-            add_principal('role.consortium_member')  # for add/create permissions
+            add_principal(CONSORTIUM_MEMBER_CREATE)  # for add/create permissions
             for consortium in user_properties['consortiums']:
-                add_principal(f'role.consortium_member.{consortium}')
+                add_principal(f'{CONSORTIUM_MEMBER_RW}.{consortium}')
         return principals

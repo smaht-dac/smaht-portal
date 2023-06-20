@@ -130,11 +130,11 @@ class SMAHTItem(Item):
         properties = self.upgrade_properties()
         if 'submission_centers' in properties:
             for submission_center in properties['submission_centers']:
-                center = f'role.submission_center_member_rw.{submission_center}'
+                center = f'{SUBMISSION_CENTER_RW}.{submission_center}'
                 roles[center] = SUBMISSION_CENTER_RW
         if 'consortiums' in properties:
             for consortium in properties['consortiums']:
-                consortium_identifier = f'role.consortium_member_rw.{consortium}'
+                consortium_identifier = f'{CONSORTIUM_MEMBER_RW}.{consortium}'
                 roles[consortium_identifier] = CONSORTIUM_MEMBER_RW
         if 'submitted_by' in properties:
             submitter = 'userid.%s' % properties['submitted_by']

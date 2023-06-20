@@ -114,6 +114,7 @@ def smaht_groupfinder(login, request):
     # SMaHT Specific stuff begins here (consortium and submission center)
     if 'submission_centers' in user_properties:
         add_principal('role.submission_center_member_create')  # for add/create permissions
+        add_principal('role.consortium_member_rw')  # all submission centers can read consortium level data
         # for view permissions
         for submission_center in user_properties['submission_centers']:
             add_principal(f'role.submission_center_member_rw.{submission_center}')

@@ -67,14 +67,8 @@ class TestPermissionsHelper:
 
 class TestSubmissionCenterPermissions(TestPermissionsHelper):
     """ Tests permissions scheme centered around the submission center ie: can they view associated items,
-        can they create/edit them etc
+        can they create/edit them etc - all testing with default status
     """
-    SUBMISSION_CENTER_SUBMITTABLE_TYPES = [
-        'FileSubmitted',
-        'FileReference',
-        'FilterSet',
-        'Image'
-    ]
 
     def test_submission_center_file_permissions_view(self, submission_center_user_app, smaht_gcc_user, testapp,
                                                      anontestapp, submission_center_file):
@@ -110,9 +104,38 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
             item_uuid=uuid
         )
 
+    def test_submission_center_user_permissions_cannot_view(self, submission_center_user_app, smaht_gcc_user, testapp,
+                                                            anontestapp, submission_center_file,
+                                                            test_second_submission_center):
+        """ Tests that a submission center user cannot view items associated with a different submission center """
+        uuid = submission_center_file["uuid"]
+        testapp.patch_json(f'/{uuid}', {
+            'submission_centers': [
+                test_second_submission_center['uuid']
+            ]
+        })
+        self.validate_get_permissions(
+            restricted_app=submission_center_user_app, restricted_expected_status=403,
+            admin_app=testapp, admin_expected_status=200,
+            anon_app=anontestapp, anon_expected_status=403,
+            item_uuid=uuid
+        )
+
+    def test_submission_center_user_can_view_consortium_item(self, submission_center_user_app, testapp,
+                                                             anontestapp, consortium_file):
+        """ Tests that a user with submission center permissions can view consortium associated items """
+        uuid = consortium_file["uuid"]
+        self.validate_get_permissions(
+            restricted_app=submission_center_user_app, restricted_expected_status=200,
+            admin_app=testapp, admin_expected_status=200,
+            anon_app=anontestapp, anon_expected_status=403,
+            item_uuid=uuid
+        )
+
     @staticmethod
     def test_submission_center_user_create_access_key(test_submission_center, submission_center_user_app,
                                                       smaht_gcc_user, testapp):
+        """ Tests that submission center users can create access keys """
         submission_center_user_app.post_json('/AccessKey', {
             'user': smaht_gcc_user['@id'],
             'description': 'test key',
@@ -120,6 +143,7 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
 
     @staticmethod
     def test_submission_center_user_create_other(test_submission_center, submission_center_user_app, smaht_gcc_user):
+        """ Tests a submission center user can create another allowed type """
         submission_center_user_app.post_json('/Image', {
             'description': 'test',
             'submission_centers': [
@@ -133,21 +157,31 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
     @staticmethod
     def test_submission_center_user_cannot_create_other(test_submission_center, submission_center_user_app,
                                                         smaht_gcc_user, test_second_submission_center):
+        """ Tests that a submission center user cannot create items associated with other centers
+            or types not allowed by submission center users/restricted fields
+        """
         submission_center_user_app.post_json('/Image', {
             'description': 'test',
             'submission_centers': [
                 test_second_submission_center['uuid']
             ]
         }, status=403)
+        submission_center_user_app.post_json('/Image', {
+            'description': 'test2',
+            'submission_centers': [
+                test_submission_center['uuid']
+            ],
+            'status': 'draft'
+        }, status=422)
+        submission_center_user_app.post_json('/SubmissionCenter', {
+            'title': 'dummy',
+            'name': 'dummy'
+        }, status=422)  # blocked by restricted_fields on required fields
 
 
 class TestConsortiumPermissions(TestPermissionsHelper):
-    """ Similar to above class, tests that consortium members can view (note: NOT edit) items """
-
-    CONSORTIUM_SUBMITTABLE_TYPES = [
-        'AccessKey',
-        'FilterSet'
-    ]
+    """ Similar to above class, tests that consortium members can view (note: NOT edit) items
+        all testing with default status """
 
     def test_consortium_file_permissions_view(self, consortium_user_app, smaht_consortium_user, testapp, anontestapp,
                                               consortium_file):
@@ -188,3 +222,43 @@ class TestConsortiumPermissions(TestPermissionsHelper):
             anon_app=anontestapp, anon_expected_status=403,
             item_uuid=uuid
         )
+
+    @staticmethod
+    def test_consortium_user_create_access_key(consortium_user_app, smaht_consortium_user, testapp):
+        """ Tests that consortium users can create access keys """
+        consortium_user_app.post_json('/AccessKey', {
+            'user': smaht_consortium_user['@id'],
+            'description': 'test key',
+        }, status=201)
+
+    @staticmethod
+    def test_consortium_user_create_other(test_consortium, consortium_user_app, smaht_consortium_user, testapp):
+        """ Tests that consortium users can create filter sets """
+        consortium_user_app.post_json('/FilterSet', {
+            'title': 'test fs',
+            'consortiums': [
+                test_consortium['uuid']
+            ]
+        }, status=201)
+        consortium_user_app.post_json('/FilterSet', {
+            'title': 'test fs2'
+        }, status=201)
+
+    @staticmethod
+    def test_consortium_user_cannot_create_other(test_submission_center, consortium_user_app, smaht_consortium_user, testapp):
+        """ Tests that a consortium user cannot create items associated with submission centers,
+            touch restricted fields or types """
+        consortium_user_app.post_json('/Image', {
+            'description': 'test image',
+            'submission_centers': [
+                test_submission_center['uuid']
+            ]
+        }, status=403)
+        consortium_user_app.post_json('/Image', {
+            'description': 'test image',
+            'status': 'draft'
+        }, status=422)  # blocked by restricted_fields on required fields
+        consortium_user_app.post_json('/SubmissionCenter', {
+            'title': 'dummy',
+            'name': 'dummy'
+        }, status=422)  # blocked by restricted_fields on required fields
