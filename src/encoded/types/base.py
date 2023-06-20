@@ -21,6 +21,7 @@ from snovault.crud_views import (
 )
 from dcicutils.misc_utils import PRINT
 from .acl import *
+from ..local_roles import DEBUG_PERMISSIONS
 
 
 def mixin_smaht_permission_types(schema: dict) -> dict:
@@ -75,7 +76,7 @@ class SMAHTItem(Item):
     # This value determines the default status mapping of permissions
     # Ie: if an item status = public, then the ACL ALLOW_EVERYONE_VIEW applies to its permissions,
     # so anyone (even unauthenticated users) can view it
-    STATUS_ACL = {
+    SUBMISSION_CENTER_STATUS_ACL = {
         'shared': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'obsolete': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'current': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
@@ -91,6 +92,8 @@ class SMAHTItem(Item):
         # Only creator can view - restricted to specific items via schemas.
         'draft': ALLOW_OWNER_EDIT_ACL
     }
+    # For now, replicate the same
+    CONSORTIUM_STATUS_ACL = SUBMISSION_CENTER_STATUS_ACL
 
     def __init__(self, registry, models):
         super().__init__(registry, models)
@@ -107,8 +110,17 @@ class SMAHTItem(Item):
         # Don't finalize to avoid validation here.
         properties = self.upgrade_properties().copy()
         status = properties.get('status')
-        PRINT(f'DEBUG_PERMISSIONS: Using status {status} for {self}')
-        return self.STATUS_ACL.get(status, ONLY_ADMIN_VIEW_ACL)
+        if 'consortiums' in properties:
+            if DEBUG_PERMISSIONS:
+                PRINT(f'DEBUG_PERMISSIONS: Using consortiums ACLs status {status} for {self}')
+            return self.CONSORTIUM_STATUS_ACL.get(status, ONLY_ADMIN_VIEW_ACL)
+        if 'submission_centers' in properties:
+            if DEBUG_PERMISSIONS:
+                PRINT(f'DEBUG_PERMISSIONS: Using submission_centers ACLs status {status} for {self}')
+            return self.SUBMISSION_CENTER_STATUS_ACL.get(status, ONLY_ADMIN_VIEW_ACL)
+        if DEBUG_PERMISSIONS:
+            PRINT(f'DEBUG_PERMISSIONS: Falling back to admin view for {self}')
+        return ONLY_ADMIN_VIEW_ACL
 
     def __ac_local_roles__(self):
         """ Overrides the default permissioning to add some additional roles to the item based on
@@ -118,16 +130,17 @@ class SMAHTItem(Item):
         properties = self.upgrade_properties()
         if 'submission_centers' in properties:
             for submission_center in properties['submission_centers']:
-                center = f'role.submission_center_member.{submission_center}'
-                roles[center] = SUBMISSION_CENTER_MEMBER
+                center = f'role.submission_center_member_rw.{submission_center}'
+                roles[center] = SUBMISSION_CENTER_RW
         if 'consortiums' in properties:
             for consortium in properties['consortiums']:
-                consortium_identifier = f'role.consortium_member.{consortium}'
-                roles[consortium_identifier] = CONSORTIUM_MEMBER
+                consortium_identifier = f'role.consortium_member_rw.{consortium}'
+                roles[consortium_identifier] = CONSORTIUM_MEMBER_RW
         if 'submitted_by' in properties:
             submitter = 'userid.%s' % properties['submitted_by']
             roles[submitter] = 'role.owner'
-        PRINT(f'DEBUG_PERMISSIONS: Returning roles {roles} for {self}')
+        if DEBUG_PERMISSIONS:
+            PRINT(f'DEBUG_PERMISSIONS: Returning roles {roles} for {self}')
         return roles
 
 
