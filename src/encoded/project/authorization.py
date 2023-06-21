@@ -21,7 +21,7 @@ class SMaHTProjectAuthorization(SnovaultProjectAuthorization):
         # SMaHT Specific stuff begins here (consortium and submission center)
         if 'submission_centers' in user_properties:
             add_principal(SUBMISSION_CENTER_MEMBER_CREATE)  # for add/create permissions
-            add_principal(CONSORTIUM_MEMBER_RW)  # all submission centers can read consortium level data
+            add_principal(CONSORTIUM_MEMBER_RW)  # all submission centers can read/write consortium level data
             # for view permissions
             for submission_center in user_properties['submission_centers']:
                 add_principal(f'{SUBMISSION_CENTER_RW}.{submission_center}')

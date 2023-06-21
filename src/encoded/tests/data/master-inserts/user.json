@@ -27,6 +27,12 @@
         "uuid": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "groups": [
             "admin"
+        ],
+        "consortiums": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
     {
@@ -36,6 +42,12 @@
         "uuid": "27d2ac03-7d12-442b-9375-211d3c5c5f97",
         "groups": [
             "admin"
+        ],
+        "consortiums": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
     {
@@ -51,6 +63,12 @@
         "uuid": "986b362f-4eb6-4a9c-8173-3ab267227777",
         "groups": [
             "admin"
+        ],
+        "consortiums": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
     {
@@ -81,6 +99,12 @@
         "uuid": "70060f34-ec8f-4c34-a6c3-1b7b9ce8d314",
         "groups": [
             "admin"
+        ],
+        "consortiums": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
     {
@@ -90,6 +114,12 @@
         "uuid": "45ac3b0a-6640-4ccc-8ba7-e4cc7c778c15",
         "groups": [
             "admin"
+        ],
+        "consortiums": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
     {
@@ -99,6 +129,12 @@
         "uuid": "f9524d43-01b5-4b71-94c6-32d2d09c2222",
         "groups": [
             "admin"
+        ],
+        "consortiums": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
     {
@@ -108,6 +144,12 @@
         "uuid": "bf91416d-5d99-48bd-9035-3c6e520131a2",
         "groups": [
             "admin"
+        ],
+        "consortiums": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
     {
@@ -117,6 +159,12 @@
         "uuid": "e34b090e-aa4e-494c-9bb3-79d0dbce0301",
         "groups": [
             "admin"
+        ],
+        "consortiums": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
     {
@@ -126,6 +174,12 @@
         "uuid": "90a33c84-6b17-4f96-be54-f8cb0458ee67",
         "groups": [
             "admin"
+        ],
+        "consortiums": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
     {
@@ -135,6 +189,12 @@
         "uuid": "c58ac2fe-fccb-4d21-992d-62a078c2dbc0",
         "groups": [
             "admin"
+        ],
+        "consortiums": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
     {
@@ -144,6 +204,12 @@
         "uuid": "42cd3586-0ae7-43bd-9d9c-14a03572e3ac",
         "groups": [
             "admin"
+        ],
+        "consortiums": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
     {
@@ -151,7 +217,12 @@
         "groups": [
             "admin"
         ],
-        "project": "12a92962-8265-4fc0-b2f8-cf14f05db58b",
+        "consortiums": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
         "timezone": "US/Eastern",
         "last_name": "Michaels",
         "first_name": "David"

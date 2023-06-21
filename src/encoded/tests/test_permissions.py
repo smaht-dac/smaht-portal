@@ -194,7 +194,7 @@ class TestConsortiumPermissions(TestPermissionsHelper):
             item_uuid=uuid
         )
 
-        # patch the file status, so it has no submission_center therefore user should no longer see
+        # patch the file status, so it has no consortium therefore user should no longer see
         testapp.patch_json(f'/{consortium_file["uuid"]}?delete_fields=consortiums', {}, status=200)
         self.validate_get_permissions(
             restricted_app=consortium_user_app, restricted_expected_status=403,
@@ -214,7 +214,7 @@ class TestConsortiumPermissions(TestPermissionsHelper):
             item_uuid=uuid
         )
 
-        # patch the file status, so it has no submission_center therefore user should no longer see
+        # patch the file status, so it has no consortium therefore user should no longer see
         testapp.patch_json(f'/{smaht_consortium_user["uuid"]}?delete_fields=consortiums', {}, status=200)
         self.validate_get_permissions(
             restricted_app=consortium_user_app, restricted_expected_status=403,

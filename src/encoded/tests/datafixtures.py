@@ -21,8 +21,8 @@ def post_item_and_return_location(testapp: TestApp, item: dict, resource_path: s
 def test_submission_center(testapp):
     """ Tests the posting of a submission center """
     item = {
-        'name': 'SMaHT-Test-GCC',
-        'title': 'SMahT Test GCC'
+        'name': 'SMaHTTestGCC',
+        'title': 'SMaHT Test GCC'
     }
     return post_item_and_return_location(testapp, item, 'submission_center')
 
@@ -31,8 +31,8 @@ def test_submission_center(testapp):
 def test_second_submission_center(testapp):
     """ Tests the posting of a submission center """
     item = {
-        'name': 'Second-SMaHT-Test-GCC',
-        'title': 'Second-SMahT Test GCC'
+        'name': 'SecondSMaHTTestGCC',
+        'title': 'Second SMaHT Test GCC'
     }
     return post_item_and_return_location(testapp, item, 'submission_center')
 
@@ -41,8 +41,8 @@ def test_second_submission_center(testapp):
 def test_consortium(testapp):
     """ Tests the posting of a consortium """
     item = {
-        'name': 'SMaHT-Test-Consortium',
-        'title': 'SMahT Test Consortium'
+        'name': 'SMaHTConsortium',
+        'title': 'SMaHT Test Consortium'
     }
     return post_item_and_return_location(testapp, item, 'consortium')
 
