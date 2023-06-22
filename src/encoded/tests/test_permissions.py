@@ -55,14 +55,23 @@ def consortium_file(testapp, fastq_format, test_consortium):
 class TestPermissionsHelper:
 
     @staticmethod
-    def validate_get_permissions(*, restricted_app, restricted_expected_status,
+    def _handle_redir(app, url, status):
+        """ Helper that handles redirect status """
+        if status == 403:
+            app.get(url, status=403)
+        else:
+            app.get(url).follow(status=status)
+
+    @classmethod
+    def validate_get_permissions(cls, *, restricted_app, restricted_expected_status,
                                   admin_app, admin_expected_status,
                                   anon_app, anon_expected_status,
                                   item_uuid):
         """ Tests a series of app/status combinations for GET based on the callers desired behavior """
-        restricted_app.get(f'/{item_uuid}', status=restricted_expected_status)
-        admin_app.get(f'/{item_uuid}', status=admin_expected_status)
-        anon_app.get(f'/{item_uuid}', status=anon_expected_status)
+        url = f'/{item_uuid}'
+        cls._handle_redir(restricted_app, url, restricted_expected_status)
+        cls._handle_redir(admin_app, url, admin_expected_status)
+        cls._handle_redir(anon_app, url, anon_expected_status)
 
 
 class TestSubmissionCenterPermissions(TestPermissionsHelper):

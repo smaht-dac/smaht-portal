@@ -54,6 +54,7 @@ def include_snovault(config: Configurator) -> None:
         do config.include('snovault'), as you will get Configurator conflicts when
         bringing in duplicates of various modules ie: root.py
     """
+    config.include('pyramid_tm')
     config.include('snovault.authentication')
     config.include('snovault.util')
     config.include('snovault.drs')
@@ -84,7 +85,7 @@ def include_snovault(config: Configurator) -> None:
     config.include('snovault.settings')
     config.include('snovault.server_defaults')
     # Renderers is giving problems at the moment - Will 6/1/23
-    #config.include('snovault.renderers')
+    config.include('snovault.renderers')
     # configure redis server in production.ini
     if 'redis.server' in config.registry.settings:
         config.include('snovault.redis')
