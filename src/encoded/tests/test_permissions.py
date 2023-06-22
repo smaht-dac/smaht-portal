@@ -262,3 +262,12 @@ class TestConsortiumPermissions(TestPermissionsHelper):
             'title': 'dummy',
             'name': 'dummy'
         }, status=422)  # blocked by restricted_fields on required fields
+
+    @staticmethod
+    def test_consortium_user_cannot_view_or_edit_submission_center_data(submission_center_file,
+                                                                        consortium_user_app):
+        """ Tests that consortium users cannot view or edit data created by a submission
+            center in default status """
+        uuid = submission_center_file["uuid"]
+        consortium_user_app.get(f'/{uuid}', status=403)
+        consortium_user_app.patch_json(f'/{uuid}', {}, status=403)
