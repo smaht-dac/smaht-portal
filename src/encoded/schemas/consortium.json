@@ -45,6 +45,7 @@
             "default": "1"
         },
         "status": {
+            "type": "string",
             "default": "shared"
         },
         "name": {

@@ -31,6 +31,7 @@ def mixin_smaht_permission_types(schema: dict) -> dict:
     schema['properties']['submission_centers'] = {
         'type': 'array',
         'items': {
+            'type': 'string',
             'linkTo': 'SubmissionCenter'
         },
         'serverDefault': 'user_submission_centers'
@@ -38,6 +39,7 @@ def mixin_smaht_permission_types(schema: dict) -> dict:
     schema['properties']['consortiums'] = {
         'type': 'array',
         'items': {
+            'type': 'string',
             'linkTo': 'Consortium'
         },
         'serverDefault': 'user_consortiums'
