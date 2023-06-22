@@ -5,7 +5,6 @@
         "groups": [
             "admin"
         ],
-        "institution": "hms-dbmi",
         "last_name": "loadxl",
         "status": "current",
         "timezone": "US/Pacific",
@@ -79,7 +78,7 @@
             "admin"
         ],
         "email": "foursight.app@gmail.com",
-        "uuid": "7677f8a8-79d2-4cff-ab0a-a967a2a68e39",
+        "uuid": "7677f8a8-79d2-4cff-ab0a-a967a2a68e39"
     },
     {
         "last_name": "App",
@@ -214,6 +213,7 @@
     },
     {
         "email": "david_michaels@hms.harvard.edu",
+        "uuid": "74fef71a-dfc1-4aa4-acc0-cedcb7ac1d68",
         "groups": [
             "admin"
         ],
