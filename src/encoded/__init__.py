@@ -84,7 +84,7 @@ def include_snovault(config: Configurator) -> None:
     config.include('snovault.settings')
     config.include('snovault.server_defaults')
     # Renderers is giving problems at the moment - Will 6/1/23
-    # config.include('snovault.renderers')
+    #config.include('snovault.renderers')
     # configure redis server in production.ini
     if 'redis.server' in config.registry.settings:
         config.include('snovault.redis')
