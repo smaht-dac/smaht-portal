@@ -375,11 +375,11 @@
         }
     },
     "facets_common": {
-        "project.display_title": {
-            "title": "Project"
+        "consortia.display_title": {
+            "title": "Consortia"
         },
-        "institution.display_title": {
-            "title": "Institution"
+        "submission_centers.display_title": {
+            "title": "Submission Centers"
         }
     },
     "supplementary_files": {
@@ -470,6 +470,28 @@
                 "type": "string",
                 "linkTo": "FileProcessed"
             }
+        }
+    },
+    "attribution": {
+        "submission_centers": {
+            "title": "Submission Centers",
+            "description": "Submission Centers associated with this item.",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "SubmissionCenter"
+            },
+            "serverDefault": "user_submission_centers"
+        },
+        "consortia": {
+            "title": "Consortia",
+            "description": "Consortia associated with this item.",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "Consortium"
+            },
+            "serverDefault": "user_consortia"
         }
     }
 }

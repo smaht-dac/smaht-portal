@@ -54,7 +54,7 @@
             "lookup": 20,
             "uniqueKey": true,
             "permission": "restricted_fields",
-            "pattern": "^[A-Za-z0-9\\-]+$"
+            "pattern": "^[A-Za-z0-9]+$"
         },
         "title": {
             "title": "Title",

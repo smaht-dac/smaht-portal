@@ -1,11 +1,24 @@
 from pyramid.security import (
     Allow, Deny, Everyone, Authenticated
 )
-from snovault.types.base import Acl
+from snovault.types.acl import Acl
 
 
-CONSORTIUM_MEMBER = 'role.consortium_member'
-SUBMISSION_CENTER_MEMBER = 'role.submission_center_member'
+# VERY IMPORTANT NOTE
+# The permissions structure functions via a few different mechanisms, 3 of which
+# are relevant that I will cover here
+#     1. @collection acl decorator parameter
+#           This controls who can create items on a particular collection class
+#     2. __acl__ method within Collection class
+#           This controls who can read/edit metadata items part of the collection class
+#     3. __ac_local_roles__ method within Collection class
+#           This controls roles associated with particular item types based on properties they have
+#           ie: consortia, submission center presence indicates permissions (roles) should be given
+#           to a user
+CONSORTIUM_MEMBER_CREATE = 'role.consortium_member_create'
+SUBMISSION_CENTER_MEMBER_CREATE = 'role.submission_center_member_create'
+CONSORTIUM_MEMBER_RW = 'role.consortium_member_rw'
+SUBMISSION_CENTER_RW = 'role.submission_center_member_rw'
 
 
 ############################## GLOBAL ACLS ##############################
@@ -43,13 +56,14 @@ ALLOW_AUTHENTICATED_CREATE_ACL: Acl = [
 # Note that all submission centers are part of the consortium, so anything
 # that is "edit" for consortium can be added/created by anyone who is a part
 # of it
+# Note additionally that generally add/create require view permissions
 SUBMISSION_CENTER_MEMBER_CREATE_ACL: Acl = [
-    (Allow, SUBMISSION_CENTER_MEMBER, 'add'),
-    (Allow, SUBMISSION_CENTER_MEMBER, 'create')
+    (Allow, SUBMISSION_CENTER_MEMBER_CREATE, 'add'),
+    (Allow, SUBMISSION_CENTER_MEMBER_CREATE, 'create'),
 ]
 CONSORTIUM_MEMBER_CREATE_ACL: Acl = [
-    (Allow, CONSORTIUM_MEMBER, 'add'),
-    (Allow, CONSORTIUM_MEMBER, 'create')
+    (Allow, CONSORTIUM_MEMBER_CREATE, 'add'),
+    (Allow, CONSORTIUM_MEMBER_CREATE, 'create'),
 ]
 
 
@@ -72,10 +86,10 @@ ALLOW_OWNER_EDIT_ACL: Acl = [
 
 # These two ACLs allow item editing
 SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = [
-    (Allow, SUBMISSION_CENTER_MEMBER, ['view', 'edit'])
+    (Allow, SUBMISSION_CENTER_RW, ['view', 'edit'])
 ]
 CONSORTIUM_MEMBER_EDIT_ACL: Acl = [
-    (Allow, CONSORTIUM_MEMBER, ['view', 'edit'])
+    (Allow, CONSORTIUM_MEMBER_RW, ['view', 'edit'])
 ]
 
 
@@ -106,10 +120,10 @@ ALLOW_AUTHENTICATED_VIEW_ACL: Acl = [
 
 # These two ACLs allow item viewing
 SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = [
-    (Allow, SUBMISSION_CENTER_MEMBER, ['view'])
+    (Allow, SUBMISSION_CENTER_RW, ['view'])
 ]
 CONSORTIUM_MEMBER_VIEW_ACL: Acl = [
-    (Allow, CONSORTIUM_MEMBER, ['view'])
+    (Allow, CONSORTIUM_MEMBER_RW, ['view'])
 ]
 
 # Consortium is a subset of submission centers, so both can view

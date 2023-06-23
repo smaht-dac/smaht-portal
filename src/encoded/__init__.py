@@ -41,6 +41,7 @@ def includeme(config):
     config.include('encoded.authentication')
     config.include('encoded.root')
     config.include('encoded.types')
+    config.include('encoded.server_defaults')
     # config.include('encoded.visualization')
     config.commit()
 
@@ -53,6 +54,7 @@ def include_snovault(config: Configurator) -> None:
         do config.include('snovault'), as you will get Configurator conflicts when
         bringing in duplicates of various modules ie: root.py
     """
+    config.include('pyramid_tm')
     config.include('snovault.authentication')
     config.include('snovault.util')
     config.include('snovault.drs')
@@ -83,13 +85,7 @@ def include_snovault(config: Configurator) -> None:
     config.include('snovault.settings')
     config.include('snovault.server_defaults')
     # Renderers is giving problems at the moment - Will 6/1/23
-    # config.include('snovault.renderers')
-
-    # make search available if ES is configured
-    if config.registry.settings.get('elasticsearch.server'):
-        config.include('snovault.search.search')
-        config.include('snovault.search.compound_search')
-
+    config.include('snovault.renderers')
     # configure redis server in production.ini
     if 'redis.server' in config.registry.settings:
         config.include('snovault.redis')
@@ -263,6 +259,8 @@ def main(global_config, **local_config):
 
     if 'elasticsearch.server' in config.registry.settings:
         config.include('snovault.elasticsearch')
+        config.include('snovault.search.search')
+        config.include('snovault.search.compound_search')
 
     # this contains fall back url, so make sure it comes just before static_resoruces
     config.include(static_resources)

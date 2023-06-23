@@ -113,6 +113,7 @@ class LocalRolesAuthorizationPolicy(object):
             PRINT("LocalRolesAuthorizationPolicy.permits")
             PRINT(" permission=", permission)
             PRINT(" principals=", principals)
+            PRINT(f" acl={context.__acl__() if callable(context.__acl__) else context.__acl__}")
             PRINT("LocalRolesAuthorizationPolicy.permits returning", result)
         return result
 

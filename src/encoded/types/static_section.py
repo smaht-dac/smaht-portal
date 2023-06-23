@@ -15,4 +15,5 @@ ENCODED_CORE_STATIC_SECTION_SCHEMA = deepcopy(CoreStaticSection.schema)
         'description': 'Static Sections for the Portal',
     })
 class StaticSection(SMAHTItem, CoreStaticSection):
+    item_type = 'static_section'
     schema = mixin_smaht_permission_types(ENCODED_CORE_STATIC_SECTION_SCHEMA)

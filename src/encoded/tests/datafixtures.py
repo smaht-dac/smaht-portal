@@ -18,6 +18,36 @@ def post_item_and_return_location(testapp: TestApp, item: dict, resource_path: s
 
 
 @pytest.fixture
+def test_submission_center(testapp):
+    """ Tests the posting of a submission center """
+    item = {
+        'name': 'SMaHTTestGCC',
+        'title': 'SMaHT Test GCC'
+    }
+    return post_item_and_return_location(testapp, item, 'submission_center')
+
+
+@pytest.fixture
+def test_second_submission_center(testapp):
+    """ Tests the posting of a submission center """
+    item = {
+        'name': 'SecondSMaHTTestGCC',
+        'title': 'Second SMaHT Test GCC'
+    }
+    return post_item_and_return_location(testapp, item, 'submission_center')
+
+
+@pytest.fixture
+def test_consortium(testapp):
+    """ Tests the posting of a consortium """
+    item = {
+        'name': 'SMaHTConsortium',
+        'title': 'SMaHT Test Consortium'
+    }
+    return post_item_and_return_location(testapp, item, 'consortium')
+
+
+@pytest.fixture
 def admin(testapp):
     item = {
         'first_name': 'Test',
@@ -54,24 +84,19 @@ def smaht_gcc_user(testapp, test_submission_center):
         ],
         'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188308'
     }
-    return post_item_and_return_location(testapp, item, 'smaht-user')
+    return post_item_and_return_location(testapp, item, 'user')
 
 
 @pytest.fixture
-def test_submission_center(testapp):
-    """ Tests the posting of a submission center """
+def smaht_consortium_user(testapp, test_consortium):
     item = {
-        'name': 'SMaHT-Test-GCC',
-        'title': 'SMahT Test GCC'
+        'first_name': 'Test',
+        'last_name': 'User',
+        'email': 'user@example.org',
+        'status': 'current',
+        'consortia': [
+            test_consortium['uuid']
+        ],
+        'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188309'
     }
-    return post_item_and_return_location(testapp, item, 'submission-center')
-
-
-@pytest.fixture
-def test_consortium(testapp):
-    """ Tests the posting of a consortium """
-    item = {
-        'name': 'SMaHT-Test-Consortium',
-        'title': 'SMahT Test Consortium'
-    }
-    return post_item_and_return_location(testapp, item, 'consortium')
+    return post_item_and_return_location(testapp, item, 'user')

@@ -16,4 +16,5 @@ ENCODED_CORE_DOCUMENT_SCHEMA = deepcopy(CoreDocument.schema)
         'description': 'Listing of Documents',
     })
 class Document(SMAHTItem, CoreDocument):
+    item_type = 'document'
     schema = mixin_smaht_permission_types(ENCODED_CORE_DOCUMENT_SCHEMA)

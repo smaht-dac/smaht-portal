@@ -17,7 +17,7 @@ SNOVAULT_USER_SCHEMA = deepcopy(SnovaultUser.schema)
 )
 class User(SMAHTItem, SnovaultUser):
     """ Overridden user class, adding the Submission Center and Consortium attribution """
-    item_type = 'smaht-user'
+    item_type = 'user'
     schema = mixin_smaht_permission_types(SNOVAULT_USER_SCHEMA)
     STATUS_ACL = SMAHTItem.STATUS_ACL
 

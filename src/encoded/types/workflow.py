@@ -19,6 +19,7 @@ ENCODED_CORE_WORKFLOW_RUN_AWSEM_SCHEMA = deepcopy(CoreWorkflowRunAwsem.schema)
         'description': 'Listing of analysis workflows',
     })
 class Workflow(SMAHTItem, CoreWorkflow):
+    item_type = 'workflow'
     schema = mixin_smaht_permission_types(ENCODED_CORE_WORKFLOW_SCHEMA)
 
 
@@ -30,6 +31,7 @@ class Workflow(SMAHTItem, CoreWorkflow):
         'description': 'Listing of executions of analysis workflows',
     })
 class WorkflowRun(SMAHTItem, CoreWorkflowRun):
+    item_type = 'workflow_run'
     schema = mixin_smaht_permission_types(ENCODED_CORE_WORKFLOW_RUN_SCHEMA)
 
 
@@ -41,4 +43,5 @@ class WorkflowRun(SMAHTItem, CoreWorkflowRun):
         'description': 'Listing of executions of analysis workflows on AWSEM platform',
     })
 class WorkflowRunAwsem(WorkflowRun, CoreWorkflowRunAwsem):
+    item_type = 'workflow_run_awsem'
     schema = mixin_smaht_permission_types(ENCODED_CORE_WORKFLOW_RUN_AWSEM_SCHEMA)
