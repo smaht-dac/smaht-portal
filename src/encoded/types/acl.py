@@ -12,7 +12,9 @@ from snovault.types.acl import Acl
 #     2. __acl__ method within Collection class
 #           This controls who can read/edit metadata items part of the collection class
 #     3. __ac_local_roles__ method within Collection class
-#           This controls
+#           This controls roles associated with particular item types based on properties they have
+#           ie: consortia, submission center presence indicates permissions (roles) should be given
+#           to a user
 CONSORTIUM_MEMBER_CREATE = 'role.consortium_member_create'
 SUBMISSION_CENTER_MEMBER_CREATE = 'role.submission_center_member_create'
 CONSORTIUM_MEMBER_RW = 'role.consortium_member_rw'
