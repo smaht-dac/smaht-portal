@@ -375,8 +375,8 @@
         }
     },
     "facets_common": {
-        "consortiums.display_title": {
-            "title": "Consortiums"
+        "consortia.display_title": {
+            "title": "Consortia"
         },
         "submission_centers.display_title": {
             "title": "Submission Centers"
@@ -483,15 +483,15 @@
             },
             "serverDefault": "user_submission_centers"
         },
-        "consortiums": {
-            "title": "Consortiums",
-            "description": "Consortiums associated with this item.",
+        "consortia": {
+            "title": "Consortia",
+            "description": "Consortia associated with this item.",
             "type": "array",
             "items": {
                 "type": "string",
                 "linkTo": "Consortium"
             },
-            "serverDefault": "user_consortiums"
+            "serverDefault": "user_consortia"
         }
     }
 }

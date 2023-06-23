@@ -119,10 +119,10 @@ def smaht_groupfinder(login, request):
         # for view permissions
         for submission_center in submission_centers:
             add_principal(f'role.submission_center_member_rw.{submission_center}')
-    consortiums = user_properties.get('consortiums', [])
-    if consortiums:
+    consortia = user_properties.get('consortia', [])
+    if consortia:
         add_principal('role.consortium_member_create')  # for add/create permissions
-        for consortium in consortiums:
+        for consortium in consortia:
             add_principal(f'role.consortium_member_rw.{consortium}')
 
     return principals

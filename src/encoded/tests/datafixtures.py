@@ -94,7 +94,7 @@ def smaht_consortium_user(testapp, test_consortium):
         'last_name': 'User',
         'email': 'user@example.org',
         'status': 'current',
-        'consortiums': [
+        'consortia': [
             test_consortium['uuid']
         ],
         'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188309'

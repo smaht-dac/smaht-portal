@@ -36,13 +36,13 @@ def mixin_smaht_permission_types(schema: dict) -> dict:
         },
         'serverDefault': 'user_submission_centers'
     }
-    schema['properties']['consortiums'] = {
+    schema['properties']['consortia'] = {
         'type': 'array',
         'items': {
             'type': 'string',
             'linkTo': 'Consortium'
         },
-        'serverDefault': 'user_consortiums'
+        'serverDefault': 'user_consortia'
     }
     return schema
 
@@ -112,9 +112,9 @@ class SMAHTItem(Item):
         # Don't finalize to avoid validation here.
         properties = self.upgrade_properties().copy()
         status = properties.get('status')
-        if 'consortiums' in properties:
+        if 'consortia' in properties:
             if DEBUG_PERMISSIONS:
-                PRINT(f'DEBUG_PERMISSIONS: Using consortiums ACLs status {status} for {self}')
+                PRINT(f'DEBUG_PERMISSIONS: Using consortia ACLs status {status} for {self}')
             return self.CONSORTIUM_STATUS_ACL.get(status, ONLY_ADMIN_VIEW_ACL)
         if 'submission_centers' in properties:
             if DEBUG_PERMISSIONS:
@@ -134,8 +134,8 @@ class SMAHTItem(Item):
             for submission_center in properties['submission_centers']:
                 center = f'{SUBMISSION_CENTER_RW}.{submission_center}'
                 roles[center] = SUBMISSION_CENTER_RW
-        if 'consortiums' in properties:
-            for consortium in properties['consortiums']:
+        if 'consortia' in properties:
+            for consortium in properties['consortia']:
                 consortium_identifier = f'{CONSORTIUM_MEMBER_RW}.{consortium}'
                 roles[consortium_identifier] = CONSORTIUM_MEMBER_RW
         if 'submitted_by' in properties:

@@ -44,7 +44,7 @@ def consortium_file(testapp, fastq_format, test_consortium):
         'md5sum': '00000000000000000000000000000001',
         'filename': 'my.fastq.gz',
         'status': 'shared',    # this status is important as this will make it viewable by consortium
-        'consortiums': [
+        'consortia': [
             test_consortium['uuid']
         ]
     }
@@ -204,7 +204,7 @@ class TestConsortiumPermissions(TestPermissionsHelper):
         )
 
         # patch the file status, so it has no consortium therefore user should no longer see
-        testapp.patch_json(f'/{consortium_file["uuid"]}?delete_fields=consortiums', {}, status=200)
+        testapp.patch_json(f'/{consortium_file["uuid"]}?delete_fields=consortia', {}, status=200)
         self.validate_get_permissions(
             restricted_app=consortium_user_app, restricted_expected_status=403,
             admin_app=testapp, admin_expected_status=200,
@@ -224,7 +224,7 @@ class TestConsortiumPermissions(TestPermissionsHelper):
         )
 
         # patch the file status, so it has no consortium therefore user should no longer see
-        testapp.patch_json(f'/{smaht_consortium_user["uuid"]}?delete_fields=consortiums', {}, status=200)
+        testapp.patch_json(f'/{smaht_consortium_user["uuid"]}?delete_fields=consortia', {}, status=200)
         self.validate_get_permissions(
             restricted_app=consortium_user_app, restricted_expected_status=403,
             admin_app=testapp, admin_expected_status=200,
@@ -245,7 +245,7 @@ class TestConsortiumPermissions(TestPermissionsHelper):
         """ Tests that consortium users can create filter sets """
         consortium_user_app.post_json('/FilterSet', {
             'title': 'test fs',
-            'consortiums': [
+            'consortia': [
                 test_consortium['uuid']
             ]
         }, status=201)

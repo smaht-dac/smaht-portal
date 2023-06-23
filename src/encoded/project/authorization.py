@@ -25,8 +25,8 @@ class SMaHTProjectAuthorization(SnovaultProjectAuthorization):
             # for view permissions
             for submission_center in user_properties['submission_centers']:
                 add_principal(f'{SUBMISSION_CENTER_RW}.{submission_center}')
-        if 'consortiums' in user_properties:
+        if 'consortia' in user_properties:
             add_principal(CONSORTIUM_MEMBER_CREATE)  # for add/create permissions
-            for consortium in user_properties['consortiums']:
+            for consortium in user_properties['consortia']:
                 add_principal(f'{CONSORTIUM_MEMBER_RW}.{consortium}')
         return principals

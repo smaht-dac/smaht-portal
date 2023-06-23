@@ -26,12 +26,12 @@ def user_submission_centers(instance, subschema):
 
 
 @server_default
-def user_consortiums(instance, subschema):
+def user_consortia(instance, subschema):
     ignored(instance, subschema)
     user = get_user_resource()
     if user == NO_DEFAULT:
         return NO_DEFAULT
-    consortiums = user.properties.get('consortiums', [])
-    if len(consortiums) > 0:
-        return consortiums
+    consortia = user.properties.get('consortia', [])
+    if len(consortia) > 0:
+        return consortia
     return NO_DEFAULT
