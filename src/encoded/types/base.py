@@ -1,5 +1,10 @@
 from pyramid.view import view_config
-from snovault import AbstractCollection, abstract_collection, calculated_property
+from snovault import (
+    AbstractCollection,
+    abstract_collection,
+    calculated_property,
+    load_schema,
+)
 from snovault.types.base import (
     Item,
     Collection,
@@ -217,3 +222,7 @@ def collection_add(context, request, render=None):
 @debug_log
 def item_edit(context, request, render=None):
     return sno_item_edit(context, request, render)
+
+
+def load_smaht_schema(item_type: str) -> str:
+    return load_schema(f"encoded:schemas/{item_type}.json")
