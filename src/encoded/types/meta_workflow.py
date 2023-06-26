@@ -10,24 +10,26 @@ ENCODED_CORE_META_WORKFLOW_RUN_SCHEMA = deepcopy(CoreMetaWorkflowRun.schema)
 
 
 @collection(
-    name='meta-workflows',
-    unique_key='accession',
+    name="meta-workflows",
+    unique_key="accession",
     properties={
-        'title': 'MetaWorkflows',
-        'description': 'Listing of MetaWorkflows',
-    })
+        "title": "MetaWorkflows",
+        "description": "Listing of MetaWorkflows",
+    },
+)
 class MetaWorkflow(SMAHTItem, CoreMetaWorkflow):
-    item_type = 'meta_workflow'
+    item_type = "meta_workflow"
     schema = mixin_smaht_permission_types(ENCODED_CORE_META_WORKFLOW_SCHEMA)
 
 
 @collection(
-    name='meta-workflow-runs',
-    unique_key='accession',
+    name="meta-workflow-runs",
+    unique_key="accession",
     properties={
-        'title': 'MetaWorkflowRuns',
-        'description': 'Listing of MetaWorkflowRuns',
-    })
+        "title": "MetaWorkflowRuns",
+        "description": "Listing of MetaWorkflowRuns",
+    },
+)
 class MetaWorkflowRun(SMAHTItem, CoreMetaWorkflowRun):
-    item_type = 'meta_workflow_run'
+    item_type = "meta_workflow_run"
     schema = mixin_smaht_permission_types(ENCODED_CORE_META_WORKFLOW_RUN_SCHEMA)

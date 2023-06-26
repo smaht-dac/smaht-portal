@@ -8,11 +8,12 @@ ENCODED_CORE_USER_CONTENT_SCHEMA = deepcopy(CoreUserContent.schema)
 
 
 @abstract_collection(
-    name='user-content',
+    name="user-content",
     properties={
-        'title': 'Static Sections',
-        'description': 'Static Sections for the Portal',
-    })
+        "title": "Static Sections",
+        "description": "Static Sections for the Portal",
+    },
+)
 class UserContent(SMAHTItem, CoreUserContent):
-    item_type = 'user_content'
+    item_type = "user_content"
     schema = mixin_smaht_permission_types(ENCODED_CORE_USER_CONTENT_SCHEMA)

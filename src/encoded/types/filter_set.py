@@ -9,14 +9,14 @@ SNOVAULT_FILTER_SET_SCHEMA = deepcopy(SnovaultFilterSet.schema)
 
 
 @collection(
-    name='filter-sets',
+    name="filter-sets",
     acl=ALLOW_CONSORTIUM_CREATE_ACL,
-    unique_key='filter_set:title',
+    unique_key="filter_set:title",
     properties={
-        'title': 'Filter Sets',
-        'description': 'Filter Set for combining multiple queries'
-    }
+        "title": "Filter Sets",
+        "description": "Filter Set for combining multiple queries",
+    },
 )
 class FilterSet(SMAHTItem, SnovaultFilterSet):
-    item_type = 'filter_set'
+    item_type = "filter_set"
     schema = mixin_smaht_permission_types(SNOVAULT_FILTER_SET_SCHEMA)
