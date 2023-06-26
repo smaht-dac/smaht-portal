@@ -1,18 +1,25 @@
 {
-    "title": "Consortium",
-    "id": "/profiles/Consortium.json",
+    "title": "Aliquot",
+    "id": "/profiles/aliquot.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "required": [
-        "name",
-        "title"
-    ],
-    "identifyingProperties": [
-        "uuid",
-        "name",
-        "aliases"
+    "required": [],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
     ],
     "additionalProperties": false,
     "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
         {
             "$ref": "mixins.json#/aliases"
         },
@@ -21,9 +28,6 @@
         },
         {
             "$ref": "mixins.json#/modified"
-        },
-        {
-            "$ref": "mixins.json#/name"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -38,12 +42,6 @@
             "$ref": "mixins.json#/tags"
         },
         {
-            "$ref": "mixins.json#/title"
-        },
-        {
-            "$ref": "mixins.json#/url"
-        },
-        {
             "$ref": "mixins.json#/uuid"
         }
     ],
@@ -52,15 +50,20 @@
         "schema_version": {
             "default": "1"
         },
-        "status": {
-            "type": "string",
-            "default": "shared"
+        "accession": {
+            "accessionType": "AL"
         },
-        "name": {
-            "permission": "restricted_fields"
-        },
-        "title": {
-            "permission": "restricted_fields"
+        "derived_from": {
+            "title": "Parent Biosamples",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+                "title": "Parent Biosample",
+                "type": "string",
+                "linkTo": "Biosample"
+            }
         }
-    }
+    },
+    "facets": {},
+    "columns": {}
 }

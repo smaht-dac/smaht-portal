@@ -1,29 +1,41 @@
 {
-    "title": "Consortium",
-    "id": "/profiles/Consortium.json",
+    "title": "Protocol",
+    "id": "/profiles/protocol.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "name",
-        "title"
+        "category"
     ],
-    "identifyingProperties": [
-        "uuid",
-        "name",
-        "aliases"
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
     ],
     "additionalProperties": false,
     "mixinProperties": [
         {
+            "$ref": "mixins.json#/accession"
+        },
+        {
             "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/category"
         },
         {
             "$ref": "mixins.json#/description"
         },
         {
             "$ref": "mixins.json#/modified"
-        },
-        {
-            "$ref": "mixins.json#/name"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -49,18 +61,19 @@
     ],
     "type": "object",
     "properties": {
+        "accession": {
+            "accessionType": "PR"
+        },
+        "category": {
+            "enum": [
+                "Biosample preparation",
+                "Experiment"
+            ]
+        },
         "schema_version": {
             "default": "1"
-        },
-        "status": {
-            "type": "string",
-            "default": "shared"
-        },
-        "name": {
-            "permission": "restricted_fields"
-        },
-        "title": {
-            "permission": "restricted_fields"
         }
-    }
+    },
+    "facets": {},
+    "columns": {}
 }

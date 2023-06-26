@@ -1,23 +1,32 @@
 {
-    "title": "Consortium",
-    "id": "/profiles/Consortium.json",
+    "title": "Ontology Term",
+    "id": "/profiles/ontology_term.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "name",
-        "title"
+        "name"
     ],
-    "identifyingProperties": [
-        "uuid",
-        "name",
-        "aliases"
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
     ],
     "additionalProperties": false,
     "mixinProperties": [
         {
+            "$ref": "mixins.json#/accession"
+        },
+        {
             "$ref": "mixins.json#/aliases"
         },
         {
-            "$ref": "mixins.json#/description"
+            "$ref": "mixins.json#/attribution"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -38,12 +47,6 @@
             "$ref": "mixins.json#/tags"
         },
         {
-            "$ref": "mixins.json#/title"
-        },
-        {
-            "$ref": "mixins.json#/url"
-        },
-        {
             "$ref": "mixins.json#/uuid"
         }
     ],
@@ -52,15 +55,10 @@
         "schema_version": {
             "default": "1"
         },
-        "status": {
-            "type": "string",
-            "default": "shared"
-        },
-        "name": {
-            "permission": "restricted_fields"
-        },
-        "title": {
-            "permission": "restricted_fields"
+        "accession": {
+            "accessionType": "OT"
         }
-    }
+    },
+    "facets": {},
+    "columns": {}
 }
