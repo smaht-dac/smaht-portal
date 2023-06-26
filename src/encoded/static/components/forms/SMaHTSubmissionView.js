@@ -20,7 +20,7 @@ export function getSubmissionItemType(context, href){
 }
 
 
-export default class CGAPSubmissionView extends React.PureComponent {
+export default class SMaHTSubmissionView extends React.PureComponent {
     render(){
         return <SubmissionView {...this.props} />;
     }

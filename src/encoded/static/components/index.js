@@ -25,7 +25,7 @@ import SchemaView                           from './item-pages/SchemaView';
 import FallbackView                         from './item-pages/FallbackView';
 import DocumentView                         from './item-pages/DocumentView';
 import StaticSectionView                    from './item-pages/StaticSectionView';
-import CGAPSubmissionView                   from './forms/CGAPSubmissionView';
+import SMaHTSubmissionView                  from './forms/SMaHTSubmissionView';
 import SearchView                           from './browse/SearchView';
 
 /**
@@ -47,10 +47,10 @@ content_views.register(UserView,                    'User');
 content_views.register(ImpersonateUserForm,         'User', 'impersonate-user');
 content_views.register(StaticSectionView,           'StaticSection');
 
-content_views.register(CGAPSubmissionView,          'Item', 'edit');
-content_views.register(CGAPSubmissionView,          'Item', 'create');
-content_views.register(CGAPSubmissionView,          'Item', 'clone');
-content_views.register(CGAPSubmissionView,          'Search', 'add');
+content_views.register(SMaHTSubmissionView,         'Item', 'edit');
+content_views.register(SMaHTSubmissionView,         'Item', 'create');
+content_views.register(SMaHTSubmissionView,         'Item', 'clone');
+content_views.register(SMaHTSubmissionView,         'Search', 'add');
 
 content_views.register(SearchView,                  'Search');
 content_views.register(SearchView,                  'Search', 'selection');
