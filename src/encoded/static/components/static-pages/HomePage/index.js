@@ -8,7 +8,6 @@ import { console, ajax } from '@hms-dbmi-bgm/shared-portal-components/es/compone
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 import { pageTitleViews } from './../../PageTitleSection';
 import { GuestHomeView } from './GuestHomeView';
-import { UserDashboard } from './UserDashboard';
 
 
 /**
@@ -32,11 +31,7 @@ export default class HomePage extends React.PureComponent {
                 <div id="full-alerts-container" className="bg-primary-dark">
                     <Alerts alerts={alerts} className="alerts" />
                 </div>
-                { session ?
-                    <UserDashboard {...commonProps} {...{ schemas, windowHeight, windowWidth }} />
-                    :
-                    <GuestHomeView {...commonProps} {...{ updateAppSessionState }} />
-                }
+                <GuestHomeView {...commonProps} {...{ updateAppSessionState }} />
             </div>
         );
     }
@@ -48,26 +43,6 @@ const HomePageTitle = React.memo(function HomePageTitle(props){
     const { session, alerts } = props;
 
     return null;
-    // if (session){
-    //     return (
-    //         // We can also make into .container-wide..
-    //         // <React.Fragment>
-    //         //     <PageTitleContainer alerts={alerts} className="container pb-55">
-    //         //         <OnlyTitle>My Dashboard</OnlyTitle>
-    //         //     </PageTitleContainer>
-    //         //     <hr className="tab-section-title-horiz-divider"/>
-    //         // </React.Fragment>
-    //         null
-    //     );
-    // }
-
-    // return (
-    //     <PageTitleContainer alerts={alerts}>
-    //         {/* <TitleAndSubtitleUnder subtitle="Computational Genome Analysis Platform" className="home-page-title">
-    //             Welcome
-    //         </TitleAndSubtitleUnder> */}
-    //     </PageTitleContainer>
-    // );
 });
 
 

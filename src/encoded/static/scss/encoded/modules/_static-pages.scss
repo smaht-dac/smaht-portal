@@ -485,42 +485,27 @@
 	// Guest view
 	.homepage-contents,
 	.homepage-contents>div {
-		min-height: calc(100vh - 130px);
+		min-height: 100vh;
 	}
 
 	.homepage-contents {
-		background: rgba(232,242,252);
+		background: rgb(163,232,255);
+		background: -moz-linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
+		background: -webkit-linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
+		background: linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
+		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#a3e8ff",endColorstr="#ffffff",GradientType=1); 
 
-		>div {
-			background: url('/static/img/landing_page_hexagons.svg');
-			background-position: top;
-			background-repeat: repeat;
-			background-size: cover;
+		.coming-soon {
+			color: #000;
+			text-align: center;
+			font-size: 8.125rem;
+			font-family: Montserrat;
+			font-weight: 800;
+			letter-spacing: -1.3px;
+			text-transform: uppercase;
+			line-height: 149.5px;
 		}
 
-		.cgap-tagline {
-			color: #1f445f;
-			max-width: 570px;
-		}
-
-		.cgap-welcome>svg,
-		.cgap-logo-wrapper>#clone_logo {
-			shape-rendering: geometricprecision;
-		}
-
-		.cgap-welcome>svg#cgap-welcome-svg {
-			max-width: 300px;
-			width: 280px;
-			min-width: 250px;
-			fill: #1f445f;
-		}
-
-		.cgap-logo-wrapper.img-container {
-			border: 2px dotted #1f445f;
-			border-radius: 100%;
-			padding: 10px;
-		}
-		
 		#homepage-login-container {
 			margin-top: 1.5625rem;
 
@@ -563,12 +548,6 @@
 			}
 		}
 
-		.cgap-links>div.border-primary {
-			@include media-breakpoint-up(sm){
-				border-left: 1px solid;
-				border-right: 1px solid;
-			}
-		}
 	}
 
 

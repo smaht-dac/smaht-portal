@@ -1806,11 +1806,8 @@ class BodyElement extends React.PureComponent {
 
                 <div id="application">
                     <div id="layout">
-                        { (isSubmitting && isSubmitting.modal) && isSubmittingModalOpen ? isSubmitting.modal : null}
 
-                        <NavigationBar {...navbarProps} />
-
-                        <div id="post-navbar-container" style={{ minHeight : innerContainerMinHeight }}>
+                        <div>
 
                             <PageTitleSection {...this.props} windowWidth={windowWidth} />
 
@@ -1822,7 +1819,6 @@ class BodyElement extends React.PureComponent {
 
                         </div>
                     </div>
-                    <Footer version={context.app_version} />
                 </div>
 
                 <div id="overlays-container" ref={this.overlaysContainerRef}/>
