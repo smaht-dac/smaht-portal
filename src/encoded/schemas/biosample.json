@@ -2,7 +2,9 @@
     "title": "Biosample",
     "id": "/profiles/biosample.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "required": [],
+    "required": [
+        "name"
+    ],
     "anyOf": [
         {
             "required": [
@@ -14,6 +16,12 @@
                 "consortia"
             ]
         }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "aliases",
+        "name",
+        "uuid"
     ],
     "additionalProperties": false,
     "mixinProperties": [
@@ -27,10 +35,16 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/category"
+        },
+        {
             "$ref": "mixins.json#/description"
         },
         {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/name"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -55,6 +69,12 @@
         },
         "accession": {
             "accessionType": "BS"
+        },
+        "category": {
+            "enum": [
+                "bulk tissue",
+                "single cell"
+            ]
         },
         "biosources": {
             "title": "Biosources",

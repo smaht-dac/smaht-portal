@@ -23,9 +23,9 @@
         }
     ],
     "identifyingProperties": [
-        "uuid",
         "accession",
-        "aliases"
+        "aliases",
+        "uuid"
     ],
     "additionalProperties": false,
     "mixinProperties": [

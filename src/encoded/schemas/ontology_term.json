@@ -17,6 +17,12 @@
             ]
         }
     ],
+    "identifyingProperties": [
+        "accession",
+        "aliases",
+        "name",
+        "uuid"
+    ],
     "additionalProperties": false,
     "mixinProperties": [
         {

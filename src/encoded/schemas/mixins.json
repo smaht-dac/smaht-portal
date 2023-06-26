@@ -209,11 +209,11 @@
     "ingestion_ids": {
         "ingestion_ids": {
             "title": "Submission IDs",
-            "description": "uuids of the IngestionSubmission items that created/edited this case",
+            "description": "UUIDs of the IngestionSubmission items that created/edited the item",
             "type": "array",
             "items": {
                 "title": "Submission ID",
-                "description": "an IngestionSubmission item that created or edited this case",
+                "description": "IngestionSubmission item that created or edited the item",
                 "type": "string"
             }
         }
