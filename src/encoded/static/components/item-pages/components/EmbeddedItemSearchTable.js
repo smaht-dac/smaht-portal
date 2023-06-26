@@ -8,8 +8,6 @@ import queryString from 'query-string';
 import { get as getSchemas, Term } from './../../util/Schemas';
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { columnExtensionMap as columnExtensionMapCGAP } from './../../browse/columnExtensionMap';
-import { CaseDetailPane } from './../../browse/CaseDetailPane';
-import { DetailPaneStateCache } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/DetailPaneStateCache';
 import { EmbeddedSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
 
 
@@ -145,25 +143,3 @@ SearchTableTitle.propTypes = {
     "context": PropTypes.object
 };
 
-
-export function EmbeddedCaseSearchTable (props) {
-    return (
-        <DetailPaneStateCache>
-            <EmbeddedCaseSearchTableDetailPaneProvider {...props} />
-        </DetailPaneStateCache>
-    );
-}
-
-export function EmbeddedCaseSearchTableDetailPaneProvider (props) {
-    const {
-        detailPaneStateCache,       // Passed from DetailPaneStateCache
-        updateDetailPaneStateCache, // Passed from DetailPaneStateCache
-        ...passProps
-    } = props;
-
-    const renderDetailPane = useCallback(function(result, rowNumber, containerWidth, propsFromTable){
-        return <CaseDetailPane { ...propsFromTable } {...{ result, containerWidth, rowNumber, detailPaneStateCache, updateDetailPaneStateCache }} paddingWidth={57} />;
-    }, [ detailPaneStateCache ]);
-
-    return <EmbeddedItemSearchTable {...passProps} renderDetailPane={renderDetailPane} />;
-}

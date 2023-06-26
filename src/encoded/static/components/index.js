@@ -19,19 +19,11 @@ import HomePage                             from './static-pages/HomePage';
 
 
 import DefaultItemView                      from './item-pages/DefaultItemView';
-import CaseView                             from './item-pages/CaseView';
-import ReportView                           from './item-pages/ReportView';
-import VariantSampleView                    from './item-pages/VariantSampleView';
-import StructuralVariantSampleView          from './item-pages/StructuralVariantSampleView';
-import IndividualView                       from './item-pages/IndividualView';
-import FileProcessedView                    from './item-pages/FileProcessedView';
-import SampleView                           from './item-pages/SampleView';
 import HealthView                           from './item-pages/HealthView';
 import UserView, { ImpersonateUserForm }    from './item-pages/UserView';
 import SchemaView                           from './item-pages/SchemaView';
 import FallbackView                         from './item-pages/FallbackView';
 import DocumentView                         from './item-pages/DocumentView';
-import MetaWorkflowRunView                  from './item-pages/MetaWorkflowRunView';
 import StaticSectionView                    from './item-pages/StaticSectionView';
 import CGAPSubmissionView                   from './forms/CGAPSubmissionView';
 import SearchView                           from './browse/SearchView';
@@ -48,14 +40,6 @@ content_views.register(DirectoryPage,               'DirectoryPage');
 content_views.register(HomePage,                    'HomePage');
 
 content_views.register(DefaultItemView,             'Item');
-content_views.register(CaseView,                    'Case');
-content_views.register(ReportView,                  'Report');
-content_views.register(VariantSampleView,           'VariantSample');
-content_views.register(StructuralVariantSampleView, 'StructuralVariantSample');
-content_views.register(IndividualView,              'Individual');
-content_views.register(FileProcessedView,           'FileProcessed');
-content_views.register(SampleView,                  'Sample');
-content_views.register(MetaWorkflowRunView,         'MetaWorkflowRun');
 content_views.register(HealthView,                  'Health');
 content_views.register(DocumentView,                'Document');
 content_views.register(DocumentView,                'Image');
