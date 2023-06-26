@@ -5,8 +5,6 @@ import PropTypes from 'prop-types';
 import url from 'url';
 import _ from 'underscore';
 import NavbarCollapse from 'react-bootstrap/esm/NavbarCollapse';
-import { console, memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { navigate } from './../../util'; // Extended w. browseBaseHref & related fxns.
 
 import {
     BigDropdownNavItem,
@@ -16,7 +14,6 @@ import {
     BigDropdownGroupController
 } from './BigDropdown';
 import { AccountNav } from './AccountNav';
-import FeedbackButton from '../../item-pages/components/FeedbackButton';
 
 
 export const CollapsedNav = React.memo(function CollapsedNav(props){
@@ -48,7 +45,6 @@ export const CollapsedNav = React.memo(function CollapsedNav(props){
                 { session ?
                     <LeftNavAuthenticated {...leftNavProps} />
                     : <LeftNavGuest {...leftNavProps} /> }
-                <FeedbackButton />
                 <AccountNav {...userActionNavProps} />
             </BigDropdownGroupController>
         </NavbarCollapse>

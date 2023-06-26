@@ -27,7 +27,6 @@ import DocumentView                         from './item-pages/DocumentView';
 import StaticSectionView                    from './item-pages/StaticSectionView';
 import CGAPSubmissionView                   from './forms/CGAPSubmissionView';
 import SearchView                           from './browse/SearchView';
-import ExcelSubmissionView                  from './forms/ExcelSubmissionView';
 
 /**
  * These content_view.register actions occur in this index.js as otherwise
@@ -52,8 +51,6 @@ content_views.register(CGAPSubmissionView,          'Item', 'edit');
 content_views.register(CGAPSubmissionView,          'Item', 'create');
 content_views.register(CGAPSubmissionView,          'Item', 'clone');
 content_views.register(CGAPSubmissionView,          'Search', 'add');
-content_views.register(ExcelSubmissionView,         'IngestionSubmission', 'create');
-content_views.register(ExcelSubmissionView,         'IngestionSubmissionSearchResults', 'add');
 
 content_views.register(SearchView,                  'Search');
 content_views.register(SearchView,                  'Search', 'selection');

@@ -11,8 +11,6 @@ import { DetailPaneStateCache } from '@hms-dbmi-bgm/shared-portal-components/es/
 import { columnExtensionMap } from './columnExtensionMap';
 import { Schemas } from './../util';
 import { TitleAndSubtitleBeside, PageTitleContainer, TitleAndSubtitleUnder, pageTitleViews, EditingItemPageTitle } from './../PageTitleSection';
-import { AboveTableControlsBaseCGAP } from './AboveTableControlsBaseCGAP';
-
 
 export default function SearchView (props){
     const { context: { '@type': searchPageType = ["ItemSearchResults"] } } = props;
@@ -138,7 +136,6 @@ export class SearchViewBody extends React.PureComponent {
         const facets = this.memoized.transformedFacets(context, currentAction, schemas);
         const tableColumnClassName = "results-column col";
         const facetColumnClassName = "facets-column col-auto";
-        const aboveTableComponent = <AboveTableControlsBaseCGAP />;
 
         return (
             <div className="container-wide search-page-outer-container" id="content">

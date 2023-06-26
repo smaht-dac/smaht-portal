@@ -23,6 +23,3 @@ export const fileUtil = fileUtilities;
 
 import * as SearchEngineOptimizationUtilities from './seo';
 export const SEO = SearchEngineOptimizationUtilities;
-
-import * as acmgUtilities from './acmg';
-export const acmgUtil = acmgUtilities;

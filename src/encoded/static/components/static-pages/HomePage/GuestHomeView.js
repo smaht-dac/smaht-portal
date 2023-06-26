@@ -8,7 +8,6 @@ import { LoginController } from '@hms-dbmi-bgm/shared-portal-components/es/compo
 import { NotLoggedInAlert } from './../../navigation/components/LoginNavItem';
 import { UserRegistrationModal } from './../../navigation/components/UserRegistrationModal';
 import { auth0Options as navAuth0Options } from './../../navigation/components/AccountNav';
-import { CGAPLogo } from './../../viz/CGAPLogo';
 
 
 const auth0Options = {
@@ -32,7 +31,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props){
             <div className="homepage-contents">
                 <div className="d-flex flex-column align-items-center justify-content-center">
                     <div className="d-inline-block mb-1 mt-36">
-                        <CGAPLogo showTitle={false} id="clone_logo" maxHeight={100} />
+                        LOGO
                     </div>
                     <div className="cgap-welcome px-2 py-2">
                         <svg id="cgap-welcome-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 395.48 35.77" width="250">
