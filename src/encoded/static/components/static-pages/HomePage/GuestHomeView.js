@@ -30,8 +30,8 @@ export const GuestHomeView = React.memo(function GuestHomeView(props){
         <React.Fragment>
             <div className="homepage-contents">
                 <div className="d-flex flex-column align-items-center justify-content-center">
-                    <div className="d-inline-block mb-1 mt-36">
-                        LOGO
+                    <div className="smaht-logo d-inline-block mb-1 mt-36">
+                        <img src="/static/img/SMaHT_Horizontal-Logo-Acronym_FV.png" alt="SMaHT Logo"/>
                     </div>
                     <div className="coming-soon">
                         Coming Soon
