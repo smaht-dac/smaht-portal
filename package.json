@@ -17,7 +17,7 @@
   "author": "",
   "license": "MIT",
   "files": [],
-  "repository": "dbmi-bgm/cgap-portal",
+  "repository": "smaht-dac/smaht-portal",
   "sideEffects": false,
   "devDependencies": {
     "@babel/core": "^7.17.5",
