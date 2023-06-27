@@ -12,7 +12,7 @@ import { default as analyticsConfigurationOptions } from "./../ga_config.json";
 const portalConfig = {
 
     /** Title of app, used as appendix in browser <head> <title> and similar. */
-    "title": "Computational Genome Analysis Platform",
+    "title": "SMaHT Data Portal",
 
     /**
      * Hostnames which are considered to be canonical for 4DN data.
@@ -22,9 +22,9 @@ const portalConfig = {
      * @type {string[]}
      */
     "productionHosts": [
-        "www.data.4dnucleome.org",
-        "data.4dnucleome.org",
-        "fourfront-webdev.us-east-1.elasticbeanstalk.com"
+        "www.data.smaht.org",
+        "data.smaht.org",
+        // "fourfront-webdev.us-east-1.elasticbeanstalk.com" // TODO: replace with smaht EB link
     ]
 };
 
