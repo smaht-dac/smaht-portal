@@ -36,7 +36,7 @@ def build_production_ini_from_global_application_configuration():
     with override_environ(**identity):
 
         SMAHTDockerIniFileManager.build_ini_file_from_template(
-            '/home/nginx/smaht-portal/deploy/ini_files/smaht_any_alpha.ini',
+            '/home/nginx/smaht-portal/deploy/docker/production/smaht_any_alpha.ini',
             '/home/nginx/smaht-portal/production.ini'
         )
 
