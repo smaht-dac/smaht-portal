@@ -96,9 +96,11 @@ export default class App extends React.PureComponent {
             'handleClick', 'handleSubmit', 'handlePopState', 'handleBeforeUnload'
         );
 
-        const { context } = props;
+        const { context, href } = props;
 
         Alerts.setStore(store);
+
+        const analyticsID = getGoogleAnalyticsTrackingID(href) || null;
 
         /**
          * Whether HistoryAPI is supported in current browser.
@@ -128,6 +130,7 @@ export default class App extends React.PureComponent {
          */
         this.state = {
             session,
+            analyticsID,
             'schemas'                     : context.schemas || null,
             'isSubmitting'                : false,
             'mounted'                     : false,
@@ -155,7 +158,7 @@ export default class App extends React.PureComponent {
      */
     componentDidMount() {
         const { href, context } = this.props;
-        const { session } = this.state;
+        const { session, analyticsID } = this.state;
 
         // This won't refresh current page.
         // And preserves contents of browser view if are on edit page or similar.
@@ -170,7 +173,7 @@ export default class App extends React.PureComponent {
         }
 
         // ANALYTICS INITIALIZATION; Sets userID (if any), performs initial pageview track
-        const analyticsID = getGoogleAnalyticsTrackingID(href);
+        // TODO: add a google analytics configuration for smaht; currently this will never run
         if (analyticsID){
             analytics.initializeGoogleAnalytics(
                 analyticsID,
@@ -1087,7 +1090,7 @@ export default class App extends React.PureComponent {
     /** Renders the entire HTML of the application. */
     render() {
         const { context, lastBuildTime, href, contextRequest } = this.props;
-        const { mounted = false } = this.state;
+        const { mounted = false, analyticsID } = this.state;
         const hrefParts = memoizedUrlParse(href);
         const routeList = hrefParts.pathname.split("/");
         const routeLeaf = routeList[routeList.length - 1];
@@ -1148,16 +1151,18 @@ export default class App extends React.PureComponent {
             // Allowing unsafe-eval temporarily re: 'box-intersect' dependency of some HiGlass tracks.
             "frame-src https://www.google.com/recaptcha/ https://www.youtube.com",
             // Allow anything on https://*.auth0.com domain to allow customization of Auth0 - Will Jan 31 2023
-            "script-src 'self' https://www.google-analytics.com https://*.auth0.com https://secure.gravatar.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'unsafe-eval'", // + (typeof BUILDTYPE === "string" && BUILDTYPE === "quick" ? " 'unsafe-eval'" : ""),
+            "script-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://*.auth0.com https://secure.gravatar.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'unsafe-eval'", // + (typeof BUILDTYPE === "string" && BUILDTYPE === "quick" ? " 'unsafe-eval'" : ""),
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com  https://unpkg.com",
             "font-src 'self' https://fonts.gstatic.com",
             "worker-src 'self' blob:",
-            "connect-src 'self' https://cgap-higlass.com https://*.s3.amazonaws.com https://rest.ensembl.org https://eutils.ncbi.nlm.nih.gov"
+            "connect-src 'self' https://cgap-higlass.com https://*.s3.amazonaws.com https://rest.ensembl.org https://eutils.ncbi.nlm.nih.gov https://www.google-analytics.com https://www.googletagmanager.com"
         ].join("; ");
         // In future consider adding: object-src 'none'; require-trusted-types-for 'script';
         // (from google csp eval -- Will says what we have is fine for now, though)
 
         // `lastBuildTime` is used for both CSS and JS because is most likely they change at the same time on production from recompiling
+
+        const gtagURL = analyticsID && ("https://www.googletagmanager.com/gtag/js?id=" + analyticsID);
 
         return (
             <html lang="en">
@@ -1178,6 +1183,11 @@ export default class App extends React.PureComponent {
                     <DeferMount><link rel="stylesheet" media="print" href={'/static/css/print.css?build=' + (lastBuildTime || 0)} /></DeferMount>
                     <SEO.CurrentContext {...{ context, hrefParts, baseDomain }} />
                     <link rel="preconnect" href="https://fonts.googleapis.com" />
+                    {/* TODO: re-enable when ready to configure google analytics
+                    <link rel="preconnect" href="//www.google-analytics.com" />
+                    <link rel="preconnect" href="//www.googletagmanager.com" />
+                    {gtag4Script && <script async type="application/javascript" src={gtag4Script} />}
+                    */}
                     <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
                     <link href="https://fonts.googleapis.com/css2?family=Mada:wght@400;500&family=Montserrat:wght@800&display=swap" rel="stylesheet"/>
                     {/* Can set webpack.config.js browser build's externals "react":"React" and load via CDN but need to then allow cross-origin requests to CDN domain
