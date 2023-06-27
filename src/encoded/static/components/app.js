@@ -287,15 +287,6 @@ export default class App extends React.PureComponent {
                 }, 3000);
             }
 
-            // Set Alert if not on homepage and not logged in. This 'if' logic will likely change later
-            // especially if have multiple 'for-public' pages like blog posts, news, documentation, etc.
-            if (!session && pathname != "/") {
-                // MAYBE TODO next time are working on shared-portal-components (SPC) repository:
-                // Put this Alert into SPC as a predefined/constant export, then cancel/remove it (if active) in the callback function
-                // upon login success ( https://github.com/4dn-dcic/shared-portal-components/blob/master/src/components/navigation/components/LoginController.js#L111 )
-                Alerts.queue(NotLoggedInAlert);
-            }
-
             // Set Alert if user initializes app between 330-830a ET (possibly temporary)
             // 12-4 am in ET is either 4am-8am or 5am-9am UTC, depending on daylight savings.
             const currTime = new Date();
