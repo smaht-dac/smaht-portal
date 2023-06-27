@@ -93,7 +93,7 @@ const optimization = {
     minimizer: [
         new TerserPlugin({
             parallel: false,  // XXX: this option causes docker build to fail - Will 2/25/2021
-            sourceMap: true,
+            // sourceMap: true,
             terserOptions:{
                 compress: true,
                 mangle: true,
@@ -109,10 +109,16 @@ const optimization = {
 const webPlugins = plugins.slice(0);
 const serverPlugins = plugins.slice(0);
 
+webPlugins.push(new webpack.ProvidePlugin({
+    "process": "process/browser"
+}));
+
 // Inform our React code of what build we're on.
 // This works via a find-replace.
 webPlugins.push(new webpack.DefinePlugin({
     'process.env.NODE_ENV': JSON.stringify(env),
+    'process.version': JSON.stringify(process.version),
+    'process.platform': JSON.stringify(process.platform),
     'SERVERSIDE' : JSON.stringify(false),
     'BUILDTYPE' : JSON.stringify(env)
 }));
@@ -123,9 +129,12 @@ serverPlugins.push(new webpack.DefinePlugin({
     'BUILDTYPE' : JSON.stringify(env)
 }));
 
-// From https://github.com/jsdom/jsdom/issues/3042
+// From https://github.com/jsdom/jsdom/issues/3042 (+ updated for Webpack5)
 serverPlugins.push(
-    new webpack.IgnorePlugin(/canvas/, /jsdom$/)
+    new webpack.IgnorePlugin({
+        resourceRegExp: /canvas/,
+        contextRegExp: /jsdom$/
+    })
 );
 
 if (env === 'development'){
@@ -199,10 +208,8 @@ module.exports = [
             ...resolve,
             alias: {
                 ...resolve.alias,
-                // We could eventually put 'pedigree-viz' into own repo/project (under dif name like @hms-dbmi-bgm/react-pedigree-viz or something).
-                'pedigree-viz': path.resolve(__dirname, "./src/encoded/static/components/viz/PedigreeViz"),
-                'higlass-dependencies': path.resolve(__dirname, "./src/encoded/static/components/item-pages/components/HiGlass/higlass-dependencies.js"),
-                'package-lock.json': path.resolve(__dirname, "./package-lock.json"),
+                // TODO: re-add higlass-dependencies here when ready to re-introduce it
+                'package-lock.json': path.resolve(__dirname, "./package-lock.json")
             },
             /**
              * From Webpack CLI:
@@ -214,11 +221,15 @@ module.exports = [
              * If you don't want to include a polyfill, you can use an empty module like this:
              *   resolve.fallback: { "zlib": false }
              */
-            // fallback: {
-            //     "zlib": false
-            //      TODO: Upgrade to webpack v5.
-            //      TODO: polyfill some, update some to other libs, & exclude rest
-            // }
+            fallback: {
+                "zlib": false,
+                "stream": require.resolve("stream-browserify"),
+                "crypto": false,
+                "buffer": false,
+                "events": false,
+                "process": require.resolve("process/browser"),
+                "util": require.resolve("util/")
+            }
         },
         //resolveLoader : resolve,
         devtool: devTool,
@@ -245,23 +256,22 @@ module.exports = [
                 'd3': 'var {}',
                 // This is used during build-time only I think...
                 '@babel/register': '@babel/register',
-                'higlass-dependencies': 'var {}',
+                // TODO: Re-add when higlass is re-introduced
+                // 'higlass-dependencies': 'var {}',
                 // These remaining /higlass/ defs aren't really necessary
                 // but probably speed up build a little bit.
-                'higlass/dist/hglib' : 'var {}',
-                'higlass-register': 'var {}',
-                'higlass-sequence': 'var {}',
-                'higlass-transcripts': 'var {}',
-                'higlass-clinvar': 'var {}',
-                'higlass-text': 'var {}',
-                'higlass-orthologs': 'var {}',
-                'higlass-pileup': 'var {}',
-                'higlass-multivec': 'var {}',
+                // 'higlass/dist/hglib' : 'var {}',
+                // 'higlass-register': 'var {}',
+                // 'higlass-sequence': 'var {}',
+                // 'higlass-transcripts': 'var {}',
+                // 'higlass-clinvar': 'var {}',
+                // 'higlass-text': 'var {}',
+                // 'higlass-orthologs': 'var {}',
+                // 'higlass-pileup': 'var {}',
+                // 'higlass-multivec': 'var {}',
                 'auth0-lock': 'var {}',
                 'aws-sdk': 'var {}',
                 'package-lock.json': 'var {}',
-                'pagedjs': 'var {}',
-                'pedigree-viz': 'var {}',
                 // Below - prevent some stuff in SPC from being bundled in.
                 // These keys are literally matched against the string values, not actual path contents, hence why is "../util/aws".. it exactly what within SPC/SubmissionView.js
                 // We can clean up and change to 'aws-utils' in here in future as well and alias it to spc/utils/aws. But this needs to be synchronized with SPC and 4DN.
@@ -285,13 +295,14 @@ module.exports = [
         optimization: optimization,
         resolve: {
             ...resolve,
-            // fallback: {
-            //     "zlib": false
-            // }
+            fallback: {
+                "zlib": false,
+                "process": require.resolve("process/browser"),
+                "util": require.resolve("util/")
+            }
         },
         //resolveLoader : resolve,
         devtool: devTool, // No way to debug/log serverside JS currently, so may as well speed up builds for now.
         plugins: serverPlugins
     }
-    //*/
 ];
