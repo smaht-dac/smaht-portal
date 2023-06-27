@@ -30,13 +30,13 @@ export const GuestHomeView = React.memo(function GuestHomeView(props){
         <React.Fragment>
             <div className="homepage-contents">
                 <div className="d-flex flex-column align-items-center justify-content-center">
-                    <div className="smaht-logo d-inline-block mb-1 mt-36">
-                        <img src="/static/img/SMaHT_Horizontal-Logo-Acronym_FV.png" alt="SMaHT Logo"/>
+                    <div className="smaht-logo d-inline-block mb-1 mt-2">
+                        <img src="/static/img/SMaHT_Horizontal-Logo-Acronym_FV.png" alt="SMaHT Logo" width="352" />
                     </div>
                     <div className="coming-soon">
                         Coming Soon
                     </div>
-                    <div className="text-center mb-3">
+                    <div className="intro text-center mb-3">
                         Welcome to the future home of the<br/>
                         Somatic Mosiacism across Human Tissues (SMaHT) Data Portal
                     </div>
