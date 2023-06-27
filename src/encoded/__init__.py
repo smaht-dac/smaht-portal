@@ -141,13 +141,13 @@ def static_resources(config):
     config.add_view(robots_txt, route_name='robots.txt-conditional')
 
 
-def load_workbook(app, workbook_filename, docsdir):
-    environ = {
-        'HTTP_ACCEPT': 'application/json',
-        'REMOTE_USER': 'IMPORT',
-    }
-    testapp = VirtualApp(app, environ)
-    load_all(testapp, workbook_filename, docsdir)
+# def load_workbook(app, workbook_filename, docsdir):
+#     environ = {
+#         'HTTP_ACCEPT': 'application/json',
+#         'REMOTE_USER': 'IMPORT',
+#     }
+#     testapp = VirtualApp(app, environ)
+#     load_all(testapp, workbook_filename, docsdir)
 
 
 def app_version(config):

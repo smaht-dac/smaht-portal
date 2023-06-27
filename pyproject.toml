@@ -199,7 +199,7 @@ main = "encoded:main"
 
 [paste.composite_factory]
 indexer = "snovault.elasticsearch.es_index_listener:composite"
-ingester = "snovault.ingestion_listener:composite"
+ingester = "snovault.ingestion.ingestion_listener:composite"
 
 [paste.filter_app_factory]
 memlimit = "snovault.memlimit:filter_app"
