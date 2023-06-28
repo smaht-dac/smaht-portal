@@ -40,8 +40,11 @@ export const GuestHomeView = React.memo(function GuestHomeView(props){
                         Welcome to the future home of the<br/>
                         Somatic Mosiacism across Human Tissues (SMaHT) Data Portal
                     </div>
-                    <div>
-                        <a href="/" className="btn btn-link btn-outline-primary">Learn about the consortium</a>
+                    <div className="learn-more">
+                        <a href="/" className="btn btn-link btn-outline-primary px-3">
+                            Learn about the consortium
+                            <i className="icon icon-arrow-right fas ml-1 mt-02" />
+                        </a>
                     </div>
                 </div>
             </div>
