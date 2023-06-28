@@ -1809,6 +1809,9 @@ class BodyElement extends React.PureComponent {
 
                 <div id="application">
                     <div id="layout">
+                        {/* { (isSubmitting && isSubmitting.modal) && isSubmittingModalOpen ? isSubmitting.modal : null}
+
+                        <NavigationBar {...navbarProps} /> */}
 
                         <div>
 
@@ -1822,12 +1825,13 @@ class BodyElement extends React.PureComponent {
 
                         </div>
                     </div>
+                    {/* <Footer version={context.app_version} /> */}
                 </div>
 
                 <div id="overlays-container" ref={this.overlaysContainerRef}/>
 
-                <ReactTooltip effect="solid" globalEventOff="click" key="tooltip" uuid="primary-tooltip-fake-uuid"
-                    afterHide={this.onAfterTooltipHide} ref={this.tooltipRef} />
+                {/* <ReactTooltip effect="solid" globalEventOff="click" key="tooltip" uuid="primary-tooltip-fake-uuid"
+                    afterHide={this.onAfterTooltipHide} ref={this.tooltipRef} /> */}
 
             </body>
         );
