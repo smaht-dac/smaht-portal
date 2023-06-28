@@ -46,8 +46,8 @@ RUN apt-get update && apt-get upgrade -y && \
     curl -o aws-ip-ranges.json https://ip-ranges.amazonaws.com/ip-ranges.json && \
     bash /install_nginx.sh && \
     chown -R nginx:nginx /opt/venv && \
-    mkdir -p /home/nginx/cgap-portal && \
-    mv aws-ip-ranges.json /home/nginx/cgap-portal/aws-ip-ranges.json && \
+    mkdir -p /home/nginx/smaht-portal && \
+    mv aws-ip-ranges.json /home/nginx/smaht-portal/aws-ip-ranges.json && \
     # uninstalled by nginx install, but needed later for npm install
     apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
     apt-get clean
@@ -56,7 +56,7 @@ RUN apt-get update && apt-get upgrade -y && \
 ENV PATH="/home/nginx/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 
 # Build application
-WORKDIR /home/nginx/cgap-portal
+WORKDIR /home/nginx/smaht-portal
 
 # Do the back-end dependency install
 COPY pyproject.toml .
@@ -144,4 +144,4 @@ EXPOSE 8000
 # Container does not run as root
 USER nginx
 
-ENTRYPOINT ["/home/nginx/cgap-portal/entrypoint.sh"]
+ENTRYPOINT ["/home/nginx/smaht-portal/entrypoint.sh"]
