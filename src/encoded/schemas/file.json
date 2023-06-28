@@ -22,9 +22,32 @@
             ]
         }
     ],
+    "allOf": [
+        {
+            "anyOf": [
+                {
+                    "not": {
+                        "properties": {
+                            "category": {
+                                "enum": [
+                                    "submitted"
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "required": [
+                        "identifier"
+                    ]
+                }
+            ]
+        }
+    ],
     "identifyingProperties": [
         "accession",
         "aliases",
+	"identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -43,6 +66,9 @@
         },
         {
             "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -152,11 +178,11 @@
                 "linkTo": "File"
             }
         },
-	"paired_with": {
-		"title": "Paired with",
-		"type": "string",
-		"linkTo": "File"
-	},
+        "paired_with": {
+            "title": "Paired with",
+            "type": "string",
+            "linkTo": "File"
+        },
         "supercedes": {
             "title": "Supercedes",
             "type": "array",
@@ -170,7 +196,7 @@
         "quality_metrics": {
             "title": "Quality Metrics",
             "type": "array",
-	    "uniqueItems": true,
+            "uniqueItems": true,
             "items": {
                 "title": "Quality Metric",
                 "type": "string",

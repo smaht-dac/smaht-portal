@@ -3,7 +3,8 @@
     "id": "/profiles/biosource.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "category"
+        "category",
+        "identifier"
     ],
     "anyOf": [
         {
@@ -20,6 +21,7 @@
     "identifyingProperties": [
         "accession",
         "aliases",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -38,6 +40,9 @@
         },
         {
             "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
         },
         {
             "$ref": "mixins.json#/modified"

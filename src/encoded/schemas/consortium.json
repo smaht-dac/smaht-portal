@@ -3,13 +3,13 @@
     "id": "/profiles/Consortium.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "name",
+        "identifier",
         "title"
     ],
     "identifyingProperties": [
-        "uuid",
-        "name",
-        "aliases"
+        "aliases",
+        "identifier",
+        "uuid"
     ],
     "additionalProperties": false,
     "mixinProperties": [
@@ -20,10 +20,10 @@
             "$ref": "mixins.json#/description"
         },
         {
-            "$ref": "mixins.json#/modified"
+            "$ref": "mixins.json#/identifier"
         },
         {
-            "$ref": "mixins.json#/name"
+            "$ref": "mixins.json#/modified"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -56,7 +56,7 @@
             "type": "string",
             "default": "shared"
         },
-        "name": {
+        "identifier": {
             "permission": "restricted_fields"
         },
         "title": {

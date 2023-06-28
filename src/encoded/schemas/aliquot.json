@@ -2,7 +2,10 @@
     "title": "Aliquot",
     "id": "/profiles/aliquot.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "required": [],
+    "required": [
+        "biosample",
+        "identifier"
+    ],
     "anyOf": [
         {
             "required": [
@@ -18,6 +21,7 @@
     "identifyingProperties": [
         "accession",
         "aliases",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -30,6 +34,9 @@
         },
         {
             "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -58,15 +65,10 @@
         "accession": {
             "accessionType": "AL"
         },
-        "derived_from": {
-            "title": "Parent Biosamples",
-            "type": "array",
-            "uniqueItems": true,
-            "items": {
-                "title": "Parent Biosample",
-                "type": "string",
-                "linkTo": "Biosample"
-            }
+        "biosample": {
+            "title": "Biosample",
+            "type": "string",
+            "linkTo": "Biosample"
         }
     },
     "facets": {},

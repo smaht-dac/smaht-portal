@@ -3,7 +3,7 @@
     "id": "/profiles/ontology_term.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "name"
+        "identifier"
     ],
     "anyOf": [
         {
@@ -20,7 +20,7 @@
     "identifyingProperties": [
         "accession",
         "aliases",
-        "name",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -35,10 +35,10 @@
             "$ref": "mixins.json#/attribution"
         },
         {
-            "$ref": "mixins.json#/modified"
+            "$ref": "mixins.json#/identifier"
         },
         {
-            "$ref": "mixins.json#/name"
+            "$ref": "mixins.json#/modified"
         },
         {
             "$ref": "mixins.json#/schema_version"

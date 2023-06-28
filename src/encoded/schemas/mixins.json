@@ -206,6 +206,15 @@
             "title": "Submission Centers"
         }
     },
+    "identifier": {
+        "identifier": {
+            "title": "Identifier",
+            "description": "Unique, identifying name for the item",
+            "type": "string",
+            "uniqueKey": true,
+            "pattern": "^[A-Za-z0-9-_]+$"
+        }
+    },
     "ingestion_ids": {
         "ingestion_ids": {
             "title": "Submission IDs",
@@ -266,10 +275,11 @@
     "name": {
         "name": {
             "title": "Name",
-            "description": "Unique, identifying name of the item",
+            "description": "Name of the item",
             "type": "string",
-            "uniqueKey": true,
-            "pattern": "^[a-z0-9-]+$"
+            "pattern": "^[A-Za-z0-9-_]+$",
+            "uniqueKey": false,
+            "comment": "Not for identifying name; use 'identifier' for that purpose."
         }
     },
     "notes": {

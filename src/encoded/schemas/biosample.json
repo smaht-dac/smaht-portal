@@ -3,7 +3,9 @@
     "id": "/profiles/biosample.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "name"
+        "biosources",
+        "category",
+        "identifier"
     ],
     "anyOf": [
         {
@@ -20,7 +22,7 @@
     "identifyingProperties": [
         "accession",
         "aliases",
-        "name",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -41,10 +43,10 @@
             "$ref": "mixins.json#/description"
         },
         {
-            "$ref": "mixins.json#/modified"
+            "$ref": "mixins.json#/identifier"
         },
         {
-            "$ref": "mixins.json#/name"
+            "$ref": "mixins.json#/modified"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -80,16 +82,18 @@
             "title": "Biosources",
             "type": "array",
             "uniqueItems": true,
+            "minItems": 1,
             "items": {
                 "title": "Biosource",
                 "type": "string",
                 "linkTo": "Biosource"
             }
         },
-        "derived_from": {
+        "parent_biosamples": {
             "title": "Parent Biosamples",
             "type": "array",
             "uniqueItems": true,
+            "minItems": 1,
             "items": {
                 "title": "Parent Biosample",
                 "type": "string",

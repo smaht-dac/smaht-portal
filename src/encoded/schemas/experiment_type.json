@@ -4,7 +4,7 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
         "category",
-        "name"
+	"title"
     ],
     "anyOf": [
         {
@@ -21,7 +21,6 @@
     "identifyingProperties": [
         "accession",
         "aliases",
-        "name",
         "uuid"
     ],
     "additionalProperties": false,
@@ -43,9 +42,6 @@
         },
         {
             "$ref": "mixins.json#/modified"
-        },
-        {
-            "$ref": "mixins.json#/name"
         },
         {
             "$ref": "mixins.json#/ontology_term"
@@ -76,6 +72,9 @@
         },
         "accession": {
             "accessionType": "ET"
+        },
+        "category": {
+            "enum": []
         }
     },
     "facets": {},
