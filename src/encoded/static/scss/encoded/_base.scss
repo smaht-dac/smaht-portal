@@ -1,16 +1,18 @@
 
 
 /*************************************************************
- ************ CGAP-Brand-Specific Variables & Config *********
+ ************ SMaHT-Brand-Specific Variables & Config *********
  *************************************************************/
  
-/* Some may overwrite Bootstrap variables */
-/* (some might be deprecated or carried over from ENCODE/4DN) */
+/*
+Some may overwrite Bootstrap variables
+(some might be deprecated or carried over from ENCODE/4DN/CGAP)
+*/
 
 $mainThemeColor: 			#ffffff; /* i.e. the background color ..for now */
 
 $appVersionHeight:          0px;
-$footer-height:             50px + $appVersionHeight;
+$footer-height:             0px + $appVersionHeight; // TODO: Update once footer re-added
 $appBackgroundColor:        #fff; /* Not sure where $mainThemeColor is used... definitely not #application background-color, so creating new one */
 $appSecondaryBackgroundColor: #f5f5f5;
 
@@ -98,21 +100,16 @@ $link-color: #428bca;
 $expset-table-border-color : #eee;
 
 
-//$primary:       #3691d2; //#2684ad; //#057eaf;
-$primary:       #1b75b9;
+$primary:       #2543C3;
 $secondary:     #6c757d;
 $success:       #4C994C;
-//$info:          #4F689E;
 $info:          #4ca6ea;
 $warning:       #E59545;
 $danger:        #B24342;
 $light:         #f8f8f8;
 $dark:          #343a40;
 
-// Extra Additions for CGAP:
-//$primary-dark: darken($primary, 15%);
-$primary-dark: #2b6088; //#0c5979;
-
+$primary-dark: darken($primary, 15%);
 
 // Will be extended in bootstrap's _variables.scss with Bootstrap orig colors (warning, success, primary, etc).
 // And then used to create utility classes 'text-primary-dark', 'bg-primary-dark', etc.
@@ -131,7 +128,6 @@ $card-inner-border-radius: 3px;
 $card-border-color: rgba(0,0,0,0.08); // Lighter
 
 /* Header Font Sizes */
-
 $h1-font-size: 2.6rem;
 $h2-font-size: 2.1rem;
 $h3-font-size: 1.7rem;

@@ -84,15 +84,13 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
  ************ Button Styles ***********
  **************************************/
 
-.btn {
-    font-weight: 400;
-    /* @include box-shadow(0 1px 3px rgba(0,0,0,.1), inset 0 -2px 3px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.3)); */
-    //@include box-shadow(0 1px 3px rgba(0,0,0,0.25),inset 0 -1px 4px rgba(0,0,0,0.2),inset 0 1px 4px rgba(255,255,255,0.3));
+// Note: Some of these older things could probably be done better via mixin
+// (https://getbootstrap.com/docs/5.0/components/buttons/#sass)
+// TODO: Once design tokens/base design system are solidified, convert to mixin
 
-    // > i.icon {
-    //     vertical-align: middle;
-    //     transform: translate(0, -1px);
-    // }
+.btn {
+	letter-spacing: 0.03rem;
+    font-weight: 400;
 
 	/* The following heights are aligned to bootstrap btn padding and our font's calculated line-height. */
 	/* These must be updated in response to any font, bootstrap, etc. updates. */
@@ -114,16 +112,21 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 	}
 }
 
+// Note: Temporary; use btn-sm styling for buttons on tablet and mobile
+@include media-breakpoint-down(xs){
+	.btn {
+		@include button-size(1px, 5px, 0.825rem, 1.5, $border-radius-sm);
+		font-weight: 400;
+		padding-top: 2px;
+	}
+}
+
 /** Extending Bootstrap button w/ rounded & ext-padding class **/
 /** btn-xs was removed in Bootstrap v4 so we recreate it here **/
 .btn.btn-xs {
     @include button-size(1px, 5px, 0.825rem, 1.5, $border-radius-sm);
     font-weight: 400;
     padding-top: 2px;
-    //> i.icon {
-    //    // Unset btn style
-    //    transform: none;
-    //}
 }
 
 .btn-xs.rounded,
@@ -132,24 +135,29 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
     padding-right: 7px;
 }
 
+
+/* Ensure button links don't show underline at any point */
+.btn.btn-link {
+	&:hover,
+	&:active,
+	&:focus {
+		text-decoration: none;
+	}
+}
+
 /* Light gray BG, more prominent button style than btn-default */
 .btn.btn-secondary {
     @include button-variant(#e4e4e4, #e0e0e0);
-    //&:active, &:focus {
-    //    background-color: #e4e4e4;
-    //}
 }
 
 .btn.btn-outline-primary {
-	color: #2543C3;
-	border-radius: 5px;
-	border: 2px solid #2543C3;
+	@include button-outline-variant($primary, #ffffff, $primary-dark, $primary-dark);
+	// border-radius: 5px;
+}
 
-	&:hover {
-		background-color: #2543C3;
-		color: #ffffff;
-		text-decoration: none;
-	}
+.btn.btn-primary {
+	@include button-variant($primary, $primary, $primary-dark);
+	// border-radius: 5px;
 }
 
 
