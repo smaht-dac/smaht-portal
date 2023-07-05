@@ -8,7 +8,7 @@ import { LoginController } from '@hms-dbmi-bgm/shared-portal-components/es/compo
 import { NotLoggedInAlert } from './../../navigation/components/LoginNavItem';
 import { UserRegistrationModal } from './../../navigation/components/UserRegistrationModal';
 import { auth0Options as navAuth0Options } from './../../navigation/components/AccountNav';
-import { Fade } from 'react-bootstrap';
+// import { Fade } from 'react-bootstrap';
 
 
 const auth0Options = {
@@ -30,32 +30,32 @@ export const GuestHomeView = React.memo(function GuestHomeView(props){
     return (
         <React.Fragment>
             <div className="homepage-contents d-flex justify-content-center">
-                <Fade in appear timeout={500}>
-                    <div className="splash-content d-flex flex-column align-items-center justify-content-center">
-                        <div className="smaht-logo d-inline-block mb-1 mt-2">
-                            <img src="/static/img/SMaHT_Horizontal-Logo-Acronym_FV.png" alt="SMaHT Logo" width="352" />
-                        </div>
-                        <div className="coming-soon">
-                            Coming Soon
-                        </div>
-                        <div className="intro text-center mb-3">
-                            Welcome to the future home of the <br className="d-none d-sm-block"/>
-                            Somatic Mosiacism across Human Tissues (SMaHT) Data Portal
-                        </div>
-                        <div className="d-flex flex-column learn-more">
-                            <a href="https://commonfund.nih.gov/smaht" className="d-flex btn btn-xs-small btn-link btn-primary px-3 mb-1 justify-content-between">
-                                <i className="icon icon-users fas mr-1 mt-02 d-none d-sm-block" />
-                                Learn about the SMaHT consortium
-                                <i className="icon icon-arrow-right fas ml-1 mt-02 d-none d-sm-block" />
-                            </a>
-                            <a href="https://www.smaht.org" className="d-flex btn btn-link btn-xs-small btn-outline-primary px-3">
-                                <i className="icon icon-network-wired fas mr-1 mt-02 d-none d-sm-block" />
-                                Visit the network organization center
-                                <i className="icon icon-arrow-right fas ml-1 mt-02 d-none d-sm-block" />
-                            </a>
-                        </div>
+                {/* <Fade in appear timeout={500}> */}
+                <div className="splash-content d-flex flex-column align-items-center justify-content-center">
+                    <div className="smaht-logo d-inline-block mb-1 mt-2">
+                        <img src="/static/img/SMaHT_Horizontal-Logo-Acronym_FV.png" alt="SMaHT Logo" width="352" />
                     </div>
-                </Fade>
+                    <div className="coming-soon">
+                        Coming Soon
+                    </div>
+                    <div className="intro text-center mb-3">
+                        Welcome to the future home of the <br className="d-none d-sm-block"/>
+                        Somatic Mosiacism across Human Tissues (SMaHT) Data Portal
+                    </div>
+                    <div className="d-flex flex-column learn-more">
+                        <a href="https://commonfund.nih.gov/smaht" className="d-flex btn btn-xs-small btn-link btn-primary px-3 mb-1 justify-content-between">
+                            <i className="icon icon-users fas mr-1 mt-02 d-none d-sm-block" />
+                            Learn about the SMaHT consortium
+                            <i className="icon icon-arrow-right fas ml-1 mt-02 d-none d-sm-block" />
+                        </a>
+                        <a href="https://www.smaht.org" className="d-flex btn btn-link btn-xs-small btn-outline-primary px-3">
+                            <i className="icon icon-network-wired fas mr-1 mt-02 d-none d-sm-block" />
+                            Visit the network organization center
+                            <i className="icon icon-arrow-right fas ml-1 mt-02 d-none d-sm-block" />
+                        </a>
+                    </div>
+                </div>
+                {/* </Fade> */}
             </div>
         </React.Fragment>
     );
