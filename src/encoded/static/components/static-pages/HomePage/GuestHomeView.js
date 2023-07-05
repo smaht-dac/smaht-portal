@@ -40,7 +40,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props){
                     </div>
                     <div className="intro text-center mb-3">
                         Welcome to the future home of the <br className="d-none d-sm-block"/>
-                        Somatic Mosiacism across Human Tissues (SMaHT) Data Portal
+                        Somatic Mosaicism across Human Tissues (SMaHT) Data Portal
                     </div>
                     <div className="d-flex flex-column learn-more">
                         <a href="https://commonfund.nih.gov/smaht" className="d-flex btn btn-xs-small btn-link btn-primary px-3 mb-1 justify-content-between">
