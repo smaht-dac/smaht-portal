@@ -89,8 +89,11 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 // TODO: Once design tokens/base design system are solidified, convert to mixin
 
 .btn {
+	// These might need to be moved elsewhere/defined differently in future
 	letter-spacing: 0.03rem;
     font-weight: 400;
+	border-width: 2px;
+	border-radius: 5px; 
 
 	/* The following heights are aligned to bootstrap btn padding and our font's calculated line-height. */
 	/* These must be updated in response to any font, bootstrap, etc. updates. */
@@ -152,12 +155,10 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 
 .btn.btn-outline-primary {
 	@include button-outline-variant($primary, #ffffff, $primary-dark, $primary-dark);
-	// border-radius: 5px;
 }
 
 .btn.btn-primary {
 	@include button-variant($primary, $primary, $primary-dark);
-	// border-radius: 5px;
 }
 
 
