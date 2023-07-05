@@ -644,7 +644,7 @@ export default class App extends React.PureComponent {
         this.setState({ "session": nextSession }, () => {
             const { session } = this.state;
             if (session === false && existingSession === true){
-                // Alerts.queue(Alerts.LoggedOut); // TODO: re-enable once authentication is implemented
+                Alerts.queue(Alerts.LoggedOut);
                 // Clear out remaining auth/JWT stuff from localStorage if any.
                 JWT.remove();
             } else if (session === true && existingSession === false){
