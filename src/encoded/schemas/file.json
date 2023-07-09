@@ -224,6 +224,16 @@
                 "type": "string",
                 "linkTo": "QualityMetric"
             }
+        },
+        "experiments": {
+            "title": "Experiments",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "title": "Experiment",
+                "type": "string",
+                "linkTo": "Experiment"
+            }
         }
     },
     "facets": {},
