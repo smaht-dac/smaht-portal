@@ -14,12 +14,10 @@ from .base import SMAHTItem, load_smaht_schema
 class Subject(SMAHTItem):
     item_type = "subject"
     schema = load_smaht_schema(item_type)
-    rev = {
-        "biosources": ("Biosource", "subject")
-    }
+    rev = {"biosources": ("Biosource", "subject")}
 
     @calculated_property(
-        schema = {
+        schema={
             "title": "Biosources",
             "description": "Biosources from this individual",
             "type": "array",

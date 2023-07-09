@@ -20,7 +20,7 @@ class Biosample(SMAHTItem):
     }
 
     @calculated_property(
-        schema = {
+        schema={
             "title": "Analytes",
             "description": "Analytes for this biosample",
             "type": "array",
@@ -37,7 +37,7 @@ class Biosample(SMAHTItem):
             return result
 
     @calculated_property(
-        schema = {
+        schema={
             "title": "Child Biosamples",
             "description": "Biosamples derived from this biosample",
             "type": "array",

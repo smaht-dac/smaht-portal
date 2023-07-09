@@ -17,7 +17,7 @@ class Analyte(SMAHTItem):
     rev = {"aliquots": ("Aliquot", "analyte")}
 
     @calculated_property(
-        schema = {
+        schema={
             "title": "Aliquots",
             "description": "Aliquots for this analyte",
             "type": "array",
