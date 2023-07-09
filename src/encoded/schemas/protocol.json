@@ -76,8 +76,9 @@
         },
         "category": {
             "enum": [
-                "biosample preparation",
-                "experiment details"
+                "Analyte Preparation",
+                "Biosample Preparation",
+                "Experiment Details"
             ]
         },
         "schema_version": {

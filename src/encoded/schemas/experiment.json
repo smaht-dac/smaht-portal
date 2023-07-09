@@ -3,8 +3,8 @@
     "id": "/profiles/experiment.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "experiment_type",
-        "identifier"
+        "category",
+        "submitter_id"
     ],
     "anyOf": [
         {
@@ -22,6 +22,7 @@
         "accession",
         "aliases",
         "identifier",
+        "submitter_id",
         "uuid"
     ],
     "additionalProperties": false,
@@ -34,6 +35,9 @@
         },
         {
             "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/category"
         },
         {
             "$ref": "mixins.json#/description"
@@ -49,6 +53,9 @@
         },
         {
             "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitter_id"
         },
         {
             "$ref": "mixins.json#/status"
@@ -68,10 +75,17 @@
         "accession": {
             "accessionType": "EX"
         },
-        "experiment_type": {
-            "title": "Experiment Type",
+        "category": {
+            "enum": [
+                "Short Read WGS",
+                "Long Read WGS",
+                "RNA Seq"
+            ]
+        },
+        "protocol": {
+            "title": "Protocol",
             "type": "string",
-            "linkTo": "ExperimentType"
+            "linkTo": "Protocol"
         }
     },
     "facets": {},

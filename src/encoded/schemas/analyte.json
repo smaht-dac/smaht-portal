@@ -1,10 +1,10 @@
 {
-    "title": "Experiment Type",
-    "id": "/profiles/experiment_type.json",
+    "title": "Analyte",
+    "id": "/profiles/analyte.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "category",
-	"title"
+        "biosample",
+        "submitter_id"
     ],
     "anyOf": [
         {
@@ -21,6 +21,8 @@
     "identifyingProperties": [
         "accession",
         "aliases",
+        "identifier",
+        "submitter_id",
         "uuid"
     ],
     "additionalProperties": false,
@@ -32,34 +34,31 @@
             "$ref": "mixins.json#/aliases"
         },
         {
-            "$ref": "mixins.json#/attribution"
-        },
-        {
             "$ref": "mixins.json#/category"
         },
         {
             "$ref": "mixins.json#/description"
         },
         {
-            "$ref": "mixins.json#/modified"
+            "$ref": "mixins.json#/identifier"
         },
         {
-            "$ref": "mixins.json#/ontology_term"
+            "$ref": "mixins.json#/modified"
         },
         {
             "$ref": "mixins.json#/schema_version"
         },
         {
-            "$ref": "mixins.json#/submitted"
-        },
-        {
             "$ref": "mixins.json#/status"
         },
         {
-            "$ref": "mixins.json#/tags"
+            "$ref": "mixins.json#/submitted"
         },
         {
-            "$ref": "mixins.json#/title"
+            "$ref": "mixins.json#/submitter_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
         },
         {
             "$ref": "mixins.json#/uuid"
@@ -71,10 +70,30 @@
             "default": "1"
         },
         "accession": {
-            "accessionType": "ET"
+            "accessionType": "AN"
         },
         "category": {
-            "enum": []
+            "enum": [
+                "DNA",
+                "RNA"
+            ]
+        },
+        "preparation": {
+            "title": "Preparation",
+            "type": "string",
+            "enum": [
+                "Chemical Lysis DNA Extraction"
+            ]
+        },
+        "protocol": {
+            "title": "Protocol",
+            "type": "string",
+            "linkTo": "Protocol"
+        },
+        "biosample": {
+            "title": "Biosample",
+            "type": "string",
+            "linkTo": "Biosample"
         }
     },
     "facets": {},

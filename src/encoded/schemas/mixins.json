@@ -212,7 +212,8 @@
             "description": "Unique, identifying name for the item",
             "type": "string",
             "uniqueKey": true,
-            "pattern": "^[A-Za-z0-9-_]+$"
+            "pattern": "^[A-Za-z0-9-_]+$",
+            "permission": "restricted_fields"
         }
     },
     "ingestion_ids": {
@@ -442,6 +443,14 @@
                 "type": "string",
                 "linkTo": "File"
             }
+        }
+    },
+    "submitter_id": {
+        "submitter_id": {
+            "title": "Submitter ID",
+            "description": "Identifier on submission",
+            "type": "string",
+            "uniqueKey": true
         }
     },
     "supplementary_files": {

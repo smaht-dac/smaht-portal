@@ -6,8 +6,8 @@
     "type": "object",
     "required": [
         "category",
+        "data_category",
         "data_type",
-        "file_name",
         "file_format"
     ],
     "anyOf": [
@@ -38,7 +38,8 @@
                 },
                 {
                     "required": [
-                        "identifier"
+                        "file_name",
+                        "submitter_id"
                     ]
                 }
             ]
@@ -47,7 +48,8 @@
     "identifyingProperties": [
         "accession",
         "aliases",
-	"identifier",
+        "identifier",
+        "submitter_id",
         "uuid"
     ],
     "additionalProperties": false,
@@ -81,6 +83,9 @@
         },
         {
             "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitter_id"
         },
         {
             "$ref": "mixins.json#/tags"
@@ -117,20 +122,26 @@
                 "deleted"
             ]
         },
+        "data_category": {
+            "title": "Data Category",
+            "type": "string",
+            "enum": [
+                "Sequencing Reads"
+            ]
+        },
         "data_type": {
-            "title": "Data type",
+            "title": "Data Type",
             "description": "Type of information in the file",
             "type": "string",
-            "enum": []
+            "enum": [
+                "Unaligned Reads",
+                "Aligned Reads"
+            ]
         },
         "file_format": {
             "title": "File Format",
             "type": "string",
-            "enum": [
-                "bam",
-                "fastq",
-                "vcf"
-            ]
+            "linkTo": "FileFormat"
         },
         "file_name": {
             "title": "File Name",
@@ -168,10 +179,19 @@
             "format": "hex",
             "uniqueKey": "file:content_md5sum"
         },
-        "derived_from": {
-            "title": "Derived From",
+        "read": {
+            "title": "Read Pair Number",
+            "type": "String",
+            "enum": [
+                "R1",
+                "R2"
+            ]
+        },
+        "parent_files": {
+            "title": "Parent Files",
             "type": "array",
             "uniqueItems": true,
+            "minItems": 1,
             "items": {
                 "title": "File",
                 "type": "string",
@@ -187,6 +207,7 @@
             "title": "Supercedes",
             "type": "array",
             "uniqueItems": true,
+            "minItems": 1,
             "items": {
                 "title": "File",
                 "type": "string",
@@ -197,6 +218,7 @@
             "title": "Quality Metrics",
             "type": "array",
             "uniqueItems": true,
+            "minItems": 1,
             "items": {
                 "title": "Quality Metric",
                 "type": "string",

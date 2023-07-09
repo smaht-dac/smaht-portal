@@ -4,7 +4,7 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
         "category",
-        "identifier"
+        "submitter_id"
     ],
     "anyOf": [
         {
@@ -22,6 +22,7 @@
         "accession",
         "aliases",
         "identifier",
+        "submitter_id",
         "uuid"
     ],
     "additionalProperties": false,
@@ -60,6 +61,9 @@
             "$ref": "mixins.json#/submitted"
         },
         {
+            "$ref": "mixins.json#/submitter_id"
+        },
+        {
             "$ref": "mixins.json#/tags"
         },
         {
@@ -76,13 +80,13 @@
         },
         "category": {
             "enum": [
-                "primary cell",
-                "primary cell line",
-                "immortalized cell line",
-                "stem cell",
-                "induced pluripotent stem cell",
-                "stem cell derived cell line",
-                "tissue"
+                "Primary cell",
+                "Primary cell line",
+                "Immortalized cell line",
+                "Stem cell",
+                "Induced pluripotent stem cell",
+                "Stem cell derived cell line",
+                "Tissue"
             ]
         },
         "subject": {
