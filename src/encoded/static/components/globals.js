@@ -12,7 +12,7 @@ import { default as analyticsConfigurationOptions } from "./../ga_config.json";
 const portalConfig = {
 
     /** Title of app, used as appendix in browser <head> <title> and similar. */
-    "title": "Computational Genome Analysis Platform",
+    "title": "SMaHT Data Portal",
 
     /**
      * Hostnames which are considered to be canonical for 4DN data.
@@ -22,9 +22,9 @@ const portalConfig = {
      * @type {string[]}
      */
     "productionHosts": [
-        "www.data.4dnucleome.org",
-        "data.4dnucleome.org",
-        "fourfront-webdev.us-east-1.elasticbeanstalk.com"
+        "www.data.smaht.org",
+        "data.smaht.org",
+        // "fourfront-webdev.us-east-1.elasticbeanstalk.com" // TODO: replace with smaht EB link
     ]
 };
 
@@ -45,13 +45,17 @@ const content_views = new Registry();
  */
 const panel_views = new Registry();
 
-
+/**
+* gets tracking ID and type (UA or GA4)
+* @param {string} href     href to get matching Google Analytics property
+* @return {string}         returns trackingID
+*/
 const getGoogleAnalyticsTrackingID = memoize(function(href){
     if (!href && !isServerSide()){
         href = window.location.href;
     }
     const { host } = url.parse(href);
-    const hostnames = Object.keys(analyticsConfigurationOptions.hostnameTrackerIDMapping);
+    const hostnames = Object.keys(analyticsConfigurationOptions.hostnameTrackerIDMapping) || [];
     for (var i = 0; i < hostnames.length; i++){
         if (host.indexOf(hostnames[i]) > -1) {
             return analyticsConfigurationOptions.hostnameTrackerIDMapping[hostnames[i]];

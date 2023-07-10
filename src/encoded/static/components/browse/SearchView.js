@@ -9,11 +9,8 @@ import { memoizedUrlParse, schemaTransforms, analytics } from '@hms-dbmi-bgm/sha
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 import { DetailPaneStateCache } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/DetailPaneStateCache';
 import { columnExtensionMap } from './columnExtensionMap';
-import { CaseDetailPane } from './CaseDetailPane';
 import { Schemas } from './../util';
 import { TitleAndSubtitleBeside, PageTitleContainer, TitleAndSubtitleUnder, pageTitleViews, EditingItemPageTitle } from './../PageTitleSection';
-import { AboveTableControlsBaseCGAP } from './AboveTableControlsBaseCGAP';
-
 
 export default function SearchView (props){
     const { context: { '@type': searchPageType = ["ItemSearchResults"] } } = props;
@@ -125,15 +122,9 @@ export class SearchViewBody extends React.PureComponent {
         this.memoized = {
             transformedFacets : memoize(SearchViewBody.transformedFacets),
             filteredFilters: memoize(SearchViewBody.filteredFilters),
-            renderCaseDetailPane: memoize(this.renderCaseDetailPane.bind(this))
         };
     }
 
-    renderCaseDetailPane(result, rowNumber, containerWidth, propsFromTable) {
-        const { windowWidth, href, detailPaneStateCache, updateDetailPaneStateCache } = this.props;
-        const passProps = { ...propsFromTable, result, windowWidth, href, detailPaneStateCache, updateDetailPaneStateCache, containerWidth, rowNumber };
-        return <CaseDetailPane {...passProps} paddingWidth={57} />;
-    }
 
     render(){
         const { isCaseSearch = false, context, currentAction, schemas } = this.props;
@@ -145,12 +136,11 @@ export class SearchViewBody extends React.PureComponent {
         const facets = this.memoized.transformedFacets(context, currentAction, schemas);
         const tableColumnClassName = "results-column col";
         const facetColumnClassName = "facets-column col-auto";
-        const aboveTableComponent = <AboveTableControlsBaseCGAP />;
 
         return (
             <div className="container-wide search-page-outer-container" id="content">
                 <CommonSearchView {...passProps} {...{ columnExtensionMap, tableColumnClassName, facetColumnClassName, facets, aboveTableComponent }}
-                    renderDetailPane={isCaseSearch ? this.memoized.renderCaseDetailPane : null} termTransformFxn={Schemas.Term.toName} separateSingleTermFacets={false} rowHeight={90} openRowHeight={90} />
+                    renderDetailPane={null} termTransformFxn={Schemas.Term.toName} separateSingleTermFacets={false} rowHeight={90} openRowHeight={90} />
             </div>
         );
     }

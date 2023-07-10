@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.0.4
+=====
+
+* Implementation of SMaHT splash page UI as temporary placeholder
+* Some additional clean up of front end described in more detail here: https://github.com/smaht-dac/smaht-portal/pull/5
+* Update to use Webpack 5
+* Do some light adjustments to be more compatible with Google Analytics 4 down the line
+
 0.0.3
 =====
 

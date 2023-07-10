@@ -16,8 +16,6 @@ import { Schemas, fileUtil, typedefs } from './../util';
 
 import { SlideInPane } from './../viz/SlideInPane';
 import { TabView } from './components/TabView';
-import { BadgesTabView } from './components/BadgesTabView';
-
 import { ExpandableStaticHeader } from './../static-pages/components';
 
 // eslint-disable-next-line no-unused-vars
@@ -223,12 +221,6 @@ export default class DefaultItemView extends React.PureComponent {
         const returnArr = [];
 
         returnArr.push(DetailsTabView.getTabObject(this.props));
-
-        // Badges, if any
-        const badges = BadgesTabView.getBadgesList(context);
-        if (badges){
-            returnArr.push(BadgesTabView.getTabObject(this.props));
-        }
 
         return returnArr;
     }

@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Navbar from 'react-bootstrap/esm/Navbar';
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { CGAPLogo } from './../viz/CGAPLogo';
 import { TestWarning, CollapsedNav } from './components';
 
 
@@ -93,7 +92,7 @@ export class NavigationBar extends React.PureComponent {
                             onToggle={this.onToggleNavBar} expanded={mobileDropdownOpen}>
 
                             <a className="navbar-brand" href="/">
-                                <CGAPLogo />
+                                LOGO
                             </a>
 
                             <Navbar.Toggle>
