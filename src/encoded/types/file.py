@@ -15,53 +15,60 @@ ENCODED_CORE_FILE_PROCESSED_SCHEMA = deepcopy(CoreFileProcessed.schema)
 
 
 @abstract_collection(
-    name='files',
-    unique_key='accession',
+    name="files",
+    unique_key="accession",
     properties={
-        'title': 'Files',
-        'description': 'Listing of Files',
-    })
+        "title": "Files",
+        "description": "Listing of Files",
+    },
+)
 class File(SMAHTItem, CoreFile):
     schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_SCHEMA)
 
 
 @collection(
-    name='files-submitted',
+    name="files-submitted",
     properties={
-        'title': 'SMaHT Submitted Files',
-        'description': 'Listing of SMaHT Submitted Files',
-    })
+        "title": "SMaHT Submitted Files",
+        "description": "Listing of SMaHT Submitted Files",
+    },
+)
 class FileSubmitted(File):
-    """ Overwrites the FileSubmitted type from encoded-core, customizing the schema for smaht-portal """
-    item_type = 'file_submitted'
+    """Overwrites the FileSubmitted type from encoded-core, customizing the schema for smaht-portal"""
+
+    item_type = "file_submitted"
     schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_SUBMITTED_SCHEMA)
-    base_types = ['File'] + SMAHTItem.base_types
+    base_types = ["File"] + SMAHTItem.base_types
 
     def __ac_local_roles__(self):
         return SMAHTItem.__ac_local_roles__(self)
 
 
 @collection(
-    name='files-reference',
+    name="files-reference",
     properties={
-        'title': 'SMaHT Reference Files',
-        'description': 'Listing of SMaHT Reference Files',
-    })
+        "title": "SMaHT Reference Files",
+        "description": "Listing of SMaHT Reference Files",
+    },
+)
 class FileReference(File):
-    """ Overwrites the FileReference type from encoded-core, customizing the schema for smaht-portal """
-    item_type = 'file_reference'
+    """Overwrites the FileReference type from encoded-core, customizing the schema for smaht-portal"""
+
+    item_type = "file_reference"
     schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_REFERENCE_SCHEMA)
-    base_types = ['File'] + SMAHTItem.base_types
+    base_types = ["File"] + SMAHTItem.base_types
 
 
 @collection(
-    name='files-processed',
+    name="files-processed",
     properties={
-        'title': 'SMaHT Processed Files',
-        'description': 'Listing of SMaHT Processed Files',
-    })
+        "title": "SMaHT Processed Files",
+        "description": "Listing of SMaHT Processed Files",
+    },
+)
 class FileProcessed(File):
-    """ Overwrites the FileProcessed type from encoded-core, customizing the schema for smaht-portal """
-    item_type = 'file_processed'
+    """Overwrites the FileProcessed type from encoded-core, customizing the schema for smaht-portal"""
+
+    item_type = "file_processed"
     schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_PROCESSED_SCHEMA)
-    base_types = ['File'] + SMAHTItem.base_types
+    base_types = ["File"] + SMAHTItem.base_types

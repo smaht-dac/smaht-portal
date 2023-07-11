@@ -1,0 +1,241 @@
+{
+    "title": "File",
+    "description": "Schema for submitting metadata for a file.",
+    "id": "/profiles/file.json",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+        "category",
+        "data_category",
+        "data_type",
+        "file_format"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "allOf": [
+        {
+            "anyOf": [
+                {
+                    "not": {
+                        "properties": {
+                            "category": {
+                                "enum": [
+                                    "submitted"
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "required": [
+                        "file_name",
+                        "submitter_id"
+                    ]
+                }
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "aliases",
+        "identifier",
+        "submitter_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/category"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitter_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "FI"
+        },
+        "category": {
+            "enum": [
+                "submitted",
+                "processed",
+                "reference"
+            ]
+        },
+        "status": {
+            "default": "uploading",
+            "enum": [
+                "uploading",
+                "uploaded",
+                "upload failed",
+                "to be uploaded by workflow",
+                "current",
+                "shared",
+                "replaced",
+                "in review",
+                "obsolete",
+                "inactive",
+                "archived",
+                "deleted"
+            ]
+        },
+        "data_category": {
+            "title": "Data Category",
+            "type": "string",
+            "enum": [
+                "Sequencing Reads"
+            ]
+        },
+        "data_type": {
+            "title": "Data Type",
+            "description": "Type of information in the file",
+            "type": "string",
+            "enum": [
+                "Unaligned Reads",
+                "Aligned Reads"
+            ]
+        },
+        "file_format": {
+            "title": "File Format",
+            "type": "string",
+            "linkTo": "FileFormat"
+        },
+        "file_name": {
+            "title": "File Name",
+            "description": "The local file name used at time of submission",
+            "type": "string",
+            "pattern": "^[\\w+=,.@-]*$"
+        },
+        "file_size": {
+            "title": "File Size",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "description": "Size of file on disk in bytes",
+            "type": "integer"
+        },
+        "md5sum": {
+            "title": "MD5sum",
+            "description": "The md5sum of the file being transferred",
+            "comment": "This can vary for files of same content gzipped at different times",
+            "type": "string",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "ff_flag": "clear edit",
+            "format": "hex"
+        },
+        "content_md5sum": {
+            "title": "Content MD5sum",
+            "description": "The MD5sum of the uncompressed file",
+            "comment": "This is only relavant for gzipped files",
+            "type": "string",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "format": "hex",
+            "uniqueKey": "file:content_md5sum"
+        },
+        "read": {
+            "title": "Read Pair Number",
+            "type": "String",
+            "enum": [
+                "R1",
+                "R2"
+            ]
+        },
+        "parent_files": {
+            "title": "Parent Files",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "title": "File",
+                "type": "string",
+                "linkTo": "File"
+            }
+        },
+        "paired_with": {
+            "title": "Paired with",
+            "type": "string",
+            "linkTo": "File"
+        },
+        "supercedes": {
+            "title": "Supercedes",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "title": "File",
+                "type": "string",
+                "linkTo": "File"
+            }
+        },
+        "quality_metrics": {
+            "title": "Quality Metrics",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "title": "Quality Metric",
+                "type": "string",
+                "linkTo": "QualityMetric"
+            }
+        },
+        "experiments": {
+            "title": "Experiments",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "title": "Experiment",
+                "type": "string",
+                "linkTo": "Experiment"
+            }
+        }
+    },
+    "facets": {},
+    "columns": {}
+}

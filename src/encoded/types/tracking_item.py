@@ -8,11 +8,12 @@ ENCODED_CORE_TRACKING_ITEM_SCHEMA = deepcopy(CoreTrackingItem.schema)
 
 
 @collection(
-    name='tracking-items',
+    name="tracking-items",
     properties={
-        'title': 'TrackingItem',
-        'description': 'For internal tracking of ENCODED events',
-    })
+        "title": "TrackingItem",
+        "description": "For internal tracking of ENCODED events",
+    },
+)
 class TrackingItem(SMAHTItem, CoreTrackingItem):
-    item_type = 'tracking_item'
+    item_type = "tracking_item"
     schema = mixin_smaht_permission_types(ENCODED_CORE_TRACKING_ITEM_SCHEMA)

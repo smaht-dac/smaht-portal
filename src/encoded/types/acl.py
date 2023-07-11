@@ -1,6 +1,4 @@
-from pyramid.security import (
-    Allow, Deny, Everyone, Authenticated
-)
+from pyramid.security import Allow, Deny, Everyone, Authenticated
 from snovault.types.acl import Acl
 
 
@@ -15,10 +13,10 @@ from snovault.types.acl import Acl
 #           This controls roles associated with particular item types based on properties they have
 #           ie: consortia, submission center presence indicates permissions (roles) should be given
 #           to a user
-CONSORTIUM_MEMBER_CREATE = 'role.consortium_member_create'
-SUBMISSION_CENTER_MEMBER_CREATE = 'role.submission_center_member_create'
-CONSORTIUM_MEMBER_RW = 'role.consortium_member_rw'
-SUBMISSION_CENTER_RW = 'role.submission_center_member_rw'
+CONSORTIUM_MEMBER_CREATE = "role.consortium_member_create"
+SUBMISSION_CENTER_MEMBER_CREATE = "role.submission_center_member_create"
+CONSORTIUM_MEMBER_RW = "role.consortium_member_rw"
+SUBMISSION_CENTER_RW = "role.submission_center_member_rw"
 
 
 ############################## GLOBAL ACLS ##############################
@@ -31,11 +29,11 @@ SUBMISSION_CENTER_RW = 'role.submission_center_member_rw'
 # beyond view, the name is kept for cross comparison across portal repos
 # Note that ACLs are ordered!
 ONLY_ADMIN_VIEW_ACL: Acl = [
-    (Allow, 'group.admin', ['view', 'edit']),
-    (Allow, 'group.read-only-admin', ['view']),
-    (Allow, 'remoteuser.INDEXER', ['view']),
-    (Allow, 'remoteuser.EMBED', ['view']),
-    (Deny, Everyone, ['view', 'edit'])
+    (Allow, "group.admin", ["view", "edit"]),
+    (Allow, "group.read-only-admin", ["view"]),
+    (Allow, "remoteuser.INDEXER", ["view"]),
+    (Allow, "remoteuser.EMBED", ["view"]),
+    (Deny, Everyone, ["view", "edit"]),
 ]
 
 
@@ -47,7 +45,7 @@ ONLY_ADMIN_VIEW_ACL: Acl = [
 # This ACL is tied to types such as access key and allows authenticated users to
 # create them - this is one of few types that use this ACL
 ALLOW_AUTHENTICATED_CREATE_ACL: Acl = [
-    (Allow, Authenticated, 'add'),
+    (Allow, Authenticated, "add"),
 ] + ONLY_ADMIN_VIEW_ACL
 
 
@@ -58,21 +56,27 @@ ALLOW_AUTHENTICATED_CREATE_ACL: Acl = [
 # of it
 # Note additionally that generally add/create require view permissions
 SUBMISSION_CENTER_MEMBER_CREATE_ACL: Acl = [
-    (Allow, SUBMISSION_CENTER_MEMBER_CREATE, 'add'),
-    (Allow, SUBMISSION_CENTER_MEMBER_CREATE, 'create'),
+    (Allow, SUBMISSION_CENTER_MEMBER_CREATE, "add"),
+    (Allow, SUBMISSION_CENTER_MEMBER_CREATE, "create"),
 ]
 CONSORTIUM_MEMBER_CREATE_ACL: Acl = [
-    (Allow, CONSORTIUM_MEMBER_CREATE, 'add'),
-    (Allow, CONSORTIUM_MEMBER_CREATE, 'create'),
+    (Allow, CONSORTIUM_MEMBER_CREATE, "add"),
+    (Allow, CONSORTIUM_MEMBER_CREATE, "create"),
 ]
 
 
 # Use this to restrict creation to admins, consortium or submission center members
-ALLOW_CONSORTIUM_CREATE_ACL: Acl = SUBMISSION_CENTER_MEMBER_CREATE_ACL + CONSORTIUM_MEMBER_CREATE_ACL + ONLY_ADMIN_VIEW_ACL
+ALLOW_CONSORTIUM_CREATE_ACL: Acl = (
+    SUBMISSION_CENTER_MEMBER_CREATE_ACL
+    + CONSORTIUM_MEMBER_CREATE_ACL
+    + ONLY_ADMIN_VIEW_ACL
+)
 
 
 # Use this to restrict creation to admins or submission center members
-ALLOW_SUBMISSION_CENTER_CREATE_ACL: Acl = SUBMISSION_CENTER_MEMBER_CREATE_ACL + ONLY_ADMIN_VIEW_ACL
+ALLOW_SUBMISSION_CENTER_CREATE_ACL: Acl = (
+    SUBMISSION_CENTER_MEMBER_CREATE_ACL + ONLY_ADMIN_VIEW_ACL
+)
 
 
 ############################## EDIT ACLS ##############################
@@ -81,24 +85,26 @@ ALLOW_SUBMISSION_CENTER_CREATE_ACL: Acl = SUBMISSION_CENTER_MEMBER_CREATE_ACL + 
 
 # This gives item owners expanded permissions
 ALLOW_OWNER_EDIT_ACL: Acl = [
-    (Allow, 'role.owner', ['edit', 'view', 'view_details']),
+    (Allow, "role.owner", ["edit", "view", "view_details"]),
 ] + ONLY_ADMIN_VIEW_ACL
 
 # These two ACLs allow item editing
 SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = [
-    (Allow, SUBMISSION_CENTER_RW, ['view', 'edit'])
+    (Allow, SUBMISSION_CENTER_RW, ["view", "edit"])
 ]
-CONSORTIUM_MEMBER_EDIT_ACL: Acl = [
-    (Allow, CONSORTIUM_MEMBER_RW, ['view', 'edit'])
-]
+CONSORTIUM_MEMBER_EDIT_ACL: Acl = [(Allow, CONSORTIUM_MEMBER_RW, ["view", "edit"])]
 
 
 # Consortium is a subset of submission centers, so both can edit
-ALLOW_CONSORTIUM_MEMBER_EDIT_ACL: Acl = SUBMISSION_CENTER_MEMBER_EDIT_ACL + CONSORTIUM_MEMBER_EDIT_ACL + ONLY_ADMIN_VIEW_ACL
+ALLOW_CONSORTIUM_MEMBER_EDIT_ACL: Acl = (
+    SUBMISSION_CENTER_MEMBER_EDIT_ACL + CONSORTIUM_MEMBER_EDIT_ACL + ONLY_ADMIN_VIEW_ACL
+)
 
 
 # Submission centers can be restricted to only those folks for edit
-ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = SUBMISSION_CENTER_MEMBER_EDIT_ACL + ONLY_ADMIN_VIEW_ACL
+ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = (
+    SUBMISSION_CENTER_MEMBER_EDIT_ACL + ONLY_ADMIN_VIEW_ACL
+)
 
 
 ############################## VIEW ACLS ##############################
@@ -108,28 +114,26 @@ ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = SUBMISSION_CENTER_MEMBER_EDIT_ACL
 
 # The everyone view ACL allows all everyone to view, as it states
 ALLOW_EVERYONE_VIEW_ACL: Acl = [
-    (Allow, Everyone, ['view']),
+    (Allow, Everyone, ["view"]),
 ] + ONLY_ADMIN_VIEW_ACL
 
 
 # The authenticated view ACL allows only authenticated users to view
 ALLOW_AUTHENTICATED_VIEW_ACL: Acl = [
-    (Allow, Authenticated, ['view']),
+    (Allow, Authenticated, ["view"]),
 ] + ONLY_ADMIN_VIEW_ACL
 
 
 # These two ACLs allow item viewing
-SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = [
-    (Allow, SUBMISSION_CENTER_RW, ['view'])
-]
-CONSORTIUM_MEMBER_VIEW_ACL: Acl = [
-    (Allow, CONSORTIUM_MEMBER_RW, ['view'])
-]
+SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = [(Allow, SUBMISSION_CENTER_RW, ["view"])]
+CONSORTIUM_MEMBER_VIEW_ACL: Acl = [(Allow, CONSORTIUM_MEMBER_RW, ["view"])]
 
 # Consortium is a subset of submission centers, so both can view
-ALLOW_CONSORTIUM_MEMBER_VIEW_ACL: Acl = SUBMISSION_CENTER_MEMBER_VIEW_ACL + CONSORTIUM_MEMBER_VIEW_ACL + ONLY_ADMIN_VIEW_ACL
+ALLOW_CONSORTIUM_MEMBER_VIEW_ACL: Acl = (
+    SUBMISSION_CENTER_MEMBER_VIEW_ACL + CONSORTIUM_MEMBER_VIEW_ACL + ONLY_ADMIN_VIEW_ACL
+)
 
 # Submission centers can be restricted to only those folks for view
-ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = SUBMISSION_CENTER_MEMBER_VIEW_ACL + ONLY_ADMIN_VIEW_ACL
-
-
+ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = (
+    SUBMISSION_CENTER_MEMBER_VIEW_ACL + ONLY_ADMIN_VIEW_ACL
+)

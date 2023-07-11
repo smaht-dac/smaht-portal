@@ -8,16 +8,17 @@ SNOVAULT_USER_SCHEMA = deepcopy(SnovaultUser.schema)
 
 
 @collection(
-    name='users',
-    unique_key='user:email',
+    name="users",
+    unique_key="user:email",
     properties={
-        'title': 'SMaHT Users',
-        'description': 'Listing of current SMaHT users',
-    }
+        "title": "SMaHT Users",
+        "description": "Listing of current SMaHT users",
+    },
 )
 class User(SMAHTItem, SnovaultUser):
-    """ Overridden user class, adding the Submission Center and Consortium attribution """
-    item_type = 'user'
+    """Overridden user class, adding the Submission Center and Consortium attribution"""
+
+    item_type = "user"
     schema = mixin_smaht_permission_types(SNOVAULT_USER_SCHEMA)
     STATUS_ACL = SMAHTItem.STATUS_ACL
 

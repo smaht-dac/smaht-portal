@@ -1,20 +1,40 @@
 {
-    "title": "SubmissionCenter",
-    "id": "/profiles/SubmissionCenter.json",
+    "title": "Analyte",
+    "id": "/profiles/analyte.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "identifier",
-        "title"
+        "analyte",
+        "submitter_id"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
     ],
     "identifyingProperties": [
+        "accession",
         "aliases",
         "identifier",
+        "submitter_id",
         "uuid"
     ],
     "additionalProperties": false,
     "mixinProperties": [
         {
+            "$ref": "mixins.json#/accession"
+        },
+        {
             "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/category"
         },
         {
             "$ref": "mixins.json#/description"
@@ -35,13 +55,10 @@
             "$ref": "mixins.json#/submitted"
         },
         {
+            "$ref": "mixins.json#/submitter_id"
+        },
+        {
             "$ref": "mixins.json#/tags"
-        },
-        {
-            "$ref": "mixins.json#/title"
-        },
-        {
-            "$ref": "mixins.json#/url"
         },
         {
             "$ref": "mixins.json#/uuid"
@@ -52,20 +69,21 @@
         "schema_version": {
             "default": "1"
         },
-        "status": {
-            "default": "shared"
+        "accession": {
+            "accessionType": "AL"
         },
-        "identifier": {
-            "permission": "restricted_fields"
+        "concentration": {
+            "title": "Concentration",
+            "description": "Concentration in milligrams per milliliter",
+            "type": "number",
+            "minimum": 0
         },
-        "title": {
-            "permission": "restricted_fields"
-        },
-        "leader": {
-            "title": "Center Leader",
-            "description": "The leader of the submission center",
+        "analyte": {
+            "title": "Analyte",
             "type": "string",
-            "linkTo": "User"
+            "linkTo": "Analyte"
         }
-    }
+    },
+    "facets": {},
+    "columns": {}
 }

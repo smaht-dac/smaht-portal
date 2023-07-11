@@ -8,11 +8,12 @@ ENCODED_CORE_SOFTWARE_SCHEMA = deepcopy(CoreSoftware.schema)
 
 
 @collection(
-    name='softwares',
+    name="softwares",
     properties={
-        'title': 'Softwares',
-        'description': 'Listing of software for analyses',
-    })
+        "title": "Softwares",
+        "description": "Listing of software for analyses",
+    },
+)
 class Software(SMAHTItem, CoreSoftware):
-    item_type = 'software'
+    item_type = "software"
     schema = mixin_smaht_permission_types(ENCODED_CORE_SOFTWARE_SCHEMA)

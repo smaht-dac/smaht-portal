@@ -1,0 +1,101 @@
+{
+    "title": "Analyte",
+    "id": "/profiles/analyte.json",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "required": [
+        "biosample",
+        "submitter_id"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "aliases",
+        "identifier",
+        "submitter_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/category"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitter_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "type": "object",
+    "properties": {
+        "schema_version": {
+            "default": "1"
+        },
+        "accession": {
+            "accessionType": "AN"
+        },
+        "category": {
+            "enum": [
+                "DNA",
+                "RNA"
+            ]
+        },
+        "preparation": {
+            "title": "Preparation",
+            "type": "string",
+            "enum": [
+                "Chemical Lysis DNA Extraction"
+            ]
+        },
+        "protocol": {
+            "title": "Protocol",
+            "type": "string",
+            "linkTo": "Protocol"
+        },
+        "biosample": {
+            "title": "Biosample",
+            "type": "string",
+            "linkTo": "Biosample"
+        }
+    },
+    "facets": {},
+    "columns": {}
+}
