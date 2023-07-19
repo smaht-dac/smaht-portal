@@ -3,7 +3,7 @@
     "id": "/profiles/SubmissionCenter.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "identifier",
+		"identifier",
         "title"
     ],
     "identifyingProperties": [

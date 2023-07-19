@@ -3,7 +3,6 @@
     "id": "/profiles/biosample.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "biosources",
         "category"
     ],
     "anyOf": [

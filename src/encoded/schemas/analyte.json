@@ -3,7 +3,7 @@
     "id": "/profiles/analyte.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "biosample"
+        "category"
     ],
     "anyOf": [
         {
@@ -32,6 +32,9 @@
         },
         {
             "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
         },
         {
             "$ref": "mixins.json#/category"

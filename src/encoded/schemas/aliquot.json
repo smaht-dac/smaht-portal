@@ -2,9 +2,6 @@
     "title": "Analyte",
     "id": "/profiles/analyte.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "required": [
-        "analyte"
-    ],
     "anyOf": [
         {
             "required": [
@@ -34,7 +31,7 @@
             "$ref": "mixins.json#/aliases"
         },
         {
-            "$ref": "mixins.json#/category"
+            "$ref": "mixins.json#/attribution"
         },
         {
             "$ref": "mixins.json#/description"

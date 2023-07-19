@@ -80,9 +80,9 @@
             "description": "Submitted sex of the subject",
             "type": "string",
             "enum": [
-                "male",
-                "female",
-                "unknown"
+                "Male",
+                "Female",
+                "Unknown"
             ]
         }
     },

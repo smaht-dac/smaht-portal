@@ -1,5 +1,7 @@
-from webtest import TestApp
 import pytest
+from webtest import TestApp
+
+from ..type_annotations import JsonObject
 
 
 def remote_user_testapp(app, remote_user: str) -> TestApp:
@@ -21,7 +23,7 @@ def post_item_and_return_location(testapp: TestApp, item: dict, resource_path: s
 def test_submission_center(testapp):
     """ Tests the posting of a submission center """
     item = {
-        'name': 'SMaHTTestGCC',
+        'identifier': 'SMaHTTestGCC',
         'title': 'SMaHT Test GCC'
     }
     return post_item_and_return_location(testapp, item, 'submission_center')
@@ -31,7 +33,7 @@ def test_submission_center(testapp):
 def test_second_submission_center(testapp):
     """ Tests the posting of a submission center """
     item = {
-        'name': 'SecondSMaHTTestGCC',
+        'identifier': 'SecondSMaHTTestGCC',
         'title': 'Second SMaHT Test GCC'
     }
     return post_item_and_return_location(testapp, item, 'submission_center')
@@ -41,7 +43,7 @@ def test_second_submission_center(testapp):
 def test_consortium(testapp):
     """ Tests the posting of a consortium """
     item = {
-        'name': 'SMaHTConsortium',
+        'identifier': 'SMaHTConsortium',
         'title': 'SMaHT Test Consortium'
     }
     return post_item_and_return_location(testapp, item, 'consortium')
@@ -100,3 +102,19 @@ def smaht_consortium_user(testapp, test_consortium):
         'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188309'
     }
     return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
+def aliquot(
+    testapp: TestApp,
+    test_submission_center: JsonObject,
+    test_second_submission_center: JsonObject
+) -> JsonObject:
+    item = {
+        "submitter_id": "some_submitter_id",
+        "submission_centers": [
+            test_submission_center["uuid"],
+            test_second_submission_center["uuid"],
+        ],
+    }
+    return post_item_and_return_location(testapp, item, "aliquot")

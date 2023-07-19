@@ -3,8 +3,7 @@
     "id": "/profiles/protocol.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "category",
-        "identifier"
+        "category"
     ],
     "anyOf": [
         {
