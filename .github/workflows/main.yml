@@ -76,7 +76,7 @@ jobs:
           docker build .
 
       - name: Cleanup
-        if: ${{ always() }}
+        if: ${{ always() && matrix.test_type == 'UNIT' }}
         env:
           S3_ENCRYPT_KEY: ${{ secrets.S3_ENCRYPT_KEY }}
           # The need for this old environment variable name will go away soon.
