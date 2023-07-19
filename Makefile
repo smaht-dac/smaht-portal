@@ -169,9 +169,8 @@ test-static:
 	poetry run python -m pytest -vv -m static
 	make lint
 
-remote-test:  # Actually, we don't normally use this. Instead the GA workflow sets up two parallel tests.
-	make remote-test-unit
-	make remote-test-npm
+remote-test:  # smaht-portal uses this make target for now as tests are not that burdensome
+	pytest -vv --aws-auth --durations=20 --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
 
 remote-test-npm:  # Note this only does the 'not indexing' tests
 	poetry run python -m pytest -xvv -r w --instafail --force-flaky --max-runs=2 --timeout=600 -m "not manual and not integratedx and not performance and not broken and not broken_remotely and not sloppy and not indexing and not static" --aws-auth --durations=20 --cov src/encoded --es search-cgap-unit-testing-opensearch-tcs45cjpwgdzoi7pafr6oewq6u.us-east-1.es.amazonaws.com:443
