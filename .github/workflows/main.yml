@@ -84,4 +84,4 @@ jobs:
           # This will be the new environment variable name.
           TEST_JOB_ID: smaht-test-indexing-${{ github.run_number }}-${{ matrix.python_version }}-
         run: |
-          poetry run wipe-test-indices $TEST_JOB_ID search-fourfront-testing-opensearch-kqm7pliix4wgiu4druk2indorq.us-east-1.es.amazonaws.com:443
+          poetry run wipe-test-indices $TEST_JOB_ID search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
