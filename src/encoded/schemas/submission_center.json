@@ -1,6 +1,6 @@
 {
     "title": "SubmissionCenter",
-    "id": "/profiles/SubmissionCenter.json",
+    "id": "/profiles/submission_center.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
         "name",

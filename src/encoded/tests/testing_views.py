@@ -3,7 +3,7 @@ from snovault import Item, collection
 
 
 def includeme(config):
-    pass
+    config.scan(__name__)
 
 
 @collection(
