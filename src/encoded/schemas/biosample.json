@@ -4,13 +4,13 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
         "biosources",
-        "category",
-        "submitter_id"
+        "category"
     ],
     "anyOf": [
         {
             "required": [
-                "submission_centers"
+                "submission_centers",
+                "submitter_id"
             ]
         },
         {
@@ -22,8 +22,8 @@
     "identifyingProperties": [
         "accession",
         "aliases",
+        "center_submitter_ids",
         "identifier",
-        "submitter_id",
         "uuid"
     ],
     "additionalProperties": false,

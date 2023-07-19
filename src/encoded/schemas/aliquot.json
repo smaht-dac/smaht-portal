@@ -3,13 +3,13 @@
     "id": "/profiles/analyte.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
-        "analyte",
-        "submitter_id"
+        "analyte"
     ],
     "anyOf": [
         {
             "required": [
-                "submission_centers"
+                "submission_centers",
+                "submitter_id"
             ]
         },
         {
@@ -21,8 +21,8 @@
     "identifyingProperties": [
         "accession",
         "aliases",
+        "center_submitter_ids",
         "identifier",
-        "submitter_id",
         "uuid"
     ],
     "additionalProperties": false,

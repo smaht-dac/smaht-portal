@@ -48,8 +48,8 @@
     "identifyingProperties": [
         "accession",
         "aliases",
+        "center_submitter_ids",
         "identifier",
-        "submitter_id",
         "uuid"
     ],
     "additionalProperties": false,
