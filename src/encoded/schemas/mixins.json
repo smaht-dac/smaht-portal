@@ -133,6 +133,7 @@
             "title": "Submission Centers",
             "description": "Submission Centers associated with this item.",
             "type": "array",
+            "uniqueItems": true,
             "items": {
                 "type": "string",
                 "linkTo": "SubmissionCenter"
@@ -143,6 +144,7 @@
             "title": "Consortia",
             "description": "Consortia associated with this item.",
             "type": "array",
+            "uniqueItems": true,
             "items": {
                 "type": "string",
                 "linkTo": "Consortium"
