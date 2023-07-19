@@ -10,7 +10,8 @@ from snovault.types.access_key import (
     access_key_reset_secret as sno_access_key_reset_secret,
     access_key_view_raw as sno_access_key_view_raw
 )
-from .base import SMAHTItem, mixin_smaht_permission_types, DELETED_ACL
+from .base import Item as SMAHTItem
+from .base import mixin_smaht_permission_types, DELETED_ACL
 from .acl import ALLOW_AUTHENTICATED_CREATE_ACL, ONLY_ADMIN_VIEW_ACL
 
 

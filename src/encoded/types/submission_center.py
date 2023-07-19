@@ -1,5 +1,5 @@
 from snovault import collection, load_schema
-from .base import SMAHTItem
+from .base import Item as SMAHTItem
 
 
 @collection(

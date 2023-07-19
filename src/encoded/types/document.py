@@ -1,7 +1,8 @@
 from copy import deepcopy
 from snovault import collection
 from encoded_core.types.document import Document as CoreDocument
-from .base import SMAHTItem, mixin_smaht_permission_types
+from .base import Item as SMAHTItem
+from .base import mixin_smaht_permission_types
 from .acl import CONSORTIUM_MEMBER_CREATE_ACL
 
 

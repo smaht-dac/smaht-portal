@@ -1,7 +1,8 @@
 from copy import deepcopy
 from snovault import collection
 from snovault.types.filter_set import FilterSet as SnovaultFilterSet
-from .base import SMAHTItem, mixin_smaht_permission_types
+from .base import Item as SMAHTItem
+from .base import mixin_smaht_permission_types
 from .acl import ALLOW_CONSORTIUM_CREATE_ACL
 
 

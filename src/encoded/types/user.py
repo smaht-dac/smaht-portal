@@ -1,7 +1,8 @@
 from snovault import collection
 from snovault.types.user import User as SnovaultUser
 from copy import deepcopy
-from .base import SMAHTItem, mixin_smaht_permission_types
+from .base import Item as SMAHTItem
+from .base import mixin_smaht_permission_types
 
 
 SNOVAULT_USER_SCHEMA = deepcopy(SnovaultUser.schema)

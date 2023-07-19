@@ -1,10 +1,10 @@
 from pyramid.view import view_config
 from snovault import AbstractCollection, abstract_collection, calculated_property
 from snovault.types.base import (
-    Item,
     Collection,
     DELETED_ACL,
 )
+from snovault.types.base import Item as SnovaultItem
 from snovault.util import debug_log
 from snovault.validators import (
     validate_item_content_post,
@@ -52,16 +52,19 @@ class SMAHTCollection(Collection, AbstractCollection):
     def __init__(self, *args, **kw):
         super(Collection, self).__init__(*args, **kw)
         if hasattr(self, '__acl__'):
-            PRINT(f'DEBUG_PERMISSIONS: returning {self.__acl__} for {self.type_info.name}')
+            if DEBUG_PERMISSIONS:
+                PRINT(f'DEBUG_PERMISSIONS: returning {self.__acl__} for {self.type_info.name}')
             return
 
         # If no ACLs are defined for collection, allow submission centers to add/create
         if 'submission_centers' in self.type_info.factory.schema['properties']:
-            PRINT(f'DEBUG_PERMISSIONS: returning {ALLOW_SUBMISSION_CENTER_CREATE_ACL} for {self.type_info.name}')
+            if DEBUG_PERMISSIONS:
+                PRINT(f'DEBUG_PERMISSIONS: returning {ALLOW_SUBMISSION_CENTER_CREATE_ACL} for {self.type_info.name}')
             self.__acl__ = ALLOW_SUBMISSION_CENTER_CREATE_ACL
         else:
             self.__acl__ = ONLY_ADMIN_VIEW_ACL
-            PRINT(f'DEBUG_PERMISSIONS: using admin acl for {self.type_info.name}')
+            if DEBUG_PERMISSIONS:
+                PRINT(f'DEBUG_PERMISSIONS: using admin acl for {self.type_info.name}')
 
 
 @abstract_collection(
@@ -71,7 +74,12 @@ class SMAHTCollection(Collection, AbstractCollection):
         'description': 'Abstract collection of all SMaHT Items.',
     }
 )
-class SMAHTItem(Item):
+class Item(SnovaultItem):
+    """ Note: originally denoted SMAHTItem, this rename breaks many things downstream in our type resolution
+        system, and generally varying the name in the class from the type definition name below (item_type) does
+        not work as you would intend - there is not really any reason to allow this setting and should just default
+        to the snake case version of self.__name__
+    """
     item_type = 'item'
     AbstractCollection = AbstractCollection
     Collection = SMAHTCollection
@@ -146,7 +154,7 @@ class SMAHTItem(Item):
         return roles
 
 
-@calculated_property(context=SMAHTItem.AbstractCollection, category='action')
+@calculated_property(context=Item.AbstractCollection, category='action')
 def add(context, request):
     """smth."""
     if request.has_permission('add', context):
@@ -159,7 +167,7 @@ def add(context, request):
         }
 
 
-@calculated_property(context=SMAHTItem, category='action')
+@calculated_property(context=Item, category='action')
 def edit(context, request):
     """smth."""
     if request.has_permission('edit'):
@@ -171,7 +179,7 @@ def edit(context, request):
         }
 
 
-@calculated_property(context=SMAHTItem, category='action')
+@calculated_property(context=Item, category='action')
 def create(context, request):
     if request.has_permission('create'):
         return {
@@ -201,17 +209,17 @@ def collection_add(context, request, render=None):
     return sno_collection_add(context, request, render)
 
 
-@view_config(context=SMAHTItem, permission='edit', request_method='PUT',
+@view_config(context=Item, permission='edit', request_method='PUT',
              validators=[validate_item_content_put])
-@view_config(context=SMAHTItem, permission='edit', request_method='PATCH',
+@view_config(context=Item, permission='edit', request_method='PATCH',
              validators=[validate_item_content_patch])
-@view_config(context=SMAHTItem, permission='edit_unvalidated', request_method='PUT',
+@view_config(context=Item, permission='edit_unvalidated', request_method='PUT',
              validators=[no_validate_item_content_put],
              request_param=['validate=false'])
-@view_config(context=SMAHTItem, permission='edit_unvalidated', request_method='PATCH',
+@view_config(context=Item, permission='edit_unvalidated', request_method='PATCH',
              validators=[no_validate_item_content_patch],
              request_param=['validate=false'])
-@view_config(context=SMAHTItem, permission='index', request_method='GET',
+@view_config(context=Item, permission='index', request_method='GET',
              validators=[validate_item_content_in_place],
              request_param=['check_only=true'])
 @debug_log
