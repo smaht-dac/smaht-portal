@@ -53,13 +53,13 @@ class SMAHTCollection(Collection, AbstractCollection):
         super(Collection, self).__init__(*args, **kw)
         if hasattr(self, '__acl__'):
             if DEBUG_PERMISSIONS:
-                PRINT(f'DEBUG_PERMISSIONS: returning {self.__acl__} for {self.type_info.name}')
+                PRINT(f'DEBUG_PERMISSIONS: using {self.__acl__} for {self.type_info.name}')
             return
 
         # If no ACLs are defined for collection, allow submission centers to add/create
         if 'submission_centers' in self.type_info.factory.schema['properties']:
             if DEBUG_PERMISSIONS:
-                PRINT(f'DEBUG_PERMISSIONS: returning {ALLOW_SUBMISSION_CENTER_CREATE_ACL} for {self.type_info.name}')
+                PRINT(f'DEBUG_PERMISSIONS: using {ALLOW_SUBMISSION_CENTER_CREATE_ACL} for {self.type_info.name}')
             self.__acl__ = ALLOW_SUBMISSION_CENTER_CREATE_ACL
         else:
             self.__acl__ = ONLY_ADMIN_VIEW_ACL

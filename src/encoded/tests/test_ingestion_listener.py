@@ -17,7 +17,7 @@ QUEUE_CATCH_UP_WAIT_SECONDS = 3
 
 def wait_for_queue_to_catch_up(queue_manager, n, initially=False):
     """
-    Wait until queue has done the things we told it to do.
+    Pause for enough time that probably the queue has done the things we told it to do.
 
     Right now this just sleeps for QUEUE_CATCH_UP_WAIT_SECONDS seconds
     in any non-initial situation (i.e., where initially is False),
@@ -76,7 +76,7 @@ class MockedEnv:
 
     @classmethod
     def new_name(cls):
-        cls._last_version = last_version = int(datetime.datetime.now().timestamp() * 1000000)
+        cls._last_version = last_version = int(datetime.datetime.now().timestamp() * 1000000)  # microseconds
         return "%s%s" % (cls.MOCKED_ENV_PREFIX, last_version)
 
 

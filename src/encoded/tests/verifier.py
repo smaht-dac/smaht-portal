@@ -1,21 +1,21 @@
-from dcicutils.misc_utils import ignored
+from dcicutils.misc_utils import ignored, PRINT
 from functools import wraps
 from snovault import TYPES
 from .test_create_mapping import test_create_mapping_correctly_maps_embeds
-#from .test_embedding import test_add_default_embeds, test_manual_embeds
-#from .test_schemas import compute_master_mixins, test_load_schema
+# from .test_embedding import test_add_default_embeds, test_manual_embeds
+# from .test_schemas import compute_master_mixins, test_load_schema
 
 
 def verifier(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        print("running tests " + func.__name__)
+        PRINT(f"running tests {func.__name__}")
         try:
             res = func(*args, **kwargs)
         except Exception as e:
-            print("test failed with exception " + str(e.args))
+            PRINT(f"test failed with exception {e}")
         else:
-            print("success")
+            PRINT("success")
             return res
     return wrapper
 
@@ -51,19 +51,20 @@ def verify_profile(item_type, indexer_testapp):
     # is this something we actually know about?
     profile = indexer_testapp.get("/profiles/" + item_type + ".json").json
     assert profile
+    # transform profile page path to camel case item type
     item_type_camel = profile['id'].strip('.json').split('/')[-1]
     return item_type_camel
 
 
-@verifier
-def verify_schema(item_type_camel, registry):
-    # test schema
-    test_load_schema(item_type_camel + ".json", compute_master_mixins(), registry)
+# @verifier
+# def verify_schema(item_type_camel, registry):
+#     # test schema
+#     test_load_schema(item_type_camel + ".json", compute_master_mixins(), registry)
 
 
 @verifier
 def verify_can_embed(item_type_camel, es_item, indexer_testapp, registry):
-    # get the embedds
+    # get the embeds
     pyr_item_type = registry[TYPES].by_item_type[item_type_camel]
     embeds = pyr_item_type.embedded
 
@@ -79,10 +80,10 @@ def verify_indexing(item_uuid, indexer_testapp):
     assert res
 
 
-@verifier
-def verify_embeds(registry, item_type):
-    test_add_default_embeds(registry, item_type)
-    test_manual_embeds(registry, item_type)
+# @verifier
+# def verify_embeds(registry, item_type):
+#     test_add_default_embeds(registry, item_type)
+#     test_manual_embeds(registry, item_type)
 
 
 @verifier
@@ -96,10 +97,10 @@ def verify_item(item_uuid, indexer_testapp, testapp, registry):
     verify_get_by_accession(es_item, item_type, indexer_testapp)
     verify_get_from_db(item_uuid, item_type, indexer_testapp)
     item_type_camel = verify_profile(item_type, indexer_testapp)
-    verify_schema(item_type_camel, registry)
+    # verify_schema(item_type_camel, registry)
     verify_can_embed(item_type_camel, es_item, indexer_testapp, registry)
     verify_indexing(item_uuid, indexer_testapp)
-    verify_embeds(registry, item_type_camel)
+    # verify_embeds(registry, item_type_camel)
     verify_mapping(registry, item_type_camel)
 
 
