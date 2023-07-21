@@ -95,7 +95,7 @@ def app_settings(request, wsgi_server_host_port, conn, DBSession):  # noQA - We 
     return settings
 
 
-INDEXER_NAMESPACE_FOR_TESTING = generate_indexer_namespace_for_testing('cgap')
+INDEXER_NAMESPACE_FOR_TESTING = generate_indexer_namespace_for_testing('smaht')
 
 
 @pytest.fixture(scope='session')

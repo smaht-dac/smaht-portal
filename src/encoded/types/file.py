@@ -4,7 +4,8 @@ from encoded_core.types.file import File as CoreFile
 from encoded_core.types.file_submitted import FileSubmitted as CoreFileSubmitted
 from encoded_core.types.file_reference import FileReference as CoreFileReference
 from encoded_core.types.file_processed import FileProcessed as CoreFileProcessed
-from .base import SMAHTItem, mixin_smaht_permission_types
+from .base import Item as SMAHTItem
+from .base import mixin_smaht_permission_types
 from .acl import ONLY_ADMIN_VIEW_ACL
 
 
@@ -22,6 +23,7 @@ ENCODED_CORE_FILE_PROCESSED_SCHEMA = deepcopy(CoreFileProcessed.schema)
         'description': 'Listing of Files',
     })
 class File(SMAHTItem, CoreFile):
+    item_type = 'file'
     schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_SCHEMA)
 
 

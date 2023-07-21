@@ -865,14 +865,14 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "dcicsnovault"
-version = "8.2.0.1b42"
+version = "8.2.0.1b45"
 description = "Storage support for 4DN Data Portals."
 category = "main"
 optional = false
 python-versions = ">=3.8.1,<3.10"
 files = [
-    {file = "dcicsnovault-8.2.0.1b42-py3-none-any.whl", hash = "sha256:b34b9899384b8ed02004e169a73b50232274e6603a177f6e12588d5297b37424"},
-    {file = "dcicsnovault-8.2.0.1b42.tar.gz", hash = "sha256:afdc4972a1cc2148afd1ab3d36c00f74d024b4e2311be56574b43a613a89f375"},
+    {file = "dcicsnovault-8.2.0.1b45-py3-none-any.whl", hash = "sha256:86e79026a3108366c1215113eac6cb9c776142370d9c49b6693bd72382eafbc4"},
+    {file = "dcicsnovault-8.2.0.1b45.tar.gz", hash = "sha256:16931980239377e5bfd7b6b55b3870f82e8400ba54ca895cae6d8cc825a1fb97"},
 ]
 
 [package.dependencies]
@@ -894,7 +894,6 @@ psycopg2-binary = ">=2.9.1,<3.0.0"
 PyBrowserID = ">=0.10.0,<1"
 pyjwt = ">=2.6.0,<3.0.0"
 pyramid = "1.10.4"
-pyramid_localroles = ">=0.1,<1"
 pyramid-multiauth = ">=0.9.0,<1"
 pyramid-retry = ">=1.0,<2.0"
 pyramid-tm = ">=2.5,<3.0"
@@ -3133,4 +3132,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.10"
-content-hash = "f077ec928233983ca83ad637620e2c91c1b0faaaa8ca4b5c8de8664dd37245aa"
+content-hash = "4f8b19950eebeff4454807dfecc04db694f0d7df91a478dda22588d4cf90cd00"

@@ -2,7 +2,8 @@ from copy import deepcopy
 from snovault import collection
 from encoded_core.types.meta_workflow import MetaWorkflow as CoreMetaWorkflow
 from encoded_core.types.meta_workflow import MetaWorkflowRun as CoreMetaWorkflowRun
-from .base import SMAHTItem, mixin_smaht_permission_types
+from .base import Item as SMAHTItem
+from .base import mixin_smaht_permission_types
 
 
 ENCODED_CORE_META_WORKFLOW_SCHEMA = deepcopy(CoreMetaWorkflow.schema)

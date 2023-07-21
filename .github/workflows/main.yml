@@ -22,6 +22,11 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
 
+    # Build matrix
+    strategy:
+      matrix:
+        test_type: [ 'UNIT', 'DOCKER' ]
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -31,6 +36,7 @@ jobs:
           python-version: 3.9
 
       - name: Install/Link Postgres
+        if: ${{ matrix.test_type == 'UNIT' }}
         run: |
           sudo apt-get install curl ca-certificates gnupg
           curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
@@ -41,6 +47,7 @@ jobs:
           sudo ln -s /usr/lib/postgresql/11/bin/initdb /usr/local/bin/initdb
 
       - name: Install Deps
+        if: ${{ matrix.test_type == 'UNIT' }}
         run: |
           make build
 
@@ -51,7 +58,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: QA
+      - name: QA (UNIT)
+        if: ${{ matrix.test_type == 'UNIT' }}
         env:
           # S3_ENCRYPT_KEY: ${{ secrets.S3_ENCRYPT_KEY }}
           # # The need for this old environment variable name will go away soon.
@@ -59,15 +67,21 @@ jobs:
           # This will be the new environment variable name.
           TEST_JOB_ID: smaht-test-indexing-${{ github.run_number }}-${{ matrix.python_version }}-
         run: |
-          make test
+          make remote-test
+
+      - name: Docker Build
+        if: ${{ matrix.test_type == 'DOCKER' }}
+        run: |
+          touch deploy/docker/local/docker_development.ini  # cheap substitute for prepare-docker to make ignored file
+          docker build .
 
       - name: Cleanup
-        if: ${{ always() }}
+        if: ${{ always() && matrix.test_type == 'UNIT' }}
         env:
           S3_ENCRYPT_KEY: ${{ secrets.S3_ENCRYPT_KEY }}
           # The need for this old environment variable name will go away soon.
           # TRAVIS_JOB_ID: sno-x-test-${{ github.run_number }}-
           # This will be the new environment variable name.
-          TEST_JOB_ID: sno-test-indexing-${{ github.run_number }}-${{ matrix.python_version }}-
+          TEST_JOB_ID: smaht-test-indexing-${{ github.run_number }}-${{ matrix.python_version }}-
         run: |
-          poetry run wipe-test-indices $TEST_JOB_ID search-fourfront-testing-opensearch-kqm7pliix4wgiu4druk2indorq.us-east-1.es.amazonaws.com:443
+          poetry run wipe-test-indices $TEST_JOB_ID search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443

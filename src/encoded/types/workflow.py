@@ -3,7 +3,8 @@ from snovault import collection
 from encoded_core.types.workflow import Workflow as CoreWorkflow
 from encoded_core.types.workflow import WorkflowRun as CoreWorkflowRun
 from encoded_core.types.workflow import WorkflowRunAwsem as CoreWorkflowRunAwsem
-from .base import SMAHTItem, mixin_smaht_permission_types
+from .base import Item as SMAHTItem
+from .base import mixin_smaht_permission_types
 
 
 ENCODED_CORE_WORKFLOW_SCHEMA = deepcopy(CoreWorkflow.schema)

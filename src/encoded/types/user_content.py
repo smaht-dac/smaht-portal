@@ -1,7 +1,8 @@
 from copy import deepcopy
 from snovault import abstract_collection
 from encoded_core.types.user_content import UserContent as CoreUserContent
-from .base import SMAHTItem, mixin_smaht_permission_types
+from .base import Item as SMAHTItem
+from .base import mixin_smaht_permission_types
 
 
 ENCODED_CORE_USER_CONTENT_SCHEMA = deepcopy(CoreUserContent.schema)

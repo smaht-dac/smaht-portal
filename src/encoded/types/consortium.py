@@ -1,6 +1,6 @@
 from snovault import collection
 from snovault import load_schema
-from .base import SMAHTItem
+from .base import Item as SMAHTItem
 from .acl import ONLY_ADMIN_VIEW_ACL
 
 

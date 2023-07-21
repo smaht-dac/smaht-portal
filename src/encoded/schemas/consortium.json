@@ -1,6 +1,6 @@
 {
     "title": "Consortium",
-    "id": "/profiles/Consortium.json",
+    "id": "/profiles/consortium.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "required": [
         "name",

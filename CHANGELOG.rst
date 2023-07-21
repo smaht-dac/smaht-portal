@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.0.5
+=====
+
+* Improve testing by porting relevant tests as needed
+* Changes to accommodate working search/other tests
+* Allow testing with ES in GA with smaht-development credentials
+* Build Docker as part of GA
+
 0.0.4
 =====
 

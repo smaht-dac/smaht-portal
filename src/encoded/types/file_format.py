@@ -1,7 +1,8 @@
 from snovault import collection
 from copy import deepcopy
 from encoded_core.types.file_format import FileFormat as CoreFileFormat
-from .base import SMAHTItem, mixin_smaht_permission_types
+from .base import Item as SMAHTItem
+from .base import mixin_smaht_permission_types
 from .acl import ONLY_ADMIN_VIEW_ACL
 
 
