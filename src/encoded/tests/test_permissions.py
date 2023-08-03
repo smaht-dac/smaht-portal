@@ -52,6 +52,15 @@ def consortium_file(testapp, fastq_format, test_consortium):
     return res.json['@graph'][0]
 
 
+class TestAdminPermissions:
+    """ Tests admins can do various actions, including purging items """
+
+    @staticmethod
+    def test_admin_can_purge(testapp, fastq_format):
+        testapp.patch_json(f'/{fastq_format["uuid"]}', {'status': 'deleted'}, status=200)
+        testapp.delete_json(f'/{fastq_format["uuid"]}/?purge=True', {}, status=200)
+
+
 class TestPermissionsHelper:
 
     @staticmethod
