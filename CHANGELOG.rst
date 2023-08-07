@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.0.6
+=====
+
+* Removes ``jsonschema_serialize_fork``, use new schema draft version
+* Implement ``$merge`` referential schema fields
+
+
 0.0.5
 =====
 
@@ -15,6 +22,7 @@ Change Log
 * Allow testing with ES in GA with smaht-development credentials
 * Build Docker as part of GA
 
+
 0.0.4
 =====
 
@@ -22,6 +30,7 @@ Change Log
 * Some additional clean up of front end described in more detail here: https://github.com/smaht-dac/smaht-portal/pull/5
 * Update to use Webpack 5
 * Do some light adjustments to be more compatible with Google Analytics 4 down the line
+
 
 0.0.3
 =====
@@ -33,6 +42,7 @@ Change Log
 =====
 
 * Implement base level permissioning scheme working with ``consortia`` and ``submission_center``
+
 
 0.0.1
 =====
