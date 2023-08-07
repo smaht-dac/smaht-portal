@@ -23,7 +23,7 @@ ENV NGINX_USER=nginx \
     NVM_VERSION=v0.39.1 \
     NODE_VERSION=16.14.0
 
-# Configure Python3.7 venv
+# Configure Python3.9 venv
 ENV VIRTUAL_ENV=/opt/venv
 RUN python -m venv /opt/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
