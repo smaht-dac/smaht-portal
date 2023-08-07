@@ -60,6 +60,11 @@ class TestAdminPermissions:
         testapp.patch_json(f'/{fastq_format["uuid"]}', {'status': 'deleted'}, status=200)
         testapp.delete_json(f'/{fastq_format["uuid"]}/?purge=True', {}, status=200)
 
+    @staticmethod
+    def test_non_admin_cannot_purge(submitter_testapp, fastq_format):
+        submitter_testapp.patch_json(f'/{fastq_format["uuid"]}', {'status': 'deleted'}, status=422)
+        submitter_testapp.delete_json(f'/{fastq_format["uuid"]}/?purge=True', {}, status=403)
+
 
 class TestPermissionsHelper:
 
