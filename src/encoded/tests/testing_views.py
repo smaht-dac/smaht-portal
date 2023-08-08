@@ -62,3 +62,37 @@ class TestingPostPutPatch(Item):
             },
         }
     }
+
+
+@collection(
+    'testing-linked-schema-fields',
+    acl=[
+        (Allow, 'group.submitter', ['add', 'edit', 'view']),
+    ],
+)
+class TestingLinkedSchemaField(Item):
+    item_type = 'testing_linked_schema_field'
+    schema = {
+        'type': 'object',
+        'additionalProperties': False,
+        'properties': {
+            "schema_version": {
+                "type": "string",
+                "pattern": "^\\d+(\\.\\d+)*$",
+                "requestMethod": [],
+                "default": "1",
+            },
+            # link from snovault field
+            'access_key_id': {
+                '$merge': 'snovault:schemas/access_key.json#/properties/access_key_id'
+            },
+            # link from encoded-core field
+            'file_format': {
+                '$merge': 'encoded_core:schemas/file.json#/properties/file_format'
+            },
+            # link from this repo
+            'title': {
+                '$merge': 'encoded:schemas/consortium.json#/properties/title'
+            }
+        }
+    }

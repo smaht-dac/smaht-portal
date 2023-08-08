@@ -8,7 +8,7 @@ class SMAHTProjectAuthentication(SnovaultProjectAuthentication):
 
     def namespaced_authentication_policy_authenticated_userid(self, namespaced_authentication_policy, request,
                                                               set_user_info_property):
-        set_user_info_property = False
+        set_user_info_property = True
         return super().namespaced_authentication_policy_authenticated_userid(namespaced_authentication_policy, request,
                                                                              set_user_info_property)
 
