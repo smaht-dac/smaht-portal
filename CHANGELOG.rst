@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.0.7
+=====
+
+* Made scripts/psql-start.bash and bin/macpoetry-install.bash executable.
+* Makefile invokes macbuild rather than build if this looks like Mac (uname -s contains Darwin).
+* Corrected Makefile to refer to psql-start.bash and macpoetry-install.bash (with the .bash suffix).
+* Pinned PyYAML version in pyproject.toml to 5.3.1 (as Mac M1 really wants this one, not 5.4.1).
+* Fix to src/encoded/__init__.py for allowedConnections in /auth0_config endpoint.
+
+
 0.0.6
 =====
 

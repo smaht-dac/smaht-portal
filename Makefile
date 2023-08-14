@@ -39,7 +39,7 @@ moto-setup:  # optional moto setup that must be done separately
 	pip install "moto[server]==1.3.7"
 
 macpoetry-install:  # Same as 'poetry install' except that on OSX Catalina, an environment variable wrapper is needed
-	bin/macpoetry-install
+	bin/macpoetry-install.bash
 
 configure:  # does any pre-requisite installs
 	@#pip install --upgrade pip==21.0.1
@@ -60,8 +60,13 @@ macbuild-poetry:
 	make macpoetry-install
 
 build:  # builds
+ifeq ($(shell uname -s), Darwin)
+	@echo "Looks like this is Mac so executing: make macbuild"
+	make macbuild
+else
 	make build-poetry
 	make build-after-poetry
+endif
 
 macbuild:  # builds for Catalina
 	make macbuild-poetry
@@ -116,10 +121,10 @@ deploy2:  # spins up waittress to serve the application
 	@DEBUGLOG=`pwd` SNOVAULT_DB_TEST_PORT=`grep 'sqlalchemy[.]url =' development.ini | sed -E 's|.*:([0-9]+)/.*|\1|'` pserve development.ini
 
 psql-dev:  # starts psql with the url after 'sqlalchemy.url =' in development.ini
-	@scripts/psql-start dev
+	@scripts/psql-start.bash dev
 
 psql-test:  # starts psql with a url constructed from data in 'ps aux'.
-	@scripts/psql-start test
+	@scripts/psql-start.bash test
 
 kibana-start:  # starts a dev version of kibana (default port)
 	scripts/kibana-start
