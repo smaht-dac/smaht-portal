@@ -192,6 +192,12 @@ def set_auth0_config(settings):
     settings['auth0.allowed_connections'] = settings.get('auth0.allowed_connections',  # comma separated string
                                                          os.environ.get('Auth0AllowedConnections',
                                                                         DEFAULT_AUTH0_ALLOWED_CONNECTIONS).split(','))
+
+    # Comma separated string, typically in GAC as ENCODED_AUTH0_ALLOWED_CONNECTIONS.
+    # E.g.: google-oauth2,github,hms-it,partners
+    if isinstance(settings['auth0.allowed_connections'], str):
+        settings['auth0.allowed_connections'] = settings['auth0.allowed_connections'].split(",")
+
     settings['auth0.options'] = {
         'auth': {
             'sso': False,
