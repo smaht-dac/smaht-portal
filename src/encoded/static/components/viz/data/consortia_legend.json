@@ -1,0 +1,22 @@
+[
+    {
+        "center-type": "Organizational Center (1)",
+        "color": "black"
+    },
+    {
+        "center-type": "Data Analysis Center (1)",
+        "color": "red"
+    },
+    {
+        "center-type": "Tissue Procurement Center (1)",
+        "color": "purple"
+    },
+    {
+        "center-type": "Genome Characterization Center (5)",
+        "color": "orange"
+    },
+    {
+        "center-type": "Technology and Tool Development (14)",
+        "color": "green"
+    }
+]
