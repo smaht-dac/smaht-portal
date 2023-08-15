@@ -9,6 +9,8 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { pageTitleViews } from './../../PageTitleSection';
 import { GuestHomeView } from './GuestHomeView';
 
+import { AboutVisualizations } from '../../viz/AboutVisualizations';
+
 
 /**
  * Homepage View component. Gets rendered at '/' and '/home' paths.
@@ -31,7 +33,9 @@ export default class HomePage extends React.PureComponent {
                 {/* <div id="full-alerts-container" className="bg-primary-dark">
                     <Alerts alerts={alerts} className="alerts" />
                 </div> */}
-                <GuestHomeView {...commonProps} {...{ updateAppSessionState }} />
+                {/* <GuestHomeView {...commonProps} {...{ updateAppSessionState }} /> */}
+                
+                <AboutVisualizations />
             </div>
         );
     }
