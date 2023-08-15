@@ -1,0 +1,124 @@
+/**
+* Styles related to visualizations
+*/
+
+
+.consortium-legend {
+    background-color: #e3e3e3;
+    position: absolute; 
+}
+.consortium-tooltip {
+    background-color: #e3e3e3;
+    position: absolute; 
+    opacity: 0;
+}
+.consortium-tooltip-wrapper {
+    max-width: 200px;
+    font-size: 12px;
+}
+.consortium-tooltip-content {
+    font-size: 12px;
+}
+.consortium-tooltip-header {
+    font-weight: bold;
+    font-size: 10px;
+}
+
+table.table-striped {
+    tbody {
+        td.consortium-table-OC {
+            font-weight: bold;
+            font-size: 22px;
+            background-color: #000000;
+            cursor: default;
+            color: #ffffff;
+        }
+        td.consortium-table-DAC {
+            font-weight: bold;
+            font-size: 22px;
+            background-color: #ff0000;
+            cursor: default;
+            color: #ffffff;
+        }
+        td.consortium-table-TPC {
+            font-weight: bold;
+            font-size: 22px;
+            background-color: #8000bf;
+            cursor: default;
+            color: #ffffff;
+        }
+        td.consortium-table-GCC {
+            font-weight: bold;
+            font-size: 22px;
+            background-color: #FFC300;
+            cursor: default;
+            color: #ffffff;
+        }
+        td.consortium-table-TTD {
+            font-weight: bold;
+            font-size: 22px;
+            background-color: #097969;
+            cursor: default;
+            color: #ffffff;
+        }
+        td.consortium-table-header {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+        }
+    }
+}
+
+
+
+/* Styles for the Alluvial Plot */
+div#container {
+    height: 500px;
+    width: 500px;
+    background-color: gray;
+    margin: 200px auto auto auto;
+}
+
+.alluvial-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 50px;
+}
+
+.headers {
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 100px;
+    margin-bottom: 30px;
+
+    .header {
+        &-left {
+            width: 350px;
+            margin-left:0;
+            text-align: left;
+        }
+        &-center {
+            width: 350px;
+            margin: auto;
+        }
+        &-right {
+            width: 350px;
+            float: right;
+            text-align: right;
+        }
+    }
+}
+
+.node {
+    &:hover {
+        cursor: pointer;
+    }
+}
+
+.link {
+    fill: none;
+    stroke-opacity: .2;
+        &:hover {
+            stroke-opacity: .8;
+        }
+}
