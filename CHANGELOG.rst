@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.0.8
+====
+
+* Lock newer snovault, utils versions with bug fixes
+
+
 0.0.7
 =====
 
