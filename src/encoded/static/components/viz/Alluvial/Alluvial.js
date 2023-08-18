@@ -1,7 +1,10 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from "d3";
 import graph from "../data/alluvial-data.json";
+import tableData from '../data/tableData.json';
 import { sankeyFunc } from './util/sankey';
+
+import { StackRowTable } from './StackRowTable';
 
 
 import Tab from 'react-bootstrap/Tab';
@@ -147,7 +150,7 @@ export const Alluvial = () => {
                 .attr("dy", ".35em")
                 .attr("text-anchor", "end")
                 .attr("transform", null)
-                .text(function(d) { console.log(d);return d.name; })
+                .text(function(d) { return d.name; })
                 .filter(function(d) { return d.x < width / 2; })
                 .attr("x", 6 + sankey.nodeWidth())
                 .attr("text-anchor", "start");
@@ -185,7 +188,8 @@ export const Alluvial = () => {
                     <div ref={containerRef}></div>
                 </Tab>
                 <Tab eventKey="table" title="Table view">
-                    <div className="text-center pt-5">Display alluvial data in a table here.</div>  
+                    <div className="text-center pt-5">Display alluvial data in a table here.</div>
+                    <StackRowTable data={tableData} />
                 </Tab>
             </Tabs>
         </div>
