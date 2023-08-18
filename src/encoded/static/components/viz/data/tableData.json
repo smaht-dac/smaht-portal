@@ -1,0 +1,1064 @@
+[
+    {
+        "assayType": "WGS",
+        "molecular_feature_categories": {
+            "Genetic": {
+                "category": "Genetic",
+                "molecular_feature_groups": {
+                    "SNV": {
+                        "category": "SNV",
+                        "features": [
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "Oxford Nanopore Technology (ONT)",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    },
+                    "InDel": {
+                        "category": "InDel",
+                        "features": [
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    },
+                    "CNV": {
+                        "category": "CNV",
+                        "features": [
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "CNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "CNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "CNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "CNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "CNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "CNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "CNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "CNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "CNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "CNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "CNV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "CNV",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    },
+                    "SV": {
+                        "category": "SV",
+                        "features": [
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SV",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "SV",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    },
+                    "MEI": {
+                        "category": "MEI",
+                        "features": [
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "MEI",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "MEI",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "MEI",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "MEI",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "MEI",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "MEI",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "MEI",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "MEI",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    },
+                    "Repeat elements": {
+                        "category": "Repeat elements",
+                        "features": [
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Repeat elements",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Repeat elements",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Repeat elements",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Repeat elements",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Repeat elements",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Repeat elements",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Repeat elements",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Repeat elements",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    },
+                    "Telomere lengths": {
+                        "category": "Telomere lengths",
+                        "features": [
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Telomere lengths",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Telomere lengths",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Telomere lengths",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Telomere lengths",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Telomere lengths",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Telomere lengths",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "Ultralong ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Telomere lengths",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Telomere lengths",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Telomere lengths",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    },
+                    "Assembled genome": {
+                        "category": "Assembled genome",
+                        "features": [
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Assembled genome",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Assembled genome",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Assembled genome",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Assembled genome",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Assembled genome",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Assembled genome",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "Ultralong ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Assembled genome",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Assembled genome",
+                                "Molecular Feature Category": "Genetic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "ONT",
+                                "Assay Types": "WGS",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Assembled genome",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "assayType": "RNA-Seq",
+        "molecular_feature_categories": {
+            "Transcriptomic": {
+                "category": "Transcriptomic",
+                "molecular_feature_groups": {
+                    "Gene expression": {
+                        "category": "Gene expression",
+                        "features": [
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "RNA-Seq",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "Gene expression",
+                                "Molecular Feature Category": "Transcriptomic"
+                            },
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "RNA-Seq",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Gene expression",
+                                "Molecular Feature Category": "Transcriptomic"
+                            },
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "RNA-Seq",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "Gene expression",
+                                "Molecular Feature Category": "Transcriptomic"
+                            },
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "RNA-Seq",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Gene expression",
+                                "Molecular Feature Category": "Transcriptomic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "assayType": "WGS Nanoseq",
+        "molecular_feature_categories": {
+            "Genetic": {
+                "category": "Genetic",
+                "molecular_feature_groups": {
+                    "SNV": {
+                        "category": "SNV",
+                        "features": [
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS Nanoseq",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    },
+                    "InDel": {
+                        "category": "InDel",
+                        "features": [
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS Nanoseq",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "assayType": "NT-Seq",
+        "molecular_feature_categories": {
+            "Epigenetic": {
+                "category": "Epigenetic",
+                "molecular_feature_groups": {
+                    "DNA methylation": {
+                        "category": "DNA methylation",
+                        "features": [
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "NT-Seq",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "DNA methylation",
+                                "Molecular Feature Category": "Epigenetic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "assayType": "snRNA-Seq",
+        "molecular_feature_categories": {
+            "Transcriptomic": {
+                "category": "Transcriptomic",
+                "molecular_feature_groups": {
+                    "Gene expression": {
+                        "category": "Gene expression",
+                        "features": [
+                            {
+                                "Data Generators": "BCM",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "snRNA-Seq",
+                                "Assay Type Category": "single-cell long-read",
+                                "Molecular Features Profiled": "Gene expression",
+                                "Molecular Feature Category": "Transcriptomic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "assayType": "WGS CODEC",
+        "molecular_feature_categories": {
+            "Genetic": {
+                "category": "Genetic",
+                "molecular_feature_groups": {
+                    "SNV": {
+                        "category": "SNV",
+                        "features": [
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS CODEC",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    },
+                    "InDel": {
+                        "category": "InDel",
+                        "features": [
+                            {
+                                "Data Generators": "Broad",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS CODEC",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "assayType": "WGS Duplex sequencing",
+        "molecular_feature_categories": {
+            "Genetic": {
+                "category": "Genetic",
+                "molecular_feature_groups": {
+                    "SNV": {
+                        "category": "SNV",
+                        "features": [
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "Ultima Genomics",
+                                "Assay Types": "WGS Duplex sequencing",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    },
+                    "InDel": {
+                        "category": "InDel",
+                        "features": [
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "Ultima Genomics",
+                                "Assay Types": "WGS Duplex sequencing",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "assayType": "WGS DLP+",
+        "molecular_feature_categories": {
+            "Genetic": {
+                "category": "Genetic",
+                "molecular_feature_groups": {
+                    "SNV": {
+                        "category": "SNV",
+                        "features": [
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS DLP+",
+                                "Assay Type Category": "single-cell short-read",
+                                "Molecular Features Profiled": "SNV",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    },
+                    "InDel": {
+                        "category": "InDel",
+                        "features": [
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS DLP+",
+                                "Assay Type Category": "single-cell short-read",
+                                "Molecular Features Profiled": "InDel",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    },
+                    "CNV": {
+                        "category": "CNV",
+                        "features": [
+                            {
+                                "Data Generators": "NYGC",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "WGS DLP+",
+                                "Assay Type Category": "single-cell short-read",
+                                "Molecular Features Profiled": "CNV",
+                                "Molecular Feature Category": "Genetic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "assayType": "Fiber-Seq",
+        "molecular_feature_categories": {
+            "Epigenetic": {
+                "category": "Epigenetic",
+                "molecular_feature_groups": {
+                    "Chromatin accessibility": {
+                        "category": "Chromatin accessibility",
+                        "features": [
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "Fiber-Seq",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Chromatin accessibility",
+                                "Molecular Feature Category": "Epigenetic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "assayType": "MAS-Seq",
+        "molecular_feature_categories": {
+            "Transcriptomic": {
+                "category": "Transcriptomic",
+                "molecular_feature_groups": {
+                    "Transcript isoform": {
+                        "category": "Transcript isoform",
+                        "features": [
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "MAS-Seq",
+                                "Assay Type Category": "bulk long-read",
+                                "Molecular Features Profiled": "Transcript isoform",
+                                "Molecular Feature Category": "Transcriptomic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "assayType": "Hi-C",
+        "molecular_feature_categories": {
+            "Epigenetic": {
+                "category": "Epigenetic",
+                "molecular_feature_groups": {
+                    "Chromatin conformation": {
+                        "category": "Chromatin conformation",
+                        "features": [
+                            {
+                                "Data Generators": "UW",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "Hi-C",
+                                "Assay Type Category": "bulk short-read",
+                                "Molecular Features Profiled": "Chromatin conformation",
+                                "Molecular Feature Category": "Epigenetic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "assayType": "Targeted RNA-Seq",
+        "molecular_feature_categories": {
+            "Transcriptomic": {
+                "category": "Transcriptomic",
+                "molecular_feature_groups": {
+                    "Gene expression - Spatial": {
+                        "category": "Gene expression - Spatial",
+                        "features": [
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "10X Genomics Xenium",
+                                "Assay Types": "Targeted RNA-Seq",
+                                "Assay Type Category": "single-cell short-read",
+                                "Molecular Features Profiled": "Gene expression - Spatial",
+                                "Molecular Feature Category": "Transcriptomic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "assayType": "STORM-Seq",
+        "molecular_feature_categories": {
+            "Transcriptomic": {
+                "category": "Transcriptomic",
+                "molecular_feature_groups": {
+                    "Gene expression": {
+                        "category": "Gene expression",
+                        "features": [
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "Illumina NovaSeq",
+                                "Assay Types": "STORM-Seq",
+                                "Assay Type Category": "single-cell short-read",
+                                "Molecular Features Profiled": "Gene expression",
+                                "Molecular Feature Category": "Transcriptomic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "assayType": "Tranquil-Seq",
+        "molecular_feature_categories": {
+            "Transcriptomic": {
+                "category": "Transcriptomic",
+                "molecular_feature_groups": {
+                    "Gene expression": {
+                        "category": "Gene expression",
+                        "features": [
+                            {
+                                "Data Generators": "WashU",
+                                "Sequencing Platform": "PacBio",
+                                "Assay Types": "Tranquil-Seq",
+                                "Assay Type Category": "single-cell long-read",
+                                "Molecular Features Profiled": "Gene expression",
+                                "Molecular Feature Category": "Transcriptomic"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+]
