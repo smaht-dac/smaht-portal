@@ -24,6 +24,7 @@ pyramid.default_locale_name = en
 # most deployments use: "load_test_data = snovault.loadxl:load_test_data"
 # note for smaht for now we only load_prod_data, extension can be done later
 load_test_data = snovault.loadxl:load_prod_data
+load_data_from = snovault.loadxl:load_data_from
 encoded_version = 100.200.300
 snovault_version = 200.300.400
 utils_version = 300.400.500

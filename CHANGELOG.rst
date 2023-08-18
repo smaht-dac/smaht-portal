@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.0.8
+=====
+* Adding ingestion processor.
+  * For dev/testing purposes, added poetry script generate-local-access-key;
+    see src/encoded/commands/generate_local_access_key.py for usage/details.
+    * Added defintion of load_data_from (snovault.loadxl:load_data_from) to development.ini.template.
+
+
 0.0.7
 =====
 
