@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------------------
-# Script to generate a new portal access-key for local (localhost) development purposes.
+# Temporary script to generate a new portal access-key for local (localhost) development purposes.
 # --------------------------------------------------------------------------------------------------
 # This will be needed only until the SMaHT portal has been fleshed out enough to be able to do this
 # normally using the UI; as of August 2023 there no way to do this. So we generate a new access-key,
@@ -31,7 +31,10 @@ import requests
 import sys
 import uuid
 from typing import Optional, Tuple
-from snovault.authentication import generate_user as generate_access_key, generate_password as generate_access_key_secret
+from snovault.authentication import (
+    generate_user as generate_access_key,
+    generate_password as generate_access_key_secret
+)
 from snovault.dev_servers import load_data
 from passlib.context import CryptContext
 from passlib.registry import register_crypt_handler
