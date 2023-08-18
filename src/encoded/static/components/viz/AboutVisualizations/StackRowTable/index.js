@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { OverlayTrigger, Popover, PopoverContent, PopoverTitle } from "react-bootstrap";
-import total_feature_counts from '../../data/stackrow-data-totals.json';
+import total_feature_counts from '../data/stackrow-data-totals.json';
 
 
 const OverlayTriggerContent = ({ref, value, ...triggerHandler}) => {

@@ -4,7 +4,7 @@ import graph from "../data/alluvial-data.json";
 import tableData from '../data/tableData.json';
 import { sankeyFunc } from './util/sankey';
 
-import { StackRowTable } from './StackRowTable';
+import { StackRowTable } from '../StackRowTable';
 
 
 import Tab from 'react-bootstrap/Tab';

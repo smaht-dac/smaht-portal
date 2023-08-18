@@ -9,7 +9,7 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { pageTitleViews } from './../../PageTitleSection';
 import { GuestHomeView } from './GuestHomeView';
 
-import { AboutVisualizations } from '../../viz/AboutVisualizations';
+import AboutVisualizations from '../../viz/AboutVisualizations';
 
 
 /**
