@@ -69,7 +69,7 @@ def main():
         args.update_database = True
         args.update_keys = True
 
-    print("Creating a new portal access-key ... ", end="")
+    print("Creating a new local portal access-key ... ", end="")
     access_key_user_uuid = _generate_user_uuid(args.user)
     access_key_id, access_key_secret, access_key_secret_hash = _generate_access_key()
     access_key_master_inserts_file_entry = _generate_access_key_master_inserts_entry(access_key_id, access_key_secret_hash, access_key_user_uuid)
@@ -77,7 +77,7 @@ def main():
     print("Done.")
 
     if args.update_keys:
-        print(f"Writing new portal access-key to: {_ACCESS_KEYS_FILE} ... ", end="")
+        print(f"Writing new local portal access-key to: {_ACCESS_KEYS_FILE} ... ", end="")
         if os.path.exists(_ACCESS_KEYS_FILE):
             with io.open(_ACCESS_KEYS_FILE, "r") as access_keys_file_f:
                 try:
@@ -92,19 +92,19 @@ def main():
                 json.dump({_ACCESS_KEYS_FILE_PROPERTY_NAME: access_keys_file_entry}, access_keys_file_f, indent=4)
         print("Done.")
     if not args.update_keys or args.verbose:
-        print(f"Here is your new portal access-key record suitable for: {_ACCESS_KEYS_FILE} ...")
+        print(f"Here is your new local portal access-key record suitable for: {_ACCESS_KEYS_FILE} ...")
         print(json.dumps(access_keys_file_entry, indent=4))
 
     if args.update_database:
         if not _is_portal_running_locally(args.port):
             _exit_without_action(f"Portal must be running locally ({_get_locally_running_portal_url(args.port)}) to do an insert.")
-        print(f"Writing new portal access-key to locally running portal database ... ", end="")
+        print(f"Writing new local portal access-key to locally running portal database ... ", end="")
         with captured_output(not args.debug):
             load_data(access_key_master_inserts_file_entry, "access_key")
         print("Done.")
         sys.stdout.flush()
     if not args.update_database or args.verbose:
-        print(f"Here is your new access-key insert record suitable for: {_USER_MASTER_INSERTS_DIR}/access_key.json ...")
+        print(f"Here is your new local portal access-key insert record suitable for: {_USER_MASTER_INSERTS_DIR}/access_key.json ...")
         print(json.dumps(access_key_master_inserts_file_entry, indent=4))
 
 
