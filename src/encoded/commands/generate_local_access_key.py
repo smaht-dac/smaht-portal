@@ -7,9 +7,9 @@
 # or output JSON suitable for doing this via master-inserts/access_key.json; and either update
 # your access-keys file (~/.smaht-keys.json) directly, or output JSON suitable for this file.
 #
-# The only required argument is --user which is used to specify the user with which the new
-# access-key will be associated. This may be either an explicit UUID or your choce, or an
-# email address which must be present in the master-inserts/user.json file.
+# The --user arguments is used to specify the user with which the new access-key will be associated.
+# This may be either an explicit UUID or your choce, or an email address which must be present in
+# the master-inserts/user.json file; this is (only) required if --update-database is specified.
 #
 # With no other arguments this script outputs JSON objects suitable for inserting into the
 # database (via master-inserts/access_key.json), and for placing in your ~/.smaht-keys.json file.
@@ -24,18 +24,14 @@
 # --------------------------------------------------------------------------------------------------
 
 import argparse
-import builtins
 import io
 import json
 import os
 import requests
 import sys
 import uuid
-from typing import Tuple
-from snovault.authentication import (
-    generate_user as generate_access_key,
-    generate_password as generate_access_key_secret
-)
+from typing import Optional, Tuple
+from snovault.authentication import generate_user as generate_access_key, generate_password as generate_access_key_secret
 from snovault.dev_servers import load_data
 from passlib.context import CryptContext
 from passlib.registry import register_crypt_handler
@@ -52,7 +48,7 @@ _ACCESS_KEYS_FILE_PROPERTY_NAME = "smaht-localhost"
 def main():
 
     parser = argparse.ArgumentParser(description="Create local portal access-key for dev/testing purposes.")
-    parser.add_argument("--user", required=True,
+    parser.add_argument("--user", required=False,
                         help=f"User email for which the access-key should be defined which needs to be in master-inserts/user.json; or an explicity UUID.")
     parser.add_argument("--update", action="store_true", required=False, default=False,
                         help=f"Same as --update-database and --update-keys both.")
@@ -71,6 +67,11 @@ def main():
 
     print("Creating a new local portal access-key ... ", end="")
     access_key_user_uuid = _generate_user_uuid(args.user)
+    if not access_key_user_uuid:
+        if args.update_database:
+            _exit_without_action(f"The --user option must be used to specify a UUID or an email in: {_USER_MASTER_INSERTS_FILE}")
+        else:
+            access_key_user_uuid = "<your-user-uuid>"
     access_key_id, access_key_secret, access_key_secret_hash = _generate_access_key()
     access_key_master_inserts_file_entry = _generate_access_key_master_inserts_entry(access_key_id, access_key_secret_hash, access_key_user_uuid)
     access_keys_file_entry = _generate_access_keys_file_entry(access_key_id, access_key_secret, args.port)
@@ -108,7 +109,9 @@ def main():
         print(json.dumps(access_key_master_inserts_file_entry, indent=4))
 
 
-def _generate_user_uuid(user) -> str:
+def _generate_user_uuid(user: Optional[str]) -> Optional[str]:
+    if not user:
+        return None
     if _is_uuid(user):
         return user
     with io.open(_USER_MASTER_INSERTS_FILE, "r") as user_master_inserts_f:
@@ -124,7 +127,7 @@ def _generate_access_key_master_inserts_entry(access_key_id: str, access_key_sec
     return {
         "status": "current",
         "user": user_uuid,
-        "description": f"Manually generated access-key for testing.",
+        "description": f"Manually generated local access-key for testing.",
         "access_key_id": access_key_id,
         "secret_access_key_hash": access_key_secret_hash,
         "uuid": str(uuid.uuid4())
