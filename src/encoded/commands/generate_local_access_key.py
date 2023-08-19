@@ -153,6 +153,8 @@ def _generate_access_key() -> Tuple[str, str, str]:
 
 
 def _hash_secret_like_snovault_access_key_secret_hashing(secret: str) -> str:
+    # We do NOT store the secret in plaintext in the database, but rather a hash of it; this function
+    # hashes the (given) secret in the same way that the portal (snovault) does and returns this result.
     # See access_key_add in snovault/types/access_key.py and includeme in snovault/authentication.py.
     register_crypt_handler(EDWHash)
     return CryptContext(schemes="edw_hash, unix_disabled").hash(secret)
