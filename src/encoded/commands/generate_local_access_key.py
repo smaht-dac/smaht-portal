@@ -28,7 +28,6 @@ import io
 import json
 import os
 import requests
-import sys
 import uuid
 from typing import Optional, Tuple
 from snovault.authentication import (
@@ -110,8 +109,7 @@ def _generate_user_uuid(user: Optional[str], update_database: bool) -> Optional[
     if not user:
         if update_database:
             _exit_without_action(f"The --user option must be used to specify a UUID or an email in: {_USER_MASTER_INSERTS_FILE}")
-        else:
-           return "<your-user-uuid>"
+        return "<your-user-uuid>"
     if _is_uuid(user):
         return user
     with io.open(_USER_MASTER_INSERTS_FILE, "r") as user_master_inserts_f:
@@ -142,13 +140,11 @@ def _generate_access_keys_file_entry(access_key_id: str, access_key_secret: str,
 
 
 def _generate_access_key() -> Tuple[str, str, str]:
-    access_key = generate_access_key()
     access_key_secret = generate_access_key_secret()
-    access_key_secret_hash = _hash_secret_like_snovault_access_key_secret_hashing(access_key_secret)
-    return access_key, access_key_secret, access_key_secret_hash
+    return generate_access_key(), access_key_secret, _hash_secret_like_snovault(access_key_secret)
 
 
-def _hash_secret_like_snovault_access_key_secret_hashing(secret: str) -> str:
+def _hash_secret_like_snovault(secret: str) -> str:
     # We do NOT store the secret in plaintext in the database, but rather a hash of it; this function
     # hashes the (given) secret in the same way that the portal (snovault) does and returns this result.
     # See access_key_add in snovault/types/access_key.py and includeme in snovault/authentication.py.
