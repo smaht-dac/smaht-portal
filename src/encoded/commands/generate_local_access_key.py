@@ -52,7 +52,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Create local portal access-key for dev/testing purposes.")
     parser.add_argument("--user", required=False,
-                        help=f"User email for which the access-key should be defined which needs to be in master-inserts/user.json; or an explicity UUID.")
+                        help=f"User email for which the access-key should be defined (in master-inserts/user.json); or a UUID.")
     parser.add_argument("--update", action="store_true", required=False, default=False,
                         help=f"Same as --update-database and --update-keys both.")
     parser.add_argument("--update-database", action="store_true", required=False, default=False,
@@ -69,12 +69,7 @@ def main():
         args.update_keys = True
 
     print("Creating a new local portal access-key ... ", end="")
-    access_key_user_uuid = _generate_user_uuid(args.user)
-    if not access_key_user_uuid:
-        if args.update_database:
-            _exit_without_action(f"The --user option must be used to specify a UUID or an email in: {_USER_MASTER_INSERTS_FILE}")
-        else:
-            access_key_user_uuid = "<your-user-uuid>"
+    access_key_user_uuid = _generate_user_uuid(args.user, args.update_database)
     access_key_id, access_key_secret, access_key_secret_hash = _generate_access_key()
     access_key_master_inserts_file_entry = _generate_access_key_master_inserts_entry(access_key_id, access_key_secret_hash, access_key_user_uuid)
     access_keys_file_entry = _generate_access_keys_file_entry(access_key_id, access_key_secret, args.port)
@@ -111,14 +106,16 @@ def main():
         print(json.dumps(access_key_master_inserts_file_entry, indent=4))
 
 
-def _generate_user_uuid(user: Optional[str]) -> Optional[str]:
+def _generate_user_uuid(user: Optional[str], update_database: bool) -> Optional[str]:
     if not user:
-        return None
+        if update_database:
+            _exit_without_action(f"The --user option must be used to specify a UUID or an email in: {_USER_MASTER_INSERTS_FILE}")
+        else:
+           return "<your-user-uuid>"
     if _is_uuid(user):
         return user
     with io.open(_USER_MASTER_INSERTS_FILE, "r") as user_master_inserts_f:
-        user_master_inserts_json = json.load(user_master_inserts_f)
-        user_uuid_from_master_inserts = [item for item in user_master_inserts_json if item.get("email") == user]
+        user_uuid_from_master_inserts = [item for item in json.load(user_master_inserts_f) if item.get("email") == user]
         if not user_uuid_from_master_inserts:
             _exit_without_action(f"The given user ({user}) was not found as an email"
                                  f" in: {_USER_MASTER_INSERTS_FILE}; and it is not a UUID.")
