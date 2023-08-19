@@ -106,7 +106,6 @@ def main():
         with captured_output(not args.debug):
             load_data(access_key_master_inserts_file_entry, "access_key")
         print("Done.")
-        sys.stdout.flush()
     if not args.update_database or args.verbose:
         print(f"Here is your new local portal access-key insert record suitable for: {_USER_MASTER_INSERTS_DIR}/access_key.json ...")
         print(json.dumps(access_key_master_inserts_file_entry, indent=4))
