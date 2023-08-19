@@ -70,7 +70,7 @@ def main():
     print("Creating a new local portal access-key ... ", end="")
     access_key_user_uuid = _generate_user_uuid(args.user, args.update_database)
     access_key_id, access_key_secret, access_key_secret_hash = _generate_access_key()
-    access_key_master_inserts_file_entry = _generate_access_key_master_inserts_entry(access_key_id, access_key_secret_hash, access_key_user_uuid)
+    access_key_inserts_file_entry = _generate_access_key_inserts_entry(access_key_id, access_key_secret_hash, access_key_user_uuid)
     access_keys_file_entry = _generate_access_keys_file_entry(access_key_id, access_key_secret, args.port)
     print("Done.")
 
@@ -98,11 +98,11 @@ def main():
             _exit_without_action(f"Portal must be running locally ({_get_locally_running_portal_url(args.port)}) to do an insert.")
         print(f"Writing new local portal access-key to locally running portal database ... ", end="")
         with captured_output(not args.debug):
-            load_data(access_key_master_inserts_file_entry, "access_key")
+            load_data(access_key_inserts_file_entry, "access_key")
         print("Done.")
     if not args.update_database or args.verbose:
         print(f"Here is your new local portal access-key insert record suitable for: {_USER_MASTER_INSERTS_DIR}/access_key.json ...")
-        print(json.dumps(access_key_master_inserts_file_entry, indent=4))
+        print(json.dumps(access_key_inserts_file_entry, indent=4))
 
 
 def _generate_user_uuid(user: Optional[str], update_database: bool) -> Optional[str]:
@@ -112,15 +112,15 @@ def _generate_user_uuid(user: Optional[str], update_database: bool) -> Optional[
         return "<your-user-uuid>"
     if _is_uuid(user):
         return user
-    with io.open(_USER_MASTER_INSERTS_FILE, "r") as user_master_inserts_f:
-        user_uuid_from_master_inserts = [item for item in json.load(user_master_inserts_f) if item.get("email") == user]
-        if not user_uuid_from_master_inserts:
+    with io.open(_USER_MASTER_INSERTS_FILE, "r") as user_inserts_f:
+        user_uuid_from_inserts = [item for item in json.load(user_inserts_f) if item.get("email") == user]
+        if not user_uuid_from_inserts:
             _exit_without_action(f"The given user ({user}) was not found as an email"
                                  f" in: {_USER_MASTER_INSERTS_FILE}; and it is not a UUID.")
-        return user_uuid_from_master_inserts[0]["uuid"]
+        return user_uuid_from_inserts[0]["uuid"]
 
 
-def _generate_access_key_master_inserts_entry(access_key_id: str, access_key_secret_hash: str, user_uuid: str) -> dict:
+def _generate_access_key_inserts_entry(access_key_id: str, access_key_secret_hash: str, user_uuid: str) -> dict:
     return {
         "status": "current",
         "user": user_uuid,
