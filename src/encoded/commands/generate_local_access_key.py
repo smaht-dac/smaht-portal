@@ -44,7 +44,7 @@ from .captured_output import captured_output
 _USER_MASTER_INSERTS_DIR = "src/encoded/tests/data/master-inserts"
 _USER_MASTER_INSERTS_FILE = f"{_USER_MASTER_INSERTS_DIR}/user.json"
 _ACCESS_KEYS_FILE = os.path.expanduser("~/.smaht-keys.json")
-_ACCESS_KEYS_FILE_PROPERTY_NAME = "smaht-localhost"
+_ACCESS_KEYS_FILE_ITEM_NAME = "smaht-localhost"
 
 
 def main():
@@ -57,10 +57,10 @@ def main():
     parser.add_argument("--update-database", action="store_true", required=False, default=False,
                         help=f"Updates the database of your locally running portal with the new access-key.")
     parser.add_argument("--update-keys", action="store_true", required=False, default=False,
-                        help=f"Updates your {_ACCESS_KEYS_FILE} file with the new access-key ({_ACCESS_KEYS_FILE_PROPERTY_NAME}).")
+                        help=f"Updates your {_ACCESS_KEYS_FILE} file with the new access-key ({_ACCESS_KEYS_FILE_ITEM_NAME}).")
+    parser.add_argument("--port", type=int, required=False, default=8000, help="Port for localhost on which your local portal is running.")
     parser.add_argument("--verbose", action="store_true", required=False, default=False, help="Verbose output.")
     parser.add_argument("--debug", action="store_true", required=False, default=False, help="Debugging output.")
-    parser.add_argument("--port", type=int, required=False, default=8000, help="Port for localhost on which your local portal is running.")
     args = parser.parse_args()
 
     if args.update:
@@ -76,18 +76,15 @@ def main():
 
     if args.update_keys:
         print(f"Writing new local portal access-key to: {_ACCESS_KEYS_FILE} ... ", end="")
-        if os.path.exists(_ACCESS_KEYS_FILE):
+        access_keys_file_json = {}
+        try:
             with io.open(_ACCESS_KEYS_FILE, "r") as access_keys_file_f:
-                try:
-                    access_keys_file_json = json.load(access_keys_file_f)
-                except Exception:
-                    access_keys_file_json = {}
-            with io.open(_ACCESS_KEYS_FILE, "w") as access_keys_file_f:
-                access_keys_file_json[_ACCESS_KEYS_FILE_PROPERTY_NAME] = access_keys_file_item
-                access_keys_file_json = json.dump(access_keys_file_json, access_keys_file_f, indent=4)
-        else:
-            with io.open(_ACCESS_KEYS_FILE, "w") as access_keys_file_f:
-                json.dump({_ACCESS_KEYS_FILE_PROPERTY_NAME: access_keys_file_item}, access_keys_file_f, indent=4)
+                access_keys_file_json = json.load(access_keys_file_f)
+        except Exception:
+            pass
+        access_keys_file_json[_ACCESS_KEYS_FILE_ITEM_NAME] = access_keys_file_item
+        with io.open(_ACCESS_KEYS_FILE, "w") as access_keys_file_f:
+            json.dump(access_keys_file_json, access_keys_file_f, indent=4)
         print("Done.")
     if not args.update_keys or args.verbose:
         print(f"Here is your new local portal access-key record suitable for: {_ACCESS_KEYS_FILE} ...")
