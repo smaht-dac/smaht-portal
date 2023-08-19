@@ -13,7 +13,7 @@
 #
 # With no other arguments this script outputs JSON objects suitable for inserting into the
 # database (via master-inserts/access_key.json), and for placing in your ~/.smaht-keys.json file.
-
+#
 # If the --update-database option is given, then the new access-key will automatically be written
 # to your locally running instance of the portal, which (obviously) needs to be up/running.
 #
