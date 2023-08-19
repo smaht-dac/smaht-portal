@@ -41,8 +41,8 @@ from snovault.edw_hash import EDWHash
 from .captured_output import captured_output
 
 
-_USER_MASTER_INSERTS_DIR = "src/encoded/tests/data/master-inserts"
-_USER_MASTER_INSERTS_FILE = f"{_USER_MASTER_INSERTS_DIR}/user.json"
+_INSERTS_DIR = "src/encoded/tests/data/master-inserts"
+_USER_INSERTS_FILE = f"{_INSERTS_DIR}/user.json"
 _ACCESS_KEYS_FILE = os.path.expanduser("~/.smaht-keys.json")
 _ACCESS_KEYS_FILE_ITEM = "smaht-localhost"
 
@@ -99,22 +99,22 @@ def main():
             load_data(access_key_inserts_file_item, "access_key")
         print("Done.")
     if not args.update_database or args.verbose:
-        print(f"Here is your new local portal access-key insert record suitable for: {_USER_MASTER_INSERTS_DIR}/access_key.json ...")
+        print(f"Here is your new local portal access-key insert record suitable for: {_INSERTS_DIR}/access_key.json ...")
         print(json.dumps(access_key_inserts_file_item, indent=4))
 
 
 def _generate_user_uuid(user: Optional[str], update_database: bool) -> Optional[str]:
     if not user:
         if update_database:
-            _exit_without_action(f"The --user option must be used to specify a UUID or an email in: {_USER_MASTER_INSERTS_FILE}")
+            _exit_without_action(f"The --user option must be used to specify a UUID or an email in: {_USER_INSERTS_FILE}")
         return "<your-user-uuid>"
     if _is_uuid(user):
         return user
-    with io.open(_USER_MASTER_INSERTS_FILE, "r") as user_inserts_f:
+    with io.open(_USER_INSERTS_FILE, "r") as user_inserts_f:
         user_uuid_from_inserts = [item for item in json.load(user_inserts_f) if item.get("email") == user]
         if not user_uuid_from_inserts:
             _exit_without_action(f"The given user ({user}) was not found as an email"
-                                 f" in: {_USER_MASTER_INSERTS_FILE}; and it is not a UUID.")
+                                 f" in: {_USER_INSERTS_FILE}; and it is not a UUID.")
         return user_uuid_from_inserts[0]["uuid"]
 
 
