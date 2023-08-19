@@ -93,7 +93,7 @@ def main():
 
     if args.update_database:
         if not _is_portal_running_locally(args.port):
-            _exit_without_action(f"Portal must be running locally ({_get_locally_running_portal_url(args.port)}) to do an insert.")
+            _exit_without_action(f"Portal must be running locally ({_get_local_portal_url(args.port)}) to do an insert.")
         print(f"Writing new local portal access-key to locally running portal database ... ", end="")
         with captured_output(not args.debug):
             load_data(access_key_inserts_file_item, "access_key")
@@ -133,7 +133,7 @@ def _generate_access_keys_file_item(access_key_id: str, access_key_secret: str, 
     return {
         "key": access_key_id,
         "secret": access_key_secret,
-        "server": _get_locally_running_portal_url(port)
+        "server": _get_local_portal_url(port)
     }
 
 
@@ -152,12 +152,12 @@ def _hash_secret_like_snovault(secret: str) -> str:
 
 def _is_portal_running_locally(port: int) -> None:
     try:
-        return requests.get(f"{_get_locally_running_portal_url(port)}/health").status_code == 200
+        return requests.get(f"{_get_local_portal_url(port)}/health").status_code == 200
     except Exception:
         return False
 
 
-def _get_locally_running_portal_url(port: int) -> None:
+def _get_local_portal_url(port: int) -> None:
     return f"http://localhost:{port}"
 
 
