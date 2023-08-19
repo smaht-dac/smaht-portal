@@ -70,8 +70,8 @@ def main():
     print("Creating a new local portal access-key ... ", end="")
     access_key_user_uuid = _generate_user_uuid(args.user, args.update_database)
     access_key_id, access_key_secret, access_key_secret_hash = _generate_access_key()
-    access_key_inserts_file_entry = _generate_access_key_inserts_entry(access_key_id, access_key_secret_hash, access_key_user_uuid)
-    access_keys_file_entry = _generate_access_keys_file_entry(access_key_id, access_key_secret, args.port)
+    access_key_inserts_file_item = _generate_access_key_inserts_item(access_key_id, access_key_secret_hash, access_key_user_uuid)
+    access_keys_file_item = _generate_access_keys_file_item(access_key_id, access_key_secret, args.port)
     print("Done.")
 
     if args.update_keys:
@@ -83,26 +83,26 @@ def main():
                 except Exception:
                     access_keys_file_json = {}
             with io.open(_ACCESS_KEYS_FILE, "w") as access_keys_file_f:
-                access_keys_file_json[_ACCESS_KEYS_FILE_PROPERTY_NAME] = access_keys_file_entry
+                access_keys_file_json[_ACCESS_KEYS_FILE_PROPERTY_NAME] = access_keys_file_item
                 access_keys_file_json = json.dump(access_keys_file_json, access_keys_file_f, indent=4)
         else:
             with io.open(_ACCESS_KEYS_FILE, "w") as access_keys_file_f:
-                json.dump({_ACCESS_KEYS_FILE_PROPERTY_NAME: access_keys_file_entry}, access_keys_file_f, indent=4)
+                json.dump({_ACCESS_KEYS_FILE_PROPERTY_NAME: access_keys_file_item}, access_keys_file_f, indent=4)
         print("Done.")
     if not args.update_keys or args.verbose:
         print(f"Here is your new local portal access-key record suitable for: {_ACCESS_KEYS_FILE} ...")
-        print(json.dumps(access_keys_file_entry, indent=4))
+        print(json.dumps(access_keys_file_item, indent=4))
 
     if args.update_database:
         if not _is_portal_running_locally(args.port):
             _exit_without_action(f"Portal must be running locally ({_get_locally_running_portal_url(args.port)}) to do an insert.")
         print(f"Writing new local portal access-key to locally running portal database ... ", end="")
         with captured_output(not args.debug):
-            load_data(access_key_inserts_file_entry, "access_key")
+            load_data(access_key_inserts_file_item, "access_key")
         print("Done.")
     if not args.update_database or args.verbose:
         print(f"Here is your new local portal access-key insert record suitable for: {_USER_MASTER_INSERTS_DIR}/access_key.json ...")
-        print(json.dumps(access_key_inserts_file_entry, indent=4))
+        print(json.dumps(access_key_inserts_file_item, indent=4))
 
 
 def _generate_user_uuid(user: Optional[str], update_database: bool) -> Optional[str]:
@@ -120,7 +120,7 @@ def _generate_user_uuid(user: Optional[str], update_database: bool) -> Optional[
         return user_uuid_from_inserts[0]["uuid"]
 
 
-def _generate_access_key_inserts_entry(access_key_id: str, access_key_secret_hash: str, user_uuid: str) -> dict:
+def _generate_access_key_inserts_item(access_key_id: str, access_key_secret_hash: str, user_uuid: str) -> dict:
     return {
         "status": "current",
         "user": user_uuid,
@@ -131,7 +131,7 @@ def _generate_access_key_inserts_entry(access_key_id: str, access_key_secret_has
     }
 
 
-def _generate_access_keys_file_entry(access_key_id: str, access_key_secret: str, port: int) -> dict:
+def _generate_access_keys_file_item(access_key_id: str, access_key_secret: str, port: int) -> dict:
     return {
         "key": access_key_id,
         "secret": access_key_secret,
