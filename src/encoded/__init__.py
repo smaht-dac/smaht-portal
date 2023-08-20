@@ -86,6 +86,7 @@ def include_snovault(config: Configurator) -> None:
     config.include('snovault.server_defaults')
     config.include('snovault.renderers')
     config.include('snovault.ingestion.ingestion_listener')
+    config.include('.ingestion.ingestion_processors')
     # configure redis server in production.ini
     if 'redis.server' in config.registry.settings:
         config.include('snovault.redis')

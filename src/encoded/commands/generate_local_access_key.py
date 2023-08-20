@@ -31,13 +31,13 @@ import requests
 import uuid
 from typing import Optional, Tuple
 from snovault.authentication import (
-    generate_user as generate_access_key,
-    generate_password as generate_access_key_secret
+    generate_password as generate_access_key_secret,
+    generate_user as generate_access_key
 )
 from snovault.dev_servers import load_data
+from snovault.edw_hash import EDWHash
 from passlib.context import CryptContext
 from passlib.registry import register_crypt_handler
-from snovault.edw_hash import EDWHash
 from .captured_output import captured_output
 
 
