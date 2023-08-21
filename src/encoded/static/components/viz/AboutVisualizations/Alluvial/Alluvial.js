@@ -61,15 +61,15 @@ export const Alluvial = () => {
 
             defs.append('pattern') // dots pattern
                 .attr('id', 'dots')
-                .attr('width', '3')
-                .attr('height', '3')
+                .attr('width', '7')
+                .attr('height', '6')
                 .attr('patternUnits', 'userSpaceOnUse')
-                .attr('x', '0')
-                .attr('y', '0')
+                .attr('x', '89')
+                .attr('y', '58')
                 .append('circle')
-                .attr('cx', '2')
-                .attr('cy', '2')
-                .attr('r', '.5')
+                .attr('cx', '3')
+                .attr('cy', '3')
+                .attr('r', '2')
                 .attr('fill', 'black')
                 .attr('fill-opactity', '1')
 
@@ -77,9 +77,15 @@ export const Alluvial = () => {
             // Color scale used
             var color = d3.scaleOrdinal(d3.schemeTableau10);
 
+            const color_schemes = {
+                "data_generator": d3.scaleOrdinal(d3.schemeSet1),
+                "technology": d3.scaleOrdinal(d3.schemeSet2),
+                "molecular_feature": d3.scaleOrdinal(d3.schemeTableau10)
+            }
+
             // Set the sankey diagram properties
             var sankey = sankeyFunc()
-                .nodeWidth(20)
+                .nodeWidth(30)
                 .nodePadding(10)
                 .size([width, height]);
 
@@ -98,8 +104,21 @@ export const Alluvial = () => {
             .attr("class", "link")
             .attr("d", sankey.link() )
             .attr("data-source", function(d) { return d.source.name } )
-            .style("stroke", function(d) { return d.color = color(d.source.name.replace(/ .*/, "")); })
-            .style("stroke-width", function(d) { return Math.max(1, d.dy); })
+            .attr("data-target", function(d) { return d.target.name } )
+            .style("stroke", function(d) {
+                if (d.source.type === "data_generator") {
+                    d.source.color = color_schemes["data_generator"](d.source.name.replace(/ .*/, ""))
+                    return d.source.color;
+                }
+                if (d.source.type === "technology") {
+                    d.source.color = color_schemes["technology"](d.source.name.replace(/ .*/, ""))
+                    return d.source.color;
+                }
+                else {
+                    return "black";
+                }
+            })
+            .style("stroke-width", function(d) { console.log("d.dy: ", d); return Math.max(1, d.dy); })
             .sort(function(a, b) { return b.dy - a.dy; })
 
             // add in the nodes
@@ -110,12 +129,20 @@ export const Alluvial = () => {
             .attr("class", "node")
             .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
             .on("mouseover", (e, d) => {
+                if (d.type === "molecular_feature") {
+                    d3.selectAll(`.link[data-target='${d.name}']`)
+                      .attr("class", "link selected")
+                }
                 d3.selectAll(`.link[data-source='${d.name}']`)
-                  .style("stroke-opacity", "0.8")
+                  .attr("class", "link selected")
             })
             .on("mouseleave", (e, d) => {
+                if (d.type === "molecular_feature") {
+                    d3.selectAll(`.link[data-target='${d.name}']`)
+                  .attr("class", "link")
+                }
                 d3.selectAll(`.link[data-source='${d.name}']`)
-                  .style("stroke-opacity", "0.2")
+                  .attr("class", "link")
             })
             .call(d3.drag()
                 .subject(function(d) { return d; })
@@ -127,7 +154,15 @@ export const Alluvial = () => {
                 .append("rect")
                 .attr("height", function(d) { return d.dy; })
                 .attr("width", sankey.nodeWidth())
-                .style("fill", function(d) { return d.color = color(d.name.replace(/ .*/, "")); })
+                .style("fill", function(d) {
+                    if (d.type === "technology") d.color = color_schemes["technology"](d.name.replace(/ .*/, ""))
+                    if (d.type === "data_generator") d.color = color_schemes["data_generator"](d.name.replace(/ .*/, ""))
+                    if (d.type === "molecular_feature") {
+                        d.color = color_schemes["molecular_feature"](d.name.replace(/ .*/, ""))
+                        return "lightgrey"
+                    }
+                    return d.color;
+                })
                 .style("stroke", function(d) { return d3.rgb(d.color).darker(2); })
                 // Add hover text
                 .append("title", function(d) { return d.name})
@@ -138,9 +173,25 @@ export const Alluvial = () => {
                 .append('rect')
                 .attr('height', function(d) { return d.dy; })
                 .attr('width', sankey.nodeWidth())
-                // .style('fill', 'url(#dots)')
-                .style('fill', 'url(#diagonalStripes)')
+                .style('fill', 'url(#dots)')
+                .style('fill', (d) => {
+                    if (d.type === "molecular_feature") {
+                        if (d.category === "transcriptomic") return "url(#diagonalStripes)";
+                        // if (d.category === "epigenetic") return "url(#diagonalStripes)";
+                        if (d.category === "epigenetic") return "black";
+                    }
+                    return "transparent"
+                    // return d.type === "molecular_feature" ? 'url(#diagonalStripes)' : 'white' 
+                })
                 .style('stroke', 'black')
+                // .on("mouseover", (e, d) => {
+                //     d3.select("#popover")
+                //       .style("display", "flex")
+                // })
+                // .on("mouseleave", (e,d) => {
+                //     d3.select("#popover")
+                //       .style("display", "none")
+                // })
 
             // add in the title for the nodes
             node
@@ -172,6 +223,13 @@ export const Alluvial = () => {
     },[]);
 
 
+    const Popover = () => {
+        return (
+            <div id="popover" className="alluvial-popover"></div>
+        )
+    }
+
+
     return (
         <div>
             <Tabs
@@ -184,6 +242,7 @@ export const Alluvial = () => {
                         <h4 className="header-left">Data Generators</h4>
                         <h4 className="header-center">Sequencing Platform / Assay Type</h4>
                         <h4 className="header-right">Molecular Features Profiled</h4>
+                        <Popover />
                     </div>
                     <div ref={containerRef}></div>
                 </Tab>

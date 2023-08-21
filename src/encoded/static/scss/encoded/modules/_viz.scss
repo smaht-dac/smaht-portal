@@ -83,6 +83,7 @@ div#container {
     display: flex;
     justify-content: center;
     margin-bottom: 50px;
+    padding: 100px 50px;
 }
 
 .headers {
@@ -121,6 +122,10 @@ div#container {
         &:hover {
             stroke-opacity: .8;
         }
+
+    &.selected {
+        stroke-opacity: .8;
+    }
 }
 
 
@@ -301,6 +306,12 @@ div#container {
         &-value {
             color: white;
             margin: auto;
+        }
+
+        &.empty-label-row {
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.02), transparent 99%);
+            border-bottom: none;
+            border-right: none;
         }
 
         &-detail-popover {
