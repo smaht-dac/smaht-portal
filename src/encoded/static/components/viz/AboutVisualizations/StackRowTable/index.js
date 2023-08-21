@@ -71,9 +71,14 @@ const PopoverContents = ({data}) => {
 }
 
 
+
+/**
+ * If value is -1, add a gradient to it
+ */
 const StackRowItem = ({ value, data }) => {
+
     return (
-        <div className="stackrow-item">
+        <div className={`stackrow-item ${ value === -1 ? "empty-label-row" : ""}`}>
             {
                 value && value > 0 ?
                         <OverlayTrigger
@@ -83,7 +88,7 @@ const StackRowItem = ({ value, data }) => {
                             overlay={
                                 <Popover id="popover-container">
                                     <PopoverTitle>
-                                        {value} Assays
+                                        {value} { value > 1 ? "Assays" : "Assay" }
                                     </PopoverTitle>
                                     <PopoverContent>
                                         <PopoverContents data={data} />
@@ -100,7 +105,7 @@ const StackRowItem = ({ value, data }) => {
     );
 }
 
-const StackRow = ({rowName, subrowNames, handleExpandedRow, expanded }) => {
+const StackRow = ({rowName, rowTitle, subrowNames, handleExpandedRow, expanded }) => {
 
     return (
         <div className="stackrow">
@@ -111,7 +116,7 @@ const StackRow = ({rowName, subrowNames, handleExpandedRow, expanded }) => {
                         onClick={() => {handleExpandedRow(rowName)}}
                     >
                     </i>
-                    <h4 className="stackrow-title">{rowName}</h4>
+                    <h4 className="stackrow-title">{rowTitle}</h4>
                 </div>
                 { expanded ?
                     <div className="stackrow-label-container-subrow">
@@ -156,14 +161,14 @@ export const StackRowTable = ({ data }) => {
 
     // rowOrder := the order in which rows should be rendered as a list
     // (Facilitates rendering the labels down the left side)
-    // rowOrder = 0, Genetics
+    // rowOrder = 0, Genetic
     // rowOrder = 1, Epigenetic
     // rowOrder = 2, Transcriptomic
     // By default will be in this order, but will be able to be sorted by 
     const rowOrder = [
-        { rowName: "Genetic", subrowNames: ["Assembled genome", "CNV", "InDel", "MEI", "Repeat elements", "SNV", "Telomere lengths"], },
-        { rowName: "Epigenetic", subrowNames: ["Chromatin accessibility", "Chromatin conformation", "DNA methylation"] },
-        { rowName: "Transcriptomic", subrowNames: ["Gene expression", "Gene expression - Spatial", "Transcript isoform"] }
+        { rowName: "Genetic", rowTitle: "Genomic variant type", subrowNames: ["Assembled genome", "CNV", "InDel", "MEI", "Repeat elements", "SNV", "Telomere lengths"], },
+        { rowName: "Epigenetic", rowTitle: "Epigenetic feature type", subrowNames: ["Chromatin accessibility", "Chromatin conformation", "DNA methylation"] },
+        { rowName: "Transcriptomic", rowTitle: "Transcriptomic feature type", subrowNames: ["Gene expression", "Gene expression - Spatial", "Transcript isoform"] }
     ].sort((row1, row2) => {
         const { sortIndex, direction } = sortInfo;
         if (direction === "descending") {
@@ -196,7 +201,7 @@ export const StackRowTable = ({ data }) => {
             <div className="stackrow-table-labels">
                 {   rowOrder.map((row, i) => {
                         return (
-                            <StackRow rowName={row.rowName} subrowNames={row.subrowNames} key={i} handleExpandedRow={handleExpandedRow} expanded={expandedRows.includes(row.rowName)}/>
+                            <StackRow rowName={row.rowName} rowTitle={row.rowTitle} subrowNames={row.subrowNames} key={i} handleExpandedRow={handleExpandedRow} expanded={expandedRows.includes(row.rowName)}/>
                         )
                     })
                 }
@@ -231,7 +236,7 @@ export const StackRowTable = ({ data }) => {
                                             return (
                                                 <div key={j}>
                                                     {/* Empty item to preserve spacing */}
-                                                    <StackRowItem /> 
+                                                    <StackRowItem value={-1} />
                                                     {
                                                         subrows.map((subrow, k) => {
                                                             let count = 0;
