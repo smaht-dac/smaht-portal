@@ -7,7 +7,6 @@ export default class AboutVisualizations extends Component {
     render() {
         return (
                 <>
-                    <p>Below are some visualizations about the consortium</p>
                     <div className='container pb-5'>
                         <ConsortiumMap/>
                     </div>
