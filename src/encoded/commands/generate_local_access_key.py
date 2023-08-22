@@ -88,7 +88,7 @@ def main():
             json.dump(access_keys_file_json, access_keys_file_f, indent=4)
         print("Done.")
     if not args.update_keys or args.verbose:
-        print(f"Here is your new local portal access-key record suitable for: {_ACCESS_KEYS_FILE} ...")
+        print(f"New local portal access-key record suitable for: {_ACCESS_KEYS_FILE} ...")
         print(json.dumps(access_keys_file_item, indent=4))
 
     if args.update_database:
@@ -99,7 +99,7 @@ def main():
             load_data(access_key_inserts_file_item, "access_key")
         print("Done.")
     if not args.update_database or args.verbose:
-        print(f"Here is your new local portal access-key insert record suitable for: {_INSERTS_DIR}/access_key.json ...")
+        print(f"New local portal access-key insert record suitable for: {_INSERTS_DIR}/access_key.json ...")
         print(json.dumps(access_key_inserts_file_item, indent=4))
 
 
