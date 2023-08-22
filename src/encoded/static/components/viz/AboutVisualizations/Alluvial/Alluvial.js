@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from "d3";
-import graph from "../data/alluvial-data.json";
+import graphData from "../data/alluvial-data.json";
 import tableData from '../data/tableData.json';
 import { sankeyFunc } from './util/sankey';
 
@@ -10,13 +10,122 @@ import { StackRowTable } from '../StackRowTable';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 
-
 /**
  * Component for rendering
  * @returns 
 */
 let isDrawn;
 export const Alluvial = () => {
+    const graph = graphData;
+    graph.map = {
+        "BCM":0,
+        "Broad":1,
+        "NYGC":2,
+        "UW":3,
+        "WashU":4,
+        "SNV":5,
+        "InDel":6,
+        "CNV":7,
+        "SV":8,
+        "MEI":9,
+        "Repeat elements":10,
+        "Telomere lengths":11,
+        "Assembled genome":12,
+        "Gene expression":13,
+        "DNA methylation":14,
+        "Chromatin accessibility":15,
+        "Transcript isoform":16,
+        "Chromatin conformation":17,
+        "Gene expression - Spatial":18,
+        "WGS":19,
+        "Fiber-Seq":20,
+        "Hi-C":21,
+        "MAS-Seq":22,
+        "NT-Seq":23,
+        "RNA-Seq":24,
+        "snRNA-Seq":25,
+        "STORM-Seq":26,
+        "Targeted RNA-Seq":27,
+        "Tranquil-Seq":28,
+        "WGS CODEC":29,
+        "WGS DLP+":30,
+        "WGS Duplex sequencing":31,
+        "WGS Nanoseq":32,
+        "Illumina NovaSeq":33,
+        "PacBio":34,
+        "ONT":35,
+        "ONT-Ultra-Long":36,
+        "Ultima Genomics":37,
+        "10X Genomics Xenium":38
+    }
+
+    // usually empty unless added directly in json
+    const links = []
+
+    // Append links for each line of data
+    graphData.lines.forEach((d, i) => {
+        let sourceNode = graphData.map[d.name];
+        
+
+
+        /**
+         * OPTION 1
+         */
+        // data_generator to assay type
+        // links.push({
+        //     "source": sourceNode, 
+        //     "target": graphData.map[d.target],
+        //     "row-id": i,
+        //     "value": 1
+        // });
+        // // assay type to sequencing platform
+        // links.push({
+        //     "source": graphData.map[d.target],
+        //     "target": graphData.map[d.target_sequencing_platform],
+        //     "row-id": i,
+        //     "value": 1
+        // });
+        // // sequencing platform to molecular feature
+        // links.push({
+        //     "source": graphData.map[d.target_sequencing_platform],
+        //     "target": graphData.map[d.target_molecular_feature],
+        //     "row-id": i,
+        //     "value": 1
+        // });
+
+        /**
+         * OPTION 2
+         */
+        // data_generator to sequencing platform
+        // links.push({
+        //     "source": sourceNode, 
+        //     "target": graphData.map[d.target_sequencing_platform],
+        //     "row-id": i,
+        //     "value": 1
+        // });
+        // // sequencing platform to assay type
+        // links.push({
+        //     "source": graphData.map[d.target_sequencing_platform],
+        //     "target": graphData.map[d.target],
+        //     "row-id": i,
+        //     "value": 1
+        // });
+        // // sequencing platform to molecular feature
+        // links.push({
+        //     "source": graphData.map[d.target],
+        //     "target": graphData.map[d.target_molecular_feature],
+        //     "row-id": i,
+        //     "value": 1
+        // });
+    })
+
+    // graph.links = links;
+
+    // console.log(links)
+
+
+
+
     
     const containerRef = useRef(null);
     isDrawn = false;
@@ -36,6 +145,7 @@ export const Alluvial = () => {
 
             // append the svg object to the body of the page
             var svg = d3.select(container).append("svg")
+                    .attr("class", "sankey-svg")
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
                     .append("g")
@@ -79,7 +189,8 @@ export const Alluvial = () => {
 
             const color_schemes = {
                 "data_generator": d3.scaleOrdinal(d3.schemeSet1),
-                "technology": d3.scaleOrdinal(d3.schemeSet2),
+                "sequencing_platform": d3.scaleOrdinal(d3.schemeSet2),
+                "assay_type": d3.scaleOrdinal(d3.schemeSet3),
                 "molecular_feature": d3.scaleOrdinal(d3.schemeTableau10)
             }
 
@@ -105,21 +216,42 @@ export const Alluvial = () => {
             .attr("d", sankey.link() )
             .attr("data-source", function(d) { return d.source.name } )
             .attr("data-target", function(d) { return d.target.name } )
+            .attr("data-row-id", d => d['row-id'])
             .style("stroke", function(d) {
                 if (d.source.type === "data_generator") {
                     d.source.color = color_schemes["data_generator"](d.source.name.replace(/ .*/, ""))
                     return d.source.color;
                 }
-                if (d.source.type === "technology") {
-                    d.source.color = color_schemes["technology"](d.source.name.replace(/ .*/, ""))
+                if (d.source.type === "assay_type") {
+                    d.source.color = color_schemes["assay_type"](d.source.name.replace(/ .*/, ""))
                     return d.source.color;
                 }
-                else {
-                    return "black";
+                if (d.source.type === "sequencing_platform") {
+                    d.source.color = color_schemes["sequencing_platform"](d.source.name.replace(/ .*/, ""))
+                    return d.source.color;
                 }
+                d.source.color = color_schemes["molecular_feature"](d.source.name.replace(/ .*/, ""))
+                return d.source.color
             })
-            .style("stroke-width", function(d) { console.log("d.dy: ", d); return Math.max(1, d.dy); })
+            .style("stroke-width", function(d) { return Math.max(1, d.dy); })
             .sort(function(a, b) { return b.dy - a.dy; })
+            .on("mouseover", (e,d) => {
+                let path_links = d3.selectAll(`[data-row-id='${d['row-id']}']`);
+                path_links.attr("class", "link selected")
+                // Select all targets of the assay type
+                const assay_type = path_links._groups[0].item(2).getAttribute("data-source");
+                d3.selectAll(`[data-source='${assay_type}']`)
+                  .attr("class", "link selected")
+            })
+            .on("mouseleave", (e, d) => { 
+                let path_links = d3.selectAll(`[data-row-id='${d['row-id']}']`);
+                path_links.attr("class", "link")
+
+                const assay_type = path_links._groups[0].item(2).getAttribute("data-source");
+                d3.selectAll(`[data-source='${assay_type}']`)
+                  .attr("class", "link")
+            })
+
 
             // add in the nodes
             var node = svg.append("g")
@@ -127,20 +259,21 @@ export const Alluvial = () => {
             .data(graph.nodes)
             .enter().append("g")
             .attr("class", "node")
+            .attr("category", (d) => d.category ?? "")
             .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
             .on("mouseover", (e, d) => {
-                if (d.type === "molecular_feature") {
+                // if (d.type === "molecular_feature") {
                     d3.selectAll(`.link[data-target='${d.name}']`)
                       .attr("class", "link selected")
-                }
+                // }
                 d3.selectAll(`.link[data-source='${d.name}']`)
                   .attr("class", "link selected")
             })
             .on("mouseleave", (e, d) => {
-                if (d.type === "molecular_feature") {
+                // if (d.type === "molecular_feature") {
                     d3.selectAll(`.link[data-target='${d.name}']`)
                   .attr("class", "link")
-                }
+                // }
                 d3.selectAll(`.link[data-source='${d.name}']`)
                   .attr("class", "link")
             })
@@ -155,13 +288,20 @@ export const Alluvial = () => {
                 .attr("height", function(d) { return d.dy; })
                 .attr("width", sankey.nodeWidth())
                 .style("fill", function(d) {
-                    if (d.type === "technology") d.color = color_schemes["technology"](d.name.replace(/ .*/, ""))
-                    if (d.type === "data_generator") d.color = color_schemes["data_generator"](d.name.replace(/ .*/, ""))
-                    if (d.type === "molecular_feature") {
-                        d.color = color_schemes["molecular_feature"](d.name.replace(/ .*/, ""))
-                        return "lightgrey"
+                    if (d.type === "data_generator") {
+                        d.color = color_schemes["data_generator"](d.name.replace(/ .*/, ""))
+                        return d.color;
                     }
-                    return d.color;
+                    if (d.type === "assay_type") {
+                        d.color = color_schemes["assay_type"](d.name.replace(/ .*/, ""))
+                        return d.color;
+                    }
+                    if (d.type === "sequencing_platform") {
+                        d.color = color_schemes["sequencing_platform"](d.name.replace(/ .*/, ""))
+                        return d.color;
+                    }
+                    d.color = color_schemes["molecular_feature"](d.name.replace(/ .*/, ""))
+                    return d.color
                 })
                 .style("stroke", function(d) { return d3.rgb(d.color).darker(2); })
                 // Add hover text
@@ -173,14 +313,14 @@ export const Alluvial = () => {
                 .append('rect')
                 .attr('height', function(d) { return d.dy; })
                 .attr('width', sankey.nodeWidth())
-                .style('fill', 'url(#dots)')
+                // .style('fill', 'url(#dots)')
                 .style('fill', (d) => {
-                    if (d.type === "molecular_feature") {
-                        if (d.category === "transcriptomic") return "url(#diagonalStripes)";
-                        // if (d.category === "epigenetic") return "url(#diagonalStripes)";
-                        if (d.category === "epigenetic") return "black";
-                    }
-                    return "transparent"
+                    // if (d.type === "molecular_feature") {
+                    //     if (d.category === "transcriptomic") return "url(#diagonalStripes)";
+                    //     // if (d.category === "epigenetic") return "url(#diagonalStripes)";
+                    //     if (d.category === "epigenetic") return "black";
+                    // }
+                    return d.color
                     // return d.type === "molecular_feature" ? 'url(#diagonalStripes)' : 'white' 
                 })
                 .style('stroke', 'black')
@@ -206,8 +346,23 @@ export const Alluvial = () => {
                 .attr("x", 6 + sankey.nodeWidth())
                 .attr("text-anchor", "start");
 
+
+            node
+                .append("text")
+                .attr("x", 40)
+                .attr("y", function(d) { return d.dy / 2; })
+                .attr("dy", ".35em")
+                // .attr("text-anchor", "end")
+                .attr("transform", null)
+                .text(function(d) { return d.type === "molecular_feature" ? d.category : "" })
+                .filter(function(d) { return d.x < width / 2; })
+                .attr("x", 6 + sankey.nodeWidth())
+                .attr("text-anchor", "start");
+
             // the function for moving the nodes
             function dragmove(event, d) {
+
+                // console.log(event, d);
                 d3.select(this)
                 .attr("transform", "translate(" + d.x + "," + (d.y = Math.max( 0, Math.min(height - d.dy, event.y))) + ")");
                 
@@ -239,9 +394,10 @@ export const Alluvial = () => {
             >
                 <Tab eventKey="alluvial" title="Alluvial view">
                     <div className='headers d-flex'>
-                        <h4 className="header-left">Data Generators</h4>
-                        <h4 className="header-center">Sequencing Platform / Assay Type</h4>
-                        <h4 className="header-right">Molecular Features Profiled</h4>
+                        <h4 className="header header-left">GCC</h4>
+                        <h4 className="header header-center-left">Sequencing Platform</h4>
+                        <h4 className="header header-center-right">Assay Type</h4>
+                        <h4 className="header header-right">Molecular Features Profiled</h4>
                         <Popover />
                     </div>
                     <div ref={containerRef}></div>
