@@ -93,21 +93,34 @@ div#container {
     margin-bottom: 30px;
 
     .header {
+        width: 20%;
         &-left {
-            width: 350px;
+            // width: 350px;
             margin-left:0;
             text-align: left;
         }
         &-center {
-            width: 350px;
-            margin: auto;
+            &-left {
+                margin: auto;
+                text-align: center;
+            }
+            &-right {
+                margin: auto;
+                text-align: center;
+            }
         }
         &-right {
-            width: 350px;
+            // width: 350px;
             float: right;
             text-align: right;
         }
     }
+}
+
+
+
+.sankey-svg {
+    overflow: visible;
 }
 
 .node {
@@ -203,7 +216,7 @@ div#container {
             width: 100%;
             display: flex;
             height: 49px;
-            width: 300px;
+            width: 100px;
             justify-content: space-between;
             padding-right: 20px;
         }
@@ -289,7 +302,7 @@ div#container {
                     display: flex;
                     justify-content: space-between;
                     margin-bottom: 5px;
-                    width: 100px;
+                    width: 100%;
 
                     .data-generator {
                         font-weight: 700;
@@ -325,6 +338,33 @@ div#container {
         font-size: 1rem;
         line-height: 35px;
     }
+    
+}
+
+.legend {
+    &-stackrow-item {
+        &-container {
+            height: 50px;
+            width: 50px;
+            display: flex;
+            justify-content: center;
+            border: 1px solid #eee6;
+            margin: auto auto auto 350px;
+        }
+            
+        position: relative;
+        height: 35px;
+        width: 35px;
+        color: white;
+        background-color: #3f883b;
+        border: 1px solid #3a6338;
+        display: flex;
+        justify-content: center;
+
+        &:hover {
+            background-color: #3a6338;
+        }
 
     
+    }
 }
