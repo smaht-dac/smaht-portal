@@ -934,13 +934,13 @@ xlrd = ">=1.0.0,<2.0.0"
 
 [[package]]
 name = "dcicutils"
-version = "7.7.0"
+version = "7.7.2.1b0"
 description = "Utility package for interacting with the 4DN Data Portal and other 4DN resources"
 optional = false
 python-versions = ">=3.7,<3.10"
 files = [
-    {file = "dcicutils-7.7.0-py3-none-any.whl", hash = "sha256:bbc6be71a6241641e8fba3827d02a5210b6aafd12381e95a4a2abf57e804ce12"},
-    {file = "dcicutils-7.7.0.tar.gz", hash = "sha256:dd1e028f1c36a0ee9b5972f5d16d8c9bc53c8d80ece69f8ebd73dd2225842448"},
+    {file = "dcicutils-7.7.2.1b0-py3-none-any.whl", hash = "sha256:7d3ea9b13bd6aec8111e1a8dabd4a162502a72a277e2d9acd5be4f5410896d1b"},
+    {file = "dcicutils-7.7.2.1b0.tar.gz", hash = "sha256:bb5a15b3106847ba20ccf5e7314ee65c9ed661352b383c36e4ea024f9f07018f"},
 ]
 
 [package.dependencies]
@@ -950,6 +950,7 @@ botocore = ">=1.20.39,<2.0.0"
 docker = ">=4.4.4,<5.0.0"
 elasticsearch = "7.13.4"
 gitpython = ">=3.1.2,<4.0.0"
+openpyxl = ">=3.1.2,<4.0.0"
 opensearch-py = ">=2.0.1,<3.0.0"
 PyJWT = ">=2.6.0,<3.0.0"
 pyOpenSSL = ">=23.1.1,<24.0.0"
@@ -3261,4 +3262,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.10"
-content-hash = "d05bca9f110812ec6711e49279a8f3d3531cb24a30ba583e69958b90c83fc4f2"
+content-hash = "e9657a5ceccd0f05d5fe773754ccbc45926abad5f54595c483a0d1aa7ce1ef1a"
