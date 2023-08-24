@@ -40,4 +40,5 @@ def handle_metadata_bundle(submission: SubmissionFolio):
 
 
 def do_something_with_this_loaded_spreadsheet(items: dict) -> None:
-    pass
+    print("TODO: Here are the submitted items to the smaht-portal ingestion:")
+    print(json.dumps(items, indent=4))
