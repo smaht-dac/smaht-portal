@@ -24,6 +24,7 @@
 # --------------------------------------------------------------------------------------------------
 
 import argparse
+import configparser
 import io
 import json
 import os
@@ -43,8 +44,7 @@ from .captured_output import captured_output
 
 _INSERTS_DIR = "src/encoded/tests/data/master-inserts"
 _USER_INSERTS_FILE = f"{_INSERTS_DIR}/user.json"
-_ACCESS_KEYS_FILE = os.path.expanduser("~/.smaht-keys.json")
-_ACCESS_KEYS_FILE_ITEM = "smaht-localhost"
+_DEFAULT_INI_FILE = "development.ini"
 
 
 def main():
@@ -57,12 +57,19 @@ def main():
     parser.add_argument("--update-database", action="store_true", required=False, default=False,
                         help=f"Updates the database of your locally running portal with the new access-key.")
     parser.add_argument("--update-keys", action="store_true", required=False, default=False,
-                        help=f"Updates your {_ACCESS_KEYS_FILE} file with the new access-key ({_ACCESS_KEYS_FILE_ITEM}).")
+                        help=f"Updates your access-keys file (e.g. ~/.smaht-keys.json) with the new access-key (e.g. smaht-localhost).")
     parser.add_argument("--port", type=int, required=False, default=8000,
                         help="Port for localhost on which your local portal is running.")
+    parser.add_argument("--ini", type=str, required=False, default=_DEFAULT_INI_FILE,
+                        help=f"Name of the application .ini file; default is: {_DEFAULT_INI_FILE}")
+    parser.add_argument("--app", type=str, required=False, default="smaht",
+                        help="App name for which the access-key should be generated; default is smaht.")
     parser.add_argument("--verbose", action="store_true", required=False, default=False, help="Verbose output.")
     parser.add_argument("--debug", action="store_true", required=False, default=False, help="Debugging output.")
     args = parser.parse_args()
+
+    _ACCESS_KEYS_FILE = os.path.expanduser(f"~/.{args.app}-keys.json")
+    _ACCESS_KEYS_FILE_ITEM = f"{args.app}-localhost"
 
     if args.update:
         args.update_database = True
@@ -70,7 +77,7 @@ def main():
 
     print("Creating a new local portal access-key ... ", end="")
     access_key_user_uuid = _generate_user_uuid(args.user, args.update_database)
-    access_key_id, access_key_secret, access_key_secret_hash = _generate_access_key()
+    access_key_id, access_key_secret, access_key_secret_hash = _generate_access_key(args.ini)
     access_key_inserts_file_item = _generate_access_key_inserts_item(access_key_id, access_key_secret_hash, access_key_user_uuid)
     access_keys_file_item = _generate_access_keys_file_item(access_key_id, access_key_secret, args.port)
     print("Done.")
@@ -137,7 +144,7 @@ def _generate_access_keys_file_item(access_key_id: str, access_key_secret: str, 
     }
 
 
-def _generate_access_key() -> Tuple[str, str, str]:
+def _generate_access_key(ini_file: str = _DEFAULT_INI_FILE) -> Tuple[str, str, str]:
     access_key_secret = generate_access_key_secret()
     return generate_access_key(), access_key_secret, _hash_secret_like_snovault(access_key_secret)
 
@@ -146,8 +153,32 @@ def _hash_secret_like_snovault(secret: str) -> str:
     # We do NOT store the secret in plaintext in the database, but rather a hash of it; this function
     # hashes the (given) secret in the same way that the portal (snovault) does and returns this result.
     # See access_key_add in snovault/types/access_key.py and includeme in snovault/authentication.py.
+    # Using that code directly from snovault is a little tricker then we want to deal with for this;
+    # and/but we do make an effort to read any passlib properties which might exist in the .ini file,
+    # just like snovault does; perhaps overkill; default is development.ini; change with --ini. 
+    def get_passlib_properties_from_ini_file(ini_file_name: str = _DEFAULT_INI_FILE,
+                                             section_name = "app:app",
+                                             property_name_prefix = "passlib."):
+        """
+        Returns from the specified section of the specified .ini file the values of properties with
+        the specified property name prefix, in the form of a dictionary, where the property names have
+        that specified property name prefix removed, and the property value is the associated value.
+        """
+        properties = {}
+        try:
+            config = configparser.ConfigParser()
+            config.read(ini_file_name)
+            for property_name in [p for p in config.options(section_name) if p.startswith(property_name_prefix)]:
+                property_value = config.get(section_name, property_name)
+                properties[property_name[len(property_name_prefix):]] = property_value
+        except Exception:
+            pass
+        return properties
+    passlib_properties = get_passlib_properties_from_ini_file()
+    if not passlib_properties:
+        passlib_properties = {"schemes": "edw_hash, unix_disabled"}
     register_crypt_handler(EDWHash)
-    return CryptContext(schemes="edw_hash, unix_disabled").hash(secret)
+    return CryptContext(**passlib_properties).hash(secret)
 
 
 def _is_local_portal_running(port: int) -> None:

@@ -40,5 +40,4 @@ def handle_metadata_bundle(submission: SubmissionFolio):
 
 
 def do_something_with_this_loaded_spreadsheet(items: dict) -> None:
-    import pdb ; pdb.set_trace()
     pass
