@@ -13,6 +13,7 @@ Change Log
   * For dev/testing purposes, added poetry script generate-local-access-key;
     see src/encoded/commands/generate_local_access_key.py for usage/details.
     * Added defintion of load_data_from (snovault.loadxl:load_data_from) to development.ini.template.
+    TODO: Comment about moving this to snovault_commands.
 
 
 0.0.7
