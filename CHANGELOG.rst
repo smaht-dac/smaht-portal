@@ -7,11 +7,16 @@ smaht-portal
 Change Log
 ----------
 
-0.0.8
+0.0.9
 =====
 * Adding ingestion processor.
   * Added generate-local-access-key script (from snovault) to pyproject.toml.
   * Changed metadata_bundles_bucket to smaht-production-application-metadata-bundles in development.ini.template
+
+
+0.0.8
+=====
+* Lock newer snovault, utils versions with bug fixes
 
 
 0.0.7
