@@ -10,6 +10,7 @@ Change Log
 0.0.9
 =====
 * Adding ingestion processor.
+  * Added ingestion_processor.py; basically a stub for now, using Kent's sheet_utils.
   * Added generate-local-access-key script (from snovault) to pyproject.toml.
   * Changed metadata_bundles_bucket to smaht-production-application-metadata-bundles in development.ini.template
 
