@@ -1,8 +1,7 @@
-import io
 import json
 import structlog
 from dcicutils.misc_utils import ignored
-from snovault.util import debuglog, s3_local_file
+from snovault.util import s3_local_file
 from snovault.ingestion.common import get_parameter
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
@@ -26,12 +25,8 @@ def handle_metadata_bundle(submission: SubmissionFolio):
         submission_id = submission.submission_id
         consortium = get_parameter(submission.parameters, 'consortium')
         submission_center = get_parameter(submission.parameters, 'submission_center')
-        validate_only = get_parameter(
-            submission.parameters,
-            'validate_only',
-            as_type=bool,
-            default=False
-        )
+        validate_only = get_parameter(submission.parameters, 'validate_only', as_type=bool, default=False)
+        ignored(submission_id, consortium, submission_center, validate_only)  # TODO
         s3_bucket = submission.bucket
         s3_key = submission.object_name
         with s3_local_file(s3_client, bucket=s3_bucket, key=s3_key) as filename:
