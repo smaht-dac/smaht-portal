@@ -1,0 +1,37 @@
+{
+    "title": "Document",
+    "description": "Data content and metadata, typically for simple files (text, pdf, etc.)",
+    "$id": "/profiles/document.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "aliases",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        }
+    ],
+    "properties": {
+        "schema_version": {
+            "default": "1"
+        }
+    }
+}

@@ -1,0 +1,194 @@
+{
+    "title": "File",
+    "description": "Generic file",
+    "$id": "/profiles/file.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "data_category",
+        "data_type",
+        "file_format"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "aliases",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "FI"
+        },
+        "status": {
+            "default": "uploading",
+            "enum": [
+                "uploading",
+                "uploaded",
+                "upload failed",
+                "to be uploaded by workflow",
+                "current",
+                "shared",
+                "replaced",
+                "in review",
+                "obsolete",
+                "inactive",
+                "archived",
+                "deleted"
+            ]
+        },
+        "data_category": {
+            "title": "Data Category",
+            "description": "Category for information in the file",
+            "type": "string",
+            "enum": [
+                "Sequencing Reads"
+            ]
+        },
+        "data_type": {
+            "title": "Data Type",
+            "description": "Detailed type of information in the file",
+            "type": "string",
+            "enum": [
+                "Unaligned Reads",
+                "Aligned Reads"
+            ]
+        },
+        "file_format": {
+            "title": "File Format",
+            "description": "Format of the file",
+            "type": "string",
+            "linkTo": "FileFormat"
+        },
+        "file_name": {
+            "title": "File Name",
+            "description": "The local file name used at time of submission",
+            "type": "string",
+            "pattern": "^[\\w+=,.@-]*$"
+        },
+        "file_size": {
+            "title": "File Size",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "description": "Size of file on disk in bytes",
+            "type": "integer"
+        },
+        "md5sum": {
+            "title": "MD5 Checksum",
+            "description": "The MD5 checksum of the file",
+            "comment": "This can vary for files of same content gzipped at different times",
+            "type": "string",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "ff_flag": "clear edit",
+            "format": "hex"
+        },
+        "content_md5sum": {
+            "title": "Content MD5 Checksum",
+            "description": "The MD5 checksum of the uncompressed file",
+            "comment": "This is only relevant for gzipped files",
+            "type": "string",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "format": "hex",
+            "uniqueKey": "file:content_md5sum"
+        },
+        "read": {
+            "title": "Read Pair Number",
+            "type": "String",
+            "enum": [
+                "R1",
+                "R2"
+            ]
+        },
+        "parent_files": {
+            "title": "Parent Files",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "title": "File",
+                "type": "string",
+                "linkTo": "File"
+            }
+        },
+        "paired_with": {
+            "title": "Paired with",
+            "description": "File paired with this file",
+            "type": "string",
+            "linkTo": "File"
+        },
+        "supercedes": {
+            "title": "Supercedes",
+            "description": "Files superceded by this file",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "title": "File",
+                "type": "string",
+                "linkTo": "File"
+            }
+        },
+        "quality_metrics": {
+            "title": "Quality Metrics",
+            "description": "QualityMetrics associated with this file",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "title": "Quality Metric",
+                "type": "string",
+                "linkTo": "QualityMetric"
+            }
+        }
+    },
+    "facets": {},
+    "columns": {}
+}

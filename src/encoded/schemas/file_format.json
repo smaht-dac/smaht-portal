@@ -1,0 +1,83 @@
+{
+    "title": "File Format",
+    "description": "Data format for a file",
+    "$id": "/profiles/file_format.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "identifier",
+        "standard_file_extension"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "aliases",
+	"identifier",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "FF"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "standard_file_extension": {
+            "$merge": "encoded_core.file_format.json#/properties/standard_file_extension",
+            "description": "Standard extension added to files for download"
+        },
+        "other_allowed_extensions": {
+            "$merge": "encoded_core.file_format.json#/properties/other_allowed_extensions"
+        },
+        "extra_file_formats": {
+            "$merge": "encoded_core.file_format.json#/properties/extrafile_formats"
+        }
+    }
+}
