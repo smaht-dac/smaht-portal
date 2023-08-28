@@ -24,6 +24,7 @@ ENCODED_CORE_FILE_PROCESSED_SCHEMA = deepcopy(CoreFileProcessed.schema)
     })
 class File(SMAHTItem, CoreFile):
     item_type = 'file'
+    name_key = 'accession'
     schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_SCHEMA)
 
 
