@@ -27,9 +27,13 @@ class File(SMAHTItem, CoreFile):
     name_key = 'accession'
     schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_SCHEMA)
 
+    class Collection(SMAHTItem.Collection):
+        pass
+
 
 @collection(
     name='files-submitted',
+    unique_key='accession',
     properties={
         'title': 'SMaHT Submitted Files',
         'description': 'Listing of SMaHT Submitted Files',
@@ -37,6 +41,7 @@ class File(SMAHTItem, CoreFile):
 class FileSubmitted(File):
     """ Overwrites the FileSubmitted type from encoded-core, customizing the schema for smaht-portal """
     item_type = 'file_submitted'
+    name_key = 'accession'
     schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_SUBMITTED_SCHEMA)
     base_types = ['File'] + SMAHTItem.base_types
 
@@ -46,6 +51,7 @@ class FileSubmitted(File):
 
 @collection(
     name='files-reference',
+    unique_key='accession',
     properties={
         'title': 'SMaHT Reference Files',
         'description': 'Listing of SMaHT Reference Files',
@@ -53,12 +59,14 @@ class FileSubmitted(File):
 class FileReference(File):
     """ Overwrites the FileReference type from encoded-core, customizing the schema for smaht-portal """
     item_type = 'file_reference'
+    name_key = 'accession'
     schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_REFERENCE_SCHEMA)
     base_types = ['File'] + SMAHTItem.base_types
 
 
 @collection(
     name='files-processed',
+    unique_key='accession',
     properties={
         'title': 'SMaHT Processed Files',
         'description': 'Listing of SMaHT Processed Files',
@@ -66,5 +74,6 @@ class FileReference(File):
 class FileProcessed(File):
     """ Overwrites the FileProcessed type from encoded-core, customizing the schema for smaht-portal """
     item_type = 'file_processed'
+    name_key = 'accession'
     schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_PROCESSED_SCHEMA)
     base_types = ['File'] + SMAHTItem.base_types

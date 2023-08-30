@@ -48,7 +48,6 @@ def validate_drs_conversion(drs_obj, meta, uri=None):
 def test_processed_file_drs_view(testapp, bam_file_json):
     """ Tests that processed mcool gives a valid DRS response """
     meta = testapp.post_json('/file_processed', bam_file_json).json['@graph'][0]
-    import pdb; pdb.set_trace()
     drs_meta = testapp.get(meta['@id'] + '@@drs').json
     validate_drs_conversion(drs_meta, meta)
     drs_meta = testapp.get(f'{DRS_PREFIX}/{meta["uuid"]}').json
@@ -66,7 +65,6 @@ def test_fastq_file_drs_view(testapp, file):
 def test_fastq_file_drs_access(testapp, file):
     """ Tests that access URLs are retrieved successfully """
     drs_meta = testapp.get(file['@id'] + '@@drs').json
-    import pdb; pdb.set_trace()
     drs_object_uri = drs_meta['drs_id']
     drs_object_download = testapp.get(f'/ga4gh/drs/v1/objects/{drs_object_uri}/access/').json
     assert drs_object_download == {
