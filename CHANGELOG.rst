@@ -7,13 +7,23 @@ smaht-portal
 Change Log
 ----------
 
-0.0.9
+0.0.10
 =====
+
 * Adding ingestion processor.
   * Added ingestion_processor.py; basically a stub for now, using Kent's sheet_utils.
   * Added generate-local-access-key script (from snovault) to pyproject.toml.
   * Changed metadata_bundles_bucket to smaht-production-application-metadata-bundles in development.ini.template.
 * Removed types/access_key.py and schemas/access_key.json as the ones in snovault are sufficient.
+
+0.0.9
+=====
+
+* Hook in and test DRS implementation
+
+
+0.0.8
+=====
 
 
 0.0.8
