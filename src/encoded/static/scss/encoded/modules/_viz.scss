@@ -131,13 +131,13 @@ div#container {
 
 .link {
     fill: none;
-    stroke-opacity: .2;
+    stroke-opacity: .1;
         &:hover {
-            stroke-opacity: .8;
+            stroke-opacity: .9;
         }
 
     &.selected {
-        stroke-opacity: .8;
+        stroke-opacity: .9;
     }
 }
 
@@ -303,7 +303,7 @@ div#container {
                     display: flex;
                     justify-content: space-between;
                     margin-bottom: 5px;
-                    width: 100px;
+                    width: 100%;
 
                     .data-generator {
                         font-weight: 700;
