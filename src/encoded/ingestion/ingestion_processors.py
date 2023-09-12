@@ -78,7 +78,7 @@ def load_data_via_sheet_utils(data_file_name: str, portal_vapp: VirtualApp) -> L
 
 def validate_data_against_schemas(data: LoadedDataType, portal_vapp: VirtualApp) -> Optional[dict]:
     """
-    Just until this kind of thing is in sheet_utils ...
+    TODO: This is just until this schema validation is fully supported in sheet_utils.
     If there are any missing required properties or any extraneous properties then return a
     dictionary with an itemized description of each of these problems, otherwise return None.
     """
