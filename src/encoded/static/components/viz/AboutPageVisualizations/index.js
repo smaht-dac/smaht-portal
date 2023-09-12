@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { ConsortiumMap } from './ConsortiumMap';
 import { Alluvial } from './Alluvial/Alluvial';
 
-export default class AboutVisualizations extends Component {
+export default class AboutPageVisualizations extends Component {
     
     render() {
         return (
