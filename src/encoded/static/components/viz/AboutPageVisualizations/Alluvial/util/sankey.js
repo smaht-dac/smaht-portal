@@ -118,8 +118,8 @@ export function sankeyFunc() {
     // Also, if the source and target are not objects, assume they are indices.
     function computeNodeLinks() {
         nodes.forEach(function(node) {
-        node.sourceLinks = [];
-        node.targetLinks = [];
+            node.sourceLinks = [];
+            node.targetLinks = [];
         });
         links.forEach(function(link) {
             var source = link.source,
@@ -134,10 +134,10 @@ export function sankeyFunc() {
     // Compute the value (size) of each node by summing the associated links.
     function computeNodeValues() {
         nodes.forEach(function(node) {
-        node.value = Math.max(
-            d3.sum(node.sourceLinks, value),
-            d3.sum(node.targetLinks, value)
-        );
+            node.value = Math.max(
+                d3.sum(node.sourceLinks, value),
+                d3.sum(node.targetLinks, value)
+            );
         });
     }
 
@@ -151,21 +151,19 @@ export function sankeyFunc() {
             x = 0;
 
         while (remainingNodes.length) {
-        nextNodes = [];
-        remainingNodes.forEach(function(node) {
-            node.x = x;
-            node.dx = nodeWidth;
-            node.sourceLinks.forEach(function(link) {
-            if (nextNodes.indexOf(link.target) < 0) {
-                nextNodes.push(link.target);
-            }
+            nextNodes = [];
+            remainingNodes.forEach(function(node) {
+                node.x = x;
+                node.dx = nodeWidth;
+                node.sourceLinks.forEach(function(link) {
+                if (nextNodes.indexOf(link.target) < 0) {
+                    nextNodes.push(link.target);
+                }
+                });
             });
-        });
-        remainingNodes = nextNodes;
-        ++x;
+            remainingNodes = nextNodes;
+            ++x;
         }
-
-        //
         moveSinksRight(x);
         scaleNodeBreadths((size[0] - nodeWidth) / (x - 1));
     }
@@ -195,8 +193,10 @@ export function sankeyFunc() {
     function computeNodeDepths(iterations) {
 
         var nodesByBreadth = d3.groups(nodes, d => d.x)
-            .sort((a, b) => d3.ascending(a[0], b[0]))
-            .map(function(d) { return d[1]; });
+            .sort((a, b) => { return d3.ascending(a[0], b[0])})
+            .map(function(d) {
+                return d[1]; 
+            });
 
         initializeNodeDepth();
         resolveCollisions();
@@ -208,20 +208,26 @@ export function sankeyFunc() {
         }
 
         function initializeNodeDepth() {
-        var ky = d3.min(nodesByBreadth, function(nodes) {
-            return (size[1] - (nodes.length - 1) * nodePadding) / d3.sum(nodes, value);
-        });
-
-        nodesByBreadth.forEach(function(nodes) {
-            nodes.forEach(function(node, i) {
-            node.y = i;
-            node.dy = node.value * ky;
+            var ky = d3.min(nodesByBreadth, function(nodes) {
+                return (size[1] - (nodes.length - 1) * nodePadding) / d3.sum(nodes, value);
             });
-        });
 
-        links.forEach(function(link) {
-            link.dy = link.value * ky;
-        });
+            nodesByBreadth.forEach(function(nodes) {
+                nodes.forEach(function(node, i) {
+                node.y = i;
+                node.dy = node.value * ky;
+                if (node.type === "data_generator") {
+                    node.dy = (size[1] - (nodes.length - 1) * nodePadding) / nodes.length;
+                }
+                // if (node.type === "sequencing_platform") {
+                //     node.dy = (size[1] - (nodes.length - 1) * nodePadding) / nodes.length;
+                // }
+                });
+            });
+
+            links.forEach(function(link) {
+                link.dy = link.value * ky;
+            });
         }
 
         function relaxLeftToRight(alpha) {
@@ -256,19 +262,38 @@ export function sankeyFunc() {
 
         function resolveCollisions() {
         nodesByBreadth.forEach(function(nodes) {
-            var node,
+            let node,
                 dy,
                 y0 = 0,
                 n = nodes.length,
                 i;
 
             // Push any overlapping nodes down.
-            nodes.sort(ascendingDepth);
+            // Sort data_generator type nodes alphabetically
+            let sortFn;
+            switch (nodes[0].type) {
+                case "data_generator":
+                    sortFn = alphabetical;
+                    break;
+                case "sequencing_platform":
+                    sortFn = ascendingDepth;
+                    break;
+                case "assay_type":
+                    sortFn = ascendingDepth;
+                    break;
+                case "molecular_feature":
+                    sortFn = categorical;
+                    break;
+                default:
+                    break;
+
+            }
+            nodes.sort(sortFn);
             for (i = 0; i < n; ++i) {
-            node = nodes[i];
-            dy = y0 - node.y;
-            if (dy > 0) node.y += dy;
-            y0 = node.y + node.dy + nodePadding;
+                node = nodes[i];
+                dy = y0 - node.y;
+                if (dy > 0) node.y += dy;
+                y0 = node.y + node.dy + nodePadding;
             }
 
             // If the bottommost node goes outside the bounds, push it back up.
@@ -285,6 +310,15 @@ export function sankeyFunc() {
             }
             }
         });
+        }
+
+        function alphabetical(a, b) {
+            return (a.name).localeCompare(b.name);
+        }
+
+        function categorical(a,b) {
+            if (b.category === "genetic") return 1 // force genetic as top
+            return a.category.localeCompare(b.category)
         }
 
         function ascendingDepth(a, b) {
