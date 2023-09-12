@@ -1,0 +1,418 @@
+{
+    "nodes":[
+        {"node":0,"name":"BCM","type":"data_generator"},
+        {"node":1,"name":"Broad","type":"data_generator"},
+        {"node":2,"name":"NYGC","type":"data_generator"},
+        {"node":3,"name":"UW","type":"data_generator"},
+        {"node":4,"name":"WashU","type":"data_generator"},
+        
+        {"node":5,"name":"SNV","type":"molecular_feature","category":"genetic", "desc": "Single nucleotide variants (SNV)"},
+        {"node":6,"name":"InDel","type":"molecular_feature","category":"genetic", "desc": "Small insertions and deletions (InDel)"},
+        {"node":7,"name":"CNV","type":"molecular_feature","category":"genetic", "desc": "Copy number variants (CNV)"},
+        {"node":8,"name":"SV","type":"molecular_feature","category":"genetic"},
+        {"node":9,"name":"MEI","type":"molecular_feature","category":"genetic", "desc":"Mobile-Element-mediated Insertions (MEI)"},
+        {"node":10,"name":"Repeat elements","type":"molecular_feature","category":"genetic"},
+        {"node":11,"name":"Telomere lengths","type":"molecular_feature","category":"genetic"},
+        {"node":12,"name":"Assembled genome","type":"molecular_feature","category":"genetic"},
+        {"node":13,"name":"Gene expression","type":"molecular_feature","category":"transcriptomic"},
+        {"node":14,"name":"DNA methylation","type":"molecular_feature","category":"epigenetic"},
+        {"node":15,"name":"Chromatin accessibility","type":"molecular_feature","category":"epigenetic"},
+        {"node":16,"name":"Transcript isoform","type":"molecular_feature","category":"transcriptomic"},
+        {"node":17,"name":"Chromatin conformation","type":"molecular_feature","category":"epigenetic"},
+        {"node":18,"name":"Gene expression - Spatial","type":"molecular_feature","category":"transcriptomic"},
+
+        {"node":19,"name":"WGS","type":"assay_type"},
+        {"node":20,"name":"Fiber-Seq","type":"assay_type"},
+        {"node":21,"name":"Hi-C","type":"assay_type"},
+        {"node":22,"name":"MAS-Seq","type":"assay_type"},
+        {"node":23,"name":"NT-Seq","type":"assay_type"},
+        {"node":24,"name":"RNA-Seq","type":"assay_type"},
+        {"node":25,"name":"snRNA-Seq","type":"assay_type"},
+        {"node":26,"name":"STORM-Seq","type":"assay_type"},
+        {"node":27,"name":"Targeted RNA-Seq","type":"assay_type"},
+        {"node":28,"name":"Tranquil-Seq","type":"assay_type"},
+        {"node":29,"name":"WGS CODEC","type":"assay_type"},
+        {"node":30,"name":"WGS DLP+","type":"assay_type"},
+        {"node":31,"name":"WGS Duplex sequencing","type":"assay_type"},
+        {"node":32,"name":"WGS Nanoseq","type":"assay_type"},
+
+        {"node":33,"name":"Illumina NovaSeq","type":"sequencing_platform"},
+        {"node":34,"name":"PacBio","type":"sequencing_platform"},
+        {"node":35,"name":"ONT","type":"sequencing_platform"},
+        {"node":36,"name":"ONT-Ultra-Long","type":"sequencing_platform"},
+        {"node":37,"name":"Ultima Genomics","type":"sequencing_platform"},
+        {"node":38,"name":"10X Genomics Xenium","type":"sequencing_platform"}
+
+    ],
+    "links": [
+        {
+            "source": 0,
+            "target": 33,
+            "value": 1
+        },
+        {
+            "source": 0,
+            "target": 34,
+            "value": 1
+        },
+        {
+            "source": 0,
+            "target": 35,
+            "value": 1
+        },
+        {
+            "source": 1,
+            "target": 33,
+            "value": 1
+        },
+        {
+            "source": 1,
+            "target": 34,
+            "value": 1
+        },
+        {
+            "source": 2,
+            "target": 37,
+            "value": 1
+        },
+        {
+            "source": 2,
+            "target": 35,
+            "value": 1
+        },
+        {
+            "source": 2,
+            "target": 33,
+            "value": 1
+        },
+        {
+            "source": 3,
+            "target": 33,
+            "value": 1
+        },
+        {
+            "source": 3,
+            "target": 34,
+            "value": 1
+        },
+        {
+            "source": 3,
+            "target": 35,
+            "value": 1
+        },
+        {
+            "source": 3,
+            "target": 36,
+            "value": 1
+        },
+        {
+            "source": 4,
+            "target": 33,
+            "value": 1
+        },
+        {
+            "source": 4,
+            "target": 34,
+            "value": 1
+        },
+        {
+            "source": 4,
+            "target": 35,
+            "value": 1
+        },
+        {
+            "source": 4,
+            "target": 38,
+            "value": 1
+        },
+        {
+            "source": 33,
+            "target": 19,
+            "value": 1
+        },
+        {
+            "source": 33,
+            "target": 24,
+            "value": 1
+        },
+        {
+            "source": 33,
+            "target": 32,
+            "value": 1
+        },
+        {
+            "source": 33,
+            "target": 23,
+            "value": 1
+        },
+        {
+            "source": 33,
+            "target": 29,
+            "value": 1
+        },
+        {
+            "source": 33,
+            "target": 30,
+            "value": 1
+        },
+        {
+            "source": 33,
+            "target": 21,
+            "value": 1
+        },
+        {
+            "source": 33,
+            "target": 26,
+            "value": 1
+        },
+        {
+            "source": 34,
+            "target": 19,
+            "value": 1
+        },
+        {
+            "source": 34,
+            "target": 25,
+            "value": 1
+        },
+        {
+            "source": 34,
+            "target": 20,
+            "value": 1
+        },
+        {
+            "source": 34,
+            "target": 22,
+            "value": 1
+        },
+        {
+            "source": 34,
+            "target": 28,
+            "value": 1
+        },
+        {
+            "source": 35,
+            "target": 19,
+            "value": 1
+        },
+        {
+            "source": 37,
+            "target": 31,
+            "value": 1
+        },
+        {
+            "source": 36,
+            "target": 19,
+            "value": 1
+        },
+        {
+            "source": 38,
+            "target": 27,
+            "value": 1
+        },
+        {
+            "source": 19,
+            "target": 5,
+            "value": 1
+        },
+        {
+            "source": 19,
+            "target": 6,
+            "value": 1
+        },
+        {
+            "source": 19,
+            "target": 7,
+            "value": 1
+        },
+        {
+            "source": 19,
+            "target": 8,
+            "value": 1
+        },
+        {
+            "source": 19,
+            "target": 9,
+            "value": 1
+        },
+        {
+            "source": 19,
+            "target": 10,
+            "value": 1
+        },
+        {
+            "source": 19,
+            "target": 11,
+            "value": 1
+        },
+        {
+            "source": 19,
+            "target": 12,
+            "value": 1
+        },
+        {
+            "source": 24,
+            "target": 13,
+            "value": 1
+        },
+        {
+            "source": 32,
+            "target": 5,
+            "value": 1
+        },
+        {
+            "source": 32,
+            "target": 6,
+            "value": 1
+        },
+        {
+            "source": 23,
+            "target": 14,
+            "value": 1
+        },
+        {
+            "source": 25,
+            "target": 13,
+            "value": 1
+        },
+        {
+            "source": 29,
+            "target": 5,
+            "value": 1
+        },
+        {
+            "source": 29,
+            "target": 6,
+            "value": 1
+        },
+        {
+            "source": 31,
+            "target": 5,
+            "value": 1
+        },
+        {
+            "source": 31,
+            "target": 6,
+            "value": 1
+        },
+        {
+            "source": 30,
+            "target": 5,
+            "value": 1
+        },
+        {
+            "source": 30,
+            "target": 6,
+            "value": 1
+        },
+        {
+            "source": 30,
+            "target": 7,
+            "value": 1
+        },
+        {
+            "source": 20,
+            "target": 15,
+            "value": 1
+        },
+        {
+            "source": 22,
+            "target": 16,
+            "value": 1
+        },
+        {
+            "source": 21,
+            "target": 17,
+            "value": 1
+        },
+        {
+            "source": 27,
+            "target": 18,
+            "value": 1
+        },
+        {
+            "source": 26,
+            "target": 13,
+            "value": 1
+        },
+        {
+            "source": 28,
+            "target": 13,
+            "value": 1
+        }
+    ],
+    "platforms": {
+        "BCM": {
+            "WGS": [ "Illumina NovaSeq", "PacBio", "ONT" ],
+            "RNA-Seq": [ "Illumina NovaSeq" ],
+            "WGS Nanoseq": [ "Illumina NovaSeq" ],
+            "NT-Seq": [ "Illumina NovaSeq" ],
+            "snRNA-Seq": [ "PacBio" ]
+        },
+        "Broad": {
+            "WGS": [ "Illumina NovaSeq", "PacBio" ],
+            "RNA-Seq": [ "Illumina NovaSeq" ],
+            "WGS CODEC": [ "Illumina NovaSeq" ]
+        },
+        "NYGC": {
+            "WGS Duplex sequencing": [ "Ultima Genomics" ],
+            "WGS": [ "ONT" ],
+            "RNA-Seq": [ "Illumina NovaSeq" ],
+            "WGS DLP+": [ "Illumina NovaSeq" ]
+        },
+        "UW": {
+            "WGS": [ "Illumina NovaSeq","PacBio", "ONT", "ONT-Ultra-Long" ],
+            "Fiber-Seq": [ "PacBio" ],
+            "MAS-Seq": [ "PacBio" ],
+            "Hi-C": [ "Illumina NovaSeq" ]
+        },
+        "WashU": {
+            "WGS": [ "Illumina NovaSeq", "PacBio", "ONT"],
+            "Targeted RNA-Seq": [ "10X Genomics Xenium" ],
+            "RNA-Seq": [ "Illumina NovaSeq" ],
+            "STORM-Seq": [ "Illumina NovaSeq" ],
+            "Tranquil-Seq": [ "PacBio" ]
+        }
+    },
+    "map": {
+        "BCM":0,
+        "Broad":1,
+        "NYGC":2,
+        "UW":3,
+        "WashU":4,
+        "SNV":5,
+        "InDel":6,
+        "CNV":7,
+        "SV":8,
+        "MEI":9,
+        "Repeat elements":10,
+        "Telomere lengths":11,
+        "Assembled genome":12,
+        "Gene expression":13,
+        "DNA methylation":14,
+        "Chromatin accessibility":15,
+        "Transcript isoform":16,
+        "Chromatin conformation":17,
+        "Gene expression - Spatial":18,
+        "WGS":19,
+        "Fiber-Seq":20,
+        "Hi-C":21,
+        "MAS-Seq":22,
+        "NT-Seq":23,
+        "RNA-Seq":24,
+        "snRNA-Seq":25,
+        "STORM-Seq":26,
+        "Targeted RNA-Seq":27,
+        "Tranquil-Seq":28,
+        "WGS CODEC":29,
+        "WGS DLP+":30,
+        "WGS Duplex sequencing":31,
+        "WGS Nanoseq":32,
+        "Illumina NovaSeq":33,
+        "PacBio":34,
+        "ONT":35,
+        "ONT-Ultra-Long":36,
+        "Ultima Genomics":37,
+        "10X Genomics Xenium":38
+    }
+}
