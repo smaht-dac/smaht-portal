@@ -9,7 +9,7 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { pageTitleViews } from './../../PageTitleSection';
 import { GuestHomeView } from './GuestHomeView';
 
-import AboutVisualizations from '../../viz/AboutVisualizations';
+import AboutPageVisualizations from '../../viz/AboutPageVisualizations';
 
 
 /**
@@ -30,12 +30,13 @@ export default class HomePage extends React.PureComponent {
         // Render alerts here instead of (unused-for-homepage) PageTitleSection
         return (
             <div className="homepage-wrapper">
-                {/* <div id="full-alerts-container" className="bg-primary-dark">
+                <div id="full-alerts-container" className="bg-primary-dark">
                     <Alerts alerts={alerts} className="alerts" />
-                </div> */}
-                {/* <GuestHomeView {...commonProps} {...{ updateAppSessionState }} /> */}
+                </div>
+                <GuestHomeView {...commonProps} {...{ updateAppSessionState }} />
                 
-                <AboutVisualizations />
+                {/* NOTE: uncomment the line below to test visualizations  */}
+                {/* <AboutPageVisualizations /> */}
             </div>
         );
     }
