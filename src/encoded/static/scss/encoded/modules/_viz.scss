@@ -8,28 +8,42 @@
     position: absolute; 
 }
 .consortium-tooltip {
+    // font-family: Inter;
     background-color: #e3e3e3;
     position: absolute; 
     opacity: 0;
 }
 .consortium-tooltip-wrapper {
-    max-width: 200px;
-    font-size: 12px;
+    max-width: 220px;
+    font-size: 14px;
 }
 .consortium-tooltip-content {
-    font-size: 12px;
+    // font-family: Inter;
+    font-size: 14px;
 }
 .consortium-tooltip-header {
+    // font-family: Inter;
     font-weight: bold;
-    font-size: 10px;
+    font-size: 12px;
 }
 
 table.table-striped {
+    th {
+        background-color: white;
+        font-weight: bold;
+        // font-family: Inter;
+        text-align: left;
+    }
     tbody {
+        td {
+            border: 1px solid lightgray;
+            // font-family: Inter;
+            text-align: left;
+        }
         td.consortium-table-OC {
             font-weight: bold;
             font-size: 22px;
-            background-color: #000000;
+            background-color: #0b00d6;
             cursor: default;
             color: #ffffff;
         }
@@ -43,14 +57,14 @@ table.table-striped {
         td.consortium-table-TPC {
             font-weight: bold;
             font-size: 22px;
-            background-color: #8000bf;
+            background-color: #b32ff5;
             cursor: default;
             color: #ffffff;
         }
         td.consortium-table-GCC {
             font-weight: bold;
             font-size: 22px;
-            background-color: #FFC300;
+            background-color: #ff9500;
             cursor: default;
             color: #ffffff;
         }
@@ -72,18 +86,19 @@ table.table-striped {
 
 
 /* Styles for the Alluvial Plot */
-div#container {
-    height: 500px;
-    width: 500px;
-    background-color: gray;
-    margin: 200px auto auto auto;
-}
-
 .alluvial-container {
     display: flex;
     justify-content: center;
     margin-bottom: 50px;
     padding: 100px 50px;
+    
+
+    .footnote {
+        color: gray;
+        font-size: .9rem;
+        font-style: italic;
+        // margin-left: 50px;
+    }
 }
 
 .headers {
@@ -121,11 +136,26 @@ div#container {
 
 .sankey-svg {
     overflow: visible;
+
+    .header {
+        font-size: 1.1rem;
+    }
 }
 
 .node {
+    &-header {
+        fill: rgb(58, 58, 58);
+        font-size: 0.9rem;
+    }
+
     &:hover {
         cursor: pointer;
+        
+        text {
+            font-weight: bolder;
+            fill: black;
+
+        }
     }
 }
 
@@ -133,11 +163,11 @@ div#container {
     fill: none;
     stroke-opacity: .1;
         &:hover {
-            stroke-opacity: .9;
+            stroke-opacity: .8;
         }
 
     &.selected {
-        stroke-opacity: .9;
+        stroke-opacity: 1;
     }
 }
 
@@ -149,13 +179,12 @@ div#container {
     &-table {
         width: 100%;
         height: 100%;
-        padding: 150px 50px 150px 50px;
+        padding: 100px 50px 70px 50px;
         display: flex;
 
 
         &-labels {
             margin-top: 100px;
-
         }
 
         &-columns {
@@ -170,12 +199,13 @@ div#container {
                     justify-content: space-between;
                     height: 100%;
                     width: 50px;
+                    color: #343741;
                     
                     & > p {
                         position: absolute;
                         transform: rotate(-60deg) translate(40px, -40px);
-                        width: 200px;
-                        height: 50px;
+                        width: 250px;
+                        height: 80px;
                         font-size: 1rem;
                     }
                     
@@ -210,7 +240,6 @@ div#container {
     &-label-container {
         display: flex;
         flex-direction: column;
-        border-bottom: 1px solid #eee6;
         width: 100%;
 
         &-primary {
@@ -272,22 +301,25 @@ div#container {
         width: 50px;
         display: flex;
         justify-content: center;
-        border-bottom: 1px solid #eee6;
-        border-right: 1px solid #eee6;
+        border-right: 1px solid rgba(238, 238, 238, 0.6);
+
+        &:nth-child(odd) {
+            background-color: #F8F8F8;
+        }
         
         &-container {
             position: relative;
             height: 35px;
             width: 35px;
-            background-color: #3f883b;
-            border: 1px solid #3a6338;
+            background-color: #CBDDEA;
+            border: 1px solid #B9CAD5;
             display: flex;
             justify-content: center;
             margin: auto;
             // border-radius: 2px;
 
             &:hover {
-                background-color: #3a6338;
+                background-color: #b7cfda;
             }
 
         }
@@ -318,7 +350,7 @@ div#container {
         }
 
         &-value {
-            color: white;
+            color: #343741;
             margin: auto;
         }
 
@@ -338,34 +370,32 @@ div#container {
     &-title {
         font-size: 1rem;
         line-height: 35px;
+        color: #343741;
     }
     
 }
 
-.legend {
-    &-stackrow-item {
-        &-container {
-            height: 50px;
-            width: 50px;
-            display: flex;
-            justify-content: center;
-            border: 1px solid #eee6;
-            margin: auto auto auto 350px;
-        }
-            
-        position: relative;
-        height: 35px;
-        width: 35px;
-        color: white;
-        background-color: #3f883b;
-        border: 1px solid #3a6338;
-        display: flex;
-        justify-content: center;
+.stackrow-item-legend {
+    display: flex;
+    justify-content: center;
+    // margin-top: 100px;
+    .text {
+        margin: auto 10px auto 10px;
+        font-family: Inter;
+    }
 
-        &:hover {
-            background-color: #3a6338;
-        }
+    .stackrow-item {
+        background-color: transparent;
+        border: none;
+    }
+}
 
-    
+.popover {
+    &-header {
+        color: #343741;
+    }
+
+    &-body {
+        color: #343741;
     }
 }
