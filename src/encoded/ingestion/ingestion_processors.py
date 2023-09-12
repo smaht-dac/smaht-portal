@@ -1,5 +1,4 @@
 import contextlib
-import json
 import re
 import structlog
 import tempfile
@@ -161,7 +160,6 @@ def upload_summary_to_s3(info: dict, submission: SmahtSubmissionFolio) -> None:
         ]
     elif info.get("problems"):
         data_validation_problems = info["problems"]
-        import pdb ; pdb.set_trace()
         validation_output = [
             f"Data validation problems:",
             f"Items missing identifying property: {len(data_validation_problems.get('unidentified', []))}",
