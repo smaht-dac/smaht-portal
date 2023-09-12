@@ -850,7 +850,7 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "dcicsnovault"
-version = "10.0.4.1b8"
+version = "10.0.4.1b9"
 description = "Storage support for 4DN Data Portals."
 optional = false
 python-versions = "*"
@@ -2790,4 +2790,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.10"
-content-hash = "2a096b1f39bcea71ba1266a405c853c0b7404d15e599a7ecc326adc40225570f"
+content-hash = "c9bf2e86cf9193543972e7e2f0d204cbbba5d25c3223da378be64253e7d39308"

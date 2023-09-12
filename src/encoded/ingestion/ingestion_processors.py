@@ -42,12 +42,15 @@ class SmahtSubmissionFolio:
 def handle_metadata_bundle(submission: SubmissionFolio):
     with submission.processing_context():
         submission = SmahtSubmissionFolio(submission)
+        import pdb ; pdb.set_trace()
         with load_data(submission) as data:
+            import pdb ; pdb.set_trace()
             problems = validate_data_against_schemas(data, submission.portal_vapp)
             if problems:
                 report_invalid_data(problems)
                 return
-            do_something_with_the_data(data, submission)
+            load_data_response = load_data_into_database(data, submission.portal_vapp, submission.validate_only)
+            upload_load_summary_to_s3(load_data_response, submission)
 
 
 @contextlib.contextmanager
@@ -59,47 +62,101 @@ def load_data(submission: SmahtSubmissionFolio) -> LoadedDataType:
         yield load_data_via_sheet_utils(data_file_name, submission.portal_vapp)
 
 
-def load_data_via_sheet_utils(data_file_name: str, portal_vapp: VirtualApp):
+def load_data_via_sheet_utils(data_file_name: str, portal_vapp: VirtualApp) -> LoadedDataType:
     if data_file_name.endswith(".zip"):
         # TODO: Note that sheet_utils does not yet support zip files so we do it here.
         tmp_data_directory = tempfile.mkdtemp()
         with zipfile.ZipFile(data_file_name, "r") as zipf:
             zipf.extractall(tmp_data_directory)
             # TODO: Want to pass a portal_vapp to get schemas but not yet supported by sheet_utils.
-            return InsertsDirectoryItemManager(filename=tmp_data_directory).load_content()
+            data = InsertsDirectoryItemManager(filename=tmp_data_directory).load_content()
     else:
-        return load_items(data_file_name, portal_vapp=portal_vapp)
+        data = load_items(data_file_name, portal_vapp=portal_vapp)
+    return data
 
 
-def do_something_with_the_data(data: LoadedDataType, submission: SmahtSubmissionFolio) -> None:
+def validate_data_against_schemas(data: LoadedDataType, portal_vapp: VirtualApp) -> Optional[dict]:
+    """
+    Just until this kind of thing is in sheet_utils ...
+    If there are any missing required properties or any extraneous properties then return a
+    dictionary with a description of each of these problems itemized, otherwise return None.
+    """
+    from dcicutils.ff_utils import get_schema
+    from dcicutils.task_utils import pmap
 
-    def upload_load_result_to_s3(result: dict, submission: SmahtSubmissionFolio) -> None:
-        summary = [
-            f"Ingestion summary:",
-            f"Created: {len(result['create'])}",
-            f"Updated: {len(result['update'])}",
-            f"Skipped: {len(result['skip'])}",
-            f"Checked: {len(result['validate'])}",
-            f"Errored: {len(result['error'])}",
-            f"Uniques: {result['unique']}",
-            f"Ingestion files:",
-            f"Summary: s3://{submission.s3_data_bucket}/{submission.id}/submission.json"
-        ]
-        result = {"result": result, "validation_output": summary}
-        submission.note_additional_datum("validation_output", from_dict=result)
-        submission.process_result(result)
+    def fetch_relevant_schemas(schema_names: list, portal_vapp: VirtualApp) -> list:
+        def fetch_schema(schema_name: str) -> Optional[dict]:
+            return schema_name, get_schema(schema_name, portal_vapp=portal_vapp)
+        return {schema_name: schema for schema_name, schema in pmap(fetch_schema, schema_names)}
+
+    problems = {}
+    errors = []
+    missing_properties = []
+    extraneous_properties = []
 
     try:
-        result = load_data_into_database(data, submission.portal_vapp, submission.validate_only)
-        upload_load_result_to_s3(result, submission)
+        schema_names = [data_type for data_type in data]
+        schemas = fetch_relevant_schemas(schema_names, portal_vapp=portal_vapp)
     except Exception as e:
-        print("ERROR: Exception while doing something with the smaht-portal ingestion data!")
-        print(e)
+        errors.append({"exception": str(e)})
+
+    for data_type in data:
+        schema = schemas.get(data_type)
+        if not schema:
+            errors.append({"error": f"No schema found for: {data_type}"})
+            continue
+        allowed_properties = schema.get("properties", {}).keys()
+        required_properties = schema.get("required", [])
+        identifying_properties = schema.get("identifyingProperties", [])
+        for item in data[data_type]:
+            identifying_property = get_identifying_property(item, identifying_properties)
+            identifying_value = item.get(identifying_property) if identifying_property else "<no-identifying-property>"
+            if not identifying_property:
+                missing_properties.append({
+                    "item": identifying_value,
+                    "type": data_type
+                })
+            for required_property in required_properties:
+                if required_property not in item:
+                    missing_properties.append({
+                        "item": identifying_value,
+                        "type": data_type,
+                        "required": required_property
+                    })
+            for item_property in item:
+                if item_property not in allowed_properties:
+                    extraneous_properties.append({
+                        "item": identifying_value,
+                        "type": data_type,
+                        "extraneous": item_property
+                    })
+    if missing_properties:
+        problems["missing"] = missing_properties
+    if extraneous_properties:
+        problems["extraneous"] = extraneous_properties
+    return problems if problems else None
+
+
+def upload_load_summary_to_s3(load_data_response: dict, submission: SmahtSubmissionFolio) -> None:
+    load_data_summary = [
+        f"Ingestion summary:",
+        f"Created: {len(load_data_response['create'])}",
+        f"Updated: {len(load_data_response['update'])}",
+        f"Skipped: {len(load_data_response['skip'])}",
+        f"Checked: {len(load_data_response['validate'])}",
+        f"Errored: {len(load_data_response['error'])}",
+        f"Uniques: {load_data_response['unique']}",
+        f"Ingestion files:",
+        f"Summary: s3://{submission.s3_data_bucket}/{submission.id}/submission.json"
+    ]
+    result = {"result": load_data_response, "validation_output": load_data_summary}
+    submission.note_additional_datum("validation_output", from_dict=result)
+    submission.process_result(result)
 
 
 def load_data_into_database(data: LoadedDataType, portal_vapp: VirtualApp, validate_only: bool = False) -> None:
 
-    def package_loadxl_response(loadxl_response):
+    def package_loadxl_response(loadxl_response) -> dict:
         LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+): ([0-9a-f-]+)$")
         ACTION_NAME = {"POST": "create", "PATCH": "update", "SKIP": "skip", "CHECK": "validate", "ERROR": "error"}
         response = {"create": [], "update": [], "skip": [], "validate": [], "error": []}
@@ -139,59 +196,6 @@ def load_data_into_database(data: LoadedDataType, portal_vapp: VirtualApp, valid
     response = loadxl_load_data(portal_vapp, data, None, overwrite=True, itype=None,
                                 from_json=True, patch_only=False, validate_only=validate_only)
     return package_loadxl_response(response)
-
-
-def validate_data_against_schemas(data: LoadedDataType, portal_vapp: VirtualApp) -> Optional[dict]:
-    """
-    Just until this kind of thing is in sheet_utils ...
-    If there are any missing required properties or any extraneous properties then return a
-    dictionary with a description of each of these problems itemized, otherwise return None.
-    """
-
-#   def get_identifying_property(item: dict, item_identifying_properties: list) -> Optional[str]:
-#       if "uuid" in item:
-#           return "uuid"
-#       if item_identifying_properties:
-#           for item_identifying_property in item_identifying_properties:
-#               if item_identifying_property in item:
-#                   return item_identifying_property
-#       return None
-
-    problems = {}
-    missing_properties = []
-    extraneous_properties = []
-    for data_type in data:
-        schema = portal_vapp.get(f"/profiles/{data_type}.json").json
-        allowed_properties = schema.get("properties", {}).keys()
-        required_properties = schema.get("required", [])
-        identifying_properties = schema.get("identifyingProperties", [])
-        for item in data[data_type]:
-            identifying_property = get_identifying_property(item, identifying_properties)
-            identifying_value = item.get(identifying_property) if identifying_property else "<no-identifying-property>"
-            if not identifying_property:
-                missing_properties.append({
-                    "item": identifying_value,
-                    "type": data_type
-                })
-            for required_property in required_properties:
-                if required_property not in item:
-                    missing_properties.append({
-                        "item": identifying_value,
-                        "type": data_type,
-                        "required": required_property
-                    })
-            for item_property in item:
-                if item_property not in allowed_properties:
-                    extraneous_properties.append({
-                        "item": identifying_value,
-                        "type": data_type,
-                        "extraneous": item_property
-                    })
-    if missing_properties:
-        problems["missing"] = missing_properties
-    if extraneous_properties:
-        problems["extraneous"] = extraneous_properties
-    return problems if problems else None
 
 
 def report_invalid_data(problems):
