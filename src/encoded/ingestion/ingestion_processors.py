@@ -8,7 +8,7 @@ from dcicutils.misc_utils import VirtualApp
 from dcicutils.sheet_utils import InsertsDirectoryItemManager, load_items
 from snovault.ingestion.common import get_parameter
 from snovault.ingestion.ingestion_processors import ingestion_processor
-from snovault.loadxl import get_identifying_property, load_all_gen as loadxl_load_data
+from snovault.loadxl import get_identifying_value, load_all_gen as loadxl_load_data
 from snovault.types.ingestion import SubmissionFolio
 from snovault.util import s3_local_file
 
@@ -110,9 +110,9 @@ def validate_data_against_schemas(data: LoadedDataType, portal_vapp: VirtualApp)
         required_properties = schema.get("required", [])
         identifying_properties = schema.get("identifyingProperties", [])
         for item in data[data_type]:
-            identifying_property = get_identifying_property(item, identifying_properties)
-            identifying_value = item.get(identifying_property) if identifying_property else "<unidentified>"
-            if not identifying_property:
+            identifying_value = get_identifying_value(item, identifying_properties)
+            if not identifying_value:
+                identifying_value = "<unidentified>"
                 unidentified.append({
                     "item": identifying_value,
                     "type": data_type,
@@ -175,10 +175,10 @@ def upload_summary_to_s3(info: dict, submission: SmahtSubmissionFolio) -> None:
 def load_data_into_database(data: LoadedDataType, portal_vapp: VirtualApp, validate_only: bool = False) -> None:
 
     def summarize_loadxl_response(loadxl_response) -> dict:
-        LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+): ([0-9a-f-]+)$")
+        LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*(.*)$")
         ACTION_NAME = {"POST": "create", "PATCH": "update", "SKIP": "skip", "CHECK": "validate", "ERROR": "error"}
         response = {"create": [], "update": [], "skip": [], "validate": [], "error": []}
-        unique_uuids = set()
+        unique_identifying_values = set()
         for item in loadxl_response:
             # ASSUME each item in the loadxl response looks something like one of (string or bytes):
             # POST: cafebeef-01ce-4e61-be5d-cd04401dff29
@@ -193,22 +193,22 @@ def load_data_into_database(data: LoadedDataType, portal_vapp: VirtualApp, valid
                 log.warning(f"smaht-ingester: skipping response item of unexpected type ({type(item)}): {item!r}")
                 continue
             match = LOADXL_RESPONSE_PATTERN.match(item)
-            if not match:
+            if not match or match.re.groups != 2:
                 log.warning(f"smaht-ingester: skipping response item in unexpected form: {item!r}")
                 continue
             action = ACTION_NAME[match.group(1).upper()]
-            uuid = match.group(2)
+            identifying_value = match.group(2)
             if not response.get(action):
                 response[action] = []
-            response[action].append(uuid)
-            unique_uuids.add(uuid)
+            response[action].append(identifying_value)
+            unique_identifying_values.add(identifying_value)
         # Items flagged as SKIP in loadxl could ultimately be a PATCH (update),
         # so remove from the skip list any items which are also in the update list. 
         response["skip"] = [item for item in response["skip"] if item not in response["update"]]
         # Items flagged as POST (create) in loadxl typically also are flagged as PATCH (update), due to the
         # way they are written, so remove from the update list any items which are also in the create list.
         response["update"] = [item for item in response["update"] if item not in response["create"]]
-        response["unique"] = len(unique_uuids)
+        response["unique"] = len(unique_identifying_values)
         return {"loaded": response}
 
     loadxl_load_data_response = loadxl_load_data(
