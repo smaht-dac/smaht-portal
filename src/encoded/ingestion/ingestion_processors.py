@@ -1,20 +1,20 @@
 import contextlib
 import json
+import re
 import structlog
 import tempfile
-from typing import Any, Dict, List
+from typing import Dict, List, Optional
 import zipfile
-from dcicutils.misc_utils import ignored, VirtualApp
-from dcicutils.sheet_utils import ItemManager, InsertsDirectoryItemManager, load_items
-from snovault.util import s3_local_file
+from dcicutils.misc_utils import VirtualApp
+from dcicutils.sheet_utils import InsertsDirectoryItemManager, load_items
 from snovault.ingestion.common import get_parameter
 from snovault.ingestion.ingestion_processors import ingestion_processor
-from snovault.loadxl import load_all_gen
-import snovault.loadxl
+from snovault.loadxl import get_identifying_property, load_all_gen as loadxl_load_data
 from snovault.types.ingestion import SubmissionFolio
+from snovault.util import s3_local_file
 
 
-SpreadsheetType = Dict[str, List[Any]]
+LoadedDataType = Dict[str, List[dict]]
 log = structlog.getLogger(__name__)
 
 
@@ -22,60 +22,179 @@ def includeme(config):
     config.scan(__name__)
 
 
-@ingestion_processor('metadata_bundle')
-@ingestion_processor('family_history')
+class SmahtSubmissionFolio:
+    def __init__(self, submission: SubmissionFolio):
+        self.id = submission.submission_id
+        self.data_file = get_parameter(submission.parameters, "datafile")
+        self.s3_data_bucket = submission.bucket
+        self.s3_data_key = submission.object_name
+        self.s3 = submission.s3_client
+        self.validate_only = get_parameter(submission.parameters, "validate_only", as_type=bool, default=False)
+        self.consortium = get_parameter(submission.parameters, "consortium")
+        self.submission_center = get_parameter(submission.parameters, "submission_center")
+        self.portal_vapp = submission.vapp
+        self.note_additional_datum = submission.note_additional_datum
+        self.process_result = lambda result: submission.process_standard_bundle_results(result, s3_only=True)
+
+
+@ingestion_processor("metadata_bundle")
+@ingestion_processor("family_history")
 def handle_metadata_bundle(submission: SubmissionFolio):
-
     with submission.processing_context():
-
-        submission_id = submission.submission_id
-        consortium = get_parameter(submission.parameters, 'consortium')
-        submission_center = get_parameter(submission.parameters, 'submission_center')
-        data_file_name = get_parameter(submission.parameters, "datafile")
-        if data_file_name.endswith(".json"):
-            data_type = data_file_name[:-5]
-        else:
-            data_type = data_file_name
-        ignored(submission_id, consortium, submission_center)  # TODO
-        with loaded_spreadsheet(submission, data_file_name=data_file_name) as data:
-            do_something_with_this_loaded_spreadsheet(data, data_type, submission)
+        submission = SmahtSubmissionFolio(submission)
+        with load_data(submission) as data:
+            problems = validate_data_against_schemas(data, submission.portal_vapp)
+            if problems:
+                report_invalid_data(problems)
+                return
+            do_something_with_the_data(data, submission)
 
 
 @contextlib.contextmanager
-def loaded_spreadsheet(submission: SubmissionFolio, data_file_name: str = None) -> SpreadsheetType:
-    s3_client = submission.s3_client
-    s3_bucket = submission.bucket
-    s3_key = submission.object_name
-    with s3_local_file(s3_client, bucket=s3_bucket, key=s3_key, local_filename=data_file_name) as filename:
-        #yield ItemManager.load(filename, portal_env="http://localhost:8000")
-        #yield ItemManager.load(filename, portal_env="data")
-        #yield load_items(filename, portal_env="data", portal_vapp=submission.vapp)
-        if filename.endswith(".zip"):
-            tmp_directory = tempfile.mkdtemp()
-            with zipfile.ZipFile(filename, "r") as zipf:
-                zipf.extractall(tmp_directory)
-                loader = InsertsDirectoryItemManager(filename=tmp_directory)
-                # TODO: Want to pass portal_vapp to get schemas.
-                data = loader.load_content()
-                yield data
-        else:
-            data = load_items(filename, portal_vapp=submission.vapp)
-            yield data
+def load_data(submission: SmahtSubmissionFolio) -> LoadedDataType:
+    with s3_local_file(submission.s3,
+                       bucket=submission.s3_data_bucket,
+                       key=submission.s3_data_key,
+                       local_filename=submission.data_file) as data_file_name:
+        yield load_data_via_sheet_utils(data_file_name, submission.portal_vapp)
 
 
-def do_something_with_this_loaded_spreadsheet(data: SpreadsheetType, data_type: str, submission: SubmissionFolio) -> None:
-    print("TODO: Here are the submitted items to the smaht-portal ingestion:")
+def load_data_via_sheet_utils(data_file_name: str, portal_vapp: VirtualApp):
+    if data_file_name.endswith(".zip"):
+        # TODO: Note that sheet_utils does not yet support zip files so we do it here.
+        tmp_data_directory = tempfile.mkdtemp()
+        with zipfile.ZipFile(data_file_name, "r") as zipf:
+            zipf.extractall(tmp_data_directory)
+            # TODO: Want to pass a portal_vapp to get schemas but not yet supported by sheet_utils.
+            return InsertsDirectoryItemManager(filename=tmp_data_directory).load_content()
+    else:
+        return load_items(data_file_name, portal_vapp=portal_vapp)
+
+
+def do_something_with_the_data(data: LoadedDataType, submission: SmahtSubmissionFolio) -> None:
+
+    def upload_load_result_to_s3(result: dict, submission: SmahtSubmissionFolio) -> None:
+        summary = [
+            f"Ingestion summary:",
+            f"Created: {len(result['create'])}",
+            f"Updated: {len(result['update'])}",
+            f"Skipped: {len(result['skip'])}",
+            f"Checked: {len(result['validate'])}",
+            f"Errored: {len(result['error'])}",
+            f"Uniques: {result['unique']}",
+            f"Ingestion files:",
+            f"Summary: s3://{submission.s3_data_bucket}/{submission.id}/submission.json"
+        ]
+        result = {"result": result, "validation_output": summary}
+        submission.note_additional_datum("validation_output", from_dict=result)
+        submission.process_result(result)
+
     try:
-        app = submission.vapp
-        validate_only = get_parameter(submission.parameters, 'validate_only', as_type=bool, default=False)
-        load_spreadsheet_into_database(data, data_type, app, validate_only)
-        print(json.dumps(data, indent=4))
+        result = load_data_into_database(data, submission.portal_vapp, submission.validate_only)
+        upload_load_result_to_s3(result, submission)
     except Exception as e:
         print("ERROR: Exception while doing something with the smaht-portal ingestion data!")
         print(e)
 
 
-def load_spreadsheet_into_database(data: SpreadsheetType, data_type: str, app: VirtualApp, validate_only: bool = False) -> None:
-    response = load_all_gen(app, data, None, overwrite=True, itype=data_type, from_json=True, patch_only=False, validate_only=validate_only)
-    for item in response:
-        x = item
+def load_data_into_database(data: LoadedDataType, portal_vapp: VirtualApp, validate_only: bool = False) -> None:
+
+    def package_loadxl_response(loadxl_response):
+        LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+): ([0-9a-f-]+)$")
+        ACTION_NAME = {"POST": "create", "PATCH": "update", "SKIP": "skip", "CHECK": "validate", "ERROR": "error"}
+        response = {"create": [], "update": [], "skip": [], "validate": [], "error": []}
+        unique_uuids = set()
+        for item in loadxl_response:
+            # ASSUME each item in the loadxl response looks something like one of (string or bytes):
+            # POST: cafebeef-01ce-4e61-be5d-cd04401dff29
+            # PATCH: feedcafe-7b4f-4923-824b-d0864a689bb
+            # SKIP: deadbabe-eb17-4406-adb8-060ea2ae2180
+            # CHECK: cafebabe-eb17-4406-adb8-0eacafebabe
+            # ERROR: deadbeef-483e-4a08-96b9-3ce85ce8bf8c
+            # Note that SKIP means skip POST (create); it still may do PATCH (update), if overwrite.
+            if isinstance(item, bytes):
+                item = item.decode("ascii")
+            elif not isinstance(item, str):
+                log.warning(f"smaht-ingester: skipping response item of unexpected type ({type(item)}): {item!r}")
+                continue
+            match = LOADXL_RESPONSE_PATTERN.match(item)
+            if not match:
+                log.warning(f"smaht-ingester: skipping response item in unexpected form: {item!r}")
+                continue
+            action = ACTION_NAME[match.group(1).upper()]
+            uuid = match.group(2)
+            if not response.get(action):
+                response[action] = []
+            response[action].append(uuid)
+            unique_uuids.add(uuid)
+        # Items flagged as SKIP in loadxl could ultimately be a PATCH (update),
+        # so remove from the skip list any items which are also in the update list. 
+        response["skip"] = [item for item in response["skip"] if item not in response["update"]]
+        # Items flagged as POST (create) in loadxl typically also are flagged as PATCH (update), due to the
+        # way they are written, so remove from the update list any items which are also in the create list.
+        response["update"] = [item for item in response["update"] if item not in response["create"]]
+        response["unique"] = len(unique_uuids)
+        return response
+
+    response = loadxl_load_data(portal_vapp, data, None, overwrite=True, itype=None,
+                                from_json=True, patch_only=False, validate_only=validate_only)
+    return package_loadxl_response(response)
+
+
+def validate_data_against_schemas(data: LoadedDataType, portal_vapp: VirtualApp) -> Optional[dict]:
+    """
+    Just until this kind of thing is in sheet_utils ...
+    If there are any missing required properties or any extraneous properties then return a
+    dictionary with a description of each of these problems itemized, otherwise return None.
+    """
+
+#   def get_identifying_property(item: dict, item_identifying_properties: list) -> Optional[str]:
+#       if "uuid" in item:
+#           return "uuid"
+#       if item_identifying_properties:
+#           for item_identifying_property in item_identifying_properties:
+#               if item_identifying_property in item:
+#                   return item_identifying_property
+#       return None
+
+    problems = {}
+    missing_properties = []
+    extraneous_properties = []
+    for data_type in data:
+        schema = portal_vapp.get(f"/profiles/{data_type}.json").json
+        allowed_properties = schema.get("properties", {}).keys()
+        required_properties = schema.get("required", [])
+        identifying_properties = schema.get("identifyingProperties", [])
+        for item in data[data_type]:
+            identifying_property = get_identifying_property(item, identifying_properties)
+            identifying_value = item.get(identifying_property) if identifying_property else "<no-identifying-property>"
+            if not identifying_property:
+                missing_properties.append({
+                    "item": identifying_value,
+                    "type": data_type
+                })
+            for required_property in required_properties:
+                if required_property not in item:
+                    missing_properties.append({
+                        "item": identifying_value,
+                        "type": data_type,
+                        "required": required_property
+                    })
+            for item_property in item:
+                if item_property not in allowed_properties:
+                    extraneous_properties.append({
+                        "item": identifying_value,
+                        "type": data_type,
+                        "extraneous": item_property
+                    })
+    if missing_properties:
+        problems["missing"] = missing_properties
+    if extraneous_properties:
+        problems["extraneous"] = extraneous_properties
+    return problems if problems else None
+
+
+def report_invalid_data(problems):
+    # TODO
+    print("PROBLEMS WITH INPUT DATA:")
+    print(json.dumps(problems, indent=4))
