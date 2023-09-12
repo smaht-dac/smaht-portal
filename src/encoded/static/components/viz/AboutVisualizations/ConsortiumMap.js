@@ -6,6 +6,7 @@ import * as topojson from "topojson-client";
 import us from "./data/us.json";
 import consortia from "./data/consortia.json";
 import consortiaLegend from "./data/consortia_legend.json";
+import consortiaLabels from "./data/consortia_labels.json";
 
 // import Tab from "react-bootstrap/Tab";
 // import Tabs from "react-bootstrap/Tabs";
@@ -43,7 +44,7 @@ export class ConsortiumMap extends Component {
       .append("svg")
       .attr("width", 1000)
       .attr("height", 600)
-      .attr("viewBox", [0, 0, 1000, 600])
+      .attr("viewBox", [0, 0, 1050, 600])
       .attr("style", "max-width: 100%; height: auto;");
 
     svg
@@ -51,17 +52,17 @@ export class ConsortiumMap extends Component {
       .selectAll("path")
       .data(states.features)
       .join("path")
-      .attr("fill", (d) => color(25))
+      .attr("fill", (d) => color(20))
       .attr("d", path)
       .on("mouseout", function () {
         d3.select("#consortiumMapTooltip")
           .style("opacity", 0)
           .style("left", "-500px")
           .style("top", "0px");
-        d3.select(this).attr("fill", (d) => color(25));
+        d3.select(this).attr("fill", (d) => color(20));
       })
       .on("mouseover", function () {
-        d3.select(this).attr("fill", (d) => color(35));
+        d3.select(this).attr("fill", (d) => color(30));
       });
     //   .append("title")
     // .text(d => `${d.properties.name}`);
@@ -122,6 +123,21 @@ export class ConsortiumMap extends Component {
       .on("click", function (evt, d) {
         window.open(d.url, "_blank");
       });
+      
+    this.addMarkerDots(svg);
+
+    consortiaLabels.forEach((d, i) => {
+      d["institution"].forEach((inst, i) => {
+        svg
+        .append("text")
+        .attr("x", d.x)
+        .attr("y", d.y + i*12)
+        .text(inst)
+        .style("font-size", "14px")
+        .attr("alignment-baseline", "middle");
+      });
+
+    });
 
     const legendBasePosX = 5;
     const legendBasePosY = 450;
@@ -157,6 +173,19 @@ export class ConsortiumMap extends Component {
       <div class="consortium-tooltip-content">${consortium.project}</div>
       <i class="pt-2 d-block small">Clicking on this marker will open the NIH project page in a new tab.</i>
     </div>`;
+  }
+
+  addMarkerDots(svg){
+    const dataset = consortia
+      .filter((c) => !c.location)
+      .forEach((c) => {
+        svg
+        .append("circle")
+        .attr("cx", c.x + MARKER_SIZE/2)
+        .attr("cy", c.y + MARKER_SIZE)
+        .attr("r", 3)
+        .style("fill", LINE_COLOR);
+      });    
   }
 
   addConnectionLines(svg, centerCoords, location) {
