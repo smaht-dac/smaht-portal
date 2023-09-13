@@ -8,9 +8,6 @@ import consortia from "./data/consortia.json";
 import consortiaLegend from "./data/consortia_legend.json";
 import consortiaLabels from "./data/consortia_labels.json";
 
-// import Tab from "react-bootstrap/Tab";
-// import Tabs from "react-bootstrap/Tabs";
-// import Tooltip from "react-bootstrap/Tooltip";
 import { OverlayTrigger, Tooltip, Tab, Tabs } from "react-bootstrap";
 
 const MARKER_SIZE = 40;
@@ -32,7 +29,7 @@ export class ConsortiumMap extends Component {
   }
 
   drawChart() {
-    const color = d3.scaleLinear([1, 10], d3.schemeBlues[9]);
+    const color = d3.scaleLinear([1, 10], d3.schemeGreys[9]);
     const path = d3.geoPath();
 
     const states = topojson.feature(us, us.objects.states);
@@ -52,17 +49,17 @@ export class ConsortiumMap extends Component {
       .selectAll("path")
       .data(states.features)
       .join("path")
-      .attr("fill", (d) => color(20))
+      .attr("fill", (d) => color(15))
       .attr("d", path)
       .on("mouseout", function () {
         d3.select("#consortiumMapTooltip")
           .style("opacity", 0)
           .style("left", "-500px")
           .style("top", "0px");
-        d3.select(this).attr("fill", (d) => color(20));
+        d3.select(this).attr("fill", (d) => color(15));
       })
       .on("mouseover", function () {
-        d3.select(this).attr("fill", (d) => color(30));
+        d3.select(this).attr("fill", (d) => color(25));
       });
     //   .append("title")
     // .text(d => `${d.properties.name}`);
@@ -84,9 +81,9 @@ export class ConsortiumMap extends Component {
     };
     this.addConnectionLines(svg, centerCoods["Boston"], "Boston");
     this.addConnectionLines(svg, centerCoods["Worcester"], "Worcester");
-    this.addConnectionLines(svg, centerCoods["NYC"], "NYC");
-    this.addConnectionLines(svg, centerCoods["WashU"], "WashU");
-    this.addConnectionLines(svg, centerCoods["Baylor"], "Baylor");
+    this.addConnectionLines(svg, centerCoods["NYC"], "New York City");
+    this.addConnectionLines(svg, centerCoods["WashU"], "St. Louis");
+    this.addConnectionLines(svg, centerCoods["Baylor"], "Houston");
 
     svg
       .selectAll(".m")
@@ -97,7 +94,7 @@ export class ConsortiumMap extends Component {
       .attr("width", MARKER_SIZE)
       .attr("height", MARKER_SIZE)
       .attr("xlink:href", (d) => {
-        return `/static/img/map-marker-${d["marker-color"]}.svg`;
+        return `./map-marker-${d["marker-color"]}.svg`;
       })
       .attr("transform", (d) => {
         return `translate(${d.x}, ${d.y})`;
@@ -123,7 +120,7 @@ export class ConsortiumMap extends Component {
       .on("click", function (evt, d) {
         window.open(d.url, "_blank");
       });
-      
+
     this.addMarkerDots(svg);
 
     consortiaLabels.forEach((d, i) => {
@@ -133,11 +130,12 @@ export class ConsortiumMap extends Component {
         .attr("x", d.x)
         .attr("y", d.y + i*12)
         .text(inst)
-        .style("font-size", "14px")
+        .style("font-size", "12px")
         .attr("alignment-baseline", "middle");
       });
-
+      
     });
+
 
     const legendBasePosX = 5;
     const legendBasePosY = 450;
@@ -149,7 +147,7 @@ export class ConsortiumMap extends Component {
         .attr("height", 27)
         .attr("x", legendBasePosX)
         .attr("y", legendBasePosY + i * 25)
-        .attr("xlink:href", `/static/img/map-marker-${d["color"]}.svg`);
+        .attr("xlink:href", `./map-marker-${d["color"]}.svg`);
 
       svg
         .append("text")
@@ -166,9 +164,13 @@ export class ConsortiumMap extends Component {
     <div class="consortium-tooltip-wrapper">
       <div class="pb-2 font-weight-bold">${consortium["center-type"]}</div>
       <div class="consortium-tooltip-header">Institution</div>
-      <div class="pb-2 consortium-tooltip-content">${consortium["institution"]}</div>
+      <div class="pb-2 consortium-tooltip-content">${
+        consortium["institution"]
+      }</div>
       <div class="consortium-tooltip-header">Principal Investigators</div>
-      <div class="pb-2 consortium-tooltip-content">${consortium.pis.join("<br/>")}</div>
+      <div class="pb-2 consortium-tooltip-content">${consortium.pis.join(
+        "<br/>"
+      )}</div>
       <div class="consortium-tooltip-header">Project</div>
       <div class="consortium-tooltip-content">${consortium.project}</div>
       <i class="pt-2 d-block small">Clicking on this marker will open the NIH project page in a new tab.</i>
@@ -230,6 +232,32 @@ export class ConsortiumMap extends Component {
       .attr("cy", centerCoords[1] + MARKER_SIZE - 4)
       .attr("r", 3)
       .style("fill", LINE_COLOR);
+
+    svg
+      .append("rect")
+      .attr("x", centerCoords[0] + MARKER_SIZE/2 - 4)
+      .attr("y", centerCoords[1] + MARKER_SIZE - 8)
+      .attr("width", 8)
+      .attr("height", 8)
+      .style("opacity", 0)
+      .on("mouseover", (evt, d) => {
+        d3.select("#consortiumMapTooltip")
+          .text(location)
+          .transition()
+          .duration(200)
+          .style("opacity", 1);
+      })
+      .on("mouseout", function () {
+        d3.select("#consortiumMapTooltip")
+          .style("opacity", 0)
+          .style("left", "-500px")
+          .style("top", "0px");
+      })
+      .on("mousemove", function (evt) {
+        d3.select("#consortiumMapTooltip")
+          .style("left", evt.pageX + 10 + "px")
+          .style("top", evt.pageY + 10 + "px");
+      });
   }
 
   renderTable() {
@@ -238,14 +266,14 @@ export class ConsortiumMap extends Component {
     // );
     const centerRows = [];
 
-    consortia.forEach((c, rowKey) => {
+    consortia.forEach((c) => {
       const centerTypeClass =
         "align-middle text-center consortium-table-" + c["center-type-short"];
-      const pis = c["pis"].map((p, piKey) => {
-        return (<div className="text-nowrap" key={piKey}>{p}</div>);
+      const pis = c["pis"].map((p) => {
+        return <div className="text-nowrap">{p}</div>;
       });
       centerRows.push(
-        <tr key={rowKey}>
+        <tr>
           <td className={centerTypeClass}>
             <OverlayTrigger
               placement="right"
@@ -256,8 +284,8 @@ export class ConsortiumMap extends Component {
               <div className="px-1">{c["center-type-short"]}</div>
             </OverlayTrigger>
           </td>
-          <td className="align-middle">{pis}</td>
-          <td className="align-middle">{c["institution"]}</td>
+          <td className="align-middle border-right">{pis}</td>
+          <td className="align-middle border-right">{c["institution"]}</td>
           <td className="align-middle">
             {c["project"]} <br />
             <small>
