@@ -17,6 +17,8 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
     If there are any missing required properties, any extraneous properties, or any undentified
     items in the data, then returns a dictionary with an itemized description of each of these
     problems, grouped by problem type, otherwise returns None if there are no problems.
+    An unidentified item is one which has no value for uuid nor any of the other
+    identifying properties as defined by the schema.
 
     For example give data that looks something like this:
         {
@@ -63,7 +65,8 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
         }
 
     The "item" is the identifying value for the specified object (uuid or another if defined by the schema).
-    The "index" is the (0-indexed) ordinal position of the object within the list within the type within the given data.
+    The "index" is the (0-indexed) ordinal position of the object within the list within the type within the
+    given data, which can be useful in identifying the object in the source data if it is unidentified.
     """
 
     def fetch_relevant_schemas(schema_names: list, portal_vapp: VirtualApp) -> list:
