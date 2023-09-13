@@ -11,6 +11,7 @@ from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.loadxl import get_identifying_value, load_all_gen as loadxl_load_data
 from snovault.types.ingestion import SubmissionFolio
 from snovault.util import s3_local_file
+from .data_validation import validate_data_against_schemas
 
 
 LoadedDataType = Dict[str, List[dict]]
@@ -45,12 +46,12 @@ def handle_metadata_bundle(submission: SubmissionFolio):
 
 def process_submission(submission: SmahtSubmissionFolio):
     with load_data(submission) as data:
-        data_validation_problems = validate_data_against_schemas(data, submission.portal_vapp)
+        data_validation_problems = validate_data_against_schemas(data, portal_vapp=submission.portal_vapp)
         if data_validation_problems:
-            upload_summary_to_s3(data_validation_problems, submission)
+            upload_summary_to_s3(submission, data_validation_problems=data_validation_problems)
         else:
             load_data_response = load_data_into_database(data, submission.portal_vapp, submission.validate_only)
-            upload_summary_to_s3(load_data_response, submission)
+            upload_summary_to_s3(submission, load_data_response=load_data_response)
 
 
 @contextlib.contextmanager
@@ -75,80 +76,10 @@ def load_data_via_sheet_utils(data_file_name: str, portal_vapp: VirtualApp) -> L
     return data
 
 
-def validate_data_against_schemas(data: LoadedDataType, portal_vapp: VirtualApp) -> Optional[dict]:
-    """
-    TODO: This is just until this schema validation is fully supported in sheet_utils.
-    If there are any missing required properties or any extraneous properties then return a
-    dictionary with an itemized description of each of these problems, otherwise return None.
-    """
-    from dcicutils.ff_utils import get_schema
-    from dcicutils.task_utils import pmap
-
-    def fetch_relevant_schemas(schema_names: list, portal_vapp: VirtualApp) -> list:
-        def fetch_schema(schema_name: str) -> Optional[dict]:
-            return schema_name, get_schema(schema_name, portal_vapp=portal_vapp)
-        return {schema_name: schema for schema_name, schema in pmap(fetch_schema, schema_names)}
-
-    problems = {}
-    unidentified = []
-    missing_properties = []
-    extraneous_properties = []
-    errors = []
-
-    try:
-        schema_names = [data_type for data_type in data]
-        schemas = fetch_relevant_schemas(schema_names, portal_vapp=portal_vapp)
-    except Exception as e:
-        errors.append({"exception": str(e)})
-
-    for data_type in data:
-        schema = schemas.get(data_type)
-        if not schema:
-            errors.append({"error": f"No schema found for: {data_type}"})
-            continue
-        allowed_properties = schema.get("properties", {}).keys()
-        required_properties = schema.get("required", [])
-        identifying_properties = schema.get("identifyingProperties", [])
-        for index, item in enumerate(data[data_type]):
-            identifying_value = get_identifying_value(item, identifying_properties)
-            if not identifying_value:
-                identifying_value = "<unidentified>"
-                unidentified.append({
-                    "type": data_type,
-                    "item": identifying_value,
-                    "index": index,
-                    "identifying_properties": identifying_properties
-                })
-            missing = [required for required in required_properties if required not in item]
-            if missing:
-                missing_properties.append({
-                    "type": data_type,
-                    "item": identifying_value,
-                    "index": index,
-                    "missing_properties": missing
-                })
-            extraneous = [not_allowed for not_allowed in item if not_allowed not in allowed_properties]
-            if extraneous:
-                extraneous_properties.append({
-                    "type": data_type,
-                    "item": identifying_value,
-                    "index": index,
-                    "extraneous_properties": extraneous
-                })
-    if unidentified:
-        problems["unidentified"] = unidentified
-    if missing_properties:
-        problems["missing"] = missing_properties
-    if extraneous_properties:
-        problems["extraneous"] = extraneous_properties
-    if errors:
-        problems["errors"] = errors
-    return {"problems": problems} if problems else None
-
-
-def upload_summary_to_s3(info: dict, submission: SmahtSubmissionFolio) -> None:
-    if info.get("loaded"):
-        load_data_response = info["loaded"]
+def upload_summary_to_s3(submission: SmahtSubmissionFolio,
+                         load_data_response: Optional[dict] = None,
+                         data_validation_problems: Optional[dict] = None) -> None:
+    if load_data_response:
         validation_output = [
             f"Ingestion summary:",
             f"Created: {len(load_data_response['create'])}",
@@ -159,8 +90,7 @@ def upload_summary_to_s3(info: dict, submission: SmahtSubmissionFolio) -> None:
             f"Uniques: {load_data_response['unique']}",
             f"Details: s3://{submission.s3_data_bucket}/{submission.id}/submission.json"
         ]
-    elif info.get("problems"):
-        data_validation_problems = info["problems"]
+    elif data_validation_problems:
         validation_output = [
             f"Data validation problems:",
             f"Items missing identifying property: {len(data_validation_problems.get('unidentified', []))}",
@@ -169,7 +99,7 @@ def upload_summary_to_s3(info: dict, submission: SmahtSubmissionFolio) -> None:
             f"Other errors: {len(data_validation_problems.get('errors', []))}",
             f"Details: s3://{submission.s3_data_bucket}/{submission.id}/submission.json"
         ]
-    result = {"result": info, "validation_output": validation_output}
+    result = {"result": load_data_response or data_validation_problems, "validation_output": validation_output}
     submission.note_additional_datum("validation_output", from_dict=result)
     submission.process_result(result)
 
