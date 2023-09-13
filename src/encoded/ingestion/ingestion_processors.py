@@ -2,7 +2,6 @@ import contextlib
 from typing import Optional
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
-from snovault.util import s3_local_file
 from .data_validation import summary_from_data_validation_problems, validate_data_against_schemas
 from .loadxl_extensions import load_data_into_database, summary_from_load_data_into_database_response
 from .sheet_utils_extensions import load_data_via_sheet_utils
@@ -32,10 +31,7 @@ def process_submission(submission: SmahtSubmissionFolio):
 
 @contextlib.contextmanager
 def load_data(submission: SmahtSubmissionFolio) -> dict[str, list[dict]]:
-    with s3_local_file(submission.s3,
-                       bucket=submission.s3_data_bucket,
-                       key=submission.s3_data_key,
-                       local_filename=submission.data_file) as data_file_name:
+    with submission.s3_file() as data_file_name:
         yield load_data_via_sheet_utils(data_file_name, submission.portal_vapp)
 
 

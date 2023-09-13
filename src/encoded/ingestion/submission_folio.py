@@ -1,5 +1,7 @@
+import contextlib
 from snovault.ingestion.common import get_parameter
 from snovault.types.ingestion import SubmissionFolio
+from snovault.util import s3_local_file
 
 
 class SmahtSubmissionFolio:
@@ -16,3 +18,11 @@ class SmahtSubmissionFolio:
         self.portal_vapp = submission.vapp
         self.note_additional_datum = submission.note_additional_datum
         self.process_result = lambda result: submission.process_standard_bundle_results(result, s3_only=True)
+
+    @contextlib.contextmanager
+    def s3_file(self) -> str:
+        with s3_local_file(self.s3,
+                           bucket=self.s3_data_bucket,
+                           key=self.s3_data_key,
+                           local_filename=self.data_file) as data_file_name:
+            yield data_file_name

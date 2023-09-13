@@ -155,7 +155,7 @@ def validate_data_item_against_schemas(data_item: dict,
     return problems if problems else None
 
 
-def _merge_problems(problems: dict, additional_problems: dict):
+def _merge_problems(problems: dict, additional_problems: Optional[dict]):
     if additional_problems:
         if additional_problems.get("unidentified"):
             if not problems.get("unidentified"):
