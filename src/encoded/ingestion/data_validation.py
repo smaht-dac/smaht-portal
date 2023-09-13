@@ -86,6 +86,7 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
             schemas = fetch_relevant_schemas(schema_names, portal_vapp=portal_vapp)
         except Exception as e:
             errors.append(f"Exception fetching relevant schemas: {str(e)}")
+            schemas = {}
 
     for data_type in data:
         schema = schemas.get(data_type)
