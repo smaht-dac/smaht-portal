@@ -109,29 +109,32 @@ def validate_data_against_schemas(data: LoadedDataType, portal_vapp: VirtualApp)
         allowed_properties = schema.get("properties", {}).keys()
         required_properties = schema.get("required", [])
         identifying_properties = schema.get("identifyingProperties", [])
-        for item in data[data_type]:
+        for index, item in enumerate(data[data_type]):
             identifying_value = get_identifying_value(item, identifying_properties)
             if not identifying_value:
                 identifying_value = "<unidentified>"
                 unidentified.append({
-                    "item": identifying_value,
                     "type": data_type,
+                    "item": identifying_value,
+                    "index": index,
                     "identifying_properties": identifying_properties
                 })
-            for required_property in required_properties:
-                if required_property not in item:
-                    missing_properties.append({
-                        "item": identifying_value,
-                        "type": data_type,
-                        "required": required_property
-                    })
-            for item_property in item:
-                if item_property not in allowed_properties:
-                    extraneous_properties.append({
-                        "item": identifying_value,
-                        "type": data_type,
-                        "extraneous": item_property
-                    })
+            missing = [required for required in required_properties if required not in item]
+            if missing:
+                missing_properties.append({
+                    "type": data_type,
+                    "item": identifying_value,
+                    "index": index,
+                    "missing_properties": missing
+                })
+            extraneous = [not_allowed for not_allowed in item if not_allowed not in allowed_properties]
+            if extraneous:
+                extraneous_properties.append({
+                    "type": data_type,
+                    "item": identifying_value,
+                    "index": index,
+                    "extraneous_properties": extraneous
+                })
     if unidentified:
         problems["unidentified"] = unidentified
     if missing_properties:
@@ -154,8 +157,7 @@ def upload_summary_to_s3(info: dict, submission: SmahtSubmissionFolio) -> None:
             f"Checked: {len(load_data_response['validate'])}",
             f"Errored: {len(load_data_response['error'])}",
             f"Uniques: {load_data_response['unique']}",
-            f"Ingestion files:",
-            f"Summary: s3://{submission.s3_data_bucket}/{submission.id}/submission.json"
+            f"Details: s3://{submission.s3_data_bucket}/{submission.id}/submission.json"
         ]
     elif info.get("problems"):
         data_validation_problems = info["problems"]
@@ -163,8 +165,9 @@ def upload_summary_to_s3(info: dict, submission: SmahtSubmissionFolio) -> None:
             f"Data validation problems:",
             f"Items missing identifying property: {len(data_validation_problems.get('unidentified', []))}",
             f"Items missing required properties: {len(data_validation_problems.get('missing', []))}",
-            f"Items with extranous properties: {len(data_validation_problems.get('extraneous', []))}",
-            f"Other errors: {len(data_validation_problems.get('errors', []))}"
+            f"Items with extraneous properties: {len(data_validation_problems.get('extraneous', []))}",
+            f"Other errors: {len(data_validation_problems.get('errors', []))}",
+            f"Details: s3://{submission.s3_data_bucket}/{submission.id}/submission.json"
         ]
     result = {"result": info, "validation_output": validation_output}
     submission.note_additional_datum("validation_output", from_dict=result)
