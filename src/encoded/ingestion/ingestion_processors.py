@@ -15,11 +15,11 @@ def includeme(config):
 @ingestion_processor("family_history")
 def handle_metadata_bundle(submission: SubmissionFolio) -> None:
     with submission.processing_context():
-        process_submission(SmahtSubmissionFolio(submission))
+        _process_submission(SmahtSubmissionFolio(submission))
 
 
-def process_submission(submission: SmahtSubmissionFolio) -> None:
-    with load_data(submission) as data:
+def _process_submission(submission: SmahtSubmissionFolio) -> None:
+    with _load_data(submission) as data:
         validate_data_problems = validate_data_against_schemas(data, portal_vapp=submission.portal_vapp)
         if validate_data_problems:
             validate_data_summary = summarize_validate_data_problems(validate_data_problems, submission)
@@ -31,6 +31,6 @@ def process_submission(submission: SmahtSubmissionFolio) -> None:
 
 
 @contextmanager
-def load_data(submission: SmahtSubmissionFolio) -> dict[str, list[dict]]:
+def _load_data(submission: SmahtSubmissionFolio) -> dict[str, list[dict]]:
     with submission.s3_file() as data_file_name:
         yield load_data_via_sheet_utils(data_file_name, submission.portal_vapp)
