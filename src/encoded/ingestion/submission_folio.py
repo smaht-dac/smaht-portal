@@ -6,7 +6,7 @@ from snovault.util import s3_local_file
 
 class SmahtSubmissionFolio:
 
-    def __init__(self, submission: SubmissionFolio):
+    def __init__(self, submission: SubmissionFolio) -> None:
         self.submission = submission
         self.data_file_name = get_parameter(submission.parameters, "datafile")
         self.s3_details_location = f"s3://{submission.bucket}/{submission.submission_id}/submission.json"

@@ -1,13 +1,13 @@
 import re
-from typing import Optional
+from typing import Generator, Optional
 from dcicutils.misc_utils import VirtualApp
 from snovault.loadxl import load_all_gen as loadxl_load_data
 from .submission_folio import SmahtSubmissionFolio
 
 
-def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp, validate_only: bool = False) -> None:
+def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp, validate_only: bool = False) -> dict:
 
-    def package_loadxl_response(loadxl_response) -> dict:
+    def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> dict:
         LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*(.*)$")
         ACTION_NAME = {"POST": "create", "PATCH": "update", "SKIP": "skip", "CHECK": "validate", "ERROR": "error"}
         response = {"create": [], "update": [], "skip": [], "validate": [], "error": []}

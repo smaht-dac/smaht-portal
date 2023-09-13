@@ -13,12 +13,12 @@ def includeme(config):
 
 @ingestion_processor("metadata_bundle")
 @ingestion_processor("family_history")
-def handle_metadata_bundle(submission: SubmissionFolio):
+def handle_metadata_bundle(submission: SubmissionFolio) -> None:
     with submission.processing_context():
         process_submission(SmahtSubmissionFolio(submission))
 
 
-def process_submission(submission: SmahtSubmissionFolio):
+def process_submission(submission: SmahtSubmissionFolio) -> None:
     with load_data(submission) as data:
         validate_data_problems = validate_data_against_schemas(data, portal_vapp=submission.portal_vapp)
         if validate_data_problems:
