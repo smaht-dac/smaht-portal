@@ -3,6 +3,7 @@ from dcicutils.ff_utils import get_schema
 from dcicutils.misc_utils import VirtualApp
 from dcicutils.task_utils import pmap
 from snovault.loadxl import get_identifying_value
+from .submission_folio import SmahtSubmissionFolio
 
 
 def validate_data_against_schemas(data: dict[str, list[dict]],
@@ -168,3 +169,15 @@ def _merge_problems(problems: dict, additional_problems: dict):
             if not problems.get("extraneous"):
                 problems["extraneous"] = []
             problems["extraneous"].extend(additional_problems["extraneous"])
+
+
+def summary_from_data_validation_problems(data_validation_problems: dict,
+                                          submission: SmahtSubmissionFolio) -> list[str]:
+    return [
+        f"Data validation problems:",
+        f"Items missing identifying property: {len(data_validation_problems.get('unidentified', []))}",
+        f"Items missing required properties: {len(data_validation_problems.get('missing', []))}",
+        f"Items with extraneous properties: {len(data_validation_problems.get('extraneous', []))}",
+        f"Other errors: {len(data_validation_problems.get('errors', []))}",
+        f"Details: s3://{submission.s3_data_bucket}/{submission.id}/submission.json"
+    ]

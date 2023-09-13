@@ -1,6 +1,8 @@
 import re
+from typing import Optional
 from dcicutils.misc_utils import VirtualApp
 from snovault.loadxl import load_all_gen as loadxl_load_data
+from .submission_folio import SmahtSubmissionFolio
 
 
 def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp, validate_only: bool = False) -> None:
@@ -51,3 +53,17 @@ def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp
         validate_only=validate_only)
 
     return summarize_loadxl_response(loadxl_load_data_response)
+
+
+def summary_from_load_data_into_database_response(load_data_response: Optional[dict],
+                                                  submission: SmahtSubmissionFolio) -> list[str]:
+    return [
+        f"Ingestion summary:",
+        f"Created: {len(load_data_response['create'])}",
+        f"Updated: {len(load_data_response['update'])}",
+        f"Skipped: {len(load_data_response['skip'])}",
+        f"Checked: {len(load_data_response['validate'])}",
+        f"Errored: {len(load_data_response['error'])}",
+        f"Uniques: {load_data_response['unique']}",
+        f"Details: s3://{submission.s3_data_bucket}/{submission.id}/submission.json"
+    ]

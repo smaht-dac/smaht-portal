@@ -3,6 +3,7 @@ from snovault.types.ingestion import SubmissionFolio
 
 
 class SmahtSubmissionFolio:
+
     def __init__(self, submission: SubmissionFolio):
         self.id = submission.submission_id
         self.data_file = get_parameter(submission.parameters, "datafile")
