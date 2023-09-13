@@ -7,6 +7,7 @@ from snovault.util import s3_local_file
 class SmahtSubmissionFolio:
 
     def __init__(self, submission: SubmissionFolio):
+        self.original_submission = submission
         self.id = submission.submission_id
         self.data_file = get_parameter(submission.parameters, "datafile")
         self.s3_data_bucket = submission.bucket
@@ -16,8 +17,6 @@ class SmahtSubmissionFolio:
         self.consortium = get_parameter(submission.parameters, "consortium")
         self.submission_center = get_parameter(submission.parameters, "submission_center")
         self.portal_vapp = submission.vapp
-        self.note_additional_datum = submission.note_additional_datum
-        self.process_result = lambda result: submission.process_standard_bundle_results(result, s3_only=True)
 
     @contextlib.contextmanager
     def s3_file(self) -> str:
@@ -26,3 +25,22 @@ class SmahtSubmissionFolio:
                            key=self.s3_data_key,
                            local_filename=self.data_file) as data_file_name:
             yield data_file_name
+
+    def record_results(self, results: dict) -> None:
+        # This note_additional_datum call causes the "validation_output" key (a list) of
+        # given results to go into the additional_data property of the IngestionSubmission
+        # object in the Portal database, accessible, for example, like this:
+        # http://localhost:8000/ingestion-submissions/7da2f985-a6f7-4184-9544-b7439957617e?format=json
+        self.original_submission.note_additional_datum("validation_output", from_dict=results)
+        # This process_result call causes the "result" key (a dict) of the results
+        # above to go into the submission.json key of the submission S3 bucket.
+        # All possible results keys and associated target S3 keys are:
+        # results["result"]      -> s3://<submission-bucket>/submission.json
+        # results["post_output"] -> s3://<submission-bucket>/submission_response
+        # results["upload_info"] -> s3://<submission-bucket>/upload_info
+        # results["upload_info"] -> s3://<submission-bucket>/upload_info
+        # This is done in: in snovault.types.ingestion.SubmissionFolio.process_standard_bundle_results
+        # If the s3_only argument is False then then this also this info is not only
+        # written to the associated S3 key as described above but also to the additional_data
+        # property of the IngestionSubmission object, as described above for note_additional_datum.
+        self.original_submission.process_standard_bundle_results(results, s3_only=True)
