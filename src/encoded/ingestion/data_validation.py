@@ -179,5 +179,5 @@ def summary_from_data_validation_problems(data_validation_problems: dict,
         f"Items missing required properties: {len(data_validation_problems.get('missing', []))}",
         f"Items with extraneous properties: {len(data_validation_problems.get('extraneous', []))}",
         f"Other errors: {len(data_validation_problems.get('errors', []))}",
-        f"Details: s3://{submission.s3_data_bucket}/{submission.id}/submission.json"
+        f"Details: {self.s3_detail_location}"
     ]

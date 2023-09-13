@@ -65,5 +65,5 @@ def summary_from_load_data_into_database_response(load_data_response: Optional[d
         f"Checked: {len(load_data_response['validate'])}",
         f"Errored: {len(load_data_response['error'])}",
         f"Uniques: {load_data_response['unique']}",
-        f"Details: s3://{submission.s3_data_bucket}/{submission.id}/submission.json"
+        f"Details: {submission.s3_details_location}"
     ]
