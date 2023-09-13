@@ -9,7 +9,7 @@ class SmahtSubmissionFolio:
     def __init__(self, submission: SubmissionFolio):
         self.submission = submission
         self.data_file_name = get_parameter(submission.parameters, "datafile")
-        self.s3_details_location = "s3://{submission.bucket}/{submission.id}/submission.json"
+        self.s3_details_location = f"s3://{submission.bucket}/{submission.submission_id}/submission.json"
         self.validate_only = get_parameter(submission.parameters, "validate_only", as_type=bool, default=False)
         self.consortium = get_parameter(submission.parameters, "consortium")
         self.submission_center = get_parameter(submission.parameters, "submission_center")
@@ -23,7 +23,8 @@ class SmahtSubmissionFolio:
                            local_filename=self.data_file_name) as data_file_name:
             yield data_file_name
 
-    def record_results(self, results: dict) -> None:
+    def record_results(self, results: dict, summary: list) -> None:
+        results = {"result": results, "validation_output": summary}
         # This note_additional_datum call causes the "validation_output" key (a list) of
         # given results to go into the additional_data property of the IngestionSubmission
         # object in the Portal database, accessible, for example, like this:

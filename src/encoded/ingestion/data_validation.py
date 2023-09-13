@@ -155,6 +155,18 @@ def validate_data_item_against_schemas(data_item: dict,
     return problems if problems else None
 
 
+def summarize_validate_data_problems(data_validation_problems: dict,
+                                     submission: SmahtSubmissionFolio) -> list[str]:
+    return [
+        f"Data validation problems:",
+        f"Items unidentified: {len(data_validation_problems.get('unidentified', []))}",
+        f"Items missing properties: {len(data_validation_problems.get('missing', []))}",
+        f"Items with extraneous properties: {len(data_validation_problems.get('extraneous', []))}",
+        f"Other errors: {len(data_validation_problems.get('errors', []))}",
+        f"Details: {submission.s3_details_location}"
+    ]
+
+
 def _merge_problems(problems: dict, additional_problems: Optional[dict]):
     if additional_problems:
         if additional_problems.get("unidentified"):
@@ -169,15 +181,3 @@ def _merge_problems(problems: dict, additional_problems: Optional[dict]):
             if not problems.get("extraneous"):
                 problems["extraneous"] = []
             problems["extraneous"].extend(additional_problems["extraneous"])
-
-
-def summary_from_data_validation_problems(data_validation_problems: dict,
-                                          submission: SmahtSubmissionFolio) -> list[str]:
-    return [
-        f"Data validation problems:",
-        f"Items missing identifying property: {len(data_validation_problems.get('unidentified', []))}",
-        f"Items missing required properties: {len(data_validation_problems.get('missing', []))}",
-        f"Items with extraneous properties: {len(data_validation_problems.get('extraneous', []))}",
-        f"Other errors: {len(data_validation_problems.get('errors', []))}",
-        f"Details: {self.s3_detail_location}"
-    ]

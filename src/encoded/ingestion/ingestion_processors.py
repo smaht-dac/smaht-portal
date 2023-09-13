@@ -1,9 +1,8 @@
 import contextlib
-from typing import Optional
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
-from .data_validation import summary_from_data_validation_problems, validate_data_against_schemas
-from .loadxl_extensions import load_data_into_database, summary_from_load_data_into_database_response
+from .data_validation import summarize_validate_data_problems, validate_data_against_schemas
+from .loadxl_extensions import load_data_into_database, summarize_load_data_into_database_response
 from .sheet_utils_extensions import load_data_via_sheet_utils
 from .submission_folio import SmahtSubmissionFolio
 
@@ -21,26 +20,17 @@ def handle_metadata_bundle(submission: SubmissionFolio):
 
 def process_submission(submission: SmahtSubmissionFolio):
     with load_data(submission) as data:
-        data_validation_problems = validate_data_against_schemas(data, portal_vapp=submission.portal_vapp)
-        if data_validation_problems:
-            record_results(submission, data_validation_problems=data_validation_problems)
-        else:
-            load_data_response = load_data_into_database(data, submission.portal_vapp, submission.validate_only)
-            record_results(submission, load_data_response=load_data_response)
+        validate_data_problems = validate_data_against_schemas(data, portal_vapp=submission.portal_vapp)
+        if validate_data_problems:
+            validate_data_summary = summarize_validate_data_problems(validate_data_problems, submission)
+            submission.record_results(validate_data_problems, validate_data_summary)
+            return
+        load_data_response = load_data_into_database(data, submission.portal_vapp, submission.validate_only)
+        load_data_summary = summarize_load_data_into_database_response(load_data_response, submission)
+        submission.record_results(load_data_response, load_data_summary)
 
 
 @contextlib.contextmanager
 def load_data(submission: SmahtSubmissionFolio) -> dict[str, list[dict]]:
     with submission.s3_file() as data_file_name:
         yield load_data_via_sheet_utils(data_file_name, submission.portal_vapp)
-
-
-def record_results(submission: SmahtSubmissionFolio,
-                   load_data_response: Optional[dict] = None,
-                   data_validation_problems: Optional[dict] = None) -> None:
-    if load_data_response:
-        validation_output = summary_from_load_data_into_database_response(load_data_response, submission)
-    elif data_validation_problems:
-        validation_output = summary_from_data_validation_problems(data_validation_problems, submission)
-    results = {"result": load_data_response or data_validation_problems, "validation_output": validation_output}
-    submission.record_results(results)

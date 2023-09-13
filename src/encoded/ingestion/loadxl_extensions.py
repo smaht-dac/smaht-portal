@@ -55,8 +55,8 @@ def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp
     return package_loadxl_response(loadxl_load_data_response)
 
 
-def summary_from_load_data_into_database_response(load_data_response: Optional[dict],
-                                                  submission: SmahtSubmissionFolio) -> list[str]:
+def summarize_load_data_into_database_response(load_data_response: Optional[dict],
+                                               submission: SmahtSubmissionFolio) -> list[str]:
     return [
         f"Ingestion summary:",
         f"Created: {len(load_data_response['create'])}",
