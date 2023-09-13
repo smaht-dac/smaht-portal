@@ -7,7 +7,7 @@ from .submission_folio import SmahtSubmissionFolio
 
 def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp, validate_only: bool = False) -> None:
 
-    def summarize_loadxl_response(loadxl_response) -> dict:
+    def package_loadxl_response(loadxl_response) -> dict:
         LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*(.*)$")
         ACTION_NAME = {"POST": "create", "PATCH": "update", "SKIP": "skip", "CHECK": "validate", "ERROR": "error"}
         response = {"create": [], "update": [], "skip": [], "validate": [], "error": []}
@@ -52,7 +52,7 @@ def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp
         patch_only=False,
         validate_only=validate_only)
 
-    return summarize_loadxl_response(loadxl_load_data_response)
+    return package_loadxl_response(loadxl_load_data_response)
 
 
 def summary_from_load_data_into_database_response(load_data_response: Optional[dict],
