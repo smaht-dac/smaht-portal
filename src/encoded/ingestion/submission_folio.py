@@ -1,4 +1,4 @@
-import contextlib
+from contextlib import contextmanager
 from snovault.ingestion.common import get_parameter
 from snovault.types.ingestion import SubmissionFolio
 from snovault.util import s3_local_file
@@ -15,7 +15,7 @@ class SmahtSubmissionFolio:
         self.submission_center = get_parameter(submission.parameters, "submission_center")
         self.portal_vapp = submission.vapp
 
-    @contextlib.contextmanager
+    @contextmanager
     def s3_file(self) -> str:
         with s3_local_file(self.submission.s3_client,
                            bucket=self.submission.bucket,
