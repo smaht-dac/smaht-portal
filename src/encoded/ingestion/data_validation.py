@@ -137,7 +137,7 @@ def validate_data_item_against_schemas(data_item: dict,
             "index": data_item_index,
             "missing_properties": missing
             })
-    extraneous = [not_allowed for not_allowed in data_item if not_allowed not in allowed_properties]
+    extraneous = [prohibited for prohibited in data_item if prohibited not in allowed_properties]
     if extraneous:
         extraneous_properties.append({
             "type": data_type,

@@ -1,4 +1,4 @@
-import contextlib
+from contextlib import contextmanager
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
 from .data_validation import summarize_validate_data_problems, validate_data_against_schemas
@@ -30,7 +30,7 @@ def process_submission(submission: SmahtSubmissionFolio) -> None:
         submission.record_results(load_data_response, load_data_summary)
 
 
-@contextlib.contextmanager
+@contextmanager
 def load_data(submission: SmahtSubmissionFolio) -> dict[str, list[dict]]:
     with submission.s3_file() as data_file_name:
         yield load_data_via_sheet_utils(data_file_name, submission.portal_vapp)
