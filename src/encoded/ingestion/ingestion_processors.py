@@ -116,8 +116,7 @@ def validate_data_against_schemas(data: LoadedDataType, portal_vapp: VirtualApp)
                 unidentified.append({
                     "item": identifying_value,
                     "type": data_type,
-                    "identifying_properties": identifying_properties,
-                    "required": required_properties
+                    "identifying_properties": identifying_properties
                 })
             for required_property in required_properties:
                 if required_property not in item:
