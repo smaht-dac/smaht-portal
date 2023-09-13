@@ -10,8 +10,60 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
                                   schemas: Optional[list[dict]] = None) -> Optional[dict]:
     """
     TODO: This is just until this schema validation is fully supported in sheet_utils.
-    If there are any missing required properties or any extraneous properties then return a
-    dictionary with an itemized description of each of these problems, otherwise return None.
+
+    Validates the given data, in a format as returned by sheet_utils, validates against
+    the corresponding schema.
+
+    If there are any missing required properties, any extraneous properties, or any undentified
+    items in the data, then returns a dictionary with an itemized description of each of these
+    problems, grouped by problem type, otherwise returns None if there are no problems.
+
+    For example give data that looks something like this:
+        {
+            "file_format": [
+                <object-for-this-type>,
+                <another-object-for-this-type>,
+                <et-cetera>
+            ],
+            "file_submitted": [
+                <object-for-this-type>,
+                <another-object-for-this-type>,
+                <et-cetera>
+            ]
+        }
+
+    This function might return someting like this (assuming these problems existed):
+        {
+            "unidentified": [
+                "type": "file_format",
+                "item": "<unidentified>",
+                "index": 2
+                "identifying_properties": [
+                    "uuid",
+                    "file_format"
+                ]
+            },
+            "missing": [
+                "type": "file_format",
+                "item": "vcf_gz",
+                "index": 1
+                "missing_properties": [
+                    "standard_file_format"
+                ]
+            },
+            "extraneous": [
+                "type": "file_submitted",
+                "item": "ebcfa32f-8eea-4591-a784-449fa5cd9ae9",
+                "index": 3
+                "extraneous_properties": [
+                    "xyzzy",
+                    "foobar"
+                ]
+            }
+        }
+
+    The "item" is the identifying value for the specified object (uuid or another if defined by the schema).
+    The "index" is the (0-indexed) ordinal position of the object within the list within the type within the given data.
     """
 
     def fetch_relevant_schemas(schema_names: list, portal_vapp: VirtualApp) -> list:
@@ -45,11 +97,6 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
 def validate_data_items_against_schemas(data_items: list[dict],
                                         data_type: str,
                                         schema: dict) -> Optional[dict]:
-    """
-    TODO: This is just until this schema validation is fully supported in sheet_utils.
-    If there are any missing required properties or any extraneous properties then return a
-    dictionary with an itemized description of each of these problems, otherwise return None.
-    """
     problems = {}
     for data_item_index, data_item in enumerate(data_items):
         _merge_problems(problems, validate_data_item_against_schemas(data_item, data_type, data_item_index, schema))
@@ -60,12 +107,6 @@ def validate_data_item_against_schemas(data_item: dict,
                                        data_type: str,
                                        data_item_index: Optional[int],
                                        schema: dict) -> Optional[dict]:
-    """
-    TODO: This is just until this schema validation is fully supported in sheet_utils.
-    If there are any missing required properties or any extraneous properties then return a
-    dictionary with an itemized description of each of these problems, otherwise return None.
-    """
-
     problems = {}
     unidentified = []
     missing_properties = []
