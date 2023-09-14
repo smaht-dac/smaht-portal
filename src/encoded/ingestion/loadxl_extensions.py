@@ -40,6 +40,7 @@ def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp
         # way they are written, so remove from the update list any items which are also in the create list.
         response["update"] = [item for item in response["update"] if item not in response["create"]]
         response["unique"] = len(unique_identifying_values)
+        response["ntypes"] = len(data)
         return response
 
     loadxl_load_data_response = loadxl_load_data(
@@ -64,11 +65,13 @@ def summarize_load_data_into_database_response(load_data_response: Optional[dict
     """
     return [
         f"Ingestion summary:",
+        f"S3 File: {submission.s3_data_file_location}",
+        f"N Types: {load_data_response['ntypes']}",
+        f"Uniques: {load_data_response['unique']}",
         f"Created: {len(load_data_response['create'])}",
         f"Updated: {len(load_data_response['update'])}",
         f"Skipped: {len(load_data_response['skip'])}",
         f"Checked: {len(load_data_response['validate'])}",
         f"Errored: {len(load_data_response['error'])}",
-        f"Uniques: {load_data_response['unique']}",
         f"Details: {submission.s3_details_location}"
     ]

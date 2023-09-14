@@ -11,6 +11,7 @@ class SmahtSubmissionFolio:
     def __init__(self, submission: SubmissionFolio) -> None:
         self.submission = submission
         self.data_file_name = get_parameter(submission.parameters, "datafile")
+        self.s3_data_file_location = f"s3://{submission.bucket}/{submission.object_name}"
         self.s3_details_location = f"s3://{submission.bucket}/{submission.submission_id}/submission.json"
         self.validate_only = get_parameter(submission.parameters, "validate_only", as_type=bool, default=False)
         # TODO: what do we actually do we the consortium and submission_center?

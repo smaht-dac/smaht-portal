@@ -1,6 +1,6 @@
 from typing import Optional
 from dcicutils.ff_utils import get_schema
-from dcicutils.misc_utils import VirtualApp
+from dcicutils.misc_utils import get_error_message, VirtualApp
 from dcicutils.task_utils import pmap
 from snovault.loadxl import get_identifying_value
 from .submission_folio import SmahtSubmissionFolio
@@ -82,7 +82,7 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
             schema_names = [data_type for data_type in data]
             schemas = fetch_relevant_schemas(schema_names, portal_vapp=portal_vapp)
         except Exception as e:
-            errors.append(f"Exception fetching relevant schemas: {str(e)}")
+            errors.append(f"Exception fetching relevant schemas: {get_error_message(e)}")
             schemas = {}
 
     for data_type in data:
@@ -170,6 +170,8 @@ def summarize_validate_data_problems(data_validation_problems: dict,
     """
     return [
         f"Data validation problems:",
+        f"Data file: {submission.data_file_name}"
+        f"Data file in Se: {submission.s3_data_file_location}"
         f"Items unidentified: {len(data_validation_problems.get('unidentified', []))}",
         f"Items missing properties: {len(data_validation_problems.get('missing', []))}",
         f"Items with extraneous properties: {len(data_validation_problems.get('extraneous', []))}",
