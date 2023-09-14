@@ -3,7 +3,9 @@
     "$id": "/profiles/image.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": [],
+    "required": [
+		"submitter_id"
+	],
     "anyOf": [
         {
             "required": [
@@ -44,6 +46,9 @@
         },
         {
             "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitter_id"
         },
         {
             "$ref": "mixins.json#/uuid"

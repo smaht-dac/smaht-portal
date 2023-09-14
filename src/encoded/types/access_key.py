@@ -1,21 +1,18 @@
-from copy import deepcopy
-from snovault.validators import validate_item_content_post
-from snovault.util import debug_log
 from pyramid.authorization import Allow
 from pyramid.view import view_config
-from snovault import collection
-from snovault.types.access_key import AccessKey as SnovaultAccessKey
+from snovault import collection, load_schema
 from snovault.types.access_key import (
+    AccessKey as SnovaultAccessKey,
     access_key_add as sno_access_key_add,
     access_key_reset_secret as sno_access_key_reset_secret,
     access_key_view_raw as sno_access_key_view_raw
 )
-from .base import Item as SMAHTItem
-from .base import mixin_smaht_permission_types, DELETED_ACL
+from snovault.util import debug_log
+from snovault.validators import validate_item_content_post
+
 from .acl import ALLOW_AUTHENTICATED_CREATE_ACL, ONLY_ADMIN_VIEW_ACL
-
-
-SNOVAULT_ACCESS_KEY_SCHEMA = deepcopy(SnovaultAccessKey.schema)
+from .base import DELETED_ACL
+from .base import Item as SMAHTItem
 
 
 @collection(
@@ -31,7 +28,7 @@ class AccessKey(SMAHTItem, SnovaultAccessKey):
     ACCESS_KEY_EXPIRATION_TIME = 90  # days
     item_type = 'access_key'
     name_key = 'access_key_id'
-    schema = mixin_smaht_permission_types(SNOVAULT_ACCESS_KEY_SCHEMA)
+    schema = load_schema("encoded:schemas/access_key.json")
     embedded_list = []
 
     STATUS_ACL = {

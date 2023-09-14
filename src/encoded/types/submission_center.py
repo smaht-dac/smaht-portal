@@ -1,4 +1,5 @@
 from snovault import collection, load_schema
+
 from .base import Item as SMAHTItem
 
 
@@ -14,4 +15,4 @@ class SubmissionCenter(SMAHTItem):
     item_type = 'submission_center'
     schema = load_schema('encoded:schemas/submission_center.json')
     embedded_list = SMAHTItem.embedded_list
-    name_key = 'name'
+    name_key = 'identifier'

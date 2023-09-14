@@ -5,7 +5,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "name"
+        "title"
     ],
     "anyOf": [
         {
@@ -38,9 +38,6 @@
             "$ref": "mixins.json#/modified"
         },
         {
-            "$ref": "mixins.json#/name"
-        },
-        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -53,6 +50,9 @@
             "$ref": "mixins.json#/tags"
         },
         {
+            "$ref": "mixins.json#/title"
+        },
+        {
             "$ref": "mixins.json#/uuid"
         }
     ],
@@ -61,7 +61,7 @@
             "default": "1"
         },
         "status": {
-            "merge": "snovault.filter_set.json#/properties.status"
+            "merge": "snovault.filter_set.json#/properties/status"
         },
         "filter_blocks": {
             "merge": "snovault.filter_set.json#/filter_blocks"

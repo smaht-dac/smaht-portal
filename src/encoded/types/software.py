@@ -1,19 +1,15 @@
-from copy import deepcopy
-from snovault import collection
+from snovault import collection, load_schema
 from encoded_core.types.software import Software as CoreSoftware
+
 from .base import Item as SMAHTItem
-from .base import mixin_smaht_permission_types
-
-
-ENCODED_CORE_SOFTWARE_SCHEMA = deepcopy(CoreSoftware.schema)
 
 
 @collection(
-    name='softwares',
+    name='software',
     properties={
-        'title': 'Softwares',
+        'title': 'Software',
         'description': 'Listing of software for analyses',
     })
 class Software(SMAHTItem, CoreSoftware):
     item_type = 'software'
-    schema = mixin_smaht_permission_types(ENCODED_CORE_SOFTWARE_SCHEMA)
+    schema = load_schema("encoded:schemas/software.json")
