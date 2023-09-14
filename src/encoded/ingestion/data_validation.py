@@ -76,9 +76,6 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
             return schema_name, get_schema(schema_name, portal_vapp=portal_vapp)
         return {schema_name: schema for schema_name, schema in pmap(fetch_schema, schema_names)}
 
-    if "__exception__" in data:
-        return {"error": data["__exception__"]}
-
     problems = {}
     errors = []
 

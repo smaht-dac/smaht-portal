@@ -35,7 +35,4 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
 @contextmanager
 def _load_data(submission: SmahtSubmissionFolio) -> Generator[Union[dict[str, list[dict]], Exception], None, None]:
     with submission.s3_file() as data_file_name:
-        try:
-            yield load_data_via_sheet_utils(data_file_name, submission.portal_vapp)
-        except Exception as e:
-            yield {"__exception__": [get_error_message(e)]}
+        yield load_data_via_sheet_utils(data_file_name, submission.portal_vapp)
