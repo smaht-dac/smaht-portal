@@ -34,7 +34,7 @@ DEFAULT_AUTH0_DOMAIN = 'hms-dbmi.auth0.com'
 DEFAULT_AUTH0_ALLOWED_CONNECTIONS = 'github,google-oauth2,partners,hms-it'
 
 
-def includeme(config):
+def include_encoded(config):
     """ Implements the includeme mechanism for encoded
         For detailed explanation see: https://docs.pylonsproject.org/projects/pyramid/en/latest/api/config.html
     """
@@ -192,6 +192,12 @@ def set_auth0_config(settings):
     settings['auth0.allowed_connections'] = settings.get('auth0.allowed_connections',  # comma separated string
                                                          os.environ.get('Auth0AllowedConnections',
                                                                         DEFAULT_AUTH0_ALLOWED_CONNECTIONS).split(','))
+
+    # Comma separated string, typically in GAC as ENCODED_AUTH0_ALLOWED_CONNECTIONS.
+    # E.g.: google-oauth2,github,hms-it,partners
+    if isinstance(settings['auth0.allowed_connections'], str):
+        settings['auth0.allowed_connections'] = settings['auth0.allowed_connections'].split(",")
+
     settings['auth0.options'] = {
         'auth': {
             'sso': False,
@@ -255,7 +261,7 @@ def main(global_config, **local_config):
     config.include(configure_dbsession)
     include_snovault(config)  # controls config includes from snovault
     include_encoded_core(config)
-    config.include('encoded')
+    include_encoded(config)
 
     if 'elasticsearch.server' in config.registry.settings:
         config.include('snovault.elasticsearch')

@@ -180,6 +180,7 @@ $search-results-header-row-height: 52px; /* 46px is existing default for both re
 
 $facetlist-selected-term-color: $primary;
 $facetlist-omitted-term-color: #901414;
+$facetlist-excluding: #450000;
 
 @import "../../../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/facet-list.scss";
 
