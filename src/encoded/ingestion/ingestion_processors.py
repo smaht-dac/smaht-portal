@@ -1,6 +1,5 @@
 from contextlib import contextmanager
 from typing import Generator, Union
-from dcicutils.misc_utils import get_error_message
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
 from .data_validation import summarize_validate_data_problems, validate_data_against_schemas
