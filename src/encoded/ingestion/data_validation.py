@@ -23,7 +23,7 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
     If there are any missing required properties, any extraneous properties, or any undentified
     items in the data, then returns a dictionary with an itemized description of each of these
     problems, grouped by problem type, otherwise returns None if there are no problems.
-    Note tha an unidentified item is one which has no value for uuid nor any of the
+    Note that an unidentified item is one which has no value for uuid nor any of the
     other identifying property values as defined by the schema.
 
     For example given data that looks something like this:
