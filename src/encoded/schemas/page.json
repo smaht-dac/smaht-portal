@@ -1,0 +1,17 @@
+{
+    "title": "Page",
+    "$id": "/profiles/page.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [],
+    "identifyingProperties": [
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "$merge": "encoded_core/page.json#/properties",
+        "schema_version": {
+            "default": "1"
+        }
+    }
+}

@@ -7,4 +7,4 @@ def test_document_post(testapp: TestApp) -> None:
         "description": "Some document",
         "notes": "Testing, testing",
     }
-    testapp.post_json("/document", properties, status=200)
+    testapp.post_json("/document", properties, status=201)

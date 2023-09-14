@@ -1,0 +1,58 @@
+{
+    "title": "User",
+    "$id": "/profiles/user.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "email",
+        "first_name",
+        "last_name"
+    ],
+    "identifyingProperties": [
+        "aliases",
+        "email",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "schema_version": {
+            "default": "1"
+        },
+        "first_name": {
+            "$merge": "snovault/user.json#/properties/first_name"
+        },
+        "email": {
+            "$merge": "snovault/user.json#/properties/email",
+            "description": "Email used to log in to the SMaHT portal"
+        },
+        "groups": {
+            "$merge": "snovault/user.json#/properties/groups"
+        },
+        "last_name": {
+            "$merge": "snovault/user.json#/properties/last_name"
+        },
+        "status": {
+            "$merge": "snovault/user.json#/properties/status"
+        },
+        "time_zone": {
+            "$merge": "snovault/user.json#/properties/time_zone"
+        }
+    }
+}

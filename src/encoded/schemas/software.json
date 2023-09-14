@@ -1,0 +1,102 @@
+{
+    "title": "Software",
+    "$id": "/profiles/software.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "category",
+        "title",
+        "version"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "aliases",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/category"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/title"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "schema_version": {
+            "default": "1"
+        },
+        "accession": {
+            "accessionType": "SW"
+        },
+        "category": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Aligner",
+                    "Assembler",
+                    "Quality Control",
+                    "Variant Annotator",
+                    "Variant Caller"
+                ]
+            }
+        },
+        "binary_url": {
+            "$merge": "encoded_core/software.json#/properties/binary_url"
+        },
+        "commit": {
+            "$merge": "encoded_core/software.json#/properties/commit"
+        },
+        "source_url": {
+            "$merge": "encoded_core/software.json#/properties/source_url"
+        },
+        "version": {
+            "$merge": "encoded_core/software.json#/properties/version"
+        }
+    }
+}
