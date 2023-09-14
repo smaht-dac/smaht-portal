@@ -57,6 +57,11 @@ def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp
 
 def summarize_load_data_into_database_response(load_data_response: Optional[dict],
                                                submission: SmahtSubmissionFolio) -> list[str]:
+    """
+    Summarize the given load data results into a simple short list of English phrases;
+    this will end up going into the additional_properties of the IngestionSubmission
+    object in the Portal database (see SubmissionFolio.record_results).
+    """
     return [
         f"Ingestion summary:",
         f"Created: {len(load_data_response['create'])}",

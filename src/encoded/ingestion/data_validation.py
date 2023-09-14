@@ -156,6 +156,11 @@ def validate_data_item_against_schemas(data_item: dict,
 
 def summarize_validate_data_problems(data_validation_problems: dict,
                                      submission: SmahtSubmissionFolio) -> list[str]:
+    """
+    Summarize the given data validation problems into a simple short list of English phrases;
+    this will end up going into the additional_properties of the IngestionSubmission object
+    in the Portal database (see SubmissionFolio.record_results).
+    """
     return [
         f"Data validation problems:",
         f"Items unidentified: {len(data_validation_problems.get('unidentified', []))}",
