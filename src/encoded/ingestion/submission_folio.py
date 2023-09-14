@@ -5,6 +5,7 @@ from snovault.types.ingestion import SubmissionFolio
 from snovault.util import s3_local_file
 
 
+# A simple convenience wrapper around the (snovault) SubmissionFolio type.
 class SmahtSubmissionFolio:
 
     def __init__(self, submission: SubmissionFolio) -> None:
@@ -12,6 +13,9 @@ class SmahtSubmissionFolio:
         self.data_file_name = get_parameter(submission.parameters, "datafile")
         self.s3_details_location = f"s3://{submission.bucket}/{submission.submission_id}/submission.json"
         self.validate_only = get_parameter(submission.parameters, "validate_only", as_type=bool, default=False)
+        # TODO: what do we actually do we the consortium and submission_center?
+        # Should we validate that each submitted object, if specified, contains
+        # values for these which match these values here in the submission folio?
         self.consortium = get_parameter(submission.parameters, "consortium")
         self.submission_center = get_parameter(submission.parameters, "submission_center")
         self.portal_vapp = submission.vapp

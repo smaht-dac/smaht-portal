@@ -19,7 +19,7 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
     items in the data, then returns a dictionary with an itemized description of each of these
     problems, grouped by problem type, otherwise returns None if there are no problems.
     An unidentified item is one which has no value for uuid nor any of the other
-    identifying properties as defined by the schema.
+    identifying property values as defined by the schema.
 
     For example give data that looks something like this:
         {
@@ -41,33 +41,25 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
                 "type": "file_format",
                 "item": "<unidentified>",
                 "index": 2
-                "identifying_properties": [
-                    "uuid",
-                    "file_format"
-                ]
+                "identifying_properties": [ "uuid", "file_format" ]
             },
             "missing": [
                 "type": "file_format",
                 "item": "vcf_gz",
                 "index": 1
-                "missing_properties": [
-                    "standard_file_format"
-                ]
+                "missing_properties": [ "standard_file_format" ]
             },
             "extraneous": [
                 "type": "file_submitted",
                 "item": "ebcfa32f-8eea-4591-a784-449fa5cd9ae9",
                 "index": 3
-                "extraneous_properties": [
-                    "xyzzy",
-                    "foobar"
-                ]
+                "extraneous_properties": [ "xyzzy", "foobar" ]
             }
         }
 
-    The "item" is the identifying value for the specified object (uuid or another if defined by the schema).
-    The "index" is the (0-indexed) ordinal position of the object within the list within the type within the
-    given data, which can be useful in identifying the object in the source data if it is unidentified.
+    The "item" is the identifying value for the specified object (uuid or another defined by the schema).
+    The "index" is the (0-indexed) ordinal position of the object within the list within the type within
+    the given data, which can be useful in identifying the object in the source data if it is unidentified.
     """
 
     def fetch_relevant_schemas(schema_names: list, portal_vapp: VirtualApp) -> list:
@@ -102,6 +94,9 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
 def validate_data_items_against_schemas(data_items: list[dict],
                                         data_type: str,
                                         schema: dict) -> Optional[dict]:
+    """"
+    Like validate_data_against_schemas but for a simple list of data items of the same given type.
+    """
     problems = {}
     for data_item_index, data_item in enumerate(data_items):
         _merge_problems(problems, validate_data_item_against_schemas(data_item, data_type, data_item_index, schema))
@@ -112,6 +107,9 @@ def validate_data_item_against_schemas(data_item: dict,
                                        data_type: str,
                                        data_item_index: Optional[int],
                                        schema: dict) -> Optional[dict]:
+    """"
+    Like validate_data_against_schemas but for a single data item of the given type.
+    """
     problems = {}
     unidentified = []
     missing_properties = []
