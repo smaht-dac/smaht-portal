@@ -14,9 +14,9 @@ def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp
         unique_identifying_values = set()
         for item in loadxl_response:
             # ASSUME each item in the loadxl response looks something like one of (string or bytes):
-            # POST: cafebeef-01ce-4e61-be5d-cd04401dff29
-            # PATCH: feedcafe-7b4f-4923-824b-d0864a689bb
-            # SKIP: deadbabe-eb17-4406-adb8-060ea2ae2180
+            # POST: beefcafe-01ce-4e61-be5d-cd04401dff29
+            # PATCH: deadbabe-7b4f-4923-824b-d0864a689bb
+            # SKIP: feedbeef-eb17-4406-adb8-060ea2ae2180
             # CHECK: cafebabe-eb17-4406-adb8-0eacafebabe
             # ERROR: deadbeef-483e-4a08-96b9-3ce85ce8bf8c
             # Note that SKIP means skip POST (create); it still may do PATCH (update), if overwrite.
