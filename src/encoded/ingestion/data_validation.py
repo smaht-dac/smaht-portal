@@ -8,20 +8,25 @@ from .submission_folio import SmahtSubmissionFolio
 
 def validate_data_against_schemas(data: dict[str, list[dict]],
                                   portal_vapp: Optional[VirtualApp] = None,
-                                  schemas: Optional[list[dict]] = None) -> Optional[dict]:
+                                  schemas: Optional[dict[dict]] = None) -> Optional[dict]:
     """
     TODO: This is just until this schema validation is fully supported in sheet_utils.
 
-    Validates the given data, in a format as returned by sheet_utils, validates against
-    the corresponding schema.
+    Validates the given data against the corresponding schema(s). The given data is assumed to
+    be in a format as returned by sheet_utils, i.e. a dictionary of lists of objects where each
+    top-level dictionary property is the name of a data type for the contained list of objects.
+    If no schemas are passed then they will be fetched from the Portal using the given portal_vapp
+    to access it; the schemas are in a form similar to the data - a dictionary of schema objects,
+    where each top-level dictionary property is the name of the data type for the contained schema.
+    These data types are (strings) assumed to be in snake-case form, e.g. "file_submitted".
 
     If there are any missing required properties, any extraneous properties, or any undentified
     items in the data, then returns a dictionary with an itemized description of each of these
     problems, grouped by problem type, otherwise returns None if there are no problems.
-    An unidentified item is one which has no value for uuid nor any of the other
-    identifying property values as defined by the schema.
+    Note tha an unidentified item is one which has no value for uuid nor any of the
+    other identifying property values as defined by the schema.
 
-    For example give data that looks something like this:
+    For example given data that looks something like this:
         {
             "file_format": [
                 <object-for-this-type>,
@@ -95,7 +100,7 @@ def validate_data_items_against_schemas(data_items: list[dict],
                                         data_type: str,
                                         schema: dict) -> Optional[dict]:
     """"
-    Like validate_data_against_schemas but for a simple list of data items of the same given type.
+    Like validate_data_against_schemas but for a simple list of data items each of the same given data type.
     """
     problems = {}
     for data_item_index, data_item in enumerate(data_items):
@@ -108,7 +113,9 @@ def validate_data_item_against_schemas(data_item: dict,
                                        data_item_index: Optional[int],
                                        schema: dict) -> Optional[dict]:
     """"
-    Like validate_data_against_schemas but for a single data item of the given type.
+    Like validate_data_against_schemas but for a single data item of the given data type.
+    The given data item index is just for informational purposes; it corresponds to the
+    ordinal index of the data item in its containing list.
     """
     problems = {}
     unidentified = []

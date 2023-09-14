@@ -13,7 +13,7 @@ def includeme(config):
 
 
 @ingestion_processor("metadata_bundle")
-@ingestion_processor("family_history")
+@ingestion_processor("family_history")  # TODO: Do we need this?
 def handle_metadata_bundle(submission: SubmissionFolio) -> None:
     with submission.processing_context():
         _process_submission(SmahtSubmissionFolio(submission))
