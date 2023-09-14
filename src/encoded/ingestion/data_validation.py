@@ -16,7 +16,7 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
     be in a format as returned by sheet_utils, i.e. a dictionary of lists of objects where each
     top-level dictionary property is the name of a data type for the contained list of objects.
     If no schemas are passed then they will be fetched from the Portal using the given portal_vapp
-    to access it; the schemas are in a form similar to the data - a dictionary of schema objects,
+    to access them; the schemas are in a form similar to the data - a dictionary of schema objects,
     where each top-level dictionary property is the name of the data type for the contained schema.
     These data types are (strings) assumed to be in snake-case form, e.g. "file_submitted".
 
