@@ -9,7 +9,7 @@ def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> dict:
         LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*(.*)$")
-        ACTION_NAME = {"POST": "create", "PATCH": "update", "SKIP": "skip", "CHECK": "validate", "ERROR": "error"}
+        LOADXL_ACTION_NAME = {"POST": "create", "PATCH": "update", "SKIP": "skip", "CHECK": "validate", "ERROR": "error"}
         response = {"create": [], "update": [], "skip": [], "validate": [], "error": []}
         unique_identifying_values = set()
         for item in loadxl_response:
@@ -27,7 +27,7 @@ def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp
             match = LOADXL_RESPONSE_PATTERN.match(item)
             if not match or match.re.groups != 2:
                 continue
-            action = ACTION_NAME[match.group(1).upper()]
+            action = LOADXL_ACTION_NAME[match.group(1).upper()]
             identifying_value = match.group(2)
             if not response.get(action):
                 response[action] = []
