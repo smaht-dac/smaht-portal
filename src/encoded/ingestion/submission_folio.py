@@ -34,8 +34,9 @@ class SmahtSubmissionFolio:
 
     def record_results(self, results: dict, summary: list) -> None:
         """
-        Records/writes the given results and summary (either successful load results or a
-        description of any problems encountered) to S3 and to the Portal database as appropriate.
+        Records/writes the given results and summary (either successful load results or
+        a description of any problems encountered) to S3 and to the IngestionSubmission
+        object destined for the Portal database as appropriate.
         """
         results = {"result": results, "validation_output": summary}
         # This note_additional_datum call causes the "validation_output" key (a list) of the
