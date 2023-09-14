@@ -6,7 +6,7 @@ import zipfile
 from dcicutils.misc_utils import VirtualApp
 from dcicutils.sheet_utils import InsertsDirectoryItemManager, load_items
 
-
+# Simple wrapper around dcicutils.sheet_utils to simplify/localize access.
 def load_data_via_sheet_utils(data_file_name: str, portal_vapp: VirtualApp) -> dict[str, list[dict]]:
     # TODO: Want sheet_utils to handle zip file containing a (directory) of files but not quite
     # there yet (need InsertsManager._load_inserts_data to call a modified maybe_unpack).
