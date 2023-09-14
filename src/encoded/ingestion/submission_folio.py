@@ -1,3 +1,5 @@
+# This is simple convenience wrapper around the (snovault) SubmissionFolio type.
+
 from contextlib import contextmanager
 from typing import Generator
 from snovault.ingestion.common import get_parameter
@@ -5,7 +7,6 @@ from snovault.types.ingestion import SubmissionFolio
 from snovault.util import s3_local_file
 
 
-# A simple convenience wrapper around the (snovault) SubmissionFolio type.
 class SmahtSubmissionFolio:
 
     def __init__(self, submission: SubmissionFolio) -> None:
@@ -40,11 +41,15 @@ class SmahtSubmissionFolio:
         object destined for the Portal database as appropriate.
         """
         results = {"result": results, "validation_output": summary}
+
         # This note_additional_datum call causes the "validation_output" key (a list) of the
         # results above to go into the additional_data property of the IngestionSubmission
         # object in the Portal database, accessible, for example, like this:
         # http://localhost:8000/ingestion-submissions/7da2f985-a6f7-4184-9544-b7439957617e?format=json
+        # These results may be for success or for errors; this is what will get displayed,
+        # by default, by the submitr tool when it detects processing has completed.
         self.submission.note_additional_datum("validation_output", from_dict=results)
+
         # This process_standard_bundle_results call causes the "result" key (a dict) of
         # the results above to go into the submission.json key of the submission S3 bucket.
         # All possible results keys and associated target S3 keys are:
@@ -56,4 +61,7 @@ class SmahtSubmissionFolio:
         # If the s3_only argument is False then this info is written not ONLY to the
         # associated S3 key as described above but ALSO to the additional_data property
         # of the IngestionSubmission object as described above for note_additional_datum.
+        # These results may be for success or for errors; this is what may get displayed
+        # by the submitr tool when it detects processing has completed iff extra
+        # details are requested (e.g. --details).
         self.submission.process_standard_bundle_results(results, s3_only=True)

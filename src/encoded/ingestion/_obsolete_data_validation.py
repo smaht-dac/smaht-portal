@@ -1,5 +1,3 @@
-import jsonschema
-import re
 from typing import Optional
 from dcicutils.ff_utils import get_schema
 from dcicutils.misc_utils import get_error_message, VirtualApp
@@ -76,9 +74,6 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
             return schema_name, get_schema(schema_name, portal_vapp=portal_vapp)
         return {schema_name: schema for schema_name, schema in pmap(fetch_schema, schema_names)}
 
-    if "__exception__" in data:
-        return {"error": data["__exception__"]}
-
     problems = {}
     errors = []
 
@@ -99,7 +94,7 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
             continue
         _merge_problems(problems, validate_data_items_against_schemas(data[data_type], data_type, schema))
     if errors:
-        problems["error"] = errors
+        problems["errors"] = errors
     return problems if problems else None
 
 
@@ -122,17 +117,17 @@ def validate_data_item_against_schemas(data_item: dict,
     """"
     Like validate_data_against_schemas but for a single data item of the given data type.
     The given data item index is just for informational purposes; it corresponds to the
-    ordinal index of the data item in its containing list. Uses the standard jsonschema
-    package to do the heavy lifting of actual schema validation, but exerts extra effort to
-    specifically itemize/aggregate the most common (missing and extraneous properties) errors.
+    ordinal index of the data item in its containing list.
     """
     problems = {}
     unidentified = []
     missing_properties = []
     extraneous_properties = []
-    other_problems = []
 
+    allowed_properties = schema.get("properties", {}).keys()
+    required_properties = schema.get("required", [])
     identifying_properties = schema.get("identifyingProperties", [])
+
     identifying_value = get_identifying_value(data_item, identifying_properties)
     if not identifying_value:
         identifying_value = "<unidentified>"
@@ -142,33 +137,22 @@ def validate_data_item_against_schemas(data_item: dict,
             "index": data_item_index,
             "identifying_properties": identifying_properties
         })
-
-    def extract_single_quoted_strings(message: str) -> list[str]:
-        return re.findall(r"'(.*?)'", message)
-
-    schema_validator = jsonschema.Draft7Validator(schema)
-    for schema_validation_error in schema_validator.iter_errors(data_item):
-        if schema_validation_error.validator == "required":
-            missing_properties.append({
-                "type": data_type,
-                "item": identifying_value,
-                "index": data_item_index,
-                "missing_properties": schema_validation_error.validator_value})
-            continue
-        if schema_validation_error.validator == "additionalProperties":
-            properties = extract_single_quoted_strings(schema_validation_error.message)
-            if properties:
-                extraneous_properties.append({
-                    "type": data_type,
-                    "item": identifying_value,
-                    "index": data_item_index,
-                    "extraneous_properties": properties})
-                continue
-        other_problems.append({
+    missing = [required for required in required_properties if required not in data_item]
+    if missing:
+        missing_properties.append({
             "type": data_type,
             "item": identifying_value,
             "index": data_item_index,
-            "message": schema_validation_error.message})
+            "missing_properties": missing
+            })
+    extraneous = [prohibited for prohibited in data_item if prohibited not in allowed_properties]
+    if extraneous:
+        extraneous_properties.append({
+            "type": data_type,
+            "item": identifying_value,
+            "index": data_item_index,
+            "extraneous_properties": extraneous
+        })
 
     if unidentified:
         problems["unidentified"] = unidentified
@@ -176,8 +160,6 @@ def validate_data_item_against_schemas(data_item: dict,
         problems["missing"] = missing_properties
     if extraneous_properties:
         problems["extraneous"] = extraneous_properties
-    if other_problems:
-        problems["error"] = other_problems
     return problems if problems else None
 
 
@@ -186,17 +168,16 @@ def summarize_validate_data_problems(data_validation_problems: dict,
     """
     Summarize the given data validation problems into a simple short list of English phrases;
     this will end up going into the additional_properties of the IngestionSubmission object
-    in the Portal database (see SubmissionFolio.record_results); this is what will get
-    displayed, if any errors, by the submitr tool when it detects processing has completed.
+    in the Portal database (see SubmissionFolio.record_results).
     """
     return [
-        f"Ingestion data validation problem summary:",
-        f"Data file: {submission.data_file_name}",
-        f"Data file in Se: {submission.s3_data_file_location}",
+        f"Data validation problems:",
+        f"Data file: {submission.data_file_name}"
+        f"Data file in Se: {submission.s3_data_file_location}"
         f"Items unidentified: {len(data_validation_problems.get('unidentified', []))}",
         f"Items missing properties: {len(data_validation_problems.get('missing', []))}",
         f"Items with extraneous properties: {len(data_validation_problems.get('extraneous', []))}",
-        f"Other errors: {len(data_validation_problems.get('error', []))}",
+        f"Other errors: {len(data_validation_problems.get('errors', []))}",
         f"Details: {submission.s3_details_location}"
     ]
 
@@ -215,7 +196,3 @@ def _merge_problems(problems: dict, additional_problems: Optional[dict]) -> None
             if not problems.get("extraneous"):
                 problems["extraneous"] = []
             problems["extraneous"].extend(additional_problems["extraneous"])
-        if additional_problems.get("error"):
-            if not problems.get("error"):
-                problems["error"] = []
-            problems["error"].extend(additional_problems["error"])

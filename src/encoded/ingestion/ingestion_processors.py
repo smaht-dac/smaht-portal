@@ -1,5 +1,6 @@
 from contextlib import contextmanager
-from typing import Generator
+from typing import Generator, Union
+from dcicutils.misc_utils import get_error_message
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
 from .data_validation import summarize_validate_data_problems, validate_data_against_schemas
@@ -32,6 +33,9 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
 
 
 @contextmanager
-def _load_data(submission: SmahtSubmissionFolio) -> Generator[dict[str, list[dict]], None, None]:
+def _load_data(submission: SmahtSubmissionFolio) -> Generator[Union[dict[str, list[dict]], Exception], None, None]:
     with submission.s3_file() as data_file_name:
-        yield load_data_via_sheet_utils(data_file_name, submission.portal_vapp)
+        try:
+            yield load_data_via_sheet_utils(data_file_name, submission.portal_vapp)
+        except Exception as e:
+            yield {"__exception__": [get_error_message(e)]}

@@ -61,10 +61,11 @@ def summarize_load_data_into_database_response(load_data_response: Optional[dict
     """
     Summarize the given load data results into a simple short list of English phrases;
     this will end up going into the additional_properties of the IngestionSubmission
-    object in the Portal database (see SubmissionFolio.record_results).
+    object in the Portal database (see SubmissionFolio.record_results); this is what will
+    get displayed, by default, by the submitr tool when it detects processing has completed.
     """
     return [
-        f"Ingestion summary:",
+        f"Successful ingestion summary:",
         f"In File: {submission.data_file_name}",
         f"S3 File: {submission.s3_data_file_location}",
         f"Details: {submission.s3_details_location}",
