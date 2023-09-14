@@ -23,7 +23,7 @@ class SmahtSubmissionFolio:
     @contextmanager
     def s3_file(self) -> Generator[str, None, None]:
         """
-        Context manager to ownload the submitted file from S3 to a local file; yields the full
+        Context manager to download the submitted file from S3 to a local file; yields the full
         path name to the local file; cleans up (removes the local file) at the end of the context.
         """
         with s3_local_file(self.submission.s3_client,
