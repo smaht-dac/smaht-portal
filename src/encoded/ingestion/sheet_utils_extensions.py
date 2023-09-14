@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from typing import Generator
 import shutil
 import tempfile
 import zipfile
@@ -7,6 +8,8 @@ from dcicutils.sheet_utils import InsertsDirectoryItemManager, load_items
 
 
 def load_data_via_sheet_utils(data_file_name: str, portal_vapp: VirtualApp) -> dict[str, list[dict]]:
+    # TODO: Want sheet_utils to handle zip file containing a (directory) of files but not quite
+    # there yet (need InsertsManager._load_inserts_data to call a modified maybe_unpack).
     if data_file_name.endswith(".zip"):
         # TODO: Note that sheet_utils does not yet support zip files so we do it here.
         with _unzip_into_directory(data_file_name) as data_directory:
@@ -17,7 +20,7 @@ def load_data_via_sheet_utils(data_file_name: str, portal_vapp: VirtualApp) -> d
 
 
 @contextmanager
-def _unzip_into_directory(zip_file_name: str) -> str:
+def _unzip_into_directory(zip_file_name: str) -> Generator[str, None, None]:
     with zipfile.ZipFile(zip_file_name, "r") as zf:
         try:
             tmp_directory = tempfile.mkdtemp()
