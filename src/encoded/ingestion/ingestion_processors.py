@@ -1,10 +1,10 @@
 from contextlib import contextmanager
 from typing import Generator, Union
+from dcicutils.sheet_utils import load_items
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
 from .data_validation import summarize_validate_data_problems, validate_data_against_schemas
 from .loadxl_extensions import load_data_into_database, summarize_load_data_into_database_response
-from .sheet_utils_extensions import load_data_via_sheet_utils
 from .submission_folio import SmahtSubmissionFolio
 
 
@@ -34,4 +34,4 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
 @contextmanager
 def _load_data(submission: SmahtSubmissionFolio) -> Generator[Union[dict[str, list[dict]], Exception], None, None]:
     with submission.s3_file() as data_file_name:
-        yield load_data_via_sheet_utils(data_file_name, submission.portal_vapp)
+        yield load_items(data_file_name, portal_vapp=submission.portal_vapp)
