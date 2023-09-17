@@ -25,9 +25,9 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
         if validate_data_problems:
             validate_data_summary = summarize_validate_data_problems(validate_data_problems, submission)
             submission.record_results(validate_data_problems, validate_data_summary)
-            # If there are data validation problems then trigger an exception so that a
-            # traceback.txt file is written to the S3 ingestion submission bucket; this
-            # is done in snovault.types.ingestion.SubmissionFolio.processing_context.
+            # If there are data validation problems then trigger an exception so that a traceback.txt
+            # file gets written to the S3 ingestion submission bucket to indicate that there is an
+            # error; this is done in snovault.types.ingestion.SubmissionFolio.processing_context.
             # TODO: I *think* this is the right thing to do; it is an exceptional
             # situation but we just happened to have caught it programmatically.
             raise Exception(validate_data_problems)

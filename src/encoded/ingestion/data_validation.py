@@ -189,7 +189,7 @@ def summarize_validate_data_problems(data_validation_problems: dict,
     return [
         f"Ingestion data validation problem summary:",
         f"Data file: {submission.data_file_name}",
-        f"Data file in Se: {submission.s3_data_file_location}",
+        f"Data file in S3: {submission.s3_data_file_location}",
         f"Items unidentified: {len(data_validation_problems.get('unidentified', []))}",
         f"Items missing properties: {len(data_validation_problems.get('missing', []))}",
         f"Items with extraneous properties: {len(data_validation_problems.get('extraneous', []))}",
