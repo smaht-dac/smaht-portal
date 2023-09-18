@@ -1,7 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
 const env = process.env.NODE_ENV;
-const TerserPlugin = require('terser-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 const PATHS = {
@@ -94,17 +93,20 @@ delete resolve.alias["react-bootstrap"];
 const optimization = {
     minimize: mode === "production",
     minimizer: [
-        new TerserPlugin({
-            parallel: false,  // XXX: this option causes docker build to fail - Will 2/25/2021
-            // sourceMap: true,
-            terserOptions:{
-                compress: true,
-                mangle: true,
-                output: {
-                    comments: false
+        // Syntax for pulling module from webpack 5: https://stackoverflow.com/questions/66343602/use-latest-terser-webpack-plugin-with-webpack5
+        (compiler) => {
+            const TerserPlugin = require('terser-webpack-plugin');
+            new TerserPlugin({
+                parallel: false,  // XXX: this option causes docker build to fail - Will 2/25/2021
+                terserOptions:{
+                    compress: true,
+                    mangle: true,
+                    output: {
+                        comments: false
+                    },
                 }
-            }
-        })
+            }).apply(compiler);
+        }
     ]
 };
 
