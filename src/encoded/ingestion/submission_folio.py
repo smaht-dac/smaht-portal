@@ -55,8 +55,8 @@ class SmahtSubmissionFolio:
         # All possible results keys and associated target S3 keys are:
         # results["result"]            -> s3://<submission-bucket>/submission.json
         # results["validation_output"] -> s3://<submission-bucket>/summary.json (new as of 9/2023)
-        # results["post_output"]       -> s3://<submission-bucket>/submission_response
-        # results["upload_info"]       -> s3://<submission-bucket>/upload_info
+        # results["post_output"]       -> s3://<submission-bucket>/submission_response.txt
+        # results["upload_info"]       -> s3://<submission-bucket>/upload_info.txt
         # These are in: in snovault.types.ingestion.SubmissionFolio.process_standard_bundle_results
         # If the s3_only argument is False then this info is written not ONLY to the
         # associated S3 key as described above but ALSO to the additional_data property
