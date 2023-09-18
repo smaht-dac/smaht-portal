@@ -121,7 +121,6 @@ webPlugins.push(new webpack.ProvidePlugin({
 // Inform our React code of what build we're on.
 // This works via a find-replace.
 webPlugins.push(new webpack.DefinePlugin({
-    'process.env.NODE_ENV': JSON.stringify(env),
     'process.version': JSON.stringify(process.version),
     'process.platform': JSON.stringify(process.platform),
     'SERVERSIDE' : JSON.stringify(false),
@@ -129,7 +128,6 @@ webPlugins.push(new webpack.DefinePlugin({
 }));
 
 serverPlugins.push(new webpack.DefinePlugin({
-    'process.env.NODE_ENV': JSON.stringify(env),
     'SERVERSIDE' : JSON.stringify(true),
     'BUILDTYPE' : JSON.stringify(env)
 }));
@@ -238,7 +236,8 @@ module.exports = [
         },
         //resolveLoader : resolve,
         devtool: devTool,
-        plugins: webPlugins
+        plugins: webPlugins,
+        //profile: true
     },
     // for server-side rendering
     ///*
@@ -308,6 +307,7 @@ module.exports = [
         },
         //resolveLoader : resolve,
         devtool: devTool, // No way to debug/log serverside JS currently, so may as well speed up builds for now.
-        plugins: serverPlugins
+        plugins: serverPlugins,
+        // profile: true
     }
 ];
