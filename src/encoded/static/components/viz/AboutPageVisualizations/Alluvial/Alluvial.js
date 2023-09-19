@@ -6,7 +6,6 @@ import tableData from './data/stackrow_data.json';
 import colorSchemes from './data/alluvial_color_schemes.json';
 
 import { sankeyFunc } from './util/sankey';
-import { getMousePosition } from './util/getMousePosition';
 import { StackRowTable } from './StackRowTable';
 
 import Tab from 'react-bootstrap/Tab';
@@ -123,7 +122,14 @@ export const Alluvial = () => {
                           .attr('height', 20)
                           .attr('fill', color)
                           .attr('stroke', d3.rgb(color).darker(1))
-                          .attr("transform", "translate(" + 160 + "," + paddingTop + ")");
+                          .attr("transform", "translate(" + 160 + "," + paddingTop + ")")
+                        //   .on('mouseover', (e, d) => {
+                        //     const nodes = d3.selectAll(`.node[category="${category_name}"]`)
+                        //     nodes.attr('class', 'node category-selected');
+
+                        //     const links = d3.selectAll(`.node[category="${category_name}"]`)
+                        //     console.log(nodes)
+                        //   })
                 });
             }
 
@@ -196,6 +202,7 @@ export const Alluvial = () => {
             .enter().append("g")
             .attr("class", "node")
             .attr("category", (d) => d.category ?? "")
+            .attr("id", (d) => d.name)
             .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
             .on("mouseover", (e, d) => {
                 if (d.type === "data_generator") {
@@ -255,17 +262,15 @@ export const Alluvial = () => {
             .call(d3.drag()
                 .subject(function(d) { return d; })
                 .on("start", function(event, d) {
-                    // When the element is dragged, use svg.getMousePosition()
+                    // When the element is dragged, use d3.pointer
                     // to correct the position
-                    const newPos = getMousePosition(event.sourceEvent, event.sourceEvent.target);
-
+                    d.oldy = d3.pointer(event, this)[1];
                     d3.select(this)
                       .attr("transform", (d) => {
                         d.drag_event_start = event.y;
-                        // return "translate(" + d.x + "," + (d.y = event.y - newPos.y) + ")"
-                        return "translate(" + d.x + "," + d.y + ")"
+                        return "translate(" + d.x + "," + d.y + ")" })
 
-                    });
+                    frontElt.attr('href', `#${d.name}`)
                 })
                 .on("drag", dragmove))
 
@@ -332,34 +337,18 @@ export const Alluvial = () => {
 
             // the function for moving the nodes
             function dragmove(event, d) {
-                d3.select(this)
-                .attr("transform", "translate(" + d.x + "," + (d.y = Math.max( 0, Math.min(height - d.dy, event.y))) + ")");
+                const delta = d.oldy - d3.pointer(event, this)[1];
 
+                d3.select(this)
+                  .attr("transform", "translate(" + d.x + "," + (d.y -= delta)  + ")")
                 sankey.relayout();
                 link.attr("d", sankey.link() );
-
-                // console.log(event.sourceEvent.offsetY)
-
-                // const rect = d3.select(this)._groups[0][0];
-                // const newPos = getMousePosition(event.sourceEvent, rect);
-
-                // console.log("d: ", d.y, "newPos: ", newY, "sum: ", Math.ceil(d.y + newY))
-
-                // console.log("new d.y = ", (d.y + newPos.y) - d.y );
-
-                // Calculate the new y coordinate of the rectangle
-                // console.log("@@ ", parseInt(d.drag_event_start - event.y), d.drag_event_start)
-                // let newY = 
-
-                // d3.select(this)
-                //   .attr("transform", "translate(" + d.x + "," + d.y + ")");
-
-                // Get the transformation matrix to accurately reflect mouse position
-
-                
-                // sankey.relayout();
-                // link.attr("d", sankey.link() );
             }
+
+
+            const frontElt = svg.append("use")
+                                .attr('id', "use")
+                                .attr("href", "")
         }
 
         return () => {
