@@ -38,7 +38,10 @@ class SmahtSubmissionFolio:
         """
         Records/writes the given results and summary (either successful load results or
         a description of any problems encountered) to S3 and to the IngestionSubmission
-        object destined for the Portal database as appropriate.
+        object destined for the Portal database as appropriate. The results are an
+        itemization of each/every object (by action, e.g. POST, PATCH, etc) written
+        to the database; the summary is a list of (text lines) summarizing the
+        submission, e.g. with counts for inserts, updates, etc.
         """
         results = {"result": results, "validation_output": summary}
 
@@ -50,8 +53,8 @@ class SmahtSubmissionFolio:
         # by default, by the submitr tool when it detects processing has completed.
         self.submission.note_additional_datum("validation_output", from_dict=results)
 
-        # This process_standard_bundle_results call causes the "result" key (a dict) of
-        # the results above to go into the submission.json key of the submission S3 bucket.
+        # This process_standard_bundle_results call causes the "result" key of the results
+        # above to be written to the submission.json key of the submission S3 bucket.
         # All possible results keys and associated target S3 keys are:
         #
         # results["result"]            -> s3://<submission-bucket>/<uuid>/submission.json (potentially large)
@@ -60,12 +63,14 @@ class SmahtSubmissionFolio:
         # results["upload_info"]       -> s3://<submission-bucket>/<uuid>/upload_info.txt
         #
         # These are in: in snovault.types.ingestion.SubmissionFolio.process_standard_bundle_results
-        # But cgap-portal also seems to do this:
+        # But note that cgap-portal also does this:
         #
         # results["validation_output"] -> s3://<submission-bucket>/<uuid>/validation_report.txt
         #
         # If the s3_only argument is False then this info is written NOT ONLY to the
         # associated S3 key as described above but ALSO to the additional_data property
         # of the IngestionSubmission object as described above for note_additional_datum.
+        # We set this to True here because the ("result" key of the) results could potentially
+        # be very large, as it is an itemization of each/every object written to the database.
         #
         self.submission.process_standard_bundle_results(results, s3_only=True)

@@ -8,8 +8,6 @@ from snovault.loadxl import get_identifying_value
 from .submission_folio import SmahtSubmissionFolio
 
 
-# TODO: Duh, there is an extant jsonschema package available to do this.
-
 def validate_data_against_schemas(data: dict[str, list[dict]],
                                   portal_vapp: Optional[VirtualApp] = None,
                                   schemas: Optional[dict[dict]] = None) -> Optional[dict]:
