@@ -7,14 +7,26 @@ smaht-portal
 Change Log
 ----------
 
-0.0.10
-=====
+0.2.0
+======
 
 * Adding ingestion processor.
-  * Added ingestion_processor.py; basically a stub for now, using Kent's sheet_utils.
+  * Added/implemented ingestion_processor.py.
   * Added generate-local-access-key script (from snovault) to pyproject.toml.
+  * Added view-local-object script (from snovault) to pyproject.toml.
   * Changed metadata_bundles_bucket to smaht-production-application-metadata-bundles in development.ini.template.
 * Removed types/access_key.py and schemas/access_key.json as the ones in snovault are sufficient.
+
+
+0.1.0
+=====
+`PR 10: Bm-node18-upgrade <https://github.com/smaht-dac/smaht-portal/pull/10>`_
+
+* Update Docker's MakeFile to use Node version 18.17.0
+* Update SPC to 0.1.69
+* Fix for search view error
+* Fix for auth0 bug when SPC symlinking
+
 
 0.0.9
 =====

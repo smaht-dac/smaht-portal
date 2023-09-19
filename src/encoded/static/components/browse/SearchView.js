@@ -139,7 +139,7 @@ export class SearchViewBody extends React.PureComponent {
 
         return (
             <div className="container-wide search-page-outer-container" id="content">
-                <CommonSearchView {...passProps} {...{ columnExtensionMap, tableColumnClassName, facetColumnClassName, facets, aboveTableComponent }}
+                <CommonSearchView {...passProps} {...{ columnExtensionMap, tableColumnClassName, facetColumnClassName, facets }}
                     renderDetailPane={null} termTransformFxn={Schemas.Term.toName} separateSingleTermFacets={false} rowHeight={90} openRowHeight={90} />
             </div>
         );
