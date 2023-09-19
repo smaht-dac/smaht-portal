@@ -53,15 +53,19 @@ class SmahtSubmissionFolio:
         # This process_standard_bundle_results call causes the "result" key (a dict) of
         # the results above to go into the submission.json key of the submission S3 bucket.
         # All possible results keys and associated target S3 keys are:
-        # results["result"]            -> s3://<submission-bucket>/submission.json
-        # results["validation_output"] -> s3://<submission-bucket>/summary.json (new as of 9/2023)
-        # results["post_output"]       -> s3://<submission-bucket>/submission_response.txt
-        # results["upload_info"]       -> s3://<submission-bucket>/upload_info.txt
+        #
+        # results["result"]            -> s3://<submission-bucket>/<uuid>/submission.json (potentially large)
+        # results["validation_output"] -> s3://<submission-bucket>/<uuid>/summary.json (new as of 9/2023)
+        # results["post_output"]       -> s3://<submission-bucket>/<uuid>/submission_response.txt
+        # results["upload_info"]       -> s3://<submission-bucket>/<uuid>/upload_info.txt
+        #
         # These are in: in snovault.types.ingestion.SubmissionFolio.process_standard_bundle_results
-        # If the s3_only argument is False then this info is written not ONLY to the
+        # But cgap-portal also seems to do this:
+        #
+        # results["validation_output"] -> s3://<submission-bucket>/<uuid>/validation_report.txt
+        #
+        # If the s3_only argument is False then this info is written NOT ONLY to the
         # associated S3 key as described above but ALSO to the additional_data property
         # of the IngestionSubmission object as described above for note_additional_datum.
-        # These results may be for success or for errors; this is what may get displayed
-        # by the submitr tool when it detects processing has completed iff extra
-        # details are requested (e.g. --details).
+        #
         self.submission.process_standard_bundle_results(results, s3_only=True)
