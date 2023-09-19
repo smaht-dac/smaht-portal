@@ -81,7 +81,10 @@ const resolve = {
 spcPackageJson = require("@hms-dbmi-bgm/shared-portal-components/package.json");
 spcPeerDependencies = spcPackageJson.peerDependencies || {};
 Object.keys(spcPeerDependencies).forEach(function(packageName) {
-    resolve.alias[packageName] = path.resolve("./node_modules/" + packageName);
+    // Make exception for auth0-lock, which seems to break in Webpack 5 if loaded from SPC peer deps
+    if (packageName !== 'auth0-lock') {
+        resolve.alias[packageName] = path.resolve("./node_modules/" + packageName);
+    }
 });
 
 // Exclusion -- higlass needs react-bootstrap 0.x but we want 1.x; can remove this line below

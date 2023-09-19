@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.1.0
+=====
+`PR 10: Bm-node18-upgrade <https://github.com/smaht-dac/smaht-portal/pull/10>`_
+
+* Update Docker's MakeFile to use Node version 18.17.0
+* Update SPC to 0.1.69
+* Fix for search view error
+* Fix for auth0 bug when SPC symlinking
+
+
 0.0.9
 =====
 
