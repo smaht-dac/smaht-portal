@@ -163,11 +163,11 @@ table.table-striped {
     fill: none;
     stroke-opacity: .1;
         &:hover {
-            stroke-opacity: .8;
+            stroke-opacity: .7;
         }
 
     &.selected {
-        stroke-opacity: 1;
+        stroke-opacity: .7;
     }
 }
 
@@ -306,7 +306,7 @@ table.table-striped {
         &:nth-child(odd) {
             background-color: #F8F8F8;
         }
-        
+
         &-container {
             position: relative;
             height: 35px;
@@ -397,5 +397,39 @@ table.table-striped {
 
     &-body {
         color: #343741;
+    }
+}
+
+
+// below is for demo purposes
+.stackrow-table.demo {
+    .stackrow-item {
+        border: none;
+        border-right: 1px solid #0000001a;
+        border-bottom: 1px solid #0000001a;
+
+        &[data-generator="BCM"] {
+            background-color: hsla(185, 50%, 45%, 0.7);
+        }
+        &[data-generator="Broad"] {
+            background-color: hsla(60, 70%, 44%, 0.7);
+        }
+        &[data-generator="NYGC"] {
+            background-color: hsla(0, 0%, 50%, 0.7);
+        }
+        &[data-generator="UW"] {
+            background-color: hsla(13, 68%, 60%, 0.7);
+        }
+        &[data-generator="WashU"] {
+            background-color: hsla(10, 30%, 42%, 0.7);
+        }
+
+        &-container {
+            background-color: white;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+
+        
     }
 }

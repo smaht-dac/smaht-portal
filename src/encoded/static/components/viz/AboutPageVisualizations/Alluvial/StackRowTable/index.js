@@ -1,6 +1,7 @@
-import React from 'react';
+import React, {useState, useRef} from 'react';
 import { OverlayTrigger, Popover, PopoverContent, PopoverTitle } from "react-bootstrap";
 import graph from '../data/alluvial_data.json';
+import ReactTooltip from 'react-tooltip';
 
 // Legend rendered below the table
 const StackRowItemLegend = ({text}) => {
@@ -44,9 +45,9 @@ const OverlayTriggerContent = ({ref, value, data, ...triggerHandler}) => {
  * Renders an item to be shown on the table.
  * Note: Value defaults to 0
  */
-const StackRowItem = ({ value=0, data }) => {
+const StackRowItem = ({ value=0, data, data_generator }) => {
     return (
-        <div className={`stackrow-item ${ value === -1 ? "empty-label-row" : ""}`}>
+        <div className={`stackrow-item ${ value === -1 ? "empty-label-row" : ""}`} data-generator={data_generator}>
             {
                 value > 0 ?
                         <OverlayTrigger
@@ -87,11 +88,13 @@ const StackRow = ({ rowTitle }) => {
     );
 }
 
-export const StackRowTable = ({ data }) => {
 
+export const StackRowTable = ({ data }) => {
+    const [demo, setDemo] = useState(true);
     return (
         <>
-            <div className={"stackrow-table"}>
+            <button onClick={() => setDemo(!demo)}>Toggle Demo</button>
+            <div className={"stackrow-table" + (demo ? " demo" : "")}>
                 {/* Render the row labels (down the left side of table) */}
                 <div className="stackrow-table-labels">
                     {   Object.keys(graph.platforms).map((gcc, i) => {
@@ -110,7 +113,8 @@ export const StackRowTable = ({ data }) => {
                                 
                                 {/* Diagonal lables across top */}
                                 <div className="column-label">
-                                    <p key={i}>{d.assayType}</p>
+                                    <p key={i} data-tip={d.assayType} data-for="tooltip">{d.assayType}</p>
+                                    {/* <ReactTooltip id="tooltip" place="top" /> */}
                                 </div>
 
                                 {/* Items for corresponding row */}
@@ -121,14 +125,15 @@ export const StackRowTable = ({ data }) => {
                                             if (graph.platforms[gcc][d.assayType]) {
                                                 return (
                                                     <StackRowItem 
-                                                        key={j} 
+                                                        key={j}
+                                                        data_generator={gcc}
                                                         value={graph.platforms[gcc][d.assayType].length} 
-                                                        data={graph.platforms[gcc][d.assayType]} 
+                                                        data={graph.platforms[gcc][d.assayType]}
                                                     />
                                                 )
                                             }
                                             // Empty item
-                                            else return <StackRowItem key={j} />
+                                            else return <StackRowItem key={j} data_generator={gcc} />
                                         })
                                     }
                                 </div>
