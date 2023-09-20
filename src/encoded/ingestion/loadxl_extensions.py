@@ -9,9 +9,8 @@ def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> dict:
         LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*(.*)$")
-        LOADXL_ACTION_NAME = {"POST": "create", "PATCH": "update", "SKIP": "skip", "CHECK": "validate", "ERROR": "error"}
-        response = {"create": [], "update": [], "skip": [], "validate": [], "error": []}
-        unique_identifying_values = set()
+        LOADXL_ACTION_NAME = {"POST": "created", "PATCH": "updated", "SKIP": "skipped", "CHECK": "validated", "ERROR": "errors"}
+        response = {value: [] for value in LOADXL_ACTION_NAME.values()}
         for item in loadxl_response:
             # ASSUME each item in the loadxl response looks something like one of (string or bytes):
             # POST: beefcafe-01ce-4e61-be5d-cd04401dff29
@@ -32,15 +31,13 @@ def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp
             if not response.get(action):
                 response[action] = []
             response[action].append(identifying_value)
-            unique_identifying_values.add(identifying_value)
         # Items flagged as SKIP in loadxl could ultimately be a PATCH (update),
         # so remove from the skip list any items which are also in the update list. 
-        response["skip"] = [item for item in response["skip"] if item not in response["update"]]
+        response["skipped"] = [item for item in response["skipped"] if item not in response["updated"]]
         # Items flagged as POST (create) in loadxl typically also are flagged as PATCH (update), due to the
         # way they are written, so remove from the update list any items which are also in the create list.
-        response["update"] = [item for item in response["update"] if item not in response["create"]]
-        response["unique"] = len(unique_identifying_values)
-        response["ntypes"] = len(data)
+        response["updated"] = [item for item in response["updated"] if item not in response["created"]]
+        response["types"] = list(data.keys())
         return response
 
     loadxl_load_data_response = loadxl_load_data(
@@ -69,11 +66,10 @@ def summarize_load_data_into_database_response(load_data_response: Optional[dict
         f"In File: {submission.data_file_name}",
         f"S3 File: {submission.s3_data_file_location}",
         f"Details: {submission.s3_details_location}",
-        f"N Types: {load_data_response['ntypes']}",
-        f"Uniques: {load_data_response['unique']}",
-        f"Created: {len(load_data_response['create'])}",
-        f"Updated: {len(load_data_response['update'])}",
-        f"Skipped: {len(load_data_response['skip'])}",
-        f"Checked: {len(load_data_response['validate'])}",
-        f"Errored: {len(load_data_response['error'])}"
+        f"N Types: {len(load_data_response['types'])}",
+        f"Created: {len(load_data_response['created'])}",
+        f"Updated: {len(load_data_response['updated'])}",
+        f"Skipped: {len(load_data_response['skipped'])}",
+        f"Checked: {len(load_data_response['validated'])}",
+        f"Errored: {len(load_data_response['errors'])}"
     ]

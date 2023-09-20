@@ -3,7 +3,7 @@ from typing import Generator, Union
 from dcicutils.sheet_utils import load_items
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
-from .data_validation import summarize_validate_data_problems, validate_data_against_schemas
+from .data_validation import summarize_data_validation_errors, validate_data_against_schemas
 from .loadxl_extensions import load_data_into_database, summarize_load_data_into_database_response
 from .submission_folio import SmahtSubmissionFolio
 
@@ -21,16 +21,15 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
 
 def _process_submission(submission: SmahtSubmissionFolio) -> None:
     with _load_data(submission) as data:
-        validate_data_problems = validate_data_against_schemas(data, portal_vapp=submission.portal_vapp)
-        if validate_data_problems:
-            validate_data_summary = summarize_validate_data_problems(validate_data_problems, submission)
-            submission.record_results(validate_data_problems, validate_data_summary)
-            # If there are data validation problems then trigger an exception so that a traceback.txt
-            # file gets written to the S3 ingestion submission bucket to indicate that there is an
-            # error; this is done in snovault.types.ingestion.SubmissionFolio.processing_context.
-            # TODO: I *think* this is the right thing to do; it is an exceptional
-            # situation but we just happened to have caught it programmatically.
-            raise Exception(validate_data_problems)
+        validate_data_errors = validate_data_against_schemas(data, portal_vapp=submission.portal_vapp)
+        if validate_data_errors:
+            validate_data_summary = summarize_data_validation_errors(validate_data_errors, submission)
+            submission.record_results(validate_data_errors, validate_data_summary)
+            # If there are data validation errors then trigger an exception so that a traceback.txt
+            # file gets written to the S3 ingestion submission bucket to indicate that there is an error;
+            # this is an exceptional situation but we just happened to have caught it programmatically;
+            # this is done in snovault.types.ingestion.SubmissionFolio.processing_context.
+            raise Exception(validate_data_summary)
         load_data_response = load_data_into_database(data, submission.portal_vapp, submission.validate_only)
         load_data_summary = summarize_load_data_into_database_response(load_data_response, submission)
         submission.record_results(load_data_response, load_data_summary)

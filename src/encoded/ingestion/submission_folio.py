@@ -63,7 +63,7 @@ class SmahtSubmissionFolio:
         # results["upload_info"]       -> s3://<submission-bucket>/<uuid>/upload_info.txt
         #
         # These are in: in snovault.types.ingestion.SubmissionFolio.process_standard_bundle_results
-        # But note that cgap-portal also does this:
+        # But note that cgap-portal specifically also does this (not within snovault like above):
         #
         # results["validation_output"] -> s3://<submission-bucket>/<uuid>/validation_report.txt
         #
