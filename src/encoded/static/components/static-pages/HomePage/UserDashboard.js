@@ -3,8 +3,10 @@
 import React from 'react';
 import _ from 'underscore';
 
-
-export const UserDashboard = React.memo(function UserDashboard({ windowHeight, windowWidth }){
+export const UserDashboard = React.memo(function UserDashboard({
+    windowHeight,
+    windowWidth,
+}) {
     // const { schemas } = props;
     // We can turn container into container-wide to expand width
     // We can convert dashboard-header into tabs, similar to Item pages.
@@ -20,7 +22,6 @@ export const UserDashboard = React.memo(function UserDashboard({ windowHeight, w
 
     return (
         <React.Fragment>
-
             <div className="dashboard-header">
                 <div className="container-wide d-flex align-items-center justify-content-between">
                     <div className="align-items-center d-flex">

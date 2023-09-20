@@ -4,13 +4,15 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
-import { console, ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import {
+    console,
+    ajax,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 import { pageTitleViews } from './../../PageTitleSection';
 import { GuestHomeView } from './GuestHomeView';
 
 import AboutPageVisualizations from '../../viz/AboutPageVisualizations';
-
 
 /**
  * Homepage View component. Gets rendered at '/' and '/home' paths.
@@ -19,13 +21,20 @@ import AboutPageVisualizations from '../../viz/AboutPageVisualizations';
  * @prop {Object} context - Should have properties typically needed for any static page.
  */
 export default class HomePage extends React.PureComponent {
-
     /**
      * The render function. Renders homepage contents.
      * @returns {Element} A React <div> element.
      */
     render() {
-        const { session, context, alerts, schemas, windowHeight, windowWidth, updateAppSessionState } = this.props;
+        const {
+            session,
+            context,
+            alerts,
+            schemas,
+            windowHeight,
+            windowWidth,
+            updateAppSessionState,
+        } = this.props;
         const commonProps = { context };
         // Render alerts here instead of (unused-for-homepage) PageTitleSection
         return (
@@ -33,22 +42,22 @@ export default class HomePage extends React.PureComponent {
                 <div id="full-alerts-container" className="bg-primary-dark">
                     <Alerts alerts={alerts} className="alerts" />
                 </div>
-                <GuestHomeView {...commonProps} {...{ updateAppSessionState }} />
-                
+                <GuestHomeView
+                    {...commonProps}
+                    {...{ updateAppSessionState }}
+                />
+
                 {/* NOTE: uncomment the line below to test visualizations  */}
                 {/* <AboutPageVisualizations /> */}
             </div>
         );
     }
-
 }
 
-
-const HomePageTitle = React.memo(function HomePageTitle(props){
+const HomePageTitle = React.memo(function HomePageTitle(props) {
     const { session, alerts } = props;
 
     return null;
 });
 
-
-pageTitleViews.register(HomePageTitle, "HomePage");
+pageTitleViews.register(HomePageTitle, 'HomePage');

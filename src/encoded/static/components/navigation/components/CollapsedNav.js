@@ -11,53 +11,77 @@ import {
     BigDropdownPageLoader,
     BigDropdownPageTreeMenu,
     BigDropdownPageTreeMenuIntroduction,
-    BigDropdownGroupController
+    BigDropdownGroupController,
 } from './BigDropdown';
 import { AccountNav } from './AccountNav';
 
-
-export const CollapsedNav = React.memo(function CollapsedNav(props){
+export const CollapsedNav = React.memo(function CollapsedNav(props) {
     const {
         context,
-        href, currentAction, session, mounted,
-        overlaysContainer, windowWidth, windowHeight,
+        href,
+        currentAction,
+        session,
+        mounted,
+        overlaysContainer,
+        windowWidth,
+        windowHeight,
         testWarningVisible,
-        addToBodyClassList, removeFromBodyClassList,
-        schemas, updateAppSessionState
+        addToBodyClassList,
+        removeFromBodyClassList,
+        schemas,
+        updateAppSessionState,
     } = props;
 
     const leftNavProps = {
         context,
-        windowWidth, windowHeight, href, mounted, overlaysContainer, session,
+        windowWidth,
+        windowHeight,
+        href,
+        mounted,
+        overlaysContainer,
+        session,
         testWarningVisible, //, addToBodyClassList, removeFromBodyClassList
     };
 
     const userActionNavProps = {
-        windowWidth, windowHeight, href, mounted, overlaysContainer, session,
-        schemas, updateAppSessionState, testWarningVisible
+        windowWidth,
+        windowHeight,
+        href,
+        mounted,
+        overlaysContainer,
+        session,
+        schemas,
+        updateAppSessionState,
+        testWarningVisible,
     };
 
     // We'll probably keep using NavbarCollapse for a bit since simpler than implementing own
     // (responsive openable mobile menus)
     return (
         <NavbarCollapse>
-            <BigDropdownGroupController {...{ addToBodyClassList, removeFromBodyClassList }}>
-                { session ?
+            <BigDropdownGroupController
+                {...{ addToBodyClassList, removeFromBodyClassList }}>
+                {session ? (
                     <LeftNavAuthenticated {...leftNavProps} />
-                    : <LeftNavGuest {...leftNavProps} /> }
+                ) : (
+                    <LeftNavGuest {...leftNavProps} />
+                )}
                 <AccountNav {...userActionNavProps} />
             </BigDropdownGroupController>
         </NavbarCollapse>
     );
 });
 
-
-function HelpNavItem(props){
+function HelpNavItem(props) {
     const { session, ...navItemProps } = props;
     // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
     return (
         <BigDropdownPageLoader treeURL="/help" session={session}>
-            <BigDropdownNavItem {...navItemProps} id="help-menu-item" navItemHref="/help" navItemContent="Help">
+            <BigDropdownNavItem
+                {...navItemProps}
+                id="help-menu-item"
+                navItemHref="/help"
+                navItemContent="Help">
                 <BigDropdownPageTreeMenuIntroduction titleIcon="info-circle fas" />
                 <BigDropdownPageTreeMenu />
             </BigDropdownNavItem>
@@ -68,24 +92,40 @@ function HelpNavItem(props){
 /**
  * @todo Test user actions or role for things to have here?
  */
-function LeftNavAuthenticated(props){
+function LeftNavAuthenticated(props) {
     const { context, href } = props;
-    const { isGeneListsLinkActive, isCohortsLinkActive } = useMemo(function(){
-        const { "@id": contextID } = context;
-        const { query = {}, pathname } = url.parse(href || contextID, true);
-        // We assume href and context change together, so we memoize on context instead of href
-        // since is a more performant comparison.
-        return {
-            "isGeneListsLinkActive": pathname.substring(0,7) === "/search" && query.type === "GeneList",
-            "isCohortsLinkActive": pathname.substring(0,16) === "/cohort-analysis"
-        };
-    }, [ context ]);
+    const { isGeneListsLinkActive, isCohortsLinkActive } = useMemo(
+        function () {
+            const { '@id': contextID } = context;
+            const { query = {}, pathname } = url.parse(href || contextID, true);
+            // We assume href and context change together, so we memoize on context instead of href
+            // since is a more performant comparison.
+            return {
+                isGeneListsLinkActive:
+                    pathname.substring(0, 7) === '/search' &&
+                    query.type === 'GeneList',
+                isCohortsLinkActive:
+                    pathname.substring(0, 16) === '/cohort-analysis',
+            };
+        },
+        [context]
+    );
     return (
         <div className="navbar-nav mr-auto">
-            <a href="/cohort-analysis" className={"nav-link browse-nav-btn" + (isCohortsLinkActive ? " active" : "")}>
+            <a
+                href="/cohort-analysis"
+                className={
+                    'nav-link browse-nav-btn' +
+                    (isCohortsLinkActive ? ' active' : '')
+                }>
                 Cohorts
             </a>
-            <a href="/search/?type=GeneList" className={"nav-link browse-nav-btn" + (isGeneListsLinkActive ? " active" : "")}>
+            <a
+                href="/search/?type=GeneList"
+                className={
+                    'nav-link browse-nav-btn' +
+                    (isGeneListsLinkActive ? ' active' : '')
+                }>
                 GeneLists
             </a>
             <HelpNavItem {...props} />
@@ -93,9 +133,9 @@ function LeftNavAuthenticated(props){
     );
 }
 
-const LeftNavGuest = React.memo(function LeftNavGuest(props){
+const LeftNavGuest = React.memo(function LeftNavGuest(props) {
     const { href, ...passProps } = props;
-    const { pathname = "/" } = url.parse(href, false);
+    const { pathname = '/' } = url.parse(href, false);
 
     return (
         <div className="navbar-nav mr-auto">
