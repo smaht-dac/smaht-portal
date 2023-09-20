@@ -95,7 +95,7 @@ export class ConsortiumMap extends Component {
             .attr('width', MARKER_SIZE)
             .attr('height', MARKER_SIZE)
             .attr('xlink:href', (d) => {
-                return `./map-marker-${d['marker-color']}.svg`;
+                return `./static/img/map-marker-${d['marker-color']}.svg`;
             })
             .attr('transform', (d) => {
                 return `translate(${d.x}, ${d.y})`;
@@ -144,7 +144,7 @@ export class ConsortiumMap extends Component {
                 .attr('height', 27)
                 .attr('x', legendBasePosX)
                 .attr('y', legendBasePosY + i * 25)
-                .attr('xlink:href', `./map-marker-${d['color']}.svg`);
+                .attr('xlink:href', `./static/img/map-marker-${d['color']}.svg`);
 
             svg.append('text')
                 .attr('x', legendBasePosX + 28)
