@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.2.0
+=====
+`PR 18: Prettier bulk reformat <https://github.com/smaht-dac/smaht-portal/pull/18>`_
+
+* What it says on the tin: ran `npm run format` to reformat JS/JSX files
+
 0.1.1
 =====
 `PR 17: Webpack 5 Config Fixes + Prettier Install & Config <https://github.com/smaht-dac/smaht-portal/pull/17>`_
