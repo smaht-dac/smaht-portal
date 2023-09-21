@@ -158,7 +158,7 @@ def validate_data_item_against_schemas(data_item: dict, data_type: str,
     return errors
 
 
-def summarize_data_validation_errors(data_validation_errors: dict, submission: SmahtSubmissionFolio) -> list[str]:
+def summary_of_data_validation_errors(data_validation_errors: dict, submission: SmahtSubmissionFolio) -> list[str]:
     """
     Summarize the given data validation errors into a simple short list of English phrases;
     this will end up going into the additional_properties of the IngestionSubmission object

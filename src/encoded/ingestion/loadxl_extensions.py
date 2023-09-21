@@ -1,5 +1,5 @@
 import re
-from typing import Generator, Optional
+from typing import Generator, Optional, Union
 from dcicutils.misc_utils import VirtualApp
 from snovault.loadxl import load_all_gen as loadxl_load_data
 from .submission_folio import SmahtSubmissionFolio
@@ -19,9 +19,8 @@ def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp
             # CHECK: cafebabe-eb17-4406-adb8-0eacafebabe
             # ERROR: deadbeef-483e-4a08-96b9-3ce85ce8bf8c
             # Note that SKIP means skip POST (create); it still may do PATCH (update), if overwrite.
-            if isinstance(item, bytes):
-                item = item.decode("ascii")
-            elif not isinstance(item, str):
+            item = _maybe_decode_bytes(item)
+            if not item:
                 continue
             match = LOADXL_RESPONSE_PATTERN.match(item)
             if not match or match.re.groups != 2:
@@ -53,8 +52,8 @@ def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp
     return package_loadxl_response(loadxl_load_data_response)
 
 
-def summarize_load_data_into_database_response(load_data_response: Optional[dict],
-                                               submission: SmahtSubmissionFolio) -> list[str]:
+def summary_of_load_data_results(load_data_response: Optional[dict],
+                                 submission: SmahtSubmissionFolio) -> list[str]:
     """
     Summarize the given load data results into a simple short list of English phrases;
     this will end up going into the additional_properties of the IngestionSubmission
@@ -73,3 +72,14 @@ def summarize_load_data_into_database_response(load_data_response: Optional[dict
         f"Checked: {len(load_data_response['validated'])}",
         f"Errored: {len(load_data_response['errors'])}"
     ]
+
+
+def _maybe_decode_bytes(str_or_bytes: Union[str, bytes], *, encoding: str = "utf-8") -> str:
+    if not isinstance(encoding, str):
+        encoding = "utf-8"
+    if isinstance(str_or_bytes, bytes):
+        return str_or_bytes.decode(encoding)
+    elif isinstance(str_or_bytes, str):
+        return str_or_bytes
+    else:
+        return ""
