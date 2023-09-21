@@ -27,8 +27,8 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
             submission.record_results(validate_data_errors, validate_data_summary)
             # If there are data validation errors then trigger an exception so that a traceback.txt
             # file gets written to the S3 ingestion submission bucket to indicate that there is an error;
-            # this is an exceptional situation but we just happened to have caught it programmatically;
-            # this is done in snovault.types.ingestion.SubmissionFolio.processing_context.
+            # this is an exceptional situation that we just happened to have caught programmatically;
+            # this (traceback.txt) is done in snovault.types.ingestion.SubmissionFolio.processing_context.
             raise Exception(validate_data_summary)
         load_data_response = load_data_into_database(data, submission.portal_vapp, submission.validate_only)
         load_data_summary = summarize_load_data_into_database_response(load_data_response, submission)

@@ -23,10 +23,9 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
     These data types are (strings) assumed to be in snake-case form, e.g. "file_submitted".
 
     If there are any missing required properties, any extraneous properties, or any undentified
-    items in the data, then returns a dictionary with an itemized description of each of
-    these errors, otherwise returns None if there are no problems.
-    Note that an unidentified item is one which has no value for uuid nor any of the
-    other identifying property values as defined by the schema.
+    items in the data, then returns a dictionary with an itemized description of each of these errors,
+    otherwise returns None if there are no problems. Note that an unidentified item is one which has
+    no value for uuid nor any of the other identifying property values as defined by the schema.
 
     For example given data that looks something like this:
         {
@@ -44,24 +43,25 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
 
     This function might return someting like this (assuming these errors existed):
         {
-            "unidentified": [
-                "type": "file_format",
-                "item": "<unidentified>",
-                "index": 2
-                "identifying_properties": [ "uuid", "file_format" ]
-            },
-            "missing": [
-                "type": "file_format",
-                "item": "vcf_gz",
-                "index": 1
-                "missing_properties": [ "standard_file_format" ]
-            },
-            "extraneous": [
-                "type": "file_submitted",
-                "item": "ebcfa32f-8eea-4591-a784-449fa5cd9ae9",
-                "index": 3
-                "extraneous_properties": [ "xyzzy", "foobar" ]
-            }
+            "errors": [
+                {   "type": "file_format",
+                    "unidentified": true,
+                    "index": 2
+                    "identifying_properties": [ "uuid", "file_format" ]
+                },
+                {   "type": "file_format",
+                    "item": "vcf_gz",
+                    "index": 1
+                    "missing_properties": [ "standard_file_format" ]
+                },
+                {   "type": "file_submitted",
+                    "item": "ebcfa32f-8eea-4591-a784-449fa5cd9ae9",
+                    "index": 3
+                    "extraneous_properties": [ "xyzzy", "foobar" ]
+                }
+                {   "error": "No schema found for: some_undefined_type"
+                }
+            ]
         }
 
     The "item" is the identifying value for the specified object (uuid or another defined by the schema).

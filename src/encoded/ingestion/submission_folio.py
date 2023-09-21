@@ -8,6 +8,9 @@ from snovault.util import s3_local_file
 
 
 class SmahtSubmissionFolio:
+    """
+    Convenience wrapper around the standard (snovault) SubmissionFolio, locally for SMaHT.
+    """
 
     def __init__(self, submission: SubmissionFolio) -> None:
         self.submission = submission
