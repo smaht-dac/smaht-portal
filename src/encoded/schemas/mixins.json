@@ -281,7 +281,6 @@
             "description": "Name of the item",
             "type": "string",
             "pattern": "^[A-Za-z0-9-_]+$",
-            "uniqueKey": false,
             "comment": "Not for identifying name; use 'identifier' for that purpose."
         }
     },
