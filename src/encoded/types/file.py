@@ -14,3 +14,4 @@ from .base import Item as SMAHTItem
 class File(SMAHTItem, CoreFile):
     item_type = 'file'
     schema = load_schema("encoded:schemas/file.json")
+    name_key = 'accession'

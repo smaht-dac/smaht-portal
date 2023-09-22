@@ -153,6 +153,18 @@ class Item(SnovaultItem):
             PRINT(f'DEBUG_PERMISSIONS: Returning roles {roles} for {self}')
         return roles
 
+    def unique_keys(self, properties):
+        """ VERY IMPORTANT: This function is required in all extensions of snovault, without it
+            unique keys will NOT work!
+        """
+        keys = super(Item, self).unique_keys(properties)
+        if 'accession' not in self.schema['properties']:
+            return keys
+        keys.setdefault('accession', []).extend(properties.get('alternate_accessions', []))
+        if properties.get('status') != 'replaced' and 'accession' in properties:
+            keys['accession'].append(properties['accession'])
+        return keys
+
 
 @calculated_property(context=Item.AbstractCollection, category='action')
 def add(context, request):

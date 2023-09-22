@@ -3,16 +3,18 @@
 import memoize from 'memoize-one';
 import url from 'url';
 import Registry from '@hms-dbmi-bgm/shared-portal-components/es/components/navigation/components/Registry';
-import { console, isServerSide } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { default as analyticsConfigurationOptions } from "./../ga_config.json";
+import {
+    console,
+    isServerSide,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { default as analyticsConfigurationOptions } from './../ga_config.json';
 
 /**
  * Top bar navigation & link schema definition.
  */
 const portalConfig = {
-
     /** Title of app, used as appendix in browser <head> <title> and similar. */
-    "title": "SMaHT Data Portal",
+    title: 'SMaHT Data Portal',
 
     /**
      * Hostnames which are considered to be canonical for 4DN data.
@@ -21,11 +23,11 @@ const portalConfig = {
      *
      * @type {string[]}
      */
-    "productionHosts": [
-        "www.data.smaht.org",
-        "data.smaht.org",
+    productionHosts: [
+        'www.data.smaht.org',
+        'data.smaht.org',
         // "fourfront-webdev.us-east-1.elasticbeanstalk.com" // TODO: replace with smaht EB link
-    ]
+    ],
 };
 
 /**
@@ -46,29 +48,34 @@ const content_views = new Registry();
 const panel_views = new Registry();
 
 /**
-* gets tracking ID and type (UA or GA4)
-* @param {string} href     href to get matching Google Analytics property
-* @return {string}         returns trackingID
-*/
-const getGoogleAnalyticsTrackingID = memoize(function(href){
-    if (!href && !isServerSide()){
+ * gets tracking ID and type (UA or GA4)
+ * @param {string} href     href to get matching Google Analytics property
+ * @return {string}         returns trackingID
+ */
+const getGoogleAnalyticsTrackingID = memoize(function (href) {
+    if (!href && !isServerSide()) {
         href = window.location.href;
     }
     const { host } = url.parse(href);
-    const hostnames = Object.keys(analyticsConfigurationOptions.hostnameTrackerIDMapping) || [];
-    for (var i = 0; i < hostnames.length; i++){
+    const hostnames =
+        Object.keys(analyticsConfigurationOptions.hostnameTrackerIDMapping) ||
+        [];
+    for (var i = 0; i < hostnames.length; i++) {
         if (host.indexOf(hostnames[i]) > -1) {
-            return analyticsConfigurationOptions.hostnameTrackerIDMapping[hostnames[i]];
+            return analyticsConfigurationOptions.hostnameTrackerIDMapping[
+                hostnames[i]
+            ];
         }
     }
-    return analyticsConfigurationOptions.hostnameTrackerIDMapping.default || null;
+    return (
+        analyticsConfigurationOptions.hostnameTrackerIDMapping.default || null
+    );
 });
-
 
 export {
     analyticsConfigurationOptions,
     portalConfig,
     getGoogleAnalyticsTrackingID,
     content_views,
-    panel_views
+    panel_views,
 };

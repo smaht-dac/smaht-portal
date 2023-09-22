@@ -7,8 +7,40 @@ smaht-portal
 Change Log
 ----------
 
+0.2.0
+=====
+`PR 18: Prettier bulk reformat <https://github.com/smaht-dac/smaht-portal/pull/18>`_
+
+* What it says on the tin: ran `npm run format` to reformat JS/JSX files
+
+0.1.1
+=====
+`PR 17: Webpack 5 Config Fixes + Prettier Install & Config <https://github.com/smaht-dac/smaht-portal/pull/17>`_
+
+* Remove direct Terser-Webpack-Plugin from dev-dependencies
+* Fix NODE_ENV warning on webpack build
+* Add some comments for profiling webpack easily
+* Also included changes from: https://github.com/smaht-dac/smaht-portal/pull/15
+
+
+0.1.0
+=====
+`PR 10: Bm-node18-upgrade <https://github.com/smaht-dac/smaht-portal/pull/10>`_
+
+* Update Docker's MakeFile to use Node version 18.17.0
+* Update SPC to 0.1.69
+* Fix for search view error
+* Fix for auth0 bug when SPC symlinking
+
+
+0.0.9
+=====
+
+* Hook in and test DRS implementation
+
+
 0.0.8
-====
+=====
 
 * Lock newer snovault, utils versions with bug fixes
 
