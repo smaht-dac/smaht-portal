@@ -10,6 +10,7 @@ Change Log
 0.2.0
 ======
 
+* Upgrade to Python 3.11.
 * Adding ingestion processor.
   * Added/implemented ingestion_processor.py.
   * Added generate-local-access-key script (from snovault) to pyproject.toml.
