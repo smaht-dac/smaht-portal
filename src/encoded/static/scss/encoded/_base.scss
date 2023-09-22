@@ -12,7 +12,7 @@ Some may overwrite Bootstrap variables
 $mainThemeColor: 			#ffffff; /* i.e. the background color ..for now */
 
 $appVersionHeight:          0px;
-$footer-height:             0px + $appVersionHeight; // TODO: Update once footer re-added
+$footer-height:             50px + $appVersionHeight;
 $appBackgroundColor:        #fff; /* Not sure where $mainThemeColor is used... definitely not #application background-color, so creating new one */
 $appSecondaryBackgroundColor: #f5f5f5;
 
