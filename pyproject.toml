@@ -146,6 +146,7 @@ wheel = ">=0.29.0"
 [tool.poetry.scripts]
 # dcicutils commands
 add-image-tag = "dcicutils.ecr_scripts:add_image_tag_main"
+publish-to-pypi = "dcicutils.scripts.publish_to_pypi:main"
 show-global-env-bucket = "dcicutils.env_scripts:show_global_env_bucket_main"
 show-image-manifest = "dcicutils.ecr_scripts:show_image_manifest_main"
 show-image-catalog = "dcicutils.ecr_scripts:show_image_catalog_main"
