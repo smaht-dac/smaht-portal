@@ -10,11 +10,12 @@ ENCODED_CORE_PAGE_SCHEMA = deepcopy(CorePage.schema)
 
 @collection(
     name='pages',
-    unique_key='page:name',
+    lookup_key='name',
     properties={
         'title': 'Pages',
         'description': 'Static Pages for the Portal',
     })
 class Page(SMAHTItem, CorePage):
     item_type = 'page'
+    name_key = 'name'
     schema = mixin_smaht_permission_types(ENCODED_CORE_PAGE_SCHEMA)
