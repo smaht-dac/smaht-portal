@@ -27,7 +27,7 @@
         }
     ],
     "properties": {
-        "$merge": "encoded_core:document.json#/properties",
+        "$merge": "encoded_core:schemas/document.json#/properties",
         "schema_version": {
             "default": "1"
         }

@@ -9,7 +9,7 @@
     ],
     "additionalProperties": false,
     "properties": {
-        "$merge": "snovault/access_key.json#/properties",
+        "$merge": "snovault:schemas/access_key.json#/properties",
         "schema_version": {
             "default": "1"
         }

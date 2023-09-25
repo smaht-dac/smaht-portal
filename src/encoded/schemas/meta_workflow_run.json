@@ -69,16 +69,16 @@
             "accessionType": "MR"
         },
         "meta_workflow": {
-            "$merge": "encoded_core/meta_workflow_run.json#/properties/meta_workflow"
+            "$merge": "encoded_core:schemas/meta_workflow_run.json#/properties/meta_workflow"
         },
         "final_status": {
-            "$merge": "encoded_core/meta_workflow_run.json#/properties/final_status"
+            "$merge": "encoded_core:schemas/meta_workflow_run.json#/properties/final_status"
         },
         "failed_jobs": {
-            "$merge": "encoded_core/meta_workflow_run.json#/properties/failed_jobs"
+            "$merge": "encoded_core:schemas/meta_workflow_run.json#/properties/failed_jobs"
         },
         "cost": {
-            "$merge": "encoded_core/meta_workflow_run.json#/properties/cost"
+            "$merge": "encoded_core:schemas/meta_workflow_run.json#/properties/cost"
         },
         "workflow_runs": {
             "title": "Workflow Runs",

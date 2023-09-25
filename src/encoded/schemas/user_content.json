@@ -56,10 +56,10 @@
             "default": "1"
         },
         "status": {
-            "$merge": "encoded_core/user_content.json#/properties/status"
+            "$merge": "encoded_core:schemas/user_content.json#/properties/status"
         },
         "options": {
-            "$merge": "encoded_core/user_content.json#/properties/options"
+            "$merge": "encoded_core:schemas/user_content.json#/properties/options"
         }
     }
 }

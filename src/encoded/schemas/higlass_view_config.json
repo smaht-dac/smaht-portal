@@ -56,10 +56,10 @@
             "default": "1"
         },
         "view_config": {
-            "$merge": "encoded_core.higlass_view_config.json#/properties/viewconfig"
+            "$merge": "encoded_core:schemas/higlass_view_config.json#/properties/viewconfig"
         },
         "instance_height": {
-            "merge": "encoded_core.higlass_view_config.json#/properties/instance_height"
+            "merge": "encoded_core:schemas/higlass_view_config.json#/properties/instance_height"
         }
     }
 }

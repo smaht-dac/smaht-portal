@@ -49,7 +49,7 @@
             "default": "1"
         },
         "overall_quality_status": {
-            "$merge": "encoded_core/quality_metric.json#/properties/overall_quality_status",
+            "$merge": "encoded_core:schemas/quality_metric.json#/properties/overall_quality_status",
             "enum": [
                 "Fail",
                 "Pass",
@@ -58,7 +58,7 @@
             "default": "Pass"
         },
         "url": {
-            "$merge": "encoded_core/quality_metric.json#/properties/url"
+            "$merge": "encoded_core:schemas/quality_metric.json#/properties/url"
         }
     }
 }

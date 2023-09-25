@@ -100,13 +100,13 @@
             ]
         },
         "body": {
-            "$merge": "encoded_core/static_section.json#/properties/body"
+            "$merge": "encoded_core:schemas/static_section.json#/properties/body"
         },
         "file": {
-            "$merge": "encoded_core/static_section.json#/properties/file"
+            "$merge": "encoded_core:schemas/static_section.json#/properties/file"
         },
         "options": {
-            "$merge": "encoded_core/static_section.json#/properties/options"
+            "$merge": "encoded_core:schemas/static_section.json#/properties/options"
         }
     }
 }

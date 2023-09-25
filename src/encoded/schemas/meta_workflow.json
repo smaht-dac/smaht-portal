@@ -87,10 +87,10 @@
             }
         },
         "previous_versions": {
-            "$merge": "encoded_core/meta_workflow.json#/properties/previous_version"
+            "$merge": "encoded_core:schemas/meta_workflow.json#/properties/previous_version"
         },
         "version_upgrade_log": {
-            "$merge": "encoded_core/meta_workflow.json#/properties.version_upgrade_log"
+            "$merge": "encoded_core:schemas/meta_workflow.json#/properties.version_upgrade_log"
         },
         "workflows": {
             "title": "Workflows",

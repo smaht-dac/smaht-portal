@@ -87,16 +87,16 @@
             }
         },
         "binary_url": {
-            "$merge": "encoded_core/software.json#/properties/binary_url"
+            "$merge": "encoded_core:schemas/software.json#/properties/binary_url"
         },
         "commit": {
-            "$merge": "encoded_core/software.json#/properties/commit"
+            "$merge": "encoded_core:schemas/software.json#/properties/commit"
         },
         "source_url": {
-            "$merge": "encoded_core/software.json#/properties/source_url"
+            "$merge": "encoded_core:schemas/software.json#/properties/source_url"
         },
         "version": {
-            "$merge": "encoded_core/software.json#/properties/version"
+            "$merge": "encoded_core:schemas/software.json#/properties/version"
         }
     }
 }

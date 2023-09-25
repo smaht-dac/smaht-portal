@@ -36,23 +36,23 @@
             "default": "1"
         },
         "first_name": {
-            "$merge": "snovault/user.json#/properties/first_name"
+            "$merge": "snovault:schemas/user.json#/properties/first_name"
         },
         "email": {
-            "$merge": "snovault/user.json#/properties/email",
+            "$merge": "snovault:schemas/user.json#/properties/email",
             "description": "Email used to log in to the SMaHT portal"
         },
         "groups": {
-            "$merge": "snovault/user.json#/properties/groups"
+            "$merge": "snovault:schemas/user.json#/properties/groups"
         },
         "last_name": {
-            "$merge": "snovault/user.json#/properties/last_name"
+            "$merge": "snovault:schemas/user.json#/properties/last_name"
         },
         "status": {
-            "$merge": "snovault/user.json#/properties/status"
+            "$merge": "snovault:schemas/user.json#/properties/status"
         },
         "time_zone": {
-            "$merge": "snovault/user.json#/properties/time_zone"
+            "$merge": "snovault:schemas/user.json#/properties/timezone"
         }
     }
 }

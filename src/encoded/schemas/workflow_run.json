@@ -60,22 +60,22 @@
             "default": "1"
         },
         "input_files": {
-            "$merge": "encoded_core:workflow_run.json#/properties/input_files"
+            "$merge": "encoded_core:schemas/workflow_run.json#/properties/input_files"
         },
         "output_files": {
-            "$merge": "encoded_core:workflow_run.json#/properties/output_files"
+            "$merge": "encoded_core:schemas/workflow_run.json#/properties/output_files"
         },
         "parameters": {
-            "$merge": "encoded_core:workflow_run.json#/properties/parameters"
+            "$merge": "encoded_core:schemas/workflow_run.json#/properties/parameters"
         },
         "run_status": {
-            "$merge": "encoded_core:workflow_run.json#/properties/run_status"
+            "$merge": "encoded_core:schemas/workflow_run.json#/properties/run_status"
         },
         "run_url": {
-            "$merge": "encoded_core:workflow_run.json#/properties/run_url"
+            "$merge": "encoded_core:schemas/workflow_run.json#/properties/run_url"
         },
         "workflow": {
-            "$merge": "encoded_core:workflow_run.json#/properties/workflow"
+            "$merge": "encoded_core:schemas/workflow_run.json#/properties/workflow"
         }
     },
     "facets": {},

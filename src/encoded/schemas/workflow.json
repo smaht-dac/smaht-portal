@@ -90,19 +90,19 @@
             }
         },
         "arguments": {
-            "$merge": "encoded_core:workflow.json#/properties/argument"
+            "$merge": "encoded_core:schemas/workflow.json#/properties/argument"
         },
         "previous_versions": {
-            "$merge": "encoded_core:workflow.json#/properties/previous_version"
+            "$merge": "encoded_core:schemas/workflow.json#/properties/previous_version"
         },
         "software": {
-            "$merge": "encoded_core:workflow.json#/properties/software"
+            "$merge": "encoded_core:schemas/workflow.json#/properties/software"
         },
         "steps": {
-            "$merge": "encoded_core:workflow.json#/properties/steps"
+            "$merge": "encoded_core:schemas/workflow.json#/properties/steps"
         },
         "version_upgrade_log": {
-            "$merge": "encoded_core:workflow.json#/properties/version_upgrade_log"
+            "$merge": "encoded_core:schemas/workflow.json#/properties/version_upgrade_log"
         },
         "child_file_names": {
             "title": "Child File Names",
