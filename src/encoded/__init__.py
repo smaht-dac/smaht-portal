@@ -43,7 +43,6 @@ def include_encoded(config):
     config.include('encoded.types')
     config.include('encoded.server_defaults')
     # config.include('encoded.visualization')
-    config.commit()
 
 
 def include_snovault(config: Configurator) -> None:
@@ -269,7 +268,7 @@ def main(global_config, **local_config):
         config.include('snovault.search.compound_search')
 
     # this contains fall back url, so make sure it comes just before static_resoruces
-    config.include('encoded_core.page_views')
+    config.include('encoded.types.page')
     config.include(static_resources)
     config.include(changelogs)
 

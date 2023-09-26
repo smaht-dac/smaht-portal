@@ -1,4 +1,5 @@
 from pyramid.view import view_config
+import snovault
 from snovault import AbstractCollection, abstract_collection, calculated_property
 from snovault.types.base import (
     Collection,
@@ -45,6 +46,48 @@ def mixin_smaht_permission_types(schema: dict) -> dict:
         'serverDefault': 'user_consortia'
     }
     return schema
+
+
+class AbstractCollection(snovault.AbstractCollection):
+    """smth."""
+
+    def __init__(self, *args, **kw):
+        try:
+            self.lookup_key = kw.pop('lookup_key')
+        except KeyError:
+            pass
+        super(AbstractCollection, self).__init__(*args, **kw)
+
+    def get(self, name, default=None):
+        """
+        heres' and example of why this is the way it is:
+        ontology terms have uuid or term_id as unique ID keys
+        and if neither of those are included in post, try to
+        use term_name such that:
+        No - fail load with non-existing term message
+        Multiple - fail load with ‘ambiguous name - more than 1 term with that name exist use ID’
+        Single result - get uuid and use that for post/patch
+        """
+        resource = super(AbstractCollection, self).get(name, None)
+        if resource is not None:
+            return resource
+        if ':' in name:
+            resource = self.connection.get_by_unique_key('alias', name)
+            if resource is not None:
+                if not self._allow_contained(resource):
+                    return default
+                return resource
+        if getattr(self, 'lookup_key', None) is not None:
+            # lookup key translates to query json by key / value and return if only one of the
+            # item type was found... so for keys that are mostly unique, but do to whatever
+            # reason (bad data mainly..) can be defined as unique keys
+            item_type = self.type_info.item_type
+            resource = self.connection.get_by_json(self.lookup_key, name, item_type)
+            if resource is not None:
+                if not self._allow_contained(resource):
+                    return default
+                return resource
+        return default
 
 
 class SMAHTCollection(Collection, AbstractCollection):
