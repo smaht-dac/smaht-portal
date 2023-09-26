@@ -16,7 +16,7 @@ from pyramid.view import view_config
 from encoded_core.types.page import Page as CorePage
 from encoded_core.page_views import (
     validate_unique_page_name, is_static_page, add_sibling_parent_relations_to_tree,
-    get_pyramid_http_exception_for_redirect_code,
+    get_pyramid_http_exception_for_redirect_code, cleanup_page_tree
 )
 from .base import Item as SMAHTItem
 from .base import mixin_smaht_permission_types, collection_add, item_edit
