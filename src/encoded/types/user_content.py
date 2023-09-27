@@ -1,5 +1,5 @@
 from copy import deepcopy
-from snovault import abstract_collection
+from snovault import abstract_collection, collection
 from encoded_core.types.user_content import UserContent as CoreUserContent
 from .base import Item as SMAHTItem
 from .base import mixin_smaht_permission_types
