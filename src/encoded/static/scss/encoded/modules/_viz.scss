@@ -132,7 +132,7 @@
     
         .header {
             font-family: Inter;
-            font-weight: 600;
+            font-weight: 400;
             font-size: 1.1rem;
         }
     }
@@ -171,7 +171,31 @@
     .stackrow {
         display: flex;
         height: 50px;
-    
+        border: none;
+        color: white;
+        padding-left: 20px;
+
+
+        &[data-row-title="BCM"] {
+            border-left: 12px solid hsla(185, 50%, 45%, 1);
+            background-color: #F8F8F8;
+        }
+        &[data-row-title="Broad"] {
+            border-left: 12px solid hsla(60, 70%, 44%, 1);
+            background-color: white;
+        }
+        &[data-row-title="NYGC"] {
+            border-left: 12px solid hsla(0, 0%, 50%, 1);
+            background-color: #F8F8F8;
+        }
+        &[data-row-title="UW"] {
+            border-left: 12px solid hsla(13, 68%, 60%, 1);
+            background-color: white;
+        }
+        &[data-row-title="WashU"] {
+            border-left: 12px solid hsla(10, 30%, 42%, 1);
+            background-color: #F8F8F8;
+        }
     
         &-svg {
             position: absolute;
@@ -200,7 +224,7 @@
     
             &-labels {
                 margin-top: 200px;
-                width: 200px;
+                width: 150px;
             }
     
             &-columns {
@@ -269,10 +293,15 @@
             display: flex;
             flex-direction: column;
             width: 100%;
+            background: none;
     
             &-primary {
-                display: flex;
-                height: 49px;
+                padding: 0;
+
+                .stackrow-title {
+                    font-weight: 400;
+                    color: #343741;
+                }
             }
     
             &-subrow {
@@ -407,61 +436,6 @@
         .stackrow-item {
             background-color: transparent;
             border: none;
-        }
-    }
-    
-    
-    
-    
-    // below is for demo purposes
-    .stackrow-table.demo {
-        .stackrow {
-            border: none;
-            color: white;
-            padding-left: 20px;
-            border-bottom: 1px solid transparent;
-            padding-right: 100px;
-    
-    
-            &[data-row-title="BCM"] {
-                background: linear-gradient(to right, hsla(185, 50%, 45%, 1), #F8F8F8);
-                // background: linear-gradient(to right, hsla(185, 50%, 45%, 1) 8%, #F8F8F8 8%);
-                // background-color: hsla(185, 50%, 45%, 1);
-            }
-            &[data-row-title="Broad"] {
-                background: linear-gradient(to right, hsla(60, 70%, 44%, 1), white);
-                // background: linear-gradient(to right, hsla(60, 70%, 44%, 1) 8%, white 8%);
-                // background-color: hsla(60, 70%, 44%, 1);
-            }
-            &[data-row-title="NYGC"] {
-                background: linear-gradient(to right, hsla(0, 0%, 50%, 1), #F8F8F8);
-                // background: linear-gradient(to right, hsla(0, 0%, 50%, 1) 8%, #F8F8F8 8%);
-                // background-color: hsla(0, 0%, 50%, 1);
-            }
-            &[data-row-title="UW"] {
-                background: linear-gradient(to right, hsla(13, 68%, 60%, 1), white);
-                // background: linear-gradient(to right, hsla(13, 68%, 60%, 1) 8%, white 8%);
-                // background-color: hsla(13, 68%, 60%, 1);
-            }
-            &[data-row-title="WashU"] {
-                background: linear-gradient(to right, hsla(10, 30%, 42%, 1), #F8F8F8);
-                // background: linear-gradient(to right, hsla(10, 30%, 42%, 1) 8%, #F8F8F8 8%);
-                // background-color: hsla(10, 30%, 42%, 1);
-            }
-    
-            &-label-container {
-                background: none;
-    
-                &-primary {
-                    padding: 0;
-    
-                    .stackrow-title {
-                        text-shadow: 0px 0px 3px black;
-                        color: white;
-                    }
-                }
-            }
-            
         }
     }
 }
