@@ -1500,7 +1500,7 @@ export default class App extends React.PureComponent {
                         rel="stylesheet"
                     />
                     <link
-                        href="https://fonts.googleapis.com/css?family=Inter:wght@400;600"
+                        href="https://fonts.googleapis.com/css?family=Inter:wght@400,500,600"
                         rel="stylesheet"
                     />
                     {/* Can set webpack.config.js browser build's externals "react":"React" and load via CDN but need to then allow cross-origin requests to CDN domain
