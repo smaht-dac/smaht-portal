@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import {
     OverlayTrigger,
     Popover,
@@ -6,7 +6,6 @@ import {
     PopoverTitle,
 } from 'react-bootstrap';
 import graph from '../data/alluvial_data.json';
-import ReactTooltip from 'react-tooltip';
 
 // Legend rendered below the table
 const StackRowItemLegend = ({ text }) => {
@@ -22,7 +21,7 @@ const StackRowItemLegend = ({ text }) => {
     );
 };
 
-// Render a list of information provided by the data
+// A list of information provided to show in the Bootstrap Popover
 const PopoverContents = ({ data }) => {
     return (
         <div className="stackrow-item-popover-list">
@@ -35,7 +34,7 @@ const PopoverContents = ({ data }) => {
     );
 };
 
-//
+// Component serving as a trigger for the Bootstrap Popover component
 const OverlayTriggerContent = ({ ref, value, data, ...triggerHandler }) => {
     return (
         <div className="stackrow-item-container clickable" {...triggerHandler}>
@@ -48,9 +47,9 @@ const OverlayTriggerContent = ({ ref, value, data, ...triggerHandler }) => {
 
 /**
  * Renders an item to be shown on the table.
- * Note: Value defaults to 0
+ * Note: [value] defaults to 0
  */
-const StackRowItem = ({ value = 0, data, data_generator }) => {
+const StackRowItem = ({ value=0, data, data_generator }) => {
     return (
         <div
             className={`stackrow-item ${value === -1 ? 'empty-label-row' : ''}`}
@@ -80,9 +79,11 @@ const StackRowItem = ({ value = 0, data, data_generator }) => {
     );
 };
 
+
+// Header corresponding to each row on the table
 const StackRow = ({ rowTitle }) => {
     return (
-        <div className="stackrow">
+        <div className="stackrow" data-row-title={rowTitle}>
             <div className="stackrow-label-container">
                 <div className="stackrow-label-container-primary">
                     <h4 className="stackrow-title">{rowTitle}</h4>
@@ -92,12 +93,16 @@ const StackRow = ({ rowTitle }) => {
     );
 };
 
+/**
+ * StackRowTable is a table representing the information found in [data]
+ * by rendering a list of columns, each with a header above them. Each
+ * column, in turn, has a list of items which each have a portion of
+ * [data] passed down to it.
+ */
 export const StackRowTable = ({ data }) => {
-    const [demo, setDemo] = useState(true);
     return (
         <>
-            <button onClick={() => setDemo(!demo)}>Toggle Demo</button>
-            <div className={'stackrow-table' + (demo ? ' demo' : '')}>
+            <div className="stackrow-table">
                 {/* Render the row labels (down the left side of table) */}
                 <div className="stackrow-table-labels">
                     {Object.keys(graph.platforms).map((gcc, i) => {
@@ -106,23 +111,38 @@ export const StackRowTable = ({ data }) => {
                 </div>
                 <div className="stackrow-table-columns">
                     {/* Render the columns */}
-                    {data.map((d, i) => {
+                    { data.map((d, i) => {
                         return (
-                            // Columns are added at once
+                            // Container for the content of an entire column
                             <div key={i} className="column">
-                                {/* Diagonal lables across top */}
+
+                                {/* Diagonal lables across top with popover */}
                                 <div className="column-label">
-                                    <p
-                                        key={i}
-                                        data-tip={d.assayType}
-                                        data-for="tooltip">
-                                        {d.assayType}
-                                    </p>
-                                    {/* <ReactTooltip id="tooltip" place="top" /> */}
+                                    <OverlayTrigger
+                                        trigger={['hover', 'focus']}
+                                        placement="bottom"
+                                        rootClose
+                                        overlay={
+                                            <Popover id="popover-container">
+                                                <PopoverTitle>
+                                                    {d.assayType}
+                                                </PopoverTitle>
+                                                <PopoverContent>
+                                                    {d.assayType}
+                                                </PopoverContent>
+                                            </Popover>
+                                        }>
+                                            <span
+                                                key={i}
+                                                data-tip={d.assayType}
+                                                data-for="tooltip">
+                                                {d.assayType}
+                                            </span>
+                                    </OverlayTrigger>
                                 </div>
 
-                                {/* Items for corresponding row */}
-                                <div className="column-items flex flex-column">
+                                {/* Items for corrsesponding row */}
+                                <div className="column-items">
                                     {Object.keys(graph.platforms).map(
                                         (gcc, j) => {
                                             if (
