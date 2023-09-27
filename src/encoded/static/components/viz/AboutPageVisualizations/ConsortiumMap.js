@@ -158,7 +158,7 @@ export class ConsortiumMap extends Component {
     getTooltip(consortium) {
         return `
     <div class="consortium-tooltip-wrapper">
-      <div class="pb-2 font-weight-bold">${consortium['center-type']}</div>
+      <div class="pb-2">${consortium['center-type']}</div>
       <div class="consortium-tooltip-header">Institution</div>
       <div class="pb-2 consortium-tooltip-content">${
           consortium['institution']
@@ -313,7 +313,7 @@ export class ConsortiumMap extends Component {
 
     render() {
         return (
-            <React.Fragment>
+            <div className="consortium-map">
                 <h1 className="text-center my-5">Consortium overview</h1>
 
                 <div
@@ -331,7 +331,7 @@ export class ConsortiumMap extends Component {
                         {this.renderTable()}
                     </Tab>
                 </Tabs>
-            </React.Fragment>
+            </div>
         );
     }
 }
