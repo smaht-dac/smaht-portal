@@ -12,14 +12,14 @@ import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 
 /**
- * Sankey Plot:
- * The information that the sankey plot should show is the distribution of technologies
+ * Alluvial Plot:
+ * The information that the aluvial plot shows is the distribution of technologies
  * that are being used, the kind of assay types done on those techonlogies, and finally,
  * the molecular features that can be profiled using them.
  */
 
 /**
- * Component for rendering the svg containing the sankey plot.
+ * Component for rendering the svg containing the alluvial plot.
  * @returns
  */
 let isDrawn;
@@ -71,8 +71,6 @@ export const Alluvial = () => {
         if (graph && containerRef.current && !isDrawn) {
             const container = containerRef.current;
 
-            // Loading in th sankey plot example from:
-            // set the dimensions and margins of the graph
             const margin = { top: 150, right: 200, bottom: 50, left: 100 },
                 width = 1200 - margin.left - margin.right,
                 height = 700 - margin.top - margin.bottom;
@@ -81,7 +79,7 @@ export const Alluvial = () => {
             const svgContainer = d3
                 .select(container)
                 .append('svg')
-                .attr('class', 'sankey-svg')
+                .attr('class', 'alluvial-svg')
                 .attr('width', width + margin.left + margin.right)
                 .attr('height', height + margin.top + margin.bottom);
 
@@ -150,13 +148,6 @@ export const Alluvial = () => {
                             'transform',
                             'translate(' + 160 + ',' + paddingTop + ')'
                         );
-                    //   .on('mouseover', (e, d) => {
-                    //     const nodes = d3.selectAll(`.node[category="${category_name}"]`)
-                    //     nodes.attr('class', 'node category-selected');
-
-                    //     const links = d3.selectAll(`.node[category="${category_name}"]`)
-                    //     console.log(nodes)
-                    //   })
                 });
             };
 
@@ -178,9 +169,6 @@ export const Alluvial = () => {
                 60,
                 width - margin.right + 120
             );
-
-            // legend_row("GCC", colorSchemes.genetic, 0, margin.left);
-            // legend_row("TTD", colorSchemes.epigenetic, 30, margin.left);
 
             const svg = svgContainer
                 .append('g')
@@ -218,12 +206,10 @@ export const Alluvial = () => {
                     (d) => d.source_data_generator
                 )
                 .style('stroke', function (d) {
-                    // return 'gray'
                     if (d.source.type === 'data_generator') {
                         d.source.color = color_schemes['data_generator'](
                             d.source.name
                         );
-                        // d.source.color = 'hsla(186, 70%, 50%, 1)';
                         return d.source.color;
                     }
                     if (d.source.type === 'assay_type') {
@@ -347,7 +333,8 @@ export const Alluvial = () => {
                                 return 'translate(' + d.x + ',' + d.y + ')';
                             });
 
-                            frontElt.attr('href', `#${d.name}`);
+                            frontElt.attr('href', `#${d.name}`)
+                                    .attr('class', 'node');
                         })
                         .on('drag', dragmove)
                 );
@@ -360,7 +347,6 @@ export const Alluvial = () => {
                     // return 'gray'
                     if (d.type === 'data_generator') {
                         d.color = color_schemes['data_generator'](d.name);
-                        // d.color = 'hsla(186, 70%, 50%, 1)';
                         return d.color;
                     }
                     if (d.type === 'assay_type') {
@@ -376,7 +362,6 @@ export const Alluvial = () => {
                             d.category
                         ](d.name);
                     }
-                    // d.color = color_schemes["molecular_feature"][d.category] ?? color_schemes["sequencing_platform"](d.name)
                     return d.color;
                 })
                 .style('stroke', function (d) {
