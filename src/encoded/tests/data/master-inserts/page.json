@@ -8,6 +8,9 @@
             "d2d042e7-09e5-4a34-a8c5-530ba9c9cdec",
             "af03023c-1ce0-49a1-b85b-20f5abd8cc30"
         ],
+        "content": [
+           "3fd92b15-9771-4218-a3f9-77b15805443e"
+        ],
         "table-of-contents": {
             "enabled": false,
             "header-depth": 4
@@ -18,6 +21,9 @@
         "name": "about/what-is-smaht",
         "title": "What is SMaHT?",
         "status": "public",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
         "table-of-contents": {
           "enabled": false,
           "skip-depth": 1,
@@ -34,6 +40,9 @@
             "6da98599-12a7-456f-8598-da510a88c7e8",
             "1ef242a4-954c-4c77-9193-3ec3b1a8e7d7"
         ],
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
         "table-of-contents": {
           "enabled": false,
           "skip-depth": 1,
@@ -47,7 +56,10 @@
         "title": "How to Join SMaHt",
         "status": "public",
         "children": [
-          "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd"
+            "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd"
+        ],
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
           "enabled": false,
@@ -61,6 +73,9 @@
         "name": "about/consortium/awardees",
         "title": "SMaHT Awardees",
         "status": "public",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
         "table-of-contents": {
           "enabled": false,
           "skip-depth": 1,
@@ -73,6 +88,9 @@
         "name": "about/consortium/data",
         "title": "SMaHT Data",
         "status": "public",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
         "table-of-contents": {
           "enabled": false,
           "skip-depth": 1,
@@ -85,6 +103,9 @@
         "name": "about/join/policy",
         "title": "Associate Membership policy",
         "status": "public",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
         "table-of-contents": {
           "enabled": false,
           "skip-depth": 1,
