@@ -6,7 +6,7 @@ export default class AboutPageVisualizations extends Component {
     render() {
         return (
             <>
-                <div className="container pb-5">
+                <div className="consortium-map-container container py-5">
                     <ConsortiumMap />
                 </div>
                 <div className="alluvial-container container-full">
