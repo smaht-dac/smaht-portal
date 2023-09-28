@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     OverlayTrigger,
     Popover,
@@ -94,12 +94,96 @@ const StackRow = ({ rowTitle }) => {
 };
 
 /**
+ * A column that renders a header and a row corresponding to the
+ * relationship between elements in [platforms] and [data]
+ */
+const StackRowColumn = ({ platforms, data }) => {
+    const [showPopover, setShowPopover] = useState(false);
+
+    return (// Container for the content of an entire column
+    <div className="column">
+        {/* Diagonal lables across top with popover */}
+        <div className="column-label">
+            <OverlayTrigger
+                show={showPopover}
+                placement="top"
+                overlay={
+                    <Popover 
+                        id="popover-container" 
+                        as="div" 
+                        onMouseEnter={() => setShowPopover(true)} 
+                        onMouseLeave={() => setShowPopover(false)}
+                    >
+                        <PopoverTitle>
+                            {data.display_name}
+                        </PopoverTitle>
+                        <PopoverContent>
+                            {data.description}
+                            <br />
+                            { data.link && <a href={data.link} target="blank_">Read more</a> }
+                        </PopoverContent>
+                    </Popover>
+            }>
+                    <span
+                        onMouseEnter={() => setShowPopover(true)}
+                        onMouseLeave={() => setShowPopover(false)}
+                        data-tip={data.assayType}
+                        data-for="tooltip">
+                        {data.display_name}
+                    </span>
+            </OverlayTrigger>
+        </div>
+
+        {/* Items for corrsesponding row */}
+        <div className="column-items">
+            {Object.keys(platforms).map(
+                (gcc, j) => {
+                    if (
+                        platforms[gcc][
+                            data.assayType
+                        ]
+                    ) {
+                        return (
+                            <StackRowItem
+                                key={j}
+                                data_generator={gcc}
+                                value={
+                                    platforms[
+                                        gcc
+                                    ][data.assayType]
+                                        .length
+                                }
+                                data={
+                                    platforms[
+                                        gcc
+                                    ][data.assayType]
+                                }
+                            />
+                        );
+                    }
+                    // Empty item
+                    else
+                        return (
+                            <StackRowItem
+                                key={j}
+                                data_generator={gcc}
+                            />
+                        );
+                }
+            )}
+        </div>
+    </div>)
+}
+
+/**
  * StackRowTable is a table representing the information found in [data]
  * by rendering a list of columns, each with a header above them. Each
  * column, in turn, has a list of items which each have a portion of
  * [data] passed down to it.
  */
 export const StackRowTable = ({ data }) => {
+    // const [showPopover, setShowPopover] = useState(false);
+    // console.log(showPopover)
     return (
         <>
             <div className="stackrow-table">
@@ -113,73 +197,7 @@ export const StackRowTable = ({ data }) => {
                     {/* Render the columns */}
                     { data.map((d, i) => {
                         return (
-                            // Container for the content of an entire column
-                            <div key={i} className="column">
-
-                                {/* Diagonal lables across top with popover */}
-                                <div className="column-label">
-                                    <OverlayTrigger
-                                        trigger={['hover', 'focus']}
-                                        placement="bottom"
-                                        rootClose
-                                        overlay={
-                                            <Popover id="popover-container">
-                                                <PopoverTitle>
-                                                    {d.assayType}
-                                                </PopoverTitle>
-                                                <PopoverContent>
-                                                    {d.assayType}
-                                                </PopoverContent>
-                                            </Popover>
-                                        }>
-                                            <span
-                                                key={i}
-                                                data-tip={d.assayType}
-                                                data-for="tooltip">
-                                                {d.assayType}
-                                            </span>
-                                    </OverlayTrigger>
-                                </div>
-
-                                {/* Items for corrsesponding row */}
-                                <div className="column-items">
-                                    {Object.keys(graph.platforms).map(
-                                        (gcc, j) => {
-                                            if (
-                                                graph.platforms[gcc][
-                                                    d.assayType
-                                                ]
-                                            ) {
-                                                return (
-                                                    <StackRowItem
-                                                        key={j}
-                                                        data_generator={gcc}
-                                                        value={
-                                                            graph.platforms[
-                                                                gcc
-                                                            ][d.assayType]
-                                                                .length
-                                                        }
-                                                        data={
-                                                            graph.platforms[
-                                                                gcc
-                                                            ][d.assayType]
-                                                        }
-                                                    />
-                                                );
-                                            }
-                                            // Empty item
-                                            else
-                                                return (
-                                                    <StackRowItem
-                                                        key={j}
-                                                        data_generator={gcc}
-                                                    />
-                                                );
-                                        }
-                                    )}
-                                </div>
-                            </div>
+                            <StackRowColumn data={d} platforms={graph.platforms} />
                         );
                     })}
                 </div>

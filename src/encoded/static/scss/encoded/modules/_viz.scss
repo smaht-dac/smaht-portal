@@ -147,7 +147,6 @@
             cursor: pointer;
             
             text {
-                font-weight: 600;
                 fill: black;
     
             }
@@ -443,11 +442,12 @@
 
 .popover {
     font-family: Inter;
+    max-width: 400px;
+    
     &-header {
         font-weight: 600;
         color: #343741;
     }
-
     &-body {
         font-weight: 400;
         color: #343741;
