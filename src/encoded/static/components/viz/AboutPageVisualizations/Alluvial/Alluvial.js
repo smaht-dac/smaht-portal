@@ -402,7 +402,8 @@ export const Alluvial = () => {
                 .attr('class', 'node-header')
                 .attr('transform', null)
                 .text(function (d) {
-                    return d.name;
+                    // Show either the display_name or the name
+                    return d.display_name ?? d.name;
                 });
 
             // the function for moving the nodes
