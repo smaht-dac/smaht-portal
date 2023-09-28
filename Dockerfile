@@ -1,6 +1,6 @@
 # SMaHT-Portal (Production) Dockerfile
 
-# Bullseye with Python 3.9.16
+# Bullseye with Python 3.11.5
 # 2023-09-28: Update docker image to a Python 3.11 version;
 # this was previously: FROM python:3.9.16-slim-buster
 FROM python:3.11.5-slim-bullseye
