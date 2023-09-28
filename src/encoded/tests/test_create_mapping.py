@@ -10,13 +10,13 @@ from dcicutils.misc_utils import camel_case_to_snake_case
 from snovault.util import add_default_embeds
 from unittest.mock import patch, MagicMock
 from .conftest_settings import ORDER
-from snovault.commands.create_mapping_on_deploy import ITEM_INDEX_ORDER
+from snovault.commands.create_mapping_on_deploy import loadxl_order
 
 
 pytestmark = [pytest.mark.setone, pytest.mark.working]
 
 
-@pytest.mark.parametrize('item_type', ITEM_INDEX_ORDER())
+@pytest.mark.parametrize('item_type', loadxl_order())
 def test_create_mapping_correctly_maps_embeds(registry, item_type):
     """
     This test does not actually use elasticsearch
@@ -53,4 +53,4 @@ def test_create_mapping_item_order(registry):
         # ignore "testing" types
         if i_type.startswith('testing_'):
             continue
-        assert registry[COLLECTIONS][i_type].type_info.name in ITEM_INDEX_ORDER()
+        assert registry[COLLECTIONS][i_type].type_info.name in loadxl_order()
