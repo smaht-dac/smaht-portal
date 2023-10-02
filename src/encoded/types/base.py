@@ -25,6 +25,23 @@ from .acl import *
 from ..local_roles import DEBUG_PERMISSIONS
 
 
+# VERY IMPORTANT - these embeds, defaulted on all items,
+# ensure that static sections work properly
+static_content_embed_list = [
+    "static_headers.*",            # Type: UserContent, may have differing properties
+    "static_content.content.@type",
+    "static_content.content.content",
+    "static_content.content.name",
+    "static_content.content.title",
+    "static_content.content.status",
+    "static_content.content.description",
+    "static_content.content.options",
+    "static_content.content.institution",
+    "static_content.content.project",
+    "static_content.content.filetype"
+]
+
+
 def mixin_smaht_permission_types(schema: dict) -> dict:
     """ Runs a manual 'mixin' of attribution entries for SMaHT types
         NOTE: this function will be replaced by dynamic dispatch later
@@ -147,6 +164,9 @@ class Item(SnovaultItem):
     }
     # For now, replicate the same
     CONSORTIUM_STATUS_ACL = SUBMISSION_CENTER_STATUS_ACL
+
+    # Must be present for static sections to load properly
+    embedded_list = static_content_embed_list
 
     def __init__(self, registry, models):
         super().__init__(registry, models)
