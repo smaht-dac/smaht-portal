@@ -143,7 +143,8 @@ $print-body-min-width:              8.5in;
 /** FontAwesome Icon Stuff **/
 /****************************/
 
-$fa-font-path: "/static/font/fontawesome5.9" !default;
+/* TODO: at some point return to this and see if it can be resolved more cleanly in webpack config */
+$fa-font-path: "../../static/font/fontawesome5.9" !default;
 $fa-font-size-base: $font-size-base;
 $fa-css-prefix: icon;
 
