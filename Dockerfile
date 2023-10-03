@@ -80,7 +80,6 @@ RUN poetry install --no-dev -vvv && \
 # Build front-end, remove node_modules when done
 ENV NODE_ENV=production
 RUN npm run build && \
-    npm run build-scss && \
     rm -rf node_modules/ && \
     apt-get remove --purge --auto-remove -y ca-certificates
 

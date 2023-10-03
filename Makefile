@@ -32,7 +32,6 @@ npm-setup-if-needed:  # sets up npm only if not already set up
 npm-setup:  # runs all front-end setup
 	npm ci
 	npm run build | grep -v "node_modules\|\[built\]"
-	npm run build-scss
 	make aws-ip-ranges
 
 moto-setup:  # optional moto setup that must be done separately
