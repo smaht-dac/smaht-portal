@@ -31,6 +31,7 @@ beanstalk.cfg
 /session-secret.b64
 /src/encoded/static/coverage
 /src/encoded/static/components/lib/react-infinite
+/src/encoded/static/build
 /src/encoded/static/css/bootstrap.css
 /src/encoded/static/css/responsive.css
 /src/encoded/static/css/style.css
