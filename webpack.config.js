@@ -250,7 +250,6 @@ module.exports = [
             libraryTarget: 'umd',
             library: 'App',
             umdNamedDefine: true,
-            clean: true, // Clean build directory before every build
         },
         externals: [
             {
@@ -353,7 +352,9 @@ module.exports = [
             filename: '[name].js',
             libraryTarget: 'umd',
             chunkFilename: chunkFilename,
-            clean: true, // Clean the output directory before each build
+            // Clean the output directory before each server-side render
+            // NOTE: Do NOT clean in client-side build; this will delete renderer.js and break build
+            clean: true,
         },
         module: {
             rules,
