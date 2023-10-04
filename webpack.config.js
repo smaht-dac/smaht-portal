@@ -250,6 +250,7 @@ module.exports = [
             libraryTarget: 'umd',
             library: 'App',
             umdNamedDefine: true,
+            clean: true, // Clean build directory before every build
         },
         externals: [
             {
@@ -352,6 +353,7 @@ module.exports = [
             filename: '[name].js',
             libraryTarget: 'umd',
             chunkFilename: chunkFilename,
+            clean: true, // Clean the output directory before each build
         },
         module: {
             rules,
