@@ -57,6 +57,7 @@ def includeme(config):
 class Page(SMAHTItem, CorePage):
     item_type = 'page'
     schema = mixin_smaht_permission_types(ENCODED_CORE_PAGE_SCHEMA)
+    embedded_list = CorePage.embedded_list
 
     # VERY IMPORTANT: The ordering of the inheritance matters here - you need
     # the CorePage Collection prioritized over the SMAHTItem Collection - you must

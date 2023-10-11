@@ -43,3 +43,23 @@ class StaticSection(SMAHTItem, CoreStaticSection):
                 return get_local_file_contents(file_path)
 
         return None
+
+    @calculated_property(schema={
+        "title": "File Type",
+        "description": "Type of file used for content",
+        "type": "string"
+    })
+    def filetype(self, request, body=None, file=None, options=None):
+        if options and options.get('filetype') is not None:
+            return options['filetype']
+        if isinstance(body, str):
+            return 'txt'
+        if isinstance(body, dict) or isinstance(body, list):
+            return 'json'
+        if isinstance(file, str):
+            filename_parts = file.split('.')
+            if len(filename_parts) > 1:
+                return filename_parts[len(filename_parts) - 1]
+            else:
+                return 'txt' # Default if no file extension.
+        return None
