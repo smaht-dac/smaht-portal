@@ -11,8 +11,8 @@ ENCODED_CORE_USER_CONTENT_SCHEMA = deepcopy(CoreUserContent.schema)
 @abstract_collection(
     name='user-content',
     properties={
-        'title': 'Static Sections',
-        'description': 'Static Sections for the Portal',
+        'title': 'User Content',
+        'description': 'User Content for the Portal',
     })
 class UserContent(SMAHTItem, CoreUserContent):
     item_type = 'user_content'
