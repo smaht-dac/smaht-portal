@@ -90,7 +90,7 @@
             }
         },
         "arguments": {
-            "$merge": "encoded_core:schemas/workflow.json#/properties/argument"
+            "$merge": "encoded_core:schemas/workflow.json#/properties/arguments"
         },
         "previous_versions": {
             "$merge": "encoded_core:schemas/workflow.json#/properties/previous_version"

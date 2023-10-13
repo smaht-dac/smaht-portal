@@ -67,25 +67,25 @@
             "accessionType": "FI"
         },
         "status": {
-            "merge": "encoded_core:file.json#/properties/status"
+            "$merge": "encoded_core:schemas/file.json#/properties/status"
         },
         "file_format": {
-            "merge": "encoded_core:file.json#/properties/file_format"
+            "$merge": "encoded_core:schemas/file.json#/properties/file_format"
         },
         "filename": {
-            "merge": "encoded_core:file.json#/properties/filename"
+            "$merge": "encoded_core:schemas/file.json#/properties/filename"
         },
         "file_size": {
-            "merge": "encoded_core:file.json#/properties/file_size"
+            "$merge": "encoded_core:schemas/file.json#/properties/file_size"
         },
         "md5sum": {
-            "merge": "encoded_core:file.json#/properties/md5sum"
+            "$merge": "encoded_core:schemas/file.json#/properties/md5sum"
         },
         "content_md5sum": {
-            "merge": "encoded_core:file.json#/properties/content_md5sum"
+            "$merge": "encoded_core:schemas/file.json#/properties/content_md5sum"
         },
         "quality_metrics": {
-            "merge": "encoded_core:file.json#/properties/quality_metrics"
+            "$merge": "encoded_core:schemas/file.json#/properties/quality_metrics"
         },
         "data_category": {
             "title": "Data Category",

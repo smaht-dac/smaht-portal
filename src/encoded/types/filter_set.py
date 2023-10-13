@@ -15,4 +15,4 @@ from .acl import ALLOW_CONSORTIUM_CREATE_ACL
 )
 class FilterSet(SMAHTItem, SnovaultFilterSet):
     item_type = 'filter_set'
-    schema = load_schema("encoded:schema/filter_set.json")
+    schema = load_schema("encoded:schemas/filter_set.json")

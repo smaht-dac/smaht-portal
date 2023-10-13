@@ -19,6 +19,9 @@
             "$ref": "mixins.json#/aliases"
         },
         {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -39,8 +42,7 @@
             "$merge": "snovault:schemas/user.json#/properties/first_name"
         },
         "email": {
-            "$merge": "snovault:schemas/user.json#/properties/email",
-            "description": "Email used to log in to the SMaHT portal"
+            "$merge": "snovault:schemas/user.json#/properties/email"
         },
         "groups": {
             "$merge": "snovault:schemas/user.json#/properties/groups"

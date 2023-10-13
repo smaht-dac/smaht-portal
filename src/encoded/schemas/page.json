@@ -8,8 +8,15 @@
         "uuid"
     ],
     "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        }
+    ],
     "properties": {
-        "$merge": "encoded_core:schemas/page.json#/properties",
         "schema_version": {
             "default": "1"
         }

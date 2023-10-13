@@ -61,13 +61,13 @@
             "default": "1"
         },
         "status": {
-            "merge": "snovault.filter_set.json#/properties/status"
+            "$merge": "snovault:schemas/filter_set.json#/properties/status"
         },
         "filter_blocks": {
-            "merge": "snovault.filter_set.json#/filter_blocks"
+            "$merge": "snovault:schemas/filter_set.json#/properties/filter_blocks"
         },
         "flags": {
-            "merge": "snovault.filter_set.json#/flags"
+            "$merge": "snovault:schemas/filter_set.json#/properties/flags"
         }
     }
 }

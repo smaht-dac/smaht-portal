@@ -198,25 +198,13 @@
                     "value": {
                         "title": "Value",
                         "description": "a specific input parameter value",
-                        "oneOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "boolean"
-                            },
-                            {
-                                "type": "array"
-                            },
-                            {
-                                "type": "object"
-                            }
+                        "type": [
+                            "string",
+                            "integer",
+                            "number",
+                            "boolean",
+                            "array",
+                            "object"
                         ]
                     },
                     "files": {

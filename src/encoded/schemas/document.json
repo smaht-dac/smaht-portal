@@ -24,10 +24,12 @@
     "mixinProperties": [
         {
             "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
         }
     ],
     "properties": {
-        "$merge": "encoded_core:schemas/document.json#/properties",
         "schema_version": {
             "default": "1"
         }

@@ -59,7 +59,7 @@
             "$merge": "encoded_core:schemas/higlass_view_config.json#/properties/viewconfig"
         },
         "instance_height": {
-            "merge": "encoded_core:schemas/higlass_view_config.json#/properties/instance_height"
+            "$merge": "encoded_core:schemas/higlass_view_config.json#/properties/instance_height"
         }
     }
 }

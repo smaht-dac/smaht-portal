@@ -40,7 +40,7 @@ def include_encoded(config):
     """
     config.include('encoded.authentication')
     config.include('encoded.root')
-#    config.include('encoded.types')
+    config.include('encoded.types')
     config.include('encoded.server_defaults')
     # config.include('encoded.visualization')
     config.commit()
@@ -73,7 +73,7 @@ def include_snovault(config: Configurator) -> None:
     config.include('snovault.aggregated_items')
     config.include('snovault.storage')
     config.include('snovault.typeinfo')
-    config.include('snovault.types')
+#    config.include('snovault.types')
     config.include('snovault.resources')
     config.include('snovault.attachment')
     config.include('snovault.schema_graph')

@@ -4,8 +4,8 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-		"submitter_id"
-	],
+        "submitter_id"
+    ],
     "anyOf": [
         {
             "required": [
@@ -61,6 +61,8 @@
         "schema_version": {
             "default": "1"
         },
-	"caption": {"$merge": "encoded_core:schemas/image.json#/properties.caption"}
+        "caption": {
+            "$merge": "encoded_core:schemas/image.json#/properties/caption"
+        }
     }
 }
