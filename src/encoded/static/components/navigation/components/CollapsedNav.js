@@ -72,6 +72,23 @@ export const CollapsedNav = React.memo(function CollapsedNav(props) {
     );
 });
 
+function AboutNavItem(props) {
+    const { session, ...navItemProps } = props;
+    // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
+    return (
+        <BigDropdownPageLoader treeURL="/about" session={session}>
+            <BigDropdownNavItem
+                {...navItemProps}
+                id="about-menu-item"
+                navItemHref="/about"
+                navItemContent="About">
+                <BigDropdownPageTreeMenuIntroduction titleIcon="info-circle fas" />
+                <BigDropdownPageTreeMenu />
+            </BigDropdownNavItem>
+        </BigDropdownPageLoader>
+    );
+}
+
 function HelpNavItem(props) {
     const { session, ...navItemProps } = props;
     // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
@@ -112,22 +129,7 @@ function LeftNavAuthenticated(props) {
     );
     return (
         <div className="navbar-nav mr-auto">
-            <a
-                href="/cohort-analysis"
-                className={
-                    'nav-link browse-nav-btn' +
-                    (isCohortsLinkActive ? ' active' : '')
-                }>
-                Cohorts
-            </a>
-            <a
-                href="/search/?type=GeneList"
-                className={
-                    'nav-link browse-nav-btn' +
-                    (isGeneListsLinkActive ? ' active' : '')
-                }>
-                GeneLists
-            </a>
+            <AboutNavItem {...props} />
             <HelpNavItem {...props} />
         </div>
     );
@@ -139,17 +141,8 @@ const LeftNavGuest = React.memo(function LeftNavGuest(props) {
 
     return (
         <div className="navbar-nav mr-auto">
-            {/*
-            <a href="/case-studies" className={"nav-link" + (pathname === "/case-studies" ? " active" : "")}>
-                Case Studies
-            </a>
-            */}
-            <HelpNavItem {...props} />
-            {/*
-            <a href="/about" className={"nav-link" + (pathname === "/about" ? " active" : "")}>
-                About
-            </a>
-            */}
+            <AboutNavItem {...props} />
+            {/* <HelpNavItem {...props} /> */}
         </div>
     );
 });
