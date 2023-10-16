@@ -49,12 +49,11 @@ const OverlayTriggerContent = ({ ref, value, data, ...triggerHandler }) => {
  * Renders an item to be shown on the table.
  * Note: [value] defaults to 0
  */
-const StackRowItem = ({ value=0, data, data_generator }) => {
+const StackRowItem = ({ value=0, data=[], data_generator="" }) => {
+    // console.log(value, data, data_generator)
     return (
-        <div
-            className={`stackrow-item ${value === -1 ? 'empty-label-row' : ''}`}
-            data-generator={data_generator}>
-            {value > 0 ? (
+        <td className={ value === 0 ? 'empty-label-row' : '' }>
+            { value > 0 ? (
                 <OverlayTrigger
                     trigger={['hover', 'focus']}
                     placement="bottom"
@@ -74,22 +73,77 @@ const StackRowItem = ({ value=0, data, data_generator }) => {
                     }>
                     <OverlayTriggerContent value={value} data={data} />
                 </OverlayTrigger>
-            ) : null}
-        </div>
+            ) : null }
+        </td>
     );
 };
 
+const StackRowTopLabel = ({ assayType }) => {
+    const [showPopover, setShowPopover] = useState(false);
+
+    return (
+        <th className="label">
+            <OverlayTrigger
+                show={showPopover}
+                placement="top"
+                overlay={
+                    <Popover 
+                        id="popover-container"
+                        as="div"
+                        onMouseEnter={() => setShowPopover(true)}
+                        onMouseLeave={() => setShowPopover(false)}
+                    >
+                        <PopoverTitle>
+                            {assayType.display_name}
+                        </PopoverTitle>
+                        <PopoverContent>
+                            {assayType.description}
+                            <br />
+                            { assayType.link && <a href={assayType.link} target="blank_">Read more</a> }
+                        </PopoverContent>
+                    </Popover>
+                }>
+                    <span
+                        onMouseEnter={() => setShowPopover(true)}
+                        onMouseLeave={() => setShowPopover(false)}
+                        data-tip={assayType.name}
+                        data-for="tooltip">
+                        {assayType.display_name}
+                    </span>
+            </OverlayTrigger>
+        </th>
+    )
+}
+
 
 // Header corresponding to each row on the table
-const StackRow = ({ rowTitle }) => {
+const StackRow = ({ rowTitle, platforms, data }) => {
     return (
-        <div className="stackrow" data-row-title={rowTitle}>
-            <div className="stackrow-label-container">
-                <div className="stackrow-label-container-primary">
-                    <h4 className="stackrow-title">{rowTitle}</h4>
+        <tr className="stackrow">
+            <th className="stackrow-left-label" scope="row" data-row-title={rowTitle}>
+                <div className="label">
+                    <span className="">{rowTitle}</span>
                 </div>
-            </div>
-        </div>
+            </th>
+            { data.map((d, i) => {
+                // let assayType = d.name;
+                // console.log("assayType: ", assayType);
+                // console.log(platforms[rowTitle] ?? "not found", d);
+                const platformList = platforms[d.name] ?? [];
+                // console.log("result", d.name, "platformList", platformList)
+                // console.log(platformList);
+
+                // Cell should be 
+
+                return (
+                    <StackRowItem 
+                        value={platformList.length }
+                        data={platformList}
+                        data_generator={rowTitle}
+                    />
+                )
+            })}
+        </tr>
     );
 };
 
@@ -97,83 +151,60 @@ const StackRow = ({ rowTitle }) => {
  * A column that renders a header and a row corresponding to the
  * relationship between elements in [platforms] and [data]
  */
-const StackRowColumn = ({ platforms, data }) => {
-    const [showPopover, setShowPopover] = useState(false);
+// const StackRowColumn = ({ platforms, data }) => {
+//     const [showPopover, setShowPopover] = useState(false);
 
-    return (// Container for the content of an entire column
-    <div className="column">
-        {/* Diagonal lables across top with popover */}
-        <div className="column-label">
-            <OverlayTrigger
-                show={showPopover}
-                placement="top"
-                overlay={
-                    <Popover 
-                        id="popover-container" 
-                        as="div" 
-                        onMouseEnter={() => setShowPopover(true)} 
-                        onMouseLeave={() => setShowPopover(false)}
-                    >
-                        <PopoverTitle>
-                            {data.display_name}
-                        </PopoverTitle>
-                        <PopoverContent>
-                            {data.description}
-                            <br />
-                            { data.link && <a href={data.link} target="blank_">Read more</a> }
-                        </PopoverContent>
-                    </Popover>
-            }>
-                    <span
-                        onMouseEnter={() => setShowPopover(true)}
-                        onMouseLeave={() => setShowPopover(false)}
-                        data-tip={data.assayType}
-                        data-for="tooltip">
-                        {data.display_name}
-                    </span>
-            </OverlayTrigger>
-        </div>
+//     return (// Container for the content of an entire column
+//     <div className="column">
+//         {/* Diagonal lables across top with popover */}
+//         <th className="column-label">
+//             <OverlayTrigger
+//                 show={showPopover}
+//                 placement="top"
+//                 overlay={
+//                     <Popover 
+//                         id="popover-container" 
+//                         as="div" 
+//                         onMouseEnter={() => setShowPopover(true)} 
+//                         onMouseLeave={() => setShowPopover(false)}
+//                     >
+//                         <PopoverTitle>
+//                             {data.display_name}
+//                         </PopoverTitle>
+//                         <PopoverContent>
+//                             {data.description}
+//                             <br />
+//                             { data.link && <a href={data.link} target="blank_">Read more</a> }
+//                         </PopoverContent>
+//                     </Popover>
+//             }>
+//                     <span
+//                         onMouseEnter={() => setShowPopover(true)}
+//                         onMouseLeave={() => setShowPopover(false)}
+//                         data-tip={data.assayType}
+//                         data-for="tooltip">
+//                         {data.display_name}
+//                     </span>
+//             </OverlayTrigger>
+//         </th>
 
-        {/* Items for corrsesponding row */}
-        <div className="column-items">
-            {Object.keys(platforms).map(
-                (gcc, j) => {
-                    if (
-                        platforms[gcc][
-                            data.assayType
-                        ]
-                    ) {
-                        return (
-                            <StackRowItem
-                                key={j}
-                                data_generator={gcc}
-                                value={
-                                    platforms[
-                                        gcc
-                                    ][data.assayType]
-                                        .length
-                                }
-                                data={
-                                    platforms[
-                                        gcc
-                                    ][data.assayType]
-                                }
-                            />
-                        );
-                    }
-                    // Empty item
-                    else
-                        return (
-                            <StackRowItem
-                                key={j}
-                                data_generator={gcc}
-                            />
-                        );
-                }
-            )}
-        </div>
-    </div>)
-}
+//         {/* Items for corrsesponding row */}
+//         <div className="column-items">
+//             { Object.keys(platforms).map(
+//                 (gcc, j) => {
+//                     return (
+//                         <StackRowItem
+//                             key={j}
+//                             data_generator={gcc}
+//                             value={ platforms[gcc][data.assayType]?.length }
+//                             data={ platforms[gcc][data.assayType]}
+//                         />
+//                     );
+//                 })
+//             }
+//         </div>
+//     </div>)
+// }
 
 /**
  * StackRowTable is a table representing the information found in [data]
@@ -182,29 +213,27 @@ const StackRowColumn = ({ platforms, data }) => {
  * [data] passed down to it.
  */
 export const StackRowTable = ({ data }) => {
-    // const [showPopover, setShowPopover] = useState(false);
-    // console.log(showPopover)
+
     return (
-        <>
-            <div className="stackrow-table">
-                {/* Render the row labels (down the left side of table) */}
-                <div className="stackrow-table-labels">
-                    {Object.keys(graph.platforms).map((gcc, i) => {
-                        return <StackRow key={i} rowTitle={gcc} />;
-                    })}
-                </div>
-                <div className="stackrow-table-columns">
-                    {/* Render the columns */}
+        <div className="stackrow-table-container container">
+            <table className="stackrow-table">
+                {/* Render the row labels (across the top of table) */}
+                <thead className="stackrow-table-top-labels">
                     { data.map((d, i) => {
-                        return (
-                            <StackRowColumn data={d} platforms={graph.platforms} />
-                        );
+                        return <StackRowTopLabel assayType={d} key={i} />
                     })}
-                </div>
-            </div>
+                </thead>
+                {/* Render the left labels and body of the table */}
+                <tbody className="stackrow-table-body">
+                    { Object.keys(graph.platforms).map((gcc, i) => {
+                        return <StackRow key={i} rowTitle={gcc} platforms={graph.platforms[gcc]} data={data} />;
+                    })}
+                </tbody>
+            </table>
+            <p className="stackrow-table-footnote">Hover over assay types to see additional details.</p>
             <StackRowItemLegend
                 text={'Number of samples profiled in benchmarking experiments.'}
             />
-        </>
+        </div>
     );
 };

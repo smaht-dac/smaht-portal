@@ -124,7 +124,6 @@
         color: gray;
         font-size: .9rem;
         font-style: italic;
-        // margin-left: 50px;
     }
     
     .alluvial-svg {
@@ -164,76 +163,26 @@
             stroke-opacity: .7;
         }
     }
-    
-    
-    /* Styles for the StackRow component */
-    .stackrow {
+
+    .stackrow-table-container {
+        width: 100%;
+        height: auto;
         display: flex;
-        height: 50px;
-        border: none;
-        color: white;
-        padding-left: 20px;
+        flex-direction: column;
+        justify-content: center;
 
+        .stackrow {
+            &-table {
 
-        &[data-row-title="BCM"] {
-            border-left: 12px solid hsla(185, 50%, 45%, 1);
-            background-color: #F8F8F8;
-        }
-        &[data-row-title="Broad"] {
-            border-left: 12px solid hsla(60, 70%, 44%, 1);
-            background-color: white;
-        }
-        &[data-row-title="NYGC"] {
-            border-left: 12px solid hsla(0, 0%, 50%, 1);
-            background-color: #F8F8F8;
-        }
-        &[data-row-title="UW"] {
-            border-left: 12px solid hsla(13, 68%, 60%, 1);
-            background-color: white;
-        }
-        &[data-row-title="WashU"] {
-            border-left: 12px solid hsla(10, 30%, 42%, 1);
-            background-color: #F8F8F8;
-        }
-    
-        &-svg {
-            position: absolute;
-            margin-left: 200px;
-            overflow: visible;
-    
-            .column-label {
-                transform-box: fill-box;
-                transform: translate(10px,10px) rotate(30deg);
-                margin-right: 25px;
-    
-                &:hover {
-                    cursor: pointer;
-                    font-weight: 600;
-                }
-            }
-        }
-    
-        &-table {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            padding: 100px 50px 70px 50px;
-            display: flex;
-    
-    
-            &-labels {
-                margin-top: 200px;
-                width: 150px;
-            }
-    
-            &-columns {
-                display:flex;
-                height: 100px;
-                margin-top: 100px;
-    
-                .column {
-                    position: relative;
-                    &-label {
+                &-top-labels {
+                    display:flex;
+                    height: 100px;
+                    margin-top: 100px;
+                    justify-content: end;
+
+                    .label {
+                        
+
                         display: flex;
                         flex-direction: column;
                         justify-content: end;
@@ -254,6 +203,7 @@
                             transform: rotate(-60deg) translate(17px, 17px);
                             width: max-content;
                             z-index: 2;
+                            font-weight: normal;
                             
                             &:hover {
                                 cursor: pointer
@@ -281,162 +231,155 @@
     
                         }
                     }
-    
                 }
-    
-    
-            }
-        }
-    
-        &-label-container {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            background: none;
-    
-            &-primary {
-                padding: 0;
+                &-body {
+                    display: flex;
+                    flex-direction: column;
+                    & > tr {
+                        display: flex;
+                        &:nth-child(odd) {
+                            background-color: #F8F8F8;
+                        }
 
-                .stackrow-title {
-                    font-weight: 400;
-                    color: #343741;
-                }
-            }
+                        & > th {
+                            display: flex;
+                            height: 50px;
+                            width: 120px;
+                            padding-left: 20px;
+                            border-left: 10px solid;
+                            border-style: none none none solid;
+        
+                            &[data-row-title="BCM"] {
+                                border-color: hsla(185, 50%, 45%, 1);
+                                background-color: #F8F8F8;
+                            }
+                            &[data-row-title="Broad"] {
+                                border-color: hsla(60, 70%, 44%, 1);
+                                background-color: white;
+                            }
+                            &[data-row-title="NYGC"] {
+                                border-color: rgb(98, 72, 72);
+                                background-color: #F8F8F8;
+                            }
+                            &[data-row-title="UW"] {
+                                border-color: hsla(13, 68%, 60%, 1);
+                                background-color: white;
+                            }
+                            &[data-row-title="WashU"] {
+                                border-color: hsla(10, 30%, 42%, 1);
+                                background-color: #F8F8F8;
+                            }
+
+                            .label {
+                                display: flex;
+                                justify-content: center;
+                                height: 100%;
+
+                                span {
+                                    margin: auto;
+                                }
+                            }
+                        }
+
+                        & > td {
+                            height: 50px;
+                            width: 50px;
+                            display: flex;
+                            justify-content: center;
+                            border-right: 1px solid rgba(238, 238, 238, 0.6);
+                    
+
+                            .stackrow-item {
+
+                                &-container {
+                                    position: relative;
+                                    height: 35px;
+                                    width: 35px;
+                                    background-color: #CBDDEA;
+                                    border: 1px solid #B9CAD5;
+                                    display: flex;
+                                    justify-content: center;
+                                    margin: auto;
+                                    // border-radius: 2px;
+                        
+                                    &:hover {
+                                        background-color: #b7cfda;
+                                    }
+                        
+                                }
+                                
+                                &-popover-list {
+                                    margin: auto;
+                        
+                                    & > ul {
+                                        padding: 0;
+                                        list-style: none;
+                        
+                                        & > li {
+                                            display: flex;
+                                            justify-content: space-between;
+                                            margin-bottom: 5px;
+                                            width: 100%;
+                        
+                                            .data-generator {
+                                                font-weight: 700;
+                                            }
+                                        }
+                        
+                                    }
+                                }
+                        
+                                &-value {
+                                    color: #343741;
+                                    margin: auto;
+                                }
+                        
+                                &.empty-label-row {
+                                    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.02), transparent 99%);
+                                    border-bottom: none;
+                                    border-right: none;
+                                }
+                        
+                                &-detail-popover {
+                                    position: absolute;
+                                    height: 200px;
+                                    width: 400px;
+                                }
+                            }
+                        }
+                    
     
-            &-subrow {
-                display: flex;
-                flex-direction: column;
-                text-align: end;
-    
-                .subrow {
-                    height: 50px;
-                    margin: auto 20px auto auto;
-    
-                    &-title {
-                        line-height: 35px;
-                        font-size: 0.8rem;
                     }
                 }
-            }
-        }
-    
-        
-        &-column-container {
-        }
-        
-        .icon {
-            margin: auto 25px auto 0px;
-        }
-        
-        &-items {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-left: 20px;
-            border-bottom: 1px solid #eee6;
-    
-            .subitems {
-                height:100%;
-                display: flex;
-                flex-direction: column;
-                justify-content: end;
-                
-                .stackrow-item {
-                    margin-bottom: 5px;
-                    
+                &-footnote {
+                    display: flex;
+                    margin: auto;
+                    color: gray;
+                    font-size: .9rem;
                 }
             }
+
         }
-    
-        &-item {
-            height: 50px;
-            width: 50px;
+        
+        .stackrow-item-legend {
             display: flex;
             justify-content: center;
-            border-right: 1px solid rgba(238, 238, 238, 0.6);
-    
-            &:nth-child(odd) {
-                background-color: #F8F8F8;
+            margin-top: 40px;
+
+            .text {
+                margin: auto 10px auto 10px;
+                font-family: Inter;
             }
-    
-            &-container {
-                position: relative;
-                height: 35px;
-                width: 35px;
-                background-color: #CBDDEA;
-                border: 1px solid #B9CAD5;
-                display: flex;
-                justify-content: center;
-                margin: auto;
-                // border-radius: 2px;
-    
-                &:hover {
-                    background-color: #b7cfda;
-                }
-    
-            }
-            
-            &-popover-list {
-                margin: auto;
-    
-                & > ul {
-                    padding: 0;
-                    list-style: none;
-    
-                    & > li {
-                        display: flex;
-                        justify-content: space-between;
-                        margin-bottom: 5px;
-                        width: 100%;
-    
-                        .data-generator {
-                            font-weight: 700;
-                        }
-                    }
-    
-                }
-            }
-    
-            &-value {
-                color: #343741;
-                margin: auto;
-            }
-    
-            &.empty-label-row {
-                background: linear-gradient(to bottom, rgba(0, 0, 0, 0.02), transparent 99%);
-                border-bottom: none;
-                border-right: none;
-            }
-    
-            &-detail-popover {
-                position: absolute;
-                height: 200px;
-                width: 400px;
-            }
-        }
-    
-        &-title {
-            font-size: 1rem;
-            line-height: 35px;
-            color: #343741;
-        }
         
-    }
-    
-    .stackrow-item-legend {
-        display: flex;
-        justify-content: center;
-        // margin-top: 100px;
-        .text {
-            margin: auto 10px auto 10px;
-            font-family: Inter;
+            .stackrow-item {
+                background-color: transparent;
+                border: none;
+            }
         }
     
-        .stackrow-item {
-            background-color: transparent;
-            border: none;
-        }
+    
     }
+    
 }
 
 
