@@ -9,7 +9,7 @@ import {
     EmbeddedItemSearchTable,
     SearchTableTitle,
 } from './../../item-pages/components/EmbeddedItemSearchTable';
-import { YoutubeVideoEmbed } from '../components/YoutubeVideoEmbed';
+import { YoutubeVideoEmbed } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/YoutubeVideoEmbed.js';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
