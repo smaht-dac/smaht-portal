@@ -1,0 +1,118 @@
+/** SMaHT Timeline for Home Page **/
+
+// Variables (@TODO: Need to rework these to use tokenized colors/fonts etc)
+$bg-body: #f9f9f9;
+$primary-color: #359f52;
+$secondary-color: #2b2e48;
+
+// Timeline
+$timeline-color: $primary-color;
+
+// @TODO: Create a separate file for these utilities
+// Mixins and Placeholders
+%clearfix {
+    &:after,
+    &:before {
+        content: '';
+        display: block;
+        width: 100%;
+        clear: both;
+    }
+}
+
+@mixin prefix($prop, $val) {
+    @each $prefix in '-webkit-', '-moz-', '-ms-', '' {
+        #{$prefix}#{$prop}: $val;
+    }
+}
+
+// TODO: Be more specific
+#timeline,
+#timeline:before,
+#timeline:after {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+
+// Timeline
+#timeline {
+    position: relative;
+    margin: 30px;
+    padding: 0px;
+    width: 90%;
+    @include prefix(transition, all 0.4s ease);
+
+    &:before {
+        content: '';
+        width: 3px;
+        height: 100%;
+        background: $timeline-color;
+        left: 0;
+        top: 0;
+        position: absolute;
+    }
+
+    &:after {
+        content: '';
+        clear: both;
+        display: table;
+        width: 100%;
+    }
+
+    .timeline-item {
+        margin-bottom: 50px;
+        position: relative;
+        @extend %clearfix;
+
+        &:last-of-type {
+            margin-bottom: 0px;
+        }
+
+        .timeline-marker {
+            // Font Styling
+            font-size: 10px;
+            display: flex;
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            // Bubble Styling
+            background: $timeline-color;
+            width: 50px;
+            height: 25px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            margin-left: -23px;
+            @include prefix(border-radius, 10px);
+        }
+
+        .timeline-content {
+            width: 90%;
+            float: right;
+            background: #fff;
+            @include prefix(box-shadow, 0 3px 0 rgba(0, 0, 0, 0.1));
+            @include prefix(border-radius, 5px);
+            @include prefix(transition, all 0.3s ease);
+
+            &:before,
+            &.right:before {
+                left: 10%;
+                margin-left: -6px;
+                border-left: 0;
+                border-right: 7px solid $timeline-color;
+            }
+        }
+    }
+
+    // @TODO: can maybe move to be utility class on h2 itself
+    // But may also need to do something like timeline-item/content above to position perfectly evenly
+    h2 {
+        padding-top: 0px;
+        padding-bottom: 0px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+}
