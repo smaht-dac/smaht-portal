@@ -39,6 +39,9 @@ import { requestAnimationFrame as raf } from '@hms-dbmi-bgm/shared-portal-compon
 
 import { PageTitleSection } from './PageTitleSection';
 
+// import './encoded/static/scss/style.css'; // @TODO: currently not resolving; need to fix
+// import './encoded/static/scss/print.css';
+
 // eslint-disable-next-line no-unused-vars
 const { NavigateOpts } = typedefs;
 
@@ -370,6 +373,14 @@ export default class App extends React.PureComponent {
                         );
                     }
                 }, 3000);
+            }
+            // Set Alert if not on homepage and not logged in. This 'if' logic will likely change later
+            // especially if have multiple 'for-public' pages like blog posts, news, documentation, etc.
+            if (!session && pathname != '/') {
+                // MAYBE TODO next time are working on shared-portal-components (SPC) repository:
+                // Put this Alert into SPC as a predefined/constant export, then cancel/remove it (if active) in the callback function
+                // upon login success ( https://github.com/4dn-dcic/shared-portal-components/blob/master/src/components/navigation/components/LoginController.js#L111 )
+                Alerts.queue(NotLoggedInAlert);
             }
 
             // Set Alert if user initializes app between 330-830a ET (possibly temporary)
@@ -2317,11 +2328,17 @@ class BodyElement extends React.PureComponent {
 
                 <div id="application">
                     <div id="layout">
-                        {/* { (isSubmitting && isSubmitting.modal) && isSubmittingModalOpen ? isSubmitting.modal : null}
+                        {isSubmitting &&
+                        isSubmitting.modal &&
+                        isSubmittingModalOpen
+                            ? isSubmitting.modal
+                            : null}
 
-                        <NavigationBar {...navbarProps} /> */}
+                        <NavigationBar {...navbarProps} />
 
-                        <div>
+                        <div
+                            id="post-navbar-container"
+                            style={{ minHeight: innerContainerMinHeight }}>
                             <PageTitleSection
                                 {...this.props}
                                 windowWidth={windowWidth}
@@ -2337,13 +2354,19 @@ class BodyElement extends React.PureComponent {
                             />
                         </div>
                     </div>
-                    {/* <Footer version={context.app_version} /> */}
+                    <Footer version={context.app_version} />
                 </div>
 
                 <div id="overlays-container" ref={this.overlaysContainerRef} />
 
-                {/* <ReactTooltip effect="solid" globalEventOff="click" key="tooltip" uuid="primary-tooltip-fake-uuid"
-                    afterHide={this.onAfterTooltipHide} ref={this.tooltipRef} /> */}
+                <ReactTooltip
+                    effect="solid"
+                    globalEventOff="click"
+                    key="tooltip"
+                    uuid="primary-tooltip-fake-uuid"
+                    afterHide={this.onAfterTooltipHide}
+                    ref={this.tooltipRef}
+                />
             </body>
         );
     }

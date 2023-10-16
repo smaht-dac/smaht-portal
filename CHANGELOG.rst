@@ -7,11 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+0.2.1
+=====
+`PR 19: Base Template <https://github.com/smaht-dac/smaht-portal/pull/19>`_
+
+* Add icons for search facets
+* Re-add the footer, alerts, and tooltips
+
+
 0.2.0
 =====
 `PR 18: Prettier bulk reformat <https://github.com/smaht-dac/smaht-portal/pull/18>`_
 
 * What it says on the tin: ran `npm run format` to reformat JS/JSX files
+
 
 0.1.1
 =====

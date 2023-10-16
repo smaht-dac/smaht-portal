@@ -1,403 +1,118 @@
-/**
-* Styles related to visualizations
-*/
+/** SMaHT Timeline for Home Page **/
 
-.consortium-map {
-    font-family: Inter;
-    nav {
-        font-weight: 400;
+// Variables (@TODO: Need to rework these to use tokenized colors/fonts etc)
+$bg-body: #f9f9f9;
+$primary-color: #359f52;
+$secondary-color: #2b2e48;
+
+// Timeline
+$timeline-color: $primary-color;
+
+// @TODO: Create a separate file for these utilities
+// Mixins and Placeholders
+%clearfix {
+    &:after,
+    &:before {
+        content: '';
+        display: block;
+        width: 100%;
+        clear: both;
     }
+}
 
-
-    // Map styles 
-    & > h1 {
-        font-family: Inter;
-        font-weight: 600;
-        margin: none;
+@mixin prefix($prop, $val) {
+    @each $prefix in '-webkit-', '-moz-', '-ms-', '' {
+        #{$prefix}#{$prop}: $val;
     }
+}
 
-    svg {
-        text {
-            font-family: Inter;
-        }
-    }
-    
-    .consortium-legend {
-        background-color: #e3e3e3;
+// TODO: Be more specific
+#timeline,
+#timeline:before,
+#timeline:after {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+
+// Timeline
+#timeline {
+    position: relative;
+    margin: 30px;
+    padding: 0px;
+    width: 90%;
+    @include prefix(transition, all 0.4s ease);
+
+    &:before {
+        content: '';
+        width: 3px;
+        height: 100%;
+        background: $timeline-color;
+        left: 0;
+        top: 0;
         position: absolute;
     }
-    .consortium-tooltip {
-        font-family: Inter;
-        font-weight: 500;
-        background-color: #e3e3e3;
-        position: absolute; 
-        opacity: 0;
-    }
-    .consortium-tooltip-wrapper {
-        max-width: 220px;
-        font-size: 14px;
-        font-weight: 600;
-    }
-    .consortium-tooltip-content {
-        font-family: Inter;
-        font-weight: 400;
-        font-size: 14px;
-    }
-    .consortium-tooltip-header {
-        font-family: Inter;
-        font-weight: 600;
-        font-size: 12px;
-    }
 
-    // Table styles
-    table.table-striped {
-        th {
-            background-color: white; 
-            font-weight: 600;
-            text-align: left;
-        }
-        tbody {
-            td {
-                border: 1px solid lightgray;
-                // font-family: Inter;
-                text-align: left;
-            }
-            td.consortium-table-OC {
-                font-weight: 600;
-                font-size: 22px;
-                background-color: #377eb8;
-                cursor: default;
-                color: #ffffff;
-            }
-            td.consortium-table-DAC {
-                font-weight: 600;
-                font-size: 22px;
-                background-color: #e41a1c;
-                cursor: default;
-                color: #ffffff;
-            }
-            td.consortium-table-TPC {
-                font-weight: 600;
-                font-size: 22px;
-                background-color: #984ea3;
-                cursor: default;
-                color: #ffffff;
-            }
-            td.consortium-table-GCC {
-                font-size: 22px;
-                background-color: #ff7f00;
-                cursor: default;
-                color: #ffffff;
-            }
-            td.consortium-table-TTD {
-                font-weight: 600;
-                font-size: 22px;
-                background-color: #4daf4a;
-                cursor: default;
-                color: #ffffff;
-            }
-            td.consortium-table-header {
-                position: -webkit-sticky;
-                position: sticky;
-                top: 0;
-            }
-        }
-    }
-}
-
-
-
-
-/* Styles for the Alluvial Plot */
-.alluvial-container {
-    font-family: Inter;
-    display: flex;
-    justify-content: center;
-    margin-bottom: 50px;
-    padding: 100px 50px;
-    
-    nav {
-        font-weight: 400;
-    }
-
-    .footnote {
-        color: gray;
-        font-size: .9rem;
-        font-style: italic;
-    }
-    
-    .alluvial-svg {
-        overflow: visible;
-    
-        .header {
-            font-family: Inter;
-            font-weight: 400;
-            font-size: 1.1rem;
-        }
-    }
-    
-    .node {
-        &-header {
-            fill: rgb(58, 58, 58);
-            font-size: 0.9rem;
-        }
-    
-        &:hover {
-            cursor: pointer;
-            
-            text {
-                fill: black;
-    
-            }
-        }
-    }
-    
-    .link {
-        fill: none;
-        stroke-opacity: .1;
-            &:hover {
-                stroke-opacity: .7;
-            }
-    
-        &.selected {
-            stroke-opacity: .7;
-        }
-    }
-
-    .stackrow-table-container {
+    &:after {
+        content: '';
+        clear: both;
+        display: table;
         width: 100%;
-        height: auto;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+    }
 
-        .stackrow {
-            &-table {
+    .timeline-item {
+        margin-bottom: 50px;
+        position: relative;
+        @extend %clearfix;
 
-                &-top-labels {
-                    display:flex;
-                    height: 100px;
-                    margin-top: 100px;
-                    justify-content: end;
-
-                    .label {
-                        
-
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: end;
-                        height: 100%;
-                        width: 50px;
-                        color: #343741;
-                        
-                        & > p {
-                            position: absolute;
-                            transform: rotate(-60deg) translate(40px, -40px);
-                            width: 250px;
-                            height: 80px;
-                            font-size: 1rem;
-                        }
-    
-                        span {
-                            transform-origin: left;
-                            transform: rotate(-60deg) translate(17px, 17px);
-                            width: max-content;
-                            z-index: 2;
-                            font-weight: normal;
-                            
-                            &:hover {
-                                cursor: pointer
-                            }
-                        }
-                        
-                        .icon {
-                            margin: auto auto 8px auto;
-                            color: gray;
-    
-                            &.selected {
-                                color: black;
-                            }
-    
-                            &:hover {
-                                color: black;
-                            }
-    
-                            &-sort-up {
-                                display: flex;
-                                &::before {
-                                    margin-bottom: -8px;
-                                }
-                            }
-    
-                        }
-                    }
-                }
-                &-body {
-                    display: flex;
-                    flex-direction: column;
-                    & > tr {
-                        display: flex;
-                        &:nth-child(odd) {
-                            background-color: #F8F8F8;
-                        }
-
-                        & > th {
-                            display: flex;
-                            height: 50px;
-                            width: 120px;
-                            padding-left: 20px;
-                            border-left: 10px solid;
-                            border-style: none none none solid;
-        
-                            &[data-row-title="BCM"] {
-                                border-color: hsla(185, 50%, 45%, 1);
-                                background-color: #F8F8F8;
-                            }
-                            &[data-row-title="Broad"] {
-                                border-color: hsla(60, 70%, 44%, 1);
-                                background-color: white;
-                            }
-                            &[data-row-title="NYGC"] {
-                                border-color: rgb(98, 72, 72);
-                                background-color: #F8F8F8;
-                            }
-                            &[data-row-title="UW"] {
-                                border-color: hsla(13, 68%, 60%, 1);
-                                background-color: white;
-                            }
-                            &[data-row-title="WashU"] {
-                                border-color: hsla(10, 30%, 42%, 1);
-                                background-color: #F8F8F8;
-                            }
-
-                            .label {
-                                display: flex;
-                                justify-content: center;
-                                height: 100%;
-
-                                span {
-                                    margin: auto;
-                                }
-                            }
-                        }
-
-                        & > td {
-                            height: 50px;
-                            width: 50px;
-                            display: flex;
-                            justify-content: center;
-                            border-right: 1px solid rgba(238, 238, 238, 0.6);
-                    
-
-                            .stackrow-item {
-
-                                &-container {
-                                    position: relative;
-                                    height: 35px;
-                                    width: 35px;
-                                    background-color: #CBDDEA;
-                                    border: 1px solid #B9CAD5;
-                                    display: flex;
-                                    justify-content: center;
-                                    margin: auto;
-                                    // border-radius: 2px;
-                        
-                                    &:hover {
-                                        background-color: #b7cfda;
-                                    }
-                        
-                                }
-                                
-                                &-popover-list {
-                                    margin: auto;
-                        
-                                    & > ul {
-                                        padding: 0;
-                                        list-style: none;
-                        
-                                        & > li {
-                                            display: flex;
-                                            justify-content: space-between;
-                                            margin-bottom: 5px;
-                                            width: 100%;
-                        
-                                            .data-generator {
-                                                font-weight: 700;
-                                            }
-                                        }
-                        
-                                    }
-                                }
-                        
-                                &-value {
-                                    color: #343741;
-                                    margin: auto;
-                                }
-                        
-                                &.empty-label-row {
-                                    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.02), transparent 99%);
-                                    border-bottom: none;
-                                    border-right: none;
-                                }
-                        
-                                &-detail-popover {
-                                    position: absolute;
-                                    height: 200px;
-                                    width: 400px;
-                                }
-                            }
-                        }
-                    
-    
-                    }
-                }
-                &-footnote {
-                    display: flex;
-                    margin: auto;
-                    color: gray;
-                    font-size: .9rem;
-                }
-            }
-
+        &:last-of-type {
+            margin-bottom: 0px;
         }
-        
-        .stackrow-item-legend {
+
+        .timeline-marker {
+            // Font Styling
+            font-size: 10px;
             display: flex;
+            align-content: center;
             justify-content: center;
-            margin-top: 40px;
+            align-items: center;
+            color: white;
+            // Bubble Styling
+            background: $timeline-color;
+            width: 50px;
+            height: 25px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            margin-left: -23px;
+            @include prefix(border-radius, 10px);
+        }
 
-            .text {
-                margin: auto 10px auto 10px;
-                font-family: Inter;
-            }
-        
-            .stackrow-item {
-                background-color: transparent;
-                border: none;
+        .timeline-content {
+            width: 90%;
+            float: right;
+            background: #fff;
+            @include prefix(box-shadow, 0 3px 0 rgba(0, 0, 0, 0.1));
+            @include prefix(border-radius, 5px);
+            @include prefix(transition, all 0.3s ease);
+
+            &:before,
+            &.right:before {
+                left: 10%;
+                margin-left: -6px;
+                border-left: 0;
+                border-right: 7px solid $timeline-color;
             }
         }
-    
-    
     }
-    
-}
 
-
-.popover {
-    font-family: Inter;
-    max-width: 400px;
-    
-    &-header {
-        font-weight: 600;
-        color: #343741;
-    }
-    &-body {
-        font-weight: 400;
-        color: #343741;
-
-        ul {
-            list-style: none;
-            padding: 0;
-        }
+    // @TODO: can maybe move to be utility class on h2 itself
+    // But may also need to do something like timeline-item/content above to position perfectly evenly
+    h2 {
+        padding-top: 0px;
+        padding-bottom: 0px;
+        margin-top: 0px;
+        margin-bottom: 0px;
     }
 }

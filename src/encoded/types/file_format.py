@@ -1,4 +1,4 @@
-from snovault import collection
+from snovault import collection, calculated_property
 from copy import deepcopy
 from encoded_core.types.file_format import FileFormat as CoreFileFormat
 from .base import Item as SMAHTItem
@@ -26,3 +26,11 @@ class FileFormat(SMAHTItem, CoreFileFormat):
     schema['properties']['valid_item_types']['items']['enum'] = [
         'FileSubmitted', 'FileProcessed', 'FileReference'
     ]
+
+    @calculated_property(schema={
+        "title": "Display Title",
+        "description": "File Format name or extension.",
+        "type": "string"
+    })
+    def display_title(self, file_format):
+        return CoreFileFormat.display_title(self, file_format)
