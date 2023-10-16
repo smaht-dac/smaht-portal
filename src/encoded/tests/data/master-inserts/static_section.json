@@ -15,10 +15,10 @@
     {
         "name": "about.introduction",
         "title": "Introduction",
-        "file": "/docs/public/about_introduction.md",
+        "file": "/docs/public/about_introduction.jsx",
         "status": "public",
         "options": {
-            "filetype": "md",
+            "filetype": "jsx",
             "collapsible": false,
             "default_open": true
         },
