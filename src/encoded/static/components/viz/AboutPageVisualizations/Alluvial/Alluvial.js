@@ -133,6 +133,7 @@ export const Alluvial = () => {
 
                 row.append('text')
                     .text(category_name)
+                    .attr('fill', 'rgb(58, 58, 58)')
                     .style('text-anchor', 'end')
                     .attr(
                         'transform',
@@ -432,7 +433,7 @@ export const Alluvial = () => {
     return (
         <div>
             <Tabs
-                defaultActiveKey="alluvial"
+                defaultActiveKey="table"
                 className="mb-3 float-right"
                 variant="pills">
                 <Tab eventKey="alluvial" title="Alluvial view">
