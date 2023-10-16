@@ -166,7 +166,7 @@ class Item(SnovaultItem):
     CONSORTIUM_STATUS_ACL = SUBMISSION_CENTER_STATUS_ACL
 
     # Must be present for static sections to load properly
-    embedded_list = static_content_embed_list
+    # embedded_list = static_content_embed_list
 
     def __init__(self, registry, models):
         super().__init__(registry, models)
