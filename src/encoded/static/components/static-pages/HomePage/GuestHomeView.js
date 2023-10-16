@@ -8,6 +8,8 @@ import { LoginController } from '@hms-dbmi-bgm/shared-portal-components/es/compo
 import { NotLoggedInAlert } from './../../navigation/components/LoginNavItem';
 import { UserRegistrationModal } from './../../navigation/components/UserRegistrationModal';
 import { auth0Options as navAuth0Options } from './../../navigation/components/AccountNav';
+import SMaHTTimeline from '../../viz/SMaHTTimeline';
+import Card from 'react-bootstrap/esm/Card';
 // import { Fade } from 'react-bootstrap';
 
 const auth0Options = {
@@ -27,13 +29,48 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
     }, []);
 
     return (
-        <React.Fragment>
-            <div className="homepage-contents d-flex justify-content-center">
-                <div className="splash-content d-flex flex-column align-items-center justify-content-center">
-                    <div className="coming-soon">Coming Soon</div>
+        <div className="homepage-contents">
+            <div className="container">
+                <div className="row">
+                    <div className="col-12">
+                        <h1>
+                            Somatic Mosaicism across Human Tissues Data Portal
+                        </h1>
+                        <h2>
+                            A platform to search, visualize, and download
+                            somatic mosaic variants in normal tissues.
+                        </h2>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-md-6">
+                        <SMaHTTimeline />
+                    </div>
+                    <div className="col-md-6 d-flex justify-content-center align-items-center">
+                        Coming Soon!
+                    </div>
+                </div>
+                <div className="row">
+                    <Card className="col-12 w-100 m-3 p-3">
+                        <h3 className="mt-0">About the Consortium</h3>
+                        <div className="d-flex">
+                            <button type="button" className="flex-fill">
+                                NIH SMaHT Homepage
+                            </button>
+                            <button type="button" className="flex-fill">
+                                SMaHT OC Homepage
+                            </button>
+                            <button type="button" className="flex-fill">
+                                SMaHT Overview Video
+                            </button>
+                            <button type="button" className="flex-fill">
+                                SMaHT Consortium Map
+                            </button>
+                        </div>
+                    </Card>
                 </div>
             </div>
-        </React.Fragment>
+        </div>
     );
 });
 
