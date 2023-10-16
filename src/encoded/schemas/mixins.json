@@ -528,7 +528,6 @@
     },
     "url": {
         "url": {
-            "@type": "@id",
             "title": "URL",
             "description": "An external resource with additional information about the item",
             "type": "string",

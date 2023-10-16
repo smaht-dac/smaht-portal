@@ -1,9 +1,13 @@
 {
-    "title": "Quality Metric",
-    "$id": "/profiles/quality_metric.json",
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "QualityMetric",
+    "description": "Schema for quality control data for a file.",
+    "id": "/profiles/quality_metric.json",
+    "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
-    "required": [],
+    "required": [
+        "category",
+        "qc_values"
+    ],
     "anyOf": [
         {
             "required": [
@@ -17,11 +21,15 @@
         }
     ],
     "identifyingProperties": [
+        "accession",
         "aliases",
         "uuid"
     ],
     "additionalProperties": false,
     "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
         {
             "$ref": "mixins.json#/aliases"
         },
@@ -29,10 +37,16 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/category"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
             "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
         },
         {
             "$ref": "mixins.json#/submitted"
@@ -45,8 +59,11 @@
         }
     ],
     "properties": {
-        "schema_version": {
-            "default": "1"
+        "accession": {
+            "accessionType": "QM"
+        },
+        "category": {
+            "enum": []
         },
         "overall_quality_status": {
             "$merge": "encoded_core:schemas/quality_metric.json#/properties/overall_quality_status",
@@ -59,6 +76,11 @@
         },
         "url": {
             "$merge": "encoded_core:schemas/quality_metric.json#/properties/url"
+        },
+        "qc_values": {
+            "$merge": "encoded_core:schemas/quality_metric.json#/properties/qc_values"
         }
-    }
+    },
+    "facets": {},
+    "columns": {}
 }
