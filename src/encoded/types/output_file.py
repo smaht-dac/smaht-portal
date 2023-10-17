@@ -9,7 +9,9 @@ from .file import File
     properties={
         "title": "SMaHT Output Files",
         "description": "Listing of SMaHT Output Files",
-    })
+    },
+    unique_key="accession",
+)
 class OutputFile(File):
     item_type = "output_file"
     schema = load_schema("encoded:schemas/output_file.json")

@@ -23,7 +23,7 @@
     "identifyingProperties": [
         "accession",
         "aliases",
-	"identifier",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,

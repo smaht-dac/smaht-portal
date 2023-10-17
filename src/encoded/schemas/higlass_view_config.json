@@ -4,19 +4,7 @@
     "$id": "/profiles/higlass_view_config.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": ["title", "viewconfig"],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
-    ],
+    "required": ["title", "view_config"],
     "identifyingProperties": [
         "aliases",
         "uuid"
@@ -25,9 +13,6 @@
     "mixinProperties": [
         {
             "$ref": "mixins.json#/aliases"
-        },
-        {
-            "$ref": "mixins.json#/attribution"
         },
         {
             "$ref": "mixins.json#/description"
@@ -46,6 +31,9 @@
         },
         {
             "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/title"
         },
         {
             "$ref": "mixins.json#/uuid"

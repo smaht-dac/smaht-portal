@@ -9,7 +9,9 @@ from .file import File
     properties={
         "title": "SMaHT Reference Files",
         "description": "Listing of SMaHT Reference Files",
-    })
+    },
+    unique_key="accession",
+)
 class ReferenceFile(File):
     item_type = "reference_file"
     schema = load_schema("encoded:schemas/reference_file.json")

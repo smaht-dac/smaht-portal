@@ -63,7 +63,10 @@
             "accessionType": "QM"
         },
         "category": {
-            "enum": []
+            "type": "string",
+            "enum": [
+                "Testing"
+            ]
         },
         "overall_quality_status": {
             "$merge": "encoded_core:schemas/quality_metric.json#/properties/overall_quality_status",
@@ -78,7 +81,7 @@
             "$merge": "encoded_core:schemas/quality_metric.json#/properties/url"
         },
         "qc_values": {
-            "$merge": "encoded_core:schemas/quality_metric.json#/properties/qc_values"
+            "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values"
         }
     },
     "facets": {},

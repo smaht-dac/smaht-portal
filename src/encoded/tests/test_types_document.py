@@ -1,10 +1,11 @@
+from typing import Any, Dict
+
 from webtest import TestApp
 
 
-def test_document_post(testapp: TestApp) -> None:
+def test_document_post(testapp: TestApp, test_consortium: Dict[str, Any]) -> None:
     properties = {
-        "urls": ["https://foo.bar"],
+        "consortia": [test_consortium["uuid"]],
         "description": "Some document",
-        "notes": "Testing, testing",
     }
     testapp.post_json("/document", properties, status=201)

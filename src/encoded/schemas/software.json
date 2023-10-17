@@ -5,6 +5,7 @@
     "type": "object",
     "required": [
         "category",
+        "submitter_id",
         "title",
         "version"
     ],
@@ -53,6 +54,9 @@
         },
         {
             "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitter_id"
         },
         {
             "$ref": "mixins.json#/tags"

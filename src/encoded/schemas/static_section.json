@@ -20,12 +20,22 @@
     ],
     "oneOf": [
         {
-            "not": {
-                "required": [
-                    "body",
-                    "file"
-                ]
-            }
+            "allOf": [
+                {
+                    "not": {
+                        "required": [
+                            "body"
+                        ]
+                    }
+                },
+                {
+                    "not": {
+                        "required": [
+                            "file"
+                        ]
+                    }
+                }
+            ]
         },
         {
             "required": [
@@ -97,10 +107,12 @@
             "default": "1"
         },
         "category": {
-            "default": "Page Section",
-            "enum": [
-                "Page Section"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Page Section"
+                ]
+            }
         },
         "body": {
             "$merge": "encoded_core:schemas/static_section.json#/properties/body"

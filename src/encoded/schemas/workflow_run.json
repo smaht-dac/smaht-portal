@@ -68,6 +68,9 @@
         "parameters": {
             "$merge": "encoded_core:schemas/workflow_run.json#/properties/parameters"
         },
+	"postrun_json": {
+            "$merge": "encoded_core:schemas/workflow_run_awsem.json#/properties/awsem_postrun_json"
+        },
         "run_status": {
             "$merge": "encoded_core:schemas/workflow_run.json#/properties/run_status"
         },
@@ -76,6 +79,10 @@
         },
         "workflow": {
             "$merge": "encoded_core:schemas/workflow_run.json#/properties/workflow"
+        },
+        "job_id": {
+            "title": "Job ID",
+            "type": "string"
         }
     },
     "facets": {},

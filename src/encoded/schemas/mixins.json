@@ -156,8 +156,11 @@
         "category": {
             "title": "Category",
             "comment": "Intended for primary classification of an item, i.e. as a property to use instead of file_type for File",
-            "type": "string",
-            "enum": []
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": []
+            }
         }
     },
     "dbxrefs": {
@@ -522,7 +525,7 @@
     "title": {
         "title": {
             "title": "Title",
-            "description": "Title for the item.",
+            "description": "Title for the item",
             "type": "string"
         }
     },
