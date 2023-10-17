@@ -2,6 +2,7 @@
 
 import React from 'react';
 import JsxParser from 'react-jsx-parser';
+import AboutPageVisualizations from '../../viz/AboutPageVisualizations';
 import memoize from 'memoize-one';
 import _ from 'underscore';
 
@@ -19,6 +20,7 @@ const placeholders = {
     EmbeddedItemSearchTable,
     SearchTableTitle,
     YoutubeVideoEmbed,
+    AboutPageVisualizations
 };
 
 export const replaceString = memoize(
