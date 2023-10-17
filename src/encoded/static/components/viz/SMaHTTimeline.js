@@ -4,7 +4,7 @@ import {
     AccordionContext,
     useAccordionToggle,
 } from 'react-bootstrap';
-import Card from 'react-bootstrap/Card';
+import Card from 'react-bootstrap/esm/Card';
 
 export default function SMaHTTimeline() {
     return (
@@ -13,7 +13,7 @@ export default function SMaHTTimeline() {
                 <div className="timeline-item">
                     <div className="timeline-marker">Phase 0</div>
                     <div>
-                        <h2 className="ml-6 text-left">Benchmarking</h2>
+                        <h3 className="ml-6 text-left">Benchmarking</h3>
                     </div>
                     <div className="timeline-content">
                         <TimelineAccordion defaultActiveKey={1}>
@@ -40,7 +40,7 @@ export default function SMaHTTimeline() {
                 <div className="timeline-item">
                     <div className="timeline-marker">Phase 1</div>
                     <div>
-                        <h2 className="ml-6 text-left">Expansion</h2>
+                        <h3 className="ml-6 text-left">Expansion</h3>
                     </div>
                     <div className="timeline-content">
                         <TimelineAccordion defaultActiveKey={0}>
@@ -55,7 +55,7 @@ export default function SMaHTTimeline() {
                 <div className="timeline-item">
                     <div className="timeline-marker">Phase 2</div>
                     <div>
-                        <h2 className="ml-6 text-left">Production</h2>
+                        <h3 className="ml-6 text-left">Production</h3>
                     </div>
                     <div className="timeline-content">
                         <TimelineAccordion defaultActiveKey={0}>
@@ -86,10 +86,10 @@ function ContextAwareToggle({ children, eventKey, callback }) {
         : 'icon icon-plus fas';
 
     return (
-        <div className="d-flex justify-content-between">
+        <div className="d-flex justify-content-between align-items-center">
             <button
                 type="button"
-                style={{ backgroundColor: 'transparent', border: 'none' }}
+                className="border-0 bg-transparent"
                 onClick={decoratedOnClick}>
                 <div>
                     <i className={openStatusIconCls + ' mr-1'} />
@@ -117,7 +117,7 @@ function TimelineAccordionDrawer(props) {
                 </ContextAwareToggle>
             </Card.Header>
             <Accordion.Collapse {...{ eventKey }}>
-                <Card.Body>Hello! I'm the body</Card.Body>
+                <Card.Body>Hello! I&apos;m the body</Card.Body>
             </Accordion.Collapse>
         </Card>
     );

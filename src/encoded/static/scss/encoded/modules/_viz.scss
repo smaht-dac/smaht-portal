@@ -1,30 +1,9 @@
 /** SMaHT Timeline for Home Page **/
 
-// Variables (@TODO: Need to rework these to use tokenized colors/fonts etc)
-$bg-body: #f9f9f9;
-$primary-color: #359f52;
-$secondary-color: #2b2e48;
-
-// Timeline
-$timeline-color: $primary-color;
-
-// @TODO: Create a separate file for these utilities
-// Mixins and Placeholders
-%clearfix {
-    &:after,
-    &:before {
-        content: '';
-        display: block;
-        width: 100%;
-        clear: both;
-    }
-}
-
-@mixin prefix($prop, $val) {
-    @each $prefix in '-webkit-', '-moz-', '-ms-', '' {
-        #{$prefix}#{$prop}: $val;
-    }
-}
+/**
+Note: Colors for borders and backgrounds are defined in _tokens.scss.
+      Typography is defined in _typography.scss.
+*/
 
 // TODO: Be more specific
 #timeline,
@@ -47,7 +26,7 @@ $timeline-color: $primary-color;
         content: '';
         width: 3px;
         height: 100%;
-        background: $timeline-color;
+        background: $homepage-timeline-border-color;
         left: 0;
         top: 0;
         position: absolute;
@@ -61,9 +40,9 @@ $timeline-color: $primary-color;
     }
 
     .timeline-item {
-        margin-bottom: 50px;
+        margin-bottom: 20px;
         position: relative;
-        @extend %clearfix;
+        @include clearfix;
 
         &:last-of-type {
             margin-bottom: 0px;
@@ -71,28 +50,30 @@ $timeline-color: $primary-color;
 
         .timeline-marker {
             // Font Styling
-            font-size: 10px;
+            font-weight: 700;
+            font-size: 12px;
             display: flex;
             align-content: center;
             justify-content: center;
             align-items: center;
-            color: white;
+            color: $homepage-timeline-text-color;
+
+            
             // Bubble Styling
-            background: $timeline-color;
-            width: 50px;
-            height: 25px;
+            background: $homepage-timeline-bg-color;
+            border: 1px solid $homepage-timeline-border-color;
+            padding: 1px 7px 3px 7px;
             position: absolute;
             top: 0;
             left: 0;
             overflow: hidden;
-            margin-left: -23px;
-            @include prefix(border-radius, 10px);
+            margin-left: -30px;
+            @include prefix(border-radius, 10.5px);
         }
 
         .timeline-content {
             width: 90%;
             float: right;
-            background: #fff;
             @include prefix(box-shadow, 0 3px 0 rgba(0, 0, 0, 0.1));
             @include prefix(border-radius, 5px);
             @include prefix(transition, all 0.3s ease);
@@ -102,7 +83,36 @@ $timeline-color: $primary-color;
                 left: 10%;
                 margin-left: -6px;
                 border-left: 0;
-                border-right: 7px solid $timeline-color;
+                border-right: 7px solid $homepage-timeline-border-color;
+            }
+
+            >.accordion {
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+            }
+
+            .card {
+                background-color: $homepage-card-bg-color;
+                border: 1px solid $homepage-card-border-color;
+                @include prefix(border-radius, 10px);
+            }
+
+            .card-header {
+                background-color: transparent;
+                :not(i) {
+                    font-weight: 600;
+                    font-size: 18px;
+                }
+            }
+
+            .card,
+            .card-header,
+            button {
+                color: $homepage-card-text-color;
+                i {
+                    color: $homepage-card-icon-color;
+                }
             }
         }
     }
