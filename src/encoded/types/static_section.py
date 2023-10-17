@@ -28,7 +28,20 @@ class StaticSection(SMAHTUserContent, CoreStaticSection):
         "type": "string"
     })
     def content(self, request, body=None, file=None):
-        return CoreStaticSection.content(self, request, body=body, file=file)
+        # TODO: refactor pathing code in encoded-core so this can work in another repo
+        if isinstance(body, str) or isinstance(body, dict) or isinstance(body, list):
+            # Don't need to load in anything. We don't currently support dict/json body (via schema) but could in future.
+            return body
+
+        if isinstance(file, str):
+            if file[0:4] == 'http' and '://' in file[4:8]:  # Remote File
+                return get_remote_file_contents(file)
+            else:  # Local File
+                file_path = os.path.abspath(
+                    os.path.dirname(os.path.realpath(__file__)) + "/../../.." + file)  # Go to top of repo, append file
+                return get_local_file_contents(file_path)
+
+        return None
 
     @calculated_property(schema={
         "title": "File Type",
