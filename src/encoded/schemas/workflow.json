@@ -98,9 +98,6 @@
         "software": {
             "$merge": "encoded_core:schemas/workflow.json#/properties/software"
         },
-        "steps": {
-            "$merge": "encoded_core:schemas/workflow.json#/properties/steps"
-        },
         "version_upgrade_log": {
             "$merge": "encoded_core:schemas/workflow.json#/properties/version_upgrade_log"
         },

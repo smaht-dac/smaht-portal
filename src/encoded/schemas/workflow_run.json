@@ -68,7 +68,7 @@
         "parameters": {
             "$merge": "encoded_core:schemas/workflow_run.json#/properties/parameters"
         },
-	"postrun_json": {
+        "postrun_json": {
             "$merge": "encoded_core:schemas/workflow_run_awsem.json#/properties/awsem_postrun_json"
         },
         "run_status": {

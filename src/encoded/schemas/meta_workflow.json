@@ -170,7 +170,7 @@
                                 "value_type": {
                                     "title": "Expected Value Type",
                                     "description": "Expected type of the specific input parameter value",
-									"type": "string",
+                                    "type": "string",
                                     "enum": [
                                         "string",
                                         "integer",
@@ -277,20 +277,28 @@
                         "type": "string"
                     },
                     "value": {
-                        "title": "Default value",
-                        "description": "Default value of the parameter-type argument",
-                        "type": "string"
+                        "title": "Value",
+                        "description": "a specific input parameter value",
+                        "type": [
+                            "string",
+                            "integer",
+                            "number",
+                            "boolean",
+                            "array",
+                            "object"
+                        ]
                     },
                     "value_type": {
-                        "title": "Value Type",
-                        "description": "Type of the specific input parameter value",
+                        "title": "Expected Value Type",
+                        "description": "Expected type of the specific input parameter value",
                         "type": "string",
                         "enum": [
                             "string",
                             "integer",
                             "float",
-                            "json",
-                            "boolean"
+                            "boolean",
+                            "array",
+                            "object"
                         ]
                     },
                     "files": {
