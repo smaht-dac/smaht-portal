@@ -1,18 +1,5 @@
 /* NavBar */
 
-// These defaults are overriden/set in base.scss
-$navbar-link-color: #333 !default;
-$navbar-full-height : 80px;
-$navbar-small-height : 40px; /* Bootstrap navbar default */
-$navbar-transition-length: .3s;
-$navbar-transition-easing: ease-out;
-
-$navbar-background-color: #f8f8f8 !default;
-$navbar-link-active-bg: #eee !default;
-$navbar-link-hover-bg: #d7d7d7 !default;
-
-$navbar-separator-color : scale-color($navbar-link-color, $alpha: -80%) !default;
-
 @mixin navbar-link-button-item {
     position: relative;
     font-size: 1.075rem;
@@ -112,34 +99,17 @@ div.navbar-container {
     }
 }
 
-.cgap-logo-wrapper {
+.smaht-logo-wrapper {
     display: flex;
     align-items: center;
     transition:
         background-color $navbar-transition-length,
         padding-left $navbar-transition-length;
+}
 
-    > svg {
-        margin-right: 0px;
-        vertical-align: top;
-        display: inline-block;
-        height: 100%;
-        transition:
-            padding $navbar-transition-length,
-            transform $navbar-transition-length,
-            margin-right $navbar-transition-length;
-
-        > g {
-            > path {
-                transition:
-                    fill-opacity .3s .15s ease-out,
-                    fill .3s .15s ease-out,
-                    stroke-opacity .3s .15s ease-out,
-                    stroke .3s .15s ease-out,
-                    stroke-width .3s .15s ease-out;
-            }
-        }
-
+body[data-path="/"]:not(.scrolled-past-top) {
+    div#top-nav.navbar-fixed-top {
+        background-color: transparent;
     }
 }
 
@@ -147,7 +117,6 @@ div#top-nav.navbar-fixed-top {
     position: relative;
     top: 0;
     border: none;
-    background: #ffffff;
     margin-bottom: 0;
     box-shadow: 0 0 3px rgba(0,0,0,0);
     transform: translate3d(0,0,0);
@@ -217,6 +186,7 @@ div#top-nav.navbar-fixed-top {
             padding: 0px !important;
             // margin-left: -50px !important;
             color: $navbar-default-brand-color;
+            font-size: 22px;
             min-width: 270px;
             height: 100%;
             max-height: $navbar-full-height;
@@ -658,7 +628,7 @@ body[data-current-action="multiselect"] {
     // Regardless of window width size, apply "scrolled-past-top" styling.
 
     div#top-nav.navbar-fixed-top {
-        border-color: darken($navbar-background-color, 10%);
+        // border-color: darken($navbar-background-color, 10%);
         box-shadow: 0 0 3px rgba(0,0,0,0.2);
 
         > div.navbar-inner-container > nav.navbar-main,
