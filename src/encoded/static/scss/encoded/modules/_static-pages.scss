@@ -802,16 +802,23 @@
 
         .stackrow {
             &-table {
+				overflow: hidden;
 
                 &-top-labels {
+					background-color: transparent;
                     display:flex;
+                    justify-content: end;
                     height: 100px;
                     margin-top: 100px;
-                    justify-content: end;
+					padding-right: 30px;
+
+					& > tr { 
+						width: 100%;
+						display:flex;
+						justify-content: end;
+					}
 
                     .label {
-                        
-
                         display: flex;
                         flex-direction: column;
                         justify-content: end;
@@ -864,6 +871,8 @@
                 &-body {
                     display: flex;
                     flex-direction: column;
+					padding-right: 30px;
+
                     & > tr {
                         display: flex;
                         &:nth-child(odd) {
@@ -903,6 +912,7 @@
                                 display: flex;
                                 justify-content: center;
                                 height: 100%;
+								font-weight: 400;
 
                                 span {
                                     margin: auto;
@@ -922,14 +932,13 @@
 
                                 &-container {
                                     position: relative;
-                                    height: 35px;
-                                    width: 35px;
+                                    height: 32px;
+                                    width: 32px;
                                     background-color: #CBDDEA;
-                                    border: 1px solid #B9CAD5;
+                                    outline: solid 1px #B9CAD5;
                                     display: flex;
                                     justify-content: center;
                                     margin: auto;
-                                    // border-radius: 2px;
                         
                                     &:hover {
                                         background-color: #b7cfda;
@@ -982,7 +991,7 @@
                 }
                 &-footnote {
                     display: flex;
-                    margin: auto;
+                    margin: 20px auto auto auto;
                     color: gray;
                     font-size: .9rem;
                 }
@@ -1001,8 +1010,26 @@
             }
         
             .stackrow-item {
-                background-color: transparent;
-                border: none;
+
+				&-container {
+					position: relative;
+					height: 32px;
+					width: 32px;
+					background-color: #CBDDEA;
+					outline: solid 1px #B9CAD5;
+					display: flex;
+					justify-content: center;
+					
+					&:hover {
+						background-color: #b7cfda;
+					}
+				}
+				
+
+				&-value {
+					color: #343741;
+					margin: auto;
+				}
             }
         }
     
@@ -1017,7 +1044,7 @@
     max-width: 400px;
     
     &-header {
-        font-weight: 600;
+        font-weight: 500;
         color: #343741;
     }
     &-body {

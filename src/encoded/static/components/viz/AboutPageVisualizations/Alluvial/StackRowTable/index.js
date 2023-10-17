@@ -80,9 +80,8 @@ const StackRowItem = ({ value=0, data=[], data_generator="" }) => {
 
 const StackRowTopLabel = ({ assayType }) => {
     const [showPopover, setShowPopover] = useState(false);
-
     return (
-        <th className="label">
+        <td className="label">
             <OverlayTrigger
                 show={showPopover}
                 placement="top"
@@ -111,7 +110,7 @@ const StackRowTopLabel = ({ assayType }) => {
                         {assayType.display_name}
                     </span>
             </OverlayTrigger>
-        </th>
+        </td>
     )
 }
 
@@ -119,24 +118,18 @@ const StackRowTopLabel = ({ assayType }) => {
 // Header corresponding to each row on the table
 const StackRow = ({ rowTitle, platforms, data }) => {
     return (
-        <tr className="stackrow">
+        <tr className="stackrow-row">
             <th className="stackrow-left-label" scope="row" data-row-title={rowTitle}>
                 <div className="label">
                     <span className="">{rowTitle}</span>
                 </div>
             </th>
-            { data.map((d, i) => {
-                // let assayType = d.name;
-                // console.log("assayType: ", assayType);
-                // console.log(platforms[rowTitle] ?? "not found", d);
+            { data.map((d, j) => {
                 const platformList = platforms[d.name] ?? [];
-                // console.log("result", d.name, "platformList", platformList)
-                // console.log(platformList);
-
-                // Cell should be 
 
                 return (
-                    <StackRowItem 
+                    <StackRowItem
+                        key={j}
                         value={platformList.length }
                         data={platformList}
                         data_generator={rowTitle}
@@ -146,65 +139,6 @@ const StackRow = ({ rowTitle, platforms, data }) => {
         </tr>
     );
 };
-
-/**
- * A column that renders a header and a row corresponding to the
- * relationship between elements in [platforms] and [data]
- */
-// const StackRowColumn = ({ platforms, data }) => {
-//     const [showPopover, setShowPopover] = useState(false);
-
-//     return (// Container for the content of an entire column
-//     <div className="column">
-//         {/* Diagonal lables across top with popover */}
-//         <th className="column-label">
-//             <OverlayTrigger
-//                 show={showPopover}
-//                 placement="top"
-//                 overlay={
-//                     <Popover 
-//                         id="popover-container" 
-//                         as="div" 
-//                         onMouseEnter={() => setShowPopover(true)} 
-//                         onMouseLeave={() => setShowPopover(false)}
-//                     >
-//                         <PopoverTitle>
-//                             {data.display_name}
-//                         </PopoverTitle>
-//                         <PopoverContent>
-//                             {data.description}
-//                             <br />
-//                             { data.link && <a href={data.link} target="blank_">Read more</a> }
-//                         </PopoverContent>
-//                     </Popover>
-//             }>
-//                     <span
-//                         onMouseEnter={() => setShowPopover(true)}
-//                         onMouseLeave={() => setShowPopover(false)}
-//                         data-tip={data.assayType}
-//                         data-for="tooltip">
-//                         {data.display_name}
-//                     </span>
-//             </OverlayTrigger>
-//         </th>
-
-//         {/* Items for corrsesponding row */}
-//         <div className="column-items">
-//             { Object.keys(platforms).map(
-//                 (gcc, j) => {
-//                     return (
-//                         <StackRowItem
-//                             key={j}
-//                             data_generator={gcc}
-//                             value={ platforms[gcc][data.assayType]?.length }
-//                             data={ platforms[gcc][data.assayType]}
-//                         />
-//                     );
-//                 })
-//             }
-//         </div>
-//     </div>)
-// }
 
 /**
  * StackRowTable is a table representing the information found in [data]
@@ -219,14 +153,16 @@ export const StackRowTable = ({ data }) => {
             <table className="stackrow-table">
                 {/* Render the row labels (across the top of table) */}
                 <thead className="stackrow-table-top-labels">
-                    { data.map((d, i) => {
-                        return <StackRowTopLabel assayType={d} key={i} />
-                    })}
+                    <tr>
+                        { data.map((d, i) => {
+                            return <StackRowTopLabel assayType={d} key={i} />
+                        })}
+                    </tr>
                 </thead>
                 {/* Render the left labels and body of the table */}
                 <tbody className="stackrow-table-body">
                     { Object.keys(graph.platforms).map((gcc, i) => {
-                        return <StackRow key={i} rowTitle={gcc} platforms={graph.platforms[gcc]} data={data} />;
+                        return <StackRow key={i} rowTitle={gcc} platforms={graph.platforms[gcc]} data={data} />
                     })}
                 </tbody>
             </table>
