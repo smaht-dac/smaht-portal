@@ -28,7 +28,7 @@ class StaticSection(SMAHTUserContent, CoreStaticSection):
         "type": "string"
     })
     def content(self, request, body=None, file=None):
-        return super().content(request, body=body, file=file)
+        return CoreStaticSection.content(self, request, body=body, file=file)
 
     @calculated_property(schema={
         "title": "File Type",
@@ -36,4 +36,4 @@ class StaticSection(SMAHTUserContent, CoreStaticSection):
         "type": "string"
     })
     def filetype(self, request, body=None, file=None, options=None):
-        return super().filetype(request, body=body, file=file, options=options)
+        return CoreStaticSection.filetype(self, request, body=body, file=file, options=options)
