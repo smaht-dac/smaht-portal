@@ -9,7 +9,7 @@ export default class AboutPageVisualizations extends Component {
                 <div className="consortium-map-container container py-5">
                     <ConsortiumMap />
                 </div>
-                <div className="alluvial-container container-full">
+                <div className="alluvial-container container py-5">
                     <Alluvial />
                 </div>
             </>

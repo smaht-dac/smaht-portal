@@ -80,6 +80,7 @@ export const Alluvial = () => {
                 .select(container)
                 .append('svg')
                 .attr('class', 'alluvial-svg')
+                .attr('viewBox', '0,0,1200,700')
                 .attr('width', width + margin.left + margin.right)
                 .attr('height', height + margin.top + margin.bottom);
 
