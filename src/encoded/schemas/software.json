@@ -24,6 +24,7 @@
     "identifyingProperties": [
         "accession",
         "aliases",
+        "submitter_id",
         "uuid"
     ],
     "additionalProperties": false,
@@ -76,9 +77,6 @@
             "accessionType": "SW"
         },
         "category": {
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
             "items": {
                 "type": "string",
                 "enum": [

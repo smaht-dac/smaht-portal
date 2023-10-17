@@ -70,8 +70,7 @@
             "default": "1"
         },
         "standard_file_extension": {
-            "$merge": "encoded_core:schemas/file_format.json#/properties/standard_file_extension",
-            "description": "Standard extension added to files for download"
+            "$merge": "encoded_core:schemas/file_format.json#/properties/standard_file_extension"
         },
         "other_allowed_extensions": {
             "$merge": "encoded_core:schemas/file_format.json#/properties/other_allowed_extensions"

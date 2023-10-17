@@ -4,6 +4,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
+        "category",
         "title"
     ],
     "anyOf": [
@@ -76,9 +77,6 @@
             "accessionType": "WF"
         },
         "category": {
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
             "items": {
                 "type": "string",
                 "enum": [
