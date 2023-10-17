@@ -687,44 +687,43 @@
         tbody {
             td {
                 border: 1px solid lightgray;
-                // font-family: Inter;
                 text-align: left;
+                // font-family: Inter;
+				// font-weight: 500;
             }
             td.consortium-table-OC {
-                font-weight: 600;
                 font-size: 22px;
-                background-color: #377eb8;
+                background-color: #DEF2FE;
                 cursor: default;
-                color: #ffffff;
+                color: #2E82B2;
             }
             td.consortium-table-DAC {
-                font-weight: 600;
                 font-size: 22px;
-                background-color: #e41a1c;
+                background-color: #FFE1E2;
                 cursor: default;
-                color: #ffffff;
+                color: #EA0018;
             }
             td.consortium-table-TPC {
-                font-weight: 600;
                 font-size: 22px;
-                background-color: #984ea3;
+                background-color: #F6E9F7;
                 cursor: default;
-                color: #ffffff;
+                color: #8F4895;
             }
             td.consortium-table-GCC {
                 font-size: 22px;
-                background-color: #ff7f00;
+                background-color: #FFE7D5;
                 cursor: default;
-                color: #ffffff;
+                color: #FF691A;
             }
             td.consortium-table-TTD {
-                font-weight: 600;
                 font-size: 22px;
-                background-color: #4daf4a;
+                background-color: #D9F7DC;
                 cursor: default;
-                color: #ffffff;
+                color: #225928;
             }
             td.consortium-table-header {
+				font-weight: 400px;
+				font-size: 0.9rem;
                 position: -webkit-sticky;
                 position: sticky;
                 top: 0;
@@ -742,7 +741,7 @@
     display: flex;
     justify-content: center;
     margin-bottom: 50px;
-    padding: 100px 50px;
+    // padding: 100px 10px;
     
     nav {
         font-weight: 400;
@@ -756,6 +755,8 @@
     
     .alluvial-svg {
         overflow: visible;
+		max-width: 100%;
+		height: 100%;
     
         .header {
             font-family: Inter;
