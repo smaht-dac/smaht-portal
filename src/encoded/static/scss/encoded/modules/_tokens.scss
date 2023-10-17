@@ -1,0 +1,43 @@
+/************ Brand Colors **********/
+
+$pure-white: #FFFFFF;
+
+// Blues
+$cobalt-0: #F8FDFF;
+$cobalt-10: #CFDEFB;
+$cobalt-20: #BBCCF9;
+$cobalt-30: #8C9EFE;
+$cobalt-40: #7490F2; 
+$cobalt-50: #4268F5;
+$cobalt-60: #001AFF;
+$cobalt-70:  #2440AA;
+$cobalt-80: #044292;
+
+
+
+// Greens
+$seafoam-20: #D1FFEF;
+$seafoam-40: #7FE9C7;
+$seafoam-60: #079483;
+
+
+
+// Home Page
+$homepage-header-text-color: $cobalt-70;
+$homepage-subtitle-text-color: $cobalt-40;
+
+$homepage-card-border-color: $cobalt-60; 
+$homepage-card-bg-color: rgba($cobalt-40, 0.30);
+$homepage-card-border-radius: 10px;
+$homepage-card-text-color: $cobalt-50;
+$homepage-card-icon-color: $cobalt-40;
+
+$homepage-timeline-border-color: $seafoam-40;
+$homepage-timeline-bg-color: $seafoam-20;
+$homepage-timeline-text-color: $seafoam-60;
+
+$homepage-about-consort-btn-bg-color: rgba($pure-white, 0.75);
+$homepage-about-consort-btn-border-color: $cobalt-20; // based on mockup supposed to be #B1C3F8; this is closest
+$homepage-about-consort-btn-icon-color: $cobalt-30;
+$homepage-about-consort-text-color: $cobalt-70;
+$homepage-about-consort-border-radius: 4px;
