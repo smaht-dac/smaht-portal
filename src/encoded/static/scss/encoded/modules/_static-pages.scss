@@ -794,14 +794,7 @@ body[data-path="/"]>#application>#layout {
                         height: 100%;
                         width: 50px;
                         color: #343741;
-                        
-                        & > p {
-                            position: absolute;
-                            transform: rotate(-60deg) translate(40px, -40px);
-                            width: 250px;
-                            height: 80px;
-                            font-size: 1rem;
-                        }
+						background-color: transparent;
     
                         span {
                             transform-origin: left;
@@ -812,6 +805,12 @@ body[data-path="/"]>#application>#layout {
                             &:hover {
                                 cursor: pointer
                             }
+							&:focus {
+								outline-width: 2px;
+								outline-color: #B9CAD5;
+								outline-offset: 4px;
+								border-radius: 1px;
+							}
                         }
                         
                         .icon {
@@ -910,7 +909,16 @@ body[data-path="/"]>#application>#layout {
 								margin: auto;
 					
 								&:hover {
+									cursor: pointer;
 									background-color: #b7cfda;
+								}
+
+								&:focus {
+									background-color: #b7cfda;
+									outline-width: 2px;
+									outline-color: #B9CAD5;
+									outline-offset: 2px;
+									border-radius: 1px;
 								}
 
 							}
@@ -981,12 +989,7 @@ body[data-path="/"]>#application>#layout {
 					justify-content: center;
 					line-height: normal;
 					margin: auto;
-					
-					&:hover {
-						background-color: #b7cfda;
-					}
 				}
-				
 
 				&-value {
 					color: #343741;

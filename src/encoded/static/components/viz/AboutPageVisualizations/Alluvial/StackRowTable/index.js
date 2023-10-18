@@ -37,7 +37,7 @@ const PopoverContents = ({ data }) => {
 // Component serving as a trigger for the Bootstrap Popover component
 const OverlayTriggerContent = ({ ref, value, data, ...triggerHandler }) => {
     return (
-        <div className="stackrow-item-container clickable" {...triggerHandler}>
+        <div className="stackrow-item-container clickable" tabIndex={0} {...triggerHandler}>
             <span className="stackrow-item-value" ref={ref}>
                 {value}
             </span>
@@ -81,14 +81,17 @@ const StackRowItem = ({ value=0, data=[], data_generator="" }) => {
 const StackRowTopLabel = ({ assayType }) => {
     const [showPopover, setShowPopover] = useState(false);
     return (
-        <td className="label">
+        <th className="label">
             <OverlayTrigger
+                scope="col"
                 show={showPopover}
                 placement="top"
                 overlay={
                     <Popover 
                         id="popover-container"
                         as="div"
+                        role="modal"
+                        aria-labelledby={`Details about ${assayType.display_name}.`}
                         onMouseEnter={() => setShowPopover(true)}
                         onMouseLeave={() => setShowPopover(false)}
                     >
@@ -104,14 +107,20 @@ const StackRowTopLabel = ({ assayType }) => {
                 }>
                     <span
                         onMouseEnter={() => setShowPopover(true)}
-                        onClick={() => setShowPopover(!showPopover)}
+                        onTouchStart={() => setShowPopover(true)}
                         onMouseLeave={() => setShowPopover(false)}
+                        onTouchEnd={() => setShowPopover(false)}
+                        onFocus={() => setShowPopover(true)}
+                        onBlur={() => setShowPopover(false)}
                         data-tip={assayType.name}
+                        aria-expanded={showPopover}
+                        role="button"
+                        tabIndex={0}
                         data-for="tooltip">
                         {assayType.display_name}
                     </span>
             </OverlayTrigger>
-        </td>
+        </th>
     )
 }
 
