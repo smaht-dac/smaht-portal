@@ -32,6 +32,12 @@
         "access_key_id": {
             "$merge": "snovault:schemas/access_key.json#/properties/access_key_id"
         },
+        "expiration_date": {
+            "$merge": "snovault:schemas/access_key.json#/properties/expiration_date"
+        },
+        "secret_access_key_hash": {
+            "$merge": "snovault:schemas/access_key.json#/properties/secret_access_key_hash"
+        },
         "status": {
             "$merge": "snovault:schemas/access_key.json#/properties/status"
         },
