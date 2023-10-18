@@ -29,7 +29,9 @@ def test_file_format(testapp, test_consortium: Dict[str, Any]):
 def test_workflow_types(testapp, test_consortium: Dict[str, Any]) -> None:
     """ Tests that we can post a workflow under the overridden type definition """
     workflow = {
-        'title': 'test workflow', 'consortia': [test_consortium['uuid']],
+        'title': 'test workflow',
+        'category': ['Annotation'],
+        'consortia': [test_consortium['uuid']],
     }
     res = testapp.post_json('/Workflow', workflow, status=201).json['@graph'][0]
     wfl_run = {
@@ -153,7 +155,7 @@ def test_file_types(testapp: TestApp, test_consortium: Dict[str, Any]) -> None:
         'file_format': file_format['uuid'],
         'md5sum': '00000000000000000000000000000001',
         'filename': 'my.fastq.gz',
-        'status': 'uploaded',
+        'status': 'in review',
         'data_category': 'Sequencing Reads',
         'data_type': 'Unaligned Reads',
         'consortia': [test_consortium['uuid']],
@@ -164,7 +166,7 @@ def test_file_types(testapp: TestApp, test_consortium: Dict[str, Any]) -> None:
         'file_format': file_format['uuid'],
         'md5sum': '00000000000000000000000000000002',
         'filename': 'my.fastq.gz',
-        'status': 'uploaded',
+        'status': 'in review',
         'data_category': 'Sequencing Reads',
         'data_type': 'Unaligned Reads',
         'consortia': [test_consortium['uuid']],
