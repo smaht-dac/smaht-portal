@@ -52,10 +52,10 @@ const OverlayTriggerContent = ({ ref, value, data, ...triggerHandler }) => {
 const StackRowItem = ({ value=0, data=[], data_generator="" }) => {
     // console.log(value, data, data_generator)
     return (
-        <td className={ value === 0 ? 'empty-label-row' : '' }>
+        <td className={ 'stackrow-item' + (value === 0 ? ' empty-label-row' : '') }>
             { value > 0 ? (
                 <OverlayTrigger
-                    trigger={['hover', 'focus']}
+                    trigger={['hover', 'focus', 'click']}
                     placement="bottom"
                     rootClose
                     overlay={
@@ -104,6 +104,7 @@ const StackRowTopLabel = ({ assayType }) => {
                 }>
                     <span
                         onMouseEnter={() => setShowPopover(true)}
+                        onClick={() => setShowPopover(!showPopover)}
                         onMouseLeave={() => setShowPopover(false)}
                         data-tip={assayType.name}
                         data-for="tooltip">

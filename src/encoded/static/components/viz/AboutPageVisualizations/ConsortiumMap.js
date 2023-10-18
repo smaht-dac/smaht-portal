@@ -314,11 +314,12 @@ export class ConsortiumMap extends Component {
     render() {
         return (
             <div className="consortium-map">
-                <h1 className="text-center my-5">Consortium overview</h1>
+                {/* <h1 className="text-center my-5">Consortium overview</h1> */}
 
                 <div
                     id="consortiumMapTooltip"
-                    className="p-1 rounded bg-white consortium-tooltip border"></div>
+                    className="p-1 rounded bg-white consortium-tooltip border">
+                </div>
 
                 <Tabs
                     defaultActiveKey="map"
