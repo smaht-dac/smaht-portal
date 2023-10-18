@@ -1507,7 +1507,7 @@ export default class App extends React.PureComponent {
                         crossOrigin="true"
                     />
                     <link
-                        href="https://fonts.googleapis.com/css2?family=Mada:wght@300;400&family=Montserrat:wght@800&display=swap"
+                        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@800&display=swap"
                         rel="stylesheet"
                     />
                     <link

@@ -478,91 +478,59 @@
 		Misc Static Pages
 ***********************************************************/
 
-// HomePage 
+
+
+// HomePage ONLY
+body[data-path="/"]>#application>#layout {
+	background: url(/static/img/polygon-bg.png), linear-gradient(303deg, #CCF6FC 0.52%, #FFF 99.55%);
+}
+
 .homepage-wrapper {
+
+	
+
 	.homepage-contents,
 	.homepage-contents>div {
 		min-height: 100vh;
 	}
 
 	.homepage-contents {
-		background: rgb(163,232,255);
-		background: -moz-linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
-		background: -webkit-linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
-		background: linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
+		
+		// background: rgb(163,232,255);
+		// background: -moz-linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
+		// background: -webkit-linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
+		// background: linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
 		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#a3e8ff",endColorstr="#ffffff",GradientType=1); 
 
-		.splash-content {
-			max-width: 1113px;
-			padding: 50px;
-			/* Temporary styling for SMaHT splash page */
-			.smaht-logo img {
-				width: 352px;
-			}
-			.coming-soon {
-				color: #000;
-				text-align: center;
-				font-size: 8.125rem;
-				font-family: Montserrat;
-				font-weight: 800;
-				letter-spacing: -1.3px;
-				text-transform: uppercase;
-				line-height: 149.5px;
-				margin: 20px 0px;
-			}
-			.intro {
-				color: #000;
-				text-align: center;
-				font-size: 1.875rem;
-				font-family: Mada;
-				font-weight: 300;
-			}
-			.learn-more > a {
-				letter-spacing: 0.03em;
-				font-size: 1.05rem;
-			}
+		h1 {
+			font-size: 42px;
+		}
 
-			// TODO: Discuss breakpoints with shannon; approximating the ones she included in her mockups here, but will
-			// need to get on same page about bootstrap breakpoints moving forward, as the fonts in her mocks were likely larger than anticipated.
-			@media screen and (max-width: 760px) and (min-width: 391px) {
-				// Not really any changes ATM
-				max-width: 601px;
-				padding: 30px;
+		h1, h3 {
+			color: $homepage-header-text-color;
+		}
 
-				.coming-soon {
-					font-size: 5.5rem;
-					font-weight: 800;
-					line-height: normal;
-					letter-spacing: -0.7px;
-				}
-			}
+		h2 {
+			color: $homepage-subtitle-text-color;
+			font-size: 20px;
+			font-weight: 400;
+		}
 
-			@media screen and (max-width: 428px) {
-				max-width: 308px;
-				padding: 15px;
-
-				.smaht-logo img {
-					width: 232px;
-				}
-
-				.coming-soon {
-					font-size: 4rem;
-					font-weight: 800;
-					line-height: normal;
-					letter-spacing: -0.7px;
-				}
-
-				.intro {
-					font-size: 1.5rem;
-				}
-
-				.learn-more > a {
-					width: 100%;
+		.about-consortium {
+			background-color: $homepage-card-bg-color;
+			border-color: $homepage-card-border-color;
+			@include prefix(border-radius, $homepage-card-border-radius);
+			
+			button {
+				background-color: $homepage-about-consort-btn-bg-color;
+				border: 1px solid $homepage-about-consort-btn-border-color;
+				color: $homepage-about-consort-text-color;
+				@include prefix(border-radius, $homepage-about-consort-border-radius);
+				>i {
+					color: $homepage-about-consort-btn-icon-color;
 				}
 			}
 		}
-
-		// TODO: Re-add/rework #homepage-login-container (from CGAP) styling once authentication re-added
 	}
 }
 

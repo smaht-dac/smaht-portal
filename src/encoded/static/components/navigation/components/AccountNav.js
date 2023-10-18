@@ -69,6 +69,7 @@ export const AccountNav = React.memo(function AccountNav(props) {
         // Render login button
         return (
             <div className="navbar-nav navbar-acct">
+                <HelpdeskButton />
                 <LoginController {...{ updateAppSessionState, auth0Options }}>
                     <LoginNavItem
                         {...{ schemas, session, href, windowWidth }}
@@ -104,6 +105,7 @@ export const AccountNav = React.memo(function AccountNav(props) {
     // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
     return (
         <div className="navbar-nav navbar-acct">
+            <HelpdeskButton />
             <BigDropdownNavItem
                 {...passProps}
                 {...{ windowWidth, href }}
@@ -248,3 +250,14 @@ export function getActionURL(action, currentHref) {
     if (typeof action.href === 'function') return action.href(hrefParts);
     return '#';
 }
+
+const HelpdeskButton = React.memo(function HelpdeskButton(props) {
+    const { } = props;
+
+    return (
+        <a role="button" href="/helpdesk" className="nav-link">
+            <i className="icon icon-envelope fas mr-05" />
+            Help Desk
+        </a>
+    );
+});
