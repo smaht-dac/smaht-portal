@@ -434,7 +434,7 @@ export const Alluvial = () => {
     return (
         <div>
             <Tabs
-                defaultActiveKey="table"
+                defaultActiveKey="alluvial"
                 className="mb-3 float-right"
                 variant="pills">
                 <Tab eventKey="alluvial" title="Alluvial view">
