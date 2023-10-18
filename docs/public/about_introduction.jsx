@@ -1,6 +1,3 @@
-import AboutPageVisualizations from "../../src/encoded/static/components/viz/AboutPageVisualizations";
-
-
 <div>
     <h1>Heading 1</h1>
 
