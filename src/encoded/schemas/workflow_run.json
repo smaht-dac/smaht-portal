@@ -1,0 +1,90 @@
+{
+    "title": "Workflow Run",
+    "$id": "/profiles/workflow_run.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "workflow"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "aliases",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/title"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "schema_version": {
+            "default": "1"
+        },
+        "input_files": {
+            "$merge": "encoded_core:schemas/workflow_run.json#/properties/input_files"
+        },
+        "output_files": {
+            "$merge": "encoded_core:schemas/workflow_run.json#/properties/output_files"
+        },
+        "parameters": {
+            "$merge": "encoded_core:schemas/workflow_run.json#/properties/parameters"
+        },
+        "postrun_json": {
+            "$merge": "encoded_core:schemas/workflow_run_awsem.json#/properties/awsem_postrun_json"
+        },
+        "run_status": {
+            "$merge": "encoded_core:schemas/workflow_run.json#/properties/run_status"
+        },
+        "run_url": {
+            "$merge": "encoded_core:schemas/workflow_run.json#/properties/run_url"
+        },
+        "workflow": {
+            "$merge": "encoded_core:schemas/workflow_run.json#/properties/workflow"
+        },
+        "job_id": {
+            "title": "Job ID",
+            "type": "string"
+        }
+    },
+    "facets": {},
+    "columns": {}
+}

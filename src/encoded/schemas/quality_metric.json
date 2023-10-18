@@ -1,0 +1,89 @@
+{
+    "title": "QualityMetric",
+    "description": "Schema for quality control data for a file.",
+    "id": "/profiles/quality_metric.json",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "required": [
+        "category",
+        "qc_values"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "aliases",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/category"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "QM"
+        },
+        "category": {
+            "type": "string",
+            "enum": [
+                "Testing"
+            ]
+        },
+        "overall_quality_status": {
+            "$merge": "encoded_core:schemas/quality_metric.json#/properties/overall_quality_status",
+            "enum": [
+                "Fail",
+                "Pass",
+                "Warn"
+            ],
+            "default": "Pass"
+        },
+        "url": {
+            "$merge": "encoded_core:schemas/quality_metric.json#/properties/url"
+        },
+        "qc_values": {
+            "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values"
+        }
+    },
+    "facets": {},
+    "columns": {}
+}

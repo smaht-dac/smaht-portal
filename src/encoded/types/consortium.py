@@ -1,12 +1,11 @@
-from snovault import collection
-from snovault import load_schema
+from snovault import collection, load_schema
+
 from .base import Item as SMAHTItem
-from .acl import ONLY_ADMIN_VIEW_ACL
 
 
 @collection(
     name='consortium',
-    unique_key='consortium:name',
+    unique_key='consortium:identifier',
     properties={
         'title': 'Consortium',
         'description': 'Listing of SMaHT associated Consortiums',
@@ -17,4 +16,4 @@ class Consortium(SMAHTItem):
     item_type = 'consortium'
     schema = load_schema('encoded:schemas/consortium.json')
     embedded_list = SMAHTItem.embedded_list
-    name_key = 'name'
+    name_key = 'identifier'

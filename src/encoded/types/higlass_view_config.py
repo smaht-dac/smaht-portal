@@ -1,11 +1,7 @@
-from copy import deepcopy
-from snovault import collection
+from snovault import collection, load_schema
 from encoded_core.types.higlass_view_config import HiglassViewConfig as CoreHiglassViewConfig
+
 from .base import Item as SMAHTItem
-from .base import mixin_smaht_permission_types
-
-
-ENCODED_CORE_HIGLASS_VIEW_CONFIG_SCHEMA = deepcopy(CoreHiglassViewConfig.schema)
 
 
 @collection(
@@ -20,4 +16,4 @@ class HiglassViewConfig(SMAHTItem, CoreHiglassViewConfig):
     Item type which contains a `view_config` property and other metadata.
     """
     item_type = 'higlass_view_config'
-    schema = mixin_smaht_permission_types(ENCODED_CORE_HIGLASS_VIEW_CONFIG_SCHEMA)
+    schema = load_schema("encoded:schemas/higlass_view_config.json")

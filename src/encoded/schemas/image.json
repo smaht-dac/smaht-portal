@@ -1,14 +1,21 @@
 {
-    "title": "Consortium",
-    "$id": "/profiles/consortium.json",
+    "title": "Image",
+    "$id": "/profiles/image.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "required": [
-        "identifier",
-        "title"
+    "type": "object",
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
     ],
     "identifyingProperties": [
-        "aliases",
-        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -17,7 +24,10 @@
             "$ref": "mixins.json#/aliases"
         },
         {
-            "$ref": "mixins.json#/identifier"
+            "$ref": "mixins.json#/attachment"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
         },
         {
             "$ref": "mixins.json#/description"
@@ -35,25 +45,18 @@
             "$ref": "mixins.json#/submitted"
         },
         {
-            "$ref": "mixins.json#/tags"
-        },
-        {
-            "$ref": "mixins.json#/title"
-        },
-        {
-            "$ref": "mixins.json#/url"
-        },
-        {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/tags"
         }
     ],
-    "type": "object",
     "properties": {
         "schema_version": {
             "default": "1"
         },
-        "status": {
-            "default": "shared"
+        "caption": {
+            "$merge": "encoded_core:schemas/image.json#/properties/caption"
         }
     }
 }

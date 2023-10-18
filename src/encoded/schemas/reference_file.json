@@ -1,23 +1,41 @@
 {
-    "title": "Consortium",
-    "$id": "/profiles/consortium.json",
+    "title": "Reference File",
+    "description": "Reference file for bioinformatics pipelines",
+    "$id": "/profiles/reference_file.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
     "required": [
-        "identifier",
-        "title"
+        "data_category",
+        "data_type",
+        "file_format"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
     ],
     "identifyingProperties": [
+        "accession",
         "aliases",
-        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
     "mixinProperties": [
         {
+            "$ref": "mixins.json#/accession"
+        },
+        {
             "$ref": "mixins.json#/aliases"
         },
         {
-            "$ref": "mixins.json#/identifier"
+            "$ref": "mixins.json#/attribution"
         },
         {
             "$ref": "mixins.json#/description"
@@ -38,22 +56,25 @@
             "$ref": "mixins.json#/tags"
         },
         {
-            "$ref": "mixins.json#/title"
-        },
-        {
-            "$ref": "mixins.json#/url"
-        },
-        {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "file.json#/properties"
         }
     ],
-    "type": "object",
+    "mixinFacets": [
+        {
+            "$ref": "file.json#/facets"
+        }
+    ],
+    "mixinColumns": [
+        {
+            "$ref": "file.json#/columns"
+        }
+    ],
     "properties": {
         "schema_version": {
             "default": "1"
-        },
-        "status": {
-            "default": "shared"
         }
     }
 }

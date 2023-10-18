@@ -7,7 +7,7 @@
         ],
         "last_name": "loadxl",
         "status": "current",
-        "timezone": "US/Pacific",
+        "time_zone": "US/Pacific",
         "uuid": "3202fd57-44d2-44fb-a131-afb1e43d8ae5"
     },
     {
@@ -83,7 +83,7 @@
     {
         "last_name": "App",
         "first_name": "Tibanna",
-        "timezone": "US/Eastern",
+        "time_zone": "US/Eastern",
         "status": "current",
         "groups": [
             "admin"
@@ -223,7 +223,7 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],
-        "timezone": "US/Eastern",
+        "time_zone": "US/Eastern",
         "last_name": "Michaels",
         "first_name": "David"
     }

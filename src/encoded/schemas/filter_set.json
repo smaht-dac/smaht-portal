@@ -1,14 +1,26 @@
 {
-    "title": "Consortium",
-    "$id": "/profiles/consortium.json",
+    "title": "Filter Set",
+    "description": "Item for encapsulating multiple queries",
+    "$id": "/profiles/filter_set.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
     "required": [
-        "identifier",
         "title"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
     ],
     "identifyingProperties": [
         "aliases",
-        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -17,7 +29,7 @@
             "$ref": "mixins.json#/aliases"
         },
         {
-            "$ref": "mixins.json#/identifier"
+            "$ref": "mixins.json#/attribution"
         },
         {
             "$ref": "mixins.json#/description"
@@ -41,19 +53,21 @@
             "$ref": "mixins.json#/title"
         },
         {
-            "$ref": "mixins.json#/url"
-        },
-        {
             "$ref": "mixins.json#/uuid"
         }
     ],
-    "type": "object",
     "properties": {
         "schema_version": {
             "default": "1"
         },
         "status": {
-            "default": "shared"
+            "$merge": "snovault:schemas/filter_set.json#/properties/status"
+        },
+        "filter_blocks": {
+            "$merge": "snovault:schemas/filter_set.json#/properties/filter_blocks"
+        },
+        "flags": {
+            "$merge": "snovault:schemas/filter_set.json#/properties/flags"
         }
     }
 }
