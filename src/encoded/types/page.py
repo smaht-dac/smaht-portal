@@ -6,7 +6,7 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='pages',
-    unique_key='page:name',
+    unique_key='page:identifier',
     properties={
         'title': 'Pages',
         'description': 'Static Pages for the Portal',
