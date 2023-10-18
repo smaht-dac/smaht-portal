@@ -168,5 +168,9 @@ def smaht_consortium_user(testapp, test_consortium):
 
 @pytest.fixture
 def workflow(testapp: TestApp, test_consortium: Dict[str, Any]) -> Dict[str, Any]:
-    item = {"title": "A Great Workflow", "consortia": [test_consortium["uuid"]]}
+    item = {
+        "title": "A Great Workflow",
+        "category": ["Annotation"],
+        "consortia": [test_consortium["uuid"]],
+    }
     return post_item_and_return_location(testapp, item, "workflow")
