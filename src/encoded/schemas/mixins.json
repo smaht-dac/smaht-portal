@@ -34,6 +34,7 @@
             "comment": "Colon separated lab name and lab identifier, no slash. (e.g. dcic-lab:42).",
             "uniqueItems": true,
             "ff_flag": "clear clone",
+            "permission": "restricted_fields",
             "items": {
                 "uniqueKey": "alias",
                 "title": "ID Alias",
@@ -157,8 +158,8 @@
             "title": "Category",
             "comment": "Intended for primary classification of an item, i.e. as a property to use instead of file_type for File",
             "type": "array",
-	    "minItems": 1,
-	    "uniqueItems": true,
+            "minItems": 1,
+            "uniqueItems": true,
             "items": {
                 "type": "string",
                 "enum": []
