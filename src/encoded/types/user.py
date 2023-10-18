@@ -26,3 +26,12 @@ class User(SMAHTItem, SnovaultUser):
     def title(self, first_name: Optional[str], last_name: Optional[str]) -> Union[str, None]:
         if first_name and last_name:
             return SnovaultUser.title(self, first_name, last_name)
+
+
+    @calculated_property(
+        schema={"title": "Contact Email", "type": "string", "format": "email"}
+    )
+    def contact_email(
+        self, email: Optional[str] = None, preferred_email: Optional[str] = None
+    ) -> Union[str, None]:
+        return SnovaultUser.contact_email(self, email, preferred_email=preferred_email)
