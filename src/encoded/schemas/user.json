@@ -50,6 +50,9 @@
         "last_name": {
             "$merge": "snovault:schemas/user.json#/properties/last_name"
         },
+        "preferred_email": {
+            "$merge": "snovault:schemas/user.json#/properties/preferred_email"
+        },
         "status": {
             "$merge": "snovault:schemas/user.json#/properties/status"
         },
