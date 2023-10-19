@@ -7,12 +7,24 @@ smaht-portal
 Change Log
 ----------
 
-0.2.1
+0.4.0
 =====
-`PR 19: Base Template <https://github.com/smaht-dac/smaht-portal/pull/19>`_
+`PR 19: UI-Dev <https://github.com/smaht-dac/smaht-portal/pull/20>`_
 
-* Add icons for search facets
-* Re-add the footer, alerts, and tooltips
+* Remove Splash Page + [re-add various features](https://github.com/smaht-dac/smaht-portal/pull/19) 
+* Series of fixes for Static Sections and Pages
+* Initial layout of home page and other pages (TODO: link other front-end PRs)
+
+
+0.3.0
+=====
+* Upgrade to Python 3.11.
+* Adding ingestion processor.
+  * Added/implemented ingestion_processor.py.
+  * Added generate-local-access-key script (from snovault) to pyproject.toml.
+  * Added view-local-object script (from snovault) to pyproject.toml.
+  * Changed metadata_bundles_bucket to smaht-production-application-metadata-bundles in development.ini.template.
+* Removed types/access_key.py and schemas/access_key.json as the ones in snovault are sufficient.
 
 
 0.2.0
@@ -50,7 +62,6 @@ Change Log
 
 0.0.8
 =====
-
 * Lock newer snovault, utils versions with bug fixes
 
 

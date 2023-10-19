@@ -205,6 +205,13 @@ lint:
 	@flake8 deploy/ || echo "flake8 failed for deploy/"
 	@flake8 src/encoded/ || echo "flake8 failed for src/encoded"
 
+publish:
+	poetry run publish-to-pypi
+
+publish-for-ga:
+	poetry install
+	poetry run publish-to-pypi --noconfirm
+
 help:
 	@make info
 
