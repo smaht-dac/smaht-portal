@@ -101,7 +101,7 @@ const StackRowTopLabel = ({ assayType }) => {
                         <PopoverContent>
                             {assayType.description}
                             <br />
-                            { assayType.link && <a href={assayType.link} target="blank_">Read more</a> }
+                            { assayType.link && <a className="read-more" href={assayType.link} target="blank_">Read more</a> }
                         </PopoverContent>
                     </Popover>
                 }>

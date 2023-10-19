@@ -762,7 +762,7 @@ body[data-path="/"]>#application>#layout {
 		}
 
     }
-	
+
     .link {
         fill: none;
         stroke-opacity: .1;
@@ -934,37 +934,10 @@ body[data-path="/"]>#application>#layout {
 								}
 
 							}
-							
-							&-popover-list {
-								margin: auto;
-					
-								& > ul {
-									padding: 0;
-									list-style: none;
-					
-									& > li {
-										display: flex;
-										justify-content: space-between;
-										margin-bottom: 5px;
-										width: 100%;
-					
-										.data-generator {
-											font-weight: 700;
-										}
-									}
-					
-								}
-							}
 					
 							&-value {
 								color: #343741;
 								margin: auto;
-							}
-					
-							&-detail-popover {
-								position: absolute;
-								height: 200px;
-								width: 400px;
 							}
 						}
                     }
@@ -1231,5 +1204,33 @@ body[data-path="/"]>#application>#layout {
             list-style: none;
             padding: 0;
         }
+		.read-more {
+			display: block;
+			margin-top: 5px;	
+		}
     }
+	@media screen and (min-width: 768px) and (max-width: 992px) {
+		&-header {
+			font-size: 0.9rem;
+		}
+		&-body {
+			font-size: 0.8rem;
+		}
+	}
+	@media screen and (min-width: 576px) and (max-width: 768px) {
+		&-header {
+			font-size: 0.8rem;
+		}
+		&-body {
+			font-size: 0.7rem;
+		}
+	}
+	@media screen and (max-width: 576px) {
+		&-header {
+			font-size: 0.7rem;
+		}
+		&-body {
+			font-size: 0.6rem;
+		}
+	}
 }
