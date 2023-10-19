@@ -7,6 +7,34 @@ smaht-portal
 Change Log
 ----------
 
+0.3.0
+=====
+* Upgrade to Python 3.11.
+* Adding ingestion processor.
+  * Added/implemented ingestion_processor.py.
+  * Added generate-local-access-key script (from snovault) to pyproject.toml.
+  * Added view-local-object script (from snovault) to pyproject.toml.
+  * Changed metadata_bundles_bucket to smaht-production-application-metadata-bundles in development.ini.template.
+* Removed types/access_key.py and schemas/access_key.json as the ones in snovault are sufficient.
+
+
+0.2.0
+=====
+`PR 18: Prettier bulk reformat <https://github.com/smaht-dac/smaht-portal/pull/18>`_
+
+* What it says on the tin: ran `npm run format` to reformat JS/JSX files
+
+
+0.1.1
+=====
+`PR 17: Webpack 5 Config Fixes + Prettier Install & Config <https://github.com/smaht-dac/smaht-portal/pull/17>`_
+
+* Remove direct Terser-Webpack-Plugin from dev-dependencies
+* Fix NODE_ENV warning on webpack build
+* Add some comments for profiling webpack easily
+* Also included changes from: https://github.com/smaht-dac/smaht-portal/pull/15
+
+
 0.1.0
 =====
 `PR 10: Bm-node18-upgrade <https://github.com/smaht-dac/smaht-portal/pull/10>`_
@@ -25,7 +53,6 @@ Change Log
 
 0.0.8
 =====
-
 * Lock newer snovault, utils versions with bug fixes
 
 

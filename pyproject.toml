@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.1.0"
+version = "0.3.0.1b2"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -31,20 +31,23 @@ classifiers = [
     # that you indicate whether you support Python 2, Python 3 or both.
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9.1,<3.10"
-awscli = ">=1.25.36"
-boto3 = "^1.24.36"
-botocore = "^1.27.36"
+python = ">=3.9.1,<3.12"
+awscli = ">=1.29.62"
+boto3 = "^1.28.62"
+botocore = "^1.31.62"
 certifi = ">=2021.5.30"
-chardet = "3.0.4"
+chardet = "^5.0.0"
 codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
-dcicsnovault = "^10.0.3"
-dcicutils = "^7.8.0"
-encoded-core = "^0.0.4"
+#dcicsnovault = "^11.0.0"
+dcicsnovault = "11.0.0.1b2"
+dcicutils = "8.0.0.1b2"
+encoded-core = "0.1.0.1b2"
 elasticsearch = "7.13.4"
 execnet = "1.4.1"
 humanfriendly = "^1.44.9"
@@ -67,7 +70,7 @@ pyasn1 = "0.1.9"
 PyBrowserID = "^0.14.0"
 pycparser = "2.14"
 PyJWT = "^2.6.0"
-PyYAML = "5.3.1"
+PyYAML = "^6.0.1"
 pyparsing = "^3.0.7"
 pyramid = "1.10.4"
 pyramid_localroles = ">=0.1,<1"
@@ -112,8 +115,8 @@ WSGIProxy2 = "0.4.2"
 
 [tool.poetry.dev-dependencies]
 # PyCharm says boto3-stubs contains useful type hints
-boto3-stubs = "^1.24.36"
-botocore-stubs = "^1.27.36"
+boto3-stubs = "^1.28.62"
+botocore-stubs = "^1.31.62"
 coverage = ">=6.2"
 codacy-coverage = ">=1.3.11"
 coveralls = ">=3.3.1"
@@ -144,6 +147,7 @@ wheel = ">=0.29.0"
 [tool.poetry.scripts]
 # dcicutils commands
 add-image-tag = "dcicutils.ecr_scripts:add_image_tag_main"
+publish-to-pypi = "dcicutils.scripts.publish_to_pypi:main"
 show-global-env-bucket = "dcicutils.env_scripts:show_global_env_bucket_main"
 show-image-manifest = "dcicutils.ecr_scripts:show_image_manifest_main"
 show-image-catalog = "dcicutils.ecr_scripts:show_image_catalog_main"
@@ -163,7 +167,10 @@ dis2pheno = "encoded.commands.parse_hpoa:main"
 es-index-data = "snovault.commands.es_index_data:main"
 export-data = "encoded.commands.export_data:main"
 extract-test-data = "encoded.commands.extract_test_data:main"
+generate-local-access-key = "snovault.commands.generate_local_access_key:main"
+view-local-object= "snovault.commands.view_local_object:main"
 import-data = "encoded.commands.import_data:main"
+ingestion-listener = "snovault.ingestion.ingestion_listener:main"
 jsonld-rdf = "encoded.commands.jsonld_rdf:main"
 load-access-keys = "snovault.commands.load_access_keys:main"
 load-data = "snovault.commands.load_data:main"

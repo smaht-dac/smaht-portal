@@ -1,7 +1,9 @@
 # SMaHT-Portal (Production) Dockerfile
 
-# Debian Buster with Python 3.9.16
-FROM python:3.9.16-slim-buster
+# Bullseye with Python 3.11.5
+# 2023-09-28: Update docker image to a Python 3.11 version;
+# this was previously: FROM python:3.9.16-slim-buster
+FROM python:3.11.5-slim-bullseye
 
 MAINTAINER William Ronchetti "william_ronchetti@hms.harvard.edu"
 
@@ -44,7 +46,7 @@ RUN apt-get update && apt-get upgrade -y && \
     curl -o aws-ip-ranges.json https://ip-ranges.amazonaws.com/ip-ranges.json
 
 # Install nginx
-COPY deploy/docker/production/install_nginx.sh /install_nginx.sh
+COPY deploy/docker/production/install_nginx_bullseye.sh /install_nginx.sh
 RUN bash /install_nginx.sh && \
     chown -R nginx:nginx /opt/venv && \
     mkdir -p /home/nginx/smaht-portal && \
