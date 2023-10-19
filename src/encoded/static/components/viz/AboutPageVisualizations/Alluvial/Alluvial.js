@@ -240,6 +240,74 @@ export const Alluvial = () => {
                 .on('mouseover', (e, d) => {})
                 .on('mouseleave', (e, d) => {});
 
+            const highlight = (e, d) => {
+                if (d.type === 'data_generator') {
+                    // highlight the links with source=platform and target=assay_type
+                    const platforms = graph.platforms[d.name];
+                    for (const platform in platforms) {
+                        platforms[platform].forEach((assay_type) => {
+                            d3.selectAll(
+                                `.link[data-source='${assay_type}'][data-target='${platform}']`
+                            ).attr('class', 'link selected');
+                            d3.selectAll(
+                                `.link[data-source='${platform}']`
+                            ).attr('class', 'link selected');
+                        });
+                    }
+                }
+                if (d.type === 'sequencing_platform') {
+                    d.sourceLinks.forEach((link) => {
+                        d3.selectAll(
+                            `.link[data-source='${link.target.name}']`
+                        ).attr('class', 'link selected');
+                    });
+                }
+                if (d.type === 'molecular_feature') {
+                    d3.selectAll(`.link[data-target='${d.name}']`).attr(
+                        'class',
+                        'link selected'
+                    );
+                } else {
+                    d3.selectAll(`.link[data-source='${d.name}']`).attr(
+                        'class',
+                        'link selected'
+                    );
+                }
+            }
+            const unhighlight = (e, d) => {
+                if (d.type === 'data_generator') {
+                    const platforms = graph.platforms[d.name];
+                    for (const platform in platforms) {
+                        platforms[platform].forEach((assay_type) => {
+                            d3.selectAll(
+                                `.link[data-source='${assay_type}'][data-target='${platform}']`
+                            ).attr('class', 'link');
+                            d3.selectAll(
+                                `.link[data-source='${platform}']`
+                            ).attr('class', 'link');
+                        });
+                    }
+                }
+                if (d.type === 'sequencing_platform') {
+                    d.sourceLinks.forEach((link) => {
+                        d3.selectAll(
+                            `.link[data-source='${link.target.name}']`
+                        ).attr('class', 'link');
+                    });
+                }
+                if (d.type === 'molecular_feature') {
+                    d3.selectAll(`.link[data-target='${d.name}']`).attr(
+                        'class',
+                        'link'
+                    );
+                } else {
+                    d3.selectAll(`.link[data-source='${d.name}']`).attr(
+                        'class',
+                        'link'
+                    );
+                }
+            }
+
             // add in the nodes
             const node = svg
                 .append('g')
@@ -253,73 +321,8 @@ export const Alluvial = () => {
                 .attr('transform', function (d) {
                     return 'translate(' + d.x + ',' + d.y + ')';
                 })
-                .on('mouseover', (e, d) => {
-                    if (d.type === 'data_generator') {
-                        // highlight the links with source=platform and target=assay_type
-                        const platforms = graph.platforms[d.name];
-                        for (const platform in platforms) {
-                            platforms[platform].forEach((assay_type) => {
-                                d3.selectAll(
-                                    `.link[data-source='${assay_type}'][data-target='${platform}']`
-                                ).attr('class', 'link selected');
-                                d3.selectAll(
-                                    `.link[data-source='${platform}']`
-                                ).attr('class', 'link selected');
-                            });
-                        }
-                    }
-                    if (d.type === 'sequencing_platform') {
-                        d.sourceLinks.forEach((link) => {
-                            d3.selectAll(
-                                `.link[data-source='${link.target.name}']`
-                            ).attr('class', 'link selected');
-                        });
-                    }
-                    if (d.type === 'molecular_feature') {
-                        d3.selectAll(`.link[data-target='${d.name}']`).attr(
-                            'class',
-                            'link selected'
-                        );
-                    } else {
-                        d3.selectAll(`.link[data-source='${d.name}']`).attr(
-                            'class',
-                            'link selected'
-                        );
-                    }
-                })
-                .on('mouseleave', (e, d) => {
-                    if (d.type === 'data_generator') {
-                        const platforms = graph.platforms[d.name];
-                        for (const platform in platforms) {
-                            platforms[platform].forEach((assay_type) => {
-                                d3.selectAll(
-                                    `.link[data-source='${assay_type}'][data-target='${platform}']`
-                                ).attr('class', 'link');
-                                d3.selectAll(
-                                    `.link[data-source='${platform}']`
-                                ).attr('class', 'link');
-                            });
-                        }
-                    }
-                    if (d.type === 'sequencing_platform') {
-                        d.sourceLinks.forEach((link) => {
-                            d3.selectAll(
-                                `.link[data-source='${link.target.name}']`
-                            ).attr('class', 'link');
-                        });
-                    }
-                    if (d.type === 'molecular_feature') {
-                        d3.selectAll(`.link[data-target='${d.name}']`).attr(
-                            'class',
-                            'link'
-                        );
-                    } else {
-                        d3.selectAll(`.link[data-source='${d.name}']`).attr(
-                            'class',
-                            'link'
-                        );
-                    }
-                })
+                .on('mouseover', highlight)
+                .on('mouseleave', unhighlight)
                 .call(
                     d3
                         .drag()
@@ -343,6 +346,9 @@ export const Alluvial = () => {
 
             // add the rectangles for the nodes
             node.append('rect')
+                .attr('tabindex', function (d) {
+                    return "0"
+                })
                 .attr('height', (d) => d.dy)
                 .attr('width', sankey.nodeWidth())
                 .style('fill', function (d) {
@@ -369,18 +375,12 @@ export const Alluvial = () => {
                 .style('stroke', function (d) {
                     return d3.rgb(d.color).darker(1);
                 })
+                .on('focus', highlight)
+                .on('focusout', unhighlight)
                 // Add hover text
                 .append('title', function (d) {
                     return d.name;
                 });
-
-            // The color for the pattern
-            node.append('rect')
-                .attr('width', sankey.nodeWidth())
-                .style('fill', (d) => {
-                    return d.color;
-                })
-                .style('stroke', 'black');
 
             // Append titles for nodes
             node.append('text')
