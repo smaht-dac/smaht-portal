@@ -2,6 +2,9 @@
 // Common mixins, some used by base & bootstrap-theme-overrides
 @import "../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/mixins.scss";
 
+@import "encoded/modules/tokens",
+        "encoded/modules/utils";
+
 // Encoded base - variables & similar config
 @import "encoded/base";
 

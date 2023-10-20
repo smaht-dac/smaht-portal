@@ -89,17 +89,34 @@ function AboutNavItem(props) {
     );
 }
 
-function HelpNavItem(props) {
+function DocsNavItem(props) {
     const { session, ...navItemProps } = props;
     // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
     return (
-        <BigDropdownPageLoader treeURL="/help" session={session}>
+        <BigDropdownPageLoader treeURL="/docs" session={session}>
             <BigDropdownNavItem
                 {...navItemProps}
-                id="help-menu-item"
-                navItemHref="/help"
-                navItemContent="Help">
-                <BigDropdownPageTreeMenuIntroduction titleIcon="info-circle fas" />
+                id="docs-menu-item"
+                navItemHref="/docs"
+                navItemContent="Documentation">
+                <BigDropdownPageTreeMenuIntroduction titleIcon="question-circle fas" />
+                <BigDropdownPageTreeMenu />
+            </BigDropdownNavItem>
+        </BigDropdownPageLoader>
+    );
+}
+
+function DataNavItem(props) {
+    const { session, ...navItemProps } = props;
+    // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
+    return (
+        <BigDropdownPageLoader treeURL="/data" session={session}>
+            <BigDropdownNavItem
+                {...navItemProps}
+                id="data-menu-item"
+                navItemHref="/data"
+                navItemContent="Data">
+                <BigDropdownPageTreeMenuIntroduction titleIcon="database fas" />
                 <BigDropdownPageTreeMenu />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
@@ -129,8 +146,9 @@ function LeftNavAuthenticated(props) {
     );
     return (
         <div className="navbar-nav mr-auto">
+            <DataNavItem {...props} />
+            <DocsNavItem {...props} />
             <AboutNavItem {...props} />
-            <HelpNavItem {...props} />
         </div>
     );
 }
@@ -142,7 +160,6 @@ const LeftNavGuest = React.memo(function LeftNavGuest(props) {
     return (
         <div className="navbar-nav mr-auto">
             <AboutNavItem {...props} />
-            {/* <HelpNavItem {...props} /> */}
         </div>
     );
 });

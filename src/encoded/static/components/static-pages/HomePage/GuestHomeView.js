@@ -30,19 +30,19 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
 
     return (
         <div className="homepage-contents">
-            <div className="container">
+            <div className="container-wide">
                 <div className="row">
                     <div className="col-12">
-                        <h1>
+                        <h1 className="mb-1">
                             Somatic Mosaicism across Human Tissues Data Portal
                         </h1>
-                        <h2>
+                        <h2 className="mt-1">
                             A platform to search, visualize, and download
                             somatic mosaic variants in normal tissues.
                         </h2>
                     </div>
                 </div>
-                <div className="row">
+                <div className="row my-2">
                     <div className="col-md-6">
                         <SMaHTTimeline />
                     </div>
@@ -51,21 +51,32 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                     </div>
                 </div>
                 <div className="row">
-                    <Card className="col-12 w-100 m-3 p-3">
+                    <Card className="about-consortium col-12 w-100 p-3 mb-3">
                         <h3 className="mt-0">About the Consortium</h3>
-                        <div className="d-flex">
-                            <button type="button" className="flex-fill">
-                                NIH SMaHT Homepage
-                            </button>
-                            <button type="button" className="flex-fill">
-                                SMaHT OC Homepage
-                            </button>
-                            <button type="button" className="flex-fill">
-                                SMaHT Overview Video
-                            </button>
-                            <button type="button" className="flex-fill">
-                                SMaHT Consortium Map
-                            </button>
+                        <div className="row">
+                            <div className="col-12 col-md-6 col-lg-3">
+                                <button type="button" className="w-100 py-2">
+                                    NIH SMaHT Homepage
+                                    <i className="icon-external-link-alt icon icon-xs fas ml-1" />
+                                </button>
+                            </div>
+                            <div className="col-12 col-md-6 col-lg-3">
+                                <button type="button" className="w-100 py-2">
+                                    SMaHT OC Homepage
+                                    <i className="icon-external-link-alt icon icon-xs fas ml-1" />
+                                </button>
+                            </div>
+                            <div className="col-12 col-md-6 col-lg-3">
+                                <button type="button" className="w-100 py-2">
+                                    SMaHT Overview Video
+                                    <i className="icon-external-link-alt icon text-xs fas ml-1" />
+                                </button>
+                            </div>
+                            <div className="col-12 col-md-6 col-lg-3">
+                                <button type="button" className="w-100 py-2">
+                                    SMaHT Consortium Map
+                                </button>
+                            </div>
                         </div>
                     </Card>
                 </div>
