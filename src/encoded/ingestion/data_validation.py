@@ -10,7 +10,7 @@ from .submission_folio import SmahtSubmissionFolio
 
 def validate_data_against_schemas(data: Dict[str, List[Dict]],
                                   portal_vapp: Optional[VirtualApp] = None,
-                                  schemas: Optional[Dict[Dict]] = None) -> Optional[Dict]:
+                                  schemas: Optional[Dict] = None) -> Optional[Dict]:
     """
     TODO: This is just until this schema validation is fully supported in sheet_utils.
 
