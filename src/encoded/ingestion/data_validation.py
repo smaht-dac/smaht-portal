@@ -134,11 +134,12 @@ def validate_data_item_against_schemas(data_item: dict, data_type: str,
     schema_validator = jsonschema.Draft7Validator(schema)
     for schema_validation_error in schema_validator.iter_errors(data_item):
         if schema_validation_error.validator == "required":
+            missing_properties = list(set(schema_validation_error.validator_value) - set(schema_validation_error.instance))
             errors.append({
                 "type": data_type,
                 "item" if identifying_value else "unidentified": identifying_value if identifying_value else True,
                 "index": data_item_index,
-                "missing_properties": schema_validation_error.validator_value})
+                "missing_properties": missing_properties})
             continue
         if schema_validation_error.validator == "additionalProperties":
             properties = extract_single_quoted_strings(schema_validation_error.message)
