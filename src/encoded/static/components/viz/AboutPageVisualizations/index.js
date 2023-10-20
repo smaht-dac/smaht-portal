@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ConsortiumMap } from './ConsortiumMap';
+import { ConsortiumMap } from './ConsortiumData/ConsortiumMap';
 import { Alluvial } from './Alluvial/Alluvial';
 
 export default class AboutPageVisualizations extends Component {
