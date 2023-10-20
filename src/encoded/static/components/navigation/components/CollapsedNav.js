@@ -72,17 +72,51 @@ export const CollapsedNav = React.memo(function CollapsedNav(props) {
     );
 });
 
-function HelpNavItem(props) {
+function AboutNavItem(props) {
     const { session, ...navItemProps } = props;
     // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
     return (
-        <BigDropdownPageLoader treeURL="/help" session={session}>
+        <BigDropdownPageLoader treeURL="/about" session={session}>
             <BigDropdownNavItem
                 {...navItemProps}
-                id="help-menu-item"
-                navItemHref="/help"
-                navItemContent="Help">
+                id="about-menu-item"
+                navItemHref="/about"
+                navItemContent="About">
                 <BigDropdownPageTreeMenuIntroduction titleIcon="info-circle fas" />
+                <BigDropdownPageTreeMenu />
+            </BigDropdownNavItem>
+        </BigDropdownPageLoader>
+    );
+}
+
+function DocsNavItem(props) {
+    const { session, ...navItemProps } = props;
+    // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
+    return (
+        <BigDropdownPageLoader treeURL="/docs" session={session}>
+            <BigDropdownNavItem
+                {...navItemProps}
+                id="docs-menu-item"
+                navItemHref="/docs"
+                navItemContent="Documentation">
+                <BigDropdownPageTreeMenuIntroduction titleIcon="question-circle fas" />
+                <BigDropdownPageTreeMenu />
+            </BigDropdownNavItem>
+        </BigDropdownPageLoader>
+    );
+}
+
+function DataNavItem(props) {
+    const { session, ...navItemProps } = props;
+    // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
+    return (
+        <BigDropdownPageLoader treeURL="/data" session={session}>
+            <BigDropdownNavItem
+                {...navItemProps}
+                id="data-menu-item"
+                navItemHref="/data"
+                navItemContent="Data">
+                <BigDropdownPageTreeMenuIntroduction titleIcon="database fas" />
                 <BigDropdownPageTreeMenu />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
@@ -112,23 +146,9 @@ function LeftNavAuthenticated(props) {
     );
     return (
         <div className="navbar-nav mr-auto">
-            <a
-                href="/cohort-analysis"
-                className={
-                    'nav-link browse-nav-btn' +
-                    (isCohortsLinkActive ? ' active' : '')
-                }>
-                Cohorts
-            </a>
-            <a
-                href="/search/?type=GeneList"
-                className={
-                    'nav-link browse-nav-btn' +
-                    (isGeneListsLinkActive ? ' active' : '')
-                }>
-                GeneLists
-            </a>
-            <HelpNavItem {...props} />
+            <DataNavItem {...props} />
+            <DocsNavItem {...props} />
+            <AboutNavItem {...props} />
         </div>
     );
 }
@@ -139,17 +159,7 @@ const LeftNavGuest = React.memo(function LeftNavGuest(props) {
 
     return (
         <div className="navbar-nav mr-auto">
-            {/*
-            <a href="/case-studies" className={"nav-link" + (pathname === "/case-studies" ? " active" : "")}>
-                Case Studies
-            </a>
-            */}
-            <HelpNavItem {...props} />
-            {/*
-            <a href="/about" className={"nav-link" + (pathname === "/about" ? " active" : "")}>
-                About
-            </a>
-            */}
+            <AboutNavItem {...props} />
         </div>
     );
 });

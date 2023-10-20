@@ -1,0 +1,128 @@
+/** SMaHT Timeline for Home Page **/
+
+/**
+Note: Colors for borders and backgrounds are defined in _tokens.scss.
+      Typography is defined in _typography.scss.
+*/
+
+// TODO: Be more specific
+#timeline,
+#timeline:before,
+#timeline:after {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+
+// Timeline
+#timeline {
+    position: relative;
+    margin: 30px;
+    padding: 0px;
+    width: 90%;
+    @include prefix(transition, all 0.4s ease);
+
+    &:before {
+        content: '';
+        width: 3px;
+        height: 100%;
+        background: $homepage-timeline-border-color;
+        left: 0;
+        top: 0;
+        position: absolute;
+    }
+
+    &:after {
+        content: '';
+        clear: both;
+        display: table;
+        width: 100%;
+    }
+
+    .timeline-item {
+        margin-bottom: 20px;
+        position: relative;
+        @include clearfix;
+
+        &:last-of-type {
+            margin-bottom: 0px;
+        }
+
+        .timeline-marker {
+            // Font Styling
+            font-weight: 700;
+            font-size: 12px;
+            display: flex;
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+            color: $homepage-timeline-text-color;
+
+            
+            // Bubble Styling
+            background: $homepage-timeline-bg-color;
+            border: 1px solid $homepage-timeline-border-color;
+            padding: 1px 7px 3px 7px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            margin-left: -30px;
+            @include prefix(border-radius, 10.5px);
+        }
+
+        .timeline-content {
+            width: 90%;
+            float: right;
+            @include prefix(box-shadow, 0 3px 0 rgba(0, 0, 0, 0.1));
+            @include prefix(border-radius, 5px);
+            @include prefix(transition, all 0.3s ease);
+
+            &:before,
+            &.right:before {
+                left: 10%;
+                margin-left: -6px;
+                border-left: 0;
+                border-right: 7px solid $homepage-timeline-border-color;
+            }
+
+            >.accordion {
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+            }
+
+            .card {
+                background-color: $homepage-card-bg-color;
+                border: 1px solid $homepage-card-border-color;
+                @include prefix(border-radius, 10px);
+            }
+
+            .card-header {
+                background-color: transparent;
+                :not(i) {
+                    font-weight: 600;
+                    font-size: 18px;
+                }
+            }
+
+            .card,
+            .card-header,
+            button {
+                color: $homepage-card-text-color;
+                i {
+                    color: $homepage-card-icon-color;
+                }
+            }
+        }
+    }
+
+    // @TODO: can maybe move to be utility class on h2 itself
+    // But may also need to do something like timeline-item/content above to position perfectly evenly
+    h2 {
+        padding-top: 0px;
+        padding-bottom: 0px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+}

@@ -8,7 +8,7 @@ from .base import Item as SMAHTItem
     name='user-content',
     properties={
         'title': 'User Content',
-        'description': 'User content for the Portal',
+        'description': 'User Content for the Portal',
     })
 class UserContent(SMAHTItem, CoreUserContent):
     item_type = 'user_content'

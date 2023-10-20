@@ -7,6 +7,21 @@ smaht-portal
 Change Log
 ----------
 
+0.5.0
+=====
+* Merge in drr_shared_schemas branch.
+* Merge in ui-dev branch.
+
+
+0.4.0
+=====
+`PR 19: UI-Dev <https://github.com/smaht-dac/smaht-portal/pull/20>`_
+
+* Remove Splash Page + [re-add various features](https://github.com/smaht-dac/smaht-portal/pull/19) 
+* Series of fixes for Static Sections and Pages
+* Initial layout of home page and other pages (TODO: link other front-end PRs)
+
+
 0.3.0
 =====
 * Upgrade to Python 3.11.

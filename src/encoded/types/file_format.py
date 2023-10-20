@@ -1,8 +1,7 @@
 from typing import Optional, Union
-
+from snovault import collection, calculated_property
 from encoded_core.types.file_format import FileFormat as CoreFileFormat
 from snovault import calculated_property, collection, display_title_schema, load_schema
-
 from .base import Item as SMAHTItem
 
 
@@ -21,7 +20,10 @@ class FileFormat(SMAHTItem, CoreFileFormat):
     ]
     schema = load_schema("encoded:schemas/file_format.json")
 
-    @calculated_property(schema=display_title_schema)
-    def display_title(self, identifier: Optional[str] = None) -> Union[str, None]:
-        if identifier:
-            return identifier
+    @calculated_property(schema={
+        "title": "Display Title",
+        "description": "File Format name or extension.",
+        "type": "string"
+    })
+    def display_title(self, file_format):
+        return CoreFileFormat.display_title(self, file_format)
