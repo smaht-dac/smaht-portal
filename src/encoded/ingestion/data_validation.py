@@ -154,7 +154,9 @@ def validate_data_item_against_schemas(data_item: Dict, data_type: str,
             "type": data_type,
             "item" if identifying_value else "unidentified": identifying_value if identifying_value else True,
             "index": data_item_index,
-            "unclassified_error": schema_validation_error.message})
+            "unclassified_error": schema_validation_error.message,
+            "validator": str(schema_validation_error.validator),
+            "context": str(schema_validation_error.context)})
 
     return errors
 
