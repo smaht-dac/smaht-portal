@@ -1,4 +1,3 @@
-import pytest
 from encoded.ingestion.data_validation import validate_data_against_schemas
 from snovault.schema_utils import load_schema
 
@@ -55,9 +54,11 @@ def test_validate_data_against_schemas_okay():
     results = validate_data_against_schemas(data, schemas=schemas)
     assert not results
 
+
 def test_validate_data_against_schemas_missing_property():
     schemas = load_sample_schemas()
     data = {
+      # Missing standard_file_extension property.
       "file_format": [
         {
           "identifier": "txt",
@@ -79,6 +80,7 @@ def test_validate_data_against_schemas_missing_property():
 def test_validate_data_against_schemas_missing_any_of_properties():
     schemas = load_sample_schemas()
     data = {
+      # Missing consortia and/or submission_centers properties.
       "file_format": [
         {
           "identifier": "txt",
@@ -99,6 +101,7 @@ def test_validate_data_against_schemas_missing_any_of_properties():
 def test_validate_data_against_schemas_extraneous_property():
     schemas = load_sample_schemas()
     data = {
+      # Extraneous property (some_extraneous_property).
       "file_format": [
         {
           "status": "shared",
