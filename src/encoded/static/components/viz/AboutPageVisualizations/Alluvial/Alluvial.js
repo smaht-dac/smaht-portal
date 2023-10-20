@@ -174,6 +174,7 @@ export const Alluvial = () => {
 
             const svg = svgContainer
                 .append('g')
+                .attr('class', 'svgContent')
                 .attr(
                     'transform',
                     'translate(' + margin.left + ',' + margin.top + ')'
@@ -410,14 +411,16 @@ export const Alluvial = () => {
 
             // the function for moving the nodes
             function dragmove(event, d) {
-                const delta = d.oldy - d3.pointer(event, this)[1];
+                if (event.y > 0 && event.y < height) {
+                    const delta = d.oldy - d3.pointer(event, this)[1];
 
-                d3.select(this).attr(
-                    'transform',
-                    'translate(' + d.x + ',' + (d.y -= delta) + ')'
-                );
-                sankey.relayout();
-                link.attr('d', sankey.link());
+                    d3.select(this).attr(
+                        'transform',
+                        'translate(' + d.x + ',' + (d.y -= delta) + ')'
+                    );
+                    sankey.relayout();
+                    link.attr('d', sankey.link());
+                }
             }
 
             const frontElt = svg
