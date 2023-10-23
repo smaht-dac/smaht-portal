@@ -26,7 +26,7 @@
         "uuid": "3fd92b15-9771-4218-a3f9-77b15805443e"
     },
     {
-        "name": "about.consortium-map",
+        "name": "consortium-map",
         "title": "Consortium Map",
         "file": "/docs/public/consortium_map.jsx",
         "status": "public",
@@ -39,7 +39,7 @@
         "uuid": "f1601ba5-483b-4133-a76b-5bec7caa2dd2"
     },
     {
-        "name": "about.alluvial",
+        "name": "alluvial",
         "title": "Alluvial",
         "file": "/docs/public/alluvial.jsx",
         "status": "public",
