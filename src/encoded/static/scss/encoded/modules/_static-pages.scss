@@ -717,6 +717,15 @@ body[data-path="/"]>#application>#layout {
         color: gray;
         font-size: .9rem;
         font-style: italic;
+		@media screen and (min-width: 768px) and (max-width: 992px) {
+			font-size: .8rem;
+		}
+		@media screen and (min-width: 576px) and (max-width: 768px) {
+			font-size: .7rem;
+		}
+		@media screen and (max-width: 576px) {
+			font-size: .6rem;
+		}
     }
     
     .alluvial-svg {
