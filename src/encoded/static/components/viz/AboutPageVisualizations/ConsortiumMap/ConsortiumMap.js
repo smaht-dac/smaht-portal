@@ -57,7 +57,7 @@ export class ConsortiumMap extends Component {
             .on('mouseout', function () {
                 d3.select('#consortiumMapTooltip')
                     .style('opacity', 0)
-                    .style('left', '-500px')
+                    .style('left', '-1000px')
                     .style('top', '0px');
                 d3.select(this).attr('fill', (d) => color(15));
             })
@@ -101,6 +101,7 @@ export class ConsortiumMap extends Component {
                 return `translate(${d.x}, ${d.y})`;
             })
             .on('mouseover', (evt, d) => {
+                console.log(d)
                 d3.select('#consortiumMapTooltip')
                     .html(this.getTooltip(d))
                     .transition()
@@ -110,16 +111,17 @@ export class ConsortiumMap extends Component {
             .on('mouseout', function () {
                 d3.select('#consortiumMapTooltip')
                     .style('opacity', 0)
-                    .style('left', '-500px')
+                    .style('left', '-1000px')
                     .style('top', '0px');
             })
             .on('mousemove', function (evt) {
                 d3.select('#consortiumMapTooltip')
-                    .style('left', evt.pageX + 10 + 'px')
-                    .style('top', evt.pageY + 10 + 'px');
+                    .style('left', evt.offsetX + 10 + 'px')
+                    .style('top', evt.offsetY + 70 + 'px');
             })
             .on('click', function (evt, d) {
                 window.open(d.url, '_blank');
+                
             });
 
         this.addMarkerDots(svg);
@@ -242,7 +244,7 @@ export class ConsortiumMap extends Component {
             .on('mouseout', function () {
                 d3.select('#consortiumMapTooltip')
                     .style('opacity', 0)
-                    .style('left', '-500px')
+                    .style('left', '-1000px')
                     .style('top', '0px');
             })
             .on('mousemove', function (evt) {
@@ -253,9 +255,6 @@ export class ConsortiumMap extends Component {
     }
 
     renderTable() {
-        // const centers = consortia.filter(
-        //   (c) => c["center-type-short"] === centerType
-        // );
         const centerRows = [];
 
         consortia.forEach((c) => {
@@ -315,13 +314,10 @@ export class ConsortiumMap extends Component {
         return (
             <div className="consortium-map-container container py-5">
                 <div className="consortium-map">
-                    {/* <h1 className="text-center my-5">Consortium overview</h1> */}
-
                     <div
                         id="consortiumMapTooltip"
                         className="p-1 rounded bg-white consortium-tooltip border">
                     </div>
-
                     <Tabs
                         defaultActiveKey="map"
                         className="mb-3 float-right"
