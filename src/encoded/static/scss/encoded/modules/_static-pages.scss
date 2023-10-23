@@ -780,6 +780,8 @@ body[data-path="/"]>#application>#layout {
 
         .stackrow {
             &-table {
+				width: max-content;
+				margin: auto;
 
                 &-top-labels {
 					background-color: transparent;
@@ -942,7 +944,7 @@ body[data-path="/"]>#application>#layout {
                     display: flex;
                     margin: 20px auto auto auto;
                     color: gray;
-                    font-size: .9rem;
+                    font-size: 1rem;
                 }
             }
         }
@@ -1039,8 +1041,12 @@ body[data-path="/"]>#application>#layout {
 						margin-top: 40px;
 						padding-right: 10px;
 						.label {
-							width: 30px;
+							width: 25px;
 							font-size: 0.7rem;
+
+							span {
+								transform: rotate(-60deg) translate(5px, 20px);
+							}
 						}
 					}
 					&-body {
@@ -1067,8 +1073,8 @@ body[data-path="/"]>#application>#layout {
 									border-right: 1px solid rgba(238, 238, 238, 0.6);
 		
 									&-container {
-										height: 20px;
-										width: 20px;
+										height: 18px;
+										width: 18px;
 										margin: auto;
 										font-size: 0.6rem;
 										line-height: normal;
@@ -1201,7 +1207,7 @@ body[data-path="/"]>#application>#layout {
             padding: 0;
         }
 		.read-more {
-			display: block;
+			display: inline;
 			margin-top: 5px;	
 		}
     }
