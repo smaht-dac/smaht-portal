@@ -53,6 +53,9 @@
         "redirect": {
             "$merge": "encoded_core:schemas/page.json#/properties/redirect"
         },
+        "status": {
+            "$merge": "encoded_core:schemas/page.json#/properties/status"
+        },
         "table_of_contents": {
             "title": "Table of Contents",
             "type": "object",

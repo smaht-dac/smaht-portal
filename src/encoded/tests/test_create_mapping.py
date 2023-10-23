@@ -39,6 +39,10 @@ def test_create_mapping_correctly_maps_embeds(registry, item_type):
                 else:
                     final_mapping = mapping_pointer
                 if split_ != '*':
+                    #if item_type.lower() == "page" and split_ == "status":
+                    #    import pdb ; pdb.set_trace()
+                    if not (split_ in final_mapping):
+                        import pdb ; pdb.set_trace()
                     assert split_ in final_mapping
                 else:
                     assert 'properties' in final_mapping or final_mapping.get('type') == 'object'
