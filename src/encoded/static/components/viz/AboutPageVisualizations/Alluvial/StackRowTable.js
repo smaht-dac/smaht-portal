@@ -5,7 +5,7 @@ import {
     PopoverContent,
     PopoverTitle,
 } from 'react-bootstrap';
-import graph from '../data/alluvial_data.json';
+import graph from './data/alluvial_data.json';
 
 // Legend rendered below the table
 const StackRowItemLegend = ({ text }) => {
