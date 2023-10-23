@@ -160,18 +160,18 @@ export class ConsortiumMap extends Component {
     getTooltip(consortium) {
         return `
     <div class="consortium-tooltip-wrapper">
-      <div class="pb-2">${consortium['center-type']}</div>
+      <div class="pb-1 pb-md-2">${consortium['center-type']}</div>
       <div class="consortium-tooltip-header">Institution</div>
-      <div class="pb-2 consortium-tooltip-content">${
+      <div class="pb-1 pb-md-2 consortium-tooltip-content">${
           consortium['institution']
       }</div>
       <div class="consortium-tooltip-header">Principal Investigators</div>
-      <div class="pb-2 consortium-tooltip-content">${consortium.pis.join(
+      <div class="pb-1 pb-md-2 consortium-tooltip-content">${consortium.pis.join(
           '<br/>'
       )}</div>
       <div class="consortium-tooltip-header">Project</div>
       <div class="consortium-tooltip-content">${consortium.project}</div>
-      <i class="pt-2 d-block small">Clicking on this marker will open the NIH project page in a new tab.</i>
+      <i class="pt-1 pb-md-2 d-block small">Clicking on this marker will open the NIH project page in a new tab.</i>
     </div>`;
     }
 

@@ -624,6 +624,7 @@ body[data-path="/"]>#application>#layout {
         position: absolute;
     }
     .consortium-tooltip {
+		line-height: 20px;
         font-family: Inter;
         font-weight: 500;
         background-color: #e3e3e3;
@@ -647,6 +648,47 @@ body[data-path="/"]>#application>#layout {
         font-weight: 600;
         font-size: 12px;
     }
+
+	@media screen and (min-width: 768px) and (max-width: 992px) {
+		.consortium-tooltip {
+			line-height: 15px;
+			&-wrapper {
+				font-size: 0.8rem;
+			}
+			&-content {
+				font-size: 0.8rem;
+			}
+			&-header {
+				font-size: 0.75rem;
+			}
+		}
+	}
+	@media screen and (min-width: 576px) and (max-width: 768px) {
+		.consortium-tooltip {
+			&-wrapper {
+				font-size: 0.7rem;
+			}
+			&-content {
+				font-size: 0.7rem;
+			}
+			&-header {
+				font-size: 0.65rem;
+			}
+		}
+	}
+	@media screen and (max-width: 576px) {
+		.consortium-tooltip {
+			&-wrapper {
+				font-size: 0.6rem;
+			}
+			&-content {
+				font-size: 0.6rem;
+			}
+			&-header {
+				font-size: 0.55rem;
+			}
+		}
+	}
 
     // Table styles
     table.table-striped {
