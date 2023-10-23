@@ -1,6 +1,6 @@
-import { cypressVisitHeaders } from './../support';
+import { cypressVisitHeaders } from '../support';
 
-describe('Home Page', function () {
+describe('Basic functionality: page loads and can authenticate.', function () {
     it('Has correct title', function () {
         cy.visit('/', { headers: cypressVisitHeaders })
             .end()
