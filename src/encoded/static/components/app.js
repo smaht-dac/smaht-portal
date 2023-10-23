@@ -1510,10 +1510,6 @@ export default class App extends React.PureComponent {
                         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@800&display=swap"
                         rel="stylesheet"
                     />
-                    <link
-                        href="https://fonts.googleapis.com/css?family=Inter:wght@400,500,600"
-                        rel="stylesheet"
-                    />
                     {/* Can set webpack.config.js browser build's externals "react":"React" and load via CDN but need to then allow cross-origin requests to CDN domain
                     <script crossOrigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
                     <script crossOrigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
