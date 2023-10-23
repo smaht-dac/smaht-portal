@@ -2,86 +2,125 @@ import _ from 'underscore';
 // import  jwt = require('jsonwebtoken'); // @TODO: Needs to be converted to use JOSE library in the future
 // import { Buffer } from 'buffer'; // Not necessary until authentication + sessions done
 
-
 /** Expected to throw error of some sort if not on search page, or no results. */
-Cypress.Commands.add('searchPageTotalResultCount', function(options){
-    return cy.get('div.above-results-table-row #results-count')
-        .invoke('text').then(function(resultText){
+Cypress.Commands.add('searchPageTotalResultCount', function (options) {
+    return cy
+        .get('div.above-results-table-row #results-count')
+        .invoke('text')
+        .then(function (resultText) {
             return parseInt(resultText);
         });
 });
 
-Cypress.Commands.add('scrollToBottom', function(options){
-    return cy.get('body').then(($body)=>{
+Cypress.Commands.add('scrollToBottom', function (options) {
+    return cy.get('body').then(($body) => {
         cy.scrollTo(0, $body[0].scrollHeight);
     });
 });
 
-Cypress.Commands.add('scrollToCenterElement', { prevSubject : true }, (subject, options) => {
-    expect(subject.length).to.equal(1);
-    const subjectElem = subject[0];
-    var bounds = subjectElem.getBoundingClientRect();
-    return cy.window().then((w)=>{
-        w.scrollBy(0, (bounds.top - (w.innerHeight / 2)));
-        return cy.wrap(subjectElem);
-    });
-});
+Cypress.Commands.add(
+    'scrollToCenterElement',
+    { prevSubject: true },
+    (subject, options) => {
+        expect(subject.length).to.equal(1);
+        const subjectElem = subject[0];
+        var bounds = subjectElem.getBoundingClientRect();
+        return cy.window().then((w) => {
+            w.scrollBy(0, bounds.top - w.innerHeight / 2);
+            return cy.wrap(subjectElem);
+        });
+    }
+);
 
 /* Hovering */
-Cypress.Commands.add('hoverIn', { prevSubject : true }, function(subject, options){
+Cypress.Commands.add(
+    'hoverIn',
+    { prevSubject: true },
+    function (subject, options) {
+        expect(subject.length).to.equal(1);
 
-    expect(subject.length).to.equal(1);
+        var subjElem = subject[0];
 
-    var subjElem = subject[0];
+        var bounds = subjElem.getBoundingClientRect();
+        var cursorPos = {
+            clientX: bounds.left + bounds.width / 2,
+            clientY: bounds.top + bounds.height / 2,
+        };
+        var commonEventVals = _.extend(
+            { bubbles: true, cancelable: true },
+            cursorPos
+        );
 
-    var bounds = subjElem.getBoundingClientRect();
-    var cursorPos = { 'clientX' : bounds.left + (bounds.width / 2), 'clientY' : bounds.top + (bounds.height / 2) };
-    var commonEventVals = _.extend({ bubbles : true, cancelable : true }, cursorPos);
+        subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventVals));
+        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventVals));
+        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventVals));
 
-    subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventVals ) );
-    subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventVals ) );
-    subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventVals ) );
+        return subject;
+    }
+);
 
-    return subject;
-});
+Cypress.Commands.add(
+    'hoverOut',
+    { prevSubject: true },
+    function (subject, options) {
+        expect(subject.length).to.equal(1);
 
-Cypress.Commands.add('hoverOut', { prevSubject : true }, function(subject, options){
+        var subjElem = subject[0];
 
-    expect(subject.length).to.equal(1);
+        var bounds = subjElem.getBoundingClientRect();
+        var cursorPos = {
+            clientX: Math.max(bounds.left - bounds.width / 2, 0),
+            clientY: Math.max(bounds.top - bounds.height / 2, 0),
+        };
+        var commonEventValsIn = _.extend(
+            { bubbles: true, cancelable: true },
+            cursorPos
+        );
 
-    var subjElem = subject[0];
+        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
+        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
+        subjElem.dispatchEvent(
+            new MouseEvent(
+                'mouseleave',
+                _.extend({ relatedTarget: subjElem }, commonEventValsIn, {
+                    clientX: bounds.left - 5,
+                    clientY: bounds.top - 5,
+                })
+            )
+        );
 
-    var bounds = subjElem.getBoundingClientRect();
-    var cursorPos = { 'clientX' : Math.max(bounds.left - (bounds.width / 2), 0), 'clientY' : Math.max(bounds.top - (bounds.height / 2), 0) };
-    var commonEventValsIn = _.extend({ 'bubbles' : true, 'cancelable' : true, }, cursorPos);
+        return subject;
+    }
+);
 
-    subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn ) );
-    subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn ) );
-    subjElem.dispatchEvent(new MouseEvent('mouseleave', _.extend({ 'relatedTarget' : subjElem }, commonEventValsIn, { 'clientX' : bounds.left - 5, 'clientY' : bounds.top - 5 }) ) );
+Cypress.Commands.add(
+    'clickEvent',
+    { prevSubject: true },
+    function (subject, options) {
+        expect(subject.length).to.equal(1);
 
-    return subject;
-});
+        var subjElem = subject[0];
 
-Cypress.Commands.add('clickEvent', { prevSubject : true }, function(subject, options){
+        var bounds = subjElem.getBoundingClientRect();
+        var cursorPos = {
+            clientX: bounds.left + bounds.width / 2,
+            clientY: bounds.top + bounds.height / 2,
+        };
+        var commonEventValsIn = _.extend(
+            { bubbles: true, cancelable: true },
+            cursorPos
+        );
 
-    expect(subject.length).to.equal(1);
+        subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventValsIn));
+        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
+        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
+        subjElem.dispatchEvent(new MouseEvent('mousedown', commonEventValsIn));
+        subjElem.dispatchEvent(new MouseEvent('mouseup', commonEventValsIn));
+        //subjElem.dispatchEvent(new MouseEvent('mouseleave', _.extend({ 'relatedTarget' : subjElem }, commonEventValsIn, { 'clientX' : bounds.left - 5, 'clientY' : bounds.top - 5 }) ) );
 
-    var subjElem = subject[0];
-
-    var bounds = subjElem.getBoundingClientRect();
-    var cursorPos = { 'clientX' : bounds.left + (bounds.width / 2), 'clientY' : bounds.top + (bounds.height / 2) };
-    var commonEventValsIn = _.extend({ 'bubbles' : true, 'cancelable' : true, }, cursorPos);
-
-    subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventValsIn ) );
-    subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn ) );
-    subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn ) );
-    subjElem.dispatchEvent(new MouseEvent('mousedown', commonEventValsIn ) );
-    subjElem.dispatchEvent(new MouseEvent('mouseup', commonEventValsIn ) );
-    //subjElem.dispatchEvent(new MouseEvent('mouseleave', _.extend({ 'relatedTarget' : subjElem }, commonEventValsIn, { 'clientX' : bounds.left - 5, 'clientY' : bounds.top - 5 }) ) );
-
-    return subject;
-});
-
+        return subject;
+    }
+);
 
 /**
  * AUTHENTICATION COMMANDS
@@ -89,7 +128,6 @@ Cypress.Commands.add('clickEvent', { prevSubject : true }, function(subject, opt
  *         adjusted to work with the new means of authentication + session storage
  * @deprecated - This code is taken from CGAP in its entirety
  */
-
 
 /**
  * This emulates login.js. Perhaps we should adjust login.js somewhat to match this better re: navigate.then(...) .
@@ -180,14 +218,10 @@ Cypress.Commands.add('clickEvent', { prevSubject : true }, function(subject, opt
 //         .get('#slow-load-container').should('not.have.class', 'visible').end();
 // });
 
-
-
-
 /** Session Caching */
 
 // var localStorageCache = { 'user_info' : null };
 // var cookieCache = { 'jwtToken' : null, 'searchSessionID' : null };
-
 
 // Cypress.Commands.add('saveBrowserSession', function(options = {}){
 //     _.forEach(_.keys(localStorageCache), function(storageKey){
