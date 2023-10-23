@@ -39,16 +39,13 @@ export default class HomePage extends React.PureComponent {
         // Render alerts here instead of (unused-for-homepage) PageTitleSection
         return (
             <div className="homepage-wrapper">
-                <div id="full-alerts-container" className="bg-primary-dark">
+                {/* <div id="full-alerts-container" className="bg-primary-dark"> */}
                     <Alerts alerts={alerts} className="alerts" />
-                </div>
+                {/* </div> */}
                 <GuestHomeView
                     {...commonProps}
                     {...{ updateAppSessionState }}
                 />
-
-                {/* NOTE: uncomment the line below to test visualizations  */}
-                {/* <AboutPageVisualizations /> */}
             </div>
         );
     }
