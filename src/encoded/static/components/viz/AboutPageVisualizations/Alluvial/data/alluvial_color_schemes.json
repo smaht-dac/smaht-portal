@@ -1,8 +1,0 @@
-{
-    "data_generator": ["#39A2AC", "#BCBD22", "#7F7F7F", "#DE7154", "#8C564B"],
-    "sequencing_platform": ["#9467BD", "#D62728", "#AFE35F", "#E78026", "#1F77B4", "#E377C2"],
-    "assay_type": ["#96897B", "#8CBBD9", "#A87F38", "#4DCE46", "#E2E050",  "#DEB487", "#C464C3", "#3D348B", "#FFD766", "#134074", "#698996", "#DAD6D6", "#CEB3AB", "#CF995F", "#E87D91"],
-    "genetic": ["#AFA8F5"],
-    "epigenetic": ["#AD4A66"],
-    "transcriptomic": ["#3D8F3D"]
-}
