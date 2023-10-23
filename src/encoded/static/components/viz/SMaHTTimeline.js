@@ -11,7 +11,7 @@ export default function SMaHTTimeline() {
         <div className="container">
             <div id="timeline">
                 <div className="timeline-item">
-                    <div className="timeline-marker">Phase 0</div>
+                    <div className="timeline-marker">Tier 0</div>
                     <div>
                         <h3 className="ml-6 text-left">Benchmarking</h3>
                     </div>
@@ -38,7 +38,7 @@ export default function SMaHTTimeline() {
                 </div>
 
                 <div className="timeline-item">
-                    <div className="timeline-marker">Phase 1</div>
+                    <div className="timeline-marker">Tier 1</div>
                     <div>
                         <h3 className="ml-6 text-left">Expansion</h3>
                     </div>
@@ -53,7 +53,7 @@ export default function SMaHTTimeline() {
                 </div>
 
                 <div className="timeline-item">
-                    <div className="timeline-marker">Phase 2</div>
+                    <div className="timeline-marker">Tier 2</div>
                     <div>
                         <h3 className="ml-6 text-left">Production</h3>
                     </div>
