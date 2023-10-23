@@ -9,8 +9,9 @@ module.exports = defineConfig({
     e2e: {
         baseUrl: 'https://data.smaht.org/',
         specPattern: './cypress/e2e/*.cy.js',
-        setupNodeEvents(on, config) {
-            // implement node event listeners here
-        },
+        // setupNodeEvents(on, config) {
+        //     // implement node event listeners here
+        // },
+        experimentalStudio: true,
     },
 });
