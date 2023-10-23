@@ -226,5 +226,17 @@
         "timezone": "US/Eastern",
         "last_name": "Michaels",
         "first_name": "David"
+    },
+    {
+        "email": "cypress-main-scientist@cypress.hms.harvard.edu",
+        "first_name": "Scientist",
+        "last_name": "Cypress Main",
+        "uuid": "6fc63b40-6620-4a40-bb1b-a99f25ccdb63",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
