@@ -434,21 +434,23 @@ export const Alluvial = () => {
     }, []);
 
     return (
-        <div>
-            <Tabs
-                defaultActiveKey="alluvial"
-                className="mb-3 float-right"
-                variant="pills">
-                <Tab eventKey="alluvial" title="Alluvial view">
-                    <div ref={containerRef}></div>
-                    <div className="footnote">
-                        Technologies and assays are proposed and are not final.
-                    </div>
-                </Tab>
-                <Tab eventKey="table" title="Table view">
-                    <StackRowTable data={tableData} />
-                </Tab>
-            </Tabs>
+        <div className="alluvial-container container py-5">
+            <div>
+                <Tabs
+                    defaultActiveKey="alluvial"
+                    className="mb-3 float-right"
+                    variant="pills">
+                    <Tab eventKey="alluvial" title="Alluvial view">
+                        <div ref={containerRef}></div>
+                        <div className="footnote">
+                            Technologies and assays are proposed and are not final.
+                        </div>
+                    </Tab>
+                    <Tab eventKey="table" title="Table view">
+                        <StackRowTable data={tableData} />
+                    </Tab>
+                </Tabs>
+            </div>
         </div>
     );
 };

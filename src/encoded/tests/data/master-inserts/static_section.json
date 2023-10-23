@@ -24,5 +24,31 @@
         },
         "section_type": "Page Section",
         "uuid": "3fd92b15-9771-4218-a3f9-77b15805443e"
+    },
+    {
+        "name": "about.consortium-map",
+        "title": "Consortium Map",
+        "file": "/docs/public/consortium_map.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "f1601ba5-483b-4133-a76b-5bec7caa2dd2"
+    },
+    {
+        "name": "about.alluvial",
+        "title": "Alluvial",
+        "file": "/docs/public/alluvial.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "d3d9c545-4340-495a-92ea-7ccb7eebc71b"
     }
 ]

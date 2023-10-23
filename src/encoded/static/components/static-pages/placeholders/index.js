@@ -2,7 +2,8 @@
 
 import React from 'react';
 import JsxParser from 'react-jsx-parser';
-import AboutPageVisualizations from '../../viz/AboutPageVisualizations';
+import { ConsortiumMap } from '../../viz/AboutPageVisualizations/ConsortiumMap/ConsortiumMap';
+import { Alluvial } from '../../viz/AboutPageVisualizations/Alluvial/Alluvial';
 import memoize from 'memoize-one';
 import _ from 'underscore';
 
@@ -20,7 +21,8 @@ const placeholders = {
     EmbeddedItemSearchTable,
     SearchTableTitle,
     YoutubeVideoEmbed,
-    AboutPageVisualizations
+    ConsortiumMap,
+    Alluvial
 };
 
 export const replaceString = memoize(

@@ -8,7 +8,4 @@
     <h1>Heading 2</h1>
 
     <p>Leo a diam sollicitudin tempor id eu. Donec enim diam vulputate ut pharetra sit amet aliquam id. Turpis egestas integer eget aliquet nibh. Scelerisque fermentum dui faucibus in ornare quam viverra orci. Aliquam purus sit amet luctus. Eget magna fermentum iaculis eu non diam phasellus vestibulum. Lacus suspendisse faucibus interdum posuere lorem ipsum dolor sit. Commodo ullamcorper a lacus vestibulum sed. Sed libero enim sed faucibus turpis. Mattis vulputate enim nulla aliquet porttitor. Sagittis nisl rhoncus mattis rhoncus urna. Scelerisque in dictum non consectetur a erat nam at lectus.</p>
-
-
-    <AboutPageVisualizations />
 </div>

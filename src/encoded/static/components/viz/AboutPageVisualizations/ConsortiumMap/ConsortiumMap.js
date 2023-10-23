@@ -313,25 +313,27 @@ export class ConsortiumMap extends Component {
 
     render() {
         return (
-            <div className="consortium-map">
-                {/* <h1 className="text-center my-5">Consortium overview</h1> */}
+            <div className="consortium-map-container container py-5">
+                <div className="consortium-map">
+                    {/* <h1 className="text-center my-5">Consortium overview</h1> */}
 
-                <div
-                    id="consortiumMapTooltip"
-                    className="p-1 rounded bg-white consortium-tooltip border">
+                    <div
+                        id="consortiumMapTooltip"
+                        className="p-1 rounded bg-white consortium-tooltip border">
+                    </div>
+
+                    <Tabs
+                        defaultActiveKey="map"
+                        className="mb-3 float-right"
+                        variant="pills">
+                        <Tab eventKey="map" title="Map view">
+                            <div ref={this.mapReference}></div>
+                        </Tab>
+                        <Tab eventKey="table" title="Table view" className="pt-5">
+                            {this.renderTable()}
+                        </Tab>
+                    </Tabs>
                 </div>
-
-                <Tabs
-                    defaultActiveKey="map"
-                    className="mb-3 float-right"
-                    variant="pills">
-                    <Tab eventKey="map" title="Map view">
-                        <div ref={this.mapReference}></div>
-                    </Tab>
-                    <Tab eventKey="table" title="Table view" className="pt-5">
-                        {this.renderTable()}
-                    </Tab>
-                </Tabs>
             </div>
         );
     }
