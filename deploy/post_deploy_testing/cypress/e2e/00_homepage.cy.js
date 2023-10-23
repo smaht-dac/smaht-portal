@@ -1,19 +1,25 @@
 import { cypressVisitHeaders } from './../support';
 
-describe('Home (Splash) Page', function () {
+describe('Home Page', function () {
     it('Has correct title', function () {
         cy.visit('/', { headers: cypressVisitHeaders })
             .end()
             .title()
             .should('include', 'SMaHT Data Portal')
-            .end()
-            .get('.coming-soon')
-            .should('have.text', 'Coming Soon')
-            .get('.intro')
-            .should(
-                'have.text',
-                'Welcome to the future home of the Somatic Mosaicism across Human Tissues (SMaHT) Data Portal'
-            )
             .end();
+    });
+
+    it('Can login and out', function () {
+        // Login
+        cy.loginSMaHT({
+            email: 'cypress-main-scientist@cypress.hms.harvard.edu',
+            useEnvToken: false,
+        })
+            .get('.user-first-name')
+            .contains('Scientist')
+            .end();
+
+        // Log out
+        cy.logoutSMaHT().end();
     });
 });
