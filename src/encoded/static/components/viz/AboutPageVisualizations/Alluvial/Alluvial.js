@@ -3,9 +3,8 @@ import * as d3 from 'd3';
 
 import graphData from './data/alluvial_data.json';
 import tableData from './data/stackrow_data.json';
-import colorSchemes from './data/alluvial_color_schemes.json';
 
-import { sankeyFunc } from './util/sankey';
+import { sankeyFunc } from './sankey';
 import { StackRowTable } from './StackRowTable';
 
 import Tab from 'react-bootstrap/Tab';
@@ -35,28 +34,28 @@ export const Alluvial = () => {
             data_generator: d3
                 .scaleOrdinal()
                 .domain(graph.nodes.filter((n) => n.type === 'data_generator'))
-                .range(colorSchemes.data_generator),
+                .range(graph.colors.data_generator),
             sequencing_platform: d3
                 .scaleOrdinal()
                 .domain(
                     graph.nodes.filter((n) => n.type === 'sequencing_platform')
                 )
-                .range(colorSchemes.sequencing_platform),
+                .range(graph.colors.sequencing_platform),
             assay_type: d3
                 .scaleOrdinal()
                 .domain(graph.nodes.filter((n) => n.type === 'assay_type'))
-                .range(colorSchemes.assay_type),
+                .range(graph.colors.assay_type),
             molecular_feature: {
                 genetic: d3
                     .scaleOrdinal()
                     .domain(graph.nodes.filter((n) => n.category === 'genetic'))
-                    .range(colorSchemes.genetic),
+                    .range(graph.colors.genetic),
                 epigenetic: d3
                     .scaleOrdinal()
                     .domain(
                         graph.nodes.filter((n) => n.category === 'epigenetic')
                     )
-                    .range(colorSchemes.epigenetic),
+                    .range(graph.colors.epigenetic),
                 transcriptomic: d3
                     .scaleOrdinal()
                     .domain(
@@ -64,7 +63,7 @@ export const Alluvial = () => {
                             (n) => n.category === 'transcriptomic'
                         )
                     )
-                    .range(colorSchemes.transcriptomic),
+                    .range(graph.colors.transcriptomic),
             },
         };
 
@@ -155,19 +154,19 @@ export const Alluvial = () => {
 
             legend_row(
                 'genetic',
-                colorSchemes.genetic,
+                graph.colors.genetic,
                 0,
                 width - margin.right + 120
             );
             legend_row(
                 'epigenetic',
-                colorSchemes.epigenetic,
+                graph.colors.epigenetic,
                 30,
                 width - margin.right + 120
             );
             legend_row(
                 'transcriptomic',
-                colorSchemes.transcriptomic,
+                graph.colors.transcriptomic,
                 60,
                 width - margin.right + 120
             );
