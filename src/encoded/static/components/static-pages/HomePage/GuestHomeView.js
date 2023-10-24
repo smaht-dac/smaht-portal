@@ -55,27 +55,40 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                         <h3 className="mt-0">About the Consortium</h3>
                         <div className="row">
                             <div className="col-12 col-md-6 col-lg-3">
-                                <button type="button" className="w-100 py-2">
+                                <a
+                                    href="https://commonfund.nih.gov/smaht"
+                                    target="_blank"
+                                    rel="noreferrer noopener"
+                                    className="w-100 py-2 btn">
                                     NIH SMaHT Homepage
                                     <i className="icon-external-link-alt icon icon-xs fas ml-1" />
-                                </button>
+                                </a>
                             </div>
                             <div className="col-12 col-md-6 col-lg-3">
-                                <button type="button" className="w-100 py-2">
+                                <a
+                                    href="https://www.smaht.org"
+                                    target="_blank"
+                                    rel="noreferrer noopener"
+                                    className="w-100 py-2 btn">
                                     SMaHT OC Homepage
                                     <i className="icon-external-link-alt icon icon-xs fas ml-1" />
-                                </button>
+                                </a>
                             </div>
                             <div className="col-12 col-md-6 col-lg-3">
-                                <button type="button" className="w-100 py-2">
+                                <a
+                                    href="https://www.youtube.com/watch?v=8KX3lkMB5nU"
+                                    target="_blank"
+                                    rel="noreferrer noopener"
+                                    className="w-100 py-2 btn">
                                     SMaHT Overview Video
                                     <i className="icon-external-link-alt icon text-xs fas ml-1" />
-                                </button>
+                                </a>
                             </div>
+                            {/** @TODO: Link might change */}
                             <div className="col-12 col-md-6 col-lg-3">
-                                <button type="button" className="w-100 py-2">
+                                <a href="/about" className="w-100 py-2 btn">
                                     SMaHT Consortium Map
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </Card>

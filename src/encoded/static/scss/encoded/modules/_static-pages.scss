@@ -521,7 +521,8 @@ body[data-path="/"]>#application>#layout {
 			border-color: $homepage-card-border-color;
 			@include prefix(border-radius, $homepage-card-border-radius);
 			
-			button {
+			// TODO: If this style of button will be re-used, make it one of the overrides for a BS button
+			a {
 				background-color: $homepage-about-consort-btn-bg-color;
 				border: 1px solid $homepage-about-consort-btn-border-color;
 				color: $homepage-about-consort-text-color;
