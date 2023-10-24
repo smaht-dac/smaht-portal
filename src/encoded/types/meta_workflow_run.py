@@ -6,7 +6,6 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='meta-workflow-runs',
-    unique_key='accession',
     properties={
         'title': 'MetaWorkflowRuns',
         'description': 'Listing of MetaWorkflowRuns',
@@ -14,3 +13,4 @@ from .base import Item as SMAHTItem
 class MetaWorkflowRun(SMAHTItem, CoreMetaWorkflowRun):
     item_type = 'meta_workflow_run'
     schema = load_schema("encoded:schemas/meta_workflow_run.json")
+    embedded_list = []

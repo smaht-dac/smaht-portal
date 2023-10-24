@@ -1,7 +1,8 @@
 from encoded_core.types.document import Document as CoreDocument
-from snovault import collection, calculated_property, load_schema
-from .acl import CONSORTIUM_MEMBER_CREATE_ACL
+from snovault import collection, load_schema
+
 from .base import Item as SMAHTItem
+from .acl import CONSORTIUM_MEMBER_CREATE_ACL
 
 
 @collection(
@@ -14,11 +15,4 @@ from .base import Item as SMAHTItem
 class Document(SMAHTItem, CoreDocument):
     item_type = 'document'
     schema = load_schema("encoded:schemas/document.json")
-
-    @calculated_property(schema={
-        "title": "Display Title",
-        "description": "Document filename, if available.",
-        "type": "string"
-    })
-    def display_title(self, attachment=None):
-        return CoreDocument.display_title(self, attachment=attachment)
+    embedded_list = []

@@ -1,6 +1,5 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
 from .file import File
 
 
@@ -10,9 +9,8 @@ from .file import File
         "title": "SMaHT Output Files",
         "description": "Listing of SMaHT Output Files",
     },
-    unique_key="accession",
 )
 class OutputFile(File):
     item_type = "output_file"
     schema = load_schema("encoded:schemas/output_file.json")
-    base_types = ["File"] + SMAHTItem.base_types
+    embedded_list = []

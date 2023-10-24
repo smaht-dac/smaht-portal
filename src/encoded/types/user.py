@@ -8,7 +8,6 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='users',
-    unique_key='user:email',
     properties={
         'title': 'SMaHT Users',
         'description': 'Listing of current SMaHT users',
@@ -17,10 +16,12 @@ from .base import Item as SMAHTItem
 class User(SMAHTItem, SnovaultUser):
     item_type = 'user'
     schema = load_schema("encoded:schemas/user.json")
-    STATUS_ACL = SMAHTItem.STATUS_ACL
+    embedded_list = []
 
-    def __ac_local_roles__(self):
-        return SMAHTItem.__ac_local_roles__(self)
+#    STATUS_ACL = SMAHTItem.STATUS_ACL
+#
+#    def __ac_local_roles__(self):
+#        return SMAHTItem.__ac_local_roles__(self)
 
     @calculated_property(schema={"title": "Title", "type": "string"})
     def title(self, first_name: Optional[str], last_name: Optional[str]) -> Union[str, None]:

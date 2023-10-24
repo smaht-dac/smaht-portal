@@ -1,16 +1,10 @@
 import pytest
-import time
 
-from snovault import COLLECTIONS, TYPES
-from snovault.elasticsearch.create_mapping import (
-    type_mapping,
-    run as run_create_mapping,
-)
 from dcicutils.misc_utils import camel_case_to_snake_case
-from snovault.util import add_default_embeds
-from unittest.mock import patch, MagicMock
-from .conftest_settings import ORDER
+from snovault import COLLECTIONS, TYPES
 from snovault.commands.create_mapping_on_deploy import loadxl_order
+from snovault.elasticsearch.create_mapping import type_mapping
+from snovault.util import add_default_embeds
 
 
 pytestmark = [pytest.mark.setone, pytest.mark.working]
@@ -39,10 +33,6 @@ def test_create_mapping_correctly_maps_embeds(registry, item_type):
                 else:
                     final_mapping = mapping_pointer
                 if split_ != '*':
-                    #if item_type.lower() == "page" and split_ == "status":
-                    #    import pdb ; pdb.set_trace()
-                    if not (split_ in final_mapping):
-                        import pdb ; pdb.set_trace()
                     assert split_ in final_mapping
                 else:
                     assert 'properties' in final_mapping or final_mapping.get('type') == 'object'
@@ -57,4 +47,4 @@ def test_create_mapping_item_order(registry):
         # ignore "testing" types
         if i_type.startswith('testing_'):
             continue
-        assert registry[COLLECTIONS][i_type].type_info.name in loadxl_order()
+        assert registry[COLLECTIONS][i_type].type_info.name in loadxl_order() 

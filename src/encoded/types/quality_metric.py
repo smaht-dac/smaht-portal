@@ -15,3 +15,4 @@ from .base import Item as SMAHTItem
 class QualityMetric(SMAHTItem, CoreQualityMetricGeneric):
     item_type = 'quality_metric'
     schema = load_schema("encoded:schemas/quality_metric.json")
+    embedded_list = []

@@ -6,7 +6,6 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='meta-workflows',
-    unique_key='accession',
     properties={
         'title': 'MetaWorkflows',
         'description': 'Listing of MetaWorkflows',
@@ -14,3 +13,4 @@ from .base import Item as SMAHTItem
 class MetaWorkflow(SMAHTItem, CoreMetaWorkflow):
     item_type = 'meta_workflow'
     schema = load_schema("encoded:schemas/meta_workflow.json")
+    embedded_list = []
