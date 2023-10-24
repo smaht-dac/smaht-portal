@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from typing import Dict, List, Generator, Union
-from dcicutils.sheet_utils import load_items
+from dcicutils.bundle_utils import load_items
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
 from .data_validation import summary_of_data_validation_errors, validate_data_against_schemas
