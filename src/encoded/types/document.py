@@ -15,3 +15,4 @@ from .acl import CONSORTIUM_MEMBER_CREATE_ACL
 class Document(SMAHTItem, CoreDocument):
     item_type = 'document'
     schema = load_schema("encoded:schemas/document.json")
+    embedded_list = []

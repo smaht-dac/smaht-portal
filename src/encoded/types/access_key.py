@@ -1,3 +1,5 @@
+from typing import Dict, List, Tuple
+
 from pyramid.authorization import Allow
 from pyramid.view import view_config
 from snovault import collection, load_schema
@@ -17,7 +19,6 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='access-keys',
-    unique_key='access_key:access_key_id',
     acl=ALLOW_AUTHENTICATED_CREATE_ACL,
     properties={
         'title': 'Access keys',
@@ -27,7 +28,6 @@ class AccessKey(SMAHTItem, SnovaultAccessKey):
     """AccessKey class."""
     ACCESS_KEY_EXPIRATION_TIME = 90  # days
     item_type = 'access_key'
-    name_key = 'access_key_id'
     schema = load_schema("encoded:schemas/access_key.json")
     embedded_list = []
 
@@ -38,6 +38,12 @@ class AccessKey(SMAHTItem, SnovaultAccessKey):
 
     class Collection(SMAHTItem.Collection):
         pass
+
+    def __acl__(self) -> List[Tuple[str, str, List[str]]]:
+        return SnovaultAccessKey.__acl__(self)
+
+    def __ac_local_roles__(self) -> Dict[str, str]:
+        return SnovaultAccessKey.__ac_local_roles__(self)
 
 
 @view_config(context=AccessKey.Collection, request_method='POST',

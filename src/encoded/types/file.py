@@ -6,7 +6,6 @@ from .base import Item as SMAHTItem
 
 @abstract_collection(
     name='files',
-    unique_key='accession',
     properties={
         'title': 'Files',
         'description': 'Listing of Files',
@@ -14,4 +13,4 @@ from .base import Item as SMAHTItem
 class File(SMAHTItem, CoreFile):
     item_type = 'file'
     schema = load_schema("encoded:schemas/file.json")
-    name_key = 'accession'
+    embedded_list = []

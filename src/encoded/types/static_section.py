@@ -6,7 +6,6 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='static-sections',
-    unique_key='static_section:identifier',
     properties={
         'title': 'Static Sections',
         'description': 'Static Sections for the Portal',
@@ -14,3 +13,4 @@ from .base import Item as SMAHTItem
 class StaticSection(SMAHTItem, CoreStaticSection):
     item_type = 'static_section'
     schema = load_schema("encoded:schemas/static_section.json")
+    embedded_list = []

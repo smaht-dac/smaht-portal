@@ -6,7 +6,6 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='workflows',
-    unique_key='accession',
     properties={
         'title': 'Workflows',
         'description': 'Listing of analysis workflows',
@@ -14,3 +13,4 @@ from .base import Item as SMAHTItem
 class Workflow(SMAHTItem, CoreWorkflow):
     item_type = 'workflow'
     schema = load_schema("encoded:schemas/workflow.json")
+    embedded_list = []

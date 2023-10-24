@@ -6,7 +6,6 @@ from .base import Item as SMAHTItem
 
 @collection(
     name="ingestion-submissions",
-    unique_key="object_name",
     properties={
         "title": "Ingestion Submissions",
         "description": "List of Ingestion Submissions",
@@ -17,3 +16,4 @@ class IngestionSubmission(SMAHTItem, SnovaultIngestionSubmission):
 
     item_type = "ingestion_submission"
     schema = load_schema("encoded:schemas/ingestion_submission.json")
+    embedded_list = []

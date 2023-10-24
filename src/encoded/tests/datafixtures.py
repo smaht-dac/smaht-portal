@@ -10,57 +10,42 @@ def file_formats(testapp, test_consortium):
     """ Consortia attribute file formats taken from fourfront, could be pared down eventually """
     formats = {}
     ef_format_info = {
-        'pairs_px2': {'standard_file_extension': 'pairs.gz.px2',
-                      "valid_item_types": ["FileProcessed"]},
-        'pairsam_px2': {'standard_file_extension': 'sam.pairs.gz.px2',
-                        "valid_item_types": ["FileProcessed"]},
-        'bai': {'standard_file_extension': 'bam.bai',
-                "valid_item_types": ["FileProcessed"]},
-        'beddb': {"standard_file_extension": "beddb",
-                  "valid_item_types": ["FileProcessed", "FileReference"]},
+        'pairs_px2': {'standard_file_extension': 'pairs.gz.px2'},
+        'pairsam_px2': {'standard_file_extension': 'sam.pairs.gz.px2'},
+        'bai': {'standard_file_extension': 'bam.bai'},
+        'beddb': {"standard_file_extension": "beddb"},
     }
     format_info = {
         'fastq': {'standard_file_extension': 'fastq.gz',
-                  'other_allowed_extensions': ['fq.gz'],
-                  "valid_item_types": ["FileSubmitted"]},
+                  'other_allowed_extensions': ['fq.gz']},
         'pairs': {'standard_file_extension': 'pairs.gz',
-                  "extrafile_formats": ['pairs_px2', 'pairsam_px2'],
-                  "valid_item_types": ["FileProcessed"]},
+                  "extra_file_formats": ['pairs_px2', 'pairsam_px2']},
         'bam': {'standard_file_extension': 'bam',
-                'extrafile_formats': ['bai'],
-                "valid_item_types": ["FileProcessed", "FileSubmitted"]},
-        'mcool': {'standard_file_extension': 'mcool',
-                  "valid_item_types": ["FileProcessed"]},
-        'zip': {'standard_file_extension': 'zip',
-                "valid_item_types": ["FileProcessed"]},
-        'chromsizes': {'standard_file_extension': 'chrom.sizes',
-                       "valid_item_types": ["FileReference"]},
-        'other': {'standard_file_extension': '',
-                  "valid_item_types": ["FileProcessed", "FileReference",]},
-        'bw': {'standard_file_extension': 'bw',
-               "valid_item_types": ["FileProcessed"]},
-        'bg': {'standard_file_extension': 'bedGraph.gz',
-               "valid_item_types": ["FileProcessed"]},
-        'bigbed': {'standard_file_extension': 'bb',
-                   "valid_item_types": ["FileProcessed", "FileReference"]},
+                'extra_file_formats': ['bai']},
+        'mcool': {'standard_file_extension': 'mcool'},
+        'zip': {'standard_file_extension': 'zip'},
+        'chromsizes': {'standard_file_extension': 'chrom.sizes'},
+        'other': {'standard_file_extension': ''},
+        'bw': {'standard_file_extension': 'bw'},
+        'bg': {'standard_file_extension': 'bedGraph.gz'},
+        'bigbed': {'standard_file_extension': 'bb'},
         'bed': {"standard_file_extension": "bed.gz",
-                "extrafile_formats": ['beddb'],
-                "valid_item_types": ["FileProcessed", "FileReference"]}
+                "extra_file_formats": ['beddb']},
     }
 
     for eff, info in ef_format_info.items():
-        info['file_format'] = eff
+        info['identifier'] = eff
         info['uuid'] = str(uuid4())
         info['consortia'] = [test_consortium['@id']]
         formats[eff] = testapp.post_json('/file_format', info, status=201).json['@graph'][0]
     for ff, info in format_info.items():
-        info['file_format'] = ff
+        info['identifier'] = ff
         info['uuid'] = str(uuid4())
-        if info.get('extrafile_formats'):
+        if info.get('extra_file_formats'):
             eff2add = []
-            for eff in info.get('extrafile_formats'):
+            for eff in info.get('extra_file_formats'):
                 eff2add.append(formats[eff].get('@id'))
-            info['extrafile_formats'] = eff2add
+            info['extra_file_formats'] = eff2add
         info['consortia'] = [test_consortium['@id']]
         formats[ff] = testapp.post_json('/file_format', info, status=201).json['@graph'][0]
     return formats

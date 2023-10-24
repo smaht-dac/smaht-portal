@@ -6,7 +6,6 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='pages',
-    unique_key='page:identifier',
     properties={
         'title': 'Pages',
         'description': 'Static Pages for the Portal',
@@ -14,3 +13,4 @@ from .base import Item as SMAHTItem
 class Page(SMAHTItem, CorePage):
     item_type = 'page'
     schema = load_schema("encoded:schemas/page.json")
+    embedded_list = []

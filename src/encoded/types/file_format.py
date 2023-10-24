@@ -8,7 +8,6 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='file-formats',
-    unique_key='file_format:identifier',
     properties={
         'title': 'SMaHT File Format',
         'description': 'Listing of SMaHT File Formats',
@@ -16,10 +15,8 @@ from .base import Item as SMAHTItem
 class FileFormat(SMAHTItem, CoreFileFormat):
     """ Overwrites the FileFormat type from encoded-core, customizing the schema for smaht-portal """
     item_type = 'file_format'
-    base_types = [
-        'SMAHTItem'
-    ]
     schema = load_schema("encoded:schemas/file_format.json")
+    embedded_list = []
 
     @calculated_property(schema=display_title_schema)
     def display_title(self, identifier: Optional[str] = None) -> Union[str, None]:

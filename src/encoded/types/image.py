@@ -13,3 +13,4 @@ from .base import Item as SMAHTItem
 class Image(SMAHTItem, CoreImage):
     item_type = 'image'
     schema = load_schema("encoded:schemas/image.json")
+    embedded_list = []

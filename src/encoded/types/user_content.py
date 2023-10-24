@@ -5,7 +5,7 @@ from .base import Item as SMAHTItem
 
 
 @abstract_collection(
-    name='user-content',
+    name='user-contents',
     properties={
         'title': 'User Content',
         'description': 'User content for the Portal',
@@ -13,3 +13,4 @@ from .base import Item as SMAHTItem
 class UserContent(SMAHTItem, CoreUserContent):
     item_type = 'user_content'
     schema = load_schema("encoded:schemas/user_content.json")
+    embedded_list = []

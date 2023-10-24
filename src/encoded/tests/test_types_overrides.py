@@ -67,7 +67,7 @@ def test_image(testapp, test_consortium: Dict[str, Any]) -> None:
 
 
 def test_quality_metric(testapp, test_consortium: Dict[str, Any]) -> None:
-    """ Tests that we can post a qc generic item under the overridden type definition """
+    """ Tests that we can post a QualityMetric item under the overridden type definition """
     testapp.post_json('/QualityMetric', {
         'category': 'Testing',
         'qc_values': [{'key': 'some_qc_metric', 'value': '22'}],

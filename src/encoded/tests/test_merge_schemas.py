@@ -20,4 +20,4 @@ class TestMergedSchemas:
         # check file_format
         assert props['file_format']['linkTo'] == 'FileFormat'
         # check title
-        assert props['title']['description'] == 'A title for the Consortium.'
+        assert props['title']['description'] == 'Title for the item'
