@@ -101,7 +101,6 @@ export class ConsortiumMap extends Component {
                 return `translate(${d.x}, ${d.y})`;
             })
             .on('mouseover', (evt, d) => {
-                console.log(d);
                 d3.select('#consortiumMapTooltip')
                     .html(this.getTooltip(d))
                     .transition()
