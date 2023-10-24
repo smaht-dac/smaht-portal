@@ -80,18 +80,18 @@ requests = ">=0.14.0"
 
 [[package]]
 name = "awscli"
-version = "1.29.69"
+version = "1.29.70"
 description = "Universal Command Line Environment for AWS."
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "awscli-1.29.69-py3-none-any.whl", hash = "sha256:d1bc61c65f356b09dba464c76c174776111a268bcfc712144583841f2ad1f6ed"},
-    {file = "awscli-1.29.69.tar.gz", hash = "sha256:b159948fa487359dc3d860c2edac36461b705a15b3f500fa57d5f8ad48cec4a0"},
+    {file = "awscli-1.29.70-py3-none-any.whl", hash = "sha256:9aa8dd66e8c78ef5fd8dfc5ebe47bad4b3764bc4d90f21e2801b3b282f3d9ad7"},
+    {file = "awscli-1.29.70.tar.gz", hash = "sha256:75225a39175c4bede7a1ad825d0bdcad4cc9f7245c75f7d817cbf8e1456bf583"},
 ]
 
 [package.dependencies]
-botocore = "1.31.69"
+botocore = "1.31.70"
 colorama = ">=0.2.5,<0.4.5"
 docutils = ">=0.10,<0.17"
 PyYAML = ">=3.10,<6.1"
@@ -119,18 +119,18 @@ lxml = ["lxml"]
 
 [[package]]
 name = "boto3"
-version = "1.28.69"
+version = "1.28.70"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "boto3-1.28.69-py3-none-any.whl", hash = "sha256:beefa8e8e1cf5f904dd95736f3516508f6a0cf396ff46aa166a136107cc2ff51"},
-    {file = "boto3-1.28.69.tar.gz", hash = "sha256:2dd93e5c530334fbc74a662f269fa8bfc4c3b7321f9dbe2d53f7c8e57fe5f6dd"},
+    {file = "boto3-1.28.70-py3-none-any.whl", hash = "sha256:22ec3b54801c81746657827c7b1c4a3b2e4cfa7c21be3b96218d32e9390ee5eb"},
+    {file = "boto3-1.28.70.tar.gz", hash = "sha256:89002e1d8411c7c54110f9f8fc4a11d57d6d7977c0cb4ba064887ca5d4c788f7"},
 ]
 
 [package.dependencies]
-botocore = ">=1.31.69,<1.32.0"
+botocore = ">=1.31.70,<1.32.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.7.0,<0.8.0"
 
@@ -139,14 +139,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "boto3-stubs"
-version = "1.28.69"
-description = "Type annotations for boto3 1.28.69 generated with mypy-boto3-builder 7.19.0"
+version = "1.28.70"
+description = "Type annotations for boto3 1.28.70 generated with mypy-boto3-builder 7.19.0"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "boto3-stubs-1.28.69.tar.gz", hash = "sha256:2bfabb4a3a18b7fe73fedfe8f2d29aac35fecfb37037b9e8991ae48531c6cf3b"},
-    {file = "boto3_stubs-1.28.69-py3-none-any.whl", hash = "sha256:cb3d773bb3efb6699d3df7714a0ae44dd47bbb3a70a7eee8b850eb260176ae83"},
+    {file = "boto3-stubs-1.28.70.tar.gz", hash = "sha256:0c67fd217c9fd0d5688504aa64c5b760bccca9886ce05d675bbc613b568cba28"},
+    {file = "boto3_stubs-1.28.70-py3-none-any.whl", hash = "sha256:6d50983e2535220f3da911ac43e3fd13347d644474b3ebe694c4158c75a3df7f"},
 ]
 
 [package.dependencies]
@@ -192,7 +192,7 @@ batch = ["mypy-boto3-batch (>=1.28.0,<1.29.0)"]
 bedrock = ["mypy-boto3-bedrock (>=1.28.0,<1.29.0)"]
 bedrock-runtime = ["mypy-boto3-bedrock-runtime (>=1.28.0,<1.29.0)"]
 billingconductor = ["mypy-boto3-billingconductor (>=1.28.0,<1.29.0)"]
-boto3 = ["boto3 (==1.28.69)", "botocore (==1.31.69)"]
+boto3 = ["boto3 (==1.28.70)", "botocore (==1.31.70)"]
 braket = ["mypy-boto3-braket (>=1.28.0,<1.29.0)"]
 budgets = ["mypy-boto3-budgets (>=1.28.0,<1.29.0)"]
 ce = ["mypy-boto3-ce (>=1.28.0,<1.29.0)"]
@@ -518,14 +518,14 @@ xray = ["mypy-boto3-xray (>=1.28.0,<1.29.0)"]
 
 [[package]]
 name = "botocore"
-version = "1.31.69"
+version = "1.31.70"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.31.69-py3-none-any.whl", hash = "sha256:26b1d2f82cc24987d1c7cc783b2fee04908a8f7b293bf1663884eb0768b1eedf"},
-    {file = "botocore-1.31.69.tar.gz", hash = "sha256:412439a199ada10c6284df1f48395928676d81d51339b1a93217cfd4c4f1c9a6"},
+    {file = "botocore-1.31.70-py3-none-any.whl", hash = "sha256:049bbf526c95b6169f59617a5ff1b0061cb7a0e44992b8c27c6955832b383988"},
+    {file = "botocore-1.31.70.tar.gz", hash = "sha256:5f49def4ec2e4216dd0195d23d9811027d02ee6c8a37b031e2b2fe38e8c77ddc"},
 ]
 
 [package.dependencies]
@@ -1098,14 +1098,14 @@ develop = ["coverage (<5.0.0)", "mock", "pytest (>=3.0.0)", "pytest-cov", "pytes
 
 [[package]]
 name = "encoded-core"
-version = "0.2.0.0b3"
+version = "0.2.0.0b4"
 description = "Core data models for Park Lab ENCODE based projects"
 category = "main"
 optional = false
 python-versions = ">=3.8.1,<3.12"
 files = [
-    {file = "encoded_core-0.2.0.0b3-py3-none-any.whl", hash = "sha256:0012f773225601bd5907a4883c4865fb98b3c3e55735a0f7700f88f622258725"},
-    {file = "encoded_core-0.2.0.0b3.tar.gz", hash = "sha256:5b9d8661d71f85b15134bf4a05f34a9d7e6e404e1294fbcb57bd2d4146f6a444"},
+    {file = "encoded_core-0.2.0.0b4-py3-none-any.whl", hash = "sha256:24de2608ee7e15955a46f0a0236be81074ca55a8b293ac1cdde3c8f7f2440f42"},
+    {file = "encoded_core-0.2.0.0b4.tar.gz", hash = "sha256:9b0d20e2f8ae73e21e7de1ac7d10c60bbd05471ee168b9bf2e07ffd4ec15ea2b"},
 ]
 
 [package.dependencies]
@@ -2190,14 +2190,14 @@ setuptools = "*"
 
 [[package]]
 name = "pytest"
-version = "7.4.2"
+version = "7.4.3"
 description = "pytest: simple powerful testing with Python"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pytest-7.4.2-py3-none-any.whl", hash = "sha256:1d881c6124e08ff0a1bb75ba3ec0bfd8b5354a01c194ddd5a0a870a48d99b002"},
-    {file = "pytest-7.4.2.tar.gz", hash = "sha256:a766259cfab564a2ad52cb1aae1b881a75c3eb7e34ca3779697c23ed47c47069"},
+    {file = "pytest-7.4.3-py3-none-any.whl", hash = "sha256:0d009c083ea859a71b76adf7c1d502e4bc170b80a8ef002da5806527b9591fac"},
+    {file = "pytest-7.4.3.tar.gz", hash = "sha256:d989d136982de4e3b29dabcc838ad581c64e8ed52c11fbe86ddebd9da0818cd5"},
 ]
 
 [package.dependencies]
@@ -3515,4 +3515,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.10"
-content-hash = "0fdd453947f968c0cdb9cb1f676693ff092c179193dcc28e5ec85d89831b418e"
+content-hash = "0b15c730a60a8d998217bab18470c563cff74ce8cd83093db189a14bc694dbc5"
