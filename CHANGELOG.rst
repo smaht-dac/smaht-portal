@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+0.5.0
+=====
+`PR 23: Cfm data viz integration <https://github.com/smaht-dac/smaht-portal/pull/23>`_
+
+* Alluvial and Consortium Map visualizations with table views
+* Creates two new static sections (consortium-map and alluvial)
+* Adds consortium-map to `/about/consortium/awardees`
+* Adds alluvial to `/about/consortium/data`
+* Adds [topoJSON-client](https://github.com/topojson/topojson-client) library
+
+
 0.4.0
 =====
 `PR 19: UI-Dev <https://github.com/smaht-dac/smaht-portal/pull/20>`_
