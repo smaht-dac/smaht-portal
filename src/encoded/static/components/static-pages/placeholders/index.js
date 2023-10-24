@@ -22,7 +22,7 @@ const placeholders = {
     SearchTableTitle,
     YoutubeVideoEmbed,
     ConsortiumMap,
-    Alluvial
+    Alluvial,
 };
 
 export const replaceString = memoize(

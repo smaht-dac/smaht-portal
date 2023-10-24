@@ -101,7 +101,7 @@ export class ConsortiumMap extends Component {
                 return `translate(${d.x}, ${d.y})`;
             })
             .on('mouseover', (evt, d) => {
-                console.log(d)
+                console.log(d);
                 d3.select('#consortiumMapTooltip')
                     .html(this.getTooltip(d))
                     .transition()
@@ -121,7 +121,6 @@ export class ConsortiumMap extends Component {
             })
             .on('click', function (evt, d) {
                 window.open(d.url, '_blank');
-                
             });
 
         this.addMarkerDots(svg);
@@ -316,8 +315,7 @@ export class ConsortiumMap extends Component {
                 <div className="consortium-map">
                     <div
                         id="consortiumMapTooltip"
-                        className="p-1 rounded bg-white consortium-tooltip border">
-                    </div>
+                        className="p-1 rounded bg-white consortium-tooltip border"></div>
                     <Tabs
                         defaultActiveKey="map"
                         className="mb-3 float-right"
@@ -325,7 +323,10 @@ export class ConsortiumMap extends Component {
                         <Tab eventKey="map" title="Map view">
                             <div ref={this.mapReference}></div>
                         </Tab>
-                        <Tab eventKey="table" title="Table view" className="pt-5">
+                        <Tab
+                            eventKey="table"
+                            title="Table view"
+                            className="pt-5">
                             {this.renderTable()}
                         </Tab>
                     </Tabs>

@@ -273,7 +273,7 @@ export const Alluvial = () => {
                         'link selected'
                     );
                 }
-            }
+            };
             const unhighlight = (e, d) => {
                 if (d.type === 'data_generator') {
                     const platforms = graph.platforms[d.name];
@@ -306,7 +306,7 @@ export const Alluvial = () => {
                         'link'
                     );
                 }
-            }
+            };
 
             // add in the nodes
             const node = svg
@@ -338,8 +338,9 @@ export const Alluvial = () => {
                                 return 'translate(' + d.x + ',' + d.y + ')';
                             });
 
-                            frontElt.attr('href', `#${d.name}`)
-                                    .attr('class', 'node');
+                            frontElt
+                                .attr('href', `#${d.name}`)
+                                .attr('class', 'node');
                         })
                         .on('drag', dragmove)
                 );
@@ -347,7 +348,7 @@ export const Alluvial = () => {
             // add the rectangles for the nodes
             node.append('rect')
                 .attr('tabindex', function (d) {
-                    return "0"
+                    return '0';
                 })
                 .attr('height', (d) => d.dy)
                 .attr('width', sankey.nodeWidth())
@@ -443,7 +444,8 @@ export const Alluvial = () => {
                     <Tab eventKey="alluvial" title="Alluvial view">
                         <div ref={containerRef}></div>
                         <div className="footnote">
-                            Technologies and assays are proposed and are not final.
+                            Technologies and assays are proposed and are not
+                            final.
                         </div>
                     </Tab>
                     <Tab eventKey="table" title="Table view">
