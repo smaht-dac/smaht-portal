@@ -252,10 +252,12 @@ export function getActionURL(action, currentHref) {
 }
 
 const HelpdeskButton = React.memo(function HelpdeskButton(props) {
-    const { } = props;
+    // @TODO: Consider adding cool features like browser recognition, etc. from CGAP (if so, move whole thing to SPC probably)
+    const mailto =
+        'mailto:dac-support@smaht.org?subject=Helpdesk%20Inquiry%20from%20data.smaht.org&body=Name%3A%0D%0AContact%20Information%20(so%20we%20can%20get%20back%20to%20you!)%3A%0D%0A%0D%0AQuestions%2FComments%3A%0D%0A%0D%0A';
 
     return (
-        <a role="button" href="/helpdesk" className="nav-link">
+        <a role="button" href={mailto} className="nav-link">
             <i className="icon icon-envelope fas mr-05" />
             Help Desk
         </a>

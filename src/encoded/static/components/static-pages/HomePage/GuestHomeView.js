@@ -59,6 +59,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     href="https://commonfund.nih.gov/smaht"
                                     target="_blank"
                                     rel="noreferrer noopener"
+                                    role="button"
                                     className="w-100 py-2 btn">
                                     NIH SMaHT Homepage
                                     <i className="icon-external-link-alt icon icon-xs fas ml-1" />
@@ -69,6 +70,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     href="https://www.smaht.org"
                                     target="_blank"
                                     rel="noreferrer noopener"
+                                    role="button"
                                     className="w-100 py-2 btn">
                                     SMaHT OC Homepage
                                     <i className="icon-external-link-alt icon icon-xs fas ml-1" />
@@ -79,6 +81,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     href="https://www.youtube.com/watch?v=8KX3lkMB5nU"
                                     target="_blank"
                                     rel="noreferrer noopener"
+                                    role="button"
                                     className="w-100 py-2 btn">
                                     SMaHT Overview Video
                                     <i className="icon-external-link-alt icon text-xs fas ml-1" />
@@ -86,7 +89,10 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                             </div>
                             {/** @TODO: Link might change */}
                             <div className="col-12 col-md-6 col-lg-3">
-                                <a href="/about" className="w-100 py-2 btn">
+                                <a
+                                    href="/about"
+                                    role="button"
+                                    className="w-100 py-2 btn">
                                     SMaHT Consortium Map
                                 </a>
                             </div>
