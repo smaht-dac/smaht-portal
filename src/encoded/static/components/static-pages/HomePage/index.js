@@ -12,8 +12,6 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { pageTitleViews } from './../../PageTitleSection';
 import { GuestHomeView } from './GuestHomeView';
 
-import AboutPageVisualizations from '../../viz/AboutPageVisualizations';
-
 /**
  * Homepage View component. Gets rendered at '/' and '/home' paths.
  *
