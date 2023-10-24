@@ -4,6 +4,8 @@ from uuid import uuid4
 from webtest import TestApp
 import pytest
 
+from .utils import post_item_and_return_location
+
 
 @pytest.fixture
 def file_formats(testapp, test_consortium):
@@ -58,12 +60,6 @@ def remote_user_testapp(app, remote_user: str) -> TestApp:
         'REMOTE_USER': str(remote_user),
     }
     return TestApp(app, environ)
-
-
-def post_item_and_return_location(testapp: TestApp, item: dict, resource_path: str) -> dict:
-    """ Posts item metadata to resource_path using testapp and return a dict response containing the location """
-    res = testapp.post_json(f'/{resource_path}', item)
-    return testapp.get(res.location).json
 
 
 @pytest.fixture
@@ -159,3 +155,22 @@ def workflow(testapp: TestApp, test_consortium: Dict[str, Any]) -> Dict[str, Any
         "consortia": [test_consortium["uuid"]],
     }
     return post_item_and_return_location(testapp, item, "workflow")
+
+
+@pytest.fixture
+def output_file(
+    testapp: TestApp,
+    test_consortium: Dict[str, Any],
+    file_formats: Dict[str, Dict[str, Any]],
+) -> Dict[str, Any]:
+    item = {
+        "uuid": "f99fe12f-79f9-4c2c-b0b5-07fc20d7ce1d",
+        "file_format": file_formats.get("fastq", {}).get("uuid", ""),
+        "md5sum": "00000000000000000000000000000001",
+        "filename": "my.fastq.gz",
+        "status": "in review",
+        "data_category": "Sequencing Reads",
+        "data_type": "Unaligned Reads",
+        "consortia": [test_consortium["uuid"]],
+    }
+    return post_item_and_return_location(testapp, item, "output_file")
