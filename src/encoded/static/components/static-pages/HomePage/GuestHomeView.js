@@ -20,7 +20,7 @@ const auth0Options = {
 };
 
 export const GuestHomeView = React.memo(function GuestHomeView(props) {
-    const { updateAppSessionState } = props;
+    const { updateAppSessionState, alerts } = props;
 
     // Upon mount, unset alerts from any other pages, to prevent vertical scroll.
     useEffect(function () {
@@ -41,6 +41,9 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                             somatic mosaic variants in normal tissues.
                         </h2>
                     </div>
+                </div>
+                <div id="full-alerts-container">
+                    <Alerts alerts={alerts} className="alerts mt-2" />
                 </div>
                 <div className="row my-2">
                     <div className="col-md-6">
