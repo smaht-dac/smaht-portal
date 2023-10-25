@@ -48,7 +48,7 @@ export const CLTCard = () => {
             <div className="card-body">
                 {cltList.map((clt, i) => {
                     return (
-                        <div className="card-list clt">
+                        <div className="card-list clt" key={i}>
                             <h5>{clt.header}</h5>
                             <CLTList list={clt.items} />
                         </div>

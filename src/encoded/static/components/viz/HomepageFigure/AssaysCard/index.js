@@ -78,7 +78,7 @@ export const AssaysCard = () => {
             <div className="card-body">
                 {assaysList.map((assay, i) => {
                     return (
-                        <div className="card-list assays">
+                        <div className="card-list assays" key={i}>
                             <h5>{assay.header}</h5>
                             <AssayList list={assay.items} />
                         </div>
