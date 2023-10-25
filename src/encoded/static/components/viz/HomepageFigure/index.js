@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { HumanFigure } from './HumanFigure';
 import { CLTCard } from './CLTCard';
 import { AssaysCard } from './AssaysCard';
@@ -13,25 +13,32 @@ import { AssaysCard } from './AssaysCard';
  * TierSelection <-- currentTier select
  */
 
-const TierSelector = () => {
+const TierSelector = ({ currentTier, setCurrentTier }) => {
     return (
         <div className="selector-buttons">
-            <button className="active">
+            <div className={'backdrop' + ' tier-' + currentTier}></div>
+            <button
+                onClick={() => setCurrentTier('benchmarking')}
+                className={currentTier === 'benchmarking' ? 'active' : ''}>
                 <span>Benchmarking</span>
             </button>
-            <button className="">
+            <button
+                onClick={() => setCurrentTier('expansion')}
+                className={currentTier === 'expansion' ? 'active' : ''}>
                 <span>Expansion</span>
             </button>
-            <button className="">
+            <button
+                onClick={() => setCurrentTier('production')}
+                className={currentTier === 'production' ? 'active' : ''}>
                 <span>Production</span>
             </button>
         </div>
     );
 };
 
-export const HomepageFigure = ({ currentTier = 'Benchmarking' }) => {
+export const HomepageFigure = ({}) => {
     // Must have ability to set the tier, might need to get this passed down
-    // const [currentTier, setCurrentTier] = useState('Benchmarking');
+    const [currentTier, setCurrentTier] = useState('benchmarking');
 
     return (
         <div className="homepage-figure">
@@ -45,7 +52,10 @@ export const HomepageFigure = ({ currentTier = 'Benchmarking' }) => {
                     Select a tier below to see which tissues and assays will be
                     used
                 </p>
-                <TierSelector currentTier={currentTier} />
+                <TierSelector
+                    currentTier={currentTier}
+                    setCurrentTier={setCurrentTier}
+                />
             </div>
         </div>
     );
