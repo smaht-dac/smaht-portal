@@ -47,6 +47,16 @@
         "schema_version": {
             "default": "1"
         },
+        "status": {
+            "enum": [
+                "current",
+                "deleted",
+                "inactive",
+                "in review",
+                "public",
+                "shared"
+            ]
+        },
         "children": {
             "$merge": "encoded_core:schemas/page.json#/properties/children"
         },
