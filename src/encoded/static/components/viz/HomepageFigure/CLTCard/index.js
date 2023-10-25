@@ -23,7 +23,21 @@ export const CLTCard = () => {
         },
         {
             header: 'Endoderm Tissues',
-            items: ['Liver', 'Lung', 'Ascending Colon', 'Descending Colon'],
+            items: [
+                { icon: '', title: 'Liver' },
+                { icon: '', title: 'Lung' },
+                { icon: '', title: 'Ascending Colon' },
+                { icon: '', title: 'Descending Colon' },
+            ],
+        },
+        {
+            header: 'Cell Line Mixtures',
+            items: [
+                { icon: '', title: 'COLO829 Mixture' },
+                { icon: '', title: 'HapMap Mixture' },
+                { icon: '', title: 'iPSC &amp; Fibroblast' },
+                { icon: '', title: 'Descending Colon' },
+            ],
         },
     ];
     return (
@@ -34,14 +48,12 @@ export const CLTCard = () => {
             <div className="card-body">
                 {cltList.map((clt, i) => {
                     return (
-                        <div>
+                        <div className="card-list clt">
                             <h5>{clt.header}</h5>
                             <CLTList list={clt.items} />
                         </div>
                     );
                 })}
-                <h5>Ectoderm Tissues</h5>
-                <ul></ul>
             </div>
         </div>
     );
