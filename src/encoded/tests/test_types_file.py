@@ -1,9 +1,9 @@
-from typing import Any, Dict, Union
+from typing import Any, Dict
 
 import pytest
 from webtest.app import TestApp
 
-from .utils import patch_item_and_return_response, post_item_and_return_location
+from .utils import patch_item, post_item_and_return_location
 
 
 OUTPUT_FILE_FORMAT = "fastq"
@@ -51,7 +51,7 @@ def test_upload_credentials(
     status: str, expected: bool, testapp: TestApp, output_file: Dict[str, Any]
 ) -> None:
     patch_body = {"status": status}
-    patch_response = patch_item_and_return_response(
+    patch_response = patch_item(
         testapp, patch_body, output_file.get("uuid")
     )
     result = patch_response.get("upload_credentials")

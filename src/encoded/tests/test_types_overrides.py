@@ -86,7 +86,7 @@ def test_software(testapp, test_consortium: Dict[str, Any]) -> None:
     }, status=201)
 
 
-def test_static_section(testapp, test_consortium: Dict[str, Any]) -> None:
+def test_static_section(testapp: TestApp, test_consortium: Dict[str, Any]) -> None:
     """ Tests that we can post a static section under the overridden type definition """
     testapp.post_json('/StaticSection', {
         'identifier': 'test_section',
@@ -96,10 +96,11 @@ def test_static_section(testapp, test_consortium: Dict[str, Any]) -> None:
     }, status=201)
 
 
-def test_page(testapp):
+def test_page(testapp: TestApp, test_consortium: Dict[str, Any]) -> None:
     """ Tests that we can post a page under the overridden type definition """
     testapp.post_json('/Page', {
-        'identifier': 'test_page'
+        'identifier': 'test_page',
+        'consortia': [test_consortium['uuid']],
     }, status=201)
 
 

@@ -9,9 +9,10 @@ def post_item_and_return_location(testapp: TestApp, item: dict, resource_path: s
     return testapp.get(res.location).json
 
 
-def patch_item_and_return_response(
+def patch_item(
     testapp: TestApp, patch_body: Dict[str, Any], resource_path: str, status: int = 200
 ) -> Dict[str, Any]:
-    return testapp.patch_json(
-        f"/{resource_path}", patch_body, status=status
-    ).json["@graph"][0]
+    response = testapp.patch_json(f"/{resource_path}", patch_body, status=status)
+    if status == 200:
+        return response.json["@graph"][0]
+    return response.json
