@@ -12,6 +12,8 @@ import SMaHTTimeline from '../../viz/SMaHTTimeline';
 import Card from 'react-bootstrap/esm/Card';
 // import { Fade } from 'react-bootstrap';
 
+import { HomepageFigure } from '../../viz/HomepageFigure';
+
 const auth0Options = {
     ...navAuth0Options,
     container: 'homepage-login-container',
@@ -47,7 +49,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                         <SMaHTTimeline />
                     </div>
                     <div className="col-md-6 d-flex justify-content-center align-items-center">
-                        Coming Soon!
+                        <HomepageFigure />
                     </div>
                 </div>
                 <div className="row">
