@@ -149,16 +149,16 @@
 		margin: 0 -10px;
 		padding: 0 10px;
 		padding-bottom: 60px;
-		top: 82px;
+		// top: 82px;
 		transition: top .3s ease-out, margin-top .5s ease-out, max-width .5s ease-out;
 		overflow-y: auto;
 		right: 10px;
 		//max-width: 340px;
 		border-left: 1px solid #eee;
 		padding-left: 16px;
-		body.scrolled-past-top & {
-			top : 42px;
-		}
+		// body.scrolled-past-top & {
+		// 	top : 42px;
+		// }
 
 		max-width: 650px;
 		&.width-bounded {

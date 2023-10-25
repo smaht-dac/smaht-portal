@@ -67,7 +67,7 @@ export const PageTitleSection = React.memo(function PageTitle(props) {
     }
 
     return (
-        <PageTitleContainer alerts={alerts}>
+        <PageTitleContainer {...{ alerts }}>
             <OnlyTitle>
                 {object.itemUtil.getTitleStringFromContext(context) || (
                     <em>Unknown</em>
@@ -80,7 +80,13 @@ export const PageTitleSection = React.memo(function PageTitle(props) {
 export const EditingItemPageTitle = React.memo(function EditingItemPageTitle(
     props
 ) {
-    const { currentAction, context, schemas, alerts } = props;
+    const {
+        currentAction,
+        context,
+        schemas,
+        alerts,
+        alertsBelowTitleContainer,
+    } = props;
     const subtitle =
         currentAction === 'edit'
             ? object.itemUtil.getTitleStringFromContext(context) // on item view
@@ -90,7 +96,7 @@ export const EditingItemPageTitle = React.memo(function EditingItemPageTitle(
             ? schemaTransforms.getSchemaTypeFromSearchContext(context, schemas) // on search view
             : schemaTransforms.getItemTypeTitle(context, schemas);
     return (
-        <PageTitleContainer alerts={alerts}>
+        <PageTitleContainer {...{ alerts, alertsBelowTitleContainer }}>
             <TitleAndSubtitleBeside subtitle={subtitle}>
                 {currentAction === 'edit' ? 'Editing' : 'Creating'}
             </TitleAndSubtitleBeside>
@@ -106,12 +112,23 @@ export const PageTitleContainer = React.memo(function PageTitleContainer({
     alerts,
     alertsContainerClassName,
     className = 'container',
+    alertsBelowTitleContainer = false,
 }) {
+    if (!alertsBelowTitleContainer) {
+        return (
+            <div id="page-title-container" className={className}>
+                {children}
+                <Alerts alerts={alerts} className={alertsContainerClassName} />
+            </div>
+        );
+    }
     return (
-        <div id="page-title-container" className={className}>
-            {children}
+        <>
+            <div id="page-title-container" className={className}>
+                {children}
+            </div>
             <Alerts alerts={alerts} className={alertsContainerClassName} />
-        </div>
+        </>
     );
 });
 
@@ -192,9 +209,10 @@ const StaticPageTitle = React.memo(function StaticPageTitle(props) {
     return (
         <PageTitleContainer
             alerts={alerts}
-            className="container"
-            alertsContainerClassName={commonCls + ' mt-2'}>
-            <div className="row">
+            alertsBelowTitleContainer={true}
+            className="container-wide pb-2 bg-primary"
+            alertsContainerClassName={'container mt-3'}>
+            <div className="container m-auto p-0">
                 {!breadCrumbsVisible ? (
                     <StaticPageBreadcrumbs
                         {...{ context, session, href }}
