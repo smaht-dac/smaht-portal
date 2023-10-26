@@ -3,82 +3,12 @@ import * as d3 from 'd3';
 
 import { HumanOutline } from './HumanOutline';
 import { Brain } from './Brain';
+import { Lung } from './Lung';
+import { Liver } from './Liver';
 
-export const HumanFigure = ({ currentTier, setCurrentTier }) => {
-    console.log('HumanFigure rerender');
+export const HumanFigure = ({ currentTier }) => {
     const humanFigureContainerRef = useRef(null);
     const humanFigureOutlineRef = useRef(null);
-
-    // const colors = {
-    //     Benchmarking: {
-    //         'outline-path-container': '#6e1423',
-    //         'outline-path-border': '#a71e34',
-    //         'outline-path': '#e01e37',
-    //     },
-    //     Expansion: {
-    //         'outline-path-container': '#fdb833',
-    //         'outline-path-border': '#ffd53e',
-    //         'outline-path': '#fff75e',
-    //     },
-    //     Production: {
-    //         'outline-path-container': '#03045e',
-    //         'outline-path-border': '#00b4d8',
-    //         'outline-path': '#caf0f8',
-    //     },
-    // };
-
-    // useEffect(() => {
-    //     const container = d3.select(humanFigureContainerRef.current);
-
-    //     // set dimensions for svg
-    //     const margin = { top: 20, right: 20, bottom: 20, left: 20 };
-    //     const width = 500 - margin.left - margin.right;
-    //     const height = 800 - margin.top - margin.bottom;
-
-    //     // const svgContainer = container.append('svg')
-    //     //                               .attr('width', width + margin.left + margin.right + 'px')
-    //     //                               .attr('height', height + margin.top + margin.bottom + 'px')
-    //     //                               .attr('viewBox', '0,0,500,800');
-
-    //     const humanFigureOutline = d3.select(humanFigureOutlineRef.current);
-
-    //     // Select the popover container
-    //     const popover = d3
-    //         .select('#popover-container')
-    //         .style('transform', 'none');
-
-    //     // humanFigureOutline.on('mouseover', (e) => {
-
-    //     //     const d = d3.select(e.target);
-
-    //     // popover.style('border', '2px solid ' + colors[currentTier][d.attr('data-svg-role')])
-    //     //        .style('left', e.clientX + "px")
-    //     //        .style('top', e.clientY + "px")
-    //     //        .style('transform', 'none')
-    //     //        .style('opacity', "1")
-
-    //     // humanFigureOutline.append('circle')
-    //     //     .attr('r', 5)
-    //     //     .attr('cx', d => e.offsetX)
-    //     //     .attr('cy', d => e.offsetY)
-    //     //     .attr('fill', colors[currentTier][d.attr('data-svg-role')])
-    //     // })
-    //     // .on('click', (e) => {
-    //     //     const d = d3.select(e.target);
-
-    //     //     // if (d.attr('data-svg-role') === "outline-path") {
-    //     //         popover.style('border', '2px solid ' + colors[currentTier][d.attr('data-svg-role')])
-    //     //                .style('left', e.clientX + "px")
-    //     //                .style('top', e.clientY + "px")
-    //     //                .style('transform', 'none')
-    //     //                .style('display', "block")
-    //     //     // }
-    //     // })
-    //     // .on('mouseout', (e) => {
-    //     //     const d = d3.select(e.target);
-    //     //     popover.style('border', '2px solid ' + colors[currentTier][d.attr('data-svg-role')])
-    //     // });
-    // }, [currentTier]);
 
     return (
         <div className="human-figure-container" ref={humanFigureContainerRef}>
@@ -91,8 +21,10 @@ export const HumanFigure = ({ currentTier, setCurrentTier }) => {
                 viewBox="0 0 233 674"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg">
-                <HumanOutline />
-                <Brain />
+                <HumanOutline currentTier={currentTier} />
+                <Brain currentTier={currentTier} />
+                <Lung currentTier={currentTier} />
+                <Liver currentTier={currentTier} />
                 <defs>
                     <filter
                         id="filter0_d_214_1284"

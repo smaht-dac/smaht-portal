@@ -8,7 +8,7 @@ import {
 
 const svg = (
     <g data-svg-role="brain-group">
-        <clipPath id="brain-outline">
+        <clipPath id="brain-outline-clip">
             <path
                 opacity="0.75"
                 d="M42.9107 8.61597C39.4137 3.02177 30.0767 -0.717331 23.9107 0.116069C14.9107 0.615969 9.91067 5.11607 7.91027 6.61607C5.91027 8.11597 2.50427 10.1161 1.41037 17.1161C0.316367 24.116 -2.08963 31.6161 3.91037 32.1161C9.91067 32.6161 17.4107 31.616 23.9107 29.616C30.4107 27.616 39.2007 37.6014 45.9107 32.1161C49.6437 29.0637 50.9107 24.616 49.4107 21.116C48.5767 18.616 45.4107 12.6161 42.9107 8.61597Z"
@@ -16,12 +16,11 @@ const svg = (
         </clipPath>
 
         <path
-            id="brain-outline"
             data-svg-role="brain-outline"
             d="M42.91 8.61597C39.414 3.02177 30.077 -0.717331 23.91 0.116069C14.91 0.615969 9.91033 5.11607 7.91033 6.61607C5.91033 8.11597 2.50433 10.1161 1.41033 17.1161C0.316429 24.116 -2.08967 31.6161 3.91033 32.1161C9.91033 32.6161 17.41 31.616 23.91 29.616C30.41 27.616 39.2 37.6014 45.91 32.1161C49.644 29.0637 50.91 24.616 49.41 21.116C48.577 18.616 45.41 12.6161 42.91 8.61597Z"
             fill="#63BBFD"
         />
-        <g clipPath="url(#brain-outline)">
+        <g clipPath="url(#brain-outline-clip)">
             <mask
                 id="mask0_214_1282"
                 maskUnits="userSpaceOnUse"
@@ -30,7 +29,7 @@ const svg = (
                 width="51"
                 height="34">
                 <path
-                    opacity="0.75"
+                    opacity="0.5"
                     d="M42.9107 8.61597C39.4137 3.02177 30.0767 -0.717331 23.9107 0.116069C14.9107 0.615969 9.91067 5.11607 7.91027 6.61607C5.91027 8.11597 2.50427 10.1161 1.41037 17.1161C0.316367 24.116 -2.08963 31.6161 3.91037 32.1161C9.91067 32.6161 17.4107 31.616 23.9107 29.616C30.4107 27.616 39.2007 37.6014 45.9107 32.1161C49.6437 29.0637 50.9107 24.616 49.4107 21.116C48.5767 18.616 45.4107 12.6161 42.9107 8.61597Z"
                     fill="#CBDCE9"
                 />
@@ -203,14 +202,15 @@ const svg = (
 export const Brain = ({ currentTier }) => {
     return (
         <OverlayTrigger
-            trigger={['click']}
+            trigger={['hover', 'focus']}
             placement="bottom"
             rootClose
             overlay={
-                <Popover id="popover-container">
+                <Popover id="popover-human-figure-organ">
                     <PopoverTitle>Brain</PopoverTitle>
                     <PopoverContent>
-                        Information about the Brain Tissue Samples
+                        Tissue samples from this area will be available in the{' '}
+                        {currentTier} tier.
                     </PopoverContent>
                 </Popover>
             }>
