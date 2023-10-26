@@ -418,6 +418,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
                     .card-list {
                         margin-bottom: 20px;
+                        margin-right: 20px;
                         h5 {
                             text-align: left;
                         }
@@ -463,8 +464,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             }
         }
     }
-
-
     @media screen and (min-width: 1300px) {
         
         display: flex;
@@ -478,28 +477,45 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     
             .card {
                 width: auto;
+                &-header {
+                    margin: 0px auto;
+                }
                 &-body {
                     width: 231px;
                     max-height: 595px;
+
+                    .card-list {
+                        margin-bottom: 5px;
+                        ul {
+                            li {
+                                margin-bottom: 5px;
+                            }
+                        }
+                    }
                 }
     
                 &.assays {
-    
                     .card-body {
-                        padding: 10px 0px 5px 10px;
+                        padding: 10px;
     
                         .card-list {
                             margin-bottom: 5px;
+
+                            ul {
+                                li {
+                                    margin-bottom: 0px;
+                                }
+                            }
                         }
                     }
                 }
             }
         }
         &-tier-selector {
-            margin-bottom: 0px;
+            margin-bottom: 10px;
     
             .footnote {
-                margin: auto;
+                margin-bottom: 5px;
             }
     
             .selector-buttons {
@@ -525,7 +541,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         }
         // Style for the human figure on homepage
         .human-figure-container {
-            top: -20px;
+            top: -42px;
             display: flex;
         }
     }
