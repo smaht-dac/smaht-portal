@@ -21,6 +21,8 @@ def page(testapp: TestApp, test_consortium: Dict[str, Any]) -> Dict[str, Any]:
         ("should-work", 200),
         ("should_work", 200),
         ("should/work", 200),
+        ("Should/Work", 200),
+        ("should-1/work-4", 200),
         ("should.not.work", 422),
         ("/should_not_work", 422),
         ("should_not_work/", 422),
