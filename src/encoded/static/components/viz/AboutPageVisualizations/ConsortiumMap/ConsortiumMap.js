@@ -293,7 +293,7 @@ export class ConsortiumMap extends Component {
         });
 
         const table = (
-            <table className="table table-sm table-striped table-hover">
+            <table className="table table-sm table-striped table-hover table-responsive">
                 <thead className="consortium-table-header bg-white">
                     <tr>
                         <th></th>
