@@ -44,11 +44,11 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                         </h2>
                     </div>
                 </div>
-                <div className="row my-2">
-                    <div className="col-md-6">
+                <div className="row my-2 flex-column flex-lg-row">
+                    <div className="col-12 col-lg-6">
                         <SMaHTTimeline />
                     </div>
-                    <div className="col-md-6 d-flex justify-content-center align-items-center">
+                    <div className="col-12 col-lg-6 d-flex justify-content-center align-items-center my-3 my-sm-5 my-lg-2 ">
                         <HomepageFigure />
                     </div>
                 </div>
