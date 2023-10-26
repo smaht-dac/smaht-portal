@@ -1,6 +1,6 @@
 [
     {
-        "name": "about",
+        "identifier": "about",
         "title": "About",
         "status": "public",
         "children": [
@@ -24,7 +24,7 @@
         ]
     },
     {
-        "name": "about/what-is-smaht",
+        "identifier": "about/what-is-smaht",
         "title": "What is SMaHT?",
         "status": "public",
         "content": [
@@ -45,7 +45,7 @@
         ]
     },
     {
-        "name": "about/consortium",
+        "identifier": "about/consortium",
         "title": "SMaHT Consortium Information",
         "status": "public",
         "children": [
@@ -70,7 +70,7 @@
         ]
     },
     {
-        "name": "about/join",
+        "identifier": "about/join",
         "title": "How to Join SMaHt",
         "status": "public",
         "children": [
@@ -94,7 +94,7 @@
         ]
     },
     {
-        "name": "about/consortium/awardees",
+        "identifier": "about/consortium/awardees",
         "title": "SMaHT Awardees",
         "status": "public",
         "content": [
@@ -115,7 +115,7 @@
         ]
     },
     {
-        "name": "about/consortium/data",
+        "identifier": "about/consortium/data",
         "title": "SMaHT Data",
         "status": "public",
         "content": [
@@ -136,7 +136,7 @@
         ]
     },
     {
-        "name": "about/join/policy",
+        "identifier": "about/join/policy",
         "title": "Associate Membership policy",
         "status": "public",
         "content": [
@@ -157,7 +157,7 @@
         ]
     },
     {
-        "name": "docs",
+        "identifier": "docs",
         "title": "Documentation",
         "status": "shared",
         "children": [
@@ -180,7 +180,7 @@
         ]
     },
     {
-        "name": "docs/how-to-download",
+        "identifier": "docs/how-to-download",
         "title": "How to Download Data",
         "status": "shared",
         "content": [
@@ -201,7 +201,7 @@
         ]
     },
     {
-        "name": "docs/how-to-register",
+        "identifier": "docs/how-to-register",
         "title": "How to Create Account",
         "status": "shared",
         "content": [
@@ -222,7 +222,7 @@
         ]
     },
     {
-        "name": "docs/pipeline-protocols",
+        "identifier": "docs/pipeline-protocols",
         "title": "Pipeline Protocols",
         "status": "shared",
         "content": [
@@ -243,7 +243,7 @@
         ]
     },
     {
-        "name": "docs/summary-of-data",
+        "identifier": "docs/summary-of-data",
         "title": "Summary of Data Generated",
         "status": "shared",
         "content": [
@@ -264,7 +264,7 @@
         ]
     },
     {
-        "name": "docs/how-to-upload",
+        "identifier": "docs/how-to-upload",
         "title": "How to Upload Data",
         "status": "shared",
         "content": [
@@ -285,7 +285,7 @@
         ]
     },
     {
-        "name": "data",
+        "identifier": "data",
         "title": "Data",
         "status": "shared",
         "children": [
@@ -304,7 +304,7 @@
         ]
     },
     {
-        "name": "data/benchmarking",
+        "identifier": "data/benchmarking",
         "title": "Benchmarking Data",
         "status": "shared",
         "children": [
@@ -335,7 +335,7 @@
         ]
     },
     {
-        "name": "data/benchmarking/COLO829",
+        "identifier": "data/benchmarking/COLO829",
         "title": "COLO829",
         "status": "shared",
         "content": [
@@ -356,7 +356,7 @@
         ]
     },
     {
-        "name": "data/benchmarking/HapMap",
+        "identifier": "data/benchmarking/HapMap",
         "title": "HapMap",
         "status": "shared",
         "content": [
@@ -377,7 +377,7 @@
         ]
     },
     {
-        "name": "data/benchmarking/iPSC-fibroblasts",
+        "identifier": "data/benchmarking/iPSC-fibroblasts",
         "title": "iPSC and Fibroblasts",
         "status": "shared",
         "content": [
@@ -398,7 +398,7 @@
         ]
     },
     {
-        "name": "data/benchmarking/brain",
+        "identifier": "data/benchmarking/brain",
         "title": "Brain",
         "status": "shared",
         "content": [
@@ -419,7 +419,7 @@
         ]
     },
     {
-        "name": "data/benchmarking/lung",
+        "identifier": "data/benchmarking/lung",
         "title": "Lung",
         "status": "shared",
         "content": [
@@ -440,7 +440,7 @@
         ]
     },
     {
-        "name": "data/benchmarking/heart",
+        "identifier": "data/benchmarking/heart",
         "title": "Heart",
         "status": "shared",
         "content": [
@@ -461,7 +461,7 @@
         ]
     },
     {
-        "name": "data/benchmarking/colon",
+        "identifier": "data/benchmarking/colon",
         "title": "Colon",
         "status": "shared",
         "content": [
@@ -482,7 +482,7 @@
         ]
     },
     {
-        "name": "data/benchmarking/skin",
+        "identifier": "data/benchmarking/skin",
         "title": "Skin",
         "status": "shared",
         "content": [
