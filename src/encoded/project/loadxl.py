@@ -5,10 +5,10 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
 
     # N.B. snovault.loadxl expects to get this in snake-case (not camel-case) format.
     order = [
-            'consortium',
-            'submission_center',
             'access_key',
             'user',
+            'consortium',
+            'submission_center',
             'file_format',
             'quality_metric',
             'output_file',
