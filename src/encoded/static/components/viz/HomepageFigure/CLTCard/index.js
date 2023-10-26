@@ -35,7 +35,7 @@ export const CLTCard = () => {
             items: [
                 { icon: '', title: 'COLO829 Mixture' },
                 { icon: '', title: 'HapMap Mixture' },
-                { icon: '', title: 'iPSC &amp; Fibroblast' },
+                { icon: '', title: 'iPSC & Fibroblast' },
                 { icon: '', title: 'Descending Colon' },
             ],
         },
