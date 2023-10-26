@@ -47,4 +47,4 @@ def test_create_mapping_item_order(registry):
         # ignore "testing" types
         if i_type.startswith('testing_'):
             continue
-        assert registry[COLLECTIONS][i_type].type_info.name in loadxl_order() 
+        assert i_type in loadxl_order() 

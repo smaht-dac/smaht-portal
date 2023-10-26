@@ -7,7 +7,7 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
             'access_key',
             'user',
             'consortium',
-            'submissionCenter',
+            'submission_center',
             'file_format',
             'quality_metric',
             'output_file',
