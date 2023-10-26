@@ -1,6 +1,6 @@
 [
     {
-        "name": "coming-soon",
+        "identifier": "coming-soon",
         "title": "Coming Soon",
         "body": "Coming soon!",
         "status": "public",
@@ -19,7 +19,7 @@
         ]
     },
     {
-        "name": "about.introduction",
+        "identifier": "about.introduction",
         "title": "Introduction",
         "file": "/docs/public/about_introduction.jsx",
         "status": "public",
