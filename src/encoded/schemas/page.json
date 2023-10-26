@@ -6,8 +6,21 @@
     "required": [
         "identifier"
     ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
     "identifyingProperties": [
         "aliases",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -44,8 +57,22 @@
         }
     ],
     "properties": {
+        "identifier": {
+            "pattern": "^([A-Za-z_-]+/)*[A-za-z_-]+$",
+            "comment": "Used as the path for the page's URL"
+        },
         "schema_version": {
             "default": "1"
+        },
+        "status": {
+            "enum": [
+                "current",
+                "deleted",
+                "inactive",
+                "in review",
+                "public",
+                "shared"
+            ]
         },
         "children": {
             "$merge": "encoded_core:schemas/page.json#/properties/children"

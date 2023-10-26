@@ -1,6 +1,6 @@
 [
     {
-        "name": "coming-soon",
+        "identifier": "coming-soon",
         "title": "Coming Soon",
         "body": "Coming soon!",
         "status": "public",
@@ -10,11 +10,10 @@
             "default_open": true
         },
         "section_type": "Page Section",
-        "identifier": "10d45e8c-aeab-4e07-9257-1d78f3329de5",
         "uuid": "10d45e8c-aeab-4e07-9257-1d78f3329de5"
     },
     {
-        "name": "about.introduction",
+        "identifier": "about-introduction",
         "title": "Introduction",
         "file": "/docs/public/about_introduction.md",
         "status": "public",
@@ -24,7 +23,6 @@
             "default_open": true
         },
         "section_type": "Page Section",
-        "identifier": "3fd92b15-9771-4218-a3f9-77b15805443e",
         "uuid": "3fd92b15-9771-4218-a3f9-77b15805443e"
     }
 ]
