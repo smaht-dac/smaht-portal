@@ -64,7 +64,7 @@ const StackRowItem = ({ value = 0, data = [], data_generator = '' }) => {
                     placement="bottom"
                     rootClose
                     overlay={
-                        <Popover id="popover-container">
+                        <Popover id="popover-consortium-data-alluvial-table">
                             <PopoverTitle>
                                 {value +
                                     (value > 1
@@ -94,7 +94,7 @@ const StackRowTopLabel = ({ assayType }) => {
                 placement="top"
                 overlay={
                     <Popover
-                        id="popover-container"
+                        id="popover-consortium-data-alluvial-table"
                         as="div"
                         role="modal"
                         aria-labelledby={`Details about ${assayType.display_name}.`}
