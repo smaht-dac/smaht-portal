@@ -83,7 +83,7 @@
         "redirect": {
             "$merge": "encoded_core:schemas/page.json#/properties/redirect"
         },
-        "table_of_contents": {
+        "table-of-contents": {
             "title": "Table of Contents",
             "type": "object",
             "additionalProperties": false,
@@ -91,10 +91,16 @@
                 "enabled": {
                     "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents/properties/enabled"
                 },
-                "header_depth": {
+                "header-depth": {
                     "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents/properties/header-depth"
                 },
-                "list_styles": {
+                "skip-depth": {
+                    "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents/properties/skip-depth"
+                },
+                "include-top-link": {
+                    "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents/properties/include-top-link"
+                },
+                "list-styles": {
                     "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents/properties/list-styles"
                 }
             }
