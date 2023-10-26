@@ -39,7 +39,7 @@
     },
     {
         "name": "consortium-map",
-        "title": "Consortium Map",
+        "title": "SMaHT Consortium Members Map",
         "file": "/docs/public/consortium_map.jsx",
         "status": "public",
         "options": {
@@ -58,7 +58,7 @@
     },
     {
         "name": "alluvial",
-        "title": "Alluvial",
+        "title": "SMaHT Data Alluvial Diagram",
         "file": "/docs/public/alluvial.jsx",
         "status": "public",
         "options": {
