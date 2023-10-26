@@ -255,15 +255,19 @@ export class ConsortiumMap extends Component {
     renderTable() {
         const centerRows = [];
 
-        consortia.forEach((c) => {
+        consortia.forEach((c, i) => {
             const centerTypeClass =
                 'align-middle text-center consortium-table-' +
                 c['center-type-short'];
-            const pis = c['pis'].map((p) => {
-                return <div className="text-nowrap">{p}</div>;
+            const pis = c['pis'].map((p, j) => {
+                return (
+                    <div className="text-nowrap" key={j}>
+                        {p}
+                    </div>
+                );
             });
             centerRows.push(
-                <tr>
+                <tr key={i}>
                     <td className={centerTypeClass}>
                         <OverlayTrigger
                             placement="right"
