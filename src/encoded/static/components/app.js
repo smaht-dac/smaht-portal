@@ -186,8 +186,8 @@ export default class App extends React.PureComponent {
      * - Add URI hash from window.location.hash/href to Redux store (doesn't get sent server-side).
      * - Bind 'handlePopState' function to window popstate event (e.g. back/forward button navigation).
      * - Initializes Google Analytics
-     * - Exposes 'API' from browser window object via property {Object} 'fourfront' which has reference to Alerts, JWT, navigate, and this app component.
-     * - Emits an event from browser window named 'fourfrontinitialized', letting any listeners (parent windows, etc.) know that JS of this window has initialized. Posts message with same 'eventType' as well.
+     * - Exposes 'API' from browser window object via property {Object} 'smaht-portal' which has reference to Alerts, JWT, navigate, and this app component.
+     * - Emits an event from browser window named 'smahtinitialized', letting any listeners (parent windows, etc.) know that JS of this window has initialized. Posts message with same 'eventType' as well.
      * - Shows browser suggestion alert if not using Chrome, Safari, Firefox.
      * - Sets state.mounted to be true.
      * - Clears out any UTM URI parameters three seconds after mounting (giving Google Analytics time to pick them up).
@@ -250,7 +250,7 @@ export default class App extends React.PureComponent {
 
         // Save some stuff to global window variables so we can access it in tests:
         // Normally would call this 'window.app' but ENCODE already sets this in browser.js to be the top-level Redux provider (not really useful, remove?)
-        window.fourfront = _.extend(window.fourfront || {}, {
+        window.SMaHT = _.extend(window.SMaHT || {}, {
             app: this,
             alerts: Alerts,
             JWT: JWT,
@@ -308,17 +308,17 @@ export default class App extends React.PureComponent {
         // Post-mount stuff
         this.setState({ mounted: true, browserInfo }, () => {
             console.log(
-                'App is mounted, dispatching fourfrontinitialized event.'
+                'App is mounted, dispatching smahtinitialized event.'
             );
             // DEPRECATED:
-            // Emit event from our window object to notify that fourfront JS has initialized.
+            // Emit event from our window object to notify that smaht-portal JS has initialized.
             // This is to be used by, e.g. submissions view which might control a child window.
-            window.dispatchEvent(new Event('fourfrontinitialized'));
+            window.dispatchEvent(new Event('smahtinitialized'));
 
             // CURRENT: If we have parent window, post a message to it as well.
             if (window.opener) {
                 window.opener.postMessage(
-                    { eventType: 'fourfrontinitialized' },
+                    { eventType: 'smahtinitialized' },
                     '*'
                 );
             }
@@ -1860,8 +1860,8 @@ class BodyElement extends React.PureComponent {
         this.setState({ hasError: true, errorInfo: info }, () => {
             analytics.exception('Client Error - ' + href + ': ' + err, true);
             // Unset app.historyEnabled so that user may navigate backward w/o JS.
-            if (window && window.fourfront && window.fourfront.app) {
-                window.fourfront.app.historyEnabled = false;
+            if (window && window.SMaHT && window.SMaHT.app) {
+                window.SMaHT.app.historyEnabled = false;
             }
         });
     }
