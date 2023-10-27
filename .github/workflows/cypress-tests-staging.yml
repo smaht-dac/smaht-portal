@@ -1,8 +1,6 @@
 # Action that runs Cypress tests on staging.smaht.org
 
-# Action that Runs Cypress Tests
-
-name: Cypress Tests - Production
+name: Cypress Tests - Staging
 
 # Controls when the action will run.
 on:
