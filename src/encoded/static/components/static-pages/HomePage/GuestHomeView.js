@@ -32,7 +32,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
 
     return (
         <div className="homepage-contents">
-            <div className="container-wide">
+            <div className="container-wide d-flex flex-column justify-content-around">
                 <div className="row">
                     <div className="col-12">
                         <h1 className="mb-1">
