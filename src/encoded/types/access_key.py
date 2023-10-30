@@ -19,6 +19,7 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='access-keys',
+    unique_key='access_key:access_key_id',
     acl=ALLOW_AUTHENTICATED_CREATE_ACL,
     properties={
         'title': 'Access keys',
