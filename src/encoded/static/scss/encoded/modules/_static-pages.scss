@@ -491,7 +491,9 @@ body[data-path="/"]>#application>#layout {
 
 	.homepage-contents,
 	.homepage-contents>div {
-		min-height: 100vh;
+		// Full screen - Height of the navbar & footer at full height
+		// @TODO use variables for the heights
+		min-height: calc(100vh - 130px); 
 	}
 
 	.homepage-contents {
