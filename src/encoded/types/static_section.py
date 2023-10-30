@@ -6,6 +6,7 @@ from .user_content import UserContent
 
 @collection(
     name='static-sections',
+    unique_key='user_content:name',
     properties={
         'title': 'Static Sections',
         'description': 'Static Sections for the Portal',

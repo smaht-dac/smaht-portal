@@ -5,6 +5,7 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='submission-centers',
+    unique_key='submission_center:name',
     properties={
         'title': 'Submission Centers',
         'description': 'Listing of Submission Centers',

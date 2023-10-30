@@ -24,6 +24,7 @@ def show_upload_credentials(
 
 @abstract_collection(
     name="files",
+    unique_key='accession',
     properties={
         "title": "Files",
         "description": "Listing of Files",
