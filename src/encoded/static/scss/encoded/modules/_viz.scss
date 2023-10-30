@@ -280,24 +280,29 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         & > div {
             margin: auto;
         }
-    
-        path[data-svg-role="outline-group"]:focus {
-            
-        }
-        
-        path[data-svg-role="outline-path"]:hover {
-            cursor: pointer;
-        }
-    
+
+        // Styles for the organ svgs
         g {
+            &[data-svg-role="outline-group"] {
+                &:hover {
+                    cursor: pointer;
+                    path[data-svg-role="outline-path-border"] {
+                        stroke-width: 1px;
+                        stroke: black;
+                        stroke-opacity: 0.4;
+                    }
+                }
+            }
             &[data-svg-role="brain-group"] {
                 transform: translate(90px, 13px);
                 
-                path[data-svg-role="brain-outline"]:hover {
+                &:hover {
                     cursor: pointer;
-                }
-                g[data-svg-role="brain-pattern"]:hover {
-                    cursor: pointer;
+                    path[data-svg-role="brain-outline"] {
+                        stroke-width: 1px;
+                        stroke: black;
+                        stroke-opacity: 0.4;
+                    }
                 }
             }
             &[data-svg-role="lung-group"] {
@@ -305,13 +310,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         
                 &:hover {
                     cursor: pointer;
-                }
-        
-                path[data-svg-role="lung-outline"]:hover {
-                    cursor: pointer;
-                }
-                g[data-svg-role="lung-pattern"] {
-                    cursor: pointer;
+                    g[data-svg-role="lung-outline"] {
+                        stroke-width: 1px;
+                        stroke: black;
+                    }
                 }
             }
             &[data-svg-role="liver-group"] {
@@ -319,22 +321,12 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         
                 &:hover {
                     cursor: pointer;
+                    g[data-svg-role="liver-outline"] {
+                        stroke-opacity: 0.4;
+                        stroke-width: 1px;
+                        stroke:black;
+                    }
                 }
-        
-                path[data-svg-role="lung-outline"]:hover {
-                    cursor: pointer;
-                }
-                g[data-svg-role="lung-pattern"] {
-                    cursor: pointer;
-                }
-            }
-        }
-    
-        pattern[data-svg-role="human-figure-somatic-pattern"] {
-            opacity: 0.13;
-        
-            &:hover {
-            cursor: pointer;
             }
         }
     }
