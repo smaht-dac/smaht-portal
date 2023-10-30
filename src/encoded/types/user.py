@@ -7,14 +7,15 @@ from .base import Item as SMAHTItem
 
 
 @collection(
-    name='users',
+    name="users",
+    unique_key="user:email",  # Required to GET via /users/{email}/
     properties={
-        'title': 'SMaHT Users',
-        'description': 'Listing of current SMaHT users',
+        "title": "SMaHT Users",
+        "description": "Listing of current SMaHT users",
     }
 )
 class User(SMAHTItem, SnovaultUser):
-    item_type = 'user'
+    item_type = "user"
     schema = load_schema("encoded:schemas/user.json")
     embedded_list = []
 
