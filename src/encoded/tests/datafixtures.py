@@ -174,3 +174,12 @@ def output_file(
         "consortia": [test_consortium["uuid"]],
     }
     return post_item_and_return_location(testapp, item, "output_file")
+
+
+@pytest.fixture
+def access_key(testapp: TestApp) -> Dict[str, Any]:
+    item = {
+        "access_key_id": "abcd1234",
+        "expiration_date": "2024-01-11T10:00:33.554416",
+    }
+    return post_item_and_return_location(testapp, item, "AccessKey")

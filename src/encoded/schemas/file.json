@@ -66,9 +66,6 @@
         "accession": {
             "accessionType": "FI"
         },
-        "status": {
-            "$merge": "encoded_core:schemas/file.json#/properties/status"
-        },
         "file_format": {
             "$merge": "encoded_core:schemas/file.json#/properties/file_format"
         },
