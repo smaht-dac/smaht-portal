@@ -11,6 +11,7 @@ def test_validate_data_against_schemas_okay():
     data = {
       "file_format": [
         {
+          "uuid": "c72926d4-7c47-41df-b678-58938eaa1000",
           "status": "shared",
           "description": "Tabix index file of vcf, compressed",
           "identifier": "vcf_gz_tbi",
@@ -23,6 +24,7 @@ def test_validate_data_against_schemas_okay():
           "standard_file_extension": "vcf.gz.tbi"
         },
         {
+          "uuid": "c72926d4-7c47-41df-b678-58938eaa1001",
           "identifier": "txt",
           "standard_file_extension": "txt",
           "description": "This format is used for aligned reads",
@@ -35,6 +37,7 @@ def test_validate_data_against_schemas_okay():
           ]
         },
         {
+          "uuid": "c72926d4-7c47-41df-b678-58938eaa1002",
           "identifier": "vcf_gz",
           "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -61,6 +64,7 @@ def test_validate_data_against_schemas_missing_property():
       # Missing standard_file_extension property.
       "file_format": [
         {
+          "uuid": "c72926d4-7c47-41df-b678-58938eaa3f75",
           "identifier": "txt",
           "description": "This format is used for aligned reads",
           "status": "shared",
@@ -74,7 +78,7 @@ def test_validate_data_against_schemas_missing_property():
       ]
     }
     results = validate_data_against_schemas(data, schemas=schemas)
-    assert results == {"errors": [{"type": "file_format", "item": "txt", "index": 0, "missing_properties": ["standard_file_extension"]}]}
+    assert results == {"errors": [{"type": "file_format", "item": "c72926d4-7c47-41df-b678-58938eaa3f75", "index": 0, "missing_properties": ["standard_file_extension"]}]}
 
 
 def test_validate_data_against_schemas_missing_any_of_properties():
@@ -83,6 +87,7 @@ def test_validate_data_against_schemas_missing_any_of_properties():
       # Missing consortia and/or submission_centers properties.
       "file_format": [
         {
+          "uuid": "c72926d4-7c47-41df-b678-58938eaa3f75",
           "identifier": "txt",
           "description": "This format is used for aligned reads",
           "status": "shared",
@@ -104,6 +109,7 @@ def test_validate_data_against_schemas_extraneous_property():
       # Extraneous property (some_extraneous_property).
       "file_format": [
         {
+          "uuid": "c72926d4-7c47-41df-b678-58938eaa3f75",
           "status": "shared",
           "description": "Tabix index file of vcf, compressed",
           "identifier": "vcf_gz_tbi",
@@ -119,4 +125,4 @@ def test_validate_data_against_schemas_extraneous_property():
       ]
     }
     results = validate_data_against_schemas(data, schemas=schemas)
-    assert results == {"errors": [{"type": "file_format", "item": "vcf_gz_tbi", "index": 0, "extraneous_properties": ["some_extraneous_property"]}]}
+    assert results == {"errors": [{"type": "file_format", "item": "c72926d4-7c47-41df-b678-58938eaa3f75", "index": 0, "extraneous_properties": ["some_extraneous_property"]}]}
