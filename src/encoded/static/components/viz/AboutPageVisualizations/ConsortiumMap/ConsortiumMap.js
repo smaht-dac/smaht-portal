@@ -1,34 +1,54 @@
 'use strict';
 
-import React, { Component } from 'react';
+import React, { Component, useRef, useState, useEffect } from 'react';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
 import us from './data/us.json';
 import consortia from './data/consortia.json';
 import consortiaLegend from './data/consortia_legend.json';
 import consortiaLabels from './data/consortia_labels.json';
+import { MapMarkerSvg } from './MapMarkerSvg';
 
-import { OverlayTrigger, Tooltip, Tab, Tabs } from 'react-bootstrap';
+import {
+    OverlayTrigger,
+    Popover,
+    PopoverTitle,
+    PopoverContent,
+    Tooltip,
+    Tab,
+    Tabs,
+} from 'react-bootstrap';
 
 const MARKER_SIZE = 40;
 const LINE_COLOR = '#636262';
 
-export class ConsortiumMap extends Component {
-    constructor(props) {
-        super(props);
-        this.mapReference = React.createRef();
-        //this.tableReference = React.createRef();
-        this.drawn = false;
-    }
+const MapMarkerOverlay = ({ container }) => {
+    useEffect(() => {
+        console.log('new marker in overlay');
+    }, [container]);
 
-    componentDidMount() {
-        if (!this.drawn) {
-            this.drawChart();
-            this.drawn = true;
-        }
-    }
+    return (
+        <OverlayTrigger
+            placement="bottom"
+            trigger={['hover', 'focus']}
+            show={true}
+            container={container}
+            overlay={
+                <Popover id="map-marker-svg-popover">
+                    <PopoverTitle>title</PopoverTitle>
+                    <PopoverContent>content</PopoverContent>
+                </Popover>
+            }>
+            <MapMarkerSvg />
+        </OverlayTrigger>
+    );
+};
 
-    drawChart() {
+let drawn = false;
+export const ConsortiumMap = () => {
+    const mapReference = useRef(null);
+
+    const drawChart = () => {
         const color = d3.scaleLinear([1, 10], d3.schemeGreys[9]);
         const path = d3.geoPath();
 
@@ -39,7 +59,7 @@ export class ConsortiumMap extends Component {
             (a, b) => a !== b
         );
 
-        var container = d3.select(this.mapReference.current);
+        var container = d3.select(mapReference.current);
 
         const svg = container
             .append('svg')
@@ -64,8 +84,6 @@ export class ConsortiumMap extends Component {
             .on('mouseover', function () {
                 d3.select(this).attr('fill', (d) => color(25));
             });
-        //   .append("title")
-        // .text(d => `${d.properties.name}`);
 
         svg.append('path')
             .datum(statemesh)
@@ -81,28 +99,31 @@ export class ConsortiumMap extends Component {
             WashU: [578, 268],
             Baylor: [487, 475],
         };
-        this.addConnectionLines(svg, centerCoods['Boston'], 'Boston');
-        this.addConnectionLines(svg, centerCoods['Worcester'], 'Worcester');
-        this.addConnectionLines(svg, centerCoods['NYC'], 'New York City');
-        this.addConnectionLines(svg, centerCoods['WashU'], 'St. Louis');
-        this.addConnectionLines(svg, centerCoods['Baylor'], 'Houston');
+        addConnectionLines(svg, centerCoods['Boston'], 'Boston');
+        addConnectionLines(svg, centerCoods['Worcester'], 'Worcester');
+        addConnectionLines(svg, centerCoods['NYC'], 'New York City');
+        addConnectionLines(svg, centerCoods['WashU'], 'St. Louis');
+        addConnectionLines(svg, centerCoods['Baylor'], 'Houston');
 
         svg.selectAll('.m')
             .data(consortia)
             .enter()
-            .append('image')
+            .append('use')
+            .attr('data-svg-institution', (d) => d.institution)
+            .attr('href', '#map-marker-svg')
+            .attr('fill', (d) => d['marker-color-hex'])
             .style('cursor', 'pointer')
-            .attr('width', MARKER_SIZE)
-            .attr('height', MARKER_SIZE)
-            .attr('xlink:href', (d) => {
-                return `/static/img/map-marker-${d['marker-color']}.svg`;
-            })
             .attr('transform', (d) => {
                 return `translate(${d.x}, ${d.y})`;
             })
             .on('mouseover', (evt, d) => {
+                d3.select('#map-marker-svg-popover').style(
+                    'transform',
+                    `translate(${d.x}px, ${d.y}px)`
+                );
+
                 d3.select('#consortiumMapTooltip')
-                    .html(this.getTooltip(d))
+                    .html(getTooltip(d))
                     .transition()
                     .duration(200)
                     .style('opacity', 1);
@@ -122,7 +143,7 @@ export class ConsortiumMap extends Component {
                 window.open(d.url, '_blank');
             });
 
-        this.addMarkerDots(svg);
+        addMarkerDots(svg);
 
         consortiaLabels.forEach((d, i) => {
             d['institution'].forEach((inst, i) => {
@@ -153,9 +174,9 @@ export class ConsortiumMap extends Component {
                 .style('font-size', '15px')
                 .attr('alignment-baseline', 'middle');
         });
-    }
+    };
 
-    getTooltip(consortium) {
+    const getTooltip = (consortium) => {
         return `
     <div class="consortium-tooltip-wrapper">
       <div class="pb-1 pb-md-2">${consortium['center-type']}</div>
@@ -171,9 +192,9 @@ export class ConsortiumMap extends Component {
       <div class="consortium-tooltip-content">${consortium.project}</div>
       <i class="pt-1 pb-md-2 d-block small">Clicking on this marker will open the NIH project page in a new tab.</i>
     </div>`;
-    }
+    };
 
-    addMarkerDots(svg) {
+    const addMarkerDots = (svg) => {
         const dataset = consortia
             .filter((c) => !c.location)
             .forEach((c) => {
@@ -183,9 +204,9 @@ export class ConsortiumMap extends Component {
                     .attr('r', 3)
                     .style('fill', LINE_COLOR);
             });
-    }
+    };
 
-    addConnectionLines(svg, centerCoords, location) {
+    const addConnectionLines = (svg, centerCoords, location) => {
         const dataset = consortia
             .filter((c) => c.location === location)
             .map((c) => {
@@ -250,9 +271,9 @@ export class ConsortiumMap extends Component {
                     .style('left', evt.pageX + 10 + 'px')
                     .style('top', evt.pageY + 10 + 'px');
             });
-    }
+    };
 
-    renderTable() {
+    const renderTable = () => {
         const centerRows = [];
 
         consortia.forEach((c, i) => {
@@ -270,6 +291,7 @@ export class ConsortiumMap extends Component {
                 <tr key={i}>
                     <td className={centerTypeClass}>
                         <OverlayTrigger
+                            trigger={['hover', 'focus']}
                             placement="right"
                             overlay={
                                 <Tooltip id="button-tooltip-2">
@@ -310,31 +332,38 @@ export class ConsortiumMap extends Component {
             </table>
         );
         return table;
-    }
+    };
 
-    render() {
-        return (
-            <div className="consortium-map-container container py-5">
-                <div className="consortium-map">
-                    <div
-                        id="consortiumMapTooltip"
-                        className="p-1 rounded bg-white consortium-tooltip border"></div>
-                    <Tabs
-                        defaultActiveKey="map"
-                        className="mb-3 float-right"
-                        variant="pills">
-                        <Tab eventKey="map" title="Map view">
-                            <div ref={this.mapReference}></div>
-                        </Tab>
-                        <Tab
-                            eventKey="table"
-                            title="Table view"
-                            className="pt-5">
-                            {this.renderTable()}
-                        </Tab>
-                    </Tabs>
-                </div>
+    useEffect(() => {
+        console.log('running use effect');
+        if (!drawn) {
+            drawChart();
+            drawn = true;
+        }
+    }, []);
+
+    return (
+        <div className="consortium-map-container container py-5">
+            <div className="consortium-map">
+                <div
+                    id="consortiumMapTooltip"
+                    className="p-1 rounded bg-white consortium-tooltip border"></div>
+                <Tabs
+                    defaultActiveKey="map"
+                    className="mb-3 float-right"
+                    variant="pills">
+                    <Tab eventKey="map" title="Map view">
+                        <div>
+                            <div ref={mapReference}>
+                                <MapMarkerOverlay />
+                            </div>
+                        </div>
+                    </Tab>
+                    <Tab eventKey="table" title="Table view" className="pt-5">
+                        {renderTable()}
+                    </Tab>
+                </Tabs>
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
