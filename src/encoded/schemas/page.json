@@ -20,7 +20,6 @@
     ],
     "identifyingProperties": [
         "aliases",
-        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -84,26 +83,7 @@
             "$merge": "encoded_core:schemas/page.json#/properties/redirect"
         },
         "table-of-contents": {
-            "title": "Table of Contents",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "enabled": {
-                    "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents/properties/enabled"
-                },
-                "header-depth": {
-                    "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents/properties/header-depth"
-                },
-                "skip-depth": {
-                    "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents/properties/skip-depth"
-                },
-                "include-top-link": {
-                    "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents/properties/include-top-link"
-                },
-                "list-styles": {
-                    "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents/properties/list-styles"
-                }
-            }
+            "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents"
         }
     }
 }

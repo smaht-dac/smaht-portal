@@ -16,6 +16,7 @@
         }
     ],
     "identifyingProperties": [
+        "aliases",
         "uuid"
     ],
     "additionalProperties": false,

@@ -21,16 +21,11 @@
         }
     ],
     "identifyingProperties": [
-        "accession",
         "aliases",
-        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
     "mixinProperties": [
-        {
-            "$ref": "mixins.json#/accession"
-        },
         {
             "$ref": "mixins.json#/aliases"
         },
@@ -63,9 +58,6 @@
         }
     ],
     "properties": {
-        "accession": {
-            "accessionType": "FF"
-        },
         "schema_version": {
             "default": "1"
         },
