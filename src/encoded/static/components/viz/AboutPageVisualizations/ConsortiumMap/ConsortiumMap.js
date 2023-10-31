@@ -17,35 +17,124 @@ import {
     Tooltip,
     Tab,
     Tabs,
+    Overlay,
 } from 'react-bootstrap';
 
-const MARKER_SIZE = 40;
-const LINE_COLOR = '#636262';
+/**
+ * Table version of the information displayed in the Consortium Map
+ */
+const ConsortiumTable = () => {
+    const centerRows = [];
 
-const MapMarkerOverlay = ({ container }) => {
-    useEffect(() => {
-        console.log('new marker in overlay');
-    }, [container]);
+    consortia.forEach((c, i) => {
+        const centerTypeClass =
+            'align-middle text-center consortium-table-' +
+            c['center-type-short'];
+        const pis = c['pis'].map((p, j) => {
+            return (
+                <div className="text-nowrap" key={j}>
+                    {p}
+                </div>
+            );
+        });
+        centerRows.push(
+            <tr key={i}>
+                <td className={centerTypeClass}>
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="right"
+                        overlay={
+                            <Tooltip id="button-tooltip-2">
+                                {c['center-type']}
+                            </Tooltip>
+                        }>
+                        <div className="px-1">{c['center-type-short']}</div>
+                    </OverlayTrigger>
+                </td>
+                <td className="align-middle border-right">{pis}</td>
+                <td className="align-middle border-right">
+                    {c['institution']}
+                </td>
+                <td className="align-middle">
+                    {c['project']} <br />
+                    <small>
+                        Project number:{' '}
+                        <a href={c['url']} target="_blank" rel="noreferrer">
+                            {c['project-number']}
+                        </a>
+                    </small>
+                </td>
+            </tr>
+        );
+    });
 
     return (
-        <OverlayTrigger
-            placement="bottom"
-            trigger={['hover', 'focus']}
-            show={true}
-            container={container}
-            overlay={
-                <Popover id="map-marker-svg-popover">
-                    <PopoverTitle>title</PopoverTitle>
-                    <PopoverContent>content</PopoverContent>
-                </Popover>
-            }>
-            <MapMarkerSvg />
-        </OverlayTrigger>
+        <table className="table table-sm table-striped table-hover table-responsive">
+            <thead className="consortium-table-header bg-white">
+                <tr>
+                    <th></th>
+                    <th>Principal Investigators</th>
+                    <th>Institution</th>
+                    <th>Project title</th>
+                </tr>
+            </thead>
+            <tbody>{centerRows}</tbody>
+        </table>
     );
 };
 
+/**
+ * Contents placed inside of a React Bootstrap PopoverContent component
+ */
+const ConsortiumPopoverContent = ({ data }) => {
+    return (
+        <div className="consortium-popover">
+            <div className="consortium-popover-section">
+                <h4 className="consortium-popover-header">Institution</h4>
+                <div className="consortium-popover-content">
+                    {data.institution}
+                </div>
+            </div>
+            <div className="consortium-popover-section">
+                <h4 className="consortium-popover-header">
+                    Principal Investigators
+                </h4>
+                <div className="consortium-popover-content">
+                    <ul className="consortium-popover-content pi-list">
+                        {data.pis.map((pi, i) => {
+                            return <li key={i}>{pi}</li>;
+                        })}
+                    </ul>
+                </div>
+            </div>
+            <div className="consortium-popover-section">
+                <h4 className="consortium-popover-header">Project</h4>
+                <div className="consortium-popover-content">{data.project}</div>
+            </div>
+            <i className="d-block small">
+                Click this marker to open the NIH project page in a new tab.
+            </i>
+        </div>
+    );
+};
+
+// Constant values
+const MARKER_SIZE = 40;
+const LINE_COLOR = '#636262';
+
 let drawn = false;
 export const ConsortiumMap = () => {
+    const [showOverlay, setShowOverlay] = useState(false);
+    const overlayTarget = useRef(null);
+
+    const handleShowOverlay = (e, d) => {
+        overlayTarget.current = {
+            node: e.target,
+            data: d,
+        };
+        setShowOverlay(true);
+    };
+
     const mapReference = useRef(null);
 
     const drawChart = () => {
@@ -59,7 +148,7 @@ export const ConsortiumMap = () => {
             (a, b) => a !== b
         );
 
-        var container = d3.select(mapReference.current);
+        const container = d3.select(mapReference.current);
 
         const svg = container
             .append('svg')
@@ -99,6 +188,7 @@ export const ConsortiumMap = () => {
             WashU: [578, 268],
             Baylor: [487, 475],
         };
+
         addConnectionLines(svg, centerCoods['Boston'], 'Boston');
         addConnectionLines(svg, centerCoods['Worcester'], 'Worcester');
         addConnectionLines(svg, centerCoods['NYC'], 'New York City');
@@ -109,30 +199,19 @@ export const ConsortiumMap = () => {
             .data(consortia)
             .enter()
             .append('use')
-            .attr('data-svg-institution', (d) => d.institution)
             .attr('href', '#map-marker-svg')
+            .attr('height', MARKER_SIZE)
+            .attr('width', MARKER_SIZE)
             .attr('fill', (d) => d['marker-color-hex'])
             .style('cursor', 'pointer')
             .attr('transform', (d) => {
                 return `translate(${d.x}, ${d.y})`;
             })
             .on('mouseover', (evt, d) => {
-                d3.select('#map-marker-svg-popover').style(
-                    'transform',
-                    `translate(${d.x}px, ${d.y}px)`
-                );
-
-                d3.select('#consortiumMapTooltip')
-                    .html(getTooltip(d))
-                    .transition()
-                    .duration(200)
-                    .style('opacity', 1);
+                handleShowOverlay(evt, d);
             })
-            .on('mouseout', function () {
-                d3.select('#consortiumMapTooltip')
-                    .style('opacity', 0)
-                    .style('left', '-1000px')
-                    .style('top', '0px');
+            .on('mouseout', function (evt) {
+                setShowOverlay(false);
             })
             .on('mousemove', function (evt) {
                 d3.select('#consortiumMapTooltip')
@@ -176,24 +255,6 @@ export const ConsortiumMap = () => {
         });
     };
 
-    const getTooltip = (consortium) => {
-        return `
-    <div class="consortium-tooltip-wrapper">
-      <div class="pb-1 pb-md-2">${consortium['center-type']}</div>
-      <div class="consortium-tooltip-header">Institution</div>
-      <div class="pb-1 pb-md-2 consortium-tooltip-content">${
-          consortium['institution']
-      }</div>
-      <div class="consortium-tooltip-header">Principal Investigators</div>
-      <div class="pb-1 pb-md-2 consortium-tooltip-content">${consortium.pis.join(
-          '<br/>'
-      )}</div>
-      <div class="consortium-tooltip-header">Project</div>
-      <div class="consortium-tooltip-content">${consortium.project}</div>
-      <i class="pt-1 pb-md-2 d-block small">Clicking on this marker will open the NIH project page in a new tab.</i>
-    </div>`;
-    };
-
     const addMarkerDots = (svg) => {
         const dataset = consortia
             .filter((c) => !c.location)
@@ -219,7 +280,7 @@ export const ConsortiumMap = () => {
             datasetWithCenter.push(centerCoords);
         });
 
-        var line = d3
+        let line = d3
             .line()
             .x(function (d) {
                 return d[0];
@@ -246,92 +307,6 @@ export const ConsortiumMap = () => {
             .attr('cy', centerCoords[1] + MARKER_SIZE - 4)
             .attr('r', 3)
             .style('fill', LINE_COLOR);
-
-        svg.append('rect')
-            .attr('x', centerCoords[0] + MARKER_SIZE / 2 - 4)
-            .attr('y', centerCoords[1] + MARKER_SIZE - 8)
-            .attr('width', 8)
-            .attr('height', 8)
-            .style('opacity', 0)
-            .on('mouseover', (evt, d) => {
-                d3.select('#consortiumMapTooltip')
-                    .text(location)
-                    .transition()
-                    .duration(200)
-                    .style('opacity', 1);
-            })
-            .on('mouseout', function () {
-                d3.select('#consortiumMapTooltip')
-                    .style('opacity', 0)
-                    .style('left', '-1000px')
-                    .style('top', '0px');
-            })
-            .on('mousemove', function (evt) {
-                d3.select('#consortiumMapTooltip')
-                    .style('left', evt.pageX + 10 + 'px')
-                    .style('top', evt.pageY + 10 + 'px');
-            });
-    };
-
-    const renderTable = () => {
-        const centerRows = [];
-
-        consortia.forEach((c, i) => {
-            const centerTypeClass =
-                'align-middle text-center consortium-table-' +
-                c['center-type-short'];
-            const pis = c['pis'].map((p, j) => {
-                return (
-                    <div className="text-nowrap" key={j}>
-                        {p}
-                    </div>
-                );
-            });
-            centerRows.push(
-                <tr key={i}>
-                    <td className={centerTypeClass}>
-                        <OverlayTrigger
-                            trigger={['hover', 'focus']}
-                            placement="right"
-                            overlay={
-                                <Tooltip id="button-tooltip-2">
-                                    {c['center-type']}
-                                </Tooltip>
-                            }>
-                            <div className="px-1">{c['center-type-short']}</div>
-                        </OverlayTrigger>
-                    </td>
-                    <td className="align-middle border-right">{pis}</td>
-                    <td className="align-middle border-right">
-                        {c['institution']}
-                    </td>
-                    <td className="align-middle">
-                        {c['project']} <br />
-                        <small>
-                            Project number:{' '}
-                            <a href={c['url']} target="_blank" rel="noreferrer">
-                                {c['project-number']}
-                            </a>
-                        </small>
-                    </td>
-                </tr>
-            );
-        });
-
-        const table = (
-            <table className="table table-sm table-striped table-hover table-responsive">
-                <thead className="consortium-table-header bg-white">
-                    <tr>
-                        <th></th>
-                        <th>Principal Investigators</th>
-                        <th>Institution</th>
-                        <th>Project title</th>
-                    </tr>
-                </thead>
-                <tbody>{centerRows}</tbody>
-            </table>
-        );
-        return table;
     };
 
     useEffect(() => {
@@ -353,14 +328,32 @@ export const ConsortiumMap = () => {
                     className="mb-3 float-right"
                     variant="pills">
                     <Tab eventKey="map" title="Map view">
-                        <div>
-                            <div ref={mapReference}>
-                                <MapMarkerOverlay />
-                            </div>
+                        <div ref={mapReference}>
+                            <Overlay
+                                target={overlayTarget?.current?.node}
+                                show={showOverlay}
+                                placement="bottom"
+                                flip={true}>
+                                <Popover id="popover-consortium-map">
+                                    <PopoverTitle>
+                                        {
+                                            overlayTarget.current?.data[
+                                                'center-type'
+                                            ]
+                                        }
+                                    </PopoverTitle>
+                                    <PopoverContent>
+                                        <ConsortiumPopoverContent
+                                            data={overlayTarget.current?.data}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            </Overlay>
+                            <MapMarkerSvg />
                         </div>
                     </Tab>
                     <Tab eventKey="table" title="Table view" className="pt-5">
-                        {renderTable()}
+                        <ConsortiumTable />
                     </Tab>
                 </Tabs>
             </div>
