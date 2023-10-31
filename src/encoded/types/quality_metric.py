@@ -1,6 +1,3 @@
-from encoded_core.types.quality_metric_generic import (
-    QualityMetricGeneric as CoreQualityMetricGeneric
-)
 from snovault import collection, load_schema
 
 from .base import Item as SMAHTItem
