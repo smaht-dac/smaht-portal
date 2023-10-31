@@ -11,6 +11,12 @@ def page(testapp: TestApp, test_consortium: Dict[str, Any]) -> Dict[str, Any]:
     item = {
         "identifier": "some-page",
         "consortia": [test_consortium["uuid"]],
+        "status": "public",
+        "table-of-contents": {
+            "enabled": True,
+            "header-depth": 3,
+            "list-styles": ["lower-roman"],
+        },
     }
     return post_item_and_return_location(testapp, item, "Page")
 

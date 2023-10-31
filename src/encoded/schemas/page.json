@@ -82,21 +82,8 @@
         "redirect": {
             "$merge": "encoded_core:schemas/page.json#/properties/redirect"
         },
-        "table_of_contents": {
-            "title": "Table of Contents",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "enabled": {
-                    "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents/properties/enabled"
-                },
-                "header_depth": {
-                    "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents/properties/header-depth"
-                },
-                "list_styles": {
-                    "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents/properties/list-styles"
-                }
-            }
+        "table-of-contents": {
+            "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents"
         }
     }
 }
