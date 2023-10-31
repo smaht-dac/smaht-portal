@@ -4,9 +4,9 @@ import React from 'react';
  * Inline SVGs stored in React components in order to maintain control
  * over events and style independently
  */
-export const BrainSvg = () => {
+export const BrainSvg = ({ ...props }) => {
     return (
-        <>
+        <g data-svg-role="brain-group" {...props}>
             <clipPath id="brain-outline-clip">
                 <path
                     opacity="0.75"
@@ -195,6 +195,6 @@ export const BrainSvg = () => {
                     />
                 </g>
             </g>
-        </>
+        </g>
     );
 };

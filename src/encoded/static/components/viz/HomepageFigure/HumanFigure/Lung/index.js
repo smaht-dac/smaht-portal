@@ -22,9 +22,7 @@ export const Lung = ({ currentTier }) => {
                     </PopoverContent>
                 </Popover>
             }>
-            <g data-svg-role="lung-group">
-                <LungSvg />
-            </g>
+            <LungSvg />
         </OverlayTrigger>
     );
 };

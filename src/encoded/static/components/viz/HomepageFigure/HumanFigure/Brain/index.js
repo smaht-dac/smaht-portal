@@ -22,9 +22,7 @@ export const Brain = ({ currentTier }) => {
                     </PopoverContent>
                 </Popover>
             }>
-            <g data-svg-role="brain-group">
-                <BrainSvg />
-            </g>
+            <BrainSvg />
         </OverlayTrigger>
     );
 };
