@@ -91,11 +91,15 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Aligner",
-                    "Assembler",
+                    "Alignment",
+                    "Assembly",
+                    "Data Compression",
+                    "Format Conversion",
                     "Quality Control",
-                    "Variant Annotator",
-                    "Variant Caller"
+                    "Reads Manipulation",
+                    "Variant Annotation",
+                    "Variant Calling",
+                    "Variant Manipulation"
                 ]
             }
         },

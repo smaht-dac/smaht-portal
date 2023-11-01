@@ -89,7 +89,10 @@
             "description": "Category for information in the file",
             "type": "string",
             "enum": [
-                "Sequencing Reads"
+                "Genome Region",
+                "Reference Genome",
+                "Sequencing Reads",
+                "Variant Calls"
             ]
         },
         "data_type": {
@@ -97,8 +100,13 @@
             "description": "Detailed type of information in the file",
             "type": "string",
             "enum": [
-                "Unaligned Reads",
-                "Aligned Reads"
+                "Aligned Reads",
+                "Copy Number Variants",
+                "Indels",
+                "Reads Index",
+                "Single Nucleotide Variants",
+                "Structural Variants",
+                "Unaligned Reads"
             ]
         }
     },

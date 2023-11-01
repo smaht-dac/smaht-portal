@@ -5,9 +5,10 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "workflows",
+        "category",
         "title",
-        "version"
+        "version",
+        "workflows"
     ],
     "anyOf": [
         {
@@ -81,6 +82,7 @@
                 "enum": [
                     "Alignment",
                     "Format Conversion",
+                    "Reads Manipulation",
                     "Quality Control",
                     "Variant Calling"
                 ]

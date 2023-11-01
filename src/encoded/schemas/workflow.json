@@ -79,9 +79,11 @@
                 "enum": [
                     "Alignment",
                     "Annotation",
-                    "Feature Calling",
+                    "Format Conversion",
                     "Quality Control",
-                    "Testing"
+                    "Reads Manipulation",
+                    "Testing",
+                    "Variant Calling"
                 ]
             }
         },
