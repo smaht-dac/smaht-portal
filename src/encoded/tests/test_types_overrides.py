@@ -80,7 +80,7 @@ def test_software(testapp, test_consortium: Dict[str, Any]) -> None:
     testapp.post_json('/Software', {
         'submitter_id': 'SMAHT-DAC_SOFTWARE_TESTING',
         'title': 'test software',
-        'category': ['Aligner'],
+        'category': ['Alignment'],
         'version': '1.0.0',
         'consortia': [test_consortium['uuid']],
     }, status=201)
@@ -116,6 +116,7 @@ def test_meta_workflow(
 ) -> None:
     """ Tests that we can post a workflow under the overridden types definition """
     res = testapp.post_json('/MetaWorkflow', {
+        'category': ['Alignment'],
         'title': 'test metaworkflow',
         'version': '0.0.1',
         'workflows': [
