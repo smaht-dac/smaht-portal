@@ -28,7 +28,7 @@ const ConsortiumTable = () => {
 
     consortia.forEach((c, i) => {
         const centerTypeClass =
-            'align-middle text-center consortium-table-' +
+            'center-type align-middle text-center consortium-table-' +
             c['center-type-short'];
         const pis = c['pis'].map((p, j) => {
             return (
@@ -294,7 +294,6 @@ export const ConsortiumMap = () => {
         svg.append('path')
             .datum(datasetWithCenter)
             .attr('class', 'line')
-            //.style("stroke-dasharray", ("3, 3"))
             .attr('d', line)
             .attr(
                 'transform',
@@ -312,7 +311,6 @@ export const ConsortiumMap = () => {
     };
 
     useEffect(() => {
-        console.log('running use effect');
         if (!drawn) {
             drawChart();
             drawn = true;

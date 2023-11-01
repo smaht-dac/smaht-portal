@@ -664,14 +664,22 @@ body[data-path="/"]>#application>#layout {
     // Table styles
     table.table-striped {
         th {
-            background-color: white; 
+            background-color: #F1F9FF; 
             font-weight: 600;
             text-align: left;
+			border-top: none;
+			padding: 8px 0 8px 15px;
+			border-bottom: #9BA5B7;
         }
         tbody {
             td {
                 border: 1px solid lightgray;
                 text-align: left;
+				padding: 5px 15px;
+				
+				&.center-type {
+					padding: 10px;
+				}
             }
             td.consortium-table-OC {
                 font-size: 22px;

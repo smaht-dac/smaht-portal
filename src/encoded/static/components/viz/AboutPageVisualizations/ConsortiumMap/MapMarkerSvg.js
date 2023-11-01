@@ -1,9 +1,11 @@
 import React from 'react';
 
-export const MapMarkerSvg = ({ ...props }) => {
+/**
+ * React component wrapping an svg icon
+ */
+export const MapMarkerSvg = () => {
     return (
         <svg
-            {...props}
             version="1.1"
             id="map-marker-svg"
             width="0px"
