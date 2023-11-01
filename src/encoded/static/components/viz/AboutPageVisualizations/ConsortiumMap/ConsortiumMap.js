@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { Component, useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
 import us from './data/us.json';
@@ -203,6 +203,7 @@ export const ConsortiumMap = () => {
             .attr('height', MARKER_SIZE)
             .attr('width', MARKER_SIZE)
             .attr('fill', (d) => d['marker-color-hex'])
+            .attr('class', 'map-marker-icon')
             .style('cursor', 'pointer')
             .attr('transform', (d) => {
                 return `translate(${d.x}, ${d.y})`;
@@ -236,20 +237,21 @@ export const ConsortiumMap = () => {
         });
 
         const legendBasePosX = 5;
-        const legendBasePosY = 450;
+        const legendBasePosY = 470;
 
-        consortiaLegend.forEach((d, i) => {
-            svg.append('image')
-                .attr('width', 27)
+        consortiaLegend.forEach((label, i) => {
+            svg.append('use')
+                .attr('href', '#map-marker-svg')
                 .attr('height', 27)
+                .attr('width', 27)
                 .attr('x', legendBasePosX)
                 .attr('y', legendBasePosY + i * 25)
-                .attr('xlink:href', `/static/img/map-marker-${d['color']}.svg`);
+                .attr('fill', label['marker-color-hex']);
 
             svg.append('text')
                 .attr('x', legendBasePosX + 28)
                 .attr('y', legendBasePosY + 15 + i * 25)
-                .text(d['center-type'])
+                .text(label['center-type'])
                 .style('font-size', '15px')
                 .attr('alignment-baseline', 'middle');
         });
@@ -349,6 +351,7 @@ export const ConsortiumMap = () => {
                                     </PopoverContent>
                                 </Popover>
                             </Overlay>
+                            {/* Load MapMarker svg to link to from <use> elements */}
                             <MapMarkerSvg />
                         </div>
                     </Tab>

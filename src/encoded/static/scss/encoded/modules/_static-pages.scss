@@ -611,8 +611,8 @@ body[data-path="/"]>#application>#layout {
 	text {
 		font-family: Inter;
 	}
-	use:hover {
-		stroke: #636262;
+	use.map-marker-icon:hover {
+		stroke: #636262ba;
 		stroke-width: 1px;
 		transition: stroke-width 150ms;
 	}
