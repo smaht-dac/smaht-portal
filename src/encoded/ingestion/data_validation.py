@@ -185,7 +185,7 @@ def summary_of_data_validation_errors(data_validation_errors: Dict, submission: 
             missing_properties_count += 1
         if error.get("extraneous_properties"):
             extraneous_properties_count += 1
-        if error.get("unclassified_error_count"):
+        if error.get("unclassified_error"):
             unclassified_error_count += 1
         if error.get("exception"):
             exception_count += 1

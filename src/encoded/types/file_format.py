@@ -8,7 +8,7 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='file-formats',
-    unique_key='file_format:file_format',
+    unique_key='file_format:identifier',
     properties={
         'title': 'SMaHT File Format',
         'description': 'Listing of SMaHT File Formats',
