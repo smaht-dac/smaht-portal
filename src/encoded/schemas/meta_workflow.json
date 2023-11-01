@@ -6,6 +6,7 @@
     "type": "object",
     "required": [
         "category",
+        "name",
         "title",
         "version",
         "workflows"
@@ -43,6 +44,9 @@
         },
         {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/name"
         },
         {
             "$ref": "mixins.json#/schema_version"

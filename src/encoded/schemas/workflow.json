@@ -5,6 +5,7 @@
     "type": "object",
     "required": [
         "category",
+        "name",
         "title"
     ],
     "anyOf": [
