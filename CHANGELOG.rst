@@ -11,6 +11,8 @@ Change Log
 =====
 * Merge in drr_shared_schemas branch.
 * Merge in ui-dev branch.
+* Update dcicutils to ^8.2.0.
+* 2023-11.02
 
 
 0.4.0
