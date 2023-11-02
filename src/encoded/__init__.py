@@ -73,7 +73,6 @@ def include_snovault(config: Configurator) -> None:
     config.include('snovault.aggregated_items')
     config.include('snovault.storage')
     config.include('snovault.typeinfo')
-#    config.include('snovault.types')
     config.include('snovault.resources')
     config.include('snovault.attachment')
     config.include('snovault.schema_graph')
