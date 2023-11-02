@@ -1,11 +1,7 @@
-from copy import deepcopy
-from snovault import collection
+from snovault import collection, load_schema
 from encoded_core.types.image import Image as CoreImage
+
 from .base import Item as SMAHTItem
-from .base import mixin_smaht_permission_types
-
-
-ENCODED_CORE_IMAGE_SCHEMA = deepcopy(CoreImage.schema)
 
 
 @collection(
@@ -17,4 +13,5 @@ ENCODED_CORE_IMAGE_SCHEMA = deepcopy(CoreImage.schema)
     })
 class Image(SMAHTItem, CoreImage):
     item_type = 'image'
-    schema = mixin_smaht_permission_types(ENCODED_CORE_IMAGE_SCHEMA)
+    schema = load_schema("encoded:schemas/image.json")
+    embedded_list = []

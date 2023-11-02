@@ -1,0 +1,87 @@
+[
+    {
+        "x": 540,
+        "y": 315,
+        "institution": ["Washington University"]
+    },
+    {
+        "x": 880,
+        "y": 50,
+        "institution": ["Harvard", "Medical", "School"]
+    },
+    {
+        "x": 800,
+        "y": 242,
+        "institution": ["National", "Disease", "Research", "Interchange"]
+    },
+    {
+        "x": 975,
+        "y": 140,
+        "institution": ["Broad", "Institute"]
+    },
+    {
+        "x": 70,
+        "y": 65,
+        "institution": ["Seattle Children's", "Hospital"]
+    },
+    {
+        "x": 945,
+        "y": 205,
+        "institution": ["New York", "Genome Center"]
+    },
+    {
+        "x": 527,
+        "y": 200,
+        "institution": ["Mayo Clinic"]
+    },
+    {
+        "x": 943,
+        "y": 90,
+        "institution": ["Dana-Farber", "Cancer Institute"]
+    },
+    {
+        "x": 930,
+        "y": 238,
+        "institution": ["New York University", "School of Medicine"]
+    },
+    {
+        "x": 755,
+        "y": 170,
+        "institution": ["UMass Chan", "Medical School"]
+    },
+    {
+        "x": 715,
+        "y": 245,
+        "institution": ["Case", "Western", "Reserve", "University"]
+    },
+    {
+        "x": 875,
+        "y": 280,
+        "institution": ["Weill Cornell", "Medical College"]
+    },
+    {
+        "x": 180,
+        "y": 255,
+        "institution": ["University of Utah"]
+    },
+    {
+        "x": 635,
+        "y": 170,
+        "institution": ["University of", "Michigan"]
+    },
+    {
+        "x": 10,
+        "y": 290,
+        "institution": ["Stanford University"]
+    },
+    {
+        "x": 790,
+        "y": 100,
+        "institution": ["Boston", "Children's", "Hospital"]
+    },
+    {
+        "x": 435,
+        "y": 455,
+        "institution": ["Baylor College of Medicine"]
+    }
+]

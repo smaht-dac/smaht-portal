@@ -1,0 +1,232 @@
+{
+    "title": "Workflow",
+    "$id": "/profiles/workflow.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "category",
+        "name",
+        "title"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "aliases",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/category"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/name"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/title"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/version"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "WF"
+        },
+        "category": {
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Alignment",
+                    "Annotation",
+                    "Format Conversion",
+                    "Quality Control",
+                    "Reads Manipulation",
+                    "Testing",
+                    "Variant Calling"
+                ]
+            }
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "previous_versions": {
+            "$merge": "encoded_core:schemas/workflow.json#/properties/previous_version"
+        },
+        "software": {
+            "$merge": "encoded_core:schemas/workflow.json#/properties/software"
+        },
+        "version_upgrade_log": {
+            "$merge": "encoded_core:schemas/workflow.json#/properties/version_upgrade_log"
+        },
+        "arguments": {
+            "title": "Workflow Arguments",
+            "description": "Arguments of the workflow",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "title": "Argument",
+                "description": "An argument of the workflow",
+                "type": "object",
+                "required": [
+                    "argument_type",
+                    "workflow_argument_name"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "argument_format": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/argument_format"
+                    },
+                    "argument_to_be_attached_to": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/argument_to_be_attached_to"
+                    },
+                    "argument_type": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/argument_type"
+                    },
+                    "mount": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/mount"
+                    },
+                    "qc_json": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/qc_json"
+                    },
+                    "qc_zipped": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/qc_zipped"
+                    },
+                    "secondary_file_formats": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/secondary_file_formats"
+                    },
+                    "workflow_argument_name": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/workflow_argument_name"
+                    }
+                }
+            }
+        },
+        "child_file_names": {
+            "title": "Child File Names",
+            "description": "Names of the other files used by the main file for the workflow",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string"
+            }
+        },
+        "directory_url": {
+            "title": "Directory URL",
+            "description": "URL of the directory that contains main and associated files",
+            "type": "string"
+        },
+        "language": {
+            "title": "Workflow Language",
+            "type": "string",
+            "enum": [
+                "CWL",
+                "WDL"
+            ]
+        },
+        "main_file_name": {
+            "title": "Main File Name",
+            "description": "Name of the main file for the workflow",
+            "type": "string"
+        },
+        "tibanna_config": {
+            "title": "Tibanna Config",
+            "description": "Tibanna configuration for execution",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "instance_type",
+                "run_name"
+            ],
+            "properties": {
+                "behavior_on_capacity": {
+                    "title": "Behavior on Capacity",
+                    "type": "string",
+                    "enum": [
+                        "wait_and_retry"
+                    ]
+                },
+                "cpu": {
+                    "title": "CPU",
+                    "type": "integer"
+                },
+                "ebs_optimized": {
+                    "title": "EBS Optimized",
+                    "type": "boolean"
+                },
+                "ebs_size": {
+                    "title": "EBS Size",
+                    "type": "string",
+                    "pattern": "^([0-9]+[.])?[0-9]+[x]?$"
+                },
+                "instance_type": {
+                    "title": "Instance Type",
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "c5.4xlarge"
+                        ]
+                    }
+                },
+                "memory": {
+                    "title": "Memory",
+                    "type": "number"
+                },
+                "run_name": {
+                    "title": "Run Name",
+                    "type": "string"
+                },
+                "spot_instance": {
+                    "title": "Spot Instance",
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "facets": {},
+    "columns": {}
+}

@@ -1,0 +1,81 @@
+[
+    {
+        "name": "WGS",
+        "display_name": "Bulk WGS",
+        "description": "Bulk whole genome sequencing (WGS) using short-read or long-read platforms."
+    },
+    {
+        "name": "RNA-Seq",
+        "display_name": "Bulk RNA-Seq",
+        "description": "Bulk whole transcriptome sequencing using short-read platforms."
+    },
+    {
+        "name": "WGS Nanoseq",
+        "display_name": "NanoSeq",
+        "description": "Nanorate sequencing; a variation of duplex sequencing.",
+        "link": "https://pubmed.ncbi.nlm.nih.gov/33911282/"
+    },
+    {
+        "name": "NT-Seq",
+        "display_name": "NT-Seq",
+        "description": "Comprehensive DNA methylation sequencing to profile 6mA, 4mC and 5mC sites.",
+        "link": "https://pubmed.ncbi.nlm.nih.gov/35637459/"
+    },
+    {
+        "name": "snRNA-Seq",
+        "display_name": "snRNA-Seq",
+        "description": "Single-nucleus RNA-Seq."
+    },
+    {
+        "name": "WGS CODEC",
+        "display_name": "CODEC",
+        "description": "Concatenating Original Duplex for Error Correction (CODEC); a variation of duplex sequencing.",
+        "link": "https://pubmed.ncbi.nlm.nih.gov/37106072/"
+    },
+    {
+        "name": "WGS Duplex sequencing",
+        "display_name": "Duplex sequencing",
+        "description": "Sequencing each of the two strands of a DNA duplex.",
+        "link": "https://pubmed.ncbi.nlm.nih.gov/22853953/"
+    },
+    {
+        "name": "WGS DLP+",
+        "display_name": "DLP+",
+        "description": "Low-depth, high-throughput single-cell WGS using microfluidic devices and individual cell image capture.",
+        "link": "https://pubmed.ncbi.nlm.nih.gov/31730858/"
+    },
+    {
+        "name": "Fiber-Seq",
+        "display_name": "Fiber-Seq",
+        "description": "Genomewide profiling of chromatin accessibility at the single-molecule level.",
+        "link": "https://pubmed.ncbi.nlm.nih.gov/32587015/"
+    },
+    {
+        "name": "MAS-Seq",
+        "display_name": "MAS-ISO-Seq",
+        "description": "Multiplexed Arrays Sequencing of transcript isoforms; high-throughput sequencing of mRNA isoforms using long-read platforms.",
+        "link": "https://www.biorxiv.org/content/10.1101/2021.10.01.462818v1.abstract"
+    },
+    {
+        "name": "Hi-C",
+        "display_name": "Hi-C",
+        "description": "Genomewide profiling of chromatin interactions.",
+        "link": "https://pubmed.ncbi.nlm.nih.gov/19815776/"
+    },
+    {
+        "name": "Targeted RNA-Seq",
+        "display_name": "10X Genomics Xenium",
+        "description": "Targeted spatial RNA-Sequencing."
+    },
+    {
+        "name": "STORM-Seq",
+        "display_name": "STORM-Seq",
+        "description": "Single-cell TOtal RNA Miniaturized sequencing; a single-cell full-length ribo-reduced total RNA sequencing using short-read platforms.",
+        "link": "https://www.biorxiv.org/content/10.1101/2022.03.14.484332v1"
+    },
+    {
+        "name": "Tranquil-Seq",
+        "display_name": "Tranquil-Seq",
+        "description": "Single-cell full-length RNA-Seq using long-read platforms."
+    }
+]

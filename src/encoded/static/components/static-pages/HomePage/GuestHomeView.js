@@ -8,7 +8,11 @@ import { LoginController } from '@hms-dbmi-bgm/shared-portal-components/es/compo
 import { NotLoggedInAlert } from './../../navigation/components/LoginNavItem';
 import { UserRegistrationModal } from './../../navigation/components/UserRegistrationModal';
 import { auth0Options as navAuth0Options } from './../../navigation/components/AccountNav';
+import SMaHTTimeline from '../../viz/SMaHTTimeline';
+import Card from 'react-bootstrap/esm/Card';
 // import { Fade } from 'react-bootstrap';
+
+import { HomepageFigure } from '../../viz/HomepageFigure';
 
 const auth0Options = {
     ...navAuth0Options,
@@ -27,44 +31,78 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
     }, []);
 
     return (
-        <React.Fragment>
-            <div className="homepage-contents d-flex justify-content-center">
-                {/* <Fade in appear timeout={500}> */}
-                <div className="splash-content d-flex flex-column align-items-center justify-content-center">
-                    <div className="smaht-logo d-inline-block mb-1 mt-2">
-                        <img
-                            src="/static/img/SMaHT_Horizontal-Logo-Acronym_FV.png"
-                            alt="SMaHT Logo"
-                            width="352"
-                        />
-                    </div>
-                    <div className="coming-soon">Coming Soon</div>
-                    <div className="intro text-center mb-3">
-                        Welcome to the future home of the{' '}
-                        <br className="d-none d-sm-block" />
-                        Somatic Mosaicism across Human Tissues (SMaHT) Data
-                        Portal
-                    </div>
-                    <div className="d-flex flex-column learn-more">
-                        <a
-                            href="https://commonfund.nih.gov/smaht"
-                            className="d-flex btn btn-xs-small btn-link btn-primary px-3 mb-1 justify-content-between">
-                            <i className="icon icon-users fas mr-1 mt-02 d-none d-sm-block" />
-                            Learn about the SMaHT consortium
-                            <i className="icon icon-arrow-right fas ml-1 mt-02 d-none d-sm-block" />
-                        </a>
-                        <a
-                            href="https://www.smaht.org"
-                            className="d-flex btn btn-link btn-xs-small btn-outline-primary px-3">
-                            <i className="icon icon-network-wired fas mr-1 mt-02 d-none d-sm-block" />
-                            Visit the network organization center
-                            <i className="icon icon-arrow-right fas ml-1 mt-02 d-none d-sm-block" />
-                        </a>
+        <div className="homepage-contents">
+            <div className="container-wide d-flex flex-column justify-content-around">
+                <div className="row">
+                    <div className="col-12">
+                        <h1 className="mb-1">
+                            Somatic Mosaicism across Human Tissues Data Portal
+                        </h1>
+                        <h2 className="mt-1">
+                            A platform to search, visualize, and download
+                            somatic mosaic variants in normal tissues.
+                        </h2>
                     </div>
                 </div>
-                {/* </Fade> */}
+                <div className="row my-2 flex-column flex-lg-row">
+                    <div className="col-12 col-lg-6">
+                        <SMaHTTimeline />
+                    </div>
+                    <div className="col-12 col-lg-6 d-flex justify-content-center align-items-center my-3 my-sm-5 my-lg-2 ">
+                        <HomepageFigure />
+                    </div>
+                </div>
+                <div className="row">
+                    <Card className="about-consortium col-12 w-100 p-3 mb-3">
+                        <h3 className="mt-0">About the Consortium</h3>
+                        <div className="row">
+                            <div className="col-12 col-md-6 col-lg-3">
+                                <a
+                                    href="https://commonfund.nih.gov/smaht"
+                                    target="_blank"
+                                    rel="noreferrer noopener"
+                                    role="button"
+                                    className="w-100 py-2 btn">
+                                    NIH SMaHT Homepage
+                                    <i className="icon-external-link-alt icon icon-xs fas ml-1" />
+                                </a>
+                            </div>
+                            <div className="col-12 col-md-6 col-lg-3">
+                                <a
+                                    href="https://www.smaht.org"
+                                    target="_blank"
+                                    rel="noreferrer noopener"
+                                    role="button"
+                                    className="w-100 py-2 btn">
+                                    SMaHT OC Homepage
+                                    <i className="icon-external-link-alt icon icon-xs fas ml-1" />
+                                </a>
+                            </div>
+                            <div className="col-12 col-md-6 col-lg-3">
+                                <a
+                                    href="https://www.youtube.com/watch?v=8KX3lkMB5nU"
+                                    target="_blank"
+                                    rel="noreferrer noopener"
+                                    role="button"
+                                    className="w-100 py-2 btn">
+                                    SMaHT Overview Video
+                                    <i className="icon-external-link-alt icon text-xs fas ml-1" />
+                                </a>
+                            </div>
+                            {/** @TODO: Link might change */}
+                            <div className="col-12 col-md-6 col-lg-3">
+                                <a
+                                    href="/about"
+                                    role="button"
+                                    className="w-100 py-2 btn">
+                                    SMaHT Consortium Map
+                                </a>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
             </div>
-        </React.Fragment>
+        </div>
     );
 });
 

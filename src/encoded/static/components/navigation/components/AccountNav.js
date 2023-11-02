@@ -69,6 +69,7 @@ export const AccountNav = React.memo(function AccountNav(props) {
         // Render login button
         return (
             <div className="navbar-nav navbar-acct">
+                <HelpdeskButton />
                 <LoginController {...{ updateAppSessionState, auth0Options }}>
                     <LoginNavItem
                         {...{ schemas, session, href, windowWidth }}
@@ -104,6 +105,7 @@ export const AccountNav = React.memo(function AccountNav(props) {
     // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
     return (
         <div className="navbar-nav navbar-acct">
+            <HelpdeskButton />
             <BigDropdownNavItem
                 {...passProps}
                 {...{ windowWidth, href }}
@@ -248,3 +250,16 @@ export function getActionURL(action, currentHref) {
     if (typeof action.href === 'function') return action.href(hrefParts);
     return '#';
 }
+
+const HelpdeskButton = React.memo(function HelpdeskButton(props) {
+    // @TODO: Consider adding cool features like browser recognition, etc. from CGAP (if so, move whole thing to SPC probably)
+    const mailto =
+        'mailto:dac-support@smaht.org?subject=Helpdesk%20Inquiry%20from%20data.smaht.org&body=Name%3A%0D%0AContact%20Information%20(so%20we%20can%20get%20back%20to%20you!)%3A%0D%0A%0D%0AQuestions%2FComments%3A%0D%0A%0D%0A';
+
+    return (
+        <a role="button" href={mailto} className="nav-link">
+            <i className="icon icon-envelope fas mr-05" />
+            Help Desk
+        </a>
+    );
+});

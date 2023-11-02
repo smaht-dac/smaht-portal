@@ -1,6 +1,6 @@
 import jsonschema
 import re
-from typing import Optional
+from typing import Dict, List, Optional
 from dcicutils.ff_utils import get_schema
 from dcicutils.misc_utils import get_error_message, VirtualApp
 from dcicutils.task_utils import pmap
@@ -8,9 +8,9 @@ from snovault.loadxl import get_identifying_value
 from .submission_folio import SmahtSubmissionFolio
 
 
-def validate_data_against_schemas(data: dict[str, list[dict]],
+def validate_data_against_schemas(data: Dict[str, List[Dict]],
                                   portal_vapp: Optional[VirtualApp] = None,
-                                  schemas: Optional[dict[dict]] = None) -> Optional[dict]:
+                                  schemas: Optional[Dict] = None) -> Optional[Dict]:
     """
     TODO: This is just until this schema validation is fully supported in sheet_utils.
 
@@ -70,7 +70,7 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
     """
 
     def fetch_relevant_schemas(schema_names: list, portal_vapp: VirtualApp) -> list:
-        def fetch_schema(schema_name: str) -> Optional[dict]:
+        def fetch_schema(schema_name: str) -> Optional[Dict]:
             return schema_name, get_schema(schema_name, portal_vapp=portal_vapp)
         return {schema_name: schema for schema_name, schema in pmap(fetch_schema, schema_names)}
 
@@ -96,7 +96,7 @@ def validate_data_against_schemas(data: dict[str, list[dict]],
     return {"errors": errors} if errors else None
 
 
-def validate_data_items_against_schemas(data_items: list[dict], data_type: str, schema: dict) -> list[dict]:
+def validate_data_items_against_schemas(data_items: List[Dict], data_type: str, schema: Dict) -> List[Dict]:
     """"
     Like validate_data_against_schemas but for a simple list of data items each of the same given data type.
     """
@@ -107,8 +107,8 @@ def validate_data_items_against_schemas(data_items: list[dict], data_type: str, 
     return errors
 
 
-def validate_data_item_against_schemas(data_item: dict, data_type: str,
-                                       data_item_index: Optional[int], schema: dict) -> list[dict]:
+def validate_data_item_against_schemas(data_item: Dict, data_type: str,
+                                       data_item_index: Optional[int], schema: Dict) -> List[Dict]:
     """"
     Like validate_data_against_schemas but for a single data item of the given data type.
     The given data item index is just for informational purposes; it corresponds to the
@@ -128,17 +128,18 @@ def validate_data_item_against_schemas(data_item: dict, data_type: str,
             "identifying_properties": identifying_properties
         })
 
-    def extract_single_quoted_strings(message: str) -> list[str]:
+    def extract_single_quoted_strings(message: str) -> List[str]:
         return re.findall(r"'(.*?)'", message)
 
     schema_validator = jsonschema.Draft7Validator(schema)
     for schema_validation_error in schema_validator.iter_errors(data_item):
         if schema_validation_error.validator == "required":
+            missing_properties = list(set(schema_validation_error.validator_value) - set(schema_validation_error.instance))
             errors.append({
                 "type": data_type,
                 "item" if identifying_value else "unidentified": identifying_value if identifying_value else True,
                 "index": data_item_index,
-                "missing_properties": schema_validation_error.validator_value})
+                "missing_properties": missing_properties})
             continue
         if schema_validation_error.validator == "additionalProperties":
             properties = extract_single_quoted_strings(schema_validation_error.message)
@@ -153,12 +154,14 @@ def validate_data_item_against_schemas(data_item: dict, data_type: str,
             "type": data_type,
             "item" if identifying_value else "unidentified": identifying_value if identifying_value else True,
             "index": data_item_index,
-            "unclassified_error": schema_validation_error.message})
+            "unclassified_error": schema_validation_error.message,
+            "validator": str(schema_validation_error.validator),
+            "context": str(schema_validation_error.context)})
 
     return errors
 
 
-def summary_of_data_validation_errors(data_validation_errors: dict, submission: SmahtSubmissionFolio) -> list[str]:
+def summary_of_data_validation_errors(data_validation_errors: Dict, submission: SmahtSubmissionFolio) -> List[str]:
     """
     Summarize the given data validation errors into a simple short list of English phrases;
     this will end up going into the additional_properties of the IngestionSubmission object
@@ -182,7 +185,7 @@ def summary_of_data_validation_errors(data_validation_errors: dict, submission: 
             missing_properties_count += 1
         if error.get("extraneous_properties"):
             extraneous_properties_count += 1
-        if error.get("unclassified_error_count"):
+        if error.get("unclassified_error"):
             unclassified_error_count += 1
         if error.get("exception"):
             exception_count += 1

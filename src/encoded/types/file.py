@@ -1,79 +1,62 @@
-from snovault import collection, abstract_collection
-from copy import deepcopy
-from encoded_core.types.file import File as CoreFile
-from encoded_core.types.file_submitted import FileSubmitted as CoreFileSubmitted
-from encoded_core.types.file_reference import FileReference as CoreFileReference
-from encoded_core.types.file_processed import FileProcessed as CoreFileProcessed
+from typing import Any, Dict, List, Optional, Union
+
+from encoded_core.types.file import (
+    HREF_SCHEMA,
+    UNMAPPED_OBJECT_SCHEMA,
+    UPLOAD_KEY_SCHEMA,
+    File as CoreFile,
+)
+from pyramid.request import Request
+from snovault import abstract_collection, calculated_property, load_schema
+
 from .base import Item as SMAHTItem
-from .base import mixin_smaht_permission_types
-from .acl import ONLY_ADMIN_VIEW_ACL
 
 
-ENCODED_CORE_FILE_SCHEMA = deepcopy(CoreFile.schema)
-ENCODED_CORE_FILE_SUBMITTED_SCHEMA = deepcopy(CoreFileSubmitted.schema)
-ENCODED_CORE_FILE_REFERENCE_SCHEMA = deepcopy(CoreFileReference.schema)
-ENCODED_CORE_FILE_PROCESSED_SCHEMA = deepcopy(CoreFileProcessed.schema)
+def show_upload_credentials(
+    request: Optional[Request] = None,
+    context: Optional[str] = None,
+    status: Optional[str] = None,
+) -> bool:
+    if request is None or status not in File.SHOW_UPLOAD_CREDENTIALS_STATUSES:
+        return False
+    return request.has_permission("edit", context)
 
 
 @abstract_collection(
-    name='files',
+    name="files",
     unique_key='accession',
     properties={
-        'title': 'Files',
-        'description': 'Listing of Files',
-    })
+        "title": "Files",
+        "description": "Listing of Files",
+    },
+)
 class File(SMAHTItem, CoreFile):
-    item_type = 'file'
-    name_key = 'accession'
-    schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_SCHEMA)
+    item_type = "file"
+    schema = load_schema("encoded:schemas/file.json")
+    embedded_list = []
 
-    class Collection(SMAHTItem.Collection):
-        pass
+    SHOW_UPLOAD_CREDENTIALS_STATUSES = ("in review",)
 
+    def _update(
+        self, properties: Dict[str, Any], sheets: Optional[Dict] = None
+    ) -> None:
+        return CoreFile._update(self, properties, sheets=sheets)
 
-@collection(
-    name='files-submitted',
-    unique_key='accession',
-    properties={
-        'title': 'SMaHT Submitted Files',
-        'description': 'Listing of SMaHT Submitted Files',
-    })
-class FileSubmitted(File):
-    """ Overwrites the FileSubmitted type from encoded-core, customizing the schema for smaht-portal """
-    item_type = 'file_submitted'
-    name_key = 'accession'
-    schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_SUBMITTED_SCHEMA)
-    base_types = ['File'] + SMAHTItem.base_types
+    @calculated_property(schema=HREF_SCHEMA)
+    def href(
+        self,
+        request: Request,
+        file_format: Optional[str] = None,
+        accession: Optional[str] = None,
+    ) -> str:
+        return CoreFile.href(self, request, file_format, accession=accession)
 
-    def __ac_local_roles__(self):
-        return SMAHTItem.__ac_local_roles__(self)
+    @calculated_property(
+        condition=show_upload_credentials, schema=UNMAPPED_OBJECT_SCHEMA
+    )
+    def upload_credentials(self) -> Union[str, None]:
+        return CoreFile.upload_credentials(self)
 
-
-@collection(
-    name='files-reference',
-    unique_key='accession',
-    properties={
-        'title': 'SMaHT Reference Files',
-        'description': 'Listing of SMaHT Reference Files',
-    })
-class FileReference(File):
-    """ Overwrites the FileReference type from encoded-core, customizing the schema for smaht-portal """
-    item_type = 'file_reference'
-    name_key = 'accession'
-    schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_REFERENCE_SCHEMA)
-    base_types = ['File'] + SMAHTItem.base_types
-
-
-@collection(
-    name='files-processed',
-    unique_key='accession',
-    properties={
-        'title': 'SMaHT Processed Files',
-        'description': 'Listing of SMaHT Processed Files',
-    })
-class FileProcessed(File):
-    """ Overwrites the FileProcessed type from encoded-core, customizing the schema for smaht-portal """
-    item_type = 'file_processed'
-    name_key = 'accession'
-    schema = mixin_smaht_permission_types(ENCODED_CORE_FILE_PROCESSED_SCHEMA)
-    base_types = ['File'] + SMAHTItem.base_types
+    @calculated_property(schema=UPLOAD_KEY_SCHEMA)
+    def upload_key(self, request: Request) -> str:
+        return CoreFile.upload_key(self, request)

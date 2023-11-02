@@ -1,16 +1,9 @@
-from copy import deepcopy
-from snovault import collection, abstract_collection
-from encoded_core.types.quality_metric import QualityMetric as CoreQualityMetric
-from encoded_core.types.quality_metric import QualityMetricGeneric as CoreQualityMetricGeneric
+from snovault import collection, load_schema
+
 from .base import Item as SMAHTItem
-from .base import mixin_smaht_permission_types
 
 
-ENCODED_CORE_QC_GENERAL_SCHEMA = deepcopy(CoreQualityMetricGeneric.schema)
-ENCODED_CORE_QC_SCHEMA = deepcopy(CoreQualityMetric.schema)
-
-
-@abstract_collection(
+@collection(
     name='quality-metrics',
     properties={
         'title': 'Quality Metrics',
@@ -18,17 +11,5 @@ ENCODED_CORE_QC_SCHEMA = deepcopy(CoreQualityMetric.schema)
     })
 class QualityMetric(SMAHTItem):
     item_type = 'quality_metric'
-    schema = mixin_smaht_permission_types(ENCODED_CORE_QC_SCHEMA)
-
-
-@collection(
-    name="quality-metrics-generic",
-    properties={
-        "title": "Generic Quality Metrics",
-        "description": "Listing of Generic Quality Metrics",
-    },
-)
-class QualityMetricGeneric(QualityMetric):
-    item_type = 'quality_metric_generic'
-    schema = mixin_smaht_permission_types(ENCODED_CORE_QC_GENERAL_SCHEMA)
-    base_types = ['QualityMetric'] + SMAHTItem.base_types
+    schema = load_schema("encoded:schemas/quality_metric.json")
+    embedded_list = []

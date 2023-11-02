@@ -1,0 +1,115 @@
+{
+    "title": "File",
+    "description": "Generic file",
+    "$id": "/profiles/file.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "data_category",
+        "data_type",
+        "file_format"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "aliases",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "schema_version": {
+            "default": "1"
+        },
+        "accession": {
+            "accessionType": "FI"
+        },
+        "file_format": {
+            "$merge": "encoded_core:schemas/file.json#/properties/file_format"
+        },
+        "filename": {
+            "$merge": "encoded_core:schemas/file.json#/properties/filename"
+        },
+        "file_size": {
+            "$merge": "encoded_core:schemas/file.json#/properties/file_size"
+        },
+        "md5sum": {
+            "$merge": "encoded_core:schemas/file.json#/properties/md5sum"
+        },
+        "content_md5sum": {
+            "$merge": "encoded_core:schemas/file.json#/properties/content_md5sum"
+        },
+        "quality_metrics": {
+            "$merge": "encoded_core:schemas/file.json#/properties/quality_metrics"
+        },
+        "data_category": {
+            "title": "Data Category",
+            "description": "Category for information in the file",
+            "type": "string",
+            "enum": [
+                "Genome Region",
+                "Reference Genome",
+                "Sequencing Reads",
+                "Variant Calls"
+            ]
+        },
+        "data_type": {
+            "title": "Data Type",
+            "description": "Detailed type of information in the file",
+            "type": "string",
+            "enum": [
+                "Aligned Reads",
+                "Copy Number Variants",
+                "Indels",
+                "Reads Index",
+                "Single Nucleotide Variants",
+                "Structural Variants",
+                "Unaligned Reads"
+            ]
+        }
+    },
+    "facets": {},
+    "columns": {}
+}
