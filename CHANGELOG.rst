@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.5.0
+0.4.0
 =====
 * Merge in drr_shared_schemas branch.
 * Merge in ui-dev branch.
