@@ -5,7 +5,7 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='consortium',
-    unique_key='consortium:name',
+    unique_key='consortium:identifier',
     properties={
         'title': 'Consortium',
         'description': 'Listing of SMaHT associated Consortiums',
