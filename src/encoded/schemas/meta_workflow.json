@@ -5,9 +5,11 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "workflows",
+        "category",
+        "name",
         "title",
-        "version"
+        "version",
+        "workflows"
     ],
     "anyOf": [
         {
@@ -42,6 +44,9 @@
         },
         {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/name"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -81,6 +86,7 @@
                 "enum": [
                     "Alignment",
                     "Format Conversion",
+                    "Reads Manipulation",
                     "Quality Control",
                     "Variant Calling"
                 ]

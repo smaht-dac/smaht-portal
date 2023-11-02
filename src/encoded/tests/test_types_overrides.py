@@ -29,6 +29,7 @@ def test_file_format(testapp, test_consortium: Dict[str, Any]):
 def test_workflow_types(testapp, test_consortium: Dict[str, Any]) -> None:
     """ Tests that we can post a workflow under the overridden type definition """
     workflow = {
+        'name': 'testing_123',
         'title': 'test workflow',
         'category': ['Annotation'],
         'consortia': [test_consortium['uuid']],
@@ -79,8 +80,9 @@ def test_software(testapp, test_consortium: Dict[str, Any]) -> None:
     """ Tests that we can post a software item under the overridden type definition """
     testapp.post_json('/Software', {
         'submitter_id': 'SMAHT-DAC_SOFTWARE_TESTING',
+        'name': 'test_software',
         'title': 'test software',
-        'category': ['Aligner'],
+        'category': ['Alignment'],
         'version': '1.0.0',
         'consortia': [test_consortium['uuid']],
     }, status=201)
@@ -116,6 +118,8 @@ def test_meta_workflow(
 ) -> None:
     """ Tests that we can post a workflow under the overridden types definition """
     res = testapp.post_json('/MetaWorkflow', {
+        'category': ['Alignment'],
+        'name': 'testing_123',
         'title': 'test metaworkflow',
         'version': '0.0.1',
         'workflows': [

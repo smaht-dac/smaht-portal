@@ -13,6 +13,7 @@ def workflow_properties(
     return {
         "category": ["Testing"],
         "consortia": [test_consortium["uuid"]],
+        "name": "a_beauty",
         "title": "A beautiful workflow",
     }
 
