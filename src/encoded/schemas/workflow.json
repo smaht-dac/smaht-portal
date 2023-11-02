@@ -79,10 +79,11 @@
                 "type": "string",
                 "enum": [
                     "Alignment",
+                    "Alignment Manipulation",
                     "Annotation",
                     "Format Conversion",
                     "Quality Control",
-                    "Reads Manipulation",
+                    "Read Manipulation",
                     "Testing",
                     "Variant Calling"
                 ]
@@ -191,6 +192,18 @@
                     "title": "CPU",
                     "type": "integer"
                 },
+                "ebs_iops": {
+                    "title": "EBS IOPS",
+                    "description": "EBS input/output operations per second",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "ebs_throughput": {
+                    "title": "EBS Throughput",
+                    "description": "EBS throughput, in MiB/s",
+                    "type": "integer",
+                    "minimum": 0
+                },
                 "ebs_optimized": {
                     "title": "EBS Optimized",
                     "type": "boolean"
@@ -208,7 +221,15 @@
                     "items": {
                         "type": "string",
                         "enum": [
-                            "c5.4xlarge"
+                            "c5.2xlarge",
+                            "c5.4xlarge",
+                            "m5a.2xlarge",
+                            "r4.4xlarge",
+                            "r5.4xlarge",
+                            "r5a.4xlarge",
+                            "r5b.4xlarge",
+                            "r5ad.4xlarge",
+                            "r6i.4xlarge"
                         ]
                     }
                 },

@@ -87,27 +87,35 @@
         "data_category": {
             "title": "Data Category",
             "description": "Category for information in the file",
-            "type": "string",
-            "enum": [
-                "Genome Region",
-                "Reference Genome",
-                "Sequencing Reads",
-                "Variant Calls"
-            ]
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Genome Region",
+                    "Reference Genome",
+                    "Sequencing Reads",
+                    "Variant Calls"
+                ]
+            }
         },
         "data_type": {
             "title": "Data Type",
             "description": "Detailed type of information in the file",
-            "type": "string",
-            "enum": [
-                "Aligned Reads",
-                "Copy Number Variants",
-                "Indels",
-                "Reads Index",
-                "Single Nucleotide Variants",
-                "Structural Variants",
-                "Unaligned Reads"
-            ]
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Aligned Reads",
+                    "Germline Variant Calls",
+                    "Reads Index",
+                    "Somatic Variant Calls",
+                    "Unaligned Reads"
+                ]
+            }
         }
     },
     "facets": {},
