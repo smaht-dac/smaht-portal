@@ -86,7 +86,7 @@
                 "enum": [
                     "Alignment",
                     "Format Conversion",
-                    "Reads Manipulation",
+                    "Read Manipulation",
                     "Quality Control",
                     "Variant Calling"
                 ]

@@ -33,8 +33,8 @@ def submission_center_file(testapp, fastq_format, test_submission_center, test_c
         'md5sum': '00000000000000000000000000000000',
         'filename': 'my.fastq.gz',
         'status': 'in review',
-        'data_category': 'Sequencing Reads',
-        'data_type': 'Unaligned Reads',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
         'submission_centers': [
             test_submission_center['uuid']
         ],
@@ -49,8 +49,8 @@ def consortium_file(testapp, fastq_format, test_consortium):
         'file_format': fastq_format['uuid'],
         'md5sum': '00000000000000000000000000000001',
         'filename': 'my.fastq.gz',
-        'data_category': 'Sequencing Reads',
-        'data_type': 'Unaligned Reads',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
         'status': 'shared',    # this status is important as this will make it viewable by consortium
         'consortia': [
             test_consortium['uuid']

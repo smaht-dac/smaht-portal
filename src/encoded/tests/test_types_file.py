@@ -20,8 +20,8 @@ def output_file(
         "md5sum": "00000000000000000000000000000001",
         "filename": "my.fastq.gz",
         "status": "in review",
-        "data_category": "Sequencing Reads",
-        "data_type": "Unaligned Reads",
+        "data_category": ["Sequencing Reads"],
+        "data_type": ["Unaligned Reads"],
         "consortia": [test_consortium["uuid"]],
     }
     return post_item_and_return_location(testapp, item, "output_file")
