@@ -181,12 +181,13 @@
                 "run_name"
             ],
             "properties": {
-                "behavior_on_capacity": {
-                    "title": "Behavior on Capacity",
+                "behavior_on_capacity_limit": {
+                    "title": "Behavior on Capacity Limit",
                     "type": "string",
                     "enum": [
                         "wait_and_retry"
-                    ]
+                    ],
+					"default": "wait_and_retry"
                 },
                 "cpu": {
                     "title": "CPU",
