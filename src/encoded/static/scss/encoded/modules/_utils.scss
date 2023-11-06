@@ -3,6 +3,10 @@ Assorted Mixins and other SASS utilities for making our lives easier.
 */
 
 
+.underline {
+    text-decoration: underline;
+}
+
 // Mixins
 
 @mixin prefix($prop, $val) {

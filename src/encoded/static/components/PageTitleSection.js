@@ -205,22 +205,22 @@ const StaticPageTitle = React.memo(function StaticPageTitle(props) {
         context['@type'].indexOf('StaticPage') > -1 &&
         context['table-of-contents'] &&
         context['table-of-contents'].enabled;
-    const commonCls = 'col-12' + hasToc ? ' col-lg-9' : '';
+    const commonCls = 'col-12';
     return (
         <PageTitleContainer
             alerts={alerts}
             alertsBelowTitleContainer={true}
-            className="container-wide pb-2 bg-primary"
+            className="container-wide pb-2 static-page-title"
             alertsContainerClassName={'container mt-3'}>
-            <div className="m-auto p-0">
+            <div className="container-wide m-auto p-xl-0">
                 {!breadCrumbsVisible ? (
                     <StaticPageBreadcrumbs
                         {...{ context, session, href }}
                         key="breadcrumbs"
-                        className={commonCls}
+                        className={commonCls + ' mx-0 px-0'}
                     />
                 ) : null}
-                <OnlyTitle className={commonCls}>
+                <OnlyTitle className={commonCls + ' mx-0 px-0'}>
                     {children || context.display_title}
                 </OnlyTitle>
             </div>
