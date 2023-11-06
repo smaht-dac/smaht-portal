@@ -2,9 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import { Tab, Tabs } from 'react-bootstrap';
+import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedItemSearchTable';
 
 export const BenchmarkingUI = (props) => {
     const { children } = props;
+
+    // pass schemas and session to each child
     return (
         <div className="row">
             <div className="d-none d-lg-flex col-lg-2 border-right">
@@ -44,7 +47,7 @@ const BenchmarkingUINav = (props) => {
     );
 };
 
-export const COLO829Data = () => {
+export const COLO829Data = ({ schemas, session, facets }) => {
     return (
         <div>
             <h2>COLO829 Cell Line Data</h2>
@@ -55,7 +58,17 @@ export const COLO829Data = () => {
             </p>
             <Tabs defaultActiveKey="COLO829" id="uncontrolled-tab-example">
                 <Tab eventKey="COLO829" title="COLO829">
-                    One tab
+                    <div className="mt-1">
+                        <EmbeddedItemSearchTable
+                            searchHref="/search/?type=Item"
+                            rowHeight={40}
+                            {...{
+                                schemas,
+                                session,
+                                facets,
+                            }}
+                        />
+                    </div>
                 </Tab>
                 <Tab eventKey="COLO829BL" title="COLO829BL">
                     Two tab

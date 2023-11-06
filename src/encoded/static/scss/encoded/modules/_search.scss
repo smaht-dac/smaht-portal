@@ -13,11 +13,23 @@ $cgap-search-sticky-header-top-offset: 39px;
 $search-results-above-results-row-height: 42px;
 $search-results-edge-background-color: #e2e2e2;
 $search-results-edge-shadow-color : rgba(0,0,0,0.5);
-$search-results-result-row-height: 80px; /* +9px margin bottom +1px border bottom = 90px rowHeight. */
+$search-results-result-row-height: 30px; /* +9px margin bottom +1px border bottom = 90px rowHeight. */
 $search-results-header-row-height: 52px; /* 46px is existing default for both result and header height. */
 @import "./../../../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/search-view-table.scss";
 
 // Extensions to shared-portal-components searchview table(s):
+
+.search-headers-row > .headers-columns-overflow-container > .columns > .search-headers-column-block {
+
+	&[data-first-visible-column] {
+		padding-left: 44px;
+	}
+
+	.inner > .column-title {
+		text-align: left;
+	}
+}
+
 .search-result-row .result-table-row .search-result-column-block {
 
 	.inner {
@@ -85,21 +97,6 @@ $search-results-header-row-height: 52px; /* 46px is existing default for both re
 			> .title-block {
 				white-space: normal; /* Allow to wrap by default (overrides SPC's default white-space: nowrap;) since we have tall-ish rows. */
 			}
-		}
-	}
-
-
-	/* Styling overrides specific to search results of type Case */
-	.search-view-controls-and-results[data-search-item-type="Case"] & {
-
-		&[data-first-visible-column] .inner > .title-block {
-			max-height: none;
-		}
-
-		&[data-field="display_title"] > .inner .multi-field-cell .col-main,
-		&[data-field="individual"] > .inner .multi-field-cell .col-main {
-			/* Uppercase Individual's Identifier */
-			text-transform: uppercase;
 		}
 	}
 	
@@ -173,6 +170,8 @@ $search-results-header-row-height: 52px; /* 46px is existing default for both re
 		}
 	}
 }
+
+
 
 
 
@@ -347,7 +346,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 
 	border-bottom: 1px solid #00000015;
 	box-shadow: 0 1px 5px -2px #0002;
-	margin-bottom: 9px;
+	// margin-bottom: 9px;
 
 	// Re-style result row re: CGAP styling/theming/branding.
 	> .columns.result-table-row > .search-result-column-block > .inner {
