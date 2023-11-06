@@ -12,6 +12,8 @@ import SMaHTTimeline from '../../viz/SMaHTTimeline';
 import Card from 'react-bootstrap/esm/Card';
 // import { Fade } from 'react-bootstrap';
 
+import { HomepageFigure } from '../../viz/HomepageFigure';
+
 const auth0Options = {
     ...navAuth0Options,
     container: 'homepage-login-container',
@@ -30,7 +32,10 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
 
     return (
         <div className="homepage-contents">
-            <div className="container-wide">
+            <div className="container-wide d-flex flex-column justify-content-around">
+                <div id="full-alerts-container">
+                    <Alerts alerts={alerts} className="alerts mt-2" />
+                </div>
                 <div className="row">
                     <div className="col-12">
                         <h1 className="mb-1">
@@ -42,15 +47,12 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                         </h2>
                     </div>
                 </div>
-                <div id="full-alerts-container">
-                    <Alerts alerts={alerts} className="alerts mt-2" />
-                </div>
-                <div className="row my-2">
-                    <div className="col-md-6">
+                <div className="row my-2 flex-column flex-lg-row">
+                    <div className="col-12 col-md-6">
                         <SMaHTTimeline />
                     </div>
-                    <div className="col-md-6 d-flex justify-content-center align-items-center">
-                        Coming Soon!
+                    <div className="col-12 col-lg-6 d-flex justify-content-center align-items-center my-3 my-sm-5 my-lg-2">
+                        <HomepageFigure />
                     </div>
                 </div>
                 <div className="row">
