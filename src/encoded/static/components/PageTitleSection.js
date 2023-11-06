@@ -212,7 +212,7 @@ const StaticPageTitle = React.memo(function StaticPageTitle(props) {
             alertsBelowTitleContainer={true}
             className="container-wide pb-2 bg-primary"
             alertsContainerClassName={'container mt-3'}>
-            <div className="container m-auto p-0">
+            <div className="m-auto p-0">
                 {!breadCrumbsVisible ? (
                     <StaticPageBreadcrumbs
                         {...{ context, session, href }}
