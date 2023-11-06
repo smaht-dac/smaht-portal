@@ -79,7 +79,7 @@ def test_quality_metric(testapp, test_consortium: Dict[str, Any]) -> None:
 def test_software(testapp, test_consortium: Dict[str, Any]) -> None:
     """ Tests that we can post a software item under the overridden type definition """
     testapp.post_json('/Software', {
-        'submitter_id': 'SMAHT-DAC_SOFTWARE_TESTING',
+        'submitted_id': 'SMAHT-DAC_SOFTWARE_TESTING',
         'name': 'test_software',
         'title': 'test software',
         'category': ['Alignment'],
@@ -161,8 +161,8 @@ def test_file_types(testapp: TestApp, test_consortium: Dict[str, Any]) -> None:
         'md5sum': '00000000000000000000000000000001',
         'filename': 'my.fastq.gz',
         'status': 'in review',
-        'data_category': 'Sequencing Reads',
-        'data_type': 'Unaligned Reads',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
         'consortia': [test_consortium['uuid']],
     }
     testapp.post_json('/OutputFile', processed_file, status=201)
@@ -172,8 +172,8 @@ def test_file_types(testapp: TestApp, test_consortium: Dict[str, Any]) -> None:
         'md5sum': '00000000000000000000000000000002',
         'filename': 'my.fastq.gz',
         'status': 'in review',
-        'data_category': 'Sequencing Reads',
-        'data_type': 'Unaligned Reads',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
         'consortia': [test_consortium['uuid']],
     }
     testapp.post_json('/ReferenceFile', reference_file, status=201)

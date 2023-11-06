@@ -1,0 +1,96 @@
+{
+    "title": "Treatment",
+    "$id": "/profiles/treatment.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "agent",
+        "submitted_id"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "TX"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "agent": {
+            "title": "Agent",
+            "description": "Agent in the treatment",
+            "type": "string",
+            "comment": "Will be linkTo appropriate ontology item"
+        },
+        "concentration": {
+            "title": "Concentration",
+            "description": "Concentration of the treatment",
+            "type": "number",
+            "minimum": 0
+        },
+        "concentration_units": {
+            "title": "Concentration Units",
+            "description": "Units for the concentration of the treatment",
+            "type": "string",
+            "enum": [
+                "mg/mL"
+            ]
+        },
+        "duration": {
+            "title": "Duration",
+            "description": "Duration of the treatment (minutes)",
+            "type": "number",
+            "minimum": 0
+        },
+        "temperature": {
+            "title": "Temperature",
+            "description": "Temperature of the treatment (Celsius)",
+            "type": "number"
+        }
+    }
+}

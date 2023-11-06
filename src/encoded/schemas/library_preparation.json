@@ -1,0 +1,186 @@
+{
+    "title": "Library Preparation",
+    "$id": "/profiles/library_preparation.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "submitted_id"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "LP"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "adapter_inclusion_method": {
+            "title": "Adapter Inclusion Method",
+            "description": "Method of library preparation from an analyte",
+            "type": "string",
+            "enum": [
+                "Ligation",
+                "Tagmentation",
+                "Not Applicable"
+            ]
+        },
+        "amplification_method": {
+            "title": "Amplification Method",
+            "description": "Amplification method used to increase library products",
+            "type": "string",
+            "enum": [
+                "PCR",
+                "MALBAC",
+                "PTA",
+                "MDA",
+                "Not Applicable"
+            ]
+        },
+        "assay_name": {
+            "title": "Assay Name",
+            "description": "Name of experimental approach",
+            "type": "string",
+            "enum": [
+                "WGS",
+                "RNA-Seq",
+                "NanoSeq",
+                "CODEC",
+                "Duplex",
+                "FiberSeq",
+                "ATAC-Seq",
+                "ScRNA-Seq",
+                "DLP+",
+                "MAS-Seq",
+                "STORM-Seq"
+            ]
+        },
+        "fragmentation_method": {
+            "title": "Fragmentation Method",
+            "description": "Method used for nucleotide fragmentation",
+            "type": "string",
+            "enum": [
+                "Sonication",
+                "Restriction Enzyme",
+                "Transposase",
+                "Not Applicable"
+            ]
+        },
+        "insert_selection_method": {
+            "title": "Insert Selection Method",
+            "description": "Method for selecting inserts included in library",
+            "type": "string",
+            "enum": [
+                "Affinity Enrichment",
+                "Hybrid Selection",
+                "PCR",
+                "PolyT Enrichment",
+                "RRNA Depletion",
+                "Not applicable"
+            ]
+        },
+        "size_selection_method": {
+            "title": "Size Selection Method",
+            "description": "Method for selecting fragment sizes",
+            "type": "string",
+            "enum": [
+                "Gel Electrophoresis",
+                "Magnetic Beads",
+                "Not Applicable"
+            ]
+        },
+        "strand": {
+            "title": "Strand",
+            "description": "Library stranded-ness",
+            "type": "string",
+            "enum": [
+                "Unstranded",
+                "First Stranded",
+                "Second Stranded",
+                "Not Applicable"
+            ]
+        },
+        "target_fragment_length": {
+            "title": "Target Fragment Length",
+            "description": "Desired fragment length for the library",
+            "type": "integer"
+        },
+        "target_insert_length": {
+            "title": "Target Insert Length",
+            "description": "Desired insert length for the library",
+            "type": "integer"
+        },
+        "trim_adapter_sequence": {
+            "title": "Trim Adapter Sequence",
+            "description": "Whether trimming adapter sequence is recommended",
+            "type": "boolean"
+        },
+        "preparation_kits": {
+            "title": "Preparation Kits",
+            "description": "Links to associated preparation kits",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "PreparationKit"
+            }
+        },
+        "treatments": {
+            "title": "Treatments",
+            "description": "Link to associated treatments performed during library preparation",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Treatment"
+            }
+        }
+    }
+}

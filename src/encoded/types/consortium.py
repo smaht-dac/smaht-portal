@@ -4,11 +4,11 @@ from .base import Item as SMAHTItem
 
 
 @collection(
-    name='consortium',
+    name='consortia',
     unique_key='consortium:identifier',  # For shorthand reference as linkTo
     properties={
-        'title': 'Consortium',
-        'description': 'Listing of SMaHT associated Consortiums',
+        'title': 'Consortia',
+        'description': 'Listing of SMaHT associated Consortia',
     }
 )
 class Consortium(SMAHTItem):

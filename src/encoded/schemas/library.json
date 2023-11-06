@@ -1,0 +1,198 @@
+{
+    "title": "Library",
+    "$id": "/profiles/library.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "analyte",
+        "submitted_id"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "oneOf": [
+        {
+            "required": [
+                "protocol"
+            ]
+        },
+        {
+            "required": [
+                "library_preparation"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "LI"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "a260_a280_ratio": {
+            "title": "A260 A280 Ratio",
+            "description": "Ratio of nucleic acid absorbance at 260 nm and 280 nm, used to determine a measure of DNA purity",
+            "type": "number",
+            "minimum": 0
+        },
+        "adapter_name": {
+            "title": "Adapter Name",
+            "description": "Name of sequencing adapter",
+            "type": "string"
+        },
+        "adapter_sequence": {
+            "title": "Adapter Sequence",
+            "description": "Base sequence of sequencing adapter",
+            "type": "string"
+        },
+        "amplification_cycles": {
+            "title": "Amplification Cycles",
+            "description": "Number of PCR Cycles used for additional amplification",
+            "type": "integer",
+            "minimum": 0
+        },
+        "amplification_end_mass": {
+            "title": "Amplification End Mass",
+            "description": "Weight of analyte after PCR (ng)",
+            "type": "number",
+            "minimum": 0
+        },
+        "amplification_start_mass": {
+            "title": "Amplification Start Mass",
+            "description": "Weight of analyte prior to PCR (ng)",
+            "type": "number",
+            "minimum": 0
+        },
+        "analyte_weight": {
+            "title": "Analyte Weight",
+            "description": "Weight of analyte used to prepare library (mg)",
+            "type": "number",
+            "minimum": 0
+        },
+        "barcode_sequences": {
+            "title": "Barcode Sequences",
+            "description": "Barcode sequence for multiplexed sequencing",
+            "type": "string"
+        },
+        "fragment_maximum_length": {
+            "title": "Fragment Maximum Length",
+            "description": "Maximum length of the sequenced fragments (e.g., as predicted by Agilent Bioanalyzer)",
+            "type": "integer",
+            "minimum": 0
+        },
+        "fragment_mean_length": {
+            "title": "Fragment Mean Length",
+            "description": "Mean length of the sequenced fragments (e.g., as predicted by Agilent Bioanalyzer)",
+            "type": "number",
+            "minimum": 0
+        },
+        "fragment_minimum_length": {
+            "title": "Fragment Minimum Length",
+            "description": "Minimum length of the sequenced fragments (e.g., as predicted by Agilent Bioanalyzer)",
+            "type": "integer",
+            "minimum": 0
+        },
+        "fragment_standard_deviation_length": {
+            "title": "Fragment Standard Deviation Length",
+            "description": "Standard deviation of length of the sequenced fragments (e.g., as predicted by Agilent Bioanalyzer)",
+            "type": "number",
+            "minimum": 0
+        },
+        "insert_maximum_length": {
+            "title": "Insert Maximum Length",
+            "description": "Maximum length of the sample molecule in the fragments to be sequenced",
+            "type": "integer",
+            "minimum": 0
+        },
+        "insert_mean_length": {
+            "title": "Insert Mean Length",
+            "description": "Mean length of the sample molecule in the fragments to be sequenced",
+            "type": "number",
+            "minimum": 0
+        },
+        "insert_minimum_length": {
+            "title": "Insert Minimum Length",
+            "description": "Minimum length of the sample molecule in the fragments to be sequenced",
+            "type": "integer",
+            "minimum": 0
+        },
+        "insert_standard_deviation_length": {
+            "title": "Insert Standard Deviation Length",
+            "description": "Standard deviation of the length of the sample molecule in the fragments to be sequenced",
+            "type": "number",
+            "minimum": 0
+        },
+        "name": {
+            "title": "Name",
+            "description": "Library identifier used during sequencing",
+            "type": "string"
+        },
+        "preparation_date": {
+            "title": "Preparation Date",
+            "description": "Date of library preparation",
+            "type": "string"
+        },
+        "analyte": {
+            "title": "Analyte",
+            "description": "Link to associated analyte",
+            "type": "string",
+            "linkTo": "Analyte"
+        },
+        "library_preparation": {
+            "title": "Library Preparation",
+            "description": "Link to associated library preparation",
+            "type": "string",
+            "linkTo": "LibraryPreparation"
+        },
+        "protocol": {
+            "title": "Protocol",
+            "description": "Link to associated protocol",
+            "type": "string",
+            "linkTo": "Protocol"
+        }
+    }
+}

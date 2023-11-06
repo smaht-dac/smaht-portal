@@ -1,0 +1,84 @@
+{
+    "title": "Preparation Kit",
+    "$id": "/profiles/preparation_kit.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "submitted_id",
+        "title",
+        "vendor"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/title"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "PK"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "catalog_number": {
+            "title": "Catalog Number",
+            "description": "Catalog number of preparation kit",
+            "type": "string"
+        },
+        "vendor": {
+            "title": "Vendor",
+            "description": "Vendor of preparation kit",
+            "type": "string"
+        },
+        "version": {
+            "title": "Version",
+            "description": "Version of preparation kit",
+            "type": "string"
+        }
+    }
+}

@@ -1,0 +1,142 @@
+{
+    "title": "Sequencing",
+    "$id": "/profiles/sequencing.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "submitted_id"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "SQ"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "category": {
+            "title": "Category",
+            "description": "Overall sequencing method type",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Short Read WGS",
+                    "Long Read WGS",
+                    "HiFi Long Read WGS",
+                    "UltraLong Long Read WGS",
+                    "RNA-Seq"
+                ]
+            }
+        },
+        "instrument_model": {
+            "title": "Instrument Model",
+            "description": "Model of instrument used to obtain data",
+            "type": "string",
+            "enum": [
+                "Illumina NovaSeq",
+                "Illumina NovaSeq X",
+                "Illumina NovaSeq X Plus",
+                "Illumina NovaSeq 6000",
+                "PacBio Revio",
+                "Oxford Nanopore PromethION",
+                "Ultima Genomics UG100",
+                "10X Genomics Xenium",
+                "Ultralong Oxford Nanopore Promethion R10"
+            ]
+        },
+        "platform": {
+            "title": "Platform",
+            "description": "Name of the platform used to obtain data",
+            "type": "string",
+            "enum": [
+                "Illumina",
+                "PacBio",
+                "Ultima",
+                "ONT",
+                "10X Genomics"
+            ]
+        },
+        "read_type": {
+            "title": "Read Type",
+            "description": "Type of reads obtained from sequencing",
+            "type": "string",
+            "enum": [
+                "Not Applicable",
+                "Paired-end",
+                "Single-end"
+            ]
+        },
+        "target_coverage": {
+            "title": "Target Coverage",
+            "description": "Expected coverage for the sequencing",
+            "type": "number",
+            "minimum": 0
+        },
+        "target_read_count": {
+            "title": "Target Read Count",
+            "description": "Expected read count for the sequencing",
+            "type": "integer"
+        },
+        "target_read_length": {
+            "title": "Target Read Length",
+            "description": "Expected read length for the sequencing",
+            "type": "integer",
+            "minimum": 0
+        },
+        "protocol": {
+            "title": "Protocol",
+            "description": "Links to associated protocol",
+            "type": "string",
+            "linkTo": "Protocol"
+        }
+    }
+}

@@ -1,0 +1,114 @@
+{
+    "title": "Unaligned Reads",
+    "$id": "/profiles/unaligned_reads.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "data_category",
+        "data_type",
+        "file_format",
+        "file_name",
+        "file_sets",
+        "submitted_id"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "file.json#/properties"
+        },
+        {
+            "$ref": "submitted_file.json#/properties"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "UR"
+        },
+        "data_category": {
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Sequencing Reads"
+                ]
+            }
+        },
+        "data_type": {
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Unaligned Reads"
+                ]
+            }
+        },
+        "file_format": {
+            "enum": [
+                "BAM",
+                "CRAM",
+                "FASTQ"
+            ]
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "paired_with": {
+            "description": "Link to associated paired-end file, if applicable",
+            "type": "string"
+        },
+        "read_pair_number": {
+            "description": "Read pair number, if paired-end",
+            "type": "string",
+            "enum": [
+                "R1",
+                "R2",
+                "Not Applicable"
+            ]
+        }
+    }
+}

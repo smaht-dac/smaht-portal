@@ -19,17 +19,22 @@ def pluralize(name):
     """ This is a special function used to pluralize in a somewhat random way, but kept for legacy reasons... """
     name = name.replace("_", "-")
     # deal with a few special cases explicitly
-    specials = ["consortium", "software"]
-    for sp in specials:
-        if name == "consortium":  # special case for consortium
-            return name
-        elif name == "software":
-            return name
-    # otherwise just add 's/es/ies'
-    if name.endswith("ly"):
+    specials = [
+        "aligned-reads",
+        "death-circumstances",
+        "sequencing",
+        "software",
+        "unaligned-reads",
+        "variant-calls",
+    ]
+    if name in specials:
+        return name
+    if name.endswith("ry") or name.endswith("gy"):
         return name[:-1] + "ies"
     if name.endswith("sis"):
         return name[:-2] + "es"
+    if name.endswith("ium"):
+        return name[:-2] + "a"
     if name.endswith("s"):
         return name + "es"
     return name + "s"
@@ -75,6 +80,9 @@ def test_load_schema(schema, master_mixins, registry, testapp):
     abstract = [
         'file.json',
         'user_content.json',
+        'preparation.json',
+        'sample.json',
+        'subject.json',
         'submitted_file.json',
     ]
 
@@ -117,7 +125,6 @@ def test_load_schema(schema, master_mixins, registry, testapp):
             shared_properties = [
                 'uuid',
                 'schema_version',
-                'aliases',
                 'date_created',
                 'submitted_by',
                 'last_modified',

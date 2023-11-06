@@ -86,7 +86,7 @@
                 "enum": [
                     "Alignment",
                     "Format Conversion",
-                    "Reads Manipulation",
+                    "Read Manipulation",
                     "Quality Control",
                     "Variant Calling"
                 ]
@@ -134,18 +134,6 @@
                             "required": [
                                 "argument_name",
                                 "argument_type"
-                            ],
-                            "oneOf": [
-                                {
-                                    "required": [
-                                        "value"
-                                    ]
-                                },
-                                {
-                                    "required": [
-                                        "value_type"
-                                    ]
-                                }
                             ],
                             "properties": {
                                 "argument_name": {
@@ -270,7 +258,32 @@
                 "description": "Individual global input argument of the MetaWorkflow",
                 "type": "object",
                 "additionalProperties": false,
-                "required": [],
+                "required": [
+                    "argument_name",
+                    "argument_type"
+                ],
+                "anyOf": [
+                    {
+                        "required": [
+                            "value"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "value_type"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "files"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "dimensionality"
+                        ]
+                    }
+                ],
                 "properties": {
                     "argument_name": {
                         "title": "Argument Name",
@@ -280,7 +293,11 @@
                     "argument_type": {
                         "title": "Argument Type",
                         "description": "Name of the workflow, unique within the meta workflow",
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "file",
+                            "parameter"
+                        ]
                     },
                     "value": {
                         "title": "Value",
