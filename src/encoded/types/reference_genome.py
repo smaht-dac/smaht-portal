@@ -4,11 +4,13 @@ from .base import Item as SMAHTItem
 
 
 @collection(
-    name="",
+    name="reference-genomes",
+    unique_key="reference_genome:identifier",
     properties={
-        "title": "",
-        "description": "Listing of ",
+        "title": "Reference Genomes",
+        "description": "Assembled genomes for sequencing alignment",
     })
-class A(SMAHTItem):
-    item_type = ""
-    schema = load_schema("encoded:schemas/.json")
+class ReferenceGenome(SMAHTItem):
+    item_type = "reference_genome"
+    schema = load_schema("encoded:schemas/reference_genome.json")
+    embedded_list = []

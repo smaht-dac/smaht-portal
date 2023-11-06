@@ -1,9 +1,14 @@
 {
-    "title": "",
-    "$id": "/profiles/.json",
+    "title": "Analyte",
+    "$id": "/profiles/analyte.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": [],
+    "required": [
+        "components",
+        "molecule",
+        "samples",
+        "submitter_id"
+    ],
     "anyOf": [
         {
             "required": [
@@ -16,9 +21,25 @@
             ]
         }
     ],
+    "oneOf": [
+        {
+            "required": [
+                "protocols"
+            ]
+        },
+        {
+            "required": [
+                "analyte_preparation"
+            ]
+        }
+    ],
+    "dependent_required": {
+        "rna_integrity_number": [
+            "rna_integrity_number_instrument"
+        ]
+    },
     "identifyingProperties": [
         "accession",
-        "aliases",
         "submitter_id",
         "uuid"
     ],
@@ -26,9 +47,6 @@
     "mixinProperties": [
         {
             "$ref": "mixins.json#/accession"
-        },
-        {
-            "$ref": "mixins.json#/aliases"
         },
         {
             "$ref": "mixins.json#/attribution"
@@ -56,11 +74,122 @@
         }
     ],
     "properties": {
+        "accession": {
+            "accessionType": "AN"
+        },
         "schema_version": {
             "default": "1"
         },
-        "accession": {
-            "accessionType": ""
+        "a260_a280_ratio": {
+            "title": "A260/A280 Ratio",
+            "description": "Ratio of nucleic acid absorbance at 260 nm and 280 nm, used to determine a measure of DNA purity",
+            "type": "number",
+            "minimum": 0
+        },
+        "components": {
+            "title": "Components",
+            "description": "Biological features included in the analyte",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Total DNA",
+                    "mRNA",
+                    "tRNA",
+                    "rRNA",
+                    "MicroRNA",
+                    "Total RNA"
+                ]
+            }
+        },
+        "concentration": {
+            "title": "Concentration",
+            "description": "Analyte concentration (mg/mL)",
+            "type": "number",
+            "minimum": 0
+        },
+        "molecule": {
+            "title": "Molecule",
+            "description": "Molecule of interest for the analyte",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "DNA",
+                    "RNA"
+                ]
+            }
+        },
+        "ribosomal_rna_ratio": {
+            "title": "Ribosomal RNA Ratio",
+            "description": "The 28S/18S ribosomal RNA band ratio used to assess the quality of total RNA",
+            "type": "number",
+            "minimum": 0
+        },
+        "rna_integrity_number": {
+            "title": "RNA Integrity Number",
+            "description": "Assessment of the integrity of RNA based on electrophoresis",
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10
+        },
+        "rna_integrity_number_instrument": {
+            "title": "RIN Instrument",
+            "description": "Instrument used for RIN assessment",
+            "type": "string",
+            "enum": [
+                "Agilent Bioanalyzer",
+                "Caliper Life Sciences LabChip GX"
+            ]
+        },
+        "sample_quanitity": {
+            "title": "Sample Quantity",
+            "description": "The amount of sample used to generate the analyte (mg)",
+            "type": "number",
+            "minimum": 0
+        },
+        "volume": {
+            "title": "Volume",
+            "description": "Analyte volume (mL)",
+            "type": "number",
+            "minimum": 0
+        },
+        "weight": {
+            "title": "Weight",
+            "description": "Analyte weight (mg)",
+            "type": "number",
+            "minimum": 0
+        },
+        "analyte_preparation": {
+            "description": "Link to associated analyte preparation",
+            "type": "string",
+            "linkTo": "AnalytePreparation"
+        },
+        "protocols": {
+            "title": "Protocols",
+            "description": "Link to associated protocols",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Protocol"
+            }
+        },
+        "samples": {
+            "title": "Samples",
+            "description": "Link to associated samples",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Sample"
+            }
         }
     }
 }

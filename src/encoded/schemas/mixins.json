@@ -318,16 +318,14 @@
             "linkTo": "OntologyTerm"
         }
     },
-    "processed_files": {
-        "processed_files": {
-            "title": "Processed Files",
-            "description": "Processed files from bioinformatics pipelines",
-            "type": "array",
-            "items": {
-                "title": "Processed File",
-                "type": "string",
-                "linkTo": "FileProcessed"
-            }
+    "reference_genome": {
+        "reference_genome": {
+            "description": "Reference genome used for alignment",
+            "type": "string",
+            "enum": [
+                "TBD"
+            ],
+	    "linkTo": "ReferenceGenome"
         }
     },
     "schema_version": {
@@ -437,19 +435,6 @@
             "linkTo": "User",
             "serverDefault": "userid",
             "permission": "restricted_fields"
-        }
-    },
-    "submitted_files": {
-        "files": {
-            "title": "Submitted Files",
-            "description": "Submitted files associated with the item",
-            "type": "array",
-            "items": {
-                "title": "Submitted File",
-                "description": "File metadata.",
-                "type": "string",
-                "linkTo": "File"
-            }
         }
     },
     "submitter_id": {

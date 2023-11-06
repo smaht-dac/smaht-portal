@@ -1,9 +1,12 @@
 {
-    "title": "",
-    "$id": "/profiles/.json",
+    "title": "Cell Sample",
+    "$id": "/profiles/cell_sample.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": [],
+    "required": [
+        "cell_ontology_id",
+        "submitter_id"
+    ],
     "anyOf": [
         {
             "required": [
@@ -18,7 +21,6 @@
     ],
     "identifyingProperties": [
         "accession",
-        "aliases",
         "submitter_id",
         "uuid"
     ],
@@ -26,9 +28,6 @@
     "mixinProperties": [
         {
             "$ref": "mixins.json#/accession"
-        },
-        {
-            "$ref": "mixins.json#/aliases"
         },
         {
             "$ref": "mixins.json#/attribution"
@@ -53,14 +52,23 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "sample.json#/properties"
         }
     ],
     "properties": {
+        "accession": {
+            "accessionType": "CS"
+        },
         "schema_version": {
             "default": "1"
         },
-        "accession": {
-            "accessionType": ""
+        "cell_ontology_id": {
+            "title": "Cell Ontology ID",
+            "description": "Cell Ontology identifier for the cell sample",
+            "type": "string",
+            "pattern": "^CL:[0-9]{7}$"
         }
     }
 }

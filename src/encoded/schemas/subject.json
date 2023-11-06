@@ -3,7 +3,9 @@
     "$id": "/profiles/.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": [],
+    "required": [
+	    "submitter_id"
+    ],
     "anyOf": [
         {
             "required": [
@@ -18,7 +20,6 @@
     ],
     "identifyingProperties": [
         "accession",
-        "aliases",
         "submitter_id",
         "uuid"
     ],
@@ -26,9 +27,6 @@
     "mixinProperties": [
         {
             "$ref": "mixins.json#/accession"
-        },
-        {
-            "$ref": "mixins.json#/aliases"
         },
         {
             "$ref": "mixins.json#/attribution"
@@ -56,11 +54,11 @@
         }
     ],
     "properties": {
+        "accession": {
+            "accessionType": "SU"
+        },
         "schema_version": {
             "default": "1"
-        },
-        "accession": {
-            "accessionType": ""
         }
     }
 }

@@ -1,14 +1,15 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .submitted_file import SubmittedFile
 
 
 @collection(
-    name="",
+    name="variant-calls",
     properties={
-        "title": "",
-        "description": "Listing of ",
+        "title": "Variant Calls",
+        "description": "Files containing variant calls",
     })
-class A(SMAHTItem):
-    item_type = ""
-    schema = load_schema("encoded:schemas/.json")
+class VariantCalls(SubmittedFile):
+    item_type = "variant_calls"
+    schema = load_schema("encoded:schemas/variant_calls.json")
+    embedded_list = []

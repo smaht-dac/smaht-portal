@@ -1,14 +1,16 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .submitted_file import SubmittedFile
 
 
 @collection(
-    name="",
+    name="unaligned-reads",
+    unique_key="unaligned_reads:submitted_id",
     properties={
-        "title": "",
-        "description": "Listing of ",
+        "title": "Unaligned Reads",
+        "description": "Files containing unaligned sequencing reads",
     })
-class A(SMAHTItem):
-    item_type = ""
-    schema = load_schema("encoded:schemas/.json")
+class UnalignedReads(SubmittedFile):
+    item_type = "unaligned_reads"
+    schema = load_schema("encoded:schemas/unaligned_reads.json")
+    embedded_list = []

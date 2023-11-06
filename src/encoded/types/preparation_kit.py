@@ -4,11 +4,13 @@ from .base import Item as SMAHTItem
 
 
 @collection(
-    name="",
+    name="Preparation Kit",
+    unique_key="preparation_kit:submitted_id",
     properties={
-        "title": "",
-        "description": "Listing of ",
+        "title": "Preparation Kits",
+        "description": "Kits used in processing biological material",
     })
-class A(SMAHTItem):
-    item_type = ""
-    schema = load_schema("encoded:schemas/.json")
+class PreparationKit(SMAHTItem):
+    item_type = "preparation_kit"
+    schema = load_schema("encoded:schemas/preparation_kit.json")
+    embedded_list = []

@@ -1,14 +1,16 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .prepartion import Preparation
 
 
 @collection(
-    name="",
+    name="library-preparations",
+    unique_key="library_preparation:submitted_id",
     properties={
-        "title": "",
-        "description": "Listing of ",
+        "title": "Library Preparations",
+        "description": "Data on library preparation methods",
     })
-class A(SMAHTItem):
-    item_type = ""
-    schema = load_schema("encoded:schemas/.json")
+class LibraryPreparation(Preparation):
+    item_type = "library_preparation"
+    schema = load_schema("encoded:schemas/library_preparation.json")
+    embedded_list = []

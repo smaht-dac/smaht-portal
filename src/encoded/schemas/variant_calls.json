@@ -1,9 +1,17 @@
 {
-    "title": "",
-    "$id": "/profiles/.json",
+    "title": "Variant Calls",
+    "$id": "/profiles/variant_calls.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": [],
+    "required": [
+        "data_category",
+        "data_type",
+        "file_format",
+        "file_name",
+        "file_sets",
+        "submitter_id",
+        "variant_types"
+    ],
     "anyOf": [
         {
             "required": [
@@ -18,7 +26,6 @@
     ],
     "identifyingProperties": [
         "accession",
-        "aliases",
         "submitter_id",
         "uuid"
     ],
@@ -26,9 +33,6 @@
     "mixinProperties": [
         {
             "$ref": "mixins.json#/accession"
-        },
-        {
-            "$ref": "mixins.json#/aliases"
         },
         {
             "$ref": "mixins.json#/attribution"
@@ -53,14 +57,45 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "submitted_file.json#/properties"
         }
     ],
     "properties": {
+        "accession": {
+            "accessionType": "VC"
+        },
+        "data_category": {
+            "enum": [
+                "Variant Calls"
+            ]
+        },
+        "data_type": {
+            "enum": [
+                "Germline Variants",
+                "Somatic Variants"
+            ]
+        },
         "schema_version": {
             "default": "1"
         },
-        "accession": {
-            "accessionType": ""
+        "variant_types": {
+            "title": "Variant Types",
+            "description": "Variant types included in the file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Copy Number Variant",
+                    "Indel",
+                    "Simple Nucleotide Variant",
+                    "Structural Variant",
+                    "Transposable Element Insertion"
+                ]
+            }
         }
     }
 }

@@ -1,9 +1,16 @@
 {
-    "title": "",
-    "$id": "/profiles/.json",
+    "title": "Aligned Reads",
+    "$id": "/profiles/aligned_reads.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": [],
+    "required": [
+        "data_category",
+        "data_type",
+        "file_format",
+        "file_name",
+        "file_sets",
+        "submitter_id"
+    ],
     "anyOf": [
         {
             "required": [
@@ -18,7 +25,6 @@
     ],
     "identifyingProperties": [
         "accession",
-        "aliases",
         "submitter_id",
         "uuid"
     ],
@@ -28,13 +34,16 @@
             "$ref": "mixins.json#/accession"
         },
         {
-            "$ref": "mixins.json#/aliases"
-        },
-        {
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/description"
+        },
+        {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/reference_genome"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -53,14 +62,33 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "submitted_file.json#/properties"
         }
     ],
     "properties": {
+        "accession": {
+            "accessionType": "AR"
+        },
+        "data_category": {
+            "enum": [
+                "Sequencing Reads"
+            ]
+        },
+        "data_type": {
+            "enum": [
+                "Aligned Reads"
+            ]
+        },
+        "file_format": {
+            "enum": [
+                "BAM",
+                "CRAM"
+            ]
+        },
         "schema_version": {
             "default": "1"
-        },
-        "accession": {
-            "accessionType": ""
         }
     }
 }

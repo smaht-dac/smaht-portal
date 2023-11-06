@@ -4,11 +4,13 @@ from .base import Item as SMAHTItem
 
 
 @collection(
-    name="",
+    name="libraries",
+    unique_key="library:submitted_id",
     properties={
-        "title": "",
-        "description": "Listing of ",
+        "title": "Libraries",
+        "description": "Sequencing libraries",
     })
-class A(SMAHTItem):
-    item_type = ""
-    schema = load_schema("encoded:schemas/.json")
+class Library(SMAHTItem):
+    item_type = "library"
+    schema = load_schema("encoded:schemas/library.json")
+    embedded_list = []

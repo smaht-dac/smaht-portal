@@ -4,11 +4,13 @@ from .base import Item as SMAHTItem
 
 
 @collection(
-    name="",
+    name="cell-samples",
+    unique_key="cell_sample:submitted_id",
     properties={
-        "title": "",
-        "description": "Listing of ",
+        "title": "Cell Samples",
+        "description": "Samples consisting of isolated cells",
     })
-class A(SMAHTItem):
-    item_type = ""
-    schema = load_schema("encoded:schemas/.json")
+class CellSample(SMAHTItem):
+    item_type = "cell_sample"
+    schema = load_schema("encoded:schemas/cell_sample.json")
+    embedded_list = []

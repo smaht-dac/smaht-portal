@@ -1,14 +1,16 @@
-from snovault import collection, load_schema
+from snovault import abstract_collection, load_schema
 
 from .base import Item as SMAHTItem
 
 
-@collection(
-    name="",
+@abstract_collection(
+    name="preparation",
     properties={
-        "title": "",
-        "description": "Listing of ",
-    })
-class A(SMAHTItem):
-    item_type = ""
-    schema = load_schema("encoded:schemas/.json")
+        "title": "Preparation",
+        "description": "Data on methods used to process a biological entity",
+    },
+)
+class Preparation(SMAHTItem):
+    item_type = "preparation"
+    schema = load_schema("encoded:schemas/preparation.json")
+	embedded_list = []

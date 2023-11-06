@@ -1,9 +1,13 @@
 {
-    "title": "",
-    "$id": "/profiles/.json",
+    "title": "Donor",
+    "$id": "/profiles/donor.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": [],
+    "required": [
+        "age",
+        "sex",
+        "submitter_id"
+    ],
     "anyOf": [
         {
             "required": [
@@ -18,7 +22,6 @@
     ],
     "identifyingProperties": [
         "accession",
-        "aliases",
         "submitter_id",
         "uuid"
     ],
@@ -26,9 +29,6 @@
     "mixinProperties": [
         {
             "$ref": "mixins.json#/accession"
-        },
-        {
-            "$ref": "mixins.json#/aliases"
         },
         {
             "$ref": "mixins.json#/attribution"
@@ -56,11 +56,45 @@
         }
     ],
     "properties": {
+        "accession": {
+            "accessionType": "DO"
+        },
         "schema_version": {
             "default": "1"
         },
-        "accession": {
-            "accessionType": ""
+        "age": {
+            "title": "Age",
+            "description": "Age of the donor in years",
+            "type": "integer",
+            "minimum": 0
+        },
+        "body_mass_index": {
+            "title": "Body Mass Index",
+            "description": "Body mass index of the donor (m/kg^2)",
+            "type": "number",
+            "minimum": 0
+        },
+        "height": {
+            "title": "Height",
+            "description": "Height of the donor in meters",
+            "type": "number",
+            "minimum": 0
+        },
+        "sex": {
+            "title": "Sex",
+            "description": "Sex of the donor",
+            "type": "string",
+            "enum": [
+                "Male",
+                "Female",
+                "Unknown"
+            ]
+        },
+        "weight": {
+            "title": "Weight",
+            "description": "Weight of the donor in kilograms",
+            "type": "number",
+            "minimum": 0
         }
     }
 }

@@ -9,7 +9,8 @@
         "data_type",
         "file_format",
         "file_name",
-		"submitter_id"
+        "file_sets",
+        "submitter_id"
     ],
     "anyOf": [
         {
@@ -25,7 +26,6 @@
     ],
     "identifyingProperties": [
         "accession",
-        "aliases",
         "submitter_id",
         "uuid"
     ],
@@ -35,16 +35,10 @@
             "$ref": "mixins.json#/accession"
         },
         {
-            "$ref": "mixins.json#/aliases"
-        },
-        {
             "$ref": "mixins.json#/attribution"
         },
         {
             "$ref": "mixins.json#/description"
-        },
-        {
-            "$ref": "mixins.json#/identifier"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -85,11 +79,44 @@
         "schema_version": {
             "default": "1"
         },
+        "derived_from": {
+            "title": "Derived From",
+            "description": "Files used as input to create this file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "SubmittedFile"
+            }
+        },
         "file_name": {
             "title": "File Name",
             "description": "The local file name used at time of submission",
             "type": "string",
             "pattern": "^[\\w+=,.@-]*$"
+        },
+        "file_sets": {
+            "title": "File Sets",
+            "description": "File collections associated with this file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "FileSet"
+            }
+        },
+        "software": {
+            "title": "Software",
+            "description": "Software used to create this file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Software"
+            }
         }
     }
 }

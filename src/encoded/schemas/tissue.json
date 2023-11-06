@@ -1,9 +1,13 @@
 {
-    "title": "",
-    "$id": "/profiles/.json",
+    "title": "Tissue",
+    "$id": "/profiles/tissue.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": [],
+    "required": [
+        "donor",
+        "submitter_id",
+        "uberon_id"
+    ],
     "anyOf": [
         {
             "required": [
@@ -18,7 +22,6 @@
     ],
     "identifyingProperties": [
         "accession",
-        "aliases",
         "submitter_id",
         "uuid"
     ],
@@ -26,9 +29,6 @@
     "mixinProperties": [
         {
             "$ref": "mixins.json#/accession"
-        },
-        {
-            "$ref": "mixins.json#/aliases"
         },
         {
             "$ref": "mixins.json#/attribution"
@@ -56,11 +56,99 @@
         }
     ],
     "properties": {
+        "accession": {
+            "accessionType": "TI"
+        },
         "schema_version": {
             "default": "1"
         },
-        "accession": {
-            "accessionType": ""
+        "ischemic_time": {
+            "title": "Ischemic Time",
+            "description": "Time interval of ischemia in minutes",
+            "type": "integer",
+            "minimum": 0
+        },
+        "pathology_notes": {
+            "title": "Pathology Notes",
+            "description": "Notes from pathologist report on the tissue",
+            "type": "string"
+        },
+        "ph": {
+            "title": "pH",
+            "description": "pH of the tissue",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 14
+        },
+        "preservation_time_interval": {
+            "title": "Preservation Time Interval",
+            "description": "Time interval from beginning of tissue recovery until placed in preservation media in minutes",
+            "type": "integer",
+            "minimum": 0
+        },
+        "prosector_notes": {
+            "title": "Prosector Notes",
+            "description": "Notes from prosector report on the tissue recovery",
+            "type": "string"
+        },
+        "recovery_datetime": {
+            "title": "Recovery Datetime",
+            "description": "Date and time of tissue recovery",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "recovery_interval": {
+            "title": "Recovery Interval",
+            "description": "Total time interval of tissue recovery in minutes",
+            "type": "integer",
+            "minimum": 0
+        },
+        "samples_recovered": {
+            "title": "Samples Recovered",
+            "description": "Number of discrete samples recovered from the tissue",
+            "type": "integer",
+            "minimum": 0
+        },
+        "size": {
+            "title": "Size",
+            "description": "Size of the tissue in cubic centimeters",
+            "type": "number",
+            "minimum": 0
+        },
+        "submitted_id": {
+            "title": "Submitted Id",
+            "description": "Unique, submitted identifier",
+            "type": "string"
+        },
+        "uberon_id": {
+            "title": "Uberon Id",
+            "description": "Uberon identifier for the tissue",
+            "type": "string",
+            "pattern": "^UBERON:[0-9]{7}$"
+        },
+        "volume": {
+            "title": "Volume",
+            "description": "Volume of the tissue in milliliters",
+            "type": "number",
+            "minimum": 0
+        },
+        "weight": {
+            "title": "Weight",
+            "description": "Weight of the tissue in grams",
+            "type": "number",
+            "minimum": 0
+        },
+        "donor": {
+            "title": "Donor",
+            "description": "Link to the associated donor",
+            "type": "string"
         }
     }
 }

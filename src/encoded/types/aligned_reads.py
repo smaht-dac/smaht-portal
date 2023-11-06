@@ -1,14 +1,16 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .submitted_file import SubmittedFile
 
 
 @collection(
-    name="",
+    name="aligned-reads",
+    unique_key="aligned_reads:submitted_id",
     properties={
-        "title": "",
-        "description": "Listing of ",
+        "title": "Aligned Reads",
+        "description": "Files containing sequencing reads aligned to a reference genome",
     })
-class A(SMAHTItem):
-    item_type = ""
-    schema = load_schema("encoded:schemas/.json")
+class AlignedReads(SubmittedFile):
+    item_type = "aligned_reads"
+    schema = load_schema("encoded:schemas/aligned_reads.json")
+    embedded_list = []

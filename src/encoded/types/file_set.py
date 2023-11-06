@@ -4,11 +4,13 @@ from .base import Item as SMAHTItem
 
 
 @collection(
-    name="",
+    name="file-sets",
+    unique_key="file_set:submitted_id",
     properties={
-        "title": "",
-        "description": "Listing of ",
+        "title": "File Sets",
+        "description": "Collections of related files",
     })
-class A(SMAHTItem):
-    item_type = ""
-    schema = load_schema("encoded:schemas/.json")
+class FileSet(SMAHTItem):
+    item_type = "file_set"
+    schema = load_schema("encoded:schemas/file_set.json")
+    embedded_list = []

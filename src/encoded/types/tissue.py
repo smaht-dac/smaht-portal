@@ -1,14 +1,16 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .sample import Sample
 
 
 @collection(
-    name="",
+    name="tissues",
+    unique_key="tissue:submitted_id",
     properties={
-        "title": "",
-        "description": "Listing of ",
+        "title": "Tissues",
+        "description": "Tissues collected from an individual",
     })
-class A(SMAHTItem):
-    item_type = ""
-    schema = load_schema("encoded:schemas/.json")
+class Tissue(Sample):
+    item_type = "tissue"
+    schema = load_schema("encoded:schemas/tissue.json")
+    embedded_list = []

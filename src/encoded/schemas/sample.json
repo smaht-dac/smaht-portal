@@ -1,9 +1,11 @@
 {
-    "title": "",
-    "$id": "/profiles/.json",
+    "title": "Sample",
+    "$id": "/profiles/sample.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": [],
+    "required": [
+        "submitter_id"
+    ],
     "anyOf": [
         {
             "required": [
@@ -18,7 +20,6 @@
     ],
     "identifyingProperties": [
         "accession",
-        "aliases",
         "submitter_id",
         "uuid"
     ],
@@ -26,9 +27,6 @@
     "mixinProperties": [
         {
             "$ref": "mixins.json#/accession"
-        },
-        {
-            "$ref": "mixins.json#/aliases"
         },
         {
             "$ref": "mixins.json#/attribution"
@@ -56,11 +54,28 @@
         }
     ],
     "properties": {
+        "accession": {
+            "accessionType": "SA"
+        },
         "schema_version": {
             "default": "1"
         },
-        "accession": {
-            "accessionType": ""
+        "protocols": {
+            "title": "Protocol",
+            "description": "Link to associated protocol",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Protocol"
+            }
+        },
+        "sample_preparation": {
+            "title": "Sample Preparation",
+            "description": "Link to associated sample preparation",
+            "type": "string",
+            "linkTo": "SamplePreparation"
         }
     }
 }

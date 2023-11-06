@@ -1,9 +1,11 @@
 {
-    "title": "",
-    "$id": "/profiles/.json",
+    "title": "Analyte Preparation",
+    "$id": "/profiles/analyte_preparation.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": [],
+    "required": [
+        "submitter_id"
+    ],
     "anyOf": [
         {
             "required": [
@@ -18,7 +20,6 @@
     ],
     "identifyingProperties": [
         "accession",
-        "aliases",
         "submitter_id",
         "uuid"
     ],
@@ -26,9 +27,6 @@
     "mixinProperties": [
         {
             "$ref": "mixins.json#/accession"
-        },
-        {
-            "$ref": "mixins.json#/aliases"
         },
         {
             "$ref": "mixins.json#/attribution"
@@ -56,11 +54,64 @@
         }
     ],
     "properties": {
+        "accession": {
+            "accessionType": "AP"
+        },
         "schema_version": {
             "default": "1"
         },
-        "accession": {
-            "accessionType": ""
+        "cell_lysis_method": {
+            "title": "Cell Lysis Method",
+            "description": "Cell lysis method for analyte extraction",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Chemical",
+                    "Enzymatic",
+                    "Mechanical",
+                    "Thermal"
+                ]
+            }
+        },
+        "extraction_method": {
+            "title": "Extraction Method",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Magnetic Beads",
+                    "Not Applicable",
+                    "Organic Chemicals",
+                    "Silica Column"
+                ]
+            }
+        },
+        "preparation_kits": {
+            "title": "Preparation Kits",
+            "description": "Links to associated preparation kit",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "PreparationKit"
+            }
+        },
+        "treatments": {
+            "title": "Treatments",
+            "description": "Links to associated treatments",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Treatment"
+            }
         }
     }
 }
