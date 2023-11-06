@@ -79,7 +79,7 @@ def test_quality_metric(testapp, test_consortium: Dict[str, Any]) -> None:
 def test_software(testapp, test_consortium: Dict[str, Any]) -> None:
     """ Tests that we can post a software item under the overridden type definition """
     testapp.post_json('/Software', {
-        'submitter_id': 'SMAHT-DAC_SOFTWARE_TESTING',
+        'submitted_id': 'SMAHT-DAC_SOFTWARE_TESTING',
         'name': 'test_software',
         'title': 'test software',
         'category': ['Alignment'],
