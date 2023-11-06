@@ -597,17 +597,25 @@ body[data-path="/"]>#application>#layout {
 }
 
 
-/**
-* Styles related to visualizations
-*/
+/**********************************************************
+	Styles related to About page visualizations
+***********************************************************/
 
+// Consortium Map
 .consortium-map {
     font-family: Inter;
 	position: relative;
     nav {
         font-weight: 400;
     }
-
+	text {
+		font-family: Inter;
+	}
+	use.map-marker-icon:hover {
+		stroke: #636262ba;
+		stroke-width: 1px;
+		transition: stroke-width 150ms;
+	}
 
     // Map styles 
     & > h1 {
@@ -616,11 +624,11 @@ body[data-path="/"]>#application>#layout {
         margin: none;
     }
 
-    svg {
-        text {
-            font-family: Inter;
-        }
-    }
+	#map-marker-svg:hover {
+		cursor: pointer;
+	}
+
+	
     
     .consortium-legend {
         background-color: #e3e3e3;
@@ -652,60 +660,26 @@ body[data-path="/"]>#application>#layout {
         font-size: 12px;
     }
 
-	@media screen and (min-width: 768px) and (max-width: 992px) {
-		.consortium-tooltip {
-			line-height: 15px;
-			&-wrapper {
-				font-size: 0.8rem;
-			}
-			&-content {
-				font-size: 0.8rem;
-			}
-			&-header {
-				font-size: 0.75rem;
-			}
-		}
-	}
-	@media screen and (min-width: 576px) and (max-width: 768px) {
-		.consortium-tooltip {
-			&-wrapper {
-				font-size: 0.7rem;
-			}
-			&-content {
-				font-size: 0.7rem;
-			}
-			&-header {
-				font-size: 0.65rem;
-			}
-		}
-	}
-	@media screen and (max-width: 576px) {
-		.consortium-tooltip {
-			&-wrapper {
-				font-size: 0.6rem;
-			}
-			&-content {
-				font-size: 0.6rem;
-			}
-			&-header {
-				font-size: 0.55rem;
-			}
-		}
-	}
 
     // Table styles
     table.table-striped {
         th {
-            background-color: white; 
+            background-color: #F1F9FF; 
             font-weight: 600;
             text-align: left;
+			border-top: none;
+			padding: 8px 0 8px 15px;
+			border-bottom: #9BA5B7;
         }
         tbody {
             td {
                 border: 1px solid lightgray;
                 text-align: left;
-                // font-family: Inter;
-				// font-weight: 500;
+				padding: 5px 15px;
+				
+				&.center-type {
+					padding: 10px;
+				}
             }
             td.consortium-table-OC {
                 font-size: 22px;
@@ -748,10 +722,98 @@ body[data-path="/"]>#application>#layout {
     }
 }
 
+div#popover-consortium-map {
+	max-width: 400px;
+	font-size: 14px;
+	font-weight: 600;
+	z-index: 2;
 
+	.consortium-popover {
+		&-section {
+			display: flex;
+			flex-direction: column;
+			margin: 0px auto 20px auto;
+		}
+		&-header {
+			font-family: Inter;
+			font-weight: 600;
+			font-size: 12px;
+			margin: 0;
+		}
+		&-content {
+			font-family: Inter;
+			font-weight: 400;
+			font-size: 14px;
+			
+			.pi-list {
+				list-style-type: none;
+				padding: 0;
+			}
+		}
+	}
 
+	@media screen and (min-width: 768px) and (max-width: 992px) {
+		.popover-header {
+			font-size: 0.8rem;
+		}
+		.consortium-popover {
+			line-height: 15px;
+			&-section {
+				margin: 0px auto 10px auto;
+			}
+			&-wrapper {
+				font-size: 0.8rem;
+			}
+			&-content {
+				font-size: 0.8rem;
+			}
+			&-header {
+				font-size: 0.75rem;
+			}
+		}
+	}
+	@media screen and (min-width: 576px) and (max-width: 768px) {
+		.popover-header {
+			font-size: 0.7rem;
+		}
+		.consortium-popover {
+			&-section {
+				margin: 0px auto 10px auto;
+			}
+			&-wrapper {
+				font-size: 0.7rem;
+			}
+			&-content {
+				font-size: 0.7rem;
+			}
+			&-header {
+				font-size: 0.65rem;
+			}
+		}
+	}
+	@media screen and (max-width: 576px) {
+		.popover-header {
+			font-size: 0.6rem;
+		}
+		.consortium-popover {
+			&-section {
+				margin: 0px auto 5px auto;
+			}
+			&-wrapper {
+				font-size: 0.6rem;
+			}
+			&-content {
+				font-size: 0.6rem;
+			}
+			&-header {
+				font-size: 0.55rem;
+			}
+		}
+	}
 
-/** Styles for the About Page visualizations */
+}
+
+// Alluvial
 .alluvial-container {
     font-family: Inter;
     
@@ -1243,7 +1305,6 @@ body[data-path="/"]>#application>#layout {
     }
     
 }
-
 
 div#popover-consortium-data-alluvial-table {
     font-family: Inter;
