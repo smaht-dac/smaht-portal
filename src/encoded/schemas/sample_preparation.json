@@ -4,7 +4,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "submitter_id"
+        "submitted_id"
     ],
     "anyOf": [
         {
@@ -20,7 +20,7 @@
     ],
     "identifyingProperties": [
         "accession",
-        "submitter_id",
+        "submitted_id",
         "uuid"
     ],
     "additionalProperties": false,
@@ -47,7 +47,7 @@
             "$ref": "mixins.json#/submitted"
         },
         {
-            "$ref": "mixins.json#/submitter_id"
+            "$ref": "mixins.json#/submitted_id"
         },
         {
             "$ref": "mixins.json#/tags"

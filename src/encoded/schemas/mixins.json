@@ -325,7 +325,7 @@
             "enum": [
                 "TBD"
             ],
-	    "linkTo": "ReferenceGenome"
+            "linkTo": "ReferenceGenome"
         }
     },
     "schema_version": {
@@ -438,8 +438,8 @@
             "permission": "restricted_fields"
         }
     },
-    "submitter_id": {
-        "submitter_id": {
+    "submitted_id": {
+        "submitted_id": {
             "title": "Submitter ID",
             "description": "Identifier on submission",
             "type": "string",

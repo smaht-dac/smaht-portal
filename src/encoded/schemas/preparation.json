@@ -18,7 +18,7 @@
     ],
     "identifyingProperties": [
         "accession",
-        "submitter_id",
+        "submitted_id",
         "uuid"
     ],
     "additionalProperties": false,
@@ -42,7 +42,7 @@
             "$ref": "mixins.json#/submitted"
         },
         {
-            "$ref": "mixins.json#/submitter_id"
+            "$ref": "mixins.json#/submitted_id"
         },
         {
             "$ref": "mixins.json#/tags"
