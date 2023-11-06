@@ -1,10 +1,9 @@
 {
-    "title": "Cell Sample",
-    "$id": "/profiles/cell_sample.json",
+    "title": "Histology",
+    "$id": "/profiles/histology.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "cell_ontology_id",
         "submitter_id",
         "tissue"
     ],
@@ -53,45 +52,21 @@
         },
         {
             "$ref": "mixins.json#/uuid"
-        },
-        {
-            "$ref": "sample.json#/properties"
         }
     ],
     "properties": {
         "accession": {
-            "accessionType": "CS"
+            "accessionType": "HI"
         },
         "schema_version": {
             "default": "1"
         },
-        "cell_count": {
-            "title": "Cell Count",
-            "description": "Number of cells collected",
-            "type": "integer",
-            "minimum": 0
-        },
-        "cell_ontology_id": {
-            "title": "Cell Ontology ID",
-            "description": "Cell Ontology identifier for the cell sample",
-            "type": "string",
-            "pattern": "^CL:[0-9]{7}$"
-        },
-        "preservation_media": {
-            "title": "Preservation Media",
-            "description": "Media used for sample preservation",
+        "section_location": {
+            "title": "Section Location",
+            "description": "Location in the source material that was prepared for the slide",
             "type": "string",
             "enum": [
                 "TBD"
-            ]
-        },
-        "preservation_type": {
-            "title": "Preservation Type",
-            "description": "Classification of sample preservation",
-            "type": "string",
-            "enum": [
-                "Fresh",
-                "Frozen"
             ]
         },
         "tissue": {
@@ -99,17 +74,6 @@
             "description": "Tissue source for the sample",
             "type": "string",
             "linkTo": "Tissue"
-        },
-        "parent_samples": {
-            "title": "Parent Samples",
-            "desscription": "Samples from which the cells were isolated",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "Sample"
-            }
         }
     }
 }

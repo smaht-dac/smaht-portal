@@ -1,10 +1,11 @@
 {
-    "title": "Subject",
-    "$id": "/profiles/subject.json",
+    "title": "Reference Genome",
+    "$id": "/profiles/reference_genome.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-	    "submitter_id"
+        "identifier",
+        "title"
     ],
     "anyOf": [
         {
@@ -20,7 +21,8 @@
     ],
     "identifyingProperties": [
         "accession",
-        "submitter_id",
+        "aliases",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -29,7 +31,13 @@
             "$ref": "mixins.json#/accession"
         },
         {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
             "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -44,10 +52,13 @@
             "$ref": "mixins.json#/submitted"
         },
         {
-            "$ref": "mixins.json#/submitter_id"
+            "$ref": "mixins.json#/tags"
         },
         {
-            "$ref": "mixins.json#/tags"
+            "$ref": "mixins.json#/title"
+        },
+        {
+            "$ref": "mixins.json#/url"
         },
         {
             "$ref": "mixins.json#/uuid"
@@ -55,10 +66,21 @@
     ],
     "properties": {
         "accession": {
-            "accessionType": "SU"
+            "accessionType": "RG"
         },
         "schema_version": {
             "default": "1"
+        },
+        "files": {
+            "title": "Files",
+            "description": "Files associated with the reference genome",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "File"
+            }
         }
     }
 }

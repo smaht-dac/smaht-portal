@@ -1,12 +1,12 @@
 {
-    "title": "Cell Sample",
-    "$id": "/profiles/cell_sample.json",
+    "title": "Diagnosis",
+    "$id": "/profiles/diagnosis.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "cell_ontology_id",
-        "submitter_id",
-        "tissue"
+        "disease",
+        "medical_history",
+        "submitter_id"
     ],
     "anyOf": [
         {
@@ -53,62 +53,53 @@
         },
         {
             "$ref": "mixins.json#/uuid"
-        },
-        {
-            "$ref": "sample.json#/properties"
         }
     ],
     "properties": {
         "accession": {
-            "accessionType": "CS"
+            "accessionType": "DX"
         },
         "schema_version": {
             "default": "1"
         },
-        "cell_count": {
-            "title": "Cell Count",
-            "description": "Number of cells collected",
+        "age_at_diagnosis": {
+            "title": "Age At Diagnosis",
+            "description": "Age when the disease was diagnosed",
             "type": "integer",
             "minimum": 0
         },
-        "cell_ontology_id": {
-            "title": "Cell Ontology ID",
-            "description": "Cell Ontology identifier for the cell sample",
-            "type": "string",
-            "pattern": "^CL:[0-9]{7}$"
+        "age_at_resolution": {
+            "title": "Age At Resolution",
+            "description": "Age when the disease was determined to have resolved",
+            "type": "integer",
+            "minimum": 0
         },
-        "preservation_media": {
-            "title": "Preservation Media",
-            "description": "Media used for sample preservation",
-            "type": "string",
-            "enum": [
-                "TBD"
-            ]
+        "comments": {
+            "title": "Comments",
+            "description": "Additional information on the diagnosis",
+            "type": "string"
         },
-        "preservation_type": {
-            "title": "Preservation Type",
-            "description": "Classification of sample preservation",
+        "disease": {
+            "title": "Disease",
+            "description": "Link to associated disease ontology term",
             "type": "string",
-            "enum": [
-                "Fresh",
-                "Frozen"
-            ]
+            "linkTo": "OntologyTerm"
         },
-        "tissue": {
-            "title": "Tissue",
-            "description": "Tissue source for the sample",
+        "medical_history": {
+            "title": "Medical History",
+            "description": "Link to the associated medical history",
             "type": "string",
-            "linkTo": "Tissue"
+            "linkTo": "MedicalHistory"
         },
-        "parent_samples": {
-            "title": "Parent Samples",
-            "desscription": "Samples from which the cells were isolated",
+        "therapeutics": {
+            "title": "Therapeutics",
+            "description": "Links to associated therapeutics for the disease",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
             "items": {
                 "type": "string",
-                "linkTo": "Sample"
+                "linkTo": "Therapeutic"
             }
         }
     }

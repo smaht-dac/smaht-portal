@@ -1,0 +1,271 @@
+{
+    "title": "Death Circumstances",
+    "$id": "/profiles/death_circumstances.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "donor",
+        "submitter_id"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitter_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitter_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "DC"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "autopsy_by_official": {
+            "title": "Autopsy By Official",
+            "description": "Whether an autopsy was performed by a licensed official",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ]
+        },
+        "blood_transfusion": {
+            "title": "Blood Transfusion",
+            "description": "Whether donor received a blood transfusion within 48 hours of death",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ]
+        },
+        "blood_transfusion_products": {
+            "title": "Blood Transfusion Products",
+            "description": "Blood transfusion products received by donor within 48 hours",
+            "type": "string",
+            "enum": [
+                "Cryoprecipitate",
+                "Fresh Frozen PlasmaPacked Red Blood Cells",
+                "Platelets"
+            ]
+        },
+        "brain_death_datetime": {
+            "title": "Brain Death Datetime",
+            "description": "Date and time when brain death was determined for the donor",
+            "type": "string",
+            "format": "date-time"
+        },
+        "cardiac_cessation_datetime": {
+            "title": "Cardiac Cessation Datetime",
+            "description": "Date and time when cardiac activity was determined to have ceased for the donor",
+            "type": "string",
+            "format": "date-time"
+        },
+        "cause_of_death_immediate": {
+            "title": "Cause Of Death Immediate",
+            "description": "Immediate cause of death",
+            "type": "string"
+        },
+        "cause_of_death_immediate_interval": {
+            "title": "Cause Of Death Immediate Interval",
+            "description": "Interval of time from immediate cause of death to death in minutes",
+            "type": "number",
+            "minimum": 0
+        },
+        "cause_of_death_initial": {
+            "title": "Cause Of Death Initial",
+            "description": "Initial cause of death",
+            "type": "string"
+        },
+        "cause_of_death_initial_interval": {
+            "title": "Cause Of Death Initial Interval",
+            "description": "Interval of time from initial cause of death to death in minutes",
+            "type": "number",
+            "minimum": 0
+        },
+        "cause_of_death_last_underlying": {
+            "title": "Cause Of Death Last Underlying",
+            "description": "Last underlying cause of death",
+            "type": "string"
+        },
+        "cause_of_death_last_underlying_interval": {
+            "title": "Cause Of Death Last Underlying Interval",
+            "description": "Interval of time from last underlying cause of death to death in minutes",
+            "type": "number"
+        },
+        "cause_of_death_official": {
+            "title": "Cause Of Death Official",
+            "description": "Official cause of death",
+            "type": "string"
+        },
+        "city_of_death": {
+            "title": "City Of Death",
+            "description": "City of death of the donor",
+            "type": "string"
+        },
+        "country_of_death": {
+            "title": "Country Of Death",
+            "description": "Country of death of the donor",
+            "type": "string"
+        },
+        "death_certificate_available": {
+            "title": "Death Certificate Available",
+            "description": "Whether a death certificate is available for the donor",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ]
+        },
+        "death_pronounced_datetime": {
+            "title": "Death Pronounced Datetime",
+            "description": "Date and time when death of the donor was pronounced",
+            "type": "string",
+            "format": "date-time"
+        },
+        "death_pronounced_interval": {
+            "title": "Death Pronounced Interval",
+            "description": "Interval of time from death until death was pronounced in minutes",
+            "type": "number",
+            "minimum": 0
+        },
+        "determiner_of_death": {
+            "title": "Determiner Of Death",
+            "description": "If death occurred outside hospital, role of person who determined death of the donor",
+            "type": "string",
+            "enum": [
+                "TBD"
+            ]
+        },
+        "hardy_scale": {
+            "title": "Hardy Scale",
+            "description": "Death classification based on the 4-point Hardy Scale",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4
+        },
+        "icd_10_category": {
+            "title": "Icd 10 Category",
+            "description": "Category of death based on ICD-10 coding",
+            "type": "string"
+        },
+        "icd_10_cause": {
+            "title": "Icd 10 Cause",
+            "description": "Specific cause of death based on ICD-10 coding ",
+            "type": "string"
+        },
+        "icd_10_classification": {
+            "title": "Icd 10 Classification",
+            "description": "Classification of death based on ICD-10 coding ",
+            "type": "string"
+        },
+        "icd_10_code": {
+            "title": "Icd 10 Code",
+            "description": "ICD-10 Code for cause of death",
+            "type": "string"
+        },
+        "last_seen_alive_datetime": {
+            "title": "Last Seen Alive Datetime",
+            "description": "Date and time when the donor was last known to be alive",
+            "type": "string",
+            "format": "date-time"
+        },
+        "manner_of_death": {
+            "title": "Manner Of Death",
+            "description": "Manner of death of the donor",
+            "type": "string",
+            "enum": [
+                "TBD"
+            ]
+        },
+        "place_of_death": {
+            "title": "Place Of Death",
+            "description": "Place of death of the donor",
+            "type": "string",
+            "enum": [
+                "TBD"
+            ]
+        },
+        "presumed_cardiac_cessation_datetime": {
+            "title": "Presumed Cardiac Cessation Datetime",
+            "description": "Date and time when cardiac activity was presumed to have ceased for the donor",
+            "type": "string",
+            "format": "date-time"
+        },
+        "ventilator_at_death": {
+            "title": "Ventilator At Death",
+            "description": "Whether the donor was on a ventilator immediately prior to death",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ]
+        },
+        "ventilator_time": {
+            "title": "Ventilator Time",
+            "description": "Time in minutes the donor was on a ventilator prior to death",
+            "type": "number",
+            "minimum": 0
+        },
+        "witnessed_death": {
+            "title": "Witnessed Death",
+            "description": "Whether the death of the donor was witnessed directly",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ]
+        },
+        "donor": {
+            "title": "Donor",
+            "description": "Link to the associated donor",
+            "type": "string",
+            "linkTo": "Donor"
+        }
+    }
+}

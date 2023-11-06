@@ -1,11 +1,12 @@
 {
-    "title": "Tissue Sample",
-    "$id": "/profiles/tissue_sample.json",
+    "title": "Molecular Test",
+    "$id": "/profiles/molecular_test.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "submitter_id",
-        "tissue"
+        "medical_history",
+        "result_classification",
+        "submitter_id"
     ],
     "anyOf": [
         {
@@ -51,60 +52,61 @@
             "$ref": "mixins.json#/tags"
         },
         {
+            "$ref": "mixins.json#/title"
+        },
+        {
             "$ref": "mixins.json#/uuid"
         }
     ],
     "properties": {
         "accession": {
-            "accessionType": "TS"
+            "accessionType": "MT"
         },
         "schema_version": {
             "default": "1"
         },
-        "preservation_media": {
-            "title": "Preservation Media",
-            "description": "Media used for sample preservation",
-            "type": "string",
-            "enum": [
-                "TBD"
-            ]
-        },
-        "preservation_type": {
-            "title": "Preservation Type",
-            "description": "Classification of sample preservation",
-            "type": "string",
-            "enum": [
-                "Fresh",
-                "Frozen"
-            ]
-        },
-        "tissue_location": {
-            "title": "Tissue Location",
-            "description": "Original location of sample within source tissue",
-            "type": "string",
-            "enum": [
-                "TBD"
-            ]
-        },
-        "homogenization_method": {
-            "title": "Homogenization method",
-            "description": "Method of sample homogenization, if applicable",
-            "type": "string",
-            "enum": [
-                "TBD"
-            ]
-        },
-        "weight": {
-            "title": "Weight",
-            "description": "Weight of the sample (mg)",
+        "result": {
+            "title": "Result",
+            "description": "Result of the molecular test",
             "type": "number",
             "minimum": 0
         },
-        "tissue": {
-            "title": "Tissue",
-            "description": "Tissue source for the sample",
+        "result_classification": {
+            "title": "Result Classification",
+            "description": "Categorical classification of the result value",
             "type": "string",
-            "linkTo": "Tissue"
+            "enum": [
+                "Within Normal Range",
+                "Outside Normal Range",
+                "Inconclusive"
+            ]
+        },
+        "title": {
+            "title": "Title",
+            "description": "Title for the molecular test",
+            "type": "string",
+            "enum": [
+                "CMV Total Ab",
+                "EBV IgG Ab",
+                "EBV IgM Ab",
+                "HBcAb IgM",
+                "HBcAb Total",
+                "HCV Ab",
+                "HBsAb",
+                "HBsAg",
+                "HCV 1 NAT",
+                "HIV 1 NAT",
+                "HIV I II Ab",
+                "HIV I II Plus O Antibody",
+                "RPR VDRL",
+                "RPR"
+            ]
+        },
+        "medical_history": {
+            "title": "Medical History",
+            "description": "Link to the associated medical history",
+            "type": "string",
+            "linkTo": "MedicalHistory"
         }
     }
 }

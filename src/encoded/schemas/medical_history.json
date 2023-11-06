@@ -1,10 +1,10 @@
 {
-    "title": "Subject",
-    "$id": "/profiles/subject.json",
+    "title": "Medical History",
+    "$id": "/profiles/medical_history.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-	    "submitter_id"
+        "submitter_id"
     ],
     "anyOf": [
         {
@@ -55,10 +55,18 @@
     ],
     "properties": {
         "accession": {
-            "accessionType": "SU"
+            "accessionType": "MX"
         },
         "schema_version": {
             "default": "1"
+        },
+        "primary_source_of_information": {
+            "title": "Primary Source Of Information",
+            "description": "Source of information for the medical history",
+            "type": "string",
+            "enum": [
+                "TBD"
+            ]
         }
     }
 }

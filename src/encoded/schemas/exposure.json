@@ -1,0 +1,95 @@
+{
+    "title": "Exposure",
+    "$id": "/profiles/exposure.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "medical_history",
+        "submitter_id",
+        "substance"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitter_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitter_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "EX"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "age_at_exposure_end": {
+            "title": "Age At Exposure End",
+            "description": "Age when the exposure resolved in years",
+            "type": "number",
+            "minimum": 0
+        },
+        "age_at_exposure_start": {
+            "title": "Age At Exposure Start",
+            "description": "Age when the exposure began in years",
+            "type": "number",
+            "minimum": 0
+        },
+        "comments": {
+            "title": "Comments",
+            "description": "Additional information on the exposure",
+            "type": "string"
+        },
+        "medical_history": {
+            "title": "Medical History",
+            "description": "Link to the associated medical history",
+            "type": "string",
+            "linkTo": "MedicalHistory"
+        },
+        "substance": {
+            "title": "Substance",
+            "description": "Link to the associated ontology term for the substance to which the donor was exposed",
+            "type": "string",
+            "linkTo": "OntologyTerm"
+        }
+    }
+}
