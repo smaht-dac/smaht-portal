@@ -12,6 +12,7 @@ import {
     SearchTableTitle,
 } from './../../item-pages/components/EmbeddedItemSearchTable';
 import { YoutubeVideoEmbed } from '../components/YoutubeVideoEmbed';
+import { BenchmarkingUI, COLO829Data } from '../components/BenchmarkingUI';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -23,6 +24,8 @@ const placeholders = {
     YoutubeVideoEmbed,
     ConsortiumMap,
     Alluvial,
+    BenchmarkingUI,
+    COLO829Data,
 };
 
 export const replaceString = memoize(

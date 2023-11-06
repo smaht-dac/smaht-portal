@@ -1300,6 +1300,9 @@ Unique styling of page title container for static pages
 #page-title-container {
 	&.static-page-title {
 		background: $ss-title-background;
+		border: 1px solid #E7F0F3;
+		border-left: none;
+		border-right: none;
 	}
 }
 
