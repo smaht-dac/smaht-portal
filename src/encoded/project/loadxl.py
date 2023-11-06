@@ -23,7 +23,26 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
             'page',
             'filter_set',
             'higlass_view_config',
-            'ingestion_submission'
+            'ingestion_submission',
+            'donor',
+            'tissue',
+            'cell_line',
+            'protocol',
+            'preparation_kit',
+            'treatment',
+            'tissue_sample',
+            'cell_sample',
+            'sample_mixture',
+            'sample_preparation',
+            'analyte',
+            'analyte_preparation',
+            'library',
+            'library_preparation',
+            'sequencing',
+            'file_set',
+            'unaligned_reads',
+            'aligned_reads',
+            'variant_calls',
     ]
 
     def loadxl_order(self):
