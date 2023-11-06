@@ -13,16 +13,20 @@ $cobalt-60: #001AFF;
 $cobalt-70:  #2440AA;
 $cobalt-80: #044292;
 
-
-
 // Greens
 $seafoam-20: #D1FFEF;
 $seafoam-40: #7FE9C7;
 $seafoam-60: #079483;
 
+// Slate
+$slate-10: #F5F9FB;
+$slate-20: #EDF3F6;
+$slate-60: #5B7595;
+
 
 
 // Home Page
+$homepage-background: url(/static/img/polygon-bg.png), linear-gradient(303deg, #CCF6FC 0.52%, #FFF 99.55%);
 $homepage-header-text-color: $cobalt-70;
 $homepage-subtitle-text-color: $cobalt-40;
 
@@ -41,3 +45,6 @@ $homepage-about-consort-btn-border-color: $cobalt-20; // based on mockup suppose
 $homepage-about-consort-btn-icon-color: $cobalt-30;
 $homepage-about-consort-text-color: $cobalt-70;
 $homepage-about-consort-border-radius: 4px;
+
+// Static Sections
+$ss-title-background: url(/static/img/polygon-bg-header.svg), linear-gradient(303deg, #CCF6FC 0.52%, #FFF 99.55%);

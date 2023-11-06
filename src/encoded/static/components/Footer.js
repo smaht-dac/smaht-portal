@@ -12,31 +12,34 @@ import PropTypes from 'prop-types';
 export const Footer = React.memo(function Footer() {
     return (
         <footer id="page-footer">
-            <div className="page-footer px-4">
+            <div className="page-footer px-4 text-smaller">
                 <div className="row">
                     <div className="col-sm-6">
                         <div className="footer-section copy-notice d-flex align-items-center justify-content-center justify-content-sm-start">
                             <div>
-                                National Institutes of Health
-                                <span className="px-2">|</span>
-                                SMaHT Consortium
+                                SMaHT is funded by the{' '}
+                                <a
+                                    href="https://commonfund.nih.gov/"
+                                    target="_blank"
+                                    className="underline"
+                                    rel="noopener noreferrer">
+                                    NIH Common Fund
+                                </a>
                             </div>
                         </div>
                     </div>
                     <div className="col-sm-6">
                         <div className="footer-section copy-notice d-flex align-items-center justify-content-center justify-content-sm-end">
-                            <div className="text-larger">
+                            <div>
                                 <a
-                                    href="https://www.youtube.com/watch?v=8KX3lkMB5nU"
+                                    href="#"
                                     target="_blank"
-                                    rel="noreferrer">
-                                    <i className="icon icon-youtube fab mr-1"></i>
-                                </a>
-                                <a
-                                    href="https://www.github.com/smaht-dac/"
-                                    target="_blank"
-                                    rel="noreferrer">
-                                    <i className="icon icon-github fab"></i>
+                                    rel="noreferrer"
+                                    className="mr-2">
+                                    Privacy Policy
+                                </a>{' '}
+                                <a href="#" target="_blank" rel="noreferrer">
+                                    Legal
                                 </a>
                             </div>
                         </div>
