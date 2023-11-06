@@ -60,7 +60,6 @@
     ],
     "identifyingProperties": [
         "aliases",
-        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -103,9 +102,6 @@
         }
     ],
     "properties": {
-        "schema_version": {
-            "default": "1"
-        },
         "category": {
             "items": {
                 "type": "string",
@@ -113,6 +109,12 @@
                     "Page Section"
                 ]
             }
+        },
+        "identifier": {
+            "pattern": "^([A-Za-z0-9-_]+[.])*[A-Za-z0-9-_]+$"
+        },
+        "schema_version": {
+            "default": "1"
         },
         "body": {
             "$merge": "encoded_core:schemas/static_section.json#/properties/body"

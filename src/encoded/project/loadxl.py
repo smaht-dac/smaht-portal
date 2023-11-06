@@ -4,26 +4,26 @@ from snovault.project.loadxl import SnovaultProjectLoadxl
 class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
 
     order = [
-            'AccessKey',
-            'User',
-            'Consortium',
-            'SubmissionCenter',
-            'FileFormat',
-            'QualityMetric',
-            'OutputFile',
-            'ReferenceFile',
-            'Software',
-            'Workflow',
-            'WorkflowRun',
-            'MetaWorkflow',
-            'MetaWorkflowRun',
-            'Image',
-            'Document',
-            'StaticSection',
-            'Page',
-            'FilterSet',
-            'HiglassViewConfig',
-            'IngestionSubmission'
+            'access_key',
+            'user',
+            'consortium',
+            'submission_center',
+            'file_format',
+            'quality_metric',
+            'output_file',
+            'reference_file',
+            'software',
+            'workflow',
+            'workflow_run',
+            'meta_workflow',
+            'meta_workflow_run',
+            'image',
+            'document',
+            'static_section',
+            'page',
+            'filter_set',
+            'higlass_view_config',
+            'ingestion_submission'
     ]
 
     def loadxl_order(self):

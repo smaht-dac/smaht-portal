@@ -10,9 +10,8 @@ from .file import File
         "title": "SMaHT Reference Files",
         "description": "Listing of SMaHT Reference Files",
     },
-    unique_key="accession",
 )
 class ReferenceFile(File):
     item_type = "reference_file"
     schema = load_schema("encoded:schemas/reference_file.json")
-    base_types = ["File"] + SMAHTItem.base_types
+    embedded_list = []

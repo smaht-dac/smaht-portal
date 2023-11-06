@@ -15,6 +15,7 @@ from .base import Item as SMAHTItem
 class Software(SMAHTItem, CoreSoftware):
     item_type = 'software'
     schema = load_schema("encoded:schemas/software.json")
+    embedded_list = []
 
     def _update(self, properties: Dict[str, Any], sheets: Optional[List] = None) -> None:
         return SnovaultItem._update(self, properties, sheets)

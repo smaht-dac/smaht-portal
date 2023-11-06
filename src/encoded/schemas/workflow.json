@@ -5,6 +5,7 @@
     "type": "object",
     "required": [
         "category",
+        "name",
         "title"
     ],
     "anyOf": [
@@ -70,9 +71,6 @@
         }
     ],
     "properties": {
-        "schema_version": {
-            "default": "1"
-        },
         "accession": {
             "accessionType": "WF"
         },
@@ -81,14 +79,18 @@
                 "type": "string",
                 "enum": [
                     "Alignment",
+                    "Alignment Manipulation",
                     "Annotation",
-                    "Feature Calling",
-                    "Quality Control"
+                    "Format Conversion",
+                    "Quality Control",
+                    "Read Manipulation",
+                    "Testing",
+                    "Variant Calling"
                 ]
             }
         },
-        "arguments": {
-            "$merge": "encoded_core:schemas/workflow.json#/properties/arguments"
+        "schema_version": {
+            "default": "1"
         },
         "previous_versions": {
             "$merge": "encoded_core:schemas/workflow.json#/properties/previous_version"
@@ -98,6 +100,48 @@
         },
         "version_upgrade_log": {
             "$merge": "encoded_core:schemas/workflow.json#/properties/version_upgrade_log"
+        },
+        "arguments": {
+            "title": "Workflow Arguments",
+            "description": "Arguments of the workflow",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "title": "Argument",
+                "description": "An argument of the workflow",
+                "type": "object",
+                "required": [
+                    "argument_type",
+                    "workflow_argument_name"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "argument_format": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/argument_format"
+                    },
+                    "argument_to_be_attached_to": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/argument_to_be_attached_to"
+                    },
+                    "argument_type": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/argument_type"
+                    },
+                    "mount": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/mount"
+                    },
+                    "qc_json": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/qc_json"
+                    },
+                    "qc_zipped": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/qc_zipped"
+                    },
+                    "secondary_file_formats": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/secondary_file_formats"
+                    },
+                    "workflow_argument_name": {
+                        "$merge": "encoded_core:schemas/workflow.json#/properties/arguments/items/properties/workflow_argument_name"
+                    }
+                }
+            }
         },
         "child_file_names": {
             "title": "Child File Names",
@@ -137,16 +181,29 @@
                 "run_name"
             ],
             "properties": {
-                "behavior_on_capacity": {
-                    "title": "Behavior on Capacity",
+                "behavior_on_capacity_limit": {
+                    "title": "Behavior on Capacity Limit",
                     "type": "string",
                     "enum": [
                         "wait_and_retry"
-                    ]
+                    ],
+					"default": "wait_and_retry"
                 },
                 "cpu": {
                     "title": "CPU",
                     "type": "integer"
+                },
+                "ebs_iops": {
+                    "title": "EBS IOPS",
+                    "description": "EBS input/output operations per second",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "ebs_throughput": {
+                    "title": "EBS Throughput",
+                    "description": "EBS throughput, in MiB/s",
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "ebs_optimized": {
                     "title": "EBS Optimized",
@@ -165,7 +222,15 @@
                     "items": {
                         "type": "string",
                         "enum": [
-                            "c5.4xlarge"
+                            "c5.2xlarge",
+                            "c5.4xlarge",
+                            "m5a.2xlarge",
+                            "r4.4xlarge",
+                            "r5.4xlarge",
+                            "r5a.4xlarge",
+                            "r5b.4xlarge",
+                            "r5ad.4xlarge",
+                            "r6i.4xlarge"
                         ]
                     }
                 },

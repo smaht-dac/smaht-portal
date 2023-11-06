@@ -66,9 +66,6 @@
         "accession": {
             "accessionType": "FI"
         },
-        "status": {
-            "$merge": "encoded_core:schemas/file.json#/properties/status"
-        },
         "file_format": {
             "$merge": "encoded_core:schemas/file.json#/properties/file_format"
         },
@@ -90,19 +87,35 @@
         "data_category": {
             "title": "Data Category",
             "description": "Category for information in the file",
-            "type": "string",
-            "enum": [
-                "Sequencing Reads"
-            ]
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Genome Region",
+                    "Reference Genome",
+                    "Sequencing Reads",
+                    "Variant Calls"
+                ]
+            }
         },
         "data_type": {
             "title": "Data Type",
             "description": "Detailed type of information in the file",
-            "type": "string",
-            "enum": [
-                "Unaligned Reads",
-                "Aligned Reads"
-            ]
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Aligned Reads",
+                    "Germline Variant Calls",
+                    "Reads Index",
+                    "Somatic Variant Calls",
+                    "Unaligned Reads"
+                ]
+            }
         }
     },
     "facets": {},

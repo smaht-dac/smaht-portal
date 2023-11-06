@@ -1,4 +1,8 @@
+from typing import Any, Dict
+
 import pytest
+from webtest.app import TestApp
+
 from .datafixtures import remote_user_testapp
 
 
@@ -13,27 +17,29 @@ def consortium_user_app(testapp, test_consortium, smaht_consortium_user):
 
 
 @pytest.fixture
-def fastq_format(testapp):
+def fastq_format(testapp: TestApp, test_consortium: Dict[str, Any]):
     return testapp.post_json('/file_format', {
-        'file_format': 'fastq',
+        'identifier': 'fastq',
         'standard_file_extension': 'fastq.gz',
         'other_allowed_extensions': ['fq.gz'],
-        'valid_item_types': ["FileSubmitted", "FileReference", "FileProcessed"]
+        'consortia': [test_consortium['uuid']],
     }, status=201).json['@graph'][0]
 
 
 @pytest.fixture
-def submission_center_file(testapp, fastq_format, test_submission_center):
+def submission_center_file(testapp, fastq_format, test_submission_center, test_consortium):
     item = {
         'file_format': fastq_format['uuid'],
         'md5sum': '00000000000000000000000000000000',
         'filename': 'my.fastq.gz',
-        'status': 'uploaded',
+        'status': 'in review',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
         'submission_centers': [
             test_submission_center['uuid']
-        ]
+        ],
     }
-    res = testapp.post_json('/FileSubmitted', item)
+    res = testapp.post_json('/OutputFile', item)
     return res.json['@graph'][0]
 
 
@@ -43,12 +49,14 @@ def consortium_file(testapp, fastq_format, test_consortium):
         'file_format': fastq_format['uuid'],
         'md5sum': '00000000000000000000000000000001',
         'filename': 'my.fastq.gz',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
         'status': 'shared',    # this status is important as this will make it viewable by consortium
         'consortia': [
             test_consortium['uuid']
         ]
     }
-    res = testapp.post_json('/FileSubmitted', item)
+    res = testapp.post_json('/OutputFile', item)
     return res.json['@graph'][0]
 
 
@@ -93,22 +101,15 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
         can they create/edit them etc - all testing with default status
     """
 
-    def test_submission_center_file_permissions_view(self, submission_center_user_app, smaht_gcc_user, testapp,
-                                                     anontestapp, submission_center_file):
-        """ Tests that a user associated with a submission center can view an uploaded permissioned
+    def test_submission_center_file_permissions_view(
+        self, submission_center_user_app, smaht_gcc_user, testapp,
+        anontestapp, submission_center_file, test_second_submission_center,
+    ):
+        """ Tests that a user associated with a submission center can view an in review permissioned
             file, an anonymous user cannot and an admin user can """
         uuid = submission_center_file["uuid"]
         self.validate_get_permissions(
             restricted_app=submission_center_user_app, restricted_expected_status=200,
-            admin_app=testapp, admin_expected_status=200,
-            anon_app=anontestapp, anon_expected_status=403,
-            item_uuid=uuid
-        )
-
-        # patch the file status, so it has no submission_center therefore user should no longer see
-        testapp.patch_json(f'/{submission_center_file["uuid"]}?delete_fields=submission_centers', {}, status=200)
-        self.validate_get_permissions(
-            restricted_app=submission_center_user_app, restricted_expected_status=403,
             admin_app=testapp, admin_expected_status=200,
             anon_app=anontestapp, anon_expected_status=403,
             item_uuid=uuid
@@ -173,9 +174,6 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
                 test_submission_center['uuid']
             ]
         }, status=201)
-        submission_center_user_app.post_json('/Image', {
-            'description': 'test'
-        }, status=201)
 
     @staticmethod
     def test_submission_center_user_cannot_create_other(test_submission_center, submission_center_user_app,
@@ -217,15 +215,6 @@ class TestConsortiumPermissions(TestPermissionsHelper):
             item_uuid=uuid
         )
 
-        # patch the file status, so it has no consortium therefore user should no longer see
-        testapp.patch_json(f'/{consortium_file["uuid"]}?delete_fields=consortia', {}, status=200)
-        self.validate_get_permissions(
-            restricted_app=consortium_user_app, restricted_expected_status=403,
-            admin_app=testapp, admin_expected_status=200,
-            anon_app=anontestapp, anon_expected_status=403,
-            item_uuid=uuid
-        )
-
     def test_consortium_user_permissions_view(self, consortium_user_app, smaht_consortium_user, testapp, anontestapp,
                                               consortium_file):
         """ Tests view permissions for consortium, varying permissions on the user """
@@ -262,9 +251,6 @@ class TestConsortiumPermissions(TestPermissionsHelper):
             'consortia': [
                 test_consortium['uuid']
             ]
-        }, status=201)
-        consortium_user_app.post_json('/FilterSet', {
-            'title': 'test fs2'
         }, status=201)
 
     @staticmethod

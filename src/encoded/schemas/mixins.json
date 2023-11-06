@@ -397,12 +397,12 @@
             "default": "in review",
             "permission": "restricted_fields",
             "enum": [
-                "shared",
-                "obsolete",
                 "current",
+                "deleted",
                 "inactive",
                 "in review",
-                "deleted"
+                "obsolete",
+                "shared"
             ]
         }
     },

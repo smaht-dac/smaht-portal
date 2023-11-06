@@ -13,3 +13,4 @@ from .base import Item as SMAHTItem
 class WorkflowRun(SMAHTItem, CoreWorkflowRun):
     item_type = 'workflow_run'
     schema = load_schema("encoded:schemas/workflow_run.json")
+    embedded_list = []

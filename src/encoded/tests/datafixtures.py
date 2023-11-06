@@ -4,63 +4,50 @@ from uuid import uuid4
 from webtest import TestApp
 import pytest
 
+from .utils import post_item_and_return_location
+
 
 @pytest.fixture
 def file_formats(testapp, test_consortium):
     """ Consortia attribute file formats taken from fourfront, could be pared down eventually """
     formats = {}
     ef_format_info = {
-        'pairs_px2': {'standard_file_extension': 'pairs.gz.px2',
-                      "valid_item_types": ["FileProcessed"]},
-        'pairsam_px2': {'standard_file_extension': 'sam.pairs.gz.px2',
-                        "valid_item_types": ["FileProcessed"]},
-        'bai': {'standard_file_extension': 'bam.bai',
-                "valid_item_types": ["FileProcessed"]},
-        'beddb': {"standard_file_extension": "beddb",
-                  "valid_item_types": ["FileProcessed", "FileReference"]},
+        'pairs_px2': {'standard_file_extension': 'pairs.gz.px2'},
+        'pairsam_px2': {'standard_file_extension': 'sam.pairs.gz.px2'},
+        'bai': {'standard_file_extension': 'bam.bai'},
+        'beddb': {"standard_file_extension": "beddb"},
     }
     format_info = {
         'fastq': {'standard_file_extension': 'fastq.gz',
-                  'other_allowed_extensions': ['fq.gz'],
-                  "valid_item_types": ["FileSubmitted"]},
+                  'other_allowed_extensions': ['fq.gz']},
         'pairs': {'standard_file_extension': 'pairs.gz',
-                  "extrafile_formats": ['pairs_px2', 'pairsam_px2'],
-                  "valid_item_types": ["FileProcessed"]},
+                  "extra_file_formats": ['pairs_px2', 'pairsam_px2']},
         'bam': {'standard_file_extension': 'bam',
-                'extrafile_formats': ['bai'],
-                "valid_item_types": ["FileProcessed", "FileSubmitted"]},
-        'mcool': {'standard_file_extension': 'mcool',
-                  "valid_item_types": ["FileProcessed"]},
-        'zip': {'standard_file_extension': 'zip',
-                "valid_item_types": ["FileProcessed"]},
-        'chromsizes': {'standard_file_extension': 'chrom.sizes',
-                       "valid_item_types": ["FileReference"]},
-        'other': {'standard_file_extension': '',
-                  "valid_item_types": ["FileProcessed", "FileReference",]},
-        'bw': {'standard_file_extension': 'bw',
-               "valid_item_types": ["FileProcessed"]},
-        'bg': {'standard_file_extension': 'bedGraph.gz',
-               "valid_item_types": ["FileProcessed"]},
-        'bigbed': {'standard_file_extension': 'bb',
-                   "valid_item_types": ["FileProcessed", "FileReference"]},
+                'extra_file_formats': ['bai']},
+        'mcool': {'standard_file_extension': 'mcool'},
+        'zip': {'standard_file_extension': 'zip'},
+        'chromsizes': {'standard_file_extension': 'chrom.sizes'},
+        'other': {'standard_file_extension': ''},
+        'bw': {'standard_file_extension': 'bw'},
+        'bg': {'standard_file_extension': 'bedGraph.gz'},
+        'bigbed': {'standard_file_extension': 'bb'},
         'bed': {"standard_file_extension": "bed.gz",
-                "extrafile_formats": ['beddb'],
-                "valid_item_types": ["FileProcessed", "FileReference"]}
+                "extra_file_formats": ['beddb']},
     }
 
     for eff, info in ef_format_info.items():
-        info['file_format'] = eff
+        info['identifier'] = eff
         info['uuid'] = str(uuid4())
         info['consortia'] = [test_consortium['@id']]
         formats[eff] = testapp.post_json('/file_format', info, status=201).json['@graph'][0]
     for ff, info in format_info.items():
-        info['file_format'] = ff
+        info['identifier'] = ff
         info['uuid'] = str(uuid4())
-        if info.get('extrafile_formats'):
+        if info.get('extra_file_formats'):
             eff2add = []
-            for eff in info.get('extrafile_formats'):
+            for eff in info.get('extra_file_formats'):
                 eff2add.append(formats[eff].get('@id'))
-            info['extrafile_formats'] = eff2add
+            info['extra_file_formats'] = eff2add
         info['consortia'] = [test_consortium['@id']]
         formats[ff] = testapp.post_json('/file_format', info, status=201).json['@graph'][0]
     return formats
@@ -73,12 +60,6 @@ def remote_user_testapp(app, remote_user: str) -> TestApp:
         'REMOTE_USER': str(remote_user),
     }
     return TestApp(app, environ)
-
-
-def post_item_and_return_location(testapp: TestApp, item: dict, resource_path: str) -> dict:
-    """ Posts item metadata to resource_path using testapp and return a dict response containing the location """
-    res = testapp.post_json(f'/{resource_path}', item)
-    return testapp.get(res.location).json
 
 
 @pytest.fixture
@@ -169,8 +150,37 @@ def smaht_consortium_user(testapp, test_consortium):
 @pytest.fixture
 def workflow(testapp: TestApp, test_consortium: Dict[str, Any]) -> Dict[str, Any]:
     item = {
+        "name": "simply-the-best",
         "title": "A Great Workflow",
         "category": ["Annotation"],
         "consortia": [test_consortium["uuid"]],
     }
     return post_item_and_return_location(testapp, item, "workflow")
+
+
+@pytest.fixture
+def output_file(
+    testapp: TestApp,
+    test_consortium: Dict[str, Any],
+    file_formats: Dict[str, Dict[str, Any]],
+) -> Dict[str, Any]:
+    item = {
+        "uuid": "f99fe12f-79f9-4c2c-b0b5-07fc20d7ce1d",
+        "file_format": file_formats.get("fastq", {}).get("uuid", ""),
+        "md5sum": "00000000000000000000000000000001",
+        "filename": "my.fastq.gz",
+        "status": "in review",
+        "data_category": ["Sequencing Reads"],
+        "data_type": ["Unaligned Reads"],
+        "consortia": [test_consortium["uuid"]],
+    }
+    return post_item_and_return_location(testapp, item, "output_file")
+
+
+@pytest.fixture
+def access_key(testapp: TestApp) -> Dict[str, Any]:
+    item = {
+        "access_key_id": "abcd1234",
+        "expiration_date": "2024-01-11T10:00:33.554416",
+    }
+    return post_item_and_return_location(testapp, item, "AccessKey")

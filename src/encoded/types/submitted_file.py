@@ -13,4 +13,4 @@ from .file import File
 class SubmittedFile(File):
     item_type = "submitted_file"
     schema = load_schema("encoded:schemas/submitted_file.json")
-    base_types = ["File"] + SMAHTItem.base_types
+    embedded_list = SMAHTItem.embedded_list

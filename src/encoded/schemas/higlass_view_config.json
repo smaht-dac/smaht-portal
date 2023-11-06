@@ -4,7 +4,10 @@
     "$id": "/profiles/higlass_view_config.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": ["title", "view_config"],
+    "required": [
+        "title",
+        "view_config"
+    ],
     "identifyingProperties": [
         "aliases",
         "uuid"
@@ -19,6 +22,9 @@
         },
         {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/name"
         },
         {
             "$ref": "mixins.json#/schema_version"

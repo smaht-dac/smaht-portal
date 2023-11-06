@@ -29,6 +29,7 @@ def test_file_format(testapp, test_consortium: Dict[str, Any]):
 def test_workflow_types(testapp, test_consortium: Dict[str, Any]) -> None:
     """ Tests that we can post a workflow under the overridden type definition """
     workflow = {
+        'name': 'testing_123',
         'title': 'test workflow',
         'category': ['Annotation'],
         'consortia': [test_consortium['uuid']],
@@ -67,7 +68,7 @@ def test_image(testapp, test_consortium: Dict[str, Any]) -> None:
 
 
 def test_quality_metric(testapp, test_consortium: Dict[str, Any]) -> None:
-    """ Tests that we can post a qc generic item under the overridden type definition """
+    """ Tests that we can post a QualityMetric item under the overridden type definition """
     testapp.post_json('/QualityMetric', {
         'category': 'Testing',
         'qc_values': [{'key': 'some_qc_metric', 'value': '22'}],
@@ -79,14 +80,15 @@ def test_software(testapp, test_consortium: Dict[str, Any]) -> None:
     """ Tests that we can post a software item under the overridden type definition """
     testapp.post_json('/Software', {
         'submitter_id': 'SMAHT-DAC_SOFTWARE_TESTING',
+        'name': 'test_software',
         'title': 'test software',
-        'category': ['Aligner'],
+        'category': ['Alignment'],
         'version': '1.0.0',
         'consortia': [test_consortium['uuid']],
     }, status=201)
 
 
-def test_static_section(testapp, test_consortium: Dict[str, Any]) -> None:
+def test_static_section(testapp: TestApp, test_consortium: Dict[str, Any]) -> None:
     """ Tests that we can post a static section under the overridden type definition """
     testapp.post_json('/StaticSection', {
         'identifier': 'test_section',
@@ -96,10 +98,11 @@ def test_static_section(testapp, test_consortium: Dict[str, Any]) -> None:
     }, status=201)
 
 
-def test_page(testapp):
+def test_page(testapp: TestApp, test_consortium: Dict[str, Any]) -> None:
     """ Tests that we can post a page under the overridden type definition """
     testapp.post_json('/Page', {
-        'identifier': 'test_page'
+        'identifier': 'test_page',
+        'consortia': [test_consortium['uuid']],
     }, status=201)
 
 
@@ -115,6 +118,8 @@ def test_meta_workflow(
 ) -> None:
     """ Tests that we can post a workflow under the overridden types definition """
     res = testapp.post_json('/MetaWorkflow', {
+        'category': ['Alignment'],
+        'name': 'testing_123',
         'title': 'test metaworkflow',
         'version': '0.0.1',
         'workflows': [
@@ -156,8 +161,8 @@ def test_file_types(testapp: TestApp, test_consortium: Dict[str, Any]) -> None:
         'md5sum': '00000000000000000000000000000001',
         'filename': 'my.fastq.gz',
         'status': 'in review',
-        'data_category': 'Sequencing Reads',
-        'data_type': 'Unaligned Reads',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
         'consortia': [test_consortium['uuid']],
     }
     testapp.post_json('/OutputFile', processed_file, status=201)
@@ -167,8 +172,8 @@ def test_file_types(testapp: TestApp, test_consortium: Dict[str, Any]) -> None:
         'md5sum': '00000000000000000000000000000002',
         'filename': 'my.fastq.gz',
         'status': 'in review',
-        'data_category': 'Sequencing Reads',
-        'data_type': 'Unaligned Reads',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
         'consortia': [test_consortium['uuid']],
     }
     testapp.post_json('/ReferenceFile', reference_file, status=201)

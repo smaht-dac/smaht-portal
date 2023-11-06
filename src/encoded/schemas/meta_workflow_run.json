@@ -176,8 +176,19 @@
                 "additionalProperties": false,
                 "required": [
                     "argument_name",
-                    "argument_type",
-                    "value"
+                    "argument_type"
+                ],
+                "oneOf": [
+                    {
+                        "required": [
+                            "value"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "files"
+                        ]
+                    }
                 ],
                 "properties": {
                     "argument_name": {

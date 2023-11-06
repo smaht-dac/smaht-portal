@@ -4,13 +4,12 @@ The fixtures in this module setup a full system with postgresql and
 elasticsearch running as subprocesses.
 """
 import json
-import os
-import pkg_resources
 import pytest
 import re
 import time
 import transaction
 import uuid
+from typing import Any, Dict
 
 from dcicutils.misc_utils import PRINT
 from dcicutils.qa_utils import notice_pytest_fixtures, Eventually
@@ -23,16 +22,16 @@ from snovault.elasticsearch.create_mapping import (
     build_index_record,
     compare_against_existing_mapping
 )
-from snovault.elasticsearch.indexer_utils import get_namespaced_index, compute_invalidation_scope
+from snovault.elasticsearch.indexer_utils import get_namespaced_index
 from snovault.elasticsearch.interfaces import INDEXER_QUEUE
 from snovault.storage import Base
 from sqlalchemy import MetaData, func, exc
-from timeit import default_timer as timer
-from unittest import mock
+from webtest.app import TestApp
 from zope.sqlalchemy import mark_changed
+
 from .. import main
+from .datafixtures import post_item_and_return_location
 from .verifier import verify_item
-from snovault import loadxl
 
 
 pytestmark = [pytest.mark.working, pytest.mark.indexing]
@@ -43,7 +42,7 @@ POSTGRES_COMPATIBLE_MAJOR_VERSIONS = ['11', '12', '13', '14', '15']
 
 
 # subset of collections to run test on
-TEST_COLLECTIONS = ['testing_post_put_patch', 'file_processed']
+TEST_COLLECTIONS = ['testing_post_put_patch', 'output_file']
 
 
 def test_postgres_version(session):
@@ -111,12 +110,21 @@ def setup_and_teardown(es_app):
 
 
 @pytest.fixture
-def bam_format(es_testapp):
+def consortium(es_testapp: TestApp) -> Dict[str, Any]:
+    item = {
+        "identifier": "SMaHTConsortium",
+        "title": "SMaHT Test Consortium"
+    }
+    return es_testapp.post_json("/consortium", item, status=201).json["@graph"][0]
+
+
+@pytest.fixture
+def bam_format(es_testapp: TestApp, consortium: Dict[str, Any]) -> Dict[str, Any]:
     return es_testapp.post_json('/file_format', {
-        'file_format': 'bam',
+        'identifier': 'bam',
         'standard_file_extension': 'bam',
         'other_allowed_extensions': ['bam.gz'],
-        'valid_item_types': ["FileSubmitted", "FileReference", "FileProcessed"]
+        'consortia': [consortium['uuid']],
     }, status=201).json['@graph'][0]
 
 
@@ -190,64 +198,6 @@ def test_create_mapping_on_indexing(es_app, setup_and_teardown):
         assert compare_against_existing_mapping(es, namespaced_index, item_type, item_record, True)
 
 
-def test_file_processed_detailed(es_app, setup_and_teardown, es_testapp, indexer_testapp, bam_format):
-    notice_pytest_fixtures(setup_and_teardown)
-    # post file_processed
-    item = {
-        'file_format': bam_format.get('@id'),
-        'filename': 'test.bam',
-        'status': 'uploading'
-    }
-    fp_res = es_testapp.post_json('/file_processed', item)
-    test_fp_atid = fp_res.json['@graph'][0]['@id']
-    test_fp_uuid = fp_res.json['@graph'][0]['uuid']
-    es_testapp.post_json('/file_processed', item)
-    index_n_items_for_testing(indexer_testapp, 1)
-
-    # Todo, input a list of accessions / uuids:
-    verify_item(test_fp_atid, indexer_testapp, es_testapp, es_app.registry)
-    # While we're here, test that _update of the file properly
-    # queues the file with given relationship
-    indexer_queue = es_app.registry[INDEXER_QUEUE]
-    rel_file = {
-        'file_format': bam_format.get('@id')
-    }
-    rel_res = es_testapp.post_json('/file_processed', rel_file)
-    rel_uuid = rel_res.json['@graph'][0]['uuid']
-    # now update the original file with the relationship
-    # ensure rel_file is properly queued
-    related_files = [{'relationship_type': 'derived from', 'file': rel_uuid}]
-    es_testapp.patch_json('/' + test_fp_atid, {'related_files': related_files}, status=200)
-    time.sleep(2)
-    # may need to make multiple calls to indexer_queue.receive_messages
-    received = []
-    received_batch = None
-    while received_batch is None or len(received_batch) > 0:
-        received_batch = indexer_queue.receive_messages()
-        received.extend(received_batch)
-    to_replace = []
-    to_delete = []
-    found_fp_sid = None
-    found_rel_sid = None
-    # keep track of the PATCH of the original file and the associated PATCH
-    # of the related file. Compare uuids
-    for msg in received:
-        json_body = json.loads(msg.get('Body', {}))
-        if json_body['uuid'] == test_fp_uuid and json_body['method'] == 'PATCH':
-            found_fp_sid = json_body['sid']
-            to_delete.append(msg)
-        elif json_body['uuid'] == rel_uuid and json_body['method'] == 'PATCH':
-            assert json_body['info'] == f"queued from {test_fp_uuid} _update"
-            found_rel_sid = json_body['sid']
-            to_delete.append(msg)
-        else:
-            to_replace.append(msg)
-    indexer_queue.delete_messages(to_delete)
-    indexer_queue.replace_messages(to_replace, vis_timeout=0)
-    assert found_fp_sid is not None and found_rel_sid is not None
-    assert found_rel_sid > found_fp_sid  # sid of related file is greater
-
-
 def test_real_validation_error(es_app, setup_and_teardown, indexer_testapp, es_testapp, bam_format):
     """
     Create an item (file-processed) with a validation error and index,
@@ -258,11 +208,13 @@ def test_real_validation_error(es_app, setup_and_teardown, indexer_testapp, es_t
     fp_body = {
         'schema_version': '3',
         'uuid': str(uuid.uuid4()),
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Aligned Reads'],
         'file_format': bam_format.get('uuid'),
         'file_classification': 'unprocessed file',  # validation error - this enum is not present
         'higlass_uid': 1  # validation error -- higlass_uid should be string
     }
-    res = es_testapp.post_json('/files-processed/?validate=false&upgrade=False',
+    res = es_testapp.post_json('/output-files/?validate=false&upgrade=False',
                                fp_body, status=201).json
     fp_id = res['@graph'][0]['@id']
     val_err_view = es_testapp.get(fp_id + '@@validation-errors', status=200).json
@@ -274,7 +226,7 @@ def test_real_validation_error(es_app, setup_and_teardown, indexer_testapp, es_t
     # That's okay if we don't detect that it succeeded, keep trying until it does
     index_n_items_for_testing(indexer_testapp, 1)
     time.sleep(2)
-    namespaced_fp = get_namespaced_index(es_app, 'file_processed')
+    namespaced_fp = get_namespaced_index(es_app, 'output_file')
     es_res = es.get(index=namespaced_fp, id=res['@graph'][0]['uuid'])
     assert len(es_res['_source'].get('validation_errors', [])) == 2
     # check that validation-errors view works

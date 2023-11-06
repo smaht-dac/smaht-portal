@@ -1,11 +1,13 @@
-from snovault import abstract_collection, load_schema
+from typing import Any, Dict, Optional
+
+from snovault import abstract_collection, Item as SnovaultItem, load_schema
 from encoded_core.types.user_content import UserContent as CoreUserContent
 
 from .base import Item as SMAHTItem
 
 
 @abstract_collection(
-    name='user-content',
+    name='user-contents',
     properties={
         'title': 'User Content',
         'description': 'User content for the Portal',
@@ -13,3 +15,7 @@ from .base import Item as SMAHTItem
 class UserContent(SMAHTItem, CoreUserContent):
     item_type = 'user_content'
     schema = load_schema("encoded:schemas/user_content.json")
+    embedded_list = []
+
+    def _update(self, properties: Dict[str, Any], sheets: Optional[Dict] = None) -> None:
+        return SnovaultItem._update(self, properties, sheets=sheets)

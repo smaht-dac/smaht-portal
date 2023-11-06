@@ -5,7 +5,7 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='consortium',
-    unique_key='consortium:identifier',
+    unique_key='consortium:identifier',  # For shorthand reference as linkTo
     properties={
         'title': 'Consortium',
         'description': 'Listing of SMaHT associated Consortiums',
@@ -15,5 +15,4 @@ class Consortium(SMAHTItem):
     """ Consortium item """
     item_type = 'consortium'
     schema = load_schema('encoded:schemas/consortium.json')
-    embedded_list = SMAHTItem.embedded_list
-    name_key = 'identifier'
+    embedded_list = []

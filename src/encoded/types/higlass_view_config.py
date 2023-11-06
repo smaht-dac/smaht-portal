@@ -6,7 +6,6 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='higlass-view-configs',
-    unique_key='higlass_view_config:name',
     properties={
         'title': 'HiGlass Displays',
         'description': 'Displays and view configurations for HiGlass',
@@ -17,3 +16,4 @@ class HiglassViewConfig(SMAHTItem, CoreHiglassViewConfig):
     """
     item_type = 'higlass_view_config'
     schema = load_schema("encoded:schemas/higlass_view_config.json")
+    embedded_list = []
