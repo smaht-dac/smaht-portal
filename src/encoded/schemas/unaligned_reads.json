@@ -61,6 +61,9 @@
             "$ref": "mixins.json#/uuid"
         },
         {
+            "$ref": "file.json#/properties"
+        },
+        {
             "$ref": "submitted_file.json#/properties"
         }
     ],
@@ -69,14 +72,20 @@
             "accessionType": "UR"
         },
         "data_category": {
-            "enum": [
-                "Sequencing Reads"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Sequencing Reads"
+                ]
+            }
         },
         "data_type": {
-            "enum": [
-                "Unaligned Reads"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Unaligned Reads"
+                ]
+            }
         },
         "file_format": {
             "enum": [

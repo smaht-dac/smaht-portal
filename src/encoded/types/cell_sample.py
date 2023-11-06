@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .sample import Sample
 
 
 @collection(
@@ -11,7 +11,7 @@ from .base import Item as SMAHTItem
         "description": "Samples consisting of isolated cells",
     },
 )
-class CellSample(SMAHTItem):
+class CellSample(Sample):
     item_type = "cell_sample"
     schema = load_schema("encoded:schemas/cell_sample.json")
     embedded_list = []

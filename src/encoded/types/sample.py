@@ -10,7 +10,8 @@ from .base import Item as SMAHTItem
         "description": "Samples from a living organism for subsequent analysis",
     },
 )
-class Samples(SMAHTItem):
+class Sample(SMAHTItem):
     item_type = "sample"
+    base_types = ["Sample"] + SMAHTItem.base_types
     schema = load_schema("encoded:schemas/sample.json")
     embedded_list = []

@@ -1,6 +1,6 @@
 from snovault import abstract_collection, load_schema
 
-from .base import item as SMAHTItem
+from .base import Item as SMAHTItem
 
 
 @abstract_collection(

@@ -59,6 +59,9 @@
             "$ref": "mixins.json#/uuid"
         },
         {
+            "$ref": "file.json#/properties"
+        },
+        {
             "$ref": "submitted_file.json#/properties"
         }
     ],
@@ -67,15 +70,21 @@
             "accessionType": "VC"
         },
         "data_category": {
-            "enum": [
-                "Variant Calls"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Variant Calls"
+                ]
+            }
         },
         "data_type": {
-            "enum": [
-                "Germline Variants",
-                "Somatic Variants"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Germline Variants",
+                    "Somatic Variants"
+                ]
+            }
         },
         "schema_version": {
             "default": "1"

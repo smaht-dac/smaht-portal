@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .prepartion import Preparation
+from .preparation import Preparation
 
 
 @collection(
