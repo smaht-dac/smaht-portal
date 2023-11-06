@@ -7,11 +7,36 @@ smaht-portal
 Change Log
 ----------
 
+0.4.0
+=====
+* Merge in drr_shared_schemas branch.
+* Merge in ui-dev branch.
+* Update dcicutils to ^8.2.0.
+* From Doug's branch (drr_shared_schemas):
+  * `PR 19: UI-Dev <https://github.com/smaht-dac/smaht-portal/pull/20>`_
+  * Remove Splash Page + [re-add various features](https://github.com/smaht-dac/smaht-portal/pull/19) 
+  * Series of fixes for Static Sections and Pages
+  * Initial layout of home page and other pages (TODO: link other front-end PRs)
+* 2023-11.02
+
+
+0.3.0
+=====
+* Upgrade to Python 3.11.
+* Adding ingestion processor.
+  * Added/implemented ingestion_processor.py.
+  * Added generate-local-access-key script (from snovault) to pyproject.toml.
+  * Added view-local-object script (from snovault) to pyproject.toml.
+  * Changed metadata_bundles_bucket to smaht-production-application-metadata-bundles in development.ini.template.
+* Removed types/access_key.py and schemas/access_key.json as the ones in snovault are sufficient.
+
+
 0.2.0
 =====
 `PR 18: Prettier bulk reformat <https://github.com/smaht-dac/smaht-portal/pull/18>`_
 
 * What it says on the tin: ran `npm run format` to reformat JS/JSX files
+
 
 0.1.1
 =====
@@ -41,7 +66,6 @@ Change Log
 
 0.0.8
 =====
-
 * Lock newer snovault, utils versions with bug fixes
 
 

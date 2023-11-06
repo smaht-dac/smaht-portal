@@ -12,7 +12,7 @@ Some may overwrite Bootstrap variables
 $mainThemeColor: 			#ffffff; /* i.e. the background color ..for now */
 
 $appVersionHeight:          0px;
-$footer-height:             0px + $appVersionHeight; // TODO: Update once footer re-added
+$footer-height:             50px + $appVersionHeight;
 $appBackgroundColor:        #fff; /* Not sure where $mainThemeColor is used... definitely not #application background-color, so creating new one */
 $appSecondaryBackgroundColor: #f5f5f5;
 
@@ -28,19 +28,22 @@ $badge-color-warning : #e29302;
 $badge-color-error : #bd0000;
 $badge-color-internal-action: #d0d0d0;
 
-$font-family-sans-serif : "Mada", Helvetica, Arial, sans-serif;
-$font-family-serif : "Yrsa", "Times New Roman", Georgia, Times, serif;
-/** Default monospace fonts for `<code>`, `<kbd>`, and `<pre>`. */
-$font-family-monospace : "Source Code Pro", Consolas, monospace;
-$font-family-base: $font-family-sans-serif;
-
-$font-size-base: 1rem;
-$line-height-base: 1.45;
-
 $dropdown-link-hover-bg: #ddd;
 
 
+/*****************************/
+/****     Typography      ****/
+/*****************************/
 
+/** Available fonts and fallbacks **/
+$font-family-sans-serif : "Inter", Helvetica, Arial, sans-serif;
+$font-family-serif : "Yrsa", "Times New Roman", Georgia, Times, serif;
+$font-family-monospace : "Source Code Pro", Consolas, monospace; // Default monospace fonts for `<code>`, `<kbd>`, and `<pre>`.
+
+/** Base font settings */
+$font-family-base: $font-family-sans-serif;
+$font-size-base: 1rem;
+$line-height-base: 1.45;
 
 
 /*****************************/
@@ -70,14 +73,23 @@ $navbar-default-bg: #f8f8f8; // Bootstrap default is #F8F8F8
 
 // THese are probably deprecated -- todo: bring up vars from navbar.scss and put em here in place of these...
 //$navbar-fixed-breakpoint: $screen-md-min; // Use instead of Bootstrap's $grid-float-breakpoint as we want nav to become fixed later.
-$navbar-background-color: #20445f;
-$navbar-link-color : rgb(210, 218, 223);
+$navbar-background-color: linear-gradient(303deg, #CCF6FC 0.52%, #FFF 99.55%);
+$navbar-link-color: $cobalt-70;
 $navbar-link-hover-color : #fff;
 $navbar-link-active-color : #fff;
 $navbar-link-hover-bg: #0005; //darken($navbar-background-color, 5%);
 //$navbar-link-hover-bg: lighten($navbar-background-color, 10%);
-$navbar-link-active-bg: lighten($navbar-background-color, 5%);
-$navbar-default-brand-color: rgb(210, 218, 223);
+$navbar-link-active-bg: $navbar-background-color;
+$navbar-default-brand-color: $cobalt-70;
+$navbar-full-height : 80px;
+$navbar-small-height : 40px; /* Bootstrap navbar default */
+$navbar-transition-length: .3s;
+$navbar-transition-easing: ease-out;
+$navbar-separator-color : scale-color($navbar-link-color, $alpha: -80%) !default;
+
+$footer-background-color: $cobalt-0;
+$footer-text-color: black;
+$footer-link-color: $cobalt-70;
 
 // We set navbar to become fixed position @ Bootstrap's medium size.
 @mixin navbar-fixed-position {

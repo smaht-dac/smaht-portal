@@ -17,9 +17,9 @@ export const Footer = React.memo(function Footer() {
                     <div className="col-sm-6">
                         <div className="footer-section copy-notice d-flex align-items-center justify-content-center justify-content-sm-start">
                             <div>
-                                Harvard Medical School{' '}
-                                <span className="px-2">|</span> Brigham &amp;
-                                Women&apos;s Hospital
+                                National Institutes of Health
+                                <span className="px-2">|</span>
+                                SMaHT Consortium
                             </div>
                         </div>
                     </div>
@@ -27,13 +27,13 @@ export const Footer = React.memo(function Footer() {
                         <div className="footer-section copy-notice d-flex align-items-center justify-content-center justify-content-sm-end">
                             <div className="text-larger">
                                 <a
-                                    href="https://www.youtube.com/@cgaptraining"
+                                    href="https://www.youtube.com/watch?v=8KX3lkMB5nU"
                                     target="_blank"
                                     rel="noreferrer">
                                     <i className="icon icon-youtube fab mr-1"></i>
                                 </a>
                                 <a
-                                    href="https://www.github.com/dbmi-bgm/"
+                                    href="https://www.github.com/smaht-dac/"
                                     target="_blank"
                                     rel="noreferrer">
                                     <i className="icon icon-github fab"></i>

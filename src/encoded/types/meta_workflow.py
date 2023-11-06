@@ -6,6 +6,7 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='meta-workflows',
+    unique_key='accession',
     properties={
         'title': 'MetaWorkflows',
         'description': 'Listing of MetaWorkflows',

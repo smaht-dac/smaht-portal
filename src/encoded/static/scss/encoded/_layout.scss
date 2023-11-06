@@ -278,16 +278,12 @@ body.is-full-screen {
 #page-footer {
 
 	> .page-footer {
-		background-color: $navbar-background-color;
-		//line-height: 0;
+		background-color: $footer-background-color;
 		text-align: center;
 		overflow: hidden;
-		/* border-top: 1px solid darken($navbar-background-color, 10%); */
-		//@include filter-gradient(#ffffff, #f8f8f8, vertical);
-
 
 		a {
-			color: #bfbfbf;
+			color: $footer-link-color;
 		}
 		ul {
 			list-style: none;
@@ -297,7 +293,7 @@ body.is-full-screen {
 
 		.footer-section {
 			text-align: center;
-			color: #bfbfbf;
+			color: $footer-text-color;
 			padding: 15px 0px 14px;
 			@include media-breakpoint-up(sm) {
 
@@ -313,7 +309,7 @@ body.is-full-screen {
 
 			>div>a:hover {
 				text-decoration: none !important;
-				color:#ffffff;
+				color:lighten($footer-link-color, 10%);
 			}
 		}
 	}
@@ -472,5 +468,22 @@ div.dropdown.btn-group {
 	top: 1px;
 }
 
+.gap-2 {
+	gap: 2px;
+}
 
+.gap-5 {
+	gap: 5px;
+}
 
+.gap-10 {
+	gap: 10px;
+}
+
+.gap-15 {
+	gap: 15px;
+}
+
+.gap-20 {
+	gap: 20px;
+}
