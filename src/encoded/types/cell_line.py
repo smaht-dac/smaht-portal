@@ -9,7 +9,8 @@ from .subject import Subject
     properties={
         "title": "Cell Lines",
         "description": "Cell lines",
-    })
+    },
+)
 class CellLine(Subject):
     item_type = "cell_line"
     schema = load_schema("encoded:schemas/cell_line.json")

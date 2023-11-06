@@ -9,7 +9,8 @@ from .preparation import Preparation
     properties={
         "title": "Sample Preparations",
         "description": "Data on sample preparation methods",
-    })
+    },
+)
 class SamplePreparation(Preparation):
     item_type = "sample_preparation"
     schema = load_schema("encoded:schemas/sample_preparation.json")

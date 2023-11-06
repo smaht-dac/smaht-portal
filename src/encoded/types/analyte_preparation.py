@@ -9,7 +9,8 @@ from .preparation import Preparation
     properties={
         "title": "Analyte Preparations",
         "description": "Data on analyte extraction methods",
-    })
+    },
+)
 class AnalytePreparation(Preparation):
     item_type = "analyte_preparation"
     schema = load_schema("encoded:schemas/analyte_preparation.json")

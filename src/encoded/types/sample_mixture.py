@@ -9,7 +9,8 @@ from .sample import Sample
     properties={
         "title": "Sample Mixtures",
         "description": "Mixtures of samples for further study",
-    })
+    },
+)
 class SampleMixture(Sample):
     item_type = "sample_mixture"
     schema = load_schema("encoded:schemas/sample_mixture.json")

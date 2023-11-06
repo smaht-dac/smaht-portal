@@ -9,7 +9,8 @@ from .base import Item as SMAHTItem
     properties={
         "title": "Libraries",
         "description": "Sequencing libraries",
-    })
+    },
+)
 class Library(SMAHTItem):
     item_type = "library"
     schema = load_schema("encoded:schemas/library.json")

@@ -9,7 +9,8 @@ from .sample import Sample
     properties={
         "title": "Tissues",
         "description": "Tissues collected from an individual",
-    })
+    },
+)
 class Tissue(Sample):
     item_type = "tissue"
     schema = load_schema("encoded:schemas/tissue.json")

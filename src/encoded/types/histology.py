@@ -9,7 +9,8 @@ from .base import Item as SMAHTItem
     properties={
         "title": "Histologies",
         "description": "Histological analyses of tissues",
-    })
+    },
+)
 class Histology(SMAHTItem):
     item_type = "histology"
     schema = load_schema("encoded:schemas/histology.json")

@@ -13,4 +13,4 @@ from .base import Item as SMAHTItem
 class Preparation(SMAHTItem):
     item_type = "preparation"
     schema = load_schema("encoded:schemas/preparation.json")
-	embedded_list = []
+    embedded_list = []

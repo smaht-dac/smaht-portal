@@ -9,7 +9,8 @@ from .prepartion import Preparation
     properties={
         "title": "Library Preparations",
         "description": "Data on library preparation methods",
-    })
+    },
+)
 class LibraryPreparation(Preparation):
     item_type = "library_preparation"
     schema = load_schema("encoded:schemas/library_preparation.json")

@@ -9,7 +9,8 @@ from .base import Item as SMAHTItem
     properties={
         "title": "Cell Samples",
         "description": "Samples consisting of isolated cells",
-    })
+    },
+)
 class CellSample(SMAHTItem):
     item_type = "cell_sample"
     schema = load_schema("encoded:schemas/cell_sample.json")
