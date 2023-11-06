@@ -4,7 +4,7 @@ from .base import Item as SMAHTItem
 
 
 @collection(
-    name="medical_histories",
+    name="medical-histories",
     unique_key="medical_history:submitted_id",
     properties={
         "title": "Medical Histories",

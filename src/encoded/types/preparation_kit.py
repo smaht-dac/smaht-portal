@@ -4,7 +4,7 @@ from .base import Item as SMAHTItem
 
 
 @collection(
-    name="Preparation Kit",
+    name="preparation-kits",
     unique_key="preparation_kit:submitted_id",
     properties={
         "title": "Preparation Kits",

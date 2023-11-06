@@ -4,7 +4,7 @@ from .sample import Sample
 
 
 @collection(
-    name="sample_mixtures",
+    name="sample-mixtures",
     unique_key="sample_mixture:submitted_id",
     properties={
         "title": "Sample Mixtures",

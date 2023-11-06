@@ -4,7 +4,7 @@ from .base import Item as SMAHTItem
 
 
 @abstract_collection(
-    name="Subjects",
+    name="subjects",
     properties={
         "title": "Subjects",
         "description": "Sources of biological material",

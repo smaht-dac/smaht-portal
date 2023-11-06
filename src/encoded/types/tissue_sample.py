@@ -4,7 +4,7 @@ from .sample import Sample
 
 
 @collection(
-    name="tissue_samples",
+    name="tissue-samples",
     unique_key="tissue_sample:submitted_id",
     properties={
         "title": "Tissue Samples",
