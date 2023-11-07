@@ -7,7 +7,7 @@
         "category",
         "source",
         "submitted_id",
-	"title"
+        "title"
     ],
     "anyOf": [
         {

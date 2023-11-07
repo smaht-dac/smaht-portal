@@ -35,6 +35,9 @@
             "$ref": "mixins.json#/modified"
         },
         {
+            "$ref": "mixins.json#/protocols"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -60,16 +63,22 @@
         "schema_version": {
             "default": "1"
         },
-        "protocols": {
-            "title": "Protocol",
-            "description": "Link to associated protocol",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "Protocol"
-            }
+        "preservation_medium": {
+            "title": "Preservation Medium",
+            "description": "Medium used for sample preservation",
+            "type": "string",
+            "enum": [
+                "TBD"
+            ]
+        },
+        "preservation_type": {
+            "title": "Preservation Type",
+            "description": "Method of sample preservation",
+            "type": "string",
+            "enum": [
+                "Fresh",
+                "Frozen"
+            ]
         },
         "sample_preparation": {
             "title": "Sample Preparation",

@@ -1,13 +1,12 @@
 {
-    "title": "Cell Sample",
-    "$id": "/profiles/cell_sample.json",
+    "title": "Cell Culture",
+    "$id": "/profiles/cell_culture.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "cell_ontology_id",
+        "cell_culture",
         "preservation_type",
-        "submitted_id",
-        "tissue"
+        "submitted_id"
     ],
     "anyOf": [
         {
@@ -33,6 +32,9 @@
         },
         {
             "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -64,39 +66,16 @@
     ],
     "properties": {
         "accession": {
-            "accessionType": "CS"
+            "accessionType": "CU"
         },
         "schema_version": {
             "default": "1"
         },
-        "cell_count": {
-            "title": "Cell Count",
-            "description": "Number of cells collected",
-            "type": "integer",
-            "minimum": 0
-        },
-        "cell_ontology_id": {
-            "title": "Cell Ontology ID",
-            "description": "Cell Ontology identifier for the cell sample",
+        "cell_culture": {
+            "title": "Cell Culture",
+            "description": "Cell culture from which the sample derives",
             "type": "string",
-            "pattern": "^CL:[0-9]{7}$"
-        },
-        "tissue": {
-            "title": "Tissue",
-            "description": "Tissue source for the sample",
-            "type": "string",
-            "linkTo": "Tissue"
-        },
-        "parent_samples": {
-            "title": "Parent Samples",
-            "desscription": "Samples from which the cells were isolated",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "Sample"
-            }
+            "linkTo": "CellCulture"
         }
     }
 }

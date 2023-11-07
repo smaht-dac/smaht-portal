@@ -318,6 +318,19 @@
             "linkTo": "OntologyTerm"
         }
     },
+    "protocols": {
+        "protocols": {
+            "title": "Protocols",
+            "description": "Protocols providing experimental details",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Protocol"
+            }
+        }
+    },
     "reference_genome": {
         "reference_genome": {
             "description": "Reference genome used for alignment",
