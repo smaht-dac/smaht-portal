@@ -22,7 +22,7 @@ const BenchmarkingUINav = (props) => {
     return (
         <div className="w-100">
             <div>
-                Cell Line Data
+                <span className="text-small text-600">Cell Line Data</span>
                 <div>
                     <ul>
                         <li>
@@ -33,15 +33,39 @@ const BenchmarkingUINav = (props) => {
                                 <li>1:200</li>
                             </ul>
                         </li>
-                        <li>HapMap</li>
-                        <li>iPSc & Fibroblasts</li>
+                        <li>
+                            <a href="/data/benchmarking/HapMap">HapMap</a>
+                        </li>
+                        <li>
+                            <a href="/data/benchmarking/iPSC-fibroblasts">
+                                iPSc & Fibroblasts
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
             <hr />
             <div>
-                Primary Tissue Data
-                <div className="text-muted font-italic">Coming soon</div>
+                <span className="text-small text-600">Primary Tissue Data</span>
+                <div>
+                    <ul>
+                        <li>
+                            <a href="/data/benchmarking/brain">Brain</a>
+                        </li>
+                        <li>
+                            <a href="/data/benchmarking/lung">Lung</a>
+                        </li>
+                        <li>
+                            <a href="/data/benchmarking/heart">Heart</a>
+                        </li>
+                        <li>
+                            <a href="/data/benchmarking/colon">Colon</a>
+                        </li>
+                        <li>
+                            <a href="/data/benchmarking/skin">Skin</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     );
