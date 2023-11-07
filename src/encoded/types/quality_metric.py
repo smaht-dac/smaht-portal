@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .base import Item as SmahtItem
 
 
 @collection(
@@ -9,7 +9,7 @@ from .base import Item as SMAHTItem
         'title': 'Quality Metrics',
         'description': 'Listing of quality metrics',
     })
-class QualityMetric(SMAHTItem):
+class QualityMetric(SmahtItem):
     item_type = 'quality_metric'
     schema = load_schema("encoded:schemas/quality_metric.json")
     embedded_list = []
