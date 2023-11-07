@@ -161,7 +161,7 @@
     {
         "name": "docs",
         "title": "Documentation",
-        "status": "shared",
+        "status": "public",
         "children": [
             "859b2c48-0bda-406c-b49b-07d68bd236d4",
             "faabe1c0-3d8a-4651-bc86-072fb49ad016",
@@ -184,14 +184,14 @@
     {
         "name": "docs/how-to-download",
         "title": "How to Download Data",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
             "enabled": true,
-            "skip-depth": 1,
-            "header-depth": 4,
+            "skip-depth": 3,
+            "header-depth": 6,
             "include-top-link": false
         },
         "uuid": "859b2c48-0bda-406c-b49b-07d68bd236d4",
@@ -205,14 +205,14 @@
     {
         "name": "docs/how-to-register",
         "title": "How to Create Account",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
             "enabled": true,
-            "skip-depth": 1,
-            "header-depth": 4,
+            "skip-depth": 3,
+            "header-depth": 6,
             "include-top-link": false
         },
         "uuid": "faabe1c0-3d8a-4651-bc86-072fb49ad016",
@@ -232,8 +232,8 @@
         ],
         "table-of-contents": {
             "enabled": true,
-            "skip-depth": 1,
-            "header-depth": 4,
+            "skip-depth": 3,
+            "header-depth": 6,
             "include-top-link": false
         },
         "uuid": "4a63980c-d43a-403d-b872-51b658e1d39c",
@@ -253,8 +253,8 @@
         ],
         "table-of-contents": {
             "enabled": true,
-            "skip-depth": 1,
-            "header-depth": 4,
+            "skip-depth": 3,
+            "header-depth": 6,
             "include-top-link": false
         },
         "uuid": "d753df69-8830-4cce-bf5c-44f55686d8a7",
@@ -274,8 +274,8 @@
         ],
         "table-of-contents": {
             "enabled": true,
-            "skip-depth": 1,
-            "header-depth": 4,
+            "skip-depth": 3,
+            "header-depth": 6,
             "include-top-link": false
         },
         "uuid": "22cf1831-aa96-4da1-bc62-4bccba4365af",
