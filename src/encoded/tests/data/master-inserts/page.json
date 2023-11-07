@@ -503,5 +503,47 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "name": "privacy-policy",
+        "title": "Privacy Policy",
+        "status": "public",
+        "content": [
+            "ad816266-12c7-47bd-9617-dfe2a2328528"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "92b70c7e-6503-47e4-8f6a-35512d85099b",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "name": "legal",
+        "title": "Legal",
+        "status": "public",
+        "content": [
+            "032e2512-9168-4db4-b21d-5a10a8b8b14c"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "a5b90fc7-cb21-4a84-8bf2-b6c2b282cf0b",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]

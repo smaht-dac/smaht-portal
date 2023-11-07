@@ -76,7 +76,7 @@
         ]
     },
     {
-        "name": "COLO829 Data Table",
+        "name": "benchmarking.COLO829",
         "title": "COLO829 Data Table",
         "file": "/docs/public/benchmarking_COLO829.jsx",
         "status": "shared",
@@ -95,7 +95,7 @@
         ]
     },
     {
-        "name": "Intro Benchmarking Data Table",
+        "name": "benchmarking.intro",
         "title": "Intro Benchmarking Data Table",
         "file": "/docs/public/benchmarking_intro.jsx",
         "status": "shared",
@@ -114,7 +114,7 @@
         ]
     },
     {
-        "name": "Benchmarking Placeholder",
+        "name": "benchmarking.placeholder",
         "title": "Benchmarking Placeholder",
         "file": "/docs/public/benchmarking_placeholder.jsx",
         "status": "shared",
@@ -125,6 +125,44 @@
         },
         "section_type": "Page Section",
         "uuid": "cb2cdf19-ebec-4332-ae08-490404384d56",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "name": "legal",
+        "title": "Legal",
+        "file": "/docs/public/legal.md",
+        "status": "public",
+        "options": {
+            "filetype": "md",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "032e2512-9168-4db4-b21d-5a10a8b8b14c",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "name": "privacy-policy",
+        "title": "Privacy Policy",
+        "file": "/docs/public/privacy-policy.md",
+        "status": "public",
+        "options": {
+            "filetype": "md",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "ad816266-12c7-47bd-9617-dfe2a2328528",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
