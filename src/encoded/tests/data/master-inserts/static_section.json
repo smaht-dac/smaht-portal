@@ -74,5 +74,62 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "name": "COLO829 Data Table",
+        "title": "COLO829 Data Table",
+        "file": "/docs/public/benchmarking_COLO829.jsx",
+        "status": "shared",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "dea41934-619a-4a3b-a2bd-0521d0fffab1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "name": "Intro Benchmarking Data Table",
+        "title": "Intro Benchmarking Data Table",
+        "file": "/docs/public/benchmarking_intro.jsx",
+        "status": "shared",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "56a7ca2a-e9aa-4c19-960d-2cd0ca2d9686",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "name": "Benchmarking Placeholder",
+        "title": "Benchmarking Placeholder",
+        "file": "/docs/public/benchmarking_placeholder.jsx",
+        "status": "shared",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "cb2cdf19-ebec-4332-ae08-490404384d56",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]

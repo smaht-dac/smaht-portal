@@ -189,7 +189,7 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-            "enabled": false,
+            "enabled": true,
             "skip-depth": 1,
             "header-depth": 4,
             "include-top-link": false
@@ -210,7 +210,7 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-            "enabled": false,
+            "enabled": true,
             "skip-depth": 1,
             "header-depth": 4,
             "include-top-link": false
@@ -231,7 +231,7 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-            "enabled": false,
+            "enabled": true,
             "skip-depth": 1,
             "header-depth": 4,
             "include-top-link": false
@@ -252,7 +252,7 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-            "enabled": false,
+            "enabled": true,
             "skip-depth": 1,
             "header-depth": 4,
             "include-top-link": false
@@ -273,7 +273,7 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-            "enabled": false,
+            "enabled": true,
             "skip-depth": 1,
             "header-depth": 4,
             "include-top-link": false
@@ -320,10 +320,10 @@
             "66053267-3ffc-499e-989d-da8163d4cafe"
         ],
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "56a7ca2a-e9aa-4c19-960d-2cd0ca2d9686"
         ],
         "table-of-contents": {
-            "enabled": true,
+            "enabled": false,
             "skip-depth": 1,
             "header-depth": 4,
             "include-top-link": false
@@ -341,7 +341,7 @@
         "title": "COLO829",
         "status": "shared",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "dea41934-619a-4a3b-a2bd-0521d0fffab1"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -362,7 +362,7 @@
         "title": "HapMap",
         "status": "shared",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "cb2cdf19-ebec-4332-ae08-490404384d56"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -383,7 +383,7 @@
         "title": "iPSC and Fibroblasts",
         "status": "shared",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "cb2cdf19-ebec-4332-ae08-490404384d56"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -404,7 +404,7 @@
         "title": "Brain",
         "status": "shared",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "cb2cdf19-ebec-4332-ae08-490404384d56"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -425,7 +425,7 @@
         "title": "Lung",
         "status": "shared",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "cb2cdf19-ebec-4332-ae08-490404384d56"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -446,7 +446,7 @@
         "title": "Heart",
         "status": "shared",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "cb2cdf19-ebec-4332-ae08-490404384d56"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -467,7 +467,7 @@
         "title": "Colon",
         "status": "shared",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "cb2cdf19-ebec-4332-ae08-490404384d56"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -488,7 +488,7 @@
         "title": "Skin",
         "status": "shared",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "cb2cdf19-ebec-4332-ae08-490404384d56"
         ],
         "table-of-contents": {
             "enabled": false,
