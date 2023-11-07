@@ -8,28 +8,29 @@ from .submission_folio import SmahtSubmissionFolio
 def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp, validate_only: bool = False) -> Dict:
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
-        LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*(.*)$")
+        LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*([a-zA-Z\d_-]+)\s*(.*)$")
         LOADXL_ACTION_NAME = {"POST": "created", "PATCH": "updated", "SKIP": "skipped", "CHECK": "validated", "ERROR": "errors"}
         response = {value: [] for value in LOADXL_ACTION_NAME.values()}
         for item in loadxl_response:
             # ASSUME each item in the loadxl response looks something like one of (string or bytes):
-            # POST: beefcafe-01ce-4e61-be5d-cd04401dff29
-            # PATCH: deadbabe-7b4f-4923-824b-d0864a689bb
-            # SKIP: feedbeef-eb17-4406-adb8-060ea2ae2180
-            # CHECK: cafebabe-eb17-4406-adb8-0eacafebabe
-            # ERROR: deadbeef-483e-4a08-96b9-3ce85ce8bf8c
+            # POST: beefcafe-01ce-4e61-be5d-cd04401dff29 FileFormat
+            # PATCH: deadbabe-7b4f-4923-824b-d0864a689bb Software
+            # SKIP: feedbeef-eb17-4406-adb8-060ea2ae2180 Workflow
+            # CHECK: cafebabe-eb17-4406-adb8-0eacafebabe ReferenceFile
+            # ERROR: deadbeef-483e-4a08-96b9-3ce85ce8bf8c OutputFile
             # Note that SKIP means skip POST (create); it still may do PATCH (update), if overwrite.
             item = _maybe_decode_bytes(item)
             if not item:
                 continue
             match = LOADXL_RESPONSE_PATTERN.match(item)
-            if not match or match.re.groups != 2:
+            if not match or match.re.groups != 3:
                 continue
             action = LOADXL_ACTION_NAME[match.group(1).upper()]
             identifying_value = match.group(2)
+            item_type = match.group(3)
             if not response.get(action):
                 response[action] = []
-            response[action].append(identifying_value)
+            response[action].append({"uuid": identifying_value, "type": item_type})
         # Items flagged as SKIP in loadxl could ultimately be a PATCH (update),
         # so remove from the skip list any items which are also in the update list. 
         response["skipped"] = [item for item in response["skipped"] if item not in response["updated"]]
@@ -47,6 +48,7 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
         itype=None,
         from_json=True,
         patch_only=False,
+        verbose=True,
         validate_only=validate_only)
 
     return package_loadxl_response(loadxl_load_data_response)
