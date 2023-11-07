@@ -58,7 +58,8 @@ $grid-breakpoints: (
   sm: 576px,
   md: 768px,
   lg: 992px,
-  xl: 1500px        // < xl is overridden from default of 1200px; others are Bootstrap v4 defaults
+  xl: 1200px,
+  xxl: 1500px
 );
 
 $border-radius-base:                        3px;

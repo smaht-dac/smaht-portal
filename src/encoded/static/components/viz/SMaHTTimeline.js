@@ -86,17 +86,19 @@ function ContextAwareToggle({ children, eventKey, callback }) {
         : 'icon icon-plus fas';
 
     return (
-        <div className="d-flex justify-content-between align-items-center">
+        <div className="card-header-content">
             <button
                 type="button"
-                className="border-0 bg-transparent"
+                className="card-header-button border-0 bg-transparent"
                 onClick={decoratedOnClick}>
-                <div>
-                    <i className={openStatusIconCls + ' mr-1'} />
+                <div className="d-flex justify-start">
+                    <i className={openStatusIconCls + ' m-auto mr-1'} />
                     {children}
                 </div>
             </button>
-            <i className="icon icon-arrow-right fas" />
+            <a className="card-header-link">
+                <i className="icon icon-arrow-right fas" />
+            </a>
         </div>
     );
 }
@@ -113,7 +115,7 @@ function TimelineAccordionDrawer(props) {
         <Card>
             <Card.Header>
                 <ContextAwareToggle {...{ eventKey }}>
-                    {title}
+                    <span className="text-left">{title}</span>
                 </ContextAwareToggle>
             </Card.Header>
             <Accordion.Collapse {...{ eventKey }}>
