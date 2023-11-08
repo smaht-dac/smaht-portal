@@ -17,20 +17,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 // Timeline
 #timeline {
     position: relative;
-    margin: 30px;
+    margin: 30px 15px;
     padding: 0px;
     width: 90%;
     @include prefix(transition, all 0.4s ease);
-
-    &:before {
-        content: '';
-        width: 3px;
-        height: 100%;
-        background: $homepage-timeline-border-color;
-        left: 0;
-        top: 0;
-        position: absolute;
-    }
 
     &:after {
         content: '';
@@ -40,13 +30,17 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     }
 
     .timeline-item {
-        margin-bottom: 20px;
+        padding-bottom: 20px;
         position: relative;
         @include clearfix;
+        border-left: 3px solid $homepage-timeline-border-color;
+
 
         &:last-of-type {
             margin-bottom: 0px;
+            border-left: none;
         }
+
 
         .timeline-marker {
             // Font Styling
@@ -56,13 +50,13 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             align-content: center;
             justify-content: center;
             align-items: center;
-            color: $homepage-timeline-text-color;
+            color: $homepage-card-text-color;
 
             
             // Bubble Styling
             background: $homepage-timeline-bg-color;
             border: 1px solid $homepage-timeline-border-color;
-            padding: 1px 7px 3px 7px;
+            padding: 2px 7px 3px 7px;
             position: absolute;
             top: 0;
             left: 0;
@@ -74,9 +68,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         .timeline-content {
             width: 90%;
             float: right;
-            // @include prefix(box-shadow, 0 3px 0 rgba(0, 0, 0, 0.1));
             @include prefix(border-radius, 5px);
             @include prefix(transition, all 0.3s ease);
+
+            
 
             &:before,
             &.right:before {
@@ -94,9 +89,41 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
             .card {
                 background-color: $homepage-card-bg-color;
-                border: 1px solid $homepage-card-border-color;
+                border: 2px solid $homepage-card-border-color;
                 @include prefix(border-radius, 10px);
                 box-shadow: none;
+
+                &-body {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: space-evenly;
+                    padding: 10px 43px;
+
+                    .number-group {
+                        display: flex;
+                        flex-direction: row;
+                        justify-content: center;
+                        width: 100%;
+                        padding: 0px 10px;
+                        &:hover {
+                            cursor: pointer;
+                            text-decoration: none;
+                        }
+
+                        h4 {
+                            font-size: 36px;
+                            font-weight: 600;
+                            color: $homepage-card-text-color;
+                            margin-right: 10px;
+                        }
+                        span {
+                            font-size: 12px;
+                            font-weight: 500;
+                            color: $homepage-card-text-color;
+                            margin: auto;
+                        }
+                    }
+                }
             }
 
             .card-header {
@@ -107,6 +134,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     position: relative;
 
                     span {
+                        color: $homepage-card-text-color;
                         font-weight: 600;
                         font-size: 16px;
                     }
@@ -118,6 +146,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     justify-content: space-between;
                     align-items: center;
                     width: 100%;
+
+                    i {
+                        color: #74CFB2;
+                    }
                 }
                 &-link {
                     position: absolute;
@@ -127,22 +159,12 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
                     &:hover {
                         cursor: pointer;
-                        
-                        i {
-                            // color: white;
-                        }
+                    }
+                    i {
+                        color: #74CFB2;
                     }
                 }
 
-            }
-
-            .card,
-            .card-header,
-            button {
-                color: $homepage-card-text-color;
-                i {
-                    color: $homepage-card-icon-color;
-                }
             }
         }
     }
@@ -532,7 +554,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         flex-direction: column;
         justify-content: space-between;
         width: 638px;
-        // height: 704px;
     
         &-content {
             margin-bottom: 0px;
@@ -544,7 +565,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 }
                 &-body {
                     width: 231px;
-                    max-height: 595px;
+                    height: 600px;
 
                     .card-list {
                         margin-bottom: 5px;

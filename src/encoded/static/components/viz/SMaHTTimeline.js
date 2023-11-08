@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import {
     Accordion,
     AccordionContext,
@@ -20,18 +20,38 @@ export default function SMaHTTimeline() {
                             <TimelineAccordionDrawer
                                 eventKey={1}
                                 title="COLO829 Cancer Cell Lines"
+                                values={[
+                                    { number: 2, units: 'Cell Lines' },
+                                    { number: 24, units: 'Files Generated' },
+                                    { number: 12, units: 'Assay Types' },
+                                ]}
                             />
                             <TimelineAccordionDrawer
                                 eventKey={2}
                                 title="HapMap Cell Lines"
+                                values={[
+                                    { number: 0, units: 'Cell Lines' },
+                                    { number: 0, units: 'Files Generated' },
+                                    { number: 0, units: 'Assay Types' },
+                                ]}
                             />
                             <TimelineAccordionDrawer
                                 eventKey={3}
                                 title="iPSC & Fibroblasts"
+                                values={[
+                                    { number: 0, units: 'Cell Lines' },
+                                    { number: 0, units: 'Files Generated' },
+                                    { number: 0, units: 'Assay Types' },
+                                ]}
                             />
                             <TimelineAccordionDrawer
                                 eventKey={4}
                                 title="Tissue Benchmarking"
+                                values={[
+                                    { number: 0, units: 'Cell Lines' },
+                                    { number: 0, units: 'Files Generated' },
+                                    { number: 0, units: 'Assay Types' },
+                                ]}
                             />
                         </TimelineAccordion>
                     </div>
@@ -47,6 +67,11 @@ export default function SMaHTTimeline() {
                             <TimelineAccordionDrawer
                                 eventKey={1}
                                 title="Tissue"
+                                values={[
+                                    { number: 0, units: 'Cell Lines' },
+                                    { number: 0, units: 'Files Generated' },
+                                    { number: 0, units: 'Assay Types' },
+                                ]}
                             />
                         </TimelineAccordion>
                     </div>
@@ -62,6 +87,11 @@ export default function SMaHTTimeline() {
                             <TimelineAccordionDrawer
                                 eventKey={1}
                                 title="Tissue"
+                                values={[
+                                    { number: 0, units: 'Cell Lines' },
+                                    { number: 0, units: 'Files Generated' },
+                                    { number: 0, units: 'Assay Types' },
+                                ]}
                             />
                         </TimelineAccordion>
                     </div>
@@ -110,7 +140,7 @@ function TimelineAccordion(props) {
 }
 
 function TimelineAccordionDrawer(props) {
-    const { eventKey, title = 'Click me!' } = props;
+    const { eventKey, title = 'Click me!', values = [] } = props;
     return (
         <Card>
             <Card.Header>
@@ -119,11 +149,28 @@ function TimelineAccordionDrawer(props) {
                 </ContextAwareToggle>
             </Card.Header>
             <Accordion.Collapse {...{ eventKey }}>
-                <Card.Body>Hello! I&apos;m the body</Card.Body>
+                <Card.Body>
+                    <TimelineCardContent values={values} />
+                </Card.Body>
             </Accordion.Collapse>
         </Card>
     );
 }
+
+const TimelineCardContent = ({ values }) => {
+    return (
+        <>
+            {values.map(({ number, units }, i) => {
+                return (
+                    <a className="number-group" key={i}>
+                        <h4>{number}</h4>
+                        <span>{units}</span>
+                    </a>
+                );
+            })}
+        </>
+    );
+};
 
 // function BenchmarkingAccordions() {
 //     return (

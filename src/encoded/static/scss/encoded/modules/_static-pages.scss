@@ -506,10 +506,15 @@ body[data-path="/"]>#application>#layout {
 
 		h1 {
 			font-size: 42px;
+			font-weight: 600;
 		}
 
-		h1, h3 {
+		h1 {
 			color: $homepage-header-text-color;
+		}
+		h3 {
+			color: $homepage-header-text-color;
+			margin-top: 0;
 		}
 
 		h2 {
