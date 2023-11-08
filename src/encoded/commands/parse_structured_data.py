@@ -4,18 +4,22 @@ from jsonschema import Draft7Validator as JsonSchemaValidator
 from typing import List, Optional
 import yaml
 from dcicutils.bundle_utils import load_items as sheet_utils_load_items
+from dcicutils.sheet_utils import load_table_annotated as sheet_utils_load_items_noschemas
 from dcicutils.common import AnyJsonData
 from snovault.loadxl import load_all_gen as loadxl_load_data
-from ..ingestion.structured_data import Portal, Schema, StructuredDataSet
-from ..ingestion.loadxl_extensions import load_data_into_database
+from encoded.ingestion.loadxl_extensions import load_data_into_database
+from encoded.ingestion.structured_data import Portal, Schema, StructuredDataSet
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Parse local structured data file for dev/testing purposes.")
     parser.add_argument("file", type=str, help=f"File to parse.")
-    parser.add_argument("--new", required=False, action="store_true", default=False, help=f"Use new parser.")
+    parser.add_argument("--new", required=False, action="store_true", default=False,
+                        help=f"Use new structure_data_parser rather than sheet_utils.")
     parser.add_argument("--schemas", required=False, action="store_true",
                         default=False, help=f"Only output the loaded schema(s).")
+    parser.add_argument("--noschemas", required=False, action="store_true",
+                        default=False, help=f"Do not use schemes.")
     parser.add_argument("--validate", required=False, action="store_true",
                         default=False, help=f"Validation using JSON schema.")
     parser.add_argument("--no-format-validate", required=False, action="store_true",
@@ -28,11 +32,19 @@ def main() -> None:
                         default=False, help=f"Verbose output.")
     args = parser.parse_args()
 
-    portal = Portal.create_for_testing()
+    if args.noschemas:
+        if args.schemas:
+            print("Cannot specify both --schemas and --noschemas.")
+            exit(1)
+        #if not args.new:
+        #    print("Must use schemas with sheet_utils.") 
+        #    exit(1)
+
+    portal = Portal.create_for_testing() if not args.noschemas else None
 
     if args.verbose:
         print(f">>> Loading structured data from: {args.file} ...")
-    structured_data_set = parse_structured_data(file=args.file, portal=portal, new=args.new)
+    structured_data_set = parse_structured_data(file=args.file, portal=portal, new=args.new, noschemas=args.noschemas)
     print(f">>> Structured Data:")
     print(json.dumps(structured_data_set, indent=4, default=str))
 
@@ -71,14 +83,20 @@ def main() -> None:
         print(">>> Done.")
 
 
-def parse_structured_data(file: str, portal: Optional[Portal], new: bool = False) -> Optional[dict]:
+def parse_structured_data(file: str, portal: Optional[Portal],
+                          new: bool = False, noschemas: bool = False) -> Optional[dict]:
     if new:
         data = StructuredDataSet(file, portal)
         data = data.data
     else:
-        data = sheet_utils_load_items(file, portal_vapp=portal.vapp, validate=True, apply_heuristics=True)
-        _ = data[1]  # problems unused the moment
-        data = data[0]
+        portal_vapp = portal.vapp if portal else None
+        if noschemas:
+            data = sheet_utils_load_items_noschemas(file, portal_vapp=portal_vapp)
+            data = data["content"]
+        else:
+            data = sheet_utils_load_items(file, portal_vapp=portal_vapp, validate=True, apply_heuristics=True)
+            _ = data[1]  # problems unused the moment
+            data = data[0]
     return data
 
 
