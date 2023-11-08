@@ -505,7 +505,7 @@
         ]
     },
     {
-        "name": "privacy-policy",
+        "identifier": "privacy-policy",
         "title": "Privacy Policy",
         "status": "public",
         "content": [
@@ -526,7 +526,7 @@
         ]
     },
     {
-        "name": "legal",
+        "identifier": "legal",
         "title": "Legal",
         "status": "public",
         "content": [

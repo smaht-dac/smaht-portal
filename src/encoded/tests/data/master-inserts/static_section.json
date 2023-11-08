@@ -76,7 +76,7 @@
         ]
     },
     {
-        "name": "benchmarking.COLO829",
+        "identifier": "benchmarking.COLO829",
         "title": "COLO829 Data Table",
         "file": "/docs/public/benchmarking_COLO829.jsx",
         "status": "shared",
@@ -95,7 +95,7 @@
         ]
     },
     {
-        "name": "benchmarking.intro",
+        "identifier": "benchmarking.intro",
         "title": "Intro Benchmarking Data Table",
         "file": "/docs/public/benchmarking_intro.jsx",
         "status": "shared",
@@ -114,7 +114,7 @@
         ]
     },
     {
-        "name": "benchmarking.placeholder",
+        "identifier": "benchmarking.placeholder",
         "title": "Benchmarking Placeholder",
         "file": "/docs/public/benchmarking_placeholder.jsx",
         "status": "shared",
@@ -133,7 +133,7 @@
         ]
     },
     {
-        "name": "legal",
+        "identifier": "legal",
         "title": "Legal",
         "file": "/docs/public/legal.md",
         "status": "public",
@@ -152,7 +152,7 @@
         ]
     },
     {
-        "name": "privacy-policy",
+        "identifier": "privacy-policy",
         "title": "Privacy Policy",
         "file": "/docs/public/privacy-policy.md",
         "status": "public",
