@@ -33,12 +33,24 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         padding-bottom: 20px;
         position: relative;
         @include clearfix;
-        border-left: 3px solid $homepage-timeline-border-color;
+
+        &:before {
+            content: '';
+            width: 3px;
+            height: 100%;
+            background: $homepage-timeline-border-color;
+            left: 0;
+            top: 4px;
+            position: absolute;
+        }
 
 
         &:last-of-type {
             margin-bottom: 0px;
-            border-left: none;
+
+            &:before {
+                display: none;
+            }
         }
 
 
@@ -58,7 +70,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             border: 1px solid $homepage-timeline-border-color;
             padding: 2px 7px 3px 7px;
             position: absolute;
-            top: 0;
+            top: 4px;
             left: 0;
             overflow: hidden;
             margin-left: -24px;
@@ -120,7 +132,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             font-size: 12px;
                             font-weight: 500;
                             color: $homepage-card-text-color;
-                            margin: auto;
+                            margin: auto 10px auto auto;
                         }
                     }
                 }
