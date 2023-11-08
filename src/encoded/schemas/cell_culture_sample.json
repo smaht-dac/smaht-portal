@@ -1,6 +1,6 @@
 {
-    "title": "Cell Culture",
-    "$id": "/profiles/cell_culture.json",
+    "title": "Cell Culture Sample",
+    "$id": "/profiles/cell_culture_sample.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
