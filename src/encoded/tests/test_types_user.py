@@ -1,4 +1,7 @@
-def test_types_user_succeeds(testapp, admin, smaht_admin):
-    """ Tests that we can load a user into the system using by posting to the snovault user """
-    assert testapp.get(f'/users/{admin["email"]}').follow(status=200)
-    assert testapp.get(f'/users/{smaht_admin["email"]}').follow(status=200)
+from typing import Any, Dict
+
+from webtest.app import TestApp
+
+
+def test_email_resource_path(testapp: TestApp, admin: Dict[str, Any]) -> None:
+    testapp.get(f"/users/{admin['email']}/", status=301)

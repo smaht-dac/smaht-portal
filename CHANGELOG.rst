@@ -7,13 +7,26 @@ smaht-portal
 Change Log
 ----------
 
+
+0.5.0
+=====
+* Merge in ui-dev2 branch: `PR 28: UI-Dev 2 <https://github.com/smaht-dac/smaht-portal/pull/28>`_
+  * Fixes for UI broken by data model update (including SPC update to [v0.1.73b1] (https://github.com/4dn-dcic/shared-portal-components/releases/tag/0.1.73b1))
+  * [Cfm map popover #27] (https://github.com/smaht-dac/smaht-portal/pull/27)
+
+
 0.4.0
 =====
-`PR 19: UI-Dev <https://github.com/smaht-dac/smaht-portal/pull/20>`_
-
-* Remove Splash Page + [re-add various features](https://github.com/smaht-dac/smaht-portal/pull/19) 
-* Series of fixes for Static Sections and Pages
-* Initial layout of home page and other pages (TODO: link other front-end PRs)
+* Merge in drr_shared_schemas branch.
+* Merge in ui-dev branch: `PR 19: UI-Dev <https://github.com/smaht-dac/smaht-portal/pull/20>`_
+  * Remove Splash Page + [re-add various features](https://github.com/smaht-dac/smaht-portal/pull/19)
+  * Series of Fixes for Static Sections and Pages
+  * [Bm homepage and more inserts #22] (https://github.com/smaht-dac/smaht-portal/pull/22)
+  * [Bm cypress + studio #16] (https://github.com/smaht-dac/smaht-portal/pull/16)
+  * [Cfm data viz integration #23] (https://github.com/smaht-dac/smaht-portal/pull/23)
+  * [Cfm homepage figure #25] (https://github.com/smaht-dac/smaht-portal/pull/25)
+* Update dcicutils to ^8.2.0.
+* 2023-11.02
 
 
 0.3.0

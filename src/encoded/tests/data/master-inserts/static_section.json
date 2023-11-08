@@ -1,6 +1,6 @@
 [
     {
-        "name": "coming-soon",
+        "identifier": "coming-soon",
         "title": "Coming Soon",
         "body": "Coming soon!",
         "status": "public",
@@ -19,7 +19,7 @@
         ]
     },
     {
-        "name": "about.introduction",
+        "identifier": "about.introduction",
         "title": "Introduction",
         "file": "/docs/public/about_introduction.jsx",
         "status": "public",
@@ -38,7 +38,7 @@
         ]
     },
     {
-        "name": "consortium-map",
+        "identifier": "consortium-map",
         "title": "SMaHT Consortium Members Map",
         "file": "/docs/public/consortium_map.jsx",
         "status": "public",
@@ -57,7 +57,7 @@
         ]
     },
     {
-        "name": "alluvial",
+        "identifier": "alluvial",
         "title": "SMaHT Data Alluvial Diagram",
         "file": "/docs/public/alluvial.jsx",
         "status": "public",

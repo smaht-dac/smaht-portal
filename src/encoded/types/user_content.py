@@ -1,19 +1,21 @@
-from copy import deepcopy
-from snovault import abstract_collection, collection
+from typing import Any, Dict, Optional
+
+from snovault import abstract_collection, Item as SnovaultItem, load_schema
 from encoded_core.types.user_content import UserContent as CoreUserContent
+
 from .base import Item as SMAHTItem
-from .base import mixin_smaht_permission_types
-
-
-ENCODED_CORE_USER_CONTENT_SCHEMA = deepcopy(CoreUserContent.schema)
 
 
 @abstract_collection(
-    name='user-content',
+    name='user-contents',
     properties={
         'title': 'User Content',
-        'description': 'User Content for the Portal',
+        'description': 'User content for the Portal',
     })
 class UserContent(SMAHTItem, CoreUserContent):
     item_type = 'user_content'
-    schema = mixin_smaht_permission_types(ENCODED_CORE_USER_CONTENT_SCHEMA)
+    schema = load_schema("encoded:schemas/user_content.json")
+    embedded_list = []
+
+    def _update(self, properties: Dict[str, Any], sheets: Optional[Dict] = None) -> None:
+        return SnovaultItem._update(self, properties, sheets=sheets)

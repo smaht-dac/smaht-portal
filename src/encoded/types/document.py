@@ -1,12 +1,8 @@
-from copy import deepcopy
-from snovault import collection, calculated_property
 from encoded_core.types.document import Document as CoreDocument
+from snovault import collection, load_schema
+
 from .base import Item as SMAHTItem
-from .base import mixin_smaht_permission_types
 from .acl import CONSORTIUM_MEMBER_CREATE_ACL
-
-
-ENCODED_CORE_DOCUMENT_SCHEMA = deepcopy(CoreDocument.schema)
 
 
 @collection(
@@ -18,12 +14,5 @@ ENCODED_CORE_DOCUMENT_SCHEMA = deepcopy(CoreDocument.schema)
     })
 class Document(SMAHTItem, CoreDocument):
     item_type = 'document'
-    schema = mixin_smaht_permission_types(ENCODED_CORE_DOCUMENT_SCHEMA)
-
-    @calculated_property(schema={
-        "title": "Display Title",
-        "description": "Document filename, if available.",
-        "type": "string"
-    })
-    def display_title(self, attachment=None):
-        return CoreDocument.display_title(self, attachment=attachment)
+    schema = load_schema("encoded:schemas/document.json")
+    embedded_list = []

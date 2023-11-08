@@ -1,6 +1,6 @@
-from pyramid.view import view_config
 import snovault
-from snovault import AbstractCollection, abstract_collection, calculated_property
+from pyramid.view import view_config
+from snovault import abstract_collection, calculated_property
 from snovault.types.base import (
     Collection,
     DELETED_ACL,
@@ -23,23 +23,6 @@ from snovault.crud_views import (
 from dcicutils.misc_utils import PRINT
 from .acl import *
 from ..local_roles import DEBUG_PERMISSIONS
-
-
-# VERY IMPORTANT - these embeds, defaulted on all items,
-# ensure that static sections work properly
-static_content_embed_list = [
-    "static_headers.*",            # Type: UserContent, may have differing properties
-    "static_content.content.@type",
-    "static_content.content.content",
-    "static_content.content.name",
-    "static_content.content.title",
-    "static_content.content.status",
-    "static_content.content.description",
-    "static_content.content.options",
-    "static_content.content.institution",
-    "static_content.content.project",
-    "static_content.content.filetype"
-]
 
 
 def mixin_smaht_permission_types(schema: dict) -> dict:
@@ -164,9 +147,6 @@ class Item(SnovaultItem):
     }
     # For now, replicate the same
     CONSORTIUM_STATUS_ACL = SUBMISSION_CENTER_STATUS_ACL
-
-    # Must be present for static sections to load properly
-    # embedded_list = static_content_embed_list
 
     def __init__(self, registry, models):
         super().__init__(registry, models)

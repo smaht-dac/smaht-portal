@@ -93,7 +93,7 @@ function DirectoryBodyGridItem(props) {
         childrenHaveChildren,
         children = [],
         atId: childID,
-        name,
+        identifier: name,
         description,
         display_title,
     } = props;

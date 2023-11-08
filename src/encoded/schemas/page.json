@@ -1,0 +1,89 @@
+{
+    "title": "Page",
+    "$id": "/profiles/page.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "identifier"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "aliases",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/title"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "identifier": {
+            "pattern": "^([A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+$",
+            "comment": "Used as the path for the page's URL"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "status": {
+            "enum": [
+                "current",
+                "deleted",
+                "inactive",
+                "in review",
+                "public",
+                "shared"
+            ]
+        },
+        "children": {
+            "$merge": "encoded_core:schemas/page.json#/properties/children"
+        },
+        "content": {
+            "$merge": "encoded_core:schemas/page.json#/properties/content"
+        },
+        "redirect": {
+            "$merge": "encoded_core:schemas/page.json#/properties/redirect"
+        },
+        "table-of-contents": {
+            "$merge": "encoded_core:schemas/page.json#/properties/table-of-contents"
+        }
+    }
+}

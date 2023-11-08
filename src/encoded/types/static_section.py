@@ -1,26 +1,23 @@
+from snovault import load_schema
 import os
-from copy import deepcopy
 from snovault import collection, calculated_property
-from encoded_core.types.user_content import StaticSection as CoreStaticSection
 from encoded_core.types.user_content import get_local_file_contents, get_remote_file_contents
-from .base import Item as SMAHTItem
-from .base import mixin_smaht_permission_types
-from .user_content import UserContent as SMAHTUserContent
+from encoded_core.types.user_content import StaticSection as CoreStaticSection
 
-
-ENCODED_CORE_STATIC_SECTION_SCHEMA = deepcopy(CoreStaticSection.schema)
+from .user_content import UserContent
 
 
 @collection(
     name='static-sections',
-    unique_key='user_content:name',
+    unique_key='user_content:identifier',
     properties={
         'title': 'Static Sections',
         'description': 'Static Sections for the Portal',
     })
-class StaticSection(SMAHTUserContent, CoreStaticSection):
+class StaticSection(UserContent, CoreStaticSection):
     item_type = 'static_section'
-    schema = mixin_smaht_permission_types(ENCODED_CORE_STATIC_SECTION_SCHEMA)
+    schema = load_schema("encoded:schemas/static_section.json")
+    embedded_list = []
 
     @calculated_property(schema={
         "title": "Content",

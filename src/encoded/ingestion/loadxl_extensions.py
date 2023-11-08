@@ -1,13 +1,13 @@
 import re
-from typing import Generator, Optional, Union
+from typing import Dict, List, Generator, Optional, Union
 from dcicutils.misc_utils import VirtualApp
 from snovault.loadxl import load_all_gen as loadxl_load_data
 from .submission_folio import SmahtSubmissionFolio
 
 
-def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp, validate_only: bool = False) -> dict:
+def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp, validate_only: bool = False) -> Dict:
 
-    def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> dict:
+    def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
         LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*(.*)$")
         LOADXL_ACTION_NAME = {"POST": "created", "PATCH": "updated", "SKIP": "skipped", "CHECK": "validated", "ERROR": "errors"}
         response = {value: [] for value in LOADXL_ACTION_NAME.values()}
@@ -52,8 +52,8 @@ def load_data_into_database(data: dict[str, list[dict]], portal_vapp: VirtualApp
     return package_loadxl_response(loadxl_load_data_response)
 
 
-def summary_of_load_data_results(load_data_response: Optional[dict],
-                                 submission: SmahtSubmissionFolio) -> list[str]:
+def summary_of_load_data_results(load_data_response: Optional[Dict],
+                                 submission: SmahtSubmissionFolio) -> List[str]:
     """
     Summarize the given load data results into a simple short list of English phrases;
     this will end up going into the additional_properties of the IngestionSubmission

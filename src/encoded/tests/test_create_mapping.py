@@ -1,16 +1,10 @@
 import pytest
-import time
 
-from snovault import COLLECTIONS, TYPES
-from snovault.elasticsearch.create_mapping import (
-    type_mapping,
-    run as run_create_mapping,
-)
 from dcicutils.misc_utils import camel_case_to_snake_case
-from snovault.util import add_default_embeds
-from unittest.mock import patch, MagicMock
-from .conftest_settings import ORDER
+from snovault import COLLECTIONS, TYPES
 from snovault.commands.create_mapping_on_deploy import loadxl_order
+from snovault.elasticsearch.create_mapping import type_mapping
+from snovault.util import add_default_embeds
 
 
 pytestmark = [pytest.mark.setone, pytest.mark.working]
@@ -53,4 +47,4 @@ def test_create_mapping_item_order(registry):
         # ignore "testing" types
         if i_type.startswith('testing_'):
             continue
-        assert registry[COLLECTIONS][i_type].type_info.name in loadxl_order()
+        assert i_type in loadxl_order() 
