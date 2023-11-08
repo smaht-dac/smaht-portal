@@ -4,42 +4,194 @@ const CLTList = ({ list }) => {
     return (
         <ul>
             {list.map((item, i) => {
-                return <li key={i}>{item.title}</li>;
+                return (
+                    <li key={i}>
+                        <img src={item.iconSrc} />
+                        {item.title}
+                    </li>
+                );
             })}
         </ul>
     );
 };
 
 // CLT = Cell Lines and Tissues
-export const CLTCard = () => {
+export const CLTCard = ({ currentTier }) => {
     const cltList = [
         {
             header: 'Ectoderm Tissues',
             items: [
-                { icon: '', title: 'Brain: 5 subregions' },
-                { icon: '', title: 'Sun-exposed skin' },
-                { icon: '', title: 'Non-exposed skin' },
+                {
+                    iconSrc: '',
+                    title: 'Brain: 5 subregions',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Sun-exposed skin',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Non-exposed skin',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Adrenal medulla',
+                    benchmarking: false,
+                    expansion: true,
+                    production: true,
+                },
+            ],
+        },
+        {
+            header: 'Mesoderm Tissues',
+            items: [
+                {
+                    iconSrc: '',
+                    title: 'Heart',
+                    benchmarking: false,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Adispose Tissue',
+                    benchmarking: false,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Blood',
+                    benchmarking: false,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Skeletal Muscle',
+                    benchmarking: false,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Aorta',
+                    benchmarking: false,
+                    expansion: true,
+                    production: true,
+                },
             ],
         },
         {
             header: 'Endoderm Tissues',
             items: [
-                { icon: '', title: 'Liver' },
-                { icon: '', title: 'Lung' },
-                { icon: '', title: 'Ascending Colon' },
-                { icon: '', title: 'Descending Colon' },
+                {
+                    iconSrc: '',
+                    title: 'Liver',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Lung',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Ascending Colon',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Descending Colon',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Esophagus',
+                    benchmarking: false,
+                    expansion: true,
+                    production: true,
+                },
             ],
         },
         {
             header: 'Cell Line Mixtures',
             items: [
-                { icon: '', title: 'COLO829 Mixture' },
-                { icon: '', title: 'HapMap Mixture' },
-                { icon: '', title: 'iPSC & Fibroblast' },
-                { icon: '', title: 'Descending Colon' },
+                {
+                    iconSrc: '',
+                    title: 'COLO829 Mixture',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'HapMap Mixture',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'iPSC & Fibroblast',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Descending Colon',
+                    benchmarking: false,
+                    expansion: false,
+                    production: false,
+                },
+            ],
+        },
+        {
+            header: 'Other Tissues',
+            items: [
+                {
+                    iconSrc: '',
+                    title: 'Buccal Swab',
+                    benchmarking: false,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Skin Fibroblast',
+                    benchmarking: false,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Testis / Ovary',
+                    benchmarking: false,
+                    expansion: true,
+                    production: true,
+                },
             ],
         },
     ];
+
     return (
         <div className="card clt">
             <div className="card-header">
@@ -47,12 +199,16 @@ export const CLTCard = () => {
             </div>
             <div className="card-body">
                 {cltList.map((clt, i) => {
-                    return (
+                    const activeItems = clt.items.filter(
+                        (item) => item[currentTier]
+                    );
+
+                    return activeItems.length > 0 ? (
                         <div className="card-list clt" key={i}>
                             <h5>{clt.header}</h5>
-                            <CLTList list={clt.items} />
+                            <CLTList list={activeItems} />
                         </div>
-                    );
+                    ) : null;
                 })}
             </div>
         </div>
