@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.6.0
+=====
+* Merge in ui-dev3 branch: `PR: ##: UI-Dev 3 <>`_
+  * TODO: add branches merged into ui-dev3
+
 
 0.5.0
 =====
