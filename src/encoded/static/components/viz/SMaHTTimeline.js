@@ -28,7 +28,9 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 title="COLO829 Cancer Cell Lines"
                                 tier="benchmarking"
                                 currentTier={currentTier}
-                                setCurrentTier={setCurrentTier}
+                                setCurrentTier={() =>
+                                    setCurrentTier('benchmarking')
+                                }
                                 values={[
                                     { number: 2, units: 'Cell Lines' },
                                     { number: 24, units: 'Files Generated' },
@@ -40,7 +42,9 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 title="HapMap Cell Lines"
                                 tier="benchmarking"
                                 currentTier={currentTier}
-                                setCurrentTier={setCurrentTier}
+                                setCurrentTier={() =>
+                                    setCurrentTier('benchmarking')
+                                }
                                 values={[
                                     { number: 0, units: 'Cell Lines' },
                                     { number: 0, units: 'Files Generated' },
@@ -52,7 +56,9 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 title="iPSC & Fibroblasts"
                                 tier="benchmarking"
                                 currentTier={currentTier}
-                                setCurrentTier={setCurrentTier}
+                                setCurrentTier={() =>
+                                    setCurrentTier('benchmarking')
+                                }
                                 values={[
                                     { number: 0, units: 'Cell Lines' },
                                     { number: 0, units: 'Files Generated' },
@@ -84,6 +90,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                     </div>
                     <div className="timeline-content">
                         <TimelineAccordion
+                            defaultActiveKey={1}
                             activeKey={
                                 currentTier === 'expansion' ? undefined : null
                             }>
@@ -112,7 +119,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                     </div>
                     <div className="timeline-content">
                         <TimelineAccordion
-                            defaultActiveKey={0}
+                            defaultActiveKey={1}
                             activeKey={
                                 currentTier === 'production' ? undefined : null
                             }>
@@ -181,6 +188,12 @@ function ContextAwareToggle({
 
 function TimelineAccordion(props) {
     const { defaultActiveKey, children, currentTier, activeKey } = props;
+    console.log(
+        'defaultActiveKey: ',
+        defaultActiveKey,
+        'activeKey: ',
+        activeKey
+    );
 
     return (
         <Accordion {...{ defaultActiveKey, activeKey }}>{children}</Accordion>
