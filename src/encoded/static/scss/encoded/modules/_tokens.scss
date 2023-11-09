@@ -2,7 +2,10 @@
 
 $pure-white: #FFFFFF;
 
-// Blues
+// Blue
+$baby-20: #F1F9FF;
+
+// Cobalt
 $cobalt-0: #F8FDFF;
 $cobalt-10: #CFDEFB;
 $cobalt-20: #BBCCF9;
@@ -24,7 +27,8 @@ $slate-20: #EDF3F6;
 $slate-60: #5B7595;
 
 // Gray
-
+$gray-10: #F8F8F8;
+$gray-30: #9BA5B7;
 $gray-70: #343741;
 
 
@@ -52,3 +56,9 @@ $homepage-about-consort-border-radius: 4px;
 
 // Static Sections
 $ss-title-background: url(/static/img/polygon-bg-header.svg), linear-gradient(303deg, #CCF6FC 0.52%, #FFF 99.55%);
+
+// Search Tables
+$search-header-background-color: $baby-20;
+$search-header-text-color: $gray-70;
+$search-header-border-color: $gray-30;
+$search-row-banding-alt-background-color: $gray-10;

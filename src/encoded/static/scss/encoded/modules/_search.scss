@@ -17,18 +17,6 @@ $search-results-result-row-height: 30px; /* +9px margin bottom +1px border botto
 $search-results-header-row-height: 52px; /* 46px is existing default for both result and header height. */
 @import "./../../../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/search-view-table.scss";
 
-// Extensions to shared-portal-components searchview table(s):
-
-.search-headers-row > .headers-columns-overflow-container > .columns > .search-headers-column-block {
-
-	&[data-first-visible-column] {
-		padding-left: 44px;
-	}
-
-	.inner > .column-title {
-		text-align: left;
-	}
-}
 
 .search-result-row .result-table-row .search-result-column-block {
 
@@ -212,14 +200,13 @@ $facetlist-excluding: #450000;
 }
 
 /************************************************
-******** CGAP-Related SearchView Theming ********
+******** SMaHT-Related SearchView Theming ********
 *************************************************/
 
 body[data-pathname="/search/"]:not([data-current-action="add"]) {
 	#application,
 	#layout {
-		// Possible todo: switch this to appBackgroundColor param (base.scss) or parameterize according to final design.
-		background-color: #f5f5f5;
+		background-color: $appSecondaryBackgroundColor;
 	}
 }
 
@@ -345,7 +332,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 .search-results-container .react-infinite-container .search-result-row {
 
 	&:nth-child(odd) > .columns.result-table-row {
-		background-color: #F8F8F8;;
+		background-color: $search-row-banding-alt-background-color;
 	}
 
 	border-bottom: 1px solid #00000015;

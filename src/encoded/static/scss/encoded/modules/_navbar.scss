@@ -175,9 +175,6 @@ div#top-nav.navbar-fixed-top {
             body.is-full-screen:not([data-pathname="/browse/"]):not([data-pathname="/search/"]) .navbar-container &,
             body.is-item-view .navbar-container & {
                 height: $navbar-small-height;
-                // line-height: $navbar-small-height;
-                //border-color: #d4d4d4;
-                //box-shadow: 0 0 3px rgba(0,0,0,0.2);
             }
         }
 
