@@ -118,6 +118,18 @@ def smaht_admin(testapp):
 
 
 @pytest.fixture
+def blank_user(testapp):
+    item = {
+        'first_name': 'Unaffiliated',
+        'last_name': 'User',
+        'email': 'unaffiliated@example.org',
+        'status': 'current'
+    }
+    # User @@object view has keys omitted.
+    return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
 def smaht_gcc_user(testapp, test_submission_center, test_consortium):
     """ A GCC user would be a consortia member and a submission center member """
     item = {

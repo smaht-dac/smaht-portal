@@ -17,6 +17,11 @@ def consortium_user_app(testapp, test_consortium, smaht_consortium_user):
 
 
 @pytest.fixture
+def unassociated_user_app(testapp, blank_user):
+    return remote_user_testapp(testapp.app, blank_user['uuid'])
+
+
+@pytest.fixture
 def fastq_format(testapp: TestApp, test_consortium: Dict[str, Any]):
     return testapp.post_json('/file_format', {
         'identifier': 'fastq',
@@ -118,7 +123,7 @@ class TestPermissionsHelper:
 
 class TestSubmissionCenterPermissions(TestPermissionsHelper):
     """ Tests permissions scheme centered around the submission center ie: can they view associated items,
-        can they create/edit them etc - all testing with default status
+        can they create/edit them etc - note that submission centers members are all consortia members!
     """
 
     def test_submission_center_file_permissions_view(
@@ -404,3 +409,40 @@ class TestConsortiumPermissions(TestPermissionsHelper):
         testapp.patch_json(f'/{atid}', {'status': new_status})
         consortium_user_app.get(f'/{atid}', status=403)
         consortium_user_app.patch_json(f'/{atid}', {}, status=403)  # always fail
+
+
+class TestAnonUserPermissions:
+    """ Tests that public users don't have various access permissions to data that is not
+        public, whether they have an account or are totally anonymous """
+
+    @staticmethod
+    def test_public_user_can_view_public_data(released_file, testapp, anontestapp, unassociated_user_app):
+        """ Tests that public users can view data with status = public """
+        atid = released_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': 'public'})
+        anontestapp.get(f'/{atid}', status=200)
+        anontestapp.patch_json(f'/{atid}', {}, status=403)  # always fail
+        unassociated_user_app.get(f'/{atid}', status=200)
+        unassociated_user_app.patch_json(f'/{atid}', {}, status=403)  # always fail
+
+    @staticmethod
+    @pytest.mark.parametrize('new_status', [
+        "uploading",
+        "uploaded",
+        "upload failed",
+        "to be uploaded by workflow",
+        "released",
+        "in review",
+        "obsolete",
+        "archived",
+        "deleted",
+    ])
+    def test_public_user_cannot_view_restricted_data(released_file, new_status, testapp, anontestapp,
+                                                     unassociated_user_app):
+        """ Tests that public users cannot view/edit any data with status other than public """
+        atid = released_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        anontestapp.get(f'/{atid}', status=403)
+        anontestapp.patch_json(f'/{atid}', {}, status=403)  # always fail
+        unassociated_user_app.get(f'/{atid}', status=403)
+        unassociated_user_app.patch_json(f'/{atid}', {}, status=403)  # always fail
