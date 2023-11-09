@@ -1357,14 +1357,14 @@ div#popover-consortium-data-alluvial-table {
 
 /***
 Unique styling of page title container for static pages
+(also used for user profiles)
 **/
-#page-title-container {
-	&.static-page-title {
-		background: $ss-title-background;
-		border: 1px solid #E7F0F3;
-		border-left: none;
-		border-right: none;
-	}
+body[data-pathname^="/users/"] #page-title-container,
+#page-title-container.static-page-title {
+	background: $ss-title-background;
+	border: 1px solid #E7F0F3;
+	border-left: none;
+	border-right: none;
 }
 
 /***

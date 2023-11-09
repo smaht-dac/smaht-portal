@@ -825,8 +825,10 @@ const UserViewPageTitle = React.memo(function UserViewPageTitle({
     }
 
     return (
-        <PageTitleContainer alerts={alerts} className="container pb-55">
-            <OnlyTitle>{titleStr}</OnlyTitle>
+        <PageTitleContainer alerts={alerts} className="container-fluid pb-55">
+            <div className="container">
+                <OnlyTitle>{titleStr}</OnlyTitle>
+            </div>
         </PageTitleContainer>
     );
 });
