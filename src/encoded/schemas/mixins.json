@@ -400,7 +400,7 @@
             "permission": "restricted_fields",
             "enum": [
                 "public",
-                "shared",
+                "draft",
                 "released",
                 "in review",
                 "obsolete",

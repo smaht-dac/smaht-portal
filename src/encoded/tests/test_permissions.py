@@ -60,6 +60,26 @@ def consortium_file(testapp, fastq_format, test_consortium):
     return res.json['@graph'][0]
 
 
+@pytest.fixture
+def released_file(testapp, fastq_format, test_submission_center, test_consortium):
+    item = {
+        'file_format': fastq_format['uuid'],
+        'md5sum': '00000000000000000000000000000001',
+        'filename': 'my.fastq.gz',
+        'data_category': 'Sequencing Reads',
+        'data_type': 'Unaligned Reads',
+        'status': 'released',    # this status is important as this will make it viewable by consortium
+        'consortia': [
+            test_consortium['uuid']
+        ],
+        'submission_centers': [
+            test_submission_center['uuid']
+        ],
+    }
+    res = testapp.post_json('/OutputFile', item)
+    return res.json['@graph'][0]
+
+
 class TestAdminPermissions:
     """ Tests admins can do various actions, including purging items """
 
@@ -199,6 +219,36 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
             'name': 'dummy'
         }, status=422)  # blocked by restricted_fields on required fields
 
+    @staticmethod
+    @pytest.mark.parametrize('new_status', [
+        'uploading',
+        'uploaded',
+        'upload failed',
+        'to be uploaded by workflow',
+        'in review'
+    ])
+    def test_submission_center_can_edit_file(test_submission_center, submission_center_user_app, released_file,
+                                             testapp, new_status):
+        """ Tests that submission center user can still edit metadata in the editable statuses """
+        atid = released_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        submission_center_user_app.patch_json(f'/{atid}', {}, status=200)
+
+    @staticmethod
+    @pytest.mark.parametrize('new_status', [
+        'released',
+        'obsolete',
+        'archived',
+        'deleted',
+        'public'
+    ])
+    def test_submission_center_cannot_edit_file(test_submission_center, submission_center_user_app, released_file,
+                                             testapp, new_status):
+        """ Tests that submission center user cannot edit metadata in the non-editable statuses """
+        atid = released_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        submission_center_user_app.patch_json(f'/{atid}', {}, status=403)
+
 
 class TestConsortiumPermissions(TestPermissionsHelper):
     """ Similar to above class, tests that consortium members can view (note: NOT edit) items
@@ -273,10 +323,84 @@ class TestConsortiumPermissions(TestPermissionsHelper):
         }, status=422)  # blocked by restricted_fields on required fields
 
     @staticmethod
-    def test_consortium_user_cannot_view_or_edit_submission_center_data(submission_center_file,
-                                                                        consortium_user_app):
+    @pytest.mark.parametrize('new_status', [
+        "uploading",
+        "uploaded",
+        "upload failed",
+        "to be uploaded by workflow",
+        "released",
+        "in review",
+        "obsolete",
+        "archived",
+        "deleted",
+    ])
+    def test_consortium_user_cannot_view_submission_center_data(submission_center_file, new_status, testapp,
+                                                                consortium_user_app):
         """ Tests that consortium users cannot view or edit data created by a submission
-            center in default status """
-        uuid = submission_center_file["uuid"]
-        consortium_user_app.get(f'/{uuid}', status=403)
-        consortium_user_app.patch_json(f'/{uuid}', {}, status=403)
+            center in all statuses except public """
+        atid = submission_center_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        consortium_user_app.get(f'/{atid}', status=403)
+
+    @staticmethod
+    @pytest.mark.parametrize('new_status', [
+        "uploading",
+        "uploaded",
+        "upload failed",
+        "to be uploaded by workflow",
+        "released",
+        "in review",
+        "obsolete",
+        "archived",
+        "deleted",
+        "public"
+    ])
+    def test_consortium_user_cannot_edit_submission_center_data(submission_center_file, new_status, testapp,
+                                                                consortium_user_app):
+        """ Tests that consortium users cannot edit data created by a submission
+            center in all statuses """
+        atid = submission_center_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        consortium_user_app.patch_json(f'/{atid}', {}, status=403)
+
+    @staticmethod
+    def test_consortium_user_can_view_public_submission_center_data(submission_center_file, consortium_user_app,
+                                                                    testapp):
+        """ Tests that a consortium user can view a public file tagged witha submission center """
+        atid = submission_center_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': 'public'})
+        consortium_user_app.get(f'/{atid}', status=200)
+
+    @staticmethod
+    @pytest.mark.parametrize('new_status', [
+        "released",
+        "obsolete",
+        "public"
+    ])
+    def test_consortium_user_can_view_dual_tagged_data(released_file, consortium_user_app, new_status,
+                                                       testapp):
+        """ Consortia members should be able to view submission center tagged data in viewable statuses
+            Also tests that it is not editable
+        """
+        atid = released_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        consortium_user_app.get(f'/{atid}', status=200)  # should succeed
+        consortium_user_app.patch_json(f'/{atid}', {}, status=403)  # always fail
+
+    @staticmethod
+    @pytest.mark.parametrize('new_status', [
+        "uploading",
+        "uploaded",
+        "upload failed",
+        "to be uploaded by workflow",
+        "in review",
+        "archived",
+        "deleted",
+    ])
+    def test_consortium_user_cannot_view_or_edit_dual_tagged_data(released_file, consortium_user_app, new_status,
+                                                                  testapp):
+        """ Most statuses do not allow view or edit permissions """
+        atid = released_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        consortium_user_app.get(f'/{atid}', status=403)
+        consortium_user_app.patch_json(f'/{atid}', {}, status=403)  # always fail

@@ -37,12 +37,16 @@ class File(SMAHTItem, CoreFile):
     SMAHTItem.SUBMISSION_CENTER_STATUS_ACL.update({
         'uploaded': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'uploading': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'upload failed': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'to be uploaded by workflow': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'archived': ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL
     })
     # These are all view only in case we find ourselves in this situation
     SMAHTItem.CONSORTIUM_STATUS_ACL.update({
         'uploaded': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'uploading': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'upload failed': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'to be uploaded by workflow': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'archived': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL
     })
 
