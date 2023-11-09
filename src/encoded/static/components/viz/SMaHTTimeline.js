@@ -6,7 +6,7 @@ import {
 } from 'react-bootstrap';
 import Card from 'react-bootstrap/esm/Card';
 
-export default function SMaHTTimeline() {
+export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
     return (
         <div className="container">
             <div id="timeline">
@@ -20,6 +20,7 @@ export default function SMaHTTimeline() {
                             <TimelineAccordionDrawer
                                 eventKey={1}
                                 title="COLO829 Cancer Cell Lines"
+                                setCurrentTier={setCurrentTier}
                                 values={[
                                     { number: 2, units: 'Cell Lines' },
                                     { number: 24, units: 'Files Generated' },
@@ -29,6 +30,7 @@ export default function SMaHTTimeline() {
                             <TimelineAccordionDrawer
                                 eventKey={2}
                                 title="HapMap Cell Lines"
+                                setCurrentTier={setCurrentTier}
                                 values={[
                                     { number: 0, units: 'Cell Lines' },
                                     { number: 0, units: 'Files Generated' },
@@ -38,6 +40,7 @@ export default function SMaHTTimeline() {
                             <TimelineAccordionDrawer
                                 eventKey={3}
                                 title="iPSC & Fibroblasts"
+                                setCurrentTier={setCurrentTier}
                                 values={[
                                     { number: 0, units: 'Cell Lines' },
                                     { number: 0, units: 'Files Generated' },
@@ -47,6 +50,9 @@ export default function SMaHTTimeline() {
                             <TimelineAccordionDrawer
                                 eventKey={4}
                                 title="Tissue Benchmarking"
+                                setCurrentTier={() =>
+                                    setCurrentTier('benchmarking')
+                                }
                                 values={[
                                     { number: 0, units: 'Cell Lines' },
                                     { number: 0, units: 'Files Generated' },
@@ -67,6 +73,9 @@ export default function SMaHTTimeline() {
                             <TimelineAccordionDrawer
                                 eventKey={1}
                                 title="Tissue"
+                                setCurrentTier={() =>
+                                    setCurrentTier('expansion')
+                                }
                                 values={[
                                     { number: 0, units: 'Cell Lines' },
                                     { number: 0, units: 'Files Generated' },
@@ -87,6 +96,9 @@ export default function SMaHTTimeline() {
                             <TimelineAccordionDrawer
                                 eventKey={1}
                                 title="Tissue"
+                                setCurrentTier={() =>
+                                    setCurrentTier('production')
+                                }
                                 values={[
                                     { number: 0, units: 'Cell Lines' },
                                     { number: 0, units: 'Files Generated' },
@@ -101,7 +113,7 @@ export default function SMaHTTimeline() {
     );
 }
 
-function ContextAwareToggle({ children, eventKey, callback }) {
+function ContextAwareToggle({ children, eventKey, callback, setCurrentTier }) {
     const currentEventKey = useContext(AccordionContext);
 
     const decoratedOnClick = useAccordionToggle(
@@ -120,7 +132,10 @@ function ContextAwareToggle({ children, eventKey, callback }) {
             <button
                 type="button"
                 className="card-header-button border-0 bg-transparent"
-                onClick={decoratedOnClick}>
+                onClick={() => {
+                    decoratedOnClick();
+                    setCurrentTier('benchmarking');
+                }}>
                 <div className="d-flex justify-start">
                     <i className={openStatusIconCls + ' m-auto mr-1'} />
                     {children}
@@ -140,11 +155,16 @@ function TimelineAccordion(props) {
 }
 
 function TimelineAccordionDrawer(props) {
-    const { eventKey, title = 'Click me!', values = [] } = props;
+    const {
+        eventKey,
+        title = 'Click me!',
+        values = [],
+        setCurrentTier,
+    } = props;
     return (
         <Card>
             <Card.Header>
-                <ContextAwareToggle {...{ eventKey }}>
+                <ContextAwareToggle {...{ eventKey, setCurrentTier }}>
                     <span className="text-left">{title}</span>
                 </ContextAwareToggle>
             </Card.Header>
@@ -171,13 +191,3 @@ const TimelineCardContent = ({ values }) => {
         </>
     );
 };
-
-// function BenchmarkingAccordions() {
-//     return (
-
-//     );
-// }
-
-// function ExpansionAccordion() {
-
-// }

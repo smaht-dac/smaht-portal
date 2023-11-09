@@ -22,6 +22,7 @@ const auth0Options = {
 };
 
 export const GuestHomeView = React.memo(function GuestHomeView(props) {
+    const [currentTier, setCurrentTier] = useState('benchmarking');
     const { updateAppSessionState } = props;
 
     // Upon mount, unset alerts from any other pages, to prevent vertical scroll.
@@ -46,10 +47,16 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                 </div>
                 <div className="row my-2 flex-column flex-lg-row">
                     <div className="col-12 col-lg-4 col-xl-5 col-xxl-6">
-                        <SMaHTTimeline />
+                        <SMaHTTimeline
+                            currentTier={currentTier}
+                            setCurrentTier={setCurrentTier}
+                        />
                     </div>
                     <div className="col-12 col-lg-8 col-xl-7 col-xxl-6 d-flex justify-content-center align-items-center my-3 my-sm-5 my-lg-2 ">
-                        <HomepageFigure />
+                        <HomepageFigure
+                            currentTier={currentTier}
+                            setCurrentTier={setCurrentTier}
+                        />
                     </div>
                 </div>
                 <div className="row">
