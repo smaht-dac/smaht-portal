@@ -9,17 +9,25 @@ import Card from 'react-bootstrap/esm/Card';
 export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
     return (
         <div className="container">
-            <div id="timeline">
+            <div id="timeline" className={`${currentTier}`}>
                 <div className="timeline-item">
                     <div className="timeline-marker">Tier 0</div>
                     <div>
                         <h3 className="ml-6 text-left">Benchmarking</h3>
                     </div>
                     <div className="timeline-content">
-                        <TimelineAccordion defaultActiveKey={1}>
+                        <TimelineAccordion
+                            defaultActiveKey={1}
+                            activeKey={
+                                currentTier === 'benchmarking'
+                                    ? undefined
+                                    : null
+                            }>
                             <TimelineAccordionDrawer
                                 eventKey={1}
                                 title="COLO829 Cancer Cell Lines"
+                                tier="benchmarking"
+                                currentTier={currentTier}
                                 setCurrentTier={setCurrentTier}
                                 values={[
                                     { number: 2, units: 'Cell Lines' },
@@ -30,6 +38,8 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                             <TimelineAccordionDrawer
                                 eventKey={2}
                                 title="HapMap Cell Lines"
+                                tier="benchmarking"
+                                currentTier={currentTier}
                                 setCurrentTier={setCurrentTier}
                                 values={[
                                     { number: 0, units: 'Cell Lines' },
@@ -40,6 +50,8 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                             <TimelineAccordionDrawer
                                 eventKey={3}
                                 title="iPSC & Fibroblasts"
+                                tier="benchmarking"
+                                currentTier={currentTier}
                                 setCurrentTier={setCurrentTier}
                                 values={[
                                     { number: 0, units: 'Cell Lines' },
@@ -50,6 +62,8 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                             <TimelineAccordionDrawer
                                 eventKey={4}
                                 title="Tissue Benchmarking"
+                                tier="benchmarking"
+                                currentTier={currentTier}
                                 setCurrentTier={() =>
                                     setCurrentTier('benchmarking')
                                 }
@@ -69,10 +83,15 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                         <h3 className="ml-6 text-left">Expansion</h3>
                     </div>
                     <div className="timeline-content">
-                        <TimelineAccordion defaultActiveKey={0}>
+                        <TimelineAccordion
+                            activeKey={
+                                currentTier === 'expansion' ? undefined : null
+                            }>
                             <TimelineAccordionDrawer
                                 eventKey={1}
                                 title="Tissue"
+                                tier="expansion"
+                                currentTier={currentTier}
                                 setCurrentTier={() =>
                                     setCurrentTier('expansion')
                                 }
@@ -92,10 +111,16 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                         <h3 className="ml-6 text-left">Production</h3>
                     </div>
                     <div className="timeline-content">
-                        <TimelineAccordion defaultActiveKey={0}>
+                        <TimelineAccordion
+                            defaultActiveKey={0}
+                            activeKey={
+                                currentTier === 'production' ? undefined : null
+                            }>
                             <TimelineAccordionDrawer
                                 eventKey={1}
                                 title="Tissue"
+                                tier="production"
+                                currentTier={currentTier}
                                 setCurrentTier={() =>
                                     setCurrentTier('production')
                                 }
@@ -113,7 +138,13 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
     );
 }
 
-function ContextAwareToggle({ children, eventKey, callback, setCurrentTier }) {
+function ContextAwareToggle({
+    children,
+    eventKey,
+    callback,
+    currentTier,
+    setCurrentTier,
+}) {
     const currentEventKey = useContext(AccordionContext);
 
     const decoratedOnClick = useAccordionToggle(
@@ -149,9 +180,11 @@ function ContextAwareToggle({ children, eventKey, callback, setCurrentTier }) {
 }
 
 function TimelineAccordion(props) {
-    const { defaultActiveKey, children } = props;
+    const { defaultActiveKey, children, currentTier, activeKey } = props;
 
-    return <Accordion {...{ defaultActiveKey }}>{children}</Accordion>;
+    return (
+        <Accordion {...{ defaultActiveKey, activeKey }}>{children}</Accordion>
+    );
 }
 
 function TimelineAccordionDrawer(props) {
@@ -159,10 +192,11 @@ function TimelineAccordionDrawer(props) {
         eventKey,
         title = 'Click me!',
         values = [],
+        currentTier,
         setCurrentTier,
     } = props;
     return (
-        <Card>
+        <Card className={'' + currentTier}>
             <Card.Header>
                 <ContextAwareToggle {...{ eventKey, setCurrentTier }}>
                     <span className="text-left">{title}</span>

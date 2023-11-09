@@ -63,6 +63,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             justify-content: center;
             align-items: center;
             color: $homepage-card-text-color;
+            transition: background-color 150ms;
 
             
             // Bubble Styling
@@ -104,6 +105,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 border: 2px solid $homepage-card-border-color;
                 @include prefix(border-radius, 10px);
                 box-shadow: none;
+                transition: background-color 150ms;
 
                 &-body {
                     display: flex;
@@ -207,6 +209,63 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             &-link {
                                 right: 20px;
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    // Benchmarking tier active
+    &.benchmarking {
+        .timeline-item:nth-last-child(-n + 2) {
+            &:before {
+                background: #CDE4FF;
+            }
+            .timeline-marker {
+                background-color: white;
+                border-color: #CDE4FF;
+            }
+            .card {
+                background-color: white;
+                border-color: #CDE4FF;
+
+                &-header {
+                    &-button {
+                        i {
+                            color: #CDE4FF;
+                        }
+                    }
+                    &-link {
+                        i {
+                            display: none;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Expansion tier active
+    &.expansion {
+        .timeline-item:nth-of-type(3) {
+            .timeline-marker {
+                background-color: white;
+                border-color: #CDE4FF;
+            }
+            .card {
+                background-color: white;
+                border-color: #CDE4FF;
+
+                &-header {
+                    &-button {
+                        i {
+                            color: #CDE4FF;
+                        }
+                    }
+                    &-link {
+                        i {
+                            display: none;
                         }
                     }
                 }
