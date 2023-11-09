@@ -34,9 +34,9 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
         <div className="homepage-contents">
             <div className="container-wide d-flex flex-column justify-content-around">
                 <div id="full-alerts-container">
-                    <Alerts alerts={alerts} className="alerts mt-2" />
+                    <Alerts alerts={alerts} className="alerts" />
                 </div>
-                <div className="row">
+                <div className="row my-3">
                     <div className="col-12">
                         <h1 className="mb-1">
                             Somatic Mosaicism across Human Tissues Data Portal
@@ -47,7 +47,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                         </h2>
                     </div>
                 </div>
-                <div className="row my-2 flex-column flex-lg-row">
+                <div className="row my-4 flex-column flex-lg-row">
                     <div className="col-12 col-md-6">
                         <SMaHTTimeline />
                     </div>
