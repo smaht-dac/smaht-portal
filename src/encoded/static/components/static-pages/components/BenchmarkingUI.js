@@ -1,7 +1,14 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import { Tab, Tabs } from 'react-bootstrap';
+
+import {
+    Accordion,
+    AccordionContext,
+    useAccordionToggle,
+    Tab,
+    Tabs,
+} from 'react-bootstrap';
 import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedItemSearchTable';
 
 export const BenchmarkingUI = (props) => {
@@ -20,51 +27,18 @@ export const BenchmarkingUI = (props) => {
 
 const BenchmarkingUINav = (props) => {
     return (
-        <div className="w-100">
+        <div className="w-100 benchmarking-nav">
             <div>
                 <span className="text-small text-600">Cell Line Data</span>
                 <div>
-                    <ul>
-                        <li>
-                            <a href="/data/benchmarking/COLO829">COLO829</a>
-                            <ul>
-                                <li>1:10</li>
-                                <li>1:50</li>
-                                <li>1:200</li>
-                            </ul>
-                        </li>
-                        <li>
-                            <a href="/data/benchmarking/HapMap">HapMap</a>
-                        </li>
-                        <li>
-                            <a href="/data/benchmarking/iPSC-fibroblasts">
-                                iPSc & Fibroblasts
-                            </a>
-                        </li>
-                    </ul>
+                    <BenchmarkingUINavCellLines />
                 </div>
             </div>
             <hr />
             <div>
                 <span className="text-small text-600">Primary Tissue Data</span>
                 <div>
-                    <ul>
-                        <li>
-                            <a href="/data/benchmarking/brain">Brain</a>
-                        </li>
-                        <li>
-                            <a href="/data/benchmarking/lung">Lung</a>
-                        </li>
-                        <li>
-                            <a href="/data/benchmarking/heart">Heart</a>
-                        </li>
-                        <li>
-                            <a href="/data/benchmarking/colon">Colon</a>
-                        </li>
-                        <li>
-                            <a href="/data/benchmarking/skin">Skin</a>
-                        </li>
-                    </ul>
+                    <BenchmarkingUINavPrimaryTissue />
                 </div>
             </div>
         </div>
@@ -108,5 +82,180 @@ export const COLO829Data = ({ schemas, session, facets }) => {
                 </Tab>
             </Tabs>
         </div>
+    );
+};
+
+// TODO: See if this can be consolidated with the one on the homepage
+function ContextAwareToggle({ children, eventKey, callback }) {
+    const currentEventKey = useContext(AccordionContext);
+
+    const decoratedOnClick = useAccordionToggle(
+        eventKey,
+        () => callback && callback(eventKey)
+    );
+
+    const isCurrentEventKey = currentEventKey === eventKey;
+
+    const openStatusIconCls = isCurrentEventKey
+        ? 'icon icon-angle-up fas'
+        : 'icon icon-angle-down fas';
+
+    return (
+        <div className="d-flex justify-content-between align-items-center">
+            <button
+                type="button"
+                className="border-0 bg-transparent"
+                onClick={decoratedOnClick}>
+                <div>
+                    {children}
+                    <i className={openStatusIconCls + ' mr-1'} />
+                </div>
+            </button>
+        </div>
+    );
+}
+
+const BenchmarkingUINavCellLines = (props) => {
+    return (
+        <BenchmarkingUINavWrapper defaultActiveKey={'1'}>
+            <BenchmarkingUINavDrop
+                eventKey="1"
+                href="/data/benchmarking/COLO829"
+                title="COLO829">
+                <ul>
+                    <li>
+                        <a href="/data/benchmarking/COLO829#main">COLO829</a>
+                    </li>
+                    <li>
+                        <a href="/data/benchmarking/COLO829BL#main">
+                            COLO829BL
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/data/benchmarking/COLO829#110">1:10</a>
+                    </li>
+                    <li>
+                        <a href="/data/benchmarking/COLO829#150">1:50</a>
+                    </li>
+                    <li>
+                        <a href="/data/benchmarking/COLO829#1200">1:200</a>
+                    </li>
+                </ul>
+            </BenchmarkingUINavDrop>
+            <li>
+                <a href="/data/benchmarking/HapMap">HapMap</a>
+            </li>
+            <li>
+                <a href="/data/benchmarking/iPSC-fibroblasts">
+                    iPSc & Fibroblasts
+                </a>
+            </li>
+        </BenchmarkingUINavWrapper>
+    );
+};
+
+const BenchmarkingUINavPrimaryTissue = (props) => {
+    return (
+        <BenchmarkingUINavWrapper defaultActiveKey={'0'}>
+            <BenchmarkingUINavDrop
+                eventKey="1"
+                href="/data/benchmarking/brain"
+                title="Brain">
+                <ul>
+                    <li>
+                        <a href="/data/benchmarking/brain#frontal-lobe">
+                            Frontal Lobe
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/data/benchmarking/brain#cerebellum">
+                            Cerebellum
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/data/benchmarking/brain#hippocampus">
+                            Hippocampus
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/data/benchmarking/brain#temporal-lobe">
+                            Temporal Lobe
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/data/benchmarking/brain#dendate-gyrus">
+                            Dendate Gyrus
+                        </a>
+                    </li>
+                </ul>
+            </BenchmarkingUINavDrop>
+            <BenchmarkingUINavDrop
+                eventKey="2"
+                href="/data/benchmarking/skin"
+                title="Skin">
+                <ul>
+                    <li>
+                        <a href="/data/benchmarking/skin#sun-exposed">
+                            Sun Exposed
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/data/benchmarking/skin#non-sun-exposed">
+                            Non Sun Exposed
+                        </a>
+                    </li>
+                </ul>
+            </BenchmarkingUINavDrop>
+            <li>
+                <a href="/data/benchmarking/liver">Liver</a>
+            </li>
+            <BenchmarkingUINavDrop
+                eventKey="3"
+                href="/data/benchmarking/colon"
+                title="Colon">
+                <ul>
+                    <li>
+                        <a href="/data/benchmarking/colon#ascending">
+                            Ascending
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/data/benchmarking/colon#descending">
+                            Descending
+                        </a>
+                    </li>
+                </ul>
+            </BenchmarkingUINavDrop>
+            <li>
+                <a href="/data/benchmarking/colon">Heart</a>
+            </li>
+        </BenchmarkingUINavWrapper>
+    );
+};
+
+const BenchmarkingUINavWrapper = (props) => {
+    const { defaultActiveKey, children } = props;
+    if (!defaultActiveKey) {
+        return null;
+    }
+
+    return (
+        <Accordion {...{ defaultActiveKey }}>
+            <ul>{children}</ul>
+        </Accordion>
+    );
+};
+
+const BenchmarkingUINavDrop = (props) => {
+    const { href, title, eventKey, children } = props;
+    return (
+        <li>
+            <ContextAwareToggle {...{ eventKey }}>
+                <a {...{ href }}>{title}</a>
+            </ContextAwareToggle>
+            <Accordion.Collapse {...{ eventKey }}>
+                {children}
+            </Accordion.Collapse>
+        </li>
     );
 };
