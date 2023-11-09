@@ -1,0 +1,12 @@
+/**
+Assorted Mixins and other SASS utilities for making our lives easier.
+*/
+
+
+// Mixins
+
+@mixin prefix($prop, $val) {
+    @each $prefix in '-webkit-', '-moz-', '-ms-', '' {
+        #{$prefix}#{$prop}: $val;
+    }
+}

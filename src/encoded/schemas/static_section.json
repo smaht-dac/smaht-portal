@@ -122,6 +122,9 @@
         "file": {
             "$merge": "encoded_core:schemas/static_section.json#/properties/file"
         },
+        "section_type": {
+            "$merge": "encoded_core:schemas/static_section.json#/properties/section_type"
+        },
         "options": {
             "$merge": "encoded_core:schemas/static_section.json#/properties/options"
         }

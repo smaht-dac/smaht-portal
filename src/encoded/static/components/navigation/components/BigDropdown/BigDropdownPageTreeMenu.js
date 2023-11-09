@@ -19,7 +19,7 @@ export function BigDropdownPageTreeMenuIntroduction(props) {
         titleIcon = null,
         isActive = false,
     } = props;
-    const { display_title, name: pathName, description } = menuTree || {};
+    const { display_title, identifier: pathName, description } = menuTree || {};
 
     if (!menuTree || !menuTree.display_title || windowHeight < 600) {
         // Hide this link to top-level page on smaller heights.
@@ -43,7 +43,7 @@ export function BigDropdownPageTreeMenuIntroduction(props) {
 
 export function BigDropdownPageTreeMenu(props) {
     const { menuTree, href } = props;
-    const { display_title, name: pathName, children = [] } = menuTree || {};
+    const { display_title, identifier: pathName, children = [] } = menuTree || {};
 
     if (!pathName || !display_title) return null;
 
@@ -56,8 +56,8 @@ export function BigDropdownPageTreeMenu(props) {
     const urlParts = memoizedUrlParse(href);
 
     function filterOutChildren(child) {
-        // Ensure Item has view permission, title, and name (route/URL).
-        return !child.error && child.display_title && child.name;
+        // Ensure Item has view permission, title, and name (now identifier) (route/URL).
+        return !child.error && child.display_title && child.identifier;
     }
 
     const level1ChildrenWithoutSubChildren = [];
@@ -90,11 +90,11 @@ export function BigDropdownPageTreeMenu(props) {
                     (!hasLevel2Children ? ' col-lg-8' : ' col-lg-4')
                 }>
                 {level1ChildrenWithoutSubChildren.map(function (child) {
-                    const active = urlParts.pathname.indexOf(child.name) > -1;
+                    const active = urlParts.pathname.indexOf(child.identifier) > -1;
                     return (
                         <Level1Title
                             childPageItem={child}
-                            key={child.name}
+                            key={child.identifier}
                             active={active}
                         />
                     );
@@ -111,12 +111,12 @@ export function BigDropdownPageTreeMenu(props) {
             filterOutChildren
         );
         const hasChildren = level1Children.length > 0;
-        const active = urlParts.pathname.indexOf(childLevel1.name) > -1;
+        const active = urlParts.pathname.indexOf(childLevel1.identifier) > -1;
         const outerCls =
             'help-menu-tree level-1 col-12 col-md-6 col-lg-4' +
             (hasChildren ? ' has-children' : '');
         return (
-            <div className={outerCls} key={childLevel1.name}>
+            <div className={outerCls} key={childLevel1.identifier}>
                 <Level1Title childPageItem={childLevel1} active={active} />
                 {hasChildren
                     ? level1Children.map(function (childLevel2) {
@@ -125,18 +125,18 @@ export function BigDropdownPageTreeMenu(props) {
                                   className={
                                       'level-2-title text-small' +
                                       (urlParts.pathname.indexOf(
-                                          childLevel2.name
+                                          childLevel2.identifier
                                       ) > -1
                                           ? ' active'
                                           : '')
                                   }
-                                  href={'/' + childLevel2.name}
+                                  href={'/' + childLevel2.identifier}
                                   data-tip={childLevel2.description}
                                   data-delay-show={500}
-                                  key={childLevel2.name}
+                                  key={childLevel2.identifier}
                                   id={
                                       'menutree-linkto-' +
-                                      childLevel2.name.replace(/\//g, '_')
+                                      childLevel2.identifier.replace(/\//g, '_')
                                   }>
                                   {childLevel2.display_title}
                               </a>
@@ -162,80 +162,22 @@ export function BigDropdownPageTreeMenu(props) {
         <div className={cls}>
             {topLeftMenuCol}
             {childItems}
-            <StaticHelpLinks />
         </div>
     );
 }
 
 /** TODO test & port to 4DN if works decently */
 function Level1Title({ childPageItem, active }) {
-    const { name, display_title, description } = childPageItem;
+    const { identifier, display_title, description } = childPageItem;
     return (
         <div className={'level-1-title-container' + (active ? ' active' : '')}>
             <a
                 className="level-1-title text-medium"
-                href={'/' + name}
+                href={'/' + identifier}
                 data-tip={description}
                 data-delay-show={500}
-                id={'menutree-linkto-' + name.replace(/\//g, '_')}>
+                id={'menutree-linkto-' + identifier.replace(/\//g, '_')}>
                 <span>{display_title}</span>
-            </a>
-        </div>
-    );
-}
-
-function StaticHelpLinks() {
-    return (
-        <div className="help-menu-tree level-1 col-12 col-md-6 col-lg-4 has-children">
-            <div className="level-1-title-container">
-                <div className="level-1-title text-medium">
-                    General CGAP Info
-                </div>
-            </div>
-            <a
-                className="level-2-title text-small"
-                href="https://www.youtube.com/@cgaptraining"
-                id="menutree-linkto-youtube_channel"
-                target="_blank"
-                rel="noopener noreferrer">
-                <span>Video Tutorials</span>
-                <i className="icon icon-external-link-alt fas text-smaller ml-05" />
-            </a>
-            <a
-                className="level-2-title text-small"
-                href="https://cgap.hms.harvard.edu/geneticseducation"
-                id="menutree-linkto-geneticseducation_page"
-                target="_blank"
-                rel="noopener noreferrer">
-                <span>Training Guide</span>
-                <i className="icon icon-external-link-alt fas text-smaller ml-05" />
-            </a>
-            <a
-                className="level-2-title text-small"
-                href="https://cgap.hms.harvard.edu/getinvolved"
-                id="menutree-linkto-getinvolved_page"
-                target="_blank"
-                rel="noopener noreferrer">
-                <span>Get Involved</span>
-                <i className="icon icon-external-link-alt fas text-smaller ml-05" />
-            </a>
-            <a
-                className="level-2-title text-small"
-                href="https://cgap.hms.harvard.edu/faq"
-                id="menutree-linkto-faq_page"
-                target="_blank"
-                rel="noopener noreferrer">
-                <span>FAQ</span>
-                <i className="icon icon-external-link-alt fas text-smaller ml-05" />
-            </a>
-            <a
-                className="level-2-title text-small"
-                href="https://cgap.hms.harvard.edu/legal"
-                id="menutree-linkto-legal_page"
-                target="_blank"
-                rel="noopener noreferrer">
-                <span>Legal</span>
-                <i className="icon icon-external-link-alt fas text-smaller ml-05" />
             </a>
         </div>
     );

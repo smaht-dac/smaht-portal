@@ -11,7 +11,7 @@
         "uuid": "3202fd57-44d2-44fb-a131-afb1e43d8ae5"
     },
     {
-        "email": "cgap.platform@gmail.com",
+        "email": "snovault.platform@gmail.com",
         "first_name": "Genomics Platform",
         "last_name": "Administration",
         "groups": [
@@ -226,5 +226,33 @@
         "time_zone": "US/Eastern",
         "last_name": "Michaels",
         "first_name": "David"
+    },
+    {
+        "email": "dominika_maziec@hms.harvard.edu",
+        "uuid": "bc8e5ecd-4f3e-430a-97e7-d27f66a3e74f",
+        "groups": [
+            "admin"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "time_zone": "US/Eastern",
+        "last_name": "Maziec",
+        "first_name": "Dominika"
+    },
+    {
+        "email": "cypress-main-scientist@cypress.hms.harvard.edu",
+        "first_name": "Scientist",
+        "last_name": "Cypress Main",
+        "uuid": "6fc63b40-6620-4a40-bb1b-a99f25ccdb63",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]

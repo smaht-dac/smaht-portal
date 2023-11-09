@@ -73,7 +73,6 @@ def include_snovault(config: Configurator) -> None:
     config.include('snovault.aggregated_items')
     config.include('snovault.storage')
     config.include('snovault.typeinfo')
-#    config.include('snovault.types')
     config.include('snovault.resources')
     config.include('snovault.attachment')
     config.include('snovault.schema_graph')
@@ -86,6 +85,8 @@ def include_snovault(config: Configurator) -> None:
     config.include('snovault.server_defaults')
     config.include('snovault.renderers')
     config.include('snovault.ingestion.ingestion_listener')
+    config.include('encoded.ingestion.ingestion_processors')
+    config.include('snovault.ingestion.ingestion_message_handler_default')
     # configure redis server in production.ini
     if 'redis.server' in config.registry.settings:
         config.include('snovault.redis')
@@ -269,6 +270,7 @@ def main(global_config, **local_config):
         config.include('snovault.search.compound_search')
 
     # this contains fall back url, so make sure it comes just before static_resoruces
+    config.include('encoded.types.page')
     config.include(static_resources)
     config.include(changelogs)
 

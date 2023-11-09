@@ -1,0 +1,507 @@
+[
+    {
+        "identifier": "about",
+        "title": "About",
+        "status": "public",
+        "children": [
+            "c57a5299-64aa-4e8d-bf01-6668d815b94f",
+            "d2d042e7-09e5-4a34-a8c5-530ba9c9cdec",
+            "af03023c-1ce0-49a1-b85b-20f5abd8cc30"
+        ],
+        "content": [
+           "3fd92b15-9771-4218-a3f9-77b15805443e"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "uuid": "c79afee0-7ba5-4dc6-9c1c-684984f85607",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "about/what-is-smaht",
+        "title": "What is SMaHT?",
+        "status": "public",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+          "enabled": false,
+          "skip-depth": 1,
+          "header-depth": 4,
+          "include-top-link": false
+        },
+        "uuid": "c57a5299-64aa-4e8d-bf01-6668d815b94f",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "about/consortium",
+        "title": "SMaHT Consortium Information",
+        "status": "public",
+        "children": [
+            "6da98599-12a7-456f-8598-da510a88c7e8",
+            "1ef242a4-954c-4c77-9193-3ec3b1a8e7d7"
+        ],
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+          "enabled": false,
+          "skip-depth": 1,
+          "header-depth": 4,
+          "include-top-link": false
+        },
+        "uuid": "d2d042e7-09e5-4a34-a8c5-530ba9c9cdec",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "about/join",
+        "title": "How to Join SMaHt",
+        "status": "public",
+        "children": [
+            "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd"
+        ],
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+          "enabled": false,
+          "skip-depth": 1,
+          "header-depth": 4,
+          "include-top-link": false
+        },
+        "uuid": "af03023c-1ce0-49a1-b85b-20f5abd8cc30",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "about/consortium/awardees",
+        "title": "SMaHT Awardees",
+        "status": "public",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5",
+            "f1601ba5-483b-4133-a76b-5bec7caa2dd2"
+        ],
+        "table-of-contents": {
+          "enabled": false,
+          "skip-depth": 1,
+          "header-depth": 4,
+          "include-top-link": false
+        },
+        "uuid": "6da98599-12a7-456f-8598-da510a88c7e8",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "about/consortium/data",
+        "title": "SMaHT Data",
+        "status": "public",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5",
+            "d3d9c545-4340-495a-92ea-7ccb7eebc71b"
+        ],
+        "table-of-contents": {
+          "enabled": false,
+          "skip-depth": 1,
+          "header-depth": 4,
+          "include-top-link": false
+        },
+        "uuid": "1ef242a4-954c-4c77-9193-3ec3b1a8e7d7",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "about/join/policy",
+        "title": "Associate Membership policy",
+        "status": "public",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+          "enabled": false,
+          "skip-depth": 1,
+          "header-depth": 4,
+          "include-top-link": false
+        },
+        "uuid": "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs",
+        "title": "Documentation",
+        "status": "shared",
+        "children": [
+            "859b2c48-0bda-406c-b49b-07d68bd236d4",
+            "faabe1c0-3d8a-4651-bc86-072fb49ad016",
+            "4a63980c-d43a-403d-b872-51b658e1d39c",
+            "d753df69-8830-4cce-bf5c-44f55686d8a7",
+            "22cf1831-aa96-4da1-bc62-4bccba4365af"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "uuid": "089319c4-3ce9-4ec1-bd0b-5451a48bd99e",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/how-to-download",
+        "title": "How to Download Data",
+        "status": "shared",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "859b2c48-0bda-406c-b49b-07d68bd236d4",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/how-to-register",
+        "title": "How to Create Account",
+        "status": "shared",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "faabe1c0-3d8a-4651-bc86-072fb49ad016",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/pipeline-protocols",
+        "title": "Pipeline Protocols",
+        "status": "shared",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "4a63980c-d43a-403d-b872-51b658e1d39c",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/summary-of-data",
+        "title": "Summary of Data Generated",
+        "status": "shared",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "d753df69-8830-4cce-bf5c-44f55686d8a7",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/how-to-upload",
+        "title": "How to Upload Data",
+        "status": "shared",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "22cf1831-aa96-4da1-bc62-4bccba4365af",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data",
+        "title": "Data",
+        "status": "shared",
+        "children": [
+            "39deafe0-34ae-4ab8-8261-3661b0c79a38"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "uuid": "1b722f51-c873-4a29-90bb-29618c4f4dc2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data/benchmarking",
+        "title": "Benchmarking Data",
+        "status": "shared",
+        "children": [
+            "63dde5c8-75b7-4335-9fc7-04a25c494148",
+            "086fd04b-0098-4138-aa15-0f4affd649a3",
+            "b32b1d8c-52d4-4bb2-a4a0-ec18d4fe6872",
+            "ad073f5b-40d9-47b4-a0b5-ac209b73dca3",
+            "35dbba20-3df6-48e9-8e6a-47051d2289f5",
+            "253d3f85-b471-4802-b29c-6d979f7233a5",
+            "13386ef6-696b-47bd-955c-bee2384739c9",
+            "66053267-3ffc-499e-989d-da8163d4cafe"
+        ],
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "39deafe0-34ae-4ab8-8261-3661b0c79a38",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data/benchmarking/COLO829",
+        "title": "COLO829",
+        "status": "shared",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "63dde5c8-75b7-4335-9fc7-04a25c494148",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data/benchmarking/HapMap",
+        "title": "HapMap",
+        "status": "shared",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "086fd04b-0098-4138-aa15-0f4affd649a3",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data/benchmarking/iPSC-fibroblasts",
+        "title": "iPSC and Fibroblasts",
+        "status": "shared",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "b32b1d8c-52d4-4bb2-a4a0-ec18d4fe6872",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data/benchmarking/brain",
+        "title": "Brain",
+        "status": "shared",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "ad073f5b-40d9-47b4-a0b5-ac209b73dca3",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data/benchmarking/lung",
+        "title": "Lung",
+        "status": "shared",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "35dbba20-3df6-48e9-8e6a-47051d2289f5",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data/benchmarking/heart",
+        "title": "Heart",
+        "status": "shared",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "253d3f85-b471-4802-b29c-6d979f7233a5",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data/benchmarking/colon",
+        "title": "Colon",
+        "status": "shared",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "13386ef6-696b-47bd-955c-bee2384739c9",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data/benchmarking/skin",
+        "title": "Skin",
+        "status": "shared",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "66053267-3ffc-499e-989d-da8163d4cafe",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    }
+]

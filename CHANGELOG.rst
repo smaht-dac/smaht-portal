@@ -7,11 +7,45 @@ smaht-portal
 Change Log
 ----------
 
+
+0.5.0
+=====
+* Merge in ui-dev2 branch: `PR 28: UI-Dev 2 <https://github.com/smaht-dac/smaht-portal/pull/28>`_
+  * Fixes for UI broken by data model update (including SPC update to [v0.1.73b1] (https://github.com/4dn-dcic/shared-portal-components/releases/tag/0.1.73b1))
+  * [Cfm map popover #27] (https://github.com/smaht-dac/smaht-portal/pull/27)
+
+
+0.4.0
+=====
+* Merge in drr_shared_schemas branch.
+* Merge in ui-dev branch: `PR 19: UI-Dev <https://github.com/smaht-dac/smaht-portal/pull/20>`_
+  * Remove Splash Page + [re-add various features](https://github.com/smaht-dac/smaht-portal/pull/19)
+  * Series of Fixes for Static Sections and Pages
+  * [Bm homepage and more inserts #22] (https://github.com/smaht-dac/smaht-portal/pull/22)
+  * [Bm cypress + studio #16] (https://github.com/smaht-dac/smaht-portal/pull/16)
+  * [Cfm data viz integration #23] (https://github.com/smaht-dac/smaht-portal/pull/23)
+  * [Cfm homepage figure #25] (https://github.com/smaht-dac/smaht-portal/pull/25)
+* Update dcicutils to ^8.2.0.
+* 2023-11.02
+
+
+0.3.0
+=====
+* Upgrade to Python 3.11.
+* Adding ingestion processor.
+  * Added/implemented ingestion_processor.py.
+  * Added generate-local-access-key script (from snovault) to pyproject.toml.
+  * Added view-local-object script (from snovault) to pyproject.toml.
+  * Changed metadata_bundles_bucket to smaht-production-application-metadata-bundles in development.ini.template.
+* Removed types/access_key.py and schemas/access_key.json as the ones in snovault are sufficient.
+
+
 0.2.0
 =====
 `PR 18: Prettier bulk reformat <https://github.com/smaht-dac/smaht-portal/pull/18>`_
 
 * What it says on the tin: ran `npm run format` to reformat JS/JSX files
+
 
 0.1.1
 =====
@@ -41,7 +75,6 @@ Change Log
 
 0.0.8
 =====
-
 * Lock newer snovault, utils versions with bug fixes
 
 

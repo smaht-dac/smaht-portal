@@ -485,6 +485,7 @@
             "default": "in review",
             "permission": "restricted_fields",
             "enum": [
+                "public",
                 "current",
                 "deleted",
                 "inactive",

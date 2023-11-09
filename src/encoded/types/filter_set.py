@@ -7,6 +7,7 @@ from .acl import ALLOW_CONSORTIUM_CREATE_ACL
 
 @collection(
     name='filter-sets',
+    unique_key='filter_set:title',
     acl=ALLOW_CONSORTIUM_CREATE_ACL,
     properties={
         'title': 'Filter Sets',

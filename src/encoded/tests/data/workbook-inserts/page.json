@@ -1,0 +1,138 @@
+[
+    {
+        "identifier": "about",
+        "title": "About",
+        "status": "public",
+        "children": [
+            "c57a5299-64aa-4e8d-bf01-6668d815b94f",
+            "d2d042e7-09e5-4a34-a8c5-530ba9c9cdec",
+            "af03023c-1ce0-49a1-b85b-20f5abd8cc30"
+        ],
+        "content": [
+           "3fd92b15-9771-4218-a3f9-77b15805443e"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "header-depth": 4
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "c79afee0-7ba5-4dc6-9c1c-684984f85607"
+    },
+    {
+        "identifier": "aboutTODOSLASHwhat-is-smaht",
+        "title": "What is SMaHT?",
+        "status": "public",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+          "enabled": false,
+          "skip-depth": 1,
+          "header-depth": 4,
+          "include-top-link": false
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "c57a5299-64aa-4e8d-bf01-6668d815b94f"
+    },
+    {
+        "identifier": "aboutTODOSLASHconsortium",
+        "title": "SMaHT Consortium Information",
+        "status": "public",
+        "children": [
+            "6da98599-12a7-456f-8598-da510a88c7e8",
+            "1ef242a4-954c-4c77-9193-3ec3b1a8e7d7"
+        ],
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+          "enabled": false,
+          "skip-depth": 1,
+          "header-depth": 4,
+          "include-top-link": false
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "d2d042e7-09e5-4a34-a8c5-530ba9c9cdec"
+    },
+    {
+        "identifier": "aboutTODOSLASHjoin",
+        "title": "How to Join SMaHt",
+        "status": "public",
+        "children": [
+            "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd"
+        ],
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+          "enabled": false,
+          "skip-depth": 1,
+          "header-depth": 4,
+          "include-top-link": false
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "af03023c-1ce0-49a1-b85b-20f5abd8cc30"
+    },
+    {
+        "identifier": "aboutTODOSLASHconsortiumTODOSLASHawardees",
+        "title": "SMaHT Awardees",
+        "status": "public",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+          "enabled": false,
+          "skip-depth": 1,
+          "header-depth": 4,
+          "include-top-link": false
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "6da98599-12a7-456f-8598-da510a88c7e8"
+    },
+    {
+        "identifier": "aboutTODOSLASHconsortiumTODOSLASHdata",
+        "title": "SMaHT Data",
+        "status": "public",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+          "enabled": false,
+          "skip-depth": 1,
+          "header-depth": 4,
+          "include-top-link": false
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "1ef242a4-954c-4c77-9193-3ec3b1a8e7d7"
+    },
+    {
+        "identifier": "aboutTODOSLASHjoinTODOSLASHpolicy",
+        "title": "Associate Membership policy",
+        "status": "public",
+        "content": [
+            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        ],
+        "table-of-contents": {
+          "enabled": false,
+          "skip-depth": 1,
+          "header-depth": 4,
+          "include-top-link": false
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd"
+    }
+]

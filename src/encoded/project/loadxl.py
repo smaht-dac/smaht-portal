@@ -3,6 +3,7 @@ from snovault.project.loadxl import SnovaultProjectLoadxl
 
 class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
 
+    # N.B. snovault.loadxl expects to get this in snake-case (not camel-case) format.
     order = [
             'access_key',
             'user',

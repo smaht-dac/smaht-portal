@@ -137,7 +137,7 @@ kibana-stop:
 
 kill:  # kills back-end processes associated with the application. Use with care.
 	pkill -f postgres &
-	pkill -f elasticsearch &
+	pkill -f opensearch &
 	pkill -f moto_server &
 
 clean-python:
@@ -204,6 +204,13 @@ deploy-docker-local-daemon:
 lint:
 	@flake8 deploy/ || echo "flake8 failed for deploy/"
 	@flake8 src/encoded/ || echo "flake8 failed for src/encoded"
+
+publish:
+	poetry run publish-to-pypi
+
+publish-for-ga:
+	poetry install
+	poetry run publish-to-pypi --noconfirm
 
 help:
 	@make info
