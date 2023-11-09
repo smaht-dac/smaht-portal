@@ -51,7 +51,7 @@ def consortium_file(testapp, fastq_format, test_consortium):
         'filename': 'my.fastq.gz',
         'data_category': 'Sequencing Reads',
         'data_type': 'Unaligned Reads',
-        'status': 'shared',    # this status is important as this will make it viewable by consortium
+        'status': 'released',    # this status is important as this will make it viewable by consortium
         'consortia': [
             test_consortium['uuid']
         ]

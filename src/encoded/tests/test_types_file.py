@@ -39,12 +39,12 @@ def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any
 @pytest.mark.parametrize(
     "status,expected",
     [
-        ("current", False),
+        ("released", False),
         ("deleted", False),
-        ("inactive", False),
+        ("archived", False),
         ("in review", True),
         ("obsolete", False),
-        ("shared", False),
+        ("public", False),
     ]
 )
 def test_upload_credentials(

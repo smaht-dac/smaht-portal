@@ -400,12 +400,11 @@
             "permission": "restricted_fields",
             "enum": [
                 "public",
-                "current",
-                "deleted",
-                "inactive",
+                "shared",
+                "released",
                 "in review",
                 "obsolete",
-                "shared"
+                "deleted"
             ]
         }
     },

@@ -118,7 +118,8 @@ def smaht_admin(testapp):
 
 
 @pytest.fixture
-def smaht_gcc_user(testapp, test_submission_center):
+def smaht_gcc_user(testapp, test_submission_center, test_consortium):
+    """ A GCC user would be a consortia member and a submission center member """
     item = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -126,6 +127,9 @@ def smaht_gcc_user(testapp, test_submission_center):
         'status': 'current',
         'submission_centers': [
             test_submission_center['uuid']
+        ],
+        'consortia': [
+            test_consortium['uuid']
         ],
         'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188308'
     }

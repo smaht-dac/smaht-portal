@@ -1,5 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
-
+from typing import Any, Dict, Optional, Union
 from encoded_core.types.file import (
     HREF_SCHEMA,
     UNMAPPED_OBJECT_SCHEMA,
@@ -8,7 +7,7 @@ from encoded_core.types.file import (
 )
 from pyramid.request import Request
 from snovault import abstract_collection, calculated_property, load_schema
-
+from .acl import *
 from .base import Item as SMAHTItem
 
 
@@ -34,6 +33,18 @@ class File(SMAHTItem, CoreFile):
     item_type = "file"
     schema = load_schema("encoded:schemas/file.json")
     embedded_list = []
+
+    SMAHTItem.SUBMISSION_CENTER_STATUS_ACL.update({
+        'uploaded': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'uploading': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'archived': ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL
+    })
+    # These are all view only in case we find ourselves in this situation
+    SMAHTItem.CONSORTIUM_STATUS_ACL.update({
+        'uploaded': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'uploading': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'archived': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL
+    })
 
     SHOW_UPLOAD_CREDENTIALS_STATUSES = ("in review",)
 
