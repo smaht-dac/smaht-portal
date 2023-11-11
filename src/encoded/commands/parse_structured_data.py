@@ -36,11 +36,11 @@ def main() -> None:
         if args.schemas:
             print("Cannot specify both --schemas and --noschemas.")
             exit(1)
-        #if not args.new:
-        #    print("Must use schemas with sheet_utils.") 
-        #    exit(1)
 
-    portal = Portal.create_for_testing() if not args.noschemas else None
+    if args.load:
+        portal = Portal.create_for_testing(ini_file=args.load_ini or "development.ini")
+    else:
+        portal = Portal.create_for_testing() if not args.noschemas else None
 
     if args.verbose:
         print(f">>> Loading structured data from: {args.file} ...")
@@ -53,29 +53,34 @@ def main() -> None:
             print(">>> Dumping schemas referenced by structured data ...")
         for data_type in structured_data_set:
             data_of_type = structured_data_set[data_type]
-            schema = Schema.load_by_name(data_type, portal).data
-            print(f">>> Schema: {data_type}")
-            print(json.dumps(schema, indent=4, default=str))
+            schema = Schema.load_by_name(data_type, portal)
+            schema = schema.data if schema else None
+            if schema:
+                print(f">>> Schema: {data_type}")
+                print(json.dumps(schema, indent=4, default=str))
+            elif args.verbose:
+                print(f">>> No schema found for type: {data_type}")
 
     if args.validate:
         if args.verbose:
             print(">>> Validating structured data using associated schemas ...")
         for data_type in structured_data_set:
             data_of_type = structured_data_set[data_type]
-            schema = Schema.load_by_name(data_type, portal).data
-            schema_format_checker = JsonSchemaValidator.FORMAT_CHECKER if not args.no_format_validate else None
-            schema_validator = JsonSchemaValidator(schema, format_checker=schema_format_checker)
-            for index, data in enumerate(data_of_type):
-                for validation_error in schema_validator.iter_errors(data):
-                    print(f">>> Validation Error: {data_type} [{index}]:")
-                    print(validation_error)
-                pass
-            pass
+            schema = Schema.load_by_name(data_type, portal)
+            schema = schema.data if schema else None
+            if schema:
+                schema_format_checker = JsonSchemaValidator.FORMAT_CHECKER if not args.no_format_validate else None
+                schema_validator = JsonSchemaValidator(schema, format_checker=schema_format_checker)
+                for index, data in enumerate(data_of_type):
+                    for validation_error in schema_validator.iter_errors(data):
+                        print(f">>> Validation Error: {data_type} [{index}]:")
+                        print(validation_error)
+            elif args.verbose:
+                print(f">>> No schema found for type: {data_type}")
 
     if args.load:
         if args.verbose:
             print(">>> Loading structured data into local database ...")
-        portal = Portal.create_for_testing(ini_file=args.load_ini or "development.ini")
         results = load_data_into_database(data=structured_data_set, portal_vapp=portal.vapp, validate_only=False)
         print(yaml.dump(results))
 
@@ -90,6 +95,12 @@ def parse_structured_data(file: str, portal: Optional[Portal],
         data = data.data
     else:
         portal_vapp = portal.vapp if portal else None
+        data = sheet_utils_load_items(file, portal_vapp=portal_vapp, validate=True, apply_heuristics=False, noschemas=noschemas)
+        if not noschemas:
+            _ = data[1]  # problems unused the moment
+            data = data[0]
+        """
+        portal_vapp = portal.vapp if portal else None
         if noschemas:
             data = sheet_utils_load_items_noschemas(file, portal_vapp=portal_vapp)
             data = data["content"]
@@ -97,6 +108,7 @@ def parse_structured_data(file: str, portal: Optional[Portal],
             data = sheet_utils_load_items(file, portal_vapp=portal_vapp, validate=True, apply_heuristics=True)
             _ = data[1]  # problems unused the moment
             data = data[0]
+        """
     return data
 
 
