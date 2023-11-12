@@ -38,9 +38,9 @@ def main() -> None:
             exit(1)
 
     if args.load:
-        portal = Portal.create_for_testing(ini_file=args.load_ini or "development.ini")
+        portal = Portal.create_for_local_testing(ini_file=args.load_ini)
     else:
-        portal = Portal.create_for_testing() if not args.noschemas else None
+        portal = Portal.create_for_unit_testing() if not args.noschemas else None
 
     if args.verbose:
         print(f">>> Loading structured data from: {args.file} ...")
@@ -91,24 +91,13 @@ def main() -> None:
 def parse_structured_data(file: str, portal: Optional[Portal],
                           new: bool = False, noschemas: bool = False) -> Optional[dict]:
     if new:
-        data = StructuredDataSet(file, portal)
-        data = data.data
+        data = StructuredDataSet(file, portal).data
     else:
         portal_vapp = portal.vapp if portal else None
         data = sheet_utils_load_items(file, portal_vapp=portal_vapp, validate=True, apply_heuristics=False, noschemas=noschemas)
         if not noschemas:
             _ = data[1]  # problems unused the moment
             data = data[0]
-        """
-        portal_vapp = portal.vapp if portal else None
-        if noschemas:
-            data = sheet_utils_load_items_noschemas(file, portal_vapp=portal_vapp)
-            data = data["content"]
-        else:
-            data = sheet_utils_load_items(file, portal_vapp=portal_vapp, validate=True, apply_heuristics=True)
-            _ = data[1]  # problems unused the moment
-            data = data[0]
-        """
     return data
 
 
