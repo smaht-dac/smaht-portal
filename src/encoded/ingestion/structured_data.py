@@ -624,8 +624,12 @@ class StructuredColumnData:
                                      flattened_column_name_components[1:], parent_array_index=array_index)
                 return
 
-            nonlocal value
-            value = map_value(is_array=array_name is not None)
+            nonlocal flattened_column_name, value, schema
+
+            if schema:
+                value = schema.map_value(flattened_column_name, value)
+            elif array_name is not None and isinstance(value, str):
+                value = Utils.split_array_string(value)
             if array_name and array_index >= 0:
                 if (not isinstance(structured_row[column_name_component], list) and
                         isinstance(structured_row[column_name_component], str)):
@@ -640,14 +644,6 @@ class StructuredColumnData:
                     structured_row[column_name_component][array_index + 1:])
             else:
                 structured_row[column_name_component] = value
-
-        def map_value(is_array: bool) -> Any:
-            nonlocal flattened_column_name, value, schema
-            if schema:
-                value = schema.map_value(flattened_column_name, value)
-            elif is_array and isinstance(value, str):
-                value = Utils.split_array_string(value)
-            return value
 
         if (flattened_column_name_components := Utils.split_dotted_string(flattened_column_name)):
             set_single_row_value(structured_row, flattened_column_name_components)
