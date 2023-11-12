@@ -125,10 +125,8 @@ class Schema:
             map_function = self._flattened_type_info.get(flattened_column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
         return map_function(value) if map_function else value
 
-    def get_flattened_type_info(self, stringize_map: bool = False):
-        if not stringize_map:
-            return self._flattened_type_info
-        return {key: {k: (v if k != "map" or not isinstance(v, Callable) else self._map_function_name(v))
+    def get_flattened_type_info(self, debug: bool = False):
+        return {key: {k: (self._map_function_name(v) if k == "map" and isinstance(v, Callable) and debug else v)
                       for k, v in value.items()} for key, value in self._flattened_type_info.items()}
 
     def validate(self, data: dict) -> Optional[List[str]]:
