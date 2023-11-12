@@ -341,7 +341,7 @@ class RowReader(abc.ABC):
         self._header = None
         self._row_number = 0
         self._warning_empty_header_columns = False
-        self._warning_extraneous_row_values = []
+        self._warning_extraneous_row_values = []  # Line numbers.
         self.open()
 
     def __iter__(self) -> Iterator:
