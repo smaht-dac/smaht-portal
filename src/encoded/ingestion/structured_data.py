@@ -259,8 +259,7 @@ class Schema:
                 map_function = MAP_FUNCTIONS.get("ref")
             else:
                 map_function = MAP_FUNCTIONS.get(type_info_type)
-            if map_function:
-                return map_function(type_info)
+            return map_function(type_info) if map_function else None
         return None
 
     def _map_function_array(self, type_info: dict) -> Callable:
