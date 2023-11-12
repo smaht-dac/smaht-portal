@@ -1,12 +1,9 @@
 import argparse
 import json
 from jsonschema import Draft7Validator as JsonSchemaValidator
-from typing import List, Optional
+from typing import Optional
 import yaml
 from dcicutils.bundle_utils import load_items as sheet_utils_load_items
-from dcicutils.sheet_utils import load_table_annotated as sheet_utils_load_items_noschemas
-from dcicutils.common import AnyJsonData
-from snovault.loadxl import load_all_gen as loadxl_load_data
 from encoded.ingestion.loadxl_extensions import load_data_into_database
 from encoded.ingestion.structured_data import Portal, Schema, StructuredDataSet
 
