@@ -347,8 +347,6 @@ class RowReader(abc.ABC):
     def __iter__(self) -> Iterator:
         for row in self.rows:
             self._row_number += 1
-            if self.is_comment_row(row):
-                continue
             if self.is_terminating_row(row):
                 break
             if len(self.header) < len(row):
@@ -371,9 +369,6 @@ class RowReader(abc.ABC):
     @abc.abstractproperty
     def rows(self) -> Generator[Union[List[Optional[Any]], Tuple[Optional[Any], ...]], None, None]:
         pass
-
-    def is_comment_row(self, row: Union[List[Optional[Any]], Tuple[Optional[Any]]]) -> bool:
-        return False
 
     def is_terminating_row(self, row: Union[List[Optional[Any]], Tuple[Optional[Any]]]) -> bool:
         return False
