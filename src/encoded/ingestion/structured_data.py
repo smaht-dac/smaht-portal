@@ -715,22 +715,20 @@ class Utils:
         """
         Merge, recursively, the given source object into the given target object and return target.
         """
-        if isinstance(target, dict) and isinstance(source, dict):
-            if source:
-                for source_key, source_value in source.items():
-                    if source_key in target:
-                        target[source_key] = Utils.merge_objects(target[source_key], source_value)
-                    else:
-                        target[source_key] = source_value
-        elif isinstance(target, list) and isinstance(source, list):
-            if source:
-                for index in range(max(len(source), len(target))):
-                    if index < len(target):
-                        source_value = source[index] if index < len(source) else source[len(source) - 1]
-                        target[index] = Utils.merge_objects(target[index], source_value)
-                    else:
-                        target.append(source[index])
-        else:
+        if isinstance(target, dict) and isinstance(source, dict) and source:
+            for source_key, source_value in source.items():
+                if source_key in target:
+                    target[source_key] = Utils.merge_objects(target[source_key], source_value)
+                else:
+                    target[source_key] = source_value
+        elif isinstance(target, list) and isinstance(source, list) and source:
+            for index in range(max(len(source), len(target))):
+                if index < len(target):
+                    source_value = source[index] if index < len(source) else source[len(source) - 1]
+                    target[index] = Utils.merge_objects(target[index], source_value)
+                else:
+                    target.append(source[index])
+        elif source:
             target = source
         return target
 
