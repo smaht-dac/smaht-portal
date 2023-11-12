@@ -40,7 +40,6 @@ class Portal:
 
     def __init__(self, portal_vapp: Any, for_unit_testing: bool = False) -> None:
         self.vapp = portal_vapp
-        self.for_unit_testing = for_unit_testing
         self.loading_data_set = None
 
     @lru_cache(maxsize=256)
@@ -297,7 +296,7 @@ class Schema:
 
     def _map_function_ref(self, type_info: dict) -> Callable:
         def map_value_ref(value: str, link_to: str, portal: Optional[Portal]) -> Any:
-            if link_to and portal and not portal.for_unit_testing and not portal.ref_exists(link_to, value):
+            if link_to and portal and not portal.ref_exists(link_to, value):
                 raise Exception(f"Cannot resolve reference (linkTo): {link_to}/{value}")
             return value
         return lambda value: map_value_ref(value, type_info.get("linkTo"), self._portal)
