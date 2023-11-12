@@ -752,7 +752,7 @@ class Utils:
 
     @staticmethod
     def get_type_name(file_or_other_string: str) -> str:
-        name = os.path.basename(file_or_other_string).replace(" ", "")
+        name = os.path.basename(file_or_other_string or "").replace(" ", "")
         return to_camel_case(name[0:dot] if (dot := name.rfind(".")) > 0 else name)
 
     @contextmanager
