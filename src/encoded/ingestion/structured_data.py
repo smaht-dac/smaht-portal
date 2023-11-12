@@ -38,7 +38,7 @@ DOTTED_NAME_DELIMITER_CHAR = "."
 
 class Portal:
 
-    def __init__(self, portal_vapp: Any, for_unit_testing: bool = False) -> None:
+    def __init__(self, portal_vapp: Any) -> None:
         self.vapp = portal_vapp
         self.loading_data_set = None
 
@@ -73,7 +73,7 @@ class Portal:
     def create_for_unit_testing() -> Any:
         minimal_ini_for_unit_testing = "[app:app]\nuse = egg:encoded\nsqlalchemy.url = postgresql://dummy\n"
         with Utils.temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
-            return Portal(create_testapp(ini_file), for_unit_testing=True)
+            return Portal(create_testapp(ini_file))
 
     @staticmethod
     def create_for_local_testing(ini_file: Optional[str] = None) -> Any:
