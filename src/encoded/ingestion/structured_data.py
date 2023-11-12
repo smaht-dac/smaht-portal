@@ -73,7 +73,7 @@ class Portal:
     @staticmethod
     def create_for_unit_testing() -> Any:
         minimal_ini_for_unit_testing = "[app:app]\nuse = egg:encoded\nsqlalchemy.url = postgresql://dummy\n"
-        with Utils.temporary_file(content=minimal_ini_for_unit_testing, name="portal.ini") as ini_file:
+        with Utils.temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
             return Portal(create_testapp(ini_file), for_unit_testing=True)
 
     @staticmethod
@@ -99,7 +99,7 @@ class Portal:
             "multiauth.policy.auth0.namespace = auth0",
             "multiauth.policy.auth0.base = encoded.authentication.Auth0AuthenticationPolicy"
         ])
-        with Utils.temporary_file(content=minimal_ini_for_local_testing, name="portal.ini") as ini_file:
+        with Utils.temporary_file(content=minimal_ini_for_local_testing, suffix=".ini") as ini_file:
             return Portal(create_testapp(ini_file))
 
 
@@ -761,37 +761,26 @@ class Utils:
     @contextmanager
     def temporary_file(name: Optional[str] = None, suffix: Optional[str] = None,
                        content: Optional[Union[str, List[str]]] = None) -> str:
-
-        def write_content(temporary_file_name: str) -> None:
-            with open(temporary_file_name, "w") as temporary_file:
-                if isinstance(content, str):
-                    temporary_file.write(content)
-                elif isinstance(content, list):
-                    [temporary_file.write(line + "\n") for line in content]
-
-        with Utils.temporary_directory() as temporary_directory_name:
-            if name:
-                temporary_file_name = os.path.join(temporary_directory_name, name) + (suffix or "")
-                try:
-                    write_content(temporary_file_name)
-                    yield temporary_file_name
-                finally:
-                    pass  # Utils.temporary_directory handles cleanup.
-            else:
-                temporary_file = tempfile.NamedTemporaryFile(dir=temporary_directory_name, suffix=suffix, delete=False)
-                temporary_file_name = temporary_file.name
-                temporary_file.close()
-                write_content(temporary_file_name)
-                yield temporary_file_name
+        with Utils.temporary_directory() as tmp_directory_name:
+            tmp_file_name = os.path.join(tmp_directory_name, name or tempfile.mktemp(dir="")) + (suffix or "")
+            try:
+                with open(tmp_file_name, "w") as tmp_file:
+                    if isinstance(content, str):
+                        tmp_file.write(content)
+                    elif isinstance(content, list):
+                        [tmp_file.write(line + "\n") for line in content]
+                yield tmp_file_name
+            finally:
+                pass  # Utils.temporary_directory handles cleanup.
 
     @staticmethod
     @contextmanager
     def temporary_directory() -> str:
         try:
-            with tempfile.TemporaryDirectory() as temporary_directory_name:
-                yield temporary_directory_name
+            with tempfile.TemporaryDirectory() as tmp_directory_name:
+                yield tmp_directory_name
         finally:
-            Utils.remove_temporary_directory(temporary_directory_name)
+            Utils.remove_temporary_directory(tmp_directory_name)
 
     @staticmethod
     def is_temporary_directory(path: str) -> bool:
@@ -802,9 +791,9 @@ class Utils:
             return False
 
     @staticmethod
-    def remove_temporary_directory(temporary_directory_name: str) -> None:
-        if Utils.is_temporary_directory(temporary_directory_name):  # Guard against errant deletion.
-            shutil.rmtree(temporary_directory_name)
+    def remove_temporary_directory(tmp_directory_name: str) -> None:
+        if Utils.is_temporary_directory(tmp_directory_name):  # Guard against errant deletion.
+            shutil.rmtree(tmp_directory_name)
 
 
 class UnpackUtils:
@@ -825,45 +814,45 @@ class UnpackUtils:
         dot = file.rfind(".")
         return UNPACK_CONTEXT_MANAGERS.get(file[dot:]) if dot > 0 else None
 
-    @staticmethod
     @contextmanager
+    @staticmethod
     def unpack_zip_file_to_temporary_directory(file: str) -> str:
-        with Utils.temporary_directory() as temporary_directory_name:
+        with Utils.temporary_directory() as tmp_directory_name:
             with zipfile.ZipFile(file, "r") as zipf:
-                zipf.extractall(temporary_directory_name)
-            yield temporary_directory_name
+                zipf.extractall(tmp_directory_name)
+            yield tmp_directory_name
 
-    @staticmethod
     @contextmanager
+    @staticmethod
     def unpack_tar_file_to_temporary_directory(file: str) -> str:
-        with Utils.temporary_directory() as temporary_directory_name:
+        with Utils.temporary_directory() as tmp_directory_name:
             with tarfile.open(file, "r") as tarf:
-                tarf.extractall(temporary_directory_name)
-            yield temporary_directory_name
+                tarf.extractall(tmp_directory_name)
+            yield tmp_directory_name
 
-    @staticmethod
     @contextmanager
+    @staticmethod
     def unpack_targz_file_to_temporary_directory(file: str) -> str:
-        with Utils.temporary_directory() as temporary_directory_name:
+        with Utils.temporary_directory() as tmp_directory_name:
             with tarfile.open(file, "r:gz") as targzf:
-                targzf.extractall(temporary_directory_name)
-            yield temporary_directory_name
+                targzf.extractall(tmp_directory_name)
+            yield tmp_directory_name
 
-    @staticmethod
     @contextmanager
+    @staticmethod
     def unpack_gz_file_to_temporary_directory(file: str) -> str:
-        with Utils.temporary_directory() as temporary_directory_name:
-            gunzip_temporary_file = os.path.join(temporary_directory_name, file.replace(".gz", ""))
+        with Utils.temporary_directory() as tmp_directory_name:
+            gunzip_tmp_file = os.path.join(tmp_directory_name, file.replace(".gz", ""))
             with gzip.open(file, "rb") as gunzipf_input:
-                with open(gunzip_temporary_file, "wb") as gunzipf_output:
+                with open(gunzip_tmp_file, "wb") as gunzipf_output:
                     gunzipf_output.write(gunzipf_input.read())
-            yield temporary_directory_name
+            yield tmp_directory_name
 
     @staticmethod
     def unpack_files(file: str) -> Optional[str]:
-        if (unpack_file_to_temporary_directory := UnpackUtils.get_unpack_context_manager(file)) is not None:
-            with unpack_file_to_temporary_directory(file) as temporary_directory_name:
-                for directory, _, files in os.walk(temporary_directory_name):
+        if (unpack_file_to_tmp_directory := UnpackUtils.get_unpack_context_manager(file)) is not None:
+            with unpack_file_to_tmp_directory(file) as tmp_directory_name:
+                for directory, _, files in os.walk(tmp_directory_name):
                     for file in files:
                         if any(file.endswith(suffix) for suffix in ACCEPTABLE_FILE_SUFFIXES):
                             yield os.path.join(directory, file)
