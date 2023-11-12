@@ -16,7 +16,7 @@ import tempfile
 from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Union
 import zipfile
 from dcicutils.ff_utils import get_metadata, get_schema
-from dcicutils.misc_utils import to_camel_case, to_snake_case
+from dcicutils.misc_utils import to_camel_case
 from snovault.loadxl import create_testapp
 
 # Classes/functions to parse a CSV or Excel Spreadsheet into structured data, using a specialized
@@ -117,8 +117,7 @@ class Schema:
 
     @staticmethod
     def load_by_name(file_or_schema_name: str, portal: Optional[Portal]) -> Optional[dict]:
-        schema_name = Utils.get_type_name_snake(file_or_schema_name)
-        return Schema(portal.get_schema(schema_name), portal) if portal else None
+        return Schema(portal.get_schema(Utils.get_type_name(file_or_schema_name)), portal) if portal else None
 
     def map_value(self, flattened_column_name: str, value: str) -> Optional[Any]:
         flattened_column_name = self._normalize_flattened_column_name(flattened_column_name)
@@ -290,8 +289,7 @@ class Schema:
                     if enum_canonical.startswith(lower_value):
                         matches.append(enum_canonical)
                 if len(matches) == 1:
-                    result = enum_specifier[matches[0]]
-                    return result
+                    return enum_specifier[matches[0]]
             return value
         return lambda value: map_value_enum(value, {str(enum).lower(): enum for enum in type_info.get("enum", [])})
 
@@ -510,17 +508,17 @@ class StructuredDataSet:
                 self.load_packed_file(file)
 
     def load_csv_file(self, file: str) -> None:
-        self.add(Utils.get_type_name_camel(file),
+        self.add(Utils.get_type_name(file),
                  StructuredData.load_from_csv_file(file, portal=self._portal, prune=self._prune))
 
     def load_excel_file(self, file: str) -> None:
         excel = Excel(file)
         for sheet_name in excel.sheet_names:
-            self.add(Utils.get_type_name_camel(sheet_name),
+            self.add(Utils.get_type_name(sheet_name),
                      StructuredData.load_from_excel_sheet(excel, sheet_name, portal=self._portal, prune=self._prune))
 
     def load_json_file(self, file: str) -> None:
-        self.add(Utils.get_type_name_camel(file), StructuredData.load_from_json_file(file))
+        self.add(Utils.get_type_name(file), StructuredData.load_from_json_file(file))
 
     def load_packed_file(self, file: str) -> None:
         for file in UnpackUtils.unpack_files(file):
@@ -625,7 +623,6 @@ class StructuredColumnData:
                 return
 
             nonlocal flattened_column_name, value, schema
-
             if schema:
                 value = schema.map_value(flattened_column_name, value)
             elif array_name is not None and isinstance(value, str):
@@ -759,15 +756,7 @@ class Utils:
     @staticmethod
     def get_type_name(file_or_other_string: str) -> str:
         name = os.path.basename(file_or_other_string).replace(" ", "")
-        return to_snake_case(name[0:dot] if (dot := name.rfind(".")) > 0 else name)
-
-    @staticmethod
-    def get_type_name_camel(file_or_other_string: str) -> str:
-        return to_camel_case(Utils.get_type_name(file_or_other_string))
-
-    @staticmethod
-    def get_type_name_snake(file_or_other_string: str) -> str:
-        return to_snake_case(Utils.get_type_name(file_or_other_string))
+        return to_camel_case(name[0:dot] if (dot := name.rfind(".")) > 0 else name)
 
     @contextmanager
     def temporary_file(name: Optional[str] = None, suffix: Optional[str] = None,
