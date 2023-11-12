@@ -372,10 +372,6 @@ class RowReader(abc.ABC):
     def rows(self) -> Generator[Union[List[Optional[Any]], Tuple[Optional[Any], ...]], None, None]:
         pass
 
-    @property
-    def row_number(self) -> int:
-        return self._row_number
-
     def is_comment_row(self, row: Union[List[Optional[Any]], Tuple[Optional[Any]]]) -> bool:
         return False
 
