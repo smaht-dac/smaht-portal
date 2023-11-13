@@ -10,14 +10,31 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
     return (
         <div className="container">
             <div id="timeline" className={`${currentTier}`}>
-                <div className="timeline-item">
-                    <div className="timeline-marker">Tier 0</div>
-                    <div>
-                        <h3 className="ml-6 text-left">Benchmarking</h3>
+                <div
+                    className={
+                        'timeline-item ' +
+                        (currentTier === 'benchmarking'
+                            ? 'tier-active'
+                            : 'tier-inactive')
+                    }>
+                    <div
+                        className="timeline-marker"
+                        onClick={() => setCurrentTier('benchmarking')}>
+                        <span>Tier 0</span>
+                    </div>
+                    <div className="timeline-item-header">
+                        <h3 className="ml-6 text-left">
+                            Benchmarking&nbsp;
+                            <i className="timeline-item-subheader">
+                                - with all technologies
+                            </i>
+                        </h3>
                     </div>
                     <div className="timeline-content">
                         <TimelineAccordion
                             defaultActiveKey={1}
+                            tier="benchmarking"
+                            currentTier={currentTier}
                             activeKey={
                                 currentTier === 'benchmarking'
                                     ? undefined
@@ -83,10 +100,25 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                     </div>
                 </div>
 
-                <div className="timeline-item">
-                    <div className="timeline-marker">Tier 1</div>
-                    <div>
-                        <h3 className="ml-6 text-left">Expansion</h3>
+                <div
+                    className={
+                        'timeline-item ' +
+                        (currentTier === 'expansion'
+                            ? 'tier-active'
+                            : 'tier-inactive')
+                    }>
+                    <div
+                        className="timeline-marker"
+                        onClick={() => setCurrentTier('expansion')}>
+                        <span>Tier 1</span>
+                    </div>
+                    <div className="timeline-item-header">
+                        <h3 className="ml-6 text-left">
+                            Expansion&nbsp;
+                            <i className="timeline-item-subheader">
+                                - with select technologies
+                            </i>
+                        </h3>
                     </div>
                     <div className="timeline-content">
                         <TimelineAccordion
@@ -112,10 +144,25 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                     </div>
                 </div>
 
-                <div className="timeline-item">
-                    <div className="timeline-marker">Tier 2</div>
-                    <div>
-                        <h3 className="ml-6 text-left">Production</h3>
+                <div
+                    className={
+                        'timeline-item ' +
+                        (currentTier === 'production'
+                            ? 'tier-active'
+                            : 'tier-inactive')
+                    }>
+                    <div
+                        className="timeline-marker"
+                        onClick={() => setCurrentTier('production')}>
+                        <span>Tier 2</span>
+                    </div>
+                    <div className="timeline-item-header">
+                        <h3 className="ml-6 text-left">
+                            Production&nbsp;
+                            <i className="timeline-item-subheader">
+                                - with select technologies
+                            </i>
+                        </h3>
                     </div>
                     <div className="timeline-content">
                         <TimelineAccordion
@@ -187,13 +234,13 @@ function ContextAwareToggle({
 }
 
 function TimelineAccordion(props) {
-    const { defaultActiveKey, children, currentTier, activeKey } = props;
-    console.log(
-        'defaultActiveKey: ',
+    const {
         defaultActiveKey,
-        'activeKey: ',
-        activeKey
-    );
+        children,
+        tier = null,
+        currentTier,
+        activeKey,
+    } = props;
 
     return (
         <Accordion {...{ defaultActiveKey, activeKey }}>{children}</Accordion>
@@ -209,7 +256,7 @@ function TimelineAccordionDrawer(props) {
         setCurrentTier,
     } = props;
     return (
-        <Card className={'' + currentTier}>
+        <Card>
             <Card.Header>
                 <ContextAwareToggle {...{ eventKey, setCurrentTier }}>
                     <span className="text-left">{title}</span>
@@ -217,6 +264,7 @@ function TimelineAccordionDrawer(props) {
             </Card.Header>
             <Accordion.Collapse {...{ eventKey }}>
                 <Card.Body>
+                    <div className="card-divider"></div>
                     <TimelineCardContent values={values} />
                 </Card.Body>
             </Accordion.Collapse>
