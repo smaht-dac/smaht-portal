@@ -104,16 +104,16 @@ function ContextAwareToggle({ children, eventKey, callback }) {
     const isCurrentEventKey = currentEventKey === eventKey;
 
     const openStatusIconCls = isCurrentEventKey
-        ? 'icon icon-angle-up fas'
-        : 'icon icon-angle-down fas';
+        ? 'icon icon-angle-up fas text-secondary'
+        : 'icon icon-angle-down fas text-secondary';
 
     return (
         <div className="d-flex justify-content-between align-items-center">
             <button
                 type="button"
-                className="border-0 bg-transparent m-0 p-0"
+                className="border-0 bg-transparent m-0 p-0 w-100"
                 onClick={decoratedOnClick}>
-                <div>
+                <div className="d-flex justify-content-between align-items-center w-100">
                     {children}
                     <i className={openStatusIconCls + ' mr-1'} />
                 </div>
