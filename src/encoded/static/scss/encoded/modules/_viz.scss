@@ -51,7 +51,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 flex-direction: column;
                 align-items: flex-start;
                 
-                
                 i {
                     color: #5B7595;
                     font-size: 16px;
@@ -129,6 +128,49 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 @include prefix(border-radius, 10px);
                 box-shadow: none;
                 transition: background-color 150ms;
+                
+                &-header {
+                    background-color: transparent;
+                    margin-bottom: 0;
+                    padding: 0;
+                    border-bottom: none;
+    
+                    &-content {
+                        position: relative;
+    
+                        span {
+                            color: $homepage-card-text-color;
+                            font-weight: 600;
+                            font-size: 16px;
+                        }
+        
+                    }
+                    &-button {
+                        padding: 10px 40px 10px 10px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        width: 100%;
+    
+                        i {
+                            color: #74CFB2;
+                        }
+                    }
+                    &-link {
+                        position: absolute;
+                        right: 10px;
+                        top: 50%;
+                        transform: translate(0%,-50%);
+    
+                        &:hover {
+                            cursor: pointer;
+                        }
+                        i {
+                            color: #74CFB2;
+                        }
+                    }
+    
+                }
 
                 &-body {
                     display: flex;
@@ -171,53 +213,12 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     width: 90%;
                     height: 1px;
                     top: 0;
-                    left: auto;
+                    transform: translate(-50%, 0px);
+                    left: 50%;
                     background-color: #A4ECD5;
                 }
             }
 
-            .card-header {
-                background-color: transparent;
-                margin-bottom: 0;
-                padding: 0;
-                border-bottom: none;
-
-                &-content {
-                    position: relative;
-
-                    span {
-                        color: $homepage-card-text-color;
-                        font-weight: 600;
-                        font-size: 16px;
-                    }
-    
-                }
-                &-button {
-                    padding: 10px 40px 10px 10px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    width: 100%;
-
-                    i {
-                        color: #74CFB2;
-                    }
-                }
-                &-link {
-                    position: absolute;
-                    right: 10px;
-                    top: 50%;
-                    transform: translate(0%,-50%);
-
-                    &:hover {
-                        cursor: pointer;
-                    }
-                    i {
-                        color: #74CFB2;
-                    }
-                }
-
-            }
         }
         
         &.tier-inactive {
@@ -272,37 +273,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     }
                 }
             }
-            .accordion .card-body {
-                flex-direction: column;
-                padding: 0px 5%;
-            }
-        }
-        @media screen and (min-width: 1200px) {
-            &-header {
-                h3 {
-                    flex-direction: row;
-                    align-items: center;
-                }
-            }
-            .accordion .card-body {
-                flex-direction: row;
-                padding: 10px 43px;
-            }
-        }
-        
-    }
-
-    // @TODO: can maybe move to be utility class on h2 itself
-    // But may also need to do something like timeline-item/content above to position perfectly evenly
-    h2 {
-        padding-top: 0px;
-        padding-bottom: 0px;
-        margin-top: 0px;
-        margin-bottom: 0px;
-    }
-
-    @media screen and (min-width: 992px) {
-        .timeline-item {
             .timeline {
                 &-content {
                     .card {
@@ -319,10 +289,27 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                                 right: 20px;
                             }
                         }
+                        &-body {
+                            flex-direction: column;
+                            padding: 0px 5%;
+                        }
                     }
                 }
             }
         }
+        @media screen and (min-width: 1200px) {
+            &-header {
+                h3 {
+                    flex-direction: row;
+                    align-items: center;
+                }
+            }
+            .accordion .card-body {
+                flex-direction: row;
+                padding: 10px 43px;
+            }
+        }
+        
     }
 }
 
@@ -538,16 +525,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 }
                 &-body {
                     width: 350px;
-                    // padding: 15px 50px;
-
-                    // .card-list {
-                    //     // margin: 10px auto 10px auto;
-                        
-                    //     h5 {
-                    //         // margin: 0px auto 5px auto;
-                    //         // text-align: center;
-                    //     }
-                    // }
                 }
             }
         }
@@ -683,9 +660,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     
             .card {
                 width: auto;
-                &-header {
-                    // margin: 0px auto;
-                }
                 &-body {
                     width: 231px;
                     height: 600px;
