@@ -50,9 +50,10 @@ class Portal:
     def get_metadata(self, object_name: str) -> Optional[dict]:
         try:
             return get_metadata(object_name, vapp=self.vapp)
-        except Exception as e:
+        except Exception:
             import pdb ; pdb.set_trace()
             pass
+        return False
 
     def ref_exists(self, type_name: str, value: str) -> bool:
         if self._ref_exists_within_loading_data_set(type_name, value):
@@ -65,10 +66,15 @@ class Portal:
                 identifying_properties = set(type_schema.get("identifyingProperties", [])) | {"identifier", "uuid"}
                 for item in items:
                     for identifying_property in identifying_properties:
-                        if item.get(identifying_property) == value:
-                            return True
+                        if (identifying_value := item.get(identifying_property)) is not None:
+                            if isinstance(identifying_value, list):
+                                for identifying_value_item in identifying_value:
+                                    if identifying_value_item == value:
+                                        return True
+                            elif identifying_value == value:
+                                return True
         return False
-        
+
     @staticmethod
     def create_for_testing(ini_file: Optional[str] = None) -> Type["Portal"]:
         return Portal.create_for_local_testing(ini_file) if ini_file else Portal.create_for_unit_testing()
@@ -514,13 +520,14 @@ class StructuredDataSet:
                 self.load_packed_file(file)
 
     def load_csv_file(self, file: str) -> None:
-        self.add(Utils.get_type_name(file), StructuredData.load_from_csv_file(file, portal=self._portal))
+        StructuredData.load_from_csv_file(file, portal=self._portal,
+                                          addto=lambda data: self.add(Utils.get_type_name(file), data))
 
     def load_excel_file(self, file: str) -> None:
         excel = Excel(file)
         for sheet_name in excel.sheet_names:
-            self.add(Utils.get_type_name(sheet_name),
-                     StructuredData.load_from_excel_sheet(excel, sheet_name, portal=self._portal))
+            StructuredData.load_from_excel_sheet(excel, sheet_name, portal=self._portal,
+                                                 addto=lambda data: self.add(Utils.get_type_name(sheet_name), data))
 
     def load_json_file(self, file: str) -> None:
         self.add(Utils.get_type_name(file), StructuredData.load_from_json_file(file))
@@ -555,33 +562,38 @@ class StructuredDataSet:
 class StructuredData:
 
     @staticmethod
-    def load_from_csv_file(file: str, schema: Optional[Schema] = None, portal: Optional[Portal] = None) -> List[dict]:
+    def load_from_csv_file(file: str,
+                           schema: Optional[Schema] = None,
+                           portal: Optional[Portal] = None,
+                           addto: Optional[Callable] = None) -> Optional[List[dict]]:
         if not schema and portal:
             schema = Schema.load_by_name(file, portal=portal)
-        return StructuredData._load_from_reader(CsvReader(file), schema=schema)
+        return StructuredData._load_from_reader(CsvReader(file), schema=schema, addto=addto)
 
     def load_from_excel_sheet(excel: Excel, sheet_name: str,
                               schema: Optional[Schema] = None,
-                              portal: Optional[Portal] = None) -> List[dict]:
+                              portal: Optional[Portal] = None,
+                              addto: Optional[Callable] = None) -> Optional[List[dict]]:
         reader = excel.sheet_reader(sheet_name)
         if not schema and portal:
             schema = Schema.load_by_name(reader.sheet_name, portal=portal)
-        return StructuredData._load_from_reader(reader, schema=schema)
+        return StructuredData._load_from_reader(reader, schema=schema, addto=addto)
 
     @staticmethod
     def load_from_rows(rows: str, schema: Optional[Schema] = None) -> List[dict]:
         return StructuredData._load_from_reader(ListReader(rows), schema=schema)
 
     @staticmethod
-    def _load_from_reader(reader: RowReader, schema: Optional[Schema] = None) -> List[dict]:
-        structured_data = []
+    def _load_from_reader(reader: RowReader, schema: Optional[Schema] = None,
+                          addto: Optional[Callable] = None) -> Optional[List[dict]]:
+        structured_data = [] if not addto else None
         structured_column_data = StructuredColumnData(reader.header)
         for row in reader:
             structured_row = structured_column_data.create_row()
             for flattened_column_name, value in row.items():
                 structured_column_data.set_value(structured_row, flattened_column_name, value, schema)
-            structured_data.append(structured_row)
-        return structured_data
+            structured_data.append(structured_row) if not addto else addto(structured_row)
+        return structured_data if not addto else None
 
     @staticmethod
     def load_from_json_file(file: str) -> List[dict]:
