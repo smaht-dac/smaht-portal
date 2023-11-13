@@ -478,7 +478,7 @@ class Excel:
 class StructuredDataSet:
 
     def __init__(self, file: Optional[str] = None,
-                 portal: Optional[Union[Portal, VirtualApp, TestApp]] = None, prune: bool = True) -> None:
+                 portal: Optional[Union[VirtualApp, TestApp, Portal]] = None, prune: bool = True) -> None:
         self.data = {}
         if isinstance(portal, Portal):
             portal = portal.vapp

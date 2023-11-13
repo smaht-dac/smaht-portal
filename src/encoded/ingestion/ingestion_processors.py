@@ -47,5 +47,4 @@ def _load_data(submission: SmahtSubmissionFolio) -> Generator[Union[Dict[str, Li
             yield load_structured_data_via_sheet_utils(data_file_name, portal_vapp=submission.portal_vapp,
                                                        validate=True, apply_heuristics=True)
         else:
-            import pdb ; pdb.set_trace()
             yield StructuredDataSet.load(data_file_name, portal=submission.portal_vapp)
