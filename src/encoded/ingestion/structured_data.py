@@ -754,14 +754,11 @@ class Utils:
                        content: Optional[Union[str, List[str]]] = None) -> str:
         with Utils.temporary_directory() as tmp_directory_name:
             tmp_file_name = os.path.join(tmp_directory_name, name or tempfile.mktemp(dir="")) + (suffix or "")
-            try:
-                with open(tmp_file_name, "w") as tmp_file:
-                    if isinstance(content, list):
-                        content = "\n".join(content)
-                    tmp_file.write(content)
-                yield tmp_file_name
-            finally:
-                pass  # Utils.temporary_directory handles cleanup.
+            with open(tmp_file_name, "w") as tmp_file:
+                if isinstance(content, list):
+                    content = "\n".join(content)
+                tmp_file.write(content)
+            yield tmp_file_name
 
     @staticmethod
     @contextmanager
