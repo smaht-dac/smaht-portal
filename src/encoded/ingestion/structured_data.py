@@ -487,10 +487,9 @@ class StructuredDataSet:
         self.load_file(file)
 
     @staticmethod
-    def load(file: str, portal: Portal) -> Tuple[dict, Optional[List[str]]]:
-        structured_data_set = StructuredDataSet(file, portal)
-        validation_errors = structured_data_set.validate()
-        return structured_data_set.data, validation_errors
+    def load(file: str, portal: Portal, prune: bool = True) -> Tuple[dict, Optional[List[str]]]:
+        structured_data_set = StructuredDataSet(file=file, portal=portal, prune=prune)
+        return structured_data_set.data, structured_data_set.validate()
 
     def load_file(self, file: str) -> None:
         # Returns a dictionary where each property is the name (i.e. the type) of the data,
