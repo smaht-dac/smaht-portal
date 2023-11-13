@@ -576,7 +576,7 @@ class StructuredData:
         for row in reader:
             structured_row = structured_column_data.create_row()
             for flattened_column_name, value in row.items():
-                structured_column_data.set_row_value(structured_row, flattened_column_name, value, schema)
+                structured_column_data.set_value(structured_row, flattened_column_name, value, schema)
             structured_data.append(structured_row)
         if prune:
             Utils.remove_empty_properties(structured_data)
@@ -598,30 +598,27 @@ class StructuredColumnData:
         return copy.deepcopy(self.row_template)
 
     @staticmethod
-    def set_row_value(structured_row: dict,
-                      flattened_column_name: str, value: str,
-                      schema: Optional[Schema] = None) -> None:
+    def set_value(row: dict, flattened_column_name: str, value: str, schema: Optional[Schema] = None) -> None:
 
-        def set_single_row_value(structured_row: Union[dict, list],
-                                 flattened_column_name_components: List[str],
-                                 parent_array_index: Optional[int] = None) -> None:
+        def set_components(row: Union[dict, list],
+                           flattened_column_name_components: List[str],
+                           parent_array_index: Optional[int] = None) -> None:
 
-            if not structured_row or not flattened_column_name_components:
+            if not row or not flattened_column_name_components:
                 return
-            if isinstance(structured_row, list):
+            if isinstance(row, list):
                 if parent_array_index is None or parent_array_index < 0:
-                    for structured_row_array_element in structured_row:
-                        set_single_row_value(structured_row_array_element, flattened_column_name_components)
+                    for structured_row_array_element in row:
+                        set_components(structured_row_array_element, flattened_column_name_components)
                 else:
-                    set_single_row_value(structured_row[parent_array_index], flattened_column_name_components)
+                    set_components(row[parent_array_index], flattened_column_name_components)
                 return
 
             flattened_column_name_component = flattened_column_name_components[0]
             array_name, array_index = StructuredColumnData._get_array_info(flattened_column_name_component)
-            column_name_component = array_name if array_name else flattened_column_name_component
+            name = array_name if array_name else flattened_column_name_component
             if len(flattened_column_name_components) > 1:
-                set_single_row_value(structured_row[column_name_component],
-                                     flattened_column_name_components[1:], parent_array_index=array_index)
+                set_components(row[name], flattened_column_name_components[1:], parent_array_index=array_index)
                 return
 
             nonlocal flattened_column_name, value, schema
@@ -630,29 +627,24 @@ class StructuredColumnData:
             elif array_name is not None and isinstance(value, str):
                 value = Utils.split_array_string(value)
             if array_name and array_index >= 0:
-                if (not isinstance(structured_row[column_name_component], list) and
-                        isinstance(structured_row[column_name_component], str)):
-                    # Turns out to be an array afterall, e.g.: abc,abc#2
-                    structured_row[column_name_component] = (
-                        Utils.split_array_string(structured_row[column_name_component]))
-                if len(structured_row[column_name_component]) < array_index + 1:
-                    array_extension = [None] * (array_index + 1 - len(structured_row[column_name_component]))
-                    structured_row[column_name_component].extend(array_extension)
-                structured_row[column_name_component] = (
-                    structured_row[column_name_component][:array_index] + value +
-                    structured_row[column_name_component][array_index + 1:])
+                if isinstance(row[name], str):  # An array afterall e.g.: abc,abc#2
+                    row[name] = Utils.split_array_string(row[name])
+                if len(row[name]) < array_index + 1:
+                    array_extension = [None] * (array_index + 1 - len(row[name]))
+                    row[name].extend(array_extension)
+                row[name] = row[name][:array_index] + value + row[name][array_index + 1:]
             else:
-                structured_row[column_name_component] = value
+                row[name] = value
 
         if (flattened_column_name_components := Utils.split_dotted_string(flattened_column_name)):
-            set_single_row_value(structured_row, flattened_column_name_components)
+            set_components(row, flattened_column_name_components)
 
     @staticmethod
     def _parse_column_headers_into_structured_row_template(flattened_column_names: List[str]) -> dict:
 
-        def parse_column_header_components(flattened_column_name_components: List[str]) -> dict:
+        def parse_components(flattened_column_name_components: List[str]) -> dict:
             if len(flattened_column_name_components) > 1:
-                value = parse_column_header_components(flattened_column_name_components[1:])
+                value = parse_components(flattened_column_name_components[1:])
             else:
                 value = None
             flattened_column_name_component = flattened_column_name_components[0]
@@ -668,8 +660,7 @@ class StructuredColumnData:
         structured_row_template = {}
         for flattened_column_name in flattened_column_names or []:
             if (flattened_column_name_components := Utils.split_dotted_string(flattened_column_name)):
-                Utils.merge_objects(structured_row_template,
-                                    parse_column_header_components(flattened_column_name_components))
+                Utils.merge_objects(structured_row_template, parse_components(flattened_column_name_components))
         return structured_row_template
 
     @staticmethod
