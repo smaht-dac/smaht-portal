@@ -526,7 +526,7 @@ class StructuredDataSet:
         for file in UnpackUtils.unpack_files(file):
             self.load_file(file)
 
-    def add(self, type_name: str, data: Union[dict, List[dict], Any]) -> None:
+    def add(self, type_name: str, data: Union[dict, List[dict], Type["StructuredDataSet"]]) -> None:
         if isinstance(data, StructuredDataSet):
             data = data.data
         elif isinstance(data, dict):
