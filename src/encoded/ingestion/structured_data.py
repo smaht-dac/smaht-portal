@@ -14,9 +14,10 @@ import shutil
 import tarfile
 import tempfile
 from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Union
+from webtest.app import TestApp
 import zipfile
 from dcicutils.ff_utils import get_metadata, get_schema
-from dcicutils.misc_utils import to_camel_case
+from dcicutils.misc_utils import to_camel_case, VirtualApp
 from snovault.loadxl import create_testapp
 
 # Classes/functions to parse a CSV or Excel Spreadsheet into structured data, using a specialized
@@ -35,12 +36,11 @@ ARRAY_VALUE_DELIMITER_CHAR = "|"
 ARRAY_VALUE_DELIMITER_ESCAPE_CHAR = "\\"
 DOTTED_NAME_DELIMITER_CHAR = "."
 
-
 class Portal:
 
-    def __init__(self, portal_vapp: Any) -> None:
+    def __init__(self, portal_vapp: Union[VirtualApp, TestApp], loading_data_set: Optional[dict] = None) -> None:
         self.vapp = portal_vapp
-        self.loading_data_set = None
+        self.loading_data_set = loading_data_set
 
     @lru_cache(maxsize=256)
     def get_schema(self, schema_name: str) -> Optional[dict]:
@@ -64,9 +64,9 @@ class Portal:
                         if item.get(identifying_property) == value:
                             return True
         return False
-
+        
     @staticmethod
-    def create_for_testing(ini_file: Optional[str] = None) -> Any:
+    def create_for_testing(ini_file: Optional[str] = None) -> TestApp:
         return Portal.create_for_local_testing(ini_file) if ini_file else Portal.create_for_unit_testing()
 
     @staticmethod
@@ -76,7 +76,7 @@ class Portal:
             return Portal(create_testapp(ini_file))
 
     @staticmethod
-    def create_for_local_testing(ini_file: Optional[str] = None) -> Any:
+    def create_for_local_testing(ini_file: Optional[str] = None) -> TestApp:
         if ini_file:
             return Portal(create_testapp(ini_file))
         minimal_ini_for_local_testing = "\n".join([
@@ -477,13 +477,23 @@ class Excel:
 
 class StructuredDataSet:
 
-    def __init__(self, file: Optional[str] = None, portal: Optional[Portal] = None, prune: bool = True) -> None:
+    def __init__(self, file: Optional[str] = None,
+                 portal: Optional[Union[Portal, VirtualApp, TestApp]] = None, prune: bool = True) -> None:
         self.data = {}
-        self._portal = Portal(portal) if portal and not isinstance(portal, Portal) else portal
-        if self._portal:  # Make Portal aware of the loading data to resolve refs within this data set itself.
-            self._portal.loading_data_set = self.data
+        if isinstance(portal, Portal):
+            self._portal = portal.vapp
+        elif isinstance(portal, (VirtualApp, TestApp)):
+            self._portal = Portal(portal, self.data)
+        else:
+            self._portal = None
         self._prune = prune
         self.load_file(file)
+
+    @staticmethod
+    def load(file: str, portal: Portal) -> Tuple[dict, Optional[List[str]]]:
+        structured_data_set = StructuredDataSet(file, portal)
+        validation_errors = structured_data_set.validate()
+        return structured_data_set.data, validation_errors
 
     def load_file(self, file: str) -> None:
         # Returns a dictionary where each property is the name (i.e. the type) of the data,
