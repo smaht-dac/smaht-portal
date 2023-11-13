@@ -13,7 +13,7 @@ import re
 import shutil
 import tarfile
 import tempfile
-from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Union
+from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Type, Union
 from webtest.app import TestApp
 import zipfile
 from dcicutils.ff_utils import get_metadata, get_schema
@@ -66,17 +66,17 @@ class Portal:
         return False
         
     @staticmethod
-    def create_for_testing(ini_file: Optional[str] = None) -> TestApp:
+    def create_for_testing(ini_file: Optional[str] = None) -> Type["Portal"]:
         return Portal.create_for_local_testing(ini_file) if ini_file else Portal.create_for_unit_testing()
 
     @staticmethod
-    def create_for_unit_testing() -> Any:
+    def create_for_unit_testing() -> Type["Portal"]:
         minimal_ini_for_unit_testing = "[app:app]\nuse = egg:encoded\nsqlalchemy.url = postgresql://dummy\n"
         with Utils.temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
             return Portal(create_testapp(ini_file))
 
     @staticmethod
-    def create_for_local_testing(ini_file: Optional[str] = None) -> TestApp:
+    def create_for_local_testing(ini_file: Optional[str] = None) -> Type["Portal"]:
         if ini_file:
             return Portal(create_testapp(ini_file))
         minimal_ini_for_local_testing = "\n".join([
