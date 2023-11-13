@@ -73,7 +73,6 @@ def include_snovault(config: Configurator) -> None:
     config.include('snovault.aggregated_items')
     config.include('snovault.storage')
     config.include('snovault.typeinfo')
-#    config.include('snovault.types')
     config.include('snovault.resources')
     config.include('snovault.attachment')
     config.include('snovault.schema_graph')
@@ -97,7 +96,7 @@ def include_snovault(config: Configurator) -> None:
 
 def include_encoded_core(config):
     """ Customized includes for encoded-core """
-    config.include('encoded_core.file_views')
+    #config.include('encoded_core.file_views')
     config.include('encoded_core.page_views')
     config.include('encoded_core.qc_views')
 

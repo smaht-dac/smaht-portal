@@ -19,7 +19,7 @@ def bam_file_json(
         'file_format': file_formats.get('bam').get('uuid'),
         'md5sum': '00000000000000000000000000000000',
         'content_md5sum': '00000000000000000000000000000000',
-        'filename': 'my.cool.mcool',
+        'filename': 'my.bam',
         'status': 'current',
         'consortia': [test_consortium['uuid']],
         'data_category': ['Sequencing Reads'],
