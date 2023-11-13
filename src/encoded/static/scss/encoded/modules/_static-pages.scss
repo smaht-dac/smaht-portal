@@ -1382,6 +1382,20 @@ body[data-pathname^="/data/benchmarking"] {
 	// Hide titles
 	.static-section-entry>.section-title { display: none; }
 
+	// Side nav
+	.benchmarking-nav {
+		.accordion > ul {
+			list-style-type: none;
+			padding-left: 0;
+
+			> li > div.collapse > ul,
+			> li > div.collapsing > ul {
+					list-style-type: none;
+					padding-left: 20px;
+	
+			}
+		}
+	}
 
 	// Benchmarking search table (in future maybe make this the general style for all search tables)
 	.search-headers-row { 
