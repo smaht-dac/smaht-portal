@@ -48,11 +48,15 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             h3 {
                 display: flex;
                 align-items: center;
+                flex-direction: column;
+                align-items: flex-start;
+                
                 
                 i {
                     color: #5B7595;
-                    font-size: 18px;
-                    font-weight: 400;}
+                    font-size: 16px;
+                    font-weight: 400;
+                }
             }
         }
 
@@ -128,10 +132,11 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
                 &-body {
                     display: flex;
-                    flex-direction: row;
+                    flex-direction: column;
                     justify-content: space-evenly;
-                    padding: 10px 43px;
+                    padding: 0px 5%;
                     position: relative;
+                
 
                     .number-group {
                         display: flex;
@@ -140,7 +145,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         width: 100%;
                         padding: 0px 10px;
                         max-width: min-content;
-                        
+
                         &:hover {
                             cursor: pointer;
                             text-decoration: none;
@@ -241,6 +246,50 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 }
             }
         }
+
+
+        @media screen and (min-width: 576px) {
+            &-header {
+                h3 {
+                    flex-direction: row;
+                    align-items: center;
+                }
+            }
+            .accordion .card-body {
+                flex-direction: row;
+                padding: 10px 43px;
+            }
+        }
+        @media screen and (min-width: 767px) {
+        }
+        @media screen and (min-width: 992px) {
+            &-header {
+                h3 {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    i {
+                        font-size: 18px;
+                    }
+                }
+            }
+            .accordion .card-body {
+                flex-direction: column;
+                padding: 0px 5%;
+            }
+        }
+        @media screen and (min-width: 1200px) {
+            &-header {
+                h3 {
+                    flex-direction: row;
+                    align-items: center;
+                }
+            }
+            .accordion .card-body {
+                flex-direction: row;
+                padding: 10px 43px;
+            }
+        }
+        
     }
 
     // @TODO: can maybe move to be utility class on h2 itself

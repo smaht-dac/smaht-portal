@@ -26,7 +26,10 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                         <h3 className="ml-6 text-left">
                             Benchmarking&nbsp;
                             <i className="timeline-item-subheader">
-                                - with all technologies
+                                <span className="d-none d-sm-inline d-lg-none d-xl-inline">
+                                    -
+                                </span>{' '}
+                                with all technologies
                             </i>
                         </h3>
                     </div>
@@ -116,7 +119,10 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                         <h3 className="ml-6 text-left">
                             Expansion&nbsp;
                             <i className="timeline-item-subheader">
-                                - with select technologies
+                                <span className="d-none d-sm-inline d-lg-none d-xl-inline">
+                                    -
+                                </span>{' '}
+                                with select technologies
                             </i>
                         </h3>
                     </div>
@@ -160,7 +166,10 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                         <h3 className="ml-6 text-left">
                             Production&nbsp;
                             <i className="timeline-item-subheader">
-                                - with select technologies
+                                <span className="d-none d-sm-inline d-lg-none d-xl-none d-xs-inline">
+                                    -
+                                </span>{' '}
+                                with select technologies
                             </i>
                         </h3>
                     </div>
