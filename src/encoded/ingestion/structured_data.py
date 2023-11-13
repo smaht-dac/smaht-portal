@@ -26,8 +26,8 @@ from snovault.loadxl import create_testapp
 # utilizing the "#" character to reference array elements. May also further coerce data types by
 # consulting an optionally specified JSON schema.
 #
-# Alternate and (should be) semantically equivalent implementation of dcicutils.{sheet,bundle}_utils.
-# Written in spare time as interesting exercise and with benefit of sheet_utils implementation experience.
+# Alternate and semantically equivalent implementation of dcicutils.{sheet,bundle}_utils.
+# Spare time exercise, with benefit of sheet_utils implementation experience.
 
 ACCEPTABLE_FILE_SUFFIXES = [".csv", ".json", ".xls", ".xlsx", ".gz", ".tar", ".tar.gz", ".tgz", ".zip"]
 ARRAY_NAME_SUFFIX_CHAR = "#"
