@@ -481,11 +481,8 @@ class StructuredDataSet:
                  portal: Optional[Union[Portal, VirtualApp, TestApp]] = None, prune: bool = True) -> None:
         self.data = {}
         if isinstance(portal, Portal):
-            self._portal = portal.vapp
-        elif isinstance(portal, (VirtualApp, TestApp)):
-            self._portal = Portal(portal, self.data)
-        else:
-            self._portal = None
+            portal = portal.vapp
+        self._portal = Portal(portal, self.data) if isinstance(portal, (VirtualApp, TestApp)) else None
         self._prune = prune
         self.load_file(file)
 
