@@ -48,7 +48,11 @@ class Portal:
 
     @lru_cache(maxsize=256)
     def get_metadata(self, object_name: str) -> Optional[dict]:
-        return get_metadata(object_name, vapp=self.vapp)
+        try:
+            return get_metadata(object_name, vapp=self.vapp)
+        except Exception as e:
+            import pdb ; pdb.set_trace()
+            pass
 
     def ref_exists(self, type_name: str, value: str) -> bool:
         if self._ref_exists_within_loading_data_set(type_name, value):
@@ -510,14 +514,13 @@ class StructuredDataSet:
                 self.load_packed_file(file)
 
     def load_csv_file(self, file: str) -> None:
-        self.add(Utils.get_type_name(file),
-                 StructuredData.load_from_csv_file(file, portal=self._portal, prune=self._prune))
+        self.add(Utils.get_type_name(file), StructuredData.load_from_csv_file(file, portal=self._portal))
 
     def load_excel_file(self, file: str) -> None:
         excel = Excel(file)
         for sheet_name in excel.sheet_names:
             self.add(Utils.get_type_name(sheet_name),
-                     StructuredData.load_from_excel_sheet(excel, sheet_name, portal=self._portal, prune=self._prune))
+                     StructuredData.load_from_excel_sheet(excel, sheet_name, portal=self._portal))
 
     def load_json_file(self, file: str) -> None:
         self.add(Utils.get_type_name(file), StructuredData.load_from_json_file(file))
@@ -531,6 +534,8 @@ class StructuredDataSet:
             data = data.data
         elif isinstance(data, dict):
             data = [data]
+        if self._prune:
+            Utils.remove_empty_properties(data)
         if isinstance(data, list):
             if type_name in self.data:
                 self.data[type_name].extend(data)
@@ -550,27 +555,25 @@ class StructuredDataSet:
 class StructuredData:
 
     @staticmethod
-    def load_from_csv_file(file: str,
-                           schema: Optional[Schema] = None,
-                           portal: Optional[Portal] = None, prune: bool = False) -> List[dict]:
+    def load_from_csv_file(file: str, schema: Optional[Schema] = None, portal: Optional[Portal] = None) -> List[dict]:
         if not schema and portal:
             schema = Schema.load_by_name(file, portal=portal)
-        return StructuredData._load_from_reader(CsvReader(file), schema=schema, prune=prune)
+        return StructuredData._load_from_reader(CsvReader(file), schema=schema)
 
     def load_from_excel_sheet(excel: Excel, sheet_name: str,
                               schema: Optional[Schema] = None,
-                              portal: Optional[Portal] = None, prune: bool = False) -> List[dict]:
+                              portal: Optional[Portal] = None) -> List[dict]:
         reader = excel.sheet_reader(sheet_name)
         if not schema and portal:
             schema = Schema.load_by_name(reader.sheet_name, portal=portal)
-        return StructuredData._load_from_reader(reader, schema=schema, prune=prune)
+        return StructuredData._load_from_reader(reader, schema=schema)
 
     @staticmethod
-    def load_from_rows(rows: str, schema: Optional[Schema] = None, prune: bool = False) -> List[dict]:
-        return StructuredData._load_from_reader(ListReader(rows), schema=schema, prune=prune)
+    def load_from_rows(rows: str, schema: Optional[Schema] = None) -> List[dict]:
+        return StructuredData._load_from_reader(ListReader(rows), schema=schema)
 
     @staticmethod
-    def _load_from_reader(reader: RowReader, schema: Optional[Schema] = None, prune: bool = False) -> List[dict]:
+    def _load_from_reader(reader: RowReader, schema: Optional[Schema] = None) -> List[dict]:
         structured_data = []
         structured_column_data = StructuredColumnData(reader.header)
         for row in reader:
@@ -578,8 +581,6 @@ class StructuredData:
             for flattened_column_name, value in row.items():
                 structured_column_data.set_value(structured_row, flattened_column_name, value, schema)
             structured_data.append(structured_row)
-        if prune:
-            Utils.remove_empty_properties(structured_data)
         return structured_data
 
     @staticmethod
@@ -600,25 +601,25 @@ class StructuredColumnData:
     @staticmethod
     def set_value(row: dict, flattened_column_name: str, value: str, schema: Optional[Schema] = None) -> None:
 
-        def set_components(row: Union[dict, list],
-                           flattened_column_name_components: List[str],
-                           parent_array_index: Optional[int] = None) -> None:
+        def set_value_components(row: Union[dict, list],
+                                 flattened_column_name_components: List[str],
+                                 parent_array_index: Optional[int] = None) -> None:
 
             if not row or not flattened_column_name_components:
                 return
             if isinstance(row, list):
                 if parent_array_index is None or parent_array_index < 0:
                     for structured_row_array_element in row:
-                        set_components(structured_row_array_element, flattened_column_name_components)
+                        set_value_components(structured_row_array_element, flattened_column_name_components)
                 else:
-                    set_components(row[parent_array_index], flattened_column_name_components)
+                    set_value_components(row[parent_array_index], flattened_column_name_components)
                 return
 
             flattened_column_name_component = flattened_column_name_components[0]
             array_name, array_index = StructuredColumnData._get_array_info(flattened_column_name_component)
             name = array_name if array_name else flattened_column_name_component
             if len(flattened_column_name_components) > 1:
-                set_components(row[name], flattened_column_name_components[1:], parent_array_index=array_index)
+                set_value_components(row[name], flattened_column_name_components[1:], parent_array_index=array_index)
                 return
 
             nonlocal flattened_column_name, value, schema
@@ -637,7 +638,7 @@ class StructuredColumnData:
                 row[name] = value
 
         if (flattened_column_name_components := Utils.split_dotted_string(flattened_column_name)):
-            set_components(row, flattened_column_name_components)
+            set_value_components(row, flattened_column_name_components)
 
     @staticmethod
     def _parse_column_headers_into_structured_row_template(flattened_column_names: List[str]) -> dict:

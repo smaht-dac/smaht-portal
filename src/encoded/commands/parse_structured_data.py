@@ -25,6 +25,8 @@ def main() -> None:
                         default=False, help=f"Load data into database.")
     parser.add_argument("--load-ini", required=False, type=str,
                         default=None, help=f"The .ini file to use for load into database (via --load).")
+    parser.add_argument("--local", required=False, action="store_true",
+                        default=False, help=f"Using portal vapp for locally running instance.")
     parser.add_argument("--verbose", required=False, action="store_true",
                         default=False, help=f"Verbose output.")
     args = parser.parse_args()
@@ -34,7 +36,7 @@ def main() -> None:
             print("Cannot specify both --schemas and --noschemas.")
             exit(1)
 
-    if args.load:
+    if args.load or args.local:
         portal = Portal.create_for_local_testing(ini_file=args.load_ini)
     else:
         portal = Portal.create_for_unit_testing() if not args.noschemas else None
