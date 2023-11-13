@@ -5,7 +5,7 @@ from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
 from .data_validation import summary_of_data_validation_errors
 from .loadxl_extensions import load_data_into_database, summary_of_load_data_results
-from .structured_data import Portal, StructuredDataSet
+from .structured_data import StructuredDataSet
 from .submission_folio import SmahtSubmissionFolio
 
 USE_SHEET_UTILS = False
