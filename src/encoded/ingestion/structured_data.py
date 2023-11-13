@@ -756,10 +756,9 @@ class Utils:
             tmp_file_name = os.path.join(tmp_directory_name, name or tempfile.mktemp(dir="")) + (suffix or "")
             try:
                 with open(tmp_file_name, "w") as tmp_file:
-                    if isinstance(content, str):
-                        tmp_file.write(content)
-                    elif isinstance(content, list):
-                        [tmp_file.write(line + "\n") for line in content]
+                    if isinstance(content, list):
+                        content = "\n".join(content)
+                    tmp_file.write(content)
                 yield tmp_file_name
             finally:
                 pass  # Utils.temporary_directory handles cleanup.
