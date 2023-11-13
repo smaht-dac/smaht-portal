@@ -833,7 +833,7 @@ class UnpackUtils:
     @staticmethod
     def unpack_gz_file_to_temporary_directory(file: str) -> str:
         with Utils.temporary_directory() as tmp_directory_name:
-            gunzip_tmp_file = os.path.join(tmp_directory_name, file.replace(".gz", ""))
+            gunzip_tmp_file = os.path.join(tmp_directory_name, file[:-3] if file.endswith(".gz") else file)
             with gzip.open(file, "rb") as gunzipf_input:
                 with open(gunzip_tmp_file, "wb") as gunzipf_output:
                     gunzipf_output.write(gunzipf_input.read())
