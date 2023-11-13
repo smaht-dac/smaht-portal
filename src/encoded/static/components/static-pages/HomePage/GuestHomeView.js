@@ -60,8 +60,8 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                     </div>
                 </div>
                 <div className="row">
-                    <Card className="about-consortium col-12 w-100 p-3 mb-3">
-                        <h3 className="mt-0">About the Consortium</h3>
+                    <Card className="about-consortium col-12 w-100 mb-3">
+                        <h3 className="">About the Consortium</h3>
                         <div className="row">
                             <div className="col-12 col-md-6 col-lg-3">
                                 <a

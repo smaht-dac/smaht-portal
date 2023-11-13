@@ -524,18 +524,30 @@ body[data-path="/"]>#application>#layout {
 		}
 
 		.about-consortium {
-			background-color: $homepage-card-bg-color;
-			border-color: $homepage-card-border-color;
+			padding: 20px 30px;
+			background-color: $cobalt-10;
+			border-color: $cobalt-30;
 			@include prefix(border-radius, $homepage-card-border-radius);
+
+			h3 {
+				color: #1E366C;
+				font-weight: 600;
+				font-size: 20px;
+				margin: 0px auto 20px 0px;
+				text-align: left;
+			}
 			
 			// TODO: If this style of button will be re-used, make it one of the overrides for a BS button
 			a {
 				background-color: $homepage-about-consort-btn-bg-color;
 				border: 1px solid $homepage-about-consort-btn-border-color;
-				color: $homepage-about-consort-text-color;
+				color: #0E3669;
+				font-weight: 600;
+				font-size: 14px;
 				@include prefix(border-radius, $homepage-about-consort-border-radius);
-				>i {
-					color: $homepage-about-consort-btn-icon-color;
+				> i {
+					color: #BBCCF9;
+					font-size: 12px;
 				}
 			}
 		}
