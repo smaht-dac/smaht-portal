@@ -176,12 +176,33 @@ def smaht_consortium_user(testapp, test_consortium):
 
 @pytest.fixture
 def smaht_consortium_protected_user(testapp, test_consortium, test_protected_consortium):
-    """ Simulates a user with acces to protected data """
+    """ Simulates a user with access to protected data """
     item = {
         'first_name': 'TestProtected',
         'last_name': 'User',
-        'email': 'user@example.org',
+        'email': 'protected_user@example.org',
         'status': 'current',
+        'consortia': [
+            test_consortium['uuid'],
+            test_protected_consortium['uuid']
+        ],
+        'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188310'
+    }
+    return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
+def smaht_consortium_protected_submitter(testapp, test_consortium, test_protected_consortium,
+                                         test_submission_center):
+    """ Simulates a user with access to protected data who is part of a submission center """
+    item = {
+        'first_name': 'TestProtected',
+        'last_name': 'User',
+        'email': 'protected_user@example.org',
+        'status': 'current',
+        'submission_centers': [
+            test_submission_center['uuid']
+        ],
         'consortia': [
             test_consortium['uuid'],
             test_protected_consortium['uuid']

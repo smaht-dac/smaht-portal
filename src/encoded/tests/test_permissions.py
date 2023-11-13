@@ -19,9 +19,16 @@ def consortium_user_app(testapp, test_consortium, smaht_consortium_user):
 
 
 @pytest.fixture
-def multi_consortium_user_app(testapp, smaht_consortium_protected_user, test_consortium, test_protected_consortium):
+def protected_consortium_user_app(testapp, smaht_consortium_protected_user, test_consortium, test_protected_consortium):
     """ App associated with a user who has access to consortia and protected data """
     return remote_user_testapp(testapp.app, smaht_consortium_protected_user['uuid'])
+
+
+@pytest.fixture
+def protected_consortium_submitter_app(testapp, smaht_consortium_protected_submitter, test_consortium,
+                                       test_protected_consortium, test_submission_center):
+    """ App associated with a user who has access to consortia and protected data and submission center """
+    return remote_user_testapp(testapp.app, smaht_consortium_protected_submitter['uuid'])
 
 
 @pytest.fixture
@@ -68,6 +75,23 @@ def consortium_file(testapp, fastq_format, test_consortium):
         'status': 'released',    # this status is important as this will make it viewable by consortium
         'consortia': [
             test_consortium['uuid']
+        ]
+    }
+    res = testapp.post_json('/OutputFile', item)
+    return res.json['@graph'][0]
+
+
+@pytest.fixture
+def protected_file(testapp, fastq_format, test_protected_consortium):
+    item = {
+        'file_format': fastq_format['uuid'],
+        'md5sum': '00000000000000000000000000000002',
+        'filename': 'my.fastq.gz',
+        'data_category': 'Sequencing Reads',
+        'data_type': 'Unaligned Reads',
+        'status': 'released',    # this status is important as this will make it viewable by consortium
+        'consortia': [
+            test_protected_consortium['uuid']
         ]
     }
     res = testapp.post_json('/OutputFile', item)
@@ -455,3 +479,94 @@ class TestAnonUserPermissions:
         anontestapp.patch_json(f'/{atid}', {}, status=403)  # always fail
         unassociated_user_app.get(f'/{atid}', status=403)
         unassociated_user_app.patch_json(f'/{atid}', {}, status=403)  # always fail
+
+
+class TestProtectedDataPermissions:
+    """ Class that contains tests for users in the following combinations:
+            * User that is part of 2 consortia
+            * User that is part of 2 submission centers and the general consortium
+            * User that is part of 2 submission centers and both consortia
+    """
+
+    @staticmethod
+    @pytest.mark.parametrize('new_status', [
+        "uploading",  # TEMPORARY: will be removed later
+        "uploaded",   # TEMPORARY: will be removed later
+        "upload failed",   # TEMPORARY: will be removed later
+        "to be uploaded by workflow",   # TEMPORARY: will be removed later
+        "released",
+        "in review",  # TEMPORARY: will be removed later
+        "archived",   # TEMPORARY: will be removed later
+    ])
+    def test_controlled_user_can_access_controlled_data(testapp, protected_file, consortium_file,
+                                                        protected_consortium_user_app, new_status,
+                                                        consortium_user_app, unassociated_user_app):
+        """ Tests 3 scenarios for the released status:
+                * protected user can view protected data
+                * protected user can view non-protected data
+                * normal consortia user cannot view protected data
+                * anon user cannot view protected data
+        """
+        atid = protected_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        unassociated_user_app.get(f'/{atid}', status=403)
+        consortium_user_app.get(f'/{atid}', status=403)
+        protected_consortium_user_app.get(f'/{atid}', status=200)
+        atid = consortium_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        protected_consortium_user_app.get(f'/{atid}', status=200)
+
+    @staticmethod
+    @pytest.mark.parametrize('new_status', [
+        "deleted",  # TEMPORARY: More statuses will be added to this test in the future
+    ])
+    def test_controlled_user_cannot_access_controlled_data(testapp, protected_file,
+                                                           protected_consortium_user_app, new_status,
+                                                           consortium_user_app, unassociated_user_app):
+        """ Tests 3 scenarios for the non-released statuses:
+                * protected user cannot view protected data
+                * normal consortia user cannot view protected data
+                * anon user cannot view protected data
+        """
+        atid = protected_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        unassociated_user_app.get(f'/{atid}', status=403)
+        consortium_user_app.get(f'/{atid}', status=403)
+        protected_consortium_user_app.get(f'/{atid}', status=403)
+
+    @staticmethod
+    @pytest.mark.parametrize('new_status', [
+        "uploading",
+        "uploaded",
+        "upload failed",
+        "to be uploaded by workflow",
+        "in review",
+        "archived",
+        "deleted",
+    ])
+    def test_controlled_user_cannot_access_submitter_data(testapp, released_file, protected_consortium_user_app,
+                                                          new_status):
+        """ Tests that even a protected consortium user cannot view submission center data that
+            is not released or obsolete """
+        atid = released_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        protected_consortium_user_app.get(f'/{atid}', status=403)
+
+    @staticmethod
+    @pytest.mark.parametrize('new_status', [
+        "uploading",
+        "uploaded",
+        "upload failed",
+        "to be uploaded by workflow",
+        "in review",
+        "archived",
+        "released",
+        "public"
+    ])
+    def test_submitter_user_can_access_submitter_data(testapp, released_file, protected_consortium_submitter_app,
+                                                      new_status):
+        """ Tests that a protected consortium user can view submission center data that was submitted
+            by the center they are a part of """
+        atid = released_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        protected_consortium_submitter_app.get(f'/{atid}', status=200)
