@@ -1,7 +1,6 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-
 import {
     Accordion,
     AccordionContext,
@@ -9,12 +8,12 @@ import {
     Tab,
     Tabs,
 } from 'react-bootstrap';
+import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedItemSearchTable';
+import { navigate } from '../../util';
 
 export const BenchmarkingUI = (props) => {
     const { children, href } = props;
-
-    console.log('benchmarkingUI href', href);
 
     // pass schemas and session to each child
     return (
@@ -22,27 +21,33 @@ export const BenchmarkingUI = (props) => {
             <div className="d-none d-lg-flex col-lg-2 border-right">
                 <BenchmarkingUINav {...{ href }} />
             </div>
+            {/* TODO: in future, maybe wrap each child and inject urlparts */}
             <div className="col-12 col-lg-10 pl-2">{children}</div>
         </div>
     );
 };
 
 const BenchmarkingUINav = (props) => {
-    const { href } = props;
+    const { href = "" } = props;
+
+    const urlParts = memoizedUrlParse(href);
+    const { path = "", hash = "" } = urlParts || {};
+
+    const currPath = `${path}${hash}`;
 
     return (
         <div className="w-100 benchmarking-nav">
             <div>
                 <span className="text-small text-600">Cell Line Data</span>
                 <div>
-                    <BenchmarkingUINavCellLines {...{ href }} />
+                    <BenchmarkingUINavCellLines {...{ currPath }} />
                 </div>
             </div>
             <hr />
             <div>
                 <span className="text-small text-600">Primary Tissue Data</span>
                 <div>
-                    <BenchmarkingUINavPrimaryTissue {...{ href }} />
+                    <BenchmarkingUINavPrimaryTissue {...{ currPath }} />
                 </div>
             </div>
         </div>
@@ -50,6 +55,18 @@ const BenchmarkingUINav = (props) => {
 };
 
 export const COLO829Data = ({ schemas, session, facets, href }) => {
+    const urlParts = memoizedUrlParse(href);
+    const { hash = "#main", path } = urlParts || {};
+
+    const selectNewTab = function (tabKey) {
+        // Programmatically update hash
+        navigate(path + tabKey, {
+            inPlace: true,
+            replace: true,
+            skipRequest: true,
+        });
+    };
+
     return (
         <div>
             <h2>COLO829 Cell Line Data</h2>
@@ -58,8 +75,12 @@ export const COLO829Data = ({ schemas, session, facets, href }) => {
                 COLO829BL (lymphoblast), derived from the same individual, at
                 known mixture ratios of 1:10, 1:50, and 1:200.
             </p>
-            <Tabs defaultActiveKey="COLO829" id="uncontrolled-tab-example">
-                <Tab eventKey="COLO829" title="COLO829">
+            <Tabs
+                defaultActiveKey={hash || '#main'}
+                id="controlled-tab-example"
+                activeKey={hash}
+                onSelect={selectNewTab}>
+                <Tab eventKey="#main" title="COLO829T">
                     <div className="mt-1">
                         <EmbeddedItemSearchTable
                             aboveTableComponent={
@@ -67,6 +88,7 @@ export const COLO829Data = ({ schemas, session, facets, href }) => {
                             }
                             searchHref="/search/?type=Item"
                             rowHeight={40}
+                            // maxHeight={200}
                             {...{
                                 schemas,
                                 session,
@@ -75,16 +97,16 @@ export const COLO829Data = ({ schemas, session, facets, href }) => {
                         />
                     </div>
                 </Tab>
-                <Tab eventKey="COLO829BL" title="COLO829BL">
+                <Tab eventKey="#BL" title="COLO829BL">
                     Two tab
                 </Tab>
-                <Tab eventKey="Mix 1:10" title="Mix 1:10">
+                <Tab eventKey="#110" title="Mix 1:10">
                     Three tab
                 </Tab>
-                <Tab eventKey="Mix 1:50" title="Mix 1:50">
+                <Tab eventKey="#150" title="Mix 1:50">
                     Four tab
                 </Tab>
-                <Tab eventKey="Mix 1:200" title="Mix 1:200">
+                <Tab eventKey="#1200" title="Mix 1:200">
                     Five tab
                 </Tab>
             </Tabs>
@@ -123,50 +145,56 @@ function ContextAwareToggle({ children, eventKey, callback }) {
 }
 
 const BenchmarkingUINavCellLines = (props) => {
-    const { href } = props;
+    const { currPath } = props;
+
     return (
         <BenchmarkingUINavWrapper defaultActiveKey={'1'}>
             <BenchmarkingUINavDrop
                 eventKey="1"
-                pageHref={href}
+                {...{ currPath }}
                 href="/data/benchmarking/COLO829"
                 title="COLO829">
                 <ul>
                     <BenchmarkingUINavLink
-                        title="COLO829"
-                        pageHref={href}
+                        title="COLO829T"
+                        cls="pl-2"
+                        {...{ currPath }}
                         href="/data/benchmarking/COLO829#main"
                     />
                     <BenchmarkingUINavLink
                         title="COLO829BL"
-                        pageHref={href}
+                        cls="pl-2"
+                        {...{ currPath }}
                         href="/data/benchmarking/COLO829#BL"
                     />
                     <BenchmarkingUINavLink
                         title="1:10"
-                        pageHref={href}
+                        cls="pl-2"
+                        {...{ currPath }}
                         href="/data/benchmarking/COLO829#110"
                     />
                     <BenchmarkingUINavLink
                         title="1:50"
-                        pageHref={href}
+                        cls="pl-2"
+                        {...{ currPath }}
                         href="/data/benchmarking/COLO829#150"
                     />
                     <BenchmarkingUINavLink
                         title="1:200"
-                        pageHref={href}
+                        cls="pl-2"
+                        {...{ currPath }}
                         href="/data/benchmarking/COLO829#1200"
                     />
                 </ul>
             </BenchmarkingUINavDrop>
             <BenchmarkingUINavLink
                 title="HapMap"
-                pageHref={href}
+                {...{ currPath }}
                 href="/data/benchmarking/HapMap"
             />
             <BenchmarkingUINavLink
                 title="iPSc & Fibroblasts"
-                pageHref={href}
+                {...{ currPath }}
                 href="/data/benchmarking/iPSC-fibroblasts"
             />
         </BenchmarkingUINavWrapper>
@@ -174,85 +202,94 @@ const BenchmarkingUINavCellLines = (props) => {
 };
 
 const BenchmarkingUINavPrimaryTissue = (props) => {
-    const { href } = props;
+    const { currPath } = props;
     return (
         <BenchmarkingUINavWrapper defaultActiveKey={'0'}>
             <BenchmarkingUINavDrop
                 eventKey="1"
-                pageHref={href}
+                {...{ currPath }}
                 href="/data/benchmarking/brain"
                 title="Brain">
                 <ul>
                     <BenchmarkingUINavLink
                         title="Frontal Lobe"
-                        pageHref={href}
+                        cls="pl-2"
+                        {...{ currPath }}
                         href="/data/benchmarking/brain#frontal-lobe"
                     />
                     <BenchmarkingUINavLink
                         title="Cerebellum"
-                        pageHref={href}
+                        {...{ currPath }}
+                        cls="pl-2"
                         href="/data/benchmarking/brain#cerebellum"
                     />
                     <BenchmarkingUINavLink
                         title="Hippocampus"
-                        pageHref={href}
+                        cls="pl-2"
+                        {...{ currPath }}
                         href="/data/benchmarking/brain#hippocampus"
                     />
                     <BenchmarkingUINavLink
                         title="Temporal Lobe"
-                        pageHref={href}
+                        cls="pl-2"
+                        {...{ currPath }}
                         href="/data/benchmarking/brain#temporal-lobe"
                     />
                     <BenchmarkingUINavLink
                         title="Dendate Gyrus"
-                        pageHref={href}
+                        cls="pl-2"
+                        {...{ currPath }}
                         href="/data/benchmarking/brain#dendate-gyrus"
                     />
                 </ul>
             </BenchmarkingUINavDrop>
             <BenchmarkingUINavDrop
                 eventKey="2"
-                pageHref={href}
+                {...{ currPath }}
                 href="/data/benchmarking/skin"
                 title="Skin">
                 <ul>
                     <BenchmarkingUINavLink
                         title="Sun Exposed"
-                        pageHref={href}
+                        cls="pl-2"
+                        {...{ currPath }}
                         href="/data/benchmarking/skin#sun-exposed"
                     />
                     <BenchmarkingUINavLink
                         title="Non Sun Exposed"
-                        pageHref={href}
+                        cls="pl-2"
+                        {...{ currPath }}
                         href="/data/benchmarking/skin#non-sun-exposed"
                     />
                 </ul>
             </BenchmarkingUINavDrop>
             <BenchmarkingUINavLink
                 title="Liver"
-                pageHref={href}
+                {...{ currPath }}
                 href="/data/benchmarking/liver"
             />
             <BenchmarkingUINavDrop
                 eventKey="3"
-                pageHref={href}
+                {...{ currPath }}
                 href="/data/benchmarking/colon"
                 title="Colon">
                 <ul>
                     <BenchmarkingUINavLink
                         title="Ascending"
-                        pageHref={href}
+                        cls="pl-2"
+                        {...{ currPath }}
                         href="/data/benchmarking/colon#ascending"
                     />
                     <BenchmarkingUINavLink
-                        pageHref={href}
+                        {...{ currPath }}
+                        cls="pl-2"
                         title="Descending"
                         href="/data/benchmarking/colon#descending"
                     />
                 </ul>
             </BenchmarkingUINavDrop>
             <BenchmarkingUINavLink
-                pageHref={href}
+                {...{ currPath }}
                 title="Heart"
                 href="/data/benchmarking/heart"
             />
@@ -288,7 +325,7 @@ const BenchmarkingUINavDrop = (props) => {
 };
 
 const BenchmarkingUINavLink = (props) => {
-    const { href, pageHref, title } = props;
+    const { href, currPath: pageHref, title, cls } = props;
 
     const isActive = href === pageHref;
     const activeStyle = 'bg-primary';
@@ -298,7 +335,7 @@ const BenchmarkingUINavLink = (props) => {
     // console.log("pageHref", pageHref);
 
     return (
-        <li>
+        <li className={cls}>
             <a
                 {...{ href }}
                 className={`${isActive ? activeStyle : inactiveStyle}`}>
