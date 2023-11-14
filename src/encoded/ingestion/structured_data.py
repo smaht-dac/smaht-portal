@@ -35,6 +35,7 @@ ARRAY_NAME_SUFFIX_REGEX = re.compile(rf"{ARRAY_NAME_SUFFIX_CHAR}\d+")
 ARRAY_VALUE_DELIMITER_CHAR = "|"
 ARRAY_VALUE_DELIMITER_ESCAPE_CHAR = "\\"
 DOTTED_NAME_DELIMITER_CHAR = "."
+PRUNE_STRUCTURED_DATA_SET = True
 
 class Portal:
 
@@ -51,8 +52,7 @@ class Portal:
         try:
             return get_metadata(object_name, vapp=self.vapp)
         except Exception:
-            pass
-        return False
+            return False
 
     def ref_exists(self, type_name: str, value: str) -> bool:
         if self._ref_exists_within_loading_data_set(type_name, value):
@@ -315,8 +315,7 @@ class Schema:
             try:
                 return float(value)
             except Exception:
-                pass
-            return value
+                return value
         return map_value_number
 
     def _map_function_string(self, type_info: dict) -> Callable:
@@ -487,7 +486,8 @@ class Excel:
 class StructuredDataSet:
 
     def __init__(self, file: Optional[str] = None,
-                 portal: Optional[Union[VirtualApp, TestApp, Portal]] = None, prune: bool = True) -> None:
+                 portal: Optional[Union[VirtualApp, TestApp, Portal]] = None,
+                 prune: bool = PRUNE_STRUCTURED_DATA_SET) -> None:
         self.data = {}
         if isinstance(portal, Portal):
             portal = portal.vapp
