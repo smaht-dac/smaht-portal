@@ -45,7 +45,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                             }>
                             <TimelineAccordionDrawer
                                 eventKey={1}
-                                title="COLO829 Cancer Cell Lines"
+                                title="COLO829 Cell Line"
                                 tier="benchmarking"
                                 currentTier={currentTier}
                                 setCurrentTier={() =>
@@ -54,12 +54,15 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 values={[
                                     { number: 2, units: 'Cell Lines' },
                                     { number: 24, units: 'Files Generated' },
-                                    { number: 12, units: 'Assay Types' },
+                                    {
+                                        number: 12,
+                                        units: 'Proposed Assay Types',
+                                    },
                                 ]}
                             />
                             <TimelineAccordionDrawer
                                 eventKey={2}
-                                title="HapMap Cell Lines"
+                                title="HapMap Cell Line"
                                 tier="benchmarking"
                                 currentTier={currentTier}
                                 setCurrentTier={() =>
@@ -68,7 +71,10 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 values={[
                                     { number: 0, units: 'Cell Lines' },
                                     { number: 0, units: 'Files Generated' },
-                                    { number: 0, units: 'Assay Types' },
+                                    {
+                                        number: 0,
+                                        units: 'Proposed Assay Types',
+                                    },
                                 ]}
                             />
                             <TimelineAccordionDrawer
@@ -82,12 +88,15 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 values={[
                                     { number: 0, units: 'Cell Lines' },
                                     { number: 0, units: 'Files Generated' },
-                                    { number: 0, units: 'Assay Types' },
+                                    {
+                                        number: 0,
+                                        units: 'Proposed Assay Types',
+                                    },
                                 ]}
                             />
                             <TimelineAccordionDrawer
                                 eventKey={4}
-                                title="Tissue Benchmarking"
+                                title="Primary Tissues"
                                 tier="benchmarking"
                                 currentTier={currentTier}
                                 setCurrentTier={() =>
@@ -96,7 +105,10 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 values={[
                                     { number: 0, units: 'Cell Lines' },
                                     { number: 0, units: 'Files Generated' },
-                                    { number: 0, units: 'Assay Types' },
+                                    {
+                                        number: 0,
+                                        units: 'Proposed Assay Types',
+                                    },
                                 ]}
                             />
                         </TimelineAccordion>
@@ -134,16 +146,19 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                             }>
                             <TimelineAccordionDrawer
                                 eventKey={1}
-                                title="Tissue"
+                                title="Primary Tissues"
                                 tier="expansion"
                                 currentTier={currentTier}
                                 setCurrentTier={() =>
                                     setCurrentTier('expansion')
                                 }
                                 values={[
-                                    { number: 0, units: 'Cell Lines' },
-                                    { number: 0, units: 'Files Generated' },
-                                    { number: 0, units: 'Assay Types' },
+                                    { number: 21, units: 'Primary Tissues' },
+                                    { number: 24, units: 'Files Generated' },
+                                    {
+                                        number: 12,
+                                        units: 'Proposed Assay Types',
+                                    },
                                 ]}
                             />
                         </TimelineAccordion>
@@ -166,10 +181,10 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                         <h3 className="ml-6 text-left">
                             Production&nbsp;
                             <i className="timeline-item-subheader">
-                                <span className="d-none d-sm-inline d-lg-none d-xl-none d-xs-inline">
+                                <span className="d-none d-sm-inline d-lg-none d-xl-inline">
                                     -
                                 </span>{' '}
-                                with select technologies
+                                with core technologies
                             </i>
                         </h3>
                     </div>
@@ -181,16 +196,19 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                             }>
                             <TimelineAccordionDrawer
                                 eventKey={1}
-                                title="Tissue"
+                                title="Primary Tissues"
                                 tier="production"
                                 currentTier={currentTier}
                                 setCurrentTier={() =>
                                     setCurrentTier('production')
                                 }
                                 values={[
-                                    { number: 0, units: 'Cell Lines' },
-                                    { number: 0, units: 'Files Generated' },
-                                    { number: 0, units: 'Assay Types' },
+                                    { number: 21, units: 'Primary Tissues' },
+                                    { number: 24, units: 'Files Generated' },
+                                    {
+                                        number: 12,
+                                        units: 'Proposed Assay Types',
+                                    },
                                 ]}
                             />
                         </TimelineAccordion>

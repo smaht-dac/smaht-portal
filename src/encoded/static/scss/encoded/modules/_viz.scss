@@ -19,7 +19,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     position: relative;
     margin: 30px 15px;
     padding: 0px;
-    width: 90%;
+    width: 100%;
     @include prefix(transition, all 0.4s ease);
 
     &:after {
@@ -185,8 +185,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         flex-direction: row;
                         justify-content: center;
                         width: 100%;
-                        padding: 0px 10px;
-                        max-width: min-content;
+                        padding: 0px;
 
                         &:hover {
                             cursor: pointer;
@@ -203,7 +202,8 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             font-size: 12px;
                             font-weight: 500;
                             color: $homepage-card-text-color;
-                            margin: auto 10px auto auto;
+                            margin: auto 10px auto 0px;
+                            width: 80px;
                         }
                     }
                 }
@@ -445,9 +445,9 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 position: absolute;
                 height: 32px;
                 width: 100px;
-                background-color: #D1FFEF;
+                background-color: #DFFBF6;
                 border-radius: 15px;
-                border: 1px solid #7FE9C7;
+                border: 2px solid #A4ECD5;
                 top: 3px;
                 transition: left 200ms ease-out;
                 &.tier-benchmarking {
