@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .base import Item as SmahtItem
 
 
 @collection(
@@ -11,7 +11,7 @@ from .base import Item as SMAHTItem
         "description": "Assembled genomes for sequencing alignment",
     },
 )
-class ReferenceGenome(SMAHTItem):
+class ReferenceGenome(SmahtItem):
     item_type = "reference_genome"
     schema = load_schema("encoded:schemas/reference_genome.json")
     embedded_list = []

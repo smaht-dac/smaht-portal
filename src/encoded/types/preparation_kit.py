@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .base import Item as SmahtItem
 
 
 @collection(
@@ -11,7 +11,7 @@ from .base import Item as SMAHTItem
         "description": "Kits used in processing biological material",
     },
 )
-class PreparationKit(SMAHTItem):
+class PreparationKit(SmahtItem):
     item_type = "preparation_kit"
     schema = load_schema("encoded:schemas/preparation_kit.json")
     embedded_list = []

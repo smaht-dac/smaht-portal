@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .base import Item as SmahtItem
 
 
 @collection(
@@ -10,7 +10,7 @@ from .base import Item as SMAHTItem
         "title": "File Sets",
         "description": "Collections of related files",
     })
-class FileSet(SMAHTItem):
+class FileSet(SmahtItem):
     item_type = "file_set"
     schema = load_schema("encoded:schemas/file_set.json")
     embedded_list = []
