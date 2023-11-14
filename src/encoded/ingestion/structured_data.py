@@ -45,7 +45,10 @@ class Portal:
 
     @lru_cache(maxsize=256)
     def get_schema(self, schema_name: str) -> Optional[dict]:
-        return get_schema(schema_name, portal_vapp=self.vapp)
+        try:
+            return get_schema(schema_name, portal_vapp=self.vapp)
+        except:
+            return {}
 
     @lru_cache(maxsize=256)
     def get_metadata(self, object_name: str) -> Optional[dict]:
