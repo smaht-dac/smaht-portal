@@ -13,7 +13,7 @@ import re
 import shutil
 import tarfile
 import tempfile
-from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Generator, Iterator, List, Optional, TextIO, Tuple, Type, Union
 from webtest.app import TestApp
 import zipfile
 from dcicutils.ff_utils import get_metadata, get_schema
@@ -120,7 +120,7 @@ class Schema:
 
     @staticmethod
     def load_from_file(file_name: str, portal: Optional[Portal] = None) -> Optional[dict]:
-        with open(file_name) as f:
+        with Utils.open_file(file_name) as f:
             return Schema(json.load(f), portal)
 
     @staticmethod
@@ -421,7 +421,7 @@ class CsvReader(RowReader):
 
     def open(self) -> None:
         if self._file_handle is None:
-            self._file_handle = open(self._file, newline="")
+            self._file_handle = Utils.open_file(self._file)
             self._reader = csv.reader(self._file_handle)
             self.define_header(next(self._reader, []))
 
@@ -474,6 +474,7 @@ class Excel:
 
     def open(self) -> None:
         if self._workbook is None:
+            # TODO: Does not work with excel_file.xlsx.gz because we have to pass file *name*.
             self._workbook = openpyxl.load_workbook(self._file, data_only=True)
             self._sheet_names = self._workbook.sheetnames or []
 
@@ -509,11 +510,12 @@ class StructuredDataSet:
         # 3.  Zip file (.zip or .tar.gz or .tgz or .tar), containing data files to load,
         #     where the (base) name of each contained file is the data type name.
         if file:
-            if file.endswith(".csv"):
+            if file.endswith(".csv") or file.endswith(".csv.gz"):
                 self.load_csv_file(file)
-            elif file.endswith(".xls") or file.endswith(".xlsx"):
+            elif (file.endswith(".xls") or file.endswith(".xlsx") or
+                  file.endswith(".xls.gz") or file.endswith(".xlsx.gz")):
                 self.load_excel_file(file)
-            elif file.endswith(".json"):
+            elif file.endswith(".json") or file.endswith(".json.gz"):
                 self.load_json_file(file)
             elif UnpackUtils.is_packed_file(file):
                 self.load_packed_file(file)
@@ -596,7 +598,7 @@ class StructuredData:
 
     @staticmethod
     def load_from_json_file(file: str) -> List[dict]:
-        with open(file) as f:
+        with Utils.open_file(file) as f:
             data = json.load(f)
             return [data] if isinstance(data, dict) else data
 
@@ -799,6 +801,10 @@ class Utils:
         if Utils.is_temporary_directory(tmp_directory_name):  # Guard against errant deletion.
             shutil.rmtree(tmp_directory_name)
 
+    @staticmethod
+    def open_file(file: str) -> TextIO:
+        return gzip.open(file, "rt") if file.endswith(".gz") else open(file)
+
 
 class UnpackUtils:
 
@@ -809,7 +815,6 @@ class UnpackUtils:
     @staticmethod
     def get_unpack_context_manager(file: str) -> Optional[Callable]:
         UNPACK_CONTEXT_MANAGERS = {
-            ".gz": UnpackUtils.unpack_gz_file_to_temporary_directory,
             ".tar": UnpackUtils.unpack_tar_file_to_temporary_directory,
             ".tar.gz": UnpackUtils.unpack_targz_file_to_temporary_directory,
             ".tgz": UnpackUtils.unpack_targz_file_to_temporary_directory,
@@ -840,16 +845,6 @@ class UnpackUtils:
         with Utils.temporary_directory() as tmp_directory_name:
             with tarfile.open(file, "r:gz") as targzf:
                 targzf.extractall(tmp_directory_name)
-            yield tmp_directory_name
-
-    @contextmanager
-    @staticmethod
-    def unpack_gz_file_to_temporary_directory(file: str) -> str:
-        with Utils.temporary_directory() as tmp_directory_name:
-            gunzip_tmp_file = os.path.join(tmp_directory_name, file[:-3] if file.endswith(".gz") else file)
-            with gzip.open(file, "rb") as gunzipf_input:
-                with open(gunzip_tmp_file, "wb") as gunzipf_output:
-                    gunzipf_output.write(gunzipf_input.read())
             yield tmp_directory_name
 
     @staticmethod
