@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from typing import Dict, List, Generator, Union
-from dcicutils.bundle_utils import load_items as load_structured_data_via_sheet_utils
+from dcicutils.bundle_utils import load_items as load_via_sheet_utils
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
 from .data_validation import summary_of_data_validation_errors
@@ -8,7 +8,7 @@ from .loadxl_extensions import load_data_into_database, summary_of_load_data_res
 from .structured_data import StructuredDataSet
 from .submission_folio import SmahtSubmissionFolio
 
-USE_SHEET_UTILS = False
+USE_STRUCTURED_DATA = True
 
 
 def includeme(config):
@@ -42,9 +42,8 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
 
 @contextmanager
 def _load_data(submission: SmahtSubmissionFolio) -> Generator[Union[Dict[str, List[Dict]], Exception], None, None]:
-    with submission.s3_file() as data_file_name:
-        if USE_SHEET_UTILS:
-            yield load_structured_data_via_sheet_utils(data_file_name, portal_vapp=submission.portal_vapp,
-                                                       validate=True, apply_heuristics=True)
+    with submission.s3_file() as file:
+        if USE_STRUCTURED_DATA:
+            yield StructuredDataSet.load(file, portal=submission.portal_vapp)
         else:
-            yield StructuredDataSet.load(data_file_name, portal=submission.portal_vapp)
+            yield load_via_sheet_utils(file, portal_vapp=submission.portal_vapp, validate=True, apply_heuristics=True)

@@ -37,81 +37,223 @@ ARRAY_VALUE_DELIMITER_ESCAPE_CHAR = "\\"
 DOTTED_NAME_DELIMITER_CHAR = "."
 PRUNE_STRUCTURED_DATA_SET = True
 
-class Portal:
+# Forward type references for type hints.
+Excel = Type["Excel"]
+Portal = Type["Portal"]
+RowReader = Type["RowReader"]
+Schema = Type["Schema"]
+StructuredDataSet = Type["StructuredDataSet"]
 
-    def __init__(self, portal_vapp: Union[VirtualApp, TestApp], loading_data_set: Optional[dict] = None) -> None:
-        self.vapp = portal_vapp
-        self.loading_data_set = loading_data_set
 
-    @lru_cache(maxsize=256)
-    def get_schema(self, schema_name: str) -> Optional[dict]:
-        try:
-            return get_schema(schema_name, portal_vapp=self.vapp)
-        except:
-            return {}
+class StructuredDataSet:
 
-    @lru_cache(maxsize=256)
-    def get_metadata(self, object_name: str) -> Optional[dict]:
-        try:
-            return get_metadata(object_name, vapp=self.vapp)
-        except Exception:
-            return False
-
-    def ref_exists(self, type_name: str, value: str) -> bool:
-        if self._ref_exists_within_loading_data_set(type_name, value):
-            return True
-        return self.get_metadata(f"/{type_name}/{value}") is not None
-
-    def _ref_exists_within_loading_data_set(self, type_name: str, value: str) -> bool:
-        if self.loading_data_set and isinstance(items := self.loading_data_set.get(type_name), list):
-            if (type_schema := self.get_schema(type_name)):
-                identifying_properties = set(type_schema.get("identifyingProperties", [])) | {"identifier", "uuid"}
-                for item in items:
-                    for identifying_property in identifying_properties:
-                        if (identifying_value := item.get(identifying_property)) is not None:
-                            if isinstance(identifying_value, list):
-                                for identifying_value_item in identifying_value:
-                                    if identifying_value_item == value:
-                                        return True
-                            elif identifying_value == value:
-                                return True
-        return False
+    def __init__(self, file: Optional[str] = None,
+                 portal: Optional[Union[VirtualApp, TestApp, Portal]] = None,
+                 prune: bool = PRUNE_STRUCTURED_DATA_SET) -> None:
+        self.data = {}
+        self._portal = Portal(portal) if portal else None
+        self._prune = prune
+        self.load_file(file)
 
     @staticmethod
-    def create_for_testing(ini_file: Optional[str] = None) -> Type["Portal"]:
-        return Portal.create_for_local_testing(ini_file) if ini_file else Portal.create_for_unit_testing()
+    def load(file: str, portal: Union[VirtualApp, TestApp, Portal]) -> Tuple[dict, Optional[List[str]]]:
+        structured_data_set = StructuredDataSet(file=file, portal=portal)
+        return structured_data_set.data, structured_data_set.validate()
+
+    def load_file(self, file: str) -> None:
+        # Returns a dictionary where each property is the name (i.e. the type) of the data,
+        # and the value is array of dictionaries for the data itself. Handle thse kinds of files:
+        # 1.  Single CSV of JSON file, where the (base) name of the file is the data type name.
+        # 2.  Single Excel file containing one or more sheets, where each sheet
+        #     represents (i.e. is named for, and contains data for) a different type.
+        # 3.  Zip file (.zip or .tar.gz or .tgz or .tar), containing data files to load,
+        #     where the (base) name of each contained file is the data type name.
+        if file:
+            if file.endswith(".gz"):
+                with UnpackUtils.unpack_gz_file_to_temporary_file(file) as file:
+                    self._load_file(file)
+            else:
+                self._load_file(file)
+
+    def _load_file(self, file: str) -> None:
+        if file.endswith(".csv"):
+            self.load_csv_file(file)
+        elif file.endswith(".xls") or file.endswith(".xlsx"):
+            self.load_excel_file(file)
+        elif file.endswith(".json"):
+            self.load_json_file(file)
+        elif UnpackUtils.is_packed_file(file):
+            self.load_packed_file(file)
+
+    def load_csv_file(self, file: str) -> None:
+        StructuredData.load_from_csv_file(file, portal=self._portal,
+                                          addto=lambda data: self.add(Utils.get_type_name(file), data))
+
+    def load_excel_file(self, file: str) -> None:
+        excel = Excel(file)
+        for sheet_name in excel.sheet_names:
+            StructuredData.load_from_excel_sheet(excel, sheet_name, portal=self._portal,
+                                                 addto=lambda data: self.add(Utils.get_type_name(sheet_name), data))
+
+    def load_json_file(self, file: str) -> None:
+        self.add(Utils.get_type_name(file), StructuredData.load_from_json_file(file))
+
+    def load_packed_file(self, file: str) -> None:
+        for file in UnpackUtils.unpack_files(file):
+            self.load_file(file)
+
+    def add(self, type_name: str, data: Union[dict, List[dict], StructuredDataSet]) -> None:
+        if isinstance(data, StructuredDataSet):
+            data = data.data
+        elif isinstance(data, dict):
+            data = [data]
+        if self._prune:
+            Utils.remove_empty_properties(data)
+        if isinstance(data, list):
+            if type_name in self.data:
+                self.data[type_name].extend(data)
+            else:
+                self.data[type_name] = data
+
+    def validate(self) -> Optional[List[str]]:
+        errors = []
+        for type_name in self.data:
+            if (schema := Schema.load_by_name(type_name, portal=self._portal)):
+                for data in self.data[type_name]:
+                    if (validate_errors := schema.validate(data)) is not None:
+                        errors.extend(validate_errors)
+        return errors
+
+
+class StructuredData:
 
     @staticmethod
-    def create_for_unit_testing() -> Type["Portal"]:
-        minimal_ini_for_unit_testing = "[app:app]\nuse = egg:encoded\nsqlalchemy.url = postgresql://dummy\n"
-        with Utils.temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
-            return Portal(create_testapp(ini_file))
+    def load_from_csv_file(file: str,
+                           schema: Optional[Schema] = None,
+                           portal: Optional[Portal] = None,
+                           addto: Optional[Callable] = None) -> Optional[List[dict]]:
+        if not schema and portal:
+            schema = Schema.load_by_name(file, portal=portal)
+        return StructuredData._load_from_reader(CsvReader(file), schema=schema, addto=addto)
+
+    def load_from_excel_sheet(excel: Excel, sheet_name: str,
+                              schema: Optional[Schema] = None,
+                              portal: Optional[Portal] = None,
+                              addto: Optional[Callable] = None) -> Optional[List[dict]]:
+        reader = excel.sheet_reader(sheet_name)
+        if not schema and portal:
+            schema = Schema.load_by_name(reader.sheet_name, portal=portal)
+        return StructuredData._load_from_reader(reader, schema=schema, addto=addto)
 
     @staticmethod
-    def create_for_local_testing(ini_file: Optional[str] = None) -> Type["Portal"]:
-        if ini_file:
-            return Portal(create_testapp(ini_file))
-        minimal_ini_for_local_testing = "\n".join([
-            "[app:app]\nuse = egg:encoded",
-            "sqlalchemy.url = postgresql://postgres@localhost:5441/postgres?host=/tmp/snovault/pgdata",
-            "multiauth.groupfinder = encoded.authorization.smaht_groupfinder",
-            "multiauth.policies = auth0 session remoteuser accesskey",
-            "multiauth.policy.session.namespace = mailto",
-            "multiauth.policy.session.use = encoded.authentication.NamespacedAuthenticationPolicy",
-            "multiauth.policy.session.base = pyramid.authentication.SessionAuthenticationPolicy",
-            "multiauth.policy.remoteuser.namespace = remoteuser",
-            "multiauth.policy.remoteuser.use = encoded.authentication.NamespacedAuthenticationPolicy",
-            "multiauth.policy.remoteuser.base = pyramid.authentication.RemoteUserAuthenticationPolicy",
-            "multiauth.policy.accesskey.namespace = accesskey",
-            "multiauth.policy.accesskey.use = encoded.authentication.NamespacedAuthenticationPolicy",
-            "multiauth.policy.accesskey.base = encoded.authentication.BasicAuthAuthenticationPolicy",
-            "multiauth.policy.accesskey.check = encoded.authentication.basic_auth_check",
-            "multiauth.policy.auth0.use = encoded.authentication.NamespacedAuthenticationPolicy",
-            "multiauth.policy.auth0.namespace = auth0",
-            "multiauth.policy.auth0.base = encoded.authentication.Auth0AuthenticationPolicy"
-        ])
-        with Utils.temporary_file(content=minimal_ini_for_local_testing, suffix=".ini") as ini_file:
-            return Portal(create_testapp(ini_file))
+    def load_from_rows(rows: List[List[Optional[Any]]], schema: Optional[Schema] = None) -> List[dict]:
+        return StructuredData._load_from_reader(ListReader(rows), schema=schema)
+
+    @staticmethod
+    def _load_from_reader(reader: RowReader, schema: Optional[Schema] = None,
+                          addto: Optional[Callable] = None) -> Optional[List[dict]]:
+        structured_data = [] if not addto else None
+        structured_column_data = StructuredColumnData(reader.header)
+        for row in reader:
+            structured_row = structured_column_data.create_row()
+            for flattened_column_name, value in row.items():
+                structured_column_data.set_value(structured_row, flattened_column_name, value, schema)
+            structured_data.append(structured_row) if not addto else addto(structured_row)
+        return structured_data if not addto else None
+
+    @staticmethod
+    def load_from_json_file(file: str) -> List[dict]:
+        with open(file) as f:
+            data = json.load(f)
+            return [data] if isinstance(data, dict) else data
+
+
+class StructuredColumnData:
+
+    def __init__(self, flattened_column_names: List[str]) -> None:
+        self.row_template = self._parse_column_headers_into_structured_row_template(flattened_column_names)
+
+    def create_row(self) -> dict:
+        return copy.deepcopy(self.row_template)
+
+    @staticmethod
+    def set_value(row: dict, flattened_column_name: str, value: str, schema: Optional[Schema] = None) -> None:
+
+        def setv(row: Union[dict, list],
+                 flattened_column_name_components: List[str], parent_array_index: int = -1) -> None:
+
+            if not flattened_column_name_components:
+                return
+
+            if isinstance(row, list):
+                if parent_array_index < 0:
+                    for row_item in row:
+                        setv(row_item, flattened_column_name_components)
+                else:
+                    setv(row[parent_array_index], flattened_column_name_components)
+                return
+
+            if not isinstance(row, dict):
+                return
+
+            flattened_column_name_component = flattened_column_name_components[0]
+            array_name, array_index = StructuredColumnData._get_array_info(flattened_column_name_component)
+            name = array_name if array_name else flattened_column_name_component
+            if len(flattened_column_name_components) > 1:
+                if not isinstance(row[name], dict) and not isinstance(row[name], list):
+                    row[name] = {}
+                setv(row[name], flattened_column_name_components[1:], parent_array_index=array_index)
+                return
+
+            nonlocal flattened_column_name, value, schema
+            if schema:
+                value = schema.map_value(flattened_column_name, value)
+            elif array_name is not None and isinstance(value, str):
+                value = Utils.split_array_string(value)
+            if array_name and array_index >= 0:
+                if isinstance(row[name], str):  # An array afterall e.g.: abc,abc#2
+                    row[name] = Utils.split_array_string(row[name])
+                if len(row[name]) < array_index + 1:
+                    array_extension = [None] * (array_index + 1 - len(row[name]))
+                    row[name].extend(array_extension)
+                row[name] = row[name][:array_index] + value + row[name][array_index + 1:]
+            else:
+                row[name] = value
+
+        if (flattened_column_name_components := Utils.split_dotted_string(flattened_column_name)):
+            setv(row, flattened_column_name_components)
+
+    @staticmethod
+    def _parse_column_headers_into_structured_row_template(flattened_column_names: List[str]) -> dict:
+
+        def parse_components(flattened_column_name_components: List[str]) -> dict:
+            if len(flattened_column_name_components) > 1:
+                value = parse_components(flattened_column_name_components[1:])
+            else:
+                value = None
+            flattened_column_name_component = flattened_column_name_components[0]
+            array_name, array_index = StructuredColumnData._get_array_info(flattened_column_name_component)
+            if array_name:
+                array_length = array_index + 1 if array_index >= 0 else (0 if value is None else 1)
+                # Doing it the obvious way, like in the comment right below here, we get
+                # identical (shared) values; which we do not want; so do a real/deep copy.
+                # return {array_name: [value] * array_length}
+                return {array_name: [copy.deepcopy(value) for _ in range(array_length)]}
+            return {flattened_column_name_component: value}
+
+        structured_row_template = {}
+        for flattened_column_name in flattened_column_names or []:
+            if (flattened_column_name_components := Utils.split_dotted_string(flattened_column_name)):
+                Utils.merge_objects(structured_row_template, parse_components(flattened_column_name_components))
+        return structured_row_template
+
+    @staticmethod
+    def _get_array_info(name: str) -> Tuple[Optional[str], Optional[int]]:
+        if (array_indicator_position := name.rfind(ARRAY_NAME_SUFFIX_CHAR)) > 0:
+            array_index = name[array_indicator_position + 1:] if array_indicator_position < len(name) - 1 else -1
+            if (array_index := Utils.to_integer(array_index)) is not None:
+                return name[0:array_indicator_position], array_index
+        return None, None
 
 
 class Schema:
@@ -123,7 +265,7 @@ class Schema:
 
     @staticmethod
     def load_from_file(file_name: str, portal: Optional[Portal] = None) -> Optional[dict]:
-        with Utils.open_file(file_name) as f:
+        with open(file_name) as f:
             return Schema(json.load(f), portal)
 
     @staticmethod
@@ -424,7 +566,7 @@ class CsvReader(RowReader):
 
     def open(self) -> None:
         if self._file_handle is None:
-            self._file_handle = Utils.open_file(self._file)
+            self._file_handle = open(self._file)
             self._reader = csv.reader(self._file_handle)
             self.define_header(next(self._reader, []))
 
@@ -477,12 +619,7 @@ class Excel:
 
     def open(self) -> None:
         if self._workbook is None:
-            if self._file.endswith(".gz"):
-                # Not Utils.open_file as openpyxl.load_workbook only takes file name.
-                with UnpackUtils.unpack_gz_file_to_temporary_file(self._file) as file:
-                    self._workbook = openpyxl.load_workbook(file, data_only=True)
-            else:
-                self._workbook = openpyxl.load_workbook(self._file, data_only=True)
+            self._workbook = openpyxl.load_workbook(self._file, data_only=True)
             self._sheet_names = self._workbook.sheetnames or []
 
     def __del__(self) -> None:
@@ -491,211 +628,142 @@ class Excel:
             workbook.close()
 
 
-class StructuredDataSet:
+class Portal:
 
-    def __init__(self, file: Optional[str] = None,
-                 portal: Optional[Union[VirtualApp, TestApp, Portal]] = None,
-                 prune: bool = PRUNE_STRUCTURED_DATA_SET) -> None:
-        self.data = {}
-        if isinstance(portal, Portal):
-            portal = portal.vapp
-        self._portal = Portal(portal, self.data) if isinstance(portal, (VirtualApp, TestApp)) else None
-        self._prune = prune
-        self.load_file(file)
+    def __init__(self, portal: Union[VirtualApp, TestApp, Portal], loading_data_set: Optional[dict] = None) -> None:
+        self.vapp = portal.vapp if isinstance(portal, Portal) else portal
+        self.loading_data_set = loading_data_set
 
-    @staticmethod
-    def load(file: str, portal: Portal, prune: bool = True) -> Tuple[dict, Optional[List[str]]]:
-        structured_data_set = StructuredDataSet(file=file, portal=portal, prune=prune)
-        return structured_data_set.data, structured_data_set.validate()
+    @lru_cache(maxsize=256)
+    def get_schema(self, schema_name: str) -> Optional[dict]:
+        try:
+            return get_schema(schema_name, portal_vapp=self.vapp)
+        except Exception:
+            return {}
 
-    def load_file(self, file: str) -> None:
-        # Returns a dictionary where each property is the name (i.e. the type) of the data,
-        # and the value is array of dictionaries for the data itself. Handle thse kinds of files:
-        # 1.  Single CSV of JSON file, where the (base) name of the file is the data type name.
-        # 2.  Single Excel file containing one or more sheets, where each sheet
-        #     represents (i.e. is named for, and contains data for) a different type.
-        # 3.  Zip file (.zip or .tar.gz or .tgz or .tar), containing data files to load,
-        #     where the (base) name of each contained file is the data type name.
-        if file:
-            if file.endswith(".csv") or file.endswith(".csv.gz"):
-                self.load_csv_file(file)
-            elif (file.endswith(".xls") or file.endswith(".xlsx") or
-                  file.endswith(".xls.gz") or file.endswith(".xlsx.gz")):
-                self.load_excel_file(file)
-            elif file.endswith(".json") or file.endswith(".json.gz"):
-                self.load_json_file(file)
-            elif UnpackUtils.is_packed_file(file):
-                self.load_packed_file(file)
+    @lru_cache(maxsize=256)
+    def get_metadata(self, object_name: str) -> Optional[dict]:
+        try:
+            return get_metadata(object_name, vapp=self.vapp)
+        except Exception:
+            return None
 
-    def load_csv_file(self, file: str) -> None:
-        StructuredData.load_from_csv_file(file, portal=self._portal,
-                                          addto=lambda data: self.add(Utils.get_type_name(file), data))
+    def ref_exists(self, type_name: str, value: str) -> bool:
+        if self._ref_exists_within_loading_data_set(type_name, value):
+            return True
+        return self.get_metadata(f"/{type_name}/{value}") is not None
 
-    def load_excel_file(self, file: str) -> None:
-        excel = Excel(file)
-        for sheet_name in excel.sheet_names:
-            StructuredData.load_from_excel_sheet(excel, sheet_name, portal=self._portal,
-                                                 addto=lambda data: self.add(Utils.get_type_name(sheet_name), data))
-
-    def load_json_file(self, file: str) -> None:
-        self.add(Utils.get_type_name(file), StructuredData.load_from_json_file(file))
-
-    def load_packed_file(self, file: str) -> None:
-        for file in UnpackUtils.unpack_files(file):
-            self.load_file(file)
-
-    def add(self, type_name: str, data: Union[dict, List[dict], Type["StructuredDataSet"]]) -> None:
-        if isinstance(data, StructuredDataSet):
-            data = data.data
-        elif isinstance(data, dict):
-            data = [data]
-        if self._prune:
-            Utils.remove_empty_properties(data)
-        if isinstance(data, list):
-            if type_name in self.data:
-                self.data[type_name].extend(data)
-            else:
-                self.data[type_name] = data
-
-    def validate(self) -> Optional[List[str]]:
-        errors = []
-        for type_name in self.data:
-            if (schema := Schema.load_by_name(type_name, portal=self._portal)):
-                for data in self.data[type_name]:
-                    if (validate_errors := schema.validate(data)) is not None:
-                        errors.extend(validate_errors)
-        return errors
-
-
-class StructuredData:
+    def _ref_exists_within_loading_data_set(self, type_name: str, value: str) -> bool:
+        if self.loading_data_set and isinstance(items := self.loading_data_set.get(type_name), list):
+            if (type_schema := self.get_schema(type_name)):
+                identifying_properties = set(type_schema.get("identifyingProperties", [])) | {"identifier", "uuid"}
+                for item in items:
+                    for identifying_property in identifying_properties:
+                        if (identifying_value := item.get(identifying_property)) is not None:
+                            if isinstance(identifying_value, list):
+                                for identifying_value_item in identifying_value:
+                                    if identifying_value_item == value:
+                                        return True
+                            elif identifying_value == value:
+                                return True
+        return False
 
     @staticmethod
-    def load_from_csv_file(file: str,
-                           schema: Optional[Schema] = None,
-                           portal: Optional[Portal] = None,
-                           addto: Optional[Callable] = None) -> Optional[List[dict]]:
-        if not schema and portal:
-            schema = Schema.load_by_name(file, portal=portal)
-        return StructuredData._load_from_reader(CsvReader(file), schema=schema, addto=addto)
-
-    def load_from_excel_sheet(excel: Excel, sheet_name: str,
-                              schema: Optional[Schema] = None,
-                              portal: Optional[Portal] = None,
-                              addto: Optional[Callable] = None) -> Optional[List[dict]]:
-        reader = excel.sheet_reader(sheet_name)
-        if not schema and portal:
-            schema = Schema.load_by_name(reader.sheet_name, portal=portal)
-        return StructuredData._load_from_reader(reader, schema=schema, addto=addto)
+    def create_for_testing(ini_file: Optional[str] = None) -> Portal:
+        return Portal.create_for_local_testing(ini_file) if ini_file else Portal.create_for_unit_testing()
 
     @staticmethod
-    def load_from_rows(rows: List[List[Optional[Any]]], schema: Optional[Schema] = None) -> List[dict]:
-        return StructuredData._load_from_reader(ListReader(rows), schema=schema)
+    def create_for_unit_testing() -> Portal:
+        minimal_ini_for_unit_testing = "[app:app]\nuse = egg:encoded\nsqlalchemy.url = postgresql://dummy\n"
+        with Utils.temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
+            return Portal(create_testapp(ini_file))
 
     @staticmethod
-    def _load_from_reader(reader: RowReader, schema: Optional[Schema] = None,
-                          addto: Optional[Callable] = None) -> Optional[List[dict]]:
-        structured_data = [] if not addto else None
-        structured_column_data = StructuredColumnData(reader.header)
-        for row in reader:
-            structured_row = structured_column_data.create_row()
-            for flattened_column_name, value in row.items():
-                structured_column_data.set_value(structured_row, flattened_column_name, value, schema)
-            structured_data.append(structured_row) if not addto else addto(structured_row)
-        return structured_data if not addto else None
+    def create_for_local_testing(ini_file: Optional[str] = None) -> Portal:
+        if ini_file:
+            return Portal(create_testapp(ini_file))
+        minimal_ini_for_local_testing = "\n".join([
+            "[app:app]\nuse = egg:encoded",
+            "sqlalchemy.url = postgresql://postgres@localhost:5441/postgres?host=/tmp/snovault/pgdata",
+            "multiauth.groupfinder = encoded.authorization.smaht_groupfinder",
+            "multiauth.policies = auth0 session remoteuser accesskey",
+            "multiauth.policy.session.namespace = mailto",
+            "multiauth.policy.session.use = encoded.authentication.NamespacedAuthenticationPolicy",
+            "multiauth.policy.session.base = pyramid.authentication.SessionAuthenticationPolicy",
+            "multiauth.policy.remoteuser.namespace = remoteuser",
+            "multiauth.policy.remoteuser.use = encoded.authentication.NamespacedAuthenticationPolicy",
+            "multiauth.policy.remoteuser.base = pyramid.authentication.RemoteUserAuthenticationPolicy",
+            "multiauth.policy.accesskey.namespace = accesskey",
+            "multiauth.policy.accesskey.use = encoded.authentication.NamespacedAuthenticationPolicy",
+            "multiauth.policy.accesskey.base = encoded.authentication.BasicAuthAuthenticationPolicy",
+            "multiauth.policy.accesskey.check = encoded.authentication.basic_auth_check",
+            "multiauth.policy.auth0.use = encoded.authentication.NamespacedAuthenticationPolicy",
+            "multiauth.policy.auth0.namespace = auth0",
+            "multiauth.policy.auth0.base = encoded.authentication.Auth0AuthenticationPolicy"
+        ])
+        with Utils.temporary_file(content=minimal_ini_for_local_testing, suffix=".ini") as ini_file:
+            return Portal(create_testapp(ini_file))
+
+
+class UnpackUtils:
 
     @staticmethod
-    def load_from_json_file(file: str) -> List[dict]:
-        with Utils.open_file(file) as f:
-            data = json.load(f)
-            return [data] if isinstance(data, dict) else data
-
-
-class StructuredColumnData:
-
-    def __init__(self, flattened_column_names: List[str]) -> None:
-        self.row_template = self._parse_column_headers_into_structured_row_template(flattened_column_names)
-
-    def create_row(self) -> dict:
-        return copy.deepcopy(self.row_template)
+    def is_packed_file(file: str) -> bool:
+        return UnpackUtils.get_unpack_context_manager(file) is not None
 
     @staticmethod
-    def set_value(row: dict, flattened_column_name: str, value: str, schema: Optional[Schema] = None) -> None:
+    def get_unpack_context_manager(file: str) -> Optional[Callable]:
+        UNPACK_CONTEXT_MANAGERS = {
+            ".tar": UnpackUtils.unpack_tar_file_to_temporary_directory,
+            ".tar.gz": UnpackUtils.unpack_targz_file_to_temporary_directory,
+            ".tgz": UnpackUtils.unpack_targz_file_to_temporary_directory,
+            ".zip": UnpackUtils.unpack_zip_file_to_temporary_directory
+        }
+        return UNPACK_CONTEXT_MANAGERS.get(file[dot:]) if (dot := file.rfind("."))> 0 else None
 
-        def setv(row: Union[dict, list],
-                 flattened_column_name_components: List[str], parent_array_index: int = -1) -> None:
+    @contextmanager
+    @staticmethod
+    def unpack_zip_file_to_temporary_directory(file: str) -> str:
+        with Utils.temporary_directory() as tmp_directory_name:
+            with zipfile.ZipFile(file, "r") as zipf:
+                zipf.extractall(tmp_directory_name)
+            yield tmp_directory_name
 
-            if not flattened_column_name_components:
-                return
+    @contextmanager
+    @staticmethod
+    def unpack_tar_file_to_temporary_directory(file: str) -> str:
+        with Utils.temporary_directory() as tmp_directory_name:
+            with tarfile.open(file, "r") as tarf:
+                tarf.extractall(tmp_directory_name)
+            yield tmp_directory_name
 
-            if isinstance(row, list):
-                if parent_array_index < 0:
-                    for row_item in row:
-                        setv(row_item, flattened_column_name_components)
-                else:
-                    setv(row[parent_array_index], flattened_column_name_components)
-                return
-
-            if not isinstance(row, dict):
-                return
-
-            flattened_column_name_component = flattened_column_name_components[0]
-            array_name, array_index = StructuredColumnData._get_array_info(flattened_column_name_component)
-            name = array_name if array_name else flattened_column_name_component
-            if len(flattened_column_name_components) > 1:
-                if not isinstance(row[name], dict) and not isinstance(row[name], list):
-                    row[name] = {}
-                setv(row[name], flattened_column_name_components[1:], parent_array_index=array_index)
-                return
-
-            nonlocal flattened_column_name, value, schema
-            if schema:
-                value = schema.map_value(flattened_column_name, value)
-            elif array_name is not None and isinstance(value, str):
-                value = Utils.split_array_string(value)
-            if array_name and array_index >= 0:
-                if isinstance(row[name], str):  # An array afterall e.g.: abc,abc#2
-                    row[name] = Utils.split_array_string(row[name])
-                if len(row[name]) < array_index + 1:
-                    array_extension = [None] * (array_index + 1 - len(row[name]))
-                    row[name].extend(array_extension)
-                row[name] = row[name][:array_index] + value + row[name][array_index + 1:]
-            else:
-                row[name] = value
-
-        if (flattened_column_name_components := Utils.split_dotted_string(flattened_column_name)):
-            setv(row, flattened_column_name_components)
+    @contextmanager
+    @staticmethod
+    def unpack_targz_file_to_temporary_directory(file: str) -> str:
+        with Utils.temporary_directory() as tmp_directory_name:
+            with tarfile.open(file, "r:gz") as targzf:
+                targzf.extractall(tmp_directory_name)
+            yield tmp_directory_name
 
     @staticmethod
-    def _parse_column_headers_into_structured_row_template(flattened_column_names: List[str]) -> dict:
+    def unpack_files(file: str) -> Optional[str]:
+        if (unpack_file_to_tmp_directory := UnpackUtils.get_unpack_context_manager(file)) is not None:
+            with unpack_file_to_tmp_directory(file) as tmp_directory_name:
+                for directory, _, files in os.walk(tmp_directory_name):
+                    for file in files:
+                        if any(file.endswith(suffix) for suffix in ACCEPTABLE_FILE_SUFFIXES):
+                            yield os.path.join(directory, file)
 
-        def parse_components(flattened_column_name_components: List[str]) -> dict:
-            if len(flattened_column_name_components) > 1:
-                value = parse_components(flattened_column_name_components[1:])
-            else:
-                value = None
-            flattened_column_name_component = flattened_column_name_components[0]
-            array_name, array_index = StructuredColumnData._get_array_info(flattened_column_name_component)
-            if array_name:
-                array_length = array_index + 1 if array_index >= 0 else (0 if value is None else 1)
-                # Doing it the obvious way, like in the comment right below here, we get
-                # identical (shared) values; which we do not want; so do a real/deep copy.
-                # return {array_name: [value] * array_length}
-                return {array_name: [copy.deepcopy(value) for _ in range(array_length)]}
-            return {flattened_column_name_component: value}
-
-        structured_row_template = {}
-        for flattened_column_name in flattened_column_names or []:
-            if (flattened_column_name_components := Utils.split_dotted_string(flattened_column_name)):
-                Utils.merge_objects(structured_row_template, parse_components(flattened_column_name_components))
-        return structured_row_template
-
+    @contextmanager
     @staticmethod
-    def _get_array_info(name: str) -> Tuple[Optional[str], Optional[int]]:
-        if (array_indicator_position := name.rfind(ARRAY_NAME_SUFFIX_CHAR)) > 0:
-            array_index = name[array_indicator_position + 1:] if array_indicator_position < len(name) - 1 else -1
-            if (array_index := Utils.to_integer(array_index)) is not None:
-                return name[0:array_indicator_position], array_index
-        return None, None
+    def unpack_gz_file_to_temporary_file(file: str, suffix: Optional[str] = None) -> str:
+        if file.endswith(".gz"):
+            with Utils.temporary_file(name=os.path.basename(file[:-3])) as tmp_file_name:
+                with open(tmp_file_name, "wb") as outputf:
+                    with gzip.open(file, "rb") as inputf:
+                        outputf.write(inputf.read())
+                        outputf.close()
+                        yield tmp_file_name
 
 
 class Utils:
@@ -808,68 +876,3 @@ class Utils:
     def remove_temporary_directory(tmp_directory_name: str) -> None:
         if Utils.is_temporary_directory(tmp_directory_name):  # Guard against errant deletion.
             shutil.rmtree(tmp_directory_name)
-
-    @staticmethod
-    def open_file(file: str) -> TextIO:
-        return gzip.open(file, "rt") if file.endswith(".gz") else open(file)
-
-
-class UnpackUtils:
-
-    @staticmethod
-    def is_packed_file(file: str) -> bool:
-        return UnpackUtils.get_unpack_context_manager(file) is not None
-
-    @staticmethod
-    def get_unpack_context_manager(file: str) -> Optional[Callable]:
-        UNPACK_CONTEXT_MANAGERS = {
-            ".tar": UnpackUtils.unpack_tar_file_to_temporary_directory,
-            ".tar.gz": UnpackUtils.unpack_targz_file_to_temporary_directory,
-            ".tgz": UnpackUtils.unpack_targz_file_to_temporary_directory,
-            ".zip": UnpackUtils.unpack_zip_file_to_temporary_directory
-        }
-        dot = file.rfind(".")
-        return UNPACK_CONTEXT_MANAGERS.get(file[dot:]) if dot > 0 else None
-
-    @contextmanager
-    @staticmethod
-    def unpack_zip_file_to_temporary_directory(file: str) -> str:
-        with Utils.temporary_directory() as tmp_directory_name:
-            with zipfile.ZipFile(file, "r") as zipf:
-                zipf.extractall(tmp_directory_name)
-            yield tmp_directory_name
-
-    @contextmanager
-    @staticmethod
-    def unpack_tar_file_to_temporary_directory(file: str) -> str:
-        with Utils.temporary_directory() as tmp_directory_name:
-            with tarfile.open(file, "r") as tarf:
-                tarf.extractall(tmp_directory_name)
-            yield tmp_directory_name
-
-    @contextmanager
-    @staticmethod
-    def unpack_targz_file_to_temporary_directory(file: str) -> str:
-        with Utils.temporary_directory() as tmp_directory_name:
-            with tarfile.open(file, "r:gz") as targzf:
-                targzf.extractall(tmp_directory_name)
-            yield tmp_directory_name
-
-    @staticmethod
-    def unpack_files(file: str) -> Optional[str]:
-        if (unpack_file_to_tmp_directory := UnpackUtils.get_unpack_context_manager(file)) is not None:
-            with unpack_file_to_tmp_directory(file) as tmp_directory_name:
-                for directory, _, files in os.walk(tmp_directory_name):
-                    for file in files:
-                        if any(file.endswith(suffix) for suffix in ACCEPTABLE_FILE_SUFFIXES):
-                            yield os.path.join(directory, file)
-
-    @contextmanager
-    @staticmethod
-    def unpack_gz_file_to_temporary_file(file: str, suffix: Optional[str] = None) -> str:
-        if file.endswith(".gz"):
-            with Utils.temporary_file(name=os.path.basename(file[:-3])) as tmp_file_name:
-                with open(tmp_file_name, "wb") as outputf:
-                    with gzip.open(file, "rb") as inputf:
-                        outputf.write(inputf.read())
-                        yield tmp_file_name
