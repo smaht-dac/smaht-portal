@@ -746,7 +746,7 @@ class Utils:
     def remove_empty_properties(data: Optional[Union[list, dict]]) -> None:
         if isinstance(data, dict):
             for key in list(data.keys()):
-                if (value := data[key]) in [None, ""]:
+                if (value := data[key]) in [None, "", {}, []]:
                     del data[key]
                 else:
                     Utils.remove_empty_properties(value)
