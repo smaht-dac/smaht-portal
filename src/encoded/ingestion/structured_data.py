@@ -474,8 +474,12 @@ class Excel:
 
     def open(self) -> None:
         if self._workbook is None:
-            # TODO: Does not work with excel_file.xlsx.gz because we have to pass file *name*.
-            self._workbook = openpyxl.load_workbook(self._file, data_only=True)
+            if self._file.endswith(".gz"):
+                # Not Utils.open_file as openpyxl.load_workbook only takes file name.
+                with UnpackUtils.unpack_gz_file_to_temporary_file(self._file) as file:
+                    self._workbook = openpyxl.load_workbook(file, data_only=True)
+            else:
+                self._workbook = openpyxl.load_workbook(self._file, data_only=True)
             self._sheet_names = self._workbook.sheetnames or []
 
     def __del__(self) -> None:
@@ -776,7 +780,8 @@ class Utils:
             with open(tmp_file_name, "w") as tmp_file:
                 if isinstance(content, list):
                     content = "\n".join(content)
-                tmp_file.write(content)
+                if isinstance(content, str):
+                    tmp_file.write(content)
             yield tmp_file_name
 
     @staticmethod
@@ -855,3 +860,13 @@ class UnpackUtils:
                     for file in files:
                         if any(file.endswith(suffix) for suffix in ACCEPTABLE_FILE_SUFFIXES):
                             yield os.path.join(directory, file)
+
+    @contextmanager
+    @staticmethod
+    def unpack_gz_file_to_temporary_file(file: str, suffix: Optional[str] = None) -> str:
+        if file.endswith(".gz"):
+            with Utils.temporary_file(name=os.path.basename(file[:-3])) as tmp_file_name:
+                with open(tmp_file_name, "wb") as outputf:
+                    with gzip.open(file, "rb") as inputf:
+                        outputf.write(inputf.read())
+                        yield tmp_file_name
