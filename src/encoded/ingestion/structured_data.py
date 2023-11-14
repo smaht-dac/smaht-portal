@@ -51,7 +51,6 @@ class Portal:
         try:
             return get_metadata(object_name, vapp=self.vapp)
         except Exception:
-            import pdb ; pdb.set_trace()
             pass
         return False
 
@@ -580,7 +579,7 @@ class StructuredData:
         return StructuredData._load_from_reader(reader, schema=schema, addto=addto)
 
     @staticmethod
-    def load_from_rows(rows: str, schema: Optional[Schema] = None) -> List[dict]:
+    def load_from_rows(rows: List[List[Optional[Any]]], schema: Optional[Schema] = None) -> List[dict]:
         return StructuredData._load_from_reader(ListReader(rows), schema=schema)
 
     @staticmethod
@@ -613,25 +612,30 @@ class StructuredColumnData:
     @staticmethod
     def set_value(row: dict, flattened_column_name: str, value: str, schema: Optional[Schema] = None) -> None:
 
-        def set_value_components(row: Union[dict, list],
-                                 flattened_column_name_components: List[str],
-                                 parent_array_index: Optional[int] = None) -> None:
+        def setv(row: Union[dict, list],
+                 flattened_column_name_components: List[str], parent_array_index: int = -1) -> None:
 
-            if not row or not flattened_column_name_components:
+            if not flattened_column_name_components:
                 return
+
             if isinstance(row, list):
-                if parent_array_index is None or parent_array_index < 0:
-                    for structured_row_array_element in row:
-                        set_value_components(structured_row_array_element, flattened_column_name_components)
+                if parent_array_index < 0:
+                    for row_item in row:
+                        setv(row_item, flattened_column_name_components)
                 else:
-                    set_value_components(row[parent_array_index], flattened_column_name_components)
+                    setv(row[parent_array_index], flattened_column_name_components)
+                return
+
+            if not isinstance(row, dict):
                 return
 
             flattened_column_name_component = flattened_column_name_components[0]
             array_name, array_index = StructuredColumnData._get_array_info(flattened_column_name_component)
             name = array_name if array_name else flattened_column_name_component
             if len(flattened_column_name_components) > 1:
-                set_value_components(row[name], flattened_column_name_components[1:], parent_array_index=array_index)
+                if not isinstance(row[name], dict) and not isinstance(row[name], list):
+                    row[name] = {}
+                setv(row[name], flattened_column_name_components[1:], parent_array_index=array_index)
                 return
 
             nonlocal flattened_column_name, value, schema
@@ -650,7 +654,7 @@ class StructuredColumnData:
                 row[name] = value
 
         if (flattened_column_name_components := Utils.split_dotted_string(flattened_column_name)):
-            set_value_components(row, flattened_column_name_components)
+            setv(row, flattened_column_name_components)
 
     @staticmethod
     def _parse_column_headers_into_structured_row_template(flattened_column_names: List[str]) -> dict:

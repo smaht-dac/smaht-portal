@@ -34,12 +34,13 @@ def main() -> None:
     if args.noschemas:
         if args.schemas:
             print("Cannot specify both --schemas and --noschemas.")
-            exit(1)
+            #exit(1)
 
     if args.load or args.local:
         portal = Portal.create_for_local_testing(ini_file=args.load_ini)
     else:
-        portal = Portal.create_for_unit_testing() if not args.noschemas else None
+        #portal = Portal.create_for_unit_testing() if not args.noschemas else None
+        portal = Portal.create_for_unit_testing()
 
     if args.verbose:
         print(f">>> Loading structured data from: {args.file} ...")
@@ -59,6 +60,7 @@ def main() -> None:
                 print(json.dumps(schema, indent=4, default=str))
             elif args.verbose:
                 print(f">>> No schema found for type: {data_type}")
+        return
 
     if args.validate:
         if args.verbose:
@@ -90,7 +92,7 @@ def main() -> None:
 def parse_structured_data(file: str, portal: Optional[Portal],
                           new: bool = False, noschemas: bool = False) -> Optional[dict]:
     if new:
-        data = StructuredDataSet(file, portal).data
+        data = StructuredDataSet(file, portal=portal if not noschemas else None).data
     else:
         portal_vapp = portal.vapp if portal else None
         data = sheet_utils_load_items(file, portal_vapp=portal_vapp, validate=True, apply_heuristics=False, noschemas=noschemas)
