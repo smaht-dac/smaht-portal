@@ -34,15 +34,9 @@ def main() -> None:
                         default=False, help=f"Verbose output.")
     args = parser.parse_args()
 
-    if args.noschemas:
-        if args.schemas:
-            print("Cannot specify both --schemas and --noschemas.")
-            #exit(1)
-
     if args.load or args.local:
         portal = Portal.create_for_local_testing(ini_file=args.load_ini)
     else:
-        #portal = Portal.create_for_unit_testing() if not args.noschemas else None
         portal = Portal.create_for_unit_testing()
 
     if args.verbose:
