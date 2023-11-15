@@ -112,6 +112,10 @@ export class NavigationBar extends React.PureComponent {
                             expanded={mobileDropdownOpen}>
                             <a className="navbar-brand" href="/">
                                 <div className="smaht-logo-wrapper img-container ml-2 mr-05 text-600">
+                                    <img
+                                        src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
+                                        height="35"
+                                    />
                                     SMaHT Data Portal
                                 </div>
                             </a>
