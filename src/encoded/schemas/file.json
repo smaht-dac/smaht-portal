@@ -94,6 +94,7 @@
                 "type": "string",
                 "enum": [
                     "Genome Region",
+                    "Quality Control",
                     "Reference Genome",
                     "Sequencing Reads",
                     "Variant Calls"
@@ -111,8 +112,12 @@
                 "enum": [
                     "Aligned Reads",
                     "Germline Variant Calls",
-                    "Reads Index",
+                    "Image",
+                    "Index",
+                    "Reference Sequence",
+                    "Sequence Interval",
                     "Somatic Variant Calls",
+                    "Statistics",
                     "Unaligned Reads"
                 ]
             }
