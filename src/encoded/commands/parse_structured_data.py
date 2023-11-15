@@ -108,7 +108,7 @@ def parse_structured_data(file: str,
         data = sheet_utils_load_items(file, portal_vapp=portal.vapp if portal else None,
                                       validate=validate, apply_heuristics=True,
                                       sheet_order=ITEM_INDEX_ORDER, noschemas=noschemas)
-        if not noschemas:
+        if not noschemas and validate:
             problems = data[1] or []
             data = data[0]
         else:
