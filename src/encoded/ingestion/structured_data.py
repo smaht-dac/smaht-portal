@@ -49,18 +49,19 @@ class StructuredDataSet:
 
     def __init__(self, file: Optional[str] = None,
                  portal: Optional[Union[VirtualApp, TestApp, Portal]] = None,
-                 order: Optional[List[str]] = None,
+                 order: Optional[List[str]] = None, noref: bool = False,
                  prune: bool = PRUNE_STRUCTURED_DATA_SET) -> None:
         self.data = {}
         self._portal = Portal(portal, loading_data_set=self.data) if portal else None
         self._order = order
+        self._noref = noref
         self._prune = prune
         self.load_file(file)
 
     @staticmethod
     def load(file: str, portal: Union[VirtualApp, TestApp, Portal],
-             order: Optional[List[str]] = None) -> Tuple[dict, Optional[List[str]]]:
-        structured_data_set = StructuredDataSet(file=file, portal=portal, order=order)
+             order: Optional[List[str]] = None, noref: bool = False) -> Tuple[dict, Optional[List[str]]]:
+        structured_data_set = StructuredDataSet(file=file, portal=portal, order=order, noref=noref)
         return structured_data_set.data, structured_data_set.validate()
 
     def load_file(self, file: str) -> None:
@@ -82,24 +83,23 @@ class StructuredDataSet:
         if file.endswith(".csv"):
             self.load_csv_file(file)
         elif file.endswith(".xls") or file.endswith(".xlsx"):
-            self.load_excel_file(file, self._order)
+            self.load_excel_file(file)
         elif file.endswith(".json"):
             self.load_json_file(file)
         elif UnpackUtils.is_packed_file(file):
             self.load_packed_file(file)
 
     def load_csv_file(self, file: str) -> None:
-        StructuredData.load_from_csv_file(file, portal=self._portal,
+        StructuredData.load_from_csv_file(file, portal=self._portal, noref=self._noref,
                                           addto=lambda data: self.add(Utils.get_type_name(file), data))
 
-    def load_excel_file(self, file: str, order: Optional[List[str]] = None) -> None:
+    def load_excel_file(self, file: str) -> None:
 
         def ordered_sheet_names(sheet_names: List[str]) -> List[str]:
-            nonlocal order
-            if not order:
+            if not self._order:
                 return sheet_names
             ordered_sheet_names = []
-            for item in order:
+            for item in self._order:
                 for sheet_name in sheet_names:
                     if Utils.get_type_name(item) == Utils.get_type_name(sheet_name):
                         ordered_sheet_names.append(sheet_name)
@@ -110,7 +110,7 @@ class StructuredDataSet:
 
         excel = Excel(file)
         for sheet_name in ordered_sheet_names(excel.sheet_names):
-            StructuredData.load_from_excel_sheet(excel, sheet_name, portal=self._portal,
+            StructuredData.load_from_excel_sheet(excel, sheet_name, portal=self._portal, noref=self._noref,
                                                  addto=lambda data: self.add(Utils.get_type_name(sheet_name), data))
 
     def load_json_file(self, file: str) -> None:
@@ -147,20 +147,18 @@ class StructuredData:
 
     @staticmethod
     def load_from_csv_file(file: str,
-                           schema: Optional[Schema] = None,
-                           portal: Optional[Portal] = None,
-                           addto: Optional[Callable] = None) -> Optional[List[dict]]:
+                           schema: Optional[Schema] = None, portal: Optional[Portal] = None,
+                           noref: bool = False, addto: Optional[Callable] = None) -> Optional[List[dict]]:
         if not schema and portal:
-            schema = Schema.load_by_name(file, portal=portal)
+            schema = Schema.load_by_name(file, portal=portal, noref=noref)
         return StructuredData._load_from_reader(CsvReader(file), schema=schema, addto=addto)
 
     def load_from_excel_sheet(excel: Excel, sheet_name: str,
-                              schema: Optional[Schema] = None,
-                              portal: Optional[Portal] = None,
-                              addto: Optional[Callable] = None) -> Optional[List[dict]]:
+                              schema: Optional[Schema] = None, portal: Optional[Portal] = None,
+                              noref: bool = False, addto: Optional[Callable] = None) -> Optional[List[dict]]:
         reader = excel.sheet_reader(sheet_name)
         if not schema and portal:
-            schema = Schema.load_by_name(reader.sheet_name, portal=portal)
+            schema = Schema.load_by_name(reader.sheet_name, portal=portal, noref=noref)
         return StructuredData._load_from_reader(reader, schema=schema, addto=addto)
 
     @staticmethod
@@ -276,19 +274,20 @@ class StructuredColumnData:
 
 class Schema:
 
-    def __init__(self, schema_json: dict, portal: Optional[Portal] = None) -> None:
+    def __init__(self, schema_json: dict, portal: Optional[Portal] = None, noref: bool = False) -> None:
         self.data = schema_json
-        self._portal = portal
+        self._portal = portal  # Needed only to resolve linkTo references
+        self._noref = noref
         self._flattened_type_info = self._compute_flattened_schema_type_info(schema_json)
 
     @staticmethod
-    def load_from_file(file_name: str, portal: Optional[Portal] = None) -> Optional[dict]:
-        with open(file_name) as f:
-            return Schema(json.load(f), portal)
+    def load_from_file(file: str, portal: Optional[Portal] = None, noref: bool = False) -> Optional[dict]:
+        with open(file) as f:
+            return Schema(json.load(f), portal, noref=noref)
 
     @staticmethod
-    def load_by_name(file_or_schema_name: str, portal: Optional[Portal]) -> Optional[dict]:
-        return Schema(portal.get_schema(Utils.get_type_name(file_or_schema_name)), portal) if portal else None
+    def load_by_name(name: str, portal: Portal, noref: bool = False) -> Optional[dict]:
+        return Schema(portal.get_schema(Utils.get_type_name(name)), portal, noref=noref) if portal else None
 
     def map_value(self, flattened_column_name: str, value: str) -> Optional[Any]:
         flattened_column_name = self._normalize_flattened_column_name(flattened_column_name)
@@ -481,6 +480,8 @@ class Schema:
 
     def _map_function_ref(self, type_info: dict) -> Callable:
         def map_value_ref(value: str, link_to: str, portal: Optional[Portal]) -> Any:
+            if self._noref:
+                return value
             if not value:
                 nonlocal type_info
                 if (column := type_info.get("column")) and column in self.data.get("required", []):
@@ -537,7 +538,7 @@ class RowReader(abc.ABC):
         for column in header or []:
             if not (column := str(column).strip() if column is not None else ""):
                 self._warning_empty_header_columns = True
-                break  # If empty header column encountered then signals end of header.
+                break  # Empty header column signals end of header.
             self._header.append(column)
 
     @abc.abstractproperty
@@ -616,8 +617,7 @@ class ExcelSheetReader(RowReader):
             yield row
 
     def is_terminating_row(self, row: Tuple[Optional[Any]]) -> bool:
-        # If an empty row is encountered then it signals the end of the data.
-        return all(cell is None for cell in row)
+        return all(cell is None for cell in row)  # Empty row signals end of data.
 
     @property
     def sheet_name(self) -> str:
