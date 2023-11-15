@@ -76,7 +76,7 @@ def main() -> None:
                 for index, data in enumerate(data_of_type):
                     for validation_error in schema_validator.iter_errors(data):
                         print(f">>> Validation Error: {data_type} [{index}]:")
-                        print(validation_error)
+                        print(validation_error.message)
             elif args.verbose:
                 print(f">>> No schema found for type: {data_type}")
 
