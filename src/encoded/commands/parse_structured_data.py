@@ -1,9 +1,9 @@
 import argparse
 import json
 from jsonschema import Draft7Validator as JsonSchemaValidator
-from typing import Optional
+from typing import List, Optional, Tuple
 import yaml
-from dcicutils.bundle_utils import load_items as sheet_utils_load_items
+from dcicutils.bundle_utils import load_items as sheet_utils_load_items, RefHint
 from encoded.ingestion.loadxl_extensions import load_data_into_database
 from encoded.ingestion.structured_data import Portal, Schema, StructuredDataSet
 from encoded.project.loadxl import ITEM_INDEX_ORDER
@@ -37,27 +37,44 @@ def main() -> None:
                         default=False, help=f"Verbose output.")
     args = parser.parse_args()
 
+    if args.noref:
+        if args.new:
+            # Manually override the Schema._map_function_ref function to not check for linkTo references.
+            Schema._map_function_ref = lambda self, type_info: lambda value: value
+        else:
+            # Manually override the RefHint._apply_ref_hint function to not check for linkTo references.
+            RefHint._apply_ref_hint = lambda self, value: value
+
     if args.load or args.local:
         portal = Portal.create_for_local_testing(ini_file=args.load_ini)
     else:
         portal = Portal.create_for_unit_testing()
 
     if args.verbose:
-        print(f">>> Loading structured data from: {args.file} ...")
-    structured_data_set = parse_structured_data(file=args.file,
-                                                portal=portal,
-                                                new=args.new,
-                                                noref=args.noref,
-                                                noschemas=args.noschemas)
+        print(f">>> Loading structured data", end="")
+        if args.validate:
+            print(" with validation", end="")
+        print(f" from: {args.file} ...")
+
+    structured_data_set, problems = parse_structured_data(file=args.file,
+                                                          portal=portal,
+                                                          new=args.new,
+                                                          validate=args.validate,
+                                                          noschemas=args.noschemas)
+
     print(f">>> Structured Data:")
     print(json.dumps(structured_data_set, indent=4, default=str))
+
+    if args.validate:
+        print(f">>> Validation Results:")
+        print(yaml.dump(problems))
 
     if args.schemas:
         if args.verbose:
             print(">>> Dumping schemas referenced by structured data ...")
         for data_type in structured_data_set:
             data_of_type = structured_data_set[data_type]
-            schema = Schema.load_by_name(data_type, portal, noref=args.noref)
+            schema = Schema.load_by_name(data_type, portal)
             schema = schema.data if schema else None
             if schema:
                 print(f">>> Schema: {data_type}")
@@ -65,23 +82,6 @@ def main() -> None:
             elif args.verbose:
                 print(f">>> No schema found for type: {data_type}")
         return
-
-    if args.validate:
-        if args.verbose:
-            print(">>> Validating structured data using associated schemas ...")
-        for data_type in structured_data_set:
-            data_of_type = structured_data_set[data_type]
-            schema = Schema.load_by_name(data_type, portal, noref=args.noref)
-            schema = schema.data if schema else None
-            if schema:
-                schema_format_checker = JsonSchemaValidator.FORMAT_CHECKER if not args.no_format_validate else None
-                schema_validator = JsonSchemaValidator(schema, format_checker=schema_format_checker)
-                for index, data in enumerate(data_of_type):
-                    for validation_error in schema_validator.iter_errors(data):
-                        print(f">>> Validation Error: {data_type} [{index}]:")
-                        print(validation_error.message)
-            elif args.verbose:
-                print(f">>> No schema found for type: {data_type}")
 
     if args.load:
         if args.verbose:
@@ -95,22 +95,25 @@ def main() -> None:
 
 def parse_structured_data(file: str,
                           portal: Optional[Portal],
+                          validate: bool = False,
                           new: bool = False,
-                          noref: bool = False,
-                          noschemas: bool = False) -> Optional[dict]:
+                          noschemas: bool = False) -> Tuple[Optional[dict], Optional[List[str]]]:
     if new:
         if noschemas:
             portal = None
-        data = StructuredDataSet(file, portal=portal, order=ITEM_INDEX_ORDER, noref=noref).data
+        structured_data = StructuredDataSet(file, portal=portal, order=ITEM_INDEX_ORDER)
+        problems = structured_data.validate() if validate else []
+        data = structured_data.data
     else:
-        portal_vapp = portal.vapp if portal else None
-        data = sheet_utils_load_items(file, portal_vapp=portal_vapp,
-                                      validate=True, apply_heuristics=False,
+        data = sheet_utils_load_items(file, portal_vapp=portal.vapp if portal else None,
+                                      validate=validate, apply_heuristics=True,
                                       sheet_order=ITEM_INDEX_ORDER, noschemas=noschemas)
         if not noschemas:
-            _ = data[1]  # problems unused the moment
+            problems = data[1] or []
             data = data[0]
-    return data
+        else:
+            problems = []
+    return data, problems
 
 
 if __name__ == "__main__":
