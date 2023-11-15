@@ -85,7 +85,8 @@
                     "Quality Control",
                     "Read Manipulation",
                     "Testing",
-                    "Variant Calling"
+                    "Variant Calling",
+                    "Variant Manipulation"
                 ]
             }
         },
@@ -187,7 +188,7 @@
                     "enum": [
                         "wait_and_retry"
                     ],
-					"default": "wait_and_retry"
+                    "default": "wait_and_retry"
                 },
                 "cpu": {
                     "title": "CPU",

@@ -88,7 +88,8 @@
                     "Format Conversion",
                     "Read Manipulation",
                     "Quality Control",
-                    "Variant Calling"
+                    "Variant Calling",
+                    "Variant Manipulation"
                 ]
             }
         },
@@ -125,101 +126,7 @@
                         "linkTo": "Workflow"
                     },
                     "input": {
-                        "title": "Workflow Inputs",
-                        "type": "array",
-                        "minItems": 1,
-                        "items": {
-                            "type": "object",
-                            "additionalProperties": false,
-                            "required": [
-                                "argument_name",
-                                "argument_type"
-                            ],
-                            "properties": {
-                                "argument_name": {
-                                    "title": "Input Argument Name",
-                                    "type": "string"
-                                },
-                                "argument_type": {
-                                    "title": "Input Argument type",
-                                    "description": "input argument type (either file or parameter)",
-                                    "type": "string",
-                                    "enum": [
-                                        "file",
-                                        "parameter"
-                                    ]
-                                },
-                                "value": {
-                                    "title": "Value",
-                                    "description": "a specific input parameter value",
-                                    "type": [
-                                        "string",
-                                        "integer",
-                                        "number",
-                                        "boolean",
-                                        "array",
-                                        "object"
-                                    ]
-                                },
-                                "value_type": {
-                                    "title": "Expected Value Type",
-                                    "description": "Expected type of the specific input parameter value",
-                                    "type": "string",
-                                    "enum": [
-                                        "string",
-                                        "integer",
-                                        "float",
-                                        "boolean",
-                                        "array",
-                                        "object"
-                                    ]
-                                },
-                                "source": {
-                                    "title": "Source Workflow",
-                                    "description": "Where this input file came from (source workflow name). If this field is null or undefined, the input is global and not from another workflow's output.",
-                                    "type": "string"
-                                },
-                                "source_argument_name": {
-                                    "title": "Argument name in the Source Workflow",
-                                    "description": "Output argument name in the source workflow",
-                                    "type": "string"
-                                },
-                                "scatter": {
-                                    "title": "Scatter",
-                                    "description": "The input dimension decrease if scattered into mutiple runs (default: not set)",
-                                    "type": "integer"
-                                },
-                                "gather": {
-                                    "title": "Gather",
-                                    "description": "The input dimension increase from multiple runs of the source workflow (default: not set)",
-                                    "type": "integer"
-                                },
-                                "extra_dimension": {
-                                    "title": "Extra Dimension",
-                                    "description": "The extra input dimension increase other than that defined by gather (default: not set)",
-                                    "type": "integer"
-                                },
-                                "mount": {
-                                    "title": "Mount",
-                                    "description": "Whether the input is mounted",
-                                    "type": "boolean"
-                                },
-                                "rename": {
-                                    "title": "Rename",
-                                    "description": "What the input should be renamed to when downloaded to EC2 for execution",
-                                    "type": "string"
-                                },
-                                "unzip": {
-                                    "title": "Unzip",
-                                    "description": "How the input should be decompressed when downloaded to EC2 for execution",
-                                    "type": "string",
-                                    "enum": [
-                                        "gz",
-                                        "bz2"
-                                    ]
-                                }
-                            }
-                        }
+                        "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input"
                     },
                     "dependencies": {
                         "title": "Dependencies",
@@ -286,43 +193,16 @@
                 ],
                 "properties": {
                     "argument_name": {
-                        "title": "Argument Name",
-                        "description": "Name of the workflow, unique within the meta workflow",
-                        "type": "string"
+                        "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/properties/argument_name"
                     },
                     "argument_type": {
-                        "title": "Argument Type",
-                        "description": "Name of the workflow, unique within the meta workflow",
-                        "type": "string",
-                        "enum": [
-                            "file",
-                            "parameter"
-                        ]
+                        "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/properties/argument_type"
                     },
                     "value": {
-                        "title": "Value",
-                        "description": "a specific input parameter value",
-                        "type": [
-                            "string",
-                            "integer",
-                            "number",
-                            "boolean",
-                            "array",
-                            "object"
-                        ]
+                        "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/properties/value"
                     },
                     "value_type": {
-                        "title": "Expected Value Type",
-                        "description": "Expected type of the specific input parameter value",
-                        "type": "string",
-                        "enum": [
-                            "string",
-                            "integer",
-                            "float",
-                            "boolean",
-                            "array",
-                            "object"
-                        ]
+                        "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/properties/value_type"
                     },
                     "files": {
                         "title": "Default files",
