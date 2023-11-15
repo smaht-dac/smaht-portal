@@ -10,6 +10,9 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
     return (
         <div className="container">
             <div id="timeline" className={`${currentTier}`}>
+                <span className="latest-release ml-6">
+                    <b>Latest Release: </b>September 29, 2023
+                </span>
                 <div
                     className={
                         'timeline-item ' +
@@ -52,11 +55,14 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     setCurrentTier('benchmarking')
                                 }
                                 values={[
-                                    { number: 2, units: 'Cell Lines' },
-                                    { number: 24, units: 'Files Generated' },
+                                    { number: 2, units: ['Cell', 'Lines'] },
+                                    {
+                                        number: '123,456',
+                                        units: ['Files', 'Generated'],
+                                    },
                                     {
                                         number: 12,
-                                        units: 'Proposed Assay Types',
+                                        units: ['Proposed', 'Assay Types'],
                                     },
                                 ]}
                             />
@@ -69,11 +75,14 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     setCurrentTier('benchmarking')
                                 }
                                 values={[
-                                    { number: 0, units: 'Cell Lines' },
-                                    { number: 0, units: 'Files Generated' },
+                                    { number: 0, units: ['Cell', 'Lines'] },
                                     {
                                         number: 0,
-                                        units: 'Proposed Assay Types',
+                                        units: ['Files', 'Generated'],
+                                    },
+                                    {
+                                        number: 0,
+                                        units: ['Proposed', 'Assay Types'],
                                     },
                                 ]}
                             />
@@ -86,11 +95,14 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     setCurrentTier('benchmarking')
                                 }
                                 values={[
-                                    { number: 0, units: 'Cell Lines' },
-                                    { number: 0, units: 'Files Generated' },
+                                    { number: 0, units: ['Cell', 'Lines'] },
                                     {
                                         number: 0,
-                                        units: 'Proposed Assay Types',
+                                        units: ['Files', 'Generated'],
+                                    },
+                                    {
+                                        number: 0,
+                                        units: ['Proposed', 'Assay Types'],
                                     },
                                 ]}
                             />
@@ -103,11 +115,14 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     setCurrentTier('benchmarking')
                                 }
                                 values={[
-                                    { number: 0, units: 'Cell Lines' },
-                                    { number: 0, units: 'Files Generated' },
+                                    { number: 0, units: ['Cell', 'Lines'] },
                                     {
                                         number: 0,
-                                        units: 'Proposed Assay Types',
+                                        units: ['Files', 'Generated'],
+                                    },
+                                    {
+                                        number: 0,
+                                        units: ['Proposed', 'Assay Types'],
                                     },
                                 ]}
                             />
@@ -153,11 +168,17 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     setCurrentTier('expansion')
                                 }
                                 values={[
-                                    { number: 21, units: 'Primary Tissues' },
-                                    { number: 24, units: 'Files Generated' },
+                                    {
+                                        number: 21,
+                                        units: ['Primary', 'Tissues'],
+                                    },
+                                    {
+                                        number: 24,
+                                        units: ['Files', 'Generated'],
+                                    },
                                     {
                                         number: 12,
-                                        units: 'Proposed Assay Types',
+                                        units: ['Proposed', 'Assay Types'],
                                     },
                                 ]}
                             />
@@ -203,11 +224,17 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     setCurrentTier('production')
                                 }
                                 values={[
-                                    { number: 21, units: 'Primary Tissues' },
-                                    { number: 24, units: 'Files Generated' },
+                                    {
+                                        number: 21,
+                                        units: ['Primary', 'Tissues'],
+                                    },
+                                    {
+                                        number: 24,
+                                        units: ['Files', 'Generated'],
+                                    },
                                     {
                                         number: 12,
-                                        units: 'Proposed Assay Types',
+                                        units: ['Proposed', 'Assay Types'],
                                     },
                                 ]}
                             />
@@ -304,10 +331,14 @@ const TimelineCardContent = ({ values }) => {
         <>
             {values.map(({ number, units }, i) => {
                 return (
-                    <a className="number-group" key={i}>
+                    <div className="number-group" key={i}>
                         <h4>{number}</h4>
-                        <span>{units}</span>
-                    </a>
+                        <div>
+                            {units.map((line) => (
+                                <span>{line}</span>
+                            ))}
+                        </div>
+                    </div>
                 );
             })}
         </>

@@ -71,7 +71,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     role="button"
                                     className="w-100 py-2 btn">
                                     NIH SMaHT Homepage
-                                    <i className="icon-external-link-alt icon icon-xs fas ml-1" />
+                                    <i className="icon-external-link-alt icon icon-xs fas ml-2" />
                                 </a>
                             </div>
                             <div className="col-12 col-md-6 col-lg-3">
@@ -82,7 +82,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     role="button"
                                     className="w-100 py-2 btn">
                                     SMaHT OC Homepage
-                                    <i className="icon-external-link-alt icon icon-xs fas ml-1" />
+                                    <i className="icon-external-link-alt icon icon-xs fas ml-2" />
                                 </a>
                             </div>
                             <div className="col-12 col-md-6 col-lg-3">
@@ -93,7 +93,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     role="button"
                                     className="w-100 py-2 btn">
                                     SMaHT Overview Video
-                                    <i className="icon-external-link-alt icon text-xs fas ml-1" />
+                                    <i className="icon-external-link-alt icon text-xs fas ml-2" />
                                 </a>
                             </div>
                             {/** @TODO: Link might change */}

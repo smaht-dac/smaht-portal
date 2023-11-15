@@ -482,9 +482,8 @@
 
 // HomePage ONLY
 body[data-path="/"]>#application>#layout {
-	background: url(/static/img/polygon-bg.png), linear-gradient(303deg, #CCF6FC 0.52%, #FFF 99.55%);
+	background: linear-gradient(to bottom right, #FFFFFF, #E3FCFF);
 }
-
 .homepage-wrapper {
 
 	
@@ -530,7 +529,7 @@ body[data-path="/"]>#application>#layout {
 			@include prefix(border-radius, $homepage-card-border-radius);
 
 			h3 {
-				color: #1E366C;
+				color: #416485;
 				font-weight: 600;
 				font-size: 20px;
 				margin: 0px auto 20px 0px;
@@ -541,9 +540,11 @@ body[data-path="/"]>#application>#layout {
 			a {
 				background-color: $homepage-about-consort-btn-bg-color;
 				border: 1px solid $homepage-about-consort-btn-border-color;
-				color: #0E3669;
-				font-weight: 600;
+				color: #416485;
+				font-weight: 500;
 				font-size: 14px;
+				letter-spacing: normal;
+				line-height: normal;
 				@include prefix(border-radius, $homepage-about-consort-border-radius);
 				> i {
 					color: #BBCCF9;

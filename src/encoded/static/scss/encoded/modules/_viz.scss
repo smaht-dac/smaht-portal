@@ -29,6 +29,15 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         width: 100%;
     }
 
+    .latest-release {
+        font-size: 12px;
+        color: $homepage-subtitle-text-color;
+
+        b {
+            font-weight: 600;
+        }
+    }
+
     .timeline-item {
         padding-bottom: 20px;
         position: relative;
@@ -36,7 +45,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
         &:before {
             content: '';
-            width: 3px;
+            width: 2px;
             height: 100%;
             background: $homepage-timeline-border-color;
             left: 0;
@@ -175,7 +184,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 &-body {
                     display: flex;
                     flex-direction: column;
-                    justify-content: space-evenly;
+                    justify-content: space-between;
                     padding: 0px 5%;
                     position: relative;
                 
@@ -184,7 +193,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         display: flex;
                         flex-direction: row;
                         justify-content: center;
-                        width: 100%;
                         padding: 0px;
 
                         &:hover {
@@ -198,12 +206,26 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             color: $homepage-card-text-color;
                             margin-right: 10px;
                         }
-                        span {
-                            font-size: 12px;
-                            font-weight: 500;
-                            color: $homepage-card-text-color;
-                            margin: auto 10px auto 0px;
-                            width: 80px;
+                        div {
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: flex-start;
+                            margin: auto auto auto 0;
+
+                            span {
+                                font-size: 12px;
+                                font-weight: 500;
+                                color: $homepage-card-text-color;
+                                width: max-content;
+                                margin: auto auto auto 0;
+
+                                &:first-of-type {
+                                    margin-bottom: -3px;
+                                }
+                                &:last-of-type {
+                                    margin-bottom: -2px;
+                                }
+                            }
                         }
                     }
                 }
@@ -258,7 +280,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             }
             .accordion .card-body {
                 flex-direction: row;
-                padding: 10px 43px;
+                // padding: 10px 43px;
             }
         }
         @media screen and (min-width: 767px) {
@@ -283,7 +305,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                                 }
                             }
                             &-button {
-                                padding: 20px 40px 15px 20px;
+                                padding: 10px 40px 10px 20px;
                             }
                             &-link {
                                 right: 20px;
@@ -306,7 +328,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             }
             .accordion .card-body {
                 flex-direction: row;
-                padding: 10px 43px;
+                // padding: 10px 43px;
             }
         }
         
@@ -330,7 +352,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             margin: auto;
             width: 100%;
             margin-bottom: 20px;
-
             background-color: transparent;
             border: none;
             box-shadow: none;
@@ -359,9 +380,9 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 margin: auto;
                 max-height: none;
                 // padding: 15px 25px;
+                background-color: #FFFFFF;
                 @include prefix(border-radius, 10px);
-                background-color: hsla(0, 0, 200, .6);
-                @include prefix(box-shadow, 0px 0px 12px hsla(209, 72, 78, .31));
+                @include prefix(box-shadow, 0px 0px 12px hsla(209, 72, 78, .50));
 
                 .card-list {
                     // margin: auto auto auto 40px;
@@ -445,7 +466,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 position: absolute;
                 height: 32px;
                 width: 100px;
-                background-color: #DFFBF6;
+                background-color: $azure;
                 border-radius: 15px;
                 border: 2px solid #A4ECD5;
                 top: 3px;
@@ -531,7 +552,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         &-content {
             .card {
                 &-header {
-                    margin: 10px 0px;
+                    margin: 0px;
                 }
                 &-body {
                     width: 350px;
@@ -702,8 +723,8 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             }
         }
         &-tier-selector {
-            margin-top: 30px;
-            margin-bottom: 10px;
+            margin-top: 40px;
+            margin-bottom: 0px;
     
             .footnote {
                 margin-bottom: 5px;
