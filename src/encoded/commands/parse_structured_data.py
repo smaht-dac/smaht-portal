@@ -8,6 +8,9 @@ from encoded.ingestion.loadxl_extensions import load_data_into_database
 from encoded.ingestion.structured_data import Portal, Schema, StructuredDataSet
 from encoded.project.loadxl import ITEM_INDEX_ORDER
 
+# For dev/testing only.
+# Parsed and optionally loads a structured CSV or Excel file
+# using either ingestion.structured_data or dcicutils.sheet_utils.
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Parse local structured data file for dev/testing purposes.")
