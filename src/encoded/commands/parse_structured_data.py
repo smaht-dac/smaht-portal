@@ -6,6 +6,7 @@ import yaml
 from dcicutils.bundle_utils import load_items as sheet_utils_load_items
 from encoded.ingestion.loadxl_extensions import load_data_into_database
 from encoded.ingestion.structured_data import Portal, Schema, StructuredDataSet
+from encoded.project.loadxl import ITEM_INDEX_ORDER
 
 
 def main() -> None:
@@ -92,10 +93,14 @@ def main() -> None:
 def parse_structured_data(file: str, portal: Optional[Portal],
                           new: bool = False, noschemas: bool = False) -> Optional[dict]:
     if new:
-        data = StructuredDataSet(file, portal=portal if not noschemas else None).data
+        if noschemas:
+            portal = None
+        data = StructuredDataSet(file, portal=portal, order=ITEM_INDEX_ORDER).data
     else:
         portal_vapp = portal.vapp if portal else None
-        data = sheet_utils_load_items(file, portal_vapp=portal_vapp, validate=True, apply_heuristics=False, noschemas=noschemas)
+        data = sheet_utils_load_items(file, portal_vapp=portal_vapp,
+                                      validate=True, apply_heuristics=False,
+                                      sheet_order=ITEM_INDEX_ORDER, noschemas=noschemas)
         if not noschemas:
             _ = data[1]  # problems unused the moment
             data = data[0]

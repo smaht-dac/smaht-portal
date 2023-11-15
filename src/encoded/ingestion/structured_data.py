@@ -13,7 +13,7 @@ import re
 import shutil
 import tarfile
 import tempfile
-from typing import Any, Callable, Generator, Iterator, List, Optional, TextIO, Tuple, Type, Union
+from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Type, Union
 from webtest.app import TestApp
 import zipfile
 from dcicutils.ff_utils import get_metadata, get_schema
@@ -30,10 +30,10 @@ from snovault.loadxl import create_testapp
 # Spare time exercise, with benefit of sheet_utils implementation experience.
 
 ACCEPTABLE_FILE_SUFFIXES = [".csv", ".json", ".xls", ".xlsx", ".gz", ".tar", ".tar.gz", ".tgz", ".zip"]
-ARRAY_NAME_SUFFIX_CHAR = "#"
-ARRAY_NAME_SUFFIX_REGEX = re.compile(rf"{ARRAY_NAME_SUFFIX_CHAR}\d+")
 ARRAY_VALUE_DELIMITER_CHAR = "|"
 ARRAY_VALUE_DELIMITER_ESCAPE_CHAR = "\\"
+ARRAY_NAME_SUFFIX_CHAR = "#"
+ARRAY_NAME_SUFFIX_REGEX = re.compile(rf"{ARRAY_NAME_SUFFIX_CHAR}\d+")
 DOTTED_NAME_DELIMITER_CHAR = "."
 PRUNE_STRUCTURED_DATA_SET = True
 
@@ -49,15 +49,18 @@ class StructuredDataSet:
 
     def __init__(self, file: Optional[str] = None,
                  portal: Optional[Union[VirtualApp, TestApp, Portal]] = None,
+                 order: Optional[List[str]] = None,
                  prune: bool = PRUNE_STRUCTURED_DATA_SET) -> None:
         self.data = {}
-        self._portal = Portal(portal) if portal else None
+        self._portal = Portal(portal, loading_data_set=self.data) if portal else None
+        self._order = order
         self._prune = prune
         self.load_file(file)
 
     @staticmethod
-    def load(file: str, portal: Union[VirtualApp, TestApp, Portal]) -> Tuple[dict, Optional[List[str]]]:
-        structured_data_set = StructuredDataSet(file=file, portal=portal)
+    def load(file: str, portal: Union[VirtualApp, TestApp, Portal],
+             order: Optional[List[str]] = None) -> Tuple[dict, Optional[List[str]]]:
+        structured_data_set = StructuredDataSet(file=file, portal=portal, order=order)
         return structured_data_set.data, structured_data_set.validate()
 
     def load_file(self, file: str) -> None:
@@ -79,7 +82,7 @@ class StructuredDataSet:
         if file.endswith(".csv"):
             self.load_csv_file(file)
         elif file.endswith(".xls") or file.endswith(".xlsx"):
-            self.load_excel_file(file)
+            self.load_excel_file(file, self._order)
         elif file.endswith(".json"):
             self.load_json_file(file)
         elif UnpackUtils.is_packed_file(file):
@@ -89,9 +92,24 @@ class StructuredDataSet:
         StructuredData.load_from_csv_file(file, portal=self._portal,
                                           addto=lambda data: self.add(Utils.get_type_name(file), data))
 
-    def load_excel_file(self, file: str) -> None:
+    def load_excel_file(self, file: str, order: Optional[List[str]] = None) -> None:
+
+        def ordered_sheet_names(sheet_names: List[str]) -> List[str]:
+            nonlocal order
+            if not order:
+                return sheet_names
+            ordered_sheet_names = []
+            for item in order:
+                for sheet_name in sheet_names:
+                    if Utils.get_type_name(item) == Utils.get_type_name(sheet_name):
+                        ordered_sheet_names.append(sheet_name)
+            for sheet_name in sheet_names:
+                if sheet_name not in ordered_sheet_names:
+                    ordered_sheet_names.append(sheet_name)
+            return ordered_sheet_names
+
         excel = Excel(file)
-        for sheet_name in excel.sheet_names:
+        for sheet_name in ordered_sheet_names(excel.sheet_names):
             StructuredData.load_from_excel_sheet(excel, sheet_name, portal=self._portal,
                                                  addto=lambda data: self.add(Utils.get_type_name(sheet_name), data))
 
@@ -365,7 +383,7 @@ class Schema:
                     raise Exception(f"Invalid array type specifier in JSON schema: {key}")
                 result.update(self._compute_flattened_schema_type_info(array_property_items, parent_key=key))
                 continue
-            result[key] = {"type": property_value_type, "map": self._map_function(property_value)}
+            result[key] = {"type": property_value_type, "map": self._map_function({**property_value, "column": key})}
         return result
 
     @staticmethod
@@ -448,13 +466,6 @@ class Schema:
             return Utils.to_integer(value, value)
         return map_value_integer
 
-    def _map_function_ref(self, type_info: dict) -> Callable:
-        def map_value_ref(value: str, link_to: str, portal: Optional[Portal]) -> Any:
-            if link_to and portal and not portal.ref_exists(link_to, value):
-                raise Exception(f"Cannot resolve reference (linkTo): {link_to}/{value}")
-            return value
-        return lambda value: map_value_ref(value, type_info.get("linkTo"), self._portal)
-
     def _map_function_number(self, type_info: dict) -> Callable:
         def map_value_number(value: str) -> Any:
             try:
@@ -467,6 +478,22 @@ class Schema:
         def map_value_string(value: str) -> str:
             return value if value is not None else ""
         return map_value_string
+
+    def _map_function_ref(self, type_info: dict) -> Callable:
+        def map_value_ref(value: str, link_to: str, portal: Optional[Portal]) -> Any:
+            if not value:
+                nonlocal type_info
+                if (column := type_info.get("column")) and column in self.data.get("required", []):
+                    raise Exception(f"No required reference (linkTo) value for: {self._ref_info(link_to, value)}")
+                return True
+            if link_to and portal and not portal.ref_exists(link_to, value):
+                raise Exception(f"Cannot resolve reference (linkTo) for: {self._ref_info(link_to, value)}")
+            return value
+        return lambda value: map_value_ref(value, type_info.get("linkTo"), self._portal)
+
+    def _ref_info(self, link_to: str, value: str) -> str:
+        link_from = Utils.get_type_name(self.data.get("title"))
+        return f"{link_to}" + (f"/{value}" if value else "") + (f" (from {link_from})" if link_from else "")
 
     def _map_function_name(self, map_function: Callable) -> str:
         # This is ONLY for testing/troubleshooting; get the NAME of the mapping function; this is HIGHLY
@@ -636,10 +663,7 @@ class Portal:
 
     @lru_cache(maxsize=256)
     def get_schema(self, schema_name: str) -> Optional[dict]:
-        try:
-            return get_schema(schema_name, portal_vapp=self.vapp)
-        except Exception:
-            return {}
+        return get_schema(schema_name, portal_vapp=self.vapp)
 
     @lru_cache(maxsize=256)
     def get_metadata(self, object_name: str) -> Optional[dict]:
@@ -649,11 +673,9 @@ class Portal:
             return None
 
     def ref_exists(self, type_name: str, value: str) -> bool:
-        if self._ref_exists_within_loading_data_set(type_name, value):
-            return True
-        return self.get_metadata(f"/{type_name}/{value}") is not None
+        return self._ref_exists_internally(type_name, value) or self.get_metadata(f"/{type_name}/{value}") is not None
 
-    def _ref_exists_within_loading_data_set(self, type_name: str, value: str) -> bool:
+    def _ref_exists_internally(self, type_name: str, value: str) -> bool:
         if self.loading_data_set and isinstance(items := self.loading_data_set.get(type_name), list):
             if (type_schema := self.get_schema(type_name)):
                 identifying_properties = set(type_schema.get("identifyingProperties", [])) | {"identifier", "uuid"}
@@ -661,9 +683,8 @@ class Portal:
                     for identifying_property in identifying_properties:
                         if (identifying_value := item.get(identifying_property)) is not None:
                             if isinstance(identifying_value, list):
-                                for identifying_value_item in identifying_value:
-                                    if identifying_value_item == value:
-                                        return True
+                                if value in identifying_value:
+                                    return True
                             elif identifying_value == value:
                                 return True
         return False
@@ -719,7 +740,7 @@ class UnpackUtils:
             ".tgz": UnpackUtils.unpack_targz_file_to_temporary_directory,
             ".zip": UnpackUtils.unpack_zip_file_to_temporary_directory
         }
-        return UNPACK_CONTEXT_MANAGERS.get(file[dot:]) if (dot := file.rfind("."))> 0 else None
+        return UNPACK_CONTEXT_MANAGERS.get(file[dot:]) if (dot := file.rfind(".")) > 0 else None
 
     @contextmanager
     @staticmethod
@@ -840,7 +861,7 @@ class Utils:
 
     @staticmethod
     def get_type_name(file_or_other_string: str) -> str:
-        name = os.path.basename(file_or_other_string or "").replace(" ", "")
+        name = os.path.basename(file_or_other_string or "").replace(" ", "") if file_or_other_string else ""
         return to_camel_case(name[0:dot] if (dot := name.rfind(".")) > 0 else name)
 
     @contextmanager

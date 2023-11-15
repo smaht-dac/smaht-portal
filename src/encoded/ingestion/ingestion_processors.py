@@ -3,6 +3,7 @@ from typing import Dict, List, Generator, Union
 from dcicutils.bundle_utils import load_items as load_via_sheet_utils
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
+from ..project.loadxl import ITEM_INDEX_ORDER
 from .data_validation import summary_of_data_validation_errors
 from .loadxl_extensions import load_data_into_database, summary_of_load_data_results
 from .structured_data import StructuredDataSet
@@ -44,6 +45,8 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
 def _load_data(submission: SmahtSubmissionFolio) -> Generator[Union[Dict[str, List[Dict]], Exception], None, None]:
     with submission.s3_file() as file:
         if USE_STRUCTURED_DATA:
-            yield StructuredDataSet.load(file, portal=submission.portal_vapp)
+            yield StructuredDataSet.load(file, portal=submission.portal_vapp, order=ITEM_INDEX_ORDER)
         else:
-            yield load_via_sheet_utils(file, portal_vapp=submission.portal_vapp, validate=True, apply_heuristics=True)
+            yield load_via_sheet_utils(file, portal_vapp=submission.portal_vapp,
+                                       validate=True, apply_heuristics=True,
+                                       sheet_order=ITEM_INDEX_ORDER)
