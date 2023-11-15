@@ -62,6 +62,14 @@
             "description": "The leader of the subsmission center",
             "type": "string",
             "linkTo": "User"
+        },
+        "submitter_code": {
+            "title": "Submitter Code",
+            "description": "Identifying code for the submission center's submitted items",
+            "type": "string",
+            "unique_key": true,
+            "pattern": "^[A-Z-]{4,}$",
+            "permission": "restricted_fields"
         }
     }
 }

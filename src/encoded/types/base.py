@@ -1,11 +1,19 @@
-import snovault
+from typing import Any, Dict, List, Optional, Union
+
+from dcicutils.misc_utils import PRINT
+from pyramid.request import Request
 from pyramid.view import view_config
-from snovault import abstract_collection, calculated_property
+from snovault import AbstractCollection, abstract_collection, calculated_property
+from snovault.crud_views import (
+    collection_add as sno_collection_add,
+    item_edit as sno_item_edit,
+)
+from snovault.validation import ValidationFailure
 from snovault.types.base import (
     Collection,
     DELETED_ACL,
+    Item as SnovaultItem,
 )
-from snovault.types.base import Item as SnovaultItem
 from snovault.util import debug_log
 from snovault.validators import (
     validate_item_content_post,
@@ -16,12 +24,9 @@ from snovault.validators import (
     no_validate_item_content_put,
     no_validate_item_content_patch
 )
-from snovault.crud_views import (
-    collection_add as sno_collection_add,
-    item_edit as sno_item_edit,
-)
-from dcicutils.misc_utils import PRINT
+
 from .acl import *
+from .utils import get_item_properties_via_request
 from ..local_roles import DEBUG_PERMISSIONS
 
 
@@ -48,7 +53,7 @@ def mixin_smaht_permission_types(schema: dict) -> dict:
     return schema
 
 
-class AbstractCollection(snovault.AbstractCollection):
+class AbstractCollection(AbstractCollection):
     """smth."""
 
     def __init__(self, *args, **kw):
@@ -280,3 +285,152 @@ def collection_add(context, request, render=None):
 @debug_log
 def item_edit(context, request, render=None):
     return sno_item_edit(context, request, render)
+
+
+class SubmittedSmahtCollection(SMAHTCollection):
+    pass
+
+
+@abstract_collection(
+    name="submitted-items",
+    properties={
+        "title": "SMaHT Submitted Item Listing",
+        "description": "Abstract collection of all submitted SMaHT items.",
+    }
+)
+class SubmittedItem(Item):
+    Collection = SubmittedSmahtCollection
+
+
+def validate_submitted_id_on_add(
+    context: SubmittedSmahtCollection,
+    request: Request,
+) -> None:
+    properties = get_properties_from_request(request)
+    submitted_id = get_submitted_id(properties)
+    submission_centers = get_submission_centers(properties)
+    validation_error = validate_submitted_id(request, submitted_id, submission_centers)
+    if validation_error:
+        raise validation_error
+
+
+def get_submitted_id(properties: Dict[str, Any]) -> str:
+    return properties.get("submitted_id", "")
+
+
+def get_submission_centers(properties: Dict[str, Any]) -> List[str]:
+    return properties.get("submission_centers", [])
+
+
+def get_properties_from_request(request: Request) -> Dict[str, Any]:
+    return request.json
+
+
+def validate_submitted_id(
+    request: Request, submitted_id: str, submission_centers: List[str]
+) -> Union[ValidationFailure, None]:
+    if not submitted_id or not submission_centers:
+        return get_missing_data_validation_failure(submitted_id, submission_centers)
+    return validate_submitted_id_submission_center_code(
+        request, submitted_id, submission_centers
+    )
+
+
+def get_missing_data_validation_failure(
+    submitted_id: str, submission_centers: List[str]
+) -> ValidationFailure:
+    return ValidationFailure("", "", "")
+
+
+def validate_submitted_id_submission_center_code(
+    request: Request, submitted_id: str, submission_centers: List[str]
+) -> Union[ValidationFailure, None]:
+    submitted_id_submission_center_code = get_submitted_id_submission_center_code(
+        submitted_id
+    )
+    submission_center_codes = get_submission_center_codes(request, submission_centers)
+    if submitted_id_submission_center_code not in submission_center_codes:
+        return ValidationFailure("", "", "")
+    return
+
+
+def get_submitted_id_submission_center_code(submitted_id: str) -> str:
+    split_submitted_id = submitted_id.split("_")
+    if split_submitted_id:
+        return split_submitted_id[0]
+    return ""
+
+
+def get_submission_center_codes(
+    request: Request, submission_centers: List[str]
+) -> List[str]:
+    submission_center_properties = [
+        get_submission_center(request, submission_center)
+        for submission_center in submission_centers
+    ]
+    return [
+        properties.get("submitter_code") for properties in submission_center_properties
+    ]
+
+
+def get_submission_center(request: Request, submission_center: str) -> Dict[str, Any]:
+    return get_item_properties_via_request(
+        request, submission_center, collection="SubmissionCenter"
+    )
+
+
+def validate_submitted_id_on_edit(
+    context: SubmittedItem,
+    request: Request,
+) -> None:
+    import pdb; pdb.set_trace()
+    existing_properties = get_properties_from_context(context)
+    properties_to_update = get_properties_from_request(request)
+    if does_update_require_validation(properties_to_update):
+        submitted_id = get_submitted_id_for_validation(
+            existing_properties, properties_to_update
+        )
+        submission_centers = get_submission_centers_for_validation(
+            properties_to_update, existing_properties
+        )
+        validation_error = validate_submitted_id(
+            request, submitted_id, submission_centers
+        )
+        if validation_error:
+            raise validation_error
+
+
+def get_properties_from_context(context: SubmittedItem) -> Dict[str, Any]:
+    return context.properties
+
+
+@view_config(
+    context=SubmittedSmahtCollection,
+    permission="add",
+    request_method="POST",
+    validators=[validate_item_content_post, validate_submitted_id_on_add],
+)
+@debug_log
+def submitted_collection_add(
+    context: SubmittedSmahtCollection, request: Request, render: Optional[bool] = None
+) -> Dict[str, Any]:
+    return collection_add(context, request, render)
+
+
+@view_config(
+    context=SubmittedItem,
+    permission="edit",
+    request_method="PUT",
+    validators=[validate_item_content_put, validate_submitted_id_on_edit],
+)
+@view_config(
+    context=SubmittedItem,
+    permission="edit",
+    request_method="PATCH",
+    validators=[validate_item_content_patch, validate_submitted_id_on_edit],
+)
+@debug_log
+def submitted_item_edit(
+    context: SubmittedItem, request: Request, render: Optional[bool] = None
+) -> Dict[str, Any]:
+    return item_edit(context, request, render)

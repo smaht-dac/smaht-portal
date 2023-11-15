@@ -21,9 +21,9 @@ def post_item(
 
 
 def patch_item(
-    testapp: TestApp, patch_body: Dict[str, Any], collection: str, status: int = 200
+    testapp: TestApp, patch_body: Dict[str, Any], identifier: str, status: int = 200
 ) -> Dict[str, Any]:
-    resource_path = get_formatted_resource_path(collection)
+    resource_path = get_formatted_resource_path(identifier)
     response = testapp.patch_json(resource_path, patch_body, status=status)
     if status == 200:
         return response.json["@graph"][0]

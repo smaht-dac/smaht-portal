@@ -1,6 +1,6 @@
 from snovault import abstract_collection, load_schema
 
-from .base import Item as SmahtItem
+from .base import SubmittedItem
 
 
 @abstract_collection(
@@ -9,6 +9,6 @@ from .base import Item as SmahtItem
         "title": "Subjects",
         "description": "Sources of biological material",
     })
-class Subject(SmahtItem):
+class Subject(SubmittedItem):
     item_type = "subject"
     schema = load_schema("encoded:schemas/subject.json")
