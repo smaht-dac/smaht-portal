@@ -478,7 +478,7 @@ class Schema:
     def _map_function_ref(self, type_info: dict) -> Callable:
         def map_value_ref(value: str, link_to: str, portal: Optional[Portal]) -> Any:
             if not value:
-                nonlocal type_info
+                nonlocal self, type_info
                 if (column := type_info.get("column")) and column in self.data.get("required", []):
                     raise Exception(f"No required reference (linkTo) value for: {self._ref_info(link_to, value)}")
                 return True
@@ -691,7 +691,7 @@ class Portal:
             if loading_data_set:
                 portal.loading_data_set = loading_data_set
             return portal
-        return Portal(portal, loading_data_set=self.data) if portal else None
+        return Portal(portal, loading_data_set=loading_data_set) if portal else None
 
     @staticmethod
     def create_for_testing(ini_file: Optional[str] = None) -> Portal:
