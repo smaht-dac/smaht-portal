@@ -40,4 +40,4 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
 @contextmanager
 def _load_data(submission: SmahtSubmissionFolio) -> Generator[Union[Dict[str, List[Dict]], Exception], None, None]:
     with submission.s3_file() as data_file_name:
-        yield load_items(data_file_name, portal_vapp=submission.portal_vapp, validate=True)
+        yield load_items(data_file_name, portal_vapp=submission.portal_vapp, validate=True, apply_heuristics=True)

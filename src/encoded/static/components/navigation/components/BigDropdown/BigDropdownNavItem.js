@@ -89,7 +89,7 @@ export class BigDropdownNavItem extends React.PureComponent {
         const closing = closingDropdownID === id;
         const isDesktopView = BigDropdownNavItem.isDesktopView(windowWidth);
         const navItemHref =
-            propNavItemHref || (menuTree && menuTree.name) || null;
+            propNavItemHref || (menuTree && menuTree.identifier) || null;
         const active =
             typeof propActive === 'boolean'
                 ? propActive
