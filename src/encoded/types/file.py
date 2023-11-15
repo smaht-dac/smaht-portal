@@ -8,10 +8,8 @@ from encoded_core.types.file import (
     File as CoreFile,
 )
 from encoded_core.file_views import (
-    validate_processed_file_unique_md5_with_bypass,
     validate_file_filename,
     validate_extra_file_format,
-    validate_processed_file_produced_from_field,
     drs as CoreDRS,
     download as CoreDownload,
     post_upload as CorePostUpload,
@@ -22,8 +20,10 @@ from snovault import (
     load_schema,
     abstract_collection,
 )
+from snovault.elasticsearch import ELASTIC_SEARCH
 from snovault.schema_utils import schema_validator
-from snovault.util import debug_log
+from snovault.search.search_utils import make_search_subreq
+from snovault.util import debug_log, get_item_or_none
 from snovault.validators import (
     validate_item_content_post,
     validate_item_content_put,
@@ -118,6 +118,67 @@ def post_upload(context, request):
              permission='view', subpath_segments=[0, 1])
 def download(context, request):
     return CoreDownload(context, request)
+
+
+def validate_processed_file_unique_md5_with_bypass(context, request):
+    """ validator to check md5 on output files, unless you tell it not to
+        This validator is duplicated from encoded-core because of processed file rename
+    """
+    # skip validator if not file output
+    if context.type_info.item_type != 'output_file':
+        return
+    data = request.json
+    if 'md5sum' not in data or not data['md5sum']:
+        return
+    if 'force_md5' in request.query_string:
+        return
+    # we can of course patch / put to ourselves the same md5 we previously had
+    if context.properties.get('md5sum') == data['md5sum']:
+        return
+
+    if ELASTIC_SEARCH in request.registry:
+        search = make_search_subreq(request, '/search/?type=File&md5sum=%s' % data['md5sum'])
+        search_resp = request.invoke_subrequest(search, True)
+        if search_resp.status_int < 400:
+            # already got this md5
+            found = search_resp.json['@graph'][0]['accession']
+            request.errors.add('body', 'File: non-unique md5sum', 'md5sum %s already exists for accession %s' %
+                               (data['md5sum'], found))
+    else:  # find it in the database
+        conn = request.registry['connection']
+        res = conn.get_by_json('md5sum', data['md5sum'], 'output_file')
+        if res is not None:
+            # md5 already exists
+            found = res.properties['accession']
+            request.errors.add('body', 'File: non-unique md5sum', 'md5sum %s already exists for accession %s' %
+                               (data['md5sum'], found))
+
+
+def validate_processed_file_produced_from_field(context, request):
+    """validator to make sure that the values in the
+    produced_from field are valid file identifiers"""
+    # skip validator if not file processed
+    if context.type_info.item_type != 'output_file':
+        return
+    data = request.json
+    if 'produced_from' not in data:
+        return
+    files_ok = True
+    files2chk = data['produced_from']
+    for i, f in enumerate(files2chk):
+        try:
+            fid = get_item_or_none(request, f, 'files').get('uuid')
+        except AttributeError:
+            files_ok = False
+            request.errors.add('body', 'File: invalid produced_from id', "'%s' not found" % f)
+            # bad_files.append(f)
+        else:
+            if not fid:
+                files_ok = False
+                request.errors.add('body', 'File: invalid produced_from id', "'%s' not found" % f)
+
+    if files_ok:
+        request.validated.update({})
 
 
 @view_config(context=File.Collection, permission='add', request_method='POST',

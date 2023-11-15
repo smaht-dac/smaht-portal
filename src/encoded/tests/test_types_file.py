@@ -27,6 +27,24 @@ def output_file(
     return post_item_and_return_location(testapp, item, "output_file")
 
 
+@pytest.fixture
+def output_file2(
+    testapp: TestApp,
+    test_consortium: Dict[str, Any],
+    file_formats: Dict[str, Dict[str, Any]],
+) -> Dict[str, Any]:
+    item = {
+        "file_format": file_formats.get(OUTPUT_FILE_FORMAT, {}).get("uuid", ""),
+        "md5sum": "00000000000000000000000000000002",
+        "filename": "my.fastq.gz",
+        "status": "in review",
+        "data_category": ["Sequencing Reads"],
+        "data_type": ["Unaligned Reads"],
+        "consortia": [test_consortium["uuid"]],
+    }
+    return post_item_and_return_location(testapp, item, "output_file")
+
+
 def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]) -> None:
     expected = (
         f"/output-files/{output_file.get('uuid')}/@@download/"
@@ -71,3 +89,12 @@ def test_upload_key(output_file: Dict[str, Any], file_formats: Dict[str, Dict[st
         f".{file_formats.get(OUTPUT_FILE_FORMAT, {}).get('standard_file_extension', '')}"
     )
     assert output_file.get("upload_key") == expected
+
+
+def test_output_file_force_md5(testapp: TestApp, output_file: Dict[str, Any], output_file2: Dict[str, Any],
+                               file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """ Tests that we can skip md5 check by passing ?force_md5 to patch output_file2 to md5 of output_file """
+    atid = output_file2['@id']
+    testapp.patch_json(f'/{atid}', {'md5sum': '00000000000000000000000000000001'}, status=422)  # fails without force_md5
+    testapp.patch_json(f'/{atid}?force_md5', {'md5sum': '00000000000000000000000000000001'}, status=200)
+
