@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from typing import Dict, List, Generator, Union
-from dcicutils.bundle_utils import load_items as load_via_sheet_utils
+from dcicutils.bundle_utils import load_items as parse_structured_data_via_sheet_utils
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
 from ..project.loadxl import ITEM_INDEX_ORDER
@@ -24,13 +24,13 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
 
 
 def _process_submission(submission: SmahtSubmissionFolio) -> None:
-    with _parse_data(submission) as data_tuple:
-        data = data_tuple[0]
-        validate_data_errors = data_tuple[1]
-        # validate_data_errors = validate_data_against_schemas(data, portal_vapp=submission.portal_vapp)
-        if validate_data_errors:
-            validate_data_summary = summary_of_data_validation_errors(validate_data_errors, submission)
-            submission.record_results(validate_data_errors, validate_data_summary)
+    with _parse_structured_data(submission) as data, validation_errors:
+        #data = data_tuple[0]
+        #validation_errors = data_tuple[1]
+        validation_errors = validate_data_against_schemas(data, portal_vapp=submission.portal_vapp)
+        if validation_errors:
+            validate_data_summary = summary_of_data_validation_errors(validation_errors, submission)
+            submission.record_results(validation_errors, validate_data_summary)
             # If there are data validation errors then trigger an exception so that a traceback.txt
             # file gets written to the S3 ingestion submission bucket to indicate that there is an error;
             # this is an exceptional situation that we just happened to have caught programmatically;
@@ -45,11 +45,11 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
 
 
 @contextmanager
-def _parse_data(submission: SmahtSubmissionFolio) -> Generator[Union[Dict[str, List[Dict]], Exception], None, None]:
+def _parse_structured_data(submission: SmahtSubmissionFolio) -> Generator[Union[Dict[str, List[Dict]], Exception], None, None]:
     with submission.s3_file() as file:
         if USE_STRUCTURED_DATA:
             yield StructuredDataSet.load(file, portal=submission.portal_vapp, order=ITEM_INDEX_ORDER)
         else:
-            yield load_via_sheet_utils(file, portal_vapp=submission.portal_vapp,
-                                       validate=True, apply_heuristics=True,
-                                       sheet_order=ITEM_INDEX_ORDER)
+            yield parse_structured_data_via_sheet_utils(file, portal_vapp=submission.portal_vapp,
+                                                        validate=True, apply_heuristics=True,
+                                                        sheet_order=ITEM_INDEX_ORDER)

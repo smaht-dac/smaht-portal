@@ -278,11 +278,6 @@ class Schema:
         self._flattened_type_info = self._compute_flattened_schema_type_info(schema_json)
 
     @staticmethod
-    def load_from_file(file: str, portal: Optional[Portal] = None) -> Optional[dict]:
-        with open(file) as f:
-            return Schema(json.load(f), portal)
-
-    @staticmethod
     def load_by_name(name: str, portal: Portal) -> Optional[dict]:
         return Schema(portal.get_schema(Utils.get_type_name(name)), portal) if portal else None
 
@@ -694,10 +689,6 @@ class Portal:
         return Portal(portal, loading_data_set=loading_data_set) if portal else None
 
     @staticmethod
-    def create_for_testing(ini_file: Optional[str] = None) -> Portal:
-        return Portal.create_for_local_testing(ini_file) if ini_file else Portal.create_for_unit_testing()
-
-    @staticmethod
     def create_for_unit_testing() -> Portal:
         minimal_ini_for_unit_testing = "[app:app]\nuse = egg:encoded\nsqlalchemy.url = postgresql://dummy\n"
         with Utils.temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
@@ -705,7 +696,7 @@ class Portal:
 
     @staticmethod
     def create_for_local_testing(ini_file: Optional[str] = None) -> Portal:
-        if ini_file:
+        if isinstance(ini_file, str):
             return Portal(create_testapp(ini_file))
         minimal_ini_for_local_testing = "\n".join([
             "[app:app]\nuse = egg:encoded",

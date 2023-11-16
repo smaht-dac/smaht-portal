@@ -168,8 +168,6 @@ export-data = "encoded.commands.export_data:main"
 extract-test-data = "encoded.commands.extract_test_data:main"
 generate-local-access-key = "snovault.commands.generate_local_access_key:main"
 view-local-object= "snovault.commands.view_local_object:main"
-parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/testing only
-flatten-structured-data= "encoded.commands.flatten_structured_data:main"  # For dev/testing only
 import-data = "encoded.commands.import_data:main"
 ingestion-listener = "snovault.ingestion.ingestion_listener:main"
 jsonld-rdf = "encoded.commands.jsonld_rdf:main"
@@ -194,6 +192,9 @@ submission-test = "encoded.commands.submission_test:main"
 # submit-metadata-bundle = "encoded.commands.submit_metadata_bundle:main"
 update-inserts-from-server = "encoded.commands.update_inserts_from_server:main"
 verify-item = "encoded.commands.verify_item:main"
+parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/testing only
+flatten-structured-data= "encoded.commands.flatten_structured_data:main"  # For dev/testing only
+show-schema= "encoded.commands.show_schema:main"  # For dev/testing only
 
 # container commands
 simulate-environment = "encoded.commands.simulate_environment:main"
