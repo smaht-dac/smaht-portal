@@ -53,7 +53,7 @@ def parse_structured_data(file: str, portal: Union[VirtualApp, TestApp, Portal],
         parsed_data = parse_structured_data_via_sheet_utils(file,
                                                             portal_vapp=portal,
                                                             validate=False,
-                                                            apply_heuristics=True,
+                                                            apply_heuristics=False,
                                                             sheet_order=ITEM_INDEX_ORDER)
         structured_data = StructuredDataSet(data=parsed_data, portal=portal)
     return (structured_data.data, structured_data.validate() if validate else [])
