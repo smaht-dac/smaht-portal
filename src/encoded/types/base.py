@@ -248,12 +248,37 @@ def create(context, request):
         }
 
 
+def validate_user_submission_consistency(context, request):
+    """ Validates that a user who is not admin is submitting data
+        under the consortia/submission centers that they are a
+        part of
+    """
+    user = request.environ.get('REMOTE_USER')
+    if not user or user in ['TEST', 'INDEXER', 'EMBED', 'TEST_SUBMITTER']:
+        return
+    user = request.embed(f'/users/{user}?frame=raw')
+    if 'group.admin' in user.get('groups', []):
+        return
+    user_consortia = user.get('consortia', [])
+    user_submission_centers = user.get('submission_centers', [])
+    data = request.validated
+    for consortium in data.get('consortia', []):
+        if consortium not in user_consortia:
+            request.errors.add('body', f'Item: invalid consortium {consortium}',
+                                       f'user only has {user_consortia}')
+    for submission_center in data.get('submission_centers', []):
+        if submission_center not in user_submission_centers:
+            request.errors.add('body', f'Item: invalid submission center {submission_center}',
+                               f'user only has {user_submission_centers}')
+
+
 @view_config(
     context=SMAHTCollection,
     permission='add',
     request_method='POST',
     # validators=[]  # TURNS OFF VALIDATION HERE ([validate_item_content_post] previously)
-    validators=[validate_item_content_post]
+    validators=[validate_item_content_post,
+                validate_user_submission_consistency]
 )
 @view_config(
     context=SMAHTCollection,
@@ -268,17 +293,22 @@ def collection_add(context, request, render=None):
 
 
 @view_config(context=Item, permission='edit', request_method='PUT',
-             validators=[validate_item_content_put])
+             validators=[validate_item_content_put,
+                         validate_user_submission_consistency])
 @view_config(context=Item, permission='edit', request_method='PATCH',
-             validators=[validate_item_content_patch])
+             validators=[validate_item_content_patch,
+                         validate_user_submission_consistency])
 @view_config(context=Item, permission='edit_unvalidated', request_method='PUT',
-             validators=[no_validate_item_content_put],
+             validators=[no_validate_item_content_put,
+                         validate_user_submission_consistency],
              request_param=['validate=false'])
 @view_config(context=Item, permission='edit_unvalidated', request_method='PATCH',
-             validators=[no_validate_item_content_patch],
+             validators=[no_validate_item_content_patch,
+                         validate_user_submission_consistency],
              request_param=['validate=false'])
 @view_config(context=Item, permission='index', request_method='GET',
-             validators=[validate_item_content_in_place],
+             validators=[validate_item_content_in_place,
+                         validate_user_submission_consistency],
              request_param=['check_only=true'])
 @debug_log
 def item_edit(context, request, render=None):

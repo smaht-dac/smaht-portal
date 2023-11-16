@@ -39,6 +39,7 @@ from .base import (
     Item as SMAHTItem,
     collection_add,
     item_edit,
+    validate_user_submission_consistency
 )
 
 
@@ -208,7 +209,8 @@ def validate_processed_file_produced_from_field(context, request):
                          validate_file_filename,
                          validate_extra_file_format,
                          validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field])
+                         validate_processed_file_produced_from_field,
+                         validate_user_submission_consistency])
 @view_config(context=File.Collection, permission='add_unvalidated', request_method='POST',
              validators=[no_validate_item_content_post],
              request_param=['validate=false'])
@@ -222,15 +224,18 @@ def file_add(context, request, render=None):
                          validate_file_filename,
                          validate_extra_file_format,
                          validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field])
+                         validate_processed_file_produced_from_field,
+                         validate_user_submission_consistency])
 @view_config(context=File, permission='edit', request_method='PATCH',
              validators=[validate_item_content_patch,
                          validate_file_filename,
                          validate_extra_file_format,
                          validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field])
+                         validate_processed_file_produced_from_field,
+                         validate_user_submission_consistency])
 @view_config(context=File, permission='edit_unvalidated', request_method='PUT',
-             validators=[no_validate_item_content_put],
+             validators=[no_validate_item_content_put,
+                         validate_user_submission_consistency],
              request_param=['validate=false'])
 @view_config(context=File, permission='edit_unvalidated', request_method='PATCH',
              validators=[no_validate_item_content_patch],
@@ -240,7 +245,8 @@ def file_add(context, request, render=None):
                          validate_file_filename,
                          validate_extra_file_format,
                          validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field],
+                         validate_processed_file_produced_from_field,
+                         validate_user_submission_consistency],
              request_param=['check_only=true'])
 @debug_log
 def file_edit(context, request, render=None):

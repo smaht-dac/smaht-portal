@@ -244,7 +244,7 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
             'submission_centers': [
                 test_second_submission_center['uuid']
             ]
-        }, status=403)
+        }, status=422)
         submission_center_user_app.post_json('/Image', {
             'description': 'test2',
             'submission_centers': [
@@ -350,7 +350,7 @@ class TestConsortiumPermissions(TestPermissionsHelper):
             'submission_centers': [
                 test_submission_center['uuid']
             ]
-        }, status=403)
+        }, status=422)
         consortium_user_app.post_json('/Image', {
             'description': 'test image',
             'status': 'draft'
@@ -399,7 +399,7 @@ class TestConsortiumPermissions(TestPermissionsHelper):
             center in all statuses """
         atid = submission_center_file['@id']
         testapp.patch_json(f'/{atid}', {'status': new_status})
-        consortium_user_app.patch_json(f'/{atid}', {}, status=403)
+        consortium_user_app.patch_json(f'/{atid}', {}, status=422)
 
     @staticmethod
     def test_consortium_user_can_view_public_submission_center_data(submission_center_file, consortium_user_app,
@@ -423,7 +423,7 @@ class TestConsortiumPermissions(TestPermissionsHelper):
         atid = released_file['@id']
         testapp.patch_json(f'/{atid}', {'status': new_status})
         consortium_user_app.get(f'/{atid}', status=200)  # should succeed
-        consortium_user_app.patch_json(f'/{atid}', {}, status=403)  # always fail
+        consortium_user_app.patch_json(f'/{atid}', {}, status=422)  # always fail
 
     @staticmethod
     @pytest.mark.parametrize('new_status', [
@@ -441,7 +441,7 @@ class TestConsortiumPermissions(TestPermissionsHelper):
         atid = released_file['@id']
         testapp.patch_json(f'/{atid}', {'status': new_status})
         consortium_user_app.get(f'/{atid}', status=403)
-        consortium_user_app.patch_json(f'/{atid}', {}, status=403)  # always fail
+        consortium_user_app.patch_json(f'/{atid}', {}, status=422)  # always fail
 
 
 class TestAnonUserPermissions:
@@ -456,7 +456,7 @@ class TestAnonUserPermissions:
         anontestapp.get(f'/{atid}', status=200)
         anontestapp.patch_json(f'/{atid}', {}, status=403)  # always fail
         unassociated_user_app.get(f'/{atid}', status=200)
-        unassociated_user_app.patch_json(f'/{atid}', {}, status=403)  # always fail
+        unassociated_user_app.patch_json(f'/{atid}', {}, status=422)  # always fail
 
     @staticmethod
     @pytest.mark.parametrize('new_status', [
@@ -478,7 +478,7 @@ class TestAnonUserPermissions:
         anontestapp.get(f'/{atid}', status=403)
         anontestapp.patch_json(f'/{atid}', {}, status=403)  # always fail
         unassociated_user_app.get(f'/{atid}', status=403)
-        unassociated_user_app.patch_json(f'/{atid}', {}, status=403)  # always fail
+        unassociated_user_app.patch_json(f'/{atid}', {}, status=422)  # always fail
 
 
 class TestProtectedDataPermissions:
@@ -570,3 +570,77 @@ class TestProtectedDataPermissions:
         atid = released_file['@id']
         testapp.patch_json(f'/{atid}', {'status': new_status})
         protected_consortium_submitter_app.get(f'/{atid}', status=200)
+
+
+class TestUserSubmissionConsistency:
+    """ Tests various situations when users post data to ensure they
+        do so under the correct identifiers, else throw errors """
+
+    @staticmethod
+    def test_user_consortia_submission_consistency(testapp, test_consortium, test_protected_consortium,
+                                                   consortium_user_app):
+        """ Tests that a user with the smaht-consortia can submit data under that consortia
+            but not others even in mixed state
+        """
+        consortium_user_app.post_json('/FilterSet', {
+            'title': 'test', 'consortia': [test_consortium['uuid']]
+        }, status=201)
+        # fail as user is not part of this consortium
+        consortium_user_app.post_json('/FilterSet', {
+            'title': 'test', 'consortia': [test_protected_consortium['uuid']]
+        }, status=422)
+        # fail as object has both consortia
+        consortium_user_app.post_json('/FilterSet', {
+            'title': 'test', 'consortia': [test_consortium['uuid'], test_protected_consortium['uuid']]
+        }, status=422)
+
+    @staticmethod
+    def test_user_submission_center_consistency(testapp, test_consortium, test_protected_consortium,
+                                                test_submission_center, test_second_submission_center,
+                                                submission_center_user_app):
+        """ Runs same tests as previous for a submission center user, but additionally
+            test similar situations for submission center
+        """
+        submission_center_user_app.post_json('/FilterSet', {
+            'title': 'test', 'consortia': [test_consortium['uuid']]
+        }, status=201)
+        # fail as user is not part of this consortium
+        submission_center_user_app.post_json('/FilterSet', {
+            'title': 'test', 'consortia': [test_protected_consortium['uuid']]
+        }, status=422)
+        # fail as object has both consortia
+        submission_center_user_app.post_json('/FilterSet', {
+            'title': 'test', 'consortia': [test_consortium['uuid'], test_protected_consortium['uuid']]
+        }, status=422)
+        submission_center_user_app.post_json('/FilterSet', {
+            'title': 'test', 'submission_centers': [test_submission_center['uuid']]
+        }, status=201)
+        # fail as user is not part of this submission center
+        submission_center_user_app.post_json('/FilterSet', {
+            'title': 'test', 'submission_centers': [test_second_submission_center['uuid']]
+        }, status=422)
+        # fail as object has both submission centers, one of which does not match
+        submission_center_user_app.post_json('/FilterSet', {
+            'title': 'test', 'submission_centers': [test_consortium['uuid'], test_protected_consortium['uuid']]
+        }, status=422)
+
+    @staticmethod
+    def test_user_consortia_submission_consistency_alternate_id(testapp, test_consortium, test_protected_consortium,
+                                                                consortium_user_app):
+        """ Tests that validation for consortia still works when referenced by name other
+            than uuid
+        """
+        consortium_user_app.post_json('/FilterSet', {
+            'title': 'test', 'consortia': [test_protected_consortium['@id']]
+        }, status=422)
+
+    @staticmethod
+    def test_user_submission_center_consistency_alternate_id(testapp, test_submission_center,
+                                                             test_second_submission_center,
+                                                             submission_center_user_app):
+        """ Tests that validation for submission center still works when referenced by name other
+            than uuid
+        """
+        submission_center_user_app.post_json('/FilterSet', {
+            'title': 'test', 'submission_centers': [test_second_submission_center['@id']]
+        }, status=422)
