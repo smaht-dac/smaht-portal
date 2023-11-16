@@ -380,19 +380,18 @@ class Schema:
 
     def _map_function_ref(self, type_info: dict) -> Callable:
         def map_value_ref(value: str, link_to: str, portal: Optional[Portal]) -> Any:
+            nonlocal self, type_info
+            def ref_info(link_to: str, value: str) -> str:
+                link_from = Utils.get_type_name(self.data.get("title"))
+                return f"{link_to}" + (f"/{value}" if value else "") + (f" (from {link_from})" if link_from else "")
             if not value:
-                nonlocal self, type_info
                 if (column := type_info.get("column")) and column in self.data.get("required", []):
-                    raise Exception(f"No required reference (linkTo) value for: {self._ref_info(link_to, value)}")
+                    raise Exception(f"No required reference (linkTo) value for: {ref_info(link_to, value)}")
                 return True
             if link_to and portal and not portal.ref_exists(link_to, value):
-                raise Exception(f"Cannot resolve reference (linkTo) for: {self._ref_info(link_to, value)}")
+                raise Exception(f"Cannot resolve reference (linkTo) for: {ref_info(link_to, value)}")
             return value
         return lambda value: map_value_ref(value, type_info.get("linkTo"), self._portal)
-
-    def _ref_info(self, link_to: str, value: str) -> str:
-        link_from = Utils.get_type_name(self.data.get("title"))
-        return f"{link_to}" + (f"/{value}" if value else "") + (f" (from {link_from})" if link_from else "")
 
     def _map_function_name(self, map_function: Callable) -> str:
         # This is ONLY for testing/troubleshooting; get the NAME of the mapping function; this is HIGHLY
