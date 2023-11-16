@@ -31,7 +31,10 @@ def main() -> None:
     # loading data into the database of a locally running portal.
 
     with captured_output():
-        portal = Portal.create_for_local_testing(ini_file=args.load) if args.load else Portal.create_for_unit_testing()
+        if args.load or not args.norefs:
+            portal = Portal.create_for_local_testing(ini_file=args.load)
+        else:
+            portal = Portal.create_for_unit_testing()
 
     ref_errors = []
 
@@ -190,7 +193,7 @@ def parse_args() -> argparse.Namespace:
         print("May only specify one of: --patch-only and --post-only and --validate-only")
         exit(1)
     if args.norefs and args.refs_noerror:
-        print("May only specify one of: --norefs and --refs-optional")
+        print("May only specify one of: --norefs and --refs-noerror")
     if not args.load and (args.patch_only or args.patch_only or args.validate_only):
         print("Must use --load when using: --patch-only or --post-only or --validate-only")
         exit(1)
