@@ -75,12 +75,20 @@ def main() -> None:
 
     if args.load:
         if args.verbose:
-            print(">>> Loading data into local portal database ...")
+            print(">>> Loading data into local portal database", end="")
+            if args.post_only:
+                print(" (POST only)", end="")
+            if args.patch_only:
+                print(" (POST only)", end="")
+            if args.validate_only:
+                print(" (VALIDATE only)", end="")
+            print(" ...")
         results = load_data_into_database(data=structured_data_set,
                                           portal_vapp=portal.vapp,
                                           post_only=args.post_only,
                                           patch_only=args.patch_only,
                                           validate_only=args.validate_only)
+        print(">>> Load Results:")
         print(yaml.dump(results))
 
     if args.verbose:
