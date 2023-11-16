@@ -57,7 +57,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 values={[
                                     { number: 2, units: ['Cell', 'Lines'] },
                                     {
-                                        number: '123,456',
+                                        number: '5,224',
                                         units: ['Files', 'Generated'],
                                     },
                                     {
@@ -251,6 +251,7 @@ function ContextAwareToggle({
     eventKey,
     callback,
     currentTier,
+    tier,
     setCurrentTier,
 }) {
     const currentEventKey = useContext(AccordionContext);
@@ -273,28 +274,28 @@ function ContextAwareToggle({
                 className="card-header-button border-0 bg-transparent"
                 onClick={() => {
                     decoratedOnClick();
-                    setCurrentTier('benchmarking');
+                    setCurrentTier(tier);
                 }}>
                 <div className="d-flex justify-start">
                     <i className={openStatusIconCls + ' m-auto mr-1'} />
                     {children}
                 </div>
             </button>
-            <a className="card-header-link">
-                <i className="icon icon-arrow-right fas" />
-            </a>
+            {tier === 'benchmarking' ? (
+                <a className="card-header-link">
+                    <img
+                        src={`/static/img/arrow-${
+                            currentTier === 'benchmarking' ? 'green' : 'blue'
+                        }.svg`}
+                    />
+                </a>
+            ) : null}
         </div>
     );
 }
 
 function TimelineAccordion(props) {
-    const {
-        defaultActiveKey,
-        children,
-        tier = null,
-        currentTier,
-        activeKey,
-    } = props;
+    const { defaultActiveKey, children, activeKey } = props;
 
     return (
         <Accordion {...{ defaultActiveKey, activeKey }}>{children}</Accordion>
@@ -307,12 +308,14 @@ function TimelineAccordionDrawer(props) {
         title = 'Click me!',
         values = [],
         currentTier,
+        tier,
         setCurrentTier,
     } = props;
     return (
         <Card>
             <Card.Header>
-                <ContextAwareToggle {...{ eventKey, setCurrentTier }}>
+                <ContextAwareToggle
+                    {...{ eventKey, tier, currentTier, setCurrentTier }}>
                     <span className="text-left">{title}</span>
                 </ContextAwareToggle>
             </Card.Header>
@@ -334,8 +337,8 @@ const TimelineCardContent = ({ values }) => {
                     <div className="number-group" key={i}>
                         <h4>{number}</h4>
                         <div>
-                            {units.map((line) => (
-                                <span>{line}</span>
+                            {units.map((line, i) => (
+                                <span key={i}>{line}</span>
                             ))}
                         </div>
                     </div>
