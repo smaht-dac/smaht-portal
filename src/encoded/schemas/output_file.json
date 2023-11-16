@@ -47,9 +47,6 @@
             "$ref": "mixins.json#/schema_version"
         },
         {
-            "$ref": "mixins.json#/status"
-        },
-        {
             "$ref": "mixins.json#/submitted"
         },
         {
@@ -57,6 +54,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/variant_type"
         },
         {
             "$ref": "file.json#/properties"
