@@ -29,7 +29,6 @@ def main() -> None:
     # The create_for_local_testing function with a provided .ini file (e.g. development.ini)
     # returns a Portal object suitable for local integration testing including, for example,
     # loading data into the database of a locally running portal.
-
     with captured_output():
         if args.load or not args.norefs:
             portal = Portal.create_for_local_testing(ini_file=args.load)
