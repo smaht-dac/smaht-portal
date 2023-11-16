@@ -17,6 +17,8 @@ class SmahtSubmissionFolio:
         self.data_file_name = get_parameter(submission.parameters, "datafile")
         self.s3_data_file_location = f"s3://{submission.bucket}/{submission.object_name}"
         self.s3_details_location = f"s3://{submission.bucket}/{submission.submission_id}/submission.json"
+        self.post_only = get_parameter(submission.parameters, "post_only", as_type=bool, default=False)
+        self.patch_only = get_parameter(submission.parameters, "patch_only", as_type=bool, default=False)
         self.validate_only = get_parameter(submission.parameters, "validate_only", as_type=bool, default=False)
         # TODO: what do we actually do we the consortium and submission_center?
         # Should we validate that each submitted object, if specified, contains

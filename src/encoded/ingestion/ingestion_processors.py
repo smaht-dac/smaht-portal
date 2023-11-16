@@ -24,7 +24,7 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
 
 
 def _process_submission(submission: SmahtSubmissionFolio) -> None:
-    with _load_data(submission) as data_tuple:
+    with _parse_data(submission) as data_tuple:
         data = data_tuple[0]
         validate_data_errors = data_tuple[1]
         # validate_data_errors = validate_data_against_schemas(data, portal_vapp=submission.portal_vapp)
@@ -36,13 +36,16 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
             # this is an exceptional situation that we just happened to have caught programmatically;
             # this (traceback.txt) is done in snovault.types.ingestion.SubmissionFolio.processing_context.
             raise Exception(validate_data_summary)
-        load_data_response = load_data_into_database(data, submission.portal_vapp, submission.validate_only)
+        load_data_response = load_data_into_database(data, submission.portal_vapp,
+                                                     post_only=submission.post_only,
+                                                     patch_only=submission.patch_only,
+                                                     validate_only=submission.validate_only)
         load_data_summary = summary_of_load_data_results(load_data_response, submission)
         submission.record_results(load_data_response, load_data_summary)
 
 
 @contextmanager
-def _load_data(submission: SmahtSubmissionFolio) -> Generator[Union[Dict[str, List[Dict]], Exception], None, None]:
+def _parse_data(submission: SmahtSubmissionFolio) -> Generator[Union[Dict[str, List[Dict]], Exception], None, None]:
     with submission.s3_file() as file:
         if USE_STRUCTURED_DATA:
             yield StructuredDataSet.load(file, portal=submission.portal_vapp, order=ITEM_INDEX_ORDER)

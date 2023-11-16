@@ -5,7 +5,10 @@ from snovault.loadxl import load_all_gen as loadxl_load_data
 from .submission_folio import SmahtSubmissionFolio
 
 
-def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp, validate_only: bool = False) -> Dict:
+def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp,
+                            post_only: bool = False,
+                            patch_only: bool = False,
+                            validate_only: bool = False) -> Dict:
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
         LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*([a-zA-Z\d_-]+)\s*(.*)$")
@@ -47,8 +50,9 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
         overwrite=True,
         itype=None,
         from_json=True,
-        patch_only=False,
         verbose=True,
+        post_only=post_only,
+        patch_only=patch_only,
         validate_only=validate_only)
 
     return package_loadxl_response(loadxl_load_data_response)

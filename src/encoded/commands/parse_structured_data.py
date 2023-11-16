@@ -24,7 +24,11 @@ def main() -> None:
     parser.add_argument("--noref", required=False, action="store_true",
                         default=False, help=f"Do not try to resolve schema linkTo references.")
     parser.add_argument("--validate", required=False, action="store_true",
-                        default=False, help=f"Validation using JSON schema.")
+                        default=False, help=f"Validate using JSON schema.")
+    parser.add_argument("--patch-only", required=False, action="store_true",
+                        default=False, help=f"Only perform updates (PATCH) for loaded data.")
+    parser.add_argument("--post-only", required=False, action="store_true",
+                        default=False, help=f"Only perform updates (POST) for loaded data.")
     parser.add_argument("--no-format-validate", required=False, action="store_true",
                         default=False, help=f"Do not do format checking on JSON schema validation.")
     parser.add_argument("--load", required=False, action="store_true",
@@ -86,7 +90,9 @@ def main() -> None:
     if args.load:
         if args.verbose:
             print(">>> Loading structured data into local database ...")
-        results = load_data_into_database(data=structured_data_set, portal_vapp=portal.vapp, validate_only=False)
+        results = load_data_into_database(data=structured_data_set,
+                                          portal_vapp=portal.vapp,
+                                          validate_only=False)
         print(yaml.dump(results))
 
     if args.verbose:
