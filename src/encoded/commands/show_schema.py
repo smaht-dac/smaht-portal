@@ -1,7 +1,7 @@
 import argparse
 import json
 from encoded.ingestion.structured_data import Portal, Schema
-from captured_output import captured_output
+from encoded.ingestion.captured_output import captured_output
 
 # For dev/testing only.
 # Dumps the specified schema to stdout.  
