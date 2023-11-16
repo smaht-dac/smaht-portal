@@ -20,6 +20,7 @@ class SmahtSubmissionFolio:
         self.post_only = get_parameter(submission.parameters, "post_only", as_type=bool, default=False)
         self.patch_only = get_parameter(submission.parameters, "patch_only", as_type=bool, default=False)
         self.validate_only = get_parameter(submission.parameters, "validate_only", as_type=bool, default=False)
+        self.sheet_utils = get_parameter(submission.parameters, "sheet_utils", as_type=bool, default=False)
         # TODO: what do we actually do we the consortium and submission_center?
         # Should we validate that each submitted object, if specified, contains
         # values for these which match these values here in the submission folio?

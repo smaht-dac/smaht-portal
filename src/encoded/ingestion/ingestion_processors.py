@@ -9,8 +9,6 @@ from .loadxl_extensions import load_data_into_database, summary_of_load_data_res
 from .structured_data import Portal, StructuredDataSet
 from .submission_folio import SmahtSubmissionFolio
 
-USE_SHEET_UTILS = False
-
 
 def includeme(config):
     config.scan(__name__)
@@ -25,7 +23,10 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
 
 def _process_submission(submission: SmahtSubmissionFolio) -> None:
     with submission.s3_file() as file:
-        data, validation_errors = parse_structured_data(file, portal=submission.portal_vapp)
+        data, validation_errors = parse_structured_data(file,
+                                                        portal=submission.portal_vapp,
+                                                        validate=True,
+                                                        sheet_utils=submission.sheet_utils)
         if validation_errors:
             submission.record_results(validation_errors, validation_errors)
             # If there are data validation errors then trigger an exception so that a traceback.txt
