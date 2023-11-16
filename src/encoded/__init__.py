@@ -106,6 +106,7 @@ def static_resources(config):
     mimetypes.init([pkg_resources.resource_filename('encoded', 'static/mime.types')])
     config.add_static_view('static', 'static', cache_max_age=CGAP_STATIC_MAX_AGE)
     config.add_static_view('profiles', 'schemas', cache_max_age=CGAP_STATIC_MAX_AGE)
+    config.add_static_view('can_submit', 'submittables', cache_max_age=CGAP_STATIC_MAX_AGE)
 
     # Favicon
     favicon_path = '/static/img/favicon.ico'

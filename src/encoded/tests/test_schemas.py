@@ -85,7 +85,6 @@ def test_load_schema(schema, master_mixins, registry, testapp):
         'subject.json',
         'submitted_file.json',
     ]
-
     loaded_schema = load_schema('encoded:schemas/%s' % schema)
     assert loaded_schema
 
@@ -194,3 +193,10 @@ def test_schema_version_present_on_items(app):
             assert int(schema_version) >= 1
         else:
             assert schema_version == ""
+
+
+def test_submittable(testapp, registry):
+    test_uri = '/can-submit/analyte_preparation.json'
+    res = testapp.get(test_uri)
+    import pdb; pdb.set_trace()
+    print(res)
