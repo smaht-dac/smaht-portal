@@ -69,7 +69,7 @@ def main() -> None:
     if args.validate:
         print(yaml.dump(validation_errors) if validation_errors else "OK")
     else:
-        print("No validation results because the --novalidation argument was specified.")
+        print("No validation results because the --novalidate argument was specified.")
 
     if args.schemas:
         if args.verbose:

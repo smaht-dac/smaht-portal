@@ -146,28 +146,26 @@ class StructuredData:
     def load_from_csv_file(file: str,
                            schema: Optional[Schema] = None, portal: Optional[Portal] = None,
                            addto: Optional[Callable] = None) -> Optional[List[dict]]:
-        if not schema and portal:
-            schema = Schema.load_by_name(file, portal=portal)
-        return StructuredData._load_from_reader(CsvReader(file), schema=schema, addto=addto)
+        return StructuredData._load_from_reader(CsvReader(file), schema=schema or file, portal=portal, addto=addto)
 
     def load_from_excel_sheet(excel: Excel, sheet_name: str,
                               schema: Optional[Schema] = None, portal: Optional[Portal] = None,
                               addto: Optional[Callable] = None) -> Optional[List[dict]]:
         reader = excel.sheet_reader(sheet_name)
-        if not schema and portal:
-            schema = Schema.load_by_name(reader.sheet_name, portal=portal)
-        return StructuredData._load_from_reader(reader, schema=schema, addto=addto)
+        return StructuredData._load_from_reader(reader, schema=schema or reader.sheet_name, portal=portal, addto=addto)
 
     @staticmethod
     def load_from_rows(rows: List[List[Optional[Any]]], schema: Optional[Schema] = None) -> List[dict]:
         return StructuredData._load_from_reader(ListReader(rows), schema=schema)
 
     @staticmethod
-    def _load_from_reader(reader: RowReader, schema: Optional[Schema] = None,
-                          addto: Optional[Callable] = None) -> Optional[List[dict]]:
+    def _load_from_reader(reader: RowReader, schema: Optional[Union[Schema, str]] = None,
+                          portal: Optional[Portal] = None, addto: Optional[Callable] = None) -> Optional[List[dict]]:
         structured_data = [] if not addto else None
         structured_column_data = StructuredColumnData(reader.header)
         for row in reader:
+            if isinstance(schema, str):  # Do this here by name just so we do not get schema if no rows.
+                schema = Schema.load_by_name(schema, portal=portal)
             structured_row = structured_column_data.create_row()
             for flattened_column_name, value in row.items():
                 structured_column_data.set_value(structured_row, flattened_column_name, value, schema)
@@ -279,6 +277,11 @@ class Schema:
     @staticmethod
     def load_by_name(name: str, portal: Portal) -> Optional[dict]:
         return Schema(portal.get_schema(Utils.get_type_name(name)), portal) if portal else None
+
+    @staticmethod
+    def load_from_file(file: str, portal: Optional[Portal] = None) -> Optional[dict]:
+        with open(file) as f:
+            return Schema(json.load(f), portal)
 
     def map_value(self, flattened_column_name: str, value: str) -> Optional[Any]:
         flattened_column_name = self._normalize_flattened_column_name(flattened_column_name)
