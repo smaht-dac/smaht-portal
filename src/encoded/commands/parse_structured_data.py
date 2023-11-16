@@ -45,13 +45,15 @@ def main() -> None:
         else:
             SchemaManager.get_schema = lambda name, portal_env, portal_vapp: {}
 
-     # Manually override implementation specifics for --norefs and --refs-optional.
+     # Manually override implementation specifics for our default handling of refs (linkTo),
+     # which is to catch/report any ref error; use --norefs to not do ref checking at all;
+     # and use --refs to throw exceptions (as normal outside of this script) for ref errors.
     if args.norefs:
         if not args.sheet_utils:
             Schema._map_function_ref = lambda self, type_info: lambda value: value
         else:
             RefHint._apply_ref_hint = lambda self, value: value
-    elif args.refs_noerror:
+    elif not args.refs:
         if not args.sheet_utils:
             real_map_function_ref = Schema._map_function_ref
             def custom_map_function_ref(self, type_info):
@@ -82,6 +84,8 @@ def main() -> None:
             print(" with validation", end="")
         else:
             print(" with NO validation", end="")
+        if args.norefs:
+            print(" with NO ref checking", end="")
         if args.noschemas:
             print(" ignoring schemas", end="")
         print(f" from: {args.file} ...")
@@ -163,8 +167,8 @@ def parse_args() -> argparse.Namespace:
                         default=False, help=f"Output the referenced schema(s).")
     parser.add_argument("--norefs", required=False, action="store_true",
                         default=False, help=f"Do not try to resolve schema linkTo references.")
-    parser.add_argument("--refs-noerror", required=False, action="store_true",
-                        default=False, help=f"TODO Do not try to resolve schema linkTo references.")
+    parser.add_argument("--refs", required=False, action="store_true",
+                        default=False, help=f"Throw exception (like normal) schema linkTo reference cannot be resolved.")
     parser.add_argument("--noschemas", required=False, action="store_true",
                         default=False, help=f"Do not use schemes at all.")
     parser.add_argument("--novalidate", required=False, action="store_true",
@@ -192,9 +196,10 @@ def parse_args() -> argparse.Namespace:
     if (1 if args.patch_only else 0) + (1 if args.post_only else 0) + (1 if args.validate_only else 0) > 1:
         print("May only specify one of: --patch-only and --post-only and --validate-only")
         exit(1)
-    if args.norefs and args.refs_noerror:
-        print("May only specify one of: --norefs and --refs-noerror")
-    if not args.load and (args.patch_only or args.patch_only or args.validate_only):
+    if args.norefs and args.refs:
+        print("May only specify one of: --norefs and --refs")
+        exit(1)
+    if not args.load and (args.patch_only or args.post_only or args.validate_only):
         print("Must use --load when using: --patch-only or --post-only or --validate-only")
         exit(1)
 
