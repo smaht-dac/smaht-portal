@@ -33,18 +33,43 @@ def main() -> None:
     with captured_output():
         portal = Portal.create_for_local_testing(ini_file=args.load) if args.load else Portal.create_for_unit_testing()
 
+    ref_errors = []
+
+     # Manually override implementation specifics for --noschemas.
     if args.noschemas:
         if not args.sheet_utils:
             Schema.load_by_name = lambda name, portal: {}
         else:
             SchemaManager.get_schema = lambda name, portal_env, portal_vapp: {}
+
+     # Manually override implementation specifics for --norefs and --refs-optional.
     if args.norefs:
         if not args.sheet_utils:
-            # Manually override the Schema._map_function_ref function to not check for linkTo references.
             Schema._map_function_ref = lambda self, type_info: lambda value: value
         else:
-            # Manually override the RefHint._apply_ref_hint function to not check for linkTo references.
             RefHint._apply_ref_hint = lambda self, value: value
+    elif args.refs_optional:
+        if not args.sheet_utils:
+            real_map_function_ref = Schema._map_function_ref
+            def custom_map_function_ref(self, type_info):
+                real_map_value_ref = real_map_function_ref(self, type_info)
+                def custom_map_value_ref(value, link_to, portal):
+                    try:
+                        return real_map_value_ref(value)
+                    except Exception as e:
+                        ref_errors.append(str(e))
+                        return value
+                return lambda value: custom_map_value_ref(value, type_info.get("linkTo"), self._portal)
+            Schema._map_function_ref = custom_map_function_ref
+        else:
+            real_apply_ref_hint = RefHint._apply_ref_hint
+            def custom_apply_ref_hint(self, value):
+                try:
+                    return real_apply_ref_hint(self, value)
+                except Exception as e:
+                    ref_errors.append(str(e))
+            RefHint._apply_ref_hint = custom_apply_ref_hint
+
 
     if args.verbose:
         if args.sheet_utils:
@@ -64,6 +89,11 @@ def main() -> None:
                                                                    sheet_utils=args.sheet_utils)
     print(f">>> Parsed Data:")
     print(json.dumps(structured_data_set, indent=4, default=str))
+
+    if ref_errors:
+        print(f"\n>>> Validation Reference (linkTo) Errors:")
+        for ref_error in ref_errors:
+            print(ref_error)
 
     print(f"\n>>> Validation Results:")
     if args.validate:
@@ -130,6 +160,8 @@ def parse_args() -> argparse.Namespace:
                         default=False, help=f"Output the referenced schema(s).")
     parser.add_argument("--norefs", required=False, action="store_true",
                         default=False, help=f"Do not try to resolve schema linkTo references.")
+    parser.add_argument("--refs-optional", required=False, action="store_true",
+                        default=False, help=f"TODO Do not try to resolve schema linkTo references.")
     parser.add_argument("--noschemas", required=False, action="store_true",
                         default=False, help=f"Do not use schemes at all.")
     parser.add_argument("--novalidate", required=False, action="store_true",
@@ -157,6 +189,8 @@ def parse_args() -> argparse.Namespace:
     if (1 if args.patch_only else 0) + (1 if args.post_only else 0) + (1 if args.validate_only else 0) > 1:
         print("May only specify one of: --patch-only and --post-only and --validate-only")
         exit(1)
+    if not args.norefs and args.refs_optional:
+        print("May only specify one of: --norefs and --refs-optional")
     if not args.load and (args.patch_only or args.patch_only or args.validate_only):
         print("Must use --load when using: --patch-only or --post-only or --validate-only")
         exit(1)
