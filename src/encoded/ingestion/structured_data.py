@@ -386,7 +386,6 @@ class Schema:
                     raise Exception(f"No required reference (linkTo) value for: {self._ref_info(link_to, value)}")
                 return True
             if link_to and portal and not portal.ref_exists(link_to, value):
-                import pdb ; pdb.set_trace()
                 raise Exception(f"Cannot resolve reference (linkTo) for: {self._ref_info(link_to, value)}")
             return value
         return lambda value: map_value_ref(value, type_info.get("linkTo"), self._portal)
