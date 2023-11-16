@@ -7,8 +7,8 @@
         "data_category",
         "data_type",
         "file_format",
-        "file_name",
         "file_sets",
+        "filename",
         "submitted_id"
     ],
     "anyOf": [
@@ -44,9 +44,6 @@
         },
         {
             "$ref": "mixins.json#/schema_version"
-        },
-        {
-            "$ref": "mixins.json#/status"
         },
         {
             "$ref": "mixins.json#/submitted"

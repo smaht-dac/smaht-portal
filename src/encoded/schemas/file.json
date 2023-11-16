@@ -47,9 +47,6 @@
             "$ref": "mixins.json#/schema_version"
         },
         {
-            "$ref": "mixins.json#/status"
-        },
-        {
             "$ref": "mixins.json#/submitted"
         },
         {
@@ -84,6 +81,24 @@
         "quality_metrics": {
             "$merge": "encoded_core:schemas/file.json#/properties/quality_metrics"
         },
+        "status": {
+            "title": "Status",
+            "type": "string",
+            "default": "uploading",
+            "enum": [
+                "uploading",
+                "uploaded",
+                "upload failed",
+                "to be uploaded by workflow",
+                "public",
+                "current",
+                "deleted",
+                "inactive",
+                "in review",
+                "obsolete",
+                "shared"
+            ]
+        },
         "data_category": {
             "title": "Data Category",
             "description": "Category for information in the file",
@@ -94,6 +109,7 @@
                 "type": "string",
                 "enum": [
                     "Genome Region",
+                    "Quality Control",
                     "Reference Genome",
                     "Sequencing Reads",
                     "Variant Calls"
@@ -111,8 +127,12 @@
                 "enum": [
                     "Aligned Reads",
                     "Germline Variant Calls",
-                    "Reads Index",
+                    "Image",
+                    "Index",
+                    "Reference Sequence",
+                    "Sequence Interval",
                     "Somatic Variant Calls",
+                    "Statistics",
                     "Unaligned Reads"
                 ]
             }
