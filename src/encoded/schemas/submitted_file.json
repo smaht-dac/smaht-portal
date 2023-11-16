@@ -8,8 +8,8 @@
         "data_category",
         "data_type",
         "file_format",
-        "file_name",
         "file_sets",
+        "filename",
         "submitted_id"
     ],
     "anyOf": [
