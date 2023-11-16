@@ -1,15 +1,15 @@
 import argparse
 import json
-from jsonschema import Draft7Validator as JsonSchemaValidator
-from typing import List, Optional, Tuple
+from typing import List
 import yaml
-from encoded.commands.captured_output import captured_output
-from dcicutils.bundle_utils import load_items as parse_structured_data_via_sheet_utils, RefHint
+from dcicutils.bundle_utils import load_items as RefHint
 from dcicutils.validation_utils import SchemaManager
+from encoded.commands.captured_output import captured_output
 with captured_output():
-    from encoded.ingestion.loadxl_extensions import load_data_into_database
-from encoded.ingestion.structured_data import Portal, Schema, StructuredDataSet
-from encoded.project.loadxl import ITEM_INDEX_ORDER
+    from encoded.ingestion.loadxl_extensions import load_data_into_database, summary_of_load_data_results
+from encoded.ingestion.ingestion_processors import parse_structured_data
+from encoded.ingestion.structured_data import Portal, Schema
+
 
 # For dev/testing only.
 # Parsed and optionally loads a structured CSV or Excel file
@@ -56,14 +56,16 @@ def main() -> None:
             print(" ignoring schemas", end="")
         print(f" from: {args.file} ...")
 
-    structured_data_set, problems = parse_structured_data(file=args.file, portal=portal, args=args)
-
+    structured_data_set, validation_errors = parse_structured_data(file=args.file,
+                                                                   portal=portal,
+                                                                   validate=args.validate,
+                                                                   sheet_utils=args.sheet_utils)
     print(f">>> Parsed Data:")
     print(json.dumps(structured_data_set, indent=4, default=str))
 
     if args.validate:
-        print(f">>> Validation Results:")
-        print(yaml.dump(problems) if problems else "OK")
+        print(f"\n>>> Validation Results:")
+        print(yaml.dump(validation_errors) if validation_errors else "OK")
 
     if args.schemas:
         if args.verbose:
@@ -83,30 +85,19 @@ def main() -> None:
             if args.validate_only:
                 print(" (VALIDATE only)", end="")
             print(" ...")
-        results = load_data_into_database(data=structured_data_set,
-                                          portal_vapp=portal.vapp,
-                                          post_only=args.post_only,
-                                          patch_only=args.patch_only,
-                                          validate_only=args.validate_only)
-        print(">>> Load Results:")
-        print(yaml.dump(results))
+        load_results = load_data_into_database(data=structured_data_set,
+                                               portal_vapp=portal.vapp,
+                                               post_only=args.post_only,
+                                               patch_only=args.patch_only,
+                                               validate_only=args.validate_only)
+        load_summary = summary_of_load_data_results(load_results)
+        print("\n>>> Load Summary:")
+        [print(item) for item in load_summary]
+        print("\n>>> Load Results:")
+        print(yaml.dump(load_results))
 
     if args.verbose:
-        print(">>> Done.")
-
-
-def parse_structured_data(file: str, portal: Portal,
-                          args: argparse.Namespace) -> Tuple[Optional[dict], Optional[List[str]]]:
-    if not args.sheet_utils:
-        structured_data = StructuredDataSet(file, portal=portal, order=ITEM_INDEX_ORDER)
-        return structured_data.data, structured_data.validate() if args.validate else []
-    else:
-        data = parse_structured_data_via_sheet_utils(file,
-                                                     portal_vapp=portal.vapp if portal else None,
-                                                     validate=args.validate,
-                                                     apply_heuristics=True,
-                                                     sheet_order=ITEM_INDEX_ORDER)
-        return (data[0], data[1] or []) if args.validate else (data, [])
+        print("\n>>> Done.")
 
 
 def dump_schemas(schema_names: List[str], portal: Portal) -> None:
@@ -116,7 +107,7 @@ def dump_schemas(schema_names: List[str], portal: Portal) -> None:
         if schema:
             print(f">>> Schema: {schema_name}")
             print(json.dumps(schema, indent=4, default=str))
-        elif args.verbose:
+        else:
             print(f">>> No schema found for type: {schema_name}")
 
 def parse_args() -> argparse.Namespace:

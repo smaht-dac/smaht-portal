@@ -192,13 +192,13 @@ def summary_of_data_validation_errors(data_validation_errors: Dict, submission: 
 
     return [
         f"Ingestion data validation error summary:",
-        f"Data file: {submission.data_file_name}",
-        f"Data file in S3: {submission.s3_data_file_location}",
+        ###f"Data file: {submission.data_file_name}",
+        ###f"Data file in S3: {submission.s3_data_file_location}",
         f"Items unidentified: {unidentified_count}",
         f"Items missing properties: {missing_properties_count}",
         f"Items with extraneous properties: {extraneous_properties_count}",
         f"Other errors: {unclassified_error_count}",
         f"Exceptions: {exception_count}",
-        f"Details: {submission.s3_details_location}"
+        ###f"Details: {submission.s3_details_location}"
     ]
 

@@ -1,12 +1,12 @@
-from contextlib import contextmanager
-from typing import Dict, List, Generator, Union
+from typing import List, Optional, Tuple, Union
+from webtest.app import TestApp
 from dcicutils.bundle_utils import load_items as parse_structured_data_via_sheet_utils
+from dcicutils.misc_utils import VirtualApp
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
 from ..project.loadxl import ITEM_INDEX_ORDER
-from .data_validation import summary_of_data_validation_errors
 from .loadxl_extensions import load_data_into_database, summary_of_load_data_results
-from .structured_data import StructuredDataSet
+from .structured_data import Portal, StructuredDataSet
 from .submission_folio import SmahtSubmissionFolio
 
 USE_SHEET_UTILS = False
@@ -24,18 +24,15 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
 
 
 def _process_submission(submission: SmahtSubmissionFolio) -> None:
-    with _parse_structured_data(submission) as data, validation_errors:
-        #data = data_tuple[0]
-        #validation_errors = data_tuple[1]
-        validation_errors = validate_data_against_schemas(data, portal_vapp=submission.portal_vapp)
+    with submission.s3_file() as file:
+        data, validation_errors = parse_structured_data(file, portal=submission.portal_vapp)
         if validation_errors:
-            validate_data_summary = summary_of_data_validation_errors(validation_errors, submission)
-            submission.record_results(validation_errors, validate_data_summary)
+            submission.record_results(validation_errors, validation_errors)
             # If there are data validation errors then trigger an exception so that a traceback.txt
             # file gets written to the S3 ingestion submission bucket to indicate that there is an error;
             # this is an exceptional situation that we just happened to have caught programmatically;
             # this (traceback.txt) is done in snovault.types.ingestion.SubmissionFolio.processing_context.
-            raise Exception(validate_data_summary)
+            raise Exception(validation_errors)
         load_data_response = load_data_into_database(data=data,
                                                      portal_vapp=submission.portal_vapp,
                                                      post_only=submission.post_only,
@@ -45,12 +42,18 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
         submission.record_results(load_data_response, load_data_summary)
 
 
-@contextmanager
-def _parse_structured_data(submission: SmahtSubmissionFolio) -> Generator[Union[Dict[str, List[Dict]], Exception], None, None]:
-    with submission.s3_file() as file:
-        if not USE_SHEET_UTILS:
-            yield StructuredDataSet.load(file, portal=submission.portal_vapp, order=ITEM_INDEX_ORDER)
-        else:
-            yield parse_structured_data_via_sheet_utils(file, portal_vapp=submission.portal_vapp,
-                                                        validate=True, apply_heuristics=True,
-                                                        sheet_order=ITEM_INDEX_ORDER)
+def parse_structured_data(file: str, portal: Union[VirtualApp, TestApp, Portal],
+                          validate: bool = True,
+                          sheet_utils: bool = False) -> Tuple[Optional[dict], Optional[List[str]]]:
+    if not sheet_utils:
+        structured_data = StructuredDataSet.load(file=file, portal=portal, order=ITEM_INDEX_ORDER)
+    else:
+        if isinstance(portal, Portal):
+            portal = portal.vapp
+        parsed_data = parse_structured_data_via_sheet_utils(file,
+                                                            portal_vapp=portal,
+                                                            validate=False,
+                                                            apply_heuristics=True,
+                                                            sheet_order=ITEM_INDEX_ORDER)
+        structured_data = StructuredDataSet(data=parsed_data, portal=portal)
+    return (structured_data.data, structured_data.validate() if validate else [])

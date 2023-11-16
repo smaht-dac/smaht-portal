@@ -47,10 +47,10 @@ StructuredDataSet = Type["StructuredDataSet"]
 
 class StructuredDataSet:
 
-    def __init__(self, file: Optional[str] = None,
+    def __init__(self, file: Optional[str] = None, data: Optional[List[dict]] = None,
                  portal: Optional[Union[VirtualApp, TestApp, Portal]] = None,
                  order: Optional[List[str]] = None, prune: bool = PRUNE_STRUCTURED_DATA_SET) -> None:
-        self.data = {}
+        self.data = {} if not data else data
         self._portal = Portal.create(portal, loading_data_set=self.data)
         self._order = order
         self._prune = prune
@@ -58,9 +58,8 @@ class StructuredDataSet:
 
     @staticmethod
     def load(file: str, portal: Union[VirtualApp, TestApp, Portal],
-             order: Optional[List[str]] = None) -> Tuple[dict, Optional[List[str]]]:
-        structured_data_set = StructuredDataSet(file=file, portal=portal, order=order)
-        return structured_data_set.data, structured_data_set.validate()
+             order: Optional[List[str]] = None) -> StructuredDataSet:
+        return StructuredDataSet(file=file, portal=portal, order=order)
 
     def load_file(self, file: str) -> None:
         # Returns a dictionary where each property is the name (i.e. the type) of the data,

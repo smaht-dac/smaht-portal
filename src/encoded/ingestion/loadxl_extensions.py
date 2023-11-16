@@ -59,18 +59,18 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
 
 
 def summary_of_load_data_results(load_data_response: Optional[Dict],
-                                 submission: SmahtSubmissionFolio) -> List[str]:
+                                 submission: SmahtSubmissionFolio = None) -> List[str]:
     """
     Summarize the given load data results into a simple short list of English phrases;
     this will end up going into the additional_properties of the IngestionSubmission
     object in the Portal database (see SubmissionFolio.record_results); this is what will
     get displayed, by default, by the submitr tool when it detects processing has completed.
     """
-    return [
+    summary = [
         f"Successful ingestion summary:",
-        f"In File: {submission.data_file_name}",
-        f"S3 File: {submission.s3_data_file_location}",
-        f"Details: {submission.s3_details_location}",
+        f"In File: {submission.data_file_name}" if submission else None,
+        f"S3 File: {submission.s3_data_file_location}" if submission else None,
+        f"Details: {submission.s3_details_location}" if submission else None,
         f"N Types: {len(load_data_response['types'])}",
         f"Created: {len(load_data_response['created'])}",
         f"Updated: {len(load_data_response['updated'])}",
@@ -78,6 +78,7 @@ def summary_of_load_data_results(load_data_response: Optional[Dict],
         f"Checked: {len(load_data_response['validated'])}",
         f"Errored: {len(load_data_response['errors'])}"
     ]
+    return [item for item in summary if item is not None]
 
 
 def _maybe_decode_bytes(str_or_bytes: Union[str, bytes], *, encoding: str = "utf-8") -> str:
