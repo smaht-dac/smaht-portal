@@ -75,6 +75,9 @@
     "properties": {
         "schema_version": {
             "default": "1"
+        },
+        "extra_files": {
+            "$merge": "encoded_core:schemas/file.json#/properties/extra_files"
         }
     }
 }
