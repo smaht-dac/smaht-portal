@@ -52,6 +52,8 @@ def main() -> None:
         print(f">>> Loading data", end="")
         if args.validate:
             print(" with validation", end="")
+        else:
+            print(" with NO validation", end="")
         if args.noschemas:
             print(" ignoring schemas", end="")
         print(f" from: {args.file} ...")
@@ -63,15 +65,17 @@ def main() -> None:
     print(f">>> Parsed Data:")
     print(json.dumps(structured_data_set, indent=4, default=str))
 
+    print(f"\n>>> Validation Results:")
     if args.validate:
-        print(f"\n>>> Validation Results:")
         print(yaml.dump(validation_errors) if validation_errors else "OK")
+    else:
+        print("No validation results because the --novalidation argument was specified.")
 
     if args.schemas:
         if args.verbose:
             print(">>> Dumping referenced schemas ...")
         if args.noschemas:
-            print("No schemas because --noschemas argument specified.")
+            print("No schemas because the --noschemas argument was specified.")
         else:
             dump_schemas(list(structured_data_set.keys()), portal)
 
@@ -85,11 +89,12 @@ def main() -> None:
             if args.validate_only:
                 print(" (VALIDATE only)", end="")
             print(" ...")
-        load_results = load_data_into_database(data=structured_data_set,
-                                               portal_vapp=portal.vapp,
-                                               post_only=args.post_only,
-                                               patch_only=args.patch_only,
-                                               validate_only=args.validate_only)
+        with captured_output():
+            load_results = load_data_into_database(data=structured_data_set,
+                                                   portal_vapp=portal.vapp,
+                                                   post_only=args.post_only,
+                                                   patch_only=args.patch_only,
+                                                   validate_only=args.validate_only)
         load_summary = summary_of_load_data_results(load_results)
         print("\n>>> Load Summary:")
         [print(item) for item in load_summary]
@@ -116,7 +121,7 @@ def parse_args() -> argparse.Namespace:
         def __call__(self, parser, namespace, values, option_string=None):
             setattr(namespace, self.dest, True if values is None else values)
 
-    parser = argparse.ArgumentParser(description="Parse local structured data file for dev/testing purposes.")
+    parser = argparse.ArgumentParser(description="Parse local structured data file for dev/testing purposes.", allow_abbrev=False)
 
     parser.add_argument("file", type=str, nargs="?", help=f"File to parse.")
     parser.add_argument("--sheet-utils", required=False, action="store_true", default=False,
@@ -127,8 +132,8 @@ def parse_args() -> argparse.Namespace:
                         default=False, help=f"Do not try to resolve schema linkTo references.")
     parser.add_argument("--noschemas", required=False, action="store_true",
                         default=False, help=f"Do not use schemes at all.")
-    parser.add_argument("--validate", required=False, action="store_true",
-                        default=False, help=f"Validate parsed data using JSON schema.")
+    parser.add_argument("--novalidate", required=False, action="store_true",
+                        default=False, help=f"Do not validate parsed data using JSON schema.")
 
     parser.add_argument("--load", nargs="?", action=argparse_optional, const=True,
                         default=False, help=f"Load data into database (optionally specify .ini file to use).")
@@ -142,13 +147,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--verbose", required=False, action="store_true",
                         default=False, help=f"Verbose output.")
     parser.add_argument("--debug", required=False, action="store_true",
-                        default=False, help=f"Debugging mode.")
+                        default=False, help=f"Debugging mode.")  # Turns off captured_output (use when pdb-ing)
 
     args = parser.parse_args()
 
-    if args.noschemas and args.validate:
-        print("May not specify both --noschemas and --validate.")
-        exit(1)
+    args.validate = not args.novalidate
+    if args.noschemas:
+        args.validate = False
     if (1 if args.patch_only else 0) + (1 if args.post_only else 0) + (1 if args.validate_only else 0) > 1:
         print("May only specify one of: --patch-only and --post-only and --validate-only")
         exit(1)
