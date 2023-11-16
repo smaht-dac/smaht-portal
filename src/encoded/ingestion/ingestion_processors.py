@@ -9,7 +9,7 @@ from .loadxl_extensions import load_data_into_database, summary_of_load_data_res
 from .structured_data import StructuredDataSet
 from .submission_folio import SmahtSubmissionFolio
 
-USE_STRUCTURED_DATA = True
+USE_SHEET_UTILS = False
 
 
 def includeme(config):
@@ -47,7 +47,7 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
 @contextmanager
 def _parse_structured_data(submission: SmahtSubmissionFolio) -> Generator[Union[Dict[str, List[Dict]], Exception], None, None]:
     with submission.s3_file() as file:
-        if USE_STRUCTURED_DATA:
+        if not USE_SHEET_UTILS:
             yield StructuredDataSet.load(file, portal=submission.portal_vapp, order=ITEM_INDEX_ORDER)
         else:
             yield parse_structured_data_via_sheet_utils(file, portal_vapp=submission.portal_vapp,

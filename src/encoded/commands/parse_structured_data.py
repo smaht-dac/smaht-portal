@@ -34,12 +34,12 @@ def main() -> None:
         portal = Portal.create_for_local_testing(ini_file=args.load) if args.load else Portal.create_for_unit_testing()
 
     if args.noschemas:
-        if args.new:
+        if not args.old:
             Schema.load_by_name = lambda name, portal: {}
         else:
             SchemaManager.get_schema = lambda name, portal_env, portal_vapp: {}
     if args.norefs:
-        if args.new:
+        if not args.old:
             # Manually override the Schema._map_function_ref function to not check for linkTo references.
             Schema._map_function_ref = lambda self, type_info: lambda value: value
         else:
@@ -47,6 +47,8 @@ def main() -> None:
             RefHint._apply_ref_hint = lambda self, value: value
 
     if args.verbose:
+        if args.old:
+            print(f">>> Using sheet_utils rather than the new structured_data ...")
         print(f">>> Loading data", end="")
         if args.validate:
             print(" with validation", end="")
@@ -56,7 +58,7 @@ def main() -> None:
 
     structured_data_set, problems = parse_structured_data(file=args.file,
                                                           portal=portal,
-                                                          new=args.new,
+                                                          old=args.old,
                                                           validate=args.validate,
                                                           noschemas=args.noschemas)
 
@@ -98,16 +100,16 @@ def main() -> None:
 def parse_structured_data(file: str,
                           portal: Optional[Portal],
                           validate: bool = False,
-                          new: bool = False,
+                          old: bool = False,
                           noschemas: bool = False) -> Tuple[Optional[dict], Optional[List[str]]]:
-    if new:
+    if not old:
         structured_data = StructuredDataSet(file, portal=portal, order=ITEM_INDEX_ORDER)
         problems = structured_data.validate() if validate else []
         data = structured_data.data
     else:
         data = sheet_utils_load_items(file, portal_vapp=portal.vapp if portal else None,
                                       validate=validate, apply_heuristics=True,
-                                      sheet_order=ITEM_INDEX_ORDER) # , noschemas=noschemas)
+                                      sheet_order=ITEM_INDEX_ORDER)
         if not noschemas and validate:
             problems = data[1] or []
             data = data[0]
@@ -125,8 +127,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Parse local structured data file for dev/testing purposes.")
 
     parser.add_argument("file", type=str, nargs="?", help=f"File to parse.")
-    parser.add_argument("--new", required=False, action="store_true", default=False,
-                        help=f"Use new structure_data_parser rather than sheet_utils.")
+    parser.add_argument("--old", required=False, action="store_true", default=False,
+                        help=f"Use sheet_utils rather than the newer structure_data.")
     parser.add_argument("--schemas", required=False, action="store_true",
                         default=False, help=f"Output the referenced schema(s).")
     parser.add_argument("--norefs", required=False, action="store_true",
