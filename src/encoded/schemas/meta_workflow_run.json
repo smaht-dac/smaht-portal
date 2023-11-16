@@ -169,6 +169,7 @@
             "title": "Input",
             "description": "The input files and parameters used for the meta workflow run.",
             "type": "array",
+            "minItems": 1,
             "items": {
                 "title": "Input",
                 "description": "Input files or parameters associated with an input argument of the meta workflow run.",
@@ -176,64 +177,32 @@
                 "additionalProperties": false,
                 "required": [
                     "argument_name",
-                    "argument_type",
-                    "value"
+                    "argument_type"
+                ],
+                "oneOf": [
+                    {
+                        "required": [
+                            "value"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "files"
+                        ]
+                    }
                 ],
                 "properties": {
                     "argument_name": {
-                        "title": "Workflow argument name",
-                        "description": "the name of the argument of the workflow that corresponds to the input file",
-                        "type": "string"
+                        "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/properties/argument_name"
                     },
                     "argument_type": {
-                        "title": "Workflow argument type",
-                        "description": "the type of the argument of the workflow that corresponds to the input file",
-                        "type": "string",
-                        "enum": [
-                            "file",
-                            "parameter"
-                        ]
+                        "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/properties/argument_type"
                     },
                     "value": {
-                        "title": "Value",
-                        "description": "a specific input parameter value",
-                        "type": [
-                            "string",
-                            "integer",
-                            "number",
-                            "boolean",
-                            "array",
-                            "object"
-                        ]
+                        "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/properties/value"
                     },
                     "files": {
-                        "title": "File",
-                        "description": "Default file item of the file type argument",
-                        "type": "array",
-                        "minItems": 1,
-                        "items": {
-                            "title": "Default Files",
-                            "description": "A list of objects describing default input file items",
-                            "type": "object",
-                            "additionalProperties": false,
-                            "required": [
-                                "dimension",
-                                "file"
-                            ],
-                            "properties": {
-                                "file": {
-                                    "title": "File",
-                                    "type": "string",
-                                    "linkTo": "File"
-                                },
-                                "dimension": {
-                                    "title": "Dimension",
-                                    "description": "Dimension of file in the input argument (unset for a singleton, '0', '1', '2'.. for a list, '0,0', '0,1' ... for a nested list)",
-                                    "type": "string",
-                                    "default": "0"
-                                }
-                            }
-                        }
+                        "$merge": "encoded:schemas/meta_workflow.json#/properties/input/items/properties/files"
                     }
                 }
             }

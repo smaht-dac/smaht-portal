@@ -19,11 +19,11 @@ def bam_file_json(
         'file_format': file_formats.get('bam').get('uuid'),
         'md5sum': '00000000000000000000000000000000',
         'content_md5sum': '00000000000000000000000000000000',
-        'filename': 'my.cool.mcool',
-        'status': 'in review',
+        'filename': 'my.bam',
+        'status': 'released',
         'consortia': [test_consortium['uuid']],
-        'data_category': 'Sequencing Reads',
-        'data_type': 'Aligned Reads',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Aligned Reads'],
     }
     return item
 
@@ -40,8 +40,8 @@ def file(
         'filename': 'my.fastq.gz',
         'status': 'in review',
         'consortia': [test_consortium['uuid']],
-        'data_category': 'Sequencing Reads',
-        'data_type': 'Unaligned Reads',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
     }
     res = testapp.post_json('/output_file', item)
     return res.json['@graph'][0]
