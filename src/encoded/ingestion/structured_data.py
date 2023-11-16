@@ -384,7 +384,7 @@ class Schema:
             exception = None
             if not value and (column := type_info.get("column")) and column in self.data.get("required", []):
                 exception = "No required reference (linkTo) value for: "
-            if link_to and portal and not portal.ref_exists(link_to, value):
+            elif link_to and portal and not portal.ref_exists(link_to, value):
                 exception = "Cannot resolve reference (linkTo) for: "
             if exception:
                 link_from = Utils.get_type_name(self.data.get("title"))
