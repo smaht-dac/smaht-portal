@@ -71,29 +71,24 @@ def main() -> None:
         if args.noschemas:
             print("No schemas because --noschemas argument specified.")
         else:
-            for data_type in structured_data_set:
-                data_of_type = structured_data_set[data_type]
-                schema = Schema.load_by_name(data_type, portal)
-                schema = schema.data if schema else None
-                if schema:
-                    print(f">>> Schema: {data_type}")
-                    print(json.dumps(schema, indent=4, default=str))
-                elif args.verbose:
-                    print(f">>> No schema found for type: {data_type}")
+            dump_schemas(list(structured_data_set.keys()), portal)
 
     if args.load:
         if args.verbose:
             print(">>> Loading data into local portal database ...")
         results = load_data_into_database(data=structured_data_set,
                                           portal_vapp=portal.vapp,
-                                          validate_only=False)
+                                          post_only=args.post_only,
+                                          patch_only=args.patch_only,
+                                          validate_only=args.validate_only)
         print(yaml.dump(results))
 
     if args.verbose:
         print(">>> Done.")
 
 
-def parse_structured_data(file: str, portal: Optional[Portal], args) -> Tuple[Optional[dict], Optional[List[str]]]:
+def parse_structured_data(file: str, portal: Portal,
+                          args: argparse.Namespace) -> Tuple[Optional[dict], Optional[List[str]]]:
     if not args.old:
         structured_data = StructuredDataSet(file, portal=portal, order=ITEM_INDEX_ORDER)
         problems = structured_data.validate() if args.validate else []
@@ -109,8 +104,17 @@ def parse_structured_data(file: str, portal: Optional[Portal], args) -> Tuple[Op
             problems = []
     return data, problems
 
+def dump_schemas(schema_names: List[str], portal: Portal) -> None:
+    for schema_name in schema_names:
+        schema = Schema.load_by_name(schema_name, portal)
+        schema = schema.data if schema else None
+        if schema:
+            print(f">>> Schema: {schema_name}")
+            print(json.dumps(schema, indent=4, default=str))
+        elif args.verbose:
+            print(f">>> No schema found for type: {schema_name}")
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
 
     class argparse_optional(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
