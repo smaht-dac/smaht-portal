@@ -314,7 +314,8 @@ body.is-full-screen {
 			}
 
 			>div>a:hover {
-				text-decoration: none !important;
+				cursor: pointer;
+				// text-decoration: none !important;
 				color:lighten($footer-text-color, 10%);
 			}
 		}

@@ -17,7 +17,8 @@ export const Footer = React.memo(function Footer() {
                     <div className="col-sm-6">
                         <div className="footer-section copy-notice d-flex align-items-center justify-content-center justify-content-sm-start">
                             <div>
-                                SMaHT is funded by the <a>NIH Common Fund</a>
+                                SMaHT is funded by the{' '}
+                                <a href="">NIH Common Fund</a>
                             </div>
                         </div>
                     </div>
