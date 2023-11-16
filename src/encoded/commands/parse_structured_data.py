@@ -4,7 +4,7 @@ from jsonschema import Draft7Validator as JsonSchemaValidator
 from typing import List, Optional, Tuple
 import yaml
 from encoded.commands.captured_output import captured_output
-from dcicutils.bundle_utils import load_items as sheet_utils_load_items, RefHint
+from dcicutils.bundle_utils import load_items as parse_structured_data_via_sheet_utils, RefHint
 from dcicutils.validation_utils import SchemaManager
 with captured_output():
     from encoded.ingestion.loadxl_extensions import load_data_into_database
@@ -34,12 +34,12 @@ def main() -> None:
         portal = Portal.create_for_local_testing(ini_file=args.load) if args.load else Portal.create_for_unit_testing()
 
     if args.noschemas:
-        if not args.old:
+        if not args.sheet_utils:
             Schema.load_by_name = lambda name, portal: {}
         else:
             SchemaManager.get_schema = lambda name, portal_env, portal_vapp: {}
     if args.norefs:
-        if not args.old:
+        if not args.sheet_utils:
             # Manually override the Schema._map_function_ref function to not check for linkTo references.
             Schema._map_function_ref = lambda self, type_info: lambda value: value
         else:
@@ -47,8 +47,8 @@ def main() -> None:
             RefHint._apply_ref_hint = lambda self, value: value
 
     if args.verbose:
-        if args.old:
-            print(f">>> Using sheet_utils rather than the new structured_data ...")
+        if args.sheet_utils:
+            print(f">>> Using sheet_utils rather than the newer structured_data ...")
         print(f">>> Loading data", end="")
         if args.validate:
             print(" with validation", end="")
@@ -97,20 +97,17 @@ def main() -> None:
 
 def parse_structured_data(file: str, portal: Portal,
                           args: argparse.Namespace) -> Tuple[Optional[dict], Optional[List[str]]]:
-    if not args.old:
+    if not args.sheet_utils:
         structured_data = StructuredDataSet(file, portal=portal, order=ITEM_INDEX_ORDER)
-        problems = structured_data.validate() if args.validate else []
-        data = structured_data.data
+        return structured_data.data, structured_data.validate() if args.validate else []
     else:
-        data = sheet_utils_load_items(file, portal_vapp=portal.vapp if portal else None,
-                                      validate=args.validate, apply_heuristics=True,
-                                      sheet_order=ITEM_INDEX_ORDER)
-        if args.validate:
-            problems = data[1] or []
-            data = data[0]
-        else:
-            problems = []
-    return data, problems
+        data = parse_structured_data_via_sheet_utils(file,
+                                                     portal_vapp=portal.vapp if portal else None,
+                                                     validate=args.validate,
+                                                     apply_heuristics=True,
+                                                     sheet_order=ITEM_INDEX_ORDER)
+        return (data[0], data[1] or []) if args.validate else (data, [])
+
 
 def dump_schemas(schema_names: List[str], portal: Portal) -> None:
     for schema_name in schema_names:
@@ -131,7 +128,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Parse local structured data file for dev/testing purposes.")
 
     parser.add_argument("file", type=str, nargs="?", help=f"File to parse.")
-    parser.add_argument("--old", required=False, action="store_true", default=False,
+    parser.add_argument("--sheet-utils", required=False, action="store_true", default=False,
                         help=f"Use sheet_utils rather than the newer structure_data.")
     parser.add_argument("--schemas", required=False, action="store_true",
                         default=False, help=f"Output the referenced schema(s).")

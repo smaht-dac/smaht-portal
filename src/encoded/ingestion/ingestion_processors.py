@@ -36,7 +36,8 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
             # this is an exceptional situation that we just happened to have caught programmatically;
             # this (traceback.txt) is done in snovault.types.ingestion.SubmissionFolio.processing_context.
             raise Exception(validate_data_summary)
-        load_data_response = load_data_into_database(data, submission.portal_vapp,
+        load_data_response = load_data_into_database(data=data,
+                                                     portal_vapp=submission.portal_vapp,
                                                      post_only=submission.post_only,
                                                      patch_only=submission.patch_only,
                                                      validate_only=submission.validate_only)
