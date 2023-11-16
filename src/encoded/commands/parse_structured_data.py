@@ -189,7 +189,7 @@ def parse_args() -> argparse.Namespace:
     if (1 if args.patch_only else 0) + (1 if args.post_only else 0) + (1 if args.validate_only else 0) > 1:
         print("May only specify one of: --patch-only and --post-only and --validate-only")
         exit(1)
-    if not args.norefs and args.refs_noerror:
+    if args.norefs and args.refs_noerror:
         print("May only specify one of: --norefs and --refs-optional")
     if not args.load and (args.patch_only or args.patch_only or args.validate_only):
         print("Must use --load when using: --patch-only or --post-only or --validate-only")

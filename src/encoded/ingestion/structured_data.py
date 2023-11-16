@@ -283,12 +283,6 @@ class Schema:
         with open(file) as f:
             return Schema(json.load(f), portal)
 
-    def map_value(self, flattened_column_name: str, value: str) -> Optional[Any]:
-        flattened_column_name = self._normalize_flattened_column_name(flattened_column_name)
-        if (map_function := self._flattened_type_info.get(flattened_column_name, {}).get("map")) is None:
-            map_function = self._flattened_type_info.get(flattened_column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
-        return map_function(value) if map_function else value
-
     def get_flattened_type_info(self, debug: bool = False):
         return {key: {k: (self._map_function_name(v) if k == "map" and isinstance(v, Callable) and debug else v)
                       for k, v in value.items()} for key, value in self._flattened_type_info.items()}
@@ -299,6 +293,121 @@ class Schema:
         for error in validator.iter_errors(data):
             errors.append(error.message)
         return errors if errors else None
+
+    def map_value(self, flattened_column_name: str, value: str) -> Optional[Any]:
+        flattened_column_name = self._normalize_flattened_column_name(flattened_column_name)
+        if (map_function := self._flattened_type_info.get(flattened_column_name, {}).get("map")) is None:
+            map_function = self._flattened_type_info.get(flattened_column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
+        return map_function(value) if map_function else value
+
+    def _map_function(self, type_info: dict) -> Optional[Callable]:
+        MAP_FUNCTIONS = {
+            "array": self._map_function_array,
+            "boolean": self._map_function_boolean,
+            "enum": self._map_function_enum,
+            "integer": self._map_function_integer,
+            "number": self._map_function_number,
+            "ref": self._map_function_ref,
+            "string": self._map_function_string
+        }
+        if isinstance(type_info, dict) and (type_info_type := type_info.get("type")) is not None:
+            if isinstance(type_info_type, list):
+                # The type specifier can actually be a list of acceptable types; for
+                # example smaht-portal/schemas/meta_workflow.json/workflows#.input#.value;
+                # we will take the first one for which we have a mapping function.
+                # TODO: Maybe more correct to get all map function and map to any for values.
+                for acceptable_type in type_info_type:
+                    if (map_function := MAP_FUNCTIONS.get(acceptable_type)) is not None:
+                        break
+            elif not isinstance(type_info_type, str):
+                raise Exception(f"Invalid type specifier type ({type(type_info_type).__name__}) in JSON schema.")
+            elif isinstance(type_info.get("enum"), list):
+                map_function = MAP_FUNCTIONS.get("enum")
+            elif isinstance(type_info.get("linkTo"), str):
+                map_function = MAP_FUNCTIONS.get("ref")
+            else:
+                map_function = MAP_FUNCTIONS.get(type_info_type)
+            return map_function(type_info) if map_function else None
+        return None
+
+    def _map_function_array(self, type_info: dict) -> Callable:
+        def map_value_array(value: str, array_type_map_function: Optional[Callable]) -> Any:
+            value = Utils.split_array_string(value)
+            return [array_type_map_function(value) for value in value] if array_type_map_function else value
+        return lambda value: map_value_array(value, self._map_function(type_info))
+
+    def _map_function_boolean(self, type_info: dict) -> Callable:
+        def map_value_boolean(value: str) -> Any:
+            if isinstance(value, str) and (value := value.strip().lower()):
+                if (lower_value := value.lower()) in ["true", "t"]:
+                    return True
+                elif lower_value in ["false", "f"]:
+                    return False
+            return value
+        return map_value_boolean
+
+    def _map_function_enum(self, type_info: dict) -> Callable:
+        def map_value_enum(value: str, enum_specifier: dict) -> Any:
+            if isinstance(value, str) and (value := value.strip()):
+                if (enum_value := enum_specifier.get(lower_value := value.lower())) is not None:
+                    return enum_value
+                matches = []
+                for enum_canonical, _ in enum_specifier.items():
+                    if enum_canonical.startswith(lower_value):
+                        matches.append(enum_canonical)
+                if len(matches) == 1:
+                    return enum_specifier[matches[0]]
+            return value
+        return lambda value: map_value_enum(value, {str(enum).lower(): enum for enum in type_info.get("enum", [])})
+
+    def _map_function_integer(self, type_info: dict) -> Callable:
+        def map_value_integer(value: str) -> Any:
+            return Utils.to_integer(value, value)
+        return map_value_integer
+
+    def _map_function_number(self, type_info: dict) -> Callable:
+        def map_value_number(value: str) -> Any:
+            try:
+                return float(value)
+            except Exception:
+                return value
+        return map_value_number
+
+    def _map_function_string(self, type_info: dict) -> Callable:
+        def map_value_string(value: str) -> str:
+            return value if value is not None else ""
+        return map_value_string
+
+    def _map_function_ref(self, type_info: dict) -> Callable:
+        def map_value_ref(value: str, link_to: str, portal: Optional[Portal]) -> Any:
+            if not value:
+                nonlocal self, type_info
+                if (column := type_info.get("column")) and column in self.data.get("required", []):
+                    raise Exception(f"No required reference (linkTo) value for: {self._ref_info(link_to, value)}")
+                return True
+            if link_to and portal and not portal.ref_exists(link_to, value):
+                import pdb ; pdb.set_trace()
+                raise Exception(f"Cannot resolve reference (linkTo) for: {self._ref_info(link_to, value)}")
+            return value
+        return lambda value: map_value_ref(value, type_info.get("linkTo"), self._portal)
+
+    def _ref_info(self, link_to: str, value: str) -> str:
+        link_from = Utils.get_type_name(self.data.get("title"))
+        return f"{link_to}" + (f"/{value}" if value else "") + (f" (from {link_from})" if link_from else "")
+
+    def _map_function_name(self, map_function: Callable) -> str:
+        # This is ONLY for testing/troubleshooting; get the NAME of the mapping function; this is HIGHLY
+        # implementation DEPENDENT, on the map_function_<type> functions. The map_function, as a string,
+        # looks like: <function Schema._map_function_string.<locals>.map_value_string at 0x103474900> or
+        # if it is implemented as a lambda (to pass in closure), then inspect.getclosurevars.nonlocals looks like:
+        # {"map_value_enum": <function Schema._map_function_enum.<locals>.map_value_enum at 0x10544cd60>, ...}
+        if isinstance(map_function, Callable):
+            if (match := re.search(r"\.(\w+) at", str(map_function))):
+                return f"<{match.group(1)}>"
+            for item in inspect.getclosurevars(map_function).nonlocals:
+                if item.startswith("map_value_"):
+                    return f"<{item}>"
+        return type(map_function)
 
     def _compute_flattened_schema_type_info(self, schema_json: dict, parent_key: Optional[str] = None) -> dict:
         """
@@ -394,114 +503,6 @@ class Schema:
                                                                               flattened_column_name_components[i])
         return DOTTED_NAME_DELIMITER_CHAR.join(flattened_column_name_components)
 
-    def _map_function(self, type_info: dict) -> Optional[Callable]:
-        MAP_FUNCTIONS = {
-            "array": self._map_function_array,
-            "boolean": self._map_function_boolean,
-            "enum": self._map_function_enum,
-            "integer": self._map_function_integer,
-            "number": self._map_function_number,
-            "ref": self._map_function_ref,
-            "string": self._map_function_string
-        }
-        if isinstance(type_info, dict) and (type_info_type := type_info.get("type")) is not None:
-            if isinstance(type_info_type, list):
-                # The type specifier can actually be a list of acceptable types; for
-                # example smaht-portal/schemas/meta_workflow.json/workflows#.input#.value;
-                # we will take the first one for which we have a mapping function.
-                # TODO: Maybe more correct to get all map function and map to any for values.
-                for acceptable_type in type_info_type:
-                    if (map_function := MAP_FUNCTIONS.get(acceptable_type)) is not None:
-                        break
-            elif not isinstance(type_info_type, str):
-                raise Exception(f"Invalid type specifier type ({type(type_info_type).__name__}) in JSON schema.")
-            elif isinstance(type_info.get("enum"), list):
-                map_function = MAP_FUNCTIONS.get("enum")
-            elif isinstance(type_info.get("linkTo"), str):
-                map_function = MAP_FUNCTIONS.get("ref")
-            else:
-                map_function = MAP_FUNCTIONS.get(type_info_type)
-            return map_function(type_info) if map_function else None
-        return None
-
-    def _map_function_array(self, type_info: dict) -> Callable:
-        def map_value_array(value: str, array_type_map_function: Optional[Callable]) -> Any:
-            value = Utils.split_array_string(value)
-            return [array_type_map_function(value) for value in value] if array_type_map_function else value
-        return lambda value: map_value_array(value, self._map_function(type_info))
-
-    def _map_function_boolean(self, type_info: dict) -> Callable:
-        def map_value_boolean(value: str) -> Any:
-            if isinstance(value, str) and (value := value.strip().lower()):
-                if (lower_value := value.lower()) in ["true", "t"]:
-                    return True
-                elif lower_value in ["false", "f"]:
-                    return False
-            return value
-        return map_value_boolean
-
-    def _map_function_enum(self, type_info: dict) -> Callable:
-        def map_value_enum(value: str, enum_specifier: dict) -> Any:
-            if isinstance(value, str) and (value := value.strip()):
-                if (enum_value := enum_specifier.get(lower_value := value.lower())) is not None:
-                    return enum_value
-                matches = []
-                for enum_canonical, _ in enum_specifier.items():
-                    if enum_canonical.startswith(lower_value):
-                        matches.append(enum_canonical)
-                if len(matches) == 1:
-                    return enum_specifier[matches[0]]
-            return value
-        return lambda value: map_value_enum(value, {str(enum).lower(): enum for enum in type_info.get("enum", [])})
-
-    def _map_function_integer(self, type_info: dict) -> Callable:
-        def map_value_integer(value: str) -> Any:
-            return Utils.to_integer(value, value)
-        return map_value_integer
-
-    def _map_function_number(self, type_info: dict) -> Callable:
-        def map_value_number(value: str) -> Any:
-            try:
-                return float(value)
-            except Exception:
-                return value
-        return map_value_number
-
-    def _map_function_string(self, type_info: dict) -> Callable:
-        def map_value_string(value: str) -> str:
-            return value if value is not None else ""
-        return map_value_string
-
-    def _map_function_ref(self, type_info: dict) -> Callable:
-        def map_value_ref(value: str, link_to: str, portal: Optional[Portal]) -> Any:
-            if not value:
-                nonlocal self, type_info
-                if (column := type_info.get("column")) and column in self.data.get("required", []):
-                    raise Exception(f"No required reference (linkTo) value for: {self._ref_info(link_to, value)}")
-                return True
-            if link_to and portal and not portal.ref_exists(link_to, value):
-                raise Exception(f"Cannot resolve reference (linkTo) for: {self._ref_info(link_to, value)}")
-            return value
-        return lambda value: map_value_ref(value, type_info.get("linkTo"), self._portal)
-
-    def _ref_info(self, link_to: str, value: str) -> str:
-        link_from = Utils.get_type_name(self.data.get("title"))
-        return f"{link_to}" + (f"/{value}" if value else "") + (f" (from {link_from})" if link_from else "")
-
-    def _map_function_name(self, map_function: Callable) -> str:
-        # This is ONLY for testing/troubleshooting; get the NAME of the mapping function; this is HIGHLY
-        # implementation DEPENDENT, on the map_function_<type> functions. The map_function, as a string,
-        # looks like: <function Schema._map_function_string.<locals>.map_value_string at 0x103474900> or
-        # if it is implemented as a lambda (to pass in closure), then inspect.getclosurevars.nonlocals looks like:
-        # {"map_value_enum": <function Schema._map_function_enum.<locals>.map_value_enum at 0x10544cd60>, ...}
-        if isinstance(map_function, Callable):
-            if (match := re.search(r"\.(\w+) at", str(map_function))):
-                return f"<{match.group(1)}>"
-            for item in inspect.getclosurevars(map_function).nonlocals:
-                if item.startswith("map_value_"):
-                    return f"<{item}>"
-        return type(map_function)
-
 
 class RowReader(abc.ABC):
     def __init__(self):
@@ -542,6 +543,10 @@ class RowReader(abc.ABC):
 
     def cell_value(self, value: Optional[Any]) -> Optional[Any]:
         return str(value).strip() if value is not None else ""
+
+    @property
+    def row_number(self) -> int:
+        return self._row_number
 
     def open(self) -> None:
         pass
