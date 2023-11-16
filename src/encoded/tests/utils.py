@@ -10,6 +10,16 @@ def post_item_and_return_location(testapp: TestApp, item: dict, collection: str)
     return testapp.get(res.location).json
 
 
+def post_item(
+    testapp: TestApp, post_body: Dict[str, Any], collection: str, status: int = 201
+) -> Dict[str, Any]:
+    resource_path = get_formatted_resource_path(collection)
+    response = testapp.post_json(resource_path, post_body, status=status)
+    if status == 201:
+        return response.json["@graph"][0]
+    return response.json
+
+
 def patch_item(
     testapp: TestApp, patch_body: Dict[str, Any], collection: str, status: int = 200
 ) -> Dict[str, Any]:

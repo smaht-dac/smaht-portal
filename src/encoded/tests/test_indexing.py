@@ -208,8 +208,8 @@ def test_real_validation_error(es_app, setup_and_teardown, indexer_testapp, es_t
     fp_body = {
         'schema_version': '3',
         'uuid': str(uuid.uuid4()),
-        'data_category': 'Sequencing Reads',
-        'data_type': 'Aligned Reads',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Aligned Reads'],
         'file_format': bam_format.get('uuid'),
         'file_classification': 'unprocessed file',  # validation error - this enum is not present
         'higlass_uid': 1  # validation error -- higlass_uid should be string

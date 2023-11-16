@@ -96,11 +96,13 @@
                 "type": "string",
                 "enum": [
                     "Alignment",
+                    "Alignment Manipulation",
                     "Assembly",
                     "Data Compression",
+                    "Feature Annotation",
                     "Format Conversion",
                     "Quality Control",
-                    "Reads Manipulation",
+                    "Read Manipulation",
                     "Variant Annotation",
                     "Variant Calling",
                     "Variant Manipulation"
