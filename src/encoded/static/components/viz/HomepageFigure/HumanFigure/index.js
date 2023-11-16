@@ -1,10 +1,10 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 
-import { HumanOutline } from './HumanOutline';
-import { Brain } from './Brain';
-import { Lung } from './Lung';
-import { Liver } from './Liver';
+import { HumanOutlineSvg } from './HumanOutline/HumanOutlineSvg';
+import { BrainSvg } from './Brain/BrainSvg';
+import { LungSvg } from './Lung/LungSvg';
+import { LiverSvg } from './Liver/LiverSvg';
 
 export const HumanFigure = ({ currentTier }) => {
     const humanFigureContainerRef = useRef(null);
@@ -21,10 +21,10 @@ export const HumanFigure = ({ currentTier }) => {
                 viewBox="0 0 233 674"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg">
-                <HumanOutline currentTier={currentTier} />
-                <Brain currentTier={currentTier} />
-                <Lung currentTier={currentTier} />
-                <Liver currentTier={currentTier} />
+                <HumanOutlineSvg />
+                <BrainSvg />
+                <LungSvg />
+                <LiverSvg />
                 <defs>
                     <filter
                         id="filter0_d_214_1284"

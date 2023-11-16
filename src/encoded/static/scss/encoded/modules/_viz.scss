@@ -407,6 +407,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             line-height: 20px;
                             margin-bottom: 2px;
                             animation: fade-in 300ms;
+
+                            div {
+                                width: max-content;
+                            }
                         }
                     }
 
@@ -501,49 +505,49 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         // Styles for the organ svgs
         g {
             &[data-svg-role="outline-group"] {
-                &:hover {
-                    cursor: pointer;
-                    path[data-svg-role="outline-path-border"] {
-                        stroke-width: 1px;
-                        stroke: black;
-                        stroke-opacity: 0.4;
-                    }
-                }
+                // &:hover {
+                //     cursor: pointer;
+                //     path[data-svg-role="outline-path-border"] {
+                //         stroke-width: 1px;
+                //         stroke: black;
+                //         stroke-opacity: 0.4;
+                //     }
+                // }
             }
             &[data-svg-role="brain-group"] {
                 transform: translate(90px, 13px);
                 
-                &:hover {
-                    cursor: pointer;
-                    path[data-svg-role="brain-outline"] {
-                        stroke-width: 1px;
-                        stroke: black;
-                        stroke-opacity: 0.4;
-                    }
-                }
+                // &:hover {
+                //     cursor: pointer;
+                //     path[data-svg-role="brain-outline"] {
+                //         stroke-width: 1px;
+                //         stroke: black;
+                //         stroke-opacity: 0.4;
+                //     }
+                // }
             }
             &[data-svg-role="lung-group"] {
                 transform: translate(70px, 115px);
         
-                &:hover {
-                    cursor: pointer;
-                    g[data-svg-role="lung-outline"] {
-                        stroke-width: 1px;
-                        stroke: black;
-                    }
-                }
+                // &:hover {
+                //     cursor: pointer;
+                //     g[data-svg-role="lung-outline"] {
+                //         stroke-width: 1px;
+                //         stroke: black;
+                //     }
+                // }
             }
             &[data-svg-role="liver-group"] {
                 transform: translate(75px, 245px);
         
-                &:hover {
-                    cursor: pointer;
-                    g[data-svg-role="liver-outline"] {
-                        stroke-opacity: 0.4;
-                        stroke-width: 1px;
-                        stroke:black;
-                    }
-                }
+                // &:hover {
+                //     cursor: pointer;
+                //     g[data-svg-role="liver-outline"] {
+                //         stroke-opacity: 0.4;
+                //         stroke-width: 1px;
+                //         stroke:black;
+                //     }
+                // }
             }
         }
     }

@@ -1,4 +1,10 @@
 import React from 'react';
+import {
+    OverlayTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTitle,
+} from 'react-bootstrap';
 
 const CLTList = ({ list }) => {
     return (
@@ -6,8 +12,24 @@ const CLTList = ({ list }) => {
             {list.map((item, i) => {
                 return (
                     <li key={i}>
-                        <img src={item.iconSrc} />
-                        {item.title}
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            placement="right"
+                            rootClose
+                            overlay={
+                                <Popover id="">
+                                    <PopoverTitle>{item.title}</PopoverTitle>
+                                    <PopoverContent>
+                                        Additional information about{' '}
+                                        {item.title} here
+                                    </PopoverContent>
+                                </Popover>
+                            }>
+                            <div>
+                                <img src={item.iconSrc} />
+                                {item.title}
+                            </div>
+                        </OverlayTrigger>
                     </li>
                 );
             })}
