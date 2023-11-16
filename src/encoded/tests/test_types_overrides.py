@@ -161,8 +161,8 @@ def test_file_types(testapp: TestApp, test_consortium: Dict[str, Any]) -> None:
         'md5sum': '00000000000000000000000000000001',
         'filename': 'my.fastq.gz',
         'status': 'in review',
-        'data_category': 'Sequencing Reads',
-        'data_type': 'Unaligned Reads',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
         'consortia': [test_consortium['uuid']],
     }
     testapp.post_json('/OutputFile', processed_file, status=201)
@@ -172,8 +172,8 @@ def test_file_types(testapp: TestApp, test_consortium: Dict[str, Any]) -> None:
         'md5sum': '00000000000000000000000000000002',
         'filename': 'my.fastq.gz',
         'status': 'in review',
-        'data_category': 'Sequencing Reads',
-        'data_type': 'Unaligned Reads',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
         'consortia': [test_consortium['uuid']],
     }
     testapp.post_json('/ReferenceFile', reference_file, status=201)

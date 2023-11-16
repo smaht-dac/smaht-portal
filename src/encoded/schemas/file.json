@@ -47,9 +47,6 @@
             "$ref": "mixins.json#/schema_version"
         },
         {
-            "$ref": "mixins.json#/status"
-        },
-        {
             "$ref": "mixins.json#/submitted"
         },
         {
@@ -84,30 +81,61 @@
         "quality_metrics": {
             "$merge": "encoded_core:schemas/file.json#/properties/quality_metrics"
         },
+        "status": {
+            "title": "Status",
+            "type": "string",
+            "default": "uploading",
+            "enum": [
+                "uploading",
+                "uploaded",
+                "upload failed",
+                "to be uploaded by workflow",
+                "public",
+                "current",
+                "deleted",
+                "inactive",
+                "in review",
+                "obsolete",
+                "shared"
+            ]
+        },
         "data_category": {
             "title": "Data Category",
             "description": "Category for information in the file",
-            "type": "string",
-            "enum": [
-                "Genome Region",
-                "Reference Genome",
-                "Sequencing Reads",
-                "Variant Calls"
-            ]
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Genome Region",
+                    "Quality Control",
+                    "Reference Genome",
+                    "Sequencing Reads",
+                    "Variant Calls"
+                ]
+            }
         },
         "data_type": {
             "title": "Data Type",
             "description": "Detailed type of information in the file",
-            "type": "string",
-            "enum": [
-                "Aligned Reads",
-                "Copy Number Variants",
-                "Indels",
-                "Reads Index",
-                "Single Nucleotide Variants",
-                "Structural Variants",
-                "Unaligned Reads"
-            ]
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Aligned Reads",
+                    "Germline Variant Calls",
+                    "Image",
+                    "Index",
+                    "Reference Sequence",
+                    "Sequence Interval",
+                    "Somatic Variant Calls",
+                    "Statistics",
+                    "Unaligned Reads"
+                ]
+            }
         }
     },
     "facets": {},

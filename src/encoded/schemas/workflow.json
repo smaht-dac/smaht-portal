@@ -79,12 +79,14 @@
                 "type": "string",
                 "enum": [
                     "Alignment",
+                    "Alignment Manipulation",
                     "Annotation",
                     "Format Conversion",
                     "Quality Control",
-                    "Reads Manipulation",
+                    "Read Manipulation",
                     "Testing",
-                    "Variant Calling"
+                    "Variant Calling",
+                    "Variant Manipulation"
                 ]
             }
         },
@@ -180,16 +182,29 @@
                 "run_name"
             ],
             "properties": {
-                "behavior_on_capacity": {
-                    "title": "Behavior on Capacity",
+                "behavior_on_capacity_limit": {
+                    "title": "Behavior on Capacity Limit",
                     "type": "string",
                     "enum": [
                         "wait_and_retry"
-                    ]
+                    ],
+                    "default": "wait_and_retry"
                 },
                 "cpu": {
                     "title": "CPU",
                     "type": "integer"
+                },
+                "ebs_iops": {
+                    "title": "EBS IOPS",
+                    "description": "EBS input/output operations per second",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "ebs_throughput": {
+                    "title": "EBS Throughput",
+                    "description": "EBS throughput, in MiB/s",
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "ebs_optimized": {
                     "title": "EBS Optimized",
@@ -208,7 +223,15 @@
                     "items": {
                         "type": "string",
                         "enum": [
-                            "c5.4xlarge"
+                            "c5.2xlarge",
+                            "c5.4xlarge",
+                            "m5a.2xlarge",
+                            "r4.4xlarge",
+                            "r5.4xlarge",
+                            "r5a.4xlarge",
+                            "r5b.4xlarge",
+                            "r5ad.4xlarge",
+                            "r6i.4xlarge"
                         ]
                     }
                 },

@@ -1,3 +1,5 @@
+import netaddr
+
 import encoded.project_defs  # VERY Important - loads application specific behavior
 
 import logging
@@ -96,7 +98,7 @@ def include_snovault(config: Configurator) -> None:
 
 def include_encoded_core(config):
     """ Customized includes for encoded-core """
-    config.include('encoded_core.file_views')
+    #config.include('encoded_core.file_views')
     config.include('encoded_core.page_views')
     config.include('encoded_core.qc_views')
 
@@ -172,6 +174,12 @@ def init_sentry(dsn):
 def init_code_guru(*, group_name, region=ECSUtils.REGION):
     """ Starts AWS CodeGuru process for profiling the app remotely. """
     Profiler(profiling_group_name=group_name, region_name=region).start()
+
+
+def setup_aws_ip_ranges(config, settings):
+    aws_ip_ranges = json_from_path(settings.get('aws_ip_ranges_path'), {'prefixes': []})
+    config.registry['aws_ipset'] = netaddr.IPSet(
+        record['ip_prefix'] for record in aws_ip_ranges['prefixes'] if record['service'] == 'AMAZON')
 
 
 def set_logging_main(settings):
@@ -284,6 +292,9 @@ def main(global_config, **local_config):
 
     # initialize sentry reporting
     init_sentry(settings.get('sentry_dsn', None))
+
+    # Get AWS IP ranges (for optimized downloads)
+    setup_aws_ip_ranges(config, settings)
 
     # initialize CodeGuru profiling, if set
     # note that this is intentionally an env variable (so it is a TASK level setting)

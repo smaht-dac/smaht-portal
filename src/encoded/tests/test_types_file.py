@@ -20,8 +20,26 @@ def output_file(
         "md5sum": "00000000000000000000000000000001",
         "filename": "my.fastq.gz",
         "status": "in review",
-        "data_category": "Sequencing Reads",
-        "data_type": "Unaligned Reads",
+        "data_category": ["Sequencing Reads"],
+        "data_type": ["Unaligned Reads"],
+        "consortia": [test_consortium["uuid"]],
+    }
+    return post_item_and_return_location(testapp, item, "output_file")
+
+
+@pytest.fixture
+def output_file2(
+    testapp: TestApp,
+    test_consortium: Dict[str, Any],
+    file_formats: Dict[str, Dict[str, Any]],
+) -> Dict[str, Any]:
+    item = {
+        "file_format": file_formats.get(OUTPUT_FILE_FORMAT, {}).get("uuid", ""),
+        "md5sum": "00000000000000000000000000000002",
+        "filename": "my.fastq.gz",
+        "status": "in review",
+        "data_category": ["Sequencing Reads"],
+        "data_type": ["Unaligned Reads"],
         "consortia": [test_consortium["uuid"]],
     }
     return post_item_and_return_location(testapp, item, "output_file")
@@ -71,3 +89,35 @@ def test_upload_key(output_file: Dict[str, Any], file_formats: Dict[str, Dict[st
         f".{file_formats.get(OUTPUT_FILE_FORMAT, {}).get('standard_file_extension', '')}"
     )
     assert output_file.get("upload_key") == expected
+
+
+def test_output_file_force_md5(testapp: TestApp, output_file: Dict[str, Any], output_file2: Dict[str, Any],
+                               file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """ Tests that we can skip md5 check by passing ?force_md5 to patch output_file2 to md5 of output_file """
+    atid = output_file2['@id']
+    testapp.patch_json(f'/{atid}', {'md5sum': '00000000000000000000000000000001'}, status=422)  # fails without force_md5
+    testapp.patch_json(f'/{atid}?force_md5', {'md5sum': '00000000000000000000000000000001'}, status=200)
+
+
+def test_output_file_get_post_upload(testapp: TestApp, output_file: Dict[str, Any],
+                                     file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """ Tests that the get_upload API works correctly for a basic output file """
+    atid = output_file['@id']
+    res = testapp.get(f'/{atid}?upload').json
+    assert 'upload_credentials' in res
+    for upload_key in ['key', 'upload_url', 'AccessKeyId', 'SessionToken', 'SecretAccessKey']:
+        assert upload_key in res['upload_credentials']
+
+    # This does not work right now - it's untested in CGAP and 4DN, not clear it works there either - Will Nov 16 2023
+    # res = testapp.post_json(f'/{atid}?upload', {}).json
+    # assert 'upload_credentials' in res
+    # for upload_key in ['key', 'upload_url', 'AccessKeyId', 'SessionToken', 'SecretAccessKey']:
+    #     assert upload_key in res['upload_credentials']
+
+
+def test_output_file_download(testapp: TestApp, output_file: Dict[str, Any],
+                              file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """ Tests that download returns a reasonable looking URL """
+    atid = output_file['@id']
+    res = testapp.get(f'/{atid}@@download', status=307).json
+    assert 'smaht-unit-testing-wfout.s3.amazonaws.com' in res['message']
