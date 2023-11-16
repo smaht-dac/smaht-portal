@@ -41,6 +41,13 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
         # way they are written, so remove from the update list any items which are also in the create list.
         response["updated"] = [item for item in response["updated"] if item not in response["created"]]
         response["types"] = list(data.keys())
+        response["total"] = (
+            len(response["created"]) +
+            len(response["updated"]) +
+            len(response["skipped"]) +
+            len(response["validated"]) +
+            len(response["errors"])
+        )
         return response
 
     loadxl_load_data_response = loadxl_load_data(
@@ -68,15 +75,16 @@ def summary_of_load_data_results(load_data_response: Optional[Dict],
     """
     summary = [
         f"Successful ingestion summary:",
-        f"In File: {submission.data_file_name}" if submission else None,
+        f"File:    {submission.data_file_name}" if submission else None,
         f"S3 File: {submission.s3_data_file_location}" if submission else None,
         f"Details: {submission.s3_details_location}" if submission else None,
-        f"N Types: {len(load_data_response['types'])}",
+        f"Tottal:  {load_data_response['total']}",
         f"Created: {len(load_data_response['created'])}",
         f"Updated: {len(load_data_response['updated'])}",
         f"Skipped: {len(load_data_response['skipped'])}",
         f"Checked: {len(load_data_response['validated'])}",
-        f"Errored: {len(load_data_response['errors'])}"
+        f"Errored: {len(load_data_response['errors'])}",
+        f"Types:   {len(load_data_response['types'])}"
     ]
     return [item for item in summary if item is not None]
 
