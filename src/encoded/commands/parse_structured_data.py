@@ -2,7 +2,7 @@ import argparse
 import json
 from typing import List
 import yaml
-from dcicutils.bundle_utils import load_items as RefHint
+from dcicutils.bundle_utils import RefHint
 from dcicutils.validation_utils import SchemaManager
 from encoded.commands.captured_output import captured_output
 with captured_output():
