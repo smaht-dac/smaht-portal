@@ -17,16 +17,23 @@ export const Footer = React.memo(function Footer() {
                     <div className="col-sm-6">
                         <div className="footer-section copy-notice d-flex align-items-center justify-content-center justify-content-sm-start">
                             <div>
-                                National Institutes of Health
-                                <span className="px-2">|</span>
-                                SMaHT Consortium
+                                SMaHT is funded by the{' '}
+                                <a href="">NIH Common Fund</a>
                             </div>
                         </div>
                     </div>
                     <div className="col-sm-6">
                         <div className="footer-section copy-notice d-flex align-items-center justify-content-center justify-content-sm-end">
                             <div className="text-larger">
+                                <a className="text-decoration-none" href="">
+                                    Privacy Policy
+                                </a>
                                 <a
+                                    className="text-decoration-none ml-5"
+                                    href="">
+                                    Legal
+                                </a>
+                                {/* <a
                                     href="https://www.youtube.com/watch?v=8KX3lkMB5nU"
                                     target="_blank"
                                     rel="noreferrer">
@@ -37,7 +44,7 @@ export const Footer = React.memo(function Footer() {
                                     target="_blank"
                                     rel="noreferrer">
                                     <i className="icon icon-github fab"></i>
-                                </a>
+                                </a> */}
                             </div>
                         </div>
                     </div>

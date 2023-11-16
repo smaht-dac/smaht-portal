@@ -22,6 +22,7 @@ const auth0Options = {
 };
 
 export const GuestHomeView = React.memo(function GuestHomeView(props) {
+    const [currentTier, setCurrentTier] = useState('benchmarking');
     const { updateAppSessionState } = props;
 
     // Upon mount, unset alerts from any other pages, to prevent vertical scroll.
@@ -45,16 +46,22 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                     </div>
                 </div>
                 <div className="row my-2 flex-column flex-lg-row">
-                    <div className="col-12 col-lg-6">
-                        <SMaHTTimeline />
+                    <div className="col-12 col-lg-4 col-xl-5">
+                        <SMaHTTimeline
+                            currentTier={currentTier}
+                            setCurrentTier={setCurrentTier}
+                        />
                     </div>
-                    <div className="col-12 col-lg-6 d-flex justify-content-center align-items-center my-3 my-sm-5 my-lg-2 ">
-                        <HomepageFigure />
+                    <div className="col-12 col-lg-8 col-xl-7 col-xxl-6 d-flex justify-content-center align-items-center mb-2 my-lg-2 ">
+                        <HomepageFigure
+                            currentTier={currentTier}
+                            setCurrentTier={setCurrentTier}
+                        />
                     </div>
                 </div>
                 <div className="row">
-                    <Card className="about-consortium col-12 w-100 p-3 mb-3">
-                        <h3 className="mt-0">About the Consortium</h3>
+                    <Card className="about-consortium col-12 w-100 mb-3">
+                        <h3 className="">About the Consortium</h3>
                         <div className="row">
                             <div className="col-12 col-md-6 col-lg-3">
                                 <a
@@ -64,7 +71,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     role="button"
                                     className="w-100 py-2 btn">
                                     NIH SMaHT Homepage
-                                    <i className="icon-external-link-alt icon icon-xs fas ml-1" />
+                                    <i className="icon-external-link-alt icon icon-xs fas ml-2" />
                                 </a>
                             </div>
                             <div className="col-12 col-md-6 col-lg-3">
@@ -75,7 +82,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     role="button"
                                     className="w-100 py-2 btn">
                                     SMaHT OC Homepage
-                                    <i className="icon-external-link-alt icon icon-xs fas ml-1" />
+                                    <i className="icon-external-link-alt icon icon-xs fas ml-2" />
                                 </a>
                             </div>
                             <div className="col-12 col-md-6 col-lg-3">
@@ -86,7 +93,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     role="button"
                                     className="w-100 py-2 btn">
                                     SMaHT Overview Video
-                                    <i className="icon-external-link-alt icon text-xs fas ml-1" />
+                                    <i className="icon-external-link-alt icon text-xs fas ml-2" />
                                 </a>
                             </div>
                             {/** @TODO: Link might change */}

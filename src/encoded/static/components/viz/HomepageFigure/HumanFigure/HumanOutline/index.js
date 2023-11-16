@@ -22,9 +22,7 @@ export const HumanOutline = ({ currentTier }) => {
                     </PopoverContent>
                 </Popover>
             }>
-            <g data-svg-role="outline-group" filter="url(#filter0_d_214_1284)">
-                <HumanOutlineSvg />
-            </g>
+            <HumanOutlineSvg />
         </OverlayTrigger>
     );
 };

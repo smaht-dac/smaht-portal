@@ -36,10 +36,7 @@ const TierSelector = ({ currentTier, setCurrentTier }) => {
     );
 };
 
-export const HomepageFigure = ({}) => {
-    // Must have ability to set the tier, might need to get this passed down
-    const [currentTier, setCurrentTier] = useState('benchmarking');
-
+export const HomepageFigure = ({ currentTier, setCurrentTier }) => {
     return (
         <div className="homepage-figure">
             <div className="homepage-figure-content">

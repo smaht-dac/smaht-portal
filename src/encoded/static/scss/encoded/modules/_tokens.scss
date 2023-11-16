@@ -14,26 +14,26 @@ $cobalt-70:  #2440AA;
 $cobalt-80: #044292;
 
 
+$azure: #EEFFFC;
 
 // Greens
-$seafoam-20: #D1FFEF;
+$seafoam-20: #DFFBF6; // DFFBF6
 $seafoam-40: #7FE9C7;
 $seafoam-60: #079483;
 
 
-
 // Home Page
-$homepage-header-text-color: $cobalt-70;
-$homepage-subtitle-text-color: $cobalt-40;
+$homepage-header-text-color: #2E385A;
+$homepage-subtitle-text-color: #5B7595;
 
-$homepage-card-border-color: $cobalt-60; 
-$homepage-card-bg-color: rgba($cobalt-40, 0.30);
+$homepage-card-border-color: #A5ECD5; 
+$homepage-card-bg-color: $azure;
 $homepage-card-border-radius: 10px;
-$homepage-card-text-color: $cobalt-50;
-$homepage-card-icon-color: $cobalt-40;
+$homepage-card-text-color: #416485;
+$homepage-card-icon-color: #416485;
 
-$homepage-timeline-border-color: $seafoam-40;
-$homepage-timeline-bg-color: $seafoam-20;
+$homepage-timeline-border-color: #A5ECD5;
+$homepage-timeline-bg-color: $azure;
 $homepage-timeline-text-color: $seafoam-60;
 
 $homepage-about-consort-btn-bg-color: rgba($pure-white, 0.75);
