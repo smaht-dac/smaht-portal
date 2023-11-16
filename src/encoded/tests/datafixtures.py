@@ -170,8 +170,8 @@ def output_file(
         "md5sum": "00000000000000000000000000000001",
         "filename": "my.fastq.gz",
         "status": "in review",
-        "data_category": "Sequencing Reads",
-        "data_type": "Unaligned Reads",
+        "data_category": ["Sequencing Reads"],
+        "data_type": ["Unaligned Reads"],
         "consortia": [test_consortium["uuid"]],
     }
     return post_item_and_return_location(testapp, item, "output_file")
@@ -184,3 +184,27 @@ def access_key(testapp: TestApp) -> Dict[str, Any]:
         "expiration_date": "2024-01-11T10:00:33.554416",
     }
     return post_item_and_return_location(testapp, item, "AccessKey")
+
+
+@pytest.fixture
+def meta_workflow(
+    testapp: TestApp, test_consortium: Dict[str, Any], workflow: Dict[str, Any],
+) -> Dict[str, Any]:
+    item = {
+        "consortia": [test_consortium["uuid"]],
+        "name": "a_beautiful_workflow",
+        "title": "A beauty",
+        "category": ["Alignment"],
+        "version": "1.0.0",
+        "workflows": [
+            {
+                "name": "some_workflow",
+                "workflow": workflow["uuid"],
+                "input": [
+                    {"argument_name": "arg1", "argument_type": "parameter"},
+                ],
+                "config": {"instance_type": ["c5.4xlarge"], "run_name": "some_workflow"},
+            },
+        ]
+    }
+    return post_item_and_return_location(testapp, item, "MetaWorkflow")
