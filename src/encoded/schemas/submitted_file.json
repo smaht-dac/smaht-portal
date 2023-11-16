@@ -9,7 +9,7 @@
         "data_type",
         "file_format",
         "file_name",
-		"submitter_id"
+        "submitter_id"
     ],
     "anyOf": [
         {
@@ -51,9 +51,6 @@
         },
         {
             "$ref": "mixins.json#/schema_version"
-        },
-        {
-            "$ref": "mixins.json#/status"
         },
         {
             "$ref": "mixins.json#/submitted"

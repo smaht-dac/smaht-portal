@@ -47,9 +47,6 @@
             "$ref": "mixins.json#/schema_version"
         },
         {
-            "$ref": "mixins.json#/status"
-        },
-        {
             "$ref": "mixins.json#/submitted"
         },
         {
@@ -121,6 +118,24 @@
                     "Unaligned Reads"
                 ]
             }
+        },
+        "status": {
+            "title": "Status",
+            "type": "string",
+            "default": "uploading",
+            "enum": [
+                "uploading",
+                "uploaded",
+                "upload failed",
+                "to be uploaded by workflow",
+                "public",
+                "current",
+                "deleted",
+                "inactive",
+                "in review",
+                "obsolete",
+                "shared"
+            ]
         }
     },
     "facets": {},
