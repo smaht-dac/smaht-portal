@@ -48,7 +48,7 @@ def main() -> None:
             Schema._map_function_ref = lambda self, type_info: lambda value: value
         else:
             RefHint._apply_ref_hint = lambda self, value: value
-    elif args.refs_optional:
+    elif args.refs_noerror:
         if not args.sheet_utils:
             real_map_function_ref = Schema._map_function_ref
             def custom_map_function_ref(self, type_info):
@@ -160,7 +160,7 @@ def parse_args() -> argparse.Namespace:
                         default=False, help=f"Output the referenced schema(s).")
     parser.add_argument("--norefs", required=False, action="store_true",
                         default=False, help=f"Do not try to resolve schema linkTo references.")
-    parser.add_argument("--refs-optional", required=False, action="store_true",
+    parser.add_argument("--refs-noerror", required=False, action="store_true",
                         default=False, help=f"TODO Do not try to resolve schema linkTo references.")
     parser.add_argument("--noschemas", required=False, action="store_true",
                         default=False, help=f"Do not use schemes at all.")
@@ -189,7 +189,7 @@ def parse_args() -> argparse.Namespace:
     if (1 if args.patch_only else 0) + (1 if args.post_only else 0) + (1 if args.validate_only else 0) > 1:
         print("May only specify one of: --patch-only and --post-only and --validate-only")
         exit(1)
-    if not args.norefs and args.refs_optional:
+    if not args.norefs and args.refs_noerror:
         print("May only specify one of: --norefs and --refs-optional")
     if not args.load and (args.patch_only or args.patch_only or args.validate_only):
         print("Must use --load when using: --patch-only or --post-only or --validate-only")
