@@ -379,18 +379,23 @@ class Schema:
         return map_value_string
 
     def _map_function_ref(self, type_info: dict) -> Callable:
+
         def map_value_ref(value: str, link_to: str, portal: Optional[Portal]) -> Any:
-            nonlocal self, type_info
+
             def ref_info(link_to: str, value: str) -> str:
+                nonlocal self
                 link_from = Utils.get_type_name(self.data.get("title"))
                 return f"{link_to}" + (f"/{value}" if value else "") + (f" (from {link_from})" if link_from else "")
+
+            nonlocal self, type_info
             if not value:
                 if (column := type_info.get("column")) and column in self.data.get("required", []):
                     raise Exception(f"No required reference (linkTo) value for: {ref_info(link_to, value)}")
-                return True
             if link_to and portal and not portal.ref_exists(link_to, value):
                 raise Exception(f"Cannot resolve reference (linkTo) for: {ref_info(link_to, value)}")
+
             return value
+
         return lambda value: map_value_ref(value, type_info.get("linkTo"), self._portal)
 
     def _map_function_name(self, map_function: Callable) -> str:
