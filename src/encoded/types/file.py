@@ -74,6 +74,11 @@ class File(SMAHTItem, CoreFile):
     ) -> None:
         return CoreFile._update(self, properties, sheets=sheets)
 
+    @classmethod
+    def get_bucket(cls, registry):
+        """ Files by default live in the upload bucket, unless they are output files """
+        return registry.settings['file_upload_bucket']
+
     @calculated_property(schema=HREF_SCHEMA)
     def href(
         self,

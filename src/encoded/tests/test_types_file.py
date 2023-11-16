@@ -120,4 +120,4 @@ def test_output_file_download(testapp: TestApp, output_file: Dict[str, Any],
     """ Tests that download returns a reasonable looking URL """
     atid = output_file['@id']
     res = testapp.get(f'/{atid}@@download', status=307).json
-    assert 'smaht-unit-testing-files.s3.amazonaws.com' in res['message']
+    assert 'smaht-unit-testing-wfoutput.s3.amazonaws.com' in res['message']

@@ -21,3 +21,8 @@ class OutputFile(File):
         if keys.get('alias'):
             keys['alias'] = [k for k in keys['alias'] if not k.startswith('md5:')]
         return keys
+
+    @classmethod
+    def get_bucket(cls, registry):
+        """ Output files live in the wfoutput bucket """
+        return registry.settings['file_wfout_bucket']
