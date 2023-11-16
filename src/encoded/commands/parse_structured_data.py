@@ -36,8 +36,6 @@ def main() -> None:
         else:
             portal = Portal.create_for_unit_testing()
 
-    ref_errors = []
-
      # Manually override implementation specifics for --noschemas.
     if args.noschemas:
         if not args.sheet_utils:
@@ -45,36 +43,10 @@ def main() -> None:
         else:
             SchemaManager.get_schema = lambda name, portal_env, portal_vapp: {}
 
-     # Manually override implementation specifics for our default handling of refs (linkTo),
-     # which is to catch/report any ref error; use --norefs to not do ref checking at all;
-     # and use --refs to throw exceptions (as normal outside of this script) for ref errors.
-    if args.norefs:
-        if not args.sheet_utils:
-            Schema._map_function_ref = lambda self, type_info: lambda value: value
-        else:
-            RefHint._apply_ref_hint = lambda self, value: value
-    elif not args.refs:
-        if not args.sheet_utils:
-            real_map_function_ref = Schema._map_function_ref
-            def custom_map_function_ref(self, type_info):
-                real_map_value_ref = real_map_function_ref(self, type_info)
-                def custom_map_value_ref(value, link_to, portal):
-                    try:
-                        return real_map_value_ref(value)
-                    except Exception as e:
-                        ref_errors.append(str(e))
-                        return value
-                return lambda value: custom_map_value_ref(value, type_info.get("linkTo"), self._portal)
-            Schema._map_function_ref = custom_map_function_ref
-        else:
-            real_apply_ref_hint = RefHint._apply_ref_hint
-            def custom_apply_ref_hint(self, value):
-                try:
-                    return real_apply_ref_hint(self, value)
-                except Exception as e:
-                    ref_errors.append(str(e))
-            RefHint._apply_ref_hint = custom_apply_ref_hint
-
+    # Manually override implementation specifics for our default handling of refs (linkTo),
+    # which is to catch/report any ref error; use --norefs to not do ref checking at all;
+    # and use --refs to throw exceptions (as normal outside of this script) for ref errors.
+    ref_errors = override_ref_handling(args) if args.norefs or not args.refs else []
 
     if args.verbose:
         if args.sheet_utils:
@@ -142,6 +114,37 @@ def main() -> None:
         print("\n>>> Done.")
 
 
+def override_ref_handling(args: argparse.Namespace) -> None:
+    ref_errors = []
+    if args.norefs:
+        if not args.sheet_utils:
+            Schema._map_function_ref = lambda self, type_info: lambda value: value
+        else:
+            RefHint._apply_ref_hint = lambda self, value: value
+    elif not args.refs:
+        if not args.sheet_utils:
+            real_map_function_ref = Schema._map_function_ref
+            def custom_map_function_ref(self, type_info):
+                real_map_value_ref = real_map_function_ref(self, type_info)
+                def custom_map_value_ref(value, link_to, portal):
+                    try:
+                        return real_map_value_ref(value)
+                    except Exception as e:
+                        ref_errors.append(str(e))
+                        return value
+                return lambda value: custom_map_value_ref(value, type_info.get("linkTo"), self._portal)
+            Schema._map_function_ref = custom_map_function_ref
+        else:
+            real_apply_ref_hint = RefHint._apply_ref_hint
+            def custom_apply_ref_hint(self, value):
+                try:
+                    return real_apply_ref_hint(self, value)
+                except Exception as e:
+                    ref_errors.append(str(e))
+            RefHint._apply_ref_hint = custom_apply_ref_hint
+    return ref_errors
+
+
 def dump_schemas(schema_names: List[str], portal: Portal) -> None:
     for schema_name in schema_names:
         schema = Schema.load_by_name(schema_name, portal)
@@ -151,6 +154,7 @@ def dump_schemas(schema_names: List[str], portal: Portal) -> None:
             print(json.dumps(schema, indent=4, default=str))
         else:
             print(f">>> No schema found for type: {schema_name}")
+
 
 def parse_args() -> argparse.Namespace:
 
