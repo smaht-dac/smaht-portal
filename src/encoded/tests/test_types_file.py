@@ -98,3 +98,26 @@ def test_output_file_force_md5(testapp: TestApp, output_file: Dict[str, Any], ou
     testapp.patch_json(f'/{atid}', {'md5sum': '00000000000000000000000000000001'}, status=422)  # fails without force_md5
     testapp.patch_json(f'/{atid}?force_md5', {'md5sum': '00000000000000000000000000000001'}, status=200)
 
+
+def test_output_file_get_post_upload(testapp: TestApp, output_file: Dict[str, Any],
+                                     file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """ Tests that the get_upload API works correctly for a basic output file """
+    atid = output_file['@id']
+    res = testapp.get(f'/{atid}?upload').json
+    assert 'upload_credentials' in res
+    for upload_key in ['key', 'upload_url', 'AccessKeyId', 'SessionToken', 'SecretAccessKey']:
+        assert upload_key in res['upload_credentials']
+
+    # This does not work right now - it's untested in CGAP and 4DN, not clear it works there either - Will Nov 16 2023
+    # res = testapp.post_json(f'/{atid}?upload', {}).json
+    # assert 'upload_credentials' in res
+    # for upload_key in ['key', 'upload_url', 'AccessKeyId', 'SessionToken', 'SecretAccessKey']:
+    #     assert upload_key in res['upload_credentials']
+
+
+def test_output_file_download(testapp: TestApp, output_file: Dict[str, Any],
+                              file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """ Tests that download returns a reasonable looking URL """
+    atid = output_file['@id']
+    res = testapp.get(f'/{atid}@@download', status=307).json
+    assert 'smaht-unit-testing-files.s3.amazonaws.com' in res['message']
