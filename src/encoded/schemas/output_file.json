@@ -41,7 +41,7 @@
         "$merge": "encoded:schemas/file.json#/properties",
         "accession": {
             "$merge": "encoded:schemas/mixins.json#/accession/accession",
-	    "accessionType": "FI"
+            "accessionType": "FI"
         },
         "aliases": {
             "$merge": "encoded:schemas/mixins.json#/aliases/aliases"
