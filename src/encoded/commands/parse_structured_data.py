@@ -56,11 +56,7 @@ def main() -> None:
             print(" ignoring schemas", end="")
         print(f" from: {args.file} ...")
 
-    structured_data_set, problems = parse_structured_data(file=args.file,
-                                                          portal=portal,
-                                                          old=args.old,
-                                                          validate=args.validate,
-                                                          noschemas=args.noschemas)
+    structured_data_set, problems = parse_structured_data(file=args.file, portal=portal, args=args)
 
     print(f">>> Parsed Data:")
     print(json.dumps(structured_data_set, indent=4, default=str))
@@ -97,20 +93,16 @@ def main() -> None:
         print(">>> Done.")
 
 
-def parse_structured_data(file: str,
-                          portal: Optional[Portal],
-                          validate: bool = False,
-                          old: bool = False,
-                          noschemas: bool = False) -> Tuple[Optional[dict], Optional[List[str]]]:
-    if not old:
+def parse_structured_data(file: str, portal: Optional[Portal], args) -> Tuple[Optional[dict], Optional[List[str]]]:
+    if not args.old:
         structured_data = StructuredDataSet(file, portal=portal, order=ITEM_INDEX_ORDER)
-        problems = structured_data.validate() if validate else []
+        problems = structured_data.validate() if args.validate else []
         data = structured_data.data
     else:
         data = sheet_utils_load_items(file, portal_vapp=portal.vapp if portal else None,
-                                      validate=validate, apply_heuristics=True,
+                                      validate=args.validate, apply_heuristics=True,
                                       sheet_order=ITEM_INDEX_ORDER)
-        if not noschemas and validate:
+        if args.validate:
             problems = data[1] or []
             data = data[0]
         else:
