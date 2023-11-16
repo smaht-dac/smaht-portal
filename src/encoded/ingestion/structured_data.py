@@ -685,7 +685,7 @@ class Portal:
     def create(portal: Optional[Union[VirtualApp, TestApp, Portal]] = None,
                loading_data_set: Optional[dict] = None) -> Optional[Portal]:
         if isinstance(portal, Portal):
-            if loading_data_set:
+            if loading_data_set is not None:
                 portal.loading_data_set = loading_data_set
             return portal
         return Portal(portal, loading_data_set=loading_data_set) if portal else None
