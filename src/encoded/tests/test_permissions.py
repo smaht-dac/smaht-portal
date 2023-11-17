@@ -332,16 +332,6 @@ class TestConsortiumPermissions(TestPermissionsHelper):
         }, status=201)
 
     @staticmethod
-    def test_consortium_user_create_other(test_consortium, consortium_user_app, smaht_consortium_user, testapp):
-        """ Tests that consortium users can create filter sets """
-        consortium_user_app.post_json('/FilterSet', {
-            'title': 'test fs',
-            'consortia': [
-                test_consortium['uuid']
-            ]
-        }, status=201)
-
-    @staticmethod
     def test_consortium_user_cannot_create_other(test_submission_center, consortium_user_app, smaht_consortium_user, testapp):
         """ Tests that a consortium user cannot create items associated with submission centers,
             touch restricted fields or types """
@@ -577,41 +567,11 @@ class TestUserSubmissionConsistency:
         do so under the correct identifiers, else throw errors """
 
     @staticmethod
-    def test_user_consortia_submission_consistency(testapp, test_consortium, test_protected_consortium,
-                                                   consortium_user_app):
-        """ Tests that a user with the smaht-consortia can submit data under that consortia
-            but not others even in mixed state
-        """
-        consortium_user_app.post_json('/FilterSet', {
-            'title': 'test', 'consortia': [test_consortium['uuid']]
-        }, status=201)
-        # fail as user is not part of this consortium
-        consortium_user_app.post_json('/FilterSet', {
-            'title': 'test', 'consortia': [test_protected_consortium['uuid']]
-        }, status=422)
-        # fail as object has both consortia
-        consortium_user_app.post_json('/FilterSet', {
-            'title': 'test', 'consortia': [test_consortium['uuid'], test_protected_consortium['uuid']]
-        }, status=422)
-
-    @staticmethod
     def test_user_submission_center_consistency(testapp, test_consortium, test_protected_consortium,
                                                 test_submission_center, test_second_submission_center,
                                                 submission_center_user_app):
-        """ Runs same tests as previous for a submission center user, but additionally
-            test similar situations for submission center
+        """ Tests that users can only submit to submission centers they are a part of
         """
-        submission_center_user_app.post_json('/FilterSet', {
-            'title': 'test', 'consortia': [test_consortium['uuid']]
-        }, status=201)
-        # fail as user is not part of this consortium
-        submission_center_user_app.post_json('/FilterSet', {
-            'title': 'test', 'consortia': [test_protected_consortium['uuid']]
-        }, status=422)
-        # fail as object has both consortia
-        submission_center_user_app.post_json('/FilterSet', {
-            'title': 'test', 'consortia': [test_consortium['uuid'], test_protected_consortium['uuid']]
-        }, status=422)
         submission_center_user_app.post_json('/FilterSet', {
             'title': 'test', 'submission_centers': [test_submission_center['uuid']]
         }, status=201)

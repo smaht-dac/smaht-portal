@@ -49,18 +49,18 @@ Public is intended for public release and is viewable by everybody and only
 editable by admins.
 
 Draft is for internal use where we are not sure if we want to release it outside
-of the DAC internally.
+of the admins internally.
 
 Released is intended for data that should be viewable by all consortia members.
 
 In review is the default status for uploaded data and is only viewable and
-editable by the submitter and the DAC.
+editable by the submitter and the admins.
 
 Obsolete is a form of released where data has either been superseded in some
 way or is only up for historical purposes.
 
 Deleted is a special status for data that should not be viewable by anyone
-except the DAC and is kept only for historical purposes.
+except the admins and is kept only for historical purposes.
 
 
 Additional statuses are used by the User and File items as their specific use
