@@ -1,9 +1,9 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import pytest
 from webtest.app import TestApp
 
-from .utils import patch_item, post_item_and_return_location
+from .utils import patch_item, post_item, post_item_and_return_location
 
 
 OUTPUT_FILE_FORMAT = "fastq"
@@ -43,6 +43,26 @@ def output_file2(
         "consortia": [test_consortium["uuid"]],
     }
     return post_item_and_return_location(testapp, item, "output_file")
+
+
+@pytest.fixture
+def bam_output_file_properties(
+    test_submission_center: Dict[str, Any],
+    file_formats: Dict[str, Dict[str, Any]],
+) -> Dict[str, Any]:
+    return {
+        "submission_centers": [test_submission_center["uuid"]],
+        "data_category": ["Sequencing Reads"],
+        "data_type": ["Unaligned Reads"],
+        "file_format": file_formats.get("bam", {}).get("uuid"),
+    }
+
+
+@pytest.fixture
+def bam_output_file(
+    testapp: TestApp, bam_output_file_properties: Dict[str, Any]
+) -> None:
+    return post_item(testapp, bam_output_file_properties, "OutputFile")
 
 
 def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]) -> None:
@@ -121,3 +141,42 @@ def test_output_file_download(testapp: TestApp, output_file: Dict[str, Any],
     atid = output_file['@id']
     res = testapp.get(f'/{atid}@@download', status=307).json
     assert 'smaht-unit-testing-wfout.s3.amazonaws.com' in res['message']
+
+
+@pytest.mark.parametrize(
+    "extra_files,expected_status",
+    [
+        ([{"file_format": "bai"}], 201),
+        ([{"file_format": "not found"}], 422),
+        ([{"file_format": "fastq"}], 422),
+        ([{"file_format": "bai"}, {"file_format": "bai"}], 422),
+    ],
+)
+def test_validate_extra_file_format_on_post(
+    extra_files: List[Dict[str, Any]],
+    expected_status: int,
+    testapp: TestApp,
+    bam_output_file_properties: Dict[str, Any],
+) -> None:
+    properties = {**bam_output_file_properties, "extra_files": extra_files}
+    post_item(testapp, properties, "OutputFile", status=expected_status)
+
+
+@pytest.mark.parametrize(
+    "extra_files,expected_status",
+    [
+        ([{"file_format": "bai"}], 200),
+        ([{"file_format": "not found"}], 422),
+        ([{"file_format": "fastq"}], 422),
+        ([{"file_format": "bai"}, {"file_format": "bai"}], 422),
+    ],
+)
+def test_validate_extra_file_format_on_patch(
+    extra_files: List[Dict[str, Any]],
+    expected_status: int,
+    testapp: TestApp,
+    bam_output_file: Dict[str, Any],
+) -> None:
+    identifier = bam_output_file.get("uuid")
+    patch_body = {"extra_files": extra_files}
+    patch_item(testapp, patch_body, identifier, status=expected_status)
