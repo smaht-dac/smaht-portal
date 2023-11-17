@@ -488,7 +488,7 @@ class Schema:
         return DOTTED_NAME_DELIMITER_CHAR.join(flattened_column_name_components)
 
 
-class RowReader(abc.ABC):
+class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
     def __init__(self):
         self._header = None
         self._row_number = 0
@@ -711,7 +711,7 @@ class Portal:
             return Portal(create_testapp(ini_file))
 
 
-class UnpackUtils:
+class UnpackUtils:  # Some of these may eventually go into dcicutils.
 
     @staticmethod
     def is_packed_file(file: str) -> bool:
@@ -761,7 +761,7 @@ class UnpackUtils:
                         yield tmp_file_name
 
 
-class Utils:
+class Utils:  # Some of these may eventually go into dcicutils.
 
     @staticmethod
     def split_dotted_string(value: str) -> List[str]:
