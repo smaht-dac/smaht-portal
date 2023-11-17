@@ -91,9 +91,8 @@ class StructuredDataSet:
 
     def load_excel_file(self, file: str) -> None:
         excel = Excel(file)  # Order the sheet names by any specified ordering (e.g. ala snovault.loadxl).
-        ordering = {Utils.get_type_name(key): index for index, key in enumerate(self._order)} if self._order else {}
-        sheet_names = sorted(excel.sheet_names, key=lambda key: ordering.get(Utils.get_type_name(key), sys.maxsize))
-        for sheet_name in sheet_names:
+        order = {Utils.get_type_name(key): index for index, key in enumerate(self._order)} if self._order else {}
+        for sheet_name in sorted(excel.sheet_names, key=lambda key: order.get(Utils.get_type_name(key), sys.maxsize)):
             StructuredData.load_from_excel_sheet(excel, sheet_name, portal=self._portal,
                                                  addto=lambda data: self.add(Utils.get_type_name(sheet_name), data))
 
