@@ -4,6 +4,7 @@ import pdb
 from typing import List, Optional, Union
 from unittest import mock
 from dcicutils.bundle_utils import RefHint
+from dcicutils.misc_utils import to_camel_case
 from dcicutils.validation_utils import SchemaManager  # noqa
 from encoded.ingestion.structured_data import Portal, Schema, Utils  # noqa
 from encoded.ingestion.ingestion_processors import parse_structured_data
@@ -13,7 +14,7 @@ TEST_FILES_DIR = f"{THIS_TEST_MODULE_DIRECTORY}/data/test_files"
 
 
 def test_parse_structured_data_1():
-    _test_parse_structured_data(file = "Test.csv", noschemas = True, sheet_utils = True, rows = [
+    _test_parse_structured_data(file = "test.csv", noschemas = True, sheet_utils = False, rows = [
         "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,data",
         "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
         "some-uuid-b,public,pav-b,pae-a,delta|echo|foxtrot|golf,xyzzy"
@@ -127,6 +128,7 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
                                 noschemas: bool = False,
                                 norefs: bool = False,
                                 sheet_utils: bool = False,
+                                sheet_utils_also: bool = False,
                                 debug: bool = False) -> None:
     refs_actual = set()
 
@@ -146,6 +148,8 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
             structured_data, validation_errors = parse_structured_data(file=file, portal=portal, sheet_utils=sheet_utils)
         if debug:
             pdb.set_trace()
+        if sheet_utils:
+            structured_data = {to_camel_case(key): value for key, value in structured_data.items()}
         assert structured_data == expected
         if expected_errors:
             assert validation_errors == expected_errors
