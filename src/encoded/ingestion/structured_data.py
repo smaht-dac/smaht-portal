@@ -11,6 +11,7 @@ import openpyxl
 import os
 import re
 import shutil
+import sys
 import tarfile
 import tempfile
 from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Type, Union
@@ -91,22 +92,10 @@ class StructuredDataSet:
                                           addto=lambda data: self.add(Utils.get_type_name(file), data))
 
     def load_excel_file(self, file: str) -> None:
-
-        def ordered_sheet_names(sheet_names: List[str]) -> List[str]:
-            if not self._order:
-                return sheet_names
-            ordered_sheet_names = []
-            for item in self._order:
-                for sheet_name in sheet_names:
-                    if Utils.get_type_name(item) == Utils.get_type_name(sheet_name):
-                        ordered_sheet_names.append(sheet_name)
-            for sheet_name in sheet_names:
-                if sheet_name not in ordered_sheet_names:
-                    ordered_sheet_names.append(sheet_name)
-            return ordered_sheet_names
-
-        excel = Excel(file)
-        for sheet_name in ordered_sheet_names(excel.sheet_names):
+        excel = Excel(file)  # Order the sheet names by any specified ordering (e.g. ala snovault.loadxl).
+        ordering = {Utils.get_type_name(key): index for index, key in enumerate(self._order)} if self._order else {}
+        sheet_names = sorted(excel.sheet_names, key=lambda key: ordering.get(Utils.get_type_name(key), sys.maxsize))
+        for sheet_name in sheet_names:
             StructuredData.load_from_excel_sheet(excel, sheet_name, portal=self._portal,
                                                  addto=lambda data: self.add(Utils.get_type_name(sheet_name), data))
 
@@ -195,7 +184,6 @@ class StructuredColumnData:
 
             if not flattened_column_name_components:
                 return
-
             if isinstance(row, list):
                 if parent_array_index < 0:
                     for row_item in row:
@@ -203,7 +191,6 @@ class StructuredColumnData:
                 else:
                     setv(row[parent_array_index], flattened_column_name_components)
                 return
-
             if not isinstance(row, dict):
                 return
 
