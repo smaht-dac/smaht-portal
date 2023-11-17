@@ -1,7 +1,9 @@
 from contextlib import contextmanager
 import os
+import pdb
 from typing import List, Optional, Union
 from unittest import mock
+from dcicutils.bundle_utils import RefHint
 from encoded.ingestion.structured_data import Portal, Schema, Utils  # noqa
 from encoded.ingestion.ingestion_processors import parse_structured_data
 
@@ -123,6 +125,7 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
                                 refs: Optional[List[str]] = None,
                                 sheet_utils: bool = False,
                                 debug: bool = False) -> None:
+    refs_actual = set()
 
     def call_parse_structured_data(file: str, rows: Optional[List[str]] = None,
                                       expected: Union[dict, list] = None,
@@ -141,7 +144,6 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
                 raise Exception(f"Cannot find input test file: {file}")
             structured_data, validation_errors = parse_structured_data(file=file, portal=portal, sheet_utils=sheet_utils)
         if debug:
-            import pdb
             pdb.set_trace()
         assert structured_data == expected
         if expected_validation_errors:
@@ -163,12 +165,11 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
         nonlocal sheet_utils
         if sheet_utils:
             def refhint_apply_ref_hint(self, value):
-                if refs:
-                    for item in (value if isinstance(value, list) else [value]):
-                        if not f"/{self.schema_name}/{item}" in refs:
-                            raise Exception(f"Reference not found: /{self.schema_name}/{item}")
+                for item in (value if isinstance(value, list) else [value]):
+                    refs_actual.add(ref := f"/{self.schema_name}/{item}")
+                    if refs and not ref in refs:
+                        raise Exception(f"Reference not found: {ref}")
                 return value
-            from dcicutils.bundle_utils import RefHint
             # Can't quite figure out how to do this with mocking; the refhint_apply_ref_hint
             # mock function does not get the self argument which we need in this case; as
             # opposed to the non sheet_utils case, where we do not need the self.
@@ -178,11 +179,9 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
             yield
         else:
             def portal_ref_exists(type_name, value):
-                nonlocal refs
-                if refs:
-                    ref = f"/{type_name}/{value}"
-                    return {"uuid": "dummy"} if ref in refs else None
-                return True
+                nonlocal refs, refs_actual
+                refs_actual.add(ref := f"/{type_name}/{value}")
+                return not refs or ref in refs
             with mock.patch("encoded.ingestion.structured_data.Portal.ref_exists", side_effect=portal_ref_exists):
                 yield
 
@@ -205,3 +204,6 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
             assert_parse_structured_data()
     else:
         assert_parse_structured_data()
+    if refs:
+        # Make sure any/all listed refs were actually referenced.
+        assert set(refs) == refs_actual
