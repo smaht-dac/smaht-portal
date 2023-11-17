@@ -14,7 +14,7 @@ TEST_FILES_DIR = f"{THIS_TEST_MODULE_DIRECTORY}/data/test_files"
 
 
 def test_parse_structured_data_1():
-    _test_parse_structured_data(file = "test.csv", noschemas = True, sheet_utils = False, rows = [
+    _test_parse_structured_data(file = "test.csv", noschemas = True, sheet_utils_also = True, rows = [
         "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,data",
         "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
         "some-uuid-b,public,pav-b,pae-a,delta|echo|foxtrot|golf,xyzzy"
@@ -150,6 +150,7 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
             pdb.set_trace()
         if sheet_utils:
             structured_data = {to_camel_case(key): value for key, value in structured_data.items()}
+        import pdb ; pdb.set_trace()
         assert structured_data == expected
         if expected_errors:
             assert validation_errors == expected_errors
@@ -194,19 +195,27 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
             with mock.patch("encoded.ingestion.structured_data.Portal.ref_exists", side_effect=portal_ref_exists):
                 yield
 
-    if noschemas:
-        if norefs or expected_refs:
-            with mocked_schemas():
-                with mocked_refs():
+    def run():
+        nonlocal norefs, expected_refs, refs_actual
+        refs_actual = set()
+        if noschemas:
+            if norefs or expected_refs:
+                with mocked_schemas():
+                    with mocked_refs():
+                        call_parse_structured_data()
+            else:
+                with mocked_schemas():
                     call_parse_structured_data()
-        else:
-            with mocked_schemas():
+        elif norefs or expected_refs:
+            with mocked_refs():
                 call_parse_structured_data()
-    elif norefs or expected_refs:
-        with mocked_refs():
+        else:
             call_parse_structured_data()
-    else:
-        call_parse_structured_data()
-    if expected_refs:
-        # Make sure any/all listed refs were actually referenced.
-        assert refs_actual == set(expected_refs)
+        if expected_refs:
+            # Make sure any/all listed refs were actually referenced.
+            assert refs_actual == set(expected_refs)
+
+    run()
+    if not sheet_utils and sheet_utils_also:
+        sheet_utils = True
+        run()
