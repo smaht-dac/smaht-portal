@@ -734,7 +734,7 @@ yaml = ["PyYAML (>=3.10)"]
 
 [[package]]
 name = "dcicsnovault"
-version = "11.3.0.1b1"
+version = "11.4.0.1b1"
 description = "Storage support for 4DN Data Portals."
 optional = false
 python-versions = "*"
@@ -747,7 +747,7 @@ url = "../snovault"
 
 [[package]]
 name = "dcicutils"
-version = "8.2.0.1b1"
+version = "8.3.0.1b1"
 description = "Utility package for interacting with the 4DN Data Portal and other 4DN resources"
 optional = false
 python-versions = "*"
@@ -2504,4 +2504,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "37e6456e8ffa8fed544ba141a2cc73e29e3fc80a298431ff3047b2b6b0006ced"
+content-hash = "bb2582fdaccf89e3b6f8435bb6d9f08c29e29cbd2f9a9b61062a8bbfb75a2498"
