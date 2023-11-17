@@ -39,7 +39,7 @@ def test_parse_structured_data_1():
 
 
 def test_parse_structured_data_2():
-    _test_parse_structured_data(file = f"submission_test_file_from_doug_20231106.xlsx", sheet_utils = True,
+    _test_parse_structured_data(file = f"submission_test_file_from_doug_20231106.xlsx", sheet_utils = False,
         expected_refs = [
             "/Consortium/smaht",
             "/FileFormat/fastq",
@@ -129,10 +129,8 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
                                 debug: bool = False) -> None:
     refs_actual = set()
 
-    def call_parse_structured_data(file: str, rows: Optional[List[str]] = None,
-                                      expected: Union[dict, list] = None,
-                                      expected_errors: Union[dict, list] = None,
-                                      debug: bool = False) -> None:
+    def call_parse_structured_data():
+        nonlocal file, expected, expected_errors, sheet_utils, debug
         portal = Portal.create_for_unit_testing()
         if rows:
             if os.path.exists(file) or os.path.exists(os.path.join(TEST_FILES_DIR, file)):
@@ -188,25 +186,19 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
             with mock.patch("encoded.ingestion.structured_data.Portal.ref_exists", side_effect=portal_ref_exists):
                 yield
 
-    def assert_parse_structured_data():
-        call_parse_structured_data(file=file, rows=rows,
-                                   expected=expected,
-                                   expected_errors=expected_errors,
-                                   debug=debug)
-
     if noschemas:
         if norefs or expected_refs:
             with mocked_schemas():
                 with mocked_refs():
-                    assert_parse_structured_data()
+                    call_parse_structured_data()
         else:
             with mocked_schemas():
-                assert_parse_structured_data()
+                call_parse_structured_data()
     elif norefs or expected_refs:
         with mocked_refs():
-            assert_parse_structured_data()
+            call_parse_structured_data()
     else:
-        assert_parse_structured_data()
+        call_parse_structured_data()
     if expected_refs:
         # Make sure any/all listed refs were actually referenced.
         assert refs_actual == set(expected_refs)
