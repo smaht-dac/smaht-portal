@@ -23,9 +23,7 @@ export const Liver = ({ currentTier }) => {
                     </PopoverContent>
                 </Popover>
             }>
-            <g data-svg-role="liver-group">
-                <LiverSvg />
-            </g>
+            <LiverSvg />
         </OverlayTrigger>
     );
 };

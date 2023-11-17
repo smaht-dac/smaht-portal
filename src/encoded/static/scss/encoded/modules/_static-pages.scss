@@ -482,9 +482,8 @@
 
 // HomePage ONLY
 body[data-path="/"]>#application>#layout {
-	background: url(/static/img/polygon-bg.png), linear-gradient(303deg, #CCF6FC 0.52%, #FFF 99.55%);
+	background: linear-gradient(to bottom right, #FFFFFF, #E3FCFF);
 }
-
 .homepage-wrapper {
 
 	
@@ -506,10 +505,15 @@ body[data-path="/"]>#application>#layout {
 
 		h1 {
 			font-size: 42px;
+			font-weight: 600;
 		}
 
-		h1, h3 {
+		h1 {
 			color: $homepage-header-text-color;
+		}
+		h3 {
+			color: $homepage-header-text-color;
+			margin-top: 0;
 		}
 
 		h2 {
@@ -519,18 +523,32 @@ body[data-path="/"]>#application>#layout {
 		}
 
 		.about-consortium {
-			background-color: $homepage-card-bg-color;
-			border-color: $homepage-card-border-color;
+			padding: 20px 30px;
+			background-color: $cobalt-10;
+			border-color: $cobalt-30;
 			@include prefix(border-radius, $homepage-card-border-radius);
+
+			h3 {
+				color: #416485;
+				font-weight: 600;
+				font-size: 20px;
+				margin: 0px auto 20px 0px;
+				text-align: left;
+			}
 			
 			// TODO: If this style of button will be re-used, make it one of the overrides for a BS button
 			a {
 				background-color: $homepage-about-consort-btn-bg-color;
 				border: 1px solid $homepage-about-consort-btn-border-color;
-				color: $homepage-about-consort-text-color;
+				color: #416485;
+				font-weight: 500;
+				font-size: 14px;
+				letter-spacing: normal;
+				line-height: normal;
 				@include prefix(border-radius, $homepage-about-consort-border-radius);
-				>i {
-					color: $homepage-about-consort-btn-icon-color;
+				> i {
+					color: #BBCCF9;
+					font-size: 12px;
 				}
 			}
 		}

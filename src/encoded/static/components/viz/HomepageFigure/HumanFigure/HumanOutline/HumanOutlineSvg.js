@@ -4,9 +4,12 @@ import React from 'react';
  * Inline SVGs stored in React components in order to maintain control
  * over events and style independently
  */
-export const HumanOutlineSvg = () => {
+export const HumanOutlineSvg = ({ ...props }) => {
     return (
-        <>
+        <g
+            data-svg-role="outline-group"
+            filter="url(#filter0_d_214_1284)"
+            {...props}>
             <path
                 data-svg-role="outline-path"
                 fillRule="evenodd"
@@ -3364,6 +3367,6 @@ export const HumanOutlineSvg = () => {
                     </linearGradient>
                 </pattern>
             </defs>
-        </>
+        </g>
     );
 };

@@ -1,72 +1,231 @@
 import React from 'react';
+import {
+    OverlayTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTitle,
+} from 'react-bootstrap';
 
 const AssayList = ({ list }) => {
     return (
         <ul>
             {list.map((item, i) => {
-                return <li key={i}>{item.title}</li>;
+                return (
+                    <li key={i}>
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            placement="left"
+                            rootClose
+                            overlay={
+                                <Popover>
+                                    <PopoverTitle>{item.title}</PopoverTitle>
+                                    <PopoverContent>
+                                        Additional information about{' '}
+                                        {item.title} here
+                                    </PopoverContent>
+                                </Popover>
+                            }>
+                            <div>
+                                <img src={item.iconSrc} />
+                                {item.title}
+                            </div>
+                        </OverlayTrigger>
+                    </li>
+                );
             })}
         </ul>
     );
 };
 
-export const AssaysCard = () => {
+export const AssaysCard = ({ currentTier }) => {
     const assaysList = [
         {
             header: 'Bulk WGS short read',
             items: [
-                { icon: '', title: 'Illumina NovaSeq' },
-                { icon: '', title: 'Ultima Genomics' },
+                {
+                    iconSrc: '',
+                    title: 'Illumina NovaSeq',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Ultima Genomics',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
             ],
         },
         {
             header: 'Bulk WGS long read',
             items: [
-                { icon: '', title: 'PacBio HiFi' },
-                { icon: '', title: 'ONT' },
+                {
+                    iconSrc: '',
+                    title: 'PacBio HiFi',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'ONT',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
             ],
         },
         {
             header: 'Bulk RNA-seq',
             items: [
-                { icon: '', title: 'Illumina NovaSeq' },
-                { icon: '', title: 'MAS-Seq' },
+                {
+                    iconSrc: '',
+                    title: 'Illumina NovaSeq',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'MAS-Seq',
+                    benchmarking: true,
+                    expansion: true,
+                    production: false,
+                },
             ],
         },
         {
             header: 'Single-cell WGS',
             items: [
-                { icon: '', title: 'DLP+' },
-                { icon: '', title: 'MALBAC' },
-                { icon: '', title: 'PTA and PTA-HAT-Seq' },
-                { icon: '', title: 'Cas9-targeted seq' },
+                {
+                    iconSrc: '',
+                    title: 'DLP+',
+                    benchmarking: true,
+                    expansion: true,
+                    production: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'MALBAC',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'PTA and PTA-HAT-Seq',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Cas9-targeted seq',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
             ],
         },
         {
             header: 'Single-cell RNA-Seq',
             items: [
-                { icon: '', title: 'snRNA-Seq' },
-                { icon: '', title: 'STORM-Seq' },
-                { icon: '', title: 'Tranquil-Seq' },
+                {
+                    iconSrc: '',
+                    title: 'snRNA-Seq',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'STORM-Seq',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Tranquil-Seq',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
             ],
         },
         {
             header: 'Single-molecule/duplex WGS',
             items: [
-                { icon: '', title: 'Nanoseq' },
-                { icon: '', title: 'CODEC' },
-                { icon: '', title: 'Duplex sequencing' },
-                { icon: '', title: 'HiDEF-Seq' },
+                {
+                    iconSrc: '',
+                    title: 'Nanoseq',
+                    benchmarking: true,
+                    expansion: true,
+                    production: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'CODEC',
+                    benchmarking: true,
+                    expansion: true,
+                    production: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Duplex sequencing',
+                    benchmarking: true,
+                    expansion: true,
+                    production: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'HiDEF-Seq',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
             ],
         },
         {
             header: 'Epigenome profiling',
             items: [
-                { icon: '', title: 'NT-Seq' },
-                { icon: '', title: 'Fiber-Seq' },
-                { icon: '', title: 'Hi-C' },
-                { icon: '', title: 'GoTchA' },
-                { icon: '', title: 'ATAC-Seq/MetaCS' },
+                {
+                    iconSrc: '',
+                    title: 'NT-Seq',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Fiber-Seq',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'Hi-C',
+                    benchmarking: true,
+                    expansion: true,
+                    production: true,
+                },
+                {
+                    iconSrc: '',
+                    title: 'GoTchA',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
+                {
+                    iconSrc: '',
+                    title: 'ATAC-Seq/MetaCS',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
             ],
         },
     ];
@@ -77,12 +236,16 @@ export const AssaysCard = () => {
             </div>
             <div className="card-body">
                 {assaysList.map((assay, i) => {
-                    return (
+                    const activeItems = assay.items.filter(
+                        (item) => item[currentTier]
+                    );
+
+                    return activeItems.length > 0 ? (
                         <div className="card-list assays" key={i}>
                             <h5>{assay.header}</h5>
-                            <AssayList list={assay.items} />
+                            <AssayList list={activeItems} />
                         </div>
-                    );
+                    ) : null;
                 })}
             </div>
         </div>

@@ -28,16 +28,16 @@ export const Footer = React.memo(function Footer() {
                             </div>
                         </div>
                     </div>
-                    <div className="col-sm-6">
+                    {/* <div className="col-sm-6">
                         <div className="footer-section copy-notice d-flex align-items-center justify-content-center justify-content-sm-end">
                             <div>
-                                <a href="/privacy-policy" className="mr-2">
+                                <a className="text-decoration-none" href="/privacy-policy" className="mr-2">
                                     Privacy Policy
                                 </a>{' '}
-                                <a href="/legal">Legal</a>
+                                <a className="text-decoration-none ml-5" href="/legal">Legal</a>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </footer>

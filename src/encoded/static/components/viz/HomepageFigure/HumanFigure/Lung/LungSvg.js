@@ -4,9 +4,9 @@ import React from 'react';
  * Inline SVGs stored in React components in order to maintain control
  * over events and style independently
  */
-export const LungSvg = () => {
+export const LungSvg = ({ ...props }) => {
     return (
-        <>
+        <g data-svg-role="lung-group" {...props}>
             <clipPath id="lung-outline-clip">
                 <path d="M27.3907 15.3174C42.5972 15.3298 41.1975 35.9464 41.191 44.1936C41.1824 54.7192 43.7747 75.9635 35.6286 84.0499C27.3275 92.2901 10.7356 96.4003 2.44692 89.5208C-5.84176 82.6414 8.03752 15.3016 27.3907 15.3174Z" />
                 <path d="M65.6935 15.3174C50.4758 15.305 51.8425 35.9179 51.8357 44.1625C51.8269 54.6852 49.1977 75.919 57.3365 84.0165C65.6303 92.2678 82.228 96.4037 90.5342 89.54C98.8402 82.676 85.0613 15.3332 65.6935 15.3174Z" />
@@ -989,6 +989,6 @@ export const LungSvg = () => {
                     />
                 </g>
             </g>
-        </>
+        </g>
     );
 };
