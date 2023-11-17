@@ -121,8 +121,9 @@ def test_parse_structured_data_2():
     )
 
 
-def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
-                                expected: Union[dict, list] = None,
+def _test_parse_structured_data(file: str,
+                                expected: Union[dict, list],
+                                rows: Optional[List[str]] = None,
                                 expected_refs: Optional[List[str]] = None,
                                 expected_errors: Optional[Union[dict, list]] = None,
                                 noschemas: bool = False,
