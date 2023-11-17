@@ -75,13 +75,13 @@ $navbar-default-bg: #f8f8f8; // Bootstrap default is #F8F8F8
 // THese are probably deprecated -- todo: bring up vars from navbar.scss and put em here in place of these...
 //$navbar-fixed-breakpoint: $screen-md-min; // Use instead of Bootstrap's $grid-float-breakpoint as we want nav to become fixed later.
 $navbar-background-color: linear-gradient(303deg, #CCF6FC 0.52%, #FFF 99.55%);
-$navbar-link-color: $cobalt-70;
+$navbar-link-color: $gray-70;
 $navbar-link-hover-color : #fff;
-$navbar-link-active-color : #fff;
+$navbar-link-active-color : $cobalt-70;
 $navbar-link-hover-bg: #0005; //darken($navbar-background-color, 5%);
 //$navbar-link-hover-bg: lighten($navbar-background-color, 10%);
 $navbar-link-active-bg: $navbar-background-color;
-$navbar-default-brand-color: $cobalt-70;
+$navbar-default-brand-color: $gray-70;
 $navbar-full-height : 80px;
 $navbar-small-height : 40px; /* Bootstrap navbar default */
 $navbar-transition-length: .3s;
