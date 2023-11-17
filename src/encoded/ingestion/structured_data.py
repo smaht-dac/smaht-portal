@@ -69,7 +69,7 @@ class StructuredDataSet:
         # 3.  Zip file (.zip or .tar.gz or .tgz or .tar), containing data files to load,
         #     where the (base) name of each contained file is the data type name.
         if file:
-            if file.endswith(".gz"):
+            if file.endswith(".gz") or file.endswith(".tgz"):
                 with UnpackUtils.unpack_gz_file_to_temporary_file(file) as file:
                     self._load_file(file)
             else:
@@ -720,13 +720,10 @@ class UnpackUtils:
 
     @staticmethod
     def get_unpack_context_manager(file: str) -> Optional[Callable]:
-        UNPACK_CONTEXT_MANAGERS = {
+        return {
             ".tar": UnpackUtils.unpack_tar_file_to_temporary_directory,
-            ".tar.gz": UnpackUtils.unpack_targz_file_to_temporary_directory,
-            ".tgz": UnpackUtils.unpack_targz_file_to_temporary_directory,
             ".zip": UnpackUtils.unpack_zip_file_to_temporary_directory
-        }
-        return UNPACK_CONTEXT_MANAGERS.get(file[dot:]) if (dot := file.rfind(".")) > 0 else None
+        }.get(file[dot:]) if (dot := file.rfind(".")) > 0 else None
 
     @contextmanager
     @staticmethod
@@ -744,14 +741,6 @@ class UnpackUtils:
                 tarf.extractall(tmp_directory_name)
             yield tmp_directory_name
 
-    @contextmanager
-    @staticmethod
-    def unpack_targz_file_to_temporary_directory(file: str) -> str:
-        with Utils.temporary_directory() as tmp_directory_name:
-            with tarfile.open(file, "r:gz") as targzf:
-                targzf.extractall(tmp_directory_name)
-            yield tmp_directory_name
-
     @staticmethod
     def unpack_files(file: str) -> Optional[str]:
         if (unpack_file_to_tmp_directory := UnpackUtils.get_unpack_context_manager(file)) is not None:
@@ -764,8 +753,8 @@ class UnpackUtils:
     @contextmanager
     @staticmethod
     def unpack_gz_file_to_temporary_file(file: str, suffix: Optional[str] = None) -> str:
-        if file.endswith(".gz"):
-            with Utils.temporary_file(name=os.path.basename(file[:-3])) as tmp_file_name:
+        if (gz := file.endswith(".gz")) or file.endswith(".tgz"):
+            with Utils.temporary_file(name=os.path.basename(file[:-3] if gz else file[:-4] + ".tar")) as tmp_file_name:
                 with open(tmp_file_name, "wb") as outputf:
                     with gzip.open(file, "rb") as inputf:
                         outputf.write(inputf.read())
