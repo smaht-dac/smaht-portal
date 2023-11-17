@@ -63,7 +63,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                     <Card className="about-consortium col-12 w-100 mb-3">
                         <h3 className="">About the Consortium</h3>
                         <div className="row">
-                            <div className="col-12 col-md-6 col-lg-3">
+                            <div className="col-12 col-lg-4">
                                 <a
                                     href="https://commonfund.nih.gov/smaht"
                                     target="_blank"
@@ -74,7 +74,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     <i className="icon-external-link-alt icon icon-xs fas ml-2" />
                                 </a>
                             </div>
-                            <div className="col-12 col-md-6 col-lg-3">
+                            <div className="col-12 col-lg-4">
                                 <a
                                     href="https://www.smaht.org"
                                     target="_blank"
@@ -85,7 +85,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     <i className="icon-external-link-alt icon icon-xs fas ml-2" />
                                 </a>
                             </div>
-                            <div className="col-12 col-md-6 col-lg-3">
+                            <div className="col-12 col-lg-4">
                                 <a
                                     href="https://www.youtube.com/watch?v=8KX3lkMB5nU"
                                     target="_blank"
@@ -97,14 +97,14 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                 </a>
                             </div>
                             {/** @TODO: Link might change */}
-                            <div className="col-12 col-md-6 col-lg-3">
+                            {/* <div className="col-12 col-md-6 col-lg-3">
                                 <a
                                     href="/about"
                                     role="button"
                                     className="w-100 py-2 btn">
-                                    SMaHT Consortium Map
+                                    SMaHT Consortium Map <span className="font-italic">(coming soon)</span>
                                 </a>
-                            </div>
+                            </div> */}
                         </div>
                     </Card>
                 </div>

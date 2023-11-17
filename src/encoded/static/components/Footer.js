@@ -18,11 +18,16 @@ export const Footer = React.memo(function Footer() {
                         <div className="footer-section copy-notice d-flex align-items-center justify-content-center justify-content-sm-start">
                             <div>
                                 SMaHT is funded by the{' '}
-                                <a href="">NIH Common Fund</a>
+                                <a
+                                    href="https://commonfund.nih.gov/"
+                                    target="blank"
+                                    rel="noreferrer noopener">
+                                    NIH Common Fund
+                                </a>
                             </div>
                         </div>
                     </div>
-                    <div className="col-sm-6">
+                    {/* <div className="col-sm-6">
                         <div className="footer-section copy-notice d-flex align-items-center justify-content-center justify-content-sm-end">
                             <div className="text-larger">
                                 <a className="text-decoration-none" href="">
@@ -33,21 +38,9 @@ export const Footer = React.memo(function Footer() {
                                     href="">
                                     Legal
                                 </a>
-                                {/* <a
-                                    href="https://www.youtube.com/watch?v=8KX3lkMB5nU"
-                                    target="_blank"
-                                    rel="noreferrer">
-                                    <i className="icon icon-youtube fab mr-1"></i>
-                                </a>
-                                <a
-                                    href="https://www.github.com/smaht-dac/"
-                                    target="_blank"
-                                    rel="noreferrer">
-                                    <i className="icon icon-github fab"></i>
-                                </a> */}
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </footer>
