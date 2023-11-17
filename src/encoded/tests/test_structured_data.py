@@ -41,7 +41,7 @@ def test_parse_structured_data_1():
 
 
 def test_parse_structured_data_2():
-    _test_parse_structured_data(file = f"submission_test_file_from_doug_20231106.xlsx", sheet_utils = False,
+    _test_parse_structured_data(file = f"submission_test_file_from_doug_20231106.xlsx", sheet_utils_also = True,
         expected_refs = [
             "/Consortium/smaht",
             "/FileFormat/fastq",
@@ -132,7 +132,7 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
                                 debug: bool = False) -> None:
     refs_actual = set()
 
-    def call_parse_structured_data():
+    def assert_parse_structured_data():
         nonlocal file, expected, expected_errors, sheet_utils, debug
         portal = Portal.create_for_unit_testing()
         if rows:
@@ -157,13 +157,12 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
     @contextmanager
     def mocked_schemas():
         nonlocal sheet_utils
-        def schema_load_by_name(name: str, portal: Portal) -> Optional[dict]:
-            return {}
-        with mock.patch("encoded.ingestion.structured_data.Schema.load_by_name", side_effect=schema_load_by_name):
+        with mock.patch("encoded.ingestion.structured_data.Schema.load_by_name", return_value=None):
+            # structured_data.Schema.load_by_name is used by sheet_utils code in parse_structured_data.
             if sheet_utils:
-                def schema_manager_get_schema(name, portal_env = None, portal_vapp = None):
+                def mocked_get_schema(name, portal_env = None, portal_vapp = None):
                     return {"title": name}
-                with mock.patch("dcicutils.validation_utils.SchemaManager.get_schema", side_effect=schema_manager_get_schema):
+                with mock.patch("dcicutils.validation_utils.SchemaManager.get_schema", side_effect=mocked_get_schema):
                     yield
             else:
                 yield
@@ -172,49 +171,49 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
     def mocked_refs():
         nonlocal sheet_utils
         if sheet_utils:
-            def refhint_apply_ref_hint(self, value):
+            def mocked_ref_hint(self, value):
                 nonlocal expected_refs, refs_actual
                 for item in (value if isinstance(value, list) else [value]):
                     refs_actual.add(ref := f"/{self.schema_name}/{item}")
-                    if expected_refs and not ref in expected_refs:
+                    if expected_refs and ref not in expected_refs:
                         raise Exception(f"Reference not found: {ref}")
                 return value
-            # Can't quite figure out how to do this with mocking; the refhint_apply_ref_hint
+            # Can't quite figure out how to do this with mocking; the mocked_ref_hint
             # mock function does not get the self argument which we need in this case; as
             # opposed to the non sheet_utils case, where we do not need the self.
-            # with mock.patch.object(RefHint, "_apply_ref_hint", side_effect=refhint_apply_ref_hint):
+            # with mock.patch.object(RefHint, "_apply_ref_hint", side_effect=mocked_ref_hint):
             #   yield
-            RefHint._apply_ref_hint = refhint_apply_ref_hint
+            RefHint._apply_ref_hint = mocked_ref_hint
             yield
         else:
-            def portal_ref_exists(type_name, value):
+            def mocked_ref_exists(type_name, value):
                 nonlocal expected_refs, refs_actual
                 refs_actual.add(ref := f"/{type_name}/{value}")
                 return not expected_refs or ref in expected_refs
-            with mock.patch("encoded.ingestion.structured_data.Portal.ref_exists", side_effect=portal_ref_exists):
+            with mock.patch("encoded.ingestion.structured_data.Portal.ref_exists", side_effect=mocked_ref_exists):
                 yield
 
-    def run():
+    def run_this_function():
         nonlocal norefs, expected_refs, refs_actual
         refs_actual = set()
         if noschemas:
             if norefs or expected_refs:
                 with mocked_schemas():
                     with mocked_refs():
-                        call_parse_structured_data()
+                        assert_parse_structured_data()
             else:
                 with mocked_schemas():
-                    call_parse_structured_data()
+                    assert_parse_structured_data()
         elif norefs or expected_refs:
             with mocked_refs():
-                call_parse_structured_data()
+                assert_parse_structured_data()
         else:
-            call_parse_structured_data()
+            assert_parse_structured_data()
         if expected_refs:
             # Make sure any/all listed refs were actually referenced.
             assert refs_actual == set(expected_refs)
 
-    run()
+    run_this_function()
     if not sheet_utils and sheet_utils_also:
         sheet_utils = True
-        run()
+        run_this_function()
