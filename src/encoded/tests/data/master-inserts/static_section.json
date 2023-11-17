@@ -3,7 +3,7 @@
         "identifier": "coming-soon",
         "title": "Coming Soon",
         "body": "Coming soon!",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "md",
             "collapsible": false,
@@ -22,7 +22,7 @@
         "identifier": "about.introduction",
         "title": "Introduction",
         "file": "/docs/public/about_introduction.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -41,7 +41,7 @@
         "identifier": "consortium-map",
         "title": "SMaHT Consortium Members Map",
         "file": "/docs/public/consortium_map.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -60,7 +60,7 @@
         "identifier": "alluvial",
         "title": "SMaHT Data Alluvial Diagram",
         "file": "/docs/public/alluvial.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -79,7 +79,7 @@
         "identifier": "benchmarking.COLO829",
         "title": "COLO829 Data Table",
         "file": "/docs/public/benchmarking_COLO829.jsx",
-        "status": "shared",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -98,7 +98,7 @@
         "identifier": "benchmarking.intro",
         "title": "Intro Benchmarking Data Table",
         "file": "/docs/public/benchmarking_intro.jsx",
-        "status": "shared",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -117,7 +117,7 @@
         "identifier": "benchmarking.placeholder",
         "title": "Benchmarking Placeholder",
         "file": "/docs/public/benchmarking_placeholder.jsx",
-        "status": "shared",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -136,7 +136,7 @@
         "identifier": "legal",
         "title": "Legal",
         "file": "/docs/public/legal.md",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "md",
             "collapsible": false,
@@ -155,7 +155,7 @@
         "identifier": "privacy-policy",
         "title": "Privacy Policy",
         "file": "/docs/public/privacy-policy.md",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "md",
             "collapsible": false,
