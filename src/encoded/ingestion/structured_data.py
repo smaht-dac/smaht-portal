@@ -62,12 +62,12 @@ class StructuredDataSet:
 
     def load_file(self, file: str) -> None:
         # Returns a dictionary where each property is the name (i.e. the type) of the data,
-        # and the value is array of dictionaries for the data itself. Handle thse kinds of files:
+        # and the value is array of dictionaries for the data itself. Handle these kinds of files:
         # 1.  Single CSV of JSON file, where the (base) name of the file is the data type name.
         # 2.  Single Excel file containing one or more sheets, where each sheet
         #     represents (i.e. is named for, and contains data for) a different type.
-        # 3.  Zip file (.zip or .tar.gz or .tgz or .tar), containing data files to load,
-        #     where the (base) name of each contained file is the data type name.
+        # 3.  Zip file (.zip or .tar.gz or .tgz or .tar), containing data files to load, where the
+        #     base kname of each contained file is the data type name; or any of above gzipped (.gz).
         if file:
             if file.endswith(".gz") or file.endswith(".tgz"):
                 with UnpackUtils.unpack_gz_file_to_temporary_file(file) as file:
