@@ -38,7 +38,11 @@ def test_parse_structured_data_1():
 
 def test_parse_structured_data_2():
     _test_parse_structured_data(file = f"submission_test_file_from_doug_20231106.xlsx", sheet_utils = False,
-        refs = ["/Consortium/smaht"],
+        refs = ["/Consortium/smaht",
+                "/FileFormat/fastq",
+                "/Software/SMAHT_SOFTWARE_VEP",
+                "/Software/SMAHT_SOFTWARE_FASTQC",
+                "/Workflow/smaht:workflow-basic"],
         expected = {
             "FileFormat": [
               {
@@ -173,12 +177,13 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
             RefHint._apply_ref_hint = refhint_apply_ref_hint
             yield
         else:
-            def schema_get_metadata(object_name):
+            def portal_ref_exists(type_name, value):
                 nonlocal refs
-                #import pdb ; pdb.set_trace()
                 if refs:
-                    return {"uuid": "dummy"} if object_name in refs else None
-            with mock.patch("encoded.ingestion.structured_data.Portal.get_metadata", side_effect=schema_get_metadata):
+                    ref = f"/{type_name}/{value}"
+                    return {"uuid": "dummy"} if ref in refs else None
+                return True
+            with mock.patch("encoded.ingestion.structured_data.Portal.ref_exists", side_effect=portal_ref_exists):
                 yield
 
     def assert_parse_structured_data():
