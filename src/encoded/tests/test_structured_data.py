@@ -178,13 +178,8 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
                     if expected_refs and ref not in expected_refs:
                         raise Exception(f"Reference not found: {ref}")
                 return value
-            # Can't quite figure out how to do this with mocking; the mocked_ref_hint
-            # mock function does not get the self argument which we need in this case; as
-            # opposed to the non sheet_utils case, where we do not need the self.
-            # with mock.patch.object(RefHint, "_apply_ref_hint", side_effect=mocked_ref_hint):
-            #   yield
-            RefHint._apply_ref_hint = mocked_ref_hint
-            yield
+            with mock.patch.object(RefHint, "_apply_ref_hint", side_effect=mocked_ref_hint, autospec=True):
+                yield
         else:
             def mocked_ref_exists(type_name, value):
                 nonlocal expected_refs, refs_actual
