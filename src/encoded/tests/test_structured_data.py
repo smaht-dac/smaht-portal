@@ -150,7 +150,6 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
             pdb.set_trace()
         if sheet_utils:
             structured_data = {to_camel_case(key): value for key, value in structured_data.items()}
-        import pdb ; pdb.set_trace()
         assert structured_data == expected
         if expected_errors:
             assert validation_errors == expected_errors
