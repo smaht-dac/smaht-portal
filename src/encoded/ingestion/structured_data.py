@@ -383,10 +383,8 @@ class Schema:
             nonlocal self, type_info
             exception = None
             if not value and (column := type_info.get("column")) and column in self.data.get("required", []):
-                import pdb ; pdb.set_trace()
                 exception = "No required reference (linkTo) value for: "
             elif link_to and portal and not portal.ref_exists(link_to, value):
-                import pdb ; pdb.set_trace()
                 exception = "Cannot resolve reference (linkTo) for: "
             if exception:
                 link_from = Utils.get_type_name(self.data.get("title"))
