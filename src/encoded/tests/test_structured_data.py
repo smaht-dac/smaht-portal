@@ -39,12 +39,14 @@ def test_parse_structured_data_1():
 
 
 def test_parse_structured_data_2():
-    _test_parse_structured_data(file = f"submission_test_file_from_doug_20231106.xlsx", sheet_utils = False,
-        refs = ["/Consortium/smaht",
-                "/FileFormat/fastq",
-                "/Software/SMAHT_SOFTWARE_VEP",
-                "/Software/SMAHT_SOFTWARE_FASTQC",
-                "/Workflow/smaht:workflow-basic"],
+    _test_parse_structured_data(file = f"submission_test_file_from_doug_20231106.xlsx", sheet_utils = True,
+        expected_refs = [
+            "/Consortium/smaht",
+            "/FileFormat/fastq",
+            "/Software/SMAHT_SOFTWARE_VEP",
+            "/Software/SMAHT_SOFTWARE_FASTQC",
+            "/Workflow/smaht:workflow-basic"
+        ],
         expected = {
             "FileFormat": [
               {
@@ -119,17 +121,17 @@ def test_parse_structured_data_2():
 
 def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
                                 expected: Union[dict, list] = None,
-                                expected_validation_errors: Optional[Union[dict, list]] = None,
+                                expected_refs: Optional[List[str]] = None,
+                                expected_errors: Optional[Union[dict, list]] = None,
                                 noschemas: bool = False,
                                 norefs: bool = False,
-                                refs: Optional[List[str]] = None,
                                 sheet_utils: bool = False,
                                 debug: bool = False) -> None:
     refs_actual = set()
 
     def call_parse_structured_data(file: str, rows: Optional[List[str]] = None,
                                       expected: Union[dict, list] = None,
-                                      expected_validation_errors: Union[dict, list] = None,
+                                      expected_errors: Union[dict, list] = None,
                                       debug: bool = False) -> None:
         portal = Portal.create_for_unit_testing()
         if rows:
@@ -146,8 +148,8 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
         if debug:
             pdb.set_trace()
         assert structured_data == expected
-        if expected_validation_errors:
-            assert validation_errors == expected_validation_errors
+        if expected_errors:
+            assert validation_errors == expected_errors
 
     @contextmanager
     def mocked_schemas():
@@ -161,13 +163,14 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
                 yield
 
     @contextmanager
-    def mocked_refs(refs: Optional[List[str]] = None):
+    def mocked_refs():
         nonlocal sheet_utils
         if sheet_utils:
             def refhint_apply_ref_hint(self, value):
+                nonlocal expected_refs, refs_actual
                 for item in (value if isinstance(value, list) else [value]):
                     refs_actual.add(ref := f"/{self.schema_name}/{item}")
-                    if refs and not ref in refs:
+                    if expected_refs and not ref in expected_refs:
                         raise Exception(f"Reference not found: {ref}")
                 return value
             # Can't quite figure out how to do this with mocking; the refhint_apply_ref_hint
@@ -179,31 +182,31 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
             yield
         else:
             def portal_ref_exists(type_name, value):
-                nonlocal refs, refs_actual
+                nonlocal expected_refs, refs_actual
                 refs_actual.add(ref := f"/{type_name}/{value}")
-                return not refs or ref in refs
+                return not expected_refs or ref in expected_refs
             with mock.patch("encoded.ingestion.structured_data.Portal.ref_exists", side_effect=portal_ref_exists):
                 yield
 
     def assert_parse_structured_data():
         call_parse_structured_data(file=file, rows=rows,
                                    expected=expected,
-                                   expected_validation_errors=expected_validation_errors,
+                                   expected_errors=expected_errors,
                                    debug=debug)
 
     if noschemas:
-        if norefs or refs:
+        if norefs or expected_refs:
             with mocked_schemas():
-                with mocked_refs(refs):
+                with mocked_refs():
                     assert_parse_structured_data()
         else:
             with mocked_schemas():
                 assert_parse_structured_data()
-    elif norefs or refs:
-        with mocked_refs(refs):
+    elif norefs or expected_refs:
+        with mocked_refs():
             assert_parse_structured_data()
     else:
         assert_parse_structured_data()
-    if refs:
+    if expected_refs:
         # Make sure any/all listed refs were actually referenced.
-        assert set(refs) == refs_actual
+        assert refs_actual == set(expected_refs)
