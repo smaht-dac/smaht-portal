@@ -148,7 +148,7 @@ class StructuredData:
     def _load_from_reader(reader: RowReader, schema: Optional[Union[Schema, str]] = None,
                           portal: Optional[Portal] = None, addto: Optional[Callable] = None) -> Optional[List[dict]]:
         structured_data = [] if not addto else None
-        structured_column_data = StructuredColumnData(reader.header)
+        structured_column_data = _StructuredColumnData(reader.header)
         for row in reader:
             if isinstance(schema, str):  # Do this here by name just so we do not get schema if no rows.
                 schema = Schema.load_by_name(schema, portal=portal)
@@ -165,7 +165,7 @@ class StructuredData:
             return [data] if isinstance(data, dict) else data
 
 
-class StructuredColumnData:
+class _StructuredColumnData:
 
     def __init__(self, flattened_column_names: List[str]) -> None:
         self.row_template = self._parse_column_headers_into_structured_row_template(flattened_column_names)
@@ -192,7 +192,7 @@ class StructuredColumnData:
                 return
 
             flattened_column_name_component = flattened_column_name_components[0]
-            array_name, array_index = StructuredColumnData._get_array_info(flattened_column_name_component)
+            array_name, array_index = _StructuredColumnData._get_array_info(flattened_column_name_component)
             name = array_name if array_name else flattened_column_name_component
             if len(flattened_column_name_components) > 1:
                 if not isinstance(row[name], dict) and not isinstance(row[name], list):
@@ -227,7 +227,7 @@ class StructuredColumnData:
             else:
                 value = None
             flattened_column_name_component = flattened_column_name_components[0]
-            array_name, array_index = StructuredColumnData._get_array_info(flattened_column_name_component)
+            array_name, array_index = _StructuredColumnData._get_array_info(flattened_column_name_component)
             if array_name:
                 array_length = array_index + 1 if array_index >= 0 else (0 if value is None else 1)
                 # Doing it the obvious way, like in the comment right below here, we get
