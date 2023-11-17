@@ -43,8 +43,8 @@ def main() -> None:
             SchemaManager.get_schema = lambda name, portal_env, portal_vapp: {}
 
     # Manually override implementation specifics for our default handling of refs (linkTo),
-    # which is to catch/report any ref error; use --norefs to not do ref checking at all;
-    # and use --refs to throw exceptions (as normal outside of this script) for ref errors.
+    # which is to catch/report any ref errors; use --norefs to not do ref checking at all;
+    # and use --refs to throw exceptions for ref errors (as normal outside of this script).
     ref_errors = override_ref_handling(args) if args.norefs or not args.refs else []
 
     if args.verbose:
@@ -114,6 +114,7 @@ def main() -> None:
 
 
 def override_ref_handling(args: argparse.Namespace) -> None:
+    # Should probably have used mocking, maybe a bit simpler..
     ref_errors = []
     if args.norefs:
         if not args.sheet_utils:
