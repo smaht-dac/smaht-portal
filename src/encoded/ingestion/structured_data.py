@@ -36,7 +36,6 @@ ARRAY_VALUE_DELIMITER_ESCAPE_CHAR = "\\"
 ARRAY_NAME_SUFFIX_CHAR = "#"
 ARRAY_NAME_SUFFIX_REGEX = re.compile(rf"{ARRAY_NAME_SUFFIX_CHAR}\d+")
 DOTTED_NAME_DELIMITER_CHAR = "."
-PRUNE_STRUCTURED_DATA_SET = True
 
 # Forward type references for type hints.
 Excel = Type["Excel"]
@@ -50,8 +49,7 @@ StructuredDataSet = Type["StructuredDataSet"]
 class StructuredDataSet:
 
     def __init__(self, file: Optional[str] = None, data: Optional[List[dict]] = None,
-                 portal: Optional[PortalAny] = None,
-                 order: Optional[List[str]] = None, prune: bool = PRUNE_STRUCTURED_DATA_SET) -> None:
+                 portal: Optional[PortalAny] = None, order: Optional[List[str]] = None, prune: bool = True) -> None:
         self.data = {} if not data else data
         self._portal = Portal.create(portal, loading_data_set=self.data)
         self._order = order
