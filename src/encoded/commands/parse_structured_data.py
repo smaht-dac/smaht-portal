@@ -35,7 +35,7 @@ def main() -> None:
         else:
             portal = Portal.create_for_unit_testing()
 
-     # Manually override implementation specifics for --noschemas.
+    # Manually override implementation specifics for --noschemas.
     if args.noschemas:
         if not args.sheet_utils:
             Schema.load_by_name = lambda name, portal: {}
@@ -116,12 +116,12 @@ def main() -> None:
 def override_ref_handling(args: argparse.Namespace) -> None:
     # Should probably have used mocking, maybe a bit simpler..
     ref_errors = []
-    if args.norefs:
+    if args.norefs:  # Do not check refs at all.
         if not args.sheet_utils:
             Schema._map_function_ref = lambda self, type_info: lambda value: value
         else:
             RefHint._apply_ref_hint = lambda self, value: value
-    elif not args.refs:
+    elif not args.refs:  # Default case; catch/report ref errors/exceptions.
         if not args.sheet_utils:
             real_map_function_ref = Schema._map_function_ref
             def custom_map_function_ref(self, type_info):
