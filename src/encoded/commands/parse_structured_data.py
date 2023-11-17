@@ -35,6 +35,10 @@ def main() -> None:
         else:
             portal = Portal.create_for_unit_testing()
 
+    if args.load:
+        x = portal.get_metadata("health")
+        pass
+
     # Manually override implementation specifics for --noschemas.
     if args.noschemas:
         if not args.sheet_utils:
@@ -126,19 +130,19 @@ def override_ref_handling(args: argparse.Namespace) -> None:
             real_map_function_ref = Schema._map_function_ref
             def custom_map_function_ref(self, type_info):
                 real_map_value_ref = real_map_function_ref(self, type_info)
-                def custom_map_value_ref(value, link_to, portal):
+                def custom_map_value_ref(value, link_to, portal, src):
                     try:
-                        return real_map_value_ref(value)
+                        return real_map_value_ref(value, src)
                     except Exception as e:
                         ref_errors.append(str(e))
                         return value
-                return lambda value: custom_map_value_ref(value, type_info.get("linkTo"), self._portal)
+                return lambda value, src = None: custom_map_value_ref(value, type_info.get("linkTo"), self._portal, src)
             Schema._map_function_ref = custom_map_function_ref
         else:
             real_apply_ref_hint = RefHint._apply_ref_hint
-            def custom_apply_ref_hint(self, value):
+            def custom_apply_ref_hint(self, value, src = None):
                 try:
-                    return real_apply_ref_hint(self, value)
+                    return real_apply_ref_hint(self, value, src)
                 except Exception as e:
                     ref_errors.append(str(e))
             RefHint._apply_ref_hint = custom_apply_ref_hint

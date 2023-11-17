@@ -172,7 +172,7 @@ def _test_parse_structured_data(file: str,
     def mocked_refs():
         nonlocal sheet_utils
         if sheet_utils:
-            def mocked_ref_hint(self, value):
+            def mocked_ref_hint(self, value, src):
                 nonlocal expected_refs, refs_actual
                 for item in (value if isinstance(value, list) else [value]):
                     refs_actual.add(ref := f"/{self.schema_name}/{item}")

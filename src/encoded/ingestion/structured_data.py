@@ -155,7 +155,7 @@ class StructuredData:
                 schema = Schema.load_by_name(schema, portal=portal)
             structured_row = structured_column_data.create_row()
             for flattened_column_name, value in row.items():
-                structured_column_data.set_value(structured_row, flattened_column_name, value, schema)
+                structured_column_data.set_value(structured_row, flattened_column_name, value, schema, reader.location)
             structured_data.append(structured_row) if not addto else addto(structured_row)
         return structured_data if not addto else None
 
@@ -175,7 +175,7 @@ class StructuredColumnData:
         return copy.deepcopy(self.row_template)
 
     @staticmethod
-    def set_value(row: dict, flattened_column_name: str, value: str, schema: Optional[Schema] = None) -> None:
+    def set_value(row: dict, flattened_column_name: str, value: str, schema: Optional[Schema] = None, loc: int = -1) -> None:
 
         def setv(row: Union[dict, list],
                  flattened_column_name_components: List[str], parent_array_index: int = -1) -> None:
@@ -201,9 +201,9 @@ class StructuredColumnData:
                 setv(row[name], flattened_column_name_components[1:], parent_array_index=array_index)
                 return
 
-            nonlocal flattened_column_name, value, schema
+            nonlocal flattened_column_name, value, schema, loc
             if schema:
-                value = schema.map_value(flattened_column_name, value)
+                value = schema.map_value(value, flattened_column_name, loc)
             elif array_name is not None and isinstance(value, str):
                 value = Utils.split_array_string(value)
             if array_name and array_index >= 0:
@@ -256,6 +256,7 @@ class Schema:
 
     def __init__(self, schema_json: dict, portal: Optional[Portal] = None) -> None:
         self.data = schema_json
+        self.name = schema_json.get("title", "") if schema_json else ""
         self._portal = portal  # Needed only to resolve linkTo references.
         self._flattened_type_info = self._compute_flattened_schema_type_info(schema_json)
 
@@ -279,11 +280,13 @@ class Schema:
             errors.append(error.message)
         return errors if errors else None
 
-    def map_value(self, flattened_column_name: str, value: str) -> Optional[Any]:
+    def map_value(self, value: str, flattened_column_name: str, loc: int) -> Optional[Any]:
         flattened_column_name = self._normalize_flattened_column_name(flattened_column_name)
-        if (map_function := self._flattened_type_info.get(flattened_column_name, {}).get("map")) is None:
-            map_function = self._flattened_type_info.get(flattened_column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
-        return map_function(value) if map_function else value
+        if (map_value := self._flattened_type_info.get(flattened_column_name, {}).get("map")) is None:
+            map_value = self._flattened_type_info.get(flattened_column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
+        src = f"{self.name}{f'.{flattened_column_name}' if flattened_column_name else ''}{f' [{loc}]' if loc else ''}"
+        return map_value(value, src) if map_value else value
+        
 
     def _map_function(self, type_info: dict) -> Optional[Callable]:
         MAP_FUNCTIONS = {
@@ -316,13 +319,13 @@ class Schema:
         return None
 
     def _map_function_array(self, type_info: dict) -> Callable:
-        def map_value_array(value: str, array_type_map_function: Optional[Callable]) -> Any:
+        def map_value_array(value: str, array_type_map_function: Optional[Callable], src: Optional[str]) -> Any:
             value = Utils.split_array_string(value)
-            return [array_type_map_function(value) for value in value] if array_type_map_function else value
-        return lambda value: map_value_array(value, self._map_function(type_info))
+            return [array_type_map_function(value, src) for value in value] if array_type_map_function else value
+        return lambda value, src: map_value_array(value, self._map_function(type_info), src)
 
     def _map_function_boolean(self, type_info: dict) -> Callable:
-        def map_value_boolean(value: str) -> Any:
+        def map_value_boolean(value: str, src: Optional[str]) -> Any:
             if isinstance(value, str) and (value := value.strip().lower()):
                 if (lower_value := value.lower()) in ["true", "t"]:
                     return True
@@ -332,26 +335,27 @@ class Schema:
         return map_value_boolean
 
     def _map_function_enum(self, type_info: dict) -> Callable:
-        def map_value_enum(value: str, enum_specifier: dict) -> Any:
+        def map_value_enum(value: str, enum_specifiers: dict, src: Optional[str]) -> Any:
             if isinstance(value, str) and (value := value.strip()):
-                if (enum_value := enum_specifier.get(lower_value := value.lower())) is not None:
+                if (enum_value := enum_specifiers.get(lower_value := value.lower())) is not None:
                     return enum_value
                 matches = []
-                for enum_canonical, _ in enum_specifier.items():
+                for enum_canonical, x in enum_specifiers.items():
                     if enum_canonical.startswith(lower_value):
                         matches.append(enum_canonical)
                 if len(matches) == 1:
-                    return enum_specifier[matches[0]]
+                    return enum_specifiers[matches[0]]
             return value
-        return lambda value: map_value_enum(value, {str(enum).lower(): enum for enum in type_info.get("enum", [])})
+        enum_specifiers = {str(enum).lower(): enum for enum in type_info.get("enum", [])}
+        return lambda value, src: map_value_enum(value, enum_specifiers, src)
 
     def _map_function_integer(self, type_info: dict) -> Callable:
-        def map_value_integer(value: str) -> Any:
+        def map_value_integer(value: str, src: Optional[str]) -> Any:
             return Utils.to_integer(value, value)
         return map_value_integer
 
     def _map_function_number(self, type_info: dict) -> Callable:
-        def map_value_number(value: str) -> Any:
+        def map_value_number(value: str, src: Optional[str]) -> Any:
             try:
                 return float(value)
             except Exception:
@@ -359,26 +363,22 @@ class Schema:
         return map_value_number
 
     def _map_function_string(self, type_info: dict) -> Callable:
-        def map_value_string(value: str) -> str:
+        def map_value_string(value: str, src: Optional[str]) -> str:
             return value if value is not None else ""
         return map_value_string
 
     def _map_function_ref(self, type_info: dict) -> Callable:
-        def map_value_ref(value: str, link_to: str, portal: Optional[Portal]) -> Any:
+        def map_value_ref(value: str, link_to: str, portal: Optional[Portal], src: Optional[str]) -> Any:
             nonlocal self, type_info
             exception = None
             if not value and (column := type_info.get("column")) and column in self.data.get("required", []):
-                exception = "No required reference (linkTo) value for: "
+                exception = f"No required reference (linkTo) value for: {link_to}"
             elif link_to and portal and not portal.ref_exists(link_to, value):
-                exception = "Cannot resolve reference (linkTo) for: "
+                exception = f"Cannot resolve reference (linkTo) for: {link_to}"
             if exception:
-                link_from = Utils.get_type_name(self.data.get("title"))
-                link_from_column = type_info.get("column")
-                ref_info = (f"{link_to}" + (f"/{value}" if value else "") +
-                            f" from {link_from}{f'.{link_from_column}' if link_from_column else ''}")
-                raise Exception(exception + ref_info)
+                raise Exception(exception + f"{f'/{value}' if value else ''}{f' from {src}' if src else ''}")
             return value
-        return lambda value: map_value_ref(value, type_info.get("linkTo"), self._portal)
+        return lambda value, src: map_value_ref(value, type_info.get("linkTo"), self._portal, src)
 
     def _map_function_name(self, map_function: Callable) -> str:
         # This is ONLY for testing/troubleshooting; get the NAME of the mapping function; this is HIGHLY
@@ -530,7 +530,7 @@ class RowReader(abc.ABC):
         return str(value).strip() if value is not None else ""
 
     @property
-    def row_number(self) -> int:
+    def location(self) -> int:
         return self._row_number
 
     def open(self) -> None:
@@ -690,7 +690,7 @@ class Portal:
         if isinstance(ini_file, str):
             return Portal(create_testapp(ini_file))
         minimal_ini_for_local_testing = "\n".join([
-            "[app:app]\nuse = egg:encoded",
+            "[app:app]\nuse = egg:encoded\nfile_upload_bucket = dummy",
             "sqlalchemy.url = postgresql://postgres@localhost:5441/postgres?host=/tmp/snovault/pgdata",
             "multiauth.groupfinder = encoded.authorization.smaht_groupfinder",
             "multiauth.policies = auth0 session remoteuser accesskey",
