@@ -159,7 +159,7 @@ def _test_parse_structured_data(file: str,
     def mocked_schemas():
         nonlocal sheet_utils
         with mock.patch("encoded.ingestion.structured_data.Schema.load_by_name", return_value=None):
-            # structured_data.Schema.load_by_name is used by sheet_utils code in parse_structured_data.
+            # Note that structured_data.Schema.load_by_name is used by sheet_utils code in parse_structured_data.
             if sheet_utils:
                 def mocked_get_schema(name, portal_env = None, portal_vapp = None):
                     return {"title": name}

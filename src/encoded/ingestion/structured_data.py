@@ -41,6 +41,7 @@ PRUNE_STRUCTURED_DATA_SET = True
 # Forward type references for type hints.
 Excel = Type["Excel"]
 Portal = Type["Portal"]
+PortalAny = Union[VirtualApp, TestApp, Portal]
 RowReader = Type["RowReader"]
 Schema = Type["Schema"]
 StructuredDataSet = Type["StructuredDataSet"]
@@ -49,7 +50,7 @@ StructuredDataSet = Type["StructuredDataSet"]
 class StructuredDataSet:
 
     def __init__(self, file: Optional[str] = None, data: Optional[List[dict]] = None,
-                 portal: Optional[Union[VirtualApp, TestApp, Portal]] = None,
+                 portal: Optional[PortalAny] = None,
                  order: Optional[List[str]] = None, prune: bool = PRUNE_STRUCTURED_DATA_SET) -> None:
         self.data = {} if not data else data
         self._portal = Portal.create(portal, loading_data_set=self.data)
@@ -58,8 +59,7 @@ class StructuredDataSet:
         self.load_file(file)
 
     @staticmethod
-    def load(file: str, portal: Union[VirtualApp, TestApp, Portal],
-             order: Optional[List[str]] = None) -> StructuredDataSet:
+    def load(file: str, portal: PortalAny, order: Optional[List[str]] = None) -> StructuredDataSet:
         return StructuredDataSet(file=file, portal=portal, order=order)
 
     def load_file(self, file: str) -> None:
@@ -144,7 +144,7 @@ class StructuredData:
         return StructuredData._load_from_reader(reader, schema=schema or reader.sheet_name, portal=portal, addto=addto)
 
     @staticmethod
-    def load_from_rows(rows: List[List[Optional[Any]]], schema: Optional[Schema] = None) -> List[dict]:
+    def load_from_rows(rows: List[List[Optional[Any]]], schema: Optional[Schema] = None) -> Optional[List[dict]]:
         return StructuredData._load_from_reader(ListReader(rows), schema=schema)
 
     @staticmethod
@@ -641,7 +641,7 @@ class Excel:
 
 class Portal:
 
-    def __init__(self, portal: Union[VirtualApp, TestApp, Portal], loading_data_set: Optional[dict] = None) -> None:
+    def __init__(self, portal: PortalAny, loading_data_set: Optional[dict] = None) -> None:
         self.vapp = portal.vapp if isinstance(portal, Portal) else portal
         self.loading_data_set = loading_data_set
 
@@ -674,8 +674,7 @@ class Portal:
         return False
 
     @staticmethod
-    def create(portal: Optional[Union[VirtualApp, TestApp, Portal]] = None,
-               loading_data_set: Optional[dict] = None) -> Optional[Portal]:
+    def create(portal: Optional[PortalAny] = None, loading_data_set: Optional[dict] = None) -> Optional[Portal]:
         if isinstance(portal, Portal):
             if loading_data_set is not None:
                 portal.loading_data_set = loading_data_set
