@@ -37,7 +37,7 @@ def test_parse_structured_data_1():
 
 
 def test_parse_structured_data_2():
-    _test_parse_structured_data(file = f"submission_test_file_from_doug_20231106.xlsx",
+    _test_parse_structured_data(file = f"submission_test_file_from_doug_20231106.xlsx", sheet_utils = False,
         refs = ["/Consortium/smaht"],
         expected = {
             "FileFormat": [
@@ -111,13 +111,13 @@ def test_parse_structured_data_2():
     )
 
 
-
 def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
                                 expected: Union[dict, list] = None,
                                 expected_validation_errors: Optional[Union[dict, list]] = None,
                                 noschemas: bool = False,
                                 norefs: bool = False,
                                 refs: Optional[List[str]] = None,
+                                sheet_utils: bool = False,
                                 debug: bool = False) -> None:
 
     def call_parse_structured_data(file: str, rows: Optional[List[str]] = None,
@@ -129,13 +129,13 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
             if os.path.exists(file) or os.path.exists(os.path.join(TEST_FILES_DIR, file)):
                 raise Exception("Attempt to create temporary file with same name as existing test file: {file}")
             with Utils.temporary_file(name=file, content=rows) as tmp_file_name:
-                structured_data, validation_errors = parse_structured_data(file=tmp_file_name, portal=portal)
+                structured_data, validation_errors = parse_structured_data(file=tmp_file_name, portal=portal, sheet_utils=sheet_utils)
         else:
             if os.path.exists(os.path.join(TEST_FILES_DIR, file)):
                 file = os.path.join(TEST_FILES_DIR, file)
             elif not os.path.exists(file):
                 raise Exception(f"Cannot find input test file: {file}")
-            structured_data, validation_errors = parse_structured_data(file=file, portal=portal)
+            structured_data, validation_errors = parse_structured_data(file=file, portal=portal, sheet_utils=sheet_utils)
         if debug:
             import pdb
             pdb.set_trace()
@@ -143,30 +143,49 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
         if expected_validation_errors:
             assert validation_errors == expected_validation_errors
 
+    @contextmanager
+    def mocked_schemas():
+        nonlocal sheet_utils
+        def schema_load_by_name(name: str, portal: Portal) -> Optional[dict]:
+            return None
+        if sheet_utils:
+            yield None  # TODO
+        else:
+            with mock.patch("encoded.ingestion.structured_data.Schema.load_by_name", side_effect=schema_load_by_name):
+                yield
+
+    @contextmanager
+    def mocked_refs(refs: Optional[List[str]] = None):
+        nonlocal sheet_utils
+        if sheet_utils:
+            def refhint_apply_ref_hint(self, value):
+                if refs:
+                    for item in (value if isinstance(value, list) else [value]):
+                        if not f"/{self.schema_name}/{item}" in refs:
+                            raise Exception(f"Reference not found: /{self.schema_name}/{item}")
+                return value
+            from dcicutils.bundle_utils import RefHint
+            # Can't quite figure out how to do this with mocking; the refhint_apply_ref_hint
+            # mock function does not get the self argument which we need in this case; as
+            # opposed to the non sheet_utils case, where we do not need the self.
+            # with mock.patch.object(RefHint, "_apply_ref_hint", side_effect=refhint_apply_ref_hint):
+            #   yield
+            RefHint._apply_ref_hint = refhint_apply_ref_hint
+            yield
+        else:
+            def schema_get_metadata(object_name):
+                nonlocal refs
+                #import pdb ; pdb.set_trace()
+                if refs:
+                    return {"uuid": "dummy"} if object_name in refs else None
+            with mock.patch("encoded.ingestion.structured_data.Portal.get_metadata", side_effect=schema_get_metadata):
+                yield
+
     def assert_parse_structured_data():
         call_parse_structured_data(file=file, rows=rows,
                                    expected=expected,
                                    expected_validation_errors=expected_validation_errors,
                                    debug=debug)
-
-    @contextmanager
-    def mocked_schemas():
-        def schema_load_by_name(name: str, portal: Portal) -> Optional[dict]:
-            return None
-        with mock.patch("encoded.ingestion.structured_data.Schema.load_by_name", side_effect=schema_load_by_name):
-            yield
-
-
-    @contextmanager
-    def mocked_refs(refs: Optional[List[str]] = None):
-        mocked_found_result = {"dummy": True}
-        def schema_get_metadata(object_name: str) -> Optional[dict]:
-            nonlocal refs
-            if refs:
-                return mocked_found_result if object_name in refs else None
-            return mocked_found_result
-        with mock.patch("encoded.ingestion.structured_data.Portal.get_metadata", side_effect=schema_get_metadata):
-            yield
 
     if noschemas:
         if norefs or refs:
