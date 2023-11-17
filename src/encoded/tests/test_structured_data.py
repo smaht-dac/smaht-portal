@@ -4,6 +4,7 @@ import pdb
 from typing import List, Optional, Union
 from unittest import mock
 from dcicutils.bundle_utils import RefHint
+from dcicutils.validation_utils import SchemaManager  # noqa
 from encoded.ingestion.structured_data import Portal, Schema, Utils  # noqa
 from encoded.ingestion.ingestion_processors import parse_structured_data
 
@@ -12,7 +13,7 @@ TEST_FILES_DIR = f"{THIS_TEST_MODULE_DIRECTORY}/data/test_files"
 
 
 def test_parse_structured_data_1():
-    _test_parse_structured_data(file = "test.csv", noschemas = True, rows = [
+    _test_parse_structured_data(file = "Test.csv", noschemas = True, sheet_utils = True, rows = [
         "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,data",
         "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
         "some-uuid-b,public,pav-b,pae-a,delta|echo|foxtrot|golf,xyzzy"
@@ -153,11 +154,14 @@ def _test_parse_structured_data(file: str, rows: Optional[List[str]] = None,
     def mocked_schemas():
         nonlocal sheet_utils
         def schema_load_by_name(name: str, portal: Portal) -> Optional[dict]:
-            return None
-        if sheet_utils:
-            yield None  # TODO
-        else:
-            with mock.patch("encoded.ingestion.structured_data.Schema.load_by_name", side_effect=schema_load_by_name):
+            return {}
+        with mock.patch("encoded.ingestion.structured_data.Schema.load_by_name", side_effect=schema_load_by_name):
+            if sheet_utils:
+                def schema_manager_get_schema(name, portal_env = None, portal_vapp = None):
+                    return {"title": name}
+                with mock.patch("dcicutils.validation_utils.SchemaManager.get_schema", side_effect=schema_manager_get_schema):
+                    yield
+            else:
                 yield
 
     @contextmanager
