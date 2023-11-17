@@ -756,8 +756,8 @@ class UnpackUtils:
     def unpack_files(file: str) -> Optional[str]:
         if (unpack_file_to_tmp_directory := UnpackUtils.get_unpack_context_manager(file)) is not None:
             with unpack_file_to_tmp_directory(file) as tmp_directory_name:
-                for directory, _, files in os.walk(tmp_directory_name):
-                    for file in files:
+                for directory, _, files in os.walk(tmp_directory_name):  # Ignore "." prefixed files.
+                    for file in [file for file in files if not file.startswith(".")]:
                         if any(file.endswith(suffix) for suffix in ACCEPTABLE_FILE_SUFFIXES):
                             yield os.path.join(directory, file)
 
