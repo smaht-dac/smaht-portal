@@ -55,10 +55,10 @@ def main() -> None:
         if args.sheet_utils:
             print(f">>> Using sheet_utils rather than the newer structured_data ...")
         print(f">>> Loading data", end="")
-        if args.validate:
-            print(" with validation", end="")
-        else:
+        if args.novalidate:
             print(" with NO validation", end="")
+        else:
+            print(" with validation", end="")
         if args.norefs:
             print(" with NO ref checking", end="")
         if args.noschemas:
@@ -67,7 +67,7 @@ def main() -> None:
 
     structured_data_set, validation_errors = parse_structured_data(file=args.file,
                                                                    portal=portal,
-                                                                   validate=args.validate,
+                                                                   novalidate=args.novalidate,
                                                                    sheet_utils=args.sheet_utils)
     print(f">>> Parsed Data:")
     print(json.dumps(structured_data_set, indent=4, default=str))
@@ -78,7 +78,7 @@ def main() -> None:
             print(ref_error)
 
     print(f"\n>>> Validation Results:")
-    if args.validate:
+    if not args.novalidate:
         print(yaml.dump(validation_errors) if validation_errors else "OK")
     else:
         print("No validation results because the --novalidate argument was specified.")
@@ -198,9 +198,8 @@ def parse_args() -> argparse.Namespace:
 
     args = parser.parse_args()
 
-    args.validate = not args.novalidate
     if args.noschemas:
-        args.validate = False
+        args.novalidate = True
     if (1 if args.patch_only else 0) + (1 if args.post_only else 0) + (1 if args.validate_only else 0) > 1:
         print("May only specify one of: --patch-only and --post-only and --validate-only")
         exit(1)

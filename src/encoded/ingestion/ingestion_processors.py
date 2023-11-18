@@ -25,7 +25,6 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
     with submission.s3_file() as file:
         data, validation_errors = parse_structured_data(file,
                                                         portal=submission.portal_vapp,
-                                                        validate=True,
                                                         sheet_utils=submission.sheet_utils)
         if validation_errors:
             submission.record_results(validation_errors, validation_errors)
@@ -44,7 +43,7 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
 
 
 def parse_structured_data(file: str, portal: Union[VirtualApp, TestApp, Portal],
-                          validate: bool = True,
+                          novalidate: bool = False,
                           sheet_utils: bool = False) -> Tuple[Optional[dict], Optional[List[str]]]:
     if not sheet_utils:
         structured_data = StructuredDataSet.load(file=file, portal=portal, order=ITEM_INDEX_ORDER)
@@ -53,8 +52,8 @@ def parse_structured_data(file: str, portal: Union[VirtualApp, TestApp, Portal],
             portal = portal.vapp
         parsed_data = parse_structured_data_via_sheet_utils(file,
                                                             portal_vapp=portal,
-                                                            validate=False,
+                                                            validate=False,  # Validate below.
                                                             apply_heuristics=False,
                                                             sheet_order=ITEM_INDEX_ORDER)
         structured_data = StructuredDataSet(data=parsed_data, portal=portal)
-    return (structured_data.data, structured_data.validate() if validate else [])
+    return (structured_data.data, structured_data.validate() if not novalidate else [])
