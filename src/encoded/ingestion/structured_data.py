@@ -476,18 +476,18 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
 
     def __init__(self):
         self.header = None
-        self._row_number = 0
+        self.location = 0
         self._warning_empty_headers = False
         self._warning_extra_values = []  # Line numbers.
         self.open()
 
     def __iter__(self) -> Iterator:
         for row in self.rows:
-            self._row_number += 1
+            self.location += 1
             if self.is_terminating_row(row):
                 break
             if len(self.header) < len(row): # Row values beyond what there are headers for are ignored.
-                self._warning_extra_values.append(self._row_number)
+                self._warning_extra_values.append(self.location)
             yield {column: self.cell_value(value) for column, value in zip(self.header, row)}
 
     def define_header(self, header: List[Optional[Any]]) -> None:
@@ -506,10 +506,6 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
 
     def cell_value(self, value: Optional[Any]) -> Optional[Any]:
         return str(value).strip() if value is not None else ""
-
-    @property
-    def location(self) -> int:
-        return self._row_number
 
     def open(self) -> None:
         pass
