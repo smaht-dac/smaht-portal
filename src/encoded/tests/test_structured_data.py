@@ -47,17 +47,16 @@ def test_parse_structured_data_1():
     _test_parse_structured_data(sheet_utils_also = False,
         file = "some_test.csv",
         rows = [
-            "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,data",
-            "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
-            "some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,987"
+            "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,num,i",
+            "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4,617",
+            "some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,987,781"
         ],
         schemas = [
             {
                 "title": "SomeTest",
                 "properties": {
-                    "data": {
-                        "type": "number"
-                    }
+                    "num": { "type": "number" },
+                    "i": { "type": "integer" }
                  }
             }
         ],
@@ -69,14 +68,16 @@ def test_parse_structured_data_1():
                     "principals_allowed": { "view": "pav-a", "edit": "pae-a"
                 },
                     "other_allowed_extension": [ "alfa", "bravo", "charlie" ],
-                    "data": 123.4
+                    "num": 123.4,
+                    "i": 617
                 },
                 {
                     "uuid": "some-uuid-b",
                     "status": "public",
                     "principals_allowed": { "view": "pav-b", "edit": "pae-b" },
                     "other_allowed_extension": [ "delta", "echo", "foxtrot", "golf" ],
-                    "data": 987
+                    "num": 987,
+                    "i": 781
                 }
             ]
         }
