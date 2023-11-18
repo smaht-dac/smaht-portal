@@ -131,7 +131,7 @@ def override_ref_handling(args: argparse.Namespace) -> dict:
         if not args.sheet_utils:
             Schema._map_function_ref = lambda self, type_info: lambda value, src: value
         else:
-            RefHint._apply_ref_hint = lambda self, value: value
+            RefHint._apply_ref_hint = lambda self, value, src: value
     elif not args.default_refs or args.show_refs:  # Default case; catch/report ref errors/exceptions.
         if not args.sheet_utils:
             real_map_function_ref = Schema._map_function_ref
