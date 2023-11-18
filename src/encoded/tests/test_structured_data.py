@@ -15,34 +15,37 @@ TEST_FILES_DIR = f"{THIS_TEST_MODULE_DIRECTORY}/data/test-files"
 
 
 def test_parse_structured_data_1():
-    _test_parse_structured_data(file = "test.csv", noschemas = True, sheet_utils_also = True, rows = [
-        "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,data",
-        "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
-        "some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,xyzzy"
-    ],
-    expected = {
-      "Test": [
-        {
-          "uuid": "some-uuid-a",
-          "status": "public",
-          "principals_allowed": { "view": "pav-a", "edit": "pae-a"
-          },
-          "other_allowed_extension": [ "alfa", "bravo", "charlie" ],
-          "data": "123.4"
-        },
-        {
-          "uuid": "some-uuid-b",
-          "status": "public",
-          "principals_allowed": { "view": "pav-b", "edit": "pae-b" },
-          "other_allowed_extension": [ "delta", "echo", "foxtrot", "golf" ],
-          "data": "xyzzy"
-        }
-      ]
+    _test_parse_structured_data(noschemas = True, sheet_utils_also = True,
+        file = "test.csv",
+        rows = [
+            "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,data",
+            "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
+            "some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,xyzzy"
+        ],
+        expected = {
+        "Test": [
+            {
+                "uuid": "some-uuid-a",
+                "status": "public",
+                "principals_allowed": { "view": "pav-a", "edit": "pae-a"
+            },
+                "other_allowed_extension": [ "alfa", "bravo", "charlie" ],
+                "data": "123.4"
+            },
+            {
+                "uuid": "some-uuid-b",
+                "status": "public",
+                "principals_allowed": { "view": "pav-b", "edit": "pae-b" },
+                "other_allowed_extension": [ "delta", "echo", "foxtrot", "golf" ],
+                "data": "xyzzy"
+            }
+        ]
     })
 
 
 def test_parse_structured_data_2():
-    _test_parse_structured_data(file = f"submission_test_file_from_doug_20231106.xlsx", sheet_utils_also = True,
+    _test_parse_structured_data(sheet_utils_also = True,
+        file = f"submission_test_file_from_doug_20231106.xlsx",
         norefs = [
             "/Consortium/smaht"
         ],
@@ -57,8 +60,8 @@ def test_parse_structured_data_2():
     )
 
 def test_parse_structured_data_3():
-    _test_parse_structured_data(file = f"uw_gcc_colo829bl_submission_20231117.xlsx",
-                                novalidate = True, sheet_utils_also = True,
+    _test_parse_structured_data(sheet_utils_also = True, novalidate = True,
+        file = f"uw_gcc_colo829bl_submission_20231117.xlsx",
         norefs = [
             "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1"
         ],
@@ -93,13 +96,31 @@ def test_parse_structured_data_3():
         expected = _read_result_json_file("uw_gcc_colo829bl_submission_20231117.result.json")
     )
 
+
 def test_portal_custom_schemas():
     schemas = [{"title": "Abc"}, {"title": "Def"}]
     portal = Portal.create_for_unit_testing(schemas=schemas)
     assert portal.get_schema("Abc") == schemas[0]
     assert portal.get_schema(" def ") == schemas[1]
-    import pdb ; pdb.set_trace()
     assert portal.get_schema("FileFormat") is not None
+
+
+def test_split_array_string():
+    assert Utils.split_array_string(r"abc|def|ghi") == ["abc", "def", "ghi"]
+    assert Utils.split_array_string(r"abc\|def|ghi") == ["abc|def", "ghi"]
+    assert Utils.split_array_string(r"abc\\|def|ghi") == ["abc\\", "def", "ghi"]
+    assert Utils.split_array_string(r"abc\\\|def|ghi") == ["abc\\|def", "ghi"]
+    assert Utils.split_array_string(r"abc\\\|def\|ghi") == ["abc\\|def|ghi"]
+    assert Utils.split_array_string(r"abc\\|\\def\|ghi") == ["abc\\", "\\def|ghi"]
+
+
+def test_get_type_name():
+    assert Utils.get_type_name("FileFormat") == "FileFormat"
+    assert Utils.get_type_name("file_format") == "FileFormat"
+    assert Utils.get_type_name("file_format.csv") == "FileFormat"
+    assert Utils.get_type_name("file_format.json") == "FileFormat"
+    assert Utils.get_type_name("file_format.xls") == "FileFormat"
+    assert Utils.get_type_name("File  Format") == "FileFormat"
 
 
 def _test_parse_structured_data(file: str,
@@ -107,6 +128,7 @@ def _test_parse_structured_data(file: str,
                                 rows: Optional[List[str]] = None,
                                 expected_refs: Optional[List[str]] = None,
                                 expected_errors: Optional[Union[dict, list]] = None,
+                                schemas: Optional[List[dict]] = None,
                                 noschemas: bool = False,
                                 novalidate: bool = False,
                                 norefs: Union[bool, List[str]] = False,
