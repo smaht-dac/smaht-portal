@@ -42,7 +42,7 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
         submission.record_results(load_data_response, load_data_summary)
 
 
-def parse_structured_data(file: str, portal: Union[VirtualApp, TestApp, Portal],
+def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp, Portal]],
                           novalidate: bool = False,
                           sheet_utils: bool = False) -> Tuple[Optional[dict], Optional[List[str]]]:
     if not sheet_utils:

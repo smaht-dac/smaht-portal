@@ -57,7 +57,7 @@ class StructuredDataSet:
         self.load_file(file)
 
     @staticmethod
-    def load(file: str, portal: PortalAny, order: Optional[List[str]] = None) -> StructuredDataSet:
+    def load(file: str, portal: Optional[PortalAny] = None, order: Optional[List[str]] = None) -> StructuredDataSet:
         return StructuredDataSet(file=file, portal=portal, order=order)
 
     def load_file(self, file: str) -> None:
