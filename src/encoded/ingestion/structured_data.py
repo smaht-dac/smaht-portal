@@ -486,6 +486,7 @@ class Schema:
 
 
 class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
+
     def __init__(self):
         self._header = None
         self._row_number = 0
@@ -543,6 +544,7 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
 
 
 class ListReader(RowReader):
+
     def __init__(self, rows: List[List[Optional[Any]]]) -> None:
         self._rows = rows
         super().__init__()
@@ -558,6 +560,7 @@ class ListReader(RowReader):
 
 
 class CsvReader(RowReader):
+
     def __init__(self, file: str) -> None:
         self._file = file
         self._file_handle = None
@@ -582,6 +585,7 @@ class CsvReader(RowReader):
 
 
 class ExcelSheetReader(RowReader):
+
     def __init__(self, workbook: openpyxl.workbook.workbook.Workbook, sheet_name: str) -> None:
         self._workbook = workbook
         self._worksheet_rows = None
@@ -607,6 +611,7 @@ class ExcelSheetReader(RowReader):
 
 
 class Excel:
+
     def __init__(self, file: str) -> None:
         self._file = file
         self._workbook = None
