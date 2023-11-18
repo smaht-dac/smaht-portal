@@ -207,8 +207,7 @@ class _StructuredColumnData:
                 if isinstance(row[name], str):  # An array afterall e.g.: abc,abc#2
                     row[name] = Utils.split_array_string(row[name])
                 if len(row[name]) < array_index + 1:
-                    array_extension = [None] * (array_index + 1 - len(row[name]))
-                    row[name].extend(array_extension)
+                    row[name].extend([None] * (array_index + 1 - len(row[name])))
                 row[name] = row[name][:array_index] + value + row[name][array_index + 1:]
             else:
                 row[name] = value
