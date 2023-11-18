@@ -286,6 +286,7 @@ class Schema:
         MAP_FUNCTIONS = {
             "array": self._map_function_array,
             "boolean": self._map_function_boolean,
+            "enum": self._map_function_enum,
             "integer": self._map_function_integer,
             "number": self._map_function_number,
             "string": self._map_function_string
@@ -293,7 +294,7 @@ class Schema:
         if isinstance(type_info, dict) and (type_info_type := type_info.get("type")) is not None:
             if isinstance(type_info_type, list):
                 # The type specifier can actually be a list of acceptable types; for
-                # example smaht-portal/schemas/meta_workflow.json/workflows#.input#.value;
+                # example smaht-portal/schemas/mixins.json/meta_workflow_input#.value;
                 # we will take the first one for which we have a mapping function.
                 # TODO: Maybe more correct to get all map function and map to any for values.
                 for acceptable_type in type_info_type:
