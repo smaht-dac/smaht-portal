@@ -44,7 +44,7 @@ def test_parse_structured_data_0():
     )
 
 def test_parse_structured_data_1():
-    _test_parse_structured_data(sheet_utils_also = False, debug=True,
+    _test_parse_structured_data(sheet_utils_also = False,
         file = "some_test.csv",
         rows = [
             "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,data",
