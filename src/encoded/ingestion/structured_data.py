@@ -239,7 +239,7 @@ class _StructuredColumnData:
         structured_row_template = {}
         for flattened_column_name in flattened_column_names or []:
             if (flattened_column_name_components := Utils.split_dotted_string(flattened_column_name)):
-                Utils.merge_objects(structured_row_template, parse_components(flattened_column_name_components))
+                Utils.merge(structured_row_template, parse_components(flattened_column_name_components))
         return structured_row_template
 
     @staticmethod
@@ -422,8 +422,7 @@ class Schema:
                 "items": {
                   "type": "object",
                   "properties": {
-                    "xy": { "type": "integer" },
-                    "z": { "type": "boolean" }
+                    "xyz": { "type": "integer" }
                   }
                 }
               }
@@ -437,8 +436,7 @@ class Schema:
             "abc.ghi.mno": { "type": "number", "map": <map_value_number> },
             "pqr":         { "type": "integer", "map": <map_value_integer> },
             "stu#":        { "type": "string", "map": <map_value_string> },
-            "vw#.xy":      { "type": "integer", "map": <map_value_intege> },
-            "vw#.z":       { "type": "boolean", "map": <map_value_boolean> } }
+            "vw#.xyz":     { "type": "integer", "map": <map_value_intege> } }
         """
         result = {}
         if (properties := schema_json.get("properties")) is None:
@@ -793,23 +791,16 @@ class Utils:  # Some of these may eventually go into dcicutils.
         return [item for item in result if item]
 
     @staticmethod
-    def merge_objects(target: Union[dict, List[Any]], source: Union[dict, List[Any]]) -> dict:
-        """
-        Merge, recursively, the given source object into the given target object and return target.
-        """
+    def merge(target: Union[dict, List[Any]], source: Union[dict, List[Any]]) -> dict:
         if isinstance(target, dict) and isinstance(source, dict) and source:
-            for source_key, source_value in source.items():
-                if source_key in target:
-                    target[source_key] = Utils.merge_objects(target[source_key], source_value)
-                else:
-                    target[source_key] = source_value
+            for key, value in source.items():
+                target[key] = Utils.merge(target[key], value) if key in target else value
         elif isinstance(target, list) and isinstance(source, list) and source:
-            for index in range(max(len(source), len(target))):
-                if index < len(target):
-                    source_value = source[index] if index < len(source) else source[len(source) - 1]
-                    target[index] = Utils.merge_objects(target[index], source_value)
+            for i in range(max(len(source), len(target))):
+                if i < len(target):
+                    target[i] = merge(target[i], source[i] if i < len(source) else source[len(source) - 1])
                 else:
-                    target.append(source[index])
+                    target.append(source[i])
         elif source:
             target = source
         return target
