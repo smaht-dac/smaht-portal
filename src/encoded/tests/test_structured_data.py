@@ -18,7 +18,7 @@ def test_parse_structured_data_0():
     _test_parse_structured_data(sheet_utils_also = True, noschemas = True,
         file = "some_test.csv",
         rows = [
-            "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,data",
+            "uuid,status,principals.view,principals.edit,extensions#,data",
             "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
             "some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,xyzzy"
         ],
@@ -27,16 +27,16 @@ def test_parse_structured_data_0():
                 {
                     "uuid": "some-uuid-a",
                     "status": "public",
-                    "principals_allowed": { "view": "pav-a", "edit": "pae-a"
+                    "principals": { "view": "pav-a", "edit": "pae-a"
                 },
-                    "other_allowed_extension": [ "alfa", "bravo", "charlie" ],
+                    "extensions": [ "alfa", "bravo", "charlie" ],
                     "data": "123.4"
                 },
                 {
                     "uuid": "some-uuid-b",
                     "status": "public",
-                    "principals_allowed": { "view": "pav-b", "edit": "pae-b" },
-                    "other_allowed_extension": [ "delta", "echo", "foxtrot", "golf" ],
+                    "principals": { "view": "pav-b", "edit": "pae-b" },
+                    "extensions": [ "delta", "echo", "foxtrot", "golf" ],
                     "data": "xyzzy"
                 }
             ]
