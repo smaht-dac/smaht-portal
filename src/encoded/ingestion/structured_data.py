@@ -272,8 +272,8 @@ class Schema:
                       for k, v in value.items()} for key, value in self._flattened_type_info.items()}
 
     def validate(self, data: dict) -> Optional[List[str]]:
-        validator = JsonSchemaValidator(self.data, format_checker=JsonSchemaValidator.FORMAT_CHECKER)
         errors = []
+        validator = JsonSchemaValidator(self.data, format_checker=JsonSchemaValidator.FORMAT_CHECKER)
         for error in validator.iter_errors(data):
             errors.append(error.message)
         return errors if errors else None
