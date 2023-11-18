@@ -475,7 +475,7 @@ class Schema:
 class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
 
     def __init__(self):
-        self._header = None
+        self.header = None
         self._row_number = 0
         self._warning_empty_headers = False
         self._warning_extra_values = []  # Line numbers.
@@ -490,17 +490,13 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
                 self._warning_extra_values.append(self._row_number)
             yield {column: self.cell_value(value) for column, value in zip(self.header, row)}
 
-    @property
-    def header(self) -> List[str]:
-        return self._header
-
     def define_header(self, header: List[Optional[Any]]) -> None:
-        self._header = []
+        self.header = []
         for index, column in enumerate(header or []):
             if not (column := str(column).strip() if column is not None else ""):
                 self._warning_empty_headers = True
                 break  # Empty header column signals end of header.
-            self._header.append(column)
+            self.header.append(column)
 
     def rows(self) -> Generator[Union[List[Optional[Any]], Tuple[Optional[Any], ...]], None, None]:
         yield
@@ -809,8 +805,8 @@ class Utils:  # Some of these may eventually go into dcicutils.
             return fallback
 
     @staticmethod
-    def get_type_name(file_or_other_string: str) -> str:
-        name = os.path.basename(file_or_other_string or "").replace(" ", "") if file_or_other_string else ""
+    def get_type_name(value: str) -> str:  # File or other name.
+        name = os.path.basename(value).replace(" ", "") if isinstance(value, str) else ""
         return to_camel_case(name[0:dot] if (dot := name.rfind(".")) > 0 else name)
 
     @contextmanager
