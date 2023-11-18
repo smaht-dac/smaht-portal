@@ -285,7 +285,6 @@ class Schema:
         src = f"{self.name}{f'.{flattened_column_name}' if flattened_column_name else ''}{f' [{loc}]' if loc else ''}"
         return map_value(value, src) if map_value else value
         
-
     def _map_function(self, type_info: dict) -> Optional[Callable]:
         MAP_FUNCTIONS = {
             "array": self._map_function_array,
