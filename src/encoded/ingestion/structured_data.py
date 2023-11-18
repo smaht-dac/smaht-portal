@@ -171,8 +171,7 @@ class _StructuredColumnData:
         return copy.deepcopy(self._row_template)
 
     @staticmethod
-    def set_value(row: dict, flattened_column_name: str,
-                  value: str, schema: Optional[Schema] = None, loc: int = -1) -> None:
+    def set_value(row: dict, flattened_column_name: str, value: str, schema: Optional[Schema], loc: int) -> None:
 
         def setv(row: Union[dict, list],
                  flattened_column_name_components: List[str], parent_array_index: int = -1) -> None:
