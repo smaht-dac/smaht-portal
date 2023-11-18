@@ -842,14 +842,12 @@ class Utils:  # Some of these may eventually go into dcicutils.
             Utils.remove_temporary_directory(tmp_directory_name)
 
     @staticmethod
-    def is_temporary_directory(path: str) -> bool:
-        try:
-            tmpdir = tempfile.gettempdir()
-            return os.path.commonpath([path, tmpdir]) == tmpdir and os.path.exists(path) and os.path.isdir(path)
-        except Exception:
-            return False
-
-    @staticmethod
     def remove_temporary_directory(tmp_directory_name: str) -> None:
-        if Utils.is_temporary_directory(tmp_directory_name):  # Guard against errant deletion.
+        def is_temporary_directory(path: str) -> bool:
+            try:
+                tmpdir = tempfile.gettempdir()
+                return os.path.commonpath([path, tmpdir]) == tmpdir and os.path.exists(path) and os.path.isdir(path)
+            except Exception:
+                return False
+        if is_temporary_directory(tmp_directory_name):  # Guard against errant deletion.
             shutil.rmtree(tmp_directory_name)
