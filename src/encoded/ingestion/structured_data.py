@@ -147,7 +147,7 @@ class StructuredData:
         structured_data = [] if not addto else None
         structured_column_data = _StructuredColumnData(reader.header)
         for row in reader:
-            if isinstance(schema, str):  # Do this here by name just so we do not get schema if no rows.
+            if isinstance(schema, str):  # Allow by name just so we do not fetch the schema if no rows.
                 schema = Schema.load_by_name(schema, portal=portal)
             structured_row = structured_column_data.create_row()
             for flattened_column_name, value in row.items():
