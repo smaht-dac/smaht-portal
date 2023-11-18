@@ -49,16 +49,18 @@ StructuredDataSet = Type["StructuredDataSet"]
 class StructuredDataSet:
 
     def __init__(self, file: Optional[str] = None, data: Optional[List[dict]] = None,
-                 portal: Optional[PortalAny] = None, order: Optional[List[str]] = None, prune: bool = True) -> None:
+                 portal: Optional[PortalAny] = None, schemas: Optional[List[dict]] = None,
+                 order: Optional[List[str]] = None, prune: bool = True) -> None:
         self.data = {} if not data else data
-        self._portal = Portal.create(portal, loading_data_set=self.data)  # If None then no schemas nor refs.
+        self._portal = Portal.create(portal, data=self.data, schemas=schemas)  # If None then no schemas nor refs.
         self._order = order
         self._prune = prune
         self.load_file(file)
 
     @staticmethod
-    def load(file: str, portal: Optional[PortalAny] = None, order: Optional[List[str]] = None) -> StructuredDataSet:
-        return StructuredDataSet(file=file, portal=portal, order=order)
+    def load(file: str, portal: Optional[PortalAny] = None, schemas: Optional[List[dict]] = None,
+             order: Optional[List[str]] = None) -> StructuredDataSet:
+        return StructuredDataSet(file=file, portal=portal, schemas=schemas, order=order)
 
     def load_file(self, file: str) -> None:
         # Returns a dictionary where each property is the name (i.e. the type) of the data,
@@ -494,7 +496,7 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
 
     def define_header(self, header: List[Optional[Any]]) -> None:
         self._header = []
-        for column in header or []:
+        for index, column in enumerate(header or []):
             if not (column := str(column).strip() if column is not None else ""):
                 self._warning_empty_headers = True
                 break  # Empty header column signals end of header.
@@ -548,19 +550,19 @@ class CsvReader(RowReader):
     def __init__(self, file: str) -> None:
         self._file = file
         self._file_handle = None
-        self._reader = None
+        self._rows = None
         super().__init__()
 
     @property
     def rows(self) -> Generator[List[Optional[Any]], None, None]:
-        for row in self._reader:
+        for row in self._rows:
             yield row
 
     def open(self) -> None:
         if self._file_handle is None:
             self._file_handle = open(self._file)
-            self._reader = csv.reader(self._file_handle)
-            self.define_header(next(self._reader, []))
+            self._rows = csv.reader(self._file_handle)
+            self.define_header(next(self._rows, []))
 
     def __del__(self) -> None:
         if (file_handle := self._file_handle) is not None:
@@ -572,14 +574,14 @@ class ExcelSheetReader(RowReader):
 
     def __init__(self, workbook: openpyxl.workbook.workbook.Workbook, sheet_name: str) -> None:
         self._workbook = workbook
-        self._worksheet_rows = None
+        self._rows = None
         self._sheet_name = sheet_name or "Sheet1"
         super().__init__()
 
     @property
     def rows(self) -> Generator[Tuple[Optional[Any], ...], None, None]:
-        for row in self._worksheet_rows(min_row=2, values_only=True):
-            yield row
+        for row in self._rows(min_row=2, values_only=True):
+            yield ExcelSheetReader._trim(row)
 
     def is_terminating_row(self, row: Tuple[Optional[Any]]) -> bool:
         return all(cell is None for cell in row)  # Empty row signals end of data.
@@ -589,9 +591,16 @@ class ExcelSheetReader(RowReader):
         return self._sheet_name
 
     def open(self) -> None:
-        if not self._worksheet_rows:
-            self._worksheet_rows = self._workbook[self._sheet_name].iter_rows
-            self.define_header(next(self._worksheet_rows(min_row=1, max_row=1, values_only=True), []))
+        if not self._rows:
+            self._rows = self._workbook[self._sheet_name].iter_rows
+            self.define_header(ExcelSheetReader._trim(next(self._rows(min_row=1, max_row=1, values_only=True), [])))
+
+    @staticmethod
+    def _trim(row: Tuple[Any]) -> Tuple[Any]:  # Returns given tuple with trailing None values removed.
+        i = len(row) - 1
+        while i >= 0 and row[i] is None:
+            i -= 1
+        return row[:i + 1]
 
 
 class Excel:
@@ -622,13 +631,16 @@ class Excel:
 
 class Portal:
 
-    def __init__(self, portal: PortalAny, loading_data_set: Optional[dict] = None) -> None:
+    def __init__(self, portal: PortalAny, data: Optional[dict] = None, schemas: Optional[List[dict]] = None) -> None:
         self.vapp = portal.vapp if isinstance(portal, Portal) else portal
-        self.loading_data_set = loading_data_set
+        self._data = data  # Data set being loaded (e.g. by StructuredDataSet).
+        self._schemas = schemas  # Explicitly specified known schemas.
 
     @lru_cache(maxsize=256)
     def get_schema(self, schema_name: str) -> Optional[dict]:
-        return get_schema(schema_name, portal_vapp=self.vapp)
+        return ((schema := [schema for schema in self._schemas or []
+                           if Utils.get_type_name(schema.get("title")) == Utils.get_type_name(schema_name)]) or
+                 get_schema(schema_name, portal_vapp=self.vapp))
 
     @lru_cache(maxsize=256)
     def get_metadata(self, object_name: str) -> Optional[dict]:
@@ -638,7 +650,7 @@ class Portal:
             return None
 
     def ref_exists(self, type_name: str, value: str) -> bool:
-        if self.loading_data_set and isinstance(items := self.loading_data_set.get(type_name), list):
+        if self._data and isinstance(items := self._data.get(type_name), list):
             if (type_schema := self.get_schema(type_name)):
                 id_properties = set(type_schema.get("identifyingProperties", [])) | {"identifier", "uuid"}
                 for item in items:
@@ -649,12 +661,13 @@ class Portal:
         return self.get_metadata(f"/{type_name}/{value}") is not None
 
     @staticmethod
-    def create(portal: Optional[PortalAny] = None, loading_data_set: Optional[dict] = None) -> Optional[Portal]:
+    def create(portal: Optional[PortalAny] = None,
+               data: Optional[dict] = None, schemas: Optional[List[dict]] = None) -> Optional[Portal]:
         if isinstance(portal, Portal):
-            if loading_data_set is not None:
-                portal.loading_data_set = loading_data_set
+            if data is not None:
+                portal._data = data
             return portal
-        return Portal(portal, loading_data_set=loading_data_set) if portal else None
+        return Portal(portal, data=data, schemas=schemas) if portal else None
 
     @staticmethod
     def create_for_unit_testing() -> Portal:
