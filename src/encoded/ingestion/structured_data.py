@@ -286,10 +286,8 @@ class Schema:
         MAP_FUNCTIONS = {
             "array": self._map_function_array,
             "boolean": self._map_function_boolean,
-            "enum": self._map_function_enum,
             "integer": self._map_function_integer,
             "number": self._map_function_number,
-            "ref": self._map_function_ref,
             "string": self._map_function_string
         }
         if isinstance(type_info, dict) and (type_info_type := type_info.get("type")) is not None:
@@ -304,9 +302,9 @@ class Schema:
             elif not isinstance(type_info_type, str):
                 raise Exception(f"Invalid type specifier type ({type(type_info_type).__name__}) in JSON schema.")
             elif isinstance(type_info.get("enum"), list):
-                map_function = MAP_FUNCTIONS.get("enum")
+                map_function = self._map_function_enum
             elif isinstance(type_info.get("linkTo"), str):
-                map_function = MAP_FUNCTIONS.get("ref")
+                map_function = self._map_function_ref
             else:
                 map_function = MAP_FUNCTIONS.get(type_info_type)
             return map_function(type_info) if map_function else None
