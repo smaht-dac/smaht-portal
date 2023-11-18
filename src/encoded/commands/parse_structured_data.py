@@ -1,6 +1,6 @@
 import argparse
 import json
-from typing import List
+from typing import List, Tuple
 import yaml
 from dcicutils.bundle_utils import RefHint
 from dcicutils.validation_utils import SchemaManager
@@ -48,8 +48,8 @@ def main() -> None:
 
     # Manually override implementation specifics for our default handling of refs (linkTo),
     # which is to catch/report any ref errors; use --norefs to not do ref checking at all;
-    # and use --refs to throw exceptions for ref errors (as normal outside of this script).
-    ref_errors = override_ref_handling(args) if args.norefs or not args.refs else []
+    # and use --default-refs to throw exceptions for ref errors (as normal outside of this script).
+    refs = override_ref_handling(args) if args.norefs or not args.default_refs or args.show_refs else None
 
     if args.verbose:
         if args.sheet_utils:
@@ -62,7 +62,7 @@ def main() -> None:
         if args.norefs:
             print(" with NO ref checking", end="")
         if args.noschemas:
-            print(" ignoring schemas", end="")
+            print(" with NO schemas", end="")
         print(f" from: {args.file} ...")
 
     structured_data_set, validation_errors = parse_structured_data(file=args.file,
@@ -72,9 +72,16 @@ def main() -> None:
     print(f">>> Parsed Data:")
     print(json.dumps(structured_data_set, indent=4, default=str))
 
-    if ref_errors:
+    if args.show_refs:
+        print(f"\n>>> References (linkTo):")
+        if refs and refs.get("actual"):
+            for ref_actual in sorted(refs["actual"]):
+                print(ref_actual)
+        else:
+            print("No references.")
+    if refs and refs.get("errors"):
         print(f"\n>>> Validation Reference (linkTo) Errors:")
-        for ref_error in ref_errors:
+        for ref_error in refs["errors"]:
             print(ref_error)
 
     print(f"\n>>> Validation Results:")
@@ -117,24 +124,25 @@ def main() -> None:
         print("\n>>> Done.")
 
 
-def override_ref_handling(args: argparse.Namespace) -> None:
+def override_ref_handling(args: argparse.Namespace) -> dict:
     # Should probably have used mocking, maybe a bit simpler..
-    ref_errors = []
+    refs = {"errors": set(), "actual": set()}
     if args.norefs:  # Do not check refs at all.
         if not args.sheet_utils:
-            Schema._map_function_ref = lambda self, type_info: lambda value: value
+            Schema._map_function_ref = lambda self, type_info: lambda value, src: value
         else:
             RefHint._apply_ref_hint = lambda self, value: value
-    elif not args.refs:  # Default case; catch/report ref errors/exceptions.
+    elif not args.default_refs or args.show_refs:  # Default case; catch/report ref errors/exceptions.
         if not args.sheet_utils:
             real_map_function_ref = Schema._map_function_ref
             def custom_map_function_ref(self, type_info):
                 real_map_value_ref = real_map_function_ref(self, type_info)
                 def custom_map_value_ref(value, link_to, portal, src):
+                    refs["actual"].add(f"{link_to}/{value}")
                     try:
                         return real_map_value_ref(value, src)
                     except Exception as e:
-                        ref_errors.append(str(e))
+                        refs["errors"].add(str(e))
                         return value
                 return lambda value, src = None: custom_map_value_ref(value, type_info.get("linkTo"), self._portal, src)
             Schema._map_function_ref = custom_map_function_ref
@@ -142,11 +150,12 @@ def override_ref_handling(args: argparse.Namespace) -> None:
             real_apply_ref_hint = RefHint._apply_ref_hint
             def custom_apply_ref_hint(self, value, src = None):
                 try:
+                    refs["actual"].add(f"{self.schema_name}/{value}")
                     return real_apply_ref_hint(self, value, src)
                 except Exception as e:
-                    ref_errors.append(str(e))
+                    refs["errors"].add(str(e))
             RefHint._apply_ref_hint = custom_apply_ref_hint
-    return ref_errors
+    return refs
 
 
 def dump_schemas(schema_names: List[str], portal: Portal) -> None:
@@ -175,8 +184,10 @@ def parse_args() -> argparse.Namespace:
                         default=False, help=f"Output the referenced schema(s).")
     parser.add_argument("--norefs", required=False, action="store_true",
                         default=False, help=f"Do not try to resolve schema linkTo references.")
-    parser.add_argument("--refs", required=False, action="store_true",
+    parser.add_argument("--default-refs", required=False, action="store_true",
                         default=False, help=f"Throw exception (like normal) schema linkTo reference cannot be resolved.")
+    parser.add_argument("--show-refs", required=False, action="store_true",
+                        default=False, help=f"Show all references.")
     parser.add_argument("--noschemas", required=False, action="store_true",
                         default=False, help=f"Do not use schemes at all.")
     parser.add_argument("--novalidate", required=False, action="store_true",
@@ -201,10 +212,10 @@ def parse_args() -> argparse.Namespace:
     if args.noschemas:
         args.novalidate = True
     if (1 if args.patch_only else 0) + (1 if args.post_only else 0) + (1 if args.validate_only else 0) > 1:
-        print("May only specify one of: --patch-only and --post-only and --validate-only")
+        print("May only specify one of: --patch-only or --post-only or --validate-only")
         exit(1)
-    if args.norefs and args.refs:
-        print("May only specify one of: --norefs and --refs")
+    if (1 if args.norefs else 0) + (1 if args.default_refs else 0) + (1 if args.show_refs else 0) > 1:
+        print("May not specify both of: --norefs or --default-refs or --show-refs")
         exit(1)
     if not args.load and (args.patch_only or args.post_only or args.validate_only):
         print("Must use --load when using: --patch-only or --post-only or --validate-only")
