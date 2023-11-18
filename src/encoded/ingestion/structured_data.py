@@ -333,7 +333,7 @@ class Schema:
                 if (enum_value := enum_specifiers.get(lower_value := value.lower())) is not None:
                     return enum_value
                 matches = []
-                for enum_canonical, x in enum_specifiers.items():
+                for enum_canonical, _ in enum_specifiers.items():
                     if enum_canonical.startswith(lower_value):
                         matches.append(enum_canonical)
                 if len(matches) == 1:
