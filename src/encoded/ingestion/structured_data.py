@@ -103,9 +103,7 @@ class StructuredDataSet:
             self.load_file(file)
 
     def add(self, type_name: str, data: Union[dict, List[dict], StructuredDataSet]) -> None:
-        if isinstance(data, StructuredDataSet):
-            data = data.data
-        elif isinstance(data, dict):
+        if isinstance(data, dict):
             data = [data]
         if self._prune:
             Utils.remove_empty_properties(data)
