@@ -498,8 +498,7 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
             self._row_number += 1
             if self.is_terminating_row(row):
                 break
-            if len(self.header) < len(row):
-                # If any row values present beyond what there are headers for then ignore.
+            if len(self.header) < len(row): # Row values beyond what there are headers for are ignored.
                 self._warning_extra_values.append(self._row_number)
             yield {column: self.cell_value(value) for column, value in zip(self.header, row)}
 
