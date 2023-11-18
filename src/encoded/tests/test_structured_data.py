@@ -16,31 +16,32 @@ TEST_FILES_DIR = f"{THIS_TEST_MODULE_DIRECTORY}/data/test-files"
 
 def test_parse_structured_data_1():
     _test_parse_structured_data(noschemas = True, sheet_utils_also = True,
-        file = "test.csv",
+        file = "some_test.csv",
         rows = [
             "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,data",
             "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
             "some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,xyzzy"
         ],
         expected = {
-        "Test": [
-            {
-                "uuid": "some-uuid-a",
-                "status": "public",
-                "principals_allowed": { "view": "pav-a", "edit": "pae-a"
-            },
-                "other_allowed_extension": [ "alfa", "bravo", "charlie" ],
-                "data": "123.4"
-            },
-            {
-                "uuid": "some-uuid-b",
-                "status": "public",
-                "principals_allowed": { "view": "pav-b", "edit": "pae-b" },
-                "other_allowed_extension": [ "delta", "echo", "foxtrot", "golf" ],
-                "data": "xyzzy"
-            }
-        ]
-    })
+            "SomeTest": [
+                {
+                    "uuid": "some-uuid-a",
+                    "status": "public",
+                    "principals_allowed": { "view": "pav-a", "edit": "pae-a"
+                },
+                    "other_allowed_extension": [ "alfa", "bravo", "charlie" ],
+                    "data": "123.4"
+                },
+                {
+                    "uuid": "some-uuid-b",
+                    "status": "public",
+                    "principals_allowed": { "view": "pav-b", "edit": "pae-b" },
+                    "other_allowed_extension": [ "delta", "echo", "foxtrot", "golf" ],
+                    "data": "xyzzy"
+                }
+            ]
+        }
+    )
 
 
 def test_parse_structured_data_2():
@@ -139,7 +140,7 @@ def _test_parse_structured_data(file: str,
 
     def assert_parse_structured_data():
         nonlocal file, expected, expected_errors, noschemas, sheet_utils, debug
-        portal = Portal.create_for_unit_testing() if not noschemas else None  # But see mocked_schemas below.
+        portal = Portal.create_for_unit_testing(schemas=schemas) if not noschemas else None  # But see mocked_schemas.
         if rows:
             if os.path.exists(file) or os.path.exists(os.path.join(TEST_FILES_DIR, file)):
                 raise Exception("Attempt to create temporary file with same name as existing test file: {file}")
