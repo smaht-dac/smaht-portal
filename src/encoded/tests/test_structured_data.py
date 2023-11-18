@@ -93,6 +93,14 @@ def test_parse_structured_data_3():
         expected = _read_result_json_file("uw_gcc_colo829bl_submission_20231117.result.json")
     )
 
+def test_portal_custom_schemas():
+    schemas = [{"title": "Abc"}, {"title": "Def"}]
+    portal = Portal.create_for_unit_testing(schemas=schemas)
+    assert portal.get_schema("Abc") == schemas[0]
+    assert portal.get_schema(" def ") == schemas[1]
+    import pdb ; pdb.set_trace()
+    assert portal.get_schema("FileFormat") is not None
+
 
 def _test_parse_structured_data(file: str,
                                 expected: Union[dict, list],

@@ -248,7 +248,7 @@ class Schema:
 
     def __init__(self, schema_json: dict, portal: Optional[Portal] = None) -> None:
         self.data = schema_json
-        self.name = schema_json.get("title", "") if schema_json else ""
+        self.name = Utils.get_type_name(schema_json.get("title", "")) if schema_json else ""
         self._portal = portal  # Needed only to resolve linkTo references.
         self._flat_type_info = self._compute_flat_schema_type_info(schema_json)
 
@@ -634,9 +634,9 @@ class Portal:
 
     @lru_cache(maxsize=256)
     def get_schema(self, schema_name: str) -> Optional[dict]:
-        return ((schema := [schema for schema in self._schemas or []
-                           if Utils.get_type_name(schema.get("title")) == Utils.get_type_name(schema_name)]) or
-                 get_schema(schema_name, portal_vapp=self.vapp))
+        return (next((schema for schema in self._schemas or []
+                     if Utils.get_type_name(schema.get("title")) == Utils.get_type_name(schema_name)), None) or
+                get_schema(schema_name, portal_vapp=self.vapp))
 
     @lru_cache(maxsize=256)
     def get_metadata(self, object_name: str) -> Optional[dict]:
@@ -666,15 +666,15 @@ class Portal:
         return Portal(portal, data=data, schemas=schemas) if portal else None
 
     @staticmethod
-    def create_for_unit_testing() -> Portal:
+    def create_for_unit_testing(schemas: Optional[List[dict]] = None) -> Portal:
         minimal_ini_for_unit_testing = "[app:app]\nuse = egg:encoded\nsqlalchemy.url = postgresql://dummy\n"
         with Utils.temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
-            return Portal(create_testapp(ini_file))
+            return Portal(create_testapp(ini_file), schemas=schemas)
 
     @staticmethod
-    def create_for_local_testing(ini_file: Optional[str] = None) -> Portal:
+    def create_for_local_testing(ini_file: Optional[str] = None, schemas: Optional[List[dict]] = None) -> Portal:
         if isinstance(ini_file, str):
-            return Portal(create_testapp(ini_file))
+            return Portal(create_testapp(ini_file), schemas=schemas)
         minimal_ini_for_local_testing = "\n".join([
             "[app:app]\nuse = egg:encoded\nfile_upload_bucket = dummy",
             "sqlalchemy.url = postgresql://postgres@localhost:5441/postgres?host=/tmp/snovault/pgdata",
@@ -695,7 +695,7 @@ class Portal:
             "multiauth.policy.auth0.base = encoded.authentication.Auth0AuthenticationPolicy"
         ])
         with Utils.temporary_file(content=minimal_ini_for_local_testing, suffix=".ini") as ini_file:
-            return Portal(create_testapp(ini_file))
+            return Portal(create_testapp(ini_file), schemas=schemas)
 
 
 class UnpackUtils:  # Some of these may eventually go into dcicutils.
