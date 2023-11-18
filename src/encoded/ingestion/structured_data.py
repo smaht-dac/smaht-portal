@@ -51,7 +51,7 @@ class StructuredDataSet:
     def __init__(self, file: Optional[str] = None, data: Optional[List[dict]] = None,
                  portal: Optional[PortalAny] = None, order: Optional[List[str]] = None, prune: bool = True) -> None:
         self.data = {} if not data else data
-        self._portal = Portal.create(portal, loading_data_set=self.data)
+        self._portal = Portal.create(portal, loading_data_set=self.data)  # If None then no schemas nor refs.
         self._order = order
         self._prune = prune
         self.load_file(file)
@@ -752,7 +752,7 @@ class UnpackUtils:  # Some of these may eventually go into dcicutils.
     @contextmanager
     @staticmethod
     def unpack_gz_file_to_temporary_file(file: str, suffix: Optional[str] = None) -> str:
-        if (gz := file.endswith(".gz")) or file.endswith(".tgz"):
+        if (gz := file.endswith(".gz")) or file.endswith(".tgz"):  # The .tgz suffix is simply short for .tar.gz.
             with Utils.temporary_file(name=os.path.basename(file[:-3] if gz else file[:-4] + ".tar")) as tmp_file_name:
                 with open(tmp_file_name, "wb") as outputf:
                     with gzip.open(file, "rb") as inputf:
@@ -844,10 +844,7 @@ class Utils:  # Some of these may eventually go into dcicutils.
         with Utils.temporary_directory() as tmp_directory_name:
             tmp_file_name = os.path.join(tmp_directory_name, name or tempfile.mktemp(dir="")) + (suffix or "")
             with open(tmp_file_name, "w") as tmp_file:
-                if isinstance(content, list):
-                    content = "\n".join(content)
-                if isinstance(content, str):
-                    tmp_file.write(content)
+                tmp_file.write("\n".join(content) if isinstance(content, list) else str(content))
             yield tmp_file_name
 
     @staticmethod

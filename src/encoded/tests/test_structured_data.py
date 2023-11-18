@@ -134,8 +134,8 @@ def _test_parse_structured_data(file: str,
     refs_actual = set()
 
     def assert_parse_structured_data():
-        nonlocal file, expected, expected_errors, sheet_utils, debug
-        portal = Portal.create_for_unit_testing()
+        nonlocal file, expected, expected_errors, noschemas, sheet_utils, debug
+        portal = Portal.create_for_unit_testing() if not noschemas else None  # But see mocked_schemas below.
         if rows:
             if os.path.exists(file) or os.path.exists(os.path.join(TEST_FILES_DIR, file)):
                 raise Exception("Attempt to create temporary file with same name as existing test file: {file}")
@@ -157,16 +157,14 @@ def _test_parse_structured_data(file: str,
 
     @contextmanager
     def mocked_schemas():
+        # The sheet_utils implementation does not deal well with no portal, as opposed to structured_data
+        # which which reacts by not attempting to load schems (nor resolving refs), so we mock it out here.
         nonlocal sheet_utils
-        with mock.patch("encoded.ingestion.structured_data.Schema.load_by_name", return_value=None):
-            # Note that structured_data.Schema.load_by_name is used by sheet_utils code in parse_structured_data.
-            if sheet_utils:
-                def mocked_get_schema(name, portal_env = None, portal_vapp = None):
-                    return {"title": name}
-                with mock.patch("dcicutils.validation_utils.SchemaManager.get_schema", side_effect=mocked_get_schema):
-                    yield
-            else:
+        if sheet_utils:
+            with mock.patch("dcicutils.validation_utils.SchemaManager.get_schema", return_value=None):
                 yield
+        else:
+            yield
 
     @contextmanager
     def mocked_refs():
@@ -190,7 +188,7 @@ def _test_parse_structured_data(file: str,
                 yield
 
     def run_this_function():
-        nonlocal norefs, expected_refs, refs_actual
+        nonlocal expected_refs, noschemas, norefs, refs_actual
         refs_actual = set()
         if noschemas:
             if norefs or expected_refs:
