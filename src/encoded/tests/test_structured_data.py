@@ -18,7 +18,7 @@ def test_parse_structured_data_1():
     _test_parse_structured_data(file = "test.csv", noschemas = True, sheet_utils_also = True, rows = [
         "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,data",
         "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
-        "some-uuid-b,public,pav-b,pae-a,delta|echo|foxtrot|golf,xyzzy"
+        "some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,xyzzy"
     ],
     expected = {
       "Test": [
@@ -33,7 +33,7 @@ def test_parse_structured_data_1():
         {
           "uuid": "some-uuid-b",
           "status": "public",
-          "principals_allowed": { "view": "pav-b", "edit": "pae-a" },
+          "principals_allowed": { "view": "pav-b", "edit": "pae-b" },
           "other_allowed_extension": [ "delta", "echo", "foxtrot", "golf" ],
           "data": "xyzzy"
         }
@@ -155,14 +155,10 @@ def _test_parse_structured_data(file: str,
                 nonlocal norefs, expected_refs, refs_actual
                 for item in (value if isinstance(value, list) else [value]):
                     refs_actual.add(ref := f"/{self.schema_name}/{item}")
-                    if norefs is True:
-                        return True
-                    if isinstance(norefs, list) and ref in norefs:
+                    if norefs is True or isinstance(norefs, list) and ref in norefs:
                         return True
                     real_ref_hint(self, value, src)  # Throws exception if ref not found.
                     return True
-                    #if expected_refs and ref not in expected_refs:
-                    #    raise Exception(f"Reference not found: {ref}")
                 return value
             with mock.patch.object(RefHint, "_apply_ref_hint", side_effect=mocked_ref_hint, autospec=True):
                 yield
@@ -171,13 +167,9 @@ def _test_parse_structured_data(file: str,
             def mocked_ref_exists(self, type_name, value):
                 nonlocal norefs, expected_refs, refs_actual
                 refs_actual.add(ref := f"/{type_name}/{value}")
-                if norefs is True:
+                if norefs is True or isinstance(norefs, list) and ref in norefs:
                     return True
-                if isinstance(norefs, list) and ref in norefs:
-                    return True
-                if (ref_really_exists := real_ref_exists(self, type_name, value)) is True:
-                    return True
-                return False
+                return real_ref_exists(self, type_name, value) is True
             with mock.patch("encoded.ingestion.structured_data.Portal.ref_exists",
                             side_effect=mocked_ref_exists, autospec=True):
                 yield
