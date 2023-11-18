@@ -798,7 +798,7 @@ class Utils:  # Some of these may eventually go into dcicutils.
         elif isinstance(target, list) and isinstance(source, list) and source:
             for i in range(max(len(source), len(target))):
                 if i < len(target):
-                    target[i] = merge(target[i], source[i] if i < len(source) else source[len(source) - 1])
+                    target[i] = Utils.merge(target[i], source[i] if i < len(source) else source[len(source) - 1])
                 else:
                     target.append(source[i])
         elif source:
