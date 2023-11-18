@@ -447,8 +447,7 @@ class Schema:
             return result
         for property_key, property_value in properties.items():
             if not isinstance(property_value, dict) or not property_value:
-                # Should not happen; every property within properties should be an object; no harm; ignore.
-                continue
+                continue  # Should not happen; every property within properties should be an object; no harm; ignore.
             key = property_key if parent_key is None else f"{parent_key}{DOTTED_NAME_DELIMITER_CHAR}{property_key}"
             if ARRAY_NAME_SUFFIX_CHAR in property_key:
                 raise Exception(f"Property name with \"{ARRAY_NAME_SUFFIX_CHAR}\" in JSON schema NOT supported: {key}")
