@@ -150,8 +150,8 @@ class StructuredData:
             if isinstance(schema, str):  # Allow by name just so we do not fetch the schema if no rows.
                 schema = Schema.load_by_name(schema, portal=portal)
             structured_row = structured_column_data.create_row()
-            for flattened_column_name, value in row.items():
-                structured_column_data.set_value(structured_row, flattened_column_name, value, schema, reader.location)
+            for flat_column_name, value in row.items():
+                structured_column_data.set_value(structured_row, flat_column_name, value, schema, reader.location)
             structured_data.append(structured_row) if not addto else addto(structured_row)
         return structured_data if not addto else None
 
@@ -164,42 +164,41 @@ class StructuredData:
 
 class _StructuredColumnData:
 
-    def __init__(self, flattened_column_names: List[str]) -> None:
-        self._row_template = self._parse_column_headers_into_structured_row_template(flattened_column_names)
+    def __init__(self, flat_column_names: List[str]) -> None:
+        self._row_template = self._parse_column_headers_into_structured_row_template(flat_column_names)
 
     def create_row(self) -> dict:
         return copy.deepcopy(self._row_template)
 
     @staticmethod
-    def set_value(row: dict, flattened_column_name: str, value: str, schema: Optional[Schema], loc: int) -> None:
+    def set_value(row: dict, flat_column_name: str, value: str, schema: Optional[Schema], loc: int) -> None:
 
-        def setv(row: Union[dict, list],
-                 flattened_column_name_components: List[str], parent_array_index: int = -1) -> None:
+        def setv(row: Union[dict, list], flat_column_name_components: List[str], parent_array_index: int = -1) -> None:
 
-            if not flattened_column_name_components:
+            if not flat_column_name_components:
                 return
             if isinstance(row, list):
                 if parent_array_index < 0:
                     for row_item in row:
-                        setv(row_item, flattened_column_name_components)
+                        setv(row_item, flat_column_name_components)
                 else:
-                    setv(row[parent_array_index], flattened_column_name_components)
+                    setv(row[parent_array_index], flat_column_name_components)
                 return
             if not isinstance(row, dict):
                 return
 
-            flattened_column_name_component = flattened_column_name_components[0]
-            array_name, array_index = _StructuredColumnData._get_array_info(flattened_column_name_component)
-            name = array_name if array_name else flattened_column_name_component
-            if len(flattened_column_name_components) > 1:
+            flat_column_name_component = flat_column_name_components[0]
+            array_name, array_index = _StructuredColumnData._get_array_info(flat_column_name_component)
+            name = array_name if array_name else flat_column_name_component
+            if len(flat_column_name_components) > 1:
                 if not isinstance(row[name], dict) and not isinstance(row[name], list):
                     row[name] = {}
-                setv(row[name], flattened_column_name_components[1:], parent_array_index=array_index)
+                setv(row[name], flat_column_name_components[1:], parent_array_index=array_index)
                 return
 
-            nonlocal flattened_column_name, value, schema, loc
+            nonlocal flat_column_name, value, schema, loc
             if schema:
-                value = schema.map_value(value, flattened_column_name, loc)
+                value = schema.map_value(value, flat_column_name, loc)
             elif array_name is not None and isinstance(value, str):
                 value = Utils.split_array_string(value)
             if array_name and array_index >= 0:
@@ -211,30 +210,27 @@ class _StructuredColumnData:
             else:
                 row[name] = value
 
-        setv(row, Utils.split_dotted_string(flattened_column_name))
+        setv(row, Utils.split_dotted_string(flat_column_name))
 
     @staticmethod
-    def _parse_column_headers_into_structured_row_template(flattened_column_names: List[str]) -> dict:
+    def _parse_column_headers_into_structured_row_template(flat_column_names: List[str]) -> dict:
 
-        def parse_components(flattened_column_name_components: List[str]) -> dict:
-            if len(flattened_column_name_components) > 1:
-                value = parse_components(flattened_column_name_components[1:])
-            else:
-                value = None
-            flattened_column_name_component = flattened_column_name_components[0]
-            array_name, array_index = _StructuredColumnData._get_array_info(flattened_column_name_component)
+        def parse_components(flat_column_name_components: List[str]) -> dict:
+            value = parse_components(flat_column_name_components[1:]) if len(flat_column_name_components) > 1 else None
+            flat_column_name_component = flat_column_name_components[0]
+            array_name, array_index = _StructuredColumnData._get_array_info(flat_column_name_component)
             if array_name:
                 array_length = array_index + 1 if array_index >= 0 else (0 if value is None else 1)
                 # Doing it the obvious way, like in the comment right below here, we get
                 # identical (shared) values; which we do not want; so do a real/deep copy.
                 # return {array_name: [value] * array_length}
                 return {array_name: [copy.deepcopy(value) for _ in range(array_length)]}
-            return {flattened_column_name_component: value}
+            return {flat_column_name_component: value}
 
         structured_row_template = {}
-        for flattened_column_name in flattened_column_names or []:
-            if (flattened_column_name_components := Utils.split_dotted_string(flattened_column_name)):
-                Utils.merge(structured_row_template, parse_components(flattened_column_name_components))
+        for flat_column_name in flat_column_names or []:
+            if (flat_column_name_components := Utils.split_dotted_string(flat_column_name)):
+                Utils.merge(structured_row_template, parse_components(flat_column_name_components))
         return structured_row_template
 
     @staticmethod
@@ -252,7 +248,7 @@ class Schema:
         self.data = schema_json
         self.name = schema_json.get("title", "") if schema_json else ""
         self._portal = portal  # Needed only to resolve linkTo references.
-        self._flattened_type_info = self._compute_flattened_schema_type_info(schema_json)
+        self._flat_type_info = self._compute_flat_schema_type_info(schema_json)
 
     @staticmethod
     def load_by_name(name: str, portal: Portal) -> Optional[dict]:
@@ -263,9 +259,9 @@ class Schema:
         with open(file) as f:
             return Schema(json.load(f), portal)
 
-    def get_flattened_type_info(self, debug: bool = False):
+    def get_flat_type_info(self, debug: bool = False):
         return {key: {k: (self._map_function_name(v) if k == "map" and isinstance(v, Callable) and debug else v)
-                      for k, v in value.items()} for key, value in self._flattened_type_info.items()}
+                      for k, v in value.items()} for key, value in self._flat_type_info.items()}
 
     def validate(self, data: dict) -> Optional[List[str]]:
         errors = []
@@ -274,11 +270,11 @@ class Schema:
             errors.append(error.message)
         return errors if errors else None
 
-    def map_value(self, value: str, flattened_column_name: str, loc: int) -> Optional[Any]:
-        flattened_column_name = self._normalize_flattened_column_name(flattened_column_name)
-        if (map_value := self._flattened_type_info.get(flattened_column_name, {}).get("map")) is None:
-            map_value = self._flattened_type_info.get(flattened_column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
-        src = f"{self.name}{f'.{flattened_column_name}' if flattened_column_name else ''}{f' [{loc}]' if loc else ''}"
+    def map_value(self, value: str, flat_column_name: str, loc: int) -> Optional[Any]:
+        flat_column_name = self._normalize_flat_column_name(flat_column_name)
+        if (map_value := self._flat_type_info.get(flat_column_name, {}).get("map")) is None:
+            map_value = self._flat_type_info.get(flat_column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
+        src = f"{self.name}{f'.{flat_column_name}' if flat_column_name else ''}{f' [{loc}]' if loc else ''}"
         return map_value(value, src) if map_value else value
         
     def _map_function(self, type_info: dict) -> Optional[Callable]:
@@ -386,11 +382,11 @@ class Schema:
                     return f"<{item}>"
         return type(map_function)
 
-    def _compute_flattened_schema_type_info(self, schema_json: dict, parent_key: Optional[str] = None) -> dict:
+    def _compute_flat_schema_type_info(self, schema_json: dict, parent_key: Optional[str] = None) -> dict:
         """
         Given a JSON schema return a dictionary of all the property names it defines, but with
         the names of any nested properties (i.e objects within objects) flattened into a single
-        property name in dot notation; and set the value of each of these flattened property names
+        property name in dot notation; and set the value of each of these flat property names
         to the type of the terminal/leaf value of the (either) top-level or nested type. N.B. We
         do NOT currently support array-of-arry or array-of-multiple-types. E.g. for this schema:
 
@@ -419,7 +415,7 @@ class Schema:
                 }
               } } }
 
-        Then we will return this flattened dictionary:
+        Then we will return this flat dictionary:
 
           { "abc.def":     { "type": "string", "map": <map_value_string> },
             "abc.ghi.jkl": { "type": "string", "map": <map_value_string> },
@@ -443,7 +439,7 @@ class Schema:
             if ARRAY_NAME_SUFFIX_CHAR in property_key:
                 raise Exception(f"Property name with \"{ARRAY_NAME_SUFFIX_CHAR}\" in JSON schema NOT supported: {key}")
             if (property_value_type := property_value.get("type")) == "object" and "properties" in property_value:
-                result.update(self._compute_flattened_schema_type_info(property_value, parent_key=key))
+                result.update(self._compute_flat_schema_type_info(property_value, parent_key=key))
                 continue
             if property_value_type == "array":
                 key += ARRAY_NAME_SUFFIX_CHAR
@@ -453,25 +449,25 @@ class Schema:
                     if isinstance(array_property_items, list):
                         raise Exception(f"Array of multiple types in JSON schema NOT supported: {key}")
                     raise Exception(f"Invalid array type specifier in JSON schema: {key}")
-                result.update(self._compute_flattened_schema_type_info(array_property_items, parent_key=key))
+                result.update(self._compute_flat_schema_type_info(array_property_items, parent_key=key))
                 continue
             result[key] = {"type": property_value_type, "map": self._map_function({**property_value, "column": key})}
         return result
 
     @staticmethod
-    def _normalize_flattened_column_name(flattened_column_name: str) -> str:
+    def _normalize_flat_column_name(flat_column_name: str) -> str:
         """
-        Given a string representing a flattened column name, i.e possibly dot-separated name components,
+        Given a string representing a flat column name, i.e possibly dot-separated name components,
         and where each component possibly ends with an array suffix (i.e. pound sign - #) followed by
         an integer, removes the integer part for each such array component; also ensures that
         any extraneous spaces which might be surrounding each component are removed.
         For example given "abc#12. def .ghi#3" returns "abc#.def.ghi#".
         """
-        flattened_column_name_components = Utils.split_dotted_string(flattened_column_name)
-        for i in range(len(flattened_column_name_components)):
-            flattened_column_name_components[i] = ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR,
-                                                                              flattened_column_name_components[i])
-        return DOTTED_NAME_DELIMITER_CHAR.join(flattened_column_name_components)
+        flat_column_name_components = Utils.split_dotted_string(flat_column_name)
+        for i in range(len(flat_column_name_components)):
+            flat_column_name_components[i] = ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR,
+                                                                         flat_column_name_components[i])
+        return DOTTED_NAME_DELIMITER_CHAR.join(flat_column_name_components)
 
 
 class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
