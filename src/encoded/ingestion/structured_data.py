@@ -641,14 +641,13 @@ class Portal:
             return None
 
     def ref_exists(self, type_name: str, value: str) -> bool:
-        if self._data and isinstance(items := self._data.get(type_name), list):
-            if (type_schema := self.get_schema(type_name)):
-                id_properties = set(type_schema.get("identifyingProperties", [])) | {"identifier", "uuid"}
-                for item in items:
-                    for id_property in id_properties:
-                        if (id_value := item.get(id_property)) is not None:
-                            if isinstance(id_value, list) and value in id_value or id_value == value:
-                                return True
+        if self._data and (items := self._data.get(type_name)) and (schema := self.get_schema(type_name)):
+            id_properties = set(schema.get("identifyingProperties", [])) | {"identifier", "uuid"}
+            for item in items:
+                for id_property in id_properties:
+                    if (id_value := item.get(id_property)) is not None:
+                        if isinstance(id_value, list) and value in id_value or id_value == value:
+                            return True
         return self.get_metadata(f"/{type_name}/{value}") is not None
 
     @staticmethod
