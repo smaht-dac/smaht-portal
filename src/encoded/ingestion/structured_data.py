@@ -165,10 +165,10 @@ class StructuredData:
 class _StructuredColumnData:
 
     def __init__(self, flattened_column_names: List[str]) -> None:
-        self.row_template = self._parse_column_headers_into_structured_row_template(flattened_column_names)
+        self._row_template = self._parse_column_headers_into_structured_row_template(flattened_column_names)
 
     def create_row(self) -> dict:
-        return copy.deepcopy(self.row_template)
+        return copy.deepcopy(self._row_template)
 
     @staticmethod
     def set_value(row: dict, flattened_column_name: str,
