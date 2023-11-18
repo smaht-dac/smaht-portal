@@ -47,7 +47,7 @@ def test_parse_structured_data_1():
     _test_parse_structured_data(sheet_utils_also = False,
         file = "some_test.csv",
         rows = [
-            "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,num,i,arr",
+            "uuid,status,principals.view,principals.edit,extensions#,num,i,arr",
             "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4,617,hotel",
             "some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,987,781,indigo\\|juliet|kilo"
         ],
@@ -66,9 +66,9 @@ def test_parse_structured_data_1():
                 {
                     "uuid": "some-uuid-a",
                     "status": "public",
-                    "principals_allowed": { "view": "pav-a", "edit": "pae-a"
+                    "principals": { "view": "pav-a", "edit": "pae-a"
                 },
-                    "other_allowed_extension": [ "alfa", "bravo", "charlie" ],
+                    "extensions": [ "alfa", "bravo", "charlie" ],
                     "num": 123.4,
                     "i": 617,
                     "arr": ["hotel"]
@@ -76,8 +76,8 @@ def test_parse_structured_data_1():
                 {
                     "uuid": "some-uuid-b",
                     "status": "public",
-                    "principals_allowed": { "view": "pav-b", "edit": "pae-b" },
-                    "other_allowed_extension": [ "delta", "echo", "foxtrot", "golf" ],
+                    "principals": { "view": "pav-b", "edit": "pae-b" },
+                    "extensions": [ "delta", "echo", "foxtrot", "golf" ],
                     "num": 987,
                     "i": 781,
                     "arr": ["indigo|juliet", "kilo"]
