@@ -71,9 +71,8 @@ class StructuredDataSet:
         if file:
             if file.endswith(".gz") or file.endswith(".tgz"):
                 with UnpackUtils.unpack_gz_file_to_temporary_file(file) as file:
-                    self._load_file(file)
-            else:
-                self._load_file(file)
+                    return self._load_file(file)
+            return self._load_file(file)
 
     def _load_file(self, file: str) -> None:
         if file.endswith(".csv"):
@@ -82,7 +81,7 @@ class StructuredDataSet:
             self.load_excel_file(file)
         elif file.endswith(".json"):
             self.load_json_file(file)
-        elif UnpackUtils.is_packed_file(file):
+        elif file.endswith(".tar") or file.endswith(".zip"):
             self.load_packed_file(file)
 
     def load_csv_file(self, file: str) -> None:
@@ -710,10 +709,6 @@ class Portal:
 
 
 class UnpackUtils:  # Some of these may eventually go into dcicutils.
-
-    @staticmethod
-    def is_packed_file(file: str) -> bool:
-        return UnpackUtils.get_unpack_context_manager(file) is not None
 
     @staticmethod
     def get_unpack_context_manager(file: str) -> Optional[Callable]:
