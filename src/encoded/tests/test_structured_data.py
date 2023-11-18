@@ -134,6 +134,8 @@ def _test_parse_structured_data(file: str,
         assert structured_data == expected
         if expected_errors:
             assert validation_errors == expected_errors
+        else:
+            assert not validation_errors
 
     @contextmanager
     def mocked_schemas():
