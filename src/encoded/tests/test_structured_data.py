@@ -14,8 +14,8 @@ THIS_TEST_MODULE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 TEST_FILES_DIR = f"{THIS_TEST_MODULE_DIRECTORY}/data/test-files"
 
 
-def test_parse_structured_data_1():
-    _test_parse_structured_data(noschemas = True, sheet_utils_also = True,
+def test_parse_structured_data_0():
+    _test_parse_structured_data(sheet_utils_also = True, noschemas = True,
         file = "some_test.csv",
         rows = [
             "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,data",
@@ -38,6 +38,45 @@ def test_parse_structured_data_1():
                     "principals_allowed": { "view": "pav-b", "edit": "pae-b" },
                     "other_allowed_extension": [ "delta", "echo", "foxtrot", "golf" ],
                     "data": "xyzzy"
+                }
+            ]
+        }
+    )
+
+def test_parse_structured_data_1():
+    _test_parse_structured_data(sheet_utils_also = False, debug=True,
+        file = "some_test.csv",
+        rows = [
+            "uuid,status,principals_allowed.view,principals_allowed.edit,other_allowed_extension#,data",
+            "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
+            "some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,987"
+        ],
+        schemas = [
+            {
+                "title": "SomeTest",
+                "properties": {
+                    "data": {
+                        "type": "number"
+                    }
+                 }
+            }
+        ],
+        expected = {
+            "SomeTest": [
+                {
+                    "uuid": "some-uuid-a",
+                    "status": "public",
+                    "principals_allowed": { "view": "pav-a", "edit": "pae-a"
+                },
+                    "other_allowed_extension": [ "alfa", "bravo", "charlie" ],
+                    "data": 123.4
+                },
+                {
+                    "uuid": "some-uuid-b",
+                    "status": "public",
+                    "principals_allowed": { "view": "pav-b", "edit": "pae-b" },
+                    "other_allowed_extension": [ "delta", "echo", "foxtrot", "golf" ],
+                    "data": 987
                 }
             ]
         }

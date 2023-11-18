@@ -201,7 +201,7 @@ class _StructuredColumnData:
             nonlocal flat_column_name, value, schema, loc
             if schema:
                 value = schema.map_value(value, flat_column_name, loc)
-            elif array_name is not None and isinstance(value, str):
+            if array_name is not None and isinstance(value, str):
                 value = Utils.split_array_string(value)
             if array_name and array_index >= 0:
                 if isinstance(row[name], str):  # An array afterall e.g.: abc,abc#2
