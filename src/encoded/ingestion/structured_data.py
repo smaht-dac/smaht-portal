@@ -173,7 +173,8 @@ class _StructuredColumnData:
         return copy.deepcopy(self.row_template)
 
     @staticmethod
-    def set_value(row: dict, flattened_column_name: str, value: str, schema: Optional[Schema] = None, loc: int = -1) -> None:
+    def set_value(row: dict, flattened_column_name: str,
+                  value: str, schema: Optional[Schema] = None, loc: int = -1) -> None:
 
         def setv(row: Union[dict, list],
                  flattened_column_name_components: List[str], parent_array_index: int = -1) -> None:
@@ -214,8 +215,7 @@ class _StructuredColumnData:
             else:
                 row[name] = value
 
-        if (flattened_column_name_components := Utils.split_dotted_string(flattened_column_name)):
-            setv(row, flattened_column_name_components)
+        setv(row, Utils.split_dotted_string(flattened_column_name))
 
     @staticmethod
     def _parse_column_headers_into_structured_row_template(flattened_column_names: List[str]) -> dict:
