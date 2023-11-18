@@ -489,8 +489,8 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
     def __init__(self):
         self._header = None
         self._row_number = 0
-        self._warning_empty_header_columns = False
-        self._warning_extraneous_row_values = []  # Line numbers.
+        self._warning_empty_headers = False
+        self._warning_extra_values = []  # Line numbers.
         self.open()
 
     def __iter__(self) -> Iterator:
@@ -500,7 +500,7 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
                 break
             if len(self.header) < len(row):
                 # If any row values present beyond what there are headers for then ignore.
-                self._warning_extraneous_row_values.append(self._row_number)
+                self._warning_extra_values.append(self._row_number)
             yield {column: self.cell_value(value) for column, value in zip(self.header, row)}
 
     @property
@@ -511,7 +511,7 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
         self._header = []
         for column in header or []:
             if not (column := str(column).strip() if column is not None else ""):
-                self._warning_empty_header_columns = True
+                self._warning_empty_headers = True
                 break  # Empty header column signals end of header.
             self._header.append(column)
 
@@ -535,11 +535,10 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
     @property
     def warnings(self) -> Optional[list]:
         warnings = []
-        if self._warning_empty_header_columns:
+        if self._warning_empty_headers:
             warnings.append("Empty header column encountered; ignore it and all following it.")
-        if self._warning_extraneous_row_values:
-            warnings.extend([f"Extra column values on row: {row_number}"
-                             for row_number in self._warning_extraneous_row_values])
+        if self._warning_extra_values:
+            warnings.extend([f"Extra column values on row: {row_number}" for row_number in self._warning_extra_values])
         return warnings if warnings else None
 
 
