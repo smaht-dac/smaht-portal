@@ -67,7 +67,7 @@ class StructuredDataSet:
         # 2.  Single Excel file containing one or more sheets, where each sheet
         #     represents (i.e. is named for, and contains data for) a different type.
         # 3.  Zip file (.zip or .tar.gz or .tgz or .tar), containing data files to load, where the
-        #     base kname of each contained file is the data type name; or any of above gzipped (.gz).
+        #     base name of each contained file is the data type name; or any of above gzipped (.gz).
         if file:
             if file.endswith(".gz") or file.endswith(".tgz"):
                 with UnpackUtils.unpack_gz_file_to_temporary_file(file) as file:
