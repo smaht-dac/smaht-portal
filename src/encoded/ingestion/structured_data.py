@@ -643,21 +643,15 @@ class Portal:
             return None
 
     def ref_exists(self, type_name: str, value: str) -> bool:
-        return self._ref_exists_internally(type_name, value) or self.get_metadata(f"/{type_name}/{value}") is not None
-
-    def _ref_exists_internally(self, type_name: str, value: str) -> bool:
         if self.loading_data_set and isinstance(items := self.loading_data_set.get(type_name), list):
             if (type_schema := self.get_schema(type_name)):
-                identifying_properties = set(type_schema.get("identifyingProperties", [])) | {"identifier", "uuid"}
+                id_properties = set(type_schema.get("identifyingProperties", [])) | {"identifier", "uuid"}
                 for item in items:
-                    for identifying_property in identifying_properties:
-                        if (identifying_value := item.get(identifying_property)) is not None:
-                            if isinstance(identifying_value, list):
-                                if value in identifying_value:
-                                    return True
-                            elif identifying_value == value:
+                    for id_property in id_properties:
+                        if (id_value := item.get(id_property)) is not None:
+                            if isinstance(id_value, list) and value in id_value or id_value == value:
                                 return True
-        return False
+        return self.get_metadata(f"/{type_name}/{value}") is not None
 
     @staticmethod
     def create(portal: Optional[PortalAny] = None, loading_data_set: Optional[dict] = None) -> Optional[Portal]:
