@@ -606,14 +606,13 @@ class Excel:
         self._file = file
         self._workbook = None
         self._sheet_names = None
+        self.open()
 
     @property
     def sheet_names(self) -> List[str]:
-        self.open()
         return self._sheet_names
 
     def sheet_reader(self, sheet_name: str) -> ExcelSheetReader:
-        self.open()
         return ExcelSheetReader(workbook=self._workbook, sheet_name=sheet_name)
 
     def open(self) -> None:
