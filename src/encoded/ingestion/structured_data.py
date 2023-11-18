@@ -572,10 +572,10 @@ class CsvReader(RowReader):
 
 class ExcelSheetReader(RowReader):
 
-    def __init__(self, workbook: openpyxl.workbook.workbook.Workbook, sheet_name: str) -> None:
+    def __init__(self, sheet_name: str, workbook: openpyxl.workbook.workbook.Workbook) -> None:
+        self.sheet_name = sheet_name or "Sheet1"
         self._workbook = workbook
         self._rows = None
-        self._sheet_name = sheet_name or "Sheet1"
         super().__init__()
 
     @property
@@ -586,13 +586,9 @@ class ExcelSheetReader(RowReader):
     def is_terminating_row(self, row: Tuple[Optional[Any]]) -> bool:
         return all(cell is None for cell in row)  # Empty row signals end of data.
 
-    @property
-    def sheet_name(self) -> str:
-        return self._sheet_name
-
     def open(self) -> None:
         if not self._rows:
-            self._rows = self._workbook[self._sheet_name].iter_rows
+            self._rows = self._workbook[self.sheet_name].iter_rows
             self.define_header(ExcelSheetReader._trim(next(self._rows(min_row=1, max_row=1, values_only=True), [])))
 
     @staticmethod
@@ -616,7 +612,7 @@ class Excel:
         return self._sheet_names
 
     def sheet_reader(self, sheet_name: str) -> ExcelSheetReader:
-        return ExcelSheetReader(workbook=self._workbook, sheet_name=sheet_name)
+        return ExcelSheetReader(sheet_name=sheet_name, workbook=self._workbook)
 
     def open(self) -> None:
         if self._workbook is None:
