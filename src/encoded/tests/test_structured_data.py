@@ -80,7 +80,7 @@ def test_parse_structured_data_1():
                     "extensions": [ "delta", "echo", "foxtrot", "golf" ],
                     "num": 987,
                     "i": 781,
-                    "arr": ["indigo|juliet", "kilo"]
+                    "arr": [ "indigo|juliet", "kilo" ]
                 }
             ]
         }
