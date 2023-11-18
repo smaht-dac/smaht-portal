@@ -502,9 +502,8 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
                 break  # Empty header column signals end of header.
             self._header.append(column)
 
-    @abc.abstractproperty
     def rows(self) -> Generator[Union[List[Optional[Any]], Tuple[Optional[Any], ...]], None, None]:
-        pass
+        yield
 
     def is_terminating_row(self, row: Union[List[Optional[Any]], Tuple[Optional[Any]]]) -> bool:
         return False
