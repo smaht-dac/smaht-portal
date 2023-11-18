@@ -43,82 +43,17 @@ def test_parse_structured_data_1():
 
 def test_parse_structured_data_2():
     _test_parse_structured_data(file = f"submission_test_file_from_doug_20231106.xlsx", sheet_utils_also = True,
+        norefs = [
+            "/Consortium/smaht"
+        ],
         expected_refs = [
             "/Consortium/smaht",
-            "/FileFormat/fastq",
-            "/Software/SMAHT_SOFTWARE_VEP",
             "/Software/SMAHT_SOFTWARE_FASTQC",
+            "/Software/SMAHT_SOFTWARE_VEP",
+            "/FileFormat/fastq",
             "/Workflow/smaht:workflow-basic"
         ],
-        expected = {
-            "FileFormat": [
-              {
-                "identifier": "fastq",
-                "standard_file_extension": "fastq",
-                "consortia": [ "smaht" ]
-              }
-            ],
-            "ReferenceFile": [
-              {
-                "aliases": [ "smaht:reference_file-fastq1" ],
-                "file_format": "fastq",
-                "data_category": [ "Sequencing Reads" ],
-                "data_type": [ "Unaligned Reads" ],
-                "filename": "first_file.fastq",
-                "consortia": [ "smaht" ]
-              },
-              {
-                "aliases": [ "smaht:reference_file-fastq2", "smaht:reference_file-fastq_alt" ],
-                "file_format": "fastq",
-                "data_category": [ "Sequencing Reads" ],
-                "data_type": [ "Unaligned Reads" ],
-                "filename": "second_file.fastq",
-                "consortia": [ "smaht" ]
-              }
-            ],
-            "Software": [
-              {
-                "submitted_id": "SMAHT_SOFTWARE_VEP",
-                "name": "vep",
-                "category": [ "Variant Annotation" ],
-                "title": "VEP",
-                "version": "1.0.1",
-                "source_url": "https://grch37.ensembl.org/info/docs/tools/vep/index.html",
-                "consortia": [ "smaht" ]
-              },
-              {
-                "submitted_id": "SMAHT_SOFTWARE_FASTQC",
-                "name": "fastqc",
-                "category": [ "Quality Control", "Alignment" ],
-                "title": "FastQC",
-                "version": "3.5.1",
-                "consortia": [ "smaht" ]
-              }
-            ],
-            "Workflow": [
-              {
-                "aliases": [ "smaht:workflow-basic" ],
-                "name": "basic_workflow",
-                "title": "A Basic Workflow",
-                "software": [ "SMAHT_SOFTWARE_VEP" ],
-                "category": [ "Annotation" ],
-                "language": "CWL",
-                "tibanna_config": { "instance_type": [ "c5.4xlarge" ], "run_name": "vep" },
-                "consortia": [ "smaht" ]
-              },
-              {
-                "aliases": [ "smaht:workflow-complex" ],
-                "name": "complex_workflow",
-                "title": "A Complex Workflow",
-                "software": [ "SMAHT_SOFTWARE_VEP", "SMAHT_SOFTWARE_FASTQC" ],
-                "category": [ "Annotation", "Quality Control" ],
-                "language": "WDL",
-                "tibanna_config": { "instance_type": [ "c5.4xlarge" ], "run_name": "fastqc" },
-                "previous_versions": [ "smaht:workflow-basic" ],
-                "consortia": [ "smaht" ]
-              }
-            ]
-        }
+        expected = _read_result_json_file("submission_test_file_from_doug_20231106.result.json")
     )
 
 def test_parse_structured_data_3():
@@ -153,7 +88,7 @@ def test_parse_structured_data_3():
             "/Library/UW-GCC_LIBRARY_COLO-829T_FIBERSEQ_1",
             "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-150x",
             "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-60x",
-            "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS",
+            "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS"
         ],
         expected = _read_result_json_file("uw_gcc_colo829bl_submission_20231117.result.json")
     )
