@@ -411,7 +411,6 @@ class Schema:
                   }
                 }
               },
-              "pqr": { "type": "integer" },
               "stu": { "type": "array", "items": { "type": "string" } },
               "vw": {
                 "type": "array",
@@ -421,18 +420,15 @@ class Schema:
                     "xyz": { "type": "integer" }
                   }
                 }
-              }
-            }
-          }
+              } } }
 
         Then we will return this flattened dictionary:
 
           { "abc.def":     { "type": "string", "map": <map_value_string> },
             "abc.ghi.jkl": { "type": "string", "map": <map_value_string> },
             "abc.ghi.mno": { "type": "number", "map": <map_value_number> },
-            "pqr":         { "type": "integer", "map": <map_value_integer> },
             "stu#":        { "type": "string", "map": <map_value_string> },
-            "vw#.xyz":     { "type": "integer", "map": <map_value_intege> } }
+            "vw#.xyz":     { "type": "integer", "map": <map_value_integer> } }
         """
         result = {}
         if (properties := schema_json.get("properties")) is None:
