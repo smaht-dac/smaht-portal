@@ -18,9 +18,9 @@ def test_parse_structured_data_0():
     _test_parse_structured_data(sheet_utils_also = True, noschemas = True,
         file = "some_test.csv",
         rows = [
-            "uuid,status,principals.view,principals.edit,extensions#,data",
-            "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
-            "some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,xyzzy"
+            r"uuid,status,principals.view,principals.edit,extensions#,data",
+            r"some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
+            r"some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,xyzzy"
         ],
         expected = {
             "SomeTest": [
@@ -47,9 +47,9 @@ def test_parse_structured_data_1():
     _test_parse_structured_data(sheet_utils_also = False,
         file = "some_test.csv",
         rows = [
-            "uuid,status,principals.view,principals.edit,extensions#,num,i,arr",
-            "some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4,617,hotel",
-            "some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,987,781,indigo\\|juliet|kilo"
+            r"uuid,status,principals.view,principals.edit,extensions#,num,i,arr",
+            r"some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4,617,hotel",
+            r"some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,987,781,indigo\|juliet|kilo"
         ],
         schemas = [
             {
