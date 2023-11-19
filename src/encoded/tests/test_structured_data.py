@@ -218,9 +218,9 @@ def test_parse_structured_data_7():
             "/SubmissionCenter/Center1"
         ],
         norefs = [
-            "/SubmissionCenter/Center1",
             "/FileFormat/FASTA",
-            "/FileFormat/VCF"
+            "/FileFormat/VCF",
+            "/SubmissionCenter/Center1"
         ]
     )
 
@@ -240,14 +240,14 @@ def test_parse_structured_data_8():
             "/SubmissionCenter/Center1"
         ],
         norefs = [
+            "/Analyte/sample-analyte-1",
+            "/Analyte/sample-analyte-2",
+            "/Analyte/sample-analyte-3",
             "/Consortium/Consortium1",
+            "/Consortium/Consortium2",
             "/LibraryPreparation/prep2",
             "/Protocol/protocol1",
-            "/Analyte/sample-analyte-2",
-            "/Consortium/Consortium2",
             "/Protocol/protocol3",
-            "/Analyte/sample-analyte-1",
-            "/Analyte/sample-analyte-3",
             "/SubmissionCenter/Center1"
         ]
     )
