@@ -11,7 +11,8 @@ import sys
 from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Type, Union
 from webtest.app import TestApp
 from dcicutils.ff_utils import get_metadata, get_schema
-from dcicutils.misc_utils import merge_objects, remove_empty_properties, split_string, to_camel_case, VirtualApp
+from dcicutils.misc_utils import (
+    merge_objects, remove_empty_properties, split_string, to_camel_case, VirtualApp, right_trim_tuple)
 from dcicutils.zip_utils import temporary_file, unpack_gz_file_to_temporary_file, unpack_files
 from snovault.loadxl import create_testapp
 
@@ -545,7 +546,7 @@ class ExcelSheetReader(RowReader):
     @property
     def rows(self) -> Generator[Tuple[Optional[Any], ...], None, None]:
         for row in self._rows(min_row=2, values_only=True):
-            yield ExcelSheetReader._trim(row)
+            yield right_trim_tuple(row)
 
     def is_terminating_row(self, row: Tuple[Optional[Any]]) -> bool:
         return all(cell is None for cell in row)  # Empty row signals end of data.
@@ -553,14 +554,7 @@ class ExcelSheetReader(RowReader):
     def open(self) -> None:
         if not self._rows:
             self._rows = self._workbook[self.sheet_name].iter_rows
-            self.define_header(ExcelSheetReader._trim(next(self._rows(min_row=1, max_row=1, values_only=True), [])))
-
-    @staticmethod
-    def _trim(row: Tuple[Any]) -> Tuple[Any]:  # Returns given tuple with trailing None values removed.
-        i = len(row) - 1
-        while i >= 0 and row[i] is None:
-            i -= 1
-        return row[:i + 1]
+            self.define_header(right_trim_tuple(next(self._rows(min_row=1, max_row=1, values_only=True), [])))
 
 
 class Excel:
