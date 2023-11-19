@@ -144,7 +144,8 @@ def override_ref_handling(args: argparse.Namespace) -> dict:
             def custom_map_function_ref(self, type_info):
                 real_map_value_ref = real_map_function_ref(self, type_info)
                 def custom_map_value_ref(value, link_to, portal, src):
-                    refs["actual"].add(f"{link_to}/{value}")
+                    if value:
+                        refs["actual"].add(f"{link_to}/{value}")
                     try:
                         return real_map_value_ref(value, src)
                     except Exception as e:
@@ -156,7 +157,8 @@ def override_ref_handling(args: argparse.Namespace) -> dict:
             real_apply_ref_hint = RefHint._apply_ref_hint
             def custom_apply_ref_hint(self, value, src = None):
                 try:
-                    refs["actual"].add(f"{self.schema_name}/{value}")
+                    if value:
+                        refs["actual"].add(f"{self.schema_name}/{value}")
                     return real_apply_ref_hint(self, value, src)
                 except Exception as e:
                     refs["errors"].add(str(e))

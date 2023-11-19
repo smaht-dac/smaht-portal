@@ -351,8 +351,9 @@ class Schema:
         def map_value_ref(value: str, link_to: str, portal: Optional[Portal], src: Optional[str]) -> Any:
             nonlocal self, type_info
             exception = None
-            if not value and (column := type_info.get("column")) and column in self.data.get("required", []):
-                exception = f"No required reference (linkTo) value for: {link_to}"
+            if not value:
+                if (column := type_info.get("column")) and column in self.data.get("required", []):
+                    exception = f"No required reference (linkTo) value for: {link_to}"
             elif link_to and portal and not portal.ref_exists(link_to, value):
                 exception = f"Cannot resolve reference (linkTo) for: {link_to}"
             if exception:

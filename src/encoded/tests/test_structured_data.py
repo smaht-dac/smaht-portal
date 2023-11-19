@@ -223,6 +223,34 @@ def test_parse_structured_data_7():
         ]
     )
 
+def test_parse_structured_data_8():
+    _test_parse_structured_data(
+        file = "library_20231119.csv", as_file_name = "library.csv",
+        expected = "library_20231119.result.json",
+        expected_refs = [
+            "/Analyte/sample-analyte-1",
+            "/Analyte/sample-analyte-2",
+            "/Analyte/sample-analyte-3",
+            "/Consortium/Consortium1",
+            "/Consortium/Consortium2",
+            "/LibraryPreparation/prep2",
+            "/Protocol/protocol1",
+            "/Protocol/protocol3",
+            "/SubmissionCenter/Center1"
+        ],
+        norefs = [
+            "/Consortium/Consortium1",
+            "/LibraryPreparation/prep2",
+            "/Protocol/protocol1",
+            "/Analyte/sample-analyte-2",
+            "/Consortium/Consortium2",
+            "/Protocol/protocol3",
+            "/Analyte/sample-analyte-1",
+            "/Analyte/sample-analyte-3",
+            "/SubmissionCenter/Center1"
+        ]
+    )
+
 
 def test_portal_custom_schemas():
     schemas = [{"title": "Abc"}, {"title": "Def"}]
