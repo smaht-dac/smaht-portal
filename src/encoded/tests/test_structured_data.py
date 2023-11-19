@@ -8,6 +8,7 @@ from dcicutils.bundle_utils import RefHint
 from dcicutils.misc_utils import to_camel_case
 from dcicutils.validation_utils import SchemaManager  # noqa
 from dcicutils.zip_utils import temporary_file
+from snovault.loadxl import create_testapp
 from encoded.ingestion.structured_data import Portal, Schema, Utils  # noqa
 from encoded.ingestion.ingestion_processors import parse_structured_data
 
@@ -184,7 +185,26 @@ def test_parse_structured_data_5():
             "/SubmissionCenter/SubmissionCenter2",
             "/User/user-id-1",
             "/User/user-id-2"
+        ]
+    )
+
+
+def test_parse_structured_data_6():
+    _test_parse_structured_data(sheet_utils_also = True,
+        file = "analyte_20231119.csv", as_file_name = "analyte.csv",
+        expected = "analyte_20231119.result.json",
+        expected_refs = [
+            "/Consortium/another-consortia",
+            "/Consortium/smaht",
+            "/Protocol/Protocol9",
+            "/Sample/Sample9"
         ],
+        norefs = [
+            "/Consortium/another-consortia",
+            "/Consortium/smaht",
+            "/Protocol/Protocol9",
+            "/Sample/Sample9"
+        ]
     )
 
 

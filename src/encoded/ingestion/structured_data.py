@@ -259,6 +259,7 @@ class Schema:
         errors = []
         validator = JsonSchemaValidator(self.data, format_checker=JsonSchemaValidator.FORMAT_CHECKER)
         for error in validator.iter_errors(data):
+            import pdb ; pdb.set_trace()
             errors.append(error.message)
         return errors if errors else None
 
