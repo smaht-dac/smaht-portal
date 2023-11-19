@@ -1,6 +1,5 @@
 import abc
 import copy
-from contextlib import contextmanager
 import csv
 from functools import lru_cache
 import json
@@ -8,9 +7,7 @@ from jsonschema import Draft7Validator as JsonSchemaValidator
 import openpyxl
 import os
 import re
-import shutil
 import sys
-import tempfile
 from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Type, Union
 from webtest.app import TestApp
 from dcicutils.ff_utils import get_metadata, get_schema
