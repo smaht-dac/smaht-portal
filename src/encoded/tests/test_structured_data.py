@@ -209,7 +209,7 @@ def test_parse_structured_data_6():
     )
 
 def test_parse_structured_data_7():
-    _test_parse_structured_data(
+    _test_parse_structured_data(sheet_utils_also = False,
         file = "reference_file_20231119.csv", as_file_name = "reference_file.csv",
         expected = "reference_file_20231119.result.json",
         expected_refs = [
@@ -225,7 +225,7 @@ def test_parse_structured_data_7():
     )
 
 def test_parse_structured_data_8():
-    _test_parse_structured_data(
+    _test_parse_structured_data(sheet_utils_also = False,
         file = "library_20231119.csv", as_file_name = "library.csv",
         expected = "library_20231119.result.json",
         expected_refs = [
@@ -254,7 +254,7 @@ def test_parse_structured_data_8():
 
 
 def test_parse_structured_data_9():
-    _test_parse_structured_data(
+    _test_parse_structured_data(sheet_utils_also = True,
         file = "file_format_20231119.csv.gz", as_file_name = "file_format.csv.gz",
         expected = "file_format_20231119.result.json",
         expected_refs = [
@@ -300,10 +300,10 @@ def _test_parse_structured_data(file: Optional[str] = None,
                                 expected: Optional[Union[dict, list]] = None,
                                 expected_refs: Optional[List[str]] = None,
                                 expected_errors: Optional[Union[dict, list]] = None,
-                                schemas: Optional[List[dict]] = None,
+                                norefs: Union[bool, List[str]] = False,
                                 noschemas: bool = False,
                                 novalidate: bool = False,
-                                norefs: Union[bool, List[str]] = False,
+                                schemas: Optional[List[dict]] = None,
                                 sheet_utils: bool = False,
                                 sheet_utils_also: bool = False,
                                 debug: bool = False) -> None:
