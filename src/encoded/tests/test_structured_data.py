@@ -101,7 +101,7 @@ def test_parse_structured_data_2():
             "/FileFormat/fastq",
             "/Workflow/smaht:workflow-basic"
         ],
-        expected = _read_result_json_file("submission_test_file_from_doug_20231106.result.json")
+        expected = "submission_test_file_from_doug_20231106.result.json"
     )
 
 def test_parse_structured_data_3():
@@ -138,21 +138,14 @@ def test_parse_structured_data_3():
             "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-60x",
             "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS"
         ],
-        expected = _read_result_json_file("uw_gcc_colo829bl_submission_20231117.result.json")
+        expected = "uw_gcc_colo829bl_submission_20231117.result.json"
     )
 
 
 def test_parse_structured_data_4():
     _test_parse_structured_data(sheet_utils_also = True, novalidate = True,
         file = "software_20231119.csv", as_file_name = "software.csv",
-        norefs = [
-            "/User/user-id-2",
-            "/User/user-id-1",
-            "/Consortium/Consortium2",
-            "/SubmissionCenter/SubmissionCenter2",
-            "/Consortium/Consortium1",
-            "/SubmissionCenter/SubmissionCenter1"
-        ],
+        expected = "software_20231119.result.json",
         expected_refs = [
             "/Consortium/Consortium1",
             "/Consortium/Consortium2",
@@ -161,7 +154,37 @@ def test_parse_structured_data_4():
             "/User/user-id-1",
             "/User/user-id-2"
         ],
-        expected = _read_result_json_file("software_20231119.result.json")
+        norefs = [
+            "/Consortium/Consortium1",
+            "/Consortium/Consortium2",
+            "/SubmissionCenter/SubmissionCenter1",
+            "/SubmissionCenter/SubmissionCenter2",
+            "/User/user-id-1",
+            "/User/user-id-2"
+        ]
+    )
+
+
+def test_parse_structured_data_5():
+    _test_parse_structured_data(sheet_utils_also = True, novalidate = True,
+        file = "workflow_20231119.csv", as_file_name = "workflow.csv",
+        expected = "workflow_20231119.result.json",
+        expected_refs = [
+            "/Consortium/Consortium1",
+            "/Consortium/Consortium2",
+            "/SubmissionCenter/SubmissionCenter1",
+            "/SubmissionCenter/SubmissionCenter2",
+            "/User/user-id-1",
+            "/User/user-id-2"
+        ],
+        norefs = [
+            "/Consortium/Consortium1",
+            "/Consortium/Consortium2",
+            "/SubmissionCenter/SubmissionCenter1",
+            "/SubmissionCenter/SubmissionCenter2",
+            "/User/user-id-1",
+            "/User/user-id-2"
+        ],
     )
 
 
@@ -200,6 +223,15 @@ def _test_parse_structured_data(file: Optional[str] = None,
         file = as_file_name
     if not file and not rows:
         raise Exception("Must specify a file or rows for structured_data test.")
+    if isinstance(expected, str):
+        if os.path.exists(os.path.join(TEST_FILES_DIR, expected)):
+            expected = os.path.join(TEST_FILES_DIR, expected)
+        elif not os.path.exists(expected):
+            raise Exception(f"Cannot find output result file for structured_data: {expected}")
+        with open(expected, "r") as f:
+            expected = json.load(f)
+    elif not isinstance(expected, dict):
+        raise Exception(f"Must specify a file name or a dictionary for structured_data test: {type(expected)}")
 
     refs_actual = set()
 
@@ -301,14 +333,6 @@ def _test_parse_structured_data(file: Optional[str] = None,
     if not sheet_utils and sheet_utils_also:
         sheet_utils = True
         run_this_function()
-
-def _read_result_json_file(file: str):
-    if os.path.exists(os.path.join(TEST_FILES_DIR, file)):
-        file = os.path.join(TEST_FILES_DIR, file)
-    elif not os.path.exists(file):
-        raise Exception(f"Cannot find result test file: {file}")
-    with open(file, "r") as f:
-        return json.load(f)
 
 
 def _get_schema_flat_type_info(schema: Schema):
