@@ -88,6 +88,7 @@ def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any
 def test_upload_credentials(
     status: str, expected: bool, testapp: TestApp, output_file: Dict[str, Any]
 ) -> None:
+    """Ensure upload credentials presence by file status."""
     patch_body = {"status": status}
     patch_response = patch_item(
         testapp, patch_body, output_file.get("uuid")
@@ -103,7 +104,13 @@ def test_upload_credentials(
             assert expected_key in result
 
 
-def test_upload_key(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]) -> None:
+def test_upload_key(
+    output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]
+) -> None:
+    """Ensure upload key formatted as expected.
+    
+    Expected format is {uuid}/{accession}.{file_format_extension}
+    """
     expected = (
         f"{output_file.get('uuid')}/{output_file.get('accession')}"
         f".{file_formats.get(OUTPUT_FILE_FORMAT, {}).get('standard_file_extension', '')}"
