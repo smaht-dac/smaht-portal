@@ -3,7 +3,6 @@ import copy
 from contextlib import contextmanager
 import csv
 from functools import lru_cache
-import gzip
 import json
 from jsonschema import Draft7Validator as JsonSchemaValidator
 import openpyxl
@@ -11,13 +10,12 @@ import os
 import re
 import shutil
 import sys
-import tarfile
 import tempfile
 from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Type, Union
 from webtest.app import TestApp
-import zipfile
 from dcicutils.ff_utils import get_metadata, get_schema
 from dcicutils.misc_utils import merge_objects, remove_empty_properties, split_string, to_camel_case, VirtualApp
+from dcicutils.zip_utils import unpack_gz_file_to_temporary_file, unpack_files
 from snovault.loadxl import create_testapp
 
 # Classes/functions to parse a CSV or Excel Spreadsheet into structured data, using a specialized
@@ -71,7 +69,7 @@ class StructuredDataSet:
         #     base name of each contained file is the data type name; or any of above gzipped (.gz).
         if file:
             if file.endswith(".gz") or file.endswith(".tgz"):
-                with UnpackUtils.unpack_gz_file_to_temporary_file(file) as file:
+                with unpack_gz_file_to_temporary_file(file) as file:
                     return self._load_file(file)
             return self._load_file(file)
 
@@ -100,7 +98,7 @@ class StructuredDataSet:
         self.add(Utils.get_type_name(file), StructuredData.load_from_json_file(file))
 
     def load_packed_file(self, file: str) -> None:
-        for file in UnpackUtils.unpack_files(file):
+        for file in unpack_files(file, suffixes=ACCEPTABLE_FILE_SUFFIXES):
             self.load_file(file)
 
     def add(self, type_name: str, data: Union[dict, List[dict], StructuredDataSet]) -> None:
@@ -641,49 +639,6 @@ class Portal:
         minimal_ini_for_unit_testing = "[app:app]\nuse = egg:encoded\nsqlalchemy.url = postgresql://dummy\n"
         with Utils.temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
             return Portal(create_testapp(ini_file), schemas=schemas)
-
-
-class UnpackUtils:  # Some of these may eventually go into dcicutils.
-
-    @contextmanager
-    @staticmethod
-    def unpack_zip_file_to_temporary_directory(file: str) -> str:
-        with Utils.temporary_directory() as tmp_directory_name:
-            with zipfile.ZipFile(file, "r") as zipf:
-                zipf.extractall(tmp_directory_name)
-            yield tmp_directory_name
-
-    @contextmanager
-    @staticmethod
-    def unpack_tar_file_to_temporary_directory(file: str) -> str:
-        with Utils.temporary_directory() as tmp_directory_name:
-            with tarfile.open(file, "r") as tarf:
-                tarf.extractall(tmp_directory_name)
-            yield tmp_directory_name
-
-    @staticmethod
-    def unpack_files(file: str) -> Optional[str]:
-        unpack_file_to_tmp_directory = {
-            ".tar": UnpackUtils.unpack_tar_file_to_temporary_directory,
-            ".zip": UnpackUtils.unpack_zip_file_to_temporary_directory
-        }.get(file[dot:]) if (dot := file.rfind(".")) > 0 else None
-        if unpack_file_to_tmp_directory is not None:
-            with unpack_file_to_tmp_directory(file) as tmp_directory_name:
-                for directory, _, files in os.walk(tmp_directory_name):  # Ignore "." prefixed files.
-                    for file in [file for file in files if not file.startswith(".")]:
-                        if any(file.endswith(suffix) for suffix in ACCEPTABLE_FILE_SUFFIXES):
-                            yield os.path.join(directory, file)
-
-    @contextmanager
-    @staticmethod
-    def unpack_gz_file_to_temporary_file(file: str, suffix: Optional[str] = None) -> str:
-        if (gz := file.endswith(".gz")) or file.endswith(".tgz"):  # The .tgz suffix is simply short for .tar.gz.
-            with Utils.temporary_file(name=os.path.basename(file[:-3] if gz else file[:-4] + ".tar")) as tmp_file_name:
-                with open(tmp_file_name, "wb") as outputf:
-                    with gzip.open(file, "rb") as inputf:
-                        outputf.write(inputf.read())
-                        outputf.close()
-                        yield tmp_file_name
 
 
 class Utils:  # Some of these may eventually go into dcicutils.
