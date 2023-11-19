@@ -1,14 +1,15 @@
 from contextlib import contextmanager
+import inspect
 import json
 import os
 import pdb
-from typing import List, Optional, Union
+import re
+from typing import Callable, List, Optional, Union
 from unittest import mock
 from dcicutils.bundle_utils import RefHint
 from dcicutils.misc_utils import to_camel_case
 from dcicutils.validation_utils import SchemaManager  # noqa
 from dcicutils.zip_utils import temporary_file
-from snovault.loadxl import create_testapp
 from encoded.ingestion.structured_data import Portal, Schema, Utils  # noqa
 from encoded.ingestion.ingestion_processors import parse_structured_data
 
@@ -252,7 +253,16 @@ def test_parse_structured_data_8():
     )
 
 
-def test_portal_custom_schemas():
+def test_flatten_schema_1():
+    portal = Portal.create_for_testing()
+    schema = Schema.load_by_name("reference_file", portal=portal)
+    schema_flattened_json = _get_schema_flat_type_info(schema)
+    with open(os.path.join(TEST_FILES_DIR, "reference_file.flattened.json")) as f:
+        expected_schema_flattened_json = json.load(f)
+        assert schema_flattened_json == expected_schema_flattened_json
+
+
+def test_portal_custom_schemas_1():
     schemas = [{"title": "Abc"}, {"title": "Def"}]
     portal = Portal.create_for_testing(schemas=schemas)
     assert portal.get_schema("Abc") == schemas[0]
@@ -260,7 +270,7 @@ def test_portal_custom_schemas():
     assert portal.get_schema("FileFormat") is not None
 
 
-def test_get_type_name():
+def test_get_type_name_1():
     assert Utils.get_type_name("FileFormat") == "FileFormat"
     assert Utils.get_type_name("file_format") == "FileFormat"
     assert Utils.get_type_name("file_format.csv") == "FileFormat"
@@ -350,6 +360,7 @@ def _test_parse_structured_data(file: Optional[str] = None,
         nonlocal sheet_utils
         if sheet_utils:
             real_ref_hint = RefHint._apply_ref_hint
+
             def mocked_ref_hint(self, value, src):
                 nonlocal norefs, expected_refs, refs_actual
                 for item in (value if isinstance(value, list) else [value]):
@@ -359,16 +370,19 @@ def _test_parse_structured_data(file: Optional[str] = None,
                     real_ref_hint(self, value, src)  # Throws exception if ref not found.
                     return True
                 return value
+
             with mock.patch.object(RefHint, "_apply_ref_hint", side_effect=mocked_ref_hint, autospec=True):
                 yield
         else:
             real_ref_exists = Portal.ref_exists
+
             def mocked_ref_exists(self, type_name, value):
                 nonlocal norefs, expected_refs, refs_actual
                 refs_actual.add(ref := f"/{type_name}/{value}")
                 if norefs is True or isinstance(norefs, list) and ref in norefs:
                     return True
                 return real_ref_exists(self, type_name, value) is True
+
             with mock.patch("encoded.ingestion.structured_data.Portal.ref_exists",
                             side_effect=mocked_ref_exists, autospec=True):
                 yield
@@ -413,5 +427,5 @@ def _get_schema_flat_type_info(schema: Schema):
                 if item.startswith("map_value_"):
                     return f"<{item}>"
         return type(map_function)
-    return {key: {k: (map_function_name(v) if k == "map" and isinstance(v, Callable) and debug else v)
+    return {key: {k: (map_function_name(v) if k == "map" and isinstance(v, Callable) else v)
                   for k, v in value.items()} for key, value in schema._flat_type_info.items()}

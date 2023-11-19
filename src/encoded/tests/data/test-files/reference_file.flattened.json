@@ -1,0 +1,150 @@
+{
+  "schema_version": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "accession": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "file_format": {
+    "type": "string",
+    "map": "<map_value_ref>"
+  },
+  "filename": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "file_size": {
+    "type": "integer",
+    "map": "<map_value_integer>"
+  },
+  "md5sum": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "content_md5sum": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "quality_metrics#": {
+    "type": "string",
+    "map": "<map_value_array>"
+  },
+  "status": {
+    "type": "string",
+    "map": "<map_value_enum>"
+  },
+  "data_category#": {
+    "type": "string",
+    "map": "<map_value_array>"
+  },
+  "data_type#": {
+    "type": "string",
+    "map": "<map_value_array>"
+  },
+  "variant_type#": {
+    "type": "string",
+    "map": "<map_value_array>"
+  },
+  "uuid": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "tags#": {
+    "type": "string",
+    "map": "<map_value_array>"
+  },
+  "date_created": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "submitted_by": {
+    "type": "string",
+    "map": "<map_value_ref>"
+  },
+  "last_modified.date_modified": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "last_modified.modified_by": {
+    "type": "string",
+    "map": "<map_value_ref>"
+  },
+  "description": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "submission_centers#": {
+    "type": "string",
+    "map": "<map_value_array>"
+  },
+  "consortia#": {
+    "type": "string",
+    "map": "<map_value_array>"
+  },
+  "aliases#": {
+    "type": "string",
+    "map": "<map_value_array>"
+  },
+  "alternate_accessions#": {
+    "type": "string",
+    "map": "<map_value_array>"
+  },
+  "extra_files#.file_format": {
+    "type": "string",
+    "map": "<map_value_ref>"
+  },
+  "extra_files#.file_size": {
+    "type": "integer",
+    "map": "<map_value_integer>"
+  },
+  "extra_files#.filename": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "extra_files#.href": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "extra_files#.md5sum": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "extra_files#.status": {
+    "type": "string",
+    "map": "<map_value_enum>"
+  },
+  "@id": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "@type#": {
+    "type": "string",
+    "map": "<map_value_array>"
+  },
+  "principals_allowed.view": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "principals_allowed.edit": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "display_title": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "href": {
+    "type": "string",
+    "map": "<map_value_string>"
+  },
+  "upload_credentials": {
+    "type": "object",
+    "map": null
+  },
+  "upload_key": {
+    "type": "string",
+    "map": "<map_value_string>"
+  }
+}
