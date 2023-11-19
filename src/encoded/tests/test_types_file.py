@@ -61,7 +61,7 @@ def bam_output_file_properties(
 @pytest.fixture
 def bam_output_file(
     testapp: TestApp, bam_output_file_properties: Dict[str, Any]
-) -> None:
+) -> Dict[str, Any]:
     return post_item(testapp, bam_output_file_properties, "OutputFile")
 
 
@@ -158,6 +158,10 @@ def test_validate_extra_file_format_on_post(
     testapp: TestApp,
     bam_output_file_properties: Dict[str, Any],
 ) -> None:
+    """Ensure extra file formats properly validated on POST.
+
+    Note: Permissible extra file formats are determined by fixtures.
+    """
     properties = {**bam_output_file_properties, "extra_files": extra_files}
     post_item(testapp, properties, "OutputFile", status=expected_status)
 
@@ -177,6 +181,10 @@ def test_validate_extra_file_format_on_patch(
     testapp: TestApp,
     bam_output_file: Dict[str, Any],
 ) -> None:
+    """Ensure extra file formats properly validated on PATCH.
+
+    Note: Permissible extra file formats are determined by fixtures.
+    """
     identifier = bam_output_file.get("uuid")
     patch_body = {"extra_files": extra_files}
     patch_item(testapp, patch_body, identifier, status=expected_status)
