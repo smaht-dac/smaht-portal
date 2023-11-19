@@ -471,7 +471,7 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
     def issues(self) -> Optional[List[str]]:
         issues = []
         if self._warning_empty_headers:
-            issues.append("Empty header column encountered; ignore it and all following it.")
+            issues.append("Empty header column encountered; ignoring it and all subsequent columns.")
         if self._warning_extra_values:
             issues.extend([f"Extra column values on row [{row_number}]" for row_number in self._warning_extra_values])
         return issues if issues else None

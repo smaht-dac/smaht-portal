@@ -251,7 +251,7 @@ def test_parse_structured_data_8():
             "/SubmissionCenter/Center1"
         ],
         expected_errors = [
-            {"library.csv": ["Empty header column encountered; ignore it and all following it.",
+            {"library.csv": ["Empty header column encountered; ignoring it and all subsequent columns.",
                              "Extra column values on row [1]",
                              "Extra column values on row [2]",
                              "Extra column values on row [3]"]}
