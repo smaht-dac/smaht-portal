@@ -63,10 +63,18 @@ def main() -> None:
             print(" with NO schemas", end="")
         print(f" from: {args.file} ...")
 
-    structured_data_set, validation_errors = parse_structured_data(file=args.file,
-                                                                   portal=portal,
-                                                                   novalidate=args.novalidate,
-                                                                   sheet_utils=args.sheet_utils)
+    if args.as_file_name:
+        with open(args.file, "r") as f:
+            with temporary_file(name=args.as_file_name, content=f.read()) as tmp_file_name:
+                structured_data_set, validation_errors = parse_structured_data(file=tmp_file_name,
+                                                                               portal=portal,
+                                                                               novalidate=args.novalidate,
+                                                                               sheet_utils=args.sheet_utils)
+    else:
+        structured_data_set, validation_errors = parse_structured_data(file=args.file,
+                                                                       portal=portal,
+                                                                       novalidate=args.novalidate,
+                                                                       sheet_utils=args.sheet_utils)
     print(f">>> Parsed Data:")
     print(json.dumps(structured_data_set, indent=4, default=str))
 
@@ -202,6 +210,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Parse local structured data file for dev/testing purposes.", allow_abbrev=False)
 
     parser.add_argument("file", type=str, nargs="?", help=f"File to parse.")
+    parser.add_argument("--as-file-name", type=str, nargs="?", help=f"Use this file name as the name of the given file.")
     parser.add_argument("--sheet-utils", required=False, action="store_true", default=False,
                         help=f"Use sheet_utils rather than the newer structure_data.")
     parser.add_argument("--schemas", required=False, action="store_true",

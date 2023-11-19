@@ -207,6 +207,22 @@ def test_parse_structured_data_6():
         ]
     )
 
+def test_parse_structured_data_7():
+    _test_parse_structured_data(
+        file = "reference_file_20231119.csv", as_file_name = "reference_file.csv",
+        expected = "reference_file_20231119.result.json",
+        expected_refs = [
+            "/FileFormat/FASTA",
+            "/FileFormat/VCF",
+            "/SubmissionCenter/Center1"
+        ],
+        norefs = [
+            "/SubmissionCenter/Center1",
+            "/FileFormat/FASTA",
+            "/FileFormat/VCF"
+        ]
+    )
+
 
 def test_portal_custom_schemas():
     schemas = [{"title": "Abc"}, {"title": "Def"}]
