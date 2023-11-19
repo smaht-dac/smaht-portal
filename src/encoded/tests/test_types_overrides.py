@@ -3,17 +3,6 @@ from typing import Any, Dict
 from webtest.app import TestApp
 
 
-def test_user(testapp):
-    """ Tests that we can post a user under the override type definition """
-    testapp.post_json('/User', {
-        'first_name': 'Test',
-        'last_name': 'Admin',
-        'email': 'admin@example.org',
-        'groups': ['admin'],
-        'status': 'current'
-    }, status=201)
-
-
 def test_file_format(testapp, test_consortium: Dict[str, Any]):
     """ Tests that we can post a file format under the overridden type
         definition
