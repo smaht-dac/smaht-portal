@@ -379,8 +379,7 @@ class Schema:
                       "mno": { "type": "number" }
                     }
                   }
-                }
-              },
+                } },
               "stu": { "type": "array", "items": { "type": "string" } },
               "vw": {
                 "type": "array",
@@ -388,8 +387,7 @@ class Schema:
                   "type": "object",
                   "properties": {
                     "xyz": { "type": "integer" }
-                  }
-                }
+                  } }
               } } }
 
         Then we will return this flat dictionary:
