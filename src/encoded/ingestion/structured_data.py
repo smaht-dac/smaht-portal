@@ -631,7 +631,7 @@ class Portal:
             return Portal(create_testapp(ini_file), schemas=schemas)
 
 
-class Utils:  # Some of these may eventually go into dcicutils.
+class Utils:
 
     @staticmethod
     def split_dotted_string(value: str) -> List[str]:
