@@ -7,6 +7,7 @@ from unittest import mock
 from dcicutils.bundle_utils import RefHint
 from dcicutils.misc_utils import to_camel_case
 from dcicutils.validation_utils import SchemaManager  # noqa
+from dcicutils.zip_utils import temporary_file
 from encoded.ingestion.structured_data import Portal, Schema, Utils  # noqa
 from encoded.ingestion.ingestion_processors import parse_structured_data
 
@@ -178,7 +179,7 @@ def _test_parse_structured_data(file: str,
         if rows:
             if os.path.exists(file) or os.path.exists(os.path.join(TEST_FILES_DIR, file)):
                 raise Exception("Attempt to create temporary file with same name as existing test file: {file}")
-            with Utils.temporary_file(name=file, content=rows) as tmp_file_name:
+            with temporary_file(name=file, content=rows) as tmp_file_name:
                 structured_data, validation_errors = parse_structured_data(file=tmp_file_name,
                                                                            portal=portal,
                                                                            novalidate=novalidate,

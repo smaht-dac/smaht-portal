@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple
 import yaml
 from dcicutils.bundle_utils import RefHint
 from dcicutils.validation_utils import SchemaManager
+from dcicutils.zip_utils import temporary_file
 from snovault.loadxl import create_testapp
 from encoded.commands.captured_output import captured_output
 with captured_output():
@@ -188,7 +189,7 @@ def _create_portal_for_local_testing(ini_file: Optional[str] = None, schemas: Op
         "multiauth.policy.auth0.namespace = auth0",
         "multiauth.policy.auth0.base = encoded.authentication.Auth0AuthenticationPolicy"
     ])
-    with Utils.temporary_file(content=minimal_ini_for_local_testing, suffix=".ini") as ini_file:
+    with temporary_file(content=minimal_ini_for_local_testing, suffix=".ini") as ini_file:
         return Portal(create_testapp(ini_file), schemas=schemas)
 
 

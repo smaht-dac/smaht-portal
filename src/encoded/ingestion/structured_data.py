@@ -15,7 +15,7 @@ from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Ty
 from webtest.app import TestApp
 from dcicutils.ff_utils import get_metadata, get_schema
 from dcicutils.misc_utils import merge_objects, remove_empty_properties, split_string, to_camel_case, VirtualApp
-from dcicutils.zip_utils import unpack_gz_file_to_temporary_file, unpack_files
+from dcicutils.zip_utils import temporary_file, unpack_gz_file_to_temporary_file, unpack_files
 from snovault.loadxl import create_testapp
 
 # Classes/functions to parse a CSV or Excel Spreadsheet into structured data, using a specialized
@@ -637,7 +637,7 @@ class Portal:
         if isinstance(ini_file, str):
             return Portal(create_testapp(ini_file), schemas=schemas)
         minimal_ini_for_unit_testing = "[app:app]\nuse = egg:encoded\nsqlalchemy.url = postgresql://dummy\n"
-        with Utils.temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
+        with temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
             return Portal(create_testapp(ini_file), schemas=schemas)
 
 
@@ -662,32 +662,3 @@ class Utils:  # Some of these may eventually go into dcicutils.
     def get_type_name(value: str) -> str:  # File or other name.
         name = os.path.basename(value).replace(" ", "") if isinstance(value, str) else ""
         return to_camel_case(name[0:dot] if (dot := name.rfind(".")) > 0 else name)
-
-    @contextmanager
-    def temporary_file(name: Optional[str] = None, suffix: Optional[str] = None,
-                       content: Optional[Union[str, List[str]]] = None) -> str:
-        with Utils.temporary_directory() as tmp_directory_name:
-            tmp_file_name = os.path.join(tmp_directory_name, name or tempfile.mktemp(dir="")) + (suffix or "")
-            with open(tmp_file_name, "w") as tmp_file:
-                tmp_file.write("\n".join(content) if isinstance(content, list) else str(content))
-            yield tmp_file_name
-
-    @staticmethod
-    @contextmanager
-    def temporary_directory() -> str:
-        try:
-            with tempfile.TemporaryDirectory() as tmp_directory_name:
-                yield tmp_directory_name
-        finally:
-            Utils.remove_temporary_directory(tmp_directory_name)
-
-    @staticmethod
-    def remove_temporary_directory(tmp_directory_name: str) -> None:
-        def is_temporary_directory(path: str) -> bool:
-            try:
-                tmpdir = tempfile.gettempdir()
-                return os.path.commonpath([path, tmpdir]) == tmpdir and os.path.exists(path) and os.path.isdir(path)
-            except Exception:
-                return False
-        if is_temporary_directory(tmp_directory_name):  # Guard against errant deletion.
-            shutil.rmtree(tmp_directory_name)
