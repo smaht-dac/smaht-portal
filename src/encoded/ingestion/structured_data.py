@@ -4,7 +4,6 @@ from contextlib import contextmanager
 import csv
 from functools import lru_cache
 import gzip
-import inspect
 import json
 from jsonschema import Draft7Validator as JsonSchemaValidator
 import openpyxl
@@ -18,7 +17,7 @@ from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Ty
 from webtest.app import TestApp
 import zipfile
 from dcicutils.ff_utils import get_metadata, get_schema
-from dcicutils.misc_utils import to_camel_case, VirtualApp
+from dcicutils.misc_utils import merge_objects, remove_empty_properties, split_string, to_camel_case, VirtualApp
 from snovault.loadxl import create_testapp
 
 # Classes/functions to parse a CSV or Excel Spreadsheet into structured data, using a specialized
@@ -108,7 +107,7 @@ class StructuredDataSet:
         if isinstance(data, dict):
             data = [data]
         if self._prune:
-            Utils.remove_empty_properties(data)
+            remove_empty_properties(data)
         if isinstance(data, list):
             if type_name in self.data:
                 self.data[type_name].extend(data)
@@ -232,7 +231,7 @@ class _StructuredColumnData:
         structured_row_template = {}
         for flat_column_name in flat_column_names or []:
             if (flat_column_name_components := Utils.split_dotted_string(flat_column_name)):
-                Utils.merge(structured_row_template, parse_components(flat_column_name_components))
+                merge_objects(structured_row_template, parse_components(flat_column_name_components))
         return structured_row_template
 
     @staticmethod
@@ -260,10 +259,6 @@ class Schema:
     def load_from_file(file: str, portal: Optional[Portal] = None) -> Optional[dict]:
         with open(file) as f:
             return Schema(json.load(f), portal)
-
-    def get_flat_type_info(self, debug: bool = False):
-        return {key: {k: (self._map_function_name(v) if k == "map" and isinstance(v, Callable) and debug else v)
-                      for k, v in value.items()} for key, value in self._flat_type_info.items()}
 
     def validate(self, data: dict) -> Optional[List[str]]:
         errors = []
@@ -370,20 +365,6 @@ class Schema:
             return value
         return lambda value, src: map_value_ref(value, type_info.get("linkTo"), self._portal, src)
 
-    def _map_function_name(self, map_function: Callable) -> str:
-        # This is ONLY for testing/troubleshooting; get the NAME of the mapping function; this is HIGHLY
-        # implementation DEPENDENT, on the map_function_<type> functions. The map_function, as a string,
-        # looks like: <function Schema._map_function_string.<locals>.map_value_string at 0x103474900> or
-        # if it is implemented as a lambda (to pass in closure), then inspect.getclosurevars.nonlocals looks like:
-        # {"map_value_enum": <function Schema._map_function_enum.<locals>.map_value_enum at 0x10544cd60>, ...}
-        if isinstance(map_function, Callable):
-            if (match := re.search(r"\.(\w+) at", str(map_function))):
-                return f"<{match.group(1)}>"
-            for item in inspect.getclosurevars(map_function).nonlocals:
-                if item.startswith("map_value_"):
-                    return f"<{item}>"
-        return type(map_function)
-
     def _compute_flat_schema_type_info(self, schema_json: dict, parent_key: Optional[str] = None) -> dict:
         """
         Given a JSON schema return a dictionary of all the property names it defines, but with
@@ -400,7 +381,6 @@ class Schema:
                   "ghi": {
                     "type": "object",
                     "properties": {
-                      "jkl": { "type": "string" },
                       "mno": { "type": "number" }
                     }
                   }
@@ -420,7 +400,6 @@ class Schema:
         Then we will return this flat dictionary:
 
           { "abc.def":     { "type": "string", "map": <map_value_string> },
-            "abc.ghi.jkl": { "type": "string", "map": <map_value_string> },
             "abc.ghi.mno": { "type": "number", "map": <map_value_number> },
             "stu#":        { "type": "string", "map": <map_value_string> },
             "vw#.xyz":     { "type": "integer", "map": <map_value_integer> } }
@@ -656,46 +635,15 @@ class Portal:
         return Portal(portal, data=data, schemas=schemas) if portal else None
 
     @staticmethod
-    def create_for_unit_testing(schemas: Optional[List[dict]] = None) -> Portal:
+    def create_for_testing(ini_file: Optional[str] = None, schemas: Optional[List[dict]] = None) -> Portal:
+        if isinstance(ini_file, str):
+            return Portal(create_testapp(ini_file), schemas=schemas)
         minimal_ini_for_unit_testing = "[app:app]\nuse = egg:encoded\nsqlalchemy.url = postgresql://dummy\n"
         with Utils.temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
             return Portal(create_testapp(ini_file), schemas=schemas)
 
-    @staticmethod
-    def create_for_local_testing(ini_file: Optional[str] = None, schemas: Optional[List[dict]] = None) -> Portal:
-        if isinstance(ini_file, str):
-            return Portal(create_testapp(ini_file), schemas=schemas)
-        minimal_ini_for_local_testing = "\n".join([
-            "[app:app]\nuse = egg:encoded\nfile_upload_bucket = dummy",
-            "sqlalchemy.url = postgresql://postgres@localhost:5441/postgres?host=/tmp/snovault/pgdata",
-            "multiauth.groupfinder = encoded.authorization.smaht_groupfinder",
-            "multiauth.policies = auth0 session remoteuser accesskey",
-            "multiauth.policy.session.namespace = mailto",
-            "multiauth.policy.session.use = encoded.authentication.NamespacedAuthenticationPolicy",
-            "multiauth.policy.session.base = pyramid.authentication.SessionAuthenticationPolicy",
-            "multiauth.policy.remoteuser.namespace = remoteuser",
-            "multiauth.policy.remoteuser.use = encoded.authentication.NamespacedAuthenticationPolicy",
-            "multiauth.policy.remoteuser.base = pyramid.authentication.RemoteUserAuthenticationPolicy",
-            "multiauth.policy.accesskey.namespace = accesskey",
-            "multiauth.policy.accesskey.use = encoded.authentication.NamespacedAuthenticationPolicy",
-            "multiauth.policy.accesskey.base = encoded.authentication.BasicAuthAuthenticationPolicy",
-            "multiauth.policy.accesskey.check = encoded.authentication.basic_auth_check",
-            "multiauth.policy.auth0.use = encoded.authentication.NamespacedAuthenticationPolicy",
-            "multiauth.policy.auth0.namespace = auth0",
-            "multiauth.policy.auth0.base = encoded.authentication.Auth0AuthenticationPolicy"
-        ])
-        with Utils.temporary_file(content=minimal_ini_for_local_testing, suffix=".ini") as ini_file:
-            return Portal(create_testapp(ini_file), schemas=schemas)
-
 
 class UnpackUtils:  # Some of these may eventually go into dcicutils.
-
-    @staticmethod
-    def get_unpack_context_manager(file: str) -> Optional[Callable]:
-        return {
-            ".tar": UnpackUtils.unpack_tar_file_to_temporary_directory,
-            ".zip": UnpackUtils.unpack_zip_file_to_temporary_directory
-        }.get(file[dot:]) if (dot := file.rfind(".")) > 0 else None
 
     @contextmanager
     @staticmethod
@@ -715,7 +663,11 @@ class UnpackUtils:  # Some of these may eventually go into dcicutils.
 
     @staticmethod
     def unpack_files(file: str) -> Optional[str]:
-        if (unpack_file_to_tmp_directory := UnpackUtils.get_unpack_context_manager(file)) is not None:
+        unpack_file_to_tmp_directory = {
+            ".tar": UnpackUtils.unpack_tar_file_to_temporary_directory,
+            ".zip": UnpackUtils.unpack_zip_file_to_temporary_directory
+        }.get(file[dot:]) if (dot := file.rfind(".")) > 0 else None
+        if unpack_file_to_tmp_directory is not None:
             with unpack_file_to_tmp_directory(file) as tmp_directory_name:
                 for directory, _, files in os.walk(tmp_directory_name):  # Ignore "." prefixed files.
                     for file in [file for file in files if not file.startswith(".")]:
@@ -738,59 +690,11 @@ class Utils:  # Some of these may eventually go into dcicutils.
 
     @staticmethod
     def split_dotted_string(value: str) -> List[str]:
-        return Utils.split_string(value, DOTTED_NAME_DELIMITER_CHAR)
+        return split_string(value, DOTTED_NAME_DELIMITER_CHAR)
 
     @staticmethod
     def split_array_string(value: str) -> List[str]:
-        return Utils.split_string(value, ARRAY_VALUE_DELIMITER_CHAR, ARRAY_VALUE_DELIMITER_ESCAPE_CHAR)
-
-    @staticmethod
-    def split_string(value: str, delimiter: str, escape: Optional[str] = None) -> List[str]:
-        if not isinstance(value, str) or not (value := value.strip()):
-            return []
-        if not isinstance(escape, str) or not escape:
-            return [item.strip() for item in value.split(delimiter)]
-        result = []
-        item = r""
-        escaped = False
-        for c in value:
-            if c == delimiter and not escaped:
-                result.append(item.strip())
-                item = r""
-            elif c == escape and not escaped:
-                escaped = True
-            else:
-                item += c
-                escaped = False
-        result.append(item.strip())
-        return [item for item in result if item]
-
-    @staticmethod
-    def merge(target: Union[dict, List[Any]], source: Union[dict, List[Any]]) -> dict:
-        if isinstance(target, dict) and isinstance(source, dict) and source:
-            for key, value in source.items():
-                target[key] = Utils.merge(target[key], value) if key in target else value
-        elif isinstance(target, list) and isinstance(source, list) and source:
-            for i in range(max(len(source), len(target))):
-                if i < len(target):
-                    target[i] = Utils.merge(target[i], source[i] if i < len(source) else source[len(source) - 1])
-                else:
-                    target.append(source[i])
-        elif source:
-            target = source
-        return target
-
-    @staticmethod
-    def remove_empty_properties(data: Optional[Union[list, dict]]) -> None:
-        if isinstance(data, dict):
-            for key in list(data.keys()):
-                if (value := data[key]) in [None, "", {}, []]:
-                    del data[key]
-                else:
-                    Utils.remove_empty_properties(value)
-        elif isinstance(data, list):
-            for item in data:
-                Utils.remove_empty_properties(item)
+        return split_string(value, ARRAY_VALUE_DELIMITER_CHAR, ARRAY_VALUE_DELIMITER_ESCAPE_CHAR)
 
     @staticmethod
     def to_integer(value: str, fallback: Optional[Any] = None) -> Optional[int]:

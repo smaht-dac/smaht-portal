@@ -23,7 +23,7 @@ def main() -> None:
     # loading data into the database of a locally running portal.
 
     with captured_output():
-        portal = Portal.create_for_unit_testing()
+        portal = Portal.create_for_testing()
 
     schema = Schema.load_by_name(args.schema, portal)
     print(json.dumps(schema.data, indent=4, default=str))

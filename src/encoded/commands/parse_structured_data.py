@@ -1,14 +1,15 @@
 import argparse
 import json
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 import yaml
 from dcicutils.bundle_utils import RefHint
 from dcicutils.validation_utils import SchemaManager
+from snovault.loadxl import create_testapp
 from encoded.commands.captured_output import captured_output
 with captured_output():
     from encoded.ingestion.loadxl_extensions import load_data_into_database, summary_of_load_data_results
 from encoded.ingestion.ingestion_processors import parse_structured_data
-from encoded.ingestion.structured_data import Portal, Schema
+from encoded.ingestion.structured_data import Portal, Schema, Utils
 
 
 # For dev/testing only.
@@ -31,13 +32,9 @@ def main() -> None:
     # loading data into the database of a locally running portal.
     with captured_output():
         if args.load or not args.norefs:
-            portal = Portal.create_for_local_testing(ini_file=args.load)
+            portal = _create_portal_for_local_testing(ini_file=args.load)
         else:
-            portal = Portal.create_for_unit_testing()
-
-    if args.load:
-        x = portal.get_metadata("health")
-        pass
+            portal = Portal.create_for_testing()
 
     # Manually override implementation specifics for --noschemas.
     if args.noschemas:
@@ -167,6 +164,32 @@ def dump_schemas(schema_names: List[str], portal: Portal) -> None:
             print(json.dumps(schema, indent=4, default=str))
         else:
             print(f">>> No schema found for type: {schema_name}")
+
+
+def _create_portal_for_local_testing(ini_file: Optional[str] = None, schemas: Optional[List[dict]] = None) -> Portal:
+    if isinstance(ini_file, str):
+        return Portal(create_testapp(ini_file), schemas=schemas)
+    minimal_ini_for_local_testing = "\n".join([
+        "[app:app]\nuse = egg:encoded\nfile_upload_bucket = dummy",
+        "sqlalchemy.url = postgresql://postgres@localhost:5441/postgres?host=/tmp/snovault/pgdata",
+        "multiauth.groupfinder = encoded.authorization.smaht_groupfinder",
+        "multiauth.policies = auth0 session remoteuser accesskey",
+        "multiauth.policy.session.namespace = mailto",
+        "multiauth.policy.session.use = encoded.authentication.NamespacedAuthenticationPolicy",
+        "multiauth.policy.session.base = pyramid.authentication.SessionAuthenticationPolicy",
+        "multiauth.policy.remoteuser.namespace = remoteuser",
+        "multiauth.policy.remoteuser.use = encoded.authentication.NamespacedAuthenticationPolicy",
+        "multiauth.policy.remoteuser.base = pyramid.authentication.RemoteUserAuthenticationPolicy",
+        "multiauth.policy.accesskey.namespace = accesskey",
+        "multiauth.policy.accesskey.use = encoded.authentication.NamespacedAuthenticationPolicy",
+        "multiauth.policy.accesskey.base = encoded.authentication.BasicAuthAuthenticationPolicy",
+        "multiauth.policy.accesskey.check = encoded.authentication.basic_auth_check",
+        "multiauth.policy.auth0.use = encoded.authentication.NamespacedAuthenticationPolicy",
+        "multiauth.policy.auth0.namespace = auth0",
+        "multiauth.policy.auth0.base = encoded.authentication.Auth0AuthenticationPolicy"
+    ])
+    with Utils.temporary_file(content=minimal_ini_for_local_testing, suffix=".ini") as ini_file:
+        return Portal(create_testapp(ini_file), schemas=schemas)
 
 
 def parse_args() -> argparse.Namespace:

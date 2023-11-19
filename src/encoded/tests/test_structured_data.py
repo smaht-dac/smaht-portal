@@ -143,19 +143,10 @@ def test_parse_structured_data_3():
 
 def test_portal_custom_schemas():
     schemas = [{"title": "Abc"}, {"title": "Def"}]
-    portal = Portal.create_for_unit_testing(schemas=schemas)
+    portal = Portal.create_for_testing(schemas=schemas)
     assert portal.get_schema("Abc") == schemas[0]
     assert portal.get_schema(" def ") == schemas[1]
     assert portal.get_schema("FileFormat") is not None
-
-
-def test_split_array_string():
-    assert Utils.split_array_string(r"abc|def|ghi") == ["abc", "def", "ghi"]
-    assert Utils.split_array_string(r"abc\|def|ghi") == ["abc|def", "ghi"]
-    assert Utils.split_array_string(r"abc\\|def|ghi") == ["abc\\", "def", "ghi"]
-    assert Utils.split_array_string(r"abc\\\|def|ghi") == ["abc\\|def", "ghi"]
-    assert Utils.split_array_string(r"abc\\\|def\|ghi") == ["abc\\|def|ghi"]
-    assert Utils.split_array_string(r"abc\\|\\def\|ghi") == ["abc\\", "\\def|ghi"]
 
 
 def test_get_type_name():
@@ -183,7 +174,7 @@ def _test_parse_structured_data(file: str,
 
     def assert_parse_structured_data():
         nonlocal file, expected, expected_errors, noschemas, sheet_utils, debug
-        portal = Portal.create_for_unit_testing(schemas=schemas) if not noschemas else None  # But see mocked_schemas.
+        portal = Portal.create_for_testing(schemas=schemas) if not noschemas else None  # But see mocked_schemas.
         if rows:
             if os.path.exists(file) or os.path.exists(os.path.join(TEST_FILES_DIR, file)):
                 raise Exception("Attempt to create temporary file with same name as existing test file: {file}")
@@ -282,3 +273,21 @@ def _read_result_json_file(file: str):
         raise Exception(f"Cannot find result test file: {file}")
     with open(file, "r") as f:
         return json.load(f)
+
+
+def _get_schema_flat_type_info(schema: Schema):
+    def map_function_name(map_function: Callable) -> str:
+        # This is ONLY for testing/troubleshooting; get the NAME of the mapping function; this is HIGHLY
+        # implementation DEPENDENT, on the map_function_<type> functions. The map_function, as a string,
+        # looks like: <function Schema._map_function_string.<locals>.map_value_string at 0x103474900> or
+        # if it is implemented as a lambda (to pass in closure), then inspect.getclosurevars.nonlocals looks like:
+        # {"map_value_enum": <function Schema._map_function_enum.<locals>.map_value_enum at 0x10544cd60>, ...}
+        if isinstance(map_function, Callable):
+            if (match := re.search(r"\.(\w+) at", str(map_function))):
+                return f"<{match.group(1)}>"
+            for item in inspect.getclosurevars(map_function).nonlocals:
+                if item.startswith("map_value_"):
+                    return f"<{item}>"
+        return type(map_function)
+    return {key: {k: (map_function_name(v) if k == "map" and isinstance(v, Callable) and debug else v)
+                  for k, v in value.items()} for key, value in schema._flat_type_info.items()}
