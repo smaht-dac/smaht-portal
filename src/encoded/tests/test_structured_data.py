@@ -253,6 +253,21 @@ def test_parse_structured_data_8():
     )
 
 
+def test_parse_structured_data_9():
+    _test_parse_structured_data(
+        file = "file_format_20231119.csv.gz", as_file_name = "file_format.csv.gz",
+        expected = "file_format_20231119.result.json",
+        expected_refs = [
+            "/Consortium/358aed10-9b9d-4e26-ab84-4bd162da182b",
+            "/SubmissionCenter/9626d82e-8110-4213-ac75-0a50adf890ff",
+        ],
+        norefs = [
+            "/Consortium/358aed10-9b9d-4e26-ab84-4bd162da182b",
+            "/SubmissionCenter/9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    )
+
+
 def test_flatten_schema_1():
     portal = Portal.create_for_testing()
     schema = Schema.load_by_name("reference_file", portal=portal)
@@ -328,7 +343,7 @@ def _test_parse_structured_data(file: Optional[str] = None,
             elif not os.path.exists(file):
                 raise Exception(f"Cannot find input test file for structured_data: {file}")
             if as_file_name:
-                with open(file, "r") as f:
+                with open(file, "rb" if file.endswith((".gz", ".tgz", ".tar", ".tar.gz", ".zip")) else "r") as f:
                     with temporary_file(name=as_file_name, content=f.read()) as tmp_file_name:
                         structured_data, validation_errors = call_parse_structured_data(tmp_file_name)
             else:

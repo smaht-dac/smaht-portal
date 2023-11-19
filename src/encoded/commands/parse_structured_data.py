@@ -64,7 +64,7 @@ def main() -> None:
         print(f" from: {args.file} ...")
 
     if args.as_file_name:
-        with open(args.file, "r") as f:
+        with open(args.file, "rb" if args.file.endswith((".gz", ".tgz", ".tar", ".tar.gz", ".zip")) else "r") as f:
             with temporary_file(name=args.as_file_name, content=f.read()) as tmp_file_name:
                 structured_data_set, validation_errors = parse_structured_data(file=tmp_file_name,
                                                                                portal=portal,
