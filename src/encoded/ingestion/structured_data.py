@@ -33,7 +33,6 @@ ARRAY_NAME_SUFFIX_REGEX = re.compile(rf"{ARRAY_NAME_SUFFIX_CHAR}\d+")
 DOTTED_NAME_DELIMITER_CHAR = "."
 
 # Forward type references for type hints.
-Excel = Type["Excel"]
 Portal = Type["Portal"]
 PortalAny = Union[VirtualApp, TestApp, Portal]
 RowReader = Type["RowReader"]
@@ -50,14 +49,24 @@ class StructuredDataSet:
         self._portal = Portal.create(portal, data=self.data, schemas=schemas)  # If None then no schemas nor refs.
         self._order = order
         self._prune = prune
-        self.load_file(file)
+        self._issues = None
+        self._load_file(file)
 
     @staticmethod
     def load(file: str, portal: Optional[PortalAny] = None, schemas: Optional[List[dict]] = None,
-             order: Optional[List[str]] = None) -> StructuredDataSet:
-        return StructuredDataSet(file=file, portal=portal, schemas=schemas, order=order)
+             order: Optional[List[str]] = None, prune: bool = True) -> StructuredDataSet:
+        return StructuredDataSet(file=file, portal=portal, schemas=schemas, order=order, prune=prune)
 
-    def load_file(self, file: str) -> None:
+    def validate(self) -> Optional[List[str]]:
+        issues = []
+        for type_name in self.data:
+            if (schema := Schema.load_by_name(type_name, portal=self._portal)):
+                for data in self.data[type_name]:
+                    if (validate_issues := schema.validate(data)) is not None:
+                        issues.extend(validate_issues)
+        return issues + (self._issues or [])
+
+    def _load_file(self, file: str) -> None:
         # Returns a dictionary where each property is the name (i.e. the type) of the data,
         # and the value is array of dictionaries for the data itself. Handle these kinds of files:
         # 1.  Single CSV of JSON file, where the (base) name of the file is the data type name.
@@ -68,38 +77,54 @@ class StructuredDataSet:
         if file:
             if file.endswith(".gz") or file.endswith(".tgz"):
                 with unpack_gz_file_to_temporary_file(file) as file:
-                    return self._load_file(file)
-            return self._load_file(file)
+                    return self._load_unpacked_file(file)
+            return self._load_unpacked_file(file)
 
-    def _load_file(self, file: str) -> None:
+    def _load_unpacked_file(self, file: str) -> None:
         if file.endswith(".csv"):
-            self.load_csv_file(file)
+            self._load_csv_file(file)
         elif file.endswith(".xls") or file.endswith(".xlsx"):
-            self.load_excel_file(file)
+            self._load_excel_file(file)
         elif file.endswith(".json"):
-            self.load_json_file(file)
+            self._load_json_file(file)
         elif file.endswith(".tar") or file.endswith(".zip"):
-            self.load_packed_file(file)
+            self._load_packed_file(file)
 
-    def load_csv_file(self, file: str) -> None:
-        StructuredData.load_from_csv_file(file, portal=self._portal,
-                                          addto=lambda data: self.add(Utils.get_type_name(file), data))
+    def _load_csv_file(self, file: str) -> None:
+        reader = CsvReader(file)
+        self._load_reader(reader, type_name=Utils.get_type_name(file))
+        self._note_issues(reader.issues, os.path.basename(file))
 
-    def load_excel_file(self, file: str) -> None:
+    def _load_excel_file(self, file: str) -> None:
         excel = Excel(file)  # Order the sheet names by any specified ordering (e.g. ala snovault.loadxl).
         order = {Utils.get_type_name(key): index for index, key in enumerate(self._order)} if self._order else {}
         for sheet_name in sorted(excel.sheet_names, key=lambda key: order.get(Utils.get_type_name(key), sys.maxsize)):
-            StructuredData.load_from_excel_sheet(excel, sheet_name, portal=self._portal,
-                                                 addto=lambda data: self.add(Utils.get_type_name(sheet_name), data))
+            reader = excel.sheet_reader(sheet_name)
+            self._load_reader(reader, type_name=Utils.get_type_name(sheet_name))
+            self._note_issues(reader.issues, f"{file}:{sheet_name}")
 
-    def load_json_file(self, file: str) -> None:
-        self.add(Utils.get_type_name(file), StructuredData.load_from_json_file(file))
-
-    def load_packed_file(self, file: str) -> None:
+    def _load_packed_file(self, file: str) -> None:
         for file in unpack_files(file, suffixes=ACCEPTABLE_FILE_SUFFIXES):
-            self.load_file(file)
+            self._load_file(file)
 
-    def add(self, type_name: str, data: Union[dict, List[dict], StructuredDataSet]) -> None:
+    def _load_json_file(self, file: str) -> None:
+        with open(file) as f:
+            self.add(Utils.get_type_name(file), json.load(f))
+
+    def _load_reader(self, reader: RowReader, type_name: str = None) -> None:
+        schema = None
+        noschema = False
+        structured_column_data = _StructuredColumnData(reader.header)
+        for row in reader:
+            if not schema and not noschema:  # Create schema here just so we don't create it if there are no rows.
+                if not (schema := Schema.load_by_name(type_name, portal=self._portal)):
+                    noschema = True
+            structured_row = structured_column_data.create_row()
+            for flat_column_name, value in row.items():
+                structured_column_data.set_value(structured_row, flat_column_name, value, schema, reader.location)
+            self.add(type_name, structured_row)
+
+    def add(self, type_name: str, data: Union[dict, List[dict]]) -> None:
         if isinstance(data, dict):
             data = [data]
         if self._prune:
@@ -110,53 +135,11 @@ class StructuredDataSet:
             else:
                 self.data[type_name] = data
 
-    def validate(self) -> Optional[List[str]]:
-        errors = []
-        for type_name in self.data:
-            if (schema := Schema.load_by_name(type_name, portal=self._portal)):
-                for data in self.data[type_name]:
-                    if (validate_errors := schema.validate(data)) is not None:
-                        errors.extend(validate_errors)
-        return errors
-
-
-class StructuredData:
-
-    @staticmethod
-    def load_from_csv_file(file: str,
-                           schema: Optional[Schema] = None, portal: Optional[Portal] = None,
-                           addto: Optional[Callable] = None) -> Optional[List[dict]]:
-        return StructuredData._load_from_reader(CsvReader(file), schema=schema or file, portal=portal, addto=addto)
-
-    def load_from_excel_sheet(excel: Excel, sheet_name: str,
-                              schema: Optional[Schema] = None, portal: Optional[Portal] = None,
-                              addto: Optional[Callable] = None) -> Optional[List[dict]]:
-        reader = excel.sheet_reader(sheet_name)
-        return StructuredData._load_from_reader(reader, schema=schema or reader.sheet_name, portal=portal, addto=addto)
-
-    @staticmethod
-    def load_from_rows(rows: List[List[Optional[Any]]], schema: Optional[Schema] = None) -> Optional[List[dict]]:
-        return StructuredData._load_from_reader(ListReader(rows), schema=schema)
-
-    @staticmethod
-    def _load_from_reader(reader: RowReader, schema: Optional[Union[Schema, str]] = None,
-                          portal: Optional[Portal] = None, addto: Optional[Callable] = None) -> Optional[List[dict]]:
-        structured_data = [] if not addto else None
-        structured_column_data = _StructuredColumnData(reader.header)
-        for row in reader:
-            if isinstance(schema, str):  # Allow by name just so we do not fetch the schema if no rows.
-                schema = Schema.load_by_name(schema, portal=portal)
-            structured_row = structured_column_data.create_row()
-            for flat_column_name, value in row.items():
-                structured_column_data.set_value(structured_row, flat_column_name, value, schema, reader.location)
-            structured_data.append(structured_row) if not addto else addto(structured_row)
-        return structured_data if not addto else None
-
-    @staticmethod
-    def load_from_json_file(file: str) -> List[dict]:
-        with open(file) as f:
-            data = json.load(f)
-            return [data] if isinstance(data, dict) else data
+    def _note_issues(self, issues: Optional[List[str]], source: str) -> None:
+        if issues:
+            if not self._issues:
+                self._issues = []
+            self._issues.append({source: issues})
 
 
 class _StructuredColumnData:
@@ -257,11 +240,11 @@ class Schema:
             return Schema(json.load(f), portal)
 
     def validate(self, data: dict) -> Optional[List[str]]:
-        errors = []
+        issues = []
         validator = JsonSchemaValidator(self.data, format_checker=JsonSchemaValidator.FORMAT_CHECKER)
-        for error in validator.iter_errors(data):
-            errors.append(error.message)
-        return errors if errors else None
+        for issue in validator.iter_errors(data):
+            issues.append(issue.message)
+        return issues if issues else None
 
     def map_value(self, value: str, flat_column_name: str, loc: int) -> Optional[Any]:
         flat_column_name = self._normalize_flat_column_name(flat_column_name)
@@ -289,7 +272,7 @@ class Schema:
                     if (map_function := MAP_FUNCTIONS.get(acceptable_type)) is not None:
                         break
             elif not isinstance(type_info_type, str):
-                raise Exception(f"Invalid type specifier type ({type(type_info_type).__name__}) in JSON schema.")
+                return None  # Invalid type specifier; ignore,
             elif isinstance(type_info.get("enum"), list):
                 map_function = self._map_function_enum
             elif isinstance(type_info.get("linkTo"), str):
@@ -485,13 +468,13 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
         pass
 
     @property
-    def warnings(self) -> Optional[list]:
-        warnings = []
+    def issues(self) -> Optional[List[str]]:
+        issues = []
         if self._warning_empty_headers:
-            warnings.append("Empty header column encountered; ignore it and all following it.")
+            issues.append("Empty header column encountered; ignore it and all following it.")
         if self._warning_extra_values:
-            warnings.extend([f"Extra column values on row: {row_number}" for row_number in self._warning_extra_values])
-        return warnings if warnings else None
+            issues.extend([f"Extra column values on row [{row_number}]" for row_number in self._warning_extra_values])
+        return issues if issues else None
 
 
 class ListReader(RowReader):
@@ -619,6 +602,8 @@ class Portal:
         if isinstance(portal, Portal):
             if data is not None:
                 portal._data = data
+            if schemas is not None:
+                portal._schemas = schemas
             return portal
         return Portal(portal, data=data, schemas=schemas) if portal else None
 
