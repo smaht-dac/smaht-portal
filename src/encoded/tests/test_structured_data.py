@@ -17,7 +17,7 @@ TEST_FILES_DIR = f"{THIS_TEST_MODULE_DIRECTORY}/data/test-files"
 
 def test_parse_structured_data_0():
     _test_parse_structured_data(sheet_utils_also = True, noschemas = True,
-        file = "some_test.csv",
+        as_file_name = "some_test.csv",
         rows = [
             r"uuid,status,principals.view,principals.edit,extensions#,data",
             r"some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
@@ -46,7 +46,7 @@ def test_parse_structured_data_0():
 
 def test_parse_structured_data_1():
     _test_parse_structured_data(sheet_utils_also = False,
-        file = "some_test.csv",
+        as_file_name = "some_test.csv",
         rows = [
             r"uuid,status,principals.view,principals.edit,extensions#,num,i,arr",
             r"some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4,617,hotel",
@@ -90,7 +90,7 @@ def test_parse_structured_data_1():
 
 def test_parse_structured_data_2():
     _test_parse_structured_data(sheet_utils_also = True,
-        file = f"submission_test_file_from_doug_20231106.xlsx",
+        file = "submission_test_file_from_doug_20231106.xlsx",
         norefs = [
             "/Consortium/smaht"
         ],
@@ -106,7 +106,7 @@ def test_parse_structured_data_2():
 
 def test_parse_structured_data_3():
     _test_parse_structured_data(sheet_utils_also = True, novalidate = True,
-        file = f"uw_gcc_colo829bl_submission_20231117.xlsx",
+        file = "uw_gcc_colo829bl_submission_20231117.xlsx",
         norefs = [
             "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1"
         ],
@@ -142,6 +142,29 @@ def test_parse_structured_data_3():
     )
 
 
+def test_parse_structured_data_4():
+    _test_parse_structured_data(sheet_utils_also = True, novalidate = True,
+        file = "software_20231119.csv", as_file_name = "software.csv",
+        norefs = [
+            "/User/user-id-2",
+            "/User/user-id-1",
+            "/Consortium/Consortium2",
+            "/SubmissionCenter/SubmissionCenter2",
+            "/Consortium/Consortium1",
+            "/SubmissionCenter/SubmissionCenter1"
+        ],
+        expected_refs = [
+            "/Consortium/Consortium1",
+            "/Consortium/Consortium2",
+            "/SubmissionCenter/SubmissionCenter1",
+            "/SubmissionCenter/SubmissionCenter2",
+            "/User/user-id-1",
+            "/User/user-id-2"
+        ],
+        expected = _read_result_json_file("software_20231119.result.json")
+    )
+
+
 def test_portal_custom_schemas():
     schemas = [{"title": "Abc"}, {"title": "Def"}]
     portal = Portal.create_for_testing(schemas=schemas)
@@ -159,9 +182,10 @@ def test_get_type_name():
     assert Utils.get_type_name("File  Format") == "FileFormat"
 
 
-def _test_parse_structured_data(file: str,
-                                expected: Union[dict, list],
+def _test_parse_structured_data(file: Optional[str] = None,
+                                as_file_name: Optional[str] = None,
                                 rows: Optional[List[str]] = None,
+                                expected: Optional[Union[dict, list]] = None,
                                 expected_refs: Optional[List[str]] = None,
                                 expected_errors: Optional[Union[dict, list]] = None,
                                 schemas: Optional[List[dict]] = None,
@@ -171,33 +195,44 @@ def _test_parse_structured_data(file: str,
                                 sheet_utils: bool = False,
                                 sheet_utils_also: bool = False,
                                 debug: bool = False) -> None:
+
+    if not file and as_file_name:
+        file = as_file_name
+    if not file and not rows:
+        raise Exception("Must specify a file or rows for structured_data test.")
+
     refs_actual = set()
 
     def assert_parse_structured_data():
+
+        def call_parse_structured_data(file: str):
+            nonlocal portal, novalidate, sheet_utils
+            return parse_structured_data(file=file, portal=portal, novalidate=novalidate, sheet_utils=sheet_utils)
+
         nonlocal file, expected, expected_errors, noschemas, sheet_utils, debug
         portal = Portal.create_for_testing(schemas=schemas) if not noschemas else None  # But see mocked_schemas.
         if rows:
             if os.path.exists(file) or os.path.exists(os.path.join(TEST_FILES_DIR, file)):
                 raise Exception("Attempt to create temporary file with same name as existing test file: {file}")
             with temporary_file(name=file, content=rows) as tmp_file_name:
-                structured_data, validation_errors = parse_structured_data(file=tmp_file_name,
-                                                                           portal=portal,
-                                                                           novalidate=novalidate,
-                                                                           sheet_utils=sheet_utils)
+                structured_data, validation_errors = call_parse_structured_data(tmp_file_name)
         else:
             if os.path.exists(os.path.join(TEST_FILES_DIR, file)):
                 file = os.path.join(TEST_FILES_DIR, file)
             elif not os.path.exists(file):
-                raise Exception(f"Cannot find input test file: {file}")
-            structured_data, validation_errors = parse_structured_data(file=file,
-                                                                       portal=portal,
-                                                                       novalidate=novalidate,
-                                                                       sheet_utils=sheet_utils)
+                raise Exception(f"Cannot find input test file for structured_data: {file}")
+            if as_file_name:
+                with open(file, "r") as f:
+                    with temporary_file(name=as_file_name, content=f.read()) as tmp_file_name:
+                        structured_data, validation_errors = call_parse_structured_data(tmp_file_name)
+            else:
+                structured_data, validation_errors = call_parse_structured_data(file)
         if debug:
             pdb.set_trace()
         if sheet_utils:
             structured_data = {to_camel_case(key): value for key, value in structured_data.items()}
-        assert structured_data == expected
+        if expected is not None:
+            assert structured_data == expected
         if expected_errors:
             assert validation_errors == expected_errors
         else:
