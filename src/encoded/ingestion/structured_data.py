@@ -3,7 +3,7 @@ import copy
 import csv
 from functools import lru_cache
 import json
-from jsonschema import Draft7Validator as JsonSchemaValidator
+from jsonschema import Draft7Validator as SchemaValidator
 import openpyxl
 import os
 import re
@@ -116,9 +116,8 @@ class StructuredDataSet:
         noschema = False
         structured_column_data = _StructuredRowData(reader.header)
         for row in reader:
-            if not schema and not noschema:  # Create schema here just so we don't create it if there are no rows.
-                if not (schema := Schema.load_by_name(type_name, portal=self._portal)):
-                    noschema = True
+            if not schema and not noschema and not (schema := Schema.load_by_name(type_name, portal=self._portal)):
+                noschema = True  # Create schema here just so we don't create it if there are no rows.
             structured_row = structured_column_data.create_row()
             for column_name, value in row.items():
                 structured_column_data.set_value(structured_row, column_name, value, schema, reader.location)
@@ -238,8 +237,7 @@ class Schema:
 
     def validate(self, data: dict) -> Optional[List[str]]:
         issues = []
-        validator = JsonSchemaValidator(self.data, format_checker=JsonSchemaValidator.FORMAT_CHECKER)
-        for issue in validator.iter_errors(data):
+        for issue in SchemaValidator(self.data, format_checker=SchemaValidator.FORMAT_CHECKER).iter_errors(data):
             issues.append(issue.message)
         return issues if issues else None
 
