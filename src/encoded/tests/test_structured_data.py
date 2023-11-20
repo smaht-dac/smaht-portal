@@ -90,6 +90,62 @@ def test_parse_structured_data_1():
     )
 
 
+def test_parse_structured_data_1a():
+
+    _test_parse_structured_data(sheet_utils_also = True, noschemas = True,
+        as_file_name = "easy_test.csv",
+        rows = [ r"abcdef", r"alfa", r"bravo" ],
+        expected = { "EasyTest": [ { "abcdef": "alfa", }, { "abcdef": "bravo" } ] })
+
+    _test_parse_structured_data(sheet_utils_also = True, noschemas = True,
+        as_file_name = "easy_test1.csv",
+        rows = [
+            r"abcdef,ghi.jk,l,mno#,ghi.xyzzy",
+            r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one",
+            r"golf,hotel,456,juliet|kilo|lima,xyzzy:two"
+        ],
+        expected = { "EasyTest1": [
+            {
+                "abcdef": "alfa",
+                "ghi": { "jk": "bravo", "xyzzy": "xyzzy:one" },
+                                
+                "l": "123",
+                "mno": [ "delta", "echo", "foxtrot" ]
+            },
+            {
+                "abcdef": "golf",
+                "ghi": { "jk": "hotel", "xyzzy": "xyzzy:two" },
+                "l": "456",
+                "mno": [ "juliet", "kilo", "lima" ]
+            }
+        ]})
+
+def test_parse_structured_data_1b():
+
+    _test_parse_structured_data(sheet_utils_also = False, noschemas = True,
+        as_file_name = "easy_test2.csv",
+        rows = [
+            r"abcdef,ghi.jk,l,mno#,ghi.xyzzy,mno#2",
+            r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one,october",
+            r"golf,hotel,456,juliet|kilo|lima,xyzzy:two,november"
+        ],
+        expected = { "EasyTest2": [
+            {
+                "abcdef": "alfa",
+                "ghi": { "jk": "bravo", "xyzzy": "xyzzy:one" },
+                                
+                "l": "123",
+                "mno": [ "delta", "echo", "october" ]
+            },
+            {
+                "abcdef": "golf",
+                "ghi": { "jk": "hotel", "xyzzy": "xyzzy:two" },
+                "l": "456",
+                "mno": [ "juliet", "kilo", "november" ]
+            }
+        ]})
+
+
 def test_parse_structured_data_2():
     _test_parse_structured_data(sheet_utils_also = True,
         file = "submission_test_file_from_doug_20231106.xlsx",
@@ -251,8 +307,7 @@ def test_parse_structured_data_8():
             "/SubmissionCenter/Center1"
         ],
         expected_errors = [
-            {"library.csv": ["Empty header column encountered; ignoring it and all subsequent columns.",
-                             "Extra column values on row [1]",
+            {"library.csv": ["Extra column values on row [1]",
                              "Extra column values on row [2]",
                              "Extra column values on row [3]"]}
         ]
@@ -333,7 +388,7 @@ def _test_parse_structured_data(file: Optional[str] = None,
     def assert_parse_structured_data():
 
         def call_parse_structured_data(file: str):
-            nonlocal portal, novalidate, sheet_utils
+            nonlocal portal, novalidate, sheet_utils, debug
             return parse_structured_data(file=file, portal=portal, novalidate=novalidate, sheet_utils=sheet_utils)
 
         nonlocal file, expected, expected_errors, noschemas, sheet_utils, debug

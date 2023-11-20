@@ -12,7 +12,7 @@ from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Ty
 from webtest.app import TestApp
 from dcicutils.ff_utils import get_metadata, get_schema
 from dcicutils.misc_utils import (
-    merge_objects, remove_empty_properties, split_string, to_camel_case, VirtualApp, right_trim_tuple)
+    merge_objects, remove_empty_properties, split_string, to_camel_case, VirtualApp, right_trim)
 from dcicutils.zip_utils import temporary_file, unpack_gz_file_to_temporary_file, unpack_files
 from snovault.loadxl import create_testapp
 
@@ -509,7 +509,7 @@ class CsvReader(RowReader):
         if self._file_handle is None:
             self._file_handle = open(self._file)
             self._rows = csv.reader(self._file_handle)
-            self.define_header(next(self._rows, []))
+            self.define_header(right_trim(next(self._rows, [])))
 
     def __del__(self) -> None:
         if (file_handle := self._file_handle) is not None:
@@ -528,7 +528,7 @@ class ExcelSheetReader(RowReader):
     @property
     def rows(self) -> Generator[Tuple[Optional[Any], ...], None, None]:
         for row in self._rows(min_row=2, values_only=True):
-            yield right_trim_tuple(row)
+            yield right_trim(row)
 
     def is_terminating_row(self, row: Tuple[Optional[Any]]) -> bool:
         return all(cell is None for cell in row)  # Empty row signals end of data.
@@ -536,7 +536,7 @@ class ExcelSheetReader(RowReader):
     def open(self) -> None:
         if not self._rows:
             self._rows = self._workbook[self.sheet_name].iter_rows
-            self.define_header(right_trim_tuple(next(self._rows(min_row=1, max_row=1, values_only=True), [])))
+            self.define_header(right_trim(next(self._rows(min_row=1, max_row=1, values_only=True), [])))
 
 
 class Excel:
