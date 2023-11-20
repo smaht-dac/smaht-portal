@@ -93,6 +93,16 @@ def test_consortium(testapp):
 
 
 @pytest.fixture
+def test_protected_consortium(testapp):
+    """ Tests the posting of a consortium """
+    item = {
+        'identifier': 'SMaHTProtectedConsortium',
+        'title': 'SMaHT Protected Test Consortium'
+    }
+    return post_item_and_return_location(testapp, item, 'consortium')
+
+
+@pytest.fixture
 def admin(testapp):
     item = {
         'first_name': 'Test',
@@ -118,7 +128,20 @@ def smaht_admin(testapp):
 
 
 @pytest.fixture
-def smaht_gcc_user(testapp, test_submission_center):
+def blank_user(testapp):
+    item = {
+        'first_name': 'Unaffiliated',
+        'last_name': 'User',
+        'email': 'unaffiliated@example.org',
+        'status': 'current'
+    }
+    # User @@object view has keys omitted.
+    return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
+def smaht_gcc_user(testapp, test_submission_center, test_consortium):
+    """ A GCC user would be a consortia member and a submission center member """
     item = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -127,6 +150,9 @@ def smaht_gcc_user(testapp, test_submission_center):
         'submission_centers': [
             test_submission_center['uuid']
         ],
+        'consortia': [
+            test_consortium['uuid']
+        ],
         'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188308'
     }
     return post_item_and_return_location(testapp, item, 'user')
@@ -134,6 +160,7 @@ def smaht_gcc_user(testapp, test_submission_center):
 
 @pytest.fixture
 def smaht_consortium_user(testapp, test_consortium):
+    """ Simulates a user who is a member of the consortia """
     item = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -143,6 +170,64 @@ def smaht_consortium_user(testapp, test_consortium):
             test_consortium['uuid']
         ],
         'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188309'
+    }
+    return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
+def smaht_consortium_protected_user(testapp, test_consortium, test_protected_consortium):
+    """ Simulates a user with access to protected data """
+    item = {
+        'first_name': 'TestProtected',
+        'last_name': 'User',
+        'email': 'protected_user@example.org',
+        'status': 'current',
+        'consortia': [
+            test_consortium['uuid'],
+            test_protected_consortium['uuid']
+        ],
+        'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188310'
+    }
+    return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
+def smaht_consortium_protected_submitter(testapp, test_consortium, test_protected_consortium,
+                                         test_submission_center):
+    """ Simulates a user with access to protected data who is part of a submission center """
+    item = {
+        'first_name': 'TestProtected',
+        'last_name': 'User',
+        'email': 'protected_user@example.org',
+        'status': 'current',
+        'submission_centers': [
+            test_submission_center['uuid']
+        ],
+        'consortia': [
+            test_consortium['uuid'],
+            test_protected_consortium['uuid']
+        ],
+        'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188310'
+    }
+    return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
+def smaht_protected_gcc_user(testapp, test_submission_center, test_consortium, test_protected_consortium):
+    """ A GCC user would be a consortia member and a submission center member """
+    item = {
+        'first_name': 'Test',
+        'last_name': 'User',
+        'email': 'user@example.org',
+        'status': 'current',
+        'submission_centers': [
+            test_submission_center['uuid']
+        ],
+        'consortia': [
+            test_consortium['uuid'],
+            test_protected_consortium['uuid']
+        ],
+        'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188311'
     }
     return post_item_and_return_location(testapp, item, 'user')
 
