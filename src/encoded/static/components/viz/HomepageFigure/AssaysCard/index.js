@@ -243,7 +243,7 @@ export const AssaysCard = ({ currentTier }) => {
         },
     ];
     return (
-        <div className="card assays">
+        <div className={`card assays ${currentTier}`}>
             <div className="card-header">
                 <h4>AVAILABLE ASSAYS</h4>
             </div>
