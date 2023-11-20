@@ -3,7 +3,8 @@ import json
 from typing import Any, List, Optional, Union
 
 # For dev/testing only.
-# Flattens a given JSON file into CSV or JSON.
+# Flattens a given JSON file into CSV or JSON;
+# useful tool when creating test CSV files (from JSON) for ingestion.
 
 def flatten_json(data: Union[dict, list, Any],
                  parent_key: Optional[str] = None,
