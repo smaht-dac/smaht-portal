@@ -421,9 +421,8 @@ class Schema:
         any extraneous spaces which might be surrounding each component are removed.
         For example given "abc#12. def .ghi#3" returns "abc#.def.ghi#".
         """
-        column_name_components = Utils.split_dotted_string(column_name)
-        for i in range(len(column_name_components)):
-            column_name_components[i] = ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR, column_name_components[i])
+        column_name_components = [ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR, value)
+                                  for value in Utils.split_dotted_string(column_name)]
         return DOTTED_NAME_DELIMITER_CHAR.join(column_name_components)
 
 
