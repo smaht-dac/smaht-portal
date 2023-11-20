@@ -15,6 +15,8 @@ from encoded.ingestion.ingestion_processors import parse_structured_data
 
 THIS_TEST_MODULE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 TEST_FILES_DIR = f"{THIS_TEST_MODULE_DIRECTORY}/data/test-files"
+SAME_AS_EXPECTED_REFS = {}
+SAME_AS_NOREFS = {}
 
 
 def test_parse_structured_data_0():
@@ -150,15 +152,15 @@ def test_parse_structured_data_1b():
 def test_parse_structured_data_2():
     _test_parse_structured_data(sheet_utils_also = True,
         file = "submission_test_file_from_doug_20231106.xlsx",
-        norefs = [
-            "/Consortium/smaht"
-        ],
         expected_refs = [
             "/Consortium/smaht",
             "/Software/SMAHT_SOFTWARE_FASTQC",
             "/Software/SMAHT_SOFTWARE_VEP",
             "/FileFormat/fastq",
             "/Workflow/smaht:workflow-basic"
+        ],
+        norefs = [
+            "/Consortium/smaht"
         ],
         expected = "submission_test_file_from_doug_20231106.result.json"
     )
@@ -167,9 +169,6 @@ def test_parse_structured_data_2():
 def test_parse_structured_data_3():
     _test_parse_structured_data(sheet_utils_also = True, novalidate = True,
         file = "uw_gcc_colo829bl_submission_20231117.xlsx",
-        norefs = [
-            "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1"
-        ],
         expected_refs = [
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_FiberSeq_1",
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_HMWgDNA_1",
@@ -197,6 +196,9 @@ def test_parse_structured_data_3():
             "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-150x",
             "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-60x",
             "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS"
+        ],
+        norefs = [
+            "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1"
         ],
         expected = "uw_gcc_colo829bl_submission_20231117.result.json"
     )
@@ -207,9 +209,6 @@ def test_parse_structured_data_3b():
         # Same as uw_gcc_colo829bl_submission_20231117.xlsx but with the blnk line in the
         # Unaligned Reads sheet that signaled the end of input, and the following comment, removed.
         file = "uw_gcc_colo829bl_submission_20231117_more_unaligned_reads.xlsx",
-        norefs = [
-            "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1"
-        ],
         expected_refs = [
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_FiberSeq_1",
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_HMWgDNA_1",
@@ -237,6 +236,9 @@ def test_parse_structured_data_3b():
             "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-150x",
             "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-60x",
             "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS"
+        ],
+        norefs = [
+            "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1"
         ],
         expected = "uw_gcc_colo829bl_submission_20231117_more_unaligned_reads.result.json"
     )
@@ -254,14 +256,7 @@ def test_parse_structured_data_4():
             "/User/user-id-1",
             "/User/user-id-2"
         ],
-        norefs = [
-            "/Consortium/Consortium1",
-            "/Consortium/Consortium2",
-            "/SubmissionCenter/SubmissionCenter1",
-            "/SubmissionCenter/SubmissionCenter2",
-            "/User/user-id-1",
-            "/User/user-id-2"
-        ]
+        norefs = SAME_AS_EXPECTED_REFS
     )
 
 
@@ -277,14 +272,7 @@ def test_parse_structured_data_5():
             "/User/user-id-1",
             "/User/user-id-2"
         ],
-        norefs = [
-            "/Consortium/Consortium1",
-            "/Consortium/Consortium2",
-            "/SubmissionCenter/SubmissionCenter1",
-            "/SubmissionCenter/SubmissionCenter2",
-            "/User/user-id-1",
-            "/User/user-id-2"
-        ]
+        norefs = SAME_AS_EXPECTED_REFS
     )
 
 
@@ -298,12 +286,7 @@ def test_parse_structured_data_6():
             "/Protocol/Protocol9",
             "/Sample/Sample9"
         ],
-        norefs = [
-            "/Consortium/another-consortia",
-            "/Consortium/smaht",
-            "/Protocol/Protocol9",
-            "/Sample/Sample9"
-        ]
+        norefs = SAME_AS_EXPECTED_REFS
     )
 
 def test_parse_structured_data_7():
@@ -315,11 +298,7 @@ def test_parse_structured_data_7():
             "/FileFormat/VCF",
             "/SubmissionCenter/Center1"
         ],
-        norefs = [
-            "/FileFormat/FASTA",
-            "/FileFormat/VCF",
-            "/SubmissionCenter/Center1"
-        ]
+        norefs = SAME_AS_EXPECTED_REFS
     )
 
 def test_parse_structured_data_8():
@@ -337,22 +316,7 @@ def test_parse_structured_data_8():
             "/Protocol/protocol3",
             "/SubmissionCenter/Center1"
         ],
-        norefs = [
-            "/Analyte/sample-analyte-1",
-            "/Analyte/sample-analyte-2",
-            "/Analyte/sample-analyte-3",
-            "/Consortium/Consortium1",
-            "/Consortium/Consortium2",
-            "/LibraryPreparation/prep2",
-            "/Protocol/protocol1",
-            "/Protocol/protocol3",
-            "/SubmissionCenter/Center1"
-        ],
-        expected_errors = [
-            {"library.csv": ["Extra column values on row [1]",
-                             "Extra column values on row [2]",
-                             "Extra column values on row [3]"]}
-        ]
+        norefs = SAME_AS_EXPECTED_REFS
     )
 
 
@@ -364,10 +328,7 @@ def test_parse_structured_data_9():
             "/Consortium/358aed10-9b9d-4e26-ab84-4bd162da182b",
             "/SubmissionCenter/9626d82e-8110-4213-ac75-0a50adf890ff",
         ],
-        norefs = [
-            "/Consortium/358aed10-9b9d-4e26-ab84-4bd162da182b",
-            "/SubmissionCenter/9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
+        norefs = SAME_AS_EXPECTED_REFS
     )
 
 
@@ -379,10 +340,22 @@ def test_parse_structured_data_10():
             "/SubmissionCenter/some-submission-center-a",
             "/SubmissionCenter/some-submission-center-b"
         ],
-        norefs = [
-            "/SubmissionCenter/some-submission-center-a",
-            "/SubmissionCenter/some-submission-center-b"
-        ]
+        norefs = SAME_AS_EXPECTED_REFS
+    )
+
+
+def test_parse_structured_data_11():
+    _test_parse_structured_data(sheet_utils_also = False,
+        file = "unaligned_reads_20231120.csv", as_file_name = "unaligned_reads.csv",
+        expected = "unaligned_reads_20231120.result.json",
+        expected_refs = [
+            "/FileSet/FileSet1", "/FileSet/FileSet2", "/FileSet/FileSet3",
+            "/QualityMetric/QC1", "/QualityMetric/QC2", "/QualityMetric/QC3", "/QualityMetric/QC4", "/QualityMetric/QC5", "/QualityMetric/QC6",
+            "/Software/Software1", "/Software/Software2", "/Software/Software3", "/Software/Software4", "/Software/Software5", "/Software/Software6",
+            "/SubmissionCenter/Center1", "/SubmissionCenter/Center2", "/SubmissionCenter/Center3", "/User/User1",
+            "/User/User2", "/User/User3", "/User/User4", "/User/User5", "/User/User6"
+        ],
+        norefs = SAME_AS_EXPECTED_REFS
     )
 
 
@@ -439,6 +412,10 @@ def _test_parse_structured_data(file: Optional[str] = None,
             expected = json.load(f)
     elif not isinstance(expected, dict):
         raise Exception(f"Must specify a file name or a dictionary for structured_data test: {type(expected)}")
+    if norefs is SAME_AS_EXPECTED_REFS:
+        norefs = expected_refs
+    if expected_refs is SAME_AS_NOREFS:
+        expected_refs = norefs
 
     refs_actual = set()
 

@@ -498,7 +498,7 @@ class CsvReader(RowReader):
     @property
     def rows(self) -> Generator[List[Optional[Any]], None, None]:
         for row in self._rows:
-            yield row
+            yield right_trim(row)
 
     def open(self) -> None:
         if self._file_handle is None:
