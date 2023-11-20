@@ -12,7 +12,7 @@ from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Ty
 from webtest.app import TestApp
 from dcicutils.ff_utils import get_metadata, get_schema
 from dcicutils.misc_utils import (merge_objects, remove_empty_properties, right_trim, split_string,
-                                  to_boolean, to_camel_case, to_float, to_integer, VirtualApp)
+                                  to_boolean, to_camel_case, to_enum, to_float, to_integer, VirtualApp)
 from dcicutils.zip_utils import temporary_file, unpack_gz_file_to_temporary_file, unpack_files
 from snovault.loadxl import create_testapp
 
@@ -285,17 +285,8 @@ class Schema:
 
     def _map_function_enum(self, typeinfo: dict) -> Callable:
         def map_enum(value: str, enum_specifiers: dict, src: Optional[str]) -> Any:
-            matches = []
-            if isinstance(value, str) and (value := value.strip()):
-                if (enum_value := enum_specifiers.get(lower_value := value.lower())) is not None:
-                    return enum_value
-                for enum_canonical, _ in enum_specifiers.items():
-                    if enum_canonical.startswith(lower_value):
-                        matches.append(enum_canonical)
-                if len(matches) == 1:
-                    return enum_specifiers[matches[0]]
-            return enum_specifiers[matches[0]] if len(matches) == 1 else value
-        return lambda value, src: map_enum(value, {str(enum).lower(): enum for enum in typeinfo.get("enum", [])}, src)
+            return to_enum(value, enum_specifiers) or value
+        return lambda value, src: map_enum(value, typeinfo.get("enum", []), src)
 
     def _map_function_integer(self, typeinfo: dict) -> Callable:
         def map_integer(value: str, src: Optional[str]) -> Any:
