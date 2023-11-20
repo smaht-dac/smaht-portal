@@ -2,12 +2,15 @@ from base64 import b64decode
 from typing import Any, Dict
 
 import pytest
-from snovault.tests.test_attachment import RED_DOT
 from webtest.app import TestApp
 
 from .utils import post_item
 
 
+RED_DOT = (
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4"
+    "//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
+)
 IMAGE_UUID = "7874ded8-9e34-4bf4-b22e-956d30957a61"
 
 
