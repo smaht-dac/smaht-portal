@@ -77,10 +77,10 @@ class StructuredDataSet:
         if file:
             if file.endswith(".gz") or file.endswith(".tgz"):
                 with unpack_gz_file_to_temporary_file(file) as file:
-                    return self._load_unpacked_file(file)
-            return self._load_unpacked_file(file)
+                    return self._load_normal_file(file)
+            return self._load_normal_file(file)
 
-    def _load_unpacked_file(self, file: str) -> None:
+    def _load_normal_file(self, file: str) -> None:
         if file.endswith(".csv"):
             self._load_csv_file(file)
         elif file.endswith(".xls") or file.endswith(".xlsx"):
