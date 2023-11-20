@@ -1,4 +1,3 @@
-# test edit
 import argparse
 import json
 from encoded.ingestion.structured_data import Portal, Schema
