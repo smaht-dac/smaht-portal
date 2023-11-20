@@ -42,8 +42,8 @@ StructuredDataSet = Type["StructuredDataSet"]
 
 class StructuredDataSet:
 
-    def __init__(self, file: Optional[str] = None, data: Optional[List[dict]] = None,
-                 portal: Optional[PortalAny] = None, schemas: Optional[List[dict]] = None,
+    def __init__(self, file: Optional[str] = None, portal: Optional[PortalAny] = None,
+                 schemas: Optional[List[dict]] = None, data: Optional[List[dict]] = None,
                  order: Optional[List[str]] = None, prune: bool = True) -> None:
         self.data = {} if not data else data
         self._portal = Portal.create(portal, data=self.data, schemas=schemas)  # If None then no schemas nor refs.
