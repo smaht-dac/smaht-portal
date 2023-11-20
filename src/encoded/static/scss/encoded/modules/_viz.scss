@@ -412,9 +412,9 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                                 width: max-content;
                                 padding-right: 5px;
 
-                                &:hover {
-                                    cursor: pointer;
-                                }
+                                // &:hover {
+                                //     cursor: pointer;
+                                // }
                             }
                         }
                     }

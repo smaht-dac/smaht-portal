@@ -10,28 +10,41 @@ const AssayList = ({ list }) => {
     return (
         <ul>
             {list.map((item, i) => {
-                return (
-                    <li key={i}>
-                        <OverlayTrigger
-                            trigger={['hover', 'focus']}
-                            placement="left"
-                            rootClose
-                            overlay={
-                                <Popover>
-                                    <PopoverTitle>{item.title}</PopoverTitle>
-                                    <PopoverContent>
-                                        Additional information about{' '}
-                                        {item.title} here
-                                    </PopoverContent>
-                                </Popover>
-                            }>
+                if (item.data) {
+                    return (
+                        <li key={i}>
+                            <OverlayTrigger
+                                trigger={['hover', 'focus']}
+                                placement="left"
+                                rootClose
+                                overlay={
+                                    <Popover>
+                                        <PopoverTitle>
+                                            {item.title}
+                                        </PopoverTitle>
+                                        <PopoverContent>
+                                            Additional information about{' '}
+                                            {item.title} here
+                                        </PopoverContent>
+                                    </Popover>
+                                }>
+                                <div>
+                                    <img src={item.iconSrc} />
+                                    {item.title}
+                                </div>
+                            </OverlayTrigger>
+                        </li>
+                    );
+                } else {
+                    return (
+                        <li key={i}>
                             <div>
                                 <img src={item.iconSrc} />
                                 {item.title}
                             </div>
-                        </OverlayTrigger>
-                    </li>
-                );
+                        </li>
+                    );
+                }
             })}
         </ul>
     );
