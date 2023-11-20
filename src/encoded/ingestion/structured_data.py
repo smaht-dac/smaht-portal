@@ -89,6 +89,10 @@ class StructuredDataSet:
         elif file.endswith(".tar") or file.endswith(".zip"):
             self._load_packed_file(file)
 
+    def _load_packed_file(self, file: str) -> None:
+        for file in unpack_files(file, suffixes=ACCEPTABLE_FILE_SUFFIXES):
+            self._load_file(file)
+
     def _load_csv_file(self, file: str) -> None:
         self._load_reader(reader := CsvReader(file), type_name=_get_type_name(file))
         self._note_issues(reader.issues, os.path.basename(file))
@@ -99,10 +103,6 @@ class StructuredDataSet:
         for sheet_name in sorted(excel.sheet_names, key=lambda key: order.get(_get_type_name(key), sys.maxsize)):
             self._load_reader(reader := excel.sheet_reader(sheet_name), type_name=_get_type_name(sheet_name))
             self._note_issues(reader.issues, f"{file}:{sheet_name}")
-
-    def _load_packed_file(self, file: str) -> None:
-        for file in unpack_files(file, suffixes=ACCEPTABLE_FILE_SUFFIXES):
-            self._load_file(file)
 
     def _load_json_file(self, file: str) -> None:
         with open(file) as f:
@@ -547,12 +547,11 @@ class Portal:
 
     def ref_exists(self, type_name: str, value: str) -> bool:
         if self._data and (items := self._data.get(type_name)) and (schema := self.get_schema(type_name)):
-            id_properties = set(schema.get("identifyingProperties", [])) | {"identifier", "uuid"}
+            iproperties = set(schema.get("identifyingProperties", [])) | {"identifier", "uuid"}
             for item in items:
-                for id_property in id_properties:
-                    if (id_value := item.get(id_property)) is not None:
-                        if isinstance(id_value, list) and value in id_value or id_value == value:
-                            return True
+                if (ivalue := next((item[iproperty] for iproperty in iproperties if iproperty in item), None)):
+                    if isinstance(ivalue, list) and value in ivalue or ivalue == value:
+                        return True
         return self.get_metadata(f"/{type_name}/{value}") is not None
 
     @staticmethod
