@@ -290,18 +290,17 @@ class Schema:
 
     def _map_function_enum(self, type_info: dict) -> Callable:
         def map_enum(value: str, enum_specifiers: dict, src: Optional[str]) -> Any:
+            matches = []
             if isinstance(value, str) and (value := value.strip()):
                 if (enum_value := enum_specifiers.get(lower_value := value.lower())) is not None:
                     return enum_value
-                matches = []
                 for enum_canonical, _ in enum_specifiers.items():
                     if enum_canonical.startswith(lower_value):
                         matches.append(enum_canonical)
                 if len(matches) == 1:
                     return enum_specifiers[matches[0]]
-            return value
-        enum_specifiers = {str(enum).lower(): enum for enum in type_info.get("enum", [])}
-        return lambda value, src: map_enum(value, enum_specifiers, src)
+            return enum_specifiers[matches[0]] if len(matches) == 1 else value
+        return lambda value, src: map_enum(value, {str(enum).lower(): enum for enum in type_info.get("enum", [])}, src)
 
     def _map_function_integer(self, type_info: dict) -> Callable:
         def map_integer(value: str, src: Optional[str]) -> Any:
