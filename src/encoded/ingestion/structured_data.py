@@ -92,15 +92,15 @@ class StructuredDataSet:
 
     def _load_csv_file(self, file: str) -> None:
         reader = CsvReader(file)
-        self._load_reader(reader, type_name=Utils.get_type_name(file))
+        self._load_reader(reader, type_name=get_type_name(file))
         self._note_issues(reader.issues, os.path.basename(file))
 
     def _load_excel_file(self, file: str) -> None:
         excel = Excel(file)  # Order the sheet names by any specified ordering (e.g. ala snovault.loadxl).
-        order = {Utils.get_type_name(key): index for index, key in enumerate(self._order)} if self._order else {}
-        for sheet_name in sorted(excel.sheet_names, key=lambda key: order.get(Utils.get_type_name(key), sys.maxsize)):
+        order = {get_type_name(key): index for index, key in enumerate(self._order)} if self._order else {}
+        for sheet_name in sorted(excel.sheet_names, key=lambda key: order.get(get_type_name(key), sys.maxsize)):
             reader = excel.sheet_reader(sheet_name)
-            self._load_reader(reader, type_name=Utils.get_type_name(sheet_name))
+            self._load_reader(reader, type_name=get_type_name(sheet_name))
             self._note_issues(reader.issues, f"{file}:{sheet_name}")
 
     def _load_packed_file(self, file: str) -> None:
@@ -109,7 +109,7 @@ class StructuredDataSet:
 
     def _load_json_file(self, file: str) -> None:
         with open(file) as f:
-            self._add(Utils.get_type_name(file), json.load(f))
+            self._add(get_type_name(file), json.load(f))
 
     def _load_reader(self, reader: RowReader, type_name: str) -> None:
         schema = None
@@ -176,17 +176,17 @@ class _StructuredRowData:
             if schema:
                 value = schema.map_value(value, column_name, loc)
             if array_name is not None and isinstance(value, str):
-                value = Utils.split_array_string(value)
+                value = split_array_string(value)
             if array_name and array_index >= 0:
                 if isinstance(row[name], str):  # An array afterall e.g.: abc,abc#2
-                    row[name] = Utils.split_array_string(row[name])
+                    row[name] = split_array_string(row[name])
                 if len(row[name]) < array_index + 1:
                     row[name].extend([None] * (array_index + 1 - len(row[name])))
                 row[name] = row[name][:array_index] + value + row[name][array_index + 1:]
             else:
                 row[name] = value
 
-        setv(row, Utils.split_dotted_string(column_name))
+        setv(row, split_dotted_string(column_name))
 
     @staticmethod
     def _parse_into_row_template(column_names: List[str]) -> dict:
@@ -205,7 +205,7 @@ class _StructuredRowData:
 
         structured_row_template = {}
         for column_name in column_names or []:
-            if (column_name_components := Utils.split_dotted_string(column_name)):
+            if (column_name_components := split_dotted_string(column_name)):
                 merge_objects(structured_row_template, parse_components(column_name_components), True)
         return structured_row_template
 
@@ -222,13 +222,13 @@ class Schema:
 
     def __init__(self, schema_json: dict, portal: Optional[Portal] = None) -> None:
         self.data = schema_json
-        self.name = Utils.get_type_name(schema_json.get("title", "")) if schema_json else ""
+        self.name = get_type_name(schema_json.get("title", "")) if schema_json else ""
         self._portal = portal  # Needed only to resolve linkTo references.
         self._type_info = self._compile_type_info(schema_json)
 
     @staticmethod
     def load_by_name(name: str, portal: Portal) -> Optional[dict]:
-        return Schema(portal.get_schema(Utils.get_type_name(name)), portal) if portal else None
+        return Schema(portal.get_schema(get_type_name(name)), portal) if portal else None
 
     def validate(self, data: dict) -> Optional[List[str]]:
         issues = []
@@ -274,7 +274,7 @@ class Schema:
 
     def _map_function_array(self, type_info: dict) -> Callable:
         def map_value_array(value: str, array_type_map_function: Optional[Callable], src: Optional[str]) -> Any:
-            value = Utils.split_array_string(value)
+            value = split_array_string(value)
             return [array_type_map_function(value, src) for value in value] if array_type_map_function else value
         return lambda value, src: map_value_array(value, self._map_function(type_info), src)
 
@@ -407,7 +407,7 @@ class Schema:
         For example given "abc#12. def .ghi#3" returns "abc#.def.ghi#".
         """
         return DOTTED_NAME_DELIMITER_CHAR.join([ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR, value)
-                                                for value in Utils.split_dotted_string(column_name)])
+                                                for value in split_dotted_string(column_name)])
 
 
 class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
@@ -553,7 +553,7 @@ class Portal:
     @lru_cache(maxsize=256)
     def get_schema(self, schema_name: str) -> Optional[dict]:
         return (next((schema for schema in self._schemas or []
-                     if Utils.get_type_name(schema.get("title")) == Utils.get_type_name(schema_name)), None) or
+                     if get_type_name(schema.get("title")) == get_type_name(schema_name)), None) or
                 get_schema(schema_name, portal_vapp=self.vapp))
 
     @lru_cache(maxsize=256)
@@ -593,17 +593,14 @@ class Portal:
             return Portal(create_testapp(ini_file), schemas=schemas)
 
 
-class Utils:
+def split_dotted_string(value: str):
+    return split_string(value, DOTTED_NAME_DELIMITER_CHAR)
 
-    @staticmethod
-    def split_dotted_string(value: str) -> List[str]:
-        return split_string(value, DOTTED_NAME_DELIMITER_CHAR)
 
-    @staticmethod
-    def split_array_string(value: str) -> List[str]:
-        return split_string(value, ARRAY_VALUE_DELIMITER_CHAR, ARRAY_VALUE_DELIMITER_ESCAPE_CHAR)
+def split_array_string(value: str):
+    return split_string(value, ARRAY_VALUE_DELIMITER_CHAR, ARRAY_VALUE_DELIMITER_ESCAPE_CHAR)
 
-    @staticmethod
-    def get_type_name(value: str) -> str:  # File or other name.
-        name = os.path.basename(value).replace(" ", "") if isinstance(value, str) else ""
-        return to_camel_case(name[0:dot] if (dot := name.rfind(".")) > 0 else name)
+
+def get_type_name(value: str) -> str:  # File or other name.
+    name = os.path.basename(value).replace(" ", "") if isinstance(value, str) else ""
+    return to_camel_case(name[0:dot] if (dot := name.rfind(".")) > 0 else name)
