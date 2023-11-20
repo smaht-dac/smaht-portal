@@ -413,7 +413,7 @@ def test_parse_structured_data_12():
 def test_flatten_schema_1():
     portal = Portal.create_for_testing()
     schema = Schema.load_by_name("reference_file", portal=portal)
-    schema_flattened_json = _get_schema_flat_type_info(schema)
+    schema_flattened_json = _get_schema_flat_typeinfo(schema)
     with open(os.path.join(TEST_FILES_DIR, "reference_file.flattened.json")) as f:
         expected_schema_flattened_json = json.load(f)
         assert schema_flattened_json == expected_schema_flattened_json
@@ -574,7 +574,7 @@ def _test_parse_structured_data(file: Optional[str] = None,
         run_this_function()
 
 
-def _get_schema_flat_type_info(schema: Schema):
+def _get_schema_flat_typeinfo(schema: Schema):
     def map_function_name(map_function: Callable) -> str:
         # This is ONLY for testing/troubleshooting; get the NAME of the mapping function; this is HIGHLY
         # implementation DEPENDENT, on the map_function_<type> functions. The map_function, as a string,
@@ -589,4 +589,4 @@ def _get_schema_flat_type_info(schema: Schema):
                     return f"<{item}>"
         return type(map_function)
     return {key: {k: (map_function_name(v) if k == "map" and isinstance(v, Callable) else v)
-                  for k, v in value.items()} for key, value in schema._type_info.items()}
+                  for k, v in value.items()} for key, value in schema._typeinfo.items()}

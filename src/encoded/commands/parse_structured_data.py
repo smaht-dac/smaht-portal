@@ -135,14 +135,14 @@ def override_ref_handling(args: argparse.Namespace) -> dict:
     refs = {"errors": set(), "actual": set()}
     if args.norefs:  # Do not check refs at all.
         if not args.sheet_utils:
-            Schema._map_function_ref = lambda self, type_info: lambda value, src: value
+            Schema._map_function_ref = lambda self, typeinfo: lambda value, src: value
         else:
             RefHint._apply_ref_hint = lambda self, value, src: value
     elif not args.default_refs or args.show_refs:  # Default case; catch/report ref errors/exceptions.
         if not args.sheet_utils:
             real_map_function_ref = Schema._map_function_ref
-            def custom_map_function_ref(self, type_info):
-                real_map_value_ref = real_map_function_ref(self, type_info)
+            def custom_map_function_ref(self, typeinfo):
+                real_map_value_ref = real_map_function_ref(self, typeinfo)
                 def custom_map_value_ref(value, link_to, portal, src):
                     if value:
                         refs["actual"].add(f"{link_to}/{value}")
@@ -151,7 +151,7 @@ def override_ref_handling(args: argparse.Namespace) -> dict:
                     except Exception as e:
                         refs["errors"].add(str(e))
                         return value
-                return lambda value, src = None: custom_map_value_ref(value, type_info.get("linkTo"), self._portal, src)
+                return lambda value, src = None: custom_map_value_ref(value, typeinfo.get("linkTo"), self._portal, src)
             Schema._map_function_ref = custom_map_function_ref
         else:
             real_apply_ref_hint = RefHint._apply_ref_hint

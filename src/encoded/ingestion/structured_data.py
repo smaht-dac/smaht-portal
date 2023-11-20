@@ -224,7 +224,7 @@ class Schema:
         self.data = schema_json
         self.name = get_type_name(schema_json.get("title", "")) if schema_json else ""
         self._portal = portal  # Needed only to resolve linkTo references.
-        self._type_info = self._compile_type_info(schema_json)
+        self._typeinfo = self._compile_typeinfo(schema_json)
 
     @staticmethod
     def load_by_name(name: str, portal: Portal) -> Optional[dict]:
@@ -238,12 +238,12 @@ class Schema:
 
     def map_value(self, value: str, column_name: str, loc: int) -> Optional[Any]:
         column_name = self._normalize_column_name(column_name)
-        if (map_value := self._type_info.get(column_name, {}).get("map")) is None:
-            map_value = self._type_info.get(column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
+        if (map_value := self._typeinfo.get(column_name, {}).get("map")) is None:
+            map_value = self._typeinfo.get(column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
         src = f"{self.name}{f'.{column_name}' if column_name else ''}{f' [{loc}]' if loc else ''}"
         return map_value(value, src) if map_value else value
         
-    def _map_function(self, type_info: dict) -> Optional[Callable]:
+    def _map_function(self, typeinfo: dict) -> Optional[Callable]:
         MAP_FUNCTIONS = {
             "array": self._map_function_array,
             "boolean": self._map_function_boolean,
@@ -252,33 +252,33 @@ class Schema:
             "number": self._map_function_number,
             "string": self._map_function_string
         }
-        if isinstance(type_info, dict) and (type_info_type := type_info.get("type")) is not None:
-            if isinstance(type_info_type, list):
+        if isinstance(typeinfo, dict) and (typeinfo_type := typeinfo.get("type")) is not None:
+            if isinstance(typeinfo_type, list):
                 # The type specifier can actually be a list of acceptable types; for
                 # example smaht-portal/schemas/mixins.json/meta_workflow_input#.value;
                 # we will take the first one for which we have a mapping function.
                 # TODO: Maybe more correct to get all map function and map to any for values.
-                for acceptable_type in type_info_type:
+                for acceptable_type in typeinfo_type:
                     if (map_function := MAP_FUNCTIONS.get(acceptable_type)) is not None:
                         break
-            elif not isinstance(type_info_type, str):
+            elif not isinstance(typeinfo_type, str):
                 return None  # Invalid type specifier; ignore,
-            elif isinstance(type_info.get("enum"), list):
+            elif isinstance(typeinfo.get("enum"), list):
                 map_function = self._map_function_enum
-            elif isinstance(type_info.get("linkTo"), str):
+            elif isinstance(typeinfo.get("linkTo"), str):
                 map_function = self._map_function_ref
             else:
-                map_function = MAP_FUNCTIONS.get(type_info_type)
-            return map_function(type_info) if map_function else None
+                map_function = MAP_FUNCTIONS.get(typeinfo_type)
+            return map_function(typeinfo) if map_function else None
         return None
 
-    def _map_function_array(self, type_info: dict) -> Callable:
+    def _map_function_array(self, typeinfo: dict) -> Callable:
         def map_array(value: str, array_type_map_function: Optional[Callable], src: Optional[str]) -> Any:
             value = split_array_string(value)
             return [array_type_map_function(value, src) for value in value] if array_type_map_function else value
-        return lambda value, src: map_array(value, self._map_function(type_info), src)
+        return lambda value, src: map_array(value, self._map_function(typeinfo), src)
 
-    def _map_function_boolean(self, type_info: dict) -> Callable:
+    def _map_function_boolean(self, typeinfo: dict) -> Callable:
         def map_boolean(value: str, src: Optional[str]) -> Any:
             if isinstance(value, str) and (value := value.strip().lower()):
                 if (lower_value := value.lower()) in ["true", "t"]:
@@ -288,7 +288,7 @@ class Schema:
             return value
         return map_boolean
 
-    def _map_function_enum(self, type_info: dict) -> Callable:
+    def _map_function_enum(self, typeinfo: dict) -> Callable:
         def map_enum(value: str, enum_specifiers: dict, src: Optional[str]) -> Any:
             matches = []
             if isinstance(value, str) and (value := value.strip()):
@@ -300,38 +300,38 @@ class Schema:
                 if len(matches) == 1:
                     return enum_specifiers[matches[0]]
             return enum_specifiers[matches[0]] if len(matches) == 1 else value
-        return lambda value, src: map_enum(value, {str(enum).lower(): enum for enum in type_info.get("enum", [])}, src)
+        return lambda value, src: map_enum(value, {str(enum).lower(): enum for enum in typeinfo.get("enum", [])}, src)
 
-    def _map_function_integer(self, type_info: dict) -> Callable:
+    def _map_function_integer(self, typeinfo: dict) -> Callable:
         def map_integer(value: str, src: Optional[str]) -> Any:
             return to_integer(value, value)
         return map_integer
 
-    def _map_function_number(self, type_info: dict) -> Callable:
+    def _map_function_number(self, typeinfo: dict) -> Callable:
         def map_number(value: str, src: Optional[str]) -> Any:
             return to_float(value, value)
         return map_number
 
-    def _map_function_string(self, type_info: dict) -> Callable:
+    def _map_function_string(self, typeinfo: dict) -> Callable:
         def map_string(value: str, src: Optional[str]) -> str:
             return value if value is not None else ""
         return map_string
 
-    def _map_function_ref(self, type_info: dict) -> Callable:
+    def _map_function_ref(self, typeinfo: dict) -> Callable:
         def map_ref(value: str, link_to: str, portal: Optional[Portal], src: Optional[str]) -> Any:
-            nonlocal self, type_info
+            nonlocal self, typeinfo
             exception = None
             if not value:
-                if (column := type_info.get("column")) and column in self.data.get("required", []):
+                if (column := typeinfo.get("column")) and column in self.data.get("required", []):
                     exception = f"No required reference (linkTo) value for: {link_to}"
             elif link_to and portal and not portal.ref_exists(link_to, value):
                 exception = f"Cannot resolve reference (linkTo) for: {link_to}"
             if exception:
                 raise Exception(exception + f"{f'/{value}' if value else ''}{f' from {src}' if src else ''}")
             return value
-        return lambda value, src: map_ref(value, type_info.get("linkTo"), self._portal, src)
+        return lambda value, src: map_ref(value, typeinfo.get("linkTo"), self._portal, src)
 
-    def _compile_type_info(self, schema_json: dict, parent_key: Optional[str] = None) -> dict:
+    def _compile_typeinfo(self, schema_json: dict, parent_key: Optional[str] = None) -> dict:
         """
         Given a JSON schema return a dictionary of all the property names it defines, but with
         the names of any nested properties (i.e objects within objects) flattened into a single
@@ -384,7 +384,7 @@ class Schema:
             if ARRAY_NAME_SUFFIX_CHAR in property_key:
                 raise Exception(f"Property name with \"{ARRAY_NAME_SUFFIX_CHAR}\" in JSON schema NOT supported: {key}")
             if (property_value_type := property_value.get("type")) == "object" and "properties" in property_value:
-                result.update(self._compile_type_info(property_value, parent_key=key))
+                result.update(self._compile_typeinfo(property_value, parent_key=key))
                 continue
             if property_value_type == "array":
                 key += ARRAY_NAME_SUFFIX_CHAR
@@ -392,7 +392,7 @@ class Schema:
                     if array_property_items is None or isinstance(array_property_items, list):
                         raise Exception(f"Array of undefined or multiple types in JSON schema NOT supported: {key}")
                     raise Exception(f"Invalid array type specifier in JSON schema: {key}")
-                result.update(self._compile_type_info(array_property_items, parent_key=key))
+                result.update(self._compile_typeinfo(array_property_items, parent_key=key))
                 continue
             result[key] = {"type": property_value_type, "map": self._map_function({**property_value, "column": key})}
         return result
