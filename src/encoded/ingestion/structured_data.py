@@ -376,10 +376,10 @@ class Schema:
 
         Then we will return this flat dictionary:
 
-          { "abc.def":     { "type": "string", "map": <map_value_string> },
-            "abc.ghi.mno": { "type": "number", "map": <map_value_number> },
-            "stu#":        { "type": "string", "map": <map_value_string> },
-            "vw#.xyz":     { "type": "integer", "map": <map_value_integer> } }
+          { "abc.def":     { "type": "string", "map": <function:map_value_string> },
+            "abc.ghi.mno": { "type": "number", "map": <function:map_value_number> },
+            "stu#":        { "type": "string", "map": <function:map_value_string> },
+            "vw#.xyz":     { "type": "integer", "map": <function:map_value_integer> } }
         """
         result = {}
         if (properties := schema_json.get("properties")) is None:
