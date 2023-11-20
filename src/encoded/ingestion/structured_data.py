@@ -412,9 +412,8 @@ class Schema:
     def _normalize_column_name(column_name: str) -> str:
         """
         Given a string representing a flat column name, i.e possibly dot-separated name components,
-        and where each component possibly ends with an array suffix (i.e. pound sign - #) followed by
-        an integer, removes the integer part for each such array component; also ensures that
-        any extraneous spaces which might be surrounding each component are removed.
+        and where each component possibly ends with an array suffix (i.e. pound sign - #) followed
+        by an integer, removes the integer part for each such array component; also trims names.
         For example given "abc#12. def .ghi#3" returns "abc#.def.ghi#".
         """
         return DOTTED_NAME_DELIMITER_CHAR.join([ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR, value)
