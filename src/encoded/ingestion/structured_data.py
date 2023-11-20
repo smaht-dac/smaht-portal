@@ -90,16 +90,14 @@ class StructuredDataSet:
             self._load_packed_file(file)
 
     def _load_csv_file(self, file: str) -> None:
-        reader = CsvReader(file)
-        self._load_reader(reader, type_name=_get_type_name(file))
+        self._load_reader(reader := CsvReader(file), type_name=_get_type_name(file))
         self._note_issues(reader.issues, os.path.basename(file))
 
     def _load_excel_file(self, file: str) -> None:
         excel = Excel(file)  # Order the sheet names by any specified ordering (e.g. ala snovault.loadxl).
         order = {_get_type_name(key): index for index, key in enumerate(self._order)} if self._order else {}
         for sheet_name in sorted(excel.sheet_names, key=lambda key: order.get(_get_type_name(key), sys.maxsize)):
-            reader = excel.sheet_reader(sheet_name)
-            self._load_reader(reader, type_name=_get_type_name(sheet_name))
+            self._load_reader(reader := excel.sheet_reader(sheet_name), type_name=_get_type_name(sheet_name))
             self._note_issues(reader.issues, f"{file}:{sheet_name}")
 
     def _load_packed_file(self, file: str) -> None:
