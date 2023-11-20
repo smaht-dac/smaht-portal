@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.7.1
+=====
+
+* Fix statuses in inserts
+* Fix ingester permissions
+
+
 0.7.0
 =====
 

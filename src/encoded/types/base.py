@@ -58,6 +58,10 @@ class AbstractCollection(snovault.AbstractCollection):
             pass
         super(AbstractCollection, self).__init__(*args, **kw)
 
+    def __acl__(self):
+        """ Should not be called in practice """
+        return []
+
     def get(self, name, default=None):
         """
         heres' and example of why this is the way it is:
@@ -254,7 +258,7 @@ def validate_user_submission_consistency(context, request):
         part of
     """
     user = request.environ.get('REMOTE_USER')
-    if not user or user in ['TEST', 'INDEXER', 'EMBED', 'TEST_SUBMITTER']:
+    if not user or user in ['TEST', 'INDEXER', 'EMBED', 'TEST_SUBMITTER', 'INGESTION']:
         return
     user = request.embed(f'/users/{user}?frame=raw')
     if 'group.admin' in user.get('groups', []):
