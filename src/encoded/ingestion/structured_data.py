@@ -273,23 +273,23 @@ class Schema:
         return None
 
     def _map_function_array(self, type_info: dict) -> Callable:
-        def map_value_array(value: str, array_type_map_function: Optional[Callable], src: Optional[str]) -> Any:
+        def map_array(value: str, array_type_map_function: Optional[Callable], src: Optional[str]) -> Any:
             value = split_array_string(value)
             return [array_type_map_function(value, src) for value in value] if array_type_map_function else value
-        return lambda value, src: map_value_array(value, self._map_function(type_info), src)
+        return lambda value, src: map_array(value, self._map_function(type_info), src)
 
     def _map_function_boolean(self, type_info: dict) -> Callable:
-        def map_value_boolean(value: str, src: Optional[str]) -> Any:
+        def map_boolean(value: str, src: Optional[str]) -> Any:
             if isinstance(value, str) and (value := value.strip().lower()):
                 if (lower_value := value.lower()) in ["true", "t"]:
                     return True
                 elif lower_value in ["false", "f"]:
                     return False
             return value
-        return map_value_boolean
+        return map_boolean
 
     def _map_function_enum(self, type_info: dict) -> Callable:
-        def map_value_enum(value: str, enum_specifiers: dict, src: Optional[str]) -> Any:
+        def map_enum(value: str, enum_specifiers: dict, src: Optional[str]) -> Any:
             if isinstance(value, str) and (value := value.strip()):
                 if (enum_value := enum_specifiers.get(lower_value := value.lower())) is not None:
                     return enum_value
@@ -301,25 +301,25 @@ class Schema:
                     return enum_specifiers[matches[0]]
             return value
         enum_specifiers = {str(enum).lower(): enum for enum in type_info.get("enum", [])}
-        return lambda value, src: map_value_enum(value, enum_specifiers, src)
+        return lambda value, src: map_enum(value, enum_specifiers, src)
 
     def _map_function_integer(self, type_info: dict) -> Callable:
-        def map_value_integer(value: str, src: Optional[str]) -> Any:
+        def map_integer(value: str, src: Optional[str]) -> Any:
             return to_integer(value, value)
-        return map_value_integer
+        return map_integer
 
     def _map_function_number(self, type_info: dict) -> Callable:
-        def map_value_number(value: str, src: Optional[str]) -> Any:
+        def map_number(value: str, src: Optional[str]) -> Any:
             return to_float(value, value)
-        return map_value_number
+        return map_number
 
     def _map_function_string(self, type_info: dict) -> Callable:
-        def map_value_string(value: str, src: Optional[str]) -> str:
+        def map_string(value: str, src: Optional[str]) -> str:
             return value if value is not None else ""
-        return map_value_string
+        return map_string
 
     def _map_function_ref(self, type_info: dict) -> Callable:
-        def map_value_ref(value: str, link_to: str, portal: Optional[Portal], src: Optional[str]) -> Any:
+        def map_ref(value: str, link_to: str, portal: Optional[Portal], src: Optional[str]) -> Any:
             nonlocal self, type_info
             exception = None
             if not value:
@@ -330,7 +330,7 @@ class Schema:
             if exception:
                 raise Exception(exception + f"{f'/{value}' if value else ''}{f' from {src}' if src else ''}")
             return value
-        return lambda value, src: map_value_ref(value, type_info.get("linkTo"), self._portal, src)
+        return lambda value, src: map_ref(value, type_info.get("linkTo"), self._portal, src)
 
     def _compile_type_info(self, schema_json: dict, parent_key: Optional[str] = None) -> dict:
         """
@@ -364,10 +364,10 @@ class Schema:
 
         Then we will return this flat dictionary:
 
-          { "abc.def":     { "type": "string", "map": <function:map_value_string> },
-            "abc.ghi.mno": { "type": "number", "map": <function:map_value_number> },
-            "stu#":        { "type": "string", "map": <function:map_value_string> },
-            "vw#.xyz":     { "type": "integer", "map": <function:map_value_integer> } }
+          { "abc.def":     { "type": "string", "map": <function:map_string> },
+            "abc.ghi.mno": { "type": "number", "map": <function:map_number> },
+            "stu#":        { "type": "string", "map": <function:map_string> },
+            "vw#.xyz":     { "type": "integer", "map": <function:map_integer> } }
         """
         result = {}
         if (properties := schema_json.get("properties")) is None:

@@ -578,14 +578,14 @@ def _get_schema_flat_type_info(schema: Schema):
     def map_function_name(map_function: Callable) -> str:
         # This is ONLY for testing/troubleshooting; get the NAME of the mapping function; this is HIGHLY
         # implementation DEPENDENT, on the map_function_<type> functions. The map_function, as a string,
-        # looks like: <function Schema._map_function_string.<locals>.map_value_string at 0x103474900> or
+        # looks like: <function Schema._map_function_string.<locals>.map_string at 0x103474900> or
         # if it is implemented as a lambda (to pass in closure), then inspect.getclosurevars.nonlocals looks like:
-        # {"map_value_enum": <function Schema._map_function_enum.<locals>.map_value_enum at 0x10544cd60>, ...}
+        # {"map_enum": <function Schema._map_function_enum.<locals>.map_enum at 0x10544cd60>, ...}
         if isinstance(map_function, Callable):
             if (match := re.search(r"\.(\w+) at", str(map_function))):
                 return f"<{match.group(1)}>"
             for item in inspect.getclosurevars(map_function).nonlocals:
-                if item.startswith("map_value_"):
+                if item.startswith("map_"):
                     return f"<{item}>"
         return type(map_function)
     return {key: {k: (map_function_name(v) if k == "map" and isinstance(v, Callable) else v)
