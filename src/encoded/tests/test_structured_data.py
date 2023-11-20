@@ -289,6 +289,7 @@ def test_parse_structured_data_6():
         norefs = SAME_AS_EXPECTED_REFS
     )
 
+
 def test_parse_structured_data_7():
     _test_parse_structured_data(sheet_utils_also = False,
         file = "reference_file_20231119.csv", as_file_name = "reference_file.csv",
@@ -300,6 +301,7 @@ def test_parse_structured_data_7():
         ],
         norefs = SAME_AS_EXPECTED_REFS
     )
+
 
 def test_parse_structured_data_8():
     _test_parse_structured_data(sheet_utils_also = False,
