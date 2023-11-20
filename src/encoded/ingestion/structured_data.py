@@ -111,7 +111,7 @@ class StructuredDataSet:
         with open(file) as f:
             self.add(Utils.get_type_name(file), json.load(f))
 
-    def _load_reader(self, reader: RowReader, type_name: str = None) -> None:
+    def _load_reader(self, reader: RowReader, type_name: str) -> None:
         schema = None
         noschema = False
         structured_column_data = _StructuredColumnData(reader.header)
@@ -129,11 +129,10 @@ class StructuredDataSet:
             data = [data]
         if self._prune:
             remove_empty_properties(data)
-        if isinstance(data, list):
-            if type_name in self.data:
-                self.data[type_name].extend(data)
-            else:
-                self.data[type_name] = data
+        if type_name in self.data:
+            self.data[type_name].extend(data)
+        else:
+            self.data[type_name] = data
 
     def _note_issues(self, issues: Optional[List[str]], source: str) -> None:
         if issues:
