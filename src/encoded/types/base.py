@@ -254,7 +254,7 @@ def validate_user_submission_consistency(context, request):
         part of
     """
     user = request.environ.get('REMOTE_USER')
-    if not user or user in ['TEST', 'INDEXER', 'EMBED', 'TEST_SUBMITTER']:
+    if not user or user in ['TEST', 'INDEXER', 'EMBED', 'TEST_SUBMITTER', 'INGESTER']:
         return
     user = request.embed(f'/users/{user}?frame=raw')
     if 'group.admin' in user.get('groups', []):
