@@ -421,9 +421,8 @@ class Schema:
         any extraneous spaces which might be surrounding each component are removed.
         For example given "abc#12. def .ghi#3" returns "abc#.def.ghi#".
         """
-        column_name_components = [ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR, value)
-                                  for value in Utils.split_dotted_string(column_name)]
-        return DOTTED_NAME_DELIMITER_CHAR.join(column_name_components)
+        return DOTTED_NAME_DELIMITER_CHAR.join([ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR, value)
+                                                for value in Utils.split_dotted_string(column_name)])
 
 
 class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
