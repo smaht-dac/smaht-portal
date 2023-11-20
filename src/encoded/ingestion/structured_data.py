@@ -50,7 +50,7 @@ class StructuredDataSet:
         self._order = order
         self._prune = prune
         self._issues = None
-        self._load_file(file)
+        self._load_file(file) if file else None
 
     @staticmethod
     def load(file: str, portal: Optional[PortalAny] = None, schemas: Optional[List[dict]] = None,
@@ -74,11 +74,10 @@ class StructuredDataSet:
         #     represents (i.e. is named for, and contains data for) a different type.
         # 3.  Zip file (.zip or .tar.gz or .tgz or .tar), containing data files to load, where the
         #     base name of each contained file is the data type name; or any of above gzipped (.gz).
-        if file:
-            if file.endswith(".gz") or file.endswith(".tgz"):
-                with unpack_gz_file_to_temporary_file(file) as file:
-                    return self._load_normal_file(file)
-            return self._load_normal_file(file)
+        if file.endswith(".gz") or file.endswith(".tgz"):
+            with unpack_gz_file_to_temporary_file(file) as file:
+                return self._load_normal_file(file)
+        return self._load_normal_file(file)
 
     def _load_normal_file(self, file: str) -> None:
         if file.endswith(".csv"):
