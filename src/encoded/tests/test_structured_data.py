@@ -423,7 +423,7 @@ def _test_parse_structured_data(file: Optional[str] = None,
     @contextmanager
     def mocked_schemas():
         # The sheet_utils implementation does not deal well with no portal, as opposed to structured_data
-        # which which reacts by not attempting to load schems (nor resolving refs), so we mock it out here.
+        # which which reacts by not attempting to load schemas (nor resolving refs), so we mock it out here.
         nonlocal sheet_utils
         if sheet_utils:
             with mock.patch("dcicutils.validation_utils.SchemaManager.get_schema", return_value=None):
