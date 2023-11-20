@@ -246,7 +246,7 @@ class Schema:
         return issues if issues else None
 
     def map_value(self, value: str, flat_column_name: str, loc: int) -> Optional[Any]:
-        flat_column_name = self._normalize_flat_column_name(flat_column_name)
+        flat_column_name = self._normalize_column_name(flat_column_name)
         if (map_value := self._flat_type_info.get(flat_column_name, {}).get("map")) is None:
             map_value = self._flat_type_info.get(flat_column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
         src = f"{self.name}{f'.{flat_column_name}' if flat_column_name else ''}{f' [{loc}]' if loc else ''}"
@@ -413,7 +413,7 @@ class Schema:
         return result
 
     @staticmethod
-    def _normalize_flat_column_name(flat_column_name: str) -> str:
+    def _normalize_column_name(column_name: str) -> str:
         """
         Given a string representing a flat column name, i.e possibly dot-separated name components,
         and where each component possibly ends with an array suffix (i.e. pound sign - #) followed by
@@ -421,11 +421,10 @@ class Schema:
         any extraneous spaces which might be surrounding each component are removed.
         For example given "abc#12. def .ghi#3" returns "abc#.def.ghi#".
         """
-        flat_column_name_components = Utils.split_dotted_string(flat_column_name)
-        for i in range(len(flat_column_name_components)):
-            flat_column_name_components[i] = ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR,
-                                                                         flat_column_name_components[i])
-        return DOTTED_NAME_DELIMITER_CHAR.join(flat_column_name_components)
+        column_name_components = Utils.split_dotted_string(column_name)
+        for i in range(len(column_name_components)):
+            column_name_components[i] = ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR, column_name_components[i])
+        return DOTTED_NAME_DELIMITER_CHAR.join(column_name_components)
 
 
 class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
