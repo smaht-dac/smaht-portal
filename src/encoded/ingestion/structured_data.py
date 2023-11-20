@@ -390,10 +390,8 @@ class Schema:
             if property_value_type == "array":
                 key += ARRAY_NAME_SUFFIX_CHAR
                 if not isinstance(array_property_items := property_value.get("items"), dict):
-                    if array_property_items is None:
-                        raise Exception(f"Array of undefined type in JSON schema NOT supported: {key}")
-                    if isinstance(array_property_items, list):
-                        raise Exception(f"Array of multiple types in JSON schema NOT supported: {key}")
+                    if array_property_items is None or isinstance(array_property_items, list):
+                        raise Exception(f"Array of undefined or multiple types in JSON schema NOT supported: {key}")
                     raise Exception(f"Invalid array type specifier in JSON schema: {key}")
                 result.update(self._compile_type_info(array_property_items, parent_key=key))
                 continue
