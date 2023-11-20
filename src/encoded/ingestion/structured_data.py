@@ -309,7 +309,7 @@ class Schema:
             if not value:
                 if (column := typeinfo.get("column")) and column in self.data.get("required", []):
                     exception = f"No required reference (linkTo) value for: {link_to}"
-            elif link_to and portal and not portal.ref_exists(link_to, value):
+            elif portal and not portal.ref_exists(link_to, value):
                 exception = f"Cannot resolve reference (linkTo) for: {link_to}"
             if exception:
                 raise Exception(exception + f"{f'/{value}' if value else ''}{f' from {src}' if src else ''}")
