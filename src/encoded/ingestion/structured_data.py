@@ -227,7 +227,7 @@ class Schema:
         self.data = schema_json
         self.name = Utils.get_type_name(schema_json.get("title", "")) if schema_json else ""
         self._portal = portal  # Needed only to resolve linkTo references.
-        self._type_info = self._compute_flat_schema_type_info(schema_json)
+        self._type_info = self._compile_type_info(schema_json)
 
     @staticmethod
     def load_by_name(name: str, portal: Portal) -> Optional[dict]:
@@ -344,7 +344,7 @@ class Schema:
             return value
         return lambda value, src: map_value_ref(value, type_info.get("linkTo"), self._portal, src)
 
-    def _compute_flat_schema_type_info(self, schema_json: dict, parent_key: Optional[str] = None) -> dict:
+    def _compile_type_info(self, schema_json: dict, parent_key: Optional[str] = None) -> dict:
         """
         Given a JSON schema return a dictionary of all the property names it defines, but with
         the names of any nested properties (i.e objects within objects) flattened into a single
@@ -397,7 +397,7 @@ class Schema:
             if ARRAY_NAME_SUFFIX_CHAR in property_key:
                 raise Exception(f"Property name with \"{ARRAY_NAME_SUFFIX_CHAR}\" in JSON schema NOT supported: {key}")
             if (property_value_type := property_value.get("type")) == "object" and "properties" in property_value:
-                result.update(self._compute_flat_schema_type_info(property_value, parent_key=key))
+                result.update(self._compile_type_info(property_value, parent_key=key))
                 continue
             if property_value_type == "array":
                 key += ARRAY_NAME_SUFFIX_CHAR
@@ -407,7 +407,7 @@ class Schema:
                     if isinstance(array_property_items, list):
                         raise Exception(f"Array of multiple types in JSON schema NOT supported: {key}")
                     raise Exception(f"Invalid array type specifier in JSON schema: {key}")
-                result.update(self._compute_flat_schema_type_info(array_property_items, parent_key=key))
+                result.update(self._compile_type_info(array_property_items, parent_key=key))
                 continue
             result[key] = {"type": property_value_type, "map": self._map_function({**property_value, "column": key})}
         return result
