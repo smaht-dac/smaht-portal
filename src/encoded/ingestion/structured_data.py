@@ -544,12 +544,8 @@ class Excel:
     def __init__(self, file: str) -> None:
         self._file = file
         self._workbook = None
-        self._sheet_names = None
+        self.sheet_names = None
         self.open()
-
-    @property
-    def sheet_names(self) -> List[str]:
-        return self._sheet_names
 
     def sheet_reader(self, sheet_name: str) -> ExcelSheetReader:
         return ExcelSheetReader(sheet_name=sheet_name, workbook=self._workbook)
@@ -557,7 +553,7 @@ class Excel:
     def open(self) -> None:
         if self._workbook is None:
             self._workbook = openpyxl.load_workbook(self._file, data_only=True)
-            self._sheet_names = self._workbook.sheetnames or []
+            self.sheet_names = self._workbook.sheetnames or []
 
     def __del__(self) -> None:
         if (workbook := self._workbook) is not None:
