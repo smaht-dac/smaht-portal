@@ -12,7 +12,7 @@ from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Ty
 from webtest.app import TestApp
 from dcicutils.ff_utils import get_metadata, get_schema
 from dcicutils.misc_utils import (
-    to_integer, merge_objects, remove_empty_properties, split_string, to_camel_case, VirtualApp, right_trim)
+    merge_objects, remove_empty_properties, right_trim, split_string, to_camel_case,to_integer, to_float, VirtualApp)
 from dcicutils.zip_utils import temporary_file, unpack_gz_file_to_temporary_file, unpack_files
 from snovault.loadxl import create_testapp
 
@@ -230,11 +230,6 @@ class Schema:
     def load_by_name(name: str, portal: Portal) -> Optional[dict]:
         return Schema(portal.get_schema(Utils.get_type_name(name)), portal) if portal else None
 
-    @staticmethod
-    def load_from_file(file: str, portal: Optional[Portal] = None) -> Optional[dict]:
-        with open(file) as f:
-            return Schema(json.load(f), portal)
-
     def validate(self, data: dict) -> Optional[List[str]]:
         issues = []
         for issue in SchemaValidator(self.data, format_checker=SchemaValidator.FORMAT_CHECKER).iter_errors(data):
@@ -315,10 +310,7 @@ class Schema:
 
     def _map_function_number(self, type_info: dict) -> Callable:
         def map_value_number(value: str, src: Optional[str]) -> Any:
-            try:
-                return float(value)
-            except Exception:
-                return value
+            return to_float(value, value)
         return map_value_number
 
     def _map_function_string(self, type_info: dict) -> Callable:
