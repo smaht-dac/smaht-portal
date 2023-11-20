@@ -371,6 +371,21 @@ def test_parse_structured_data_9():
     )
 
 
+def test_parse_structured_data_10():
+    _test_parse_structured_data(sheet_utils_also = True,
+        file = "cell_line_20231120.csv", as_file_name = "cell_line.csv",
+        expected = "cell_line_20231120.result.json",
+        expected_refs = [
+            "/SubmissionCenter/some-submission-center-a",
+            "/SubmissionCenter/some-submission-center-b"
+        ],
+        norefs = [
+            "/SubmissionCenter/some-submission-center-a",
+            "/SubmissionCenter/some-submission-center-b"
+        ]
+    )
+
+
 def test_flatten_schema_1():
     portal = Portal.create_for_testing()
     schema = Schema.load_by_name("reference_file", portal=portal)
