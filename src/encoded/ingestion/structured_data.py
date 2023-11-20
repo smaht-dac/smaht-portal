@@ -445,7 +445,7 @@ class RowReader(abc.ABC):  # These readers may evenutally go into dcicutils.
                 self._warning_extra_values.append(self.location)
             yield {column: self.cell_value(value) for column, value in zip(self.header, row)}
 
-    def define_header(self, header: List[Optional[Any]]) -> None:
+    def _define_header(self, header: List[Optional[Any]]) -> None:
         self.header = []
         for index, column in enumerate(header or []):
             if not (column := str(column).strip() if column is not None else ""):
@@ -488,7 +488,7 @@ class ListReader(RowReader):
 
     def open(self) -> None:
         if not self.header:
-            self.define_header(self._rows[0] if self._rows else [])
+            self._define_header(self._rows[0] if self._rows else [])
 
 
 class CsvReader(RowReader):
@@ -508,7 +508,7 @@ class CsvReader(RowReader):
         if self._file_handle is None:
             self._file_handle = open(self._file)
             self._rows = csv.reader(self._file_handle)
-            self.define_header(right_trim(next(self._rows, [])))
+            self._define_header(right_trim(next(self._rows, [])))
 
     def __del__(self) -> None:
         if (file_handle := self._file_handle) is not None:
@@ -535,7 +535,7 @@ class ExcelSheetReader(RowReader):
     def open(self) -> None:
         if not self._rows:
             self._rows = self._workbook[self.sheet_name].iter_rows
-            self.define_header(right_trim(next(self._rows(min_row=1, max_row=1, values_only=True), [])))
+            self._define_header(right_trim(next(self._rows(min_row=1, max_row=1, values_only=True), [])))
 
 
 class Excel:
