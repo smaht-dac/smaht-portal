@@ -9,6 +9,8 @@ from encoded.commands.captured_output import captured_output
 def main() -> None:
     parser = argparse.ArgumentParser(description="Show schemas for dev/testing purposes.")
     parser.add_argument("schema", type=str, help=f"Schema to show.")
+    parser.add_argument("--debug", required=False, action="store_true",
+                        default=False, help=f"Debugging mode.")  # Turns off captured_output (use when pdb-ing)
     args = parser.parse_args()
 
     # The Portal.create_for_unit_testing function returns a Portal object suitable for most local unit
