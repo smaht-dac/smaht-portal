@@ -12,7 +12,7 @@ from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Ty
 from webtest.app import TestApp
 from dcicutils.ff_utils import get_metadata, get_schema
 from dcicutils.misc_utils import (
-    merge_objects, remove_empty_properties, split_string, to_camel_case, VirtualApp, right_trim)
+    to_integer, merge_objects, remove_empty_properties, split_string, to_camel_case, VirtualApp, right_trim)
 from dcicutils.zip_utils import temporary_file, unpack_gz_file_to_temporary_file, unpack_files
 from snovault.loadxl import create_testapp
 
@@ -213,7 +213,7 @@ class _StructuredRowData:
     def _get_array_info(name: str) -> Tuple[Optional[str], Optional[int]]:
         if (array_indicator_position := name.rfind(ARRAY_NAME_SUFFIX_CHAR)) > 0:
             array_index = name[array_indicator_position + 1:] if array_indicator_position < len(name) - 1 else -1
-            if (array_index := Utils.to_integer(array_index)) is not None:
+            if (array_index := to_integer(array_index)) is not None:
                 return name[0:array_indicator_position], array_index
         return None, None
 
@@ -310,7 +310,7 @@ class Schema:
 
     def _map_function_integer(self, type_info: dict) -> Callable:
         def map_value_integer(value: str, src: Optional[str]) -> Any:
-            return Utils.to_integer(value, value)
+            return to_integer(value, value)
         return map_value_integer
 
     def _map_function_number(self, type_info: dict) -> Callable:
@@ -613,13 +613,6 @@ class Utils:
     @staticmethod
     def split_array_string(value: str) -> List[str]:
         return split_string(value, ARRAY_VALUE_DELIMITER_CHAR, ARRAY_VALUE_DELIMITER_ESCAPE_CHAR)
-
-    @staticmethod
-    def to_integer(value: str, fallback: Optional[Any] = None) -> Optional[int]:
-        try:
-            return int(value)
-        except Exception:
-            return fallback
 
     @staticmethod
     def get_type_name(value: str) -> str:  # File or other name.
