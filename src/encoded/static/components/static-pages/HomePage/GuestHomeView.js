@@ -33,7 +33,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
 
     return (
         <div className="homepage-contents">
-            <div className="container-wide d-flex flex-column justify-content-around">
+            <div className="container-wide d-flex flex-column justify-content-around ">
                 <div className="row">
                     <div className="col-12">
                         <h1 className="mb-1">
@@ -52,7 +52,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                             setCurrentTier={setCurrentTier}
                         />
                     </div>
-                    <div className="col-12 col-lg-8 col-xl-7 col-xxl-6 d-flex justify-content-center align-items-center mb-2 my-lg-2 ">
+                    <div className="col-12 col-lg-8 col-xl-7 d-flex justify-content-center align-items-center mb-2 my-lg-2 ">
                         <HomepageFigure
                             currentTier={currentTier}
                             setCurrentTier={setCurrentTier}

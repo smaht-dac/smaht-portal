@@ -501,7 +501,15 @@ body[data-path="/"]>#application>#layout {
 		// background: -moz-linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
 		// background: -webkit-linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
 		// background: linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
-		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#a3e8ff",endColorstr="#ffffff",GradientType=1); 
+		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#a3e8ff",endColorstr="#ffffff",GradientType=1);
+		
+
+		@media screen and (min-width: 1500px) {
+			// Max-width for the homepage
+			max-width: 1500px;
+			margin: auto;
+		}
+
 
 		h1 {
 			font-size: 42px;
