@@ -361,6 +361,30 @@ def test_parse_structured_data_11():
     )
 
 
+def test_parse_structured_data_12():
+    _test_parse_structured_data(sheet_utils_also = True,
+        file = "sequencing_20231120.csv", as_file_name = "sequencing.csv",
+        expected = "sequencing_20231120.result.json",
+        expected_refs = [
+            "/Consortium/Consortium1",
+            "/Consortium/Consortium2",
+            "/Protocol/Protocol1",
+            "/Protocol/Protocol2",
+            "/Protocol/Protocol3",
+            "/SubmissionCenter/Center1",
+            "/SubmissionCenter/Center2",
+            "/User/User1",
+            "/User/User2",
+            "/User/User3",
+            "/User/User4",
+            "/User/User5",
+            "/User/User6"
+            # Exception: Cannot resolve reference (linkTo) for: User/User2 from Sequencing.last_modified.modified_by [1]
+        ],
+        norefs = SAME_AS_EXPECTED_REFS
+    )
+
+
 def test_flatten_schema_1():
     portal = Portal.create_for_testing()
     schema = Schema.load_by_name("reference_file", portal=portal)
