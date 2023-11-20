@@ -798,4 +798,4 @@ def _get_schema_flat_type_info(schema: Schema, debug: bool = False):
                     return f"<{item}>"
         return type(map_function)
     return {key: {k: (map_function_name(v) if k == "map" and isinstance(v, Callable) and debug else v)
-                  for k, v in value.items()} for key, value in schema._flat_type_info.items()}
+                  for k, v in value.items()} for key, value in schema._type_info.items()}

@@ -227,7 +227,7 @@ class Schema:
         self.data = schema_json
         self.name = Utils.get_type_name(schema_json.get("title", "")) if schema_json else ""
         self._portal = portal  # Needed only to resolve linkTo references.
-        self._flat_type_info = self._compute_flat_schema_type_info(schema_json)
+        self._type_info = self._compute_flat_schema_type_info(schema_json)
 
     @staticmethod
     def load_by_name(name: str, portal: Portal) -> Optional[dict]:
@@ -245,11 +245,11 @@ class Schema:
             issues.append(issue.message)
         return issues if issues else None
 
-    def map_value(self, value: str, flat_column_name: str, loc: int) -> Optional[Any]:
-        flat_column_name = self._normalize_column_name(flat_column_name)
-        if (map_value := self._flat_type_info.get(flat_column_name, {}).get("map")) is None:
-            map_value = self._flat_type_info.get(flat_column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
-        src = f"{self.name}{f'.{flat_column_name}' if flat_column_name else ''}{f' [{loc}]' if loc else ''}"
+    def map_value(self, value: str, column_name: str, loc: int) -> Optional[Any]:
+        column_name = self._normalize_column_name(column_name)
+        if (map_value := self._type_info.get(column_name, {}).get("map")) is None:
+            map_value = self._type_info.get(column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
+        src = f"{self.name}{f'.{column_name}' if column_name else ''}{f' [{loc}]' if loc else ''}"
         return map_value(value, src) if map_value else value
         
     def _map_function(self, type_info: dict) -> Optional[Callable]:
