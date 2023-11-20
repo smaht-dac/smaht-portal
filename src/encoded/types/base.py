@@ -58,6 +58,10 @@ class AbstractCollection(snovault.AbstractCollection):
             pass
         super(AbstractCollection, self).__init__(*args, **kw)
 
+    def __acl__(self):
+        """ Should not be called in practice """
+        return []
+
     def get(self, name, default=None):
         """
         heres' and example of why this is the way it is:
