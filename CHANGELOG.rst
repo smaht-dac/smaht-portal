@@ -7,9 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.7.0
+0.8.0
 =====
 * SMaHT ingestion related work.
+
+
+0.7.0
+=====
+
+* Expanded permissions implementation
+* Remove statuses no longer in use
+* Refine the state each status corresponds to
+* Update and add additional tests for this functionality
 
 
 0.6.0

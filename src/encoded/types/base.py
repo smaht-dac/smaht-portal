@@ -130,23 +130,26 @@ class Item(SnovaultItem):
     # Ie: if an item status = public, then the ACL ALLOW_EVERYONE_VIEW applies to its permissions,
     # so anyone (even unauthenticated users) can view it
     SUBMISSION_CENTER_STATUS_ACL = {
-        'shared': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'obsolete': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'current': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'inactive': ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
+        # Only creator can view - restricted to specific items via schemas.
+        'draft': ALLOW_OWNER_EDIT_ACL,
+        # Generally the default
         'in review': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
-        'uploaded': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
-        'uploading': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
-        'archived': ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
-        'deleted': DELETED_ACL,
-        'replaced': ONLY_ADMIN_VIEW_ACL,
+        'released': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         # Everyone can view - restricted to specific items via schemas.
         'public': ALLOW_EVERYONE_VIEW_ACL,
-        # Only creator can view - restricted to specific items via schemas.
-        'draft': ALLOW_OWNER_EDIT_ACL
+        # Intended to tag out-of-date data
+        'obsolete': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'deleted': DELETED_ACL,
     }
-    # For now, replicate the same
-    CONSORTIUM_STATUS_ACL = SUBMISSION_CENTER_STATUS_ACL
+    # More or less the same EXCEPT for in-review status
+    CONSORTIUM_STATUS_ACL = {
+        'draft': ALLOW_OWNER_EDIT_ACL,
+        'in review': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'released': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'public': ALLOW_EVERYONE_VIEW_ACL,
+        'obsolete': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'deleted': DELETED_ACL
+    }
 
     def __init__(self, registry, models):
         super().__init__(registry, models)
@@ -163,14 +166,14 @@ class Item(SnovaultItem):
         # Don't finalize to avoid validation here.
         properties = self.upgrade_properties().copy()
         status = properties.get('status')
-        if 'consortia' in properties:
-            if DEBUG_PERMISSIONS:
-                PRINT(f'DEBUG_PERMISSIONS: Using consortia ACLs status {status} for {self}')
-            return self.CONSORTIUM_STATUS_ACL.get(status, ONLY_ADMIN_VIEW_ACL)
         if 'submission_centers' in properties:
             if DEBUG_PERMISSIONS:
                 PRINT(f'DEBUG_PERMISSIONS: Using submission_centers ACLs status {status} for {self}')
             return self.SUBMISSION_CENTER_STATUS_ACL.get(status, ONLY_ADMIN_VIEW_ACL)
+        if 'consortia' in properties:
+            if DEBUG_PERMISSIONS:
+                PRINT(f'DEBUG_PERMISSIONS: Using consortia ACLs status {status} for {self}')
+            return self.CONSORTIUM_STATUS_ACL.get(status, ONLY_ADMIN_VIEW_ACL)
         if DEBUG_PERMISSIONS:
             PRINT(f'DEBUG_PERMISSIONS: Falling back to admin view for {self}')
         return ONLY_ADMIN_VIEW_ACL
@@ -245,12 +248,37 @@ def create(context, request):
         }
 
 
+def validate_user_submission_consistency(context, request):
+    """ Validates that a user who is not admin is submitting data
+        under the consortia/submission centers that they are a
+        part of
+    """
+    user = request.environ.get('REMOTE_USER')
+    if not user or user in ['TEST', 'INDEXER', 'EMBED', 'TEST_SUBMITTER']:
+        return
+    user = request.embed(f'/users/{user}?frame=raw')
+    if 'group.admin' in user.get('groups', []):
+        return
+    user_consortia = user.get('consortia', [])
+    user_submission_centers = user.get('submission_centers', [])
+    data = request.validated
+    for consortium in data.get('consortia', []):
+        if consortium not in user_consortia:
+            request.errors.add('body', f'Item: invalid consortium {consortium}',
+                                       f'user only has {user_consortia}')
+    for submission_center in data.get('submission_centers', []):
+        if submission_center not in user_submission_centers:
+            request.errors.add('body', f'Item: invalid submission center {submission_center}',
+                               f'user only has {user_submission_centers}')
+
+
 @view_config(
     context=SMAHTCollection,
     permission='add',
     request_method='POST',
     # validators=[]  # TURNS OFF VALIDATION HERE ([validate_item_content_post] previously)
-    validators=[validate_item_content_post]
+    validators=[validate_item_content_post,
+                validate_user_submission_consistency]
 )
 @view_config(
     context=SMAHTCollection,
@@ -265,17 +293,22 @@ def collection_add(context, request, render=None):
 
 
 @view_config(context=Item, permission='edit', request_method='PUT',
-             validators=[validate_item_content_put])
+             validators=[validate_item_content_put,
+                         validate_user_submission_consistency])
 @view_config(context=Item, permission='edit', request_method='PATCH',
-             validators=[validate_item_content_patch])
+             validators=[validate_item_content_patch,
+                         validate_user_submission_consistency])
 @view_config(context=Item, permission='edit_unvalidated', request_method='PUT',
-             validators=[no_validate_item_content_put],
+             validators=[no_validate_item_content_put,
+                         validate_user_submission_consistency],
              request_param=['validate=false'])
 @view_config(context=Item, permission='edit_unvalidated', request_method='PATCH',
-             validators=[no_validate_item_content_patch],
+             validators=[no_validate_item_content_patch,
+                         validate_user_submission_consistency],
              request_param=['validate=false'])
 @view_config(context=Item, permission='index', request_method='GET',
-             validators=[validate_item_content_in_place],
+             validators=[validate_item_content_in_place,
+                         validate_user_submission_consistency],
              request_param=['check_only=true'])
 @debug_log
 def item_edit(context, request, render=None):

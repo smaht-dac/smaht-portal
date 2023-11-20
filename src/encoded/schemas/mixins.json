@@ -150,7 +150,7 @@
                 "type": "string",
                 "linkTo": "Consortium"
             },
-            "serverDefault": "user_consortia"
+            "permission": "restricted_fields"
         }
     },
     "category": {
@@ -509,12 +509,11 @@
             "permission": "restricted_fields",
             "enum": [
                 "public",
-                "current",
-                "deleted",
-                "inactive",
+                "draft",
+                "released",
                 "in review",
                 "obsolete",
-                "shared"
+                "deleted"
             ]
         }
     },
