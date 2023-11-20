@@ -163,6 +163,7 @@ def test_parse_structured_data_2():
         expected = "submission_test_file_from_doug_20231106.result.json"
     )
 
+
 def test_parse_structured_data_3():
     _test_parse_structured_data(sheet_utils_also = True, novalidate = True,
         file = "uw_gcc_colo829bl_submission_20231117.xlsx",
@@ -198,6 +199,46 @@ def test_parse_structured_data_3():
             "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS"
         ],
         expected = "uw_gcc_colo829bl_submission_20231117.result.json"
+    )
+
+
+def test_parse_structured_data_3b():
+    _test_parse_structured_data(sheet_utils_also = True, novalidate = True,
+        # Same as uw_gcc_colo829bl_submission_20231117.xlsx but with the blnk line in the
+        # Unaligned Reads sheet that signaled the end of input, and the following comment, removed.
+        file = "uw_gcc_colo829bl_submission_20231117_more_unaligned_reads.xlsx",
+        norefs = [
+            "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1"
+        ],
+        expected_refs = [
+            "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_FiberSeq_1",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_HMWgDNA_1",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_bulkKinnex_1",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_gDNA_1",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829BL_FiberSeq_1",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829BL_FiberSeq_2",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829BL_HMWgDNA_1",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829BL_HiC_1",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829BL_bulkKinnex_1",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829BL_gDNA_1",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829T_FiberSeq_1",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829T_FiberSeq_2",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829T_HMWgDNA_1",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829T_HMWgDNA_2",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829T_HiC_2",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829T_bulkKinnex_2",
+            "/Analyte/UW-GCC_ANALYTE_COLO-829T_gDNA_2",
+            "/FileSet/UW-GCC_FILE-SET_COLO-829BL_FIBERSEQ_1",
+            "/FileSet/UW-GCC_FILE-SET_COLO-829BL_FIBERSEQ_2",
+            "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1",
+            "/Library/UW-GCC_LIBRARY_COLO-829BL_FIBERSEQ_1",
+            "/Library/UW-GCC_LIBRARY_COLO-829BL_FIBERSEQ_2",
+            "/Library/UW-GCC_LIBRARY_COLO-829T_FIBERSEQ_1",
+            "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-150x",
+            "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-60x",
+            "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS"
+        ],
+        expected = "uw_gcc_colo829bl_submission_20231117_more_unaligned_reads.result.json"
     )
 
 
