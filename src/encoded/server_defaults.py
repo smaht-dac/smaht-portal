@@ -25,13 +25,14 @@ def user_submission_centers(instance, subschema):
     return NO_DEFAULT
 
 
-@server_default
-def user_consortia(instance, subschema):
-    ignored(instance, subschema)
-    user = get_user_resource()
-    if user == NO_DEFAULT:
-        return NO_DEFAULT
-    consortia = user.properties.get('consortia', [])
-    if len(consortia) > 0:
-        return consortia
-    return NO_DEFAULT
+# This is disabled now as users should not set this themselves - Will Nov 17 2023
+# @server_default
+# def user_consortia(instance, subschema):
+#     ignored(instance, subschema)
+#     user = get_user_resource()
+#     if user == NO_DEFAULT:
+#         return NO_DEFAULT
+#     consortia = user.properties.get('consortia', [])
+#     if len(consortia) > 0:
+#         return consortia
+#     return NO_DEFAULT
