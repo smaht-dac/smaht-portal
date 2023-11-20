@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 import pytest
 from webtest.app import TestApp
 
-from .utils import patch_item, post_item, post_item_and_return_location
+from .utils import get_item, patch_item, post_item, post_item_and_return_location
 
 
 OUTPUT_FILE_FORMAT = "fastq"
@@ -66,6 +66,7 @@ def bam_output_file(
 
 
 def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """Ensure download link formatted as expected."""
     expected = (
         f"/output-files/{output_file.get('uuid')}/@@download/"
         f"{output_file.get('accession')}"

@@ -222,17 +222,7 @@
                     "uniqueItems": true,
                     "items": {
                         "type": "string",
-                        "enum": [
-                            "c5.2xlarge",
-                            "c5.4xlarge",
-                            "m5a.2xlarge",
-                            "r4.4xlarge",
-                            "r5.4xlarge",
-                            "r5a.4xlarge",
-                            "r5b.4xlarge",
-                            "r5ad.4xlarge",
-                            "r6i.4xlarge"
-                        ]
+                        "pattern": "^[a-z][a-z0-9-]+[.][0-9]*[a-z-*]+$"
                     }
                 },
                 "memory": {
@@ -249,7 +239,5 @@
                 }
             }
         }
-    },
-    "facets": {},
-    "columns": {}
+    }
 }

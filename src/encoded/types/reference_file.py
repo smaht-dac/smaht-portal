@@ -1,6 +1,5 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
 from .file import File
 
 

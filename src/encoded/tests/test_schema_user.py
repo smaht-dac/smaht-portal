@@ -3,7 +3,7 @@ from typing import Any, Dict
 import pytest
 from webtest.app import TestApp
 
-from .utils import post_item
+from .utils import assert_keys_conflict, post_item
 
 
 @pytest.fixture
@@ -27,8 +27,8 @@ def user(
     return post_item(testapp, item, "User")
 
 
-def test_user_post(testapp: TestApp, user: Dict[str, Any]) -> None:
-    """Ensure all User properties POST."""
+def test_user_post(user: Dict[str, Any]) -> None:
+    """Ensure User properties POST."""
     pass
 
 
@@ -39,4 +39,5 @@ def test_email_unique(testapp: TestApp, user: Dict[str, Any]) -> None:
         "first_name": "Bob",
         "last_name": "Jones",
     }
-    post_item(testapp, item_with_duplicate_email, "User", status=409)
+    response = post_item(testapp, item_with_duplicate_email, "User", status=409)
+    assert_keys_conflict(response)

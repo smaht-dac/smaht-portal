@@ -4,7 +4,7 @@ from uuid import uuid4
 from webtest import TestApp
 import pytest
 
-from .utils import post_item_and_return_location
+from .utils import post_item, post_item_and_return_location
 
 
 @pytest.fixture
@@ -158,6 +158,9 @@ def workflow(testapp: TestApp, test_consortium: Dict[str, Any]) -> Dict[str, Any
     return post_item_and_return_location(testapp, item, "workflow")
 
 
+OUTPUT_FILE_UUID = "f99fe12f-79f9-4c2c-b0b5-07fc20d7ce1d"
+
+
 @pytest.fixture
 def output_file(
     testapp: TestApp,
@@ -165,11 +168,11 @@ def output_file(
     file_formats: Dict[str, Dict[str, Any]],
 ) -> Dict[str, Any]:
     item = {
-        "uuid": "f99fe12f-79f9-4c2c-b0b5-07fc20d7ce1d",
+        "uuid": OUTPUT_FILE_UUID,
         "file_format": file_formats.get("fastq", {}).get("uuid", ""),
         "md5sum": "00000000000000000000000000000001",
         "filename": "my.fastq.gz",
-        "status": "in review",
+        "status": "uploaded",
         "data_category": ["Sequencing Reads"],
         "data_type": ["Unaligned Reads"],
         "consortia": [test_consortium["uuid"]],
@@ -208,3 +211,22 @@ def meta_workflow(
         ]
     }
     return post_item_and_return_location(testapp, item, "MetaWorkflow")
+
+
+@pytest.fixture
+def higlass_view_config(
+    testapp: TestApp,
+    test_consortium: Dict[str, Any],
+    test_submission_center: Dict[str, Any],
+) -> Dict[str, Any]:
+    item = {
+        "consortia": [test_consortium["uuid"]],
+        "submission_centers": [test_submission_center["uuid"]],
+        "identifier": "some_view_config",
+        "title": "A great view config",
+        "view_config": {
+            "whatever props": "anything",
+        },
+        "instance_height": 500,
+    }
+    return post_item(testapp, item, "HiglassViewConfig")
