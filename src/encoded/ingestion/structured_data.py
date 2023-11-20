@@ -11,8 +11,8 @@ import sys
 from typing import Any, Callable, Generator, Iterator, List, Optional, Tuple, Type, Union
 from webtest.app import TestApp
 from dcicutils.ff_utils import get_metadata, get_schema
-from dcicutils.misc_utils import (
-    merge_objects, remove_empty_properties, right_trim, split_string, to_camel_case,to_integer, to_float, VirtualApp)
+from dcicutils.misc_utils import (merge_objects, remove_empty_properties, right_trim, split_string,
+                                  to_boolean, to_camel_case, to_float, to_integer, VirtualApp)
 from dcicutils.zip_utils import temporary_file, unpack_gz_file_to_temporary_file, unpack_files
 from snovault.loadxl import create_testapp
 
@@ -280,12 +280,7 @@ class Schema:
 
     def _map_function_boolean(self, typeinfo: dict) -> Callable:
         def map_boolean(value: str, src: Optional[str]) -> Any:
-            if isinstance(value, str) and (value := value.strip().lower()):
-                if (lower_value := value.lower()) in ["true", "t"]:
-                    return True
-                elif lower_value in ["false", "f"]:
-                    return False
-            return value
+            return to_boolean(value, value)
         return map_boolean
 
     def _map_function_enum(self, typeinfo: dict) -> Callable:
