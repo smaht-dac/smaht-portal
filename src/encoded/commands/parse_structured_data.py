@@ -3,6 +3,7 @@ import json
 from typing import List, Optional, Tuple
 import yaml
 from dcicutils.bundle_utils import RefHint
+from dcicutils.misc_utils import PRINT
 from dcicutils.validation_utils import SchemaManager
 from dcicutils.zip_utils import temporary_file
 from snovault.loadxl import create_testapp
@@ -51,17 +52,17 @@ def main() -> None:
 
     if args.verbose:
         if args.sheet_utils:
-            print(f">>> Using sheet_utils rather than the newer structured_data ...")
-        print(f">>> Loading data", end="")
+            PRINT(f">>> Using sheet_utils rather than the newer structured_data ...")
+        PRINT(f">>> Loading data", end="")
         if args.novalidate:
-            print(" with NO validation", end="")
+            PRINT(" with NO validation", end="")
         else:
-            print(" with validation", end="")
+            PRINT(" with validation", end="")
         if args.norefs:
-            print(" with NO ref checking", end="")
+            PRINT(" with NO ref checking", end="")
         if args.noschemas:
-            print(" with NO schemas", end="")
-        print(f" from: {args.file} ...")
+            PRINT(" with NO schemas", end="")
+        PRINT(f" from: {args.file} ...")
 
     if args.as_file_name:
         with open(args.file, "rb" if args.file.endswith((".gz", ".tgz", ".tar", ".tar.gz", ".zip")) else "r") as f:
@@ -75,45 +76,45 @@ def main() -> None:
                                                                        portal=portal,
                                                                        novalidate=args.novalidate,
                                                                        sheet_utils=args.sheet_utils)
-    print(f">>> Parsed Data:")
-    print(json.dumps(structured_data_set, indent=4, default=str))
+    PRINT(f">>> Parsed Data:")
+    PRINT(json.dumps(structured_data_set, indent=4, default=str))
 
     if args.show_refs:
-        print(f"\n>>> References (linkTo):")
+        PRINT(f"\n>>> References (linkTo):")
         if refs and refs.get("actual"):
             for ref_actual in sorted(refs["actual"]):
-                print(ref_actual)
+                PRINT(ref_actual)
         else:
-            print("No references.")
+            PRINT("No references.")
     if refs and refs.get("errors"):
-        print(f"\n>>> Validation Reference (linkTo) Errors:")
+        PRINT(f"\n>>> Validation Reference (linkTo) Errors:")
         for ref_error in refs["errors"]:
-            print(ref_error)
+            PRINT(ref_error)
 
-    print(f"\n>>> Validation Results:")
+    PRINT(f"\n>>> Validation Results:")
     if not args.novalidate:
-        print(yaml.dump(validation_errors) if validation_errors else "OK")
+        PRINT(yaml.dump(validation_errors) if validation_errors else "OK")
     else:
-        print("No validation results because the --novalidate argument was specified.")
+        PRINT("No validation results because the --novalidate argument was specified.")
 
     if args.schemas:
         if args.verbose:
-            print(">>> Dumping referenced schemas ...")
+            PRINT(">>> Dumping referenced schemas ...")
         if args.noschemas:
-            print("No schemas because the --noschemas argument was specified.")
+            PRINT("No schemas because the --noschemas argument was specified.")
         else:
             dump_schemas(list(structured_data_set.keys()), portal)
 
     if args.load:
         if args.verbose:
-            print(">>> Loading data into local portal database", end="")
+            PRINT(">>> Loading data into local portal database", end="")
             if args.post_only:
-                print(" (POST only)", end="")
+                PRINT(" (POST only)", end="")
             if args.patch_only:
-                print(" (POST only)", end="")
+                PRINT(" (POST only)", end="")
             if args.validate_only:
-                print(" (VALIDATE only)", end="")
-            print(" ...")
+                PRINT(" (VALIDATE only)", end="")
+            PRINT(" ...")
         with captured_output():
             load_results = load_data_into_database(data=structured_data_set,
                                                    portal_vapp=portal.vapp,
@@ -121,13 +122,13 @@ def main() -> None:
                                                    patch_only=args.patch_only,
                                                    validate_only=args.validate_only)
         load_summary = summary_of_load_data_results(load_results)
-        print("\n>>> Load Summary:")
-        [print(item) for item in load_summary]
-        print("\n>>> Load Results:")
-        print(yaml.dump(load_results))
+        PRINT("\n>>> Load Summary:")
+        [PRINT(item) for item in load_summary]
+        PRINT("\n>>> Load Results:")
+        PRINT(yaml.dump(load_results))
 
     if args.verbose:
-        print("\n>>> Done.")
+        PRINT("\n>>> Done.")
 
 
 def override_ref_handling(args: argparse.Namespace) -> dict:
@@ -171,10 +172,10 @@ def dump_schemas(schema_names: List[str], portal: Portal) -> None:
         schema = Schema.load_by_name(schema_name, portal)
         schema = schema.data if schema else None
         if schema:
-            print(f">>> Schema: {schema_name}")
-            print(json.dumps(schema, indent=4, default=str))
+            PRINT(f">>> Schema: {schema_name}")
+            PRINT(json.dumps(schema, indent=4, default=str))
         else:
-            print(f">>> No schema found for type: {schema_name}")
+            PRINT(f">>> No schema found for type: {schema_name}")
 
 
 def _create_portal_for_local_testing(ini_file: Optional[str] = None, schemas: Optional[List[dict]] = None) -> Portal:
@@ -247,13 +248,13 @@ def parse_args() -> argparse.Namespace:
     if args.noschemas:
         args.novalidate = True
     if (1 if args.patch_only else 0) + (1 if args.post_only else 0) + (1 if args.validate_only else 0) > 1:
-        print("May only specify one of: --patch-only or --post-only or --validate-only")
+        PRINT("May only specify one of: --patch-only or --post-only or --validate-only")
         exit(1)
     if (1 if args.norefs else 0) + (1 if args.default_refs else 0) + (1 if args.show_refs else 0) > 1:
-        print("May not specify both of: --norefs or --default-refs or --show-refs")
+        PRINT("May not specify both of: --norefs or --default-refs or --show-refs")
         exit(1)
     if not args.load and (args.patch_only or args.post_only or args.validate_only):
-        print("Must use --load when using: --patch-only or --post-only or --validate-only")
+        PRINT("Must use --load when using: --patch-only or --post-only or --validate-only")
         exit(1)
 
     return args
