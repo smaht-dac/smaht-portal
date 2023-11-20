@@ -209,7 +209,7 @@ class _StructuredColumnData:
         structured_row_template = {}
         for column_name in column_names or []:
             if (column_name_components := Utils.split_dotted_string(column_name)):
-                merge_objects(structured_row_template, parse_components(column_name_components))
+                merge_objects(structured_row_template, parse_components(column_name_components), True)
         return structured_row_template
 
     @staticmethod
