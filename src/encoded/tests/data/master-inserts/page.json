@@ -161,7 +161,7 @@
     {
         "identifier": "docs",
         "title": "Documentation",
-        "status": "shared",
+        "status": "public",
         "children": [
             "859b2c48-0bda-406c-b49b-07d68bd236d4",
             "faabe1c0-3d8a-4651-bc86-072fb49ad016",
@@ -184,7 +184,7 @@
     {
         "identifier": "docs/how-to-download",
         "title": "How to Download Data",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -205,7 +205,7 @@
     {
         "identifier": "docs/how-to-register",
         "title": "How to Create Account",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -226,7 +226,7 @@
     {
         "identifier": "docs/pipeline-protocols",
         "title": "Pipeline Protocols",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -247,7 +247,7 @@
     {
         "identifier": "docs/summary-of-data",
         "title": "Summary of Data Generated",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -268,7 +268,7 @@
     {
         "identifier": "docs/how-to-upload",
         "title": "How to Upload Data",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -289,7 +289,7 @@
     {
         "identifier": "data",
         "title": "Data",
-        "status": "shared",
+        "status": "public",
         "children": [
             "39deafe0-34ae-4ab8-8261-3661b0c79a38"
         ],
@@ -308,7 +308,7 @@
     {
         "identifier": "data/benchmarking",
         "title": "Benchmarking Data",
-        "status": "shared",
+        "status": "public",
         "children": [
             "63dde5c8-75b7-4335-9fc7-04a25c494148",
             "086fd04b-0098-4138-aa15-0f4affd649a3",
@@ -339,7 +339,7 @@
     {
         "identifier": "data/benchmarking/COLO829",
         "title": "COLO829",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -360,7 +360,7 @@
     {
         "identifier": "data/benchmarking/HapMap",
         "title": "HapMap",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -381,7 +381,7 @@
     {
         "identifier": "data/benchmarking/iPSC-fibroblasts",
         "title": "iPSC and Fibroblasts",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -402,7 +402,7 @@
     {
         "identifier": "data/benchmarking/brain",
         "title": "Brain",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -423,7 +423,7 @@
     {
         "identifier": "data/benchmarking/lung",
         "title": "Lung",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -444,7 +444,7 @@
     {
         "identifier": "data/benchmarking/heart",
         "title": "Heart",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -465,7 +465,7 @@
     {
         "identifier": "data/benchmarking/colon",
         "title": "Colon",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -486,7 +486,7 @@
     {
         "identifier": "data/benchmarking/skin",
         "title": "Skin",
-        "status": "shared",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],

@@ -12,6 +12,13 @@ Change Log
 * SMaHT ingestion related work.
 
 
+0.7.1
+=====
+
+* Fix statuses in inserts
+* Fix ingester permissions
+
+
 0.7.0
 =====
 
