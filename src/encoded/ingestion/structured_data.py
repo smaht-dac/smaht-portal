@@ -114,7 +114,7 @@ class StructuredDataSet:
     def _load_reader(self, reader: RowReader, type_name: str) -> None:
         schema = None
         noschema = False
-        structured_column_data = _StructuredColumnData(reader.header)
+        structured_column_data = _StructuredRowData(reader.header)
         for row in reader:
             if not schema and not noschema:  # Create schema here just so we don't create it if there are no rows.
                 if not (schema := Schema.load_by_name(type_name, portal=self._portal)):
@@ -141,10 +141,10 @@ class StructuredDataSet:
             self._issues.append({source: issues})
 
 
-class _StructuredColumnData:
+class _StructuredRowData:
 
     def __init__(self, column_names: List[str]) -> None:
-        self._row_template = self._parse_column_headers_into_structured_row_template(column_names)
+        self._row_template = self._parse_into_row_template(column_names)
 
     def create_row(self) -> dict:
         return copy.deepcopy(self._row_template)
@@ -167,7 +167,7 @@ class _StructuredColumnData:
                 return
 
             column_name_component = column_name_components[0]
-            array_name, array_index = _StructuredColumnData._get_array_info(column_name_component)
+            array_name, array_index = _StructuredRowData._get_array_info(column_name_component)
             name = array_name if array_name else column_name_component
             if len(column_name_components) > 1:
                 if not isinstance(row[name], dict) and not isinstance(row[name], list):
@@ -192,12 +192,12 @@ class _StructuredColumnData:
         setv(row, Utils.split_dotted_string(column_name))
 
     @staticmethod
-    def _parse_column_headers_into_structured_row_template(column_names: List[str]) -> dict:
+    def _parse_into_row_template(column_names: List[str]) -> dict:
 
         def parse_components(column_name_components: List[str]) -> dict:
             value = parse_components(column_name_components[1:]) if len(column_name_components) > 1 else None
             column_name_component = column_name_components[0]
-            array_name, array_index = _StructuredColumnData._get_array_info(column_name_component)
+            array_name, array_index = _StructuredRowData._get_array_info(column_name_component)
             if array_name:
                 array_length = array_index + 1 if array_index >= 0 else (0 if value is None else 1)
                 # Doing it the obvious way, like in the comment right below here, we get

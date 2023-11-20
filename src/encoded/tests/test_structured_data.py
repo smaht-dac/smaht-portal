@@ -120,6 +120,7 @@ def test_parse_structured_data_1a():
             }
         ]})
 
+
 def test_parse_structured_data_1b():
 
     _test_parse_structured_data(sheet_utils_also = False, noschemas = True,

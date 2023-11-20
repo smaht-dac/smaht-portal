@@ -7,7 +7,7 @@ import re
 import tempfile
 from typing import Callable, List, Optional
 from unittest import mock
-from encoded.ingestion.structured_data import Schema, _StructuredColumnData, StructuredDataSet, Portal, Utils
+from encoded.ingestion.structured_data import Schema, _StructuredRowData, StructuredDataSet, Portal, Utils
 from dcicutils.zip_utils import temporary_file
 
 SAMPLE_SCHEMA_ONE = {
@@ -309,7 +309,7 @@ def test_schema_basic_one():
 
 
 def _check_structured_column_data_results(columns: str, expected: dict) -> None:
-    assert _StructuredColumnData(columns.split(","))._row_template == expected
+    assert _StructuredRowData(columns.split(","))._row_template == expected
 
 
 def test_schema_structured_column_data_basic_one():
