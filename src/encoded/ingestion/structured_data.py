@@ -109,7 +109,7 @@ class StructuredDataSet:
 
     def _load_json_file(self, file: str) -> None:
         with open(file) as f:
-            self.add(Utils.get_type_name(file), json.load(f))
+            self._add(Utils.get_type_name(file), json.load(f))
 
     def _load_reader(self, reader: RowReader, type_name: str) -> None:
         schema = None
@@ -122,9 +122,9 @@ class StructuredDataSet:
             structured_row = structured_column_data.create_row()
             for flat_column_name, value in row.items():
                 structured_column_data.set_value(structured_row, flat_column_name, value, schema, reader.location)
-            self.add(type_name, structured_row)
+            self._add(type_name, structured_row)
 
-    def add(self, type_name: str, data: Union[dict, List[dict]]) -> None:
+    def _add(self, type_name: str, data: Union[dict, List[dict]]) -> None:
         if isinstance(data, dict):
             data = [data]
         if self._prune:
