@@ -196,7 +196,14 @@ def test_schema_version_present_on_items(app):
 
 
 def test_submittable(testapp, registry):
-    test_uri = '/can-submit/analyte_preparation.json'
+    test_uri = '/can-submit/analyte.json'
+    import pdb; pdb.set_trace()
+    res = testapp.get(test_uri)
+    print(res)
+
+
+def test_submittables(testapp, registry):
+    test_uri = '/can-submit/'
     res = testapp.get(test_uri)
     import pdb; pdb.set_trace()
     print(res)
