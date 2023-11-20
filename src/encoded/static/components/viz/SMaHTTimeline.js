@@ -281,7 +281,7 @@ function ContextAwareToggle({
                     {children}
                 </div>
             </button>
-            {tier === 'benchmarking' ? (
+            {/* {tier === 'benchmarking' ? (
                 <a className="card-header-link">
                     <img
                         src={`/static/img/arrow-${
@@ -289,7 +289,7 @@ function ContextAwareToggle({
                         }.svg`}
                     />
                 </a>
-            ) : null}
+            ) : null} */}
         </div>
     );
 }
