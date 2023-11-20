@@ -120,8 +120,8 @@ class StructuredDataSet:
                 if not (schema := Schema.load_by_name(type_name, portal=self._portal)):
                     noschema = True
             structured_row = structured_column_data.create_row()
-            for flat_column_name, value in row.items():
-                structured_column_data.set_value(structured_row, flat_column_name, value, schema, reader.location)
+            for column_name, value in row.items():
+                structured_column_data.set_value(structured_row, column_name, value, schema, reader.location)
             self._add(type_name, structured_row)
 
     def _add(self, type_name: str, data: Union[dict, List[dict]]) -> None:
@@ -150,34 +150,34 @@ class _StructuredColumnData:
         return copy.deepcopy(self._row_template)
 
     @staticmethod
-    def set_value(row: dict, flat_column_name: str, value: str, schema: Optional[Schema], loc: int) -> None:
+    def set_value(row: dict, column_name: str, value: str, schema: Optional[Schema], loc: int) -> None:
 
-        def setv(row: Union[dict, list], flat_column_name_components: List[str], parent_array_index: int = -1) -> None:
+        def setv(row: Union[dict, list], column_name_components: List[str], parent_array_index: int = -1) -> None:
 
-            if not flat_column_name_components:
+            if not column_name_components:
                 return
             if isinstance(row, list):
                 if parent_array_index < 0:
                     for row_item in row:
-                        setv(row_item, flat_column_name_components)
+                        setv(row_item, column_name_components)
                 else:
-                    setv(row[parent_array_index], flat_column_name_components)
+                    setv(row[parent_array_index], column_name_components)
                 return
             if not isinstance(row, dict):
                 return
 
-            flat_column_name_component = flat_column_name_components[0]
-            array_name, array_index = _StructuredColumnData._get_array_info(flat_column_name_component)
-            name = array_name if array_name else flat_column_name_component
-            if len(flat_column_name_components) > 1:
+            column_name_component = column_name_components[0]
+            array_name, array_index = _StructuredColumnData._get_array_info(column_name_component)
+            name = array_name if array_name else column_name_component
+            if len(column_name_components) > 1:
                 if not isinstance(row[name], dict) and not isinstance(row[name], list):
                     row[name] = {}
-                setv(row[name], flat_column_name_components[1:], parent_array_index=array_index)
+                setv(row[name], column_name_components[1:], parent_array_index=array_index)
                 return
 
-            nonlocal flat_column_name, value, schema, loc
+            nonlocal column_name, value, schema, loc
             if schema:
-                value = schema.map_value(value, flat_column_name, loc)
+                value = schema.map_value(value, column_name, loc)
             if array_name is not None and isinstance(value, str):
                 value = Utils.split_array_string(value)
             if array_name and array_index >= 0:
@@ -189,27 +189,27 @@ class _StructuredColumnData:
             else:
                 row[name] = value
 
-        setv(row, Utils.split_dotted_string(flat_column_name))
+        setv(row, Utils.split_dotted_string(column_name))
 
     @staticmethod
     def _parse_column_headers_into_structured_row_template(column_names: List[str]) -> dict:
 
-        def parse_components(flat_column_name_components: List[str]) -> dict:
-            value = parse_components(flat_column_name_components[1:]) if len(flat_column_name_components) > 1 else None
-            flat_column_name_component = flat_column_name_components[0]
-            array_name, array_index = _StructuredColumnData._get_array_info(flat_column_name_component)
+        def parse_components(column_name_components: List[str]) -> dict:
+            value = parse_components(column_name_components[1:]) if len(column_name_components) > 1 else None
+            column_name_component = column_name_components[0]
+            array_name, array_index = _StructuredColumnData._get_array_info(column_name_component)
             if array_name:
                 array_length = array_index + 1 if array_index >= 0 else (0 if value is None else 1)
                 # Doing it the obvious way, like in the comment right below here, we get
                 # identical (shared) values; which we do not want; so do a real/deep copy.
                 # return {array_name: [value] * array_length}
                 return {array_name: [copy.deepcopy(value) for _ in range(array_length)]}
-            return {flat_column_name_component: value}
+            return {column_name_component: value}
 
         structured_row_template = {}
-        for flat_column_name in column_names or []:
-            if (flat_column_name_components := Utils.split_dotted_string(flat_column_name)):
-                merge_objects(structured_row_template, parse_components(flat_column_name_components))
+        for column_name in column_names or []:
+            if (column_name_components := Utils.split_dotted_string(column_name)):
+                merge_objects(structured_row_template, parse_components(column_name_components))
         return structured_row_template
 
     @staticmethod
