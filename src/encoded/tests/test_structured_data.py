@@ -148,6 +148,31 @@ def test_parse_structured_data_1b():
             }
         ]})
 
+def test_parse_structured_data_1c():
+
+    _test_parse_structured_data(sheet_utils_also = False, noschemas = True,
+        as_file_name = "easy_test3.csv",
+        rows = [
+            r"abcdef,ghi.jk,l,mno#,ghi.xyzzy,mno#2",
+            r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one,october",
+            r"golf,hotel,456,juliet|kilo|lima,xyzzy:two,november"
+        ],
+        expected = { "EasyTest3": [
+            {
+                "abcdef": "alfa",
+                "ghi": { "jk": "bravo", "xyzzy": "xyzzy:one" },
+                                
+                "l": "123",
+                "mno": [ "delta", "echo", "october" ]
+            },
+            {
+                "abcdef": "golf",
+                "ghi": { "jk": "hotel", "xyzzy": "xyzzy:two" },
+                "l": "456",
+                "mno": [ "juliet", "kilo", "november" ]
+            }
+        ]})
+
 
 def test_parse_structured_data_2():
     _test_parse_structured_data(sheet_utils_also = True,
