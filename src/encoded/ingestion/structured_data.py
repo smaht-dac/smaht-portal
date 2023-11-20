@@ -125,14 +125,12 @@ class StructuredDataSet:
             self._add(type_name, structured_row)
 
     def _add(self, type_name: str, data: Union[dict, List[dict]]) -> None:
-        if isinstance(data, dict):
-            data = [data]
         if self._prune:
             remove_empty_properties(data)
         if type_name in self.data:
-            self.data[type_name].extend(data)
+            self.data[type_name].extend([data] if isinstance(data, dict) else data)
         else:
-            self.data[type_name] = data
+            self.data[type_name] = [data] if isinstance(data, dict) else data
 
     def _note_issues(self, issues: Optional[List[str]], source: str) -> None:
         if issues:
