@@ -143,8 +143,8 @@ class StructuredDataSet:
 
 class _StructuredColumnData:
 
-    def __init__(self, flat_column_names: List[str]) -> None:
-        self._row_template = self._parse_column_headers_into_structured_row_template(flat_column_names)
+    def __init__(self, column_names: List[str]) -> None:
+        self._row_template = self._parse_column_headers_into_structured_row_template(column_names)
 
     def create_row(self) -> dict:
         return copy.deepcopy(self._row_template)
@@ -192,7 +192,7 @@ class _StructuredColumnData:
         setv(row, Utils.split_dotted_string(flat_column_name))
 
     @staticmethod
-    def _parse_column_headers_into_structured_row_template(flat_column_names: List[str]) -> dict:
+    def _parse_column_headers_into_structured_row_template(column_names: List[str]) -> dict:
 
         def parse_components(flat_column_name_components: List[str]) -> dict:
             value = parse_components(flat_column_name_components[1:]) if len(flat_column_name_components) > 1 else None
@@ -207,7 +207,7 @@ class _StructuredColumnData:
             return {flat_column_name_component: value}
 
         structured_row_template = {}
-        for flat_column_name in flat_column_names or []:
+        for flat_column_name in column_names or []:
             if (flat_column_name_components := Utils.split_dotted_string(flat_column_name)):
                 merge_objects(structured_row_template, parse_components(flat_column_name_components))
         return structured_row_template
