@@ -453,11 +453,110 @@ SAME_AS_NOREFS = {}
             "/User/User4",
             "/User/User5",
             "/User/User6"
-            # Exception: Cannot resolve reference (linkTo) for: User/User2 from Sequencing.last_modified.modified_by [1]
         ],
         "norefs": SAME_AS_EXPECTED_REFS,
         "sheet_utils_also": True
-    }
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "abc,abc#",
+            "alice|bob|charley,foobar|goobar"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [ { "abc": ["foobar", "goobar"] } ]
+        },
+        "sheet_utils_also": True
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "abc#,abc#1",
+            "alice|bob|charley,foobar|goobar"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [ {
+                "abc": ["alice", "foobar", "goobar", "charley"]
+            } ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "abc#,abc#",
+            "alice|bob|charley,foobar|goobar"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [ {
+                "abc": ["foobar", "goobar"]
+            } ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "other_allowed_extensions,other_allowed_extensions#4",
+            "alice|bob|charley,foobar|goobar"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [ {
+                "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+             } ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "other_allowed_extensions#,other_allowed_extensions#4",
+            "alice|bob|charley,foobar|goobar"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [ {
+                "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+             } ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "uuid,status,principals_allowed. view,principals_allowed.edit,other_allowed_extensions,other_allowed_extensions#4",
+            "some-uuid-a,public,pav-a,pae-a,alice|bob|charley,foobar|goobar",
+            "some-uuid-b,public,pav-b,pae-a,alice|bob|charley,foobar|goobar"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [
+                {
+                    "uuid": "some-uuid-a",
+                    "status": "public",
+                    "principals_allowed": {"view": "pav-a", "edit": "pae-a"},
+                    "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                },
+                {
+                    "uuid": "some-uuid-b",
+                    "status": "public",
+                    "principals_allowed": {"view": "pav-b", "edit": "pae-a"},
+                    "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                }
+            ]
+        },
+        "sheet_utils_also": False
+    },
 ])
 def test_parse_structured_data_parameterized(kwargs):
     _test_parse_structured_data(**kwargs)
