@@ -520,7 +520,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     .human-figure-container {
         display: none;
         position: absolute;
-        top: 0;
+        top: -20px;
         margin-left: auto;
         margin-right: auto;
         right: 0;
@@ -530,21 +530,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         
         & > div {
             margin: auto;
-        }
-
-        // Styles for the organ svgs
-        g {
-            &[data-svg-role="outline-group"] {
-            }
-            &[data-svg-role="brain-group"] {
-                transform: translate(90px, 13px);
-            }
-            &[data-svg-role="lung-group"] {
-                transform: translate(70px, 115px);
-            }
-            &[data-svg-role="liver-group"] {
-                transform: translate(75px, 245px);
-            }
         }
     }
     @media screen and (min-width: 576px) {

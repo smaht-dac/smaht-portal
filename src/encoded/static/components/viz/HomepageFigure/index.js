@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { HumanFigure } from './HumanFigure';
+import React from 'react';
 import { CLTCard } from './CLTCard';
 import { AssaysCard } from './AssaysCard';
 
