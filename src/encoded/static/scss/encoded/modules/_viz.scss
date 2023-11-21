@@ -401,20 +401,40 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         padding-left: 0px;
 
                         li {
-                            font-size: 14px;
-                            font-weight: 500;
-                            line-height: 20px;
                             margin-bottom: 2px;
                             animation: fade-in 300ms;
 
                             div {
                                 width: max-content;
                                 padding-right: 5px;
+                                align-items: center;
+                                display: flex;
 
-                                // &:hover {
-                                //     cursor: pointer;
-                                // }
+                                img {
+                                    margin-left: 2px;
+                                    margin-right: 11px;
+                                }
+                                span {
+                                    font-size: 14px;
+                                    font-weight: 500;
+                                    line-height: 20px;
+                                    color: #0E3669;
+                                }
+
                             }
+                        }
+                    }
+
+                    &-icon-container {
+                        display: flex;
+                        align-items: center;
+
+                        img {
+                            margin-left: 2px;
+                            margin-right: 6px;
+                        }
+                        span {
+                            color: #0E3669;
                         }
                     }
 
@@ -634,12 +654,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         margin-bottom: 10px;
                         h5 {
                             margin-bottom: 10px;
-                        }
-                        ul {
-                            margin-bottom: 10px;
-                            li {
-                                margin-bottom: 5px;
-                            }
                         }
                     }
 
