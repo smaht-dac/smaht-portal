@@ -53,6 +53,7 @@ def test_workflow_post(workflow: Dict[str, Any]) -> None:
         ("", 422),
         ("twox", 422),
         (5.5, 422),
+        (-5, 422),
     ]
 )
 def test_ebs_size(
