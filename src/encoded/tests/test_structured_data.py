@@ -739,14 +739,32 @@ def _load_json_from_file(file: str) -> dict:
         "schemas": [_load_json_from_file("some_type_two.json")],
         "expected": {
             "SomeTypeTwo" : [
-            {"vw": [
-                {"xy": {"foo": None}},
-                {"xy": {"foo": None}},
-                {"xy": {"foo": "781"}}
-            ]}
+                {"vw": [
+                    {"xy": {"foo": None}},
+                    {"xy": {"foo": None}},
+                    {"xy": {"foo": "781"}}
+                ]}
              ]
         },
         "prune": False,
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "simple_string_array,simple_integer_array,simple_number_array,simple_boolean_array",
+            "1|23|456|7890 , 1|23|456|7890  ,  1|23|456|7890.123 , true| False|false|True"
+        ],
+        "as_file_name": "some_type_one.csv",
+        "schemas": [_load_json_from_file("some_type_one.json")],
+        "expected": {
+            "SomeTypeOne": [
+                {"simple_string_array": ["1", "23", "456", "7890"],
+                 "simple_integer_array": [1, 23, 456, 7890],
+                 "simple_number_array": [1, 23, 456, 7890.123],
+                 "simple_boolean_array": [True, False, False, True]}
+            ]
+        },
         "sheet_utils_also": False
     },
 ])
@@ -757,7 +775,7 @@ def test_parse_structured_data_parameterized(kwargs):
 """
 @pytest.mark.parametrize("kwargs", [  # test_parse_structured_data_parameterized
     {
-    }
+    },
 ])
 def test_parse_structured_data_parameterized_debug(kwargs):
     _test_parse_structured_data(**kwargs)
