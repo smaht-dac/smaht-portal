@@ -3,6 +3,7 @@ import inspect
 import json
 import os
 import pdb
+import pytest
 import re
 from typing import Callable, List, Optional, Union
 from unittest import mock
@@ -19,15 +20,17 @@ SAME_AS_EXPECTED_REFS = {}
 SAME_AS_NOREFS = {}
 
 
-def test_parse_structured_data_0():
-    _test_parse_structured_data(sheet_utils_also = True, noschemas = True,
-        as_file_name = "some_test.csv",
-        rows = [
+@pytest.mark.parametrize("kwargs", [  # test_parse_structured_data_parameterized
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows":  [
             r"uuid,status,principals.view,principals.edit,extensions#,data",
             r"some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4",
             r"some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,xyzzy"
         ],
-        expected = {
+        "as_file_name": "some_test.csv",
+        "noschemas": True,
+        "expected": {
             "SomeTest": [
                 {
                     "uuid": "some-uuid-a",
@@ -45,18 +48,18 @@ def test_parse_structured_data_0():
                     "data": "xyzzy"
                 }
             ]
-        }
-    )
-
-def test_parse_structured_data_1():
-    _test_parse_structured_data(sheet_utils_also = False,
-        as_file_name = "some_test.csv",
-        rows = [
+        },
+        "sheet_utils_also": True
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
             r"uuid,status,principals.view,principals.edit,extensions#,num,i,arr",
             r"some-uuid-a,public,pav-a,pae-a,alfa|bravo|charlie,123.4,617,hotel",
             r"some-uuid-b,public,pav-b,pae-b,delta|echo|foxtrot|golf,987,781,indigo\|juliet|kilo"
         ],
-        schemas = [
+        "as_file_name": "some_test.csv",
+        "schemas": [
             {
                 "title": "SomeTest",
                 "properties": {
@@ -66,7 +69,7 @@ def test_parse_structured_data_1():
                  }
             }
         ],
-        expected = {
+        "expected": {
             "SomeTest": [
                 {
                     "uuid": "some-uuid-a",
@@ -88,113 +91,133 @@ def test_parse_structured_data_1():
                     "arr": [ "indigo|juliet", "kilo" ]
                 }
             ]
-        }
-    )
-
-
-def test_parse_structured_data_1a():
-
-    _test_parse_structured_data(sheet_utils_also = True, noschemas = True,
-        as_file_name = "easy_test.csv",
-        rows = [ r"abcdef", r"alfa", r"bravo" ],
-        expected = { "EasyTest": [ { "abcdef": "alfa", }, { "abcdef": "bravo" } ] })
-
-    _test_parse_structured_data(sheet_utils_also = True, noschemas = True,
-        as_file_name = "easy_test1.csv",
-        rows = [
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows":  [ r"abcdef", r"alfa", r"bravo" ],
+        "as_file_name":  "easy_test.csv",
+        "noschemas":  True,
+        "expected":  { "EasyTest": [ { "abcdef": "alfa", }, { "abcdef": "bravo" } ] },
+        "sheet_utils_also": True
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
             r"abcdef,ghi.jk,l,mno#,ghi.xyzzy",
             r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one",
             r"golf,hotel,456,juliet|kilo|lima,xyzzy:two"
         ],
-        expected = { "EasyTest1": [
-            {
-                "abcdef": "alfa",
-                "ghi": { "jk": "bravo", "xyzzy": "xyzzy:one" },
-                                
-                "l": "123",
-                "mno": [ "delta", "echo", "foxtrot" ]
-            },
-            {
-                "abcdef": "golf",
-                "ghi": { "jk": "hotel", "xyzzy": "xyzzy:two" },
-                "l": "456",
-                "mno": [ "juliet", "kilo", "lima" ]
-            }
-        ]})
-
-
-def test_parse_structured_data_1b():
-
-    _test_parse_structured_data(sheet_utils_also = False, noschemas = True,
-        as_file_name = "easy_test2.csv",
-        rows = [
+        "as_file_name": "easy_test1.csv",
+        "expected": {
+            "EasyTest1": [
+                {
+                    "abcdef": "alfa",
+                    "ghi": { "jk": "bravo", "xyzzy": "xyzzy:one" },
+                    "l": "123",
+                    "mno": [ "delta", "echo", "foxtrot" ]
+                },
+                {
+                    "abcdef": "golf",
+                    "ghi": { "jk": "hotel", "xyzzy": "xyzzy:two" },
+                    "l": "456",
+                    "mno": [ "juliet", "kilo", "lima" ]
+                }
+            ]
+        },
+        "noschemas": True,
+        "sheet_utils_also": True
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "noschemas": True,
+        "as_file_name": "easy_test2.csv",
+        "rows": [
             r"abcdef,ghi.jk,l,mno#,ghi.xyzzy,mno#2",
             r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one,october",
             r"golf,hotel,456,juliet|kilo|lima,xyzzy:two,november"
         ],
-        expected = { "EasyTest2": [
-            {
-                "abcdef": "alfa",
-                "ghi": { "jk": "bravo", "xyzzy": "xyzzy:one" },
-                                
-                "l": "123",
-                "mno": [ "delta", "echo", "october" ]
-            },
-            {
-                "abcdef": "golf",
-                "ghi": { "jk": "hotel", "xyzzy": "xyzzy:two" },
-                "l": "456",
-                "mno": [ "juliet", "kilo", "november" ]
-            }
-        ]})
-
-def test_parse_structured_data_1c():
-
-    _test_parse_structured_data(sheet_utils_also = False, noschemas = True,
-        as_file_name = "easy_test3.csv",
-        rows = [
+        "expected": {
+            "EasyTest2": [
+                {
+                    "abcdef": "alfa",
+                    "ghi": { "jk": "bravo", "xyzzy": "xyzzy:one" },
+                    "l": "123",
+                    "mno": [ "delta", "echo", "october" ]
+                },
+                {
+                    "abcdef": "golf",
+                    "ghi": { "jk": "hotel", "xyzzy": "xyzzy:two" },
+                    "l": "456",
+                    "mno": [ "juliet", "kilo", "november" ]
+                }
+            ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "file": "reference_file_20231119.csv",
+        "as_file_name": "reference_file.csv",
+        "expected": "reference_file_20231119.result.json",
+        "expected_refs": [
+            "/FileFormat/FASTA",
+            "/FileFormat/VCF",
+            "/SubmissionCenter/Center1"
+        ],
+        "norefs": SAME_AS_EXPECTED_REFS,
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "noschemas": True,
+        "as_file_name": "easy_test3.csv",
+        "rows": [
             r"abcdef,ghi.jk,l,mno#,ghi.xyzzy,mno#2",
             r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one,october",
             r"golf,hotel,456,juliet|kilo|lima,xyzzy:two,november"
         ],
-        expected = { "EasyTest3": [
-            {
-                "abcdef": "alfa",
-                "ghi": { "jk": "bravo", "xyzzy": "xyzzy:one" },
-                                
-                "l": "123",
-                "mno": [ "delta", "echo", "october" ]
-            },
-            {
-                "abcdef": "golf",
-                "ghi": { "jk": "hotel", "xyzzy": "xyzzy:two" },
-                "l": "456",
-                "mno": [ "juliet", "kilo", "november" ]
-            }
-        ]})
-
-
-def test_parse_structured_data_2():
-    _test_parse_structured_data(sheet_utils_also = True,
-        file = "submission_test_file_from_doug_20231106.xlsx",
-        expected_refs = [
+        "expected": {
+            "EasyTest3": [
+                {
+                    "abcdef": "alfa",
+                    "ghi": { "jk": "bravo", "xyzzy": "xyzzy:one" },
+                    "l": "123",
+                    "mno": [ "delta", "echo", "october" ]
+                },
+                {
+                    "abcdef": "golf",
+                    "ghi": { "jk": "hotel", "xyzzy": "xyzzy:two" },
+                    "l": "456",
+                    "mno": [ "juliet", "kilo", "november" ]
+                }
+            ]
+        },
+        "sheet_utils_also": False,
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "file": "submission_test_file_from_doug_20231106.xlsx",
+        "expected_refs": [
             "/Consortium/smaht",
             "/Software/SMAHT_SOFTWARE_FASTQC",
             "/Software/SMAHT_SOFTWARE_VEP",
             "/FileFormat/fastq",
             "/Workflow/smaht:workflow-basic"
         ],
-        norefs = [
+        "norefs": [
             "/Consortium/smaht"
         ],
-        expected = "submission_test_file_from_doug_20231106.result.json"
-    )
-
-
-def test_parse_structured_data_3():
-    _test_parse_structured_data(sheet_utils_also = True, novalidate = True,
-        file = "uw_gcc_colo829bl_submission_20231117.xlsx",
-        expected_refs = [
+        "expected": "submission_test_file_from_doug_20231106.result.json",
+        "sheet_utils_also": True,
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "novalidate": True,
+        "file": "uw_gcc_colo829bl_submission_20231117.xlsx",
+        "expected": "uw_gcc_colo829bl_submission_20231117.result.json",
+        "expected_refs": [
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_FiberSeq_1",
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_HMWgDNA_1",
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_bulkKinnex_1",
@@ -222,19 +245,19 @@ def test_parse_structured_data_3():
             "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-60x",
             "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS"
         ],
-        norefs = [
+        "norefs": [
             "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1"
         ],
-        expected = "uw_gcc_colo829bl_submission_20231117.result.json"
-    )
-
-
-def test_parse_structured_data_3b():
-    _test_parse_structured_data(sheet_utils_also = True, novalidate = True,
-        # Same as uw_gcc_colo829bl_submission_20231117.xlsx but with the blnk line in the
+        "sheet_utils_also": True,
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        # Same as uw_gcc_colo829bl_submission_20231117.xlsx but with the blank line in the
         # Unaligned Reads sheet that signaled the end of input, and the following comment, removed.
-        file = "uw_gcc_colo829bl_submission_20231117_more_unaligned_reads.xlsx",
-        expected_refs = [
+        "file": "uw_gcc_colo829bl_submission_20231117_more_unaligned_reads.xlsx",
+        "novalidate": True,
+        "expected": "uw_gcc_colo829bl_submission_20231117_more_unaligned_reads.result.json",
+        "expected_refs": [
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_FiberSeq_1",
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_HMWgDNA_1",
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_bulkKinnex_1",
@@ -262,18 +285,18 @@ def test_parse_structured_data_3b():
             "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-60x",
             "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS"
         ],
-        norefs = [
+        "norefs": [
             "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1"
         ],
-        expected = "uw_gcc_colo829bl_submission_20231117_more_unaligned_reads.result.json"
-    )
-
-
-def test_parse_structured_data_4():
-    _test_parse_structured_data(sheet_utils_also = True, novalidate = True,
-        file = "software_20231119.csv", as_file_name = "software.csv",
-        expected = "software_20231119.result.json",
-        expected_refs = [
+        "sheet_utils_also": True
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "file": "software_20231119.csv",
+        "as_file_name": "software.csv",
+        "novalidate": True,
+        "expected": "software_20231119.result.json",
+        "expected_refs": [
             "/Consortium/Consortium1",
             "/Consortium/Consortium2",
             "/SubmissionCenter/SubmissionCenter1",
@@ -281,15 +304,16 @@ def test_parse_structured_data_4():
             "/User/user-id-1",
             "/User/user-id-2"
         ],
-        norefs = SAME_AS_EXPECTED_REFS
-    )
-
-
-def test_parse_structured_data_5():
-    _test_parse_structured_data(sheet_utils_also = True, novalidate = True,
-        file = "workflow_20231119.csv", as_file_name = "workflow.csv",
-        expected = "workflow_20231119.result.json",
-        expected_refs = [
+        "norefs": SAME_AS_EXPECTED_REFS,
+        "sheet_utils_also": True,
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "file": "workflow_20231119.csv",
+        "as_file_name": "workflow.csv",
+        "novalidate": True,
+        "expected": "workflow_20231119.result.json",
+        "expected_refs": [
             "/Consortium/Consortium1",
             "/Consortium/Consortium2",
             "/SubmissionCenter/SubmissionCenter1",
@@ -297,42 +321,29 @@ def test_parse_structured_data_5():
             "/User/user-id-1",
             "/User/user-id-2"
         ],
-        norefs = SAME_AS_EXPECTED_REFS
-    )
-
-
-def test_parse_structured_data_6():
-    _test_parse_structured_data(sheet_utils_also = True,
-        file = "analyte_20231119.csv", as_file_name = "analyte.csv",
-        expected = "analyte_20231119.result.json",
-        expected_refs = [
+        "norefs": SAME_AS_EXPECTED_REFS,
+        "sheet_utils_also": True,
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "file": "analyte_20231119.csv",
+        "as_file_name": "analyte.csv",
+        "expected": "analyte_20231119.result.json",
+        "expected_refs": [
             "/Consortium/another-consortia",
             "/Consortium/smaht",
             "/Protocol/Protocol9",
             "/Sample/Sample9"
         ],
-        norefs = SAME_AS_EXPECTED_REFS
-    )
-
-
-def test_parse_structured_data_7():
-    _test_parse_structured_data(sheet_utils_also = False,
-        file = "reference_file_20231119.csv", as_file_name = "reference_file.csv",
-        expected = "reference_file_20231119.result.json",
-        expected_refs = [
-            "/FileFormat/FASTA",
-            "/FileFormat/VCF",
-            "/SubmissionCenter/Center1"
-        ],
-        norefs = SAME_AS_EXPECTED_REFS
-    )
-
-
-def test_parse_structured_data_8():
-    _test_parse_structured_data(sheet_utils_also = False,
-        file = "library_20231119.csv", as_file_name = "library.csv",
-        expected = "library_20231119.result.json",
-        expected_refs = [
+        "norefs": SAME_AS_EXPECTED_REFS,
+        "sheet_utils_also": True
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "file": "library_20231119.csv",
+        "as_file_name": "library.csv",
+        "expected": "library_20231119.result.json",
+        "expected_refs": [
             "/Analyte/sample-analyte-1",
             "/Analyte/sample-analyte-2",
             "/Analyte/sample-analyte-3",
@@ -343,54 +354,92 @@ def test_parse_structured_data_8():
             "/Protocol/protocol3",
             "/SubmissionCenter/Center1"
         ],
-        norefs = SAME_AS_EXPECTED_REFS
-    )
-
-
-def test_parse_structured_data_9():
-    _test_parse_structured_data(sheet_utils_also = True,
-        file = "file_format_20231119.csv.gz", as_file_name = "file_format.csv.gz",
-        expected = "file_format_20231119.result.json",
-        expected_refs = [
+        "norefs": SAME_AS_EXPECTED_REFS,
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "file": "library_20231119.csv",
+        "as_file_name": "library.csv",
+        "expected": "library_20231119.result.json",
+        "expected_refs": [
+            "/Analyte/sample-analyte-1",
+            "/Analyte/sample-analyte-2",
+            "/Analyte/sample-analyte-3",
+            "/Consortium/Consortium1",
+            "/Consortium/Consortium2",
+            "/LibraryPreparation/prep2",
+            "/Protocol/protocol1",
+            "/Protocol/protocol3",
+            "/SubmissionCenter/Center1"
+        ],
+        "norefs": SAME_AS_EXPECTED_REFS,
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "file": "library_20231119.csv",
+        "as_file_name": "library.csv",
+        "expected": "library_20231119.result.json",
+        "expected_refs": [
+            "/Analyte/sample-analyte-1",
+            "/Analyte/sample-analyte-2",
+            "/Analyte/sample-analyte-3",
+            "/Consortium/Consortium1",
+            "/Consortium/Consortium2",
+            "/LibraryPreparation/prep2",
+            "/Protocol/protocol1",
+            "/Protocol/protocol3",
+            "/SubmissionCenter/Center1"
+        ],
+        "norefs": SAME_AS_EXPECTED_REFS,
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "file": "file_format_20231119.csv.gz",
+        "as_file_name": "file_format.csv.gz",
+        "expected": "file_format_20231119.result.json",
+        "expected_refs": [
             "/Consortium/358aed10-9b9d-4e26-ab84-4bd162da182b",
             "/SubmissionCenter/9626d82e-8110-4213-ac75-0a50adf890ff",
         ],
-        norefs = SAME_AS_EXPECTED_REFS
-    )
-
-
-def test_parse_structured_data_10():
-    _test_parse_structured_data(sheet_utils_also = True,
-        file = "cell_line_20231120.csv", as_file_name = "cell_line.csv",
-        expected = "cell_line_20231120.result.json",
-        expected_refs = [
+        "norefs": SAME_AS_EXPECTED_REFS,
+        "sheet_utils_also": True
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "file": "cell_line_20231120.csv",
+        "as_file_name": "cell_line.csv",
+        "expected": "cell_line_20231120.result.json",
+        "expected_refs": [
             "/SubmissionCenter/some-submission-center-a",
             "/SubmissionCenter/some-submission-center-b"
         ],
-        norefs = SAME_AS_EXPECTED_REFS
-    )
-
-
-def test_parse_structured_data_11():
-    _test_parse_structured_data(sheet_utils_also = False,
-        file = "unaligned_reads_20231120.csv", as_file_name = "unaligned_reads.csv",
-        expected = "unaligned_reads_20231120.result.json",
-        expected_refs = [
+        "norefs": SAME_AS_EXPECTED_REFS,
+        "sheet_utils_also": True
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "file": "unaligned_reads_20231120.csv",
+        "as_file_name": "unaligned_reads.csv",
+        "expected": "unaligned_reads_20231120.result.json",
+        "expected_refs": [
             "/FileSet/FileSet1", "/FileSet/FileSet2", "/FileSet/FileSet3",
             "/QualityMetric/QC1", "/QualityMetric/QC2", "/QualityMetric/QC3", "/QualityMetric/QC4", "/QualityMetric/QC5", "/QualityMetric/QC6",
             "/Software/Software1", "/Software/Software2", "/Software/Software3", "/Software/Software4", "/Software/Software5", "/Software/Software6",
             "/SubmissionCenter/Center1", "/SubmissionCenter/Center2", "/SubmissionCenter/Center3", "/User/User1",
             "/User/User2", "/User/User3", "/User/User4", "/User/User5", "/User/User6"
         ],
-        norefs = SAME_AS_EXPECTED_REFS
-    )
-
-
-def test_parse_structured_data_12():
-    _test_parse_structured_data(sheet_utils_also = True,
-        file = "sequencing_20231120.csv", as_file_name = "sequencing.csv",
-        expected = "sequencing_20231120.result.json",
-        expected_refs = [
+        "norefs": SAME_AS_EXPECTED_REFS,
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "file": "sequencing_20231120.csv",
+        "as_file_name": "sequencing.csv",
+        "expected": "sequencing_20231120.result.json",
+        "expected_refs": [
             "/Consortium/Consortium1",
             "/Consortium/Consortium2",
             "/Protocol/Protocol1",
@@ -406,139 +455,123 @@ def test_parse_structured_data_12():
             "/User/User6"
             # Exception: Cannot resolve reference (linkTo) for: User/User2 from Sequencing.last_modified.modified_by [1]
         ],
-        norefs = SAME_AS_EXPECTED_REFS
-    )
+        "norefs": SAME_AS_EXPECTED_REFS,
+        "sheet_utils_also": True
+    }
+])
+def test_parse_structured_data_parameterized(kwargs):
+    _test_parse_structured_data(**kwargs)
 
 
-def test_structured_row_data_1():
-    _test_structured_row_data(
-        "abc", {
-            "abc": None
-        })
-    _test_structured_row_data(
-        "abc,def.ghi,jkl#.mnop#2.rs", {
-            "abc": None,
-            "def": {"ghi": None},
-            "jkl": [{"mnop": [{"rs": None}, {"rs": None}, {"rs": None}]}]
-        })
-    _test_structured_row_data(
-        "abc,def,ghi.jkl,mnop.qrs.tuv", {
-            "abc": None,
-            "def": None,
-            "ghi": {"jkl": None},
-            "mnop": {"qrs": {"tuv": None}}
-        })
-    _test_structured_row_data(
-        "abc,def,ghi.jkl,mnop.qrs.tuv", {
-            "abc": None,
-            "def": None,
-            "ghi": {"jkl": None},
-            "mnop": {"qrs": {"tuv": None}}
-        })
-    _test_structured_row_data(
-        "abc,def.ghi,jkl#", {
-            "abc": None,
-            "def": {"ghi": None},
-            "jkl": []
-        })
-    _test_structured_row_data(
-        "abc,def.ghi,jkl#.mnop", {
-            "abc": None,
-            "def": {"ghi": None},
-            "jkl": [{"mnop": None}]
-        })
-    _test_structured_row_data(
-        "abc,def.ghi,jkl#.mnop#", {
-            "abc": None,
-            "def": {"ghi": None},
-            "jkl": [{"mnop": []}]
-        })
-    _test_structured_row_data(
-        "abc,def.ghi,jkl#.mnop#2", {
-            "abc": None,
-            "def": {"ghi": None},
-            "jkl": [{"mnop": [None, None, None]}]
-        })
-    _test_structured_row_data(
-        "abc,def.ghi,jkl#.mnop#2.rs", {
-            "abc": None,
-            "def": {"ghi": None},
-            "jkl": [{"mnop": [{"rs": None}, {"rs": None}, {"rs": None}]}]
-        })
-    _test_structured_row_data(
-        "abc,def.ghi,jkl#.mnop#2.rs#.tuv", {
-            "abc": None,
-            "def": {"ghi": None},
-            "jkl": [{"mnop": [{"rs": [{"tuv": None}]}, {"rs": [{"tuv": None}]}, {"rs": [{"tuv": None}]}]}]
-        })
-    _test_structured_row_data(
-        "abc.def.ghi,xyzzy", {
-            "abc": {"def": {"ghi": None}},
-            "xyzzy": None
-        })
-    _test_structured_row_data(
-        "abc.def.ghi,xyzzy#,simple_string", {
-            "abc": {"def": {"ghi": None}},
-            "xyzzy": [],
-            "simple_string": None
-        })
-    _test_structured_row_data(
-        "abc.def.ghi,xyzzy#2", {
-            "abc": {"def": {"ghi": None}},
-            "xyzzy": [None, None, None]
-        })
-    _test_structured_row_data(
-        "abc.def.ghi,xyzzy#2,xyzzy#3", {
-            "abc": {"def": {"ghi": None}},
-            "xyzzy": [None, None, None, None]
-        })
-    _test_structured_row_data(
-        "abc.def.ghi,xyzzy#2,xyzzy#", {
-            "abc": {"def": {"ghi": None}},
-            "xyzzy": [None, None, None]
-        })
-    _test_structured_row_data(
-        "abc.def.ghi,xyzzy#2,xyzzy#0", {
-            "abc": {"def": {"ghi": None}},
-            "xyzzy": [None, None, None]
-        })
-    _test_structured_row_data(
-        "abc.def.ghi,xyzzy#2,xyzzy#1", {
-            "abc": {"def": {"ghi": None}},
-            "xyzzy": [None, None, None]
-        })
-    _test_structured_row_data(
-        "abc.def.ghi,xyzzy#2,xyzzy#1.foo", {
-            "abc": {"def": {"ghi": None}},
-            "xyzzy": [{"foo": None}, {"foo": None}, {"foo": None}]
-        })
-    _test_structured_row_data(
-        "abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo", {
-            "abc": {"def": {"ghi": None}},
-            "xyzzy": [{"foo": None, "goo": None}, {"foo": None, "goo": None}, {"foo": None, "goo": None}]
-        })
-    _test_structured_row_data(
-        "abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo#", {
-            "abc": {"def": {"ghi": None}},
-            "xyzzy": [{"foo": [], "goo": None}, {"foo": [], "goo": None}, {"foo": [], "goo": None}]
-        })
-    _test_structured_row_data(
-        "abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo#0", {
-            "abc": {"def": {"ghi": None}},
-            "xyzzy": [{"foo": [None], "goo": None}, {"foo": [None], "goo": None}, {"foo": [None], "goo": None}]
-        })
-    _test_structured_row_data(
-        "abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo#2,jklmnop#3", {
-            "abc": {"def": {"ghi": None}},
-            "xyzzy": [{"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}],
-            "jklmnop": [None, None, None, None]
-        })
-    _test_structured_row_data(
-        "abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo#2,jklmnop#3", {
-            "abc": {"def": {"ghi": None}},
-            "xyzzy": [{"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}],
-            "jklmnop": [None, None, None, None]
-        })
+@pytest.mark.parametrize("columns, expected", [
+    ["abc", {
+        "abc": None
+    }],
+    ["abc,def.ghi,jkl#.mnop#2.rs", {
+        "abc": None,
+        "def": {"ghi": None},
+        "jkl": [{"mnop": [{"rs": None}, {"rs": None}, {"rs": None}]}]
+    }],
+    ["abc,def,ghi.jkl,mnop.qrs.tuv", {
+        "abc": None,
+        "def": None,
+        "ghi": {"jkl": None},
+        "mnop": {"qrs": {"tuv": None}}
+    }],
+    ["abc,def,ghi.jkl,mnop.qrs.tuv", {
+        "abc": None,
+        "def": None,
+        "ghi": {"jkl": None},
+        "mnop": {"qrs": {"tuv": None}}
+    }],
+    ["abc,def.ghi,jkl#", {
+       "abc": None,
+       "def": {"ghi": None},
+       "jkl": []
+    }],
+    ["abc,def.ghi,jkl#.mnop", {
+        "abc": None,
+        "def": {"ghi": None},
+        "jkl": [{"mnop": None}]
+    }],
+    ["abc,def.ghi,jkl#.mnop#", {
+        "abc": None,
+        "def": {"ghi": None},
+        "jkl": [{"mnop": []}]
+    }],
+    ["abc,def.ghi,jkl#.mnop#2", {
+        "abc": None,
+        "def": {"ghi": None},
+        "jkl": [{"mnop": [None, None, None]}]
+    }],
+    ["abc,def.ghi,jkl#.mnop#2.rs", {
+        "abc": None,
+        "def": {"ghi": None},
+        "jkl": [{"mnop": [{"rs": None}, {"rs": None}, {"rs": None}]}]
+    }],
+    ["abc,def.ghi,jkl#.mnop#2.rs#.tuv", {
+        "abc": None,
+        "def": {"ghi": None},
+        "jkl": [{"mnop": [{"rs": [{"tuv": None}]}, {"rs": [{"tuv": None}]}, {"rs": [{"tuv": None}]}]}]
+    }],
+    ["abc.def.ghi,xyzzy", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": None
+    }],
+    ["abc.def.ghi,xyzzy#,simple_string", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": [],
+        "simple_string": None
+    }],
+    ["abc.def.ghi,xyzzy#2", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": [None, None, None]
+    }],
+    ["abc.def.ghi,xyzzy#2,xyzzy#3", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": [None, None, None, None]
+    }],
+    ["abc.def.ghi,xyzzy#2,xyzzy#", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": [None, None, None]
+    }],
+    ["abc.def.ghi,xyzzy#2,xyzzy#0", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": [None, None, None]
+    }],
+    ["abc.def.ghi,xyzzy#2,xyzzy#1", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": [None, None, None]
+    }],
+    ["abc.def.ghi,xyzzy#2,xyzzy#1.foo", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": [{"foo": None}, {"foo": None}, {"foo": None}]
+    }],
+    ["abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": [{"foo": None, "goo": None}, {"foo": None, "goo": None}, {"foo": None, "goo": None}]
+    }],
+    ["abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo#", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": [{"foo": [], "goo": None}, {"foo": [], "goo": None}, {"foo": [], "goo": None}]
+    }],
+    ["abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo#0", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": [{"foo": [None], "goo": None}, {"foo": [None], "goo": None}, {"foo": [None], "goo": None}]
+    }],
+    ["abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo#2,jklmnop#3", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": [{"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}],
+        "jklmnop": [None, None, None, None]
+    }],
+    ["abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo#2,jklmnop#3", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": [{"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}],
+        "jklmnop": [None, None, None, None]
+    }]
+])
+def test_structured_row_data_0(columns, expected):
+    _test_structured_row_data(columns, expected)
 
 
 def test_flatten_schema_1():
