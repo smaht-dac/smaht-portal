@@ -42,9 +42,9 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
 
 
 def parse_structured_data(file: str, portal: Optional[PortalAny], novalidate: bool = False,
-                          sheet_utils: bool = False) -> Tuple[Optional[dict], Optional[List[str]]]:
+                          sheet_utils: bool = False, prune: bool = True) -> Tuple[Optional[dict], Optional[List[str]]]:
     if not sheet_utils:
-        structured_data = StructuredDataSet.load(file=file, portal=portal, order=ITEM_INDEX_ORDER)
+        structured_data = StructuredDataSet.load(file=file, portal=portal, order=ITEM_INDEX_ORDER, prune=prune)
     else:
         if isinstance(portal, Portal):
             portal = portal.vapp

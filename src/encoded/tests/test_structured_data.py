@@ -20,6 +20,11 @@ SAME_AS_EXPECTED_REFS = {}
 SAME_AS_NOREFS = {}
 
 
+def _load_json_from_file(file: str) -> dict:
+    with open(os.path.join(TEST_FILES_DIR, file)) as f:
+        return json.load(f)
+
+
 @pytest.mark.parametrize("kwargs", [  # test_parse_structured_data_parameterized
     # ----------------------------------------------------------------------------------------------
     {
@@ -557,8 +562,203 @@ SAME_AS_NOREFS = {}
         },
         "sheet_utils_also": False
     },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "abc.def,pqr,vw#.xy",
+            "alpha,1234,781"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [
+                {"abc": {"def": "alpha"}, "pqr": "1234", "vw": [{"xy": "781"}]}
+             ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "xyzzy#1",
+            "456"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [
+                {"xyzzy": [None, "456"]}
+             ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "xyzzy#2",
+            "456"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [
+            {"xyzzy": [None, None, "456"]}
+             ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "abc.def.ghi,xyzzy#2",
+            "123,456"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [
+                {"abc": {"def": {"ghi": "123"}}, "xyzzy": [None, None, "456"]}
+             ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "prufrock#",
+            "J.|Alfred|Prufrock"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [
+                {"prufrock": ["J.", "Alfred", "Prufrock"]}
+             ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "abc.def,pqr,vw#1.xy",
+            "alpha,1234,781"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [
+                {"abc": {"def": "alpha"}, "pqr": "1234", "vw": [{"xy": None}, {"xy": "781"}]}
+             ]
+        },
+        "prune": False,
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "abc.def,pqr,vw#.xy",
+            "alpha,1234,781"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [
+                {"abc": {"def": "alpha"}, "pqr": "1234", "vw": [{"xy": "781"}]}
+             ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "abc.def,pqr,vw#0.xy",
+            "alpha,1234,781"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [
+                {"abc": {"def": "alpha"}, "pqr": "1234", "vw": [{"xy": "781"}]}
+             ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "abc.def,pqr,vw#2.xy",
+            "alpha,1234,781"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [
+                {"abc": {"def": "alpha"}, "pqr": "1234", "vw": [{"xy": None}, {"xy": None}, {"xy": "781"}]}
+             ]
+        },
+        "prune": False,
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "vw#.xy.foo,simple_string",
+            "781,moby"
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [
+                {"vw": [{"xy": {"foo": "781"}}], "simple_string": "moby"}
+             ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "abc.def,pqr,vw#.xy",
+            "alpha,1234,781"
+        ],
+        "as_file_name": "some_type_one.csv",
+        "schemas": [_load_json_from_file("some_type_one.json")],
+        "expected": {
+            "SomeTypeOne" : [
+                {"abc": {"def": "alpha"}, "pqr": 1234, "vw": [{"xy": 781}]}
+             ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "vw#2.xy.foo",
+            "781"
+        ],
+        "as_file_name": "some_type_two.csv",
+        "schemas": [_load_json_from_file("some_type_two.json")],
+        "expected": {
+            "SomeTypeTwo" : [
+            {"vw": [
+                {"xy": {"foo": None}},
+                {"xy": {"foo": None}},
+                {"xy": {"foo": "781"}}
+            ]}
+             ]
+        },
+        "prune": False,
+        "sheet_utils_also": False
+    },
 ])
 def test_parse_structured_data_parameterized(kwargs):
+    _test_parse_structured_data(**kwargs)
+
+
+@pytest.mark.parametrize("kwargs", [  # test_parse_structured_data_parameterized
+    {
+    }
+])
+def test_parse_structured_data_parameterized_debug(kwargs):
     _test_parse_structured_data(**kwargs)
 
 
@@ -709,6 +909,7 @@ def _test_parse_structured_data(file: Optional[str] = None,
                                 noschemas: bool = False,
                                 novalidate: bool = False,
                                 schemas: Optional[List[dict]] = None,
+                                prune: bool = True,
                                 sheet_utils: bool = False,
                                 sheet_utils_also: bool = False,
                                 debug: bool = False) -> None:
@@ -737,7 +938,8 @@ def _test_parse_structured_data(file: Optional[str] = None,
 
         def call_parse_structured_data(file: str):
             nonlocal portal, novalidate, sheet_utils, debug
-            return parse_structured_data(file=file, portal=portal, novalidate=novalidate, sheet_utils=sheet_utils)
+            return parse_structured_data(file=file, portal=portal, novalidate=novalidate,
+                                         prune=True if prune is not False else False, sheet_utils=sheet_utils)
 
         nonlocal file, expected, expected_errors, noschemas, sheet_utils, debug
         portal = Portal.create_for_testing(schemas=schemas) if not noschemas else None  # But see mocked_schemas.
