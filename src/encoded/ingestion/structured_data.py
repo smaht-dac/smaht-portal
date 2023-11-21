@@ -189,7 +189,7 @@ class _StructuredRowData:
     def _parse_into_row_template(column_names: List[str]) -> dict:
 
         def parse_array_components(column: str, value: Optional[Any]) -> Tuple[Optional[str], Optional[List[Any]]]:
-            array = None
+            array = None  # Handle array of array here even though at the moment we do not handle this in general.
             while True:
                 array_name, array_index = _StructuredRowData._get_array_info(column)
                 if not array_name:
