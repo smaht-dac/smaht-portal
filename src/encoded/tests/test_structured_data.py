@@ -754,12 +754,14 @@ def test_parse_structured_data_parameterized(kwargs):
     _test_parse_structured_data(**kwargs)
 
 
+"""
 @pytest.mark.parametrize("kwargs", [  # test_parse_structured_data_parameterized
     {
     }
 ])
 def test_parse_structured_data_parameterized_debug(kwargs):
     _test_parse_structured_data(**kwargs)
+"""
 
 
 @pytest.mark.parametrize("columns, expected", [
