@@ -45,18 +45,20 @@ def test_workflow_post(workflow: Dict[str, Any]) -> None:
 @pytest.mark.parametrize(
     "ebs_size,expected_status",
     [
-        ("", 422),
-        ("twox", 422),
+        (5, 200),
         ("5", 200),
         ("5x", 200),
         ("5.5x", 200),
         ("55.55x", 200),
+        ("", 422),
+        ("twox", 422),
+        (5.5, 422),
     ]
 )
-def test_ebs_size_regex(
+def test_ebs_size(
     ebs_size: str, expected_status: int, testapp: TestApp, workflow: Dict[str, Any]
 ) -> None:
-    """Test EBS size regex matching properly."""
+    """Test EBS size matching type and regex, if string."""
     tibanna_config = workflow.get("tibanna_config", {})
     updated_tibanna_config = {**tibanna_config, "ebs_size": ebs_size}
     patch_body = {"tibanna_config": updated_tibanna_config}
