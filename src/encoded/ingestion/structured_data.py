@@ -138,10 +138,10 @@ class StructuredDataSet:
 class _StructuredRowData:
 
     def __init__(self, column_names: List[str]) -> None:
-        self._row_template = self._parse_into_row_template(column_names)
+        self.data = self._parse_into_row_template(column_names)
 
     def create_row(self) -> dict:
-        return copy.deepcopy(self._row_template)
+        return copy.deepcopy(self.data)
 
     @staticmethod
     def set_value(row: dict, column_name: str, value: str, schema: Optional[Schema], loc: int) -> None:
@@ -188,17 +188,22 @@ class _StructuredRowData:
     @staticmethod
     def _parse_into_row_template(column_names: List[str]) -> dict:
 
+        def parse_array_components(column: str, value: Optional[Any]) -> Tuple[Optional[str], Optional[List[Any]]]:
+            array = None
+            while True:
+                array_name, array_index = _StructuredRowData._get_array_info(column)
+                if not array_name:
+                    return column if array is not None else None, array
+                if array is None and value is None:
+                    array = [None for _ in range(array_index + 1)]
+                else:
+                    array = [(copy.deepcopy(value) if array is None else array) for _ in range(max(array_index + 1, 1))]
+                column = array_name
+
         def parse_components(column_name_components: List[str]) -> dict:
             value = parse_components(column_name_components[1:]) if len(column_name_components) > 1 else None
-            column_name_component = column_name_components[0]
-            array_name, array_index = _StructuredRowData._get_array_info(column_name_component)
-            if array_name:
-                array_length = array_index + 1 if array_index >= 0 else (0 if value is None else 1)
-                # Doing it the obvious way, like in the comment right below here, we get
-                # identical (shared) values; which we do not want; so do a real/deep copy.
-                # return {array_name: [value] * array_length}
-                return {array_name: [copy.deepcopy(value) for _ in range(array_length)]}
-            return {column_name_component: value}
+            array_name, array_value = parse_array_components(column_name_component := column_name_components[0], value)
+            return {array_name: array_value} if array_name else {column_name_component: value}
 
         structured_row_template = {}
         for column_name in column_names or []:
