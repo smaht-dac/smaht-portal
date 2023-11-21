@@ -482,7 +482,7 @@
 
 // HomePage ONLY
 body[data-path="/"]>#application>#layout {
-	background: linear-gradient(to bottom right, #FFFFFF, #E3FCFF);
+	background: top right no-repeat url('/static/img/Top Right Hexagons.svg'), 0% 95% no-repeat url('/static/img/Bottom Left Hexagons.svg'), linear-gradient(to bottom right, #FFFFFF, #E3FCFF);
 }
 .homepage-wrapper {
 
