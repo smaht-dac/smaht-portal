@@ -29,8 +29,11 @@ const CLTList = ({ list }) => {
                                     </Popover>
                                 }>
                                 <div>
-                                    <img src={item.iconSrc} />
-                                    {item.title}
+                                    <img
+                                        src={item.iconSrc}
+                                        alt={`${item.title} icon`}
+                                    />
+                                    <span>{item.title}</span>
                                 </div>
                             </OverlayTrigger>
                         </li>
@@ -39,8 +42,11 @@ const CLTList = ({ list }) => {
                     return (
                         <li key={i}>
                             <div>
-                                <img src={item.iconSrc} />
-                                {item.title}
+                                <img
+                                    src={item.iconSrc}
+                                    alt={`${item.title} icon`}
+                                />
+                                <span>{item.title}</span>
                             </div>
                         </li>
                     );
@@ -57,28 +63,28 @@ export const CLTCard = ({ currentTier }) => {
             header: 'Ectoderm Tissues',
             items: [
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Brain.svg',
                     title: 'Brain: 5 subregions',
                     benchmarking: true,
                     expansion: true,
                     production: true,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Sun-exposed skin.svg',
                     title: 'Sun-exposed skin',
                     benchmarking: true,
                     expansion: true,
                     production: true,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Non-exposed skin.svg',
                     title: 'Non-exposed skin',
                     benchmarking: true,
                     expansion: true,
                     production: true,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Adrenal Gland.svg',
                     title: 'Adrenal medulla',
                     benchmarking: false,
                     expansion: true,
@@ -90,35 +96,35 @@ export const CLTCard = ({ currentTier }) => {
             header: 'Mesoderm Tissues',
             items: [
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Heart.svg',
                     title: 'Heart',
                     benchmarking: false,
                     expansion: true,
                     production: true,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Adispose Tissue.svg',
                     title: 'Adispose Tissue',
                     benchmarking: false,
                     expansion: true,
                     production: true,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Blood.svg',
                     title: 'Blood',
                     benchmarking: false,
                     expansion: true,
                     production: true,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Skeletal Muscle.svg',
                     title: 'Skeletal Muscle',
                     benchmarking: false,
                     expansion: true,
                     production: true,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Aorta.svg',
                     title: 'Aorta',
                     benchmarking: false,
                     expansion: true,
@@ -130,35 +136,35 @@ export const CLTCard = ({ currentTier }) => {
             header: 'Endoderm Tissues',
             items: [
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Liver.svg',
                     title: 'Liver',
                     benchmarking: true,
                     expansion: true,
                     production: true,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Lung.svg',
                     title: 'Lung',
                     benchmarking: true,
                     expansion: true,
                     production: true,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Ascending Colon.svg',
                     title: 'Ascending Colon',
                     benchmarking: true,
                     expansion: true,
                     production: true,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Descending Colon.svg',
                     title: 'Descending Colon',
                     benchmarking: true,
                     expansion: true,
                     production: true,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Esophagus.svg',
                     title: 'Esophagus',
                     benchmarking: false,
                     expansion: true,
@@ -170,28 +176,28 @@ export const CLTCard = ({ currentTier }) => {
             header: 'Cell Line Mixtures',
             items: [
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
                     title: 'COLO829 Mixture',
                     benchmarking: true,
                     expansion: false,
                     production: false,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
                     title: 'HapMap Mixture',
                     benchmarking: true,
                     expansion: false,
                     production: false,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
                     title: 'iPSC & Fibroblast',
                     benchmarking: true,
                     expansion: false,
                     production: false,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
                     title: 'Descending Colon',
                     benchmarking: false,
                     expansion: false,
@@ -203,21 +209,21 @@ export const CLTCard = ({ currentTier }) => {
             header: 'Other Tissues',
             items: [
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Buccal Swab.svg',
                     title: 'Buccal Swab',
                     benchmarking: false,
                     expansion: true,
                     production: true,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Fibroblast.svg',
                     title: 'Skin Fibroblast',
                     benchmarking: false,
                     expansion: true,
                     production: true,
                 },
                 {
-                    iconSrc: '',
+                    iconSrc: '/static/img/anatomy-icons/Testes or Ovary.svg',
                     title: 'Testis / Ovary',
                     benchmarking: false,
                     expansion: true,
