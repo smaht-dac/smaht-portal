@@ -10,7 +10,7 @@ from dcicutils.bundle_utils import RefHint
 from dcicutils.misc_utils import to_camel_case
 from dcicutils.validation_utils import SchemaManager  # noqa
 from dcicutils.zip_utils import temporary_file
-from encoded.ingestion.structured_data import _get_type_name, Portal, Schema # noqa
+from encoded.ingestion.structured_data import Portal, Schema, _get_type_name, _StructuredRowData  # noqa
 from encoded.ingestion.ingestion_processors import parse_structured_data
 
 THIS_TEST_MODULE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -410,6 +410,137 @@ def test_parse_structured_data_12():
     )
 
 
+def test_structured_row_data_1():
+    _test_structured_row_data(
+        "abc", {
+            "abc": None
+        })
+    _test_structured_row_data(
+        "abc,def.ghi,jkl#.mnop#2.rs", {
+            "abc": None,
+            "def": {"ghi": None},
+            "jkl": [{"mnop": [{"rs": None}, {"rs": None}, {"rs": None}]}]
+        })
+    _test_structured_row_data(
+        "abc,def,ghi.jkl,mnop.qrs.tuv", {
+            "abc": None,
+            "def": None,
+            "ghi": {"jkl": None},
+            "mnop": {"qrs": {"tuv": None}}
+        })
+    _test_structured_row_data(
+        "abc,def,ghi.jkl,mnop.qrs.tuv", {
+            "abc": None,
+            "def": None,
+            "ghi": {"jkl": None},
+            "mnop": {"qrs": {"tuv": None}}
+        })
+    _test_structured_row_data(
+        "abc,def.ghi,jkl#", {
+            "abc": None,
+            "def": {"ghi": None},
+            "jkl": []
+        })
+    _test_structured_row_data(
+        "abc,def.ghi,jkl#.mnop", {
+            "abc": None,
+            "def": {"ghi": None},
+            "jkl": [{"mnop": None}]
+        })
+    _test_structured_row_data(
+        "abc,def.ghi,jkl#.mnop#", {
+            "abc": None,
+            "def": {"ghi": None},
+            "jkl": [{"mnop": []}]
+        })
+    _test_structured_row_data(
+        "abc,def.ghi,jkl#.mnop#2", {
+            "abc": None,
+            "def": {"ghi": None},
+            "jkl": [{"mnop": [None, None, None]}]
+        })
+    _test_structured_row_data(
+        "abc,def.ghi,jkl#.mnop#2.rs", {
+            "abc": None,
+            "def": {"ghi": None},
+            "jkl": [{"mnop": [{"rs": None}, {"rs": None}, {"rs": None}]}]
+        })
+    _test_structured_row_data(
+        "abc,def.ghi,jkl#.mnop#2.rs#.tuv", {
+            "abc": None,
+            "def": {"ghi": None},
+            "jkl": [{"mnop": [{"rs": [{"tuv": None}]}, {"rs": [{"tuv": None}]}, {"rs": [{"tuv": None}]}]}]
+        })
+    _test_structured_row_data(
+        "abc.def.ghi,xyzzy", {
+            "abc": {"def": {"ghi": None}},
+            "xyzzy": None
+        })
+    _test_structured_row_data(
+        "abc.def.ghi,xyzzy#,simple_string", {
+            "abc": {"def": {"ghi": None}},
+            "xyzzy": [],
+            "simple_string": None
+        })
+    _test_structured_row_data(
+        "abc.def.ghi,xyzzy#2", {
+            "abc": {"def": {"ghi": None}},
+            "xyzzy": [None, None, None]
+        })
+    _test_structured_row_data(
+        "abc.def.ghi,xyzzy#2,xyzzy#3", {
+            "abc": {"def": {"ghi": None}},
+            "xyzzy": [None, None, None, None]
+        })
+    _test_structured_row_data(
+        "abc.def.ghi,xyzzy#2,xyzzy#", {
+            "abc": {"def": {"ghi": None}},
+            "xyzzy": [None, None, None]
+        })
+    _test_structured_row_data(
+        "abc.def.ghi,xyzzy#2,xyzzy#0", {
+            "abc": {"def": {"ghi": None}},
+            "xyzzy": [None, None, None]
+        })
+    _test_structured_row_data(
+        "abc.def.ghi,xyzzy#2,xyzzy#1", {
+            "abc": {"def": {"ghi": None}},
+            "xyzzy": [None, None, None]
+        })
+    _test_structured_row_data(
+        "abc.def.ghi,xyzzy#2,xyzzy#1.foo", {
+            "abc": {"def": {"ghi": None}},
+            "xyzzy": [{"foo": None}, {"foo": None}, {"foo": None}]
+        })
+    _test_structured_row_data(
+        "abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo", {
+            "abc": {"def": {"ghi": None}},
+            "xyzzy": [{"foo": None, "goo": None}, {"foo": None, "goo": None}, {"foo": None, "goo": None}]
+        })
+    _test_structured_row_data(
+        "abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo#", {
+            "abc": {"def": {"ghi": None}},
+            "xyzzy": [{"foo": [], "goo": None}, {"foo": [], "goo": None}, {"foo": [], "goo": None}]
+        })
+    _test_structured_row_data(
+        "abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo#0", {
+            "abc": {"def": {"ghi": None}},
+            "xyzzy": [{"foo": [None], "goo": None}, {"foo": [None], "goo": None}, {"foo": [None], "goo": None}]
+        })
+    _test_structured_row_data(
+        "abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo#2,jklmnop#3", {
+            "abc": {"def": {"ghi": None}},
+            "xyzzy": [{"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}],
+            "jklmnop": [None, None, None, None]
+        })
+    _test_structured_row_data(
+        "abc.def.ghi,xyzzy#2.goo,xyzzy#1.foo#2,jklmnop#3", {
+            "abc": {"def": {"ghi": None}},
+            "xyzzy": [{"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}],
+            "jklmnop": [None, None, None, None]
+        })
+
+
 def test_flatten_schema_1():
     portal = Portal.create_for_testing()
     schema = Schema.load_by_name("reference_file", portal=portal)
@@ -590,3 +721,7 @@ def _get_schema_flat_typeinfo(schema: Schema):
         return type(map_function)
     return {key: {k: (map_function_name(v) if k == "map" and isinstance(v, Callable) else v)
                   for k, v in value.items()} for key, value in schema._typeinfo.items()}
+
+
+def _test_structured_row_data(columns: str, expected: Optional[dict]):
+    assert _StructuredRowData(columns.split(",")).data == expected
