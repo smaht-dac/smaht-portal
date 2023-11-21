@@ -47,6 +47,7 @@ def test_workflow_post(workflow: Dict[str, Any]) -> None:
     [
         ("", 422),
         ("twox", 422),
+        ("5", 200),
         ("5x", 200),
         ("5.5x", 200),
         ("55.55x", 200),
