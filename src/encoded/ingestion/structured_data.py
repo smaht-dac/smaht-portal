@@ -25,7 +25,7 @@ from snovault.loadxl import create_testapp
 # Alternate and semantically equivalent implementation of dcicutils.{sheet,bundle}_utils.
 # Spare time exercise, with benefit of sheet_utils implementation experience.
 
-ACCEPTABLE_FILE_SUFFIXES = [".csv", ".json", ".xls", ".xlsx", ".gz", ".tar", ".tar.gz", ".tgz", ".zip"]
+ACCEPTABLE_FILE_SUFFIXES = [".csv", ".tsv", ".json", ".xls", ".xlsx", ".gz", ".tar", ".tar.gz", ".tgz", ".zip"]
 ARRAY_VALUE_DELIMITER_CHAR = "|"
 ARRAY_VALUE_DELIMITER_ESCAPE_CHAR = "\\"
 ARRAY_NAME_SUFFIX_CHAR = "#"
@@ -81,7 +81,7 @@ class StructuredDataSet:
         return self._load_normal_file(file)
 
     def _load_normal_file(self, file: str) -> None:
-        if file.endswith(".csv"):
+        if file.endswith(".csv") or file.endswith(".tsv"):
             self._load_csv_file(file)
         elif file.endswith(".xls") or file.endswith(".xlsx"):
             self._load_excel_file(file)
@@ -478,7 +478,7 @@ class CsvReader(RowReader):
     def open(self) -> None:
         if self._file_handle is None:
             self._file_handle = open(self._file)
-            self._rows = csv.reader(self._file_handle)
+            self._rows = csv.reader(self._file_handle, delimiter="\t" if self._file.endswith(".tsv") else ",")
             self._define_header(right_trim(next(self._rows, [])))
 
     def __del__(self) -> None:
