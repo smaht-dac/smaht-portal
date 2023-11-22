@@ -24,63 +24,14 @@ def _load_json_from_file(file: str) -> dict:
     with open(os.path.join(TEST_FILES_DIR, file)) as f:
         return json.load(f)
 
+
 def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
+    # If any of the parameterized tests are marked as debug=True then only execute those.
     debug_kwargs = [kwarg for kwarg in kwargs if (kwarg.get("debug") is True)]
     return debug_kwargs or kwargs
 
+
 @pytest.mark.parametrize("kwargs", _pytest_kwargs([  # test_parse_structured_data_parameterized
-    {
-        "ignore": True,
-        "rows":  [
-            r"abc,def.ghi",
-            r"{},[]"
-        ],
-        "as_file_name": "test.csv",
-        "schemas": [
-            {
-                "title": "Test",
-                "properties": {
-                    "abc": {
-                        "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string",
-                             },
-                            "id": {
-                                "type": "integer",
-                             }
-                        }
-                    },
-                    "def": {
-                        "type": "object",
-                        "properties": {
-                            "ghi": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "foo": {
-                                        "type": "object",
-                                        "properties": {
-                                            "goo": {
-                                                "type": "integer"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                         }
-                    }
-                 }
-            }
-        ],
-        "expected": {
-            "Test": [
-                {
-                }
-            ]
-        }
-    },
-    # ----------------------------------------------------------------------------------------------
     {
         "rows":  [
             r"uuid,status,principals.view,principals.edit,extensions#,data",
@@ -821,6 +772,69 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         },
         "sheet_utils_also": False
     },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows":  [
+            "simplearray,someobj.ghi,abc",
+            "abc|def|ghi,[],{\"hello\": 1234}"
+        ],
+        "as_file_name": "test.csv",
+        "prune": False,
+        "schemas": [
+            {
+                "title": "Test",
+                "properties": {
+                    "abc": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                             },
+                            "id": {
+                                "type": "integer",
+                             }
+                        }
+                    },
+                    "someobj": {
+                        "type": "object",
+                        "properties": {
+                            "ghi": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "jkl": {
+                                        "type": "object",
+                                        "properties": {
+                                            "mno": {
+                                                "type": "integer"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                         }
+                    },
+                    "simplearray": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                 }
+            }
+        ],
+        "expected": {
+            "Test": [
+                {
+                    "simplearray": ["abc", "def", "ghi"],
+                    "abc": {"hello": 1234},
+                    "someobj": {
+                        "ghi": []
+                    }
+                }
+            ]
+        }
+    }
 ]))
 def test_parse_structured_data_parameterized(kwargs):
     _test_parse_structured_data(**kwargs)
@@ -1015,6 +1029,8 @@ def _test_parse_structured_data(file: Optional[str] = None,
 
         def call_parse_structured_data(file: str):
             nonlocal portal, novalidate, sheet_utils, debug
+            if debug:
+                pdb.set_trace()
             return parse_structured_data(file=file, portal=portal, novalidate=novalidate,
                                          prune=True if prune is not False else False, sheet_utils=sheet_utils)
 

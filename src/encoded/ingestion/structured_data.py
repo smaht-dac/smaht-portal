@@ -244,17 +244,7 @@ class Schema:
         if (map_value := self._typeinfo.get(column_name, {}).get("map")) is None:
             map_value = self._typeinfo.get(column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
         src = f"{self.name}{f'.{column_name}' if column_name else ''}{f' [{loc}]' if loc else ''}"
-        if EXPERIMENTAL:
-            # If no mapping found then assume see if the data looks like it contains actual/literal
-            # JSON and try to load that, as a sort of backdoor kind of thing to sneek in JSON in data.
-            if not map_value and ((value.startswith("{") and value.endswith("}")) or
-                                  (value.startswith("[") and value.endswith("]"))):
-                try:
-                    value = json.loads(value)
-                except:
-                    pass
-        # xyzzy
-        return map_value(value, src) if map_value else value
+        return map_value(value, src) if map_value else _load_json_if(value, is_object=True, is_array=True)
         
     def _map_function(self, typeinfo: dict) -> Optional[Callable]:
         MAP_FUNCTIONS = {
@@ -287,7 +277,7 @@ class Schema:
 
     def _map_function_array(self, typeinfo: dict) -> Callable:
         def map_array(value: str, array_type_map_function: Optional[Callable], src: Optional[str]) -> Any:
-            value = _split_array_string(value)
+            value = _split_array_string(value) if array_type_map_function else _load_json_if(value, is_array=True)
             return [array_type_map_function(value, src) for value in value] if array_type_map_function else value
         return lambda value, src: map_array(value, self._map_function(typeinfo), src)
 
@@ -590,6 +580,11 @@ class Portal:
             return Portal(create_testapp(ini_file), schemas=schemas)
 
 
+def _get_type_name(value: str) -> str:  # File or other name.
+    name = os.path.basename(value).replace(" ", "") if isinstance(value, str) else ""
+    return to_camel_case(name[0:dot] if (dot := name.rfind(".")) > 0 else name)
+
+
 def _split_dotted_string(value: str):
     return split_string(value, DOTTED_NAME_DELIMITER_CHAR)
 
@@ -598,6 +593,11 @@ def _split_array_string(value: str):
     return split_string(value, ARRAY_VALUE_DELIMITER_CHAR, ARRAY_VALUE_DELIMITER_ESCAPE_CHAR)
 
 
-def _get_type_name(value: str) -> str:  # File or other name.
-    name = os.path.basename(value).replace(" ", "") if isinstance(value, str) else ""
-    return to_camel_case(name[0:dot] if (dot := name.rfind(".")) > 0 else name)
+def _load_json_if(value: str, is_array: bool = False, is_object: bool = False) -> Optional[Any]:
+    if ((is_object and value.startswith("{") and value.endswith("}")) or
+        (is_array and value.startswith("[") and value.endswith("]"))) and EXPERIMENTAL:
+        try:
+            return json.loads(value)
+        except Exception:
+            pass
+    return value
