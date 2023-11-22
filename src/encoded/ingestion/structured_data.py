@@ -176,6 +176,8 @@ class _StructuredRowData:
                     row[name] = _split_array_string(row[name])
                 if len(row[name]) < array_index + 1:
                     row[name].extend([None] * (array_index + 1 - len(row[name])))
+                if value == [] and (default_value := schema.get_default_value(name)) is not None:
+                    value = [default_value]
                 row[name] = row[name][:array_index] + value + row[name][array_index + 1:]
             else:
                 row[name] = merge_objects(row.get(name), value)
@@ -223,6 +225,16 @@ class Schema:
         self.data = schema_json
         self.name = _get_type_name(schema_json.get("title", "")) if schema_json else ""
         self._portal = portal  # Needed only to resolve linkTo references.
+        self._types = {
+            "array": { "map": self._map_function_array, "default": [] },
+            "boolean": { "map": self._map_function_boolean, "default": False },
+            "enum": { "map": self._map_function_enum, "default": "" },
+            "integer": { "map": self._map_function_integer, "default": 0 },
+            "number": { "map": self._map_function_number, "default": 0.0 },
+            "string": { "map": self._map_function_string, "default": "" }
+        }
+        self._map = {key: value["map"] for key, value in self._types.items()}
+        self._defaults = {key: value["default"] for key, value in self._types.items()}
         self._typeinfo = self._compile_typeinfo(schema_json)
 
     @staticmethod
@@ -241,16 +253,16 @@ class Schema:
             map_value = self._typeinfo.get(column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
         src = f"{self.name}{f'.{column_name}' if column_name else ''}{f' [{loc}]' if loc else ''}"
         return map_value(value, src) if map_value else load_json_if(value, is_object=True, is_array=True)
+
+    def get_default_value(self, column_name: str) -> Optional[Any]:
+        return self._defaults.get(self._get_type(column_name))
+
+    def _get_type(self, column_name: str) -> Optional[str]:
+        if not (column_type := self._typeinfo.get(f"{column_name}")):
+            column_type = self._typeinfo.get(f"{column_name}{ARRAY_NAME_SUFFIX_CHAR}")
+        return column_type.get("type") if column_name else None
         
     def _map_function(self, typeinfo: dict) -> Optional[Callable]:
-        MAP_FUNCTIONS = {
-            "array": self._map_function_array,
-            "boolean": self._map_function_boolean,
-            "enum": self._map_function_enum,
-            "integer": self._map_function_integer,
-            "number": self._map_function_number,
-            "string": self._map_function_string
-        }
         if isinstance(typeinfo, dict) and (typeinfo_type := typeinfo.get("type")) is not None:
             if isinstance(typeinfo_type, list):
                 # The type specifier can actually be a list of acceptable types; for
@@ -258,7 +270,7 @@ class Schema:
                 # we will take the first one for which we have a mapping function.
                 # TODO: Maybe more correct to get all map function and map to any for values.
                 for acceptable_type in typeinfo_type:
-                    if (map_function := MAP_FUNCTIONS.get(acceptable_type)) is not None:
+                    if (map_function := self._map.get(acceptable_type)) is not None:
                         break
             elif not isinstance(typeinfo_type, str):
                 return None  # Invalid type specifier; ignore,
@@ -267,7 +279,7 @@ class Schema:
             elif isinstance(typeinfo.get("linkTo"), str):
                 map_function = self._map_function_ref
             else:
-                map_function = MAP_FUNCTIONS.get(typeinfo_type)
+                map_function = self._map.get(typeinfo_type)
             return map_function(typeinfo) if map_function else None
         return None
 

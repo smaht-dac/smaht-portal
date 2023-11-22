@@ -790,7 +790,47 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 }
             ]
         }
-    }
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "somearray,somearray#3,somearray#4",
+            "alice|bob|charley,,foobar|goobar"
+        ],
+        "as_file_name": "test.csv",
+        "schemas": [
+            {
+                "title": "Test",
+                "properties": {
+                    "somearray": { "type": "array", "items": { "type": "string" } }
+                }
+            }
+        ],
+        "expected": {
+            "Test" : [ {'somearray': ['alice', 'bob', 'charley', '', 'foobar', 'goobar']} ]
+        },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "somearray,somearray#3,somearray#4",
+            "123|456|789,,01|203"
+        ],
+        "as_file_name": "test.csv",
+        "schemas": [
+            {
+                "title": "Test",
+                "properties": {
+                    "somearray": { "type": "array", "items": { "type": "integer" } }
+                }
+            }
+        ],
+        "expected": {
+            "Test" : [ {'somearray': [123, 456, 789, 0, 1, 203]} ]
+        },
+        "sheet_utils_also": False
+    },
 ]))
 def test_parse_structured_data_parameterized(kwargs):
     _test_parse_structured_data(**kwargs)
