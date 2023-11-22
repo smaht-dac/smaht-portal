@@ -173,7 +173,6 @@ class _StructuredRowData:
                 value = _split_array_string(value)
             if array_name and array_index >= 0:
                 if isinstance(row[name], str):  # An array afterall e.g.: abc,abc#2
-                    import pdb ; pdb.set_trace()
                     row[name] = _split_array_string(row[name])
                 if len(row[name]) < array_index + 1:
                     row[name].extend([None] * (array_index + 1 - len(row[name])))
