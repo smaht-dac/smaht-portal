@@ -5,11 +5,12 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "title",
+        "identifier",
         "view_config"
     ],
     "identifyingProperties": [
         "aliases",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -18,13 +19,16 @@
             "$ref": "mixins.json#/aliases"
         },
         {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
             "$ref": "mixins.json#/description"
         },
         {
-            "$ref": "mixins.json#/modified"
+            "$ref": "mixins.json#/identifier"
         },
         {
-            "$ref": "mixins.json#/name"
+            "$ref": "mixins.json#/modified"
         },
         {
             "$ref": "mixins.json#/schema_version"

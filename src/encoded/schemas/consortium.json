@@ -8,6 +8,7 @@
     ],
     "identifyingProperties": [
         "aliases",
+		"identifier",
         "uuid"
     ],
     "additionalProperties": false,

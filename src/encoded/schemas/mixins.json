@@ -306,6 +306,17 @@
                         "description": "The input dimension increase from multiple runs of the source workflow (default: not set)",
                         "type": "integer"
                     },
+                    "gather_input": {
+                        "title": "Gather Input",
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "input_dimension": {
+                        "title": "Input Dimension",
+                        "description": "Extra input dimension other than that defined by scatter",
+                        "type": "integer",
+                        "minimum": 0
+                    },
                     "extra_dimension": {
                         "title": "Extra Dimension",
                         "description": "The extra input dimension increase other than that defined by gather (default: not set)",

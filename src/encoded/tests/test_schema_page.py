@@ -21,6 +21,11 @@ def page(testapp: TestApp, test_consortium: Dict[str, Any]) -> Dict[str, Any]:
     return post_item_and_return_location(testapp, item, "Page")
 
 
+def test_page_post(page: Dict[str, Any]) -> None:
+    """Ensure Page properties POST."""
+    pass
+
+
 @pytest.mark.parametrize(
     "identifier,expected_status",
     [
@@ -38,5 +43,6 @@ def page(testapp: TestApp, test_consortium: Dict[str, Any]) -> Dict[str, Any]:
 def test_identifier_pattern(
     identifier: str, expected_status: int, testapp: TestApp, page: Dict[str, Any]
 ) -> None:
+    """Test 'identifier' regex for URL pattern."""
     patch_body = {"identifier": identifier}
     patch_item(testapp, patch_body, page["uuid"], status=expected_status)

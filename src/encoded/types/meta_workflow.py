@@ -7,7 +7,6 @@ from .base import Item as SMAHTItem
 @collection(
     name='meta-workflows',
     acl=SUBMISSION_CENTER_MEMBER_CREATE_ACL,
-    unique_key='accession',
     properties={
         'title': 'MetaWorkflows',
         'description': 'Listing of MetaWorkflows',
