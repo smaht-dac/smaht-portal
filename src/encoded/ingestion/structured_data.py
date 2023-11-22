@@ -596,7 +596,7 @@ def _split_array_string(value: str):
 def _load_json_if(value: str, is_array: bool = False, is_object: bool = False) -> Optional[Any]:
     if ((is_object and value.startswith("{") and value.endswith("}")) or
         (is_array and value.startswith("[") and value.endswith("]"))) and EXPERIMENTAL:
-        try:
+        try:  # A sort of back door to allow specifying actual JSON for values if no mapping.
             return json.loads(value)
         except Exception:
             pass
