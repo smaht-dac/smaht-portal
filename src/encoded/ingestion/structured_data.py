@@ -357,9 +357,9 @@ class Schema:
         if (properties := schema_json.get("properties")) is None:
             if parent_key:
                 if (schema_type := schema_json.get("type")) is None:
-                    raise Exception(f"Array of undefined type in JSON schema NOT supported: {parent_key}")
+                    schema_type = "string"  # Undefined array type; should not happen; just make it a string.
                 if schema_type == "array":
-                    raise Exception(f"Array of array in JSON schema NOT supported: {parent_key}")
+                    parent_key += ARRAY_NAME_SUFFIX_CHAR
                 result[parent_key] = {"type": schema_type, "map": self._map_function_array(schema_json)}
             return result
         for property_key, property_value in properties.items():
