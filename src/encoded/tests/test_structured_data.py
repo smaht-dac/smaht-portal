@@ -774,69 +774,18 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "debug": True,
         "rows": [
-            "simplearray\tsomeobj.ghi\tabc\tarrayofarray\tsimplearray#1",
-            "abc|def|ghi\t[{\"jkl\": \"xyz\"}]\t{\"hello\": 1234}\t[[\"j.\", \"alfred\", \"prufrock\"]]\thello"
+            "simplearray#4\tsimplearray\tsomeobj.ghi\tabc\tarrayofarray\tsimplearray#3",
+            "hello\tabc|def|ghi\t[{\"jkl\": \"xyz\"}]\t{\"hello\": 1234}\t[[\"j.\", \"alfred\", \"prufrock\"]]\tbyebye"
         ],
         "as_file_name": "test.tsv",
-        "schemas": [
-            {
-                "title": "Test",
-                "properties": {
-                    "abc": {
-                        "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string",
-                             },
-                            "id": {
-                                "type": "integer",
-                             }
-                        }
-                    },
-                    "someobj": {
-                        "type": "object",
-                        "properties": {
-                            "ghi": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "jkl": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                         }
-                    },
-                    "simplearray": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "arrayofarray": {
-                        "type": "array",
-                        "items": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                             }
-                        }
-                    }
-                 }
-            }
-        ],
+        "schemas": [_load_json_from_file("some_type_three.json")],
         "expected": {
             "Test": [
                 {
-                    "simplearray": ["abc", "hello", "ghi"],
+                    "simplearray": ["abc", "def", "ghi", "byebye", "hello"],
                     "abc": {"hello": 1234},
-                    "someobj": {
-                        "ghi": [{"jkl": "xyz"}]
-                    },
+                    "someobj": { "ghi": [{"jkl": "xyz"}] },
                     "arrayofarray": [["j.", "alfred", "prufrock"]]
                 }
             ]
@@ -955,6 +904,15 @@ def test_parse_structured_data_parameterized(kwargs):
     }]
 ])
 def test_structured_row_data_0(columns, expected):
+    _test_structured_row_data(columns, expected)
+
+@pytest.mark.parametrize("columns, expected", [
+    ["abc.def.ghi,xyzzy#2,xyzzy#", {
+        "abc": {"def": {"ghi": None}},
+        "xyzzy": [None, None, None]
+    }]
+])
+def test_structured_row_data_debugging(columns, expected):
     _test_structured_row_data(columns, expected)
 
 
@@ -1146,4 +1104,6 @@ def _get_schema_flat_typeinfo(schema: Schema):
 
 
 def _test_structured_row_data(columns: str, expected: Optional[dict]):
+    if _StructuredRowData(columns.split(",")).data != expected:
+        import pdb ; pdb.set_trace()
     assert _StructuredRowData(columns.split(",")).data == expected

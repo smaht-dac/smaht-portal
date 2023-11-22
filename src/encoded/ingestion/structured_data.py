@@ -178,7 +178,7 @@ class _StructuredRowData:
                     row[name].extend([None] * (array_index + 1 - len(row[name])))
                 row[name] = row[name][:array_index] + value + row[name][array_index + 1:]
             else:
-                row[name] = value
+                row[name] = merge_objects(row.get(name), value)
 
         setv(row, _split_dotted_string(column_name))
 
