@@ -284,7 +284,7 @@ class Schema:
 
     def _map_function_enum(self, typeinfo: dict) -> Callable:
         def map_enum(value: str, enum_specifiers: dict, src: Optional[str]) -> Any:
-            return to_enum(value, enum_specifiers) or value
+            return to_enum(value, enum_specifiers)
         return lambda value, src: map_enum(value, typeinfo.get("enum", []), src)
 
     def _map_function_integer(self, typeinfo: dict) -> Callable:
