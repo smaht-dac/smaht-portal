@@ -190,13 +190,13 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "noschemas": True,
         "as_file_name": "easy_test2.csv",
         "rows": [
             r"abcdef,ghi.jk,l,mno#,ghi.xyzzy,mno#2",
             r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one,october",
             r"golf,hotel,456,juliet|kilo|lima,xyzzy:two,november"
         ],
+        "noschemas": True,
         "expected": {
             "EasyTest2": [
                 {
@@ -230,13 +230,13 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "noschemas": True,
-        "as_file_name": "easy_test3.csv",
         "rows": [
             r"abcdef,ghi.jk,l,mno#,ghi.xyzzy,mno#2",
             r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one,october",
             r"golf,hotel,456,juliet|kilo|lima,xyzzy:two,november"
         ],
+        "as_file_name": "easy_test3.csv",
+        "noschemas": True,
         "expected": {
             "EasyTest3": [
                 {
