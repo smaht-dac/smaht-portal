@@ -774,9 +774,10 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
+        "debug": True,
         "rows": [
-            "simplearray\tsomeobj.ghi\tabc\tarrayofarray",
-            "abc|def|ghi\t[{\"jkl\": \"xyz\"}]\t{\"hello\": 1234}\t[[\"inner\"]]"
+            "simplearray\tsomeobj.ghi\tabc\tarrayofarray\tsimplearray#1",
+            "abc|def|ghi\t[{\"jkl\": \"xyz\"}]\t{\"hello\": 1234}\t[[\"j.\", \"alfred\", \"prufrock\"]]\thello"
         ],
         "as_file_name": "test.tsv",
         "schemas": [
@@ -831,12 +832,12 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         "expected": {
             "Test": [
                 {
-                    "simplearray": ["abc", "def", "ghi"],
+                    "simplearray": ["abc", "hello", "ghi"],
                     "abc": {"hello": 1234},
                     "someobj": {
                         "ghi": [{"jkl": "xyz"}]
                     },
-                    "arrayofarray": [["inner"]]
+                    "arrayofarray": [["j.", "alfred", "prufrock"]]
                 }
             ]
         }
