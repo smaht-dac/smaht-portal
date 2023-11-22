@@ -31,6 +31,7 @@ ARRAY_VALUE_DELIMITER_ESCAPE_CHAR = "\\"
 ARRAY_NAME_SUFFIX_CHAR = "#"
 ARRAY_NAME_SUFFIX_REGEX = re.compile(rf"{ARRAY_NAME_SUFFIX_CHAR}\d+")
 DOTTED_NAME_DELIMITER_CHAR = "."
+EXPERIMENTAL = True
 
 # Forward type references for type hints.
 Portal = Type["Portal"]
@@ -243,6 +244,16 @@ class Schema:
         if (map_value := self._typeinfo.get(column_name, {}).get("map")) is None:
             map_value = self._typeinfo.get(column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
         src = f"{self.name}{f'.{column_name}' if column_name else ''}{f' [{loc}]' if loc else ''}"
+        if EXPERIMENTAL:
+            # If no mapping found then assume see if the data looks like it contains actual/literal
+            # JSON and try to load that, as a sort of backdoor kind of thing to sneek in JSON in data.
+            if not map_value and ((value.startswith("{") and value.endswith("}")) or
+                                  (value.startswith("[") and value.endswith("]"))):
+                try:
+                    value = json.loads(value)
+                except:
+                    pass
+        # xyzzy
         return map_value(value, src) if map_value else value
         
     def _map_function(self, typeinfo: dict) -> Optional[Callable]:

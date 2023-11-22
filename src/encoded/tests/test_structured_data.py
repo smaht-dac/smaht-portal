@@ -24,8 +24,62 @@ def _load_json_from_file(file: str) -> dict:
     with open(os.path.join(TEST_FILES_DIR, file)) as f:
         return json.load(f)
 
+def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
+    debug_kwargs = [kwarg for kwarg in kwargs if (kwarg.get("debug") is True)]
+    return debug_kwargs or kwargs
 
-@pytest.mark.parametrize("kwargs", [  # test_parse_structured_data_parameterized
+@pytest.mark.parametrize("kwargs", _pytest_kwargs([  # test_parse_structured_data_parameterized
+    {
+        "ignore": True,
+        "rows":  [
+            r"abc,def.ghi",
+            r"{},[]"
+        ],
+        "as_file_name": "test.csv",
+        "schemas": [
+            {
+                "title": "Test",
+                "properties": {
+                    "abc": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                             },
+                            "id": {
+                                "type": "integer",
+                             }
+                        }
+                    },
+                    "def": {
+                        "type": "object",
+                        "properties": {
+                            "ghi": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "foo": {
+                                        "type": "object",
+                                        "properties": {
+                                            "goo": {
+                                                "type": "integer"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                         }
+                    }
+                 }
+            }
+        ],
+        "expected": {
+            "Test": [
+                {
+                }
+            ]
+        }
+    },
     # ----------------------------------------------------------------------------------------------
     {
         "rows":  [
@@ -767,7 +821,7 @@ def _load_json_from_file(file: str) -> dict:
         },
         "sheet_utils_also": False
     },
-])
+]))
 def test_parse_structured_data_parameterized(kwargs):
     _test_parse_structured_data(**kwargs)
 
@@ -932,8 +986,11 @@ def _test_parse_structured_data(file: Optional[str] = None,
                                 prune: bool = True,
                                 sheet_utils: bool = False,
                                 sheet_utils_also: bool = False,
+                                ignore: bool = False,
                                 debug: bool = False) -> None:
 
+    if ignore:
+        return
     if not file and as_file_name:
         file = as_file_name
     if not file and not rows:
