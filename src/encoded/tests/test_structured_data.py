@@ -831,6 +831,36 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         },
         "sheet_utils_also": False
     },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "arrayofarrayofobject",
+            "[[{\"name\": \"prufrock\", \"id\": 1234}]]"
+        ],
+        "as_file_name": "test.tsv",
+        "schemas": [
+            {
+                "title": "Test",
+                "properties": {
+                    "arrayofarrayofobject": {
+                        "type": "array",
+                        "items": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": { "type": "string" },
+                                    "id": { "type": "integer" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "expected": { "Test" : [ {"arrayofarrayofobject": [[{"name": "prufrock", "id": 1234}]]} ] },
+        "sheet_utils_also": False
+    },
 ]))
 def test_parse_structured_data_parameterized(kwargs):
     _test_parse_structured_data(**kwargs)
@@ -1024,6 +1054,8 @@ def _test_parse_structured_data(file: Optional[str] = None,
 
         def call_parse_structured_data(file: str):
             nonlocal portal, novalidate, sheet_utils, debug
+            if debug:
+                import pdb ; pdb.set_trace()
             return parse_structured_data(file=file, portal=portal, novalidate=novalidate,
                                          prune=True if prune is not False else False, sheet_utils=sheet_utils)
 

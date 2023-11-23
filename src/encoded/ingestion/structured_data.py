@@ -260,7 +260,7 @@ class Schema:
     def _get_type(self, column_name: str) -> Optional[str]:
         if not (column_type := self._typeinfo.get(f"{column_name}")):
             column_type = self._typeinfo.get(f"{column_name}{ARRAY_NAME_SUFFIX_CHAR}")
-        return column_type.get("type") if column_name else None
+        return column_type.get("type") if column_type else None
         
     def _map_function(self, typeinfo: dict) -> Optional[Callable]:
         if isinstance(typeinfo, dict) and (typeinfo_type := typeinfo.get("type")) is not None:
@@ -284,9 +284,9 @@ class Schema:
         return None
 
     def _map_function_array(self, typeinfo: dict) -> Callable:
-        def map_array(value: str, array_type_map_function: Optional[Callable], src: Optional[str]) -> Any:
-            value = _split_array_string(value) if array_type_map_function else load_json_if(value, is_array=True)
-            return [array_type_map_function(value, src) for value in value] if array_type_map_function else value
+        def map_array(value: str, array_type_map_value: Optional[Callable], src: Optional[str]) -> Any:
+            value = _split_array_string(value) if array_type_map_value else load_json_if(value, is_array=True)
+            return [array_type_map_value(value, src) for value in value] if array_type_map_value else value
         return lambda value, src: map_array(value, self._map_function(typeinfo), src)
 
     def _map_function_boolean(self, typeinfo: dict) -> Callable:
