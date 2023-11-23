@@ -158,7 +158,7 @@ class _StructuredRowData:
                 return
 
             column_name_component = column_name_components[0]
-            array_name, array_index = _StructuredRowData._get_array_info(column_name_component)
+            array_name, array_index = _StructuredRowData._get_base_array_info(column_name_component)
             name = array_name if array_name else column_name_component
             if len(column_name_components) > 1:
                 if not isinstance(row[name], dict) and not isinstance(row[name], list):
@@ -188,7 +188,7 @@ class _StructuredRowData:
     def _parse_into_row_template(column_names: List[str]) -> dict:
 
         def parse_array_components(column: str, value: Optional[Any]) -> Tuple[Optional[str], Optional[List[Any]]]:
-            array = None  # Handle array of array here even though at the moment we do not handle this in general.
+            array = None  # Handle array of array here even though we don't in general.
             while True:
                 array_name, array_index = _StructuredRowData._get_array_info(column)
                 if not array_name:
@@ -217,6 +217,15 @@ class _StructuredRowData:
             if (array_index := to_integer(array_index)) is not None:
                 return name[0:array_indicator_position], array_index
         return None, None
+
+    @staticmethod
+    def _get_base_array_info(name: str) -> Tuple[Optional[str], Optional[int]]:
+        while True:
+            array_name, array_index = _StructuredRowData._get_array_info(name)
+            if not array_name or not array_name.endswith(ARRAY_NAME_SUFFIX_CHAR):
+                break
+            name = array_name
+        return array_name, array_index
 
 
 class Schema:
@@ -384,11 +393,14 @@ class Schema:
                 result.update(self._compile_typeinfo(property_value, parent_key=key))
                 continue
             if property_value_type == "array":
-                key += ARRAY_NAME_SUFFIX_CHAR
-                if not isinstance(array_property_items := property_value.get("items"), dict):
-                    if array_property_items is None or isinstance(array_property_items, list):
-                        raise Exception(f"Array of undefined or multiple types in JSON schema NOT supported: {key}")
-                    raise Exception(f"Invalid array type specifier in JSON schema: {key}")
+                while property_value_type == "array":  # Handle array of array here even though we don't in general.
+                    if not isinstance((array_property_items := property_value.get("items")), dict):
+                        if array_property_items is None or isinstance(array_property_items, list):
+                            raise Exception(f"Array of undefined or multiple types in JSON schema NOT supported: {key}")
+                        raise Exception(f"Invalid array type specifier in JSON schema: {key}")
+                    key = key + ARRAY_NAME_SUFFIX_CHAR
+                    property_value = array_property_items
+                    property_value_type = property_value.get("type")
                 result.update(self._compile_typeinfo(array_property_items, parent_key=key))
                 continue
             result[key] = {"type": property_value_type, "map": self._map_function({**property_value, "column": key})}

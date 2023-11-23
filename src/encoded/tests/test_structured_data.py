@@ -861,6 +861,138 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         "expected": { "Test" : [ {"arrayofarrayofobject": [[{"name": "prufrock", "id": 1234}]]} ] },
         "sheet_utils_also": False
     },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "arrayofobject",
+            "[{\"name\": \"prufrock\", \"id\": 1234}]"
+        ],
+        "as_file_name": "test.tsv",
+        "schemas": [
+            {
+                "title": "Test",
+                "properties": {
+                    "arrayofobject": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": { "type": "string" },
+                                "id": { "type": "integer" }
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "expected": { "Test" : [ {"arrayofobject": [{"name": "prufrock", "id": 1234}]} ] },
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "arrayofobject#.name,arrayofobject#.id",
+            "anastasiia,1234"
+        ],
+        "as_file_name": "test.csv",
+        "schemas": [
+            {
+                "title": "Test",
+                "properties": {
+                    "arrayofobject": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": { "type": "string" },
+                                "id": { "type": "integer" }
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "expected": {"Test" : [{"arrayofobject": [{"name": "anastasiia", "id": 1234}]}]},
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "arrayofarrayofobject##.name,arrayofarrayofobject##.id",
+            "anastasiia,1234"
+        ],
+        "as_file_name": "test.csv",
+        "schemas": [
+            {
+                "title": "Test",
+                "properties": {
+                    "arrayofarrayofobject": {
+                        "type": "array",
+                        "items": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": { "type": "string" },
+                                    "id": { "type": "integer" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "expected": {"Test" : [{"arrayofarrayofobject": [[{"name": "anastasiia", "id": 1234}]]}]},
+        "sheet_utils_also": False
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "ignore": True,
+        "rows": [
+            "arrayofarrayofobject##.name,arrayofarrayofobject##.id,arrayofarrayofobject##1.name,arrayofarrayofobject##1.id",
+            "anastasiia,1234,olha,5678"
+        ],
+        "as_file_name": "test.csv",
+        "schemas": [
+            {
+                "title": "Test",
+                "properties": {
+                    "arrayofarrayofobject": {
+                        "type": "array",
+                        "items": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": { "type": "string" },
+                                    "id": { "type": "integer" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "expected": {
+            "Test" : [
+                {
+                    "arrayofarrayofobject": [
+                        [
+                            {
+                                "name": "anastasiia",
+                                "id": 1234
+                            },
+                            {
+                                "name": "olha",
+                                "id": 5678
+                            }
+                        ]
+                    ]
+                }
+            ]
+        },
+        "sheet_utils_also": False
+    },
 ]))
 def test_parse_structured_data_parameterized(kwargs):
     _test_parse_structured_data(**kwargs)
