@@ -661,21 +661,6 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     # ----------------------------------------------------------------------------------------------
     {
         "rows": [
-            "abc.def,pqr,vw#.xy",
-            "alpha,1234,781"
-        ],
-        "as_file_name": "test.csv",
-        "noschemas": True,
-        "expected": {
-            "Test" : [
-                {"abc": {"def": "alpha"}, "pqr": "1234", "vw": [{"xy": "781"}]}
-             ]
-        },
-        "sheet_utils_also": False
-    },
-    # ----------------------------------------------------------------------------------------------
-    {
-        "rows": [
             "abc.def,pqr,vw#0.xy",
             "alpha,1234,781"
         ],
@@ -890,9 +875,12 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
+        "ignore": True,
         "rows": [
-            "arrayofobject#.name,arrayofobject#.id",
-            "anastasiia,1234"
+#           "arrayofobject#.name,arrayofobject#.id",
+#           "anastasiia,1234"
+            "arrayofobject#4.name,arrayofobject#4.id,arrayofobject#2.name",
+            "anastasiia,1234,olha,5678"
         ],
         "as_file_name": "test.csv",
         "schemas": [

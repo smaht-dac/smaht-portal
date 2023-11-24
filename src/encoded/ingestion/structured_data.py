@@ -145,6 +145,7 @@ class _StructuredRowData:
 
         def setv(row: Union[dict, list], column_name_components: List[str], parent_array_index: int = -1) -> None:
 
+            #import pdb ; pdb.set_trace()
             if not column_name_components:
                 return
             if isinstance(row, list):
