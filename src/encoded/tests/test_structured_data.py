@@ -59,7 +59,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 }
             ]
         },
-        "sheet_utils_also": True
+        "sheet_utils_also": False
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -137,13 +137,13 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             ]
         },
         "noschemas": True,
-        "sheet_utils_also": True
+        "sheet_utils_also": False
     },
     # ----------------------------------------------------------------------------------------------
     {
         "as_file_name": "easy_test2.csv",
         "rows": [
-            r"abcdef,ghi.jk,l,mno#,ghi.xyzzy,mno#2",
+            r"abcdef,ghi.jk,l,mno#,ghi.xyzzy,mno#2",  # TODO: fail if mno.#0 instead of mno.#
             r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one,october",
             r"golf,hotel,456,juliet|kilo|lima,xyzzy:two,november"
         ],
@@ -182,7 +182,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     # ----------------------------------------------------------------------------------------------
     {
         "rows": [
-            r"abcdef,ghi.jk,l,mno#,ghi.xyzzy,mno#2",
+            r"abcdef,ghi.jk,l,mno#,ghi.xyzzy,mno#2",  # TODO: fail if mno.#0 instead of mno.#
             r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one,october",
             r"golf,hotel,456,juliet|kilo|lima,xyzzy:two,november"
         ],
@@ -483,7 +483,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     # ----------------------------------------------------------------------------------------------
     {
         "rows": [
-            "abc#,abc#1",
+            "abc#,abc#1",  # TODO: fail if abc#.0 rather than abc#
             "alice|bob|charley,foobar|goobar"
         ],
         "as_file_name": "test.csv",
@@ -498,7 +498,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     # ----------------------------------------------------------------------------------------------
     {
         "rows": [
-            "abc#,abc#",
+            "abc#,abc#",  # TODO: fail if abce#0 rather than abce#
             "alice|bob|charley,foobar|goobar"
         ],
         "as_file_name": "test.csv",
@@ -528,7 +528,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     # ----------------------------------------------------------------------------------------------
     {
         "rows": [
-            "other_allowed_extensions#,other_allowed_extensions#4",
+            "other_allowed_extensions#,other_allowed_extensions#4",  # TODO: fail if other_allowed_extensions#0 rather than other_allowed_extensions#
             "alice|bob|charley,foobar|goobar"
         ],
         "as_file_name": "test.csv",
