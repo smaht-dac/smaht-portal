@@ -1091,6 +1091,49 @@ def test_parse_structured_data_parameterized(kwargs):
         "abc": {"def": {"ghi": None}},
         "xyzzy": [{"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}, {"foo": [None, None, None], "goo": None}],
         "jklmnop": [None, None, None, None]
+    }],
+    ["abc#", {
+        "abc": []
+    }],
+    ["abc#0", {
+        "abc": [None]
+    }],
+    ["abc##", {
+        "abc": [[]]
+    }],
+    ["abc###", {
+        "abc": [[[]]]
+    }],
+    ["abc#0#", {
+        "abc": [[]]
+    }],
+    ["abc##0", {
+        "abc": [[None]]
+    }],
+    ["abc#1#", {
+        "abc": [[], []]
+    }],
+    ["abc#.name", {
+        "abc": [{"name": None}]
+    }],
+    ["abc#0.name", {
+        "abc": [{"name": None}]
+    }],
+    ["abc#1#2", {
+       "abc": [[None, None, None], [None, None, None]]
+    }],
+    ["abc#1#2.id", {
+       "abc": [[{"id": None}, {"id": None}, {"id": None}], [{"id": None}, {"id": None}, {"id": None}]]
+    }],
+    ["abc#1#2.id#", {
+       "abc": [[{"id": []}, {"id": []}, {"id": []}], [{"id": []}, {"id": []}, {"id": []}]]
+    }],
+    ["abc#1#2.id#1", {
+       "abc": [[{"id": [None, None]}, {"id": [None, None]}, {"id": [None, None]}], [{"id": [None, None]}, {"id": [None, None]}, {"id": [None, None]}]]
+    }],
+    ["abc#1#2.id#1.name", {
+       "abc": [[{"id": [{"name": None}, {"name": None}]}, {"id": [{"name": None}, {"name": None}]}, {"id": [{"name": None}, {"name": None}]}],
+               [{"id": [{"name": None}, {"name": None}]}, {"id": [{"name": None}, {"name": None}]}, {"id": [{"name": None}, {"name": None}]}]]
     }]
 ])
 def test_structured_row_data_0(columns, expected):
