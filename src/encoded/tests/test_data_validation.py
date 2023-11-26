@@ -12,7 +12,7 @@ def test_validate_data_against_schemas_okay():
       "file_format": [
         {
           "uuid": "c72926d4-7c47-41df-b678-58938eaa1000",
-          "status": "shared",
+          "status": "released",
           "description": "Tabix index file of vcf, compressed",
           "identifier": "vcf_gz_tbi",
           "consortia": [
@@ -28,7 +28,7 @@ def test_validate_data_against_schemas_okay():
           "identifier": "txt",
           "standard_file_extension": "txt",
           "description": "This format is used for aligned reads",
-          "status": "shared",
+          "status": "released",
           "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
           ],
@@ -45,7 +45,7 @@ def test_validate_data_against_schemas_okay():
           "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
           ],
-          "status": "shared",
+          "status": "released",
           "description": "vcf, compressed",
           "standard_file_extension": "vcf.gz",
           "other_allowed_extensions": [
@@ -67,7 +67,7 @@ def test_validate_data_against_schemas_missing_property():
           "uuid": "c72926d4-7c47-41df-b678-58938eaa3f75",
           "identifier": "txt",
           "description": "This format is used for aligned reads",
-          "status": "shared",
+          "status": "released",
           "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
           ],
@@ -90,7 +90,7 @@ def test_validate_data_against_schemas_missing_any_of_properties():
           "uuid": "c72926d4-7c47-41df-b678-58938eaa3f75",
           "identifier": "txt",
           "description": "This format is used for aligned reads",
-          "status": "shared",
+          "status": "released",
           "standard_file_extension": "vcf.gz.tbi",
         }
       ]
@@ -110,7 +110,7 @@ def test_validate_data_against_schemas_extraneous_property():
       "file_format": [
         {
           "uuid": "c72926d4-7c47-41df-b678-58938eaa3f75",
-          "status": "shared",
+          "status": "released",
           "description": "Tabix index file of vcf, compressed",
           "identifier": "vcf_gz_tbi",
           "consortia": [

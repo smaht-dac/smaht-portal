@@ -5,6 +5,7 @@
     "type": "object",
     "required": [],
     "identifyingProperties": [
+        "access_key_id",
         "uuid"
     ],
     "additionalProperties": false,
