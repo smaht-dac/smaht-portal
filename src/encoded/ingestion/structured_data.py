@@ -141,29 +141,68 @@ class _StructuredRowData:
         return copy.deepcopy(self.data)
 
     @staticmethod
-    def set_value(row: dict, column_name: str, value: str, schema: Optional[Schema], loc: int) -> None:
+    def set_value(data: dict, column_name: str, value: str, schema: Optional[Schema], loc: int) -> None:
 
-        def setv(row: Union[dict, list], column_name_components: List[str], parent_array_index: int = -1) -> None:
+        if schema:
+            value = schema.map_value(value, column_name, loc)
+
+        def setv(data: Union[dict, list], column_name_components: List[str], parent_array_index: int = -1) -> None:
+
+            nonlocal column_name, value, schema, loc
+
+            if not column_name_components or not isinstance(data, dict):
+                return
+            column_name_component = column_name_components[0]
+
+            array_name, array_indices = _StructuredRowData._get_array_indices(column_name_component)
+            if array_name:
+                if not isinstance(array_data := data[array_name], list):
+                    array_data = data[array_name] = _split_array_string(array_data)
+                for array_index in array_indices[:-1]:
+                    array_data = array_data[max(array_index, 0)]
+                last_array_index = array_indices[-1]
+                array_index = max(last_array_index, 0)
+                if len(array_data) > array_index and isinstance(array_data[array_index := max(last_array_index, 0)], dict):
+                    setv(array_data[array_index], column_name_components[1:])
+                elif (last_array_index := array_indices[-1]) == -1:
+                    array_data[:] = value if schema and isinstance(value, list) else _split_array_string(value)
+                else:
+                    if len(array_data) <= array_index:
+                        array_data.extend([None] * ((array_index + 1) - len(array_data)))
+                    array_data[array_index] = value[0] if schema and isinstance(value, list) and value else value
+            elif len(column_name_components) > 1:
+                setv(data[column_name_component], column_name_components[1:])
+            elif isinstance(data[column_name_component], list):
+                data[column_name_component] = value if schema and isinstance(value, list) else _split_array_string(value)
+            else:
+                data[column_name_component] = value
+
+        setv(data, _split_dotted_string(column_name))
+
+    @staticmethod
+    def _old_set_value(data: dict, column_name: str, value: str, schema: Optional[Schema], loc: int) -> None:
+
+        def setv(data: Union[dict, list], column_name_components: List[str], parent_array_index: int = -1) -> None:
 
             if not column_name_components:
                 return
-            if isinstance(row, list):
+            if isinstance(data, list):
                 if parent_array_index < 0:
-                    for row_item in row:
+                    for row_item in data:
                         setv(row_item, column_name_components)
                 else:
-                    setv(row[parent_array_index], column_name_components)
+                    setv(data[parent_array_index], column_name_components)
                 return
-            if not isinstance(row, dict):
+            if not isinstance(data, dict):
                 return
 
             column_name_component = column_name_components[0]
-            array_name, array_index = _StructuredRowData._get_base_array_info(column_name_component)
+            array_name, array_index = _StructuredRowData._old_get_base_array_info(column_name_component)
             name = array_name if array_name else column_name_component
             if len(column_name_components) > 1:
-                if not isinstance(row[name], dict) and not isinstance(row[name], list):
-                    row[name] = {}
-                setv(row[name], column_name_components[1:], parent_array_index=array_index)
+                if not isinstance(data[name], dict) and not isinstance(data[name], list):
+                    data[name] = {}  # TODO: Nothing seems to get here.
+                setv(data[name], column_name_components[1:], parent_array_index=array_index)
                 return
 
             nonlocal column_name, value, schema, loc
@@ -172,32 +211,32 @@ class _StructuredRowData:
             if array_name and isinstance(value, str):
                 value = _split_array_string(value)
             if array_name and array_index >= 0:
-                if isinstance(row[name], str):  # An array afterall e.g.: abc,abc#2
-                    row[name] = _split_array_string(row[name])
-                if len(row[name]) < array_index + 1:
-                    row[name].extend([None] * (array_index + 1 - len(row[name])))
+                if isinstance(data[name], str):  # An array afterall e.g.: abc,abc#2
+                    data[name] = _split_array_string(data[name])
+                if len(data[name]) < array_index + 1:
+                    data[name].extend([None] * (array_index + 1 - len(data[name])))
                 if value == [] and (default_value := schema.get_default_value(name)) is not None:
                     value = [default_value]
-                row[name] = row[name][:array_index] + value + row[name][array_index + 1:]
+                data[name] = data[name][:array_index] + value + data[name][array_index + 1:]
             else:
-                row[name] = merge_objects(row.get(name), value)
+                data[name] = merge_objects(data.get(name), value)
 
-        setv(row, _split_dotted_string(column_name))
+        setv(data, _split_dotted_string(column_name))
 
     @staticmethod
     def _parse_into_row_template(column_names: List[str]) -> dict:
 
         def parse_array_components(column: str, value: Optional[Any]) -> Tuple[Optional[str], Optional[List[Any]]]:
             array = None  # Handle array of array here even though we don't in general.
-            while True:
-                array_name, array_index = _StructuredRowData._get_array_info(column)
-                if not array_name:
-                    return column if array is not None else None, array
+            array_name, array_indices = _StructuredRowData._get_array_indices(column)
+            if not array_name:
+                return None, None
+            for array_index in array_indices[::-1]:  # Reverse iteration from the last/inner-most index to first.
                 if array is None and value is None:
                     array = [None for _ in range(array_index + 1)]
                 else:
-                    array = [(copy.deepcopy(value) if array is None else array) for _ in range(max(array_index + 1, 1))]
-                column = array_name
+                    array = [(copy.deepcopy(value if array is None else array)) for _ in range(max(array_index + 1, 1))]
+            return array_name, array
 
         def parse_components(column_name_components: List[str]) -> dict:
             value = parse_components(column_name_components[1:]) if len(column_name_components) > 1 else None
@@ -211,7 +250,7 @@ class _StructuredRowData:
         return structured_row_template
 
     @staticmethod
-    def _get_array_info(name: str) -> Tuple[Optional[str], Optional[int]]:
+    def _old_get_array_info(name: str) -> Tuple[Optional[str], Optional[int]]:
         if (array_indicator_position := name.rfind(ARRAY_NAME_SUFFIX_CHAR)) > 0:
             array_index = name[array_indicator_position + 1:] if array_indicator_position < len(name) - 1 else -1
             if (array_index := to_integer(array_index)) is not None:
@@ -219,13 +258,24 @@ class _StructuredRowData:
         return None, None
 
     @staticmethod
-    def _get_base_array_info(name: str) -> Tuple[Optional[str], Optional[int]]:
+    def _old_get_base_array_info(name: str) -> Tuple[Optional[str], Optional[int]]:
         while True:
-            array_name, array_index = _StructuredRowData._get_array_info(name)
+            array_name, array_index = _StructuredRowData._old_get_array_info(name)
             if not array_name or not array_name.endswith(ARRAY_NAME_SUFFIX_CHAR):
                 break
             name = array_name
         return array_name, array_index
+
+    @staticmethod
+    def _get_array_indices(name: str) -> Tuple[Optional[str], Optional[List[int]]]:
+        indices = []
+        while (array_indicator_position := name.rfind(ARRAY_NAME_SUFFIX_CHAR)) > 0:
+            array_index = name[array_indicator_position + 1:] if array_indicator_position < len(name) - 1 else -1
+            if (array_index := to_integer(array_index)) is None:
+                break
+            name = name[0:array_indicator_position]
+            indices.insert(0, array_index)
+        return (name, indices) if indices else (None, None)
 
 
 class Schema:

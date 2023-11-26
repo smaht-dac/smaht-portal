@@ -469,6 +469,9 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
+#{'Test': [{'abc': ['foobar', 'goobar', 'charley']}]}
+#(Pdb) expected
+#{'Test': [{'abc': ['foobar', 'goobar']}]}
         "rows": [
             "abc,abc#",
             "alice|bob|charley,foobar|goobar"
@@ -484,13 +487,13 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     {
         "rows": [
             "abc#,abc#1",  # TODO: fail if abc#.0 rather than abc#
-            "alice|bob|charley,foobar|goobar"
+            "alice|bob|charley,foobar"
         ],
         "as_file_name": "test.csv",
         "noschemas": True,
         "expected": {
             "Test" : [ {
-                "abc": ["alice", "foobar", "goobar", "charley"]
+                "abc": ["alice", "foobar", "charley"]
             } ]
         },
         "sheet_utils_also": False
@@ -514,13 +517,15 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     {
         "rows": [
             "other_allowed_extensions,other_allowed_extensions#4",
-            "alice|bob|charley,foobar|goobar"
+            #"alice|bob|charley,foobar|goobar"
+            "alice|bob|charley,foobar"
         ],
         "as_file_name": "test.csv",
         "noschemas": True,
         "expected": {
             "Test" : [ {
-                "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                #"other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar"]
              } ]
         },
         "sheet_utils_also": False
@@ -529,13 +534,15 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     {
         "rows": [
             "other_allowed_extensions#,other_allowed_extensions#4",  # TODO: fail if other_allowed_extensions#0 rather than other_allowed_extensions#
-            "alice|bob|charley,foobar|goobar"
+            #"alice|bob|charley,foobar|goobar"
+            "alice|bob|charley,foobar"
         ],
         "as_file_name": "test.csv",
         "noschemas": True,
         "expected": {
             "Test" : [ {
-                "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                #"other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar"]
              } ]
         },
         "sheet_utils_also": False
@@ -543,9 +550,11 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     # ----------------------------------------------------------------------------------------------
     {
         "rows": [
-            "uuid,status,principals_allowed. view,principals_allowed.edit,other_allowed_extensions,other_allowed_extensions#4",
-            "some-uuid-a,public,pav-a,pae-a,alice|bob|charley,foobar|goobar",
-            "some-uuid-b,public,pav-b,pae-a,alice|bob|charley,foobar|goobar"
+            "uuid,status,principals_allowed. view,principals_allowed.edit,other_allowed_extensions,other_allowed_extensions#5",
+            #"some-uuid-a,public,pav-a,pae-a,alice|bob|charley,foobar|goobar",
+            #"some-uuid-b,public,pav-b,pae-a,alice|bob|charley,foobar|goobar"
+            "some-uuid-a,public,pav-a,pae-a,alice|bob|charley,goobar",
+            "some-uuid-b,public,pav-b,pae-a,alice|bob|charley,goobar"
         ],
         "as_file_name": "test.csv",
         "noschemas": True,
@@ -555,13 +564,15 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                     "uuid": "some-uuid-a",
                     "status": "public",
                     "principals_allowed": {"view": "pav-a", "edit": "pae-a"},
-                    "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                    #"other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                    "other_allowed_extensions": ["alice", "bob", "charley", None, None, "goobar"]
                 },
                 {
                     "uuid": "some-uuid-b",
                     "status": "public",
                     "principals_allowed": {"view": "pav-b", "edit": "pae-a"},
-                    "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                    #"other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                    "other_allowed_extensions": ["alice", "bob", "charley", None, None, "goobar"]
                 }
             ]
         },
@@ -759,6 +770,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
+            "debug": False,
         "rows": [
             "simplearray#4\tsimplearray\tsomeobj.ghi\tabc\tarrayofarray\tsimplearray#3",
             "hello\tabc|def|ghi\t[{\"jkl\": \"xyz\"}]\t{\"hello\": 1234}\t[[\"j.\", \"alfred\", \"prufrock\"]]\tbyebye"
@@ -768,16 +780,24 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         "expected": {
             "Test": [
                 {
-                    "simplearray": ["abc", "def", "ghi", "byebye", "hello"],
+                    #"simplearray": ["abc", "def", "ghi", "byebye", "hello"],
+                    "simplearray": ["abc", "def", "ghi", "byebye"],
                     "abc": {"hello": 1234},
                     "someobj": { "ghi": [{"jkl": "xyz"}] },
                     "arrayofarray": [["j.", "alfred", "prufrock"]]
                 }
+
+#               {
+#                   'simplearray': ['abc', 'def', 'ghi', ['byebye']],
+#                   'abc': {'hello': 1234},
+#                   'someobj': {'ghi': [{'jkl': 'xyz'}]},
+#                   'arrayofarray': [['j.', 'alfred', 'prufrock']]}
             ]
         }
     },
     # ----------------------------------------------------------------------------------------------
     {
+            "ignore": True,
         "rows": [
             "somearray,somearray#3,somearray#4",
             "alice|bob|charley,,foobar|goobar"
@@ -798,6 +818,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
+            "ignore": True,
         "rows": [
             "somearray,somearray#3,somearray#4",
             "123|456|789,,01|203"
@@ -1241,10 +1262,12 @@ def _test_parse_structured_data(file: Optional[str] = None,
             else:
                 structured_data, validation_errors = call_parse_structured_data(file)
         if debug:
-            pdb.set_trace()
+            import pdb ; pdb.set_trace()
         if sheet_utils:
             structured_data = {to_camel_case(key): value for key, value in structured_data.items()}
         if expected is not None:
+            if not (structured_data == expected):
+                import pdb ; pdb.set_trace()
             assert structured_data == expected
         if expected_errors:
             assert validation_errors == expected_errors
