@@ -260,8 +260,8 @@ class Schema:
     def map_value(self, value: str, column_name: str, loc: int) -> Optional[Any]:
         column_name = self._normalize_column_name(column_name)
         src = f"{self.name}{f'.{column_name}' if column_name else ''}{f' [{loc}]' if loc else ''}"
-        map_value = (self._get_typeinfo(column_name) or {}).get("map")
-        return map_value(value, src) if map_value else load_json_if(value, is_object=True, is_array=True)
+        mapv = (self._get_typeinfo(column_name) or {}).get("map")
+        return mapv(value, src) if mapv else load_json_if(value, is_object=True, is_array=True, fallback=value)
 
     def get_default_value(self, column_name: str) -> Optional[Any]:
         return self._defaults.get((self._get_typeinfo(column_name) or {}).get("type"))
@@ -294,9 +294,9 @@ class Schema:
         return None
 
     def _map_function_array(self, typeinfo: dict) -> Callable:
-        def map_array(value: str, array_type_map_value: Optional[Callable], src: Optional[str]) -> Any:
-            value = _split_array_string(value) if array_type_map_value else load_json_if(value, is_array=True)
-            return [array_type_map_value(value, src) for value in value] if array_type_map_value else value
+        def map_array(value: str, mapv: Optional[Callable], src: Optional[str]) -> Any:
+            value = _split_array_string(value) if mapv else load_json_if(value, is_array=True, fallback=value)
+            return [mapv(value, src) for value in value] if mapv else value
         return lambda value, src: map_array(value, self._map_function(typeinfo), src)
 
     def _map_function_boolean(self, typeinfo: dict) -> Callable:
