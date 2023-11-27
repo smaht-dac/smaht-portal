@@ -61,12 +61,12 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                         units: ['Assays'],
                                     },
                                     {
-                                        number: '578',
-                                        units: ['Files', 'Generated'],
-                                    },
-                                    {
                                         number: '-',
                                         units: ['Mutations'],
+                                    },
+                                    {
+                                        number: '578',
+                                        units: ['Files', 'Generated'],
                                     },
                                 ]}
                             />
@@ -82,11 +82,15 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     { number: '6', units: ['Cell', 'Lines'] },
                                     {
                                         number: '-',
-                                        units: ['Files', 'Generated'],
+                                        units: ['Assays'],
                                     },
                                     {
                                         number: '-',
-                                        units: ['Proposed', 'Assay Types'],
+                                        units: ['Mutations'],
+                                    },
+                                    {
+                                        number: '-',
+                                        units: ['Files', 'Generated'],
                                     },
                                 ]}
                             />
@@ -102,11 +106,15 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     { number: '5', units: ['Cell', 'Lines'] },
                                     {
                                         number: '-',
-                                        units: ['Files', 'Generated'],
+                                        units: ['Assays'],
                                     },
                                     {
                                         number: '-',
-                                        units: ['Proposed', 'Assay Types'],
+                                        units: ['Mutations'],
+                                    },
+                                    {
+                                        number: '-',
+                                        units: ['Files', 'Generated'],
                                     },
                                 ]}
                             />
@@ -126,11 +134,11 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     },
                                     {
                                         number: '-',
-                                        units: ['Files', 'Generated'],
+                                        units: ['Assays'],
                                     },
                                     {
                                         number: '-',
-                                        units: ['Assays'],
+                                        units: ['Files', 'Generated'],
                                     },
                                 ]}
                             />
