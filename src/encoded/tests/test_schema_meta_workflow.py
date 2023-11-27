@@ -63,7 +63,7 @@ def test_workflow_custom_pf_fields(
     testapp: TestApp,
     meta_workflow: Dict[str, Any],
 ) -> None:
-    """Ensure 'custom_pf_fields' validating File properties."""
+    """Ensure 'custom_pf_fields' validating OutputFile properties."""
     existing_workflows = meta_workflow.get("workflows")
     assert existing_workflows
     updated_workflows = [

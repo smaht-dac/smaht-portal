@@ -123,10 +123,21 @@
                         "type": "object",
                         "additionalProperties": {
                             "type": "object",
-                            "comment": "All properties here must be present on OutputFile items",
+                            "comment": "ToDo: Make these properties sharable directly without needing to update here and in OutputFile schema",
                             "additional_properties": false,
                             "properties": {
-                                "$merge": "output_file.json#/properties"
+                                "description": {
+                                    "$merge": "encoded:schemas/output_file.json#/properties/description"
+                                },
+                                "variant_type": {
+                                    "$merge": "encoded:schemas/output_file.json#/properties/variant_type"
+                                },
+                                "data_category": {
+                                    "$merge": "encoded:schemas/file.json#/properties/data_category"
+                                },
+                                "data_type": {
+                                    "$merge": "encoded:schemas/file.json#/properties/data_type"
+                                }
                             }
                         }
                     },
