@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.7.2
+=====
+
+* Remove ``$merge`` ref in meta workflows whcih is causing propagating of unintended fields in tibanna
+
+
 0.7.1
 =====
 
