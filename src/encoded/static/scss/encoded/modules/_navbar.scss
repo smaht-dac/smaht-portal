@@ -313,6 +313,21 @@ div#top-nav.navbar-fixed-top {
                     }
 
                     .user-account-item {
+                        
+                        @media screen and (min-width: 776px) {
+                            background-color: #0E74D2;
+                            border: 1px solid #0B62BA;
+                            border-radius: 4px;
+                            height: 35px;
+                            width: 120px;
+                            margin: auto;
+
+                            span {
+                                color: white;
+                                font-weight: 500;
+                                margin: auto;
+                            }
+                        }
 
                         i.icon.account-icon {
                             margin-right: 8px;

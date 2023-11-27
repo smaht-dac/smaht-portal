@@ -31,7 +31,7 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
                 role="button"
                 href="#"
                 className={
-                    'nav-link user-account-item' +
+                    'nav-link user-account-item mr-2' +
                     (unverifiedUserEmail ? ' active' : '')
                 }
                 id={id}
@@ -43,11 +43,8 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
                     </span>
                 ) : (
                     <React.Fragment>
-                        <i className="account-icon icon icon-user fas" />
-                        <span>Log In</span>
-                        <span className="d-none d-xl-inline">
-                            &nbsp;/ Register
-                        </span>
+                        <i className="account-icon icon icon-user fas d-inline d-md-none" />
+                        <span>Login</span>
                     </React.Fragment>
                 )}
             </a>

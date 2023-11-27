@@ -259,7 +259,7 @@ const HelpdeskButton = React.memo(function HelpdeskButton(props) {
     return (
         <a role="button" href={mailto} className="nav-link">
             <i className="icon icon-envelope fas mr-05" />
-            Help Desk
+            Helpdesk
         </a>
     );
 });
