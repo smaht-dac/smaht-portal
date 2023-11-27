@@ -196,7 +196,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         padding: 0px;
 
                         &:hover {
-                            cursor: pointer;
+                            // cursor: pointer;
                             text-decoration: none;
                         }
 
@@ -232,7 +232,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
                 &-divider {
                     position: absolute;
-                    width: 90%;
+                    width: 94%;
                     height: 1px;
                     top: 0;
                     transform: translate(-50%, 0px);
@@ -312,8 +312,20 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             }
                         }
                         &-body {
-                            flex-direction: column;
-                            padding: 0px 5%;
+                            flex-wrap: wrap;
+                            padding: 0px 3%;
+
+                            .number-group {
+                                padding-right: 10px;
+
+                                h4 {
+                                    font-size: 32px;
+                                }
+
+                                &:last-of-type {
+                                    padding-right: 0px;
+                                }
+                            }
                         }
                     }
                 }
@@ -327,8 +339,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 }
             }
             .accordion .card-body {
-                flex-direction: row;
-                // padding: 10px 43px;
+                // flex-direction: row;
             }
         }
         
