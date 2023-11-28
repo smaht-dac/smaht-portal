@@ -11,7 +11,7 @@ from dcicutils.bundle_utils import RefHint
 from dcicutils.misc_utils import to_camel_case
 from dcicutils.validation_utils import SchemaManager  # noqa
 from dcicutils.zip_utils import temporary_file
-from encoded.ingestion.structured_data import Portal, Schema, _get_type_name, _StructuredRowData  # noqa
+from encoded.ingestion.structured_data import Portal, Schema, _get_type_name, _StructuredRowTemplate  # noqa
 from encoded.ingestion.ingestion_processors import parse_structured_data
 
 THIS_TEST_MODULE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -1362,6 +1362,6 @@ def _get_schema_flat_typeinfo(schema: Schema):
 
 
 def _test_structured_row_data(columns: str, expected: Optional[dict]):
-    if _StructuredRowData(columns.split(",")).data != expected:
+    if _StructuredRowTemplate(columns.split(",")).data != expected:
         import pdb ; pdb.set_trace()
-    assert _StructuredRowData(columns.split(",")).data == expected
+    assert _StructuredRowTemplate(columns.split(",")).data == expected

@@ -14,6 +14,7 @@ from dcicutils.misc_utils import (load_json_if, merge_objects, remove_empty_prop
 from dcicutils.zip_utils import temporary_file, unpack_gz_file_to_temporary_file, unpack_files
 from snovault.loadxl import create_testapp
 
+
 # Classes/functions to parse a CSV or Excel Spreadsheet into structured data, using a specialized
 # syntax to allow structured object properties to be referenced by column specifiers. This syntax
 # uses an (intuitive) dot notation to reference nested objects, and a (less intuitive) notation
@@ -29,7 +30,7 @@ ARRAY_VALUE_DELIMITER_ESCAPE_CHAR = "\\"
 ARRAY_NAME_SUFFIX_CHAR = "#"
 ARRAY_NAME_SUFFIX_REGEX = re.compile(rf"{ARRAY_NAME_SUFFIX_CHAR}\d+")
 DOTTED_NAME_DELIMITER_CHAR = "."
-NEW = False
+NEW = True
 
 # Forward type references for type hints.
 Portal = Type["Portal"]
@@ -109,15 +110,15 @@ class StructuredDataSet:
     def _load_reader(self, reader: RowReader, type_name: str) -> None:
         schema = None
         noschema = False
-        structured_column_data = None
+        structured_row_template = None
         for row in reader:
-            if not schema and not noschema and not (schema := Schema.load_by_name(type_name, portal=self._portal)):
-                noschema = True  # Delay schema creation just so we don't create it if there are no rows.
-            if not structured_column_data:
-                structured_column_data = _StructuredRowData(reader.header, schema)
-            structured_row = structured_column_data.create_row()
+            if not structured_row_template:  # Delay creation just so we don't create it if there are no rows.
+                if not schema and not noschema and not (schema := Schema.load_by_name(type_name, portal=self._portal)):
+                    noschema = True
+                structured_row_template = _StructuredRowTemplate(reader.header, schema)
+            structured_row = structured_row_template.create_row()
             for column_name, value in row.items():
-                structured_column_data.set_value(structured_row, column_name, value, reader.location)
+                structured_row_template.set_value(structured_row, column_name, value, reader.location)
             self._add(type_name, structured_row)
 
     def _add(self, type_name: str, data: Union[dict, List[dict]]) -> None:
@@ -134,11 +135,11 @@ class StructuredDataSet:
                 self._issues = []
             self._issues.append({source: issues})
 
-
-class _StructuredRowData:
+class _StructuredRowTemplate:
 
     def __init__(self, column_names: List[str], schema: Optional[Schema] = None) -> None:
         self._schema = schema
+        self._values = {}
         self.data = self._create_row_template(column_names)
 
     def create_row(self) -> dict:
@@ -154,11 +155,12 @@ class _StructuredRowData:
                 return
             column_name_component = column_name_components[0]
 
-            array_name, array_indices = _StructuredRowData._get_array_indices(column_name_component)
+            array_name, array_indices = _StructuredRowTemplate._get_array_indices(column_name_component)
             if array_name:
                 if not isinstance(array := data[array_name], list):
                     array = data[array_name] = _split_array_string(array)
                 for array_index in array_indices[:-1]:
+                    #import pdb ; pdb.set_trace()
                     array = array[max(array_index, 0)]
                 last_array_index = array_indices[-1]
                 array_index = max(last_array_index, 0)
@@ -183,38 +185,54 @@ class _StructuredRowData:
         setv(data, _split_dotted_string(column_name))
 
     def _create_row_template(self, column_names: List[str]) -> dict:
-        # TODO: Maybe here it would be better to take a given schema into account like with set_value. 
 
-        def parse_array_components(column: str, value: Optional[Any]) -> Tuple[Optional[str], Optional[List[Any]]]:
+        def set_value(data: Union[dict, list], value: Optional[Any], path: List[Union[str, int]]) -> None:
+            #import  pdb ; pdb.set_trace()
+            for p in path[:-1]:
+                data = data[p]
+            data[path[-1]] = value
+
+        VALUE = '<value>'
+
+        def parse_array_components(column_name: str, value: Optional[Any], path: List[Union[str, int]]) -> Tuple[Optional[str], Optional[List[Any]]]:
+            print(column_name)
+            #import pdb ; pdb.set_trace()
             nonlocal self
             array = None  # Handle array of array here even though we don't in general.
-            # xyzzy
-            if self._schema:
-                ncolumn = self._schema._normalize_column_name(column)
-                typeinfo = self._schema._typeinfo.get(ncolumn)
-                if isinstance(typeinfo, str):
-                    xyzzy_column = typeinfo
-            # xyzzy
-            array_name, array_indices = _StructuredRowData._get_array_indices(column)
+            array_name, array_indices = _StructuredRowTemplate._get_array_indices(column_name)
             if not array_name:
                 return None, None
             for array_index in array_indices[::-1]:  # Reverse iteration from the last/inner-most index to first.
+                array_length = max(array_index + 1, 1)
+                path.insert(0, max(array_index, 0))
                 if array is None and value is None:
-                    array = [None for _ in range(array_index + 1)]
+                    array = [None for _ in range(array_length)]
                 else:
-                    array = [(copy.deepcopy(value if array is None else array)) for _ in range(max(array_index + 1, 1))]
+                    array = [(copy.deepcopy(value if array is None else array)) for _ in range(array_length)]
+
             return array_name, array
 
-        def parse_components(column_name_components: List[str]) -> dict:
-            nonlocal self
-            value = parse_components(column_name_components[1:]) if len(column_name_components) > 1 else None
-            array_name, array_value = parse_array_components(column_name_component := column_name_components[0], value)
-            return {array_name: array_value} if array_name else {column_name_component: value}
+        def parse_components(column_name_components: List[str], path: List[Union[str, int]]) -> dict:
+            value = parse_components(column_name_components[1:], path) if len(column_name_components) > 1 else None
+            array_name, array = parse_array_components(column_name_component := column_name_components[0], value, path)
+            path.insert(0, array_name or column_name_component)
+            return {array_name: array} if array_name else {column_name_component: value}
 
         structured_row_template = {}
         for column_name in column_names or []:
+            path = []
+            #qualified_column_path = []
+            if NEW:
+                if self._schema:
+                    if isinstance(schema_typeinfo := self._schema._typeinfo.get(column_name), str):
+                        column_name = schema_typeinfo
             if (column_name_components := _split_dotted_string(column_name)):
-                merge_objects(structured_row_template, parse_components(column_name_components), True)
+                merge_objects(structured_row_template, parse_components(column_name_components, path), True)
+            #import pdb ; pdb.set_trace()
+            #self._values[column_name] = lambda data, value: set_value(data, value, copy.deepcopy(qualified_column_path))
+            #self._values[column_name] = qualified_column_path
+            #self._values[column_name] = {"set": lambda data, value: set_value(data, value, copy.deepcopy(qualified_column_path)), "path": qualified_column_path}
+            self._values[column_name] = lambda data, value, path=path: set_value(data, value, path)
         return structured_row_template
 
     @staticmethod
@@ -269,7 +287,8 @@ class Schema:
     def _get_typeinfo(self, column_name: str) -> Optional[dict]:
         if NEW:
             if isinstance(typeinfo := self._typeinfo.get(column_name), str):
-                column_name = typeinfo
+                typeinfo = self._typeinfo.get(typeinfo)
+            return typeinfo
         return self._typeinfo.get(column_name) or self._typeinfo.get(column_name + ARRAY_NAME_SUFFIX_CHAR)
         
     def _map_function(self, typeinfo: dict) -> Optional[Callable]:
@@ -384,8 +403,10 @@ class Schema:
                     parent_key += ARRAY_NAME_SUFFIX_CHAR
                 result[parent_key] = {"type": schema_type, "map": self._map_function_array(schema_json)}
                 if NEW:
-                    if parent_key.endswith(ARRAY_NAME_SUFFIX_CHAR):
-                        result[parent_key.rstrip(ARRAY_NAME_SUFFIX_CHAR)] = parent_key
+#                   if parent_key.endswith(ARRAY_NAME_SUFFIX_CHAR):
+#                       result[parent_key.rstrip(ARRAY_NAME_SUFFIX_CHAR)] = parent_key
+                    if ARRAY_NAME_SUFFIX_CHAR in parent_key:
+                        result[parent_key.replace(ARRAY_NAME_SUFFIX_CHAR, "")] = parent_key
             return result
         for property_key, property_value in properties.items():
             if not isinstance(property_value, dict) or not property_value:
@@ -409,9 +430,17 @@ class Schema:
                 continue
             result[key] = {"type": property_value_type, "map": self._map_function({**property_value, "column": key})}
             if NEW:
-                if key.endswith(ARRAY_NAME_SUFFIX_CHAR):
-                    result[key.rstrip(ARRAY_NAME_SUFFIX_CHAR)] = key
+#               if key.endswith(ARRAY_NAME_SUFFIX_CHAR):
+#                   result[key.rstrip(ARRAY_NAME_SUFFIX_CHAR)] = key
+                if ARRAY_NAME_SUFFIX_CHAR in key:
+                    result[key.replace(ARRAY_NAME_SUFFIX_CHAR, "")] = key
         return result
+
+    def _normalized_column_name(column_name: str) -> str:  # XYZZY/TODO: NECESSARY?
+        column_name = Schema._normalize_column_name(column_name)
+        if isinstance(typeinfo := self._typeinfo.get(column_name), str):
+            column_name = typeinfo
+        return column_name
 
     @staticmethod
     def _normalize_column_name(column_name: str) -> str:
@@ -424,7 +453,8 @@ class Schema:
         if NEW:
             return DOTTED_NAME_DELIMITER_CHAR.join(
                     [ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR, value)
-                     for value in _split_dotted_string(column_name)]).rstrip(ARRAY_NAME_SUFFIX_CHAR)
+#                    for value in _split_dotted_string(column_name)]).rstrip(ARRAY_NAME_SUFFIX_CHAR)
+                     for value in _split_dotted_string(column_name)]).replace(ARRAY_NAME_SUFFIX_CHAR, "")
         else:
             return DOTTED_NAME_DELIMITER_CHAR.join([ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR, value)
                                                     for value in _split_dotted_string(column_name)])
