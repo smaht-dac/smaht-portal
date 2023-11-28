@@ -139,72 +139,37 @@ class _StructuredRowTemplate:
 
     def __init__(self, column_names: List[str], schema: Optional[Schema] = None) -> None:
         self._schema = schema
-        self._values = {}
+        self._set_value_functions = {}
         self.data = self._create_row_template(column_names)
 
     def create_row(self) -> dict:
         return copy.deepcopy(self.data)
 
     def set_value(self, data: dict, column_name: str, value: str, loc: int = -1) -> None:
-
-        def setv(data: Union[dict, list], column_name_components: List[str]) -> None:
-
-            nonlocal column_name, value, loc
-
-            if not column_name_components or not isinstance(data, dict):
-                return
-            column_name_component = column_name_components[0]
-
-            array_name, array_indices = _StructuredRowTemplate._get_array_indices(column_name_component)
-            if array_name:
-                if not isinstance(array := data[array_name], list):
-                    array = data[array_name] = _split_array_string(array)
-                for array_index in array_indices[:-1]:
-                    #import pdb ; pdb.set_trace()
-                    array = array[max(array_index, 0)]
-                last_array_index = array_indices[-1]
-                array_index = max(last_array_index, 0)
-                if len(array) > array_index and isinstance(array[array_index := max(last_array_index, 0)], dict):
-                    setv(array[array_index], column_name_components[1:])
-                elif (last_array_index := array_indices[-1]) == -1:
-                    array[:] = value if self._schema and isinstance(value, list) else _split_array_string(value)
-                else:
-                    if len(array) <= array_index:
-                        array.extend([None] * ((array_index + 1) - len(array)))
-                    array[array_index] = value[0] if self._schema and isinstance(value, list) and value else value
-            elif len(column_name_components) > 1:
-                setv(data[column_name_component], column_name_components[1:])
-            elif isinstance(data[column_name_component], list):
-                data[column_name_component] = value if self._schema and isinstance(value, list) else _split_array_string(value)
-            else:
-                data[column_name_component] = value
-
+        import pdb ; pdb.set_trace()
         if self._schema:
             value = self._schema.map_value(value, column_name, loc)
-
-        setv(data, _split_dotted_string(column_name))
+        if not (set_value_function := self._set_value_functions.get(column_name)):
+            if self._schema:
+                if isinstance(typeinfo := self._schema._typeinfo.get(column_name), str):
+                    if not (set_value_function := self._set_value_functions.get(typeinfo)):
+                        import pdb ; pdb.set_trace()
+                        return
+        set_value_function(data, value)
 
     def _create_row_template(self, column_names: List[str]) -> dict:
 
-        def set_value(data: Union[dict, list], value: Optional[Any], path: List[Union[str, int]]) -> None:
-            #import  pdb ; pdb.set_trace()
-            for p in path[:-1]:
-                data = data[p]
-            data[path[-1]] = value
-
-        VALUE = '<value>'
-
         def parse_array_components(column_name: str, value: Optional[Any], path: List[Union[str, int]]) -> Tuple[Optional[str], Optional[List[Any]]]:
-            print(column_name)
-            #import pdb ; pdb.set_trace()
-            nonlocal self
             array = None  # Handle array of array here even though we don't in general.
             array_name, array_indices = _StructuredRowTemplate._get_array_indices(column_name)
             if not array_name:
                 return None, None
+            array_length = None
             for array_index in array_indices[::-1]:  # Reverse iteration from the last/inner-most index to first.
+                #import pdb ; pdb.set_trace()
+                path.insert(0, array_index if array_length is None else max(array_index, 0))
                 array_length = max(array_index + 1, 1)
-                path.insert(0, max(array_index, 0))
+                #path.insert(0, max(array_index, 0))
                 if array is None and value is None:
                     array = [None for _ in range(array_length)]
                 else:
@@ -218,21 +183,28 @@ class _StructuredRowTemplate:
             path.insert(0, array_name or column_name_component)
             return {array_name: array} if array_name else {column_name_component: value}
 
+        def set_value(data: Union[dict, list], value: Optional[Any], path: List[Union[str, int]]) -> None:
+            xdata = data
+            for p in path[:-1]:
+                data = data[p]
+            #if isinstance(p := path[-1], int) and isinstance(value, list):
+            if (p := path[-1]) == -1 and isinstance(value, list):
+                merge_objects(data, value)  # data[:] = value
+            else:
+                data[p] = value
+
         structured_row_template = {}
         for column_name in column_names or []:
             path = []
-            #qualified_column_path = []
             if NEW:
                 if self._schema:
                     if isinstance(schema_typeinfo := self._schema._typeinfo.get(column_name), str):
-                        column_name = schema_typeinfo
+                        column_name = schema_typeinfo  # column name unadorned with array indicators; get name from schema.
+                        pass
             if (column_name_components := _split_dotted_string(column_name)):
                 merge_objects(structured_row_template, parse_components(column_name_components, path), True)
-            #import pdb ; pdb.set_trace()
-            #self._values[column_name] = lambda data, value: set_value(data, value, copy.deepcopy(qualified_column_path))
-            #self._values[column_name] = qualified_column_path
-            #self._values[column_name] = {"set": lambda data, value: set_value(data, value, copy.deepcopy(qualified_column_path)), "path": qualified_column_path}
-            self._values[column_name] = lambda data, value, path=path: set_value(data, value, path)
+                import pdb ; pdb.set_trace()
+                self._set_value_functions[column_name] = lambda data, value, path=path: set_value(data, value, path)
         return structured_row_template
 
     @staticmethod
@@ -401,7 +373,8 @@ class Schema:
                     schema_type = "string"  # Undefined array type; should not happen; just make it a string.
                 if schema_type == "array":
                     parent_key += ARRAY_NAME_SUFFIX_CHAR
-                result[parent_key] = {"type": schema_type, "map": self._map_function_array(schema_json)}
+                #result[parent_key] = {"type": schema_type, "map": self._map_function_array(schema_json)}
+                result[parent_key] = {"type": schema_type, "map": self._map_function(schema_json)}
                 if NEW:
 #                   if parent_key.endswith(ARRAY_NAME_SUFFIX_CHAR):
 #                       result[parent_key.rstrip(ARRAY_NAME_SUFFIX_CHAR)] = parent_key
@@ -435,12 +408,6 @@ class Schema:
                 if ARRAY_NAME_SUFFIX_CHAR in key:
                     result[key.replace(ARRAY_NAME_SUFFIX_CHAR, "")] = key
         return result
-
-    def _normalized_column_name(column_name: str) -> str:  # XYZZY/TODO: NECESSARY?
-        column_name = Schema._normalize_column_name(column_name)
-        if isinstance(typeinfo := self._typeinfo.get(column_name), str):
-            column_name = typeinfo
-        return column_name
 
     @staticmethod
     def _normalize_column_name(column_name: str) -> str:
