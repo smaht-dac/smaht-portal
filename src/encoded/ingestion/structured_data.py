@@ -146,14 +146,12 @@ class _StructuredRowTemplate:
         return copy.deepcopy(self.data)
 
     def set_value(self, data: dict, column_name: str, value: str, loc: int = -1) -> None:
-        import pdb ; pdb.set_trace()
         if self._schema:
             value = self._schema.map_value(value, column_name, loc)
         if not (set_value_function := self._set_value_functions.get(column_name)):
             if self._schema:
                 if isinstance(typeinfo := self._schema._typeinfo.get(column_name), str):
                     if not (set_value_function := self._set_value_functions.get(typeinfo)):
-                        import pdb ; pdb.set_trace()
                         return
         set_value_function(data, value)
 
@@ -166,7 +164,6 @@ class _StructuredRowTemplate:
                 return None, None
             array_length = None
             for array_index in array_indices[::-1]:  # Reverse iteration from the last/inner-most index to first.
-                #import pdb ; pdb.set_trace()
                 path.insert(0, array_index if array_length is None else max(array_index, 0))
                 array_length = max(array_index + 1, 1)
                 #path.insert(0, max(array_index, 0))
@@ -203,7 +200,6 @@ class _StructuredRowTemplate:
                         pass
             if (column_name_components := _split_dotted_string(column_name)):
                 merge_objects(structured_row_template, parse_components(column_name_components, path), True)
-                import pdb ; pdb.set_trace()
                 self._set_value_functions[column_name] = lambda data, value, path=path: set_value(data, value, path)
         return structured_row_template
 
