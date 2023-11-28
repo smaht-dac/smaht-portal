@@ -108,7 +108,7 @@ class StructuredDataSet:
     def _load_reader(self, reader: RowReader, type_name: str) -> None:
         schema = None
         noschema = False
-        structured_column_data = _StructuredRowData(reader.header)
+        structured_column_data = _StructuredRowTemplate(reader.header)
         for row in reader:
             if not schema and not noschema and not (schema := Schema.load_by_name(type_name, portal=self._portal)):
                 noschema = True  # Create schema here just so we don't create it if there are no rows.
@@ -132,7 +132,7 @@ class StructuredDataSet:
             self._issues.append({source: issues})
 
 
-class _StructuredRowData:
+class _StructuredRowTemplate:
 
     def __init__(self, column_names: List[str]) -> None:
         self.data = self._parse_into_row_template(column_names)
@@ -158,7 +158,7 @@ class _StructuredRowData:
                 return
 
             column_name_component = column_name_components[0]
-            array_name, array_index = _StructuredRowData._get_base_array_info(column_name_component)
+            array_name, array_index = _StructuredRowTemplate._get_base_array_info(column_name_component)
             name = array_name if array_name else column_name_component
             if len(column_name_components) > 1:
                 if not isinstance(row[name], dict) and not isinstance(row[name], list):
@@ -190,7 +190,7 @@ class _StructuredRowData:
         def parse_array_components(column: str, value: Optional[Any]) -> Tuple[Optional[str], Optional[List[Any]]]:
             array = None  # Handle array of array here even though we don't in general.
             while True:
-                array_name, array_index = _StructuredRowData._get_array_info(column)
+                array_name, array_index = _StructuredRowTemplate._get_array_info(column)
                 if not array_name:
                     return column if array is not None else None, array
                 if array is None and value is None:
@@ -221,7 +221,7 @@ class _StructuredRowData:
     @staticmethod
     def _get_base_array_info(name: str) -> Tuple[Optional[str], Optional[int]]:
         while True:
-            array_name, array_index = _StructuredRowData._get_array_info(name)
+            array_name, array_index = _StructuredRowTemplate._get_array_info(name)
             if not array_name or not array_name.endswith(ARRAY_NAME_SUFFIX_CHAR):
                 break
             name = array_name
