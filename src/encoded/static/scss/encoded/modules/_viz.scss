@@ -196,7 +196,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         padding: 0px;
 
                         &:hover {
-                            // cursor: pointer;
                             text-decoration: none;
                         }
 
@@ -339,7 +338,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 }
             }
             .accordion .card-body {
-                // flex-direction: row;
             }
         }
         
@@ -628,7 +626,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         .card-list {
                             margin-bottom: 5px;
                             ul {
-                                // padding-left: 30px;
                                 li {
                                     font-size: 12px;
                                     line-height: 18px;
@@ -737,12 +734,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 &-body {
 
                     .card-list {
-                        margin-bottom: 5px;
-                        ul {
-                            li {
-                                margin-bottom: 5px;
-                            }
-                        }
                     }
                 }
     
@@ -755,7 +746,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
                             ul {
                                 li {
-                                    // margin-bottom: 0px;
                                 }
                             }
                         }
