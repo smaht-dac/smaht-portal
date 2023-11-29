@@ -1,13 +1,13 @@
 [
     {
-        "status": "shared",
+        "status": "public",
         "accession": "SMAFIHSH2RHJ",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
-        "data_type": "Aligned Reads",
+        "data_type": ["Aligned Reads"],
         "file_format": "c13d06cf-218e-4f61-aaf0-91f226248b2c",
-        "data_category": "Sequencing Reads",
+        "data_category": ["Sequencing Reads"],
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],
