@@ -6,8 +6,9 @@
     "required": [
         "medical_history",
         "result_classification",
-	"submission_centers",
-        "submitted_id"
+        "submission_centers",
+        "submitted_id",
+        "title"
     ],
     "identifyingProperties": [
         "accession",
@@ -39,9 +40,6 @@
         },
         {
             "$ref": "mixins.json#/tags"
-        },
-        {
-            "$ref": "mixins.json#/title"
         },
         {
             "$ref": "mixins.json#/uuid"
