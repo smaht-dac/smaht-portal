@@ -1196,6 +1196,21 @@ def test_get_type_name_1():
     assert _get_type_name("File  Format") == "FileFormat"
 
 
+def test_rationalize_column_name() -> None:
+    _test_rationalize_column_name("abc#0#", "abc###", "abc#0##")
+    _test_rationalize_column_name("abc.def.ghi", None, "abc.def.ghi")
+    _test_rationalize_column_name("abc.def.ghi", "abc.def.ghi", "abc.def.ghi")
+    _test_rationalize_column_name("abc.def", "abc.def.ghi", "abc.def")
+    _test_rationalize_column_name("abc##", "abc", "abc##")
+    _test_rationalize_column_name("abc", "abc##", "abc##")
+    _test_rationalize_column_name("abc.def.nestedarrayofobject#1#23##343#.mno",
+                                  "abc.def.nestedarrayofobject##1#24####.mno",
+                                  "abc.def.nestedarrayofobject#1#23##343###.mno")
+    _test_rationalize_column_name("abc.def.nestedarrayofobject#####.mno",
+                                  "abc.def.nestedarrayofobject#####.mno",
+                                  "abc.def.nestedarrayofobject#####.mno")
+
+
 def _test_parse_structured_data(file: Optional[str] = None,
                                 as_file_name: Optional[str] = None,
                                 rows: Optional[List[str]] = None,
@@ -1365,3 +1380,16 @@ def _test_structured_row_data(columns: str, expected: Optional[dict]):
     if _StructuredRowTemplate(columns.split(",")).data != expected:
         import pdb ; pdb.set_trace()
     assert _StructuredRowTemplate(columns.split(",")).data == expected
+
+
+def _test_rationalize_column_name(column_name: str, schema_column_name: str, expected: str) -> None:
+    class FakeSchema(Schema):
+        class FakeTypeInfo:
+            def __init__(self, value):
+                self._value = value
+            def get(self, column_name):
+                return self._value
+        def __init__(self, value):
+            self._typeinfo = FakeSchema.FakeTypeInfo(value)
+    assert FakeSchema(schema_column_name).rationalize_column_name(column_name) == expected
+
