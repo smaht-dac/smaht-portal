@@ -1,11 +1,12 @@
 from snovault import collection, load_schema
 from encoded_core.types.higlass_view_config import HiglassViewConfig as CoreHiglassViewConfig
-
+from .acl import ALLOW_CONSORTIUM_CREATE_ACL
 from .base import Item as SMAHTItem
 
 
 @collection(
     name='higlass-view-configs',
+    acl=ALLOW_CONSORTIUM_CREATE_ACL,
     properties={
         'title': 'HiGlass Displays',
         'description': 'Displays and view configurations for HiGlass',

@@ -52,7 +52,7 @@
             "default": "1"
         },
         "status": {
-            "default": "shared"
+            "default": "released"
         }
     }
 }

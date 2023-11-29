@@ -63,6 +63,23 @@
         "accession": {
             "accessionType": "FI"
         },
+        "status": {
+            "title": "Status",
+            "type": "string",
+            "default": "uploading",
+            "enum": [
+                "uploading",
+                "uploaded",
+                "upload failed",
+                "to be uploaded by workflow",
+                "released",
+                "in review",
+                "obsolete",
+                "archived",
+                "deleted",
+                "public"
+            ]
+        },
         "file_format": {
             "$merge": "encoded_core:schemas/file.json#/properties/file_format"
         },
@@ -80,24 +97,6 @@
         },
         "quality_metrics": {
             "$merge": "encoded_core:schemas/file.json#/properties/quality_metrics"
-        },
-        "status": {
-            "title": "Status",
-            "type": "string",
-            "default": "uploading",
-            "enum": [
-                "uploading",
-                "uploaded",
-                "upload failed",
-                "to be uploaded by workflow",
-                "public",
-                "current",
-                "deleted",
-                "inactive",
-                "in review",
-                "obsolete",
-                "shared"
-            ]
         },
         "data_category": {
             "title": "Data Category",
@@ -136,6 +135,11 @@
                     "Unaligned Reads"
                 ]
             }
+        },
+        "o2_path": {
+            "title": "O2 Path",
+            "description": "Path to file on O2",
+            "type": "string"
         }
     },
     "facets": {},

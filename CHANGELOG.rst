@@ -7,11 +7,27 @@ smaht-portal
 Change Log
 ----------
 
-0.7.0
+0.8.0
 =====
 
 * Merge in ui-dev3 branch: `PR: ##: UI-Dev 3 <>`_
-  * TODO: add branches merged into ui-dev3
+* TODO: add branches merged into ui-dev3
+
+
+0.7.1
+=====
+
+* Fix statuses in inserts
+* Fix ingester permissions
+
+
+0.7.0
+=====
+
+* Expanded permissions implementation
+* Remove statuses no longer in use
+* Refine the state each status corresponds to
+* Update and add additional tests for this functionality
 
 
 0.6.0
