@@ -35,11 +35,11 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
         <div className="homepage-contents">
             <div className="container-wide d-flex flex-column justify-content-around ">
                 <div className="row">
-                    <div className="col-12">
+                    <div className="homepage-header col-12">
                         <h1 className="mb-1">
                             Somatic Mosaicism across Human Tissues Data Portal
                         </h1>
-                        <h2 className="mt-1">
+                        <h2 className="">
                             A platform to search, visualize, and download
                             somatic mosaic variants in normal tissues.
                         </h2>

@@ -530,6 +530,21 @@ body[data-path="/"]>#application>#layout {
 			font-weight: 400;
 		}
 
+		.homepage-header {
+			display: flex;
+			flex-direction: column;
+			padding-top: 8px;
+
+			h1 {
+				font-size: 38px;
+				margin-top: 0px;
+			}
+			h2 {
+				margin-top: 0px;
+				font-size:18px;
+			}
+		}
+
 		.about-consortium {
 			padding: 20px 30px;
 			background-color: $cobalt-10;

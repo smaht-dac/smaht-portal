@@ -201,10 +201,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         }
 
                         h4 {
-                            font-size: 36px;
+                            font-size: 28px;
                             font-weight: 600;
                             color: $homepage-card-text-color;
-                            margin-right: 10px;
+                            margin-right: 8px;
                         }
                         div {
                             display: flex;
@@ -319,7 +319,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                                 padding-right: 10px;
 
                                 h4 {
-                                    font-size: 32px;
+                                    font-size: 28px;
                                 }
 
                                 &:last-of-type {
@@ -433,6 +433,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                                 }
 
                             }
+
+                            &:last-of-type {
+                                margin-bottom: 0;
+                            }
                         }
                     }
 
@@ -461,31 +465,33 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 }
                 
             }
-            &.assays.benchmarking {
-                ul {
-                    li {
-                        font-size: 12px;
-                        div {
-                            // padding-left: 5px;
-                            padding-right: 0px;
+            &.assays {
+                div {
+                    img {
+                        margin-right: 10px;
+                    }
+                    ul {
+                        li {
+                            font-size: 14px;
+                            font-weight: 500;
+                            line-height: 20px;
+                            color: #0E3669;
                         }
                     }
                 }
-    
-                // &.expansion {
-                //     h5 {
-                //         margin: 0px auto 5px auto;
-                //     }
-                //     ul {
-                //         margin-bottom: 20px;
-                //         li {
-                //             div {
-                //                 font-size: 14px;
-                //             }
-                //         }
-                //     }
-                // }
+
+                &.benchmarking {
+                    ul {
+                        li {
+                            font-size: 12px;
+                            div {
+                                padding-right: 0px;
+                            }
+                        }
+                    }
+                }
             }
+            
         }
 
     }
