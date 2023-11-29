@@ -5,7 +5,7 @@ from .base import Item as SmahtItem
 
 @collection(
     name="death-circumstances",
-    unique_key="death_circumstances:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Death Circumstances",
         "description": "Details of a donor's death",

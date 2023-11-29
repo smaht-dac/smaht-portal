@@ -444,11 +444,9 @@
     },
     "reference_genome": {
         "reference_genome": {
+            "title": "Reference Genome",
             "description": "Reference genome used for alignment",
             "type": "string",
-            "enum": [
-                "TBD"
-            ],
             "linkTo": "ReferenceGenome"
         }
     },
@@ -566,7 +564,7 @@
             "title": "Submitter ID",
             "description": "Identifier on submission",
             "type": "string",
-            "uniqueKey": true
+            "uniqueKey": "submitted_id"
         }
     },
     "supplementary_files": {

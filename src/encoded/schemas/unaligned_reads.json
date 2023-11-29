@@ -9,19 +9,9 @@
         "file_format",
         "file_sets",
         "filename",
+        "reference_genome",
+        "submission_centers",
         "submitted_id"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
     ],
     "identifyingProperties": [
         "accession",
@@ -41,6 +31,9 @@
         },
         {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/reference_genome"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -83,13 +76,6 @@
                     "Unaligned Reads"
                 ]
             }
-        },
-        "file_format": {
-            "enum": [
-                "BAM",
-                "CRAM",
-                "FASTQ"
-            ]
         },
         "schema_version": {
             "default": "1"

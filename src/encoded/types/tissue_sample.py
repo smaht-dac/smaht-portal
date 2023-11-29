@@ -5,7 +5,7 @@ from .sample import Sample
 
 @collection(
     name="tissue-samples",
-    unique_key="tissue_sample:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Tissue Samples",
         "description": "Samples derived from a tissue",

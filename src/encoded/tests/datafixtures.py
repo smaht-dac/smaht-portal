@@ -315,3 +315,14 @@ def higlass_view_config(
         "instance_height": 500,
     }
     return post_item(testapp, item, "HiglassViewConfig")
+
+
+@pytest.fixture
+def donor(testapp: TestApp, test_second_submission_center: Dict[str, Any]) -> Dict[str, Any]:
+    item = {
+        "submission_centers": [test_second_submission_center["uuid"]],
+        "submitted_id": "TEST_DONOR_1234",
+        "age": 35,
+        "sex": "Male",
+    }
+    return post_item(testapp, item, "Donor")

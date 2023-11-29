@@ -5,7 +5,7 @@ from .base import Item as SmahtItem
 
 @collection(
     name="protocols",
-    unique_key="protocol:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Protocols",
         "description": "Detailed descriptions of experimental details",

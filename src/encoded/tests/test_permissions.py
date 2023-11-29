@@ -4,6 +4,7 @@ import pytest
 from webtest.app import TestApp
 
 from .datafixtures import remote_user_testapp
+from .utils import patch_item, post_item
 
 
 @pytest.fixture
@@ -604,3 +605,36 @@ class TestUserSubmissionConsistency:
         submission_center_user_app.post_json('/FilterSet', {
             'title': 'test', 'submission_centers': [test_second_submission_center['@id']]
         }, status=422)
+
+
+@pytest.mark.parametrize(
+    "donor_status", ["public", "draft", "released", "in review", "obsolete", "deleted"]
+)
+def test_link_to_another_submission_center_item(
+    donor_status: str,
+    submission_center_user_app: TestApp,
+    testapp: TestApp,
+    donor: Dict[str, Any],
+    test_submission_center: Dict[str, Any],
+    test_second_submission_center: Dict[str, Any],
+) -> None:
+    """Ensure item can link to one under different submission center.
+
+    Should hold under any valid status for original item. Essentially,
+    if reference is correct, can link any items.
+    """
+    # Confirm different submission center from tissue to post
+    donor_submission_centers = donor["submission_centers"]
+    assert len(donor_submission_centers) == 1
+    assert donor_submission_centers[0] == test_second_submission_center["@id"]
+
+    patch_body = {"status": donor_status}
+    patch_item(testapp, patch_body, donor["uuid"])
+
+    tissue_properties = {
+        "submission_centers": [test_submission_center["uuid"]],
+        "donor": donor["uuid"],
+        "submitted_id": "TEST_TISSUE_XYZ",
+        "uberon_id": "UBERON:0001111",
+    }
+    post_item(submission_center_user_app, tissue_properties, "Tissue", status=201)

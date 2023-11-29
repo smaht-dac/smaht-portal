@@ -1,0 +1,15 @@
+[
+    {
+        "uuid": "b50c1dde-9fd0-4bd7-a197-726a095f6ffd",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE_LIVER",
+        "donor": "TEST_DONOR_FEMALE",
+        "uberon_id": "UBERON:0002107",
+        "ischemic_time": 50,
+        "ph": 6.7,
+        "samples_recovered": 7,
+        "weight": 3.4
+    }
+]

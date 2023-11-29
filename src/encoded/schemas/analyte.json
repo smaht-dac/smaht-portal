@@ -7,35 +7,15 @@
         "components",
         "molecule",
         "samples",
+        "submission_centers",
         "submitted_id"
     ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
-    ],
-    "oneOf": [
-        {
-            "required": [
-                "protocols"
-            ]
-        },
-        {
-            "required": [
-                "analyte_preparation"
-            ]
-        }
-    ],
-    "dependent_required": {
+    "dependentRequired": {
         "rna_integrity_number": [
             "rna_integrity_number_instrument"
+        ],
+        "rna_integrity_number_instrument": [
+            "rna_integrity_number"
         ]
     },
     "identifyingProperties": [

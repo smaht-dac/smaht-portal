@@ -5,7 +5,7 @@ from .base import Item as SmahtItem
 
 @collection(
     name="cell-cultures",
-    unique_key="cell_culture:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Cell Cultures",
         "description": "Conditions for growing cells",

@@ -5,7 +5,7 @@ from .base import Item as SMAHTItem
 
 @collection(
     name="Sequencing",
-    unique_key="sequencing:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Sequencing",
         "description": "Details of library sequencing",

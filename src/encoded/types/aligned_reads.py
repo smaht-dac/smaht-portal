@@ -5,7 +5,7 @@ from .submitted_file import SubmittedFile
 
 @collection(
     name="aligned-reads",
-    unique_key="aligned_reads:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Aligned Reads",
         "description": "Files containing sequencing reads aligned to a reference genome",

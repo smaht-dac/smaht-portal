@@ -5,7 +5,7 @@ from .base import Item as SmahtItem
 
 @collection(
     name="libraries",
-    unique_key="library:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Libraries",
         "description": "Sequencing libraries",

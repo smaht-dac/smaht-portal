@@ -5,7 +5,7 @@ from .base import Item as SmahtItem
 
 @collection(
     name="exposures",
-    unique_key="exposure:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Exposures",
         "description": "Occupational and/or environmental exposures of donors",

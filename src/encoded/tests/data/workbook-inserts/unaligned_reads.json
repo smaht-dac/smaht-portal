@@ -1,0 +1,22 @@
+[
+    {
+        "uuid": "21902743-3067-4fa5-b719-074512c54e54",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE_FASTQ",
+        "data_category": [
+            "Sequencing Reads"
+        ],
+        "data_type": [
+            "Unaligned Reads"
+        ],
+        "file_format": "FASTQ",
+        "filename": "some_fastq.fastq.gz",
+        "file_sets": [
+            "TEST_FILE-SET_LIVER"
+        ],
+        "read_pair_number": "R1",
+        "reference_genome": "GRCh38"
+    }
+]
