@@ -244,8 +244,7 @@
                             "type": "object",
                             "additionalProperties": false,
                             "required": [
-                                "file",
-                                "dimension"
+                                "file"
                             ],
                             "properties": {
                                 "file": {
