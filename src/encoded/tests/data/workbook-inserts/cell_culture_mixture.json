@@ -1,0 +1,19 @@
+[
+    {
+        "uuid": "8cf4e165-11c2-4291-9c44-95252ab9f934",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_CELL-CULTURE-MIX_HELA-HEK293",
+        "components": [
+            {
+                "cell_culture": "TEST_CELL-CULTURE_HELA",
+                "ratio": 60
+            },
+            {
+                "cell_culture": "TEST_CELL-CULTURE_HEK293",
+                "ratio": 40
+            }
+        ]
+    }
+]

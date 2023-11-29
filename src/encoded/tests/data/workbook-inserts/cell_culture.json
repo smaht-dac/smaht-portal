@@ -11,5 +11,13 @@
         "doubling_time": 5.5,
         "growth_medium": "EMEM",
         "passage_number": 14
+    },
+    {
+        "uuid": "2a7badb7-7520-4d30-8698-a35708e4033c",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_CELL-CULTURE_HEK293",
+        "cell_line": "TEST_CELL-LINE_HELA"
     }
 ]
