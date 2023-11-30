@@ -486,6 +486,33 @@ body[data-path="/"]>#application>#layout {
 }
 .homepage-wrapper {
 
+	// Styles for alerts on the homepage
+	#full-alerts-container {
+		display: flex;
+		background-color: transparent;
+		// position: sticky;
+		// z-index: 500;
+		// top: 0px;
+	
+		> .alerts {
+			width: 100%;
+			> .alert {
+				position: relative;
+				display: flex;
+				padding: 12px 30px;
+				// height: 60px;
+				.alert-heading {
+					font-size: 16px;
+				};
+
+				button.close {
+					position:absolute;
+					top: 12px;
+					right: 20px;
+				}
+			}
+		}
+	}
 	
 
 	.homepage-contents,

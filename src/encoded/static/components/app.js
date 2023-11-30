@@ -265,6 +265,18 @@ export default class App extends React.PureComponent {
 
         console.info('BROWSER', browserInfo);
 
+        Alerts.queue({
+            style: 'danger',
+            message: (
+                <>
+                    <b>Attention Users:</b> This is an unofficial release of the
+                    SMaHT Data Portal, made available only to provide the access
+                    keys for metadata submission and testing. SMaHT data and
+                    additional information is coming soon.
+                </>
+            ),
+        });
+
         if (
             browserInfo &&
             typeof browserInfo.name === 'string' &&
@@ -307,9 +319,7 @@ export default class App extends React.PureComponent {
 
         // Post-mount stuff
         this.setState({ mounted: true, browserInfo }, () => {
-            console.log(
-                'App is mounted, dispatching smahtinitialized event.'
-            );
+            console.log('App is mounted, dispatching smahtinitialized event.');
             // DEPRECATED:
             // Emit event from our window object to notify that smaht-portal JS has initialized.
             // This is to be used by, e.g. submissions view which might control a child window.
