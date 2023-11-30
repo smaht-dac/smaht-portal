@@ -139,7 +139,6 @@ class _StructuredRowTemplate:
     def __init__(self, column_names: List[str], schema: Optional[Schema] = None) -> None:
         self._schema = schema
         self._set_value_functions = {}
-        self.foo = {}
         self._template = self._create_row_template(column_names)
 
     def create_row(self) -> dict:
