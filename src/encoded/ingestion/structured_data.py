@@ -210,7 +210,7 @@ class _StructuredRowTemplate:
                         set_value_backtrack(i + 1, p)
                     data[p] = mapv(value, src) if mapv else value
 
-        def ensure_column_compatibility(column_name: str) -> None:
+        def ensure_column_consistency(column_name: str) -> None:
             column_components = _split_dotted_string(Schema.normalize_column_name(column_name))
             for existing_column_name in self._set_value_functions:
                 existing_column_components = _split_dotted_string(Schema.normalize_column_name(existing_column_name))
@@ -223,11 +223,11 @@ class _StructuredRowTemplate:
                     if ((column_components[i] != existing_column_components[i]) and
                         (column_components[i].endswith(ARRAY_NAME_SUFFIX_CHAR) or
                          existing_column_components[i].endswith(ARRAY_NAME_SUFFIX_CHAR))):
-                        raise Exception(f"Incompatible columns: {column_components[i]} {existing_column_components[i]}")
+                        raise Exception(f"Inconsistent columns: {column_components[i]} {existing_column_components[i]}")
 
         structured_row_template = {}
         for column_name in column_names or []:
-            ensure_column_compatibility(column_name)
+            ensure_column_consistency(column_name)
             rational_column_name = self._schema.rationalize_column_name(column_name) if self._schema else column_name
             if (column_components := _split_dotted_string(rational_column_name)):
                 path = []
