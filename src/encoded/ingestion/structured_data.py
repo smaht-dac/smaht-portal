@@ -171,11 +171,11 @@ class _StructuredRowTemplate:
                     array = [copy.deepcopy(array) for _ in range(array_length)]
             return array_name, array
 
-        def parse_components(column_name_components: List[str], path: List[Union[str, int]]) -> dict:
-            value = parse_components(column_name_components[1:], path) if len(column_name_components) > 1 else None
-            array_name, array = parse_array_components(column_name_component := column_name_components[0], value, path)
-            path.insert(0, array_name or column_name_component)
-            return {array_name: array} if array_name else {column_name_component: value}
+        def parse_components(column_components: List[str], path: List[Union[str, int]]) -> dict:
+            value = parse_components(column_components[1:], path) if len(column_components) > 1 else None
+            array_name, array = parse_array_components(column_component := column_components[0], value, path)
+            path.insert(0, array_name or column_component)
+            return {array_name: array} if array_name else {column_component: value}
 
         def set_value(data: Union[dict, list], value: Optional[Any], src: Optional[str],
                       path: List[Union[str, int]], mapv: Optional[Callable]) -> None:
@@ -196,7 +196,7 @@ class _StructuredRowTemplate:
                 else:
                     data[p] = mapv(value, src) if mapv else value
 
-        def ensure_compatible_column(column_name: str) -> None:
+        def ensure_column_compatibility(column_name: str) -> None:
             column_components = _split_dotted_string(Schema.normalize_column_name(column_name))
             for existing_column_name in self._set_value_functions:
                 existing_column_components = _split_dotted_string(Schema.normalize_column_name(existing_column_name))
@@ -213,11 +213,11 @@ class _StructuredRowTemplate:
 
         structured_row_template = {}
         for column_name in column_names or []:
-            ensure_compatible_column(column_name)
-            path = []
+            ensure_column_compatibility(column_name)
             rational_column_name = self._schema.rationalize_column_name(column_name) if self._schema else column_name
-            if (column_name_components := _split_dotted_string(rational_column_name)):
-                merge_objects(structured_row_template, parse_components(column_name_components, path), True)
+            if (column_components := _split_dotted_string(rational_column_name)):
+                path = []
+                merge_objects(structured_row_template, parse_components(column_components, path), True)
                 mapv = self._schema.get_map_value_function(rational_column_name) if self._schema else None
                 self._set_value_functions[column_name] = (
                     lambda data, value, src, path=path, mapv=mapv: set_value(data, value, src, path, mapv))
