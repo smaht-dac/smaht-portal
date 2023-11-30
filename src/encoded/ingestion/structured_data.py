@@ -139,10 +139,10 @@ class _StructuredRowTemplate:
     def __init__(self, column_names: List[str], schema: Optional[Schema] = None) -> None:
         self._schema = schema
         self._set_value_functions = {}
-        self.data = self._create_row_template(column_names)
+        self._template = self._create_row_template(column_names)
 
     def create_row(self) -> dict:
-        return copy.deepcopy(self.data)
+        return copy.deepcopy(self._template)
 
     def set_value(self, data: dict, column_name: str, value: str, loc: int = -1) -> None:
         if (set_value_function := self._set_value_functions.get(column_name)):

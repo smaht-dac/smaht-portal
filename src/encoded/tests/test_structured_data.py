@@ -1379,9 +1379,9 @@ def _get_schema_flat_typeinfo(schema: Schema):
 
 
 def _test_structured_row_data(columns: str, expected: Optional[dict]):
-    if _StructuredRowTemplate(columns.split(",")).data != expected:
+    if _StructuredRowTemplate(columns.split(","))._template != expected:
         import pdb ; pdb.set_trace()
-    assert _StructuredRowTemplate(columns.split(",")).data == expected
+    assert _StructuredRowTemplate(columns.split(","))._template == expected
 
 
 def _test_normalized_column_name(column_name: str, schema_column_name: str, expected: str) -> None:
