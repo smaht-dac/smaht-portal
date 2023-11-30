@@ -179,10 +179,23 @@ class _StructuredRowTemplate:
 
         def set_value(data: Union[dict, list], value: Optional[Any], src: Optional[str],
                       path: List[Union[str, int]], mapv: Optional[Callable]) -> None:
-            jsonv = None
-            if isinstance(path[-1], int) and (jsonv := load_json_if(value, is_array=True)) is not None:
+
+            def set_value_backtrack(path_index: int, path_element: str) -> None:
+                nonlocal data, path, original_data
+                backtrack_data = original_data
+                for j in range(path_index - 1):
+                    if not isinstance(path[j], str):
+                        return
+                    backtrack_data = backtrack_data[path[j]]
+                data = backtrack_data[path[path_index - 1]] = {path_element: None}
+
+            original_data = data
+            json_value = None
+            if isinstance(path[-1], int) and (json_value := load_json_if(value, is_array=True)):
                 path = right_trim(path, remove=lambda value: isinstance(value, int))
-            for p in path[:-1]:
+            for i, p in enumerate(path[:-1]):
+                if isinstance(p, str) and (not isinstance(data, dict) or p not in data):
+                    set_value_backtrack(i, p)
                 data = data[p]
             if (p := path[-1]) == -1 and isinstance(value, str):
                 values = _split_array_string(value)
@@ -190,9 +203,11 @@ class _StructuredRowTemplate:
                     values = [mapv(value, src) for value in values]
                 merge_objects(data, values)
             else:
-                if jsonv is not None or (jsonv := load_json_if(value, is_array=True, is_object=True)) is not None:
-                    data[p] = jsonv
+                if json_value or (json_value := load_json_if(value, is_array=True, is_object=True)):
+                    data[p] = json_value
                 else:
+                    if isinstance(p, str) and (not isinstance(data, dict) or p not in data):
+                        set_value_backtrack(i + 1, p)
                     data[p] = mapv(value, src) if mapv else value
 
         def ensure_column_compatibility(column_name: str) -> None:

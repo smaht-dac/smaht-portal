@@ -987,6 +987,33 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         },
         "sheet_utils_also": False
     },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "debug": False,
+        "rows": [
+            "indigo\tjuliet\talfa.bravo\talfa.bravo.charlie.delta",
+            "abc|def|ghi|123456890\t[[[0],[12,34],[5],[67,8,90]],[[123]]]\t{\"foo\": 123}",
+            "prufrock|j.|alfred|\t\t\thellocharlie",
+        ],
+        "as_file_name": "some_type_four.tsv",
+        "schemas": [_load_json_from_file("some_type_four.json")],
+        "expected": {
+            "SomeTypeFour" : [
+                {
+                    "indigo": ["abc", "def", "ghi", "123456890"],
+                    "juliet": [[[0], [12, 34], [5], [67, 8, 90]], [[123]]],
+                    "alfa": {"bravo": {"foo": 123}}
+                },
+                {
+                    "indigo": ["prufrock", "j.", "alfred"],
+                    "juliet": [[[]]],
+                    "alfa": {"bravo": {"charlie": {"delta": "hellocharlie"}}}
+                }
+             ]
+        },
+        "expected_errors": ["{'foo': 123} is not of type 'string'",
+                            "{'charlie': {'delta': 'hellocharlie'}} is not of type 'string'"]
+    },
 ]))
 def test_parse_structured_data_parameterized(kwargs):
     _test_parse_structured_data(**kwargs)
