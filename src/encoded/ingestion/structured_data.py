@@ -231,8 +231,7 @@ class _StructuredRowTemplate:
             rational_column_name = self._schema.rationalize_column_name(column_name) if self._schema else column_name
             map_value_function = self._schema.get_map_value_function(rational_column_name) if self._schema else None
             if (column_components := _split_dotted_string(rational_column_name)):
-                path = []
-                merge_objects(structured_row_template, parse_components(column_components, path), True)
+                merge_objects(structured_row_template, parse_components(column_components, path := []), True)
                 self._set_value_functions[column_name] = (lambda data, value, src, path=path, mapv=map_value_function:
                                                           set_value_internal(data, value, src, path, mapv))
         return structured_row_template
@@ -244,15 +243,13 @@ class Schema:
         self.data = schema_json
         self.name = Schema.type_name(schema_json.get("title", "")) if schema_json else ""
         self._portal = portal  # Needed only to resolve linkTo references.
-        self._types = {
-            "boolean": { "map": self._map_function_boolean, "default": False },
-            "enum": { "map": self._map_function_enum, "default": "" },
-            "integer": { "map": self._map_function_integer, "default": 0 },
-            "number": { "map": self._map_function_number, "default": 0.0 },
-            "string": { "map": self._map_function_string, "default": "" }
+        self._map_value_functions = {
+            "boolean": self._map_function_boolean,
+            "enum": self._map_function_enum,
+            "integer": self._map_function_integer,
+            "number": self._map_function_number,
+            "string": self._map_function_string
         }
-        self._map_value_functions = {key: value["map"] for key, value in self._types.items()}
-        self._default_values = {key: value["default"] for key, value in self._types.items()}
         self._typeinfo = self._create_typeinfo(schema_json)
 
     @staticmethod
@@ -264,9 +261,6 @@ class Schema:
         for issue in SchemaValidator(self.data, format_checker=SchemaValidator.FORMAT_CHECKER).iter_errors(data):
             issues.append(issue.message)
         return issues if issues else None
-
-    def get_default_value(self, column_name: str) -> Optional[Any]:
-        return self._default_values.get((self._get_typeinfo(column_name) or {}).get("type"))
 
     def get_map_value_function(self, column_name: str) -> Optional[Any]:
         return (self._get_typeinfo(column_name) or {}).get("map")
