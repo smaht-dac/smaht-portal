@@ -182,7 +182,7 @@ class _StructuredRowTemplate:
             for p in path[:-1]:
                 data = data[p]
             if (p := path[-1]) == -1 and isinstance(value, str):
-                if (json_value := load_json_if(value, is_array=True)) is not None:
+                if (json_value := load_json_if(value, is_array=True)) is not None:  # TODO: If array-of-array back up.
                     data[:] = json_value
                 else:
                     values = _split_array_string(value)
@@ -202,7 +202,7 @@ class _StructuredRowTemplate:
             if (column_name_components := _split_dotted_string(normalized_column_name)):
                 merge_objects(structured_row_template, parse_components(column_name_components, path), True)
                 mapv = self._schema.get_map_value_function(normalized_column_name) if self._schema else None
-                setv = lambda data, value, src, path=path, mapv=mapv: set_value(data, value, src, path, mapv)
+                setv = lambda data, value, src, path=path, mapv=mapv: set_value(data, value, src, path, mapv)  # noqa
                 if not self._schema and self._set_value_functions.get(Schema._unadorned_column_name(column_name)):
                     raise Exception(f"Cannot have different column types for same name: {column_name}")
                 self._set_value_functions[column_name] = setv
