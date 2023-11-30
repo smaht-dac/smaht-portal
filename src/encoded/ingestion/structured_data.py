@@ -139,6 +139,7 @@ class _StructuredRowTemplate:
     def __init__(self, column_names: List[str], schema: Optional[Schema] = None) -> None:
         self._schema = schema
         self._set_value_functions = {}
+        self.foo = {}
         self._template = self._create_row_template(column_names)
 
     def create_row(self) -> dict:
@@ -199,15 +200,18 @@ class _StructuredRowTemplate:
         structured_row_template = {}
         for column_name in column_names or []:
             path = []
-            normalized_column_name = self._schema.normalized_column_name(column_name) if self._schema else column_name
-            if (column_name_components := _split_dotted_string(normalized_column_name)):
+            rational_column_name = self._schema.rationalize_column_name(column_name) if self._schema else column_name
+            if (column_name_components := _split_dotted_string(rational_column_name)):
                 merge_objects(structured_row_template, parse_components(column_name_components, path), True)
-                mapv = self._schema.get_map_value_function(normalized_column_name) if self._schema else None
-                setv = lambda data, value, src, path=path, mapv=mapv: set_value(data, value, src, path, mapv)  # noqa
-                if not self._schema and self._set_value_functions.get(Schema._unadorned_column_name(column_name)):
+                mapv = self._schema.get_map_value_function(rational_column_name) if self._schema else None
+                if not self._schema and self._set_value_functions.get(Schema.unadorn_column_name(column_name)):
                     raise Exception(f"Cannot have different column types for same name: {column_name}")
-                self._set_value_functions[column_name] = setv
+                self._set_value_functions[column_name] = (
+                    lambda data, value, src, path=path, mapv=mapv: set_value(data, value, src, path, mapv))
         return structured_row_template
+
+    def _create_row_template_for_single_column_for_testing(self, column_name: str) -> dict:
+        return self._create_row_template([column_name])
 
 
 class Schema:
@@ -246,7 +250,7 @@ class Schema:
     def _get_typeinfo(self, column_name: str) -> Optional[dict]:
         if isinstance(info := self._typeinfo.get(column_name), str):
             info = self._typeinfo.get(info)
-        if not info and isinstance(info := self._typeinfo.get(self._unadorned_column_name(column_name)), str):
+        if not info and isinstance(info := self._typeinfo.get(self.unadorn_column_name(column_name)), str):
             info = self._typeinfo.get(info)
         return info
         
@@ -383,16 +387,16 @@ class Schema:
                 result[key.replace(ARRAY_NAME_SUFFIX_CHAR, "")] = key
         return result
 
-    def normalized_column_name(self, column_name: str, schema_column_name: Optional[str] = None) -> str:
+    def rationalize_column_name(self, column_name: str, schema_column_name: Optional[str] = None) -> str:
         """
         Replaces any (dot-separated) components of the given column_name which have array indicators/suffixes
         with the corresponding value from the (flattened) schema column names, but with any actual array
         indices from the given column name component. For example, if the (flattened) schema column name
         if "abc#.def##.ghi" and the given column name is "abc.def#1#2#.ghi" returns "abc#.def#1#2.ghi",
-        of if the schema column name is "abc###" and the given column name is "abc#0#" then "abc#0##".
+        or if the schema column name is "abc###" and the given column name is "abc#0#" then "abc#0##".
         This will "correct" specified columns name (with array indicators) according to the schema.
         """
-        if not isinstance(schema_column_name := self._typeinfo.get(self._unadorned_column_name(column_name)), str):
+        if not isinstance(schema_column_name := self._typeinfo.get(self.unadorn_column_name(column_name)), str):
             return column_name
         schema_column_components = _split_dotted_string(schema_column_name)
         for i in range(len(column_components := _split_dotted_string(column_name))):
@@ -408,15 +412,16 @@ class Schema:
         return DOTTED_NAME_DELIMITER_CHAR.join(column_components)
 
     @staticmethod
-    def _unadorned_column_name(column_name: str) -> str:
+    def unadorn_column_name(column_name: str, full: bool = True) -> str:
         """
         Given a string representing a flat column name, i.e possibly dot-separated name components,
         and where each component possibly ends with an array suffix (i.e. pound sign - #) followed
         by an optional integer, returns the unadorned column, without any array suffixes/specifiers.
         """
-        return DOTTED_NAME_DELIMITER_CHAR.join(
-                [ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR, value)
-                 for value in _split_dotted_string(column_name)]).replace(ARRAY_NAME_SUFFIX_CHAR, "")
+        unadorned_column_name = DOTTED_NAME_DELIMITER_CHAR.join(
+            [ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR, value)
+             for value in _split_dotted_string(column_name)])
+        return unadorned_column_name.replace(ARRAY_NAME_SUFFIX_CHAR, "") if full else unadorned_column_name
 
 
 class Portal:
