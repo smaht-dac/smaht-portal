@@ -177,8 +177,8 @@ class _StructuredRowTemplate:
             path.insert(0, array_name or column_component)
             return {array_name: array} if array_name else {column_component: value}
 
-        def set_value(data: Union[dict, list], value: Optional[Any], src: Optional[str],
-                      path: List[Union[str, int]], mapv: Optional[Callable]) -> None:
+        def set_value_internal(data: Union[dict, list], value: Optional[Any], src: Optional[str],
+                               path: List[Union[str, int]], mapv: Optional[Callable]) -> None:
 
             def set_value_backtrack(path_index: int, path_element: str) -> None:
                 nonlocal data, path, original_data
@@ -229,16 +229,13 @@ class _StructuredRowTemplate:
         for column_name in column_names or []:
             ensure_column_consistency(column_name)
             rational_column_name = self._schema.rationalize_column_name(column_name) if self._schema else column_name
+            map_value_function = self._schema.get_map_value_function(rational_column_name) if self._schema else None
             if (column_components := _split_dotted_string(rational_column_name)):
                 path = []
                 merge_objects(structured_row_template, parse_components(column_components, path), True)
-                mapv = self._schema.get_map_value_function(rational_column_name) if self._schema else None
-                self._set_value_functions[column_name] = (
-                    lambda data, value, src, path=path, mapv=mapv: set_value(data, value, src, path, mapv))
+                self._set_value_functions[column_name] = (lambda data, value, src, path=path, mapv=map_value_function:
+                                                          set_value_internal(data, value, src, path, mapv))
         return structured_row_template
-
-    def _create_row_template_for_single_column_for_testing(self, column_name: str) -> dict:
-        return self._create_row_template([column_name])
 
 
 class Schema:

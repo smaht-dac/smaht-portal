@@ -115,9 +115,9 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     # ----------------------------------------------------------------------------------------------
     {
         "rows": [
-            r"abcdef,ghi.jk,l,mno#,ghi.xyzzy",
-            r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one",
-            r"golf,hotel,456,juliet|kilo|lima,xyzzy:two"
+            r"abcdef,ghi.jk,l,mno#,ghi.xyzzy,foo#notaninteger",
+            r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one,mike",
+            r"golf,hotel,456,juliet|kilo|lima,xyzzy:two,november"
         ],
         "as_file_name": "easy_test1.csv",
         "expected": {
@@ -126,13 +126,15 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                     "abcdef": "alfa",
                     "ghi": { "jk": "bravo", "xyzzy": "xyzzy:one" },
                     "l": "123",
-                    "mno": [ "delta", "echo", "foxtrot" ]
+                    "mno": [ "delta", "echo", "foxtrot" ],
+                    "foo#notaninteger": "mike"
                 },
                 {
                     "abcdef": "golf",
                     "ghi": { "jk": "hotel", "xyzzy": "xyzzy:two" },
                     "l": "456",
-                    "mno": [ "juliet", "kilo", "lima" ]
+                    "mno": [ "juliet", "kilo", "lima" ],
+                    "foo#notaninteger": "november"
                 }
             ]
         },
