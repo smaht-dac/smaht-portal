@@ -215,13 +215,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("file", type=str, nargs="?", help=f"File to parse.")
     parser.add_argument("--as-file-name", type=str, nargs="?", help=f"Use this file name as the name of the given file.")
     parser.add_argument("--sheet-utils", required=False, action="store_true", default=False,
-                        help=f"Use sheet_utils rather than the newer structure_data.")
+                        help=f"Use sheet_utils rather than the newer structured_data.")
     parser.add_argument("--schemas", required=False, action="store_true",
                         default=False, help=f"Output the referenced schema(s).")
     parser.add_argument("--norefs", required=False, action="store_true",
                         default=False, help=f"Do not try to resolve schema linkTo references.")
     parser.add_argument("--default-refs", required=False, action="store_true",
-                        default=False, help=f"Throw exception (like normal) schema linkTo reference cannot be resolved.")
+                        default=False, help=f"Throw exception (as is normal) if schema linkTo reference cannot be resolved.")
     parser.add_argument("--show-refs", required=False, action="store_true",
                         default=False, help=f"Show all references.")
     parser.add_argument("--noschemas", required=False, action="store_true",
@@ -232,11 +232,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--load", nargs="?", action=argparse_optional, const=True,
                         default=False, help=f"Load data into database (optionally specify .ini file to use).")
     parser.add_argument("--post-only", required=False, action="store_true",
-                        default=False, help=f"Only perform updates (POST) for loaded data.")
+                        default=False, help=f"Only perform updates (POST) when loading data.")
     parser.add_argument("--patch-only", required=False, action="store_true",
-                        default=False, help=f"Only perform updates (PATCH) for loaded data.")
+                        default=False, help=f"Only perform updates (PATCH) when loading data.")
     parser.add_argument("--validate-only", required=False, action="store_true",
-                        default=False, help=f"Only perform validation for loaded data.")
+                        default=False, help=f"Only perform validation when loading data.")
 
     parser.add_argument("--verbose", required=False, action="store_true",
                         default=False, help=f"Verbose output.")

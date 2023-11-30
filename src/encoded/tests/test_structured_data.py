@@ -141,12 +141,12 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "as_file_name": "easy_test2.csv",
         "rows": [
             r"abcdef,ghi.jk,l,mno#,ghi.xyzzy,mno#2",  # TODO: fail if mno.#0 instead of mno.#
             r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one,october",
             r"golf,hotel,456,juliet|kilo|lima,xyzzy:two,november"
         ],
+        "as_file_name": "easy_test2.csv",
         "noschemas": True,
         "expected": {
             "EasyTest2": [
@@ -168,8 +168,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "reference_file_20231119.csv",
-        "as_file_name": "reference_file.csv",
+        "file": "reference_file_20231119.csv", "as_file_name": "reference_file.csv",
         "expected": "reference_file_20231119.result.json",
         "expected_refs": [
             "/FileFormat/FASTA",
@@ -302,8 +301,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "software_20231119.csv",
-        "as_file_name": "software.csv",
+        "file": "software_20231119.csv", "as_file_name": "software.csv",
         "novalidate": True,
         "expected": "software_20231119.result.json",
         "expected_refs": [
@@ -319,8 +317,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "workflow_20231119.csv",
-        "as_file_name": "workflow.csv",
+        "file": "workflow_20231119.csv", "as_file_name": "workflow.csv",
         "novalidate": True,
         "expected": "workflow_20231119.result.json",
         "expected_refs": [
@@ -336,8 +333,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "analyte_20231119.csv",
-        "as_file_name": "analyte.csv",
+        "file": "analyte_20231119.csv", "as_file_name": "analyte.csv",
         "expected": "analyte_20231119.result.json",
         "expected_refs": [
             "/Consortium/another-consortia",
@@ -350,8 +346,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "library_20231119.csv",
-        "as_file_name": "library.csv",
+        "file": "library_20231119.csv", "as_file_name": "library.csv",
         "expected": "library_20231119.result.json",
         "expected_refs": [
             "/Analyte/sample-analyte-1",
@@ -369,8 +364,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "library_20231119.csv",
-        "as_file_name": "library.csv",
+        "file": "library_20231119.csv", "as_file_name": "library.csv",
         "expected": "library_20231119.result.json",
         "expected_refs": [
             "/Analyte/sample-analyte-1",
@@ -388,8 +382,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "library_20231119.csv",
-        "as_file_name": "library.csv",
+        "file": "library_20231119.csv", "as_file_name": "library.csv",
         "expected": "library_20231119.result.json",
         "expected_refs": [
             "/Analyte/sample-analyte-1",
@@ -407,8 +400,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "file_format_20231119.csv.gz",
-        "as_file_name": "file_format.csv.gz",
+        "file": "file_format_20231119.csv.gz", "as_file_name": "file_format.csv.gz",
         "expected": "file_format_20231119.result.json",
         "expected_refs": [
             "/Consortium/358aed10-9b9d-4e26-ab84-4bd162da182b",
@@ -431,8 +423,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "unaligned_reads_20231120.csv",
-        "as_file_name": "unaligned_reads.csv",
+        "file": "unaligned_reads_20231120.csv", "as_file_name": "unaligned_reads.csv",
         "expected": "unaligned_reads_20231120.result.json",
         "expected_refs": [
             "/FileSet/FileSet1", "/FileSet/FileSet2", "/FileSet/FileSet3",
@@ -470,7 +461,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     # ----------------------------------------------------------------------------------------------
     {
         "rows": [
-            "abc,abc#",
+            "abc#,abc#",
             "alice|bob|charley,foobar|goobar"
         ],
         "as_file_name": "test.csv",
@@ -484,13 +475,13 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     {
         "rows": [
             "abc#,abc#1",  # TODO: fail if abc#.0 rather than abc#
-            "alice|bob|charley,foobar|goobar"
+            "alice|bob|charley,foobar"
         ],
         "as_file_name": "test.csv",
         "noschemas": True,
         "expected": {
             "Test" : [ {
-                "abc": ["alice", "foobar", "goobar", "charley"]
+                "abc": ["alice", "foobar", "charley"]
             } ]
         },
         "sheet_utils_also": False
@@ -513,14 +504,16 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     # ----------------------------------------------------------------------------------------------
     {
         "rows": [
-            "other_allowed_extensions,other_allowed_extensions#4",
-            "alice|bob|charley,foobar|goobar"
+            "other_allowed_extensions#,other_allowed_extensions#4",
+            #"alice|bob|charley,foobar|goobar"
+            "alice|bob|charley,foobar"
         ],
         "as_file_name": "test.csv",
         "noschemas": True,
         "expected": {
             "Test" : [ {
-                "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                #"other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar"]
              } ]
         },
         "sheet_utils_also": False
@@ -529,13 +522,15 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     {
         "rows": [
             "other_allowed_extensions#,other_allowed_extensions#4",  # TODO: fail if other_allowed_extensions#0 rather than other_allowed_extensions#
-            "alice|bob|charley,foobar|goobar"
+            #"alice|bob|charley,foobar|goobar"
+            "alice|bob|charley,foobar"
         ],
         "as_file_name": "test.csv",
         "noschemas": True,
         "expected": {
             "Test" : [ {
-                "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                #"other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar"]
              } ]
         },
         "sheet_utils_also": False
@@ -543,9 +538,11 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     # ----------------------------------------------------------------------------------------------
     {
         "rows": [
-            "uuid,status,principals_allowed. view,principals_allowed.edit,other_allowed_extensions,other_allowed_extensions#4",
-            "some-uuid-a,public,pav-a,pae-a,alice|bob|charley,foobar|goobar",
-            "some-uuid-b,public,pav-b,pae-a,alice|bob|charley,foobar|goobar"
+            "uuid,status,principals_allowed. view,principals_allowed.edit,other_allowed_extensions#,other_allowed_extensions#5",
+            #"some-uuid-a,public,pav-a,pae-a,alice|bob|charley,foobar|goobar",
+            #"some-uuid-b,public,pav-b,pae-a,alice|bob|charley,foobar|goobar"
+            "some-uuid-a,public,pav-a,pae-a,alice|bob|charley,goobar",
+            "some-uuid-b,public,pav-b,pae-a,alice|bob|charley,goobar"
         ],
         "as_file_name": "test.csv",
         "noschemas": True,
@@ -555,13 +552,15 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                     "uuid": "some-uuid-a",
                     "status": "public",
                     "principals_allowed": {"view": "pav-a", "edit": "pae-a"},
-                    "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                    #"other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                    "other_allowed_extensions": ["alice", "bob", "charley", None, None, "goobar"]
                 },
                 {
                     "uuid": "some-uuid-b",
                     "status": "public",
                     "principals_allowed": {"view": "pav-b", "edit": "pae-a"},
-                    "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                    #"other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
+                    "other_allowed_extensions": ["alice", "bob", "charley", None, None, "goobar"]
                 }
             ]
         },
@@ -762,6 +761,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         "rows": [
             "simplearray#4\tsimplearray\tsomeobj.ghi\tabc\tarrayofarray\tsimplearray#3",
             "hello\tabc|def|ghi\t[{\"jkl\": \"xyz\"}]\t{\"hello\": 1234}\t[[\"j.\", \"alfred\", \"prufrock\"]]\tbyebye"
+            #"arrayofarray\tsimplearray#4\tsimplearray\tsomeobj.ghi\tabc\tsimplearray#3",
+            #"[[\"j.\", \"alfred\", \"prufrock\"]]\thello\tabc|def|ghi\t[{\"jkl\": \"xyz\"}]\t{\"hello\": 1234}\tbyebye"
         ],
         "as_file_name": "test.tsv",
         "schemas": [_load_json_from_file("some_type_three.json")],
@@ -769,18 +770,26 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "Test": [
                 {
                     "simplearray": ["abc", "def", "ghi", "byebye", "hello"],
+                    #"simplearray": ["abc", "def", "ghi", "byebye"],
                     "abc": {"hello": 1234},
                     "someobj": { "ghi": [{"jkl": "xyz"}] },
                     "arrayofarray": [["j.", "alfred", "prufrock"]]
+                    #"arrayofarray": [[["j.", "alfred", "prufrock"]]]  # TODO
                 }
+
+#               {
+#                   'simplearray': ['abc', 'def', 'ghi', ['byebye']],
+#                   'abc': {'hello': 1234},
+#                   'someobj': {'ghi': [{'jkl': 'xyz'}]},
+#                   'arrayofarray': [['j.', 'alfred', 'prufrock']]}
             ]
         }
     },
     # ----------------------------------------------------------------------------------------------
     {
         "rows": [
-            "somearray,somearray#3,somearray#4",
-            "alice|bob|charley,,foobar|goobar"
+            "somearray#,somearray#3,somearray#4",
+            "alice|bob|charley,,goobar"
         ],
         "as_file_name": "test.csv",
         "schemas": [
@@ -792,15 +801,15 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             }
         ],
         "expected": {
-            "Test" : [ {'somearray': ['alice', 'bob', 'charley', '', 'foobar', 'goobar']} ]
+            "Test" : [ {'somearray': ['alice', 'bob', 'charley', '', 'goobar']} ]
         },
         "sheet_utils_also": False
     },
     # ----------------------------------------------------------------------------------------------
     {
         "rows": [
-            "somearray,somearray#3,somearray#4",
-            "123|456|789,,01|203"
+            "somearray#,somearray#3,somearray#4",
+            "123|456|789,0,203"
         ],
         "as_file_name": "test.csv",
         "schemas": [
@@ -812,7 +821,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             }
         ],
         "expected": {
-            "Test" : [ {'somearray': [123, 456, 789, 0, 1, 203]} ]
+            "Test" : [ {'somearray': [123, 456, 789, 0, 203]} ]
         },
         "sheet_utils_also": False
     },
@@ -875,11 +884,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "ignore": True,
         "rows": [
-#           "arrayofobject#.name,arrayofobject#.id",
-#           "anastasiia,1234"
-            "arrayofobject#4.name,arrayofobject#4.id,arrayofobject#2.name",
+            "arrayofobject#4.name,arrayofobject#4.id,arrayofobject#2.name,arrayofobject#2.id",
             "anastasiia,1234,olha,5678"
         ],
         "as_file_name": "test.csv",
@@ -900,7 +906,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 }
             }
         ],
-        "expected": {"Test" : [{"arrayofobject": [{"name": "anastasiia", "id": 1234}]}]},
+        #"expected": {"Test" : [{"arrayofobject": [{"name": "anastasiia", "id": 1234}]}]},
+        "expected": {"Test": [{"arrayofobject": [{}, {}, {"name": "olha", "id": 5678}, {}, {"name": "anastasiia", "id": 1234}]}]},
         "sheet_utils_also": False
     },
     # ----------------------------------------------------------------------------------------------
@@ -935,7 +942,6 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "ignore": True,
         "rows": [
             "arrayofarrayofobject##.name,arrayofarrayofobject##.id,arrayofarrayofobject##1.name,arrayofarrayofobject##1.id",
             "anastasiia,1234,olha,5678"
@@ -1175,6 +1181,21 @@ def test_get_type_name_1():
     assert _get_type_name("File  Format") == "FileFormat"
 
 
+def test_normalized_column_name() -> None:
+    _test_normalized_column_name("abc#0#", "abc###", "abc#0##")
+    _test_normalized_column_name("abc.def.ghi", None, "abc.def.ghi")
+    _test_normalized_column_name("abc.def.ghi", "abc.def.ghi", "abc.def.ghi")
+    _test_normalized_column_name("abc.def", "abc.def.ghi", "abc.def")
+    _test_normalized_column_name("abc##", "abc", "abc##")
+    _test_normalized_column_name("abc", "abc##", "abc##")
+    _test_normalized_column_name("abc.def.nestedarrayofobject#1#23##343#.mno",
+                                  "abc.def.nestedarrayofobject##1#24####.mno",
+                                  "abc.def.nestedarrayofobject#1#23##343###.mno")
+    _test_normalized_column_name("abc.def.nestedarrayofobject#####.mno",
+                                  "abc.def.nestedarrayofobject#####.mno",
+                                  "abc.def.nestedarrayofobject#####.mno")
+
+
 def _test_parse_structured_data(file: Optional[str] = None,
                                 as_file_name: Optional[str] = None,
                                 rows: Optional[List[str]] = None,
@@ -1241,10 +1262,12 @@ def _test_parse_structured_data(file: Optional[str] = None,
             else:
                 structured_data, validation_errors = call_parse_structured_data(file)
         if debug:
-            pdb.set_trace()
+            import pdb ; pdb.set_trace()
         if sheet_utils:
             structured_data = {to_camel_case(key): value for key, value in structured_data.items()}
         if expected is not None:
+            if not (structured_data == expected):
+                import pdb ; pdb.set_trace()
             assert structured_data == expected
         if expected_errors:
             assert validation_errors == expected_errors
@@ -1334,11 +1357,32 @@ def _get_schema_flat_typeinfo(schema: Schema):
                 if item.startswith("map_"):
                     return f"<{item}>"
         return type(map_function)
-    return {key: {k: (map_function_name(v) if k == "map" and isinstance(v, Callable) else v)
-                  for k, v in value.items()} for key, value in schema._typeinfo.items()}
+
+    result = {}
+    for key, value in schema._typeinfo.items():
+        if isinstance(value, str):
+            result[key] = value
+        elif isinstance(value, dict):
+            key_type = value["type"]
+            key_map = value.get("map")
+            result[key] = {"type": key_type, "map": map_function_name(key_map) if isinstance(key_map, Callable) else None}
+    return result
 
 
 def _test_structured_row_data(columns: str, expected: Optional[dict]):
-    if _StructuredRowTemplate(columns.split(",")).data != expected:
+    if _StructuredRowTemplate(columns.split(","))._template != expected:
         import pdb ; pdb.set_trace()
-    assert _StructuredRowTemplate(columns.split(",")).data == expected
+    assert _StructuredRowTemplate(columns.split(","))._template == expected
+
+
+def _test_normalized_column_name(column_name: str, schema_column_name: str, expected: str) -> None:
+    class FakeSchema(Schema):
+        class FakeTypeInfo:
+            def __init__(self, value):
+                self._value = value
+            def get(self, column_name):
+                return self._value
+        def __init__(self, value):
+            self._typeinfo = FakeSchema.FakeTypeInfo(value)
+    assert FakeSchema(schema_column_name).normalized_column_name(column_name) == expected
+

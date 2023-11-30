@@ -9,10 +9,11 @@ from typing import Any, Callable, List, Optional, Tuple, Type, Union
 from webtest.app import TestApp
 from dcicutils.data_readers import CsvReader, Excel, RowReader
 from dcicutils.ff_utils import get_metadata, get_schema
-from dcicutils.misc_utils import (load_json_if, merge_objects, remove_empty_properties, split_string,
+from dcicutils.misc_utils import (load_json_if, merge_objects, remove_empty_properties, right_trim, split_string,
                                   to_boolean, to_camel_case, to_enum, to_float, to_integer, VirtualApp)
 from dcicutils.zip_utils import temporary_file, unpack_gz_file_to_temporary_file, unpack_files
 from snovault.loadxl import create_testapp
+
 
 # Classes/functions to parse a CSV or Excel Spreadsheet into structured data, using a specialized
 # syntax to allow structured object properties to be referenced by column specifiers. This syntax
@@ -108,13 +109,15 @@ class StructuredDataSet:
     def _load_reader(self, reader: RowReader, type_name: str) -> None:
         schema = None
         noschema = False
-        structured_column_data = _StructuredRowTemplate(reader.header)
+        structured_row_template = None
         for row in reader:
-            if not schema and not noschema and not (schema := Schema.load_by_name(type_name, portal=self._portal)):
-                noschema = True  # Create schema here just so we don't create it if there are no rows.
-            structured_row = structured_column_data.create_row()
+            if not structured_row_template:  # Delay creation just so we don't create it if there are no rows.
+                if not schema and not noschema and not (schema := Schema.load_by_name(type_name, portal=self._portal)):
+                    noschema = True
+                structured_row_template = _StructuredRowTemplate(reader.header, schema)
+            structured_row = structured_row_template.create_row()
             for column_name, value in row.items():
-                structured_column_data.set_value(structured_row, column_name, value, schema, reader.location)
+                structured_row_template.set_value(structured_row, column_name, value, reader.location)
             self._add(type_name, structured_row)
 
     def _add(self, type_name: str, data: Union[dict, List[dict]]) -> None:
@@ -131,101 +134,80 @@ class StructuredDataSet:
                 self._issues = []
             self._issues.append({source: issues})
 
-
 class _StructuredRowTemplate:
 
-    def __init__(self, column_names: List[str]) -> None:
-        self.data = self._parse_into_row_template(column_names)
+    def __init__(self, column_names: List[str], schema: Optional[Schema] = None) -> None:
+        self._schema = schema
+        self._set_value_functions = {}
+        self._template = self._create_row_template(column_names)
 
     def create_row(self) -> dict:
-        return copy.deepcopy(self.data)
+        return copy.deepcopy(self._template)
 
-    @staticmethod
-    def set_value(row: dict, column_name: str, value: str, schema: Optional[Schema], loc: int) -> None:
+    def set_value(self, data: dict, column_name: str, value: str, loc: int = -1) -> None:
+        if (set_value_function := self._set_value_functions.get(column_name)):
+            src = (f"{f'{self._schema.name}.' if self._schema else ''}" +
+                   f"{f'{column_name}' if column_name else ''}{f' [{loc}]' if loc else ''}")
+            set_value_function(data, value, src)
 
-        def setv(row: Union[dict, list], column_name_components: List[str], parent_array_index: int = -1) -> None:
+    def _create_row_template(self, column_names: List[str]) -> dict:  # Surprisingly tricky code here.
 
-            if not column_name_components:
-                return
-            if isinstance(row, list):
-                if parent_array_index < 0:
-                    for row_item in row:
-                        setv(row_item, column_name_components)
+        def parse_array_components(column_name: str, value: Optional[Any], path: List[Union[str, int]]) -> Tuple[Optional[str], Optional[List[Any]]]:
+            array_name, array_indices = _get_array_indices(column_name)
+            if not array_name:
+                return None, None
+            array = None
+            for array_index in array_indices[::-1]:  # Reverse iteration from the last/inner-most index to first.
+                if not (array is None and value is None):
+                    array_index = max(array_index, 0)
+                path.insert(0, array_index)
+                array_length = array_index + 1
+                if array is None:
+                    if value is None:
+                        array = [None for _ in range(array_length)]
+                    else:
+                        array = [copy.deepcopy(value) for _ in range(array_length)]
                 else:
-                    setv(row[parent_array_index], column_name_components)
-                return
-            if not isinstance(row, dict):
-                return
+                    array = [copy.deepcopy(array) for _ in range(array_length)]
+            return array_name, array
 
-            column_name_component = column_name_components[0]
-            array_name, array_index = _StructuredRowTemplate._get_base_array_info(column_name_component)
-            name = array_name if array_name else column_name_component
-            if len(column_name_components) > 1:
-                if not isinstance(row[name], dict) and not isinstance(row[name], list):
-                    row[name] = {}
-                setv(row[name], column_name_components[1:], parent_array_index=array_index)
-                return
+        def parse_components(column_name_components: List[str], path: List[Union[str, int]]) -> dict:
+            value = parse_components(column_name_components[1:], path) if len(column_name_components) > 1 else None
+            array_name, array = parse_array_components(column_name_component := column_name_components[0], value, path)
+            path.insert(0, array_name or column_name_component)
+            return {array_name: array} if array_name else {column_name_component: value}
 
-            nonlocal column_name, value, schema, loc
-            if schema:
-                value = schema.map_value(value, column_name, loc)
-            if array_name and isinstance(value, str):
-                value = _split_array_string(value)
-            if array_name and array_index >= 0:
-                if isinstance(row[name], str):  # An array afterall e.g.: abc,abc#2
-                    row[name] = _split_array_string(row[name])
-                if len(row[name]) < array_index + 1:
-                    row[name].extend([None] * (array_index + 1 - len(row[name])))
-                if value == [] and (default_value := schema.get_default_value(name)) is not None:
-                    value = [default_value]
-                row[name] = row[name][:array_index] + value + row[name][array_index + 1:]
+        def set_value(data: Union[dict, list], value: Optional[Any], src: Optional[str],
+                      path: List[Union[str, int]], mapv: Optional[Callable]) -> None:
+            if isinstance(path[-1], int) and (jsonv := load_json_if(value, is_array=True)) is not None:
+                path = right_trim(path, remove=lambda value: isinstance(value, int))
             else:
-                row[name] = merge_objects(row.get(name), value)
-
-        setv(row, _split_dotted_string(column_name))
-
-    @staticmethod
-    def _parse_into_row_template(column_names: List[str]) -> dict:
-
-        def parse_array_components(column: str, value: Optional[Any]) -> Tuple[Optional[str], Optional[List[Any]]]:
-            array = None  # Handle array of array here even though we don't in general.
-            while True:
-                array_name, array_index = _StructuredRowTemplate._get_array_info(column)
-                if not array_name:
-                    return column if array is not None else None, array
-                if array is None and value is None:
-                    array = [None for _ in range(array_index + 1)]
+                jsonv = None
+            for p in path[:-1]:
+                data = data[p]
+            if (p := path[-1]) == -1 and isinstance(value, str):
+                values = _split_array_string(value)
+                if mapv:
+                    values = [mapv(value, src) for value in values]
+                merge_objects(data, values)
+            else:
+                if jsonv is not None or (jsonv := load_json_if(value, is_array=True, is_object=True)) is not None:
+                    data[p] = jsonv
                 else:
-                    array = [(copy.deepcopy(value) if array is None else array) for _ in range(max(array_index + 1, 1))]
-                column = array_name
-
-        def parse_components(column_name_components: List[str]) -> dict:
-            value = parse_components(column_name_components[1:]) if len(column_name_components) > 1 else None
-            array_name, array_value = parse_array_components(column_name_component := column_name_components[0], value)
-            return {array_name: array_value} if array_name else {column_name_component: value}
+                    data[p] = mapv(value, src) if mapv else value
 
         structured_row_template = {}
         for column_name in column_names or []:
-            if (column_name_components := _split_dotted_string(column_name)):
-                merge_objects(structured_row_template, parse_components(column_name_components), True)
+            path = []
+            normalized_column_name = self._schema.normalized_column_name(column_name) if self._schema else column_name
+            if (column_name_components := _split_dotted_string(normalized_column_name)):
+                merge_objects(structured_row_template, parse_components(column_name_components, path), True)
+                mapv = self._schema.get_map_value_function(normalized_column_name) if self._schema else None
+                setv = lambda data, value, src, path=path, mapv=mapv: set_value(data, value, src, path, mapv)  # noqa
+                if not self._schema and self._set_value_functions.get(Schema._unadorned_column_name(column_name)):
+                    raise Exception(f"Cannot have different column types for same name: {column_name}")
+                self._set_value_functions[column_name] = setv
         return structured_row_template
-
-    @staticmethod
-    def _get_array_info(name: str) -> Tuple[Optional[str], Optional[int]]:
-        if (array_indicator_position := name.rfind(ARRAY_NAME_SUFFIX_CHAR)) > 0:
-            array_index = name[array_indicator_position + 1:] if array_indicator_position < len(name) - 1 else -1
-            if (array_index := to_integer(array_index)) is not None:
-                return name[0:array_indicator_position], array_index
-        return None, None
-
-    @staticmethod
-    def _get_base_array_info(name: str) -> Tuple[Optional[str], Optional[int]]:
-        while True:
-            array_name, array_index = _StructuredRowTemplate._get_array_info(name)
-            if not array_name or not array_name.endswith(ARRAY_NAME_SUFFIX_CHAR):
-                break
-            name = array_name
-        return array_name, array_index
 
 
 class Schema:
@@ -235,16 +217,15 @@ class Schema:
         self.name = _get_type_name(schema_json.get("title", "")) if schema_json else ""
         self._portal = portal  # Needed only to resolve linkTo references.
         self._types = {
-            "array": { "map": self._map_function_array, "default": [] },
             "boolean": { "map": self._map_function_boolean, "default": False },
             "enum": { "map": self._map_function_enum, "default": "" },
             "integer": { "map": self._map_function_integer, "default": 0 },
             "number": { "map": self._map_function_number, "default": 0.0 },
             "string": { "map": self._map_function_string, "default": "" }
         }
-        self._map = {key: value["map"] for key, value in self._types.items()}
-        self._defaults = {key: value["default"] for key, value in self._types.items()}
-        self._typeinfo = self._compile_typeinfo(schema_json)
+        self._map_value_functions = {key: value["map"] for key, value in self._types.items()}
+        self._default_values = {key: value["default"] for key, value in self._types.items()}
+        self._typeinfo = self._create_typeinfo(schema_json)
 
     @staticmethod
     def load_by_name(name: str, portal: Portal) -> Optional[dict]:
@@ -256,20 +237,18 @@ class Schema:
             issues.append(issue.message)
         return issues if issues else None
 
-    def map_value(self, value: str, column_name: str, loc: int) -> Optional[Any]:
-        column_name = self._normalize_column_name(column_name)
-        if (mapv := self._typeinfo.get(column_name, {}).get("map")) is None:
-            mapv = self._typeinfo.get(column_name + ARRAY_NAME_SUFFIX_CHAR, {}).get("map")
-        src = f"{self.name}{f'.{column_name}' if column_name else ''}{f' [{loc}]' if loc else ''}"
-        return mapv(value, src) if mapv else load_json_if(value, is_object=True, is_array=True, fallback=value)
-
     def get_default_value(self, column_name: str) -> Optional[Any]:
-        return self._defaults.get(self._get_type(column_name))
+        return self._default_values.get((self._get_typeinfo(column_name) or {}).get("type"))
 
-    def _get_type(self, column_name: str) -> Optional[str]:
-        if not (column_type := self._typeinfo.get(f"{column_name}")):
-            column_type = self._typeinfo.get(f"{column_name}{ARRAY_NAME_SUFFIX_CHAR}")
-        return column_type.get("type") if column_type else None
+    def get_map_value_function(self, column_name: str) -> Optional[Any]:
+        return (self._get_typeinfo(column_name) or {}).get("map")
+
+    def _get_typeinfo(self, column_name: str) -> Optional[dict]:
+        if isinstance(info := self._typeinfo.get(column_name), str):
+            info = self._typeinfo.get(info)
+        if not info and isinstance(info := self._typeinfo.get(self._unadorned_column_name(column_name)), str):
+            info = self._typeinfo.get(info)
+        return info
         
     def _map_function(self, typeinfo: dict) -> Optional[Callable]:
         if isinstance(typeinfo, dict) and (typeinfo_type := typeinfo.get("type")) is not None:
@@ -279,7 +258,7 @@ class Schema:
                 # we will take the first one for which we have a mapping function.
                 # TODO: Maybe more correct to get all map function and map to any for values.
                 for acceptable_type in typeinfo_type:
-                    if (map_function := self._map.get(acceptable_type)) is not None:
+                    if (map_function := self._map_value_functions.get(acceptable_type)) is not None:
                         break
             elif not isinstance(typeinfo_type, str):
                 return None  # Invalid type specifier; ignore,
@@ -288,15 +267,9 @@ class Schema:
             elif isinstance(typeinfo.get("linkTo"), str):
                 map_function = self._map_function_ref
             else:
-                map_function = self._map.get(typeinfo_type)
+                map_function = self._map_value_functions.get(typeinfo_type)
             return map_function(typeinfo) if map_function else None
         return None
-
-    def _map_function_array(self, typeinfo: dict) -> Callable:
-        def map_array(value: str, mapv: Optional[Callable], src: Optional[str]) -> Any:
-            value = _split_array_string(value) if mapv else load_json_if(value, is_array=True, fallback=value)
-            return [mapv(value, src) for value in value] if mapv else value
-        return lambda value, src: map_array(value, self._map_function(typeinfo), src)
 
     def _map_function_boolean(self, typeinfo: dict) -> Callable:
         def map_boolean(value: str, src: Optional[str]) -> Any:
@@ -337,7 +310,7 @@ class Schema:
             return value
         return lambda value, src: map_ref(value, typeinfo.get("linkTo"), self._portal, src)
 
-    def _compile_typeinfo(self, schema_json: dict, parent_key: Optional[str] = None) -> dict:
+    def _create_typeinfo(self, schema_json: dict, parent_key: Optional[str] = None) -> dict:
         """
         Given a JSON schema return a dictionary of all the property names it defines, but with
         the names of any nested properties (i.e objects within objects) flattened into a single
@@ -381,7 +354,9 @@ class Schema:
                     schema_type = "string"  # Undefined array type; should not happen; just make it a string.
                 if schema_type == "array":
                     parent_key += ARRAY_NAME_SUFFIX_CHAR
-                result[parent_key] = {"type": schema_type, "map": self._map_function_array(schema_json)}
+                result[parent_key] = {"type": schema_type, "map": self._map_function(schema_json)}
+                if ARRAY_NAME_SUFFIX_CHAR in parent_key:
+                    result[parent_key.replace(ARRAY_NAME_SUFFIX_CHAR, "")] = parent_key
             return result
         for property_key, property_value in properties.items():
             if not isinstance(property_value, dict) or not property_value:
@@ -390,7 +365,7 @@ class Schema:
             if ARRAY_NAME_SUFFIX_CHAR in property_key:
                 raise Exception(f"Property name with \"{ARRAY_NAME_SUFFIX_CHAR}\" in JSON schema NOT supported: {key}")
             if (property_value_type := property_value.get("type")) == "object" and "properties" in property_value:
-                result.update(self._compile_typeinfo(property_value, parent_key=key))
+                result.update(self._create_typeinfo(property_value, parent_key=key))
                 continue
             if property_value_type == "array":
                 while property_value_type == "array":  # Handle array of array here even though we don't in general.
@@ -401,21 +376,47 @@ class Schema:
                     key = key + ARRAY_NAME_SUFFIX_CHAR
                     property_value = array_property_items
                     property_value_type = property_value.get("type")
-                result.update(self._compile_typeinfo(array_property_items, parent_key=key))
+                result.update(self._create_typeinfo(array_property_items, parent_key=key))
                 continue
             result[key] = {"type": property_value_type, "map": self._map_function({**property_value, "column": key})}
+            if ARRAY_NAME_SUFFIX_CHAR in key:
+                result[key.replace(ARRAY_NAME_SUFFIX_CHAR, "")] = key
         return result
 
+    def normalized_column_name(self, column_name: str, schema_column_name: Optional[str] = None) -> str:
+        """
+        Replaces any (dot-separated) components of the given column_name which have array indicators/suffixes
+        with the corresponding value from the (flattened) schema column names, but with any actual array
+        indices from the given column name component. For example, if the (flattened) schema column name
+        if "abc#.def##.ghi" and the given column name is "abc.def#1#2#.ghi" returns "abc#.def#1#2.ghi",
+        of if the schema column name is "abc###" and the given column name is "abc#0#" then "abc#0##".
+        This will "correct" specified columns name (with array indicators) according to the schema.
+        """
+        if not isinstance(schema_column_name := self._typeinfo.get(self._unadorned_column_name(column_name)), str):
+            return column_name
+        schema_column_components = _split_dotted_string(schema_column_name)
+        for i in range(len(column_components := _split_dotted_string(column_name))):
+            schema_array_name, schema_array_indices = _get_array_indices(schema_column_components[i])
+            if schema_array_indices:
+                if (array_indices := _get_array_indices(column_components[i])[1]):
+                    if len(schema_array_indices) > len(array_indices):
+                        schema_array_indices = array_indices + [-1] * (len(schema_array_indices) - len(array_indices))
+                    else:
+                        schema_array_indices = array_indices[:len(schema_array_indices)]
+                array_qualifiers = "".join([(("#" + str(i)) if i >= 0 else "#") for i in schema_array_indices])
+                column_components[i] = schema_array_name + array_qualifiers
+        return DOTTED_NAME_DELIMITER_CHAR.join(column_components)
+
     @staticmethod
-    def _normalize_column_name(column_name: str) -> str:
+    def _unadorned_column_name(column_name: str) -> str:
         """
         Given a string representing a flat column name, i.e possibly dot-separated name components,
         and where each component possibly ends with an array suffix (i.e. pound sign - #) followed
-        by an integer, removes the integer part for each such array component; also trims names.
-        For example given "abc#12. def .ghi#3" returns "abc#.def.ghi#".
+        by an optional integer, returns the unadorned column, without any array suffixes/specifiers.
         """
-        return DOTTED_NAME_DELIMITER_CHAR.join([ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR, value)
-                                                for value in _split_dotted_string(column_name)])
+        return DOTTED_NAME_DELIMITER_CHAR.join(
+                [ARRAY_NAME_SUFFIX_REGEX.sub(ARRAY_NAME_SUFFIX_CHAR, value)
+                 for value in _split_dotted_string(column_name)]).replace(ARRAY_NAME_SUFFIX_CHAR, "")
 
 
 class Portal:
@@ -470,6 +471,17 @@ class Portal:
 def _get_type_name(value: str) -> str:  # File or other name.
     name = os.path.basename(value).replace(" ", "") if isinstance(value, str) else ""
     return to_camel_case(name[0:dot] if (dot := name.rfind(".")) > 0 else name)
+
+
+def _get_array_indices(name: str) -> Tuple[Optional[str], Optional[List[int]]]:
+    indices = []
+    while (array_indicator_position := name.rfind(ARRAY_NAME_SUFFIX_CHAR)) > 0:
+        array_index = name[array_indicator_position + 1:] if array_indicator_position < len(name) - 1 else -1
+        if (array_index := to_integer(array_index)) is None:
+            break
+        name = name[0:array_indicator_position]
+        indices.insert(0, array_index)
+    return (name, indices) if indices else (None, None)
 
 
 def _split_dotted_string(value: str):
