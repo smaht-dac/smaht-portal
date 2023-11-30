@@ -150,7 +150,7 @@ class _StructuredRowTemplate:
                    f"{f'{column_name}' if column_name else ''}{f' [{loc}]' if loc else ''}")
             set_value_function(data, value, src)
 
-    def _create_row_template(self, column_names: List[str]) -> dict:
+    def _create_row_template(self, column_names: List[str]) -> dict:  # Surprisingly tricky code here.
 
         def parse_array_components(column_name: str, value: Optional[Any], path: List[Union[str, int]]) -> Tuple[Optional[str], Optional[List[Any]]]:
             array_name, array_indices = _get_array_indices(column_name)

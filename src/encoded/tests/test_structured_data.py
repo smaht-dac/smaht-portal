@@ -767,7 +767,6 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "debug": True,
         "rows": [
             "simplearray#4\tsimplearray\tsomeobj.ghi\tabc\tarrayofarray\tsimplearray#3",
             "hello\tabc|def|ghi\t[{\"jkl\": \"xyz\"}]\t{\"hello\": 1234}\t[[\"j.\", \"alfred\", \"prufrock\"]]\tbyebye"
