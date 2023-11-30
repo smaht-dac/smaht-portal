@@ -485,6 +485,9 @@ body[data-path="/"]>#application>#layout {
 	background: top right no-repeat url('/static/img/Top Right Hexagons.svg'), 0% 95% no-repeat url('/static/img/Bottom Left Hexagons.svg'), linear-gradient(to bottom right, #FFFFFF, #E3FCFF);
 }
 .homepage-wrapper {
+	@media screen and (min-width: 992px) {
+		padding-left: 58px;
+	}
 
 	// Styles for alerts on the homepage
 	#full-alerts-container {
@@ -495,20 +498,25 @@ body[data-path="/"]>#application>#layout {
 		// top: 0px;
 	
 		> .alerts {
-			width: 100%;
+			@media screen and (min-width: 992px) {
+				padding-left: 0px;
+			}
+			// width: 100%;
+
 			> .alert {
+				background-color: #FEE5E5;
 				position: relative;
 				display: flex;
-				padding: 12px 30px;
-				// height: 60px;
+				padding: 17px 60px 17px 25px;
+
 				.alert-heading {
 					font-size: 16px;
 				};
 
 				button.close {
 					position:absolute;
-					top: 12px;
-					right: 20px;
+					top: 16px;
+					right: 25px;
 				}
 			}
 		}
@@ -517,6 +525,9 @@ body[data-path="/"]>#application>#layout {
 
 	.homepage-contents,
 	.homepage-contents>div {
+		@media screen and (min-width: 992px) {
+			padding-left: 0px;
+		}
 		// Full screen - Height of the navbar & footer at full height
 		// @TODO use variables for the heights
 		min-height: calc(100vh - 130px); 
