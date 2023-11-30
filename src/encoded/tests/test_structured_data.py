@@ -989,7 +989,6 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "debug": False,
         "rows": [
             "indigo\tjuliet\talfa.bravo\talfa.bravo.charlie.delta",
             "abc|def|ghi|123456890\t[[[0],[12,34],[5],[67,8,90]],[[123]]]\t{\"foo\": 123}",
