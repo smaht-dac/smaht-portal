@@ -224,8 +224,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     # ----------------------------------------------------------------------------------------------
     {
         "novalidate": True,
-        "file": "uw_gcc_colo829bl_submission_20231117.xlsx",
-        "expected": "uw_gcc_colo829bl_submission_20231117.result.json",
+        "file": "test_uw_gcc_colo829bl_submission_20231117.xlsx",
+        "expected": "test_uw_gcc_colo829bl_submission_20231117.result.json",
         "expected_refs": [
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_FiberSeq_1",
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_HMWgDNA_1",
@@ -261,11 +261,11 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        # Same as uw_gcc_colo829bl_submission_20231117.xlsx but with the blank line in the
+        # Same as test_uw_gcc_colo829bl_submission_20231117.xlsx but with the blank line in the
         # Unaligned Reads sheet that signaled the end of input, and the following comment, removed.
-        "file": "uw_gcc_colo829bl_submission_20231117_more_unaligned_reads.xlsx",
+        "file": "test_uw_gcc_colo829bl_submission_20231117_more_unaligned_reads.xlsx",
         "novalidate": True,
-        "expected": "uw_gcc_colo829bl_submission_20231117_more_unaligned_reads.result.json",
+        "expected": "test_uw_gcc_colo829bl_submission_20231117_more_unaligned_reads.result.json",
         "expected_refs": [
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_FiberSeq_1",
             "/Analyte/UW-GCC_ANALYTE_COLO-829BLT-50to1_1_HMWgDNA_1",
