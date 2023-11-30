@@ -767,10 +767,12 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "ignore": True, # fooy
+        "debug": True,
         "rows": [
             "simplearray#4\tsimplearray\tsomeobj.ghi\tabc\tarrayofarray\tsimplearray#3",
             "hello\tabc|def|ghi\t[{\"jkl\": \"xyz\"}]\t{\"hello\": 1234}\t[[\"j.\", \"alfred\", \"prufrock\"]]\tbyebye"
+            #"arrayofarray\tsimplearray#4\tsimplearray\tsomeobj.ghi\tabc\tsimplearray#3",
+            #"[[\"j.\", \"alfred\", \"prufrock\"]]\thello\tabc|def|ghi\t[{\"jkl\": \"xyz\"}]\t{\"hello\": 1234}\tbyebye"
         ],
         "as_file_name": "test.tsv",
         "schemas": [_load_json_from_file("some_type_three.json")],
@@ -781,8 +783,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                     #"simplearray": ["abc", "def", "ghi", "byebye"],
                     "abc": {"hello": 1234},
                     "someobj": { "ghi": [{"jkl": "xyz"}] },
-                    #"arrayofarray": [["j.", "alfred", "prufrock"]]
-                    "arrayofarray": [[["j.", "alfred", "prufrock"]]]  # TODO
+                    "arrayofarray": [["j.", "alfred", "prufrock"]]
+                    #"arrayofarray": [[["j.", "alfred", "prufrock"]]]  # TODO
                 }
 
 #               {

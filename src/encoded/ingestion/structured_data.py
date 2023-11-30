@@ -9,7 +9,7 @@ from typing import Any, Callable, List, Optional, Tuple, Type, Union
 from webtest.app import TestApp
 from dcicutils.data_readers import CsvReader, Excel, RowReader
 from dcicutils.ff_utils import get_metadata, get_schema
-from dcicutils.misc_utils import (load_json_if, merge_objects, remove_empty_properties, split_string,
+from dcicutils.misc_utils import (load_json_if, merge_objects, remove_empty_properties, right_trim, split_string,
                                   to_boolean, to_camel_case, to_enum, to_float, to_integer, VirtualApp)
 from dcicutils.zip_utils import temporary_file, unpack_gz_file_to_temporary_file, unpack_files
 from snovault.loadxl import create_testapp
@@ -179,19 +179,20 @@ class _StructuredRowTemplate:
 
         def set_value(data: Union[dict, list], value: Optional[Any], src: Optional[str],
                       path: List[Union[str, int]], mapv: Optional[Callable]) -> None:
+            if isinstance(path[-1], int) and (jsonv := load_json_if(value, is_array=True)) is not None:
+                path = right_trim(path, remove=lambda value: isinstance(value, int))
+            else:
+                jsonv = None
             for p in path[:-1]:
                 data = data[p]
             if (p := path[-1]) == -1 and isinstance(value, str):
-                if (json_value := load_json_if(value, is_array=True)) is not None:  # TODO: If array-of-array back up.
-                    data[:] = json_value
-                else:
-                    values = _split_array_string(value)
-                    if mapv:
-                        values = [mapv(value, src) for value in values]
-                    merge_objects(data, values)
+                values = _split_array_string(value)
+                if mapv:
+                    values = [mapv(value, src) for value in values]
+                merge_objects(data, values)
             else:
-                if (json_value := load_json_if(value, is_array=True, is_object=True)) is not None:
-                    data[p] = json_value
+                if jsonv is not None or (jsonv := load_json_if(value, is_array=True, is_object=True)) is not None:
+                    data[p] = jsonv
                 else:
                     data[p] = mapv(value, src) if mapv else value
 
