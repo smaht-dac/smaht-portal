@@ -196,15 +196,29 @@ class _StructuredRowTemplate:
                 else:
                     data[p] = mapv(value, src) if mapv else value
 
+        def ensure_compatible_column(column_name: str) -> None:
+            column_components = _split_dotted_string(Schema.normalize_column_name(column_name))
+            for existing_column_name in self._set_value_functions:
+                existing_column_components = _split_dotted_string(Schema.normalize_column_name(existing_column_name))
+                if (Schema.unadorn_column_name(column_components[0]) !=
+                    Schema.unadorn_column_name(existing_column_components[0])):
+                    break
+                for i in range(min(len(column_components), len(existing_column_components))):
+                    if i >= len(column_components) or i >= len(existing_column_components):
+                        break
+                    if ((column_components[i] != existing_column_components[i]) and
+                        (column_components[i].endswith(ARRAY_NAME_SUFFIX_CHAR) or
+                         existing_column_components[i].endswith(ARRAY_NAME_SUFFIX_CHAR))):
+                        raise Exception(f"Incompatible columns: {column_components[i]} {existing_column_components[i]}")
+
         structured_row_template = {}
         for column_name in column_names or []:
+            ensure_compatible_column(column_name)
             path = []
             rational_column_name = self._schema.rationalize_column_name(column_name) if self._schema else column_name
             if (column_name_components := _split_dotted_string(rational_column_name)):
                 merge_objects(structured_row_template, parse_components(column_name_components, path), True)
                 mapv = self._schema.get_map_value_function(rational_column_name) if self._schema else None
-                if not self._schema and self._set_value_functions.get(Schema.unadorn_column_name(column_name)):
-                    raise Exception(f"Cannot have different column types for same name: {column_name}")
                 self._set_value_functions[column_name] = (
                     lambda data, value, src, path=path, mapv=mapv: set_value(data, value, src, path, mapv))
         return structured_row_template
@@ -409,6 +423,10 @@ class Schema:
                 array_qualifiers = "".join([(("#" + str(i)) if i >= 0 else "#") for i in schema_array_indices])
                 column_components[i] = schema_array_name + array_qualifiers
         return DOTTED_NAME_DELIMITER_CHAR.join(column_components)
+
+    @staticmethod
+    def normalize_column_name(column_name: str) -> str:
+        return Schema.unadorn_column_name(column_name, False)
 
     @staticmethod
     def unadorn_column_name(column_name: str, full: bool = True) -> str:
