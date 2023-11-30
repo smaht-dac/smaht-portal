@@ -179,10 +179,9 @@ class _StructuredRowTemplate:
 
         def set_value(data: Union[dict, list], value: Optional[Any], src: Optional[str],
                       path: List[Union[str, int]], mapv: Optional[Callable]) -> None:
+            jsonv = None
             if isinstance(path[-1], int) and (jsonv := load_json_if(value, is_array=True)) is not None:
                 path = right_trim(path, remove=lambda value: isinstance(value, int))
-            else:
-                jsonv = None
             for p in path[:-1]:
                 data = data[p]
             if (p := path[-1]) == -1 and isinstance(value, str):
