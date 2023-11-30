@@ -141,12 +141,12 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "as_file_name": "easy_test2.csv",
         "rows": [
             r"abcdef,ghi.jk,l,mno#,ghi.xyzzy,mno#2",  # TODO: fail if mno.#0 instead of mno.#
             r"alfa,bravo,123,delta|echo|foxtrot,xyzzy:one,october",
             r"golf,hotel,456,juliet|kilo|lima,xyzzy:two,november"
         ],
+        "as_file_name": "easy_test2.csv",
         "noschemas": True,
         "expected": {
             "EasyTest2": [
@@ -168,8 +168,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "reference_file_20231119.csv",
-        "as_file_name": "reference_file.csv",
+        "file": "reference_file_20231119.csv", "as_file_name": "reference_file.csv",
         "expected": "reference_file_20231119.result.json",
         "expected_refs": [
             "/FileFormat/FASTA",
@@ -302,8 +301,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "software_20231119.csv",
-        "as_file_name": "software.csv",
+        "file": "software_20231119.csv", "as_file_name": "software.csv",
         "novalidate": True,
         "expected": "software_20231119.result.json",
         "expected_refs": [
@@ -319,8 +317,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "workflow_20231119.csv",
-        "as_file_name": "workflow.csv",
+        "file": "workflow_20231119.csv", "as_file_name": "workflow.csv",
         "novalidate": True,
         "expected": "workflow_20231119.result.json",
         "expected_refs": [
@@ -336,8 +333,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "analyte_20231119.csv",
-        "as_file_name": "analyte.csv",
+        "file": "analyte_20231119.csv", "as_file_name": "analyte.csv",
         "expected": "analyte_20231119.result.json",
         "expected_refs": [
             "/Consortium/another-consortia",
@@ -350,8 +346,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "library_20231119.csv",
-        "as_file_name": "library.csv",
+        "file": "library_20231119.csv", "as_file_name": "library.csv",
         "expected": "library_20231119.result.json",
         "expected_refs": [
             "/Analyte/sample-analyte-1",
@@ -369,8 +364,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "library_20231119.csv",
-        "as_file_name": "library.csv",
+        "file": "library_20231119.csv", "as_file_name": "library.csv",
         "expected": "library_20231119.result.json",
         "expected_refs": [
             "/Analyte/sample-analyte-1",
@@ -388,8 +382,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "library_20231119.csv",
-        "as_file_name": "library.csv",
+        "file": "library_20231119.csv", "as_file_name": "library.csv",
         "expected": "library_20231119.result.json",
         "expected_refs": [
             "/Analyte/sample-analyte-1",
@@ -407,8 +400,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "file_format_20231119.csv.gz",
-        "as_file_name": "file_format.csv.gz",
+        "file": "file_format_20231119.csv.gz", "as_file_name": "file_format.csv.gz",
         "expected": "file_format_20231119.result.json",
         "expected_refs": [
             "/Consortium/358aed10-9b9d-4e26-ab84-4bd162da182b",
@@ -431,8 +423,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "file": "unaligned_reads_20231120.csv",
-        "as_file_name": "unaligned_reads.csv",
+        "file": "unaligned_reads_20231120.csv", "as_file_name": "unaligned_reads.csv",
         "expected": "unaligned_reads_20231120.result.json",
         "expected_refs": [
             "/FileSet/FileSet1", "/FileSet/FileSet2", "/FileSet/FileSet3",

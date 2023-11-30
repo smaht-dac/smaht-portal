@@ -354,7 +354,6 @@ class Schema:
                     schema_type = "string"  # Undefined array type; should not happen; just make it a string.
                 if schema_type == "array":
                     parent_key += ARRAY_NAME_SUFFIX_CHAR
-                #result[parent_key] = {"type": schema_type, "map": self._map_function_array(schema_json)}
                 result[parent_key] = {"type": schema_type, "map": self._map_function(schema_json)}
                 if ARRAY_NAME_SUFFIX_CHAR in parent_key:
                     result[parent_key.replace(ARRAY_NAME_SUFFIX_CHAR, "")] = parent_key
