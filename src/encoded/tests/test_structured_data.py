@@ -11,7 +11,7 @@ from dcicutils.bundle_utils import RefHint
 from dcicutils.misc_utils import to_camel_case
 from dcicutils.validation_utils import SchemaManager  # noqa
 from dcicutils.zip_utils import temporary_file
-from encoded.ingestion.structured_data import Portal, Schema, _get_type_name, _StructuredRowTemplate  # noqa
+from encoded.ingestion.structured_data import Portal, Schema, _StructuredRowTemplate  # noqa
 from encoded.ingestion.ingestion_processors import parse_structured_data
 
 THIS_TEST_MODULE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -1173,12 +1173,12 @@ def test_portal_custom_schemas_1():
 
 
 def test_get_type_name_1():
-    assert _get_type_name("FileFormat") == "FileFormat"
-    assert _get_type_name("file_format") == "FileFormat"
-    assert _get_type_name("file_format.csv") == "FileFormat"
-    assert _get_type_name("file_format.json") == "FileFormat"
-    assert _get_type_name("file_format.xls") == "FileFormat"
-    assert _get_type_name("File  Format") == "FileFormat"
+    assert Schema.type_name("FileFormat") == "FileFormat"
+    assert Schema.type_name("file_format") == "FileFormat"
+    assert Schema.type_name("file_format.csv") == "FileFormat"
+    assert Schema.type_name("file_format.json") == "FileFormat"
+    assert Schema.type_name("file_format.xls") == "FileFormat"
+    assert Schema.type_name("File  Format") == "FileFormat"
 
 
 def test_rationalize_column_name() -> None:

@@ -92,19 +92,19 @@ class StructuredDataSet:
             self._load_file(file)
 
     def _load_csv_file(self, file: str) -> None:
-        self._load_reader(reader := CsvReader(file), type_name=_get_type_name(file))
+        self._load_reader(reader := CsvReader(file), type_name=Schema.type_name(file))
         self._note_issues(reader.issues, os.path.basename(file))
 
     def _load_excel_file(self, file: str) -> None:
         excel = Excel(file)  # Order the sheet names by any specified ordering (e.g. ala snovault.loadxl).
-        order = {_get_type_name(key): index for index, key in enumerate(self._order)} if self._order else {}
-        for sheet_name in sorted(excel.sheet_names, key=lambda key: order.get(_get_type_name(key), sys.maxsize)):
-            self._load_reader(reader := excel.sheet_reader(sheet_name), type_name=_get_type_name(sheet_name))
+        order = {Schema.type_name(key): index for index, key in enumerate(self._order)} if self._order else {}
+        for sheet_name in sorted(excel.sheet_names, key=lambda key: order.get(Schema.type_name(key), sys.maxsize)):
+            self._load_reader(reader := excel.sheet_reader(sheet_name), type_name=Schema.type_name(sheet_name))
             self._note_issues(reader.issues, f"{file}:{sheet_name}")
 
     def _load_json_file(self, file: str) -> None:
         with open(file) as f:
-            self._add(_get_type_name(file), json.load(f))
+            self._add(Schema.type_name(file), json.load(f))
 
     def _load_reader(self, reader: RowReader, type_name: str) -> None:
         schema = None
@@ -153,7 +153,7 @@ class _StructuredRowTemplate:
     def _create_row_template(self, column_names: List[str]) -> dict:  # Surprisingly tricky code here.
 
         def parse_array_components(column_name: str, value: Optional[Any], path: List[Union[str, int]]) -> Tuple[Optional[str], Optional[List[Any]]]:
-            array_name, array_indices = _get_array_indices(column_name)
+            array_name, array_indices = Schema.array_indices(column_name)
             if not array_name:
                 return None, None
             array = None
@@ -201,7 +201,7 @@ class _StructuredRowTemplate:
             for existing_column_name in self._set_value_functions:
                 existing_column_components = _split_dotted_string(Schema.normalize_column_name(existing_column_name))
                 if (Schema.unadorn_column_name(column_components[0]) !=
-                    Schema.unadorn_column_name(existing_column_components[0])):
+                    Schema.unadorn_column_name(existing_column_components[0])):  # noqa
                     break
                 for i in range(min(len(column_components), len(existing_column_components))):
                     if i >= len(column_components) or i >= len(existing_column_components):
@@ -231,7 +231,7 @@ class Schema:
 
     def __init__(self, schema_json: dict, portal: Optional[Portal] = None) -> None:
         self.data = schema_json
-        self.name = _get_type_name(schema_json.get("title", "")) if schema_json else ""
+        self.name = Schema.type_name(schema_json.get("title", "")) if schema_json else ""
         self._portal = portal  # Needed only to resolve linkTo references.
         self._types = {
             "boolean": { "map": self._map_function_boolean, "default": False },
@@ -246,7 +246,7 @@ class Schema:
 
     @staticmethod
     def load_by_name(name: str, portal: Portal) -> Optional[dict]:
-        return Schema(portal.get_schema(_get_type_name(name)), portal) if portal else None
+        return Schema(portal.get_schema(Schema.type_name(name)), portal) if portal else None
 
     def validate(self, data: dict) -> Optional[List[str]]:
         issues = []
@@ -413,9 +413,9 @@ class Schema:
             return column_name
         schema_column_components = _split_dotted_string(schema_column_name)
         for i in range(len(column_components := _split_dotted_string(column_name))):
-            schema_array_name, schema_array_indices = _get_array_indices(schema_column_components[i])
+            schema_array_name, schema_array_indices = Schema.array_indices(schema_column_components[i])
             if schema_array_indices:
-                if (array_indices := _get_array_indices(column_components[i])[1]):
+                if (array_indices := Schema.array_indices(column_components[i])[1]):
                     if len(schema_array_indices) > len(array_indices):
                         schema_array_indices = array_indices + [-1] * (len(schema_array_indices) - len(array_indices))
                     else:
@@ -440,6 +440,22 @@ class Schema:
              for value in _split_dotted_string(column_name)])
         return unadorned_column_name.replace(ARRAY_NAME_SUFFIX_CHAR, "") if full else unadorned_column_name
 
+    @staticmethod
+    def type_name(value: str) -> str:  # File or other name.
+        name = os.path.basename(value).replace(" ", "") if isinstance(value, str) else ""
+        return to_camel_case(name[0:dot] if (dot := name.rfind(".")) > 0 else name)
+
+    @staticmethod
+    def array_indices(name: str) -> Tuple[Optional[str], Optional[List[int]]]:
+        indices = []
+        while (array_indicator_position := name.rfind(ARRAY_NAME_SUFFIX_CHAR)) > 0:
+            array_index = name[array_indicator_position + 1:] if array_indicator_position < len(name) - 1 else -1
+            if (array_index := to_integer(array_index)) is None:
+                break
+            name = name[0:array_indicator_position]
+            indices.insert(0, array_index)
+        return (name, indices) if indices else (None, None)
+
 
 class Portal:
 
@@ -451,7 +467,7 @@ class Portal:
     @lru_cache(maxsize=256)
     def get_schema(self, schema_name: str) -> Optional[dict]:
         return (next((schema for schema in self._schemas or []
-                     if _get_type_name(schema.get("title")) == _get_type_name(schema_name)), None) or
+                     if Schema.type_name(schema.get("title")) == Schema.type_name(schema_name)), None) or
                 get_schema(schema_name, portal_vapp=self.vapp))
 
     @lru_cache(maxsize=256)
@@ -488,22 +504,6 @@ class Portal:
         minimal_ini_for_unit_testing = "[app:app]\nuse = egg:encoded\nsqlalchemy.url = postgresql://dummy\n"
         with temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
             return Portal(create_testapp(ini_file), schemas=schemas)
-
-
-def _get_type_name(value: str) -> str:  # File or other name.
-    name = os.path.basename(value).replace(" ", "") if isinstance(value, str) else ""
-    return to_camel_case(name[0:dot] if (dot := name.rfind(".")) > 0 else name)
-
-
-def _get_array_indices(name: str) -> Tuple[Optional[str], Optional[List[int]]]:
-    indices = []
-    while (array_indicator_position := name.rfind(ARRAY_NAME_SUFFIX_CHAR)) > 0:
-        array_index = name[array_indicator_position + 1:] if array_indicator_position < len(name) - 1 else -1
-        if (array_index := to_integer(array_index)) is None:
-            break
-        name = name[0:array_indicator_position]
-        indices.insert(0, array_index)
-    return (name, indices) if indices else (None, None)
 
 
 def _split_dotted_string(value: str):
