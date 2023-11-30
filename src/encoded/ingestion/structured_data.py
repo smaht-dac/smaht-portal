@@ -159,7 +159,7 @@ class _StructuredRowTemplate:
             array = None
             for array_index in array_indices[::-1]:  # Reverse iteration from the last/inner-most index to first.
                 if not (array is None and value is None):
-                    array_index = max(array_index + 1, 0)
+                    array_index = max(array_index, 0)
                 path.insert(0, array_index)
                 array_length = array_index + 1
                 if array is None:
@@ -168,7 +168,7 @@ class _StructuredRowTemplate:
                     else:
                         array = [copy.deepcopy(value) for _ in range(array_length)]
                 else:
-                    array = [array for _ in range(array_length)]
+                    array = [copy.deepcopy(array) for _ in range(array_length)]
             return array_name, array
 
         def parse_components(column_name_components: List[str], path: List[Union[str, int]]) -> dict:
@@ -182,12 +182,18 @@ class _StructuredRowTemplate:
             for p in path[:-1]:
                 data = data[p]
             if (p := path[-1]) == -1 and isinstance(value, str):
-                values = _split_array_string(value)
-                if mapv:
-                    values = [mapv(value, src) for value in values]
-                merge_objects(data, values)
+                if (json_value := load_json_if(value, is_array=True)) is not None:
+                    data[:] = json_value
+                else:
+                    values = _split_array_string(value)
+                    if mapv:
+                        values = [mapv(value, src) for value in values]
+                    merge_objects(data, values)
             else:
-                data[p] = mapv(value, src) if mapv else value
+                if (json_value := load_json_if(value, is_array=True, is_object=True)) is not None:
+                    data[p] = json_value
+                else:
+                    data[p] = mapv(value, src) if mapv else value
 
         structured_row_template = {}
         for column_name in column_names or []:
@@ -195,10 +201,11 @@ class _StructuredRowTemplate:
             normalized_column_name = self._schema.normalized_column_name(column_name) if self._schema else column_name
             if (column_name_components := _split_dotted_string(normalized_column_name)):
                 merge_objects(structured_row_template, parse_components(column_name_components, path), True)
-                if self._schema:
-                    mapv = self._schema.get_map_value_function(normalized_column_name)
-                self._set_value_functions[column_name] = (
-                    lambda data, value, src, path=path, mapv=mapv: set_value(data, value, src, path, mapv))
+                mapv = self._schema.get_map_value_function(normalized_column_name) if self._schema else None
+                setv = lambda data, value, src, path=path, mapv=mapv: set_value(data, value, src, path, mapv)
+                if not self._schema and self._set_value_functions.get(Schema._unadorned_column_name(column_name)):
+                    raise Exception(f"Cannot have different column types for same name: {column_name}")
+                self._set_value_functions[column_name] = setv
         return structured_row_template
 
 
