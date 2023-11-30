@@ -74,5 +74,44 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier" : "account_creation",
+        "uuid" : "442c8aa0-dc6c-43d7-814a-854af460b014",
+        "file" : "/docs/source/account_creation.rst",
+        "section_type": "Page Section",
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier" : "getting_started",
+        "uuid" : "442c8aa0-dc6c-43d7-814a-854af460b015",
+        "file" : "/docs/source/getting_started.rst",
+        "section_type": "Page Section",
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier" : "excel_submission",
+        "uuid" : "442c8aa0-dc6c-43d7-814a-854af460b016",
+        "file" : "/docs/source/excel_submission.rst",
+        "section_type": "Page Section",
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
