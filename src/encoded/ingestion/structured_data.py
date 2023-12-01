@@ -11,7 +11,7 @@ from dcicutils.data_readers import CsvReader, Excel, RowReader
 from dcicutils.ff_utils import get_metadata, get_schema
 from dcicutils.misc_utils import (load_json_if, merge_objects, remove_empty_properties, right_trim, split_string,
                                   to_boolean, to_camel_case, to_enum, to_float, to_integer, VirtualApp)
-from dcicutils.zip_utils import temporary_file, unpack_gz_file_to_temporary_file, unpack_files
+from dcicutils.zip_utils import unpack_gz_file_to_temporary_file, unpack_files
 
 
 # Classes/functions to parse a CSV or Excel Spreadsheet into structured data, using a specialized
@@ -192,17 +192,6 @@ class _StructuredRowTemplate:
                     backtrack_data = backtrack_data[path[j]]
                 data = backtrack_data[path[path_index - 1]] = {path_element: None}
 
-            def set_value_backtrack_array(path_index: int, path_element: int) -> None:
-                return
-                nonlocal data, path, original_data
-                # TODO: This is not at all right ... (to handle e.g.: "abc,abc#") ...
-                # very low priority ... to obviate need for ensure_column_consistency ...
-                # 
-                backtrack_data = original_data
-                for j in range(path_index - 1):
-                    backtrack_data = backtrack_data[path[j]]
-                data = backtrack_data[path[path_index - 1]] = [data]
-
             original_data = data
             json_value = None
             if isinstance(path[-1], int) and (json_value := load_json_if(value, is_array=True)):
@@ -210,8 +199,6 @@ class _StructuredRowTemplate:
             for i, p in enumerate(path[:-1]):
                 if isinstance(p, str) and (not isinstance(data, dict) or p not in data):
                     set_value_backtrack_object(i, p)
-                elif isinstance(p, int) and (not isinstance(data, list) or p >= len(data)):
-                    set_value_backtrack_array(i, p)
                 data = data[p]
             if (p := path[-1]) == -1 and isinstance(value, str):
                 values = _split_array_string(value)
