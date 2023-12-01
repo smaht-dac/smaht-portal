@@ -12,7 +12,6 @@ from dcicutils.ff_utils import get_metadata, get_schema
 from dcicutils.misc_utils import (load_json_if, merge_objects, remove_empty_properties, right_trim, split_string,
                                   to_boolean, to_camel_case, to_enum, to_float, to_integer, VirtualApp)
 from dcicutils.zip_utils import temporary_file, unpack_gz_file_to_temporary_file, unpack_files
-from snovault.loadxl import create_testapp
 
 
 # Classes/functions to parse a CSV or Excel Spreadsheet into structured data, using a specialized
@@ -530,14 +529,6 @@ class Portal:
                 portal._schemas = schemas
             return portal
         return Portal(portal, data=data, schemas=schemas) if portal else None
-
-    @staticmethod
-    def create_for_testing(ini_file: Optional[str] = None, schemas: Optional[List[dict]] = None) -> Portal:
-        if isinstance(ini_file, str):
-            return Portal(create_testapp(ini_file), schemas=schemas)
-        minimal_ini_for_unit_testing = "[app:app]\nuse = egg:encoded\nsqlalchemy.url = postgresql://dummy\n"
-        with temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
-            return Portal(create_testapp(ini_file), schemas=schemas)
 
 
 def _split_dotted_string(value: str):

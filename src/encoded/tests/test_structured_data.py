@@ -13,6 +13,7 @@ from dcicutils.validation_utils import SchemaManager  # noqa
 from dcicutils.zip_utils import temporary_file
 from encoded.ingestion.structured_data import Portal, Schema, _StructuredRowTemplate  # noqa
 from encoded.ingestion.ingestion_processors import parse_structured_data
+from encoded.commands.portal_for_testing import create_portal_for_testing
 
 THIS_TEST_MODULE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 TEST_FILES_DIR = f"{THIS_TEST_MODULE_DIRECTORY}/data/test-files"
@@ -1012,8 +1013,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 }
              ]
         },
-        "expected_errors": ["{'foo': 123} is not of type 'string'",
-                            "{'charlie': {'delta': 'hellocharlie'}} is not of type 'string'"]
+        "expected_errors": ["SomeTypeFour [1]: {'foo': 123} is not of type 'string'",
+                            "SomeTypeFour [2]: {'charlie': {'delta': 'hellocharlie'}} is not of type 'string'"]
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -1201,7 +1202,7 @@ def test_structured_row_data_debugging(columns, expected):
 
 
 def test_flatten_schema_1():
-    portal = Portal.create_for_testing()
+    portal = create_portal_for_testing()
     schema = Schema.load_by_name("reference_file", portal=portal)
     schema_flattened_json = _get_schema_flat_typeinfo(schema)
     with open(os.path.join(TEST_FILES_DIR, "reference_file.flattened.json")) as f:
@@ -1211,7 +1212,7 @@ def test_flatten_schema_1():
 
 def test_portal_custom_schemas_1():
     schemas = [{"title": "Abc"}, {"title": "Def"}]
-    portal = Portal.create_for_testing(schemas=schemas)
+    portal = create_portal_for_testing(schemas=schemas)
     assert portal.get_schema("Abc") == schemas[0]
     assert portal.get_schema(" def ") == schemas[1]
     assert portal.get_schema("FileFormat") is not None
@@ -1289,7 +1290,7 @@ def _test_parse_structured_data(file: Optional[str] = None,
                                          prune=True if prune is not False else False, sheet_utils=sheet_utils)
 
         nonlocal file, expected, expected_errors, noschemas, sheet_utils, debug
-        portal = Portal.create_for_testing(schemas=schemas) if not noschemas else None  # But see mocked_schemas.
+        portal = create_portal_for_testing(schemas=schemas) if not noschemas else None  # But see mocked_schemas.
         if rows:
             if os.path.exists(file) or os.path.exists(os.path.join(TEST_FILES_DIR, file)):
                 raise Exception("Attempt to create temporary file with same name as existing test file: {file}")
@@ -1430,4 +1431,3 @@ def _test_rationalize_column_name(column_name: str, schema_column_name: str, exp
         def __init__(self, value):
             self._typeinfo = FakeSchema.FakeTypeInfo(value)
     assert FakeSchema(schema_column_name).rationalize_column_name(column_name) == expected
-

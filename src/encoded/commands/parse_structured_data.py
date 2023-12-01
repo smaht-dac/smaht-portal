@@ -1,18 +1,18 @@
 import argparse
 import json
 import os
-from typing import List, Optional, Tuple
+from typing import List
 import yaml
 from dcicutils.bundle_utils import RefHint
 from dcicutils.misc_utils import PRINT
 from dcicutils.validation_utils import SchemaManager
 from dcicutils.zip_utils import temporary_file
-from snovault.loadxl import create_testapp
 from encoded.commands.captured_output import captured_output
 with captured_output():
     from encoded.ingestion.loadxl_extensions import load_data_into_database, summary_of_load_data_results
 from encoded.ingestion.ingestion_processors import parse_structured_data
 from encoded.ingestion.structured_data import Portal, Schema
+from encoded.commands.portal_for_testing import create_portal_for_testing, create_portal_for_local_testing
 
 
 # For dev/testing only.
@@ -23,21 +23,21 @@ def main() -> None:
 
     args = parse_args()
 
-    # The Portal.create_for_unit_testing function returns a Portal object suitable for most local unit
+    # The create_portal_for_testing function returns a Portal object suitable for most local unit
     # testing purposes including, for example, fetching type (JSON) schemas (via Portal.get_schema);
     # assuming run within a (pyenv) virtualenv which includes the portal "encoded" package.
     #
-    # The Portal.create_for_local_testing function returns a Portal object suitable for local integration
+    # The create_portal_for_local_testing function returns a Portal object suitable for local integration
     # testing including, for example, fetching data (via Portal.get_metadata) from a locally running portal.
     #
-    # The create_for_local_testing function with a provided .ini file (e.g. development.ini)
+    # The create_portal_for_local_testing function with a provided .ini file (e.g. development.ini)
     # returns a Portal object suitable for local integration testing including, for example,
     # loading data into the database of a locally running portal.
     with captured_output():
         if args.load or not args.norefs:
-            portal = _create_portal_for_local_testing(ini_file=args.load)
+            portal = create_portal_for_local_testing(ini_file=args.load)
         else:
-            portal = Portal.create_for_testing()
+            portal = create_portal_for_testing()
 
     # Manually override implementation specifics for --noschemas.
     if args.noschemas:
@@ -157,9 +157,9 @@ def override_ref_handling(args: argparse.Namespace) -> dict:
     elif not args.default_refs or args.show_refs:  # Default case; catch/report ref errors/exceptions.
         if not args.sheet_utils:
             real_map_function_ref = Schema._map_function_ref
-            def custom_map_function_ref(self, typeinfo):
+            def custom_map_function_ref(self, typeinfo):  # noqa
                 real_map_value_ref = real_map_function_ref(self, typeinfo)
-                def custom_map_value_ref(value, link_to, portal, src):
+                def custom_map_value_ref(value, link_to, portal, src):  # noqa
                     if value:
                         refs["actual"].add(f"{link_to}/{value}")
                     try:
@@ -171,7 +171,7 @@ def override_ref_handling(args: argparse.Namespace) -> dict:
             Schema._map_function_ref = custom_map_function_ref
         else:
             real_apply_ref_hint = RefHint._apply_ref_hint
-            def custom_apply_ref_hint(self, value, src = None):
+            def custom_apply_ref_hint(self, value, src = None):  # noqa
                 try:
                     if value:
                         refs["actual"].add(f"{self.schema_name}/{value}")
@@ -191,32 +191,6 @@ def dump_schemas(schema_names: List[str], portal: Portal) -> None:
             PRINT(json.dumps(schema, indent=4, default=str))
         else:
             PRINT(f">>> No schema found for type: {schema_name}")
-
-
-def _create_portal_for_local_testing(ini_file: Optional[str] = None, schemas: Optional[List[dict]] = None) -> Portal:
-    if isinstance(ini_file, str):
-        return Portal(create_testapp(ini_file), schemas=schemas)
-    minimal_ini_for_local_testing = "\n".join([
-        "[app:app]\nuse = egg:encoded\nfile_upload_bucket = dummy",
-        "sqlalchemy.url = postgresql://postgres@localhost:5441/postgres?host=/tmp/snovault/pgdata",
-        "multiauth.groupfinder = encoded.authorization.smaht_groupfinder",
-        "multiauth.policies = auth0 session remoteuser accesskey",
-        "multiauth.policy.session.namespace = mailto",
-        "multiauth.policy.session.use = encoded.authentication.NamespacedAuthenticationPolicy",
-        "multiauth.policy.session.base = pyramid.authentication.SessionAuthenticationPolicy",
-        "multiauth.policy.remoteuser.namespace = remoteuser",
-        "multiauth.policy.remoteuser.use = encoded.authentication.NamespacedAuthenticationPolicy",
-        "multiauth.policy.remoteuser.base = pyramid.authentication.RemoteUserAuthenticationPolicy",
-        "multiauth.policy.accesskey.namespace = accesskey",
-        "multiauth.policy.accesskey.use = encoded.authentication.NamespacedAuthenticationPolicy",
-        "multiauth.policy.accesskey.base = encoded.authentication.BasicAuthAuthenticationPolicy",
-        "multiauth.policy.accesskey.check = encoded.authentication.basic_auth_check",
-        "multiauth.policy.auth0.use = encoded.authentication.NamespacedAuthenticationPolicy",
-        "multiauth.policy.auth0.namespace = auth0",
-        "multiauth.policy.auth0.base = encoded.authentication.Auth0AuthenticationPolicy"
-    ])
-    with temporary_file(content=minimal_ini_for_local_testing, suffix=".ini") as ini_file:
-        return Portal(create_testapp(ini_file), schemas=schemas)
 
 
 def parse_args() -> argparse.Namespace:
