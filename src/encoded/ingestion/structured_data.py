@@ -59,9 +59,11 @@ class StructuredDataSet:
         issues = []
         for type_name in self.data:
             if (schema := Schema.load_by_name(type_name, portal=self._portal)):
+                item_number = 0
                 for data in self.data[type_name]:
-                    if (validate_issues := schema.validate(data)) is not None:
-                        issues.extend(validate_issues)
+                    item_number += 1
+                    if (validation_issues := schema.validate(data)) is not None:
+                        issues.extend([f"{schema.name} [{item_number}]: {issue}" for issue in validation_issues])
         return issues + (self._issues or [])
 
     def _load_file(self, file: str) -> None:

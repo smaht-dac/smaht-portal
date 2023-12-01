@@ -98,12 +98,16 @@ def main() -> None:
 
     PRINT(f"\n>>> Validation Results:")
     if not args.novalidate:
-        if args.verbose:
-            PRINT(yaml.dump(validation_errors) if validation_errors else "OK")
+        if not validation_errors:
+            PRINT("OK")
+        elif args.verbose:
+            [PRINT(error) for error in validation_errors]
+            #PRINT(yaml.dump(validation_errors) if validation_errors else "OK")
         elif len(validation_errors) > 16:
             nmore_validation_errors = len(validation_errors) - 16
             validation_errors = validation_errors[:16]
-            PRINT(yaml.dump(validation_errors))
+            #PRINT(yaml.dump(validation_errors))
+            [PRINT(error) for error in validation_errors]
             PRINT(f"There are {nmore_validation_errors} more validation errors; use --verbose to see all.")
     else:
         PRINT("No validation results because the --novalidate argument was specified.")
