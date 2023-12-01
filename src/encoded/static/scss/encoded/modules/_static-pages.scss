@@ -500,8 +500,8 @@ body[data-path="/"]>#application>#layout {
 		> .alerts {
 			@media screen and (min-width: 992px) {
 				padding-left: 0px;
+				margin: auto;
 			}
-			// width: 100%;
 
 			> .alert {
 				background-color: #FEE5E5;
