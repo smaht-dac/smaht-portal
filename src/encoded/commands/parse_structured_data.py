@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 from typing import List, Optional, Tuple
 import yaml
 from dcicutils.bundle_utils import RefHint
@@ -63,6 +64,10 @@ def main() -> None:
         if args.noschemas:
             PRINT(" with NO schemas", end="")
         PRINT(f" from: {args.file} ...")
+
+    if not os.path.exists(args.file):
+        PRINT(f"Cannot open file: {args.file}")
+        exit(2)
 
     if args.as_file_name:
         with open(args.file, "rb" if args.file.endswith((".gz", ".tgz", ".tar", ".tar.gz", ".zip")) else "r") as f:
