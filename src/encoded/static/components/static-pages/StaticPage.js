@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import memoize from 'memoize-one';
 import { compiler } from 'markdown-to-jsx';
-import { MarkdownHeading } from '@hms-dbmi-bgm/shared-portal-components/es/components/static-pages/TableOfContents';
+import { MarkdownHeading, TableOfContents } from '@hms-dbmi-bgm/shared-portal-components/es/components/static-pages/TableOfContents';
 import {
     console,
     object,
