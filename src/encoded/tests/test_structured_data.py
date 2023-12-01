@@ -1015,6 +1015,23 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         "expected_errors": ["{'foo': 123} is not of type 'string'",
                             "{'charlie': {'delta': 'hellocharlie'}} is not of type 'string'"]
     },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "ignore": True,
+        "rows": [
+            "abc,abc##",
+            "123,456",
+        ],
+        "as_file_name": "test.csv",
+        "noschemas": True,
+        "expected": {
+            "Test" : [
+                {
+                    "abc": ["456"]
+                }
+             ]
+        }
+    },
 ]))
 def test_parse_structured_data_parameterized(kwargs):
     _test_parse_structured_data(**kwargs)

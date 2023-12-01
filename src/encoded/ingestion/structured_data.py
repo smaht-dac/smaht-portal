@@ -180,7 +180,7 @@ class _StructuredRowTemplate:
         def set_value_internal(data: Union[dict, list], value: Optional[Any], src: Optional[str],
                                path: List[Union[str, int]], mapv: Optional[Callable]) -> None:
 
-            def set_value_backtrack(path_index: int, path_element: str) -> None:
+            def set_value_backtrack_object(path_index: int, path_element: str) -> None:
                 nonlocal data, path, original_data
                 backtrack_data = original_data
                 for j in range(path_index - 1):
@@ -189,13 +189,26 @@ class _StructuredRowTemplate:
                     backtrack_data = backtrack_data[path[j]]
                 data = backtrack_data[path[path_index - 1]] = {path_element: None}
 
+            def set_value_backtrack_array(path_index: int, path_element: int) -> None:
+                return
+                nonlocal data, path, original_data
+                # TODO: This is not at all right ... (to handle e.g.: "abc,abc#") ...
+                # very low priority ... to obviate need for ensure_column_consistency ...
+                # 
+                backtrack_data = original_data
+                for j in range(path_index - 1):
+                    backtrack_data = backtrack_data[path[j]]
+                data = backtrack_data[path[path_index - 1]] = [data]
+
             original_data = data
             json_value = None
             if isinstance(path[-1], int) and (json_value := load_json_if(value, is_array=True)):
                 path = right_trim(path, remove=lambda value: isinstance(value, int))
             for i, p in enumerate(path[:-1]):
                 if isinstance(p, str) and (not isinstance(data, dict) or p not in data):
-                    set_value_backtrack(i, p)
+                    set_value_backtrack_object(i, p)
+                elif isinstance(p, int) and (not isinstance(data, list) or p >= len(data)):
+                    set_value_backtrack_array(i, p)
                 data = data[p]
             if (p := path[-1]) == -1 and isinstance(value, str):
                 values = _split_array_string(value)
@@ -207,7 +220,7 @@ class _StructuredRowTemplate:
                     data[p] = json_value
                 else:
                     if isinstance(p, str) and (not isinstance(data, dict) or p not in data):
-                        set_value_backtrack(i + 1, p)
+                        set_value_backtrack_object(i + 1, p)
                     data[p] = mapv(value, src) if mapv else value
 
         def ensure_column_consistency(column_name: str) -> None:
