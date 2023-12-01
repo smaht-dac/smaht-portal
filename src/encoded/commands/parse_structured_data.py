@@ -98,7 +98,6 @@ def main() -> None:
 
     PRINT(f"\n>>> Validation Results:")
     if not args.novalidate:
-#       PRINT(yaml.dump(validation_errors) if validation_errors else "OK")
         if args.verbose:
             PRINT(yaml.dump(validation_errors) if validation_errors else "OK")
         elif len(validation_errors) > 16:
