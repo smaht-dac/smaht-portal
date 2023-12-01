@@ -118,6 +118,8 @@ class StructuredDataSet:
             structured_row = structured_row_template.create_row()
             for column_name, value in row.items():
                 structured_row_template.set_value(structured_row, column_name, value, reader.location)
+            if schema and (schema_name := schema.name):
+                type_name = schema_name
             self._add(type_name, structured_row)
 
     def _add(self, type_name: str, data: Union[dict, List[dict]]) -> None:
@@ -484,9 +486,21 @@ class Portal:
 
     @lru_cache(maxsize=256)
     def get_schema(self, schema_name: str) -> Optional[dict]:
-        return (next((schema for schema in self._schemas or []
-                     if Schema.type_name(schema.get("title")) == Schema.type_name(schema_name)), None) or
-                get_schema(schema_name, portal_vapp=self.vapp))
+        def get_schema_internal(schema_name: str) -> Optional[dict]:
+            return (next((schema for schema in self._schemas or []
+                         if Schema.type_name(schema.get("title")) == Schema.type_name(schema_name)), None) or
+                    get_schema(schema_name, portal_vapp=self.vapp))
+        try:
+            if (schema := get_schema_internal(schema_name)):
+                return schema
+        except Exception:  # Try/force camel-case if all upper/lower-case.
+            if schema_name == schema_name.upper():
+                if (schema := get_schema_internal(schema_name.lower().title())):
+                    return schema
+            elif schema_name == schema_name.lower():
+                if (schema := get_schema_internal(schema_name.title())):
+                    return schema
+            raise
 
     @lru_cache(maxsize=256)
     def get_metadata(self, object_name: str) -> Optional[dict]:
