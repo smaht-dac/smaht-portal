@@ -164,7 +164,8 @@
         "status": "public",
         "children": [
             "5153c902-a0d2-4246-9b41-cea7a1c91f52",
-            "6292facf-9eb4-451e-8d05-2e56e1bd7cbe"
+            "6292facf-9eb4-451e-8d05-2e56e1bd7cbe",
+            "6292facf-9eb4-451e-8d05-2e56e1bd7cbf"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -307,6 +308,25 @@
         "title": "Getting Started with Submissions",
         "content": [
             "442c8aa0-dc6c-43d7-814a-854af460b015"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/user-guide/file-uploads",
+        "uuid": "6292facf-9eb4-451e-8d05-2e56e1bd7cbf",
+        "title": "How to Upload Files to DAC",
+        "content": [
+            "d3d9c545-4340-495a-92ea-7ccb7eebc71c"
         ],
         "table-of-contents": {
             "enabled": true,
