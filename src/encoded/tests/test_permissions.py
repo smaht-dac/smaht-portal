@@ -3,39 +3,7 @@ from typing import Any, Dict
 import pytest
 from webtest.app import TestApp
 
-from .datafixtures import remote_user_testapp
 from .utils import patch_item, post_item
-
-
-@pytest.fixture
-def submission_center_user_app(testapp, test_submission_center, smaht_gcc_user):
-    """ App associated with a consortia member who is a submitter """
-    return remote_user_testapp(testapp.app, smaht_gcc_user['uuid'])
-
-
-@pytest.fixture
-def consortium_user_app(testapp, test_consortium, smaht_consortium_user):
-    """ App associated with a normal consortia member """
-    return remote_user_testapp(testapp.app, smaht_consortium_user['uuid'])
-
-
-@pytest.fixture
-def protected_consortium_user_app(testapp, smaht_consortium_protected_user, test_consortium, test_protected_consortium):
-    """ App associated with a user who has access to consortia and protected data """
-    return remote_user_testapp(testapp.app, smaht_consortium_protected_user['uuid'])
-
-
-@pytest.fixture
-def protected_consortium_submitter_app(testapp, smaht_consortium_protected_submitter, test_consortium,
-                                       test_protected_consortium, test_submission_center):
-    """ App associated with a user who has access to consortia and protected data and submission center """
-    return remote_user_testapp(testapp.app, smaht_consortium_protected_submitter['uuid'])
-
-
-@pytest.fixture
-def unassociated_user_app(testapp, blank_user):
-    """ App associated with a user who has no associations """
-    return remote_user_testapp(testapp.app, blank_user['uuid'])
 
 
 @pytest.fixture
