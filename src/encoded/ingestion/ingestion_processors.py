@@ -2,11 +2,11 @@ from typing import List, Optional, Tuple, Union
 from webtest.app import TestApp
 from dcicutils.bundle_utils import load_items as parse_structured_data_via_sheet_utils
 from dcicutils.misc_utils import VirtualApp
+from dcicutils.structured_data import Portal, StructuredDataSet
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
 from ..project.loadxl import ITEM_INDEX_ORDER
 from .loadxl_extensions import load_data_into_database, summary_of_load_data_results
-from .structured_data import Portal, StructuredDataSet
 from .submission_folio import SmahtSubmissionFolio
 
 

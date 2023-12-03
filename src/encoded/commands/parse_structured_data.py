@@ -11,7 +11,7 @@ from encoded.commands.captured_output import captured_output
 with captured_output():
     from encoded.ingestion.loadxl_extensions import load_data_into_database, summary_of_load_data_results
 from encoded.ingestion.ingestion_processors import parse_structured_data
-from encoded.ingestion.structured_data import Portal, Schema
+from dcicutils.structured_data import Portal, Schema
 
 
 # For dev/testing only.

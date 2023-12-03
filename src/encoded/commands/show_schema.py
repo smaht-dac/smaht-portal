@@ -1,6 +1,6 @@
 import argparse
 import json
-from encoded.ingestion.structured_data import Portal, Schema
+from dcicutils.structured_data import Portal, Schema
 from encoded.commands.captured_output import captured_output
 
 # For dev/testing only.
