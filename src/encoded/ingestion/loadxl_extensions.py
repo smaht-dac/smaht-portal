@@ -3,7 +3,6 @@ from typing import Dict, List, Generator, Optional, Union
 from dcicutils.misc_utils import VirtualApp
 from snovault.loadxl import load_all_gen as loadxl_load_data
 from .submission_folio import SmahtSubmissionFolio
-from .structured_data import Portal
 
 
 def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp,
@@ -52,7 +51,7 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
         return response
 
     loadxl_load_data_response = loadxl_load_data(
-        testapp=Portal(portal_vapp),
+        testapp=portal_vapp,
         inserts=data,
         docsdir=None,
         overwrite=True,

@@ -474,8 +474,6 @@ class Schema:
 
 class PortalBase:
 
-    STANDARD_HTTP_HEADERS = {"Content-type": "application/json", "Accept": "application/json"}
-
     def __init__(self,
                  arg: Optional[Union[VirtualApp, TestApp, Router, Portal, str]] = None,
                  env: Optional[str] = None, app: OrchestratedApp = APP_SMAHT, server: Optional[str] = None,
@@ -544,25 +542,28 @@ class PortalBase:
 
     def get(self, uri: str, follow: bool = True, **kwargs) -> Optional[Union[RequestResponse, TestResponse]]:
         if isinstance(self._vapp, (VirtualApp, TestApp)):
-            response = self._vapp.get(self._make_uri(uri), **self._make_kwargs(**kwargs))
+            response = self._vapp.get(self._uri(uri), **self._kwargs(**kwargs))
             if response and response.status_code in [301, 302, 303, 307, 308] and follow:
                 response = response.follow()
             return response
-        return requests.get(self._make_uri(uri), allow_redirects=follow, **self._make_kwargs(**kwargs))
+        return requests.get(self._uri(uri), allow_redirects=follow, **self._kwargs(**kwargs))
 
     def patch(self, uri: str, data: Optional[dict] = None,
               json: Optional[dict] = None, **kwargs) -> Optional[Union[RequestResponse, TestResponse]]:
         if isinstance(self._vapp, (VirtualApp, TestApp)):
-            return self._vapp.patch_json(self._make_uri(uri), json or data, **self._make_kwargs(**kwargs))
-        return requests.patch(self._make_uri(uri), json=json or data, **self._make_kwargs(**kwargs))
+            return self._vapp.patch_json(self._uri(uri), json or data, **self._kwargs(**kwargs))
+        return requests.patch(self._uri(uri), json=json or data, **self._kwargs(**kwargs))
 
-    def post(self, uri: str, data: Optional[dict] = None,
-             json: Optional[dict] = None, **kwargs) -> Optional[Union[RequestResponse, TestResponse]]:
+    def post(self, uri: str, data: Optional[dict] = None, json: Optional[dict] = None,
+             files: Optional[dict] = None, **kwargs) -> Optional[Union[RequestResponse, TestResponse]]:
         if isinstance(self._vapp, (VirtualApp, TestApp)):
-            return self._vapp.post_json(self._make_uri(uri), json or data, **self._make_kwargs(**kwargs))
-        return requests.post(self._make_uri(uri), json=json or data, **self._make_kwargs(**kwargs))
+            if files:
+                return self._vapp.post(self._uri(uri), json or data, upload_files=files, **self._kwargs(**kwargs))
+            else:
+                return self._vapp.post_json(self._uri(uri), json or data, upload_files=files, **self._kwargs(**kwargs))
+        return requests.post(self._uri(uri), json=json or data, files=files, **self._kwargs(**kwargs))
 
-    def _make_uri(self, uri: str) -> str:
+    def _uri(self, uri: str) -> str:
         if not isinstance(uri, str) or not uri:
             return "/"
         if uri.lower().startswith("http://") or uri.lower().startswith("https://"):
@@ -570,12 +571,11 @@ class PortalBase:
         uri = re.sub(r"/+", "/", uri)
         return (self._server + ("/" if uri.startswith("/") else "") + uri) if self._server else uri
 
-    def _make_kwargs(self, **kwargs) -> dict:
-        result_kwargs = {"headers": kwargs.get("headers", self.STANDARD_HTTP_HEADERS)}
+    def _kwargs(self, **kwargs) -> dict:
+        result_kwargs = {"headers":
+                         kwargs.get("headers", {"Content-type": "application/json", "Accept": "application/json"})}
         if self._key_pair:
             result_kwargs["auth"] = self._key_pair
-        if (files := kwargs.get("files")):
-            result_kwargs["files"] = files
         if isinstance(timeout := kwargs.get("timeout"), int):
             result_kwargs["timeout"] = timeout
         return result_kwargs
