@@ -1201,7 +1201,6 @@ def test_structured_row_data_debugging(columns, expected):
 
 
 def test_flatten_schema_1():
-    #portal = create_portal_for_testing()
     portal = Portal.create_for_testing()
     schema = Schema.load_by_name("reference_file", portal=portal)
     schema_flattened_json = _get_schema_flat_typeinfo(schema)

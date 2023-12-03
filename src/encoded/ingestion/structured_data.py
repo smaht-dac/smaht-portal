@@ -49,7 +49,6 @@ class StructuredDataSet:
                  schemas: Optional[List[dict]] = None, data: Optional[List[dict]] = None,
                  order: Optional[List[str]] = None, prune: bool = True) -> None:
         self.data = {} if not data else data  # If portal is None then no schemas nor refs.
-        #self._portal = Portal(portal=portal, data=self.data, schemas=schemas) if portal else None
         self._portal = Portal(portal, data=self.data, schemas=schemas) if portal else None
         self._order = order
         self._prune = prune
@@ -584,17 +583,14 @@ class PortalBase:
     @staticmethod
     def create_for_testing(ini_file: Optional[str] = None) -> PortalBase:
         if isinstance(ini_file, str):
-            #return Portal(portal=Portal._create_testapp(ini_file))
             return Portal(Portal._create_testapp(ini_file))
         minimal_ini_for_unit_testing = "[app:app]\nuse = egg:encoded\nsqlalchemy.url = postgresql://dummy\n"
         with temporary_file(content=minimal_ini_for_unit_testing, suffix=".ini") as ini_file:
-            #return Portal(portal=Portal._create_testapp(ini_file))
             return Portal(Portal._create_testapp(ini_file))
 
     @staticmethod
     def create_for_testing_local(ini_file: Optional[str] = None) -> Portal:
         if isinstance(ini_file, str):
-            #return Portal(portal=Portal._create_testapp(ini_file))
             return Portal(Portal._create_testapp(ini_file))
         minimal_ini_for_testing_local = "\n".join([
             "[app:app]\nuse = egg:encoded\nfile_upload_bucket = dummy",
@@ -616,7 +612,6 @@ class PortalBase:
             "multiauth.policy.auth0.base = encoded.authentication.Auth0AuthenticationPolicy"
         ])
         with temporary_file(content=minimal_ini_for_testing_local, suffix=".ini") as minimal_ini_file:
-            #return Portal(portal=Portal._create_testapp(minimal_ini_file))
             return Portal(Portal._create_testapp(minimal_ini_file))
 
     @staticmethod
@@ -686,12 +681,10 @@ class Portal(PortalBase):
 
     @staticmethod
     def create_for_testing(ini_file: Optional[str] = None, schemas: Optional[List[dict]] = None) -> Portal:
-        #return Portal(portal=PortalBase.create_for_testing(ini_file), schemas=schemas)
         return Portal(PortalBase.create_for_testing(ini_file), schemas=schemas)
 
     @staticmethod
     def create_for_testing_local(ini_file: Optional[str] = None, schemas: Optional[List[dict]] = None) -> Portal:
-        #return Portal(portal=PortalBase.create_for_testing_local(ini_file), schemas=schemas)
         return Portal(PortalBase.create_for_testing_local(ini_file), schemas=schemas)
 
 
