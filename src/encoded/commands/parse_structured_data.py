@@ -12,7 +12,6 @@ with captured_output():
     from encoded.ingestion.loadxl_extensions import load_data_into_database, summary_of_load_data_results
 from encoded.ingestion.ingestion_processors import parse_structured_data
 from encoded.ingestion.structured_data import Portal, Schema
-from encoded.commands.portal_for_testing import create_portal_for_testing, create_portal_for_local_testing
 
 
 # For dev/testing only.
@@ -23,11 +22,11 @@ def main() -> None:
 
     args = parse_args()
 
-    # The create_portal_for_testing function returns a Portal object suitable for most local unit
+    # The Portal.create_for_testing function returns a Portal object suitable for most local unit
     # testing purposes including, for example, fetching type (JSON) schemas (via Portal.get_schema);
     # assuming run within a (pyenv) virtualenv which includes the portal "encoded" package.
     #
-    # The create_portal_for_local_testing function returns a Portal object suitable for local integration
+    # The Portal.create_for_testing_local function returns a Portal object suitable for local integration
     # testing including, for example, fetching data (via Portal.get_metadata) from a locally running portal.
     #
     # The create_portal_for_local_testing function with a provided .ini file (e.g. development.ini)
@@ -35,9 +34,9 @@ def main() -> None:
     # loading data into the database of a locally running portal.
     with captured_output():
         if args.load or not args.norefs:
-            portal = create_portal_for_local_testing(ini_file=args.load)
+            portal = Portal.create_for_testing_local(args.load)
         else:
-            portal = create_portal_for_testing()
+            portal = Portal.create_for_testing()
 
     # Manually override implementation specifics for --noschemas.
     if args.noschemas:
@@ -132,7 +131,7 @@ def main() -> None:
             PRINT(" ...")
         with captured_output():
             load_results = load_data_into_database(data=structured_data_set,
-                                                   portal_vapp=portal.vapp,
+                                                   portal_vapp=portal._vapp,
                                                    post_only=args.post_only,
                                                    patch_only=args.patch_only,
                                                    validate_only=args.validate_only)

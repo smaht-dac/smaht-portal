@@ -1,8 +1,7 @@
 import argparse
 import json
-from encoded.ingestion.structured_data import Schema
+from encoded.ingestion.structured_data import Portal, Schema
 from encoded.commands.captured_output import captured_output
-from encoded.commands.portal_for_testing import create_portal_for_testing
 
 # For dev/testing only.
 # Dumps the specified schema to stdout.  
@@ -15,7 +14,7 @@ def main() -> None:
     args = parser.parse_args()
 
     with captured_output():
-        portal = create_portal_for_testing()
+        portal = Portal.create_for_testing()
 
     schema = Schema.load_by_name(args.schema, portal)
     print(json.dumps(schema.data, indent=4, default=str))

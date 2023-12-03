@@ -1,11 +1,12 @@
 from typing import List, Optional, Tuple, Union
 from webtest.app import TestApp
 from dcicutils.bundle_utils import load_items as parse_structured_data_via_sheet_utils
+from dcicutils.misc_utils import VirtualApp
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
 from ..project.loadxl import ITEM_INDEX_ORDER
 from .loadxl_extensions import load_data_into_database, summary_of_load_data_results
-from .structured_data import Portal, PortalAny, StructuredDataSet
+from .structured_data import Portal, StructuredDataSet
 from .submission_folio import SmahtSubmissionFolio
 
 
@@ -41,13 +42,13 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
         submission.record_results(load_data_response, load_data_summary)
 
 
-def parse_structured_data(file: str, portal: Optional[PortalAny], novalidate: bool = False,
+def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp, Portal]], novalidate: bool = False,
                           sheet_utils: bool = False, prune: bool = True) -> Tuple[Optional[dict], Optional[List[str]]]:
     if not sheet_utils:
         structured_data = StructuredDataSet.load(file=file, portal=portal, order=ITEM_INDEX_ORDER, prune=prune)
     else:
         if isinstance(portal, Portal):
-            portal = portal.vapp
+            portal = portal._vapp
         parsed_data = parse_structured_data_via_sheet_utils(file,
                                                             portal_vapp=portal,
                                                             validate=False,  # Validate below.

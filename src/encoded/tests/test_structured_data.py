@@ -13,7 +13,6 @@ from dcicutils.validation_utils import SchemaManager  # noqa
 from dcicutils.zip_utils import temporary_file
 from encoded.ingestion.structured_data import Portal, Schema, _StructuredRowTemplate  # noqa
 from encoded.ingestion.ingestion_processors import parse_structured_data
-from encoded.commands.portal_for_testing import create_portal_for_testing
 
 THIS_TEST_MODULE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 TEST_FILES_DIR = f"{THIS_TEST_MODULE_DIRECTORY}/data/test-files"
@@ -1202,7 +1201,8 @@ def test_structured_row_data_debugging(columns, expected):
 
 
 def test_flatten_schema_1():
-    portal = create_portal_for_testing()
+    #portal = create_portal_for_testing()
+    portal = Portal.create_for_testing()
     schema = Schema.load_by_name("reference_file", portal=portal)
     schema_flattened_json = _get_schema_flat_typeinfo(schema)
     with open(os.path.join(TEST_FILES_DIR, "reference_file.flattened.json")) as f:
@@ -1212,7 +1212,7 @@ def test_flatten_schema_1():
 
 def test_portal_custom_schemas_1():
     schemas = [{"title": "Abc"}, {"title": "Def"}]
-    portal = create_portal_for_testing(schemas=schemas)
+    portal = Portal.create_for_testing(schemas=schemas)
     assert portal.get_schema("Abc") == schemas[0]
     assert portal.get_schema(" def ") == schemas[1]
     assert portal.get_schema("FileFormat") is not None
@@ -1290,7 +1290,7 @@ def _test_parse_structured_data(file: Optional[str] = None,
                                          prune=True if prune is not False else False, sheet_utils=sheet_utils)
 
         nonlocal file, expected, expected_errors, noschemas, sheet_utils, debug
-        portal = create_portal_for_testing(schemas=schemas) if not noschemas else None  # But see mocked_schemas.
+        portal = Portal.create_for_testing(schemas=schemas) if not noschemas else None  # But see mocked_schemas.
         if rows:
             if os.path.exists(file) or os.path.exists(os.path.join(TEST_FILES_DIR, file)):
                 raise Exception("Attempt to create temporary file with same name as existing test file: {file}")
