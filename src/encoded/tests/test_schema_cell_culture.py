@@ -1,6 +1,5 @@
-from webtest import TestApp
-
 import pytest
+from webtest import TestApp
 
 from .utils import get_item
 
