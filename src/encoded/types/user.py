@@ -7,12 +7,14 @@ from snovault.types.user import USER_PAGE_VIEW_ATTRIBUTES
 from snovault.types.user import user_add as SnoUserAdd
 from snovault.util import debug_log
 
+from .acl import ONLY_ADMIN_VIEW_ACL
 from .base import Item as SmahtItem
 
 
 @collection(
     name='users',
     unique_key="user:email",  # Required to GET via /users/{email}/
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         "title": "SMaHT Users",
         "description": "Listing of current SMaHT users",

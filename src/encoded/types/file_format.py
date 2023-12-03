@@ -3,12 +3,14 @@ from typing import Optional, Union
 from encoded_core.types.file_format import FileFormat as CoreFileFormat
 from snovault import calculated_property, collection, display_title_schema, load_schema
 
+from .acl import ONLY_ADMIN_VIEW_ACL
 from .base import Item as SMAHTItem
 
 
 @collection(
     name='file-formats',
     unique_key="file_format:identifier",  # For shorthand reference as linkTo
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         'title': 'SMaHT File Format',
         'description': 'Listing of SMaHT File Formats',

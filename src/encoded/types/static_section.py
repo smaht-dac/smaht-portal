@@ -7,12 +7,14 @@ from encoded_core.types.user_content import (
     StaticSection as CoreStaticSection,
 )
 
+from .acl import ONLY_ADMIN_VIEW_ACL
 from .user_content import UserContent
 
 
 @collection(
     name="static-sections",
     unique_key="static_section:identifier",
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         "title": "Static Sections",
         "description": "Static Sections for the Portal",

@@ -627,6 +627,7 @@ def test_link_to_another_submission_center_item(
     donor_submission_centers = donor["submission_centers"]
     assert len(donor_submission_centers) == 1
     assert donor_submission_centers[0] == test_second_submission_center["@id"]
+    assert donor.get("consortia") is None
 
     patch_body = {"status": donor_status}
     patch_item(testapp, patch_body, donor["uuid"])

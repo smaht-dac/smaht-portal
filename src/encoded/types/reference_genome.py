@@ -1,11 +1,13 @@
 from snovault import collection, load_schema
 
+from .acl import ONLY_ADMIN_VIEW_ACL
 from .base import Item as SmahtItem
 
 
 @collection(
     name="reference-genomes",
     unique_key="reference_genome:identifier",
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         "title": "Reference Genomes",
         "description": "Assembled genomes for sequencing alignment",
