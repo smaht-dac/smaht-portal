@@ -551,12 +551,14 @@ class PortalBase:
             return response
         return requests.get(self._make_uri(uri), allow_redirects=follow, **self._make_kwargs(**kwargs))
 
-    def patch(self, uri: str, data: Optional[dict] = None, json: Optional[dict] = None, **kwargs) -> Optional[dict]:
+    def patch(self, uri: str, data: Optional[dict] = None,
+              json: Optional[dict] = None, **kwargs) -> Optional[Union[RequestResponse, TestResponse]]:
         if isinstance(self._vapp, (VirtualApp, TestApp)):
             return self._vapp.patch_json(self._make_uri(uri), json or data, **self._make_kwargs(**kwargs))
         return requests.patch(self._make_uri(uri), json=json or data, **self._make_kwargs(**kwargs))
 
-    def post(self, uri: str, data: Optional[dict] = None, json: Optional[dict] = None, **kwargs) -> Optional[dict]:
+    def post(self, uri: str, data: Optional[dict] = None,
+             json: Optional[dict] = None, **kwargs) -> Optional[Union[RequestResponse, TestResponse]]:
         if isinstance(self._vapp, (VirtualApp, TestApp)):
             return self._vapp.post_json(self._make_uri(uri), json or data, **self._make_kwargs(**kwargs))
         return requests.post(self._make_uri(uri), json=json or data, **self._make_kwargs(**kwargs))
