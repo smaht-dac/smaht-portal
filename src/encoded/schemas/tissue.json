@@ -132,7 +132,8 @@
         "donor": {
             "title": "Donor",
             "description": "Link to the associated donor",
-            "type": "string"
+            "type": "string",
+            "linkTo": "Donor"
         }
     }
 }
