@@ -144,6 +144,7 @@ class StructuredDataSet:
                 self._issues = []
             self._issues.append({source: issues})
 
+
 class _StructuredRowTemplate:
 
     def __init__(self, column_names: List[str], schema: Optional[Schema] = None) -> None:
@@ -162,7 +163,8 @@ class _StructuredRowTemplate:
 
     def _create_row_template(self, column_names: List[str]) -> dict:  # Surprisingly tricky code here.
 
-        def parse_array_components(column_name: str, value: Optional[Any], path: List[Union[str, int]]) -> Tuple[Optional[str], Optional[List[Any]]]:
+        def parse_array_components(column_name: str, value: Optional[Any],
+                                   path: List[Union[str, int]]) -> Tuple[Optional[str], Optional[List[Any]]]:
             array_name, array_indices = Schema.array_indices(column_name)
             if not array_name:
                 return None, None
@@ -281,7 +283,7 @@ class Schema:
         if not info and isinstance(info := self._typeinfo.get(self.unadorn_column_name(column_name)), str):
             info = self._typeinfo.get(info)
         return info
-        
+
     def _map_function(self, typeinfo: dict) -> Optional[Callable]:
         if isinstance(typeinfo, dict) and (typeinfo_type := typeinfo.get("type")) is not None:
             if isinstance(typeinfo_type, list):
@@ -475,7 +477,7 @@ class Schema:
 class PortalBase:
 
     def __init__(self,
-                 arg: Optional[Union[VirtualApp, TestApp, Router, Portal, str]] = None,
+                 arg: Optional[Union[VirtualApp, TestApp, Router, Portal, dict, tuple, str]] = None,
                  env: Optional[str] = None, app: OrchestratedApp = APP_SMAHT, server: Optional[str] = None,
                  key: Optional[Union[dict, tuple]] = None,
                  portal: Optional[Union[VirtualApp, TestApp, Router, Portal, str]] = None) -> PortalBase:
@@ -487,7 +489,7 @@ class PortalBase:
             portal = arg
         elif isinstance(arg, Portal) and not portal:
             portal = arg
-        elif isinstance(arg, str) and arg.endswith(".ini"):
+        elif isinstance(arg, str) and arg.endswith(".ini") and not portal:
             portal = arg
         elif isinstance(arg, str) and not env:
             env = arg
@@ -579,7 +581,7 @@ class PortalBase:
         if isinstance(timeout := kwargs.get("timeout"), int):
             result_kwargs["timeout"] = timeout
         return result_kwargs
-    
+
     @staticmethod
     def create_for_testing(ini_file: Optional[str] = None) -> PortalBase:
         if isinstance(ini_file, str):
@@ -630,7 +632,7 @@ class PortalBase:
 class Portal(PortalBase):
 
     def __init__(self,
-                 arg: Optional[Union[VirtualApp, TestApp, Router, Portal, str]] = None,
+                 arg: Optional[Union[VirtualApp, TestApp, Router, Portal, dict, tuple, str]] = None,
                  env: Optional[str] = None, app: OrchestratedApp = APP_SMAHT, server: Optional[str] = None,
                  key: Optional[Union[dict, tuple]] = None,
                  portal: Optional[Union[VirtualApp, TestApp, Router, Portal, str]] = None,
