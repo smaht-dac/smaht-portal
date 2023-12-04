@@ -8,7 +8,7 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='software',
-    unique_key="software:submitted_id",
+    unique_key='submitted_id',
     properties={
         'title': 'Software',
         'description': 'Listing of software for analyses',
