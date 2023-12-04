@@ -28,10 +28,10 @@ export const BenchmarkingUI = (props) => {
 };
 
 const BenchmarkingUINav = (props) => {
-    const { href = "" } = props;
+    const { href = '' } = props;
 
     const urlParts = memoizedUrlParse(href);
-    const { path = "", hash = "" } = urlParts || {};
+    const { path = '', hash = '' } = urlParts || {};
 
     const currPath = `${path}${hash}`;
 
@@ -56,7 +56,7 @@ const BenchmarkingUINav = (props) => {
 
 export const COLO829Data = ({ schemas, session, facets, href }) => {
     const urlParts = memoizedUrlParse(href);
-    const { hash = "#main", path } = urlParts || {};
+    const { hash = '#main', path } = urlParts || {};
 
     const selectNewTab = function (tabKey) {
         // Programmatically update hash
@@ -118,10 +118,10 @@ export const COLO829Data = ({ schemas, session, facets, href }) => {
 function ContextAwareToggle({ children, eventKey, callback }) {
     const currentEventKey = useContext(AccordionContext);
 
-    const decoratedOnClick = useAccordionToggle(
-        eventKey,
-        () => callback && callback(eventKey)
-    );
+    const decoratedOnClick = useAccordionToggle(eventKey, (e) => {
+        e.preventDefault();
+        return callback && callback(eventKey);
+    });
 
     const isCurrentEventKey = currentEventKey === eventKey;
 
@@ -205,11 +205,7 @@ const BenchmarkingUINavPrimaryTissue = (props) => {
     const { currPath } = props;
     return (
         <BenchmarkingUINavWrapper defaultActiveKey={'0'}>
-            <BenchmarkingUINavDrop
-                eventKey="1"
-                {...{ currPath }}
-                href="/data/benchmarking/brain"
-                title="Brain">
+            <BenchmarkingUINavDrop eventKey="1" {...{ currPath }} title="Brain">
                 <ul>
                     <BenchmarkingUINavLink
                         title="Frontal Lobe"
@@ -243,11 +239,7 @@ const BenchmarkingUINavPrimaryTissue = (props) => {
                     />
                 </ul>
             </BenchmarkingUINavDrop>
-            <BenchmarkingUINavDrop
-                eventKey="2"
-                {...{ currPath }}
-                href="/data/benchmarking/skin"
-                title="Skin">
+            <BenchmarkingUINavDrop eventKey="2" {...{ currPath }} title="Skin">
                 <ul>
                     <BenchmarkingUINavLink
                         title="Sun Exposed"
@@ -268,11 +260,7 @@ const BenchmarkingUINavPrimaryTissue = (props) => {
                 {...{ currPath }}
                 href="/data/benchmarking/liver"
             />
-            <BenchmarkingUINavDrop
-                eventKey="3"
-                {...{ currPath }}
-                href="/data/benchmarking/colon"
-                title="Colon">
+            <BenchmarkingUINavDrop eventKey="3" {...{ currPath }} title="Colon">
                 <ul>
                     <BenchmarkingUINavLink
                         title="Ascending"
@@ -315,7 +303,9 @@ const BenchmarkingUINavDrop = (props) => {
     return (
         <li>
             <ContextAwareToggle {...{ eventKey }}>
-                <a {...{ href }}>{title}</a>
+                <span className="navlink-drop" {...{ href }}>
+                    {title}
+                </span>
             </ContextAwareToggle>
             <Accordion.Collapse {...{ eventKey }}>
                 {children}
@@ -328,19 +318,15 @@ const BenchmarkingUINavLink = (props) => {
     const { href, currPath: pageHref, title, cls } = props;
 
     const isActive = href === pageHref;
-    const activeStyle = 'bg-primary';
+    const activeStyle = 'navlink-active';
     const inactiveStyle = '';
 
     // console.log("href", href);
     // console.log("pageHref", pageHref);
 
     return (
-        <li className={cls}>
-            <a
-                {...{ href }}
-                className={`${isActive ? activeStyle : inactiveStyle}`}>
-                {title}
-            </a>
+        <li className={`${isActive ? activeStyle : inactiveStyle}`}>
+            <a {...{ href }}>{title}</a>
         </li>
     );
 };
