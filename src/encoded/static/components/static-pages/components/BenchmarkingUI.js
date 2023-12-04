@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {
@@ -56,7 +56,7 @@ const BenchmarkingUINav = (props) => {
 
 export const COLO829Data = ({ schemas, session, facets, href }) => {
     const urlParts = memoizedUrlParse(href);
-    const { hash = '#main', path } = urlParts || {};
+    const { hash, path } = urlParts || {};
 
     const selectNewTab = function (tabKey) {
         // Programmatically update hash
@@ -66,6 +66,13 @@ export const COLO829Data = ({ schemas, session, facets, href }) => {
             skipRequest: true,
         });
     };
+
+    // On first mount, if hash is blank, redirect to main
+    useEffect(() => {
+        if (!hash) {
+            selectNewTab('#main');
+        }
+    }, []);
 
     return (
         <div>
