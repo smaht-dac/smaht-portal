@@ -1,10 +1,12 @@
 from snovault import collection, load_schema
 
+from .acl import ONLY_ADMIN_VIEW_ACL
 from .base import Item as SmahtItem
 
 
 @collection(
     name='quality-metrics',
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         'title': 'Quality Metrics',
         'description': 'Listing of quality metrics',

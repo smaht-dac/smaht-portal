@@ -5,7 +5,7 @@ from .base import Item as SmahtItem
 
 @collection(
     name="file-sets",
-    unique_key="file_set:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "File Sets",
         "description": "Collections of related files",

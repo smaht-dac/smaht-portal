@@ -1,11 +1,13 @@
 from snovault import collection, load_schema
 
+from .acl import ONLY_ADMIN_VIEW_ACL
 from .base import Item as SMAHTItem
 
 
 @collection(
     name="ontology-terms",
     unique_key="ontology_term:identifier",
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         "title": "Ontology Terms",
         "description": "Restricted vocabulary terms for an ontology",

@@ -19,6 +19,8 @@ from encoded_core.types.page import Page as CorePage
 from encoded_core.page_views import (
     add_sibling_parent_relations_to_tree, get_pyramid_http_exception_for_redirect_code,
 )
+
+from .acl import ONLY_ADMIN_VIEW_ACL
 from .base import Item as SmahtItem
 from .base import collection_add, item_edit
 
@@ -168,6 +170,7 @@ def includeme(config):
 @collection(
     name='pages',
     lookup_key='identifier',
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         'title': 'Pages',
         'description': 'Static Pages for the Portal',

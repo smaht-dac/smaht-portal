@@ -5,7 +5,7 @@ from .subject import Subject
 
 @collection(
     name="cell-lines",
-    unique_key="cell_line:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Cell Lines",
         "description": "Cell lines",

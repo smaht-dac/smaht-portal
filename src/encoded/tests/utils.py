@@ -111,17 +111,22 @@ def pluralize_collection(collection: str) -> str:
     """
     name = collection.replace("_", "-")
     # deal with a few special cases explicitly
-    specials = ["consortium", "software"]
-    for sp in specials:
-        if name == "consortium":
-            return name
-        elif name == "software":
-            return name
-    # otherwise just add 's/es/ies'
-    if name.endswith("ly"):
+    specials = [
+        "aligned-reads",
+        "death-circumstances",
+        "sequencing",
+        "software",
+        "unaligned-reads",
+        "variant-calls",
+    ]
+    if name in specials:
+        return name
+    if name.endswith("ry") or name.endswith("gy"):
         return name[:-1] + "ies"
     if name.endswith("sis"):
         return name[:-2] + "es"
+    if name.endswith("ium"):
+        return name[:-2] + "a"
     if name.endswith("s"):
         return name + "es"
     return name + "s"

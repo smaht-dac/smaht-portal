@@ -1,0 +1,11 @@
+[
+    {
+        "uuid": "50a3f203-0363-474a-974c-c0fe2bb89e44",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_SAMPLE_HELA",
+        "cell_culture": "TEST_CELL-CULTURE_HELA",
+        "preservation_type": "Frozen"
+    }
+]

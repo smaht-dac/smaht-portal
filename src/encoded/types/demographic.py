@@ -5,7 +5,7 @@ from .base import Item as SMAHTItem
 
 @collection(
     name="demographics",
-    unique_key="demographic:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Demographics",
         "description": "Details of donors' demographics",

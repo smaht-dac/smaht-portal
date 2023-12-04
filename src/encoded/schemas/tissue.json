@@ -5,20 +5,9 @@
     "type": "object",
     "required": [
         "donor",
+        "submission_centers",
         "submitted_id",
         "uberon_id"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
     ],
     "identifyingProperties": [
         "accession",
@@ -122,11 +111,6 @@
             "type": "number",
             "minimum": 0
         },
-        "submitted_id": {
-            "title": "Submitted Id",
-            "description": "Unique, submitted identifier",
-            "type": "string"
-        },
         "uberon_id": {
             "title": "Uberon Id",
             "description": "Uberon identifier for the tissue",
@@ -148,7 +132,8 @@
         "donor": {
             "title": "Donor",
             "description": "Link to the associated donor",
-            "type": "string"
+            "type": "string",
+            "linkTo": "Donor"
         }
     }
 }

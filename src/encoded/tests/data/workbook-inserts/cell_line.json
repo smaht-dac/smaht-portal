@@ -1,0 +1,15 @@
+[
+    {
+        "uuid": "3b411041-0127-4a03-a9dc-891cdb8d1dfa",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_CELL-LINE_HELA",
+        "category": [
+            "Cancer Derived"
+        ],
+        "source": "ATCC",
+        "title": "HeLa",
+        "url": "https://www.atcc.org/products/ccl-2"
+    }
+]

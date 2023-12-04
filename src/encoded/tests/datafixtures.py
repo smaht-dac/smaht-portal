@@ -145,7 +145,7 @@ def smaht_gcc_user(testapp, test_submission_center, test_consortium):
     item = {
         'first_name': 'Test',
         'last_name': 'User',
-        'email': 'user@example.org',
+        'email': 'gcc_user@example.org',
         'status': 'current',
         'submission_centers': [
             test_submission_center['uuid']
@@ -164,7 +164,7 @@ def smaht_consortium_user(testapp, test_consortium):
     item = {
         'first_name': 'Test',
         'last_name': 'User',
-        'email': 'user@example.org',
+        'email': 'consortium_user@example.org',
         'status': 'current',
         'consortia': [
             test_consortium['uuid']
@@ -230,6 +230,37 @@ def smaht_protected_gcc_user(testapp, test_submission_center, test_consortium, t
         'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188311'
     }
     return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
+def submission_center_user_app(testapp, test_submission_center, smaht_gcc_user):
+    """ App associated with a consortia member who is a submitter """
+    return remote_user_testapp(testapp.app, smaht_gcc_user['uuid'])
+
+
+@pytest.fixture
+def consortium_user_app(testapp, test_consortium, smaht_consortium_user):
+    """ App associated with a normal consortia member """
+    return remote_user_testapp(testapp.app, smaht_consortium_user['uuid'])
+
+
+@pytest.fixture
+def protected_consortium_user_app(testapp, smaht_consortium_protected_user, test_consortium, test_protected_consortium):
+    """ App associated with a user who has access to consortia and protected data """
+    return remote_user_testapp(testapp.app, smaht_consortium_protected_user['uuid'])
+
+
+@pytest.fixture
+def protected_consortium_submitter_app(testapp, smaht_consortium_protected_submitter, test_consortium,
+                                       test_protected_consortium, test_submission_center):
+    """ App associated with a user who has access to consortia and protected data and submission center """
+    return remote_user_testapp(testapp.app, smaht_consortium_protected_submitter['uuid'])
+
+
+@pytest.fixture
+def unassociated_user_app(testapp, blank_user):
+    """ App associated with a user who has no associations """
+    return remote_user_testapp(testapp.app, blank_user['uuid'])
 
 
 @pytest.fixture
@@ -315,3 +346,14 @@ def higlass_view_config(
         "instance_height": 500,
     }
     return post_item(testapp, item, "HiglassViewConfig")
+
+
+@pytest.fixture
+def donor(testapp: TestApp, test_second_submission_center: Dict[str, Any]) -> Dict[str, Any]:
+    item = {
+        "submission_centers": [test_second_submission_center["uuid"]],
+        "submitted_id": "TEST_DONOR_1234",
+        "age": 35,
+        "sex": "Male",
+    }
+    return post_item(testapp, item, "Donor")

@@ -5,7 +5,7 @@ from .sample import Sample
 
 @collection(
     name="cell-samples",
-    unique_key="cell_sample:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Cell Samples",
         "description": "Samples consisting of isolated cells",

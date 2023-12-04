@@ -9,19 +9,8 @@
         "file_format",
         "file_sets",
         "filename",
+        "submission_centers",
         "submitted_id"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
     ],
     "identifyingProperties": [
         "accession",
@@ -86,12 +75,6 @@
                     "Aligned Reads"
                 ]
             }
-        },
-        "file_format": {
-            "enum": [
-                "BAM",
-                "CRAM"
-            ]
         },
         "schema_version": {
             "default": "1"

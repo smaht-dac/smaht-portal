@@ -1,0 +1,18 @@
+[
+    {
+        "uuid": "3ab98947-6edb-437b-a893-d350bdd1ca47",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE-COLLECTION_FEMALE",
+        "donor": "TEST_DONOR_FEMALE",
+        "blood_cultures_available": "Yes",
+        "core_body_temperature": 86.6,
+        "ischemic_time": 3.5,
+        "organ_transplant": "Yes",
+        "organs_transplanted": [
+            "Heart",
+            "Liver"
+        ]
+    }
+]

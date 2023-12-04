@@ -4,19 +4,8 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
+        "submission_centers",
         "submitted_id"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
     ],
     "identifyingProperties": [
         "accession",
@@ -69,12 +58,17 @@
         "preservation_method": {
             "title": "Preservation Method",
             "description": "Preservation method for subsequent analysis",
-            "type": "string",
-            "enum": [
-                "Fresh",
-                "Cryopreservation",
-                "Chemical Fixation"
-            ]
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Fresh",
+                    "Cryopreservation",
+                    "Chemical Fixation"
+                ]
+            }
         }
     }
 }

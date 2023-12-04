@@ -61,6 +61,9 @@
         }
     ],
     "properties": {
+        "identifier": {
+            "pattern": "^[A-Z]+:[0-9]+$"
+        },
         "schema_version": {
             "default": "1"
         }

@@ -3,38 +3,7 @@ from typing import Any, Dict
 import pytest
 from webtest.app import TestApp
 
-from .datafixtures import remote_user_testapp
-
-
-@pytest.fixture
-def submission_center_user_app(testapp, test_submission_center, smaht_gcc_user):
-    """ App associated with a consortia member who is a submitter """
-    return remote_user_testapp(testapp.app, smaht_gcc_user['uuid'])
-
-
-@pytest.fixture
-def consortium_user_app(testapp, test_consortium, smaht_consortium_user):
-    """ App associated with a normal consortia member """
-    return remote_user_testapp(testapp.app, smaht_consortium_user['uuid'])
-
-
-@pytest.fixture
-def protected_consortium_user_app(testapp, smaht_consortium_protected_user, test_consortium, test_protected_consortium):
-    """ App associated with a user who has access to consortia and protected data """
-    return remote_user_testapp(testapp.app, smaht_consortium_protected_user['uuid'])
-
-
-@pytest.fixture
-def protected_consortium_submitter_app(testapp, smaht_consortium_protected_submitter, test_consortium,
-                                       test_protected_consortium, test_submission_center):
-    """ App associated with a user who has access to consortia and protected data and submission center """
-    return remote_user_testapp(testapp.app, smaht_consortium_protected_submitter['uuid'])
-
-
-@pytest.fixture
-def unassociated_user_app(testapp, blank_user):
-    """ App associated with a user who has no associations """
-    return remote_user_testapp(testapp.app, blank_user['uuid'])
+from .utils import patch_item, post_item
 
 
 @pytest.fixture
@@ -604,3 +573,37 @@ class TestUserSubmissionConsistency:
         submission_center_user_app.post_json('/FilterSet', {
             'title': 'test', 'submission_centers': [test_second_submission_center['@id']]
         }, status=422)
+
+
+@pytest.mark.parametrize(
+    "donor_status", ["public", "draft", "released", "in review", "obsolete", "deleted"]
+)
+def test_link_to_another_submission_center_item(
+    donor_status: str,
+    submission_center_user_app: TestApp,
+    testapp: TestApp,
+    donor: Dict[str, Any],
+    test_submission_center: Dict[str, Any],
+    test_second_submission_center: Dict[str, Any],
+) -> None:
+    """Ensure item can link to one under different submission center.
+
+    Should hold under any valid status for original item. Essentially,
+    if reference is correct, can link any items.
+    """
+    # Confirm different submission center from tissue to post
+    donor_submission_centers = donor["submission_centers"]
+    assert len(donor_submission_centers) == 1
+    assert donor_submission_centers[0] == test_second_submission_center["@id"]
+    assert donor.get("consortia") is None
+
+    patch_body = {"status": donor_status}
+    patch_item(testapp, patch_body, donor["uuid"])
+
+    tissue_properties = {
+        "submission_centers": [test_submission_center["uuid"]],
+        "donor": donor["uuid"],
+        "submitted_id": "TEST_TISSUE_XYZ",
+        "uberon_id": "UBERON:0001111",
+    }
+    post_item(submission_center_user_app, tissue_properties, "Tissue", status=201)

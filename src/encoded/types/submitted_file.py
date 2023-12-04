@@ -7,6 +7,7 @@ from .file import File
 
 @abstract_collection(
     name="submitted-files",
+    unique_key="submitted_id",
     acl=SUBMISSION_CENTER_MEMBER_CREATE_ACL,
     properties={
         "title": "SMaHT Submitted Files",

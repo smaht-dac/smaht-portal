@@ -5,7 +5,7 @@ from .base import Item as SMAHTItem
 
 @collection(
     name="therapeutics",
-    unique_key="therapeutic:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Therapeutics",
         "description": "Disease treatments associated with a donor",

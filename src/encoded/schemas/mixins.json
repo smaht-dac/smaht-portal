@@ -221,6 +221,7 @@
             "type": "string",
             "uniqueKey": true,
             "pattern": "^[A-Za-z0-9-_]+$",
+            "minLength": 2,
             "permission": "restricted_fields"
         }
     },
@@ -396,6 +397,7 @@
             "description": "Name of the item",
             "type": "string",
             "pattern": "^[A-Za-z0-9-_]+$",
+            "minLength": 3,
             "comment": "Not for identifying name; use 'identifier' for that purpose."
         }
     },
@@ -442,11 +444,9 @@
     },
     "reference_genome": {
         "reference_genome": {
+            "title": "Reference Genome",
             "description": "Reference genome used for alignment",
             "type": "string",
-            "enum": [
-                "TBD"
-            ],
             "linkTo": "ReferenceGenome"
         }
     },
@@ -564,7 +564,7 @@
             "title": "Submitter ID",
             "description": "Identifier on submission",
             "type": "string",
-            "uniqueKey": true
+            "uniqueKey": "submitted_id"
         }
     },
     "supplementary_files": {
@@ -636,7 +636,8 @@
         "title": {
             "title": "Title",
             "description": "Title for the item",
-            "type": "string"
+            "type": "string",
+            "minLength": 3
         }
     },
     "url": {

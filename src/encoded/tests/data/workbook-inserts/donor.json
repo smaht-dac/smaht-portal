@@ -1,0 +1,14 @@
+[
+    {
+        "uuid": "078256f2-e8b4-48eb-8a53-9bd2b01cda72",
+        "submitted_id": "TEST_DONOR_FEMALE",
+        "submission_centers": [
+            "smaht"
+        ],
+        "age": 65,
+        "sex": "Female",
+        "body_mass_index": 21.5,
+        "height": 3.2,
+        "weight": 45
+    }
+]
