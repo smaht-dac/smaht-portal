@@ -17,7 +17,7 @@ def post_item(
     """POST content to collection."""
     resource_path = get_formatted_resource_path(collection)
     response = testapp.post_json(resource_path, post_body, status=status)
-    if status == 201:
+    if response.status_int == 201:
         return response.json["@graph"][0]
     return response.json
 
@@ -28,17 +28,17 @@ def patch_item(
     """PATCH content to given item."""
     resource_path = get_formatted_resource_path(identifier)
     response = testapp.patch_json(resource_path, patch_body, status=status)
-    if status == 200:
+    if response.status_int == 200:
         return response.json["@graph"][0]
     return response.json
 
 
 def get_item(
-        testapp: TestApp,
-        identifier: str,
-        collection: Optional[str] = None,
-        frame: Optional[str] = None,
-        status: Optional[int] = None,
+    testapp: TestApp,
+    identifier: str,
+    collection: Optional[str] = None,
+    frame: Optional[str] = None,
+    status: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Get item view with given frame, following redirects."""
     add_on = get_frame_add_on(frame)
@@ -46,7 +46,7 @@ def get_item(
         identifier, collection=collection, add_on=add_on
     )
     response = testapp.get(resource_path, status=status)
-    if response.status == 301:
+    if response.status_int == 301:
         return response.follow().json
     return response.json
 
