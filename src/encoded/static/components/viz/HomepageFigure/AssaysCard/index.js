@@ -10,28 +10,31 @@ const AssayList = ({ list }) => {
     return (
         <ul>
             {list.map((item, i) => {
-                return (
-                    <li key={i}>
-                        <OverlayTrigger
-                            trigger={['hover', 'focus']}
-                            placement="left"
-                            rootClose
-                            overlay={
-                                <Popover>
-                                    <PopoverTitle>{item.title}</PopoverTitle>
-                                    <PopoverContent>
-                                        Additional information about{' '}
-                                        {item.title} here
-                                    </PopoverContent>
-                                </Popover>
-                            }>
-                            <div>
-                                <img src={item.iconSrc} />
-                                {item.title}
-                            </div>
-                        </OverlayTrigger>
-                    </li>
-                );
+                if (item.data) {
+                    return (
+                        <li key={i}>
+                            <OverlayTrigger
+                                trigger={['hover', 'focus']}
+                                placement="left"
+                                rootClose
+                                overlay={
+                                    <Popover>
+                                        <PopoverTitle>
+                                            {item.title}
+                                        </PopoverTitle>
+                                        <PopoverContent>
+                                            Additional information about{' '}
+                                            {item.title} here
+                                        </PopoverContent>
+                                    </Popover>
+                                }>
+                                <div>{item.title}</div>
+                            </OverlayTrigger>
+                        </li>
+                    );
+                } else {
+                    return <li key={i}>{item.title}</li>;
+                }
             })}
         </ul>
     );
@@ -41,6 +44,7 @@ export const AssaysCard = ({ currentTier }) => {
     const assaysList = [
         {
             header: 'Bulk WGS short read',
+            iconSrc: '/static/img/assay-icons/Bulk WGS short read.svg',
             items: [
                 {
                     iconSrc: '',
@@ -60,6 +64,7 @@ export const AssaysCard = ({ currentTier }) => {
         },
         {
             header: 'Bulk WGS long read',
+            iconSrc: '/static/img/assay-icons/Bulk WGS long read.svg',
             items: [
                 {
                     iconSrc: '',
@@ -79,6 +84,7 @@ export const AssaysCard = ({ currentTier }) => {
         },
         {
             header: 'Bulk RNA-seq',
+            iconSrc: '/static/img/assay-icons/Bulk RNA-seq.svg',
             items: [
                 {
                     iconSrc: '',
@@ -98,6 +104,7 @@ export const AssaysCard = ({ currentTier }) => {
         },
         {
             header: 'Single-cell WGS',
+            iconSrc: '/static/img/assay-icons/Single-cell WGS.svg',
             items: [
                 {
                     iconSrc: '',
@@ -131,6 +138,7 @@ export const AssaysCard = ({ currentTier }) => {
         },
         {
             header: 'Single-cell RNA-Seq',
+            iconSrc: '/static/img/assay-icons/Single-cell RNA-seq.svg',
             items: [
                 {
                     iconSrc: '',
@@ -157,6 +165,7 @@ export const AssaysCard = ({ currentTier }) => {
         },
         {
             header: 'Single-molecule/duplex WGS',
+            iconSrc: '/static/img/assay-icons/Single-molecule duplex WGS.svg',
             items: [
                 {
                     iconSrc: '',
@@ -190,6 +199,7 @@ export const AssaysCard = ({ currentTier }) => {
         },
         {
             header: 'Epigenome profiling',
+            iconSrc: '/static/img/assay-icons/Epigenome profiling.svg',
             items: [
                 {
                     iconSrc: '',
@@ -230,7 +240,7 @@ export const AssaysCard = ({ currentTier }) => {
         },
     ];
     return (
-        <div className="card assays">
+        <div className={`card assays ${currentTier}`}>
             <div className="card-header">
                 <h4>AVAILABLE ASSAYS</h4>
             </div>
@@ -243,7 +253,10 @@ export const AssaysCard = ({ currentTier }) => {
                     return activeItems.length > 0 ? (
                         <div className="card-list assays" key={i}>
                             <h5>{assay.header}</h5>
-                            <AssayList list={activeItems} />
+                            <div className="card-list-icon-container">
+                                <img src={assay.iconSrc} />
+                                <AssayList list={activeItems} />
+                            </div>
                         </div>
                     ) : null;
                 })}

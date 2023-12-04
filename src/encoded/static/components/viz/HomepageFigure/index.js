@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { HumanFigure } from './HumanFigure';
+import React from 'react';
 import { CLTCard } from './CLTCard';
 import { AssaysCard } from './AssaysCard';
 
@@ -41,7 +40,12 @@ export const HomepageFigure = ({ currentTier, setCurrentTier }) => {
         <div className="homepage-figure">
             <div className="homepage-figure-content">
                 <CLTCard currentTier={currentTier} />
-                <HumanFigure currentTier={currentTier} />
+                <div className="human-figure-container">
+                    <img
+                        src="/static/img/homepage-human-figure.svg"
+                        alt="Human figure diagram"
+                    />
+                </div>
                 <AssaysCard currentTier={currentTier} />
             </div>
             <div className="homepage-figure-tier-selector">
