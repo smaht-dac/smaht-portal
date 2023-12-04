@@ -5,7 +5,7 @@ from .subject import Subject
 
 @collection(
     name="donors",
-    unique_key="donor:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Donors",
         "description": "Individuals who donated tissues",

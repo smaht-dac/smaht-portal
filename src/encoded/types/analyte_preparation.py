@@ -5,7 +5,7 @@ from .preparation import Preparation
 
 @collection(
     name="analyte-preparations",
-    unique_key="analyte_preparation:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Analyte Preparations",
         "description": "Data on analyte extraction methods",

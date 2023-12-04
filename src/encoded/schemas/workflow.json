@@ -85,7 +85,8 @@
                     "Quality Control",
                     "Read Manipulation",
                     "Testing",
-                    "Variant Calling"
+                    "Variant Calling",
+                    "Variant Manipulation"
                 ]
             }
         },
@@ -187,7 +188,7 @@
                     "enum": [
                         "wait_and_retry"
                     ],
-					"default": "wait_and_retry"
+                    "default": "wait_and_retry"
                 },
                 "cpu": {
                     "title": "CPU",
@@ -211,8 +212,12 @@
                 },
                 "ebs_size": {
                     "title": "EBS Size",
-                    "type": "string",
-                    "pattern": "^([0-9]+[.])?[0-9]+[x]?$"
+                    "type": [
+                        "string",
+                        "integer"
+                    ],
+                    "pattern": "^([0-9]+[.])?[0-9]+[x]$",
+                    "minimum": 0
                 },
                 "instance_type": {
                     "title": "Instance Type",
@@ -221,17 +226,7 @@
                     "uniqueItems": true,
                     "items": {
                         "type": "string",
-                        "enum": [
-                            "c5.2xlarge",
-                            "c5.4xlarge",
-                            "m5a.2xlarge",
-                            "r4.4xlarge",
-                            "r5.4xlarge",
-                            "r5a.4xlarge",
-                            "r5b.4xlarge",
-                            "r5ad.4xlarge",
-                            "r6i.4xlarge"
-                        ]
+                        "pattern": "^[a-z][a-z0-9-]+[.][0-9]*[a-z-*]+$"
                     }
                 },
                 "memory": {
@@ -248,7 +243,5 @@
                 }
             }
         }
-    },
-    "facets": {},
-    "columns": {}
+    }
 }

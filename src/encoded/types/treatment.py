@@ -1,17 +1,17 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .base import Item as SmahtItem
 
 
 @collection(
     name="treatments",
-    unique_key="treatment:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Treatments",
         "description": "Biological, chemical, or physical agent used during an experiment",
     },
 )
-class Treatment(SMAHTItem):
+class Treatment(SmahtItem):
     item_type = "treatment"
     schema = load_schema("encoded:schemas/treatment.json")
     embedded_list = []

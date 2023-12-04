@@ -5,7 +5,7 @@ from .preparation import Preparation
 
 @collection(
     name="library-preparations",
-    unique_key="library_preparation:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Library Preparations",
         "description": "Data on library preparation methods",

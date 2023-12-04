@@ -5,6 +5,7 @@ from .base import Item as SMAHTItem
 
 @abstract_collection(
     name="preparations",
+    unique_key="submitted_id",
     properties={
         "title": "Preparation",
         "description": "Data on methods used to process a biological entity",

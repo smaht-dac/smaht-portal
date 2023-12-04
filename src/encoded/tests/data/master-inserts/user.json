@@ -35,27 +35,6 @@
         ]
     },
     {
-        "email": "kent_pitman@hms.harvard.edu",
-        "first_name": "Kent",
-        "last_name": "Pitman",
-        "uuid": "27d2ac03-7d12-442b-9375-211d3c5c5f97",
-        "groups": [
-            "admin"
-        ],
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
-    },
-    {
-        "email": "kent_pitman_1@hms.harvard.edu",
-        "first_name": "Kent",
-        "last_name": "Pitman-One",
-        "uuid": "cbff0d3a-ed67-4fd5-9ca2-8505549cac42"
-    },
-    {
         "email": "andrew_schroeder@hms.harvard.edu",
         "first_name": "Andy",
         "last_name": "Schroeder",
@@ -201,6 +180,36 @@
         "first_name": "Dominik",
         "last_name": "Glodzik",
         "uuid": "42cd3586-0ae7-43bd-9d9c-14a03572e3ac",
+        "groups": [
+            "admin"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "email": "elizabeth_chun@hms.harvard.edu",
+        "first_name": "Elizabeth",
+        "last_name": "Chun",
+        "uuid": "a0254053-f619-466c-8776-32810d13d95e",
+        "groups": [
+            "admin"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "email": "dominika_maziec@hms.harvard.edu",
+        "first_name": "Dominika",
+        "last_name": "Maziec",
+        "uuid": "bc8e5ecd-4f3e-430a-97e7-d27f66a3e74f",
         "groups": [
             "admin"
         ],

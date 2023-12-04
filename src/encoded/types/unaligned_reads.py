@@ -5,7 +5,7 @@ from .submitted_file import SubmittedFile
 
 @collection(
     name="unaligned-reads",
-    unique_key="unaligned_reads:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Unaligned Reads",
         "description": "Files containing unaligned sequencing reads",

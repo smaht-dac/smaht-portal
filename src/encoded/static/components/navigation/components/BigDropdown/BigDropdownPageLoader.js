@@ -52,7 +52,7 @@ export class BigDropdownPageLoader extends React.PureComponent {
             ajax.load(
                 treeURL,
                 (res) => {
-                    if (res && res.name) {
+                    if (res && res.identifier) {
                         this.setState({
                             menuTree: res,
                             isLoadingMenuTree: false,

@@ -1,23 +1,12 @@
 {
-    "title": "Sample Mixture",
-    "$id": "/profiles/sample_mixture.json",
+    "title": "Cell Culture Mixture",
+    "$id": "/profiles/cell_culture_mixture.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
         "components",
+        "submission_centers",
         "submitted_id"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
     ],
     "identifyingProperties": [
         "accession",
@@ -37,6 +26,9 @@
         },
         {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/protocols"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -62,14 +54,14 @@
     ],
     "properties": {
         "accession": {
-            "accessionType": "SA"
+            "accessionType": "CM"
         },
         "schema_version": {
             "default": "1"
         },
         "components": {
             "title": "Components",
-            "description": "Samples in the mixture and their corresponding ratios",
+            "description": "Cultures in the mixture and their corresponding ratios",
             "type": "array",
             "minItems": 1,
             "items": {
@@ -77,40 +69,23 @@
                 "additionalProperties": false,
                 "required": [
                     "ratio",
-                    "sample"
+                    "cell_culture"
                 ],
                 "properties": {
                     "ratio": {
                         "title": "Ratio",
-                        "description": "Ratio of the sample to the total mixture (percentage)",
+                        "description": "Ratio of the cell culture to the total mixture (percentage)",
                         "type": "number",
                         "minimum": 0
                     },
-                    "sample": {
-                        "title": "Sample",
-                        "description": "Link to associated sample",
+                    "cell_culture": {
+                        "title": "Cell Culture",
+                        "description": "Link to associated cell culture",
                         "type": "string",
-                        "linkTo": "Sample"
+                        "linkTo": "CellCulture"
                     }
                 }
             }
-        },
-        "protocols": {
-            "title": "Protocol",
-            "description": "Link to associated protocol",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "Protocol"
-            }
-        },
-        "sample_preparation": {
-            "title": "Sample Preparation",
-            "description": "Link to associated sample preparation",
-            "type": "string",
-            "linkTo": "SamplePreparation"
         }
     }
 }

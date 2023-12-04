@@ -47,9 +47,6 @@
             "$ref": "mixins.json#/schema_version"
         },
         {
-            "$ref": "mixins.json#/status"
-        },
-        {
             "$ref": "mixins.json#/submitted"
         },
         {
@@ -65,6 +62,23 @@
         },
         "accession": {
             "accessionType": "FI"
+        },
+        "status": {
+            "title": "Status",
+            "type": "string",
+            "default": "uploading",
+            "enum": [
+                "uploading",
+                "uploaded",
+                "upload failed",
+                "to be uploaded by workflow",
+                "released",
+                "in review",
+                "obsolete",
+                "archived",
+                "deleted",
+                "public"
+            ]
         },
         "file_format": {
             "$merge": "encoded_core:schemas/file.json#/properties/file_format"
@@ -94,6 +108,7 @@
                 "type": "string",
                 "enum": [
                     "Genome Region",
+                    "Quality Control",
                     "Reference Genome",
                     "Sequencing Reads",
                     "Variant Calls"
@@ -111,11 +126,20 @@
                 "enum": [
                     "Aligned Reads",
                     "Germline Variant Calls",
-                    "Reads Index",
+                    "Image",
+                    "Index",
+                    "Reference Sequence",
+                    "Sequence Interval",
                     "Somatic Variant Calls",
+                    "Statistics",
                     "Unaligned Reads"
                 ]
             }
+        },
+        "o2_path": {
+            "title": "O2 Path",
+            "description": "Path to file on O2",
+            "type": "string"
         }
     },
     "facets": {},

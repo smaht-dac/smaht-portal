@@ -1,17 +1,17 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .base import Item as SmahtItem
 
 
 @collection(
     name="libraries",
-    unique_key="library:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Libraries",
         "description": "Sequencing libraries",
     },
 )
-class Library(SMAHTItem):
+class Library(SmahtItem):
     item_type = "library"
     schema = load_schema("encoded:schemas/library.json")
     embedded_list = []

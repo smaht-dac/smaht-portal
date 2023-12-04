@@ -1,0 +1,13 @@
+[
+    {
+        "uuid": "b98f9849-3b7f-4f2f-a58f-81100954e00d",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE-SET_LIVER",
+        "libraries": [
+            "TEST_LIBRARY_LIVER"
+        ],
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
+    }
+]

@@ -5,6 +5,7 @@ from .base import Item as SMAHTItem
 
 @abstract_collection(
     name="samples",
+    unique_key="submitted_id",
     properties={
         "title": "Samples",
         "description": "Samples from a living organism for subsequent analysis",

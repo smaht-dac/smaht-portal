@@ -150,7 +150,7 @@
                 "type": "string",
                 "linkTo": "Consortium"
             },
-            "serverDefault": "user_consortia"
+            "permission": "restricted_fields"
         }
     },
     "category": {
@@ -221,6 +221,7 @@
             "type": "string",
             "uniqueKey": true,
             "pattern": "^[A-Za-z0-9-_]+$",
+            "minLength": 2,
             "permission": "restricted_fields"
         }
     },
@@ -233,6 +234,115 @@
                 "title": "Submission ID",
                 "description": "IngestionSubmission item that created or edited the item",
                 "type": "string"
+            }
+        }
+    },
+    "meta_workflow_input": {
+        "meta_workflow_input": {
+            "title": "Workflow Inputs",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "argument_name",
+                    "argument_type"
+                ],
+                "properties": {
+                    "argument_name": {
+                        "title": "Input Argument Name",
+                        "type": "string"
+                    },
+                    "argument_type": {
+                        "title": "Input Argument Type",
+                        "type": "string",
+                        "enum": [
+                            "file",
+                            "parameter"
+                        ]
+                    },
+                    "value": {
+                        "title": "Value",
+                        "description": "a specific input parameter value",
+                        "type": [
+                            "string",
+                            "integer",
+                            "number",
+                            "boolean",
+                            "array",
+                            "object"
+                        ]
+                    },
+                    "value_type": {
+                        "title": "Expected Value Type",
+                        "description": "Expected type of the specific input parameter value",
+                        "type": "string",
+                        "enum": [
+                            "string",
+                            "integer",
+                            "float",
+                            "boolean",
+                            "array",
+                            "object"
+                        ]
+                    },
+                    "source": {
+                        "title": "Source Workflow",
+                        "description": "Where this input file came from (source workflow name). If this field is null or undefined, the input is global and not from another workflow's output.",
+                        "type": "string"
+                    },
+                    "source_argument_name": {
+                        "title": "Argument name in the Source Workflow",
+                        "description": "Output argument name in the source workflow",
+                        "type": "string"
+                    },
+                    "scatter": {
+                        "title": "Scatter",
+                        "description": "The input dimension decrease if scattered into mutiple runs (default: not set)",
+                        "type": "integer"
+                    },
+                    "gather": {
+                        "title": "Gather",
+                        "description": "The input dimension increase from multiple runs of the source workflow (default: not set)",
+                        "type": "integer"
+                    },
+                    "gather_input": {
+                        "title": "Gather Input",
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "input_dimension": {
+                        "title": "Input Dimension",
+                        "description": "Extra input dimension other than that defined by scatter",
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "extra_dimension": {
+                        "title": "Extra Dimension",
+                        "description": "The extra input dimension increase other than that defined by gather (default: not set)",
+                        "type": "integer"
+                    },
+                    "mount": {
+                        "title": "Mount",
+                        "description": "Whether the input is mounted",
+                        "type": "boolean"
+                    },
+                    "rename": {
+                        "title": "Rename",
+                        "description": "What the input should be renamed to when downloaded to EC2 for execution",
+                        "type": "string"
+                    },
+                    "unzip": {
+                        "title": "Unzip",
+                        "description": "How the input should be decompressed when downloaded to EC2 for execution",
+                        "type": "string",
+                        "enum": [
+                            "gz",
+                            "bz2"
+                        ]
+                    }
+                }
             }
         }
     },
@@ -287,6 +397,7 @@
             "description": "Name of the item",
             "type": "string",
             "pattern": "^[A-Za-z0-9-_]+$",
+            "minLength": 3,
             "comment": "Not for identifying name; use 'identifier' for that purpose."
         }
     },
@@ -318,13 +429,24 @@
             "linkTo": "OntologyTerm"
         }
     },
+    "protocols": {
+        "protocols": {
+            "title": "Protocols",
+            "description": "Protocols providing experimental details",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Protocol"
+            }
+        }
+    },
     "reference_genome": {
         "reference_genome": {
+            "title": "Reference Genome",
             "description": "Reference genome used for alignment",
             "type": "string",
-            "enum": [
-                "TBD"
-            ],
             "linkTo": "ReferenceGenome"
         }
     },
@@ -398,12 +520,11 @@
             "permission": "restricted_fields",
             "enum": [
                 "public",
-                "current",
-                "deleted",
-                "inactive",
+                "draft",
+                "released",
                 "in review",
                 "obsolete",
-                "shared"
+                "deleted"
             ]
         }
     },
@@ -443,7 +564,7 @@
             "title": "Submitter ID",
             "description": "Identifier on submission",
             "type": "string",
-            "uniqueKey": true
+            "uniqueKey": "submitted_id"
         }
     },
     "supplementary_files": {
@@ -515,7 +636,8 @@
         "title": {
             "title": "Title",
             "description": "Title for the item",
-            "type": "string"
+            "type": "string",
+            "minLength": 3
         }
     },
     "url": {
@@ -537,6 +659,25 @@
             "serverDefault": "uuid4",
             "permission": "restricted_fields",
             "requestMethod": "POST"
+        }
+    },
+    "variant_type": {
+        "variant_type": {
+            "title": "Variant Type",
+            "description": "Variant types included in the file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Copy Number Variant",
+                    "Insertion-deletion",
+                    "Mobile Element Insertion",
+                    "Single Nucleotide Variant",
+                    "Structural Variant"
+                ]
+            }
         }
     },
     "version": {

@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 from snovault import abstract_collection, Item as SnovaultItem, load_schema
 from encoded_core.types.user_content import UserContent as CoreUserContent
 
-from .base import Item as SMAHTItem
+from .base import Item as SmahtItem
 
 
 @abstract_collection(
@@ -12,7 +12,7 @@ from .base import Item as SMAHTItem
         'title': 'User Content',
         'description': 'User content for the Portal',
     })
-class UserContent(SMAHTItem, CoreUserContent):
+class UserContent(SmahtItem, CoreUserContent):
     item_type = 'user_content'
     schema = load_schema("encoded:schemas/user_content.json")
     embedded_list = []
