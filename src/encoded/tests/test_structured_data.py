@@ -225,6 +225,23 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
+        "file": "submission_test_file_from_doug_20231130.xlsx",
+        "norefs": ["/SubmissionCenter/smaht_dac"],
+        "expected": {
+            "Donor": [{
+                "submitted_id": "FOOBAR",
+                "sex": "Female", "age": 5,
+                "submission_centers": [ "smaht_dac" ],
+                "something": "else"
+            }]
+        },
+        "expected_errors": [
+            "Donor [1]: Additional properties are not allowed ('something' was unexpected)"
+        ],
+        "sheet_utils_also": True,
+    },
+    # ----------------------------------------------------------------------------------------------
+    {
         "novalidate": True,
         "file": "test_uw_gcc_colo829bl_submission_20231117.xlsx",
         "expected": "test_uw_gcc_colo829bl_submission_20231117.result.json",

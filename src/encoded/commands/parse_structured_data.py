@@ -108,6 +108,8 @@ def main() -> None:
             #PRINT(yaml.dump(validation_errors))
             [PRINT(error) for error in validation_errors]
             PRINT(f"There are {nmore_validation_errors} more validation errors; use --verbose to see all.")
+        else:
+            [PRINT(error) for error in validation_errors]
     else:
         PRINT("No validation results because the --novalidate argument was specified.")
 
