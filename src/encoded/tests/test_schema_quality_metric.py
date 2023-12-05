@@ -16,7 +16,16 @@ def quality_metric(
         "consortia": [test_consortium["uuid"]],
         "submission_centers": [test_submission_center["uuid"]],
         "category": "Testing",
-        "qc_values": [{"key": "some_qc_metric", "value": "22"}],
+        "qc_values": [
+            {
+                "key": "some_qc_metric",
+                "value": "22",
+                "visible": True,
+                "flag": "Pass",
+                "derived_from": "some_identifier",
+                "tooltip": "A helpful message explaining this value",
+            }
+        ],
         "overall_quality_status": "Pass",
         "url": "https://foo.bar",
     }

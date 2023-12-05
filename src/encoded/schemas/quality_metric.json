@@ -77,16 +77,48 @@
                 "Fail",
                 "Pass",
                 "Warn"
-            ],
-            "default": "Pass"
+            ]
         },
         "url": {
             "$merge": "encoded_core:schemas/quality_metric.json#/properties/url"
         },
         "qc_values": {
-            "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values"
+            "type": "array",
+            "title": "QC Values",
+            "description": "QC values and their associated metadata",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "key",
+                    "value"
+                ],
+                "properties": {
+                    "key": {
+                        "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/key"
+                    },
+                    "value": {
+                        "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/value"
+                    },
+                    "visible": {
+                        "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/visible"
+                    },
+                    "flag": {
+                        "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/flag",
+                        "enum": [
+                            "Fail",
+                            "Pass",
+                            "Warn"
+                        ]
+                    },
+                    "derived_from": {
+                        "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/derived_from"
+                    },
+                    "tooltip": {
+                        "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/tooltip"
+                    }
+                }
+            }
         }
-    },
-    "facets": {},
-    "columns": {}
+    }
 }
