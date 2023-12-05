@@ -48,12 +48,12 @@ def main() -> None:
     # Manually override implementation specifics for our default handling of refs (linkTo),
     # which is to catch/report any ref errors; use --norefs to not do ref checking at all;
     # and use --default-refs to throw exceptions for ref errors (as normal outside of this script).
-    refs = override_ref_handling(args) if args.norefs or not args.default_refs or args.show_refs else None
+    refs = override_ref_handling(args) if args.norefs or not args.default_refs or args.refs else None
 
     if args.verbose:
         if args.sheet_utils:
-            PRINT(f">>> Using sheet_utils rather than the newer structured_data ...")
-        PRINT(f">>> Loading data", end="")
+            PRINT(f"> Using sheet_utils rather than the newer structured_data ...")
+        PRINT(f"> Loading data", end="")
         if args.novalidate:
             PRINT(" with NO validation", end="")
         else:
@@ -80,50 +80,48 @@ def main() -> None:
                                                                        portal=portal,
                                                                        novalidate=args.novalidate,
                                                                        sheet_utils=args.sheet_utils)
-    PRINT(f">>> Parsed Data:")
+    PRINT(f"> Parsed Data:")
     PRINT(json.dumps(structured_data_set, indent=4, default=str))
 
-    if args.show_refs:
-        PRINT(f"\n>>> References (linkTo):")
+    if args.refs:
+        PRINT(f"\n> References (linkTo):")
         if refs and refs.get("actual"):
             for ref_actual in sorted(refs["actual"]):
-                PRINT(ref_actual)
+                PRINT(f"  - {ref_actual}")
         else:
-            PRINT("No references.")
+            PRINT("  - No references.")
     if refs and refs.get("errors"):
-        PRINT(f"\n>>> Validation Reference (linkTo) Errors:")
+        PRINT(f"\n> Reference (linkTo) Errors:")
         for ref_error in refs["errors"]:
-            PRINT(ref_error)
+            PRINT(f"  - {ref_error}")
 
-    PRINT(f"\n>>> Validation Results:")
+    PRINT(f"\n> Schema Validation Results:")
     if not args.novalidate:
         if not validation_errors:
-            PRINT("OK")
+            PRINT("  - OK")
         elif args.verbose:
-            [PRINT(error) for error in validation_errors]
-            #PRINT(yaml.dump(validation_errors) if validation_errors else "OK")
+            [PRINT(f"  - {error}") for error in validation_errors]
         elif len(validation_errors) > 16:
             nmore_validation_errors = len(validation_errors) - 16
             validation_errors = validation_errors[:16]
-            #PRINT(yaml.dump(validation_errors))
-            [PRINT(error) for error in validation_errors]
-            PRINT(f"There are {nmore_validation_errors} more validation errors; use --verbose to see all.")
+            [PRINT(f"  - {error}") for error in validation_errors]
+            PRINT(f"  - There are {nmore_validation_errors} more validation errors; use --verbose to see all.")
         else:
-            [PRINT(error) for error in validation_errors]
+            [PRINT(f"  - {error}") for error in validation_errors]
     else:
-        PRINT("No validation results because the --novalidate argument was specified.")
+        PRINT("  - No validation results because the --novalidate argument was specified.")
 
     if args.schemas:
         if args.verbose:
-            PRINT(">>> Dumping referenced schemas ...")
+            PRINT("> Dumping referenced schemas ...")
         if args.noschemas:
-            PRINT("No schemas because the --noschemas argument was specified.")
+            PRINT("  - No schemas because the --noschemas argument was specified.")
         else:
             dump_schemas(list(structured_data_set.keys()), portal)
 
     if args.load:
         if args.verbose:
-            PRINT(">>> Loading data into local portal database", end="")
+            PRINT("> Loading data into local portal database", end="")
             if args.post_only:
                 PRINT(" (POST only)", end="")
             if args.patch_only:
@@ -138,13 +136,13 @@ def main() -> None:
                                                    patch_only=args.patch_only,
                                                    validate_only=args.validate_only)
         load_summary = summary_of_load_data_results(load_results)
-        PRINT("\n>>> Load Summary:")
+        PRINT("\n> Load Summary:")
         [PRINT(item) for item in load_summary]
-        PRINT("\n>>> Load Results:")
+        PRINT("\n> Load Results:")
         PRINT(yaml.dump(load_results))
 
     if args.verbose:
-        PRINT("\n>>> Done.")
+        PRINT("\n> Done.")
 
 
 def override_ref_handling(args: argparse.Namespace) -> dict:
@@ -155,14 +153,14 @@ def override_ref_handling(args: argparse.Namespace) -> dict:
             Schema._map_function_ref = lambda self, typeinfo: lambda value, src: value
         else:
             RefHint._apply_ref_hint = lambda self, value, src: value
-    elif not args.default_refs or args.show_refs:  # Default case; catch/report ref errors/exceptions.
+    elif not args.default_refs or args.refs:  # Default case; catch/report ref errors/exceptions.
         if not args.sheet_utils:
             real_map_function_ref = Schema._map_function_ref
             def custom_map_function_ref(self, typeinfo):  # noqa
                 real_map_value_ref = real_map_function_ref(self, typeinfo)
                 def custom_map_value_ref(value, link_to, portal, src):  # noqa
                     if value:
-                        refs["actual"].add(f"{link_to}/{value}")
+                        refs["actual"].add(f"/{link_to}/{value}")
                     try:
                         return real_map_value_ref(value, src)
                     except Exception as e:
@@ -175,7 +173,7 @@ def override_ref_handling(args: argparse.Namespace) -> dict:
             def custom_apply_ref_hint(self, value, src = None):  # noqa
                 try:
                     if value:
-                        refs["actual"].add(f"{self.schema_name}/{value}")
+                        refs["actual"].add(f"/{self.schema_name}/{value}")
                     return real_apply_ref_hint(self, value, src)
                 except Exception as e:
                     refs["errors"].add(str(e))
@@ -188,10 +186,10 @@ def dump_schemas(schema_names: List[str], portal: Portal) -> None:
         schema = Schema.load_by_name(schema_name, portal)
         schema = schema.data if schema else None
         if schema:
-            PRINT(f">>> Schema: {schema_name}")
+            PRINT(f"\n> Schema: {schema_name}")
             PRINT(json.dumps(schema, indent=4, default=str))
         else:
-            PRINT(f">>> No schema found for type: {schema_name}")
+            PRINT(f"> No schema found for type: {schema_name}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -212,7 +210,7 @@ def parse_args() -> argparse.Namespace:
                         default=False, help=f"Do not try to resolve schema linkTo references.")
     parser.add_argument("--default-refs", required=False, action="store_true",
                         default=False, help=f"Throw exception (as is normal) if schema linkTo reference cannot be resolved.")
-    parser.add_argument("--show-refs", required=False, action="store_true",
+    parser.add_argument("--refs", required=False, action="store_true",
                         default=False, help=f"Show all references.")
     parser.add_argument("--noschemas", required=False, action="store_true",
                         default=False, help=f"Do not use schemes at all.")
@@ -240,7 +238,7 @@ def parse_args() -> argparse.Namespace:
     if (1 if args.patch_only else 0) + (1 if args.post_only else 0) + (1 if args.validate_only else 0) > 1:
         PRINT("May only specify one of: --patch-only or --post-only or --validate-only")
         exit(1)
-    if (1 if args.norefs else 0) + (1 if args.default_refs else 0) + (1 if args.show_refs else 0) > 1:
+    if (1 if args.norefs else 0) + (1 if args.default_refs else 0) + (1 if args.refs else 0) > 1:
         PRINT("May not specify both of: --norefs or --default-refs or --show-refs")
         exit(1)
     if not args.load and (args.patch_only or args.post_only or args.validate_only):
