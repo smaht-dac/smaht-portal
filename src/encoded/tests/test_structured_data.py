@@ -58,8 +58,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                     "data": "xyzzy"
                 }
             ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -101,16 +100,14 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                     "arr": [ "indigo|juliet", "kilo" ]
                 }
             ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
         "rows":  [ r"abcdef", r"alfa", r"bravo" ],
         "as_file_name":  "easy_test.csv",
         "noschemas":  True,
-        "expected":  { "EasyTest": [ { "abcdef": "alfa", }, { "abcdef": "bravo" } ] },
-        "sheet_utils_also": True
+        "expected":  { "EasyTest": [ { "abcdef": "alfa", }, { "abcdef": "bravo" } ] }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -138,8 +135,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 }
             ]
         },
-        "noschemas": True,
-        "sheet_utils_also": False
+        "noschemas": True
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -165,8 +161,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                     "mno": [ "juliet", "kilo", "november" ]
                 }
             ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -177,8 +172,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/FileFormat/VCF",
             "/SubmissionCenter/Center1"
         ],
-        "norefs": SAME_AS_EXPECTED_REFS,
-        "sheet_utils_also": False
+        "norefs": SAME_AS_EXPECTED_REFS
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -204,8 +198,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                     "mno": [ "juliet", "kilo", "november" ]
                 }
             ]
-        },
-        "sheet_utils_also": False,
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -220,8 +213,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         "norefs": [
             "/Consortium/smaht"
         ],
-        "expected": "submission_test_file_from_doug_20231106.result.json",
-        "sheet_utils_also": True,
+        "expected": "submission_test_file_from_doug_20231106.result.json"
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -237,8 +229,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         },
         "expected_errors": [
             "Donor [1]: Additional properties are not allowed ('something' was unexpected)"
-        ],
-        "sheet_utils_also": True,
+        ]
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -263,6 +254,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/Analyte/UW-GCC_ANALYTE_COLO-829T_HiC_2",
             "/Analyte/UW-GCC_ANALYTE_COLO-829T_bulkKinnex_2",
             "/Analyte/UW-GCC_ANALYTE_COLO-829T_gDNA_2",
+            "/FileFormat/BAM",
             "/FileSet/UW-GCC_FILE-SET_COLO-829BL_FIBERSEQ_1",
             "/FileSet/UW-GCC_FILE-SET_COLO-829BL_FIBERSEQ_2",
             "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1",
@@ -274,9 +266,9 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS"
         ],
         "norefs": [
+            "/FileFormat/BAM",
             "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1"
-        ],
-        "sheet_utils_also": True,
+        ]
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -305,6 +297,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/Analyte/UW-GCC_ANALYTE_COLO-829T_gDNA_2",
             "/FileSet/UW-GCC_FILE-SET_COLO-829BL_FIBERSEQ_1",
             "/FileSet/UW-GCC_FILE-SET_COLO-829BL_FIBERSEQ_2",
+            "/FileFormat/<null>",
+            "/FileFormat/BAM",
             "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1",
             "/Library/UW-GCC_LIBRARY_COLO-829BL_FIBERSEQ_1",
             "/Library/UW-GCC_LIBRARY_COLO-829BL_FIBERSEQ_2",
@@ -314,9 +308,10 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS"
         ],
         "norefs": [
+            "/FileFormat/<null>",
+            "/FileFormat/BAM",
             "/FileSet/UW-GCC_FILE-SET_COLO-829T_FIBERSEQ_1"
-        ],
-        "sheet_utils_also": True
+        ]
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -331,8 +326,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/User/user-id-1",
             "/User/user-id-2"
         ],
-        "norefs": SAME_AS_EXPECTED_REFS,
-        "sheet_utils_also": True,
+        "norefs": SAME_AS_EXPECTED_REFS
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -347,8 +341,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/User/user-id-1",
             "/User/user-id-2"
         ],
-        "norefs": SAME_AS_EXPECTED_REFS,
-        "sheet_utils_also": True,
+        "norefs": SAME_AS_EXPECTED_REFS
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -360,8 +353,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/Protocol/Protocol9",
             "/Sample/Sample9"
         ],
-        "norefs": SAME_AS_EXPECTED_REFS,
-        "sheet_utils_also": True
+        "norefs": SAME_AS_EXPECTED_REFS
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -376,46 +368,13 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/LibraryPreparation/prep2",
             "/Protocol/protocol1",
             "/Protocol/protocol3",
-            "/SubmissionCenter/Center1"
+            "/SubmissionCenter/somesubctr",
+            "/SubmissionCenter/anothersubctr",
+            "/SubmissionCenter/Center1",
+            "/Protocol/<null>",
+            "/LibraryPreparation/<null>"
         ],
-        "norefs": SAME_AS_EXPECTED_REFS,
-        "sheet_utils_also": False
-    },
-    # ----------------------------------------------------------------------------------------------
-    {
-        "file": "library_20231119.csv", "as_file_name": "library.csv",
-        "expected": "library_20231119.result.json",
-        "expected_refs": [
-            "/Analyte/sample-analyte-1",
-            "/Analyte/sample-analyte-2",
-            "/Analyte/sample-analyte-3",
-            "/Consortium/Consortium1",
-            "/Consortium/Consortium2",
-            "/LibraryPreparation/prep2",
-            "/Protocol/protocol1",
-            "/Protocol/protocol3",
-            "/SubmissionCenter/Center1"
-        ],
-        "norefs": SAME_AS_EXPECTED_REFS,
-        "sheet_utils_also": False
-    },
-    # ----------------------------------------------------------------------------------------------
-    {
-        "file": "library_20231119.csv", "as_file_name": "library.csv",
-        "expected": "library_20231119.result.json",
-        "expected_refs": [
-            "/Analyte/sample-analyte-1",
-            "/Analyte/sample-analyte-2",
-            "/Analyte/sample-analyte-3",
-            "/Consortium/Consortium1",
-            "/Consortium/Consortium2",
-            "/LibraryPreparation/prep2",
-            "/Protocol/protocol1",
-            "/Protocol/protocol3",
-            "/SubmissionCenter/Center1"
-        ],
-        "norefs": SAME_AS_EXPECTED_REFS,
-        "sheet_utils_also": False
+        "norefs": SAME_AS_EXPECTED_REFS
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -425,8 +384,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/Consortium/358aed10-9b9d-4e26-ab84-4bd162da182b",
             "/SubmissionCenter/9626d82e-8110-4213-ac75-0a50adf890ff",
         ],
-        "norefs": SAME_AS_EXPECTED_REFS,
-        "sheet_utils_also": True
+        "norefs": SAME_AS_EXPECTED_REFS
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -437,8 +395,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/SubmissionCenter/some-submission-center-a",
             "/SubmissionCenter/some-submission-center-b"
         ],
-        "norefs": SAME_AS_EXPECTED_REFS,
-        "sheet_utils_also": True
+        "norefs": SAME_AS_EXPECTED_REFS
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -451,11 +408,11 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/SubmissionCenter/Center1", "/SubmissionCenter/Center2", "/SubmissionCenter/Center3", "/User/User1",
             "/User/User2", "/User/User3", "/User/User4", "/User/User5", "/User/User6"
         ],
-        "norefs": SAME_AS_EXPECTED_REFS,
-        "sheet_utils_also": False
+        "norefs": SAME_AS_EXPECTED_REFS
     },
     # ----------------------------------------------------------------------------------------------
     {
+            "debug": True,
         "file": "sequencing_20231120.csv",
         "as_file_name": "sequencing.csv",
         "expected": "sequencing_20231120.result.json",
@@ -467,6 +424,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/Protocol/Protocol3",
             "/SubmissionCenter/Center1",
             "/SubmissionCenter/Center2",
+            "/SubmissionCenter/somesubctr",
             "/User/User1",
             "/User/User2",
             "/User/User3",
@@ -474,8 +432,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/User/User5",
             "/User/User6"
         ],
-        "norefs": SAME_AS_EXPECTED_REFS,
-        "sheet_utils_also": True
+        "norefs": SAME_AS_EXPECTED_REFS
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -487,8 +444,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         "noschemas": True,
         "expected": {
             "Test" : [ { "abc": ["foobar", "goobar"] } ]
-        },
-        "sheet_utils_also": True
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -502,8 +458,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "Test" : [ {
                 "abc": ["alice", "foobar", "charley"]
             } ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -517,8 +472,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "Test" : [ {
                 "abc": ["foobar", "goobar"]
             } ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -534,8 +488,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 #"other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
                 "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar"]
              } ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -551,8 +504,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 #"other_allowed_extensions": ["alice", "bob", "charley", None, "foobar", "goobar"]
                 "other_allowed_extensions": ["alice", "bob", "charley", None, "foobar"]
              } ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -582,8 +534,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                     "other_allowed_extensions": ["alice", "bob", "charley", None, None, "goobar"]
                 }
             ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -597,8 +548,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "Test" : [
                 {"abc": {"def": "alpha"}, "pqr": "1234", "vw": [{"xy": "781"}]}
              ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -612,8 +562,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "Test" : [
                 {"xyzzy": [None, "456"]}
              ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -627,8 +576,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "Test" : [
             {"xyzzy": [None, None, "456"]}
              ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -642,8 +590,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "Test" : [
                 {"abc": {"def": {"ghi": "123"}}, "xyzzy": [None, None, "456"]}
              ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -657,8 +604,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "Test" : [
                 {"prufrock": ["J.", "Alfred", "Prufrock"]}
              ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -673,8 +619,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 {"abc": {"def": "alpha"}, "pqr": "1234", "vw": [{"xy": None}, {"xy": "781"}]}
              ]
         },
-        "prune": False,
-        "sheet_utils_also": False
+        "prune": False
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -688,8 +633,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "Test" : [
                 {"abc": {"def": "alpha"}, "pqr": "1234", "vw": [{"xy": "781"}]}
              ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -704,8 +648,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 {"abc": {"def": "alpha"}, "pqr": "1234", "vw": [{"xy": None}, {"xy": None}, {"xy": "781"}]}
              ]
         },
-        "prune": False,
-        "sheet_utils_also": False
+        "prune": False
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -719,8 +662,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "Test" : [
                 {"vw": [{"xy": {"foo": "781"}}], "simple_string": "moby"}
              ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -734,8 +676,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "SomeTypeOne" : [
                 {"abc": {"def": "alpha"}, "pqr": 1234, "vw": [{"xy": 781}]}
              ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -754,8 +695,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 ]}
              ]
         },
-        "prune": False,
-        "sheet_utils_also": False
+        "prune": False
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -772,8 +712,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                  "simple_number_array": [1, 23, 456, 7890.123],
                  "simple_boolean_array": [True, False, False, True]}
             ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -821,8 +760,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         ],
         "expected": {
             "Test" : [ {'somearray': ['alice', 'bob', 'charley', '', 'goobar']} ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -841,8 +779,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         ],
         "expected": {
             "Test" : [ {'somearray': [123, 456, 789, 0, 203]} ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -871,8 +808,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 }
             }
         ],
-        "expected": { "Test" : [ {"arrayofarrayofobject": [[{"name": "prufrock", "id": 1234}]]} ] },
-        "sheet_utils_also": False
+        "expected": { "Test" : [ {"arrayofarrayofobject": [[{"name": "prufrock", "id": 1234}]]} ] }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -898,8 +834,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 }
             }
         ],
-        "expected": { "Test" : [ {"arrayofobject": [{"name": "prufrock", "id": 1234}]} ] },
-        "sheet_utils_also": False
+        "expected": { "Test" : [ {"arrayofobject": [{"name": "prufrock", "id": 1234}]} ] }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -926,8 +861,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             }
         ],
         #"expected": {"Test" : [{"arrayofobject": [{"name": "anastasiia", "id": 1234}]}]},
-        "expected": {"Test": [{"arrayofobject": [{}, {}, {"name": "olha", "id": 5678}, {}, {"name": "anastasiia", "id": 1234}]}]},
-        "sheet_utils_also": False
+        "expected": {"Test": [{"arrayofobject": [{}, {}, {"name": "olha", "id": 5678}, {}, {"name": "anastasiia", "id": 1234}]}]}
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -956,8 +890,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 }
             }
         ],
-        "expected": {"Test" : [{"arrayofarrayofobject": [[{"name": "anastasiia", "id": 1234}]]}]},
-        "sheet_utils_also": False
+        "expected": {"Test" : [{"arrayofarrayofobject": [[{"name": "anastasiia", "id": 1234}]]}]}
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -1003,8 +936,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                     ]
                 }
             ]
-        },
-        "sheet_utils_also": False
+        }
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -1269,8 +1201,6 @@ def _test_parse_structured_data(file: Optional[str] = None,
                                 novalidate: bool = False,
                                 schemas: Optional[List[dict]] = None,
                                 prune: bool = True,
-                                sheet_utils: bool = False,
-                                sheet_utils_also: bool = False,
                                 ignore: bool = False,
                                 debug: bool = False) -> None:
 
@@ -1299,13 +1229,13 @@ def _test_parse_structured_data(file: Optional[str] = None,
     def assert_parse_structured_data():
 
         def call_parse_structured_data(file: str):
-            nonlocal portal, novalidate, sheet_utils, debug
+            nonlocal portal, novalidate, debug
             if debug:
                 import pdb ; pdb.set_trace()
             return parse_structured_data(file=file, portal=portal, novalidate=novalidate,
-                                         prune=True if prune is not False else False, sheet_utils=sheet_utils)
+                                         prune=True if prune is not False else False)
 
-        nonlocal file, expected, expected_errors, noschemas, sheet_utils, debug
+        nonlocal file, expected, expected_errors, noschemas, debug
         portal = Portal.create_for_testing(schemas=schemas) if not noschemas else None  # But see mocked_schemas.
         if rows:
             if os.path.exists(file) or os.path.exists(os.path.join(TEST_FILES_DIR, file)):
@@ -1325,8 +1255,6 @@ def _test_parse_structured_data(file: Optional[str] = None,
                 structured_data, validation_errors = call_parse_structured_data(file)
         if debug:
             import pdb ; pdb.set_trace()
-        if sheet_utils:
-            structured_data = {to_camel_case(key): value for key, value in structured_data.items()}
         if expected is not None:
             if not (structured_data == expected):
                 import pdb ; pdb.set_trace()
@@ -1338,45 +1266,32 @@ def _test_parse_structured_data(file: Optional[str] = None,
 
     @contextmanager
     def mocked_schemas():
-        # The sheet_utils implementation does not deal well with no portal, as opposed to structured_data
-        # which which reacts by not attempting to load schemas (nor resolving refs), so we mock it out here.
-        nonlocal sheet_utils
-        if sheet_utils:
-            with mock.patch("dcicutils.validation_utils.SchemaManager.get_schema", return_value=None):
-                yield
-        else:
-            yield
+        yield
 
     @contextmanager
     def mocked_refs():
-        nonlocal sheet_utils
-        if sheet_utils:
-            real_ref_hint = RefHint._apply_ref_hint
-
-            def mocked_ref_hint(self, value, src):
+        real_ref_exists = Portal.ref_exists
+        real_map_function_ref = Schema._map_function_ref
+        def mocked_map_function_ref(self, typeinfo):
+            map_ref = real_map_function_ref(self, typeinfo)
+            def mocked_map_ref(value, link_to, portal, src):
                 nonlocal norefs, expected_refs, refs_actual
-                for item in (value if isinstance(value, list) else [value]):
-                    refs_actual.add(ref := f"/{self.schema_name}/{item}")
-                    if norefs is True or isinstance(norefs, list) and ref in norefs:
-                        return True
-                    real_ref_hint(self, value, src)  # Throws exception if ref not found.
-                    return True
-                return value
-
-            with mock.patch.object(RefHint, "_apply_ref_hint", side_effect=mocked_ref_hint, autospec=True):
-                yield
-        else:
-            real_ref_exists = Portal.ref_exists
-
-            def mocked_ref_exists(self, type_name, value):
-                nonlocal norefs, expected_refs, refs_actual
-                refs_actual.add(ref := f"/{type_name}/{value}")
-                if norefs is True or isinstance(norefs, list) and ref in norefs:
-                    return True
-                return real_ref_exists(self, type_name, value) is True
-
-            with mock.patch("dcicutils.structured_data.Portal.ref_exists",
-                            side_effect=mocked_ref_exists, autospec=True):
+                if not value:
+                    refs_actual.add(ref := f"/{link_to}/<null>")
+                    if norefs is True or (isinstance(norefs, list) and ref in norefs):
+                        return value
+                return map_ref(value, src)
+            return lambda value, src: mocked_map_ref(value, typeinfo.get("linkTo"), self._portal, src)
+        def mocked_ref_exists(self, type_name, value):
+            nonlocal norefs, expected_refs, refs_actual
+            refs_actual.add(ref := f"/{type_name}/{value}")
+            if norefs is True or (isinstance(norefs, list) and ref in norefs):
+                return True
+            return real_ref_exists(self, type_name, value) is True
+        with mock.patch("dcicutils.structured_data.Portal.ref_exists",
+                        side_effect=mocked_ref_exists, autospec=True):
+            with mock.patch("dcicutils.structured_data.Schema._map_function_ref",
+                            side_effect=mocked_map_function_ref, autospec=True):
                 yield
 
     def run_this_function():
@@ -1400,9 +1315,6 @@ def _test_parse_structured_data(file: Optional[str] = None,
             assert refs_actual == set(expected_refs)
 
     run_this_function()
-    if not sheet_utils and sheet_utils_also:
-        sheet_utils = True
-        run_this_function()
 
 
 def _get_schema_flat_typeinfo(schema: Schema):

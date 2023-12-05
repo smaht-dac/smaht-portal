@@ -21,8 +21,10 @@
             "insert_mean_length": 250.0,
             "insert_minimum_length": 80,
             "insert_standard_deviation_length": 40.0,
-            "name": "Library1",
             "preparation_date": "2023-01-01",
+            "submission_centers": [
+                "somesubctr"
+            ],
             "protocol": "protocol1",
             "submitted_id": "library-id-1",
             "uuid": "uuid1"
@@ -46,7 +48,6 @@
             "insert_minimum_length": 90,
             "insert_standard_deviation_length": 45.0,
             "library_preparation": "prep2",
-            "name": "Library2",
             "preparation_date": "2023-02-01",
             "submission_centers": [
                 "Center1"
@@ -75,8 +76,10 @@
             "insert_mean_length": 320.0,
             "insert_minimum_length": 100,
             "insert_standard_deviation_length": 50.0,
-            "name": "Library3",
             "preparation_date": "2023-03-01",
+            "submission_centers": [
+                "anothersubctr"
+            ],
             "protocol": "protocol3",
             "submitted_id": "library-id-3",
             "uuid": "uuid3"

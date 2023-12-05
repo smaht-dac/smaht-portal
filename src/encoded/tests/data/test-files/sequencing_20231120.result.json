@@ -11,7 +11,7 @@
             ],
             "date_created": "2023-01-01T12:00:00Z",
             "display_title": "Sequencing Sample 1",
-            "instrument_model": "Illumina NovaSeq",
+            "instrument_model": "NovaSeq",
             "last_modified": {
                 "date_modified": "2023-01-02T10:30:00Z",
                 "modified_by": "User2"
@@ -45,7 +45,7 @@
             ],
             "date_created": "2023-02-01T15:45:00Z",
             "display_title": "Sequencing Sample 2",
-            "instrument_model": "PacBio Revio",
+            "instrument_model": "Revio",
             "last_modified": {
                 "date_modified": "2023-02-02T08:20:00Z",
                 "modified_by": "User4"
@@ -55,6 +55,9 @@
             "read_type": "Single-end",
             "schema_version": "1.1",
             "status": "in review",
+            "submission_centers": [
+                "somesubctr"
+            ],
             "submitted_by": "User3",
             "submitted_id": "SEQ67890",
             "tags": [
@@ -76,7 +79,7 @@
             ],
             "date_created": "2023-03-01T09:15:00Z",
             "display_title": "Sequencing Sample 3",
-            "instrument_model": "Oxford Nanopore PromethION",
+            "instrument_model": "PromethION",
             "last_modified": {
                 "date_modified": "2023-03-02T14:10:00Z",
                 "modified_by": "User6"

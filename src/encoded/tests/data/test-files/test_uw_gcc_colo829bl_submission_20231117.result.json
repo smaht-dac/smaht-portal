@@ -510,17 +510,17 @@
         {
             "submitted_id": "UW-GCC_SEQUENCING_ONT-R10-300x",
             "platform": "ONT",
-            "instrument_model": "Promethion"
+            "instrument_model": "PromethION"
         },
         {
             "submitted_id": "UW-GCC_SEQUENCING_ONT-R10-30x",
             "platform": "ONT",
-            "instrument_model": "Promethion"
+            "instrument_model": "PromethION"
         },
         {
             "submitted_id": "UW-GCC_SEQUENCING_UL-ONT-R10",
             "platform": "ONT",
-            "instrument_model": "Promethion"
+            "instrument_model": "PromethION"
         },
         {
             "submitted_id": "UW-GCC_SEQUENCING_PACBIO-BULK-KINNEX",
