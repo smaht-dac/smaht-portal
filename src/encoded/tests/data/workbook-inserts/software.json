@@ -1,0 +1,32 @@
+[
+    {
+        "uuid": "be085e03-0989-4b44-81af-37efef5aa086",
+        "submission_centers": [
+            "smaht"
+        ],
+        "aliases": [
+            "foo:software_vep"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "name": "vep_v3",
+        "title": "VEP",
+        "version": "3.1.1"
+    },
+    {
+        "uuid": "936d1a71-6c03-41b3-945f-583486f03a4d",
+        "submission_centers": [
+            "smaht"
+        ],
+        "aliases": [
+            "foo:software_bwa_mem"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "name": "bwa_mem_v1",
+        "title": "BWA-MEM",
+        "version": "1.2.3"
+    }
+]
