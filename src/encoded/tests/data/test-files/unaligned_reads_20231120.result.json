@@ -37,6 +37,7 @@
             ],
             "submitted_by": "User1",
             "submitted_id": "URS12345",
+            "reference_genome": "refgenome1",
             "tags": [
                 "tag1",
                 "tag2"
@@ -79,6 +80,7 @@
             ],
             "submitted_by": "User3",
             "submitted_id": "URS67890",
+            "reference_genome": "refgenome2",
             "tags": [
                 "tag3",
                 "tag4"
@@ -121,6 +123,7 @@
             ],
             "submitted_by": "User5",
             "submitted_id": "URS54321",
+            "reference_genome": "refgenome1",
             "tags": [
                 "tag5",
                 "tag6"

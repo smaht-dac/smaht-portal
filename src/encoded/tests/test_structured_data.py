@@ -399,6 +399,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
+            "debug": True,
         "file": "unaligned_reads_20231120.csv", "as_file_name": "unaligned_reads.csv",
         "expected": "unaligned_reads_20231120.result.json",
         "expected_refs": [
@@ -406,13 +407,14 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/QualityMetric/QC1", "/QualityMetric/QC2", "/QualityMetric/QC3", "/QualityMetric/QC4", "/QualityMetric/QC5", "/QualityMetric/QC6",
             "/Software/Software1", "/Software/Software2", "/Software/Software3", "/Software/Software4", "/Software/Software5", "/Software/Software6",
             "/SubmissionCenter/Center1", "/SubmissionCenter/Center2", "/SubmissionCenter/Center3", "/User/User1",
-            "/User/User2", "/User/User3", "/User/User4", "/User/User5", "/User/User6"
+            "/User/User2", "/User/User3", "/User/User4", "/User/User5", "/User/User6",
+            "/FileFormat/BAM", "/FileFormat/CRAM", "/FileFormat/FASTQ",
+            "/ReferenceGenome/refgenome1", "/ReferenceGenome/refgenome2"
         ],
         "norefs": SAME_AS_EXPECTED_REFS
     },
     # ----------------------------------------------------------------------------------------------
     {
-            "debug": True,
         "file": "sequencing_20231120.csv",
         "as_file_name": "sequencing.csv",
         "expected": "sequencing_20231120.result.json",
