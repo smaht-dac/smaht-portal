@@ -70,20 +70,20 @@ def main() -> None:
 
     if args.as_file_name:
         with open(args.file, "rb" if args.file.endswith((".gz", ".tgz", ".tar", ".tar.gz", ".zip")) else "r") as f:
-            with temporary_file(name=args.as_file_name, content=f.read()) as tmp_file_name:
-                structured_data_set, validation_errors = parse_structured_data(file=tmp_file_name,
-                                                                               portal=portal,
-                                                                               novalidate=args.novalidate,
-                                                                               sheet_utils=args.sheet_utils)
+            with temporary_file(name=args.as_file_name, content=f.read()) as file_name:
+                structured_data_set = parse_structured_data(file=file_name, portal=portal, novalidate=args.novalidate)
     else:
-        structured_data_set, validation_errors = parse_structured_data(file=args.file,
-                                                                       portal=portal,
-                                                                       novalidate=args.novalidate,
-                                                                       sheet_utils=args.sheet_utils)
+        structured_data_set = parse_structured_data(file=args.file, portal=portal, novalidate=args.novalidate)
+    structured_data = structured_data_set.data
+    validation_errors = structured_data_set.issues_validation
+
     PRINT(f"> Parsed Data:")
-    PRINT(json.dumps(structured_data_set, indent=4, default=str))
+    PRINT(json.dumps(structured_data, indent=4, default=str))
 
     if args.refs:
+        print('......................................................')
+        print(json.dumps(structured_data_set.refs_resolved, indent=4))
+        print(json.dumps(structured_data_set.issues, indent=4))
         PRINT(f"\n> References (linkTo):")
         if refs and refs.get("actual"):
             for ref_actual in sorted(refs["actual"]):
@@ -117,7 +117,7 @@ def main() -> None:
         if args.noschemas:
             PRINT("  - No schemas because the --noschemas argument was specified.")
         else:
-            dump_schemas(list(structured_data_set.keys()), portal)
+            dump_schemas(list(structured_data.keys()), portal)
 
     if args.load:
         if args.verbose:
@@ -130,7 +130,7 @@ def main() -> None:
                 PRINT(" (VALIDATE only)", end="")
             PRINT(" ...")
         with captured_output():
-            load_results = load_data_into_database(data=structured_data_set,
+            load_results = load_data_into_database(data=structured_data,
                                                    portal_vapp=portal._vapp,
                                                    post_only=args.post_only,
                                                    patch_only=args.patch_only,

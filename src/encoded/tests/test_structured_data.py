@@ -228,7 +228,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             }]
         },
         "expected_errors": [
-            "Donor [1]: Additional properties are not allowed ('something' was unexpected)"
+            {"src": {"type": "Donor", "row": 1}, "error": "Additional properties are not allowed ('something' was unexpected)"}
         ]
     },
     # ----------------------------------------------------------------------------------------------
@@ -738,7 +738,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 }
 
 #               {
-#                   'simplearray': ['abc', 'def', 'ghi', ['byebye']],
+#                   "simplearray': ['abc', 'def', 'ghi', ['byebye']],
 #                   'abc': {'hello': 1234},
 #                   'someobj': {'ghi': [{'jkl': 'xyz'}]},
 #                   'arrayofarray': [['j.', 'alfred', 'prufrock']]}
@@ -963,8 +963,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 }
              ]
         },
-        "expected_errors": ["SomeTypeFour [1]: {'foo': 123} is not of type 'string'",
-                            "SomeTypeFour [2]: {'charlie': {'delta': 'hellocharlie'}} is not of type 'string'"]
+        "expected_errors": [{'src': {'type': 'SomeTypeFour', 'row': 1}, 'error': "{'foo': 123} is not of type 'string'"},
+                            {'src': {'type': 'SomeTypeFour', 'row': 2}, 'error': "{'charlie': {'delta': 'hellocharlie'}} is not of type 'string'"}]
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -1243,7 +1243,9 @@ def _test_parse_structured_data(file: Optional[str] = None,
             if os.path.exists(file) or os.path.exists(os.path.join(TEST_FILES_DIR, file)):
                 raise Exception("Attempt to create temporary file with same name as existing test file: {file}")
             with temporary_file(name=file, content=rows) as tmp_file_name:
-                structured_data, validation_errors = call_parse_structured_data(tmp_file_name)
+                structured_data_set = call_parse_structured_data(tmp_file_name)
+                structured_data = structured_data_set.data
+                validation_errors = structured_data_set.issues_validation
         else:
             if os.path.exists(os.path.join(TEST_FILES_DIR, file)):
                 file = os.path.join(TEST_FILES_DIR, file)
@@ -1252,9 +1254,13 @@ def _test_parse_structured_data(file: Optional[str] = None,
             if as_file_name:
                 with open(file, "rb" if file.endswith((".gz", ".tgz", ".tar", ".tar.gz", ".zip")) else "r") as f:
                     with temporary_file(name=as_file_name, content=f.read()) as tmp_file_name:
-                        structured_data, validation_errors = call_parse_structured_data(tmp_file_name)
+                        structured_data_set = call_parse_structured_data(tmp_file_name)
+                        structured_data = structured_data_set.data
+                        validation_errors = structured_data_set.issues_validation
             else:
-                structured_data, validation_errors = call_parse_structured_data(file)
+                structured_data_set = call_parse_structured_data(file)
+                structured_data = structured_data_set.data
+                validation_errors = structured_data_set.issues_validation
         if debug:
             import pdb ; pdb.set_trace()
         if expected is not None:
@@ -1288,8 +1294,8 @@ def _test_parse_structured_data(file: Optional[str] = None,
             nonlocal norefs, expected_refs, refs_actual
             refs_actual.add(ref := f"/{type_name}/{value}")
             if norefs is True or (isinstance(norefs, list) and ref in norefs):
-                return True
-            return real_ref_exists(self, type_name, value) is True
+                return ["dummy"]
+            return real_ref_exists(self, type_name, value)
         with mock.patch("dcicutils.structured_data.Portal.ref_exists",
                         side_effect=mocked_ref_exists, autospec=True):
             with mock.patch("dcicutils.structured_data.Schema._map_function_ref",

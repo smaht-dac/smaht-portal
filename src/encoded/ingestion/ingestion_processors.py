@@ -23,9 +23,12 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
 
 def _process_submission(submission: SmahtSubmissionFolio) -> None:
     with submission.s3_file() as file:
-        data, validation_errors = parse_structured_data(file,
-                                                        portal=submission.portal_vapp,
-                                                        sheet_utils=submission.sheet_utils)
+        structured_data_set = parse_structured_data(file, portal=submission.portal_vapp)
+        data = structured_data_set.data
+        validation_errors = structured_data_set.issues_validation
+#       data, validation_errors = parse_structured_data(file,
+#                                                       portal=submission.portal_vapp,
+#                                                       sheet_utils=submission.sheet_utils)
         if validation_errors:
             submission.record_results(validation_errors, validation_errors)
             # If there are data validation errors then trigger an exception so that a traceback.txt
@@ -42,17 +45,10 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
         submission.record_results(load_data_response, load_data_summary)
 
 
-def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp, Portal]], novalidate: bool = False,
-                          sheet_utils: bool = False, prune: bool = True) -> Tuple[Optional[dict], Optional[List[str]]]:
-    if not sheet_utils:
-        structured_data = StructuredDataSet.load(file=file, portal=portal, order=ITEM_INDEX_ORDER, prune=prune)
-    else:
-        if isinstance(portal, Portal):
-            portal = portal._vapp
-        parsed_data = parse_structured_data_via_sheet_utils(file,
-                                                            portal_vapp=portal,
-                                                            validate=False,  # Validate below.
-                                                            apply_heuristics=False,
-                                                            sheet_order=ITEM_INDEX_ORDER)
-        structured_data = StructuredDataSet(data=parsed_data, portal=portal)
-    return (structured_data.data, structured_data.validate() if not novalidate else [])
+def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp, Portal]],
+                          novalidate: bool = False, prune: bool = True) -> StructuredDataSet:
+    structured_data = StructuredDataSet.load(file=file, portal=portal, order=ITEM_INDEX_ORDER, prune=prune)
+    if not novalidate:
+        structured_data.validate()
+    return structured_data
+#   return (structured_data.data, structured_data.validate() if not novalidate else [], structured_data)
