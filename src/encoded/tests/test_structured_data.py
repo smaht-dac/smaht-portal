@@ -351,7 +351,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/Consortium/another-consortia",
             "/Consortium/smaht",
             "/Protocol/Protocol9",
-            "/Sample/Sample9"
+            "/Sample/Sample9",
+            "/SubmissionCenter/somesubctr"
         ],
         "norefs": SAME_AS_EXPECTED_REFS
     },
@@ -399,7 +400,6 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-            "debug": True,
         "file": "unaligned_reads_20231120.csv", "as_file_name": "unaligned_reads.csv",
         "expected": "unaligned_reads_20231120.result.json",
         "expected_refs": [

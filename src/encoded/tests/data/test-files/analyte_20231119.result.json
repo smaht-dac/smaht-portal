@@ -26,6 +26,9 @@
             "consortia": [
                 "smaht",
                 "another-consortia"
+            ],
+            "submission_centers": [
+                "somesubctr"
             ]
         }
     ]
