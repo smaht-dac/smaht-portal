@@ -39,7 +39,10 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
                 if not portal:
                     portal = Portal(portal_vapp)
                 if portal.is_file_schema(item_type):
-                    upload_info.append({"uuid": identifying_value, "filename": file})
+                    existing_item = [item for item in upload_info
+                                     if item["uuid"] == identifying_value and item["filename"] == file]
+                    if not existing_item:
+                        upload_info.append({"uuid": identifying_value, "filename": file})
             if not response.get(action):
                 response[action] = []
             response[action].append({"uuid": identifying_value, "type": item_type})
