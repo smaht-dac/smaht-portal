@@ -49,15 +49,12 @@ class SmahtSubmissionFolio:
         to the database; the summary is a list of (text lines) summarizing the
         submission, e.g. with counts for inserts, updates, etc.
         """
-        results = {"result": results, "validation_output": summary}
-
-        # This note_additional_datum call causes the "validation_output" key (a list) of the
-        # results above to go into the additional_data property of the IngestionSubmission
         # object in the Portal database, accessible, for example, like this:
         # http://localhost:8000/ingestion-submissions/7da2f985-a6f7-4184-9544-b7439957617e?format=json
         # These results may be for success or for errors; this is what will get displayed,
         # by default, by the submitr tool when it detects processing has completed.
         self.submission.note_additional_datum("validation_output", from_dict=results)
+        self.submission.note_additional_datum("upload_info", from_dict=results)
 
         # This process_standard_bundle_results call causes the "result" key of the results
         # above to be written to the submission.json key of the submission S3 bucket.

@@ -1,6 +1,7 @@
 import re
 from typing import Dict, List, Generator, Optional, Union
 from dcicutils.misc_utils import VirtualApp
+from dcicutils.structured_data import Portal
 from snovault.loadxl import load_all_gen as loadxl_load_data
 from .submission_folio import SmahtSubmissionFolio
 
@@ -11,7 +12,10 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
                             validate_only: bool = False) -> Dict:
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
-        LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*([a-zA-Z\d_-]+)\s*(.*)$")
+        nonlocal portal_vapp
+        portal = None
+        upload_info = []
+        LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*([a-zA-Z\d_-]+)\s*(\S+)\s*(\S+)?$")
         LOADXL_ACTION_NAME = {"POST": "created", "PATCH": "updated", "SKIP": "skipped", "CHECK": "validated", "ERROR": "errors"}
         response = {value: [] for value in LOADXL_ACTION_NAME.values()}
         for item in loadxl_response:
@@ -26,11 +30,16 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
             if not item:
                 continue
             match = LOADXL_RESPONSE_PATTERN.match(item)
-            if not match or match.re.groups != 3:
+            if not match or match.re.groups < 3:
                 continue
             action = LOADXL_ACTION_NAME[match.group(1).upper()]
             identifying_value = match.group(2)
             item_type = match.group(3)
+            if match.re.groups >= 4 and (file := match.group(4)) and (action in ["updated", "created"]):
+                if not portal:
+                    portal = Portal(portal_vapp)
+                if portal.is_file_schema(item_type):
+                    upload_info.append({"uuid": identifying_value, "filename": file})
             if not response.get(action):
                 response[action] = []
             response[action].append({"uuid": identifying_value, "type": item_type})
@@ -41,6 +50,8 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
         # way they are written, so remove from the update list any items which are also in the create list.
         response["updated"] = [item for item in response["updated"] if item not in response["created"]]
         response["types"] = list(data.keys())
+        if upload_info:
+            response["upload_info"] = upload_info
         response["total"] = (
             len(response["created"]) +
             len(response["updated"]) +

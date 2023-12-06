@@ -82,7 +82,7 @@ class File(SMAHTItem, CoreFile):
         'archived': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL
     })
 
-    SHOW_UPLOAD_CREDENTIALS_STATUSES = ("in review",)
+    SHOW_UPLOAD_CREDENTIALS_STATUSES = ("in review", "uploading")
 
     class Collection(SMAHTItem.Collection):
         pass
