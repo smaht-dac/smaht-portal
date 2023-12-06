@@ -75,41 +75,42 @@ def main() -> None:
     else:
         structured_data_set = parse_structured_data(file=args.file, portal=portal, novalidate=args.novalidate)
     structured_data = structured_data_set.data
-    validation_errors = structured_data_set.issues_validation
+    validation_errors = structured_data_set.validation_errors
 
     PRINT(f"> Parsed Data:")
     PRINT(json.dumps(structured_data, indent=4, default=str))
 
     if args.refs:
-        print('......................................................')
-        print(json.dumps(structured_data_set.refs_resolved, indent=4))
-        print(json.dumps(structured_data_set.issues, indent=4))
         PRINT(f"\n> References (linkTo):")
-        if refs and refs.get("actual"):
-            for ref_actual in sorted(refs["actual"]):
-                PRINT(f"  - {ref_actual}")
-        else:
-            PRINT("  - No references.")
-    if refs and refs.get("errors"):
+        if structured_data_set.resolved_refs:
+            for ref in sorted(structured_data_set.resolved_refs):
+                PRINT(f"  - {ref}")
+    if structured_data_set.ref_errors:
         PRINT(f"\n> Reference (linkTo) Errors:")
-        for ref_error in refs["errors"]:
-            PRINT(f"  - {ref_error}")
+        for ref_error in structured_data_set.ref_errors:
+            PRINT(f"  - {structured_data_set.format_issue(ref_error)}")
 
     PRINT(f"\n> Schema Validation Results:")
     if not args.novalidate:
         if not validation_errors:
             PRINT("  - OK")
         elif args.verbose:
-            [PRINT(f"  - {error}") for error in validation_errors]
+            for validation_error in validation_errors:
+                PRINT(f"  - {structured_data_set.format_issue(validation_error)}")
         elif len(validation_errors) > 16:
             nmore_validation_errors = len(validation_errors) - 16
-            validation_errors = validation_errors[:16]
-            [PRINT(f"  - {error}") for error in validation_errors]
+            for validation_error in validation_errors[:16]:
+                PRINT(f"  - {structured_data_set.format_issue(validation_error)}")
             PRINT(f"  - There are {nmore_validation_errors} more validation errors; use --verbose to see all.")
         else:
-            [PRINT(f"  - {error}") for error in validation_errors]
+            for validation_error in validation_errors:
+                PRINT(f"  - {structured_data_set.format_issue(validation_error)}")
     else:
         PRINT("  - No validation results because the --novalidate argument was specified.")
+
+    if structured_data_set.reader_warnings:
+        for reader_warning in structured_data_set.reader_warnings:
+            PRINT(f"  - {structured_data_set.format_issue(reader_warning)}")
 
     if args.schemas:
         if args.verbose:
