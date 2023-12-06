@@ -181,9 +181,44 @@ div.navbar-fixed-top {
             body.is-full-screen:not([data-pathname="/browse/"]):not([data-pathname="/search/"]) .navbar-container &,
             body.is-item-view .navbar-container & {
                 height: $navbar-small-height;
+
                 // line-height: $navbar-small-height;
                 //border-color: #d4d4d4;
                 //box-shadow: 0 0 3px rgba(0,0,0,0.2);
+                .navbar-brand {
+                    div.img-container {
+                        font-size: 16px;
+                        img {
+                            height: 30px;
+                        }
+                    }
+                }
+                .navbar-collapse {
+                    .navbar-nav {
+                        
+                        .user-account-item.is-logged-in {
+
+                            img {
+                                height: 24px;
+                                width: 24px;
+                            }
+                        }
+                        
+                        a.nav-link {
+                            font-size: 16px;
+    
+                            &.helpdesk {
+                                .icon {
+                                    &.icon-envelope {
+                                        font-size: 15px;
+                                    }
+                                }
+    
+                            }
+                
+                        }
+                    }
+                }
             }
         }
 

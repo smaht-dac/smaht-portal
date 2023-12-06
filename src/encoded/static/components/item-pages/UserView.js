@@ -358,8 +358,8 @@ function AccessKeyTableContainer({ children, bodyClassName = 'card-body' }) {
     return (
         <div className="access-keys-container card mt-36">
             <div className="card-header">
-                <h3 className="text-300">
-                    <i className="icon icon-fw icon-unlock fas mr-12" />
+                <h3 className="">
+                    <i className="icon icon-fw icon-key fas mr-12" />
                     Access Keys
                 </h3>
             </div>
@@ -382,7 +382,7 @@ const AccessKeyTable = React.memo(function AccessKeyTable({
     }
 
     return (
-        <table className="table access-keys-table bg-white">
+        <table className="table table-responsive access-keys-table bg-white">
             <thead>
                 <tr>
                     <th>Access Key ID</th>
@@ -444,13 +444,13 @@ const AccessKeyTableRow = React.memo(function AccessKeyTableRow({
             <td className="access-key-buttons">
                 <button
                     type="button"
-                    className="btn btn-xs btn-success"
+                    className="btn btn-xs btn-success reset"
                     onClick={resetKey}>
                     Reset
                 </button>
                 <button
                     type="button"
-                    className="btn btn-xs btn-danger"
+                    className="btn btn-xs btn-danger delete"
                     onClick={deleteKey}>
                     Delete
                 </button>
@@ -656,7 +656,7 @@ function ProfileContactFields(props) {
                 <ProfileContactFieldsIcon icon="fax fas" />
                 {fax}
             </EditableField>
-
+            {/* 
             <EditableField
                 label="Skype"
                 labelID="skype"
@@ -664,7 +664,7 @@ function ProfileContactFields(props) {
                 fieldType="username">
                 <ProfileContactFieldsIcon icon="skype fab" />
                 {skype}
-            </EditableField>
+            </EditableField> */}
         </FieldSet>
     );
 }
@@ -711,9 +711,9 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
     });
 
     return (
-        <div className="card h-100">
+        <div className="card organizations h-100">
             <div className="card-header">
-                <h3 className="text-300 block-title">
+                <h3 className="block-title">
                     <i className="icon icon-users fas icon-fw mr-12" />
                     Organizations
                 </h3>

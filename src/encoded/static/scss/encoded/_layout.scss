@@ -211,7 +211,9 @@ body.is-full-screen {
 
 	h1.page-title {
 
-		font-weight: 200;
+		font-size: 24px;
+		font-weight: 600;
+		color: #343741;
 
 		&.top-of-page { // Never not this, I think..
 			margin-top: 0px;
@@ -266,7 +268,6 @@ body.is-full-screen {
 			}
 	
 		}
-
 	}
 }
 
