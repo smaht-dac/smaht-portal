@@ -1,6 +1,8 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from dcicutils.misc_utils import to_snake_case
+from snovault import TYPES
+from snovault.typeinfo import AbstractTypeInfo, TypeInfo
 from webtest.app import TestApp
 
 
@@ -38,7 +40,7 @@ def get_item(
     identifier: str,
     collection: Optional[str] = None,
     frame: Optional[str] = None,
-    status: Optional[int] = None,
+    status: Optional[Union[int, List[int]]] = None,
 ) -> Dict[str, Any]:
     """Get item view with given frame, following redirects."""
     add_on = get_frame_add_on(frame)
@@ -139,3 +141,32 @@ def assert_keys_conflict(response: Dict[str, Any]) -> None:
     """
     assert "HTTPConflict" in response.get("@type", [])
     assert response.get("detail", "").startswith("Keys conflict:")
+
+
+def get_functional_item_type_names(test_app: TestApp) -> List[str]:
+    """Get all non-test, non-abstract item type names (snake-cased)."""
+    functional_item_types = get_functional_item_types(test_app)
+    return functional_item_types.keys()
+
+
+def get_functional_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
+    """Get all non-test, non-abstract item types."""
+    all_item_types = get_all_item_types(test_app)
+    return {
+        type_name: type_info
+        for type_name, type_info in all_item_types.items()
+        if not is_test_schema(type_name) and not is_abstract_type(type_info)
+    }
+
+
+def get_all_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
+    """Get all item types in test app registry."""
+    return test_app.app.registry.get(TYPES).by_item_type
+
+
+def is_test_schema(schema_name: str) -> bool:
+    return schema_name.startswith("test")
+
+
+def is_abstract_type(type_info: AbstractTypeInfo) -> bool:
+    return type_info.is_abstract

@@ -62,10 +62,12 @@
             "accessionType": "QM"
         },
         "category": {
-            "type": "string",
-            "enum": [
-                "Testing"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Testing"
+                ]
+            }
         },
         "schema_version": {
             "default": "1"

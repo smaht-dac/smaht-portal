@@ -4,8 +4,8 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
+        "identifier",
         "submission_centers",
-        "submitted_id",
         "version"
     ],
     "identifyingProperties": [
@@ -23,6 +23,12 @@
         },
         {
             "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -55,9 +61,6 @@
         },
         "schema_version": {
             "default": "1"
-        },
-        "submitted_id": {
-            "permission": "restricted_fields"
         }
     }
 }

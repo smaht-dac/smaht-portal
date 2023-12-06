@@ -1,0 +1,29 @@
+[
+    {
+        "uuid": "83c47d57-a725-4f1b-8a45-14a841339139",
+        "submission_centers": [
+            "smaht"
+        ],
+        "ingestion_type": "metadata_bundle",
+        "object_bucket": "smaht-metadata-bucket",
+        "object_name": "submission1234.xlsx",
+        "submission_id": "83c47d57-a725-4f1b-8a45-14a841339139",
+        "parameters": {
+            "foo": "bar"
+        },
+        "processing_status": {
+            "state": "done",
+            "outcome": "success",
+            "progress": "getting there"
+        },
+        "errors": [
+            "something went wrong"
+        ],
+        "result": {
+            "foo": "bar"
+        },
+        "additional_data": {
+            "foo": "bar"
+        }
+    }
+]

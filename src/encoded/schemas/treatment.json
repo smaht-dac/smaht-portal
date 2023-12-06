@@ -5,19 +5,8 @@
     "type": "object",
     "required": [
         "agent",
+        "submission_centers",
         "submitted_id"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
     ],
     "identifyingProperties": [
         "accession",
@@ -65,7 +54,7 @@
             "title": "Agent",
             "description": "Agent in the treatment",
             "type": "string",
-            "comment": "Will be linkTo appropriate ontology item"
+            "linkTo": "OntologyTerm"
         },
         "concentration": {
             "title": "Concentration",

@@ -6,7 +6,6 @@ from .base import Item as SMAHTItem
 
 @collection(
     name='images',
-    unique_key='image:filename',
     properties={
         'title': 'Image',
         'description': 'Listing of portal images',

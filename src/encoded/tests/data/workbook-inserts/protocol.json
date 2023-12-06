@@ -1,0 +1,10 @@
+[
+    {
+        "uuid": "7c1bcd2b-3f0f-4bac-96b0-71803582687e",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "fiber_seq_sample_prep",
+        "version": "1.0.0"
+    }
+]

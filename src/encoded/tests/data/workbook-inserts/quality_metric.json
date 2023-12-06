@@ -1,0 +1,20 @@
+[
+    {
+        "uuid": "a975fc4b-c149-449f-891a-496e24767e42",
+        "submission_centers": [
+            "smaht"
+        ],
+        "category": [
+            "Testing"
+        ],
+        "overall_quality_status": "Pass",
+        "qc_values": [
+            {
+                "key": "foo",
+                "value": "bar",
+                "flag": "Pass",
+                "tooltip": "Description of how foo was derived"
+            }
+        ]
+    }
+]

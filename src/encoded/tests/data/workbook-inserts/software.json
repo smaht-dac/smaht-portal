@@ -19,9 +19,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "aliases": [
-            "foo:software_bwa_mem"
-        ],
+        "submitted_id": "TEST_SOFTWARE_BWA-MEM",
         "category": [
             "Alignment"
         ],

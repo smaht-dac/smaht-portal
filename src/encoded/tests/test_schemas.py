@@ -1,10 +1,10 @@
 import pytest
-
 from pkg_resources import resource_listdir
 from snovault import COLLECTIONS, TYPES
 from snovault.schema_utils import load_schema
+from webtest import TestApp
 
-from .utils import pluralize_collection
+from .utils import get_functional_item_type_names, get_item, pluralize_collection
 
 
 pytestmark = [pytest.mark.setone, pytest.mark.working, pytest.mark.schema, pytest.mark.indexing]
@@ -170,3 +170,18 @@ def test_schema_version_present_on_items(app):
             assert int(schema_version) >= 1
         else:
             assert schema_version == ""
+
+
+@pytest.mark.workbook
+def test_schemas_represented_in_workbook_inserts(
+    es_testapp: TestApp, workbook: None
+) -> None:
+    """Ensure all relevant item types have examples in workbook inserts.
+
+    Provide baseline check that all schemas are 'functional' and allow
+    items to be POSTed.
+    """
+    item_types = get_functional_item_type_names(es_testapp)
+    for item_type in item_types:
+        collection_items = get_item(es_testapp, item_type)
+        assert collection_items
