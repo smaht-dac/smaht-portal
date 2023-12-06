@@ -1245,7 +1245,7 @@ def _test_parse_structured_data(file: Optional[str] = None,
             with temporary_file(name=file, content=rows) as tmp_file_name:
                 structured_data_set = call_parse_structured_data(tmp_file_name)
                 structured_data = structured_data_set.data
-                validation_errors = structured_data_set.issues_validation
+                validation_errors = structured_data_set.validation_errors
         else:
             if os.path.exists(os.path.join(TEST_FILES_DIR, file)):
                 file = os.path.join(TEST_FILES_DIR, file)
@@ -1256,11 +1256,11 @@ def _test_parse_structured_data(file: Optional[str] = None,
                     with temporary_file(name=as_file_name, content=f.read()) as tmp_file_name:
                         structured_data_set = call_parse_structured_data(tmp_file_name)
                         structured_data = structured_data_set.data
-                        validation_errors = structured_data_set.issues_validation
+                        validation_errors = structured_data_set.validation_errors
             else:
                 structured_data_set = call_parse_structured_data(file)
                 structured_data = structured_data_set.data
-                validation_errors = structured_data_set.issues_validation
+                validation_errors = structured_data_set.validation_errors
         if debug:
             import pdb ; pdb.set_trace()
         if expected is not None:
