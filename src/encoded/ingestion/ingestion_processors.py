@@ -24,7 +24,7 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
     with submission.s3_file() as file:
         structured_data = parse_structured_data(file, portal=submission.portal_vapp)
         if (errors := structured_data.errors):
-            submission.record_results(errors, _truncated_errors(structured_data, submission))
+            submission.record_results(errors, _summarize_errors(structured_data, submission))
             # If there are data validation errors then trigger an exception so that a traceback.txt
             # file gets written to the S3 ingestion submission bucket to indicate that there is an error;
             # this is an exceptional situation that we just happened to have caught programmatically;
@@ -48,7 +48,7 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
     return structured_data
 
 
-def _truncated_errors(structured_data: StructuredDataSet, submission: SmahtSubmissionFolio) -> dict:
+def _summarize_errors(structured_data: StructuredDataSet, submission: SmahtSubmissionFolio) -> dict:
     def truncated_info(issues: list) -> dict:
         return {"truncated": True, "total": len(issues),
                 "more": len(issues) - max_issues_per_group, "details": submission.s3_details_location}
@@ -66,4 +66,7 @@ def _truncated_errors(structured_data: StructuredDataSet, submission: SmahtSubmi
         result["ref"] = ref_errors[:max_issues_per_group]
         if len(ref_errors) > max_issues_per_group:
             result["ref"].append(truncated_info(ref_errors))
+    result["file"] = submission.data_file_name
+    result["s3_file"] = submission.s3_data_file_location
+    result["details"] = submission.s3_details_location
     return result
