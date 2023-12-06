@@ -15,7 +15,7 @@ def quality_metric(
     item = {
         "consortia": [test_consortium["uuid"]],
         "submission_centers": [test_submission_center["uuid"]],
-        "category": "Testing",
+        "category": ["Testing"],
         "qc_values": [
             {
                 "key": "some_qc_metric",
