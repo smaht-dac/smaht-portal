@@ -1,6 +1,5 @@
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 from webtest.app import TestApp
-from dcicutils.bundle_utils import load_items as parse_structured_data_via_sheet_utils
 from dcicutils.misc_utils import VirtualApp
 from dcicutils.structured_data import Portal, StructuredDataSet
 from snovault.ingestion.ingestion_processors import ingestion_processor
@@ -25,11 +24,7 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
     with submission.s3_file() as file:
         structured_data_set = parse_structured_data(file, portal=submission.portal_vapp)
         data = structured_data_set.data
-        validation_errors = structured_data_set.issues_validation
-#       data, validation_errors = parse_structured_data(file,
-#                                                       portal=submission.portal_vapp,
-#                                                       sheet_utils=submission.sheet_utils)
-        if validation_errors:
+        if (validation_errors := structured_data_set.issues_validation):
             submission.record_results(validation_errors, validation_errors)
             # If there are data validation errors then trigger an exception so that a traceback.txt
             # file gets written to the S3 ingestion submission bucket to indicate that there is an error;
