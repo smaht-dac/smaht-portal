@@ -59,7 +59,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                         />
                     </div>
                 </div>
-                <div className="row">
+                <div className="row no-gutters">
                     <Card className="about-consortium col-12 w-100 mb-3">
                         <h3 className="">About the Consortium</h3>
                         <div className="row">

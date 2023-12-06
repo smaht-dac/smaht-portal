@@ -31,7 +31,7 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
                 role="button"
                 href="#"
                 className={
-                    'nav-link user-account-item mr-2' +
+                    'nav-link user-account-item' +
                     (unverifiedUserEmail ? ' active' : '')
                 }
                 id={id}

@@ -99,7 +99,7 @@ function DocsNavItem(props) {
                 id="docs-menu-item"
                 navItemHref="/docs"
                 navItemContent="Documentation">
-                <BigDropdownPageTreeMenuIntroduction titleIcon="question-circle fas" />
+                <BigDropdownPageTreeMenuIntroduction titleIcon="book fas" />
                 <BigDropdownPageTreeMenu />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
