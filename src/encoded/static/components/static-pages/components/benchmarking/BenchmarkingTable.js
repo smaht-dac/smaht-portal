@@ -16,6 +16,8 @@ export const BenchmarkingTableController = (props) => {
     // Mostly serves as an intermediar/wrapper HOC to make selectedItemsController methods
     // and props available in BenchmarkingTable's aboveTableComponent
     const { searchHref, schemas, facets, session, href, context } = props;
+
+    // TODO: maybe create benchmarking-specific columnExtensionMap/columns in future...
     const columnExtensionMap =
         EmbeddedItemSearchTable.defaultProps.columnExtensionMap;
 

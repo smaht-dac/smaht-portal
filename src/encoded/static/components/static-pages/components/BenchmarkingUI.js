@@ -63,18 +63,17 @@ export const COLO829Data = ({ schemas, session, facets, href, context }) => {
     const selectNewTab = function (tabKey) {
         // Programmatically update hash
         navigate(path + tabKey, {
-            inPlace: true,
-            replace: true,
             skipRequest: true,
+            skipUpdateHref: false
         });
     };
 
     // On first mount, if hash is blank, redirect to main
     useEffect(() => {
-        if (!hash) {
+        if (schemas && !hash) {
             selectNewTab('#main');
         }
-    }, []);
+    }, [schemas]);
 
     return (
         <div>
@@ -98,16 +97,36 @@ export const COLO829Data = ({ schemas, session, facets, href, context }) => {
                     </div>
                 </Tab>
                 <Tab eventKey="#BL" title="COLO829BL">
-                    Two tab
+                    <div className="mt-1">
+                        <BenchmarkingTableController
+                            searchHref="/search/?type=Item"
+                            {...commonTableProps}
+                        />
+                    </div>
                 </Tab>
                 <Tab eventKey="#110" title="Mix 1:10">
-                    Three tab
+                    <div className="mt-1">
+                        <BenchmarkingTableController
+                            searchHref="/search/?type=ReferenceFile"
+                            {...commonTableProps}
+                        />
+                    </div>
                 </Tab>
                 <Tab eventKey="#150" title="Mix 1:50">
-                    Four tab
+                    <div className="mt-1">
+                        <BenchmarkingTableController
+                            searchHref="/search/?type=ReferenceFile"
+                            {...commonTableProps}
+                        />
+                    </div>
                 </Tab>
                 <Tab eventKey="#1200" title="Mix 1:200">
-                    Five tab
+                    <div className="mt-1">
+                        <BenchmarkingTableController
+                            searchHref="/search/?type=ReferenceFile"
+                            {...commonTableProps}
+                        />
+                    </div>
                 </Tab>
             </Tabs>
         </div>
