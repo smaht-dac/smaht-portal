@@ -9,8 +9,8 @@ import {
     Tabs,
 } from 'react-bootstrap';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedItemSearchTable';
 import { navigate } from '../../util';
+import { BenchmarkingTableController } from './benchmarking/BenchmarkingTable';
 
 export const BenchmarkingUI = (props) => {
     const { children, href } = props;
@@ -54,9 +54,11 @@ const BenchmarkingUINav = (props) => {
     );
 };
 
-export const COLO829Data = ({ schemas, session, facets, href }) => {
+export const COLO829Data = ({ schemas, session, facets, href, context }) => {
     const urlParts = memoizedUrlParse(href);
     const { hash, path } = urlParts || {};
+
+    const commonTableProps = { schemas, session, facets, href, context };
 
     const selectNewTab = function (tabKey) {
         // Programmatically update hash
@@ -89,18 +91,9 @@ export const COLO829Data = ({ schemas, session, facets, href }) => {
                 onSelect={selectNewTab}>
                 <Tab eventKey="#main" title="COLO829T">
                     <div className="mt-1">
-                        <EmbeddedItemSearchTable
-                            aboveTableComponent={
-                                <BenchmarkingAboveTableComponent />
-                            }
-                            searchHref="/search/?type=Item"
-                            rowHeight={40}
-                            // maxHeight={200}
-                            {...{
-                                schemas,
-                                session,
-                                facets,
-                            }}
+                        <BenchmarkingTableController
+                            searchHref="/search/?type=ReferenceFile"
+                            {...commonTableProps}
                         />
                     </div>
                 </Tab>
@@ -337,48 +330,3 @@ const BenchmarkingUINavLink = (props) => {
         </li>
     );
 };
-
-export const BenchmarkingAboveTableComponent = React.memo(
-    function BenchmarkingAboveTableComponent(props) {
-        const {
-            context,
-            onFilter,
-            schemas,
-            isContextLoading = false, // Present only on embedded search views,
-            navigate,
-            sortBy,
-            sortColumns,
-            hiddenColumns,
-            addHiddenColumn,
-            removeHiddenColumn,
-            columnDefinitions,
-        } = props;
-        const { filters: ctxFilters = null, total: totalResultCount = 0 } =
-            context || {};
-
-        return (
-            <div className="d-flex w-100 mb-05">
-                <div className="col-auto ml-0 pl-0">
-                    <span className="text-400" id="results-count">
-                        {totalResultCount}
-                    </span>{' '}
-                    Results
-                </div>
-                <div className="ml-auto col-auto mr-0 pr-0">
-                    <button
-                        type="button"
-                        className="btn btn-secondary btn-sm mr-05 align-items-center">
-                        <i className="icon icon-check-square far mr-03" />
-                        Select All
-                    </button>
-                    <button
-                        type="button"
-                        className="btn btn-primary btn-sm mr-05 align-items-center">
-                        <i className="icon icon-download fas mr-03" />
-                        Download # Selected Files
-                    </button>
-                </div>
-            </div>
-        );
-    }
-);
