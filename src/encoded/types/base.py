@@ -190,8 +190,12 @@ class Item(SnovaultItem):
         properties = self.upgrade_properties()
         if 'submission_centers' in properties:
             for submission_center in properties['submission_centers']:
+                # add standard rw role
                 center = f'{SUBMISSION_CENTER_RW}.{submission_center}'
                 roles[center] = SUBMISSION_CENTER_RW
+                # add create role
+                submitter = f'submits_for.{submission_center}'
+                roles[submitter] = SUBMISSION_CENTER_SUBMITTER
         if 'consortia' in properties:
             for consortium in properties['consortia']:
                 consortium_identifier = f'{CONSORTIUM_MEMBER_RW}.{consortium}'

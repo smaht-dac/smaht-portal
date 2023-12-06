@@ -153,6 +153,9 @@ def smaht_gcc_user(testapp, test_submission_center, test_consortium):
         'consortia': [
             test_consortium['uuid']
         ],
+        'submits_for': [
+            test_submission_center['uuid']
+        ],
         'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188308'
     }
     return post_item_and_return_location(testapp, item, 'user')

@@ -57,6 +57,19 @@
         },
         "time_zone": {
             "$merge": "snovault:schemas/user.json#/properties/timezone"
+        },
+        "submits_for": {
+            "title": "Submits for",
+            "description": "Submission Centers a user is authorized to submit data for.",
+            "type": "array",
+            "permission": "restricted_fields",
+            "lookup": 70,
+            "uniqueItems": true,
+            "items": {
+                "description": "A Submission Centers a user is authorized to submit for.",
+                "type": "string",
+                "linkTo": "SubmissionCenter"
+            }
         }
     }
 }

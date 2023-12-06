@@ -8,6 +8,7 @@ from snovault.types.user import user_add as SnoUserAdd
 from snovault.util import debug_log
 
 from .base import Item as SMAHTItem
+from .acl import OWNER_ROLE
 
 
 @collection(
@@ -21,12 +22,21 @@ from .base import Item as SMAHTItem
 class User(SMAHTItem, SnovaultUser):
     item_type = "user"
     schema = load_schema("encoded:schemas/user.json")
-    embedded_list = []
+    embedded_list = [
+        # Consortia linkTo
+        'consortia.identifier',
 
-#    STATUS_ACL = SMAHTItem.STATUS_ACL
-#
-#    def __ac_local_roles__(self):
-#        return SMAHTItem.__ac_local_roles__(self)
+        # Submission Center linkTo
+        'submission_centers.identifier',
+
+        # Submission Center linkTo
+        'submits_for.identifier'
+    ]
+
+    def __ac_local_roles__(self):
+        """return the owner user."""
+        owner = 'userid.%s' % self.uuid
+        return {owner: OWNER_ROLE}
 
     @calculated_property(schema={"title": "Title", "type": "string"})
     def title(self, first_name: Optional[str], last_name: Optional[str]) -> Union[str, None]:

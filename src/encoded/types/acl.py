@@ -16,9 +16,10 @@ from snovault.types.acl import Acl
 #           ie: consortia, submission center presence indicates permissions (roles) should be given
 #           to a user
 CONSORTIUM_MEMBER_CREATE = 'role.consortium_member_create'
-SUBMISSION_CENTER_MEMBER_CREATE = 'role.submission_center_member_create'
+SUBMISSION_CENTER_MEMBER_CREATE = SUBMISSION_CENTER_SUBMITTER = 'role.submission_center_member_create'
 CONSORTIUM_MEMBER_RW = 'role.consortium_member_rw'
 SUBMISSION_CENTER_RW = 'role.submission_center_member_rw'
+OWNER_ROLE = 'role.owner'
 
 
 ############################## GLOBAL ACLS ##############################
@@ -81,7 +82,7 @@ ALLOW_SUBMISSION_CENTER_CREATE_ACL: Acl = SUBMISSION_CENTER_MEMBER_CREATE_ACL + 
 
 # This gives item owners expanded permissions
 ALLOW_OWNER_EDIT_ACL: Acl = [
-    (Allow, 'role.owner', ['edit', 'view', 'view_details']),
+    (Allow, OWNER_ROLE, ['edit', 'view', 'view_details']),
 ] + ONLY_ADMIN_VIEW_ACL
 
 # These two ACLs allow item editing
