@@ -23,13 +23,14 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
 def _process_submission(submission: SmahtSubmissionFolio) -> None:
     with submission.s3_file() as file:
         structured_data = parse_structured_data(file, portal=submission.portal_vapp)
-        if (validation_errors := structured_data.validation_errors):
-            submission.record_results(validation_errors, validation_errors)
+        if (errors := structured_data.errors):
+            submission.record_results(errors, _truncated_errors(structured_data, submission))
             # If there are data validation errors then trigger an exception so that a traceback.txt
             # file gets written to the S3 ingestion submission bucket to indicate that there is an error;
             # this is an exceptional situation that we just happened to have caught programmatically;
             # this (traceback.txt) is done in snovault.types.ingestion.SubmissionFolio.processing_context.
-            raise Exception(validation_errors)
+            # raise Exception(validation_errors)
+            return
         load_data_response = load_data_into_database(data=structured_data.data,
                                                      portal_vapp=submission.portal_vapp,
                                                      post_only=submission.post_only,
@@ -47,24 +48,22 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
     return structured_data
 
 
-def create_shortened_summary_of_parsed_structured_data(structured_data: StructuredDataSet, 
-                                                       submission: SmahtSubmissionFolio) -> dict:
-    def shortened_info(issues: list) -> dict:
-        return {"total": len(issues),
+def _truncated_errors(structured_data: StructuredDataSet, submission: SmahtSubmissionFolio) -> dict:
+    def truncated_info(issues: list) -> dict:
+        return {"truncated": True, "total": len(issues),
                 "more": len(issues) - max_issues_per_group, "details": submission.s3_details_location}
-
     max_issues_per_group = 25
     result = {}
-    if (reader_warnings := structured_data.warnings):
+    if (reader_warnings := structured_data.reader_warnings):
         result["reader"] = reader_warnings[:max_issues_per_group]
-        if len(result["reader"]) < max_issues_per_group:
-            result["reader"] = shortened_info(reader_warnings)
+        if len(reader_warnings) > max_issues_per_group:
+            result["reader"].append(truncated_info(reader_warnings))
     if (validation_errors := structured_data.validation_errors):
         result["validation"] = validation_errors[:max_issues_per_group]
-        if len(result["validation"]) < max_issues_per_group:
-            result["validation"] = shortened_info(validation_errors)
+        if len(validation_errors) > max_issues_per_group:
+            result["validation"].append(truncated_info(validation_errors))
     if (ref_errors := structured_data.ref_errors):
         result["ref"] = ref_errors[:max_issues_per_group]
-        if len(result["ref"]) < max_issues_per_group:
-            result["ref"] = shortened_info(ref_errors)
+        if len(ref_errors) > max_issues_per_group:
+            result["ref"].append(truncated_info(ref_errors))
     return result

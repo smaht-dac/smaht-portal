@@ -49,6 +49,7 @@ class SmahtSubmissionFolio:
         to the database; the summary is a list of (text lines) summarizing the
         submission, e.g. with counts for inserts, updates, etc.
         """
+        import pdb ; pdb.set_trace()
         results = {"result": results, "validation_output": summary}
 
         # This note_additional_datum call causes the "validation_output" key (a list) of the
