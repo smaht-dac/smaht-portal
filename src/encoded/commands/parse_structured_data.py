@@ -1,11 +1,9 @@
 import argparse
 import json
 import os
-from typing import List
+from typing import List, Optional
 import yaml
-from dcicutils.bundle_utils import RefHint
 from dcicutils.misc_utils import PRINT
-from dcicutils.validation_utils import SchemaManager
 from dcicutils.zip_utils import temporary_file
 from encoded.commands.captured_output import captured_output
 with captured_output():
@@ -15,8 +13,7 @@ from dcicutils.structured_data import Portal, Schema
 
 
 # For dev/testing only.
-# Parsed and optionally loads a structured CSV or Excel file
-# using either ingestion.structured_data or dcicutils.sheet_utils.
+# Parsed and optionally loads a structured CSV or Excel file using ingestion.structured_data.
 
 def main() -> None:
 
@@ -40,19 +37,12 @@ def main() -> None:
 
     # Manually override implementation specifics for --noschemas.
     if args.noschemas:
-        if not args.sheet_utils:
-            Schema.load_by_name = lambda name, portal: {}
-        else:
-            SchemaManager.get_schema = lambda name, portal_env, portal_vapp: {}
+        Schema.load_by_name = lambda name, portal: {}
 
-    # Manually override implementation specifics for our default handling of refs (linkTo),
-    # which is to catch/report any ref errors; use --norefs to not do ref checking at all;
-    # and use --default-refs to throw exceptions for ref errors (as normal outside of this script).
-    refs = override_ref_handling(args) if args.norefs or not args.default_refs or args.refs else None
+    if args.norefs:
+        override_ref_handling(args)
 
     if args.verbose:
-        if args.sheet_utils:
-            PRINT(f"> Using sheet_utils rather than the newer structured_data ...")
         PRINT(f"> Loading data", end="")
         if args.novalidate:
             PRINT(" with NO validation", end="")
@@ -80,15 +70,18 @@ def main() -> None:
     PRINT(f"> Parsed Data:")
     PRINT(json.dumps(structured_data, indent=4, default=str))
 
-    if args.refs:
-        PRINT(f"\n> References (linkTo):")
+    PRINT(f"\n> References (linkTo):")
+    if args.norefs or args.noschemas:
+        PRINT(f"  - No references because --norefs or --noschemas was specified.")
+    else:
         if structured_data_set.resolved_refs:
             for ref in sorted(structured_data_set.resolved_refs):
                 PRINT(f"  - {ref}")
+
     if structured_data_set.ref_errors:
         PRINT(f"\n> Reference (linkTo) Errors:")
         for ref_error in structured_data_set.ref_errors:
-            PRINT(f"  - {structured_data_set.format_issue(ref_error)}")
+            PRINT(f"  - {format_issue(ref_error)}")
 
     PRINT(f"\n> Schema Validation Results:")
     if not args.novalidate:
@@ -96,21 +89,21 @@ def main() -> None:
             PRINT("  - OK")
         elif args.verbose:
             for validation_error in validation_errors:
-                PRINT(f"  - {structured_data_set.format_issue(validation_error)}")
+                PRINT(f"  - {format_issue(validation_error)}")
         elif len(validation_errors) > 16:
             nmore_validation_errors = len(validation_errors) - 16
             for validation_error in validation_errors[:16]:
-                PRINT(f"  - {structured_data_set.format_issue(validation_error)}")
+                PRINT(f"  - {format_issue(validation_error)}")
             PRINT(f"  - There are {nmore_validation_errors} more validation errors; use --verbose to see all.")
         else:
             for validation_error in validation_errors:
-                PRINT(f"  - {structured_data_set.format_issue(validation_error)}")
+                PRINT(f"  - {format_issue(validation_error)}")
     else:
         PRINT("  - No validation results because the --novalidate argument was specified.")
 
     if structured_data_set.reader_warnings:
         for reader_warning in structured_data_set.reader_warnings:
-            PRINT(f"  - {structured_data_set.format_issue(reader_warning)}")
+            PRINT(f"  - {format_issue(reader_warning)}")
 
     if args.schemas:
         if args.verbose:
@@ -150,35 +143,7 @@ def override_ref_handling(args: argparse.Namespace) -> dict:
     # Should probably have used mocking, maybe a bit simpler..
     refs = {"errors": set(), "actual": set()}
     if args.norefs:  # Do not check refs at all.
-        if not args.sheet_utils:
-            Schema._map_function_ref = lambda self, typeinfo: lambda value, src: value
-        else:
-            RefHint._apply_ref_hint = lambda self, value, src: value
-    elif not args.default_refs or args.refs:  # Default case; catch/report ref errors/exceptions.
-        if not args.sheet_utils:
-            real_map_function_ref = Schema._map_function_ref
-            def custom_map_function_ref(self, typeinfo):  # noqa
-                real_map_value_ref = real_map_function_ref(self, typeinfo)
-                def custom_map_value_ref(value, link_to, portal, src):  # noqa
-                    if value:
-                        refs["actual"].add(f"/{link_to}/{value}")
-                    try:
-                        return real_map_value_ref(value, src)
-                    except Exception as e:
-                        refs["errors"].add(str(e))
-                        return value
-                return lambda value, src = None: custom_map_value_ref(value, typeinfo.get("linkTo"), self._portal, src)
-            Schema._map_function_ref = custom_map_function_ref
-        else:
-            real_apply_ref_hint = RefHint._apply_ref_hint
-            def custom_apply_ref_hint(self, value, src = None):  # noqa
-                try:
-                    if value:
-                        refs["actual"].add(f"/{self.schema_name}/{value}")
-                    return real_apply_ref_hint(self, value, src)
-                except Exception as e:
-                    refs["errors"].add(str(e))
-            RefHint._apply_ref_hint = custom_apply_ref_hint
+        Schema._map_function_ref = lambda self, typeinfo: lambda value, src: value
     return refs
 
 
@@ -193,6 +158,48 @@ def dump_schemas(schema_names: List[str], portal: Portal) -> None:
             PRINT(f"> No schema found for type: {schema_name}")
 
 
+def format_issue(issue: dict, original_file: Optional[str] = None) -> str:
+    def src_string(issue: dict) -> str:
+        if not isinstance(issue, dict) or not isinstance(issue_src := issue.get("src"), dict):
+            return ""
+        show_file = original_file and (original_file.endswith(".zip") or
+                                       original_file.endswith(".tgz") or original_file.endswith(".gz"))
+        src_file = issue_src.get("file") if show_file else ""
+        src_type = issue_src.get("type")
+        src_column = issue_src.get("column")
+        src_row = issue_src.get("row", 0)
+        if src_file:
+            src = f"{os.path.basename(src_file)}"
+            sep = ":"
+        else:
+            src = ""
+            sep = "."
+        if src_type:
+            src += (sep if src else "") + src_type
+            sep = "."
+        if src_column:
+            src += (sep if src else "") + src_column
+        if src_row > 0:
+            src += (" " if src else "") + f"[{src_row}]"
+        if not src:
+            if issue.get("warning"):
+                src = "Warning"
+            elif issue.get("error"):
+                src = "Error"
+            else:
+                src = "Issue"
+        return src
+    issue_message = None
+    if issue:
+        if error := issue.get("error"):
+            issue_message = error
+        elif warning := issue.get("warning"):
+            issue_message = warning
+        elif issue.get("truncated"):
+            return f"Truncated result set | More: {issue.get('more')} | See: {issue.get('details')}"
+    return f"{src_string(issue)}: {issue_message}" if issue_message else ""
+
+
 def parse_args() -> argparse.Namespace:
 
     class argparse_optional(argparse.Action):
@@ -203,16 +210,10 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("file", type=str, nargs="?", help=f"File to parse.")
     parser.add_argument("--as-file-name", type=str, nargs="?", help=f"Use this file name as the name of the given file.")
-    parser.add_argument("--sheet-utils", required=False, action="store_true", default=False,
-                        help=f"Use sheet_utils rather than the newer structured_data.")
     parser.add_argument("--schemas", required=False, action="store_true",
                         default=False, help=f"Output the referenced schema(s).")
     parser.add_argument("--norefs", required=False, action="store_true",
                         default=False, help=f"Do not try to resolve schema linkTo references.")
-    parser.add_argument("--default-refs", required=False, action="store_true",
-                        default=False, help=f"Throw exception (as is normal) if schema linkTo reference cannot be resolved.")
-    parser.add_argument("--refs", required=False, action="store_true",
-                        default=False, help=f"Show all references.")
     parser.add_argument("--noschemas", required=False, action="store_true",
                         default=False, help=f"Do not use schemes at all.")
     parser.add_argument("--novalidate", required=False, action="store_true",
@@ -238,9 +239,6 @@ def parse_args() -> argparse.Namespace:
         args.novalidate = True
     if (1 if args.patch_only else 0) + (1 if args.post_only else 0) + (1 if args.validate_only else 0) > 1:
         PRINT("May only specify one of: --patch-only or --post-only or --validate-only")
-        exit(1)
-    if (1 if args.norefs else 0) + (1 if args.default_refs else 0) + (1 if args.refs else 0) > 1:
-        PRINT("May not specify both of: --norefs or --default-refs or --show-refs")
         exit(1)
     if not args.load and (args.patch_only or args.post_only or args.validate_only):
         PRINT("Must use --load when using: --patch-only or --post-only or --validate-only")
