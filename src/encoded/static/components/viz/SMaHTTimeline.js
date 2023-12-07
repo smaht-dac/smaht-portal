@@ -10,7 +10,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
     return (
         <div className="container">
             <div id="timeline" className={`${currentTier}`}>
-                <span className="latest-release ml-6">
+                <span className="latest-release">
                     <b>Latest Release: </b>September 29, 2023
                 </span>
                 <div
@@ -26,7 +26,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                         <span>Tier 0</span>
                     </div>
                     <div className="timeline-item-header">
-                        <h3 className="ml-6 text-left">
+                        <h3 className="text-left">
                             Benchmarking&nbsp;
                             <i className="timeline-item-subheader">
                                 <span className="d-none d-sm-inline d-lg-none d-xl-inline">
@@ -159,7 +159,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                         <span>Tier 1</span>
                     </div>
                     <div className="timeline-item-header">
-                        <h3 className="ml-6 text-left">
+                        <h3 className="text-left">
                             Expansion&nbsp;
                             <i className="timeline-item-subheader">
                                 <span className="d-none d-sm-inline d-lg-none d-xl-inline">
@@ -219,7 +219,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                         <span>Tier 2</span>
                     </div>
                     <div className="timeline-item-header">
-                        <h3 className="ml-6 text-left">
+                        <h3 className="text-left">
                             Production&nbsp;
                             <i className="timeline-item-subheader">
                                 <span className="d-none d-sm-inline d-lg-none d-xl-inline">

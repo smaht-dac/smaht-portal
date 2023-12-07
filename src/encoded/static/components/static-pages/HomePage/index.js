@@ -38,7 +38,7 @@ export default class HomePage extends React.PureComponent {
         return (
             <div className="homepage-wrapper">
                 <div id="full-alerts-container">
-                    <Alerts alerts={alerts} className="alerts container-wide" />
+                    <Alerts alerts={alerts} className="alerts container" />
                 </div>
                 <GuestHomeView
                     {...commonProps}

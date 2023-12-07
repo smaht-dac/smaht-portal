@@ -486,7 +486,7 @@ body[data-path="/"]>#application>#layout {
 }
 .homepage-wrapper {
 	@media screen and (min-width: 992px) {
-		padding-left: 58px;
+		// padding-left: 58px;
 	}
 
 	// Styles for alerts on the homepage
@@ -614,10 +614,23 @@ body[data-path="/"]>#application>#layout {
 				font-size: 14px;
 				letter-spacing: normal;
 				line-height: normal;
+				margin-bottom: 5px;
 				@include prefix(border-radius, $homepage-about-consort-border-radius);
 				> i {
 					color: #BBCCF9;
 					font-size: 12px;
+				}
+
+				&:hover {
+					background-color: #ffffff;
+				}
+			}
+		}
+
+		@media screen and (min-width: 992px) {
+			.about-consortium {
+				a {
+					margin-bottom: auto;
 				}
 			}
 		}

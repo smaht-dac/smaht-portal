@@ -17,7 +17,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 // Timeline
 #timeline {
     position: relative;
-    margin: 30px 15px;
+    // margin: 30px 15px;
     padding: 0px;
     width: 100%;
     @include prefix(transition, all 0.4s ease);
@@ -31,6 +31,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
     .latest-release {
         font-size: 12px;
+        margin-left: 52px;
         color: $homepage-subtitle-text-color;
 
         b {
@@ -40,6 +41,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
     .timeline-item {
         padding-bottom: 20px;
+        padding-left: 50px;
         position: relative;
         @include clearfix;
 
@@ -48,7 +50,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             width: 2px;
             height: 100%;
             background: $homepage-timeline-border-color;
-            left: 0;
+            left: 16px;
             top: 4px;
             position: absolute;
         }
@@ -89,7 +91,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             background: $homepage-timeline-bg-color;
             border: 1px solid $homepage-timeline-border-color;
             top: 4px;
-            left: 0;
+            left: 12px;
             overflow: hidden;
             margin-left: -24px;
             transition: background-color 150ms;
@@ -106,12 +108,13 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
             &:hover {
                 cursor: pointer;
+                background-color: #C2F0E8;
             }
         }
 
         .timeline-content {
-            width: 90%;
-            float: right;
+            width: auto;
+            margin-left: 0px;
             @include prefix(border-radius, 5px);
             @include prefix(transition, all 0.3s ease);
 
@@ -197,6 +200,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
                         &:hover {
                             text-decoration: none;
+                            cursor: default;
                         }
 
                         h4 {
@@ -238,6 +242,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     left: 50%;
                     background-color: #A4ECD5;
                 }
+
+                &:hover {
+                    background-color: #C2F0E8;
+                }
             }
 
         }
@@ -249,6 +257,11 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             .timeline-marker {
                 background-color: white;
                 border-color: #CDE4FF;
+                
+                &:hover {
+                    border-color: #A5ECD5;
+                    background-color: #C2F0E8;
+                }
             }
             .card {
                 background-color: white;
@@ -266,36 +279,63 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         }
                     }
                 }
+                &:hover {
+                    border: 2px solid $homepage-card-border-color;
+                    .card-header {
+                        &-button {
+                            i {
+                                color: #74CFB2
+                            }
+                        }
+                    }
+                }
             }
         }
+        
+    }
 
-
-        @media screen and (min-width: 576px) {
+    @media screen and (min-width: 576px) {
+        .latest-release {
+            margin-left: 55px;
+        }
+        .timeline-item {
+            padding-left: 54px;
+            .timeline-content {
+            }
             &-header {
                 h3 {
                     flex-direction: row;
                     align-items: center;
+                    margin-left: 0px;
                 }
             }
             .accordion .card-body {
                 flex-direction: row;
-                // padding: 10px 43px;
             }
         }
-        @media screen and (min-width: 767px) {
-        }
-        @media screen and (min-width: 992px) {
+    }
+    @media screen and (min-width: 767px) {
+    }
+    @media screen and (min-width: 992px) {
+        .timeline-item {
             &-header {
                 h3 {
                     flex-direction: column;
                     align-items: flex-start;
                     i {
-                        font-size: 18px;
+                        font-size: 17px;
                     }
                 }
             }
+            &:before {
+                // left: -10px;
+            }
             .timeline {
+                // &-marker {
+                //     left: -10px;
+                // }
                 &-content {
+                    width: auto;
                     .card {
                         &-header {
                             &-content {
@@ -330,23 +370,32 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 }
             }
         }
-        @media screen and (min-width: 1200px) {
+    }
+    @media screen and (min-width: 1200px) {
+        .timeline-item {
             &-header {
                 h3 {
                     flex-direction: row;
                     align-items: center;
                 }
             }
-            .accordion .card-body {
+            &:before {
+                // left: -10px;
+            }
+            .timeline {
+                &-marker {
+                    // left: -10px;
+                }
             }
         }
-        
     }
 }
 
 
 // Homepage visualization
 .homepage-figure {
+    display:flex;
+    flex-direction: column-reverse;
     width: 100%;
     max-width: 638px;
 
@@ -497,8 +546,8 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         display: flex;
         flex-direction: column;
         justify-content: center;
-        margin-bottom: 15px;
-        margin-top: auto;
+        margin-bottom: 50px;
+        margin-top: 20px;
 
         .footnote {
             color: #5B7595;
@@ -525,10 +574,25 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 background-color: transparent;
                 color: #5B7595;
                 width: 100px;
-                font-size: 10px;
+                font-size: 12px;
+                border-radius: 15px;
                 margin: auto;
                 border: none;
                 z-index: 1;
+
+                &.active {
+                    &:hover {
+                        background-color: transparent;
+                        color: #5B7595;
+                    }
+                }
+
+                &:hover {
+                    background-color: rgb(214 224 252 / 30%);
+                    padding: 5px;
+                    color: #4f6682;
+                    transition: background-color 150ms, color 150ms;
+                }
             }
 
             .backdrop {
@@ -551,6 +615,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 }
             }
         }
+
     }
     .human-figure-container {
         display: none;
@@ -579,42 +644,21 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 }
             }
         }
-
-        &-tier-selector {
-            .footnote {
-                width: auto;
-            }
-            .selector-buttons {
-                button {
-                    width: 180px;
-                }
-    
-                .backdrop {
-                    width: 180px;
-    
-                    &.tier-benchmarking {
-                        left: 5px;
-                    }
-                    &.tier-expansion {
-                        left: 185px;
-                    }
-                    &.tier-production {
-                        left: 365px;
-                    }
-                }
-            }
-        }
     }
     @media screen and (min-width: 767px) {
+        max-width: 720px;
         &-content {
             flex-direction: row;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 50px;
+            padding: 0px 25px;
             .card {
+                width: fit-content;
                 margin: 0px;
 
                 &-body {
-                    width: 300px;
+                    width: 230px;
+                    min-height: 600px;
                     justify-content: flex-start;
 
                 }
@@ -638,15 +682,82 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             }
             
         }
+        // &-tier-selector {
+
+        //     .footnote {
+        //         width: auto;
+        //     }
+        //     .selector-buttons {
+        //         button {
+        //             font-size: 16px;
+        //             width: 180px;
+        //         }
+    
+        //         .backdrop {
+        //             width: 180px;
+    
+        //             &.tier-benchmarking {
+        //                 left: 5px;
+        //             }
+        //             &.tier-expansion {
+        //                 left: 185px;
+        //             }
+        //             &.tier-production {
+        //                 left: 365px;
+        //             }
+        //         }
+        //     }
+        // }
+        &-tier-selector {
+            margin-top: 0px;
+            margin-bottom: 60px;
+    
+            .footnote {
+                margin-bottom: 5px;
+            }
+    
+            .selector-buttons {
+                button {
+                    font-size: 16px;
+                    width: 180px;
+                }
+    
+                .backdrop {
+                    width: 180px;
+    
+                    &.tier-benchmarking {
+                        left: 5px;
+                    }
+                    &.tier-expansion {
+                        left: 185px;
+                    }
+                    &.tier-production {
+                        left: 365px;
+                    }
+                }
+            }
+        }
+
+        .human-figure-container {
+            display: flex;
+            top: 0;
+        }
     }
     @media screen and (min-width: 992px) {
-        width: 100%;
+        display:flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 638px;
+        
         &-content {
+            margin-bottom: 0px;
+            padding: 0px;
             .card {
                 width: auto;
                 &-body {
                     width: 231px;
                     height: 621px;
+                    min-height: none;
 
                     .card-list {
                         margin-bottom: 20px;
@@ -696,35 +807,31 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             }
         }
         &-tier-selector {
-            margin-top: 50px;
-            .selector-buttons {
-                button {
-                    font-size: 12px;
-                    width: 110px;
-                }
-                .backdrop {
-                    width: 110px;
-                    &.tier-benchmarking {
-                        left: 5px;
-                    }
-                    &.tier-expansion {
-                        left: 115px;
-                    }
-                    &.tier-production {
-                        left: 225px;
-                    }
-                }
-            }
+            margin-top: 40px;
+            margin-bottom: 0px;
+        //     margin-top: 50px;
+        //     .selector-buttons {
+        //         button {
+        //             font-size: 12px;
+        //             width: 110px;
+        //         }
+        //         .backdrop {
+        //             width: 110px;
+        //             &.tier-benchmarking {
+        //                 left: 5px;
+        //             }
+        //             &.tier-expansion {
+        //                 left: 115px;
+        //             }
+        //             &.tier-production {
+        //                 left: 225px;
+        //             }
+        //         }
+        //     }
         }
-        .human-figure-container {
-            display: flex;
-            top: 0;
-        }
+        
     }
     @media screen and (min-width: 1300px) {
-        flex-direction: column;
-        justify-content: space-between;
-        width: 638px;
     
         &-content {
             margin-bottom: 0px;
@@ -749,35 +856,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                                 }
                             }
                         }
-                    }
-                }
-            }
-        }
-        &-tier-selector {
-            margin-top: 40px;
-            margin-bottom: 0px;
-    
-            .footnote {
-                margin-bottom: 5px;
-            }
-    
-            .selector-buttons {
-                button {
-                    font-size: 16px;
-                    width: 180px;
-                }
-    
-                .backdrop {
-                    width: 180px;
-    
-                    &.tier-benchmarking {
-                        left: 5px;
-                    }
-                    &.tier-expansion {
-                        left: 185px;
-                    }
-                    &.tier-production {
-                        left: 365px;
                     }
                 }
             }
