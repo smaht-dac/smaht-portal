@@ -10,6 +10,7 @@
     ],
     "identifyingProperties": [
         "accession",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
