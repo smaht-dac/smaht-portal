@@ -169,6 +169,7 @@ def includeme(config):
 
 @collection(
     name='pages',
+    unique_key='page:identifier',
     lookup_key='identifier',
     acl=ONLY_ADMIN_VIEW_ACL,
     properties={

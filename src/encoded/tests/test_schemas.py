@@ -7,7 +7,12 @@ from snovault.schema_utils import load_schema
 from webtest import TestApp
 
 from .utils import (
-    get_functional_item_type_names, get_item, get_schema, pluralize_collection
+    get_all_item_types,
+    get_functional_item_type_names,
+    get_item,
+    get_unique_key,
+    has_property,
+    pluralize_collection,
 )
 
 
@@ -191,64 +196,24 @@ def test_schemas_represented_in_workbook_inserts(
         assert collection_items
 
 
-def test_schema_identifying_properties(testapp: TestApp) -> None:
-    """Ensure schemas have expected identifying properties.
-
-    Besides noted exceptions below, all schemas expected to have either
-    'identifier' or 'submitted_id' properties.
-    """
-    exceptions = {
-        "access_key": "access_key_id",
-        "document": None,
-        "filter_set": None,
-        "image": None,
-        "ingestion_submission": None,
-        "meta_workflow": None,
-        "meta_workflow_run": None,
-        "output_file": None,
-        "quality_metric": None,
-        "reference_file": None,
-        "user": "email",
-        "workflow": None,
-        "workflow_run": None,
-    }
-    functional_item_types = get_functional_item_type_names(testapp)
-    for item_type in functional_item_types:
-        schema = get_schema(testapp, item_type)
-        has_submitted_id = has_submitted_id_property(schema)
-        has_identifier = has_identifier_property(schema)
-        assert not (has_submitted_id and has_identifier), (
-            f"Unexpected combination of submitted_id and identifier for {item_type}"
-        )
-        if has_submitted_id:
-            assert has_identifying_property(schema, "submitted_id"), (
-                f"Expected submitted_id as identifying property for {item_type}"
-            )
-        if has_identifier:
-            assert has_identifying_property(schema, "identifier"), (
-                f"Expected identifier as identifying property for {item_type}"
-            )
-        if not (has_submitted_id or has_identifier):
-            assert item_type in exceptions, (
-                f"Unexpected missing identifying property for {item_type}"
-            )
-            identifying_property = exceptions[item_type]
-            if identifying_property is None:
-                continue
-            assert has_identifying_property(schema, identifying_property), (
-                f"Expected {identifying_property} as identifying property for"
-                f" {item_type}"
+def test_unique_keys_in_schemas(testapp: TestApp) -> None:
+    """Ensure unique keys actually present in schemas."""
+    for item_type, type_info in get_all_item_types(testapp).items():
+        unique_key = get_unique_key(type_info)
+        if unique_key:
+            assert has_property(type_info.schema, unique_key), (
+                f"Unique key {unique_key} not in schema for collection {item_type}"
             )
 
 
-def has_submitted_id_property(schema: Dict[str, Any]) -> bool:
-    """Return True if schema has submitted_id property."""
-    return "submitted_id" in schema.get("properties", {})
-
-
-def has_identifier_property(schema: Dict[str, Any]) -> bool:
-    """Return True if schema has identifier property."""
-    return "identifier" in schema.get("properties", {})
+def test_unique_keys_are_identifying_properties(testapp: TestApp) -> None:
+    """Ensure unique keys are identifying properties."""
+    for item_type, type_info in get_all_item_types(testapp).items():
+        unique_key = get_unique_key(type_info)
+        if unique_key:
+            assert has_identifying_property(type_info.schema, unique_key), (
+                f"Expected {unique_key} as identifying property for {item_type}"
+            )
 
 
 def has_identifying_property(schema: Dict[str, Any], property_name: str) -> bool:

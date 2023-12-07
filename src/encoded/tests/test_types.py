@@ -1,12 +1,87 @@
-from typing import Any, Dict, Iterable, List, Set, Union
+from typing import Any, Dict, Iterable, List, Set
 
 import pytest
-from pyramid.registry import Registry
-from snovault import Collection, COLLECTIONS
 from snovault.typeinfo import AbstractTypeInfo, TypeInfo
 from webtest.app import TestApp
 
-from .utils import get_item, get_functional_item_types
+from .utils import (
+    get_all_item_types,
+    get_functional_item_types,
+    get_item,
+    get_schema,
+    get_unique_key,
+    has_property,
+    is_test_item,
+)
+
+
+def test_unique_keys_in_schemas(testapp: TestApp) -> None:
+    """Ensure unique keys actually present in schemas."""
+    for item_type, type_info in get_all_item_types(testapp).items():
+        unique_key = get_unique_key(type_info)
+        if unique_key:
+            assert has_property(type_info.schema, unique_key), (
+                f"Unique key {unique_key} not in schema for collection {item_type}"
+            )
+
+
+def test_expected_unique_keys(testapp: TestApp) -> None:
+    """Ensure collections have expected unique keys."""
+    special_item_types_to_unique_keys = {
+        "access_key": "access_key_id",
+        "document": None,
+        "filter_set": None,
+        "image": None,
+        "ingestion_submission": None,
+        "meta_workflow": None,
+        "meta_workflow_run": None,
+        "output_file": None,
+        "quality_metric": None,
+        "reference_file": None,
+        "user": "email",
+        "workflow": None,
+        "workflow_run": None,
+    }
+    for item_type, type_info in get_all_item_types(testapp).items():
+        if is_test_item(item_type):
+            continue
+        schema = get_schema(testapp, item_type)
+        has_submitted_id = has_submitted_id_property(schema)
+        has_identifier = has_identifier_property(schema)
+        assert not (has_submitted_id and has_identifier), (
+            f"Unexpected combination of submitted_id and identifier for {item_type}"
+        )
+        if has_submitted_id:
+            assert get_unique_key(type_info) == "submitted_id", (
+                f"Expected submitted_id as unique key for {item_type}"
+            )
+        if has_identifier:
+            assert get_unique_key(type_info) == "identifier", (
+                f"Expected identifier as unique key for {item_type}"
+            )
+        if not (has_submitted_id or has_identifier):
+            assert item_type in special_item_types_to_unique_keys, (
+                f"Missing information on expected unique key for {item_type}"
+            )
+            expected_unique_key = special_item_types_to_unique_keys[item_type]
+            if expected_unique_key is None:
+                assert not get_unique_key(type_info), (
+                    f"Expected no unique key for {item_type}"
+                )
+            else:
+                assert get_unique_key(type_info) == expected_unique_key, (
+                    f"Expected {expected_unique_key} as unique key for {item_type}"
+                )
+
+
+def has_submitted_id_property(schema: Dict[str, Any]) -> bool:
+    """Return True if schema has submitted_id property."""
+    return has_property(schema, "submitted_id")
+
+
+def has_identifier_property(schema: Dict[str, Any]) -> bool:
+    """Return True if schema has identifier property."""
+    return has_property(schema, "identifier")
 
 
 @pytest.mark.workbook
@@ -99,46 +174,6 @@ def get_item_via_unique_key(
         get_item(testapp, unique_key_value, collection=collection_name, status=301)
 
 
-def get_unique_key(type_info: AbstractTypeInfo) -> str:
-    """Get unique key for given item type."""
-    type_collection = get_collection_for_type(type_info)
-    return get_unique_key_property_name(type_collection)
-
-
-def get_collection_for_type(type_info: AbstractTypeInfo) -> Collection:
-    """Get collection from type info.
-
-    Assumes existence of collection in registry.
-    """
-    type_name = type_info.name
-    registry = get_registry(type_info)
-    result = get_collection_for_item_name(registry, type_name)
-    return result
-
-
-def get_registry(type_info: TypeInfo) -> Registry:
-    return type_info.types.registry
-
-
-def get_collection_for_item_name(
-    registry: Registry, item_name: str
-) -> Union[Collection, None]:
-    return registry.get(COLLECTIONS, {}).get(item_name)
-
-
-def get_unique_key_property_name(collection: Collection) -> str:
-    """Get property name for unique key on collection, if defined.
-
-    Parse unique key from 'collection:unique_key' format, if required.
-    """
-    unique_key = collection.unique_key
-    if unique_key is None:
-        return ""
-    if ":" in unique_key:
-        return "".join(unique_key.split(":")[1:])
-    return unique_key
-
-
 def get_parent_types(type_info: AbstractTypeInfo) -> List[AbstractTypeInfo]:
     """Get base items' type info.
 
@@ -150,8 +185,3 @@ def get_parent_types(type_info: AbstractTypeInfo) -> List[AbstractTypeInfo]:
         item_type_info for item_type_info in all_types.values()
         if type_info.name in item_type_info.child_types
     ]
-
-
-def get_type_for_item_name(registry: Registry, item_name: str) -> TypeInfo:
-    collection = get_collection_for_item_name(registry, item_name)
-    return collection.type_info

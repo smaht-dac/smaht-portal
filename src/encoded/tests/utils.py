@@ -1,7 +1,8 @@
 from typing import Any, Dict, List, Optional, Union
 
 from dcicutils.misc_utils import to_snake_case
-from snovault import TYPES
+from pyramid.registry import Registry
+from snovault import Collection, COLLECTIONS, TYPES
 from snovault.typeinfo import AbstractTypeInfo, TypeInfo
 from webtest.app import TestApp
 
@@ -174,7 +175,7 @@ def get_functional_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
     return {
         type_name: type_info
         for type_name, type_info in all_item_types.items()
-        if not is_test_schema(type_name) and not is_abstract_type(type_info)
+        if not is_test_item(type_name) and not is_abstract_type(type_info)
     }
 
 
@@ -183,8 +184,8 @@ def get_all_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
     return test_app.app.registry.get(TYPES).by_item_type
 
 
-def is_test_schema(schema_name: str) -> bool:
-    return schema_name.startswith("test")
+def is_test_item(item_name: str) -> bool:
+    return item_name.startswith("test")
 
 
 def is_abstract_type(type_info: AbstractTypeInfo) -> bool:
@@ -195,3 +196,48 @@ def get_schema(test_app: TestApp, item_type: str) -> Dict[str, Any]:
     """Get schema for given item type."""
     item_types = get_all_item_types(test_app)
     return item_types[item_type].schema
+
+
+def has_property(schema: Dict[str, Any], property_name: str) -> bool:
+    """Check if schema has given property."""
+    return property_name in schema.get("properties", {})
+
+
+def get_unique_key(type_info: AbstractTypeInfo) -> str:
+    """Get unique key for given item type."""
+    type_collection = get_collection_for_type(type_info)
+    return get_unique_key_property_name(type_collection)
+
+
+def get_collection_for_type(type_info: AbstractTypeInfo) -> Collection:
+    """Get collection from type info.
+
+    Assumes existence of collection in registry.
+    """
+    type_name = type_info.name
+    registry = get_registry(type_info)
+    result = get_collection_for_item_name(registry, type_name)
+    return result
+
+
+def get_registry(type_info: TypeInfo) -> Registry:
+    return type_info.types.registry
+
+
+def get_collection_for_item_name(
+    registry: Registry, item_name: str
+) -> Union[Collection, None]:
+    return registry.get(COLLECTIONS, {}).get(item_name)
+
+
+def get_unique_key_property_name(collection: Collection) -> str:
+    """Get property name for unique key on collection, if defined.
+
+    Parse unique key from 'collection:unique_key' format, if required.
+    """
+    unique_key = collection.unique_key
+    if unique_key is None:
+        return ""
+    if ":" in unique_key:
+        return "".join(unique_key.split(":")[1:])
+    return unique_key
