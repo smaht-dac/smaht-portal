@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 import pytest
 from webtest.app import TestApp
 
-from .utils import get_item, patch_item, post_item, post_item_and_return_location
+from .utils import patch_item, post_item, post_item_and_return_location
 
 
 OUTPUT_FILE_FORMAT = "fastq"

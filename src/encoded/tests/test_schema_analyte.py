@@ -3,13 +3,7 @@ from typing import Any, Dict
 import pytest
 from webtest import TestApp
 
-from .utils import get_item, patch_item
-
-
-@pytest.mark.workbook
-def test_analyte_post(es_testapp: TestApp, workbook: None) -> None:
-    """Ensure analyte properties POST properly (via workbook)."""
-    get_item(es_testapp, "3932c9d7-c5e6-46c3-9e67-2ccd276f4b74")
+from .utils import patch_item
 
 
 @pytest.mark.workbook

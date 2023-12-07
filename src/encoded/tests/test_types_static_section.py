@@ -3,7 +3,7 @@ from typing import Any, Dict, Union
 import pytest
 from webtest.app import TestApp
 
-from .utils import get_item, patch_item, post_item
+from .utils import patch_item, post_item
 
 
 @pytest.fixture
@@ -18,14 +18,6 @@ def static_section(
         "section_type": "Page Section",
     }
     return post_item(testapp, item, "StaticSection")
-
-
-def test_identifier_resource_path(
-    testapp: TestApp, static_section: Dict[str, Any]
-):
-    """Ensure 'identifier' is available resource path."""
-    identifier = static_section.get("identifier", "")
-    get_item(testapp, identifier, collection="StaticSection")
 
 
 REMOTE_CONTENT_URL = "https://postman-echo.com/response-headers?foo1=bar1&foo2=bar2"

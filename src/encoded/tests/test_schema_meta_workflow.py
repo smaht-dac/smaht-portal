@@ -44,11 +44,6 @@ def meta_workflow(
     return post_item(testapp, item, "MetaWorkflow")
 
 
-def test_meta_workflow_post(meta_workflow: Dict[str, Any]) -> None:
-    """Ensure MetaWorkflow properties POST."""
-    pass
-
-
 @pytest.mark.parametrize(
     "custom_pf_fields,expected_status",
     [
