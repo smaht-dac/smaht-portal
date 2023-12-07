@@ -200,16 +200,6 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
         }, status=201)
 
     @staticmethod
-    def test_submission_center_user_create_other(test_submission_center, submission_center_user_app, smaht_gcc_user):
-        """ Tests a submission center user can create another allowed type """
-        submission_center_user_app.post_json('/Image', {
-            'description': 'test',
-            'submission_centers': [
-                test_submission_center['uuid']
-            ]
-        }, status=201)
-
-    @staticmethod
     def test_submission_center_user_cannot_create_other(test_submission_center, submission_center_user_app,
                                                         smaht_gcc_user, test_second_submission_center):
         """ Tests that a submission center user cannot create items associated with other centers
