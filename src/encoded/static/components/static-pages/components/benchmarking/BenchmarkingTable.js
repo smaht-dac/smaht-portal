@@ -110,7 +110,7 @@ const BenchmarkingAboveTableComponent = React.memo(
             href,
             searchHref,
         };
-        console.log('abovetablecomponent props', props);
+        // console.log('abovetablecomponent props', props);
 
         return (
             <div className="d-flex w-100 mb-05">

@@ -12,33 +12,10 @@ import {
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BenchmarkingTableController } from './BenchmarkingTable';
 import { navigate } from '../../../util';
-
-export const BenchmarkingUINav = (props) => {
-    const { href = '' } = props;
-
-    const urlParts = memoizedUrlParse(href);
-    const { path = '', hash = '' } = urlParts || {};
-
-    const currPath = `${path}${hash}`;
-
-    return (
-        <div className="w-100 benchmarking-nav">
-            <div>
-                <span className="text-small text-600">Cell Line Data</span>
-                <div>
-                    <BenchmarkingUINavCellLines {...{ currPath }} />
-                </div>
-            </div>
-            <hr />
-            <div>
-                <span className="text-small text-600">Primary Tissue Data</span>
-                <div>
-                    <BenchmarkingUINavPrimaryTissue {...{ currPath }} />
-                </div>
-            </div>
-        </div>
-    );
-};
+import {
+    BenchmarkingDataMap,
+    BenchmarkingDataKeys,
+} from './BenchmarkingDataMap';
 
 export const BenchmarkingLayout = ({
     schemas,
@@ -135,6 +112,47 @@ export const HashBasedTabController = ({
     );
 };
 
+export const BenchmarkingUINav = (props) => {
+    const { href = '' } = props;
+
+    const urlParts = memoizedUrlParse(href);
+    const { path = '', hash = '' } = urlParts || {};
+
+    const currPath = `${path}${hash}`;
+
+    const cellLinePages = BenchmarkingDataKeys.filter(
+        (key) => BenchmarkingDataMap[key].type === 'Cell Line Data'
+    );
+    const primaryTissuePages = BenchmarkingDataKeys.filter(
+        (key) => BenchmarkingDataMap[key].type === 'Primary Tissue Data'
+    );
+
+    return (
+        <div className="w-100 benchmarking-nav">
+            <div>
+                <span className="text-small text-600">Cell Line Data</span>
+                <div>
+                    <BenchmarkingUINavLinkGenerator
+                        {...{ currPath }}
+                        pages={cellLinePages}
+                        defaultActiveKey={'0'}
+                    />
+                </div>
+            </div>
+            <hr />
+            <div>
+                <span className="text-small text-600">Primary Tissue Data</span>
+                <div>
+                    <BenchmarkingUINavLinkGenerator
+                        {...{ currPath }}
+                        pages={primaryTissuePages}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // TODO: See if this can be consolidated with the one on the homepage
 function ContextAwareToggle({ children, eventKey, callback }) {
     const currentEventKey = useContext(AccordionContext);
@@ -165,152 +183,63 @@ function ContextAwareToggle({ children, eventKey, callback }) {
     );
 }
 
-const BenchmarkingUINavCellLines = (props) => {
-    const { currPath } = props;
-
+/**
+ * Generates Nav Links for a group of Pages
+ */
+const BenchmarkingUINavLinkGenerator = ({
+    currPath, // A string with the current page's path; used for determining active link
+    pages, // An array of strings corresponding to top-level keys in BenchmarkingDataMap
+    defaultActiveKey, // Passed directly into react-bootstrap accordion for the section
+}) => {
     return (
-        <BenchmarkingUINavWrapper defaultActiveKey={'1'}>
-            <BenchmarkingUINavDrop
-                eventKey="1"
-                {...{ currPath }}
-                href="/data/benchmarking/COLO829"
-                title="COLO829">
-                <ul>
-                    <BenchmarkingUINavLink
-                        title="COLO829T"
-                        cls="pl-2"
-                        {...{ currPath }}
-                        href="/data/benchmarking/COLO829#main"
-                    />
-                    <BenchmarkingUINavLink
-                        title="COLO829BL"
-                        cls="pl-2"
-                        {...{ currPath }}
-                        href="/data/benchmarking/COLO829#BL"
-                    />
-                    <BenchmarkingUINavLink
-                        title="1:10"
-                        cls="pl-2"
-                        {...{ currPath }}
-                        href="/data/benchmarking/COLO829#110"
-                    />
-                    <BenchmarkingUINavLink
-                        title="1:50"
-                        cls="pl-2"
-                        {...{ currPath }}
-                        href="/data/benchmarking/COLO829#150"
-                    />
-                    <BenchmarkingUINavLink
-                        title="1:200"
-                        cls="pl-2"
-                        {...{ currPath }}
-                        href="/data/benchmarking/COLO829#1200"
-                    />
-                </ul>
-            </BenchmarkingUINavDrop>
-            <BenchmarkingUINavLink
-                title="HapMap"
-                {...{ currPath }}
-                href="/data/benchmarking/HapMap"
-            />
-            <BenchmarkingUINavLink
-                title="iPSc & Fibroblasts"
-                {...{ currPath }}
-                href="/data/benchmarking/iPSC-fibroblasts"
-            />
-        </BenchmarkingUINavWrapper>
-    );
-};
-
-const BenchmarkingUINavPrimaryTissue = (props) => {
-    const { currPath } = props;
-    return (
-        <BenchmarkingUINavWrapper defaultActiveKey={'0'}>
-            <BenchmarkingUINavDrop eventKey="1" {...{ currPath }} title="Brain">
-                <ul>
-                    <BenchmarkingUINavLink
-                        title="Frontal Lobe"
-                        cls="pl-2"
-                        {...{ currPath }}
-                        href="/data/benchmarking/brain#frontal-lobe"
-                    />
-                    <BenchmarkingUINavLink
-                        title="Cerebellum"
-                        {...{ currPath }}
-                        cls="pl-2"
-                        href="/data/benchmarking/brain#cerebellum"
-                    />
-                    <BenchmarkingUINavLink
-                        title="Hippocampus"
-                        cls="pl-2"
-                        {...{ currPath }}
-                        href="/data/benchmarking/brain#hippocampus"
-                    />
-                    <BenchmarkingUINavLink
-                        title="Temporal Lobe"
-                        cls="pl-2"
-                        {...{ currPath }}
-                        href="/data/benchmarking/brain#temporal-lobe"
-                    />
-                    <BenchmarkingUINavLink
-                        title="Dendate Gyrus"
-                        cls="pl-2"
-                        {...{ currPath }}
-                        href="/data/benchmarking/brain#dendate-gyrus"
-                    />
-                </ul>
-            </BenchmarkingUINavDrop>
-            <BenchmarkingUINavDrop eventKey="2" {...{ currPath }} title="Skin">
-                <ul>
-                    <BenchmarkingUINavLink
-                        title="Sun Exposed"
-                        cls="pl-2"
-                        {...{ currPath }}
-                        href="/data/benchmarking/skin#sun-exposed"
-                    />
-                    <BenchmarkingUINavLink
-                        title="Non Sun Exposed"
-                        cls="pl-2"
-                        {...{ currPath }}
-                        href="/data/benchmarking/skin#non-sun-exposed"
-                    />
-                </ul>
-            </BenchmarkingUINavDrop>
-            <BenchmarkingUINavLink
-                title="Liver"
-                {...{ currPath }}
-                href="/data/benchmarking/liver"
-            />
-            <BenchmarkingUINavDrop eventKey="3" {...{ currPath }} title="Colon">
-                <ul>
-                    <BenchmarkingUINavLink
-                        title="Ascending"
-                        cls="pl-2"
-                        {...{ currPath }}
-                        href="/data/benchmarking/colon#ascending"
-                    />
-                    <BenchmarkingUINavLink
-                        {...{ currPath }}
-                        cls="pl-2"
-                        title="Descending"
-                        href="/data/benchmarking/colon#descending"
-                    />
-                </ul>
-            </BenchmarkingUINavDrop>
-            <BenchmarkingUINavLink
-                {...{ currPath }}
-                title="Heart"
-                href="/data/benchmarking/heart"
-            />
+        <BenchmarkingUINavWrapper {...{ defaultActiveKey }}>
+            {pages.map((page, i) => {
+                const {
+                    navBarTitle,
+                    path,
+                    tabMapArray = [],
+                } = BenchmarkingDataMap[page] || {};
+                if (tabMapArray.length > 1) {
+                    // Render nav drop and map for each child link
+                    return (
+                        <BenchmarkingUINavDrop
+                            key={page}
+                            eventKey={i.toString()}
+                            {...{ currPath }}
+                            title={navBarTitle}>
+                            <ul>
+                                {tabMapArray.map((obj) => (
+                                    <BenchmarkingUINavLink
+                                        key={obj.eventKey}
+                                        title={obj.title}
+                                        cls="pl-2"
+                                        {...{ currPath }}
+                                        href={path + obj.eventKey}
+                                    />
+                                ))}
+                            </ul>
+                        </BenchmarkingUINavDrop>
+                    );
+                } else {
+                    // Just render a single non-dropdown link
+                    return (
+                        <BenchmarkingUINavLink
+                            key={page}
+                            title={navBarTitle}
+                            {...{ currPath }}
+                            href={`${path}${
+                                tabMapArray[0] ? tabMapArray[0].eventKey : ''
+                            }`}
+                        />
+                    );
+                }
+            })}
         </BenchmarkingUINavWrapper>
     );
 };
 
 const BenchmarkingUINavWrapper = (props) => {
     const { defaultActiveKey, children } = props;
-    if (!defaultActiveKey) {
-        return null;
-    }
 
     return (
         <Accordion {...{ defaultActiveKey }}>
@@ -341,9 +270,6 @@ const BenchmarkingUINavLink = (props) => {
     const isActive = href === pageHref;
     const activeStyle = 'navlink-active';
     const inactiveStyle = '';
-
-    // console.log("href", href);
-    // console.log("pageHref", pageHref);
 
     return (
         <li className={`${isActive ? activeStyle : inactiveStyle}`}>

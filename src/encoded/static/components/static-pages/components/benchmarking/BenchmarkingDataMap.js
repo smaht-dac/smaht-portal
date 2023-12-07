@@ -1,7 +1,8 @@
 /**
  * Not sure it's worth converting this to json and running JSON.parse on every page...
- * Also nice to be able to include comments
+ * Also nice to be able to include comments, use consts, etc.
  */
+
 export const BenchmarkingDataMap = {
     COLO829: {
         navBarTitle: 'COLO829',
@@ -108,10 +109,10 @@ export const BenchmarkingDataMap = {
             },
         ],
     },
-    Liver: {
-        navBarTitle: 'Liver',
+    Lung: {
+        navBarTitle: 'Lung',
         type: 'Primary Tissue Data',
-        path: '/data/benchmarking/liver',
+        path: '/data/benchmarking/lung',
         tabMapArray: [
             {
                 eventKey: '#main',
@@ -150,3 +151,5 @@ export const BenchmarkingDataMap = {
         ],
     },
 };
+
+export const BenchmarkingDataKeys = Object.keys(BenchmarkingDataMap);
