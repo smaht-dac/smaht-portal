@@ -12,7 +12,17 @@ import {
     SearchTableTitle,
 } from './../../item-pages/components/EmbeddedItemSearchTable';
 import { YoutubeVideoEmbed } from '../components/YoutubeVideoEmbed';
-import { BenchmarkingUI, COLO829Data } from '../components/BenchmarkingUI';
+import {
+    BenchmarkingUI,
+    COLO829Data,
+    HapMapData,
+    IPSCFibroblastData,
+    BrainData,
+    SkinData,
+    LiverData,
+    ColonData,
+    HeartData,
+} from '../components/benchmarking';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -26,6 +36,13 @@ const placeholders = {
     Alluvial,
     BenchmarkingUI,
     COLO829Data,
+    HapMapData,
+    IPSCFibroblastData,
+    BrainData,
+    SkinData,
+    LiverData,
+    ColonData,
+    HeartData,
 };
 
 export const replaceString = memoize(
