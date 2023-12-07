@@ -71,7 +71,9 @@
             "default": "1"
         },
         "overall_quality_status": {
-            "$merge": "encoded_core:schemas/quality_metric.json#/properties/overall_quality_status",
+            "type": "string",
+            "title": "Overall Quality",
+            "description": "Overall QC decision",
             "enum": [
                 "Fail",
                 "Pass",
