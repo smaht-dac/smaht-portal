@@ -40,7 +40,7 @@ class SmahtSubmissionFolio:
                            local_filename=self.data_file_name) as data_file_name:
             yield data_file_name
 
-    def record_results(self, results: dict, summary: list) -> None:
+    def record_results(self, results: dict, validation_summary: list) -> None:
         """
         Records/writes the given results and summary (either successful load results or
         a description of any problems encountered) to S3 and to the IngestionSubmission
@@ -49,6 +49,9 @@ class SmahtSubmissionFolio:
         to the database; the summary is a list of (text lines) summarizing the
         submission, e.g. with counts for inserts, updates, etc.
         """
+        upload_info = results.get("upload_info")
+        results = {"result": results, "validation_output": validation_summary, "upload_info": upload_info}
+
         # object in the Portal database, accessible, for example, like this:
         # http://localhost:8000/ingestion-submissions/7da2f985-a6f7-4184-9544-b7439957617e?format=json
         # These results may be for success or for errors; this is what will get displayed,
