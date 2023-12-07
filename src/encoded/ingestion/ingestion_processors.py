@@ -52,7 +52,7 @@ def _summarize_errors(structured_data: StructuredDataSet, submission: SmahtSubmi
     def truncated_info(issues: list) -> dict:
         return {"truncated": True, "total": len(issues),
                 "more": len(issues) - max_issues_per_group, "details": submission.s3_details_location}
-    max_issues_per_group = 25
+    max_issues_per_group = 10
     result = {}
     if (reader_warnings := structured_data.reader_warnings):
         result["reader"] = reader_warnings[:max_issues_per_group]
