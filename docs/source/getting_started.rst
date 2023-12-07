@@ -70,7 +70,7 @@ Any of the following can be used to reference an existing item in an excel sheet
 
 * **accession** - Objects of some types (eg. Files, Analytes, Samples etc) are *accessioned*\ , e.g. SMAFI4723419.
 * **uuid** - Every item in our database is assigned a “uuid” upon its creation, e.g. “44d3cdd1-a842-408e-9a60-7afadca11575”.
-* **type/id** in a few cases object specific identifying terms are also available, eg. name of submission center or consortia
+* **type/id** in a few cases object specific identifying terms are also available, e.g. name of submission center or consortia
 
 .. list-table::
    :header-rows: 1
@@ -93,25 +93,14 @@ Any of the following can be used to reference an existing item in an excel sheet
      - test@test.com
 
 
-* Many of the objects that you may need for your submissions may already exist on the 4DN web site.
-* We encourage submitters to use existing database items as much as possible.
-* Common reusable items include:
-
-  * Vendors
-  * Enzymes
-  * Biosources
-  * Protocols
-
-* For example, if there is an existing biosource (e.g. accession 4DNSRV3SKQ8M for H1-hESC (Tier 1) ) for the new biosample you are creating, you should reference the existing one instead of creating a new one.
-
 Getting Added as a SMaHT User or Submitter
 ------------------------------------------
 
-Before you can view protected lab or project data or submit data to the SMaHT system you must be a registered user of the site and have the appropriate access credentials.
+Before you can view protected data or submit data to the SMaHT system you must be a registered user of the site and have the appropriate access credentials.
 
 
-* To view lab data that is still in the review phase you must be registered as a member of the lab that produced the data.
-* To submit metadata and files you must be designated as a submitter for a lab
+* To view data that is still in the review phase you must be registered as a member of the submission center that produced the data.
+* To submit metadata and files you must be designated as a submitter for a submission center
 * Most current SMaHT consortia members should already be registered in our system.
 
 For instructions on creating an account, please see `this page </help/user-guide/account-creation>`_.
@@ -128,24 +117,24 @@ Most metadata items have the following default permissions:
   * Once the data and metadata are complete and quality controlled, they will be released according to the data release policy adopted by the SMaHT consortia.
   * After release the data can no longer be edited by data submitters - contact the DAC to report data issues and we can work together to get them resolved
 
-Getting Connection Keys for the SMaHT Data Portal servers
----------------------------------------------------------
+Getting Access Keys for the SMaHT Data Portal servers
+-----------------------------------------------------
 
 If you have been designated as a submitter for the project and plan to use either our spreadsheet-based submission system or the REST-API an access key and a secret key are required to establish a connection to the DAC database and to fetch, upload (post), or change (patch) data. Please follow these steps to get your keys.
 
 
-#. Log in to the 4DN `website <https://data.smaht.org>`_ with your username (email) and password. If you have not yet created an account, see `this page </help/user-guide/account-creation>`_ for instructions.
+#. Log in to the SMaHT `website <https://data.smaht.org>`_ with your username (email) and password. If you have not yet created an account, see `this page </help/user-guide/account-creation>`_ for instructions.
 #. Once logged in, go to your ”Profile” page by clicking **Account** on the upper right side of the page.
 #. In your profile page, click the green “Add Access Key” button, and copy the “access key ID” and “secret access key” values from the pop-up page. *Note that once the pop-up page disappears you will not be able to see the secret access key value.* However, if you forget or lose your secret key you can always delete and add new access keys from your profile page at any time.
 #. Create a file to store this information.
 
    * The default parameters used by the submission software is to look for a file named ``~/.smaht-keys.json`` in your home directory.
    * However you can specify your own filename and file location as parameters to the software (see below).
-   * The key information is stored in json format and is used to establish a secure connection.
-   * the json must be formatted as shown below - replace key and secret with your new “Access Key ID” and “Secret Access Key”.
-   * You can use the same key and secret to use the 4DN `REST-API </help/user-guide/rest-api>`_.
+   * The key information is stored in JSON format and is used to establish a secure connection.
+   * the JSON must be formatted as shown below - replace key and secret with your new “Access Key ID” and “Secret Access Key”.
+   * You can use the same key and secret to use the SMaHT `REST-API </help/user-guide/rest-api>`_.
 
-**Sample content for keypairs.json**
+**Sample content for ~/.smaht-keys.json**
 
 .. code-block:: json
 
