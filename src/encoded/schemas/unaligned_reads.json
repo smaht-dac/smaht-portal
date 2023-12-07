@@ -9,7 +9,6 @@
         "file_format",
         "file_sets",
         "filename",
-        "reference_genome",
         "submission_centers",
         "submitted_id"
     ],
@@ -31,9 +30,6 @@
         },
         {
             "$ref": "mixins.json#/modified"
-        },
-        {
-            "$ref": "mixins.json#/reference_genome"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -82,7 +78,8 @@
         },
         "paired_with": {
             "description": "Link to associated paired-end file, if applicable",
-            "type": "string"
+            "type": "string",
+            "linkTo": "UnalignedReads"
         },
         "read_pair_number": {
             "description": "Read pair number, if paired-end",

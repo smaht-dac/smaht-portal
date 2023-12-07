@@ -64,6 +64,9 @@
         "last_modified": {
             "$merge": "encoded:schemas/mixins.json#/modified/last_modified"
         },
+        "read_pair_number": {
+            "$merge": "encoded:schemas/unaligned_reads.json#/properties/read_pair_number"
+        },
         "schema_version": {
             "$merge": "encoded:schemas/mixins.json#/schema_version/schema_version",
             "default": "1"

@@ -14,7 +14,10 @@ def post_item_and_return_location(testapp: TestApp, item: dict, collection: str)
 
 
 def post_item(
-    testapp: TestApp, post_body: Dict[str, Any], collection: str, status: int = 201
+    testapp: TestApp,
+    post_body: Dict[str, Any],
+    collection: str,
+    status: Union[int, List[int]] = 201,
 ) -> Dict[str, Any]:
     """POST content to collection."""
     resource_path = get_formatted_resource_path(collection)
@@ -25,7 +28,10 @@ def post_item(
 
 
 def patch_item(
-    testapp: TestApp, patch_body: Dict[str, Any], identifier: str, status: int = 200
+    testapp: TestApp,
+    patch_body: Dict[str, Any],
+    identifier: str,
+    status: Union[int, List[int]] = 200,
 ) -> Dict[str, Any]:
     """PATCH content to given item."""
     resource_path = get_formatted_resource_path(identifier)
@@ -33,6 +39,19 @@ def patch_item(
     if response.status_int == 200:
         return response.json["@graph"][0]
     return response.json
+
+
+def delete_item(testapp: TestApp, identifier: str, status: int = 200) -> Dict[str, Any]:
+    """Delete item with given identifier."""
+    set_status_deleted(testapp, identifier)
+    resource_path = get_formatted_resource_path(identifier, add_on="purge=True")
+    return testapp.delete_json(resource_path, status=status).json
+
+
+def set_status_deleted(testapp: TestApp, identifier: str) -> Dict[str, Any]:
+    """Set status of item with given identifier to deleted."""
+    resource_path = get_formatted_resource_path(identifier)
+    return patch_item(testapp, {"status": "deleted"}, resource_path)
 
 
 def get_item(
@@ -170,3 +189,9 @@ def is_test_schema(schema_name: str) -> bool:
 
 def is_abstract_type(type_info: AbstractTypeInfo) -> bool:
     return type_info.is_abstract
+
+
+def get_schema(test_app: TestApp, item_type: str) -> Dict[str, Any]:
+    """Get schema for given item type."""
+    item_types = get_all_item_types(test_app)
+    return item_types[item_type].schema
