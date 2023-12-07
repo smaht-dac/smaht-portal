@@ -1,11 +1,8 @@
 import React, { useContext, useState, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import {
-    BenchmarkingLayout,
-    BenchmarkingUINav,
-    HashBasedTabController,
-} from './BenchmarkingUI';
+import { BenchmarkingLayout, HashBasedTabController } from './BenchmarkingUI';
 import { BenchmarkingDataMap } from './BenchmarkingDataMap';
+import { BenchmarkingUINav } from './BenchmarkingNav';
 
 /**
  * In order to be used in static sections, the following componentes MUST be imported
