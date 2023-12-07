@@ -64,16 +64,37 @@ export const COLO829Data = ({ schemas, session, facets, href, context }) => {
         // Programmatically update hash
         navigate(path + tabKey, {
             skipRequest: true,
-            skipUpdateHref: false
+            inPlace: true,
+            skipUpdateHref: false,
         });
     };
 
     // On first mount, if hash is blank, redirect to main
     useEffect(() => {
         if (schemas && !hash) {
-            selectNewTab('#main');
+            navigate(path + "#main", {
+                skipRequest: true,
+                skipUpdateHref: false,
+            });
         }
     }, [schemas]);
+
+    // Schemas are loading, so hash won't be available yet
+    if (!schemas) {
+        return (
+            <div>
+                <h2>COLO829 Cell Line Data</h2>
+                <p className="readable mb-2">
+                    For benchmarking analysis, COLO829 (melanoma) is mixed with
+                    COLO829BL (lymphoblast), derived from the same individual,
+                    at known mixture ratios of 1:10, 1:50, and 1:200.
+                </p>
+                <div className="readable d-flex bg-light py-5">
+                    <i className="icon fas icon-spin icon-circle-notch icon-lg m-auto" />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div>
