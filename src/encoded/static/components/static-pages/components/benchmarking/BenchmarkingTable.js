@@ -13,7 +13,7 @@ import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/
 import { EmbeddedItemSearchTable } from '../../../item-pages/components/EmbeddedItemSearchTable';
 
 export const BenchmarkingTableController = (props) => {
-    // Mostly serves as an intermediar/wrapper HOC to make selectedItemsController methods
+    // Mostly serves as an intermediary/wrapper HOC to make selectedItemsController methods
     // and props available in BenchmarkingTable's aboveTableComponent
     const { searchHref, schemas, facets, session, href, context } = props;
 
@@ -27,6 +27,7 @@ export const BenchmarkingTableController = (props) => {
             currentAction={'multiselect'}>
             <BenchmarkingTable
                 {...{
+                    session,
                     searchHref,
                     schemas,
                     href,
