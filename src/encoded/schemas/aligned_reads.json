@@ -9,7 +9,7 @@
         "file_format",
         "file_sets",
         "filename",
-		"reference_genome",
+        "reference_genome",
         "submission_centers",
         "submitted_id"
     ],
