@@ -9,7 +9,7 @@
         "data_type",
         "file_format",
         "file_name",
-		"submitter_id"
+        "submitter_id"
     ],
     "anyOf": [
         {

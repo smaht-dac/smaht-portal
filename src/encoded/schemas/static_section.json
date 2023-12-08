@@ -60,6 +60,7 @@
     ],
     "identifyingProperties": [
         "aliases",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -69,9 +70,6 @@
         },
         {
             "$ref": "mixins.json#/attribution"
-        },
-        {
-            "$ref": "mixins.json#/category"
         },
         {
             "$ref": "mixins.json#/description"
@@ -102,14 +100,6 @@
         }
     ],
     "properties": {
-        "category": {
-            "items": {
-                "type": "string",
-                "enum": [
-                    "Page Section"
-                ]
-            }
-        },
         "identifier": {
             "pattern": "^([A-Za-z0-9-_]+[.])*[A-Za-z0-9-_]+$"
         },

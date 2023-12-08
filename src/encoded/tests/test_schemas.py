@@ -1,9 +1,10 @@
 import pytest
-import re
 
 from pkg_resources import resource_listdir
 from snovault import COLLECTIONS, TYPES
 from snovault.schema_utils import load_schema
+
+from .utils import pluralize_collection
 
 
 pytestmark = [pytest.mark.setone, pytest.mark.working, pytest.mark.schema, pytest.mark.indexing]
@@ -13,26 +14,6 @@ SCHEMA_FILES = [
     f for f in resource_listdir('encoded', 'schemas')
     if f.endswith('.json') and 'embeds' not in f
 ]
-
-
-def pluralize(name):
-    """ This is a special function used to pluralize in a somewhat random way, but kept for legacy reasons... """
-    name = name.replace("_", "-")
-    # deal with a few special cases explicitly
-    specials = ["consortium", "software"]
-    for sp in specials:
-        if name == "consortium":  # special case for consortium
-            return name
-        elif name == "software":
-            return name
-    # otherwise just add 's/es/ies'
-    if name.endswith("ly"):
-        return name[:-1] + "ies"
-    if name.endswith("sis"):
-        return name[:-2] + "es"
-    if name.endswith("s"):
-        return name + "es"
-    return name + "s"
 
 
 @pytest.fixture(scope='module')
@@ -82,7 +63,7 @@ def test_load_schema(schema, master_mixins, registry, testapp):
     assert loaded_schema
 
     typename = schema.replace('.json', '')
-    collection_names = [camel_case(typename), pluralize(typename)]
+    collection_names = [camel_case(typename), pluralize_collection(typename)]
 
     # TODO: add pattern field checks when applicable
 
