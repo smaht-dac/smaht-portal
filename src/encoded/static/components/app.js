@@ -265,18 +265,6 @@ export default class App extends React.PureComponent {
 
         console.info('BROWSER', browserInfo);
 
-        Alerts.queue({
-            style: 'danger',
-            message: (
-                <>
-                    <b>Attention Users:</b> This is an unofficial release of the
-                    SMaHT Data Portal, made available only to provide the access
-                    keys for metadata submission and testing. SMaHT data and
-                    additional information is coming soon.
-                </>
-            ),
-        });
-
         if (
             browserInfo &&
             typeof browserInfo.name === 'string' &&
@@ -396,7 +384,14 @@ export default class App extends React.PureComponent {
             // TODO: Remove this temporary alert in first official launch version in 2024
             Alerts.queue({
                 style: 'danger',
-                message: `This is an unofficial release of the SMaHT Data Portal made available only to provide the AWS Access Key for metadata submission and related testing purposes. SMaHT Data and additional information will be coming soon.`,
+                message: (
+                    <>
+                        <b>Attention Users:</b> This is an unofficial release of
+                        the SMaHT Data Portal, made available only to provide
+                        the access keys for metadata submission and testing.
+                        SMaHT data and additional information is coming soon.
+                    </>
+                ),
             });
         });
     }
