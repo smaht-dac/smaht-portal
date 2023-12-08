@@ -508,7 +508,7 @@ const SelectedItemsDownloadModal = function (props) {
 const ModalCodeSnippet = React.memo(function ModalCodeSnippet(props) {
     const { filename, session } = props;
     const htmlValue = (
-        <pre className="mb-15 d-md-inline curl-command">
+        <pre className="mb-15 curl-command">
             cut -f 1 <b>{filename}</b> | tail -n +3 | grep -v ^# | xargs -n 1
             curl -O -L
             {session ? (
