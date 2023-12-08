@@ -5,6 +5,7 @@ from .submitted_file import SubmittedFile
 
 @collection(
     name="variant-calls",
+    unique_key="submitted_id",
     properties={
         "title": "Variant Calls",
         "description": "Files containing variant calls",

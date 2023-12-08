@@ -4,19 +4,12 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "submitted_id"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
+        "instrument_model",
+        "platform",
+        "read_type",
+        "submission_centers",
+        "submitted_id",
+        "target_read_length"
     ],
     "identifyingProperties": [
         "accession",
@@ -33,6 +26,9 @@
         },
         {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/protocols"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -60,37 +56,20 @@
         "schema_version": {
             "default": "1"
         },
-        "category": {
-            "title": "Category",
-            "description": "Overall sequencing method type",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "enum": [
-                    "Short Read WGS",
-                    "Long Read WGS",
-                    "HiFi Long Read WGS",
-                    "UltraLong Long Read WGS",
-                    "RNA-Seq"
-                ]
-            }
-        },
         "instrument_model": {
             "title": "Instrument Model",
             "description": "Model of instrument used to obtain data",
             "type": "string",
             "enum": [
-                "Illumina NovaSeq",
-                "Illumina NovaSeq X",
-                "Illumina NovaSeq X Plus",
-                "Illumina NovaSeq 6000",
-                "PacBio Revio",
-                "Oxford Nanopore PromethION",
-                "Ultima Genomics UG100",
-                "10X Genomics Xenium",
-                "Ultralong Oxford Nanopore Promethion R10"
+                "NovaSeq",
+                "NovaSeq X",
+                "NovaSeq X Plus",
+                "NovaSeq 6000",
+                "Revio",
+                "PromethION",
+                "UG100",
+                "Xenium",
+                "Ultralong Promethion R10"
             ]
         },
         "platform": {
@@ -124,19 +103,14 @@
         "target_read_count": {
             "title": "Target Read Count",
             "description": "Expected read count for the sequencing",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0
         },
         "target_read_length": {
             "title": "Target Read Length",
             "description": "Expected read length for the sequencing",
             "type": "integer",
             "minimum": 0
-        },
-        "protocol": {
-            "title": "Protocol",
-            "description": "Links to associated protocol",
-            "type": "string",
-            "linkTo": "Protocol"
         }
     }
 }

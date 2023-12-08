@@ -5,20 +5,9 @@
     "type": "object",
     "required": [
         "donor",
+        "submission_centers",
         "submitted_id",
         "uberon_id"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
     ],
     "identifyingProperties": [
         "accession",
@@ -53,6 +42,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "sample_source.json#/properties"
         }
     ],
     "properties": {
@@ -110,22 +102,11 @@
             "type": "integer",
             "minimum": 0
         },
-        "samples_recovered": {
-            "title": "Samples Recovered",
-            "description": "Number of discrete samples recovered from the tissue",
-            "type": "integer",
-            "minimum": 0
-        },
         "size": {
             "title": "Size",
             "description": "Size of the tissue in cubic centimeters",
             "type": "number",
             "minimum": 0
-        },
-        "submitted_id": {
-            "title": "Submitted Id",
-            "description": "Unique, submitted identifier",
-            "type": "string"
         },
         "uberon_id": {
             "title": "Uberon Id",
@@ -148,7 +129,8 @@
         "donor": {
             "title": "Donor",
             "description": "Link to the associated donor",
-            "type": "string"
+            "type": "string",
+            "linkTo": "Donor"
         }
     }
 }

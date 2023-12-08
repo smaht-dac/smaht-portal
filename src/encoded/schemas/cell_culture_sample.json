@@ -4,21 +4,10 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "cell_culture",
         "preservation_type",
+        "sample_sources",
+        "submission_centers",
         "submitted_id"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
     ],
     "identifyingProperties": [
         "accession",
@@ -68,14 +57,15 @@
         "accession": {
             "accessionType": "CU"
         },
+        "sample_sources": {
+            "maxItems": 1,
+            "items": {
+                "type": "string",
+                "linkTo": "CellCulture"
+            }
+        },
         "schema_version": {
             "default": "1"
-        },
-        "cell_culture": {
-            "title": "Cell Culture",
-            "description": "Cell culture from which the sample derives",
-            "type": "string",
-            "linkTo": "CellCulture"
         }
     }
 }

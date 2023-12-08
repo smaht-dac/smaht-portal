@@ -150,7 +150,7 @@
                 "type": "string",
                 "linkTo": "Consortium"
             },
-            "serverDefault": "user_consortia"
+            "permission": "restricted_fields"
         }
     },
     "category": {
@@ -221,6 +221,7 @@
             "type": "string",
             "uniqueKey": true,
             "pattern": "^[A-Za-z0-9-_]+$",
+            "minLength": 2,
             "permission": "restricted_fields"
         }
     },
@@ -306,6 +307,17 @@
                         "description": "The input dimension increase from multiple runs of the source workflow (default: not set)",
                         "type": "integer"
                     },
+                    "gather_input": {
+                        "title": "Gather Input",
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "input_dimension": {
+                        "title": "Input Dimension",
+                        "description": "Extra input dimension other than that defined by scatter",
+                        "type": "integer",
+                        "minimum": 0
+                    },
                     "extra_dimension": {
                         "title": "Extra Dimension",
                         "description": "The extra input dimension increase other than that defined by gather (default: not set)",
@@ -385,6 +397,7 @@
             "description": "Name of the item",
             "type": "string",
             "pattern": "^[A-Za-z0-9-_]+$",
+            "minLength": 3,
             "comment": "Not for identifying name; use 'identifier' for that purpose."
         }
     },
@@ -431,11 +444,9 @@
     },
     "reference_genome": {
         "reference_genome": {
+            "title": "Reference Genome",
             "description": "Reference genome used for alignment",
             "type": "string",
-            "enum": [
-                "TBD"
-            ],
             "linkTo": "ReferenceGenome"
         }
     },
@@ -509,12 +520,11 @@
             "permission": "restricted_fields",
             "enum": [
                 "public",
-                "current",
-                "deleted",
-                "inactive",
+                "draft",
+                "released",
                 "in review",
                 "obsolete",
-                "shared"
+                "deleted"
             ]
         }
     },
@@ -554,7 +564,7 @@
             "title": "Submitter ID",
             "description": "Identifier on submission",
             "type": "string",
-            "uniqueKey": true
+            "uniqueKey": "submitted_id"
         }
     },
     "supplementary_files": {
@@ -626,7 +636,8 @@
         "title": {
             "title": "Title",
             "description": "Title for the item",
-            "type": "string"
+            "type": "string",
+            "minLength": 3
         }
     },
     "url": {
@@ -650,12 +661,31 @@
             "requestMethod": "POST"
         }
     },
+    "variant_type": {
+        "variant_type": {
+            "title": "Variant Type",
+            "description": "Variant types included in the file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Copy Number Variant",
+                    "Insertion-deletion",
+                    "Mobile Element Insertion",
+                    "Single Nucleotide Variant",
+                    "Structural Variant"
+                ]
+            }
+        }
+    },
     "version": {
         "version": {
             "title": "Version",
             "description": "Version for the item",
             "type": "string",
-            "pattern": "^[0-9]+.[0-9]+.[0-9]+$"
+            "pattern": "^([0-9]+.)*[0-9]+$"
         }
     }
 }

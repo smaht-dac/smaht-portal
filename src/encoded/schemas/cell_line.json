@@ -4,22 +4,10 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "category",
         "source",
+        "submission_centers",
         "submitted_id",
         "title"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
     ],
     "identifyingProperties": [
         "accession",
@@ -33,9 +21,6 @@
         },
         {
             "$ref": "mixins.json#/attribution"
-        },
-        {
-            "$ref": "mixins.json#/category"
         },
         {
             "$ref": "mixins.json#/description"
@@ -69,19 +54,6 @@
         "accession": {
             "accessionType": "CL"
         },
-        "category": {
-            "description": "Category of the cell line",
-            "items": {
-                "type": "string",
-                "enum": [
-                    "Primary",
-                    "Cancer Derived",
-                    "Immortalized",
-                    "Stem Cell Derived",
-                    "Induced Pluripotent Stem Cell"
-                ]
-            }
-        },
         "schema_version": {
             "default": "1"
         },
@@ -96,7 +68,8 @@
         "url": {
             "title": "Url",
             "description": "URL for vendor information on the cell line",
-            "type": "string"
+            "type": "string",
+            "format": "uri"
         }
     }
 }

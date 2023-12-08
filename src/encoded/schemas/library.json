@@ -5,31 +5,8 @@
     "type": "object",
     "required": [
         "analyte",
+        "submission_centers",
         "submitted_id"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
-    ],
-    "oneOf": [
-        {
-            "required": [
-                "protocol"
-            ]
-        },
-        {
-            "required": [
-                "library_preparation"
-            ]
-        }
     ],
     "identifyingProperties": [
         "accession",
@@ -46,6 +23,9 @@
         },
         {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/protocols"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -166,15 +146,11 @@
             "type": "number",
             "minimum": 0
         },
-        "name": {
-            "title": "Name",
-            "description": "Library identifier used during sequencing",
-            "type": "string"
-        },
         "preparation_date": {
             "title": "Preparation Date",
             "description": "Date of library preparation",
-            "type": "string"
+            "type": "string",
+            "format": "date"
         },
         "analyte": {
             "title": "Analyte",
@@ -187,12 +163,6 @@
             "description": "Link to associated library preparation",
             "type": "string",
             "linkTo": "LibraryPreparation"
-        },
-        "protocol": {
-            "title": "Protocol",
-            "description": "Link to associated protocol",
-            "type": "string",
-            "linkTo": "Protocol"
         }
     }
 }

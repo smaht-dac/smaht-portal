@@ -4,20 +4,9 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "submitted_id",
-        "tissue"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
+        "sample_sources",
+        "submission_centers",
+        "submitted_id"
     ],
     "identifyingProperties": [
         "accession",
@@ -64,16 +53,14 @@
         "accession": {
             "accessionType": "TS"
         },
+        "sample_sources": {
+            "items": {
+                "type": "string",
+                "linkTo": "Tissue"
+            }
+        },
         "schema_version": {
             "default": "1"
-        },
-        "homogenization_method": {
-            "title": "Homogenization method",
-            "description": "Method of sample homogenization, if applicable",
-            "type": "string",
-            "enum": [
-                "TBD"
-            ]
         },
         "tissue_location": {
             "title": "Tissue Location",
@@ -88,12 +75,6 @@
             "description": "Weight of the sample (mg)",
             "type": "number",
             "minimum": 0
-        },
-        "tissue": {
-            "title": "Tissue",
-            "description": "Tissue source for the sample",
-            "type": "string",
-            "linkTo": "Tissue"
         }
     }
 }

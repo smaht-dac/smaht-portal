@@ -1,0 +1,14 @@
+[
+    {
+        "uuid": "02d89f14-b83d-4992-b3ff-fd3a4c2ceb7b",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_THERAPEUTIC_DISEASE-MODIFIER",
+        "agent": "MONDO:0016668",
+        "diagnosis": "TEST_DIAGNOSIS_FEMALE",
+        "medical_history": "TEST_MEDICAL_FEMALE",
+        "dose": 5.5,
+        "dose_units": "mg"
+    }
+]

@@ -5,19 +5,8 @@
     "type": "object",
     "required": [
         "donor",
+        "submission_centers",
         "submitted_id"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
     ],
     "identifyingProperties": [
         "accession",
@@ -34,6 +23,9 @@
         },
         {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/protocols"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -185,12 +177,6 @@
             "description": "Link to the associated donor",
             "type": "string",
             "linkTo": "Donor"
-        },
-        "protocol": {
-            "title": "Protocol",
-            "description": "Link to associated protocol",
-            "type": "string",
-            "linkTo": "Protocol"
         }
     }
 }

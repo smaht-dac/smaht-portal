@@ -6,25 +6,22 @@
     "required": [
         "agent",
         "medical_history",
+        "submission_centers",
         "submitted_id"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
     ],
     "identifyingProperties": [
         "accession",
         "submitted_id",
         "uuid"
     ],
+    "dependentRequired": {
+        "dose": [
+            "dose_units"
+        ],
+        "dose_units": [
+            "dose"
+        ]
+    },
     "additionalProperties": false,
     "mixinProperties": [
         {

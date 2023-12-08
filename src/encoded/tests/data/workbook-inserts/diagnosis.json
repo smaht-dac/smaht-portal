@@ -1,0 +1,12 @@
+[
+    {
+        "uuid": "8facd971-c750-481a-971c-25026f35ecf7",
+        "submitted_id": "TEST_DIAGNOSIS_FEMALE",
+        "submission_centers": [
+            "smaht"
+        ],
+        "medical_history": "TEST_MEDICAL_FEMALE",
+        "disease": "MONDO:0016668",
+        "age_at_diagnosis": 5
+    }
+]

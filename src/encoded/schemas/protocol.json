@@ -4,24 +4,13 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "submitted_id",
+        "identifier",
+        "submission_centers",
         "version"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "submission_centers"
-            ]
-        },
-        {
-            "required": [
-                "consortia"
-            ]
-        }
     ],
     "identifyingProperties": [
         "accession",
-        "submitted_id",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -36,6 +25,12 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -46,9 +41,6 @@
         },
         {
             "$ref": "mixins.json#/submitted"
-        },
-        {
-            "$ref": "mixins.json#/submitted_id"
         },
         {
             "$ref": "mixins.json#/tags"

@@ -82,6 +82,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/version"
         }
     ],
     "properties": {
@@ -102,7 +105,7 @@
                     "Feature Annotation",
                     "Format Conversion",
                     "Quality Control",
-                    "Reads Manipulation",
+                    "Read Manipulation",
                     "Variant Annotation",
                     "Variant Calling",
                     "Variant Manipulation"
@@ -117,9 +120,6 @@
         },
         "source_url": {
             "$merge": "encoded_core:schemas/software.json#/properties/source_url"
-        },
-        "version": {
-            "$merge": "encoded_core:schemas/software.json#/properties/version"
         }
     }
 }

@@ -1,9 +1,19 @@
-import pytest
-import re
+from typing import Any, Dict
 
+import pytest
 from pkg_resources import resource_listdir
 from snovault import COLLECTIONS, TYPES
 from snovault.schema_utils import load_schema
+from webtest import TestApp
+
+from .utils import (
+    get_all_item_types,
+    get_functional_item_type_names,
+    get_item,
+    get_unique_key,
+    has_property,
+    pluralize_collection,
+)
 
 
 pytestmark = [pytest.mark.setone, pytest.mark.working, pytest.mark.schema, pytest.mark.indexing]
@@ -13,31 +23,6 @@ SCHEMA_FILES = [
     f for f in resource_listdir('encoded', 'schemas')
     if f.endswith('.json') and 'embeds' not in f
 ]
-
-
-def pluralize(name):
-    """ This is a special function used to pluralize in a somewhat random way, but kept for legacy reasons... """
-    name = name.replace("_", "-")
-    # deal with a few special cases explicitly
-    specials = [
-        "aligned-reads",
-        "death-circumstances",
-        "sequencing",
-        "software",
-        "unaligned-reads",
-        "variant-calls",
-    ]
-    if name in specials:
-        return name
-    if name.endswith("ry") or name.endswith("gy"):
-        return name[:-1] + "ies"
-    if name.endswith("sis"):
-        return name[:-2] + "es"
-    if name.endswith("ium"):
-        return name[:-2] + "a"
-    if name.endswith("s"):
-        return name + "es"
-    return name + "s"
 
 
 @pytest.fixture(scope='module')
@@ -82,7 +67,7 @@ def test_load_schema(schema, master_mixins, registry, testapp):
         'user_content.json',
         'preparation.json',
         'sample.json',
-        'subject.json',
+        'sample_source.json',
         'submitted_file.json',
     ]
 
@@ -90,7 +75,7 @@ def test_load_schema(schema, master_mixins, registry, testapp):
     assert loaded_schema
 
     typename = schema.replace('.json', '')
-    collection_names = [camel_case(typename), pluralize(typename)]
+    collection_names = [camel_case(typename), pluralize_collection(typename)]
 
     # TODO: add pattern field checks when applicable
 
@@ -194,3 +179,44 @@ def test_schema_version_present_on_items(app):
             assert int(schema_version) >= 1
         else:
             assert schema_version == ""
+
+
+@pytest.mark.workbook
+def test_schemas_represented_in_workbook_inserts(
+    es_testapp: TestApp, workbook: None
+) -> None:
+    """Ensure all relevant item types have examples in workbook inserts.
+
+    Provide baseline check that all schemas are 'functional' and allow
+    items to be POSTed.
+    """
+    item_types = get_functional_item_type_names(es_testapp)
+    for item_type in item_types:
+        collection_items = get_item(es_testapp, item_type)
+        assert collection_items
+
+
+def test_unique_keys_in_schemas(testapp: TestApp) -> None:
+    """Ensure unique keys actually present in schemas."""
+    for item_type, type_info in get_all_item_types(testapp).items():
+        unique_key = get_unique_key(type_info)
+        if unique_key:
+            assert has_property(type_info.schema, unique_key), (
+                f"Unique key {unique_key} not in schema for collection {item_type}"
+            )
+
+
+def test_unique_keys_are_identifying_properties(testapp: TestApp) -> None:
+    """Ensure unique keys are identifying properties."""
+    for item_type, type_info in get_all_item_types(testapp).items():
+        unique_key = get_unique_key(type_info)
+        if unique_key:
+            assert has_identifying_property(type_info.schema, unique_key), (
+                f"Expected {unique_key} as identifying property for {item_type}"
+            )
+
+
+def has_identifying_property(schema: Dict[str, Any], property_name: str) -> bool:
+    """Return True if schema has property_name property."""
+    identifying_properties = schema.get("identifyingProperties", [])
+    return property_name in identifying_properties
