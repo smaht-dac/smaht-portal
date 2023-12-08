@@ -1,8 +1,10 @@
 from typing import Any, Dict, Union
+from unittest import mock
 
 import pytest
 from webtest.app import TestApp
 
+from ..types import static_section as static_section_module
 from .utils import get_item, patch_item, post_item
 
 
@@ -51,10 +53,14 @@ def test_content(
 ) -> None:
     """Test 'content' calcprop retrieved from body, URL, or file.
 
-    Note: Relying on postman URL above and local file for these tests.
+    Note: Depends on local file for these tests, while remote content
+    mocked.
     """
-    response = patch_item(testapp, patch_body, static_section["uuid"])
-    assert response.get("content") == expected
+    with mock.patch.object(
+        static_section_module, "get_remote_file_contents", return_value=REMOTE_CONTENT
+    ):
+        response = patch_item(testapp, patch_body, static_section["uuid"], status=200)
+        assert response.get("content") == expected
 
 
 @pytest.mark.parametrize(
