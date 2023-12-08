@@ -2,7 +2,7 @@ from snovault import collection, load_schema
 from encoded_core.types.meta_workflow import MetaWorkflowRun as CoreMetaWorkflowRun
 
 from .acl import ONLY_ADMIN_VIEW_ACL
-from .base import Item as SmahtItem
+from .base import Item
 
 
 @collection(
@@ -12,7 +12,7 @@ from .base import Item as SmahtItem
         'title': 'MetaWorkflowRuns',
         'description': 'Listing of MetaWorkflowRuns',
     })
-class MetaWorkflowRun(SmahtItem, CoreMetaWorkflowRun):
+class MetaWorkflowRun(Item, CoreMetaWorkflowRun):
     item_type = 'meta_workflow_run'
     schema = load_schema("encoded:schemas/meta_workflow_run.json")
     embedded_list = []

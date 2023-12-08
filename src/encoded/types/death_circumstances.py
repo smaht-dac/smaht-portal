@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item as SmahtItem
+from .base import Item
 
 
 @collection(
@@ -11,7 +11,7 @@ from .base import Item as SmahtItem
         "description": "Details of a donor's death",
     },
 )
-class DeathCircumstances(SmahtItem):
+class DeathCircumstances(Item):
     item_type = "death_circumstances"
     schema = load_schema("encoded:schemas/death_circumstances.json")
     embedded_list = []

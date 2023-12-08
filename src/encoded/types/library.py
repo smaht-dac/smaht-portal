@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item as SmahtItem
+from .base import Item
 
 
 @collection(
@@ -11,7 +11,7 @@ from .base import Item as SmahtItem
         "description": "Sequencing libraries",
     },
 )
-class Library(SmahtItem):
+class Library(Item):
     item_type = "library"
     schema = load_schema("encoded:schemas/library.json")
     embedded_list = []
