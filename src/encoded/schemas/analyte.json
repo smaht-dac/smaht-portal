@@ -35,6 +35,9 @@
             "$ref": "mixins.json#/modified"
         },
         {
+            "$ref": "mixins.json#/protocols"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -145,20 +148,10 @@
             "minimum": 0
         },
         "analyte_preparation": {
+            "title": "Analyte Preparation",
             "description": "Link to associated analyte preparation",
             "type": "string",
             "linkTo": "AnalytePreparation"
-        },
-        "protocols": {
-            "title": "Protocols",
-            "description": "Link to associated protocols",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "Protocol"
-            }
         },
         "samples": {
             "title": "Samples",

@@ -6,9 +6,9 @@
     "required": [
         "cell_ontology_id",
         "preservation_type",
+        "sample_sources",
         "submission_centers",
-        "submitted_id",
-        "tissue"
+        "submitted_id"
     ],
     "identifyingProperties": [
         "accession",
@@ -69,12 +69,6 @@
             "description": "Cell Ontology identifier for the cell sample",
             "type": "string",
             "pattern": "^CL:[0-9]{7}$"
-        },
-        "tissue": {
-            "title": "Tissue",
-            "description": "Tissue source for the sample",
-            "type": "string",
-            "linkTo": "Tissue"
         },
         "parent_samples": {
             "title": "Parent Samples",

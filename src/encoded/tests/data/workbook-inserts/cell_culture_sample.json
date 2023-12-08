@@ -5,7 +5,9 @@
             "smaht"
         ],
         "submitted_id": "TEST_SAMPLE_HELA",
-        "cell_culture": "TEST_CELL-CULTURE_HELA",
+        "sample_sources": [
+            "TEST_CELL-CULTURE_HELA"
+        ],
         "preservation_type": "Frozen"
     }
 ]

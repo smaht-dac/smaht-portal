@@ -67,7 +67,7 @@ def test_load_schema(schema, master_mixins, registry, testapp):
         'user_content.json',
         'preparation.json',
         'sample.json',
-        'subject.json',
+        'sample_source.json',
         'submitted_file.json',
     ]
 

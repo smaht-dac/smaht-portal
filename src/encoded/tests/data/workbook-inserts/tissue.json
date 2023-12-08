@@ -9,7 +9,7 @@
         "uberon_id": "UBERON:0002107",
         "ischemic_time": 50,
         "ph": 6.7,
-        "samples_recovered": 7,
+        "sample_count": 7,
         "weight": 3.4
     }
 ]

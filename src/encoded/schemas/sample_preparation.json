@@ -55,6 +55,14 @@
         "schema_version": {
             "default": "1"
         },
+        "homogenization_method": {
+            "title": "Homogenization method",
+            "description": "Method of sample homogenization, if applicable",
+            "type": "string",
+            "enum": [
+                "TBD"
+            ]
+        },
         "preservation_method": {
             "title": "Preservation Method",
             "description": "Preservation method for subsequent analysis",

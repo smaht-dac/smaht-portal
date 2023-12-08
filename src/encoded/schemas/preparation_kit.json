@@ -45,6 +45,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/version"
         }
     ],
     "properties": {
@@ -62,11 +65,6 @@
         "vendor": {
             "title": "Vendor",
             "description": "Vendor of preparation kit",
-            "type": "string"
-        },
-        "version": {
-            "title": "Version",
-            "description": "Version of preparation kit",
             "type": "string"
         }
     }

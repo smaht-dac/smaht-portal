@@ -26,6 +26,9 @@
             "$ref": "mixins.json#/modified"
         },
         {
+            "$ref": "mixins.json#/protocols"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -56,21 +59,16 @@
             "description": "Links to associated libraries",
             "type": "array",
             "minItems": 1,
+            "maxItems": 1,
             "uniqueItems": true,
             "items": {
                 "type": "string",
                 "linkTo": "Library"
             }
         },
-        "protocol": {
-            "title": "Protocol",
-            "description": "Links to associated protocol",
-            "type": "string",
-            "linkTo": "Protocol"
-        },
         "sequencing": {
             "title": "Sequencing",
-            "description": "Link to associated sequencing ",
+            "description": "Link to associated sequencing",
             "type": "string",
             "linkTo": "Sequencing"
         }

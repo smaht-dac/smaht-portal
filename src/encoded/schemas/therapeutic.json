@@ -6,7 +6,7 @@
     "required": [
         "agent",
         "medical_history",
-	"submission_centers",
+        "submission_centers",
         "submitted_id"
     ],
     "identifyingProperties": [
@@ -14,6 +14,14 @@
         "submitted_id",
         "uuid"
     ],
+    "dependentRequired": {
+        "dose": [
+            "dose_units"
+        ],
+        "dose_units": [
+            "dose"
+        ]
+    },
     "additionalProperties": false,
     "mixinProperties": [
         {
