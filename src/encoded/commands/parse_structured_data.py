@@ -67,8 +67,18 @@ def main() -> None:
     structured_data = structured_data_set.data
     validation_errors = structured_data_set.validation_errors
 
-    PRINT(f"> Parsed Data:")
-    PRINT(json.dumps(structured_data, indent=4, default=str))
+    PRINT(f"> Data:")
+    PRINT("  ", end="")
+    if args.yaml:
+        x = yaml.dump(structured_data)
+        PRINT("\n  ".join(yaml.dump(structured_data).split("\n")))
+    else:
+        PRINT("\n  ".join(json.dumps(structured_data, indent=4, default=str).split("\n")))
+        PRINT()
+
+    PRINT("> Types:")
+    for type_name in structured_data_set.data:
+        PRINT(f"  {type_name}: {len(structured_data_set.data)} object{'s' if len(structured_data_set.data) != 1 else ''}")
 
     PRINT(f"\n> Files:")
     if files := structured_data_set.upload_files:
@@ -135,9 +145,10 @@ def main() -> None:
                                                    validate_only=args.validate_only)
         load_summary = summary_of_load_data_results(load_results)
         PRINT("\n> Load Summary:")
-        [PRINT(item) for item in load_summary]
+        [PRINT(f"  {item}") for item in load_summary]
         PRINT("\n> Load Results:")
-        PRINT(yaml.dump(load_results))
+        PRINT("  ", end="")
+        PRINT("\n  ".join(yaml.dump(load_results).split("\n")))
 
     if args.verbose:
         PRINT("\n> Done.")
@@ -222,6 +233,8 @@ def parse_args() -> argparse.Namespace:
                         default=False, help=f"Do not use schemes at all.")
     parser.add_argument("--novalidate", required=False, action="store_true",
                         default=False, help=f"Do not validate parsed data using JSON schema.")
+    parser.add_argument("--yaml", required=False, action="store_true",
+                        default=False, help=f"YAML (rather than JSON) output for loaded/displayed data.")
 
     parser.add_argument("--load", nargs="?", action=argparse_optional, const=True,
                         default=False, help=f"Load data into database (optionally specify .ini file to use).")
