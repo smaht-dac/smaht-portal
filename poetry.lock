@@ -75,17 +75,30 @@ requests = ">=0.14.0"
 
 [[package]]
 name = "awscli"
+<<<<<<< HEAD
 version = "1.31.4"
+=======
+version = "1.31.10"
+>>>>>>> main
 description = "Universal Command Line Environment for AWS."
 optional = false
 python-versions = ">= 3.7"
 files = [
+<<<<<<< HEAD
     {file = "awscli-1.31.4-py3-none-any.whl", hash = "sha256:8bdc96a346bfa1c6a856ab2aafd022871d4a6a5f95067c8b2e8dafd9aa5f9751"},
     {file = "awscli-1.31.4.tar.gz", hash = "sha256:b2dc2b0f463da342dd4720ac7d37a472a180c4cea5e5912dc3b933e9e21dea7d"},
 ]
 
 [package.dependencies]
 botocore = "1.33.4"
+=======
+    {file = "awscli-1.31.10-py3-none-any.whl", hash = "sha256:ce2f7ae11509eab778db40fc7b6a8dd39bc7755e4dc79a02c1c6847d296917de"},
+    {file = "awscli-1.31.10.tar.gz", hash = "sha256:26b16d18d7c7fe6a54b7c173b838fa454e4090f98668664028ea3297b12e2c99"},
+]
+
+[package.dependencies]
+botocore = "1.33.10"
+>>>>>>> main
 colorama = ">=0.2.5,<0.4.5"
 docutils = ">=0.10,<0.17"
 PyYAML = ">=3.10,<6.1"
@@ -112,17 +125,30 @@ lxml = ["lxml"]
 
 [[package]]
 name = "boto3"
+<<<<<<< HEAD
 version = "1.33.4"
+=======
+version = "1.33.10"
+>>>>>>> main
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">= 3.7"
 files = [
+<<<<<<< HEAD
     {file = "boto3-1.33.4-py3-none-any.whl", hash = "sha256:7668aef805fe53e487e3742cad0ffffe5fb62c3752514dd28ef81bad5ff0cb38"},
     {file = "boto3-1.33.4.tar.gz", hash = "sha256:f26391fce6fec478fa1ab92f1ea80e4d057dd6240cc6fbe4e38fb3fce4cc8026"},
 ]
 
 [package.dependencies]
 botocore = ">=1.33.4,<1.34.0"
+=======
+    {file = "boto3-1.33.10-py3-none-any.whl", hash = "sha256:8011445d95499ca9622d8d368ce469d51bc9e82a23b6edd6498f9ae57d69ce9e"},
+    {file = "boto3-1.33.10.tar.gz", hash = "sha256:407b26197aced386e7ce2327ca9199b506dcf248220cfb8fc89d06497dd4522b"},
+]
+
+[package.dependencies]
+botocore = ">=1.33.10,<1.34.0"
+>>>>>>> main
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.8.2,<0.9.0"
 
@@ -131,6 +157,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "boto3-stubs"
+<<<<<<< HEAD
 version = "1.33.4"
 description = "Type annotations for boto3 1.33.4 generated with mypy-boto3-builder 7.21.0"
 optional = false
@@ -138,6 +165,16 @@ python-versions = ">=3.7"
 files = [
     {file = "boto3-stubs-1.33.4.tar.gz", hash = "sha256:9fc68074d49ee1247bd94bf3525cfbf7eed10db5169d744cfb8730c056996023"},
     {file = "boto3_stubs-1.33.4-py3-none-any.whl", hash = "sha256:a5a43c2bfa06d3db4d00d487fc8c54d1b2902d798a752c0a1a4a204e10cdb5ee"},
+=======
+version = "1.33.10"
+description = "Type annotations for boto3 1.33.10 generated with mypy-boto3-builder 7.21.0"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "boto3-stubs-1.33.10.tar.gz", hash = "sha256:9e29024bcb6ac12c220d8ea5bfe79c532c92e0c1d1170c14217165e1a8b09218"},
+    {file = "boto3_stubs-1.33.10-py3-none-any.whl", hash = "sha256:61d07f445f88d5cca0a66e23dfd83611ff947bac08e01a64908df3605c22aabc"},
+>>>>>>> main
 ]
 
 [package.dependencies]
@@ -187,7 +224,11 @@ bedrock-agent = ["mypy-boto3-bedrock-agent (>=1.33.0,<1.34.0)"]
 bedrock-agent-runtime = ["mypy-boto3-bedrock-agent-runtime (>=1.33.0,<1.34.0)"]
 bedrock-runtime = ["mypy-boto3-bedrock-runtime (>=1.33.0,<1.34.0)"]
 billingconductor = ["mypy-boto3-billingconductor (>=1.33.0,<1.34.0)"]
+<<<<<<< HEAD
 boto3 = ["boto3 (==1.33.4)", "botocore (==1.33.4)"]
+=======
+boto3 = ["boto3 (==1.33.10)", "botocore (==1.33.10)"]
+>>>>>>> main
 braket = ["mypy-boto3-braket (>=1.33.0,<1.34.0)"]
 budgets = ["mypy-boto3-budgets (>=1.33.0,<1.34.0)"]
 ce = ["mypy-boto3-ce (>=1.33.0,<1.34.0)"]
@@ -526,13 +567,22 @@ xray = ["mypy-boto3-xray (>=1.33.0,<1.34.0)"]
 
 [[package]]
 name = "botocore"
+<<<<<<< HEAD
 version = "1.33.4"
+=======
+version = "1.33.10"
+>>>>>>> main
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">= 3.7"
 files = [
+<<<<<<< HEAD
     {file = "botocore-1.33.4-py3-none-any.whl", hash = "sha256:bbd96c211b670d17191d617423f3c4c277964eeb586a33b3759691c33904629d"},
     {file = "botocore-1.33.4.tar.gz", hash = "sha256:872decbc760c3b2942477cda905d4443bd8a97511dcee3e9ca09eeb9299ad5e2"},
+=======
+    {file = "botocore-1.33.10-py3-none-any.whl", hash = "sha256:9619609692a7f99f33093a305a0fb88ca5c83104f97ead3a4405b1e4ba6058f9"},
+    {file = "botocore-1.33.10.tar.gz", hash = "sha256:82be3da9ceac9d847d115a80f0a0dae020c3534ef88839ef907eb3205309fd4a"},
+>>>>>>> main
 ]
 
 [package.dependencies]
@@ -548,13 +598,22 @@ crt = ["awscrt (==0.19.17)"]
 
 [[package]]
 name = "botocore-stubs"
+<<<<<<< HEAD
 version = "1.33.4"
+=======
+version = "1.33.10"
+>>>>>>> main
 description = "Type annotations and code completion for botocore"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
+<<<<<<< HEAD
     {file = "botocore_stubs-1.33.4-py3-none-any.whl", hash = "sha256:0317f2895d7202d9407b41daa881549d00bf77a690a7870c88632970ef388fb1"},
     {file = "botocore_stubs-1.33.4.tar.gz", hash = "sha256:186b86331542f8c9a720e6b0611ccedaddb62b859620dfed377cee0a2be6a6a0"},
+=======
+    {file = "botocore_stubs-1.33.10-py3-none-any.whl", hash = "sha256:da0a300c8b198d0ebb09d89202c49f8a49a0f999a31adf0f8dd4421d16e79093"},
+    {file = "botocore_stubs-1.33.10.tar.gz", hash = "sha256:e1da62f089890220625f84906d1648da636f10b93a6aa4ebac9d8d21fe5e8427"},
+>>>>>>> main
 ]
 
 [package.dependencies]
@@ -921,20 +980,33 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "dcicsnovault"
+<<<<<<< HEAD
 version = "11.5.0.1b11"
+=======
+version = "11.5.0"
+>>>>>>> main
 description = "Storage support for 4DN Data Portals."
 optional = false
 python-versions = ">=3.8.1,<3.12"
 files = [
+<<<<<<< HEAD
     {file = "dcicsnovault-11.5.0.1b11-py3-none-any.whl", hash = "sha256:1a43fa0e4bae7dba42daba9b7976e4ad73f5d626835aa82d49303b98feed771f"},
     {file = "dcicsnovault-11.5.0.1b11.tar.gz", hash = "sha256:e4ffb434d5df72f688c7092acbd5cf71a63d7f935ceca30df48247180e4b513a"},
+=======
+    {file = "dcicsnovault-11.5.0-py3-none-any.whl", hash = "sha256:4921a7fb155251922424dfa971c15111d79c421003973ab075a8de6a0378afcc"},
+    {file = "dcicsnovault-11.5.0.tar.gz", hash = "sha256:d28f937da4b14af3a6be9222449e454382b3749e7f989bcfa8d6f7c2bbf9d960"},
+>>>>>>> main
 ]
 
 [package.dependencies]
 aws_requests_auth = ">=0.4.1,<0.5.0"
 boto3 = ">=1.28.62"
 botocore = ">=1.31.62"
+<<<<<<< HEAD
 dcicutils = "8.4.0.1b11"
+=======
+dcicutils = ">=8.4.0,<9.0.0"
+>>>>>>> main
 elasticsearch = "7.13.4"
 elasticsearch_dsl = ">=7.4.0,<8.0.0"
 future = ">=0.15.2,<1"
@@ -977,13 +1049,22 @@ xlrd = ">=1.0.0,<2.0.0"
 
 [[package]]
 name = "dcicutils"
+<<<<<<< HEAD
 version = "8.4.0.1b11"
+=======
+version = "8.4.0"
+>>>>>>> main
 description = "Utility package for interacting with the 4DN Data Portal and other 4DN resources"
 optional = false
 python-versions = ">=3.8,<3.12"
 files = [
+<<<<<<< HEAD
     {file = "dcicutils-8.4.0.1b11-py3-none-any.whl", hash = "sha256:02fcebf81b1890c80d3bf5e4a687453e50fced4e401a9d5c663138ddc32d59db"},
     {file = "dcicutils-8.4.0.1b11.tar.gz", hash = "sha256:22f4d3e0eea99bf43d3fbd24f220ddca48ec8563543dea675078fe8d6878407e"},
+=======
+    {file = "dcicutils-8.4.0-py3-none-any.whl", hash = "sha256:5d7c262f2e6d738e69e12c62a5d3f5afef71532133a4f8452a8074e76794818e"},
+    {file = "dcicutils-8.4.0.tar.gz", hash = "sha256:ff7212830eb00e173e321a0e2a89d1e16641f60b917a52069fd7d2d8e172f971"},
+>>>>>>> main
 ]
 
 [package.dependencies]
@@ -1097,21 +1178,35 @@ develop = ["coverage (<5.0.0)", "mock", "pytest (>=3.0.0)", "pytest-cov", "pytes
 
 [[package]]
 name = "encoded-core"
+<<<<<<< HEAD
 version = "0.3.0.1b11"
+=======
+version = "0.3.0"
+>>>>>>> main
 description = "Core data models for Park Lab ENCODE based projects"
 optional = false
 python-versions = ">=3.8.1,<3.12"
 files = [
+<<<<<<< HEAD
     {file = "encoded_core-0.3.0.1b11-py3-none-any.whl", hash = "sha256:ec7c304fbb2d1c99a25e7d4e460e559b297a77fe20d8a5dab1ade5da099d664e"},
     {file = "encoded_core-0.3.0.1b11.tar.gz", hash = "sha256:0324118445d507000c3b46a4c8529dad3d37f40d9daa1e7813d77f8c5245fa49"},
+=======
+    {file = "encoded_core-0.3.0-py3-none-any.whl", hash = "sha256:1ecbcedf7ea59cc0472ebc32b7e92af192d34c7c96fadee7051cab0c49e29800"},
+    {file = "encoded_core-0.3.0.tar.gz", hash = "sha256:88dae095695d07511dd2bc7fd06c5638e10d0ead57fbd14b060e2f18566c5fe9"},
+>>>>>>> main
 ]
 
 [package.dependencies]
 awscli = ">=1.29.62"
 boto3 = ">=1.28.62,<2.0.0"
 botocore = ">=1.31.62,<2.0.0"
+<<<<<<< HEAD
 dcicsnovault = "11.5.0.1b11"
 dcicutils = "8.4.0.1b11"
+=======
+dcicsnovault = ">=11.5.0,<12.0.0"
+dcicutils = ">=8.4.0,<9.0.0"
+>>>>>>> main
 elasticsearch = "7.13.4"
 plaster-pastedeploy = "0.6"
 psycopg2-binary = ">=2.9.3,<3.0.0"
@@ -1492,13 +1587,13 @@ format-nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-
 
 [[package]]
 name = "jsonschema-specifications"
-version = "2023.11.1"
+version = "2023.11.2"
 description = "The JSON Schema meta-schemas and vocabularies, exposed as a Registry"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "jsonschema_specifications-2023.11.1-py3-none-any.whl", hash = "sha256:f596778ab612b3fd29f72ea0d990393d0540a5aab18bf0407a46632eab540779"},
-    {file = "jsonschema_specifications-2023.11.1.tar.gz", hash = "sha256:c9b234904ffe02f079bf91b14d79987faa685fd4b39c377a0996954c0090b9ca"},
+    {file = "jsonschema_specifications-2023.11.2-py3-none-any.whl", hash = "sha256:e74ba7c0a65e8cb49dc26837d6cfe576557084a8b423ed16a420984228104f93"},
+    {file = "jsonschema_specifications-2023.11.2.tar.gz", hash = "sha256:9472fc4fea474cd74bea4a2b190daeccb5a9e4db2ea80efcf7a1b582fc9a81b8"},
 ]
 
 [package.dependencies]
@@ -2390,13 +2485,22 @@ ocsp = ["cryptography (>=36.0.1)", "pyopenssl (==20.0.1)", "requests (>=2.26.0)"
 
 [[package]]
 name = "referencing"
+<<<<<<< HEAD
 version = "0.31.1"
+=======
+version = "0.32.0"
+>>>>>>> main
 description = "JSON Referencing + Python"
 optional = false
 python-versions = ">=3.8"
 files = [
+<<<<<<< HEAD
     {file = "referencing-0.31.1-py3-none-any.whl", hash = "sha256:c19c4d006f1757e3dd75c4f784d38f8698d87b649c54f9ace14e5e8c9667c01d"},
     {file = "referencing-0.31.1.tar.gz", hash = "sha256:81a1471c68c9d5e3831c30ad1dd9815c45b558e596653db751a2bfdd17b3b9ec"},
+=======
+    {file = "referencing-0.32.0-py3-none-any.whl", hash = "sha256:bdcd3efb936f82ff86f993093f6da7435c7de69a3b3a5a06678a6050184bee99"},
+    {file = "referencing-0.32.0.tar.gz", hash = "sha256:689e64fe121843dcfd57b71933318ef1f91188ffb45367332700a86ac8fd6161"},
+>>>>>>> main
 ]
 
 [package.dependencies]
@@ -3212,13 +3316,13 @@ testing = ["coverage", "pytest (>=3.1.0)", "pytest-cov", "pytest-xdist"]
 
 [[package]]
 name = "websocket-client"
-version = "1.6.4"
+version = "1.7.0"
 description = "WebSocket client for Python with low level API options"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "websocket-client-1.6.4.tar.gz", hash = "sha256:b3324019b3c28572086c4a319f91d1dcd44e6e11cd340232978c684a7650d0df"},
-    {file = "websocket_client-1.6.4-py3-none-any.whl", hash = "sha256:084072e0a7f5f347ef2ac3d8698a5e0b4ffbfcab607628cadabc650fc9a83a24"},
+    {file = "websocket-client-1.7.0.tar.gz", hash = "sha256:10e511ea3a8c744631d3bd77e61eb17ed09304c413ad42cf6ddfa4c7787e8fe6"},
+    {file = "websocket_client-1.7.0-py3-none-any.whl", hash = "sha256:f4c3d22fec12a2461427a29957ff07d35098ee2d976d3ba244e688b8b4057588"},
 ]
 
 [package.extras]
@@ -3383,4 +3487,8 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
+<<<<<<< HEAD
 content-hash = "045f9dcdfc141f1ccd0a48d68613e32ca86378bf6563aa2fb9707128109f7052"
+=======
+content-hash = "dd289c7da4292766a50bdc49e53ee669789176c77d68380c1caf00a7696637d1"
+>>>>>>> main

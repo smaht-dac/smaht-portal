@@ -7,9 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+0.9.0
+=====
+
+* SMaHT ingestion related work.
+
+
 0.8.0
 =====
-* SMaHT ingestion related work.
+
+* Refactor schemas for increased sharing and less duplication
+* Update bioinformatics-related schemas based on feedback + testing
+* Update identifying properties in schemas for loadxl handling
+* Clean up unique keys for item types
+* Improve test coverage for schemas and types
 
 
 0.7.1
