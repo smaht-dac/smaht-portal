@@ -5,9 +5,6 @@
             "smaht"
         ],
         "submitted_id": "TEST_CELL-LINE_HELA",
-        "category": [
-            "Cancer Derived"
-        ],
         "source": "ATCC",
         "title": "HeLa",
         "url": "https://www.atcc.org/products/ccl-2"

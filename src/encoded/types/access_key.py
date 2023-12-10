@@ -14,7 +14,7 @@ from snovault.validators import validate_item_content_post
 
 from .acl import ALLOW_AUTHENTICATED_CREATE_ACL, ONLY_ADMIN_VIEW_ACL
 from .base import DELETED_ACL
-from .base import Item as SmahtItem
+from .base import Item
 
 
 @collection(
@@ -26,7 +26,7 @@ from .base import Item as SmahtItem
         "description": "Programmatic access keys",
     },
 )
-class AccessKey(SmahtItem, SnovaultAccessKey):
+class AccessKey(Item, SnovaultAccessKey):
     """AccessKey class."""
     ACCESS_KEY_EXPIRATION_TIME = 90  # days
     item_type = "access_key"
@@ -38,7 +38,7 @@ class AccessKey(SmahtItem, SnovaultAccessKey):
         "deleted": DELETED_ACL,
     }
 
-    class Collection(SmahtItem.Collection):
+    class Collection(Item.Collection):
         pass
 
     def __acl__(self) -> List[Tuple[str, str, List[str]]]:

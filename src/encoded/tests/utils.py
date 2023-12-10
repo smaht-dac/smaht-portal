@@ -1,6 +1,9 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from dcicutils.misc_utils import to_snake_case
+from pyramid.registry import Registry
+from snovault import Collection, COLLECTIONS, TYPES
+from snovault.typeinfo import AbstractTypeInfo, TypeInfo
 from webtest.app import TestApp
 
 
@@ -12,7 +15,10 @@ def post_item_and_return_location(testapp: TestApp, item: dict, collection: str)
 
 
 def post_item(
-    testapp: TestApp, post_body: Dict[str, Any], collection: str, status: int = 201
+    testapp: TestApp,
+    post_body: Dict[str, Any],
+    collection: str,
+    status: Union[int, List[int]] = 201,
 ) -> Dict[str, Any]:
     """POST content to collection."""
     resource_path = get_formatted_resource_path(collection)
@@ -23,7 +29,10 @@ def post_item(
 
 
 def patch_item(
-    testapp: TestApp, patch_body: Dict[str, Any], identifier: str, status: int = 200
+    testapp: TestApp,
+    patch_body: Dict[str, Any],
+    identifier: str,
+    status: Union[int, List[int]] = 200,
 ) -> Dict[str, Any]:
     """PATCH content to given item."""
     resource_path = get_formatted_resource_path(identifier)
@@ -33,12 +42,25 @@ def patch_item(
     return response.json
 
 
+def delete_item(testapp: TestApp, identifier: str, status: int = 200) -> Dict[str, Any]:
+    """Delete item with given identifier."""
+    set_status_deleted(testapp, identifier)
+    resource_path = get_formatted_resource_path(identifier, add_on="purge=True")
+    return testapp.delete_json(resource_path, status=status).json
+
+
+def set_status_deleted(testapp: TestApp, identifier: str) -> Dict[str, Any]:
+    """Set status of item with given identifier to deleted."""
+    resource_path = get_formatted_resource_path(identifier)
+    return patch_item(testapp, {"status": "deleted"}, resource_path)
+
+
 def get_item(
     testapp: TestApp,
     identifier: str,
     collection: Optional[str] = None,
     frame: Optional[str] = None,
-    status: Optional[int] = None,
+    status: Optional[Union[int, List[int]]] = None,
 ) -> Dict[str, Any]:
     """Get item view with given frame, following redirects."""
     add_on = get_frame_add_on(frame)
@@ -139,3 +161,83 @@ def assert_keys_conflict(response: Dict[str, Any]) -> None:
     """
     assert "HTTPConflict" in response.get("@type", [])
     assert response.get("detail", "").startswith("Keys conflict:")
+
+
+def get_functional_item_type_names(test_app: TestApp) -> List[str]:
+    """Get all non-test, non-abstract item type names (snake-cased)."""
+    functional_item_types = get_functional_item_types(test_app)
+    return functional_item_types.keys()
+
+
+def get_functional_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
+    """Get all non-test, non-abstract item types."""
+    all_item_types = get_all_item_types(test_app)
+    return {
+        type_name: type_info
+        for type_name, type_info in all_item_types.items()
+        if not is_test_item(type_name) and not is_abstract_type(type_info)
+    }
+
+
+def get_all_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
+    """Get all item types in test app registry."""
+    return test_app.app.registry.get(TYPES).by_item_type
+
+
+def is_test_item(item_name: str) -> bool:
+    return item_name.startswith("test")
+
+
+def is_abstract_type(type_info: AbstractTypeInfo) -> bool:
+    return type_info.is_abstract
+
+
+def get_schema(test_app: TestApp, item_type: str) -> Dict[str, Any]:
+    """Get schema for given item type."""
+    item_types = get_all_item_types(test_app)
+    return item_types[item_type].schema
+
+
+def has_property(schema: Dict[str, Any], property_name: str) -> bool:
+    """Check if schema has given property."""
+    return property_name in schema.get("properties", {})
+
+
+def get_unique_key(type_info: AbstractTypeInfo) -> str:
+    """Get unique key for given item type."""
+    type_collection = get_collection_for_type(type_info)
+    return get_unique_key_property_name(type_collection)
+
+
+def get_collection_for_type(type_info: AbstractTypeInfo) -> Collection:
+    """Get collection from type info.
+
+    Assumes existence of collection in registry.
+    """
+    type_name = type_info.name
+    registry = get_registry(type_info)
+    result = get_collection_for_item_name(registry, type_name)
+    return result
+
+
+def get_registry(type_info: TypeInfo) -> Registry:
+    return type_info.types.registry
+
+
+def get_collection_for_item_name(
+    registry: Registry, item_name: str
+) -> Union[Collection, None]:
+    return registry.get(COLLECTIONS, {}).get(item_name)
+
+
+def get_unique_key_property_name(collection: Collection) -> str:
+    """Get property name for unique key on collection, if defined.
+
+    Parse unique key from 'collection:unique_key' format, if required.
+    """
+    unique_key = collection.unique_key
+    if unique_key is None:
+        return ""
+    if ":" in unique_key:
+        return "".join(unique_key.split(":")[1:])
+    return unique_key

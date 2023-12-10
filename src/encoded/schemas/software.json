@@ -82,6 +82,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/version"
         }
     ],
     "properties": {
@@ -117,9 +120,6 @@
         },
         "source_url": {
             "$merge": "encoded_core:schemas/software.json#/properties/source_url"
-        },
-        "version": {
-            "$merge": "encoded_core:schemas/software.json#/properties/version"
         }
     }
 }

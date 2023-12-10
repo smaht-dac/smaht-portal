@@ -26,11 +26,6 @@ def static_section(
     return post_item(testapp, item, "StaticSection")
 
 
-def test_static_section_post(static_section: Dict[str, Any]) -> None:
-    """Ensure StaticSection properties POST."""
-    pass
-
-
 @pytest.mark.parametrize(
     "identifier,expected_status",
     [

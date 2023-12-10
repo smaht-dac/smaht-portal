@@ -42,6 +42,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "sample_source.json#/properties"
         }
     ],
     "properties": {
@@ -96,12 +99,6 @@
         "recovery_interval": {
             "title": "Recovery Interval",
             "description": "Total time interval of tissue recovery in minutes",
-            "type": "integer",
-            "minimum": 0
-        },
-        "samples_recovered": {
-            "title": "Samples Recovered",
-            "description": "Number of discrete samples recovered from the tissue",
             "type": "integer",
             "minimum": 0
         },

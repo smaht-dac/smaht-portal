@@ -1,7 +1,7 @@
 from snovault import collection, load_schema
 
 from .acl import ONLY_ADMIN_VIEW_ACL
-from .base import Item as SmahtItem
+from .base import Item
 
 
 @collection(
@@ -13,7 +13,7 @@ from .base import Item as SmahtItem
         "description": "Assembled genomes for sequencing alignment",
     },
 )
-class ReferenceGenome(SmahtItem):
+class ReferenceGenome(Item):
     item_type = "reference_genome"
     schema = load_schema("encoded:schemas/reference_genome.json")
     embedded_list = []

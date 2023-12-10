@@ -4,7 +4,7 @@ from encoded_core.types.file_format import FileFormat as CoreFileFormat
 from snovault import calculated_property, collection, display_title_schema, load_schema
 
 from .acl import ONLY_ADMIN_VIEW_ACL
-from .base import Item as SMAHTItem
+from .base import Item
 
 
 @collection(
@@ -15,7 +15,7 @@ from .base import Item as SMAHTItem
         'title': 'SMaHT File Format',
         'description': 'Listing of SMaHT File Formats',
     })
-class FileFormat(SMAHTItem, CoreFileFormat):
+class FileFormat(Item, CoreFileFormat):
     """ Overwrites the FileFormat type from encoded-core, customizing the schema for smaht-portal """
     item_type = 'file_format'
     schema = load_schema("encoded:schemas/file_format.json")

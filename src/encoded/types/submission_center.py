@@ -1,7 +1,7 @@
 from snovault import collection, load_schema
 
 from .acl import ONLY_ADMIN_VIEW_ACL
-from .base import Item as SMAHTItem
+from .base import Item
 
 
 @collection(
@@ -12,7 +12,7 @@ from .base import Item as SMAHTItem
         'title': 'Submission Centers',
         'description': 'Listing of Submission Centers',
     })
-class SubmissionCenter(SMAHTItem):
+class SubmissionCenter(Item):
     """ Submission Center class """
     item_type = 'submission_center'
     schema = load_schema('encoded:schemas/submission_center.json')

@@ -47,6 +47,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "sample_source.json#/properties"
         }
     ],
     "properties": {

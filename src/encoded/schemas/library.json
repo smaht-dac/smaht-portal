@@ -25,6 +25,9 @@
             "$ref": "mixins.json#/modified"
         },
         {
+            "$ref": "mixins.json#/protocols"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -160,12 +163,6 @@
             "description": "Link to associated library preparation",
             "type": "string",
             "linkTo": "LibraryPreparation"
-        },
-        "protocol": {
-            "title": "Protocol",
-            "description": "Link to associated protocol",
-            "type": "string",
-            "linkTo": "Protocol"
         }
     }
 }

@@ -1,7 +1,7 @@
 from snovault import collection, load_schema
 
 from .acl import ONLY_ADMIN_VIEW_ACL
-from .base import Item as SMAHTItem
+from .base import Item
 
 
 @collection(
@@ -13,7 +13,7 @@ from .base import Item as SMAHTItem
         "description": "Restricted vocabulary terms for an ontology",
     },
 )
-class OntologyTerm(SMAHTItem):
+class OntologyTerm(Item):
     item_type = "ontology_term"
     schema = load_schema("encoded:schemas/ontology_term.json")
     embedded_list = []

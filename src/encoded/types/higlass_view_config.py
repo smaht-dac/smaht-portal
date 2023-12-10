@@ -2,7 +2,7 @@ from snovault import collection, load_schema
 from encoded_core.types.higlass_view_config import HiglassViewConfig as CoreHiglassViewConfig
 
 from .acl import ONLY_ADMIN_VIEW_ACL
-from .base import Item as SMAHTItem
+from .base import Item
 
 
 @collection(
@@ -13,7 +13,7 @@ from .base import Item as SMAHTItem
         'title': 'HiGlass Displays',
         'description': 'Displays and view configurations for HiGlass',
     })
-class HiglassViewConfig(SMAHTItem, CoreHiglassViewConfig):
+class HiglassViewConfig(Item, CoreHiglassViewConfig):
     """
     Item type which contains a `view_config` property and other metadata.
     """

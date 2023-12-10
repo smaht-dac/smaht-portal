@@ -25,6 +25,9 @@
             "$ref": "mixins.json#/modified"
         },
         {
+            "$ref": "mixins.json#/protocols"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -174,12 +177,6 @@
             "description": "Link to the associated donor",
             "type": "string",
             "linkTo": "Donor"
-        },
-        "protocol": {
-            "title": "Protocol",
-            "description": "Link to associated protocol",
-            "type": "string",
-            "linkTo": "Protocol"
         }
     }
 }

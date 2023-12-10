@@ -5,7 +5,9 @@
             "smaht"
         ],
         "submitted_id": "TEST_SAMPLE_LIVER",
-        "tissue": "TEST_TISSUE_LIVER",
+        "sample_sources": [
+            "TEST_TISSUE_LIVER"
+        ],
         "weight": 800
     }
 ]
