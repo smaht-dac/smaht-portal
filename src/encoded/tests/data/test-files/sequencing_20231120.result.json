@@ -6,9 +6,6 @@
                 "ALT00001",
                 "ALT00002"
             ],
-            "category": [
-                "Short Read WGS"
-            ],
             "date_created": "2023-01-01T12:00:00Z",
             "display_title": "Sequencing Sample 1",
             "instrument_model": "NovaSeq",
@@ -17,7 +14,7 @@
                 "modified_by": "User2"
             },
             "platform": "Illumina",
-            "protocol": "Protocol1",
+            "protocols": ["Protocol1"],
             "read_type": "Paired-end",
             "schema_version": "1.2",
             "status": "in review",
@@ -37,9 +34,6 @@
         },
         {
             "accession": "SQ000002",
-            "category": [
-                "Long Read WGS"
-            ],
             "consortia": [
                 "Consortium1"
             ],
@@ -51,7 +45,7 @@
                 "modified_by": "User4"
             },
             "platform": "PacBio",
-            "protocol": "Protocol2",
+            "protocols": ["Protocol2"],
             "read_type": "Single-end",
             "schema_version": "1.1",
             "status": "in review",
@@ -71,9 +65,6 @@
         },
         {
             "accession": "SQ000003",
-            "category": [
-                "RNA-Seq"
-            ],
             "consortia": [
                 "Consortium2"
             ],
@@ -85,7 +76,7 @@
                 "modified_by": "User6"
             },
             "platform": "ONT",
-            "protocol": "Protocol3",
+            "protocols": ["Protocol3"],
             "read_type": "Not Applicable",
             "schema_version": "1.0",
             "status": "in review",
