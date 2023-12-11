@@ -24,9 +24,7 @@
     "CellLine": [
         {
             "submitted_id": "UW-GCC_CELL-LINE_COLO-829BL",
-            "category": [
-                "Immortalized"
-            ],
+            "category": "Immortalized",
             "name": "COLO 829BL",
             "source": "ATCC",
             "description": "COLO 829BL lymphoblastoid cells",
@@ -34,9 +32,7 @@
         },
         {
             "submitted_id": "UW-GCC_CELL-LINE_COLO-829T",
-            "category": [
-                "Immortalized"
-            ],
+            "category": "Immortalized",
             "name": "COLO 829",
             "source": "ATCC",
             "description": "COLO 829 tumor cells",
@@ -468,9 +464,7 @@
     "Sequencing": [
         {
             "submitted_id": "UW-GCC_SEQUENCING_PACBIO-HIFI-150x",
-            "category": [
-                "HiFi Long Read WGS"
-            ],
+            "category": "HiFi Long Read WGS",
             "platform": "PacBio",
             "instrument_model": "Revio",
             "instrument_cycles": "24 hr movie",
@@ -481,9 +475,7 @@
         },
         {
             "submitted_id": "UW-GCC_SEQUENCING_PACBIO-HIFI-60x",
-            "category": [
-                "HiFi Long Read WGS"
-            ],
+            "category": "HiFi Long Read WGS",
             "platform": "PacBio",
             "instrument_model": "Revio",
             "instrument_cycles": "24 hr movie",

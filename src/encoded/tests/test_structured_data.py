@@ -263,7 +263,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/Library/UW-GCC_LIBRARY_COLO-829T_FIBERSEQ_1",
             "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-150x",
             "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-60x",
-            "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS"
+            "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS",
+            "/UnalignedReads/<null>"
         ],
         "norefs": [
             "/FileFormat/BAM",
@@ -305,7 +306,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/Library/UW-GCC_LIBRARY_COLO-829T_FIBERSEQ_1",
             "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-150x",
             "/Sequencing/UW-GCC_SEQUENCING_PACBIO-HIFI-60x",
-            "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS"
+            "/Software/UW-GCC_SOFTWARE_FIBERTOOLS-RS",
+            "/UnalignedReads/<null>"
         ],
         "norefs": [
             "/FileFormat/<null>",

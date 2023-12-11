@@ -2,9 +2,7 @@
     "Software": [
         {
             "submitted_id": "UW-GCC_SOFTWARE_FIBERTOOLS-RS",
-            "category": [
-                "Base Modification Caller"
-            ],
+            "category": [ "Base Modification Caller" ],
             "name": "fibertools-rs",
             "version": "0.3.1",
             "source_url": "https://github.com/fiberseq/fibertools-rs",
@@ -12,9 +10,7 @@
         },
         {
             "submitted_id": "UW-GCC_SOFTWARE_REVIO_ICS",
-            "category": [
-                "Basecaller, consensus caller, base modification caller"
-            ],
+            "category": [ "Basecaller, consensus caller, base modification caller" ],
             "name": "Revio Instrument Control Software",
             "version": "12.0.0.183503",
             "source_url": "https://www.pacb.com/support/software-downloads/",
@@ -24,9 +20,7 @@
     "CellLine": [
         {
             "submitted_id": "UW-GCC_CELL-LINE_COLO-829BL",
-            "category": [
-                "Immortalized"
-            ],
+            "category": "Immortalized",
             "name": "COLO 829BL",
             "source": "ATCC",
             "description": "COLO 829BL lymphoblastoid cells",
@@ -34,9 +28,7 @@
         },
         {
             "submitted_id": "UW-GCC_CELL-LINE_COLO-829T",
-            "category": [
-                "Immortalized"
-            ],
+            "category": "Immortalized",
             "name": "COLO 829",
             "source": "ATCC",
             "description": "COLO 829 tumor cells",
@@ -468,9 +460,7 @@
     "Sequencing": [
         {
             "submitted_id": "UW-GCC_SEQUENCING_PACBIO-HIFI-150x",
-            "category": [
-                "HiFi Long Read WGS"
-            ],
+            "category": "HiFi Long Read WGS",
             "platform": "PacBio",
             "instrument_model": "Revio",
             "instrument_cycles": "24 hr movie",
@@ -481,9 +471,7 @@
         },
         {
             "submitted_id": "UW-GCC_SEQUENCING_PACBIO-HIFI-60x",
-            "category": [
-                "HiFi Long Read WGS"
-            ],
+            "category": "HiFi Long Read WGS",
             "platform": "PacBio",
             "instrument_model": "Revio",
             "instrument_cycles": "24 hr movie",
