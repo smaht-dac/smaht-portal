@@ -1,0 +1,20 @@
+[
+    {
+        "uuid": "cca15caa-bc11-4a6a-8998-ea0c69df8b9d",
+        "data_category": [
+            "Sequencing Reads"
+        ],
+        "data_type": [
+            "Aligned Reads"
+        ],
+        "file_format": "BAM",
+        "extra_files": [
+            {
+                "file_format": "BAI"
+            }
+        ],
+        "consortia": [
+            "smaht"
+        ]
+    }
+]

@@ -1,0 +1,13 @@
+[
+    {
+        "uuid": "a311f4f4-5bbb-4be7-975a-f5b7ec7585bc",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_SAMPLE_LIVER",
+        "sample_sources": [
+            "TEST_TISSUE_LIVER"
+        ],
+        "weight": 800
+    }
+]

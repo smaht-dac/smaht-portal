@@ -1,0 +1,13 @@
+[
+    {
+        "uuid": "8dadf6b4-1f22-414c-ab8e-dafee49370f4",
+        "submitted_id": "TEST_DEMOGRAPHIC_FEMALE",
+        "submission_centers": [
+            "smaht"
+        ],
+        "donor": "TEST_DONOR_FEMALE",
+        "city_of_birth": "Oxford",
+        "ethnicity": "Not Reported",
+        "race": "Asian"
+    }
+]

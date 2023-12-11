@@ -27,11 +27,6 @@ def user(
     return post_item(testapp, item, "User")
 
 
-def test_user_post(user: Dict[str, Any]) -> None:
-    """Ensure User properties POST."""
-    pass
-
-
 def test_email_unique(testapp: TestApp, user: Dict[str, Any]) -> None:
     """Ensure email is unique across users."""
     item_with_duplicate_email = {

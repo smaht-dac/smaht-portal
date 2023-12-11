@@ -1,0 +1,24 @@
+[
+    {
+        "uuid": "35f2299b-86e8-47e1-96a3-c5a5ec5d49a6",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE_VCF",
+        "data_category": [
+            "Variant Calls"
+        ],
+        "data_type": [
+            "Germline Variants"
+        ],
+        "file_format": "VCF",
+        "filename": "some_vcf.vcf",
+        "file_sets": [
+            "TEST_FILE-SET_LIVER"
+        ],
+        "reference_genome": "GRCh38",
+        "variant_type": [
+            "Single Nucleotide Variant"
+        ]
+    }
+]

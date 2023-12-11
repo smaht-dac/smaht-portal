@@ -1,0 +1,90 @@
+{
+    "title": "Sample",
+    "$id": "/profiles/sample.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "submission_centers",
+        "submitted_id"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/protocols"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "SA"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "preservation_medium": {
+            "title": "Preservation Medium",
+            "description": "Medium used for sample preservation",
+            "type": "string",
+            "enum": [
+                "TBD"
+            ]
+        },
+        "preservation_type": {
+            "title": "Preservation Type",
+            "description": "Method of sample preservation",
+            "type": "string",
+            "enum": [
+                "Fresh",
+                "Frozen"
+            ]
+        },
+        "sample_preparation": {
+            "title": "Sample Preparation",
+            "description": "Link to associated sample preparation",
+            "type": "string",
+            "linkTo": "SamplePreparation"
+        },
+        "sample_sources": {
+            "title": "Sample Sources",
+            "description": "Link to associated sample sources",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "SampleSource"
+            }
+        }
+    }
+}
