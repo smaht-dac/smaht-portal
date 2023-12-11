@@ -564,7 +564,8 @@
             "title": "Submitter ID",
             "description": "Identifier on submission",
             "type": "string",
-            "uniqueKey": "submitted_id"
+            "uniqueKey": "submitted_id",
+			"pattern": "^[A-Z-]{3,}_[A-Z-]{3,}_[A-Z0-9-.]{3,}$"
         }
     },
     "supplementary_files": {

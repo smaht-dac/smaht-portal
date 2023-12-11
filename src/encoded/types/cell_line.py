@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item
+from .base import SubmittedItem
 
 
 @collection(
@@ -11,7 +11,7 @@ from .base import Item
         "description": "Cell lines",
     },
 )
-class CellLine(Item):
+class CellLine(SubmittedItem):
     item_type = "cell_line"
     schema = load_schema("encoded:schemas/cell_line.json")
     embedded_list = []

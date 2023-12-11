@@ -62,7 +62,8 @@ def remote_user_testapp(app, remote_user: str) -> TestApp:
     return TestApp(app, environ)
 
 
-TEST_SUBMISSION_CENTER_CODE = 'SMAHT-TEST'
+TEST_SUBMISSION_CENTER_CODE = 'TEST'
+TEST_SECOND_SUBMISSION_CENTER_CODE = 'SECOND-TEST'
 
 
 @pytest.fixture
@@ -71,7 +72,7 @@ def test_submission_center(testapp):
     item = {
         'identifier': 'SMaHTTestGCC',
         'title': 'SMaHT Test GCC',
-        'submitter_code': TEST_SUBMISSION_CENTER_CODE,
+        'submitted_id_code': TEST_SUBMISSION_CENTER_CODE,
     }
     return post_item_and_return_location(testapp, item, 'submission_center')
 
@@ -81,7 +82,8 @@ def test_second_submission_center(testapp):
     """ Tests the posting of a submission center """
     item = {
         'identifier': 'SecondSMaHTTestGCC',
-        'title': 'Second SMaHT Test GCC'
+        'title': 'Second SMaHT Test GCC',
+        'submitted_id_code': TEST_SECOND_SUBMISSION_CENTER_CODE,
     }
     return post_item_and_return_location(testapp, item, 'submission_center')
 

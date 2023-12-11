@@ -64,8 +64,8 @@
             "type": "string",
             "linkTo": "User"
         },
-        "submitter_code": {
-            "title": "Submitter Code",
+        "submitted_id_code": {
+            "title": "Submitted ID Code",
             "description": "Identifying code for the submission center's submitted items",
             "type": "string",
             "unique_key": true,

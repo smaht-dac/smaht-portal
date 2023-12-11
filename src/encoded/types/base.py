@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+from dcicutils.lang_utils import disjoined_list
 from dcicutils.misc_utils import PRINT
 from pyramid.request import Request
 from pyramid.view import view_config
@@ -26,6 +27,7 @@ from snovault.validators import (
 )
 
 from . import acl
+from .utils import get_item, get_properties
 from ..local_roles import DEBUG_PERMISSIONS
 
 
@@ -340,7 +342,12 @@ def validate_submitted_id_on_add(
     context: SubmittedSmahtCollection,
     request: Request,
 ) -> None:
-    properties = get_properties_from_request(request)
+    """Validate submitted_id on POST.
+
+    Ensure submission center code and item name are correctly formatted
+    and valid.
+    """
+    properties = get_properties(request)
     submitted_id = get_submitted_id(properties)
     submission_centers = get_submission_centers(properties)
     validation_error = validate_submitted_id(request, submitted_id, submission_centers)
@@ -356,39 +363,46 @@ def get_submission_centers(properties: Dict[str, Any]) -> List[str]:
     return properties.get("submission_centers", [])
 
 
-def get_properties_from_request(request: Request) -> Dict[str, Any]:
-    return request.json
+def get_submitted_id_code(properties: Dict[str, Any]) -> str:
+    return properties.get("submitted_id_code", "")
 
 
 def validate_submitted_id(
     request: Request, submitted_id: str, submission_centers: List[str]
 ) -> Union[ValidationFailure, None]:
-    if not submitted_id or not submission_centers:
-        return get_missing_data_validation_failure(submitted_id, submission_centers)
-    return validate_submitted_id_submission_center_code(
-        request, submitted_id, submission_centers
-    )
-
-
-def get_missing_data_validation_failure(
-    submitted_id: str, submission_centers: List[str]
-) -> ValidationFailure:
-    return ValidationFailure("", "", "")
-
-
-def validate_submitted_id_submission_center_code(
-    request: Request, submitted_id: str, submission_centers: List[str]
-) -> Union[ValidationFailure, None]:
+    """Validate submitted_id for given submission centers."""
     submitted_id_submission_center_code = get_submitted_id_submission_center_code(
         submitted_id
     )
     submission_center_codes = get_submission_center_codes(request, submission_centers)
     if submitted_id_submission_center_code not in submission_center_codes:
-        return ValidationFailure("", "", "")
+        code_options = disjoined_list(
+            submission_center_codes, oxford_comma=True, nothing=""
+        )
+        return get_submitted_id_validation_error(submitted_id, code_options)
     return
 
 
+def get_submitted_id_validation_error(
+    submitted_id: str, code_options: str
+) -> ValidationFailure:
+    return ValidationFailure(
+        location="submitted_id",
+        name="Submission Code Mismatch",
+        description=(
+            f"Submitted ID {submitted_id} does not match options for given"
+            f" submission centers: {code_options}."
+        ),
+    )
+
+
 def get_submitted_id_submission_center_code(submitted_id: str) -> str:
+    """Get submission center code from submitted_id.
+
+    Strongly assumes submitted ID starts with
+    '{submission_center_code}_' and that the submission center code
+    lacks underscores.
+    """
     split_submitted_id = submitted_id.split("_")
     if split_submitted_id:
         return split_submitted_id[0]
@@ -398,34 +412,27 @@ def get_submitted_id_submission_center_code(submitted_id: str) -> str:
 def get_submission_center_codes(
     request: Request, submission_centers: List[str]
 ) -> List[str]:
-    submission_center_properties = [
-        get_submission_center(request, submission_center)
+    """Get submission center codes for given submission centers."""
+    submission_center_codes = [
+        get_submitted_id_code(get_item(request, submission_center))
         for submission_center in submission_centers
     ]
-    return [
-        properties.get("submitter_code") for properties in submission_center_properties
-    ]
-
-
-def get_submission_center(request: Request, submission_center: str) -> Dict[str, Any]:
-    return get_item_properties_via_request(
-        request, submission_center, collection="SubmissionCenter"
-    )
+    return [code for code in submission_center_codes if code]
 
 
 def validate_submitted_id_on_edit(
     context: SubmittedItem,
     request: Request,
 ) -> None:
-    import pdb; pdb.set_trace()
-    existing_properties = get_properties_from_context(context)
-    properties_to_update = get_properties_from_request(request)
+    """Validate submitted_id on PUT/PATCH."""
+    existing_properties = get_properties(context)
+    properties_to_update = get_properties(request)
     if does_update_require_validation(properties_to_update):
         submitted_id = get_submitted_id_for_validation(
             existing_properties, properties_to_update
         )
         submission_centers = get_submission_centers_for_validation(
-            properties_to_update, existing_properties
+            existing_properties, properties_to_update
         )
         validation_error = validate_submitted_id(
             request, submitted_id, submission_centers
@@ -434,8 +441,36 @@ def validate_submitted_id_on_edit(
             raise validation_error
 
 
-def get_properties_from_context(context: SubmittedItem) -> Dict[str, Any]:
-    return context.properties
+def does_update_require_validation(update_properties: Dict[str, Any]) -> bool:
+    """Determine if update requires validation."""
+    return any(
+        [get_submitted_id(update_properties), get_submission_centers(update_properties)]
+    )
+
+
+def get_submitted_id_for_validation(
+    existing_properties: Dict[str, Any], update_properties: Dict[str, Any]
+) -> str:
+    """Get submitted_id for validation.
+
+    If submitted_id is being updated, use the updated value.
+    Otherwise, use the existing value.
+    """
+    return get_submitted_id(update_properties) or get_submitted_id(existing_properties)
+
+
+def get_submission_centers_for_validation(
+    existing_properties: Dict[str, Any], update_properties: Dict[str, Any]
+) -> List[str]:
+    """Get submission_centers for validation.
+
+    If submission_centers is being updated, use the updated value.
+    Otherwise, use the existing value.
+    """
+    return (
+        get_submission_centers(update_properties)
+        or get_submission_centers(existing_properties)
+    )
 
 
 @view_config(
