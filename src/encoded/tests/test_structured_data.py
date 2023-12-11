@@ -409,8 +409,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             "/Software/Software1", "/Software/Software2", "/Software/Software3", "/Software/Software4", "/Software/Software5", "/Software/Software6",
             "/SubmissionCenter/Center1", "/SubmissionCenter/Center2", "/SubmissionCenter/Center3", "/User/User1",
             "/User/User2", "/User/User3", "/User/User4", "/User/User5", "/User/User6",
-            "/FileFormat/BAM", "/FileFormat/CRAM", "/FileFormat/FASTQ",
-            "/ReferenceGenome/refgenome1", "/ReferenceGenome/refgenome2"
+            "/FileFormat/BAM", "/FileFormat/CRAM", "/FileFormat/FASTQ"
         ],
         "norefs": SAME_AS_EXPECTED_REFS
     },

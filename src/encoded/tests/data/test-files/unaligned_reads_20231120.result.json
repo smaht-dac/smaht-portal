@@ -12,7 +12,6 @@
             "date_created": "2023-01-01T12:00:00Z",
             "description": "Unaligned Reads Sample 1 Description",
             "file_format": "BAM",
-            "file_name": "sample1.bam",
             "file_sets": [
                 "FileSet1"
             ],
@@ -37,7 +36,6 @@
             ],
             "submitted_by": "User1",
             "submitted_id": "URS12345",
-            "reference_genome": "refgenome1",
             "tags": [
                 "tag1",
                 "tag2"
@@ -55,7 +53,6 @@
             "date_created": "2023-02-01T15:45:00Z",
             "description": "Unaligned Reads Sample 2 Description",
             "file_format": "CRAM",
-            "file_name": "sample2.cram",
             "file_sets": [
                 "FileSet2"
             ],
@@ -80,7 +77,6 @@
             ],
             "submitted_by": "User3",
             "submitted_id": "URS67890",
-            "reference_genome": "refgenome2",
             "tags": [
                 "tag3",
                 "tag4"
@@ -98,7 +94,6 @@
             "date_created": "2023-03-01T09:15:00Z",
             "description": "Unaligned Reads Sample 3 Description",
             "file_format": "FASTQ",
-            "file_name": "sample3.fastq",
             "file_sets": [
                 "FileSet3"
             ],
@@ -123,7 +118,6 @@
             ],
             "submitted_by": "User5",
             "submitted_id": "URS54321",
-            "reference_genome": "refgenome1",
             "tags": [
                 "tag5",
                 "tag6"
