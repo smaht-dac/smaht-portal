@@ -10,8 +10,10 @@ from snovault.typeinfo import AbstractTypeInfo, TypeInfo
 from webtest.app import TestApp
 
 
-def post_item_and_return_location(testapp: TestApp, item: dict, collection: str) -> dict:
-    """ Posts item metadata to resource_path using testapp and return a dict response containing the location """
+def post_item_and_return_location(
+    testapp: TestApp, item: dict, collection: str
+) -> dict:
+    """Posts item metadata to resource_path using testapp and return a dict response containing the location"""
     resource_path = get_formatted_resource_path(collection)
     res = testapp.post_json(resource_path, item)
     return testapp.get(res.location).json
@@ -289,8 +291,11 @@ def get_conditional_requirements(
 ) -> List[str]:
     """Get required fields from conditional properties."""
     return [
-        required_key for entry in conditional_options for key, value in entry.items()
-        for required_key in value if key == "required"
+        required_key
+        for entry in conditional_options
+        for key, value in entry.items()
+        for required_key in value
+        if key == "required"
     ]
 
 
