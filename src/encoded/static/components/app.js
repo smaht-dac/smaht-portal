@@ -387,9 +387,9 @@ export default class App extends React.PureComponent {
                 message: (
                     <>
                         <b>Attention Users:</b> This is an unofficial release of
-                        the SMaHT Data Portal, made available only to provide
-                        the access keys for metadata submission and testing.
-                        SMaHT data and additional information is coming soon.
+                        the SMaHT Data Portal, made available to provide the
+                        access keys for metadata submission. SMaHT data are
+                        coming soon.
                     </>
                 ),
             });
