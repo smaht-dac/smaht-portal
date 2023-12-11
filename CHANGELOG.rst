@@ -7,10 +7,26 @@ smaht-portal
 Change Log
 ----------
 
+0.10.0
+======
+* SMaHT ingestion related work.
+
+
+
 0.9.0
 =====
 
-* SMaHT ingestion related work.
+* Add first cut at "submittable" data model
+* Fix default collection ACLs
+* Add inserts for all item types to workbook-inserts
+* Increase test coverage for schemas, types, item creation permissions, and various calcprops
+* Remove redundant tests now covered by workbook inserts or elsewhere
+
+
+0.8.1
+=====
+
+* Update encoded-core with fix to `extra_files` property on File items
 
 
 0.8.0
