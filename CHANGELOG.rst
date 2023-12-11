@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.8.1
+=====
+
+* Update encoded-core with fix to `extra_files` property on File items
+
+
 0.8.0
 =====
 
