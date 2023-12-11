@@ -161,7 +161,7 @@
     {
         "identifier": "docs",
         "title": "Documentation",
-        "status": "in review",
+        "status": "public",
         "children": [
             "859b2c48-0bda-406c-b49b-07d68bd236d4",
             "faabe1c0-3d8a-4651-bc86-072fb49ad016",
@@ -184,7 +184,7 @@
     {
         "identifier": "docs/how-to-download",
         "title": "How to Download Data",
-        "status": "in review",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -205,7 +205,7 @@
     {
         "identifier": "docs/how-to-register",
         "title": "How to Create Account",
-        "status": "in review",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -268,7 +268,7 @@
     {
         "identifier": "docs/how-to-upload",
         "title": "How to Upload Data",
-        "status": "in review",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],

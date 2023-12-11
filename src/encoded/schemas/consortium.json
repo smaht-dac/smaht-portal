@@ -8,6 +8,7 @@
     ],
     "identifyingProperties": [
         "aliases",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -52,7 +53,7 @@
             "default": "1"
         },
         "status": {
-            "default": "shared"
+            "default": "released"
         }
     }
 }

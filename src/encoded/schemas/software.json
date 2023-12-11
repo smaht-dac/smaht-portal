@@ -29,14 +29,14 @@
         },
         {
             "required": [
-                "submitter_id"
+                "submitted_id"
             ]
         }
     ],
     "identifyingProperties": [
         "accession",
         "aliases",
-        "submitter_id",
+        "submitted_id",
         "uuid"
     ],
     "additionalProperties": false,
@@ -72,7 +72,7 @@
             "$ref": "mixins.json#/submitted"
         },
         {
-            "$ref": "mixins.json#/submitter_id"
+            "$ref": "mixins.json#/submitted_id"
         },
         {
             "$ref": "mixins.json#/tags"
@@ -82,6 +82,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/version"
         }
     ],
     "properties": {
@@ -117,9 +120,6 @@
         },
         "source_url": {
             "$merge": "encoded_core:schemas/software.json#/properties/source_url"
-        },
-        "version": {
-            "$merge": "encoded_core:schemas/software.json#/properties/version"
         }
     }
 }

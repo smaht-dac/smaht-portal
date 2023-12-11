@@ -1,0 +1,99 @@
+{
+    "title": "Molecular Test",
+    "$id": "/profiles/molecular_test.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "medical_history",
+        "result_classification",
+        "submission_centers",
+        "submitted_id",
+        "title"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/title"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "MT"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "title": {
+            "enum": [
+                "CMV Total Ab",
+                "EBV IgG Ab",
+                "EBV IgM Ab",
+                "HBcAb IgM",
+                "HBcAb Total",
+                "HCV Ab",
+                "HBsAb",
+                "HBsAg",
+                "HCV 1 NAT",
+                "HIV 1 NAT",
+                "HIV I II Ab",
+                "HIV I II Plus O Antibody",
+                "RPR VDRL",
+                "RPR"
+            ]
+        },
+        "result": {
+            "title": "Result",
+            "description": "Result of the molecular test",
+            "type": "number",
+            "minimum": 0
+        },
+        "result_classification": {
+            "title": "Result Classification",
+            "description": "Categorical classification of the result value",
+            "type": "string",
+            "enum": [
+                "Within Normal Range",
+                "Outside Normal Range",
+                "Inconclusive"
+            ]
+        },
+        "medical_history": {
+            "title": "Medical History",
+            "description": "Link to the associated medical history",
+            "type": "string",
+            "linkTo": "MedicalHistory"
+        }
+    }
+}

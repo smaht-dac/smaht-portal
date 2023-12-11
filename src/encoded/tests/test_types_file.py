@@ -1,9 +1,9 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import pytest
 from webtest.app import TestApp
 
-from .utils import patch_item, post_item_and_return_location
+from .utils import patch_item, post_item, post_item_and_return_location
 
 
 OUTPUT_FILE_FORMAT = "fastq"
@@ -45,7 +45,28 @@ def output_file2(
     return post_item_and_return_location(testapp, item, "output_file")
 
 
+@pytest.fixture
+def bam_output_file_properties(
+    test_submission_center: Dict[str, Any],
+    file_formats: Dict[str, Dict[str, Any]],
+) -> Dict[str, Any]:
+    return {
+        "submission_centers": [test_submission_center["uuid"]],
+        "data_category": ["Sequencing Reads"],
+        "data_type": ["Unaligned Reads"],
+        "file_format": file_formats.get("bam", {}).get("uuid"),
+    }
+
+
+@pytest.fixture
+def bam_output_file(
+    testapp: TestApp, bam_output_file_properties: Dict[str, Any]
+) -> Dict[str, Any]:
+    return post_item(testapp, bam_output_file_properties, "OutputFile")
+
+
 def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """Ensure download link formatted as expected."""
     expected = (
         f"/output-files/{output_file.get('uuid')}/@@download/"
         f"{output_file.get('accession')}"
@@ -57,17 +78,18 @@ def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any
 @pytest.mark.parametrize(
     "status,expected",
     [
-        ("current", False),
+        ("released", False),
         ("deleted", False),
-        ("inactive", False),
+        ("archived", False),
         ("in review", True),
         ("obsolete", False),
-        ("shared", False),
+        ("public", False),
     ]
 )
 def test_upload_credentials(
     status: str, expected: bool, testapp: TestApp, output_file: Dict[str, Any]
 ) -> None:
+    """Ensure upload credentials presence by file status."""
     patch_body = {"status": status}
     patch_response = patch_item(
         testapp, patch_body, output_file.get("uuid")
@@ -83,7 +105,13 @@ def test_upload_credentials(
             assert expected_key in result
 
 
-def test_upload_key(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]) -> None:
+def test_upload_key(
+    output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]
+) -> None:
+    """Ensure upload key formatted as expected.
+    
+    Expected format is {uuid}/{accession}.{file_format_extension}
+    """
     expected = (
         f"{output_file.get('uuid')}/{output_file.get('accession')}"
         f".{file_formats.get(OUTPUT_FILE_FORMAT, {}).get('standard_file_extension', '')}"
@@ -121,3 +149,78 @@ def test_output_file_download(testapp: TestApp, output_file: Dict[str, Any],
     atid = output_file['@id']
     res = testapp.get(f'/{atid}@@download', status=307).json
     assert 'smaht-unit-testing-wfout.s3.amazonaws.com' in res['message']
+
+
+@pytest.mark.parametrize(
+    "extra_files,expected_status",
+    [
+        ([{"file_format": "bai"}], 201),
+        ([{"file_format": "not found"}], 422),
+        ([{"file_format": "fastq"}], 422),
+        ([{"file_format": "bai"}, {"file_format": "bai"}], 422),
+    ],
+)
+def test_validate_extra_file_format_on_post(
+    extra_files: List[Dict[str, Any]],
+    expected_status: int,
+    testapp: TestApp,
+    bam_output_file_properties: Dict[str, Any],
+) -> None:
+    """Ensure extra file formats properly validated on POST.
+
+    Note: Permissible extra file formats are determined by fixtures.
+    """
+    properties = {**bam_output_file_properties, "extra_files": extra_files}
+    post_item(testapp, properties, "OutputFile", status=expected_status)
+
+
+@pytest.mark.parametrize(
+    "extra_files,expected_status",
+    [
+        ([{"file_format": "bai"}], 200),
+        ([{"file_format": "not found"}], 422),
+        ([{"file_format": "fastq"}], 422),
+        ([{"file_format": "bai"}, {"file_format": "bai"}], 422),
+    ],
+)
+def test_validate_extra_file_format_on_patch(
+    extra_files: List[Dict[str, Any]],
+    expected_status: int,
+    testapp: TestApp,
+    bam_output_file: Dict[str, Any],
+) -> None:
+    """Ensure extra file formats properly validated on PATCH.
+
+    Note: Permissible extra file formats are determined by fixtures.
+    """
+    identifier = bam_output_file.get("uuid")
+    patch_body = {"extra_files": extra_files}
+    patch_item(testapp, patch_body, identifier, status=expected_status)
+
+
+@pytest.mark.parametrize(
+    "extra_files,expected_status",
+    [
+        ([{"file_format": "bai"}], 200),
+        ([{"file_format": "bai", "filename": "foo.bai"}], 200),
+        ([{"file_format": "bai", "filename": "foo.bai"}], 200),
+        ([{"file_format": "bai", "filename": "foo.bai", "foo": "bar"}], 200),
+    ]
+)
+def test_validate_extra_files_update_properties(
+    extra_files: List[Dict[str, Any]],
+    expected_status: int,
+    testapp: TestApp,
+    bam_output_file: Dict[str, Any],
+) -> None:
+    """Ensure extra files object allows non-submitted properties.
+
+    Properties for these nested objects are updated via File._update(),
+    so ensure these make it in without issue.
+
+    Could update the schema with all expected properties or allow
+    additionalProperties; latter approach as of 2023-12-11.
+    """
+    identifier = bam_output_file.get("uuid")
+    patch_body = {"extra_files": extra_files}
+    patch_item(testapp, patch_body, identifier, status=expected_status)

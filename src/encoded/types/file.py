@@ -1,12 +1,13 @@
 from typing import Any, Dict, Optional, Union
+
 from pyramid.view import view_config
-from pyramid.request import Request
 from encoded_core.types.file import (
     HREF_SCHEMA,
     UNMAPPED_OBJECT_SCHEMA,
     UPLOAD_KEY_SCHEMA,
     File as CoreFile,
 )
+from pyramid.request import Request
 from encoded_core.file_views import (
     validate_file_filename,
     validate_extra_file_format,
@@ -34,10 +35,12 @@ from snovault.validators import (
     no_validate_item_content_patch
 )
 
+from . import acl
 from .base import (
-    Item as SMAHTItem,
+    Item,
     collection_add,
     item_edit,
+    validate_user_submission_consistency
 )
 
 
@@ -59,14 +62,30 @@ def show_upload_credentials(
         "description": "Listing of Files",
     },
 )
-class File(SMAHTItem, CoreFile):
+class File(Item, CoreFile):
     item_type = "file"
     schema = load_schema("encoded:schemas/file.json")
     embedded_list = []
 
-    SHOW_UPLOAD_CREDENTIALS_STATUSES = ("in review",)
+    Item.SUBMISSION_CENTER_STATUS_ACL.update({
+        'uploaded': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'uploading': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'upload failed': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'to be uploaded by workflow': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'archived': acl.ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL
+    })
+    # These are all view only in case we find ourselves in this situation
+    Item.CONSORTIUM_STATUS_ACL.update({
+        'uploaded': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'uploading': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'upload failed': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'to be uploaded by workflow': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'archived': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL
+    })
 
-    class Collection(SMAHTItem.Collection):
+    SHOW_UPLOAD_CREDENTIALS_STATUSES = ("in review", "uploading")
+
+    class Collection(Item.Collection):
         pass
 
     def _update(
@@ -191,7 +210,8 @@ def validate_processed_file_produced_from_field(context, request):
                          validate_file_filename,
                          validate_extra_file_format,
                          validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field])
+                         validate_processed_file_produced_from_field,
+                         validate_user_submission_consistency])
 @view_config(context=File.Collection, permission='add_unvalidated', request_method='POST',
              validators=[no_validate_item_content_post],
              request_param=['validate=false'])
@@ -205,15 +225,18 @@ def file_add(context, request, render=None):
                          validate_file_filename,
                          validate_extra_file_format,
                          validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field])
+                         validate_processed_file_produced_from_field,
+                         validate_user_submission_consistency])
 @view_config(context=File, permission='edit', request_method='PATCH',
              validators=[validate_item_content_patch,
                          validate_file_filename,
                          validate_extra_file_format,
                          validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field])
+                         validate_processed_file_produced_from_field,
+                         validate_user_submission_consistency])
 @view_config(context=File, permission='edit_unvalidated', request_method='PUT',
-             validators=[no_validate_item_content_put],
+             validators=[no_validate_item_content_put,
+                         validate_user_submission_consistency],
              request_param=['validate=false'])
 @view_config(context=File, permission='edit_unvalidated', request_method='PATCH',
              validators=[no_validate_item_content_patch],
@@ -223,7 +246,8 @@ def file_add(context, request, render=None):
                          validate_file_filename,
                          validate_extra_file_format,
                          validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field],
+                         validate_processed_file_produced_from_field,
+                         validate_user_submission_consistency],
              request_param=['check_only=true'])
 @debug_log
 def file_edit(context, request, render=None):

@@ -150,7 +150,7 @@
                 "type": "string",
                 "linkTo": "Consortium"
             },
-            "serverDefault": "user_consortia"
+            "permission": "restricted_fields"
         }
     },
     "category": {
@@ -221,6 +221,7 @@
             "type": "string",
             "uniqueKey": true,
             "pattern": "^[A-Za-z0-9-_]+$",
+            "minLength": 2,
             "permission": "restricted_fields"
         }
     },
@@ -234,88 +235,6 @@
                 "description": "IngestionSubmission item that created or edited the item",
                 "type": "string"
             }
-        }
-    },
-    "meta_workflow_runs": {
-        "meta_workflow_runs": {
-            "title": "MetaWorkflowRuns",
-            "description": "Bioinformatics analysis pipelines associated with this item",
-            "type": "array",
-            "items": {
-                "title": "MetaWorkflowRun",
-                "type": "string",
-                "linkTo": "MetaWorkflowRun"
-            }
-        }
-    },
-    "modified": {
-        "last_modified": {
-            "title": "Last Modified",
-            "exclude_from": [
-                "FFedit-create"
-            ],
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "date_modified": {
-                    "title": "Date Modified",
-                    "description": "Do not submit, value is assigned by the server. The date the object is modified.",
-                    "type": "string",
-                    "anyOf": [
-                        {
-                            "format": "date-time"
-                        },
-                        {
-                            "format": "date"
-                        }
-                    ],
-                    "permission": "restricted_fields"
-                },
-                "modified_by": {
-                    "title": "Modified By",
-                    "description": "Do not submit, value is assigned by the server. The user that modfied the object.",
-                    "type": "string",
-                    "linkTo": "User",
-                    "permission": "restricted_fields"
-                }
-            }
-        }
-    },
-    "name": {
-        "name": {
-            "title": "Name",
-            "description": "Name of the item",
-            "type": "string",
-            "pattern": "^[A-Za-z0-9-_]+$",
-            "comment": "Not for identifying name; use 'identifier' for that purpose."
-        }
-    },
-    "notes": {
-        "notes": {
-            "title": "Notes",
-            "description": "Internal notes.",
-            "type": "string",
-            "exclude_from": [
-                "FFedit-create"
-            ],
-            "elasticsearch_mapping_index_type": {
-                "title": "Field mapping index type",
-                "description": "Defines one of three types of indexing available",
-                "type": "string",
-                "default": "analyzed",
-                "enum": [
-                    "analyzed",
-                    "not_analyzed",
-                    "no"
-                ]
-            }
-        }
-    },
-    "ontology_term": {
-        "ontology_term": {
-            "title": "Ontology Term",
-            "type": "string",
-            "linkTo": "OntologyTerm"
         }
     },
     "meta_workflow_input": {
@@ -388,6 +307,17 @@
                         "description": "The input dimension increase from multiple runs of the source workflow (default: not set)",
                         "type": "integer"
                     },
+                    "gather_input": {
+                        "title": "Gather Input",
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "input_dimension": {
+                        "title": "Input Dimension",
+                        "description": "Extra input dimension other than that defined by scatter",
+                        "type": "integer",
+                        "minimum": 0
+                    },
                     "extra_dimension": {
                         "title": "Extra Dimension",
                         "description": "The extra input dimension increase other than that defined by gather (default: not set)",
@@ -414,6 +344,110 @@
                     }
                 }
             }
+        }
+    },
+    "meta_workflow_runs": {
+        "meta_workflow_runs": {
+            "title": "MetaWorkflowRuns",
+            "description": "Bioinformatics analysis pipelines associated with this item",
+            "type": "array",
+            "items": {
+                "title": "MetaWorkflowRun",
+                "type": "string",
+                "linkTo": "MetaWorkflowRun"
+            }
+        }
+    },
+    "modified": {
+        "last_modified": {
+            "title": "Last Modified",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "date_modified": {
+                    "title": "Date Modified",
+                    "description": "Do not submit, value is assigned by the server. The date the object is modified.",
+                    "type": "string",
+                    "anyOf": [
+                        {
+                            "format": "date-time"
+                        },
+                        {
+                            "format": "date"
+                        }
+                    ],
+                    "permission": "restricted_fields"
+                },
+                "modified_by": {
+                    "title": "Modified By",
+                    "description": "Do not submit, value is assigned by the server. The user that modfied the object.",
+                    "type": "string",
+                    "linkTo": "User",
+                    "permission": "restricted_fields"
+                }
+            }
+        }
+    },
+    "name": {
+        "name": {
+            "title": "Name",
+            "description": "Name of the item",
+            "type": "string",
+            "pattern": "^[A-Za-z0-9-_]+$",
+            "minLength": 3,
+            "comment": "Not for identifying name; use 'identifier' for that purpose."
+        }
+    },
+    "notes": {
+        "notes": {
+            "title": "Notes",
+            "description": "Internal notes.",
+            "type": "string",
+            "exclude_from": [
+                "FFedit-create"
+            ],
+            "elasticsearch_mapping_index_type": {
+                "title": "Field mapping index type",
+                "description": "Defines one of three types of indexing available",
+                "type": "string",
+                "default": "analyzed",
+                "enum": [
+                    "analyzed",
+                    "not_analyzed",
+                    "no"
+                ]
+            }
+        }
+    },
+    "ontology_term": {
+        "ontology_term": {
+            "title": "Ontology Term",
+            "type": "string",
+            "linkTo": "OntologyTerm"
+        }
+    },
+    "protocols": {
+        "protocols": {
+            "title": "Protocols",
+            "description": "Protocols providing experimental details",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Protocol"
+            }
+        }
+    },
+    "reference_genome": {
+        "reference_genome": {
+            "title": "Reference Genome",
+            "description": "Reference genome used for alignment",
+            "type": "string",
+            "linkTo": "ReferenceGenome"
         }
     },
     "schema_version": {
@@ -486,12 +520,11 @@
             "permission": "restricted_fields",
             "enum": [
                 "public",
-                "current",
-                "deleted",
-                "inactive",
+                "draft",
+                "released",
                 "in review",
                 "obsolete",
-                "shared"
+                "deleted"
             ]
         }
     },
@@ -526,25 +559,12 @@
             "permission": "restricted_fields"
         }
     },
-    "submitted_files": {
-        "files": {
-            "title": "Submitted Files",
-            "description": "Submitted files associated with the item",
-            "type": "array",
-            "items": {
-                "title": "Submitted File",
-                "description": "File metadata.",
-                "type": "string",
-                "linkTo": "File"
-            }
-        }
-    },
-    "submitter_id": {
-        "submitter_id": {
+    "submitted_id": {
+        "submitted_id": {
             "title": "Submitter ID",
             "description": "Identifier on submission",
             "type": "string",
-            "uniqueKey": true
+            "uniqueKey": "submitted_id"
         }
     },
     "supplementary_files": {
@@ -608,7 +628,7 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 50,
-                "pattern": "^[a-zA-Z0-9_-]$"
+                "pattern": "^[a-zA-Z0-9_-]+$"
             }
         }
     },
@@ -616,7 +636,8 @@
         "title": {
             "title": "Title",
             "description": "Title for the item",
-            "type": "string"
+            "type": "string",
+            "minLength": 3
         }
     },
     "url": {
@@ -664,7 +685,7 @@
             "title": "Version",
             "description": "Version for the item",
             "type": "string",
-            "pattern": "^[0-9]+.[0-9]+.[0-9]+$"
+            "pattern": "^([0-9]+.)*[0-9]+$"
         }
     }
 }

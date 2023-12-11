@@ -1,0 +1,14 @@
+[
+    {
+        "uuid": "140bd387-033d-4aff-946e-36bf0dd1bd84",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_SEQUENCING_NOVASEQ-500X",
+        "platform": "Illumina",
+        "instrument_model": "NovaSeq",
+        "read_type": "Paired-end",
+        "target_coverage": 500,
+        "target_read_length": 150
+    }
+]
