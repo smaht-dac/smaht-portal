@@ -307,9 +307,7 @@ export default class App extends React.PureComponent {
 
         // Post-mount stuff
         this.setState({ mounted: true, browserInfo }, () => {
-            console.log(
-                'App is mounted, dispatching smahtinitialized event.'
-            );
+            console.log('App is mounted, dispatching smahtinitialized event.');
             // DEPRECATED:
             // Emit event from our window object to notify that smaht-portal JS has initialized.
             // This is to be used by, e.g. submissions view which might control a child window.
@@ -383,37 +381,18 @@ export default class App extends React.PureComponent {
                 Alerts.queue(NotLoggedInAlert);
             }
 
-            // Set Alert if user initializes app between 330-830a ET (possibly temporary)
-            // 12-4 am in ET is either 4am-8am or 5am-9am UTC, depending on daylight savings.
-            const currTime = new Date();
-            const currUTCHours = currTime.getUTCHours();
-            const currUTCMinutes = currTime.getUTCMinutes();
-            const showAlert =
-                ((currUTCHours >= 4 ||
-                    (currUTCHours === 3 && currUTCMinutes >= 30)) &&
-                    currUTCHours <= 7) ||
-                (currUTCHours === 8 && currUTCMinutes <= 30);
-            if (showAlert) {
-                const startTime = new Date();
-                startTime.setUTCHours(3);
-                startTime.setUTCMinutes(30);
-                startTime.setUTCSeconds(0);
-                const endTime = new Date();
-                endTime.setUTCHours(8);
-                endTime.setUTCMinutes(30);
-                endTime.setUTCSeconds(0);
-                let timezoneOffset = endTime.getTimezoneOffset() / 60;
-                timezoneOffset = 0 - timezoneOffset;
-                if (timezoneOffset > 0) {
-                    timezoneOffset = '+' + timezoneOffset;
-                }
-                Alerts.queue({
-                    title: 'Scheduled Daily Maintenance',
-                    style: 'warning',
-                    message: `CGAP is running its daily scheduled maintenance and data indexing. \
-                                Some data might not show up between ${startTime.toLocaleTimeString()} and ${endTime.toLocaleTimeString()} (UTC${timezoneOffset}).`,
-                });
-            }
+            // TODO: Remove this temporary alert in first official launch version in 2024
+            Alerts.queue({
+                style: 'danger',
+                message: (
+                    <>
+                        <b>Attention Users:</b> This is an unofficial release of
+                        the SMaHT Data Portal, made available to provide the
+                        access keys for metadata submission. SMaHT data are
+                        coming soon.
+                    </>
+                ),
+            });
         });
     }
 

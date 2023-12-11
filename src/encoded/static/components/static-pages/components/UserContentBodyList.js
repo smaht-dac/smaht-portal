@@ -37,7 +37,9 @@ export const UserContentBodyList = React.memo(function UserContentBodyList(
             return (
                 <div
                     className="static-content-item"
-                    key={c.identifier || c.uuid || object.itemUtil.atId(c) || i}>
+                    key={
+                        c.identifier || c.uuid || object.itemUtil.atId(c) || i
+                    }>
                     {!hideTitles && c.title && !isCollapsible
                         ? React.createElement(
                               headerElement,

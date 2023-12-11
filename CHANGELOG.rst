@@ -7,10 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+0.11.0
+======
+
+* Merge in ui-dev3 branch: `PR: 39: UI-Dev 3 <https://github.com/smaht-dac/smaht-portal/pull/39>`_
+  * [Cfm homepage updates] (https://github.com/smaht-dac/smaht-portal/pull/39)
+  * Additional UI changes for V1 pre-release, including updates to user page, registration modal, nav, etc.
+
+
 0.10.0
 ======
 * SMaHT ingestion related work.
-
 
 
 0.9.0
