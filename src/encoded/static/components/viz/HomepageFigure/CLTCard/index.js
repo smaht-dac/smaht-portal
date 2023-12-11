@@ -103,8 +103,8 @@ export const CLTCard = ({ currentTier }) => {
                     production: true,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Adispose Tissue.svg',
-                    title: 'Adispose Tissue',
+                    iconSrc: '/static/img/anatomy-icons/Adipose Tissue.svg',
+                    title: 'Adipose Tissue',
                     benchmarking: false,
                     expansion: true,
                     production: true,
@@ -236,7 +236,11 @@ export const CLTCard = ({ currentTier }) => {
     return (
         <div className="card clt">
             <div className="card-header">
-                <h4>CELL LINES &amp; TISSUES</h4>
+                {currentTier === 'benchmarking' ? (
+                    <h4>CELL LINES &amp; TISSUES</h4>
+                ) : (
+                    <h4>TISSUES</h4>
+                )}
             </div>
             <div className="card-body">
                 {cltList.map((clt, i) => {

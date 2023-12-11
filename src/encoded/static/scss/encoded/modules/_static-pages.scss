@@ -485,11 +485,48 @@ body[data-path="/"]>#application>#layout {
 	background: top right no-repeat url('/static/img/Top Right Hexagons.svg'), 0% 95% no-repeat url('/static/img/Bottom Left Hexagons.svg'), linear-gradient(to bottom right, #FFFFFF, #E3FCFF);
 }
 .homepage-wrapper {
+	@media screen and (min-width: 992px) {
+		// padding-left: 58px;
+	}
 
+	// Styles for alerts on the homepage
+	#full-alerts-container {
+		display: flex;
+		background-color: transparent;
+		// position: sticky;
+		// z-index: 500;
+		// top: 0px;
+	
+		> .alerts {
+			@media screen and (min-width: 992px) {
+				padding-left: 0px;
+				margin: auto;
+			}
+
+			> .alert {
+				background-color: #FEE5E5;
+				position: relative;
+				padding: 17px 60px 17px 25px;
+
+				.alert-heading {
+					font-size: 16px;
+				};
+
+				button.close {
+					position:absolute;
+					top: 16px;
+					right: 25px;
+				}
+			}
+		}
+	}
 	
 
 	.homepage-contents,
 	.homepage-contents>div {
+		@media screen and (min-width: 992px) {
+			padding-left: 0px;
+		}
 		// Full screen - Height of the navbar & footer at full height
 		// @TODO use variables for the heights
 		min-height: calc(100vh - 130px); 
@@ -530,6 +567,29 @@ body[data-path="/"]>#application>#layout {
 			font-weight: 400;
 		}
 
+		.homepage-header {
+			display: flex;
+			flex-direction: column;
+			padding-top: 8px;
+
+			h1 {
+				font-size: 25px;
+				margin-top: 0px;
+			}
+			h2 {
+				font-size: 16px;
+				margin-top: 0px;
+			}
+			@media screen and (min-width: 767px) {
+				h1 {
+					font-size: 38px;
+				}
+				h2 {
+					font-size: 18px;
+				}
+			}
+		}
+
 		.about-consortium {
 			padding: 20px 30px;
 			background-color: $cobalt-10;
@@ -553,10 +613,23 @@ body[data-path="/"]>#application>#layout {
 				font-size: 14px;
 				letter-spacing: normal;
 				line-height: normal;
+				margin-bottom: 5px;
 				@include prefix(border-radius, $homepage-about-consort-border-radius);
 				> i {
 					color: #BBCCF9;
 					font-size: 12px;
+				}
+
+				&:hover {
+					background-color: #ffffff;
+				}
+			}
+		}
+
+		@media screen and (min-width: 992px) {
+			.about-consortium {
+				a {
+					margin-bottom: auto;
 				}
 			}
 		}

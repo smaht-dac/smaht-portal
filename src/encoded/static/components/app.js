@@ -307,9 +307,7 @@ export default class App extends React.PureComponent {
 
         // Post-mount stuff
         this.setState({ mounted: true, browserInfo }, () => {
-            console.log(
-                'App is mounted, dispatching smahtinitialized event.'
-            );
+            console.log('App is mounted, dispatching smahtinitialized event.');
             // DEPRECATED:
             // Emit event from our window object to notify that smaht-portal JS has initialized.
             // This is to be used by, e.g. submissions view which might control a child window.
@@ -386,7 +384,14 @@ export default class App extends React.PureComponent {
             // TODO: Remove this temporary alert in first official launch version in 2024
             Alerts.queue({
                 style: 'danger',
-                message: `This is an unofficial release of the SMaHT Data Portal made available only to provide the AWS Access Key for metadata submission and related testing purposes. SMaHT Data and additional information will be coming soon.`,
+                message: (
+                    <>
+                        <b>Attention Users:</b> This is an unofficial release of
+                        the SMaHT Data Portal, made available to provide the
+                        access keys for metadata submission. SMaHT data are
+                        coming soon.
+                    </>
+                ),
             });
         });
     }
