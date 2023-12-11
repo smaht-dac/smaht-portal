@@ -83,6 +83,8 @@ def main() -> None:
     PRINT(f"\n> Files:")
     if files := structured_data_set.upload_files:
         [PRINT(f"  - {file.get('type')}: {file.get('file')}") for file in files]
+    else:
+        PRINT("  No files.")
 
     PRINT(f"\n> References (linkTo):")
     if args.norefs or args.noschemas:
