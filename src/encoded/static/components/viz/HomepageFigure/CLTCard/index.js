@@ -103,8 +103,8 @@ export const CLTCard = ({ currentTier }) => {
                     production: true,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Adispose Tissue.svg',
-                    title: 'Adispose Tissue',
+                    iconSrc: '/static/img/anatomy-icons/Adipose Tissue.svg',
+                    title: 'Adipose Tissue',
                     benchmarking: false,
                     expansion: true,
                     production: true,
