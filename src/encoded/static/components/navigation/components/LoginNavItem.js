@@ -43,11 +43,8 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
                     </span>
                 ) : (
                     <React.Fragment>
-                        <i className="account-icon icon icon-user fas" />
-                        <span>Log In</span>
-                        <span className="d-none d-xl-inline">
-                            &nbsp;/ Register
-                        </span>
+                        <i className="account-icon icon icon-user fas d-inline d-md-none" />
+                        <span>Login</span>
                     </React.Fragment>
                 )}
             </a>

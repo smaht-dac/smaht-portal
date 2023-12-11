@@ -17,20 +17,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 // Timeline
 #timeline {
     position: relative;
-    margin: 30px;
+    // margin: 30px 15px;
     padding: 0px;
-    width: 90%;
+    width: 100%;
     @include prefix(transition, all 0.4s ease);
-
-    &:before {
-        content: '';
-        width: 3px;
-        height: 100%;
-        background: $homepage-timeline-border-color;
-        left: 0;
-        top: 0;
-        position: absolute;
-    }
 
     &:after {
         content: '';
@@ -39,44 +29,96 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         width: 100%;
     }
 
+    .latest-release {
+        font-size: 12px;
+        margin-left: 52px;
+        color: $homepage-subtitle-text-color;
+
+        b {
+            font-weight: 600;
+        }
+    }
+
     .timeline-item {
-        margin-bottom: 20px;
+        padding-bottom: 20px;
+        padding-left: 50px;
         position: relative;
         @include clearfix;
 
-        &:last-of-type {
-            margin-bottom: 0px;
+        &:before {
+            content: '';
+            width: 2px;
+            height: 100%;
+            background: $homepage-timeline-border-color;
+            left: 16px;
+            top: 4px;
+            position: absolute;
         }
 
+        &-header {
+            h3 {
+                display: flex;
+                align-items: center;
+                flex-direction: column;
+                align-items: flex-start;
+                
+                i {
+                    color: #5B7595;
+                    font-size: 16px;
+                    font-weight: 400;
+                }
+            }
+        }
+
+        &:last-of-type {
+            margin-bottom: 0px;
+
+            &:before {
+                display: none;
+            }
+        }
+
+
         .timeline-marker {
-            // Font Styling
-            font-weight: 700;
-            font-size: 12px;
+            // Bubble Styling
+            position: absolute;
             display: flex;
             align-content: center;
             justify-content: center;
-            align-items: center;
-            color: $homepage-timeline-text-color;
-
-            
-            // Bubble Styling
+            width: 54px;
+            height: auto;
+            min-height: 21px;
             background: $homepage-timeline-bg-color;
             border: 1px solid $homepage-timeline-border-color;
-            padding: 1px 7px 3px 7px;
-            position: absolute;
-            top: 0;
-            left: 0;
+            top: 4px;
+            left: 12px;
             overflow: hidden;
             margin-left: -24px;
+            transition: background-color 150ms;
             @include prefix(border-radius, 10.5px);
+
+            // Font Styling
+            span {
+                font-weight: 700;
+                font-size: 12px;
+                color: $homepage-card-text-color;
+                margin: auto;
+                line-height: 20px;
+            }
+
+            &:hover {
+                cursor: pointer;
+                background-color: #C2F0E8;
+            }
         }
 
         .timeline-content {
-            width: 90%;
-            float: right;
-            @include prefix(box-shadow, 0 3px 0 rgba(0, 0, 0, 0.1));
+            width: auto;
+            margin-left: 0px;
             @include prefix(border-radius, 5px);
             @include prefix(transition, all 0.3s ease);
+
+            
 
             &:before,
             &.right:before {
@@ -94,43 +136,268 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
             .card {
                 background-color: $homepage-card-bg-color;
-                border: 1px solid $homepage-card-border-color;
+                border: 2px solid $homepage-card-border-color;
                 @include prefix(border-radius, 10px);
-            }
+                box-shadow: none;
+                transition: background-color 150ms;
+                
+                &-header {
+                    background-color: transparent;
+                    margin-bottom: 0;
+                    padding: 0;
+                    border-bottom: none;
+    
+                    &-content {
+                        position: relative;
+    
+                        span {
+                            color: $homepage-card-text-color;
+                            font-weight: 600;
+                            font-size: 16px;
+                        }
+        
+                    }
+                    &-button {
+                        padding: 10px 40px 10px 10px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        width: 100%;
+    
+                        i {
+                            color: #74CFB2;
+                        }
+                    }
+                    &-link {
+                        position: absolute;
+                        right: 10px;
+                        top: 50%;
+                        transform: translate(0%,-50%);
+    
+                        &:hover {
+                            cursor: pointer;
+                        }
+                        i {
+                            color: #74CFB2;
+                        }
+                    }
+    
+                }
 
-            .card-header {
-                background-color: transparent;
-                :not(i) {
-                    font-weight: 600;
-                    font-size: 18px;
+                &-body {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    padding: 0px 5%;
+                    position: relative;
+                
+
+                    .number-group {
+                        display: flex;
+                        flex-direction: row;
+                        justify-content: center;
+                        padding: 0px;
+
+                        &:hover {
+                            text-decoration: none;
+                            cursor: default;
+                        }
+
+                        h4 {
+                            font-size: 28px;
+                            font-weight: 600;
+                            color: $homepage-card-text-color;
+                            margin-right: 8px;
+                        }
+                        div {
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: flex-start;
+                            margin: auto auto auto 0;
+
+                            span {
+                                font-size: 12px;
+                                font-weight: 500;
+                                color: $homepage-card-text-color;
+                                width: max-content;
+                                margin: auto auto auto 0;
+
+                                &:first-of-type {
+                                    margin-bottom: -3px;
+                                }
+                                &:last-of-type {
+                                    margin-bottom: -2px;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                &-divider {
+                    position: absolute;
+                    width: 94%;
+                    height: 1px;
+                    top: 0;
+                    transform: translate(-50%, 0px);
+                    left: 50%;
+                    background-color: #A4ECD5;
+                }
+
+                &:hover {
+                    background-color: #C2F0E8;
                 }
             }
 
-            .card,
-            .card-header,
-            button {
-                color: $homepage-card-text-color;
-                i {
-                    color: $homepage-card-icon-color;
+        }
+        
+        &.tier-inactive {
+            &:before {
+                background: #CDE4FF;
+            }
+            .timeline-marker {
+                background-color: white;
+                border-color: #CDE4FF;
+                
+                &:hover {
+                    border-color: #A5ECD5;
+                    background-color: #C2F0E8;
+                }
+            }
+            .card {
+                background-color: white;
+                border-color: #CDE4FF;
+
+                &-header {
+                    &-button {
+                        i {
+                            color: #CDE4FF;
+                        }
+                    }
+                    &-link {
+                        i {
+                            display: none;
+                        }
+                    }
+                }
+                &:hover {
+                    border: 2px solid $homepage-card-border-color;
+                    .card-header {
+                        &-button {
+                            i {
+                                color: #74CFB2
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+    }
+
+    @media screen and (min-width: 576px) {
+        .latest-release {
+            margin-left: 55px;
+        }
+        .timeline-item {
+            padding-left: 54px;
+            .timeline-content {
+            }
+            &-header {
+                h3 {
+                    flex-direction: row;
+                    align-items: center;
+                    margin-left: 0px;
+                }
+            }
+            .accordion .card-body {
+                flex-direction: row;
+            }
+        }
+    }
+    @media screen and (min-width: 767px) {
+    }
+    @media screen and (min-width: 992px) {
+        .timeline-item {
+            &-header {
+                h3 {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    i {
+                        font-size: 17px;
+                    }
+                }
+            }
+            &:before {
+                // left: -10px;
+            }
+            .timeline {
+                // &-marker {
+                //     left: -10px;
+                // }
+                &-content {
+                    width: auto;
+                    .card {
+                        &-header {
+                            &-content {
+                                span {
+                                    font-size: 18px;
+                                }
+                            }
+                            &-button {
+                                padding: 10px 40px 10px 20px;
+                            }
+                            &-link {
+                                right: 20px;
+                            }
+                        }
+                        &-body {
+                            flex-wrap: wrap;
+                            padding: 0px 3%;
+
+                            .number-group {
+                                padding-right: 10px;
+
+                                h4 {
+                                    font-size: 28px;
+                                }
+
+                                &:last-of-type {
+                                    padding-right: 0px;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
-
-    // @TODO: can maybe move to be utility class on h2 itself
-    // But may also need to do something like timeline-item/content above to position perfectly evenly
-    h2 {
-        padding-top: 0px;
-        padding-bottom: 0px;
-        margin-top: 0px;
-        margin-bottom: 0px;
+    @media screen and (min-width: 1200px) {
+        .timeline-item {
+            &-header {
+                h3 {
+                    flex-direction: row;
+                    align-items: center;
+                }
+            }
+            &:before {
+                // left: -10px;
+            }
+            .timeline {
+                &-marker {
+                    // left: -10px;
+                }
+            }
+        }
     }
 }
 
 
 // Homepage visualization
 .homepage-figure {
+    display:flex;
+    flex-direction: column-reverse;
     width: 100%;
+    max-width: 638px;
 
     // Styles begin with smallest screen size
     &-content {
@@ -143,7 +410,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             margin: auto;
             width: 100%;
             margin-bottom: 20px;
-
             background-color: transparent;
             border: none;
             box-shadow: none;
@@ -171,13 +437,12 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 width: 300px;
                 margin: auto;
                 max-height: none;
-                padding: 10px;
+                background-color: #FFFFFF;
                 @include prefix(border-radius, 10px);
-                background-color: hsla(0, 0, 200, .6);
-                @include prefix(box-shadow, 0px 0px 12px hsla(209, 72, 78, .31));
+                @include prefix(box-shadow, 0px 0px 12px hsla(209, 72, 78, .50));
 
                 .card-list {
-                    margin: 10px auto 10px auto;
+                    // margin: auto auto auto 40px;
                     h5 {
                         font-size: 12px;
                         line-height: 15px;
@@ -185,7 +450,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         letter-spacing: normal;
                         color: #7490F2;
                         margin: 0px auto 5px auto;
-                        text-align: center;
+                        animation: fade-in 150ms;
                     }
                     ul {
                         list-style-type: none;
@@ -194,16 +459,86 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         padding-left: 0px;
 
                         li {
+                            margin-bottom: 2px;
+                            animation: fade-in 300ms;
+
+                            div {
+                                width: max-content;
+                                padding-right: 5px;
+                                align-items: center;
+                                display: flex;
+
+                                img {
+                                    margin-left: 2px;
+                                    margin-right: 11px;
+                                }
+                                span {
+                                    font-size: 14px;
+                                    font-weight: 500;
+                                    line-height: 20px;
+                                    color: #0E3669;
+                                }
+
+                            }
+
+                            &:last-of-type {
+                                margin-bottom: 0;
+                            }
+                        }
+                    }
+
+                    &-icon-container {
+                        display: flex;
+                        align-items: center;
+
+                        img {
+                            margin-left: 2px;
+                            margin-right: 6px;
+                        }
+                        span {
+                            color: #0E3669;
+                        }
+                    }
+
+                    @keyframes fade-in {
+                        0% {
+                            opacity: 0.2;
+                        }
+                        100% {
+                            opacity: 1;
+                        }
+                    }
+
+                }
+                
+            }
+            &.assays {
+                div {
+                    img {
+                        margin-right: 10px;
+                    }
+                    ul {
+                        li {
                             font-size: 14px;
                             font-weight: 500;
                             line-height: 20px;
-                            margin-bottom: 2px;
-                            text-align: center;
+                            color: #0E3669;
                         }
                     }
                 }
 
+                &.benchmarking {
+                    ul {
+                        li {
+                            font-size: 12px;
+                            div {
+                                padding-right: 0px;
+                            }
+                        }
+                    }
+                }
             }
+            
         }
 
     }
@@ -211,8 +546,8 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         display: flex;
         flex-direction: column;
         justify-content: center;
-        margin-bottom: 15px;
-        margin-top: auto;
+        margin-bottom: 50px;
+        margin-top: 20px;
 
         .footnote {
             color: #5B7595;
@@ -239,19 +574,34 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 background-color: transparent;
                 color: #5B7595;
                 width: 100px;
-                font-size: 10px;
+                font-size: 12px;
+                border-radius: 15px;
                 margin: auto;
                 border: none;
                 z-index: 1;
+
+                &.active {
+                    &:hover {
+                        background-color: transparent;
+                        color: #5B7595;
+                    }
+                }
+
+                &:hover {
+                    background-color: rgb(214 224 252 / 30%);
+                    padding: 5px;
+                    color: #4f6682;
+                    transition: background-color 150ms, color 150ms;
+                }
             }
 
             .backdrop {
                 position: absolute;
                 height: 32px;
                 width: 100px;
-                background-color: #D1FFEF;
+                background-color: $azure;
                 border-radius: 15px;
-                border: 1px solid #7FE9C7;
+                border: 2px solid #A4ECD5;
                 top: 3px;
                 transition: left 200ms ease-out;
                 &.tier-benchmarking {
@@ -265,11 +615,12 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 }
             }
         }
+
     }
     .human-figure-container {
         display: none;
         position: absolute;
-        top: -42px;
+        top: -20px;
         margin-left: auto;
         margin-right: auto;
         right: 0;
@@ -280,107 +631,38 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         & > div {
             margin: auto;
         }
-
-        // Styles for the organ svgs
-        g {
-            &[data-svg-role="outline-group"] {
-                &:hover {
-                    cursor: pointer;
-                    path[data-svg-role="outline-path-border"] {
-                        stroke-width: 1px;
-                        stroke: black;
-                        stroke-opacity: 0.4;
-                    }
-                }
-            }
-            &[data-svg-role="brain-group"] {
-                transform: translate(90px, 13px);
-                
-                &:hover {
-                    cursor: pointer;
-                    path[data-svg-role="brain-outline"] {
-                        stroke-width: 1px;
-                        stroke: black;
-                        stroke-opacity: 0.4;
-                    }
-                }
-            }
-            &[data-svg-role="lung-group"] {
-                transform: translate(70px, 115px);
-        
-                &:hover {
-                    cursor: pointer;
-                    g[data-svg-role="lung-outline"] {
-                        stroke-width: 1px;
-                        stroke: black;
-                    }
-                }
-            }
-            &[data-svg-role="liver-group"] {
-                transform: translate(75px, 245px);
-        
-                &:hover {
-                    cursor: pointer;
-                    g[data-svg-role="liver-outline"] {
-                        stroke-opacity: 0.4;
-                        stroke-width: 1px;
-                        stroke:black;
-                    }
-                }
-            }
-        }
     }
     @media screen and (min-width: 576px) {
 
         &-content {
             .card {
                 &-header {
-                    margin: 10px 0px;
+                    margin: 0px;
                 }
                 &-body {
                     width: 350px;
                 }
             }
         }
-
-        &-tier-selector {
-            .footnote {
-                width: auto;
-            }
-            .selector-buttons {
-                button {
-                    width: 180px;
-                }
-    
-                .backdrop {
-                    width: 180px;
-    
-                    &.tier-benchmarking {
-                        left: 5px;
-                    }
-                    &.tier-expansion {
-                        left: 185px;
-                    }
-                    &.tier-production {
-                        left: 365px;
-                    }
-                }
-            }
-        }
     }
     @media screen and (min-width: 767px) {
+        max-width: 720px;
         &-content {
             flex-direction: row;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 50px;
+            padding: 0px 25px;
             .card {
+                width: fit-content;
                 margin: 0px;
 
                 &-body {
-                    width: 300px;
+                    width: 230px;
+                    min-height: 600px;
                     justify-content: flex-start;
+
                 }
-                &.assays {
+                &.assays.benchmarking {
 
                     .card-body {
                         padding: 10px 25px 5px 25px;
@@ -388,7 +670,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         .card-list {
                             margin-bottom: 5px;
                             ul {
-                                padding-left: 30px;
                                 li {
                                     font-size: 12px;
                                     line-height: 18px;
@@ -399,115 +680,14 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     }
                 }
             }
-            
-        }
-    }
-    @media screen and (min-width: 992px) {
-        &-content {
-            .card {
-                &-body {
-                    width: 220px;
-
-                    .card-list {
-                        margin-bottom: 20px;
-                        margin-right: 20px;
-                        h5 {
-                            text-align: left;
-                        }
-                        ul {
-                            padding-left: 35px;
-    
-                            li {
-                                text-align: left;
-                            }
-                        }
-                    }
-                }
-                &.assays {
-
-                    .card-body {
-                        padding: 10px 0px 5px 0px;
-    
-                        .card-list {
-                            margin: 0px 20px 10px 20px;
-                        }
-                    }
-                }
-            }
         }
         &-tier-selector {
-            .selector-buttons {
-                button {
-                    font-size: 12px;
-                    width: 110px;
-                }
-                .backdrop {
-                    width: 110px;
-                    &.tier-benchmarking {
-                        left: 5px;
-                    }
-                    &.tier-expansion {
-                        left: 115px;
-                    }
-                    &.tier-production {
-                        left: 225px;
-                    }
-                }
-            }
-        }
-    }
-    @media screen and (min-width: 1300px) {
-        
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        width: 638px;
-        height: 704px;
-    
-        &-content {
-            margin-bottom: 0px;
-    
-            .card {
-                width: auto;
-                &-header {
-                    margin: 0px auto;
-                }
-                &-body {
-                    width: 231px;
-                    max-height: 595px;
-
-                    .card-list {
-                        margin-bottom: 5px;
-                        ul {
-                            li {
-                                margin-bottom: 5px;
-                            }
-                        }
-                    }
-                }
-    
-                &.assays {
-                    .card-body {
-                        padding: 10px;
-    
-                        .card-list {
-                            margin-bottom: 5px;
-
-                            ul {
-                                li {
-                                    margin-bottom: 0px;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        &-tier-selector {
-            margin-bottom: 10px;
+            margin-top: 0px;
+            margin-bottom: 60px;
     
             .footnote {
                 margin-bottom: 5px;
+                width: 100%;
             }
     
             .selector-buttons {
@@ -531,9 +711,131 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 }
             }
         }
+
+        .human-figure-container {
+            display: flex;
+            top: 0;
+        }
+    }
+    @media screen and (min-width: 992px) {
+        display:flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 638px;
+        
+        &-content {
+            margin-bottom: 0px;
+            padding: 0px;
+            .card {
+                width: auto;
+                &-body {
+                    width: 231px;
+                    height: 621px;
+                    min-height: none;
+
+                    .card-list {
+                        margin-bottom: 20px;
+                        margin-right: 20px;
+                        h5 {
+                            text-align: left;
+                        }
+                        ul {
+    
+                            li {
+                                text-align: left;
+                            }
+                        }
+                    }
+                }
+
+                &.assays {
+                    .card-list {
+                        margin-bottom: 10px;
+                        h5 {
+                            margin-bottom: 10px;
+                        }
+                    }
+
+                    &.benchmarking {
+    
+                        .card-body {
+                            padding: 10px 0px 5px 0px;
+        
+                            .card-list {
+                                margin: 0px 20px 10px 20px;
+                                h5 {
+                                    margin-bottom: 5px;
+                                }
+
+                                ul {
+                                    margin-bottom: 0px;
+                                    li {
+                                        margin-bottom: 0px;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+        &-tier-selector {
+            margin-top: 40px;
+            margin-bottom: 0px;
+        //     margin-top: 50px;
+        //     .selector-buttons {
+        //         button {
+        //             font-size: 12px;
+        //             width: 110px;
+        //         }
+        //         .backdrop {
+        //             width: 110px;
+        //             &.tier-benchmarking {
+        //                 left: 5px;
+        //             }
+        //             &.tier-expansion {
+        //                 left: 115px;
+        //             }
+        //             &.tier-production {
+        //                 left: 225px;
+        //             }
+        //         }
+        //     }
+        }
+        
+    }
+    @media screen and (min-width: 1300px) {
+    
+        &-content {
+            margin-bottom: 0px;
+    
+            .card {
+                width: auto;
+                &-body {
+
+                    .card-list {
+                    }
+                }
+    
+                &.assays {
+                    .card-body {
+                        padding: 20px;
+    
+                        .card-list {
+                            margin-bottom: 5px;
+
+                            ul {
+                                li {
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         // Style for the human figure on homepage
         .human-figure-container {
-            top: -42px;
             display: flex;
         }
     }
