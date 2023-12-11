@@ -115,6 +115,7 @@ export class NavigationBar extends React.PureComponent {
                                     <img
                                         className="smaht-logo"
                                         src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
+                                        height="50"
                                     />
                                     <span>SMaHT Data Portal</span>
                                 </div>

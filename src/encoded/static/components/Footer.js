@@ -12,9 +12,9 @@ import PropTypes from 'prop-types';
 export const Footer = React.memo(function Footer() {
     return (
         <footer id="page-footer">
-            <div className="page-footer px-4">
+            <div className="page-footer container">
                 <div className="row">
-                    <div className="col-sm-6">
+                    <div className="col-12 col-md-6">
                         <div className="footer-section copy-notice d-flex align-items-center justify-content-center justify-content-sm-start">
                             <div>
                                 SMaHT is funded by the{' '}

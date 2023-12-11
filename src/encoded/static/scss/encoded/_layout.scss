@@ -277,13 +277,13 @@ body.is-full-screen {
 ********************************************************** */
 
 #page-footer {
+	background-color: #F5F9FB;
+	border-top: 1px solid #EDF3F6;
 
 	> .page-footer {
-		background-color: $footer-background-color;
-		border-top: 1px solid #EDF3F6;
 		text-align: center;
 		overflow: hidden;
-		height: 60px;
+		height: auto;
 
 		a {
 			font-size: 14px;
