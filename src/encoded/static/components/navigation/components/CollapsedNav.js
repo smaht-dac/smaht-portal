@@ -146,9 +146,9 @@ function LeftNavAuthenticated(props) {
     );
     return (
         <div className="navbar-nav mr-auto">
-            <DataNavItem {...props} />
+            {/* <DataNavItem {...props} /> */}
             <DocsNavItem {...props} />
-            <AboutNavItem {...props} />
+            {/* <AboutNavItem {...props} /> */}
         </div>
     );
 }
