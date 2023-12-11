@@ -2,9 +2,6 @@
     "CellLine": [
         {
             "accession": "CL000001",
-            "category": [
-                "Primary"
-            ],
             "description": "Description for Sample Cell Line 1",
             "source": "Vendor A",
             "submitted_id": "CL12345",
@@ -20,9 +17,6 @@
         },
         {
             "accession": "CL000002",
-            "category": [
-                "Cancer Derived"
-            ],
             "description": "Description for Sample Cell Line 2",
             "source": "Institution B",
             "submitted_id": "CL67890",
@@ -39,9 +33,6 @@
         },
         {
             "accession": "CL000003",
-            "category": [
-                "Stem Cell Derived"
-            ],
             "description": "Description for Sample Cell Line 3",
             "source": "Vendor C",
             "submitted_id": "CL54321",
