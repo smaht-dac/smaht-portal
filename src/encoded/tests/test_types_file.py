@@ -196,3 +196,31 @@ def test_validate_extra_file_format_on_patch(
     identifier = bam_output_file.get("uuid")
     patch_body = {"extra_files": extra_files}
     patch_item(testapp, patch_body, identifier, status=expected_status)
+
+
+@pytest.mark.parametrize(
+    "extra_files,expected_status",
+    [
+        ([{"file_format": "bai"}], 200),
+        ([{"file_format": "bai", "filename": "foo.bai"}], 200),
+        ([{"file_format": "bai", "filename": "foo.bai"}], 200),
+        ([{"file_format": "bai", "filename": "foo.bai", "foo": "bar"}], 200),
+    ]
+)
+def test_validate_extra_files_update_properties(
+    extra_files: List[Dict[str, Any]],
+    expected_status: int,
+    testapp: TestApp,
+    bam_output_file: Dict[str, Any],
+) -> None:
+    """Ensure extra files object allows non-submitted properties.
+
+    Properties for these nested objects are updated via File._update(),
+    so ensure these make it in without issue.
+
+    Could update the schema with all expected properties or allow
+    additionalProperties; latter approach as of 2023-12-11.
+    """
+    identifier = bam_output_file.get("uuid")
+    patch_body = {"extra_files": extra_files}
+    patch_item(testapp, patch_body, identifier, status=expected_status)
