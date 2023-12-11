@@ -21,11 +21,6 @@ def page(testapp: TestApp, test_consortium: Dict[str, Any]) -> Dict[str, Any]:
     return post_item_and_return_location(testapp, item, "Page")
 
 
-def test_page_post(page: Dict[str, Any]) -> None:
-    """Ensure Page properties POST."""
-    pass
-
-
 @pytest.mark.parametrize(
     "identifier,expected_status",
     [

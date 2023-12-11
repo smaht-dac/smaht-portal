@@ -1,4 +1,5 @@
 from typing import Any, Dict, Optional, Union
+
 from pyramid.view import view_config
 from encoded_core.types.file import (
     HREF_SCHEMA,
@@ -7,7 +8,6 @@ from encoded_core.types.file import (
     File as CoreFile,
 )
 from pyramid.request import Request
-from .acl import *
 from encoded_core.file_views import (
     validate_file_filename,
     validate_extra_file_format,
@@ -35,8 +35,9 @@ from snovault.validators import (
     no_validate_item_content_patch
 )
 
+from . import acl
 from .base import (
-    Item as SMAHTItem,
+    Item,
     collection_add,
     item_edit,
     validate_user_submission_consistency
@@ -61,30 +62,30 @@ def show_upload_credentials(
         "description": "Listing of Files",
     },
 )
-class File(SMAHTItem, CoreFile):
+class File(Item, CoreFile):
     item_type = "file"
     schema = load_schema("encoded:schemas/file.json")
     embedded_list = []
 
-    SMAHTItem.SUBMISSION_CENTER_STATUS_ACL.update({
-        'uploaded': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
-        'uploading': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
-        'upload failed': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
-        'to be uploaded by workflow': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
-        'archived': ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL
+    Item.SUBMISSION_CENTER_STATUS_ACL.update({
+        'uploaded': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'uploading': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'upload failed': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'to be uploaded by workflow': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'archived': acl.ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL
     })
     # These are all view only in case we find ourselves in this situation
-    SMAHTItem.CONSORTIUM_STATUS_ACL.update({
-        'uploaded': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'uploading': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'upload failed': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'to be uploaded by workflow': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'archived': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL
+    Item.CONSORTIUM_STATUS_ACL.update({
+        'uploaded': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'uploading': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'upload failed': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'to be uploaded by workflow': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'archived': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL
     })
 
-    SHOW_UPLOAD_CREDENTIALS_STATUSES = ("in review",)
+    SHOW_UPLOAD_CREDENTIALS_STATUSES = ("in review", "uploading")
 
-    class Collection(SMAHTItem.Collection):
+    class Collection(Item.Collection):
         pass
 
     def _update(

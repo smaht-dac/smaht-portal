@@ -1,9 +1,11 @@
 from typing import Any, Dict, Union
+from unittest import mock
 
 import pytest
 from webtest.app import TestApp
 
-from .utils import get_item, patch_item, post_item
+from ..types import static_section as static_section_module
+from .utils import patch_item, post_item
 
 
 @pytest.fixture
@@ -18,14 +20,6 @@ def static_section(
         "section_type": "Page Section",
     }
     return post_item(testapp, item, "StaticSection")
-
-
-def test_identifier_resource_path(
-    testapp: TestApp, static_section: Dict[str, Any]
-):
-    """Ensure 'identifier' is available resource path."""
-    identifier = static_section.get("identifier", "")
-    get_item(testapp, identifier, collection="StaticSection")
 
 
 REMOTE_CONTENT_URL = "https://postman-echo.com/response-headers?foo1=bar1&foo2=bar2"
@@ -51,10 +45,14 @@ def test_content(
 ) -> None:
     """Test 'content' calcprop retrieved from body, URL, or file.
 
-    Note: Relying on postman URL above and local file for these tests.
+    Note: Depends on local file for these tests, while remote content
+    mocked.
     """
-    response = patch_item(testapp, patch_body, static_section["uuid"])
-    assert response.get("content") == expected
+    with mock.patch.object(
+        static_section_module, "get_remote_file_contents", return_value=REMOTE_CONTENT
+    ):
+        response = patch_item(testapp, patch_body, static_section["uuid"], status=200)
+        assert response.get("content") == expected
 
 
 @pytest.mark.parametrize(

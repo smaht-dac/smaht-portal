@@ -87,12 +87,6 @@
                 "linkTo": "SubmittedFile"
             }
         },
-        "file_name": {
-            "title": "File Name",
-            "description": "The local file name used at time of submission",
-            "type": "string",
-            "pattern": "^[\\w+=,.@-]*$"
-        },
         "file_sets": {
             "title": "File Sets",
             "description": "File collections associated with this file",

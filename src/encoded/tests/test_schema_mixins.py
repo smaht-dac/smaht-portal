@@ -71,3 +71,24 @@ def test_name(name: str, expected_errors: bool) -> None:
         assert not errors
     else:
         assert errors
+
+
+@pytest.mark.parametrize(
+    "version,expected_errors",
+    [
+        ("", True),
+        ("foo", True),
+        ("1", False),
+        ("1.4", False),
+        ("1.4.", True),
+        ("1.4.5.6", False),
+    ]
+)
+def test_version(version: str, expected_errors: bool) -> None:
+    """Ensure version schema validating as expected."""
+    schema = get_mixins_field("version")
+    errors = validate_schema(schema, version)
+    if expected_errors is False:
+        assert not errors
+    else:
+        assert errors

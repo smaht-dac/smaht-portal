@@ -1,10 +1,12 @@
 from snovault import collection, load_schema
 
+from .acl import ONLY_ADMIN_VIEW_ACL
 from .file import File
 
 
 @collection(
     name="output-files",
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         "title": "SMaHT Output Files",
         "description": "Listing of SMaHT Output Files",

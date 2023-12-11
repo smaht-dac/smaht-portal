@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import snovault
 from pyramid.view import view_config
 from snovault import abstract_collection, calculated_property
@@ -21,7 +23,8 @@ from snovault.crud_views import (
     item_edit as sno_item_edit,
 )
 from dcicutils.misc_utils import PRINT
-from .acl import *
+
+from . import acl
 from ..local_roles import DEBUG_PERMISSIONS
 
 
@@ -52,6 +55,7 @@ class AbstractCollection(snovault.AbstractCollection):
     """smth."""
 
     def __init__(self, *args, **kw):
+        self.__acl__: List[Tuple[str, str, List[str]]] = []
         try:
             self.lookup_key = kw.pop('lookup_key')
         except KeyError:
@@ -94,18 +98,19 @@ class SMAHTCollection(Collection, AbstractCollection):
     """ Allows default ACL """
     def __init__(self, *args, **kw):
         super(Collection, self).__init__(*args, **kw)
-        if hasattr(self, '__acl__'):
+        if getattr(self, '__acl__', []):
             if DEBUG_PERMISSIONS:
                 PRINT(f'DEBUG_PERMISSIONS: using {self.__acl__} for {self.type_info.name}')
             return
 
         # If no ACLs are defined for collection, allow submission centers to add/create
+        # or assume admin only
         if 'submission_centers' in self.type_info.factory.schema['properties']:
             if DEBUG_PERMISSIONS:
-                PRINT(f'DEBUG_PERMISSIONS: using {ALLOW_SUBMISSION_CENTER_CREATE_ACL} for {self.type_info.name}')
-            self.__acl__ = ALLOW_SUBMISSION_CENTER_CREATE_ACL
+                PRINT(f'DEBUG_PERMISSIONS: using {acl.ALLOW_SUBMISSION_CENTER_CREATE_ACL} for {self.type_info.name}')
+            self.__acl__ = acl.ALLOW_SUBMISSION_CENTER_CREATE_ACL
         else:
-            self.__acl__ = ONLY_ADMIN_VIEW_ACL
+            self.__acl__ = acl.ONLY_ADMIN_VIEW_ACL
             if DEBUG_PERMISSIONS:
                 PRINT(f'DEBUG_PERMISSIONS: using admin acl for {self.type_info.name}')
 
@@ -131,23 +136,23 @@ class Item(SnovaultItem):
     # so anyone (even unauthenticated users) can view it
     SUBMISSION_CENTER_STATUS_ACL = {
         # Only creator can view - restricted to specific items via schemas.
-        'draft': ALLOW_OWNER_EDIT_ACL,
+        'draft': acl.ALLOW_OWNER_EDIT_ACL,
         # Generally the default
-        'in review': ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
-        'released': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'in review': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'released': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         # Everyone can view - restricted to specific items via schemas.
-        'public': ALLOW_EVERYONE_VIEW_ACL,
+        'public': acl.ALLOW_EVERYONE_VIEW_ACL,
         # Intended to tag out-of-date data
-        'obsolete': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'obsolete': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'deleted': DELETED_ACL,
     }
     # More or less the same EXCEPT for in-review status
     CONSORTIUM_STATUS_ACL = {
-        'draft': ALLOW_OWNER_EDIT_ACL,
-        'in review': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'released': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'public': ALLOW_EVERYONE_VIEW_ACL,
-        'obsolete': ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'draft': acl.ALLOW_OWNER_EDIT_ACL,
+        'in review': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'released': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'public': acl.ALLOW_EVERYONE_VIEW_ACL,
+        'obsolete': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'deleted': DELETED_ACL
     }
 
@@ -169,14 +174,14 @@ class Item(SnovaultItem):
         if 'submission_centers' in properties:
             if DEBUG_PERMISSIONS:
                 PRINT(f'DEBUG_PERMISSIONS: Using submission_centers ACLs status {status} for {self}')
-            return self.SUBMISSION_CENTER_STATUS_ACL.get(status, ONLY_ADMIN_VIEW_ACL)
+            return self.SUBMISSION_CENTER_STATUS_ACL.get(status, acl.ONLY_ADMIN_VIEW_ACL)
         if 'consortia' in properties:
             if DEBUG_PERMISSIONS:
                 PRINT(f'DEBUG_PERMISSIONS: Using consortia ACLs status {status} for {self}')
-            return self.CONSORTIUM_STATUS_ACL.get(status, ONLY_ADMIN_VIEW_ACL)
+            return self.CONSORTIUM_STATUS_ACL.get(status, acl.ONLY_ADMIN_VIEW_ACL)
         if DEBUG_PERMISSIONS:
             PRINT(f'DEBUG_PERMISSIONS: Falling back to admin view for {self}')
-        return ONLY_ADMIN_VIEW_ACL
+        return acl.ONLY_ADMIN_VIEW_ACL
 
     def __ac_local_roles__(self):
         """ Overrides the default permissioning to add some additional roles to the item based on
@@ -186,12 +191,12 @@ class Item(SnovaultItem):
         properties = self.upgrade_properties()
         if 'submission_centers' in properties:
             for submission_center in properties['submission_centers']:
-                center = f'{SUBMISSION_CENTER_RW}.{submission_center}'
-                roles[center] = SUBMISSION_CENTER_RW
+                center = f'{acl.SUBMISSION_CENTER_RW}.{submission_center}'
+                roles[center] = acl.SUBMISSION_CENTER_RW
         if 'consortia' in properties:
             for consortium in properties['consortia']:
-                consortium_identifier = f'{CONSORTIUM_MEMBER_RW}.{consortium}'
-                roles[consortium_identifier] = CONSORTIUM_MEMBER_RW
+                consortium_identifier = f'{acl.CONSORTIUM_MEMBER_RW}.{consortium}'
+                roles[consortium_identifier] = acl.CONSORTIUM_MEMBER_RW
         if 'submitted_by' in properties:
             submitter = 'userid.%s' % properties['submitted_by']
             roles[submitter] = 'role.owner'
@@ -254,7 +259,7 @@ def validate_user_submission_consistency(context, request):
         part of
     """
     user = request.environ.get('REMOTE_USER')
-    if not user or user in ['TEST', 'INDEXER', 'EMBED', 'TEST_SUBMITTER']:
+    if not user or user in ['TEST', 'INDEXER', 'EMBED', 'TEST_SUBMITTER', 'INGESTION']:
         return
     user = request.embed(f'/users/{user}?frame=raw')
     if 'group.admin' in user.get('groups', []):

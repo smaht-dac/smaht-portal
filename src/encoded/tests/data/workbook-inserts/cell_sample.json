@@ -7,7 +7,9 @@
         "submitted_id": "TEST_SAMPLE_LIVER-CELL",
         "cell_ontology_id": "CL:0000182",
         "preservation_type": "Fresh",
-        "tissue": "TEST_TISSUE_LIVER",
+        "sample_sources": [
+            "TEST_TISSUE_LIVER"
+        ],
         "cell_count": 50,
         "parent_samples": [
             "TEST_SAMPLE_LIVER"

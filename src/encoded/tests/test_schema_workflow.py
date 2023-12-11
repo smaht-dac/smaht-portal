@@ -37,11 +37,6 @@ def workflow(
     return post_item(testapp, item, "Workflow")
 
 
-def test_workflow_post(workflow: Dict[str, Any]) -> None:
-    """Ensure Workflow properties POST."""
-    pass
-
-
 @pytest.mark.parametrize(
     "ebs_size,expected_status",
     [

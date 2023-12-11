@@ -25,10 +25,10 @@
             "$ref": "mixins.json#/attribution"
         },
         {
-            "$ref": "mixins.json#/category"
+            "$ref": "mixins.json#/modified"
         },
         {
-            "$ref": "mixins.json#/modified"
+            "$ref": "mixins.json#/protocols"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -52,19 +52,6 @@
     "properties": {
         "accession": {
             "accessionType": "SQ"
-        },
-        "category": {
-            "description": "Overall sequencing method type",
-            "items": {
-                "type": "string",
-                "enum": [
-                    "Short Read WGS",
-                    "Long Read WGS",
-                    "HiFi Long Read WGS",
-                    "UltraLong Long Read WGS",
-                    "RNA-Seq"
-                ]
-            }
         },
         "schema_version": {
             "default": "1"
@@ -116,19 +103,14 @@
         "target_read_count": {
             "title": "Target Read Count",
             "description": "Expected read count for the sequencing",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0
         },
         "target_read_length": {
             "title": "Target Read Length",
             "description": "Expected read length for the sequencing",
             "type": "integer",
             "minimum": 0
-        },
-        "protocol": {
-            "title": "Protocol",
-            "description": "Links to associated protocol",
-            "type": "string",
-            "linkTo": "Protocol"
         }
     }
 }

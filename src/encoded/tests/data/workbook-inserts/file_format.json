@@ -13,7 +13,18 @@
             "smaht"
         ],
         "identifier": "BAM",
-        "standard_file_extension": "bam"
+        "standard_file_extension": "bam",
+		"extra_file_formats": [
+			"BAI"
+		]
+    },
+    {
+        "uuid": "4761dada-9a9a-4cc6-becd-9c242ee61276",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "BAI",
+        "standard_file_extension": "bai"
     },
     {
         "uuid": "ed177463-2126-47dc-b1b9-1147498c04b9",

@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .base import Item
 
 
 @collection(
@@ -11,7 +11,7 @@ from .base import Item as SMAHTItem
         "description": "Details and methods of tissue collection for a donor",
     },
 )
-class TissueCollection(SMAHTItem):
+class TissueCollection(Item):
     item_type = "tissue_collection"
     schema = load_schema("encoded:schemas/tissue_collection.json")
     embedded_list = []

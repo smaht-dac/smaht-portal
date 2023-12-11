@@ -42,6 +42,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "sample_source.json#/properties"
         }
     ],
     "properties": {
@@ -99,12 +102,6 @@
             "type": "integer",
             "minimum": 0
         },
-        "samples_recovered": {
-            "title": "Samples Recovered",
-            "description": "Number of discrete samples recovered from the tissue",
-            "type": "integer",
-            "minimum": 0
-        },
         "size": {
             "title": "Size",
             "description": "Size of the tissue in cubic centimeters",
@@ -132,7 +129,8 @@
         "donor": {
             "title": "Donor",
             "description": "Link to the associated donor",
-            "type": "string"
+            "type": "string",
+            "linkTo": "Donor"
         }
     }
 }

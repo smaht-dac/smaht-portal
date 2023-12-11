@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .base import Item
 
 
 @collection(
@@ -11,7 +11,7 @@ from .base import Item as SMAHTItem
         "description": "Details of donors' demographics",
     },
 )
-class Demographic(SMAHTItem):
+class Demographic(Item):
     item_type = "demographic"
     schema = load_schema("encoded:schemas/demographic.json")
     embedded_list = []

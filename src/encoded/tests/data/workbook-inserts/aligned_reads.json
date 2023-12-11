@@ -15,6 +15,7 @@
         "filename": "some_bam.bam",
         "file_sets": [
             "TEST_FILE-SET_LIVER"
-        ]
+        ],
+        "reference_genome": "GRCh38"
     }
 ]

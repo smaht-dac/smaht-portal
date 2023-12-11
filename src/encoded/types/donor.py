@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .subject import Subject
+from .base import Item
 
 
 @collection(
@@ -10,7 +10,7 @@ from .subject import Subject
         "title": "Donors",
         "description": "Individuals who donated tissues",
     })
-class Donor(Subject):
+class Donor(Item):
     item_type = "donor"
     schema = load_schema("encoded:schemas/donor.json")
     embedded_list = []

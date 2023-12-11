@@ -7,26 +7,23 @@ from snovault.types.user import USER_PAGE_VIEW_ATTRIBUTES
 from snovault.types.user import user_add as SnoUserAdd
 from snovault.util import debug_log
 
-from .base import Item as SmahtItem
+from .acl import ONLY_ADMIN_VIEW_ACL
+from .base import Item
 
 
 @collection(
     name='users',
     unique_key="user:email",  # Required to GET via /users/{email}/
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         "title": "SMaHT Users",
         "description": "Listing of current SMaHT users",
     }
 )
-class User(SmahtItem, SnovaultUser):
+class User(Item, SnovaultUser):
     item_type = "user"
     schema = load_schema("encoded:schemas/user.json")
     embedded_list = []
-
-#    STATUS_ACL = SmahtItem.STATUS_ACL
-#
-#    def __ac_local_roles__(self):
-#        return SmahtItem.__ac_local_roles__(self)
 
     @calculated_property(schema={"title": "Title", "type": "string"})
     def title(self, first_name: Optional[str], last_name: Optional[str]) -> Union[str, None]:

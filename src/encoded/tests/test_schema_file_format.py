@@ -25,11 +25,6 @@ def file_format(
     return post_item(testapp, item, "FileFormat")
 
 
-def test_file_format_post(testapp: TestApp, file_format: Dict[str, Any]) -> None:
-    """Ensure properties POST."""
-    pass
-
-
 def test_identifier_unique(testapp: TestApp, file_format: Dict[str, Any]) -> None:
     """Ensure identifier unique across file formats."""
     item_with_duplicate_identifier = {

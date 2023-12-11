@@ -1,0 +1,51 @@
+{
+    "CellLine": [
+        {
+            "accession": "CL000001",
+            "description": "Description for Sample Cell Line 1",
+            "source": "Vendor A",
+            "submitted_id": "CL12345",
+            "tags": [
+                "tag1",
+                "tag2"
+            ],
+            "title": "Sample Cell Line 1",
+            "url": "https://vendorA.com/cellline/CL12345",
+            "submission_centers": [
+                "some-submission-center-a"
+            ]
+        },
+        {
+            "accession": "CL000002",
+            "description": "Description for Sample Cell Line 2",
+            "source": "Institution B",
+            "submitted_id": "CL67890",
+            "tags": [
+                "tag3",
+                "tag4"
+            ],
+            "title": "Sample Cell Line 2",
+            "url": "https://institutionB.com/cellline/CL67890",
+            "submission_centers": [
+                "some-submission-center-a",
+                "some-submission-center-b"
+            ]
+        },
+        {
+            "accession": "CL000003",
+            "description": "Description for Sample Cell Line 3",
+            "source": "Vendor C",
+            "submitted_id": "CL54321",
+            "tags": [
+                "tag5",
+                "tag6"
+            ],
+            "title": "Sample Cell Line 3",
+            "url": "https://vendorC.com/cellline/CL54321",
+            "submission_centers": [
+                "some-submission-center-b",
+                "some-submission-center-a"
+            ]
+        }
+    ]
+}
