@@ -51,9 +51,6 @@ jobs:
         run: |
           make build
 
-      - name: Generate egg-info
-        run: python setup.py egg_info
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
