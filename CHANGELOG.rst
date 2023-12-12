@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.12.0
+======
+
+* Fix in ingestion.loadxl_extensions.load_data_into_database to handle errors correctly.
+* Added record (uw_gcc) to master-inserts/submission_center.json for testing.
+* Added test_structured_data.py back in after resolved GitHub Actions (only) failure.
+
+
 0.11.0
 ======
 
