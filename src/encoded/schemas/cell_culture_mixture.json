@@ -1,0 +1,91 @@
+{
+    "title": "Cell Culture Mixture",
+    "$id": "/profiles/cell_culture_mixture.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "components",
+        "submission_centers",
+        "submitted_id"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/protocols"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/title"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "CM"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "components": {
+            "title": "Components",
+            "description": "Cultures in the mixture and their corresponding ratios",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "ratio",
+                    "cell_culture"
+                ],
+                "properties": {
+                    "ratio": {
+                        "title": "Ratio",
+                        "description": "Ratio of the cell culture to the total mixture (percentage)",
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    "cell_culture": {
+                        "title": "Cell Culture",
+                        "description": "Link to associated cell culture",
+                        "type": "string",
+                        "linkTo": "CellCulture"
+                    }
+                }
+            }
+        }
+    }
+}

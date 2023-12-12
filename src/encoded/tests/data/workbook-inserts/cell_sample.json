@@ -1,0 +1,18 @@
+[
+    {
+        "uuid": "a11574d0-504d-4b41-bc4a-0a9acf172a2a",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_SAMPLE_LIVER-CELL",
+        "cell_ontology_id": "CL:0000182",
+        "preservation_type": "Fresh",
+        "sample_sources": [
+            "TEST_TISSUE_LIVER"
+        ],
+        "cell_count": 50,
+        "parent_samples": [
+            "TEST_SAMPLE_LIVER"
+        ]
+    }
+]

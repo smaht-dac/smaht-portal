@@ -265,45 +265,46 @@ export default class App extends React.PureComponent {
 
         console.info('BROWSER', browserInfo);
 
-        if (
-            browserInfo &&
-            typeof browserInfo.name === 'string' &&
-            ['chrome', 'firefox', 'safari'].indexOf(browserInfo.name) === -1
-        ) {
-            Alerts.queue({
-                title: 'Browser Suggestion',
-                message: (
-                    <div>
-                        <p className="mb-0">
-                            <a
-                                href="https://www.google.com/chrome/"
-                                rel="noopener noreferrer"
-                                target="_blank"
-                                className="text-500">
-                                Google Chrome
-                            </a>{' '}
-                            or{' '}
-                            <a
-                                href="https://www.mozilla.org/en-US/firefox/"
-                                rel="noopener noreferrer"
-                                target="_blank"
-                                className="text-500">
-                                Mozilla Firefox
-                            </a>{' '}
-                            are the recommended browser(s) for using the 4DN
-                            Data Portal.
-                        </p>
-                        <p className="mb-0">
-                            Microsoft Edge, Safari, etc. should work for a
-                            majority of portal functions but are not explicitly
-                            supported and may present some glitches, e.g. during
-                            submission.
-                        </p>
-                    </div>
-                ),
-                style: 'warning',
-            });
-        }
+        // TODO: Discuss and re-add this alert.
+        // if (
+        //     browserInfo &&
+        //     typeof browserInfo.name === 'string' &&
+        //     ['chrome', 'firefox', 'safari'].indexOf(browserInfo.name) === -1
+        // ) {
+        //     Alerts.queue({
+        //         title: 'Browser Suggestion',
+        //         message: (
+        //             <div>
+        //                 <p className="mb-0">
+        //                     <a
+        //                         href="https://www.google.com/chrome/"
+        //                         rel="noopener noreferrer"
+        //                         target="_blank"
+        //                         className="text-500">
+        //                         Google Chrome
+        //                     </a>{' '}
+        //                     or{' '}
+        //                     <a
+        //                         href="https://www.mozilla.org/en-US/firefox/"
+        //                         rel="noopener noreferrer"
+        //                         target="_blank"
+        //                         className="text-500">
+        //                         Mozilla Firefox
+        //                     </a>{' '}
+        //                     are the recommended browser(s) for using the SMaHT
+        //                     Data Portal.
+        //                 </p>
+        //                 <p className="mb-0">
+        //                     Microsoft Edge, Safari, etc. should work for a
+        //                     majority of portal functions but are not explicitly
+        //                     supported and may present some glitches, e.g. during
+        //                     submission.
+        //                 </p>
+        //             </div>
+        //         ),
+        //         style: 'warning',
+        //     });
+        // }
 
         // Post-mount stuff
         this.setState({ mounted: true, browserInfo }, () => {

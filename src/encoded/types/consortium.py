@@ -1,17 +1,19 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .acl import ONLY_ADMIN_VIEW_ACL
+from .base import Item
 
 
 @collection(
-    name='consortium',
+    name='consortia',
     unique_key='consortium:identifier',  # For shorthand reference as linkTo
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
-        'title': 'Consortium',
-        'description': 'Listing of SMaHT associated Consortiums',
+        'title': 'Consortia',
+        'description': 'Listing of SMaHT associated Consortia',
     }
 )
-class Consortium(SMAHTItem):
+class Consortium(Item):
     """ Consortium item """
     item_type = 'consortium'
     schema = load_schema('encoded:schemas/consortium.json')

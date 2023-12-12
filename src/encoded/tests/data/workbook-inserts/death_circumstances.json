@@ -1,0 +1,16 @@
+[
+    {
+        "uuid": "9878a52d-091b-467d-9ffa-a3a27af9270d",
+        "submitted_id": "TEST_DEATH-CIRCUMSTANCES_FEMALE",
+        "submission_centers": [
+            "smaht"
+        ],
+        "donor": "TEST_DONOR_FEMALE",
+        "autopsy_by_official": "Yes",
+        "blood_transfusion_products": [
+            "Platelets"
+        ],
+        "hardy_scale": 3,
+        "witnessed_death": "Unknown"
+    }
+]

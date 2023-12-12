@@ -1,0 +1,24 @@
+[
+    {
+        "uuid": "9c43e011-7b88-4418-a98b-46bc1ec5a0a3",
+        "submission_centers": [
+            "smaht"
+        ],
+        "title": "A simple filter set",
+        "filter_blocks": [
+            {
+                "name": "some filter block",
+                "query": "type=FilterSet",
+                "flags_applied": [
+                    "some_flag"
+                ]
+            }
+        ],
+        "flags": [
+            {
+                "name": "some_flag",
+                "query": "title=Foobar"
+            }
+        ]
+    }
+]

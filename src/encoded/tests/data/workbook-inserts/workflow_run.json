@@ -1,0 +1,20 @@
+[
+    {
+        "uuid": "531e97f1-b402-4525-bbde-cb75a9cdb0d2",
+        "workflow": "00d4f9d8-9b29-4cfb-92e7-72e15178768b",
+        "submission_centers": [
+            "smaht"
+        ],
+        "job_id": "ABCDE123",
+        "run_status": "started",
+        "run_url": "https://foo.bar",
+        "parameters": [
+            {
+                "workflow_argument_name": "foo",
+                "value": "bar",
+                "ordinal": 2,
+                "dimension": "0"
+            }
+        ]
+    }
+]

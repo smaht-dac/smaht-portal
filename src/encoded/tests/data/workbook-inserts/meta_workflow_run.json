@@ -1,0 +1,36 @@
+[
+    {
+        "uuid": "902ec3cc-4a36-4c30-b78d-0674f861ff4a",
+        "meta_workflow": "e107d3d9-2590-43cf-926f-403ce559e930",
+        "submission_centers": [
+            "smaht"
+        ],
+        "final_status": "completed",
+        "failed_jobs": [
+            "ABCDE123"
+        ],
+        "cost": 13.4167,
+        "workflow_runs": [
+            {
+                "name": "run_1",
+                "status": "completed",
+                "workflow_run": "531e97f1-b402-4525-bbde-cb75a9cdb0d2",
+                "job_id": "ABCDE987",
+                "shard": "5",
+                "output": [
+                    {
+                        "argument_name": "aligned_bam",
+                        "file": "cca15caa-bc11-4a6a-8998-ea0c69df8b9d"
+                    }
+                ]
+            }
+        ],
+        "input": [
+            {
+                "argument_name": "foo",
+                "argument_type": "parameter",
+                "value": 40
+            }
+        ]
+    }
+]

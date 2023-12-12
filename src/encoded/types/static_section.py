@@ -1,21 +1,26 @@
-from snovault import load_schema
 import os
-from snovault import collection, calculated_property
-from encoded_core.types.user_content import get_local_file_contents, get_remote_file_contents
-from encoded_core.types.user_content import StaticSection as CoreStaticSection
 
+from snovault import collection, calculated_property, load_schema
+from encoded_core.types.user_content import (
+    get_local_file_contents,
+    get_remote_file_contents,
+    StaticSection as CoreStaticSection,
+)
+
+from .acl import ONLY_ADMIN_VIEW_ACL
 from .user_content import UserContent
 
 
 @collection(
-    name='static-sections',
-    unique_key='user_content:identifier',
+    name="static-sections",
+    unique_key="static_section:identifier",
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
-        'title': 'Static Sections',
-        'description': 'Static Sections for the Portal',
+        "title": "Static Sections",
+        "description": "Static Sections for the Portal",
     })
 class StaticSection(UserContent, CoreStaticSection):
-    item_type = 'static_section'
+    item_type = "static_section"
     schema = load_schema("encoded:schemas/static_section.json")
     embedded_list = []
 

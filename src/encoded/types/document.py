@@ -1,18 +1,18 @@
 from encoded_core.types.document import Document as CoreDocument
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
-from .acl import CONSORTIUM_MEMBER_CREATE_ACL
+from .acl import ONLY_ADMIN_VIEW_ACL
+from .base import Item
 
 
 @collection(
     name='documents',
-    acl=CONSORTIUM_MEMBER_CREATE_ACL,  # admins, consort/submission center members can create
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         'title': 'Documents',
         'description': 'Listing of Documents',
     })
-class Document(SMAHTItem, CoreDocument):
+class Document(Item, CoreDocument):
     item_type = 'document'
     schema = load_schema("encoded:schemas/document.json")
     embedded_list = []

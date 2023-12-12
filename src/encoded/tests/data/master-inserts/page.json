@@ -182,7 +182,7 @@
     {
         "identifier": "docs/how-to-download",
         "title": "How to Download Data",
-        "status": "in review",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -224,7 +224,7 @@
     {
         "identifier": "docs/pipeline-protocols",
         "title": "Pipeline Protocols",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -266,7 +266,7 @@
     {
         "identifier": "docs/how-to-upload",
         "title": "How to Upload Data",
-        "status": "in review",
+        "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],

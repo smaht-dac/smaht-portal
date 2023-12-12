@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.7.3"
+version = "0.11.1"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -44,9 +44,9 @@ certifi = ">=2021.5.30"
 chardet = "^5.0.0"
 codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
-dcicsnovault = "11.0.1.1b0"
-dcicutils = "^8.2.0"
-encoded-core = "0.2.0.0b10"
+dcicsnovault = "^11.6.0"
+dcicutils = "^8.5.0"
+encoded-core = "^0.4.0"
 elasticsearch = "7.13.4"
 execnet = "1.4.1"
 humanfriendly = "^1.44.9"
@@ -112,6 +112,7 @@ WSGIProxy2 = "0.4.2"
 "zope.interface" = "^4.7.2"
 "zope.sqlalchemy" = "1.6"
 markdown = "^3.5.1"
+pygments = "^2.17.2"
 
 [tool.poetry.dev-dependencies]
 # PyCharm says boto3-stubs contains useful type hints
@@ -193,6 +194,9 @@ submission-test = "encoded.commands.submission_test:main"
 # submit-metadata-bundle = "encoded.commands.submit_metadata_bundle:main"
 update-inserts-from-server = "encoded.commands.update_inserts_from_server:main"
 verify-item = "encoded.commands.verify_item:main"
+parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/testing only
+flatten-structured-data= "encoded.commands.flatten_structured_data:main"  # For dev/testing only
+show-schema= "encoded.commands.show_schema:main"  # For dev/testing only
 
 # container commands
 simulate-environment = "encoded.commands.simulate_environment:main"

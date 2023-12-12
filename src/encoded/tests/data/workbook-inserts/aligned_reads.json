@@ -1,0 +1,21 @@
+[
+    {
+        "uuid": "303985cf-f1db-4dea-9782-2e68092d603d",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE_BAM",
+        "data_category": [
+            "Sequencing Reads"
+        ],
+        "data_type": [
+            "Aligned Reads"
+        ],
+        "file_format": "BAM",
+        "filename": "some_bam.bam",
+        "file_sets": [
+            "TEST_FILE-SET_LIVER"
+        ],
+        "reference_genome": "GRCh38"
+    }
+]

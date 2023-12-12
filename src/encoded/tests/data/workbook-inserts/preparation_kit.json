@@ -1,0 +1,11 @@
+[
+    {
+        "uuid": "f0502ff0-ffe4-4287-8a2c-4a909e11bfe7",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_KIT_ILLUMINA-DNA",
+        "title": "Illumina DNA Prep",
+        "vendor": "Illumina"
+    }
+]

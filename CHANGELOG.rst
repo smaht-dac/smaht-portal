@@ -7,10 +7,49 @@ smaht-portal
 Change Log
 ----------
 
-0.7.2
-=====
+0.11.1
+======
 
 * Add some adapted user facing documentation
+
+
+0.11.0
+======
+
+* Merge in ui-dev3 branch: `PR: 39: UI-Dev 3 <https://github.com/smaht-dac/smaht-portal/pull/39>`_
+  * [Cfm homepage updates] (https://github.com/smaht-dac/smaht-portal/pull/39)
+  * Additional UI changes for V1 pre-release, including updates to user page, registration modal, nav, etc.
+
+
+0.10.0
+======
+* SMaHT ingestion related work.
+
+
+0.9.0
+=====
+
+* Add first cut at "submittable" data model
+* Fix default collection ACLs
+* Add inserts for all item types to workbook-inserts
+* Increase test coverage for schemas, types, item creation permissions, and various calcprops
+* Remove redundant tests now covered by workbook inserts or elsewhere
+
+
+0.8.1
+=====
+
+* Update encoded-core with fix to `extra_files` property on File items
+
+
+0.8.0
+=====
+
+* Refactor schemas for increased sharing and less duplication
+* Update bioinformatics-related schemas based on feedback + testing
+* Update identifying properties in schemas for loadxl handling
+* Clean up unique keys for item types
+* Improve test coverage for schemas and types
 
 
 0.7.1
@@ -27,13 +66,6 @@ Change Log
 * Remove statuses no longer in use
 * Refine the state each status corresponds to
 * Update and add additional tests for this functionality
-
-  
-0.7.0
-=====
-
-* Merge in ui-dev3 branch: `PR: ##: UI-Dev 3 <>`_
-  * TODO: add branches merged into ui-dev3
 
 
 0.6.0

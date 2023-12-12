@@ -9,7 +9,9 @@
         "last_name"
     ],
     "identifyingProperties": [
+        "email",
         "aliases",
+        "email",
         "uuid"
     ],
     "additionalProperties": false,
@@ -44,7 +46,13 @@
             "$merge": "snovault:schemas/user.json#/properties/email"
         },
         "groups": {
-            "$merge": "snovault:schemas/user.json#/properties/groups"
+            "$merge": "snovault:schemas/user.json#/properties/groups",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "admin"
+                ]
+            }
         },
         "last_name": {
             "$merge": "snovault:schemas/user.json#/properties/last_name"
