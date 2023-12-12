@@ -1,3 +1,6 @@
+[paste.app_factory]
+main = encoded:main
+
 [console_scripts]
 add-date-created = encoded.commands.add_date_created:main
 add-image-tag = dcicutils.ecr_scripts:add_image_tag_main
@@ -46,9 +49,6 @@ update-inserts-from-server = encoded.commands.update_inserts_from_server:main
 verify-item = encoded.commands.verify_item:main
 view-local-object = snovault.commands.view_local_object:main
 wipe-test-indices = snovault.commands.wipe_test_indices:main
-
-[paste.app_factory]
-main = encoded:main
 
 [paste.composite_factory]
 indexer = snovault.elasticsearch.es_index_listener:composite
