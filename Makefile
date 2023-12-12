@@ -178,7 +178,7 @@ test-static:
 	make lint
 
 remote-test:  # smaht-portal uses this make target for now as tests are not that burdensome
-	python setup_eb.py egg_info
+	#python setup_eb.py egg_info
 	pytest -vv --aws-auth --durations=20 --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
 
 remote-test-npm:  # Note this only does the 'not indexing' tests
