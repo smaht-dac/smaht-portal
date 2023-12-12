@@ -49,7 +49,6 @@ beanstalk.cfg
 *.swp
 *.hprof
 *.DS_Store
-*.egg-info
 *.pyc
 +.project
 +.pydevproject
