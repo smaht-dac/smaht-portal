@@ -10,7 +10,7 @@ poetry run python -m assume_identity
 # Do nothing on other environments
 # TEMP: add --allow-prod
 if [ -n "${INITIAL_DEPLOYMENT}" ]; then
-  poetry run clear-db-es-contents production.ini --app-name app --only-if-env smaht-production-blue --allow-prod
+  poetry run clear-db-es-contents production.ini --app-name app --only-if-env smaht-nothing --allow-prod
 fi
 
 # Create mapping
