@@ -3,20 +3,18 @@ Getting Started (User)
 ======================
 
 
-Overview
---------
-
 In order to make your data accessible, searchable and assessable you should submit as much metadata as possible to the SMaHT system along with the raw files you have generated in your experiments.
 
 These pages are designed to
 
 
 * show you how to find out what kind of metadata we collect for your particular type of experiment
-* introduce the mechanisms by which you can submit your metadata and data to the 4DN data portal.
+* introduce the mechanisms by which you can submit your metadata and data to the SMaHT data portal.
 
 An overview of metadata structure is pending, check back soon!
 
 We have two primary ways that you can submit data to the SMaHT data portal.
+
 
 Data Submission via Spreadsheet
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -33,6 +31,7 @@ The excel metadata workbooks
 Documentation of the data submission process using these forms can be found
 `here </help/submitter-guide/spreadsheet>`_.
 
+
 REST API
 ^^^^^^^^
 
@@ -43,14 +42,14 @@ For both meta/data submission and retrival, you can also access our database dir
 * Our implementation is analagous to the one developed
   by the `ENCODE DCC <https://www.encodeproject.org/help/rest-api/>`_.
 
-If you would like to directly interact with the REST API for data submission see the documentation `here </help/user-guide/rest-api>`_.
 
 
 Referencing existing objects
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 Using submitted_id
-^^^^^^^^^^^^^^^^^^
+------------------
 
 **submitted_ids** are a convenient way for you to refer to other items that you are submitting or have submitted in the past.
 
@@ -60,8 +59,9 @@ Using submitted_id
 * A submitted_id must be unique within all items.
 * Once you submit a submitted_id for an Item then that id can be used as an identifier for that Item in the current submission as well as in any subsequent submission.
 
+
 Other ways to reference existing items
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
 
 You don't need to use a submitted_id if you are referencing an item that already exists in the database.
 
@@ -93,6 +93,7 @@ Any of the following can be used to reference an existing item in an excel sheet
      - test@test.com
 
 
+
 Getting Added as a SMaHT User or Submitter
 ------------------------------------------
 
@@ -103,7 +104,7 @@ Before you can view protected data or submit data to the SMaHT system you must b
 * To submit metadata and files you must be designated as a submitter for a submission center
 * Most current SMaHT consortia members should already be registered in our system.
 
-For instructions on creating an account, please see `this page </help/user-guide/account-creation>`_.
+For instructions on creating an account, please see `this page </docs/user-guide/account-creation>`_.
 
 **Metadata and data accessibility.**
 
@@ -123,7 +124,7 @@ Getting Access Keys for the SMaHT Data Portal servers
 If you have been designated as a submitter for the project and plan to use either our spreadsheet-based submission system or the REST-API an access key and a secret key are required to establish a connection to the DAC database and to fetch, upload (post), or change (patch) data. Please follow these steps to get your keys.
 
 
-#. Log in to the SMaHT `website <https://data.smaht.org>`_ with your username (email) and password. If you have not yet created an account, see `this page </help/user-guide/account-creation>`_ for instructions.
+#. Log in to the SMaHT `website <https://data.smaht.org>`_ with your username (email) and password. If you have not yet created an account, see `this page </docs/user-guide/account-creation>`_ for instructions.
 #. Once logged in, go to your ”Profile” page by clicking **Account** on the upper right side of the page.
 #. In your profile page, click the green “Add Access Key” button, and copy the “access key ID” and “secret access key” values from the pop-up page. *Note that once the pop-up page disappears you will not be able to see the secret access key value.* However, if you forget or lose your secret key you can always delete and add new access keys from your profile page at any time.
 #. Create a file to store this information.
@@ -132,7 +133,7 @@ If you have been designated as a submitter for the project and plan to use eithe
    * However you can specify your own filename and file location as parameters to the software (see below).
    * The key information is stored in JSON format and is used to establish a secure connection.
    * the JSON must be formatted as shown below - replace key and secret with your new “Access Key ID” and “Secret Access Key”.
-   * You can use the same key and secret to use the SMaHT `REST-API </help/user-guide/rest-api>`_.
+   * You can use the same key and secret to use the SMaHT REST API.
 
 **Sample content for ~/.smaht-keys.json**
 

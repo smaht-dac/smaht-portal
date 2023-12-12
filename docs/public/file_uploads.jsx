@@ -13,15 +13,6 @@
 		for uploading such files.
 	</p>
 
-	<p>
-		A video tutorial for submitting files using SubmitCGAP, a similar tool which for practical purposes
-		can be considered the same as submitr, can be found on this page.
-		All tutorial videos can be found on the <a href="https://www.youtube.com/@cgaptraining">CGAP Training
-		Youtube channel</a>. It is worth noting that only the mechanics of
-		data submission are relevant on this channel, as it was developed for a
-		different platform using the same technology.
-	</p>
-
 	<h4>Load the files locally </h4>
 
 	<p>
@@ -33,7 +24,7 @@
 		<a href="https://github.com/s3fs-fuse/s3fs-fuse">s3fs</a>
 		or <a href="https://github.com/kahing/goofys">goofys</a>
 		facilitate mounting of S3 buckets as local file
-		systems that can be readily accessed by SubmitCGAP.
+		systems that can be readily accessed by submitr.
 		Similar tools exist for Google Cloud Storage and
 		Azure Storage.
 	</p>
@@ -54,15 +45,9 @@
 
 	<h4>Tutorial Video: Uploading Local Files</h4>
 
-	<div className="w-100">
-		<YoutubeVideoEmbed
-			shouldAutoplay={false}
-			videoID="4Su3a7AE0HY"
-			videoTitle="Case Submission via CGAP Web UI"
-			params="start=117"
-			posterSize="maxresdefault"
-		/>
-    </div>
+	<p>
+		Coming Soon!
+	</p>
 
 	<h4>Run submitr on remote instance</h4>
 
@@ -74,7 +59,7 @@
 		mounted or downloaded as before, submitr can be
 		installed, and the remainder of the upload process
 		can continue as on your local computer. Note that
-		your SubmitCGAP keys (located at <code>~/.smaht-keys.json</code>)
+		your submitr keys (located at <code>~/.smaht-keys.json</code>)
 		will also have to be uploaded to the instance for
 		successful file upload to the DAC.
 	</p>
