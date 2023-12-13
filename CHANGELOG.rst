@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.11.2
+======
+
+* Broaden software version pattern pending further discussion with bioinformatics.
+
+
 0.11.1
 ======
 
