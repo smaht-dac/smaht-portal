@@ -516,7 +516,6 @@ export default class UserView extends React.Component {
     render() {
         const { context: user, schemas, href, windowWidth } = this.props;
         const { email, project } = user;
-        console.log('userview context', this.props.context);
         const mayEdit = this.mayEdit();
         // Todo: remove
         const ifCurrentlyEditingClass =
