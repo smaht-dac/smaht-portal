@@ -58,16 +58,10 @@ def _summarize_errors(structured_data: StructuredDataSet, submission: SmahtSubmi
         result["reader"] = reader_warnings[:max_issues_per_group]
         if len(reader_warnings) > max_issues_per_group:
             result["reader"].append(truncated_info(reader_warnings))
-    """
     if (validation_errors := structured_data.validation_errors):
         result["validation"] = validation_errors[:max_issues_per_group]
         if len(validation_errors) > max_issues_per_group:
             result["validation"].append(truncated_info(validation_errors))
-    """
-    if (errors := structured_data.errors):
-        result["validation"] = errors[:max_issues_per_group]
-        if len(errors) > max_issues_per_group:
-            result["validation"].append(truncated_info(errors))
     if (ref_errors := structured_data.ref_errors):
         result["ref"] = ref_errors[:max_issues_per_group]
         if len(ref_errors) > max_issues_per_group:

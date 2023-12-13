@@ -49,11 +49,14 @@ class SmahtSubmissionFolio:
         to the database; the summary is a list of (text lines) summarizing the
         submission, e.g. with counts for inserts, updates, etc.
         """
+        if ((isinstance(validation_errors := results.get("validation"), list) and validation_errors) or
+            (isinstance(ref_errors := results.get("ref"), list) and ref_errors) or
+            (isinstance(other_errors := results.get("errors"), list) and other_errors)):
+            self.submission.fail()
+
         upload_info = results.get("upload_info")
         results = {"result": results, "validation_output": validation_summary, "upload_info": upload_info}
 
-        if isinstance(errors := results["result"].get("errors"), list) and errors:
-            self.submission.fail()
 
         # object in the Portal database, accessible, for example, like this:
         # http://localhost:8000/ingestion-submissions/7da2f985-a6f7-4184-9544-b7439957617e?format=json
