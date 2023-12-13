@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.11.1
+======
+
+* Add some adapted user facing documentation
+
+
 0.11.0
 ======
 

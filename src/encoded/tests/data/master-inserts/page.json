@@ -163,11 +163,9 @@
         "title": "Documentation",
         "status": "public",
         "children": [
-            "859b2c48-0bda-406c-b49b-07d68bd236d4",
-            "faabe1c0-3d8a-4651-bc86-072fb49ad016",
-            "4a63980c-d43a-403d-b872-51b658e1d39c",
-            "d753df69-8830-4cce-bf5c-44f55686d8a7",
-            "22cf1831-aa96-4da1-bc62-4bccba4365af"
+            "5153c902-a0d2-4246-9b41-cea7a1c91f52",
+            "6292facf-9eb4-451e-8d05-2e56e1bd7cbe",
+            "6292facf-9eb4-451e-8d05-2e56e1bd7cbf"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -279,6 +277,62 @@
             "include-top-link": false
         },
         "uuid": "22cf1831-aa96-4da1-bc62-4bccba4365af",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+     {
+        "identifier": "docs/user-guide/account-creation",
+        "uuid": "5153c902-a0d2-4246-9b41-cea7a1c91f52",
+        "title": "Creating an Account",
+        "content": [
+            "442c8aa0-dc6c-43d7-814a-854af460b014"
+        ],
+        "table-of-contents": {
+            "enabled": true
+        },
+        "status": "public",
+         "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/user-guide/getting-started",
+        "uuid": "6292facf-9eb4-451e-8d05-2e56e1bd7cbe",
+        "title": "Getting Started with Submissions",
+        "content": [
+            "442c8aa0-dc6c-43d7-814a-854af460b015"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/user-guide/file-uploads",
+        "uuid": "6292facf-9eb4-451e-8d05-2e56e1bd7cbf",
+        "title": "How to Upload Files to DAC",
+        "content": [
+            "d3d9c545-4340-495a-92ea-7ccb7eebc71c"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "status": "public",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

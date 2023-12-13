@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.11.0"
+version = "0.11.1"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -111,6 +111,8 @@ WSGIProxy2 = "0.4.2"
 "zope.deprecation" = "^4.4.0"
 "zope.interface" = "^4.7.2"
 "zope.sqlalchemy" = "1.6"
+markdown = "^3.5.1"
+pygments = "^2.17.2"
 
 [tool.poetry.dev-dependencies]
 # PyCharm says boto3-stubs contains useful type hints
