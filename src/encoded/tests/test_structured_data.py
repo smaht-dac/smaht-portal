@@ -983,6 +983,23 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
              ]
         }
     },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "someuniquestrings,someuniqueints",
+            "somevalue|anothervalue|somevalue,12|34|56|34"
+        ],
+        "as_file_name": "test.csv",
+        "schemas": [{ "title": "Test",
+            "properties": {
+                "someuniquestrings": { "type": "array", "uniqueItems": True, "items": { "type": "string" } },
+                "someuniqueints": { "type": "array", "uniqueItems": True, "items": { "type": "integer" } }
+            }
+        }],
+        "expected": { "Test" : [
+            {"someuniquestrings": ["somevalue", "anothervalue"], "someuniqueints": [12,34,56]}
+        ]}
+    },
 ]))
 def test_parse_structured_data_parameterized(testapp, kwargs):
     _test_parse_structured_data(testapp, **kwargs)
@@ -1234,7 +1251,7 @@ def _test_parse_structured_data(testapp: TestApp,
         def call_parse_structured_data(file: str):
             nonlocal portal, novalidate, debug
             if debug:
-                # import pdb ; pdb.set_trace()
+                import pdb ; pdb.set_trace()
                 pass
             return parse_structured_data(file=file, portal=portal, novalidate=novalidate,
                                          prune=True if prune is not False else False)
@@ -1264,11 +1281,11 @@ def _test_parse_structured_data(testapp: TestApp,
                 structured_data = structured_data_set.data
                 validation_errors = structured_data_set.validation_errors
         if debug:
-            # import pdb ; pdb.set_trace()
+            import pdb ; pdb.set_trace()
             pass
         if expected is not None:
             if not (structured_data == expected):
-                # import pdb ; pdb.set_trace()
+                import pdb ; pdb.set_trace()
                 pass
             assert structured_data == expected
         if expected_errors:
@@ -1357,7 +1374,7 @@ def _get_schema_flat_typeinfo(schema: Schema):
 
 def _test_structured_row_data(columns: str, expected: Optional[dict]):
     if _StructuredRowTemplate(columns.split(","))._template != expected:
-        # import pdb ; pdb.set_trace()
+        import pdb ; pdb.set_trace()
         pass
     assert _StructuredRowTemplate(columns.split(","))._template == expected
 
