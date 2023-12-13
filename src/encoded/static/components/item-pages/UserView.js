@@ -516,6 +516,7 @@ export default class UserView extends React.Component {
     render() {
         const { context: user, schemas, href, windowWidth } = this.props;
         const { email, project } = user;
+        console.log('userview context', this.props.context);
         const mayEdit = this.mayEdit();
         // Todo: remove
         const ifCurrentlyEditingClass =
@@ -676,39 +677,7 @@ function ProfileContactFieldsIcon({ icon }) {
 }
 
 const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
-    const { project_roles = [] } = user;
-
-    const renderedRoles = project_roles.map(function (
-        { role, project },
-        index
-    ) {
-        const roleProjectID = 'project-' + index;
-        const roleRoleID = 'project-role-' + index;
-        return (
-            <li className="list-group-item" key={index}>
-                <div className="row project">
-                    <div className="col-md-3 text-left text-md-right">
-                        <label htmlFor={roleProjectID} className="text-500">
-                            Project
-                        </label>
-                    </div>
-                    <div id={roleProjectID} className="col-md-9 value text-500">
-                        {object.itemUtil.generateLink(project)}
-                    </div>
-                </div>
-                <div className="row role">
-                    <div className="col-md-3 text-left text-md-right">
-                        <label htmlFor={roleRoleID} className="text-500">
-                            Role
-                        </label>
-                    </div>
-                    <div id={roleRoleID} className="col-md-9 value text-500">
-                        {Term.toName('project_roles.role', role)}
-                    </div>
-                </div>
-            </li>
-        );
-    });
+    const { consortia = [], submission_centers: submissionCenters = [] } = user;
 
     return (
         <div className="card organizations h-100">
@@ -718,7 +687,52 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
                     Organizations
                 </h3>
             </div>
-            <ul className="list-group list-group-flush">{renderedRoles}</ul>
+            <ul className="list-group list-group-flush list-unstyled border-bottom-0">
+                <div className="list-group-item">
+                    <div className="row consortia">
+                        <div className="col-md-3 text-left text-md-right">
+                            <label htmlFor="consortia" className="text-500">
+                                Consortia
+                            </label>
+                        </div>
+                        <div id="consortia" className="col-md-9">
+                            {consortia.map((consortium) => (
+                                <li
+                                    key={consortium?.atId}
+                                    id={consortium?.atId}
+                                    className="value text-500">
+                                    {object.itemUtil.generateLink(consortium)}
+                                </li>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </ul>
+            <ul className="list-group list-group-flush list-unstyled border-top-0 mt-0">
+                <div className="list-group-item">
+                    <div className="row submission-centers">
+                        <div className="col-md-3 text-left text-md-right">
+                            <label
+                                htmlFor="submission_centers"
+                                className="text-500">
+                                Submission Center(s)
+                            </label>
+                        </div>
+                        <div id="submission_centers" className="col-md-9">
+                            {submissionCenters.map((submissionCenter) => (
+                                <li
+                                    key={submissionCenter?.atId}
+                                    id={submissionCenter?.atId}
+                                    className="value text-500">
+                                    {object.itemUtil.generateLink(
+                                        submissionCenter
+                                    )}
+                                </li>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </ul>
         </div>
     );
 });
