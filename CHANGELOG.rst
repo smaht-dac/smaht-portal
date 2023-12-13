@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.11.4
+======
+
+* Final adjustments to documentation, namely help desk email references
+
 0.11.3
 ======
 

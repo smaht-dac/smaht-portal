@@ -3,7 +3,7 @@ Account Creation
 ================
 
 
-* Please email data wranglers at `dac-support@smaht.org <mailto:dac-support@smaht.org>`_ to get set up with an account with the access credentials for your role.
+* Please email data wranglers at `smhelp@hms-dbmi.atlassian.net <mailto:smhelp@hms-dbmi.atlassian.net>`_ to get set up with an account with the access credentials for your role.
 * Please provide an email address which you wish to use for your account and CC your PI for validation purposes. **The email associated with the account you use for login must be the same as the one registered with the SMaHT OC.**
 
   * This can be any email address (\ *e.g. an institutional email account*\ ) but must be connected to a Google account.
