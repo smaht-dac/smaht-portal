@@ -146,3 +146,6 @@ If you have been designated as a submitter for the project and plan to use eithe
        "server": "https://data.smaht.org/"
      }
    }
+
+
+**If you have any questions or need to set up access credentials for data submission, please contact the SMaHT DAC team through HelpDesk.**
