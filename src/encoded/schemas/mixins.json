@@ -259,7 +259,8 @@
                         "type": "string",
                         "enum": [
                             "file",
-                            "parameter"
+                            "parameter",
+                            "QC ruleset"
                         ]
                     },
                     "value": {
