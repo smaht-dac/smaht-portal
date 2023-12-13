@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.11.3
+======
+
+`PR 42: Bm user org profile <https://github.com/smaht-dac/smaht-portal/pull/42/files>`_
+* Rework broken editable fields on User Page
+* Add consortia and submission centers to User Page
+
+
 0.11.2
 ======
 
