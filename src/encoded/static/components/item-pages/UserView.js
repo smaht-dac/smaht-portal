@@ -615,7 +615,7 @@ export default class UserView extends React.Component {
  */
 function ProfileContactFields(props) {
     const { user, windowWidth, parent, mayEdit, href, schemas } = props;
-    const { email, time_zone } = user;
+    const { email, time_zone } = user || {};
     return (
         <FieldSet
             context={user}
