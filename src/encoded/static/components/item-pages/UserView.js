@@ -615,7 +615,7 @@ export default class UserView extends React.Component {
  */
 function ProfileContactFields(props) {
     const { user, windowWidth, parent, mayEdit, href, schemas } = props;
-    const { email, phone1, fax, skype } = user;
+    const { email, time_zone } = user;
     return (
         <FieldSet
             context={user}
@@ -637,35 +637,15 @@ function ProfileContactFields(props) {
                 <ProfileContactFieldsIcon icon="envelope far" />
                 <span className="text-secondary">{email}</span>
             </EditableField>
-
             <EditableField
-                label="Phone"
-                labelID="phone1"
-                placeholder="17775551234 x47"
-                fallbackText="No phone number"
-                fieldType="phone">
-                <ProfileContactFieldsIcon icon="phone fas" />
-                {phone1}
+                label="Timezone"
+                labelID="time_zone"
+                fallbackText="No timezone available"
+                fieldType="text"
+                disabled={true}>
+                <ProfileContactFieldsIcon icon="clock far" />
+                {time_zone}
             </EditableField>
-
-            <EditableField
-                label="Fax"
-                labelID="fax"
-                placeholder="17775554321"
-                fallbackText="No fax number"
-                fieldType="phone">
-                <ProfileContactFieldsIcon icon="fax fas" />
-                {fax}
-            </EditableField>
-            {/* 
-            <EditableField
-                label="Skype"
-                labelID="skype"
-                fallbackText="No skype ID"
-                fieldType="username">
-                <ProfileContactFieldsIcon icon="skype fab" />
-                {skype}
-            </EditableField> */}
         </FieldSet>
     );
 }
