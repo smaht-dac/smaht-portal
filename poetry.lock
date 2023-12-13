@@ -921,13 +921,13 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "dcicsnovault"
-version = "11.6.0.1b2"
+version = "11.6.0.1b3"
 description = "Storage support for 4DN Data Portals."
 optional = false
 python-versions = ">=3.8.1,<3.12"
 files = [
-    {file = "dcicsnovault-11.6.0.1b2-py3-none-any.whl", hash = "sha256:053c6f1e3fbe64398eb11fff3c71315d26447cc6e366355469ae80f9309758f9"},
-    {file = "dcicsnovault-11.6.0.1b2.tar.gz", hash = "sha256:b6909d61c2c7a4ae6bf31c0473a1af5a43aa75358bb037ffb79310beb2338053"},
+    {file = "dcicsnovault-11.6.0.1b3-py3-none-any.whl", hash = "sha256:89a062a0ac7371aea9c9b4c9142ea276681969b0fca3e2a97e3ce06cf317d563"},
+    {file = "dcicsnovault-11.6.0.1b3.tar.gz", hash = "sha256:591bbdc6897720c0077bdb7a6f6dedbe9cccba4b11a1d9dcb2b043cc16763c2c"},
 ]
 
 [package.dependencies]
@@ -1097,20 +1097,20 @@ develop = ["coverage (<5.0.0)", "mock", "pytest (>=3.0.0)", "pytest-cov", "pytes
 
 [[package]]
 name = "encoded-core"
-version = "0.4.0.1b2"
+version = "0.4.0.1b3"
 description = "Core data models for Park Lab ENCODE based projects"
 optional = false
 python-versions = ">=3.8.1,<3.12"
 files = [
-    {file = "encoded_core-0.4.0.1b2-py3-none-any.whl", hash = "sha256:63c51e40aef77e9e0adf1df57206303384679daf62385410ed0ce7eefdc6130f"},
-    {file = "encoded_core-0.4.0.1b2.tar.gz", hash = "sha256:b722ecf7d11c1140a53fabb8ed16235dc5650e15468e73c1d4ca8d6448904d69"},
+    {file = "encoded_core-0.4.0.1b3-py3-none-any.whl", hash = "sha256:5deedf915208211fa9dd592c5aa72ae2816184daa8cc6fe0d0b9289628fd7d1a"},
+    {file = "encoded_core-0.4.0.1b3.tar.gz", hash = "sha256:74ce98f0b958c4846ea38eb6350d4f6cdee459236a19c1c0fdde01bcbccb534f"},
 ]
 
 [package.dependencies]
 awscli = ">=1.29.62"
 boto3 = ">=1.28.62,<2.0.0"
 botocore = ">=1.31.62,<2.0.0"
-dcicsnovault = ">=11.6.0.1b2,<12.0.0.0"
+dcicsnovault = ">=11.6.0.1b3,<12.0.0.0"
 dcicutils = ">=8.5.0.1b2,<9.0.0.0"
 elasticsearch = "7.13.4"
 plaster-pastedeploy = "0.6"
@@ -3384,4 +3384,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "704a42a5db15d86b30c48ca9952eb0856456aa70d3eab907e8698776ad7bc1ce"
+content-hash = "13095359f973fb472e18cb36d4564dec1b7c2ac4e678477a531a8ea057c1a95f"
