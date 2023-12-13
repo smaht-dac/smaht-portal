@@ -667,52 +667,56 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
                     Organizations
                 </h3>
             </div>
-            <ul className="list-group list-group-flush list-unstyled border-bottom-0">
-                <div className="list-group-item">
-                    <div className="row consortia">
-                        <div className="col-md-3 text-left text-md-right">
-                            <label htmlFor="consortia" className="text-500">
-                                Consortia
-                            </label>
-                        </div>
-                        <div id="consortia" className="col-md-9">
-                            {consortia.map((consortium) => (
-                                <li
-                                    key={consortium?.atId}
-                                    id={consortium?.atId}
-                                    className="value text-500">
-                                    {object.itemUtil.generateLink(consortium)}
-                                </li>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </ul>
-            <ul className="list-group list-group-flush list-unstyled border-top-0 mt-0">
-                <div className="list-group-item">
-                    <div className="row submission-centers">
-                        <div className="col-md-3 text-left text-md-right">
-                            <label
-                                htmlFor="submission_centers"
-                                className="text-500">
-                                Submission Center(s)
-                            </label>
-                        </div>
-                        <div id="submission_centers" className="col-md-9">
-                            {submissionCenters.map((submissionCenter) => (
-                                <li
-                                    key={submissionCenter?.atId}
-                                    id={submissionCenter?.atId}
-                                    className="value text-500">
-                                    {object.itemUtil.generateLink(
-                                        submissionCenter
-                                    )}
-                                </li>
-                            ))}
+            <div className="card-body">
+                <ul className="list-group list-group-flush list-unstyled border-bottom-0">
+                    <div className="list-group-item pt-0">
+                        <div className="row consortia">
+                            <div className="col-md-3 text-left text-md-right">
+                                <label htmlFor="consortia" className="text-500">
+                                    Consortia
+                                </label>
+                            </div>
+                            <div id="consortia" className="col-md-9">
+                                {consortia.map((consortium) => (
+                                    <li
+                                        key={consortium?.atId}
+                                        id={consortium?.atId}
+                                        className="value text-500">
+                                        {object.itemUtil.generateLink(
+                                            consortium
+                                        )}
+                                    </li>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                </div>
-            </ul>
+                </ul>
+                <ul className="list-group list-group-flush list-unstyled border-top-0 mt-0">
+                    <div className="list-group-item">
+                        <div className="row submission-centers">
+                            <div className="col-md-3 text-left text-md-right">
+                                <label
+                                    htmlFor="submission_centers"
+                                    className="text-500">
+                                    Submission Center(s)
+                                </label>
+                            </div>
+                            <div id="submission_centers" className="col-md-9">
+                                {submissionCenters.map((submissionCenter) => (
+                                    <li
+                                        key={submissionCenter?.atId}
+                                        id={submissionCenter?.atId}
+                                        className="value text-500">
+                                        {object.itemUtil.generateLink(
+                                            submissionCenter
+                                        )}
+                                    </li>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </ul>
+            </div>
         </div>
     );
 });
