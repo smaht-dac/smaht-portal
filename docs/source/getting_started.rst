@@ -28,8 +28,8 @@ The excel metadata workbooks
 * Can be generated using the ``submitr`` software
 * Are used as input to the ``submitr`` software which validates submissions and pushes the content of the forms to our database.
 
-Documentation of the data submission process using these forms can be found
-`here </help/submitter-guide/spreadsheet>`_.
+Documentation of the data submission process using these forms will soon be available
+`here <https://submitr.readthedocs.io/en/latest/>`_.
 
 
 REST API
