@@ -7,11 +7,17 @@ smaht-portal
 Change Log
 ----------
 
-0.11.4
+0.11.5
 ======
 
 `PR 47: Fix admin affiliation validation <https://github.com/smaht-dac/smaht-portal/pull/47>`_
 * Fix and test item affiliation validation for admins
+
+
+0.11.5
+======
+
+* Final adjustments to documentation, namely help desk email references
 
 
 0.11.3
