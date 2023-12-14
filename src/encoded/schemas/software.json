@@ -112,6 +112,10 @@
                 ]
             }
         },
+        "version": {
+            "pattern": ".+",
+            "comment": "TODO: Replace with a proper version pattern"
+        },
         "binary_url": {
             "$merge": "encoded_core:schemas/software.json#/properties/binary_url"
         },

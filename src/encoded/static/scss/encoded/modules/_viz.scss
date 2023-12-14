@@ -17,6 +17,8 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 // Timeline
 #timeline {
     position: relative;
+    display: flex;
+    flex-direction: column;
     // margin: 30px 15px;
     padding: 0px;
     width: 100%;
@@ -31,7 +33,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
     .latest-release {
         font-size: 12px;
-        margin-left: 52px;
+        margin-left: 35px;
         color: $homepage-subtitle-text-color;
 
         b {
@@ -41,7 +43,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
     .timeline-item {
         padding-bottom: 20px;
-        padding-left: 50px;
+        padding-left: 35px;
         position: relative;
         @include clearfix;
 
@@ -50,7 +52,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             width: 2px;
             height: 100%;
             background: $homepage-timeline-border-color;
-            left: 16px;
+            left: -1px;
             top: 4px;
             position: absolute;
         }
@@ -61,6 +63,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 align-items: center;
                 flex-direction: column;
                 align-items: flex-start;
+                font-size: 21px;
                 
                 i {
                     color: #5B7595;
@@ -85,15 +88,15 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             display: flex;
             align-content: center;
             justify-content: center;
-            width: 54px;
-            height: auto;
-            min-height: 21px;
+            width: 20px;
+            height: 20px;
+            min-height: 20px;
             background: $homepage-timeline-bg-color;
-            border: 1px solid $homepage-timeline-border-color;
+            border: 2px solid $homepage-timeline-border-color;
             top: 4px;
-            left: 12px;
+            left: -10px;
             overflow: hidden;
-            margin-left: -24px;
+            margin-left: 0px;
             transition: background-color 150ms;
             @include prefix(border-radius, 10.5px);
 
@@ -109,6 +112,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             &:hover {
                 cursor: pointer;
                 background-color: #C2F0E8;
+                border-width: 3px;
             }
         }
 
@@ -176,9 +180,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     
                         &:hover {
                             cursor: pointer;
-                        }
-                        i {
-                            color: #74CFB2;
+                            
+                            svg > path {
+                                fill: white;
+                            }
                         }
                     }
     
@@ -296,10 +301,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
     @media screen and (min-width: 576px) {
         .latest-release {
-            margin-left: 55px;
+            margin-left: 40px;
         }
         .timeline-item {
-            padding-left: 54px;
+            padding-left: 40px;
             .timeline-content {
             }
             &-header {
@@ -323,18 +328,13 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 h3 {
                     flex-direction: column;
                     align-items: flex-start;
+                    font-size: 21px;
                     i {
-                        font-size: 17px;
+                        font-size: 16px;
                     }
                 }
             }
-            &:before {
-                // left: -10px;
-            }
             .timeline {
-                // &-marker {
-                //     left: -10px;
-                // }
                 &-content {
                     width: auto;
                     .card {
@@ -386,6 +386,15 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             .timeline {
                 &-marker {
                     // left: -10px;
+                }
+            }
+        }
+    }
+    @media screen and (min-width: 1500px) {
+        .timeline-item {
+            &-header {
+                h3 {
+                    font-size: 24px;
                 }
             }
         }
@@ -815,11 +824,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     
             .card {
                 width: auto;
-                &-body {
-
-                    .card-list {
-                    }
-                }
     
                 &.assays {
                     .card-body {
@@ -827,11 +831,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     
                         .card-list {
                             margin-bottom: 5px;
-
-                            ul {
-                                li {
-                                }
-                            }
                         }
                     }
                 }

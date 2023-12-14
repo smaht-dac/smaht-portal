@@ -19,7 +19,7 @@ const StaticSectionViewPreview = React.memo(function StaticSectionViewPreview({
     context,
     windowWidth,
 }) {
-    const { content, filetype, section_type } = context;
+    const { content, filetype, section_type, content_as_html } = context;
     return (
         <div className="mt-18 static-section-entry px-2">
             <BasicStaticSectionBody
@@ -28,6 +28,7 @@ const StaticSectionViewPreview = React.memo(function StaticSectionViewPreview({
                     filetype,
                     placeholderReplacementFxn,
                     windowWidth,
+                    content_as_html,
                 }}
             />
         </div>

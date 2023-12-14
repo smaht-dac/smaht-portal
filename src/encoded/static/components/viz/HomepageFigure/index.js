@@ -19,17 +19,17 @@ const TierSelector = ({ currentTier, setCurrentTier }) => {
             <button
                 onClick={() => setCurrentTier('benchmarking')}
                 className={currentTier === 'benchmarking' ? 'active' : ''}>
-                <span>Benchmarking</span>
+                <span>Tier 0</span>
             </button>
             <button
                 onClick={() => setCurrentTier('expansion')}
                 className={currentTier === 'expansion' ? 'active' : ''}>
-                <span>Expansion</span>
+                <span>Tier 1</span>
             </button>
             <button
                 onClick={() => setCurrentTier('production')}
                 className={currentTier === 'production' ? 'active' : ''}>
-                <span>Production</span>
+                <span>Tier 2</span>
             </button>
         </div>
     );
@@ -42,7 +42,7 @@ export const HomepageFigure = ({ currentTier, setCurrentTier }) => {
                 <CLTCard currentTier={currentTier} />
                 <div className="human-figure-container">
                     <img
-                        src="/static/img/homepage-human-figure.svg"
+                        src="/static/img/homepage_human_figure.svg"
                         alt="Human figure diagram"
                     />
                 </div>

@@ -7,12 +7,38 @@ smaht-portal
 Change Log
 ----------
 
+
 0.12.0
 ======
 
 * Fix in ingestion.loadxl_extensions.load_data_into_database to handle errors correctly.
 * Added record (uw_gcc) to master-inserts/submission_center.json for testing.
 * Added test_structured_data.py back in after resolved GitHub Actions (only) failure.
+
+
+0.11.4
+======
+
+* Final adjustments to documentation, namely help desk email references
+
+0.11.3
+======
+
+`PR 42: Bm user org profile <https://github.com/smaht-dac/smaht-portal/pull/42/files>`_
+* Rework broken editable fields on User Page
+* Add consortia and submission centers to User Page
+
+
+0.11.2
+======
+
+* Broaden software version pattern pending further discussion with bioinformatics.
+
+
+0.11.1
+======
+
+* Add some adapted user facing documentation
 
 
 0.11.0
