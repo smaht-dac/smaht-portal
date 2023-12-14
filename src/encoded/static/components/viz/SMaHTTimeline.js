@@ -161,7 +161,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 <span className="d-none d-sm-inline d-lg-none d-xl-inline">
                                     -
                                 </span>{' '}
-                                with core + add'l. technologies
+                                with core + additional technologies
                             </i>
                         </h3>
                     </div>
