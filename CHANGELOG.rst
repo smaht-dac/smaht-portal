@@ -14,7 +14,7 @@ Change Log
 * Fix and test item affiliation validation for admins
 
 
-0.11.5
+0.11.4
 ======
 
 * Final adjustments to documentation, namely help desk email references
