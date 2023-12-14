@@ -1000,6 +1000,24 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             {"someuniquestrings": ["somevalue", "anothervalue"], "someuniqueints": [12,34,56]}
         ]}
     },
+    # ----------------------------------------------------------------------------------------------
+    {
+        "rows": [
+            "someproperty",
+            "somevalue"
+        ],
+        "as_file_name": "test.csv",
+        "schemas": [{ "title": "Test",
+            "properties": {
+                "someproperty": { "type": "string" },
+                "submission_centers": { "type": "array", "uniqueItems": True, "items": { "type": "string" } }
+            }
+        }],
+        "autoadd": { "submission_centers": [ "somesubmissioncenter", "anothersubmissioncenter" ] },
+        "expected": { "Test" : [
+            {"someproperty": "somevalue", "submission_centers": ["somesubmissioncenter", "anothersubmissioncenter"]}
+        ]}
+    },
 ]))
 def test_parse_structured_data_parameterized(testapp, kwargs):
     _test_parse_structured_data(testapp, **kwargs)
@@ -1220,6 +1238,7 @@ def _test_parse_structured_data(testapp: TestApp,
                                 noschemas: bool = False,
                                 novalidate: bool = False,
                                 schemas: Optional[List[dict]] = None,
+                                autoadd: Optional[dict] = None,
                                 prune: bool = True,
                                 ignore: bool = False,
                                 debug: bool = False) -> None:
@@ -1249,14 +1268,14 @@ def _test_parse_structured_data(testapp: TestApp,
     def assert_parse_structured_data():
 
         def call_parse_structured_data(file: str):
-            nonlocal portal, novalidate, debug
+            nonlocal portal, novalidate, autoadd, prune, debug
             if debug:
                 # import pdb ; pdb.set_trace()
                 pass
             return parse_structured_data(file=file, portal=portal, novalidate=novalidate,
-                                         prune=True if prune is not False else False)
+                                         autoadd=autoadd, prune=True if prune is not False else False)
 
-        nonlocal file, expected, expected_errors, noschemas, debug
+        nonlocal file, expected, expected_errors, schemas, noschemas, debug
         portal = Portal(testapp, schemas=schemas) if not noschemas else None  # But see mocked_schemas.
         if rows:
             if os.path.exists(file) or os.path.exists(os.path.join(TEST_FILES_DIR, file)):

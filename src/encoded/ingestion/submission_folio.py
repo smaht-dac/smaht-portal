@@ -1,5 +1,6 @@
 # This is simple convenience wrapper around the (snovault) SubmissionFolio type.
 
+import json
 from contextlib import contextmanager
 from typing import Generator
 from snovault.ingestion.common import get_parameter
@@ -21,6 +22,12 @@ class SmahtSubmissionFolio:
         self.patch_only = get_parameter(submission.parameters, "patch_only", as_type=bool, default=False)
         self.validate_only = get_parameter(submission.parameters, "validate_only", as_type=bool, default=False)
         self.sheet_utils = get_parameter(submission.parameters, "sheet_utils", as_type=bool, default=False)
+        self.autoadd = get_parameter(submission.parameters, "autoadd", as_type=str, default=None)
+        if self.autoadd:
+            try:
+                self.autoadd = json.loads(self.autoadd)
+            except Exception:
+                pass
         # TODO: what do we actually do we the consortium and submission_center?
         # Should we validate that each submitted object, if specified, contains
         # values for these which match these values here in the submission folio?
