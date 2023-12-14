@@ -109,6 +109,6 @@
 	<p>
 		For further support or questions regarding file
 		submission, please contact the SMaHT DAC team at
-		<a href="mailto:dac-support@smaht.org">dac-support@smaht.org</a>.
+		<a href="mailto:smhelp@hms-dbmi.atlassian.net">smhelp@hms-dbmi.atlassian.net</a>.
 	</p>
 </div>
