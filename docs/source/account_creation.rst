@@ -20,6 +20,8 @@ NOTE that it is important not to register this account to have gmail as your ins
 
 Once your account request is processed, you will then be able to log in with the 'LOG IN WITH GOOGLE' option using your institutional email address and Google account password.
 
+**For more information on linking your institutional email account to a Google account, please see the image below.**
+
 
 .. image:: /static/img/docs/submitting-metadata/new-google-acct.png
    :target: /static/img/docs/submitting-metadata/new-google-acct.png
