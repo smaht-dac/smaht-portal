@@ -101,7 +101,14 @@
                         "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/key"
                     },
                     "value": {
-                        "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/value"
+                        "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/value",
+                        "type": [
+                            "array",
+                            "boolean",
+                            "float",
+                            "number",
+                            "string"
+                        ]
                     },
                     "visible": {
                         "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/visible"
