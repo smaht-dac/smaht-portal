@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.11.5
+======
+
+`PR 48: More QC value types <https://github.com/smaht-dac/smaht-portal/pull/48>`_
+* Allow any non-object JSON type for QC values instead of just strings
+
+
 0.11.4
 ======
 
