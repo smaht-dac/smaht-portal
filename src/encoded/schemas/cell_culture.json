@@ -69,13 +69,27 @@
             "title": "Culture Harvest Date",
             "description": "YYYY-MM-DD format date for cell culture harvest",
             "type": "string",
-            "format": "date"
+            "anyOf": [
+                {
+                    "format": "date"
+                },
+                {
+                    "format": "date-time"
+                }
+            ]
         },
         "culture_start_date": {
             "title": "Culture Start Date",
             "description": "YYYY-MM-DD format date for cell culture start date",
             "type": "string",
-            "format": "date"
+            "anyOf": [
+                {
+                    "format": "date"
+                },
+                {
+                    "format": "date-time"
+                }
+            ]
         },
         "doubling_number": {
             "title": "Doubling Number",

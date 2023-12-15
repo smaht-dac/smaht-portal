@@ -3,7 +3,7 @@ import pkg_resources
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from dcicutils.misc_utils import to_snake_case
+from dcicutils.misc_utils import to_camel_case, to_snake_case
 from pyramid.registry import Registry
 from snovault import Collection, COLLECTIONS, TYPES
 from snovault.typeinfo import AbstractTypeInfo, TypeInfo
@@ -76,6 +76,34 @@ def get_item(
     if response.status_int == 301:
         return response.follow().json
     return response.json
+
+
+def get_search(
+    testapp: TestApp,
+    query: str,
+    status: Union[int, List[int]] = 200,
+) -> List[Dict[str, Any]]:
+    """Get search results for given query."""
+    return testapp.get(query, status=status).json["@graph"]
+
+
+def format_search_query(query: str) -> str:
+    """Format search query for URL expectations."""
+    return f"/search/?{query}"
+
+
+def get_insert_identifier_for_item_type(testapp: TestApp, item_type: str) -> str:
+    """Get workbook insert identifier for given item type."""
+    search_results = get_inserts_for_item_type(testapp, item_type)
+    if not search_results:
+        raise RuntimeError(f"No inserts found for {item_type}")
+    return search_results[0]["uuid"]
+
+
+def get_inserts_for_item_type(testapp: TestApp, item_type: str) -> List[Dict[str, Any]]:
+    """Get inserts for given item type."""
+    search_query = format_search_query(f"type={to_camel_case(item_type)}")
+    return get_search(testapp, search_query)
 
 
 def get_frame_add_on(frame: Union[str, None]) -> str:
