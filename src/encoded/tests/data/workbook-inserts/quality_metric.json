@@ -14,6 +14,27 @@
                 "value": "bar",
                 "flag": "Pass",
                 "tooltip": "Description of how foo was derived"
+            },
+            {
+                "key": "bar",
+                "value": 25
+            },
+            {
+                "key": "fu",
+                "value": 252.4
+            },
+            {
+                "key": "bur",
+                "value": false
+            },
+            {
+                "key": "baz",
+                "value": [
+                    "foo",
+                    5,
+                    true,
+                    -3.5
+                ]
             }
         ]
     }
