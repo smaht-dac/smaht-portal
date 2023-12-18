@@ -1,11 +1,12 @@
 from snovault import collection, load_schema
 
-from .base import Item as SMAHTItem
+from .acl import ONLY_ADMIN_VIEW_ACL
 from .file import File
 
 
 @collection(
     name="reference-files",
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         "title": "SMaHT Reference Files",
         "description": "Listing of SMaHT Reference Files",

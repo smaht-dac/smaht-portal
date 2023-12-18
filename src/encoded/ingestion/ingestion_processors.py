@@ -1,9 +1,10 @@
-from contextlib import contextmanager
-from typing import Dict, List, Generator, Union
-from dcicutils.bundle_utils import load_items
+from typing import Optional, Union
+from webtest.app import TestApp
+from dcicutils.misc_utils import VirtualApp
+from dcicutils.structured_data import Portal, StructuredDataSet
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
-from .data_validation import summary_of_data_validation_errors
+from ..project.loadxl import ITEM_INDEX_ORDER
 from .loadxl_extensions import load_data_into_database, summary_of_load_data_results
 from .submission_folio import SmahtSubmissionFolio
 
@@ -20,24 +21,52 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
 
 
 def _process_submission(submission: SmahtSubmissionFolio) -> None:
-    with _load_data(submission) as data_tuple:
-        data = data_tuple[0]
-        validate_data_errors = data_tuple[1]
-        # validate_data_errors = validate_data_against_schemas(data, portal_vapp=submission.portal_vapp)
-        if validate_data_errors:
-            validate_data_summary = summary_of_data_validation_errors(validate_data_errors, submission)
-            submission.record_results(validate_data_errors, validate_data_summary)
+    with submission.s3_file() as file:
+        structured_data = parse_structured_data(file, portal=submission.portal_vapp)
+        if (errors := structured_data.errors):
+            submission.record_results(errors, _summarize_errors(structured_data, submission))
             # If there are data validation errors then trigger an exception so that a traceback.txt
             # file gets written to the S3 ingestion submission bucket to indicate that there is an error;
             # this is an exceptional situation that we just happened to have caught programmatically;
             # this (traceback.txt) is done in snovault.types.ingestion.SubmissionFolio.processing_context.
-            raise Exception(validate_data_summary)
-        load_data_response = load_data_into_database(data, submission.portal_vapp, submission.validate_only)
+            # raise Exception(validation_errors)
+            return
+        load_data_response = load_data_into_database(data=structured_data.data,
+                                                     portal_vapp=submission.portal_vapp,
+                                                     post_only=submission.post_only,
+                                                     patch_only=submission.patch_only,
+                                                     validate_only=submission.validate_only)
         load_data_summary = summary_of_load_data_results(load_data_response, submission)
         submission.record_results(load_data_response, load_data_summary)
 
 
-@contextmanager
-def _load_data(submission: SmahtSubmissionFolio) -> Generator[Union[Dict[str, List[Dict]], Exception], None, None]:
-    with submission.s3_file() as data_file_name:
-        yield load_items(data_file_name, portal_vapp=submission.portal_vapp, validate=True, apply_heuristics=True)
+def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp, Portal]],
+                          novalidate: bool = False, prune: bool = True) -> StructuredDataSet:
+    structured_data = StructuredDataSet.load(file=file, portal=portal, order=ITEM_INDEX_ORDER, prune=prune)
+    if not novalidate:
+        structured_data.validate()
+    return structured_data
+
+
+def _summarize_errors(structured_data: StructuredDataSet, submission: SmahtSubmissionFolio) -> dict:
+    def truncated_info(issues: list) -> dict:
+        return {"truncated": True, "total": len(issues),
+                "more": len(issues) - max_issues_per_group, "details": submission.s3_details_location}
+    max_issues_per_group = 10
+    result = {}
+    if (reader_warnings := structured_data.reader_warnings):
+        result["reader"] = reader_warnings[:max_issues_per_group]
+        if len(reader_warnings) > max_issues_per_group:
+            result["reader"].append(truncated_info(reader_warnings))
+    if (validation_errors := structured_data.validation_errors):
+        result["validation"] = validation_errors[:max_issues_per_group]
+        if len(validation_errors) > max_issues_per_group:
+            result["validation"].append(truncated_info(validation_errors))
+    if (ref_errors := structured_data.ref_errors):
+        result["ref"] = ref_errors[:max_issues_per_group]
+        if len(ref_errors) > max_issues_per_group:
+            result["ref"].append(truncated_info(ref_errors))
+    result["file"] = submission.data_file_name
+    result["s3_file"] = submission.s3_data_file_location
+    result["details"] = submission.s3_details_location
+    return result

@@ -19,7 +19,9 @@ from encoded_core.types.page import Page as CorePage
 from encoded_core.page_views import (
     add_sibling_parent_relations_to_tree, get_pyramid_http_exception_for_redirect_code,
 )
-from .base import Item as SMAHTItem
+
+from .acl import ONLY_ADMIN_VIEW_ACL
+from .base import Item
 from .base import collection_add, item_edit
 
 
@@ -167,12 +169,14 @@ def includeme(config):
 
 @collection(
     name='pages',
+    unique_key='page:identifier',
     lookup_key='identifier',
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         'title': 'Pages',
         'description': 'Static Pages for the Portal',
     })
-class Page(SMAHTItem, CorePage):
+class Page(Item, CorePage):
     item_type = 'page'
     schema = load_schema("encoded:schemas/page.json")
     embedded_list = [
@@ -183,9 +187,9 @@ class Page(SMAHTItem, CorePage):
     ALLOWED_PATH_CHARACTERS = ["/"] + CorePage.ALLOWED_PATH_CHARACTERS
 
     # VERY IMPORTANT: The ordering of the inheritance matters here - you need
-    # the CorePage Collection prioritized over the SMAHTItem Collection - you must
+    # the CorePage Collection prioritized over the SmahtItem Collection - you must
     # do this if you want to implement type-specific behavior as below - Will 26 Sept 23
-    class Collection(SMAHTItem.Collection, CorePage.Collection):
+    class Collection(Item.Collection, CorePage.Collection):
         pass
 
 

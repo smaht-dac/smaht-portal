@@ -1,0 +1,22 @@
+[
+    {
+        "uuid": "934cd53c-006e-42ce-841d-5dbd50283579",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY-PREP_LIVER",
+        "adapter_inclusion_method": [
+            "Ligation"
+        ],
+        "amplification_method": [
+            "MALBAC"
+        ],
+        "assay_name": [
+            "FiberSeq"
+        ],
+        "fragmentation_method": [
+            "Sonication"
+        ],
+        "strand": "First Stranded"
+    }
+]

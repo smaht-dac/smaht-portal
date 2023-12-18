@@ -1,0 +1,15 @@
+[
+    {
+        "uuid": "c08a9f84-1261-491f-b60f-8304486a3193",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ANALYTE-PREP_LIVER",
+        "cell_lysis_method": [
+            "Chemical"
+        ],
+        "extraction_method": [
+            "Magnetic Beads"
+        ]
+    }
+]

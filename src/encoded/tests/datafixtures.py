@@ -4,7 +4,7 @@ from uuid import uuid4
 from webtest import TestApp
 import pytest
 
-from .utils import post_item_and_return_location
+from .utils import post_item, post_item_and_return_location
 
 
 @pytest.fixture
@@ -145,7 +145,7 @@ def smaht_gcc_user(testapp, test_submission_center, test_consortium):
     item = {
         'first_name': 'Test',
         'last_name': 'User',
-        'email': 'user@example.org',
+        'email': 'gcc_user@example.org',
         'status': 'current',
         'submission_centers': [
             test_submission_center['uuid']
@@ -167,7 +167,7 @@ def smaht_consortium_user(testapp, test_consortium):
     item = {
         'first_name': 'Test',
         'last_name': 'User',
-        'email': 'user@example.org',
+        'email': 'consortium_user@example.org',
         'status': 'current',
         'consortia': [
             test_consortium['uuid']
@@ -236,6 +236,43 @@ def smaht_protected_gcc_user(testapp, test_submission_center, test_consortium, t
 
 
 @pytest.fixture
+def submission_center_user_app(testapp, test_submission_center, smaht_gcc_user):
+    """ App associated with a consortia member who is a submitter """
+    return remote_user_testapp(testapp.app, smaht_gcc_user['uuid'])
+
+
+@pytest.fixture
+def consortium_user_app(testapp, test_consortium, smaht_consortium_user):
+    """ App associated with a normal consortia member """
+    return remote_user_testapp(testapp.app, smaht_consortium_user['uuid'])
+
+
+@pytest.fixture
+def protected_consortium_user_app(testapp, smaht_consortium_protected_user, test_consortium, test_protected_consortium):
+    """ App associated with a user who has access to consortia and protected data """
+    return remote_user_testapp(testapp.app, smaht_consortium_protected_user['uuid'])
+
+
+@pytest.fixture
+def protected_consortium_submitter_app(testapp, smaht_consortium_protected_submitter, test_consortium,
+                                       test_protected_consortium, test_submission_center):
+    """ App associated with a user who has access to consortia and protected data and submission center """
+    return remote_user_testapp(testapp.app, smaht_consortium_protected_submitter['uuid'])
+
+
+@pytest.fixture
+def unassociated_user_app(testapp, blank_user):
+    """ App associated with a user who has no associations """
+    return remote_user_testapp(testapp.app, blank_user['uuid'])
+
+
+@pytest.fixture
+def admin_user_app(testapp: TestApp, admin: Dict[str, Any]) -> TestApp:
+    """ App associated with an admin user """
+    return remote_user_testapp(testapp.app, admin['uuid'])
+
+
+@pytest.fixture
 def workflow(testapp: TestApp, test_consortium: Dict[str, Any]) -> Dict[str, Any]:
     item = {
         "name": "simply-the-best",
@@ -246,6 +283,9 @@ def workflow(testapp: TestApp, test_consortium: Dict[str, Any]) -> Dict[str, Any
     return post_item_and_return_location(testapp, item, "workflow")
 
 
+OUTPUT_FILE_UUID = "f99fe12f-79f9-4c2c-b0b5-07fc20d7ce1d"
+
+
 @pytest.fixture
 def output_file(
     testapp: TestApp,
@@ -253,11 +293,11 @@ def output_file(
     file_formats: Dict[str, Dict[str, Any]],
 ) -> Dict[str, Any]:
     item = {
-        "uuid": "f99fe12f-79f9-4c2c-b0b5-07fc20d7ce1d",
+        "uuid": OUTPUT_FILE_UUID,
         "file_format": file_formats.get("fastq", {}).get("uuid", ""),
         "md5sum": "00000000000000000000000000000001",
         "filename": "my.fastq.gz",
-        "status": "in review",
+        "status": "uploaded",
         "data_category": ["Sequencing Reads"],
         "data_type": ["Unaligned Reads"],
         "consortia": [test_consortium["uuid"]],
@@ -296,3 +336,41 @@ def meta_workflow(
         ]
     }
     return post_item_and_return_location(testapp, item, "MetaWorkflow")
+
+
+@pytest.fixture
+def higlass_view_config(
+    testapp: TestApp,
+    test_consortium: Dict[str, Any],
+    test_submission_center: Dict[str, Any],
+) -> Dict[str, Any]:
+    item = {
+        "consortia": [test_consortium["uuid"]],
+        "submission_centers": [test_submission_center["uuid"]],
+        "identifier": "some_view_config",
+        "title": "A great view config",
+        "view_config": {
+            "whatever props": "anything",
+        },
+        "instance_height": 500,
+    }
+    return post_item(testapp, item, "HiglassViewConfig")
+
+
+@pytest.fixture
+def donor_properties(test_second_submission_center: Dict[str, Any]) -> Dict[str, Any]:
+    """Donor properties not added to database.
+
+    Useful for testing posting permissions.
+    """
+    return {
+        "submission_centers": [test_second_submission_center["uuid"]],
+        "submitted_id": "TEST_DONOR_1234",
+        "age": 35,
+        "sex": "Male",
+    }
+
+
+@pytest.fixture
+def donor(testapp: TestApp, donor_properties: Dict[str, Any]) -> Dict[str, Any]:
+    return post_item(testapp, donor_properties, "Donor")

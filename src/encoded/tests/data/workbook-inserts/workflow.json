@@ -1,0 +1,33 @@
+[
+    {
+        "uuid": "00d4f9d8-9b29-4cfb-92e7-72e15178768b",
+        "submission_centers": [
+            "smaht"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "name": "bwa_mem",
+        "title": "BWA Mem",
+        "arguments": [
+            {
+                "argument_type": "Input file",
+                "workflow_argument_name": "reference_file"
+            }
+        ],
+        "language": "CWL",
+        "main_file_name": "abc.cwl",
+        "tibanna_config": {
+            "run_name": "run_bwa_mem",
+            "cpu": 4,
+            "ebs_throughput": 1500,
+            "ebs_optimized": true,
+            "ebs_size": "50x",
+            "instance_type": [
+                "c5n.4xlarge"
+            ],
+            "memory": 50,
+            "spot_instance": false
+        }
+    }
+]

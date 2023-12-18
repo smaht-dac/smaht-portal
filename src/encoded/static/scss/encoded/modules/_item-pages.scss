@@ -881,6 +881,7 @@ i.status-indicator-dot {
 ***********************************************************/
 
 div.user-profile-page {
+	background-color: #eee;
 
 	@include media-breakpoint-up(md){
 		min-height: calc(100vh - 250px); // 250px is sum of header, footer, and page title. If any of those change, this needs updating.
@@ -924,109 +925,130 @@ div.user-profile-page {
 
 	}
 
-	.card.user-info {
-		/* for fun - comment out bottom transform in Inspect Element */
-		transform: rotateZ(0deg) scale3d(1, 1, 1) translateX(0);
-		opacity: 1;
-		left: 0px;
-		transition: transform 1.2s ease-out, opacity 1.5s ease-out, left 1.2s ease-out;
-		position: relative;
-		z-index: 2;
+	.card {
+		box-shadow: none;
+		&.access-keys-container, 
+		&.organizations {
+			.card-header {
+				height: 95px;
+				display: flex;
+				align-items: center;
+				padding-left: 30px;
 
-		&.transition { transform: rotateZ(-900deg) scale3d(0.1, 0.1, 0.1) translateX(-1200px); opacity: 0; left: -900px; }
-
-		.user-title-row-container {
-			margin-bottom: 20px;
-			border-bottom: 1px solid #eee;
-		}
-
-		.user-title {
-			font-weight: 300;
-
-			.editable-field-entry {
-				//max-width: 50%; // Need to fit 2 inline editable fields on one row for users full name.
-				text-overflow: ellipsis;
-				.value {
-					word-break: break-word;
-					.edit-button {
-						font-size: 1rem;
-					}
+				h3 {
+					font-size: 24px;
+					font-weight: 400;
+					color:#343741;
 				}
 			}
-
 		}
 
-		@include media-breakpoint-up(md){
-
-			.user-title {
-				/* white-space: nowrap; */
-				/* overflow: hidden; */
-				text-overflow: ellipsis;
-			}
-		}
-
-		@include media-breakpoint-down(sm){
-
-			.user-title-col {
-				padding-top: 2px;
-			}
-
-			.user-title {
-				font-size: 2rem;
-				font-weight: 400;
-				margin-right: 70px;
-			}
-		}
-
-		div.gravatar-container {
+		&.user-info {
+			/* for fun - comment out bottom transform in Inspect Element */
+			transform: rotateZ(0deg) scale3d(1, 1, 1) translateX(0);
+			opacity: 1;
+			left: 0px;
+			transition: transform 1.2s ease-out, opacity 1.5s ease-out, left 1.2s ease-out;
 			position: relative;
+			z-index: 2;
 
-			img.gravatar {
-				width: 70px;
-				height: 70px;
-				float: right;
-				border-radius: $border-radius-base;
+			&.transition { transform: rotateZ(-900deg) scale3d(0.1, 0.1, 0.1) translateX(-1200px); opacity: 0; left: -900px; }
+
+			.user-title-row-container {
+				margin-bottom: 20px;
+				border-bottom: 1px solid #eee;
 			}
 
-			a.edit-button-remote {
-				opacity: 0;
-				position: absolute;
-				background: #fff;
-				color: #000;
-				top: 0;
-				right: 10px;
-				line-height: 21px;
-				width: 21px;
-				padding-left: 2px;
-				border-radius: 5px;
-				&:after {
-					display: none;
-					content: none;
-				}
-			}
+			.user-title {
+				font-size: 32px;
+				color: #343741;
+				font-weight: 600;
 
-			&:hover {
-				a.edit-button-remote {
-					opacity: 0.5;
-					&:hover {
-						opacity: 1;
+				.editable-field-entry {
+					//max-width: 50%; // Need to fit 2 inline editable fields on one row for users full name.
+					text-overflow: ellipsis;
+					.value {
+						word-break: break-word;
+						.edit-button {
+							font-size: 1rem;
+						}
 					}
+				}
+
+			}
+
+			@include media-breakpoint-up(md){
+
+				.user-title {
+					/* white-space: nowrap; */
+					/* overflow: hidden; */
+					text-overflow: ellipsis;
 				}
 			}
 
 			@include media-breakpoint-down(sm){
-				img.gravatar {
-					width: 94px; /* Account for border */
-					height: 70px;
-					position: relative;
-					z-index: 2;
-					margin-bottom: -70px;
-					margin-top: 5px;
-					border-left: 24px solid #FFF;
+
+				.user-title-col {
+					padding-top: 2px;
+				}
+
+				.user-title {
+					font-size: 2rem;
+					font-weight: 400;
+					margin-right: 70px;
 				}
 			}
-		}
 
+			div.gravatar-container {
+				position: relative;
+
+				img.gravatar {
+					width: 50px;
+					height: 50px;
+					float: right;
+					border-radius: $border-radius-base;
+				}
+
+				a.edit-button-remote {
+					opacity: 0;
+					position: absolute;
+					background: #fff;
+					color: #000;
+					top: 0;
+					right: 10px;
+					line-height: 21px;
+					width: 21px;
+					padding-left: 2px;
+					border-radius: 5px;
+					&:after {
+						display: none;
+						content: none;
+					}
+				}
+
+				&:hover {
+					a.edit-button-remote {
+						opacity: 0.5;
+						&:hover {
+							opacity: 1;
+						}
+					}
+				}
+
+				@include media-breakpoint-down(sm){
+					img.gravatar {
+						width: 94px; /* Account for border */
+						height: 70px;
+						position: relative;
+						z-index: 2;
+						margin-bottom: -70px;
+						margin-top: 5px;
+						border-left: 24px solid #FFF;
+					}
+				}
+			}
+
+		}
 	}
 
 	@include media-breakpoint-up(md){
@@ -1055,14 +1077,44 @@ div.user-profile-page {
 	.access-keys-container {
 
 		table.access-keys-table {
+			thead {
+				tr {
+					background-color: #F0F9FF;
+					border: 1px solid #EDF3F6;
+					border-left: none;
+					border-right: none;
+					th {
+						background-color: transparent;
+						border:none;
+					}
+				}
+			}
 
 			tr {
+				width: 100%;
+				border-bottom: 1px solid #eee;
 				td {
-					border-bottom: 1px solid #eee;
+					border-top: none;
 					&.access-key-buttons {
+						display:flex;
 						width: 140px;
+						margin: auto 10px auto auto;
+
 						.btn.btn-xs {
 							margin: 0 4px;
+
+							&.reset {
+								background-color: transparent;
+								border: none;
+								color: #343741;
+
+								&:hover {
+									background-color: #eee;
+								}
+								&:focus {
+									box-shadow: #eee;
+								}
+							}
 						}
 					}
 				}
@@ -1072,6 +1124,17 @@ div.user-profile-page {
 		#add-access-key.btn{
 			float: right;
 			min-width: 180px;
+			font-weight: 600;
+			background-color: #0E74D2;
+			border-color: #0B62BA;
+			border-radius: 5px;
+
+			&:hover {
+				background-color: #0f6cc2;
+			}
+			&:focus {
+				box-shadow: 0 0 0 0.2rem #0b62ba4d;
+			}
 		}
 
 		.no-access-keys > hr:first-child {

@@ -1,0 +1,20 @@
+[
+    {
+        "uuid": "49690fb8-7680-4034-ae3b-4f28222d5db8",
+        "data_category": [
+            "Reference Genome"
+        ],
+        "data_type": [
+            "Reference Sequence"
+        ],
+        "file_format": "BAM",
+        "extra_files": [
+            {
+                "file_format": "BAI"
+            }
+        ],
+        "consortia": [
+            "smaht"
+        ]
+    }
+]

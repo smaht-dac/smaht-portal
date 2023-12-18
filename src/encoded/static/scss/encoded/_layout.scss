@@ -211,7 +211,9 @@ body.is-full-screen {
 
 	h1.page-title {
 
-		font-weight: 200;
+		font-size: 24px;
+		font-weight: 600;
+		color: #343741;
 
 		&.top-of-page { // Never not this, I think..
 			margin-top: 0px;
@@ -266,7 +268,6 @@ body.is-full-screen {
 			}
 	
 		}
-
 	}
 }
 
@@ -276,15 +277,20 @@ body.is-full-screen {
 ********************************************************** */
 
 #page-footer {
+	background-color: #F5F9FB;
+	border-top: 1px solid #EDF3F6;
 
 	> .page-footer {
-		background-color: $footer-background-color;
 		text-align: center;
 		overflow: hidden;
+		height: auto;
 
 		a {
-			color: $footer-link-color;
+			font-size: 14px;
+			color: $footer-text-color;
+			text-decoration: underline;
 		}
+
 		ul {
 			list-style: none;
 			list-style-position: outside;
@@ -295,6 +301,7 @@ body.is-full-screen {
 			text-align: center;
 			color: $footer-text-color;
 			padding: 15px 0px 14px;
+			font-size: 14px;
 			@include media-breakpoint-up(sm) {
 
 				text-align: right;
@@ -308,8 +315,9 @@ body.is-full-screen {
 			}
 
 			>div>a:hover {
-				text-decoration: none !important;
-				color:lighten($footer-link-color, 10%);
+				cursor: pointer;
+				// text-decoration: none !important;
+				color:lighten($footer-text-color, 10%);
 			}
 		}
 	}
