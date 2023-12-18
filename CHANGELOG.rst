@@ -8,7 +8,7 @@ Change Log
 ----------
 
 
-0.12.0
+0.11.7
 ======
 
 * Fix in ingestion.loadxl_extensions.load_data_into_database to handle errors correctly.
@@ -16,10 +16,25 @@ Change Log
 * Added test_structured_data.py back in after resolved GitHub Actions (only) failure.
 
 
+0.11.6
+======
+
+`PR 47: Fix admin affiliation validation <https://github.com/smaht-dac/smaht-portal/pull/47>`_
+* Fix and test item affiliation validation for admins
+
+
+0.11.5
+======
+
+`PR 48: More QC value types <https://github.com/smaht-dac/smaht-portal/pull/48>`_
+* Allow any non-object JSON type for QC values instead of just strings
+
+
 0.11.4
 ======
 
 * Final adjustments to documentation, namely help desk email references
+
 
 0.11.3
 ======
