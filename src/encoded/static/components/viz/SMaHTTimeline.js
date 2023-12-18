@@ -118,7 +118,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                             />
                             <TimelineAccordionDrawer
                                 eventKey={4}
-                                title="Primary Tissues"
+                                title="Benchmarking Tissues"
                                 tier="benchmarking"
                                 currentTier={currentTier}
                                 setCurrentTier={() =>
