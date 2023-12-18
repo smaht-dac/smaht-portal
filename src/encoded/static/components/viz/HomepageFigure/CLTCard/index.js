@@ -76,13 +76,14 @@ export const CLTCard = ({ currentTier }) => {
                     expansion: true,
                     production: true,
                 },
-                // { // TODO: Double check that it was correct to remove this from all tiers.
-                //     iconSrc: '/static/img/anatomy-icons/Non-exposed skin.svg',
-                //     title: 'Non-exposed skin',
-                //     benchmarking: true,
-                //     expansion: true,
-                //     production: true,
-                // },
+                {
+                    // TODO: Double check that it was correct to remove this from just Tier 0
+                    iconSrc: '/static/img/anatomy-icons/Non-exposed skin.svg',
+                    title: 'Non-exposed skin',
+                    benchmarking: false,
+                    expansion: true,
+                    production: true,
+                },
                 {
                     iconSrc: '/static/img/anatomy-icons/Adrenal Gland.svg',
                     title: 'Adrenal medulla',
@@ -156,13 +157,14 @@ export const CLTCard = ({ currentTier }) => {
                     expansion: true,
                     production: true,
                 },
-                // { // TODO: Double check it was correct to remove descending colon entirely from all tiers
-                //     iconSrc: '/static/img/anatomy-icons/Descending Colon.svg',
-                //     title: 'Descending Colon',
-                //     benchmarking: true,
-                //     expansion: true,
-                //     production: true,
-                // },
+                {
+                    // TODO: Double check it was correct to remove this from just tier 0
+                    iconSrc: '/static/img/anatomy-icons/Descending Colon.svg',
+                    title: 'Descending Colon',
+                    benchmarking: false,
+                    expansion: true,
+                    production: true,
+                },
                 {
                     iconSrc: '/static/img/anatomy-icons/Esophagus.svg',
                     title: 'Esophagus',
