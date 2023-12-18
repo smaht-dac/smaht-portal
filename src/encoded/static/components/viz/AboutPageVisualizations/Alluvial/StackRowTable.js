@@ -196,7 +196,9 @@ export const StackRowTable = ({ data }) => {
                 Hover over assay types to see additional details.
             </p>
             <StackRowItemLegend
-                text={'Number of samples profiled in benchmarking experiments.'}
+                text={
+                    'Number of sequencing platforms used in benchmarking experiments.'
+                }
             />
         </div>
     );

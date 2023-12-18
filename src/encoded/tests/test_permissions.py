@@ -15,6 +15,7 @@ from .utils import (
     post_item
 )
 from ..project.loadxl import ITEM_INDEX_ORDER as loadxl_order
+from ..utils import get_remote_user as get_app_remote_user
 
 
 @pytest.fixture
@@ -110,6 +111,27 @@ class TestAdminPermissions:
     def test_non_admin_cannot_purge(submitter_testapp, fastq_format):
         submitter_testapp.patch_json(f'/{fastq_format["uuid"]}', {'status': 'deleted'}, status=422)
         submitter_testapp.delete_json(f'/{fastq_format["uuid"]}/?purge=True', {}, status=403)
+
+    @staticmethod
+    def test_admin_can_submit_any_affiliations(
+        admin_user_app: TestApp,
+        admin: Dict[str, Any],
+        donor_properties: Dict[str, Any],
+        test_consortium: Dict[str, Any],
+    ) -> None:
+        """Ensure admins can bypass affiliations validation.
+
+        Submission centers and consortia of admin users should
+        not prevent successful POST/PATCH of items.
+        """
+        assert admin['groups'] == ['admin']
+        assert get_app_remote_user(admin_user_app) == admin["uuid"]
+        assert not admin.get("submission_centers")
+        assert not admin.get("consortia")
+
+        response = post_item(admin_user_app, donor_properties, "Donor")
+        patch_body = {"consortia": [test_consortium["uuid"]]}
+        patch_item(admin_user_app, patch_body, response["uuid"])
 
 
 class TestPermissionsHelper:
@@ -733,10 +755,6 @@ def assert_affiliated_with_submission_center(
     assert is_user_affiliated_with_submission_center(
         admin_app, remote_user, submission_center
     )
-
-
-def get_app_remote_user(testapp: TestApp) -> str:
-    return testapp.extra_environ.get("REMOTE_USER", "")
 
 
 def is_user_affiliated_with_submission_center(

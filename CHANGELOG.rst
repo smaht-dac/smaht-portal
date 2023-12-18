@@ -7,10 +7,57 @@ smaht-portal
 Change Log
 ----------
 
+0.11.6
+======
+
+`PR 47: Fix admin affiliation validation <https://github.com/smaht-dac/smaht-portal/pull/47>`_
+* Fix and test item affiliation validation for admins
+
+
+0.11.5
+======
+
+`PR 48: More QC value types <https://github.com/smaht-dac/smaht-portal/pull/48>`_
+* Allow any non-object JSON type for QC values instead of just strings
+
+
+0.11.4
+======
+
+* Final adjustments to documentation, namely help desk email references
+
+
+0.11.3
+======
+
+`PR 42: Bm user org profile <https://github.com/smaht-dac/smaht-portal/pull/42/files>`_
+* Rework broken editable fields on User Page
+* Add consortia and submission centers to User Page
+
+
+0.11.2
+======
+
+* Broaden software version pattern pending further discussion with bioinformatics.
+
+
+0.11.1
+======
+
+* Add some adapted user facing documentation
+
+
+0.11.0
+======
+
+* Merge in ui-dev3 branch: `PR: 39: UI-Dev 3 <https://github.com/smaht-dac/smaht-portal/pull/39>`_
+  * [Cfm homepage updates] (https://github.com/smaht-dac/smaht-portal/pull/39)
+  * Additional UI changes for V1 pre-release, including updates to user page, registration modal, nav, etc.
+
+
 0.10.0
 ======
 * SMaHT ingestion related work.
-
 
 
 0.9.0
