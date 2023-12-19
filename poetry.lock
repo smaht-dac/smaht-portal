@@ -921,20 +921,20 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "dcicsnovault"
-version = "11.6.0.1b6"
+version = "11.6.0.1b7"
 description = "Storage support for 4DN Data Portals."
 optional = false
 python-versions = ">=3.8.1,<3.12"
 files = [
-    {file = "dcicsnovault-11.6.0.1b6-py3-none-any.whl", hash = "sha256:1e2337312adcc801aed61c1e59afe25f983a4684ab2dfd12bbfd778809db485c"},
-    {file = "dcicsnovault-11.6.0.1b6.tar.gz", hash = "sha256:c77fe7541e8fd5540b32b60f4bc201b91aaa004f3008a4ebdf9867fc4457bca1"},
+    {file = "dcicsnovault-11.6.0.1b7-py3-none-any.whl", hash = "sha256:07c1faae08dff992bef99d89fd996bac8c6e46ec65d9947d082d750b981531b6"},
+    {file = "dcicsnovault-11.6.0.1b7.tar.gz", hash = "sha256:da49dffd4cd85d7998dcc87c5101d3625f40f539ca70fed6a8b4c13ebdb6b750"},
 ]
 
 [package.dependencies]
 aws_requests_auth = ">=0.4.1,<0.5.0"
 boto3 = ">=1.28.62"
 botocore = ">=1.31.62"
-dcicutils = ">=8.5.0.1b6,<9.0.0.0"
+dcicutils = "8.5.0.1b7"
 elasticsearch = "7.13.4"
 elasticsearch_dsl = ">=7.4.0,<8.0.0"
 future = ">=0.15.2,<1"
@@ -977,13 +977,13 @@ xlrd = ">=1.0.0,<2.0.0"
 
 [[package]]
 name = "dcicutils"
-version = "8.5.0.1b6"
+version = "8.5.0.1b7"
 description = "Utility package for interacting with the 4DN Data Portal and other 4DN resources"
 optional = false
 python-versions = ">=3.8,<3.12"
 files = [
-    {file = "dcicutils-8.5.0.1b6-py3-none-any.whl", hash = "sha256:8ec1544c35281371e398e5196eee8d58dc57b9f38fb977498429d93a7e26e7f6"},
-    {file = "dcicutils-8.5.0.1b6.tar.gz", hash = "sha256:27e87a3e86da05787fe025ee4f51a250dcc9d7821e4688b64eed4db2284fa488"},
+    {file = "dcicutils-8.5.0.1b7-py3-none-any.whl", hash = "sha256:0ce7ec190dd12b876a0db1efdfe293776748e2cf3dec6ec870421449fe6fd472"},
+    {file = "dcicutils-8.5.0.1b7.tar.gz", hash = "sha256:90285959c22485b178c68515808781cf6b73e8248d645e30aa37314f19d9a24e"},
 ]
 
 [package.dependencies]
@@ -1097,21 +1097,21 @@ develop = ["coverage (<5.0.0)", "mock", "pytest (>=3.0.0)", "pytest-cov", "pytes
 
 [[package]]
 name = "encoded-core"
-version = "0.4.0.1b6"
+version = "0.4.0.1b7"
 description = "Core data models for Park Lab ENCODE based projects"
 optional = false
 python-versions = ">=3.8.1,<3.12"
 files = [
-    {file = "encoded_core-0.4.0.1b6-py3-none-any.whl", hash = "sha256:0f843ad2cb160f73dd6c0233ce26313f9838f18d06970b5cada5869b7b4b69ad"},
-    {file = "encoded_core-0.4.0.1b6.tar.gz", hash = "sha256:49f7f0dfec62e8e809c619dc6a5d586eae91be9e1686a34e1f4e78db1e7f16d2"},
+    {file = "encoded_core-0.4.0.1b7-py3-none-any.whl", hash = "sha256:488ba0ffcd70a794b6f50a15041a2887128f01cd1ab32d79e3322fcb84e2baf1"},
+    {file = "encoded_core-0.4.0.1b7.tar.gz", hash = "sha256:9ffec07b6e9708e1073ad4c128517161787265788df736eb7f3ecf03a1c31400"},
 ]
 
 [package.dependencies]
 awscli = ">=1.29.62"
 boto3 = ">=1.28.62,<2.0.0"
 botocore = ">=1.31.62,<2.0.0"
-dcicsnovault = ">=11.6.0.1b5,<12.0.0.0"
-dcicutils = ">=8.5.0.1b6,<9.0.0.0"
+dcicsnovault = ">=11.6.0.1b7,<12.0.0.0"
+dcicutils = ">=8.5.0.1b7,<9.0.0.0"
 elasticsearch = "7.13.4"
 plaster-pastedeploy = "0.6"
 psycopg2-binary = ">=2.9.3,<3.0.0"
@@ -3451,4 +3451,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "120c3c37c903ccf78bb3584f49a071e1a2079e616c87c4f61bab6a8cf809ba3a"
+content-hash = "1fae28d1644b5a5cfd6bfc8ed53526e6ee94b2efa825d320b4566a865829bb52"
