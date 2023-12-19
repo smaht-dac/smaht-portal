@@ -72,9 +72,6 @@
             "anyOf": [
                 {
                     "format": "date"
-                },
-                {
-                    "format": "date-time"
                 }
             ]
         },
@@ -85,9 +82,6 @@
             "anyOf": [
                 {
                     "format": "date"
-                },
-                {
-                    "format": "date-time"
                 }
             ]
         },

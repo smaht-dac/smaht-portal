@@ -153,9 +153,6 @@
             "anyOf": [
                 {
                     "format": "date"
-                },
-                {
-                    "format": "date-time"
                 }
             ]
         },
