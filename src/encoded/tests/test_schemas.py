@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 import pytest
+from dcicutils import schema_utils
 from pkg_resources import resource_listdir
 from snovault import COLLECTIONS, TYPES
 from snovault.schema_utils import load_schema
@@ -10,6 +11,7 @@ from .utils import (
     get_all_item_types,
     get_functional_item_type_names,
     get_item,
+    get_schemas_with_submitted_id,
     get_unique_key,
     has_property,
     pluralize_collection,
@@ -220,3 +222,50 @@ def has_identifying_property(schema: Dict[str, Any], property_name: str) -> bool
     """Return True if schema has property_name property."""
     identifying_properties = schema.get("identifyingProperties", [])
     return property_name in identifying_properties
+
+
+def test_dates_accept_datetimes(testapp: TestApp) -> None:
+    """Ensure all dates accept datetime format for submitted items."""
+    submitted_schemas = get_schemas_with_submitted_id(testapp)
+    for schema in submitted_schemas:
+        assert_dates_accept_datetimes(schema)
+
+
+def assert_dates_accept_datetimes(schema: Dict[str, Any]) -> None:
+    """Ensure properties with date format also accept datetime format."""
+    properties = schema_utils.get_properties(schema)
+    for property_name, property_info in properties.items():
+        assert_property_accepts_datetime_if_contains_date_format(
+            property_name, property_info
+        )
+
+
+def assert_property_accepts_datetime_if_contains_date_format(
+    property_name: str, property_info: Dict[str, Any]
+) -> None:
+    """Ensure property accepts datetime format if requires date format."""
+    if schema_utils.is_object_schema(property_info):
+        properties = schema_utils.get_properties(property_info)
+        for sub_property_name, sub_property_info in properties.items():
+            assert_property_accepts_datetime_if_contains_date_format(
+                sub_property_name, sub_property_info
+            )
+    elif schema_utils.is_array_schema(property_info):
+        items = schema_utils.get_items(property_info)
+        assert_property_accepts_datetime_if_contains_date_format(
+            property_name, items
+        )
+    elif has_date_format(property_info):
+        assert_accepts_datetime(property_name, property_info)
+
+
+def has_date_format(property_info: Dict[str, Any]) -> bool:
+    """Return True if property has date format."""
+    return "date" in schema_utils.get_conditional_formats(property_info)
+
+
+def assert_accepts_datetime(property_name: str, property_info: Dict[str, Any]) -> None:
+    """Ensure property accepts datetime format."""
+    assert "date-time" in schema_utils.get_conditional_formats(property_info), (
+        f"Property {property_name} does not accept datetime format"
+    )
