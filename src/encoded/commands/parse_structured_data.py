@@ -19,19 +19,19 @@ def main() -> None:
 
     args = parse_args()
 
-    # The Portal.create_for_testing function returns a Portal object suitable for most local unit
+    # Portal.create_for_testing returns a Portal object suitable for most local unit
     # testing purposes including, for example, fetching type (JSON) schemas (via Portal.get_schema);
     # assuming run within a (pyenv) virtualenv which includes the portal "encoded" package.
     #
-    # The Portal.create_for_testing_local function returns a Portal object suitable for local integration
+    # Portal.create_for_testing(True) returns a Portal object suitable for local integration
     # testing including, for example, fetching data (via Portal.get_metadata) from a locally running portal.
     #
-    # The create_portal_for_local_testing function with a provided .ini file (e.g. development.ini)
+    # Portal.create_portal_for_testing(ini_file) with a provided .ini file (e.g. development.ini)
     # returns a Portal object suitable for local integration testing including, for example,
     # loading data into the database of a locally running portal.
     with captured_output():
         if args.load or not args.norefs:
-            portal = Portal.create_for_testing_local(args.load)
+            portal = Portal.create_for_testing(args.load)
         else:
             portal = Portal.create_for_testing()
 
