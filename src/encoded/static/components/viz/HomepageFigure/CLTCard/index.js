@@ -68,7 +68,7 @@ export const CLTCard = ({ currentTier }) => {
             items: [
                 {
                     iconSrc: '/static/img/anatomy-icons/Brain.svg',
-                    title: 'Brain (unrelated donors*)',
+                    title: 'Brain: unrelated donors',
                     benchmarking: true,
                     expansion: false,
                     production: false,
