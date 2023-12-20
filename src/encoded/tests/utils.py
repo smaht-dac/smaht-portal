@@ -197,15 +197,27 @@ def assert_keys_conflict(response: Dict[str, Any]) -> None:
     assert response.get("detail", "").startswith("Keys conflict:")
 
 
-def get_functional_item_type_names(test_app: TestApp) -> List[str]:
+def get_functional_item_type_names(
+    item_with_registry: Union[Registry, TestApp]
+) -> List[str]:
     """Get all non-test, non-abstract item type names (snake-cased)."""
-    functional_item_types = get_functional_item_types(test_app)
+    functional_item_types = get_functional_item_types(item_with_registry)
     return functional_item_types.keys()
 
 
-def get_functional_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
+def get_functional_item_type_info(
+    item_with_registry: Union[Registry, TestApp]
+) -> List[TypeInfo]:
+    """Get TypeInfo classes for non-test, non-abstract item types."""
+    functional_item_types = get_functional_item_types(item_with_registry)
+    return functional_item_types.values()
+
+
+def get_functional_item_types(
+    item_with_registry: Union[Registry, TestApp]
+) -> Dict[str, TypeInfo]:
     """Get all non-test, non-abstract item types."""
-    all_item_types = get_all_item_types(test_app)
+    all_item_types = get_all_item_types(item_with_registry)
     return {
         type_name: type_info
         for type_name, type_info in all_item_types.items()
@@ -213,9 +225,12 @@ def get_functional_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
     }
 
 
-def get_all_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
-    """Get all item types in test app registry."""
-    return test_app.app.registry.get(TYPES).by_item_type
+def get_all_item_types(
+    item_with_registry: Union[Registry, TestApp]
+) -> Dict[str, TypeInfo]:
+    """Get all item types in registry."""
+    registry = get_registry(item_with_registry)
+    return registry.get(TYPES).by_item_type
 
 
 def is_test_item(item_name: str) -> bool:
@@ -291,8 +306,18 @@ def get_collection_for_type(type_info: AbstractTypeInfo) -> Collection:
     return result
 
 
-def get_registry(type_info: TypeInfo) -> Registry:
-    return type_info.types.registry
+def get_registry(item_with_registry: Union[Registry, TestApp, TypeInfo]) -> Registry:
+    """Get registry from given input."""
+    if isinstance(item_with_registry, Registry):
+        return item_with_registry
+    if isinstance(item_with_registry, TestApp):
+        return item_with_registry.app.registry
+    if isinstance(item_with_registry, TypeInfo):
+        return item_with_registry.types.registry
+    raise NotImplementedError(
+        f"Cannot get registry for {item_with_registry} of type"
+        f" {type(item_with_registry)}"
+    )
 
 
 def get_collection_for_item_name(

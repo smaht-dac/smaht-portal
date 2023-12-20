@@ -57,7 +57,7 @@
             "accessionType": "CC"
         },
         "schema_version": {
-            "default": "1"
+            "default": "2"
         },
         "culture_duration": {
             "title": "Culture Duration",
@@ -109,9 +109,14 @@
         },
         "lot_number": {
             "title": "Lot Number",
-            "description": "Lot number of cell source",
-            "type": "integer",
-            "minimum": 0
+            "description": "Lot number of cell line",
+            "type": "array",
+			"uniqueItems": true,
+			"minItems": 1,
+			"items": {
+				"type": "string",
+				"minLength": 1
+			}
         },
         "passage_number": {
             "title": "Passage Number",
