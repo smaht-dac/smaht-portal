@@ -170,9 +170,16 @@ export const CLTCard = ({ currentTier }) => {
                     production: true,
                 },
                 {
+                    iconSrc: '/static/img/anatomy-icons/Colon.svg',
+                    title: 'Colon',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
+                {
                     iconSrc: '/static/img/anatomy-icons/Ascending Colon.svg',
                     title: 'Ascending Colon',
-                    benchmarking: true,
+                    benchmarking: false,
                     expansion: true,
                     production: true,
                 },
