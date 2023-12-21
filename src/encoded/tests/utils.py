@@ -245,7 +245,8 @@ def get_schemas_with_submitted_id(testapp: TestApp) -> List[Dict[str, Any]]:
     """Get all schemas with submitted_id property."""
     item_types = get_all_item_types(testapp)
     return [
-        type_info.schema for type_info in item_types.values()
+        type_info.schema
+        for type_info in item_types.values()
         if has_submitted_id(type_info)
     ]
 
@@ -257,7 +258,8 @@ def get_items_with_submitted_id(testapp: TestApp) -> List[str]:
     """
     functional_item_types = get_functional_item_types(testapp)
     return [
-        item_name for item_name, item_type_info in functional_item_types.items()
+        item_name
+        for item_name, item_type_info in functional_item_types.items()
         if has_submitted_id(item_type_info)
     ]
 
@@ -273,7 +275,8 @@ def get_items_without_submitted_id(testapp: TestApp) -> List[str]:
     """
     functional_item_types = get_functional_item_types(testapp)
     return [
-        item_name for item_name, item_type_info in functional_item_types.items()
+        item_name
+        for item_name, item_type_info in functional_item_types.items()
         if not has_submitted_id(item_type_info)
     ]
 
