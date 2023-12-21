@@ -7,19 +7,19 @@
 [app:app]
 use = config:base.ini#app
 session.secret = %(here)s/session-secret.b64
-env.name = cgap-docker-${USER}-test
+env.name = smaht-docker-${USER}-test
 sqlalchemy.url = postgres://postgres:postgres@db:5432/postgres
-elasticsearch.server = search-cgap-unit-testing-6-8-2p5zrlkmxif4bayh5y6kxzlvx4.us-east-1.es.amazonaws.com:443
+elasticsearch.server = search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
 elasticsearch.aws_auth = true
-blob_bucket = cgap-unit-testing-blobs
-metadata_bundles_bucket = cgap-unit-testing-metadata-bundles
+blob_bucket = smaht-unit-testing-blobs
+metadata_bundles_bucket = smaht-unit-testing-metadata-bundles
 load_test_only = true
 create_tables = true
 testing = true
 postgresql.statement_timeout = 20
 mpindexer = true
 indexer = true
-indexer.namespace = cgap-docker-${USER}-test
+indexer.namespace = smaht-docker-${USER}-test
 pyramid.reload_templates = true
 pyramid.debug_authorization = false
 pyramid.debug_notfound = false

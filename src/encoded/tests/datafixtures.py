@@ -270,6 +270,12 @@ def unassociated_user_app(testapp, blank_user):
 
 
 @pytest.fixture
+def admin_user_app(testapp: TestApp, admin: Dict[str, Any]) -> TestApp:
+    """ App associated with an admin user """
+    return remote_user_testapp(testapp.app, admin['uuid'])
+
+
+@pytest.fixture
 def workflow(testapp: TestApp, test_consortium: Dict[str, Any]) -> Dict[str, Any]:
     item = {
         "name": "simply-the-best",
@@ -355,11 +361,19 @@ def higlass_view_config(
 
 
 @pytest.fixture
-def donor(testapp: TestApp, test_second_submission_center: Dict[str, Any]) -> Dict[str, Any]:
-    item = {
+def donor_properties(test_second_submission_center: Dict[str, Any]) -> Dict[str, Any]:
+    """Donor properties not added to database.
+
+    Useful for testing posting permissions.
+    """
+    return {
         "submission_centers": [test_second_submission_center["uuid"]],
         "submitted_id": "TEST_DONOR_1234",
         "age": 35,
         "sex": "Male",
     }
-    return post_item(testapp, item, "Donor")
+
+
+@pytest.fixture
+def donor(testapp: TestApp, donor_properties: Dict[str, Any]) -> Dict[str, Any]:
+    return post_item(testapp, donor_properties, "Donor")

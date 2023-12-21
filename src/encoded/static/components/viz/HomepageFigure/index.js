@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { HumanFigure } from './HumanFigure';
+import React from 'react';
 import { CLTCard } from './CLTCard';
 import { AssaysCard } from './AssaysCard';
 
@@ -20,31 +19,33 @@ const TierSelector = ({ currentTier, setCurrentTier }) => {
             <button
                 onClick={() => setCurrentTier('benchmarking')}
                 className={currentTier === 'benchmarking' ? 'active' : ''}>
-                <span>Benchmarking</span>
+                <span>Tier 0</span>
             </button>
             <button
                 onClick={() => setCurrentTier('expansion')}
                 className={currentTier === 'expansion' ? 'active' : ''}>
-                <span>Expansion</span>
+                <span>Tier 1</span>
             </button>
             <button
                 onClick={() => setCurrentTier('production')}
                 className={currentTier === 'production' ? 'active' : ''}>
-                <span>Production</span>
+                <span>Tier 2</span>
             </button>
         </div>
     );
 };
 
-export const HomepageFigure = ({}) => {
-    // Must have ability to set the tier, might need to get this passed down
-    const [currentTier, setCurrentTier] = useState('benchmarking');
-
+export const HomepageFigure = ({ currentTier, setCurrentTier }) => {
     return (
         <div className="homepage-figure">
             <div className="homepage-figure-content">
                 <CLTCard currentTier={currentTier} />
-                <HumanFigure currentTier={currentTier} />
+                <div className="human-figure-container">
+                    <img
+                        src="/static/img/homepage_human_figure.svg"
+                        alt="Human figure diagram"
+                    />
+                </div>
                 <AssaysCard currentTier={currentTier} />
             </div>
             <div className="homepage-figure-tier-selector">

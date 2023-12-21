@@ -482,15 +482,51 @@
 
 // HomePage ONLY
 body[data-path="/"]>#application>#layout {
-	background: url(/static/img/polygon-bg.png), linear-gradient(303deg, #CCF6FC 0.52%, #FFF 99.55%);
+	background: top right no-repeat url('/static/img/Top Right Hexagons.svg'), 0% 95% no-repeat url('/static/img/Bottom Left Hexagons.svg'), linear-gradient(to bottom right, #FFFFFF, #E3FCFF);
 }
-
 .homepage-wrapper {
+	@media screen and (min-width: 992px) {
+		// padding-left: 58px;
+	}
 
+	// Styles for alerts on the homepage
+	#full-alerts-container {
+		display: flex;
+		background-color: transparent;
+		// position: sticky;
+		// z-index: 500;
+		// top: 0px;
+	
+		> .alerts {
+			@media screen and (min-width: 992px) {
+				padding-left: 0px;
+				margin: auto;
+			}
+
+			> .alert {
+				background-color: #FEE5E5;
+				position: relative;
+				padding: 17px 60px 17px 25px;
+
+				.alert-heading {
+					font-size: 16px;
+				};
+
+				button.close {
+					position:absolute;
+					top: 16px;
+					right: 25px;
+				}
+			}
+		}
+	}
 	
 
 	.homepage-contents,
 	.homepage-contents>div {
+		@media screen and (min-width: 992px) {
+			padding-left: 0px;
+		}
 		// Full screen - Height of the navbar & footer at full height
 		// @TODO use variables for the heights
 		min-height: calc(100vh - 130px); 
@@ -502,14 +538,27 @@ body[data-path="/"]>#application>#layout {
 		// background: -moz-linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
 		// background: -webkit-linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
 		// background: linear-gradient(180deg, rgba(163,232,255,1) 0%, rgba(255,255,255,1) 100%);
-		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#a3e8ff",endColorstr="#ffffff",GradientType=1); 
+		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#a3e8ff",endColorstr="#ffffff",GradientType=1);
+		
+
+		@media screen and (min-width: 1500px) {
+			// Max-width for the homepage
+			max-width: 1800px;
+			margin: auto;
+		}
+
 
 		h1 {
 			font-size: 42px;
+			font-weight: 600;
 		}
 
-		h1, h3 {
+		h1 {
 			color: $homepage-header-text-color;
+		}
+		h3 {
+			color: $homepage-header-text-color;
+			margin-top: 0;
 		}
 
 		h2 {
@@ -518,19 +567,69 @@ body[data-path="/"]>#application>#layout {
 			font-weight: 400;
 		}
 
+		.homepage-header {
+			display: flex;
+			flex-direction: column;
+			padding-top: 8px;
+
+			h1 {
+				font-size: 25px;
+				margin-top: 0px;
+			}
+			h2 {
+				font-size: 16px;
+				margin-top: 0px;
+			}
+			@media screen and (min-width: 767px) {
+				h1 {
+					font-size: 38px;
+				}
+				h2 {
+					font-size: 18px;
+				}
+			}
+		}
+
 		.about-consortium {
-			background-color: $homepage-card-bg-color;
-			border-color: $homepage-card-border-color;
+			padding: 20px 30px;
+			background-color: $cobalt-10;
+			border-color: $cobalt-30;
 			@include prefix(border-radius, $homepage-card-border-radius);
+
+			h3 {
+				color: #416485;
+				font-weight: 600;
+				font-size: 20px;
+				margin: 0px auto 20px 0px;
+				text-align: left;
+			}
 			
 			// TODO: If this style of button will be re-used, make it one of the overrides for a BS button
 			a {
 				background-color: $homepage-about-consort-btn-bg-color;
 				border: 1px solid $homepage-about-consort-btn-border-color;
-				color: $homepage-about-consort-text-color;
+				color: #416485;
+				font-weight: 500;
+				font-size: 14px;
+				letter-spacing: normal;
+				line-height: normal;
+				margin-bottom: 5px;
 				@include prefix(border-radius, $homepage-about-consort-border-radius);
-				>i {
-					color: $homepage-about-consort-btn-icon-color;
+				> i {
+					color: #BBCCF9;
+					font-size: 12px;
+				}
+
+				&:hover {
+					background-color: #ffffff;
+				}
+			}
+		}
+
+		@media screen and (min-width: 992px) {
+			.about-consortium {
+				a {
+					margin-bottom: auto;
 				}
 			}
 		}

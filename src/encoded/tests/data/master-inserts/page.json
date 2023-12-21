@@ -2,7 +2,7 @@
     {
         "identifier": "about",
         "title": "About",
-        "status": "public",
+        "status": "in review",
         "children": [
             "c57a5299-64aa-4e8d-bf01-6668d815b94f",
             "d2d042e7-09e5-4a34-a8c5-530ba9c9cdec",
@@ -26,7 +26,7 @@
     {
         "identifier": "about/what-is-smaht",
         "title": "What is SMaHT?",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -47,7 +47,7 @@
     {
         "identifier": "about/consortium",
         "title": "SMaHT Consortium Information",
-        "status": "public",
+        "status": "in review",
         "children": [
             "6da98599-12a7-456f-8598-da510a88c7e8",
             "1ef242a4-954c-4c77-9193-3ec3b1a8e7d7"
@@ -72,7 +72,7 @@
     {
         "identifier": "about/join",
         "title": "How to Join SMaHt",
-        "status": "public",
+        "status": "in review",
         "children": [
             "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd"
         ],
@@ -96,7 +96,7 @@
     {
         "identifier": "about/consortium/awardees",
         "title": "SMaHT Awardees",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5",
             "f1601ba5-483b-4133-a76b-5bec7caa2dd2"
@@ -118,7 +118,7 @@
     {
         "identifier": "about/consortium/data",
         "title": "SMaHT Data",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5",
             "d3d9c545-4340-495a-92ea-7ccb7eebc71b"
@@ -140,7 +140,7 @@
     {
         "identifier": "about/join/policy",
         "title": "Associate Membership policy",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -163,11 +163,9 @@
         "title": "Documentation",
         "status": "public",
         "children": [
-            "859b2c48-0bda-406c-b49b-07d68bd236d4",
-            "faabe1c0-3d8a-4651-bc86-072fb49ad016",
-            "4a63980c-d43a-403d-b872-51b658e1d39c",
-            "d753df69-8830-4cce-bf5c-44f55686d8a7",
-            "22cf1831-aa96-4da1-bc62-4bccba4365af"
+            "5153c902-a0d2-4246-9b41-cea7a1c91f52",
+            "6292facf-9eb4-451e-8d05-2e56e1bd7cbe",
+            "6292facf-9eb4-451e-8d05-2e56e1bd7cbf"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -226,7 +224,7 @@
     {
         "identifier": "docs/pipeline-protocols",
         "title": "Pipeline Protocols",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -247,7 +245,7 @@
     {
         "identifier": "docs/summary-of-data",
         "title": "Summary of Data Generated",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -286,10 +284,66 @@
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
+     {
+        "identifier": "docs/user-guide/account-creation",
+        "uuid": "5153c902-a0d2-4246-9b41-cea7a1c91f52",
+        "title": "Creating an Account",
+        "content": [
+            "442c8aa0-dc6c-43d7-814a-854af460b014"
+        ],
+        "table-of-contents": {
+            "enabled": true
+        },
+        "status": "public",
+         "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/user-guide/getting-started",
+        "uuid": "6292facf-9eb4-451e-8d05-2e56e1bd7cbe",
+        "title": "Getting Started with Submissions",
+        "content": [
+            "442c8aa0-dc6c-43d7-814a-854af460b015"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/user-guide/file-uploads",
+        "uuid": "6292facf-9eb4-451e-8d05-2e56e1bd7cbf",
+        "title": "How to Upload Files to DAC",
+        "content": [
+            "d3d9c545-4340-495a-92ea-7ccb7eebc71c"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
     {
         "identifier": "data",
         "title": "Data",
-        "status": "public",
+        "status": "in review",
         "children": [
             "39deafe0-34ae-4ab8-8261-3661b0c79a38"
         ],
@@ -308,7 +362,7 @@
     {
         "identifier": "data/benchmarking",
         "title": "Benchmarking Data",
-        "status": "public",
+        "status": "in review",
         "children": [
             "63dde5c8-75b7-4335-9fc7-04a25c494148",
             "086fd04b-0098-4138-aa15-0f4affd649a3",
@@ -339,7 +393,7 @@
     {
         "identifier": "data/benchmarking/COLO829",
         "title": "COLO829",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -360,7 +414,7 @@
     {
         "identifier": "data/benchmarking/HapMap",
         "title": "HapMap",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -381,7 +435,7 @@
     {
         "identifier": "data/benchmarking/iPSC-fibroblasts",
         "title": "iPSC and Fibroblasts",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -402,7 +456,7 @@
     {
         "identifier": "data/benchmarking/brain",
         "title": "Brain",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -423,7 +477,7 @@
     {
         "identifier": "data/benchmarking/lung",
         "title": "Lung",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -444,7 +498,7 @@
     {
         "identifier": "data/benchmarking/heart",
         "title": "Heart",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -465,7 +519,7 @@
     {
         "identifier": "data/benchmarking/colon",
         "title": "Colon",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -486,7 +540,7 @@
     {
         "identifier": "data/benchmarking/skin",
         "title": "Skin",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],

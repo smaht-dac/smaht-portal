@@ -1,6 +1,3 @@
-import json
-import pkg_resources
-from pathlib import Path
 from typing import Any, Dict, List
 
 import pytest
@@ -8,9 +5,17 @@ from snovault.typeinfo import TypeInfo
 from webtest.app import AppError, TestApp
 
 from .utils import (
-    delete_item, get_functional_item_types, get_item, get_schema, patch_item, post_item
+    delete_item,
+    get_functional_item_types,
+    get_identifying_properties,
+    get_item,
+    get_required_properties,
+    get_workbook_inserts,
+    patch_item,
+    post_item
 )
 from ..project.loadxl import ITEM_INDEX_ORDER as loadxl_order
+from ..utils import get_remote_user as get_app_remote_user
 
 
 @pytest.fixture
@@ -106,6 +111,27 @@ class TestAdminPermissions:
     def test_non_admin_cannot_purge(submitter_testapp, fastq_format):
         submitter_testapp.patch_json(f'/{fastq_format["uuid"]}', {'status': 'deleted'}, status=422)
         submitter_testapp.delete_json(f'/{fastq_format["uuid"]}/?purge=True', {}, status=403)
+
+    @staticmethod
+    def test_admin_can_submit_any_affiliations(
+        admin_user_app: TestApp,
+        admin: Dict[str, Any],
+        donor_properties: Dict[str, Any],
+        test_consortium: Dict[str, Any],
+    ) -> None:
+        """Ensure admins can bypass affiliations validation.
+
+        Submission centers and consortia of admin users should
+        not prevent successful POST/PATCH of items.
+        """
+        assert admin['groups'] == ['admin']
+        assert get_app_remote_user(admin_user_app) == admin["uuid"]
+        assert not admin.get("submission_centers")
+        assert not admin.get("consortia")
+
+        response = post_item(admin_user_app, donor_properties, "Donor")
+        patch_body = {"consortia": [test_consortium["uuid"]]}
+        patch_item(admin_user_app, patch_body, response["uuid"])
 
 
 class TestPermissionsHelper:
@@ -731,10 +757,6 @@ def assert_affiliated_with_submission_center(
     )
 
 
-def get_app_remote_user(testapp: TestApp) -> str:
-    return testapp.extra_environ.get("REMOTE_USER", "")
-
-
 def is_user_affiliated_with_submission_center(
     admin_app: TestApp,
     user_identifier: str,
@@ -785,29 +807,6 @@ def get_item_properties_from_workbook_inserts(
     """
     inserts = get_workbook_inserts()
     return clean_workbook_inserts(inserts, submission_center)
-
-
-def get_workbook_inserts() -> Dict[str, Dict[str, Any]]:
-    """Load all workbook inserts."""
-    workbook_schemas_path = pkg_resources.resource_filename(
-        "encoded", "tests/data/workbook-inserts/"
-    )
-    workbook_schemas = Path(workbook_schemas_path).glob("*.json")
-    return {
-        get_item_type(item_insert_file): load_inserts(item_insert_file)
-        for item_insert_file in workbook_schemas
-    }
-
-
-def get_item_type(item_insert_file: Path) -> str:
-    """Get item type from workbook insert file name."""
-    return item_insert_file.name.replace(".json", "")
-
-
-def load_inserts(insert_file: Path) -> List[Dict[str, Any]]:
-    """Load inserts from file."""
-    with insert_file.open() as file_handle:
-        return json.load(file_handle)
 
 
 def clean_workbook_inserts(
@@ -890,37 +889,6 @@ def get_limited_insert(
     return {key: value for key, value in insert.items() if key in properties_to_keep}
 
 
-def get_required_properties(test_app: TestApp, item_type: str) -> List[str]:
-    """Get required + potentially required properties."""
-    schema = get_schema(test_app, item_type)
-    required_fields = schema.get("required", [])
-    any_of_required_fields = get_any_of_required_fields(schema)
-    one_of_required_fields = get_one_of_required_fields(schema)
-    return required_fields + any_of_required_fields + one_of_required_fields
-
-
-def get_any_of_required_fields(schema: Dict[str, Any]) -> List[str]:
-    """Get required fields from anyOf properties."""
-    any_of_properties = schema.get("anyOf", [])
-    return get_conditional_requirements(any_of_properties)
-
-
-def get_conditional_requirements(
-    conditional_options: List[Dict[str, Any]]
-) -> List[str]:
-    """Get required fields from conditional properties."""
-    return [
-        required_key for entry in conditional_options for key, value in entry.items()
-        for required_key in value if key == "required"
-    ]
-
-
-def get_one_of_required_fields(schema: Dict[str, Any]) -> List[str]:
-    """Get required fields from oneOf properties."""
-    one_of_properties = schema.get("oneOf", [])
-    return get_conditional_requirements(one_of_properties)
-
-
 def get_identifying_insert(
     test_app: TestApp, insert: Dict[str, Any], item_type: str
 ) -> Dict[str, Any]:
@@ -937,11 +905,6 @@ def get_identifying_insert(
     else:
         properties_to_keep = identifying_properties + required_properties
     return {key: value for key, value in insert.items() if key in properties_to_keep}
-
-
-def get_identifying_properties(test_app: TestApp, item_type: str) -> List[str]:
-    schema = get_schema(test_app, item_type)
-    return schema.get("identifyingProperties", [])
 
 
 def post_item_then_delete(

@@ -29,6 +29,7 @@ from snovault.validators import (
 from . import acl
 from .utils import get_item, get_properties
 from ..local_roles import DEBUG_PERMISSIONS
+from ..utils import get_remote_user
 
 
 def mixin_smaht_permission_types(schema: dict) -> dict:
@@ -261,11 +262,11 @@ def validate_user_submission_consistency(context, request):
         under the consortia/submission centers that they are a
         part of
     """
-    user = request.environ.get('REMOTE_USER')
-    if not user or user in ['TEST', 'INDEXER', 'EMBED', 'TEST_SUBMITTER', 'INGESTION']:
+    remote_user = get_remote_user(request)
+    if not remote_user or is_special_user(remote_user):
         return
-    user = request.embed(f'/users/{user}?frame=raw')
-    if 'group.admin' in user.get('groups', []):
+    user = get_item(request, remote_user, collection="User", frame="raw")
+    if is_admin(user):
         return
     user_consortia = user.get('consortia', [])
     user_submission_centers = user.get('submission_centers', [])
@@ -278,6 +279,19 @@ def validate_user_submission_consistency(context, request):
         if submission_center not in user_submission_centers:
             request.errors.add('body', f'Item: invalid submission center {submission_center}',
                                f'user only has {user_submission_centers}')
+
+
+def is_special_user(remote_user: str) -> bool:
+    """Check for remote users with special status.
+
+    May want to move these as a constant to project settings.
+    """
+    return remote_user in ['TEST', 'INDEXER', 'EMBED', 'TEST_SUBMITTER', 'INGESTION']
+
+
+def is_admin(user: Dict[str, Any]) -> bool:
+    """Is the user an admin?"""
+    return "admin" in user.get("groups", [])
 
 
 @view_config(

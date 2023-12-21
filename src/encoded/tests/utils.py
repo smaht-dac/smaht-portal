@@ -1,3 +1,6 @@
+import json
+import pkg_resources
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from dcicutils.misc_utils import to_snake_case
@@ -7,8 +10,10 @@ from snovault.typeinfo import AbstractTypeInfo, TypeInfo
 from webtest.app import TestApp
 
 
-def post_item_and_return_location(testapp: TestApp, item: dict, collection: str) -> dict:
-    """ Posts item metadata to resource_path using testapp and return a dict response containing the location """
+def post_item_and_return_location(
+    testapp: TestApp, item: dict, collection: str
+) -> dict:
+    """Posts item metadata to resource_path using testapp and return a dict response containing the location"""
     resource_path = get_formatted_resource_path(collection)
     res = testapp.post_json(resource_path, item)
     return testapp.get(res.location).json
@@ -241,3 +246,65 @@ def get_unique_key_property_name(collection: Collection) -> str:
     if ":" in unique_key:
         return "".join(unique_key.split(":")[1:])
     return unique_key
+
+
+def get_workbook_inserts() -> Dict[str, Dict[str, Any]]:
+    """Load all workbook inserts."""
+    workbook_schemas_path = pkg_resources.resource_filename(
+        "encoded", "tests/data/workbook-inserts/"
+    )
+    workbook_schemas = Path(workbook_schemas_path).glob("*.json")
+    return {
+        get_item_type(item_insert_file): load_inserts(item_insert_file)
+        for item_insert_file in workbook_schemas
+    }
+
+
+def get_item_type(item_insert_file: Path) -> str:
+    """Get item type from workbook insert file name."""
+    return item_insert_file.name.replace(".json", "")
+
+
+def load_inserts(insert_file: Path) -> List[Dict[str, Any]]:
+    """Load inserts from file."""
+    with insert_file.open() as file_handle:
+        return json.load(file_handle)
+
+
+def get_required_properties(test_app: TestApp, item_type: str) -> List[str]:
+    """Get required + potentially required properties."""
+    schema = get_schema(test_app, item_type)
+    required_fields = schema.get("required", [])
+    any_of_required_fields = get_any_of_required_fields(schema)
+    one_of_required_fields = get_one_of_required_fields(schema)
+    return required_fields + any_of_required_fields + one_of_required_fields
+
+
+def get_any_of_required_fields(schema: Dict[str, Any]) -> List[str]:
+    """Get required fields from anyOf properties."""
+    any_of_properties = schema.get("anyOf", [])
+    return get_conditional_requirements(any_of_properties)
+
+
+def get_conditional_requirements(
+    conditional_options: List[Dict[str, Any]]
+) -> List[str]:
+    """Get required fields from conditional properties."""
+    return [
+        required_key
+        for entry in conditional_options
+        for key, value in entry.items()
+        for required_key in value
+        if key == "required"
+    ]
+
+
+def get_one_of_required_fields(schema: Dict[str, Any]) -> List[str]:
+    """Get required fields from oneOf properties."""
+    one_of_properties = schema.get("oneOf", [])
+    return get_conditional_requirements(one_of_properties)
+
+
+def get_identifying_properties(test_app: TestApp, item_type: str) -> List[str]:
+    schema = get_schema(test_app, item_type)
+    return schema.get("identifyingProperties", [])
