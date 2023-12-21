@@ -57,7 +57,7 @@
             "accessionType": "CC"
         },
         "schema_version": {
-            "default": "2"
+            "default": "1"
         },
         "culture_duration": {
             "title": "Culture Duration",
@@ -69,21 +69,13 @@
             "title": "Culture Harvest Date",
             "description": "YYYY-MM-DD format date for cell culture harvest",
             "type": "string",
-            "anyOf": [
-                {
-                    "format": "date"
-                }
-            ]
+            "format": "date"
         },
         "culture_start_date": {
             "title": "Culture Start Date",
             "description": "YYYY-MM-DD format date for cell culture start date",
             "type": "string",
-            "anyOf": [
-                {
-                    "format": "date"
-                }
-            ]
+            "format": "date"
         },
         "doubling_number": {
             "title": "Doubling Number",
@@ -111,12 +103,12 @@
             "title": "Lot Number",
             "description": "Lot number of cell line",
             "type": "array",
-			"uniqueItems": true,
-			"minItems": 1,
-			"items": {
-				"type": "string",
-				"minLength": 1
-			}
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "minLength": 1
+            }
         },
         "passage_number": {
             "title": "Passage Number",

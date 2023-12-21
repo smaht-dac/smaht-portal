@@ -150,11 +150,7 @@
             "title": "Preparation Date",
             "description": "Date of library preparation",
             "type": "string",
-            "anyOf": [
-                {
-                    "format": "date"
-                }
-            ]
+            "format": "date"
         },
         "analyte": {
             "title": "Analyte",
