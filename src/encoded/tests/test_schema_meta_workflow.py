@@ -95,7 +95,7 @@ def test_workflow_custom_pf_fields(
         ),
     ],
 )
-def test_workflow_input(
+def test_meta_workflow_input(
     input_property: Dict[str, Any],
     expected_status: int,
     testapp: TestApp,
@@ -103,5 +103,81 @@ def test_workflow_input(
     output_file: Dict[str, Any],
 ) -> None:
     """Ensure 'input' validation of anyOf requirements."""
+    patch_body = {"input": [input_property]}
+    patch_item(testapp, patch_body, meta_workflow["uuid"], status=expected_status)
+
+
+
+@pytest.mark.parametrize(
+    "input_property,expected_status",
+    [
+        ({} , 422),
+        ({"argument_name": "foo", "argument_type": "QC ruleset"}, 422),  # Missing 'value'
+        (
+            {
+                "argument_name": "foo",
+                "argument_type": "QC ruleset",
+                "value": 15,  # Wrong type
+            },
+            422
+         ),
+        (
+            {
+                "argument_name": "foo",
+                "argument_type": "QC ruleset",
+                "value": {},  # Missing required fields
+            },
+            422
+         ),
+        (  # Invalid 'value_type' per if/then
+            {
+                "argument_name": "foo",
+                "argument_type": "QC ruleset",
+                "value": {
+                    "overall_quality_status_rule": "foo",
+                    "qc_thresholds": [
+                        {
+                            "id": "bar",
+                            "metric": "baz",
+                            "operator": ">",
+                            "pass_target": 52.7,
+                        }
+                    ]
+                },
+                "value_type": "string",
+            },
+            422,
+        ),
+        (
+            {
+                "argument_name": "foo",
+                "argument_type": "QC ruleset",
+                "value": {
+                    "overall_quality_status_rule": "foo",
+                    "qc_thresholds": [
+                        {
+                            "id": "bar",
+                            "metric": "baz",
+                            "operator": ">",
+                            "pass_target": 52.7,
+                        }
+                    ]
+                },
+            },
+            200,
+        ),
+    ]
+)
+def test_input_qc_ruleset(
+    input_property: Dict[str, Any],
+    expected_status: int,
+    testapp: TestApp,
+    meta_workflow: Dict[str, Any],
+) -> None:
+    """Ensure if/then validation of input when QC ruleset provided.
+
+    Note: If/then validation tested more thoroughly in mixins tests;
+    this test broadly ensures if/then validation working as expected here.
+    """
     patch_body = {"input": [input_property]}
     patch_item(testapp, patch_body, meta_workflow["uuid"], status=expected_status)

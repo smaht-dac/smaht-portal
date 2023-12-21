@@ -198,6 +198,12 @@
                     "argument_name",
                     "argument_type"
                 ],
+                "if": {
+                    "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/if"
+                },
+                "then": {
+                    "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/then"
+                },
                 "anyOf": [
                     {
                         "required": [

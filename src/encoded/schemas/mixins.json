@@ -249,6 +249,120 @@
                     "argument_name",
                     "argument_type"
                 ],
+                "if": {
+                    "properties": {
+                        "argument_type": {
+                            "const": "QC ruleset"
+                        }
+                    }
+                },
+                "then": {
+                    "required": [
+                        "value"
+                    ],
+                    "properties": {
+                        "value": {
+                            "type": "object",
+                            "required": [
+                                "overall_quality_status_rule",
+                                "qc_thresholds"
+                            ],
+                            "additionalProperties": false,
+                            "properties": {
+                                "overall_quality_status_rule": {
+                                    "title": "Overall Quality Status Rule",
+                                    "type": "string"
+                                },
+                                "qc_thresholds": {
+                                    "title": "QC Thresholds",
+                                    "type": "array",
+                                    "minItems": 1,
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "id",
+                                            "metric",
+                                            "operator"
+                                        ],
+                                        "anyOf": [
+                                            {
+                                                "required": [
+                                                    "pass_target"
+                                                ]
+                                            },
+                                            {
+                                                "required": [
+                                                    "warn_target"
+                                                ]
+                                            },
+                                            {
+                                                "required": [
+                                                    "fail_target"
+                                                ]
+                                            }
+                                        ],
+                                        "properties": {
+                                            "id": {
+                                                "title": "ID",
+                                                "type": "string"
+                                            },
+                                            "metric": {
+                                                "title": "Metric",
+                                                "type": "string"
+                                            },
+                                            "operator": {
+                                                "title": "Operator",
+                                                "type": "string",
+                                                "enum": [
+                                                    "=",
+                                                    ">",
+                                                    ">=",
+                                                    "<",
+                                                    "<="
+                                                ]
+                                            },
+                                            "pass_target": {
+                                                "title": "Pass Target",
+                                                "type": [
+                                                    "string",
+                                                    "number",
+                                                    "boolean"
+                                                ]
+                                            },
+                                            "fail_target": {
+                                                "title": "Fail Target",
+                                                "type": [
+                                                    "string",
+                                                    "number",
+                                                    "boolean"
+                                                ]
+                                            },
+                                            "warn_target": {
+                                                "title": "Warn Target",
+                                                "type": [
+                                                    "string",
+                                                    "number",
+                                                    "boolean"
+                                                ]
+                                            },
+                                            "use_as_qc_flag": {
+                                                "title": "Use as QC Flag",
+                                                "type": "boolean"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "value_type": {
+                            "type": "string",
+                            "enum": [
+                                "object"
+                            ]
+                        }
+                    }
+                },
                 "properties": {
                     "argument_name": {
                         "title": "Input Argument Name",
@@ -259,7 +373,8 @@
                         "type": "string",
                         "enum": [
                             "file",
-                            "parameter"
+                            "parameter",
+                            "QC ruleset"
                         ]
                     },
                     "value": {
