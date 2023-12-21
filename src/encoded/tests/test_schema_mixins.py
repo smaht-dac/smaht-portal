@@ -41,7 +41,7 @@ def validate_schema(schema: Dict[str, Any], to_validate: Any) -> str:
         ("foo", False),
         ("foo-bar", False),
         ("FOO_BAR", False),
-    ]
+    ],
 )
 def test_identifier(identifier: str, expected_errors: bool) -> None:
     """Ensure identifier schema validating as expected."""
@@ -61,7 +61,7 @@ def test_identifier(identifier: str, expected_errors: bool) -> None:
         ("foo", False),
         ("foo-bar", False),
         ("FOO_BAR", False),
-    ]
+    ],
 )
 def test_name(name: str, expected_errors: bool) -> None:
     """Ensure name schema validating as expected."""
@@ -82,7 +82,7 @@ def test_name(name: str, expected_errors: bool) -> None:
         ("1.4", False),
         ("1.4.", True),
         ("1.4.5.6", False),
-    ]
+    ],
 )
 def test_version(version: str, expected_errors: bool) -> None:
     """Ensure version schema validating as expected."""
@@ -103,7 +103,7 @@ def test_version(version: str, expected_errors: bool) -> None:
         ({"argument_name": "foo", "argument_type": "file"}, False),
         (  # Additional properties
             {"argument_name": "foo", "argument_type": "file", "foo": "bar"},
-            True
+            True,
         ),
         (  # Missing required 'value' per if/then
             {"argument_name": "foo", "argument_type": "QC ruleset"},
@@ -131,7 +131,7 @@ def test_version(version: str, expected_errors: bool) -> None:
                 "argument_type": "QC ruleset",
                 "value": {
                     "overall_quality_status_rule": "foo",
-                    "qc_thresholds": [{"id": "bar", "metric": "baz", "operator": ">"}]
+                    "qc_thresholds": [{"id": "bar", "metric": "baz", "operator": ">"}],
                 },
             },
             True,
@@ -148,9 +148,9 @@ def test_version(version: str, expected_errors: bool) -> None:
                             "metric": "baz",
                             "operator": ">",
                             "pass_target": 52.7,
-                            "fu": "bur"
+                            "fu": "bur",
                         }
-                    ]
+                    ],
                 },
             },
             True,
@@ -168,7 +168,7 @@ def test_version(version: str, expected_errors: bool) -> None:
                             "operator": ">",
                             "pass_target": 52.7,
                         }
-                    ]
+                    ],
                 },
                 "value_type": "string",
             },
@@ -187,12 +187,12 @@ def test_version(version: str, expected_errors: bool) -> None:
                             "operator": ">",
                             "pass_target": 52.7,
                         }
-                    ]
+                    ],
                 },
             },
             False,
         ),
-    ]
+    ],
 )
 def test_meta_workflow_input(meta_workflow_input: str, expected_errors: bool) -> None:
     """Ensure meta_workflow_input schema validating as expected.

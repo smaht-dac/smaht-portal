@@ -78,7 +78,11 @@ def test_workflow_custom_pf_fields(
             200,
         ),
         (
-            {"argument_name": "foo", "argument_type": "parameter", "value_type": "string"},
+            {
+                "argument_name": "foo",
+                "argument_type": "parameter",
+                "value_type": "string",
+            },
             200,
         ),
         (
@@ -107,28 +111,30 @@ def test_meta_workflow_input(
     patch_item(testapp, patch_body, meta_workflow["uuid"], status=expected_status)
 
 
-
 @pytest.mark.parametrize(
     "input_property,expected_status",
     [
-        ({} , 422),
-        ({"argument_name": "foo", "argument_type": "QC ruleset"}, 422),  # Missing 'value'
+        ({}, 422),
+        (
+            {"argument_name": "foo", "argument_type": "QC ruleset"},  # Missing 'value'
+            422,
+        ),
         (
             {
                 "argument_name": "foo",
                 "argument_type": "QC ruleset",
                 "value": 15,  # Wrong type
             },
-            422
-         ),
+            422,
+        ),
         (
             {
                 "argument_name": "foo",
                 "argument_type": "QC ruleset",
                 "value": {},  # Missing required fields
             },
-            422
-         ),
+            422,
+        ),
         (  # Invalid 'value_type' per if/then
             {
                 "argument_name": "foo",
@@ -142,7 +148,7 @@ def test_meta_workflow_input(
                             "operator": ">",
                             "pass_target": 52.7,
                         }
-                    ]
+                    ],
                 },
                 "value_type": "string",
             },
@@ -161,12 +167,12 @@ def test_meta_workflow_input(
                             "operator": ">",
                             "pass_target": 52.7,
                         }
-                    ]
+                    ],
                 },
             },
             200,
         ),
-    ]
+    ],
 )
 def test_input_qc_ruleset(
     input_property: Dict[str, Any],
