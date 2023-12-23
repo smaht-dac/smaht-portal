@@ -9,8 +9,8 @@ from unittest import mock
 from webtest import TestApp
 from dcicutils.bundle_utils import RefHint
 from dcicutils.misc_utils import to_camel_case
+from dcicutils.tmpfile_utils import temporary_file
 from dcicutils.validation_utils import SchemaManager  # noqa
-from dcicutils.zip_utils import temporary_file
 from dcicutils.structured_data import Portal, Schema, _StructuredRowTemplate  # noqa
 from encoded.ingestion.ingestion_processors import parse_structured_data
 

@@ -4,7 +4,7 @@ import os
 from typing import List, Optional
 import yaml
 from dcicutils.misc_utils import PRINT
-from dcicutils.zip_utils import temporary_file
+from dcicutils.tmpfile_utils import temporary_file
 from encoded.commands.captured_output import captured_output
 with captured_output():
     from encoded.ingestion.loadxl_extensions import load_data_into_database, summary_of_load_data_results
