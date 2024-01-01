@@ -1529,4 +1529,29 @@ body[data-pathname^="/data/benchmarking"] {
 			}
 		}
 	}
+
+	// May need to move this to search if we end up using this functionality elsewhere
+	.batch-files-download-modal {
+		> .modal-dialog {
+			min-width: 75%;
+		}
+
+		/*** metadata.tsv modal ***/
+		pre.curl-command {
+			border: 1px dashed #dedede;
+			padding: 5px;
+			text-overflow: ellipsis;
+		}
+		.curl-command-wrapper i.icon-copy {
+			margin-left: 5px;
+
+			&:after {
+				content : "Copy";
+				font-family: $font-family-base;
+				font-weight: 600;
+				padding-left: 6px;
+			}
+		}
+	}
+
 }
