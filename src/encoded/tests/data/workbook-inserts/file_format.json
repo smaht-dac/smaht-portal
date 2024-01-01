@@ -1,0 +1,37 @@
+[
+    {
+        "uuid": "4b31edaf-e975-4d8d-bba2-9120bf5ed90b",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "FASTQ",
+        "standard_file_extension": "fastq.gz"
+    },
+    {
+        "uuid": "73ff94bf-6c2e-408b-8faa-e05a3e249e30",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "BAM",
+        "standard_file_extension": "bam",
+		"extra_file_formats": [
+			"BAI"
+		]
+    },
+    {
+        "uuid": "4761dada-9a9a-4cc6-becd-9c242ee61276",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "BAI",
+        "standard_file_extension": "bai"
+    },
+    {
+        "uuid": "ed177463-2126-47dc-b1b9-1147498c04b9",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "VCF",
+        "standard_file_extension": "vcf"
+    }
+]

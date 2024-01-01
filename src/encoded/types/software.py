@@ -3,16 +3,17 @@ from typing import Any, Dict, Optional, List
 from snovault import collection, load_schema, Item as SnovaultItem
 from encoded_core.types.software import Software as CoreSoftware
 
-from .base import Item as SMAHTItem
+from .base import Item
 
 
 @collection(
     name='software',
+    unique_key='submitted_id',
     properties={
         'title': 'Software',
         'description': 'Listing of software for analyses',
     })
-class Software(SMAHTItem, CoreSoftware):
+class Software(Item, CoreSoftware):
     item_type = 'software'
     schema = load_schema("encoded:schemas/software.json")
     embedded_list = []

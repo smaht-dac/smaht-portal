@@ -1,0 +1,14 @@
+[
+    {
+        "uuid": "123c8ee7-d677-4c07-82df-0e2b07702a07",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TREATMENT_CHEMICAL",
+        "agent": "MONDO:0016668",
+        "concentration": 15,
+        "concentration_units": "mg/mL",
+        "duration": 5,
+        "temperature": 37
+    }
+]

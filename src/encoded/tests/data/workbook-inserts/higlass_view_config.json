@@ -1,0 +1,11 @@
+[
+    {
+        "identifier": "bam_viewer",
+        "view_config": {
+            "foo": "bar"
+        },
+        "consortia": [
+            "smaht"
+        ]
+    }
+]

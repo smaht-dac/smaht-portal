@@ -358,8 +358,8 @@ function AccessKeyTableContainer({ children, bodyClassName = 'card-body' }) {
     return (
         <div className="access-keys-container card mt-36">
             <div className="card-header">
-                <h3 className="text-300">
-                    <i className="icon icon-fw icon-unlock fas mr-12" />
+                <h3 className="">
+                    <i className="icon icon-fw icon-key fas mr-12" />
                     Access Keys
                 </h3>
             </div>
@@ -382,7 +382,7 @@ const AccessKeyTable = React.memo(function AccessKeyTable({
     }
 
     return (
-        <table className="table access-keys-table bg-white">
+        <table className="table table-responsive-sm access-keys-table bg-white">
             <thead>
                 <tr>
                     <th>Access Key ID</th>
@@ -444,13 +444,13 @@ const AccessKeyTableRow = React.memo(function AccessKeyTableRow({
             <td className="access-key-buttons">
                 <button
                     type="button"
-                    className="btn btn-xs btn-success"
+                    className="btn btn-xs btn-success reset"
                     onClick={resetKey}>
                     Reset
                 </button>
                 <button
                     type="button"
-                    className="btn btn-xs btn-danger"
+                    className="btn btn-xs btn-danger delete"
                     onClick={deleteKey}>
                     Delete
                 </button>
@@ -614,7 +614,7 @@ export default class UserView extends React.Component {
  */
 function ProfileContactFields(props) {
     const { user, windowWidth, parent, mayEdit, href, schemas } = props;
-    const { email, phone1, fax, skype } = user;
+    const { email, time_zone } = user || {};
     return (
         <FieldSet
             context={user}
@@ -636,34 +636,14 @@ function ProfileContactFields(props) {
                 <ProfileContactFieldsIcon icon="envelope far" />
                 <span className="text-secondary">{email}</span>
             </EditableField>
-
             <EditableField
-                label="Phone"
-                labelID="phone1"
-                placeholder="17775551234 x47"
-                fallbackText="No phone number"
-                fieldType="phone">
-                <ProfileContactFieldsIcon icon="phone fas" />
-                {phone1}
-            </EditableField>
-
-            <EditableField
-                label="Fax"
-                labelID="fax"
-                placeholder="17775554321"
-                fallbackText="No fax number"
-                fieldType="phone">
-                <ProfileContactFieldsIcon icon="fax fas" />
-                {fax}
-            </EditableField>
-
-            <EditableField
-                label="Skype"
-                labelID="skype"
-                fallbackText="No skype ID"
-                fieldType="username">
-                <ProfileContactFieldsIcon icon="skype fab" />
-                {skype}
+                label="Timezone"
+                labelID="time_zone"
+                fallbackText="No timezone available"
+                fieldType="text"
+                disabled={true}>
+                <ProfileContactFieldsIcon icon="clock far" />
+                {time_zone}
             </EditableField>
         </FieldSet>
     );
@@ -676,49 +656,66 @@ function ProfileContactFieldsIcon({ icon }) {
 }
 
 const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
-    const { project_roles = [] } = user;
-
-    const renderedRoles = project_roles.map(function (
-        { role, project },
-        index
-    ) {
-        const roleProjectID = 'project-' + index;
-        const roleRoleID = 'project-role-' + index;
-        return (
-            <li className="list-group-item" key={index}>
-                <div className="row project">
-                    <div className="col-md-3 text-left text-md-right">
-                        <label htmlFor={roleProjectID} className="text-500">
-                            Project
-                        </label>
-                    </div>
-                    <div id={roleProjectID} className="col-md-9 value text-500">
-                        {object.itemUtil.generateLink(project)}
-                    </div>
-                </div>
-                <div className="row role">
-                    <div className="col-md-3 text-left text-md-right">
-                        <label htmlFor={roleRoleID} className="text-500">
-                            Role
-                        </label>
-                    </div>
-                    <div id={roleRoleID} className="col-md-9 value text-500">
-                        {Term.toName('project_roles.role', role)}
-                    </div>
-                </div>
-            </li>
-        );
-    });
+    const { consortia = [], submission_centers: submissionCenters = [] } = user;
 
     return (
-        <div className="card h-100">
+        <div className="card organizations h-100">
             <div className="card-header">
-                <h3 className="text-300 block-title">
+                <h3 className="block-title">
                     <i className="icon icon-users fas icon-fw mr-12" />
                     Organizations
                 </h3>
             </div>
-            <ul className="list-group list-group-flush">{renderedRoles}</ul>
+            <div className="card-body">
+                <ul className="list-group list-group-flush list-unstyled border-bottom-0">
+                    <div className="list-group-item pt-0">
+                        <div className="row consortia">
+                            <div className="col-md-3 text-left text-md-right">
+                                <label htmlFor="consortia" className="text-500">
+                                    Consortia
+                                </label>
+                            </div>
+                            <div id="consortia" className="col-md-9">
+                                {consortia.map((consortium) => (
+                                    <li
+                                        key={consortium?.atId}
+                                        id={consortium?.atId}
+                                        className="value text-500">
+                                        {object.itemUtil.generateLink(
+                                            consortium
+                                        )}
+                                    </li>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </ul>
+                <ul className="list-group list-group-flush list-unstyled border-top-0 mt-0">
+                    <div className="list-group-item">
+                        <div className="row submission-centers">
+                            <div className="col-md-3 text-left text-md-right">
+                                <label
+                                    htmlFor="submission_centers"
+                                    className="text-500">
+                                    Submission Center(s)
+                                </label>
+                            </div>
+                            <div id="submission_centers" className="col-md-9">
+                                {submissionCenters.map((submissionCenter) => (
+                                    <li
+                                        key={submissionCenter?.atId}
+                                        id={submissionCenter?.atId}
+                                        className="value text-500">
+                                        {object.itemUtil.generateLink(
+                                            submissionCenter
+                                        )}
+                                    </li>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </ul>
+            </div>
         </div>
     );
 });

@@ -8,6 +8,7 @@
     ],
     "identifyingProperties": [
         "aliases",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -59,7 +60,7 @@
         },
         "leader": {
             "title": "Leader",
-            "description": "The leader of the subsmission center",
+            "description": "The leader of the submission center",
             "type": "string",
             "linkTo": "User"
         }

@@ -1,0 +1,53 @@
+[
+    {
+        "uuid": "e107d3d9-2590-43cf-926f-403ce559e930",
+        "submission_centers": [
+            "smaht"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "name": "bwa_mem_fastq_to_bam",
+        "title": "Sentieon FASTQ to BAM",
+        "version": "0.5.0",
+        "workflows": [
+            {
+                "name": "first_step",
+                "workflow": "00d4f9d8-9b29-4cfb-92e7-72e15178768b",
+                "input": [
+                    {
+                        "argument_name": "input_parameter_1",
+                        "argument_type": "parameter",
+                        "value": 50,
+                        "scatter": 2,
+                        "gather": 1,
+                        "mount": true
+                    }
+                ],
+                "shards": [
+                    [
+                        "5"
+                    ]
+                ],
+                "config": {
+                    "instance_type": [
+                        "c5n.4xlarge"
+                    ],
+                    "run_name": "first_step",
+                    "ebs_optimized": true
+                },
+                "custom_pf_fields": {
+                    "foo_bar": {
+                        "description": "Final BAM",
+                        "data_category": [
+                            "Sequencing Reads"
+                        ],
+                        "data_type": [
+                            "Aligned Reads"
+                        ]
+                    }
+                }
+            }
+        ]
+    }
+]

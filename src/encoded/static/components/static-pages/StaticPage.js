@@ -45,6 +45,27 @@ export const parseSectionsContent = memoize(function (context) {
         ),
     };
 
+    const jsxCompilerOptions = {
+        replace: (domNode) => {
+            if (
+                ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].indexOf(domNode.name) >= 0
+            ) {
+                const children = _.pluck(domNode.children, 'data');
+                const title =
+                    TableOfContents.textFromReactChildren(children) || '';
+                if (title.replace('-', '').trim().length === 0) {
+                    return domNode;
+                }
+                const props = object.attributesToProps(domNode.attribs);
+                return (
+                    <MarkdownHeading {...props} type={domNode.name}>
+                        {children}
+                    </MarkdownHeading>
+                );
+            }
+        },
+    };
+
     function parse(section) {
         if (
             Array.isArray(section['@type']) &&
@@ -53,17 +74,25 @@ export const parseSectionsContent = memoize(function (context) {
             // StaticSection Parsing
             if (
                 section.filetype === 'md' &&
-                typeof section.content === 'string'
+                typeof section.content === 'string' &&
+                !section.content_as_html
             ) {
                 section = _.extend({}, section, {
                     content: compiler(section.content, markdownCompilerOptions),
                 });
             } else if (
-                section.filetype === 'html' &&
-                typeof section.content === 'string'
+                (section.filetype === 'html' ||
+                    section.filetype === 'rst' ||
+                    section.filetype === 'md') &&
+                (typeof section.content_as_html === 'string' ||
+                    typeof section.content === 'string')
             ) {
+                const contentStr =
+                    section.filetype === 'md'
+                        ? section.content_as_html
+                        : section.content_as_html || section.content;
                 section = _.extend({}, section, {
-                    content: object.htmlToJSX(section.content),
+                    content: object.htmlToJSX(contentStr, jsxCompilerOptions),
                 });
             } // else: retain plaintext or HTML representation
         } else if (

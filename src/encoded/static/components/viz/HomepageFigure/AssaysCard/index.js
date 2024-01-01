@@ -138,7 +138,7 @@ export const AssaysCard = ({ currentTier }) => {
         },
         {
             header: 'Single-cell RNA-Seq',
-            iconSrc: '/static/img/assay-icons/Single-cell RNA-seq.svg',
+            iconSrc: '/static/img/assay-icons/Single-cell RNA-Seq.svg',
             items: [
                 {
                     iconSrc: '',

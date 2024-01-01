@@ -26,6 +26,9 @@ clear-poetry-cache:  # clear poetry/pypi cache. for user to do explicitly, never
 aws-ip-ranges:
 	curl -o aws-ip-ranges.json https://ip-ranges.amazonaws.com/ip-ranges.json
 
+aws-ip-ranges-if-needed:
+	if [ ! -f "aws-ip-ranges.json" ]; then make aws-ip-ranges; fi
+
 npm-setup-if-needed:  # sets up npm only if not already set up
 	if [ ! -d "node_modules" ]; then make npm-setup; fi
 
@@ -59,7 +62,7 @@ macbuild-poetry:
 	make configure
 	make macpoetry-install
 
-build:  # builds
+build: npm-setup-if-needed aws-ip-ranges-if-needed
 ifeq ($(shell uname -s), Darwin)
 	@echo "Looks like this is Mac so executing: make macbuild"
 	make macbuild

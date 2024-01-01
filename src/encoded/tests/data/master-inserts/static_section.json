@@ -95,6 +95,19 @@
         ]
     },
     {
+        "identifier" : "account_creation",
+        "uuid" : "442c8aa0-dc6c-43d7-814a-854af460b014",
+        "file" : "/docs/source/account_creation.rst",
+        "section_type": "Page Section",
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "benchmarking.intro",
         "title": "Intro Benchmarking Data Table",
         "file": "/docs/public/benchmarking_intro.jsx",
@@ -114,6 +127,19 @@
         ]
     },
     {
+        "identifier" : "getting_started",
+        "uuid" : "442c8aa0-dc6c-43d7-814a-854af460b015",
+        "file" : "/docs/source/getting_started.rst",
+        "section_type": "Page Section",
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "benchmarking.placeholder",
         "title": "Benchmarking Placeholder",
         "file": "/docs/public/benchmarking_placeholder.jsx",
@@ -125,6 +151,19 @@
         },
         "section_type": "Page Section",
         "uuid": "cb2cdf19-ebec-4332-ae08-490404384d56",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier" : "excel_submission",
+        "uuid" : "442c8aa0-dc6c-43d7-814a-854af460b016",
+        "file" : "/docs/source/excel_submission.rst",
+        "section_type": "Page Section",
+        "status": "public",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -161,8 +200,26 @@
             "collapsible": false,
             "default_open": true
         },
-        "section_type": "Page Section",
         "uuid": "ad816266-12c7-47bd-9617-dfe2a2328528",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "file_uploads",
+        "title": "SMaHT Data File Uploads",
+        "file": "/docs/public/file_uploads.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "d3d9c545-4340-495a-92ea-7ccb7eebc71c",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

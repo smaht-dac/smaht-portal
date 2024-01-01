@@ -265,51 +265,50 @@ export default class App extends React.PureComponent {
 
         console.info('BROWSER', browserInfo);
 
-        if (
-            browserInfo &&
-            typeof browserInfo.name === 'string' &&
-            ['chrome', 'firefox', 'safari'].indexOf(browserInfo.name) === -1
-        ) {
-            Alerts.queue({
-                title: 'Browser Suggestion',
-                message: (
-                    <div>
-                        <p className="mb-0">
-                            <a
-                                href="https://www.google.com/chrome/"
-                                rel="noopener noreferrer"
-                                target="_blank"
-                                className="text-500">
-                                Google Chrome
-                            </a>{' '}
-                            or{' '}
-                            <a
-                                href="https://www.mozilla.org/en-US/firefox/"
-                                rel="noopener noreferrer"
-                                target="_blank"
-                                className="text-500">
-                                Mozilla Firefox
-                            </a>{' '}
-                            are the recommended browser(s) for using the 4DN
-                            Data Portal.
-                        </p>
-                        <p className="mb-0">
-                            Microsoft Edge, Safari, etc. should work for a
-                            majority of portal functions but are not explicitly
-                            supported and may present some glitches, e.g. during
-                            submission.
-                        </p>
-                    </div>
-                ),
-                style: 'warning',
-            });
-        }
+        // TODO: Discuss and re-add this alert.
+        // if (
+        //     browserInfo &&
+        //     typeof browserInfo.name === 'string' &&
+        //     ['chrome', 'firefox', 'safari'].indexOf(browserInfo.name) === -1
+        // ) {
+        //     Alerts.queue({
+        //         title: 'Browser Suggestion',
+        //         message: (
+        //             <div>
+        //                 <p className="mb-0">
+        //                     <a
+        //                         href="https://www.google.com/chrome/"
+        //                         rel="noopener noreferrer"
+        //                         target="_blank"
+        //                         className="text-500">
+        //                         Google Chrome
+        //                     </a>{' '}
+        //                     or{' '}
+        //                     <a
+        //                         href="https://www.mozilla.org/en-US/firefox/"
+        //                         rel="noopener noreferrer"
+        //                         target="_blank"
+        //                         className="text-500">
+        //                         Mozilla Firefox
+        //                     </a>{' '}
+        //                     are the recommended browser(s) for using the SMaHT
+        //                     Data Portal.
+        //                 </p>
+        //                 <p className="mb-0">
+        //                     Microsoft Edge, Safari, etc. should work for a
+        //                     majority of portal functions but are not explicitly
+        //                     supported and may present some glitches, e.g. during
+        //                     submission.
+        //                 </p>
+        //             </div>
+        //         ),
+        //         style: 'warning',
+        //     });
+        // }
 
         // Post-mount stuff
         this.setState({ mounted: true, browserInfo }, () => {
-            console.log(
-                'App is mounted, dispatching smahtinitialized event.'
-            );
+            console.log('App is mounted, dispatching smahtinitialized event.');
             // DEPRECATED:
             // Emit event from our window object to notify that smaht-portal JS has initialized.
             // This is to be used by, e.g. submissions view which might control a child window.
@@ -386,7 +385,14 @@ export default class App extends React.PureComponent {
             // TODO: Remove this temporary alert in first official launch version in 2024
             Alerts.queue({
                 style: 'danger',
-                message: `This is an unofficial release of the SMaHT Data Portal made available only to provide the AWS Access Key for metadata submission and related testing purposes. SMaHT Data and additional information will be coming soon.`,
+                message: (
+                    <>
+                        <b>Attention Users:</b> This is an unofficial release of
+                        the SMaHT Data Portal, made available to provide the
+                        access keys for metadata submission. SMaHT data are
+                        coming soon.
+                    </>
+                ),
             });
         });
     }

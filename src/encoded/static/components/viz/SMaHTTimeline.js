@@ -10,8 +10,8 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
     return (
         <div className="container">
             <div id="timeline" className={`${currentTier}`}>
-                <span className="latest-release ml-6">
-                    <b>Latest Release: </b>September 29, 2023
+                <span className="latest-release">
+                    <b>Latest Release: </b>December 14<sup>th</sup>, 2023
                 </span>
                 <div
                     className={
@@ -22,12 +22,10 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                     }>
                     <div
                         className="timeline-marker"
-                        onClick={() => setCurrentTier('benchmarking')}>
-                        <span>Tier 0</span>
-                    </div>
+                        onClick={() => setCurrentTier('benchmarking')}></div>
                     <div className="timeline-item-header">
-                        <h3 className="ml-6 text-left">
-                            Benchmarking&nbsp;
+                        <h3 className="text-left">
+                            Tier 0: Benchmarking&nbsp;
                             <i className="timeline-item-subheader">
                                 <span className="d-none d-sm-inline d-lg-none d-xl-inline">
                                     -
@@ -55,14 +53,18 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     setCurrentTier('benchmarking')
                                 }
                                 values={[
-                                    { number: '-', units: ['Cell', 'Lines'] },
+                                    { number: '2', units: ['Cell', 'Lines'] },
                                     {
                                         number: '-',
-                                        units: ['Files', 'Generated'],
+                                        units: ['Assays'],
                                     },
                                     {
                                         number: '-',
-                                        units: ['Proposed', 'Assay Types'],
+                                        units: ['Mutations'],
+                                    },
+                                    {
+                                        number: '-',
+                                        units: ['Files', 'Generated'],
                                     },
                                 ]}
                             />
@@ -75,14 +77,18 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     setCurrentTier('benchmarking')
                                 }
                                 values={[
-                                    { number: '-', units: ['Cell', 'Lines'] },
+                                    { number: '6', units: ['Cell', 'Lines'] },
                                     {
                                         number: '-',
-                                        units: ['Files', 'Generated'],
+                                        units: ['Assays'],
                                     },
                                     {
                                         number: '-',
-                                        units: ['Proposed', 'Assay Types'],
+                                        units: ['Mutations'],
+                                    },
+                                    {
+                                        number: '-',
+                                        units: ['Files', 'Generated'],
                                     },
                                 ]}
                             />
@@ -95,14 +101,18 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     setCurrentTier('benchmarking')
                                 }
                                 values={[
-                                    { number: '-', units: ['Cell', 'Lines'] },
+                                    { number: '5', units: ['Cell', 'Lines'] },
                                     {
                                         number: '-',
-                                        units: ['Files', 'Generated'],
+                                        units: ['Assays'],
                                     },
                                     {
                                         number: '-',
-                                        units: ['Proposed', 'Assay Types'],
+                                        units: ['Mutations'],
+                                    },
+                                    {
+                                        number: '-',
+                                        units: ['Files', 'Generated'],
                                     },
                                 ]}
                             />
@@ -115,14 +125,18 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     setCurrentTier('benchmarking')
                                 }
                                 values={[
-                                    { number: '-', units: ['Cell', 'Lines'] },
+                                    { number: '-', units: ['Donors'] },
                                     {
                                         number: '-',
-                                        units: ['Files', 'Generated'],
+                                        units: ['Tissue', 'Types'],
                                     },
                                     {
                                         number: '-',
-                                        units: ['Proposed', 'Assay Types'],
+                                        units: ['Assays'],
+                                    },
+                                    {
+                                        number: '-',
+                                        units: ['Files', 'Generated'],
                                     },
                                 ]}
                             />
@@ -139,17 +153,15 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                     }>
                     <div
                         className="timeline-marker"
-                        onClick={() => setCurrentTier('expansion')}>
-                        <span>Tier 1</span>
-                    </div>
+                        onClick={() => setCurrentTier('expansion')}></div>
                     <div className="timeline-item-header">
-                        <h3 className="ml-6 text-left">
-                            Expansion&nbsp;
+                        <h3 className="text-left">
+                            Tier 1&nbsp;
                             <i className="timeline-item-subheader">
                                 <span className="d-none d-sm-inline d-lg-none d-xl-inline">
                                     -
                                 </span>{' '}
-                                with select technologies
+                                with core + additional technologies
                             </i>
                         </h3>
                     </div>
@@ -168,17 +180,18 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     setCurrentTier('expansion')
                                 }
                                 values={[
+                                    { number: '-', units: ['Donors'] },
                                     {
                                         number: '-',
-                                        units: ['Primary', 'Tissues'],
+                                        units: ['Tissue', 'Types'],
+                                    },
+                                    {
+                                        number: '-',
+                                        units: ['Assays'],
                                     },
                                     {
                                         number: '-',
                                         units: ['Files', 'Generated'],
-                                    },
-                                    {
-                                        number: '-',
-                                        units: ['Proposed', 'Assay Types'],
                                     },
                                 ]}
                             />
@@ -195,12 +208,10 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                     }>
                     <div
                         className="timeline-marker"
-                        onClick={() => setCurrentTier('production')}>
-                        <span>Tier 2</span>
-                    </div>
+                        onClick={() => setCurrentTier('production')}></div>
                     <div className="timeline-item-header">
-                        <h3 className="ml-6 text-left">
-                            Production&nbsp;
+                        <h3 className="text-left">
+                            Tier 2&nbsp;
                             <i className="timeline-item-subheader">
                                 <span className="d-none d-sm-inline d-lg-none d-xl-inline">
                                     -
@@ -224,17 +235,18 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                     setCurrentTier('production')
                                 }
                                 values={[
+                                    { number: '-', units: ['Donors'] },
                                     {
                                         number: '-',
-                                        units: ['Primary', 'Tissues'],
+                                        units: ['Tissue', 'Types'],
+                                    },
+                                    {
+                                        number: '-',
+                                        units: ['Assays'],
                                     },
                                     {
                                         number: '-',
                                         units: ['Files', 'Generated'],
-                                    },
-                                    {
-                                        number: '-',
-                                        units: ['Proposed', 'Assay Types'],
                                     },
                                 ]}
                             />
@@ -281,15 +293,16 @@ function ContextAwareToggle({
                     {children}
                 </div>
             </button>
-            {/* {tier === 'benchmarking' ? (
-                <a className="card-header-link">
-                    <img
-                        src={`/static/img/arrow-${
-                            currentTier === 'benchmarking' ? 'green' : 'blue'
-                        }.svg`}
-                    />
-                </a>
-            ) : null} */}
+            <a className="card-header-link">
+                <svg
+                    width="22"
+                    height="16"
+                    viewBox="0 0 22 16"
+                    fill={currentTier === tier ? '#74CFB2' : '#9CC7EF'}
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 7C0.447715 7 0 7.44772 0 8C0 8.55228 0.447715 9 1 9V7ZM21.7071 8.70711C22.0976 8.31658 22.0976 7.68342 21.7071 7.29289L15.3431 0.928932C14.9526 0.538408 14.3195 0.538408 13.9289 0.928932C13.5384 1.31946 13.5384 1.95262 13.9289 2.34315L19.5858 8L13.9289 13.6569C13.5384 14.0474 13.5384 14.6805 13.9289 15.0711C14.3195 15.4616 14.9526 15.4616 15.3431 15.0711L21.7071 8.70711ZM1 9H21V7H1V9Z" />
+                </svg>
+            </a>
         </div>
     );
 }
