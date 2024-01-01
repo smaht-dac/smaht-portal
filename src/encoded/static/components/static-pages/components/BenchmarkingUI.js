@@ -94,7 +94,7 @@ export const COLO829Data = ({ schemas, session, facets, href }) => {
                                 <BenchmarkingAboveTableComponent />
                             }
                             searchHref="/search/?type=Item"
-                            rowHeight={40}
+                            rowHeight={31}
                             // maxHeight={200}
                             {...{
                                 schemas,
