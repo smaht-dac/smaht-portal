@@ -864,7 +864,7 @@ div.user-profile-page {
 	background-color: #eee;
 
 	@include media-breakpoint-up(md){
-		min-height: calc(100vh - 250px); // 250px is sum of header, footer, and page title. If any of those change, this needs updating.
+		min-height: calc(100vh - 231px); // 250px is sum of header, footer, and page title. If any of those change, this needs updating.
 	}
 
 
