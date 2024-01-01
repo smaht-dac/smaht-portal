@@ -340,26 +340,7 @@ $tabbar-height: 46px;
 **************************/
 
 #full-alerts-container {
-	position: sticky;
-	z-index: 4; // Any higher and interferes with nav menu
-	top: 0px;
-
-	@include navbar-fixed-position {
-		top: 40px;
-	}
-
-	> .alerts {
-		> .alert {
-			margin-bottom: 0px;
-			border-radius: 0;
-			border-left: none;
-			border-right: none;
-			border-top: none;
-			&:last-child {
-				border-bottom: none;
-			}
-		}
-	}
+	// Note: removed stickiness
 }
 
 /** Styling right pane menu which comes out upon ItemActionsTab click **/
