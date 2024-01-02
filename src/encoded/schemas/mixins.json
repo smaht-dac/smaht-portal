@@ -315,11 +315,12 @@
                                                 "title": "Operator",
                                                 "type": "string",
                                                 "enum": [
-                                                    "=",
+                                                    "==",
                                                     ">",
                                                     ">=",
                                                     "<",
-                                                    "<="
+                                                    "<=",
+                                                    "!="
                                                 ]
                                             },
                                             "pass_target": {
