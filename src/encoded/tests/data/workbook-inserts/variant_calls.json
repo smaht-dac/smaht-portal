@@ -4,7 +4,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE_VCF",
+        "submitted_id": "TEST_FILE_SOME_VCF",
         "data_category": [
             "Variant Calls"
         ],
