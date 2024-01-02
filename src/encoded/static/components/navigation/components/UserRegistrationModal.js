@@ -51,7 +51,7 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
         window.open(e.target.href);
     }
     const mailtoLink =
-        "mailto:dac-support@smaht.org?subject=Account%20Registration%20Request&body=Name%3A%20%3CPlease%20enter%20your%20full%20name%20here%3E%0D%0AEmail%3A%20%3CPlease%20enter%20the%20email%20address%20you'd%20like%20us%20to%20respond%20to%20here%3E%0D%0A%0D%0AOrganization%2FInstitution%3A%20%3CPlease%20enter%20your%20affiliated%20organization%20here%3E%0D%0A%0D%0AComment%3A%20%3CPlease%20enter%20any%20additional%20information%20that%20would%20be%20useful%20to%20us%20in%20verifying%20your%20access%3E";
+        "mailto:smhelp@hms-dbmi.atlassian.net?subject=Account%20Registration%20Request&body=Name%3A%20%3CPlease%20enter%20your%20full%20name%20here%3E%0D%0AEmail%3A%20%3CPlease%20enter%20the%20email%20address%20you'd%20like%20us%20to%20respond%20to%20here%3E%0D%0A%0D%0AOrganization%2FInstitution%3A%20%3CPlease%20enter%20your%20affiliated%20organization%20here%3E%0D%0A%0D%0AComment%3A%20%3CPlease%20enter%20any%20additional%20information%20that%20would%20be%20useful%20to%20us%20in%20verifying%20your%20access%3E";
     const formHeading = (
         <div className="mb-3">
             <h4 className="text-400 mb-2 mt-05">
@@ -130,7 +130,7 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
                         and selecting &quot;Use my current email address
                         instead&quot;.
                     </li>
-                ) : null} 
+                ) : null}
             </ul>*/}
         </div>
     );
