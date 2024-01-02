@@ -4,7 +4,7 @@ import os
 from typing import List, Optional
 import yaml
 from dcicutils.misc_utils import PRINT
-from dcicutils.zip_utils import temporary_file
+from dcicutils.tmpfile_utils import temporary_file
 from encoded.commands.captured_output import captured_output
 with captured_output():
     from encoded.ingestion.loadxl_extensions import load_data_into_database, summary_of_load_data_results
@@ -19,19 +19,19 @@ def main() -> None:
 
     args = parse_args()
 
-    # The Portal.create_for_testing function returns a Portal object suitable for most local unit
+    # Portal.create_for_testing returns a Portal object suitable for most local unit
     # testing purposes including, for example, fetching type (JSON) schemas (via Portal.get_schema);
     # assuming run within a (pyenv) virtualenv which includes the portal "encoded" package.
     #
-    # The Portal.create_for_testing_local function returns a Portal object suitable for local integration
+    # Portal.create_for_testing(True) returns a Portal object suitable for local integration
     # testing including, for example, fetching data (via Portal.get_metadata) from a locally running portal.
     #
-    # The create_portal_for_local_testing function with a provided .ini file (e.g. development.ini)
+    # Portal.create_portal_for_testing(ini_file) with a provided .ini file (e.g. development.ini)
     # returns a Portal object suitable for local integration testing including, for example,
     # loading data into the database of a locally running portal.
     with captured_output():
         if args.load or not args.norefs:
-            portal = Portal.create_for_testing_local(args.load)
+            portal = Portal.create_for_testing(args.load)
         else:
             portal = Portal.create_for_testing()
 
