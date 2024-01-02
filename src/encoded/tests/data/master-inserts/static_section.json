@@ -3,7 +3,7 @@
         "identifier": "coming-soon",
         "title": "Coming Soon",
         "body": "Coming soon!",
-        "status": "in review",
+        "status": "public",
         "options": {
             "filetype": "md",
             "collapsible": false,
@@ -22,7 +22,7 @@
         "identifier": "about.introduction",
         "title": "Introduction",
         "file": "/docs/public/about_introduction.jsx",
-        "status": "in review",
+        "status": "public",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -41,7 +41,7 @@
         "identifier": "consortium-map",
         "title": "SMaHT Consortium Members Map",
         "file": "/docs/public/consortium_map.jsx",
-        "status": "in review",
+        "status": "public",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -60,7 +60,7 @@
         "identifier": "alluvial",
         "title": "SMaHT Data Alluvial Diagram",
         "file": "/docs/public/alluvial.jsx",
-        "status": "in review",
+        "status": "public",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -79,7 +79,7 @@
         "identifier": "benchmarking.COLO829",
         "title": "COLO829 Data Table",
         "file": "/docs/public/benchmarking_COLO829.jsx",
-        "status": "in review",
+        "status": "public",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -111,7 +111,7 @@
         "identifier": "benchmarking.intro",
         "title": "Intro Benchmarking Data Table",
         "file": "/docs/public/benchmarking_intro.jsx",
-        "status": "in review",
+        "status": "public",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -143,7 +143,7 @@
         "identifier": "benchmarking.placeholder",
         "title": "Benchmarking Placeholder",
         "file": "/docs/public/benchmarking_placeholder.jsx",
-        "status": "in review",
+        "status": "public",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
