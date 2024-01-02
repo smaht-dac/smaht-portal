@@ -424,7 +424,9 @@ def get_submission_center_codes(
 ) -> List[str]:
     """Get submission center codes for given submission centers."""
     submission_center_codes = [
-        get_submitted_id_code(get_item(request, submission_center))
+        get_submitted_id_code(
+            get_item(request, submission_center, collection="SubmissionCenter")
+        )
         for submission_center in submission_centers
     ]
     return [code for code in submission_center_codes if code]
