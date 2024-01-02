@@ -58,7 +58,7 @@
             "default": "1"
         },
         "submitted_id": {
-            "pattern": "^[A-Z-]+_CELL-LINE_[A-Z-]+"
+            "pattern": "^[A-Z-]{4,}_CELL-LINE_[A-Z-.]{4,}"
         },
         "source": {
             "title": "Source",

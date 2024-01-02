@@ -1,6 +1,5 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from dcicutils.lang_utils import disjoined_list
 from dcicutils.misc_utils import PRINT
 from pyramid.request import Request
 from pyramid.view import view_config
@@ -390,15 +389,12 @@ def validate_submitted_id(
     )
     submission_center_codes = get_submission_center_codes(request, submission_centers)
     if submitted_id_submission_center_code not in submission_center_codes:
-        code_options = disjoined_list(
-            submission_center_codes, oxford_comma=True, nothing=""
-        )
-        return get_submitted_id_validation_error(submitted_id, code_options)
+        return get_submitted_id_validation_error(submitted_id, submission_center_codes)
     return
 
 
 def get_submitted_id_validation_error(
-    submitted_id: str, code_options: str
+    submitted_id: str, code_options: List[str]
 ) -> ValidationFailure:
     return ValidationFailure(
         location="submitted_id",
