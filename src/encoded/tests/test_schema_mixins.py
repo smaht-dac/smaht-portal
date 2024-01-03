@@ -105,9 +105,9 @@ def test_version(version: str, expected_errors: bool) -> None:
             {"argument_name": "foo", "argument_type": "file", "foo": "bar"},
             True,
         ),
-        (  # Missing required 'value' per if/then
+        (  # 'value' not required per if/then
             {"argument_name": "foo", "argument_type": "QC ruleset"},
-            True,
+            False,
         ),
         (  # 'value' wrong type per if/then
             {"argument_name": "foo", "argument_type": "QC ruleset", "value": 15},

@@ -205,7 +205,7 @@
                     "required": [
                         "value"
                     ],
-                    "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/then/properties"
+                    "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/then"
                 },
                 "anyOf": [
                     {
