@@ -280,22 +280,27 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 // Done here instead of overriding $popover-max-width since $popover-max-width set using
 // px values and we likely want to keep that as fallback.
 
-.popover {
-    
-    > .popover-body {
-        /* Limit height & make scrollable if necessary */
-        max-height: 50vh;
-        overflow: auto;
-    }
+// TODO: Commented this out due to home page figure popover width getting out of control
+// when provided with large content -- could handle that with more fine-tuned classes in 
+// future. Or if we expect this to be a common problem delete the below code and revert to
+// bootstrap default permanently?
 
-    @include media-breakpoint-up(lg){
-        max-width: 45vw; /* increase from default ~276px */
-        box-shadow: 0px 0px 36px #0004;
-        > .popover-body {
-            max-height: 35vh; /* Limit height further */
-        }
-    }
-}
+// .popover {
+    
+//     > .popover-body {
+//         /* Limit height & make scrollable if necessary */
+//         max-height: 50vh;
+//         overflow: auto;
+//     }
+
+//     @include media-breakpoint-up(lg){
+//         max-width: 45vw; /* increase from default ~276px */
+//         box-shadow: 0px 0px 36px #0004;
+//         > .popover-body {
+//             max-height: 35vh; /* Limit height further */
+//         }
+//     }
+// }
 
 
 /**************************************

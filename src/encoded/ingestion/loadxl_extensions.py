@@ -15,7 +15,7 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
         nonlocal portal_vapp
         portal = None
         upload_info = []
-        LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*([a-zA-Z\d_-]+)\s*(\S+)\s*(\S+)?$")
+        LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*([a-zA-Z\d_-]+)\s*(\S+)\s*(\S+)?\s*(.*)$")
         LOADXL_ACTION_NAME = {"POST": "created", "PATCH": "updated", "SKIP": "skipped", "CHECK": "validated", "ERROR": "errors"}
         response = {value: [] for value in LOADXL_ACTION_NAME.values()}
         for item in loadxl_response:
@@ -32,20 +32,27 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
             match = LOADXL_RESPONSE_PATTERN.match(item)
             if not match or match.re.groups < 3:
                 continue
-            action = LOADXL_ACTION_NAME[match.group(1).upper()]
-            identifying_value = match.group(2)
-            item_type = match.group(3)
-            if match.re.groups >= 4 and (file := match.group(4)) and (action in ["updated", "created"]):
-                if not portal:
-                    portal = Portal(portal_vapp)
-                if portal.is_file_schema(item_type):
-                    existing_item = [item for item in upload_info
-                                     if item["uuid"] == identifying_value and item["filename"] == file]
-                    if not existing_item:
-                        upload_info.append({"uuid": identifying_value, "filename": file})
+            if (action := LOADXL_ACTION_NAME[match.group(1).upper()]) == "errors":
+                response_value = match.group(0)
+            else:
+                identifying_value = match.group(2)
+                item_type = match.group(3)
+                response_value = {"uuid": identifying_value, "type": item_type}
+                if match.re.groups >= 4 and (file := match.group(4)) and (action in ["updated", "created"]):
+                    # Get filename info if applicable (i.e if this is a File type or sub-type).
+                    try:
+                        if not portal:
+                            portal = Portal(portal_vapp)
+                        if portal.is_file_schema(item_type):
+                            existing_item = [item for item in upload_info
+                                             if item["uuid"] == identifying_value and item["filename"] == file]
+                            if not existing_item:
+                                upload_info.append({"uuid": identifying_value, "filename": file})
+                    except Exception:
+                        pass
             if not response.get(action):
                 response[action] = []
-            response[action].append({"uuid": identifying_value, "type": item_type})
+            response[action].append(response_value)
         # Items flagged as SKIP in loadxl could ultimately be a PATCH (update),
         # so remove from the skip list any items which are also in the update list. 
         response["skipped"] = [item for item in response["skipped"] if item not in response["updated"]]
