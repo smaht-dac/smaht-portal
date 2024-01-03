@@ -1,0 +1,105 @@
+{
+    "title": "Therapeutic",
+    "$id": "/profiles/therapeutic.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "agent",
+        "medical_history",
+        "submission_centers",
+        "submitted_id"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "dependentRequired": {
+        "dose": [
+            "dose_units"
+        ],
+        "dose_units": [
+            "dose"
+        ]
+    },
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "TX"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "dose": {
+            "title": "Dose",
+            "description": "Dose of the therapeutic used by the individual",
+            "type": "number",
+            "minimum": 0
+        },
+        "dose_units": {
+            "title": "Dose Units",
+            "description": "Units for the dose of the therapeutic",
+            "type": "string",
+            "enum": [
+                "mg",
+                "mL"
+            ]
+        },
+        "frequency": {
+            "title": "Frequency",
+            "description": "Frequency of administration of the therapeutic",
+            "type": "string",
+            "enum": [
+                "Once Per Day",
+                "Twice Per Day"
+            ]
+        },
+        "agent": {
+            "title": "Agent",
+            "description": "Link to the associated ontology term for the therapeutic agent",
+            "type": "string",
+            "linkTo": "OntologyTerm"
+        },
+        "diagnosis": {
+            "title": "Diagnosis",
+            "description": "Link to the associated diagnosis",
+            "type": "string",
+            "linkTo": "Diagnosis"
+        },
+        "medical_history": {
+            "title": "Medical History",
+            "description": "Link to the associated medical history",
+            "type": "string",
+            "linkTo": "MedicalHistory"
+        }
+    }
+}

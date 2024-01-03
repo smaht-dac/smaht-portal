@@ -58,7 +58,19 @@ $grid-breakpoints: (
   sm: 576px,
   md: 768px,
   lg: 992px,
-  xl: 1500px        // < xl is overridden from default of 1200px; others are Bootstrap v4 defaults
+  xl: 1200px,
+  xxl: 1500px,
+  xxxl: 1800px
+);
+
+$container-max-widths: (
+  xs: 330px,
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1140px,
+  xxl: 1320px,
+  xxxl: 1600px
 );
 
 $border-radius-base:                        3px;
@@ -74,22 +86,21 @@ $navbar-default-bg: #f8f8f8; // Bootstrap default is #F8F8F8
 // THese are probably deprecated -- todo: bring up vars from navbar.scss and put em here in place of these...
 //$navbar-fixed-breakpoint: $screen-md-min; // Use instead of Bootstrap's $grid-float-breakpoint as we want nav to become fixed later.
 $navbar-background-color: linear-gradient(303deg, #CCF6FC 0.52%, #FFF 99.55%);
-$navbar-link-color: $cobalt-70;
+$navbar-link-color: $gray-70;
 $navbar-link-hover-color : #fff;
-$navbar-link-active-color : #fff;
+$navbar-link-active-color : $cobalt-70;
 $navbar-link-hover-bg: #0005; //darken($navbar-background-color, 5%);
 //$navbar-link-hover-bg: lighten($navbar-background-color, 10%);
 $navbar-link-active-bg: $navbar-background-color;
-$navbar-default-brand-color: $cobalt-70;
+$navbar-default-brand-color: $gray-70;
 $navbar-full-height : 80px;
 $navbar-small-height : 40px; /* Bootstrap navbar default */
 $navbar-transition-length: .3s;
 $navbar-transition-easing: ease-out;
 $navbar-separator-color : scale-color($navbar-link-color, $alpha: -80%) !default;
 
-$footer-background-color: $cobalt-0;
-$footer-text-color: black;
-$footer-link-color: $cobalt-70;
+$footer-background-color: #F5F9FB;
+$footer-text-color: #5B7595;
 
 // We set navbar to become fixed position @ Bootstrap's medium size.
 @mixin navbar-fixed-position {

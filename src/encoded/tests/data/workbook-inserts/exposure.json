@@ -1,0 +1,13 @@
+[
+    {
+        "uuid": "700122f3-1cd2-478b-a315-bba37d697134",
+        "submitted_id": "TEST_EXPOSURE_AHHH",
+        "submission_centers": [
+            "smaht"
+        ],
+        "medical_history": "TEST_MEDICAL_FEMALE",
+        "substance": "MONDO:0016668",
+        "age_at_exposure_start": 14,
+        "age_at_exposure_end": 26
+    }
+]

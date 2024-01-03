@@ -1,0 +1,20 @@
+[
+    {
+        "uuid": "3932c9d7-c5e6-46c3-9e67-2ccd276f4b74",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ANALYTE_LIVER",
+        "components": [
+            "Total DNA"
+        ],
+        "molecule": [
+            "DNA"
+        ],
+        "a260_a280_ratio": 3.2,
+        "concentration": 6.2,
+        "samples": [
+            "TEST_SAMPLE_LIVER"
+        ]
+    }
+]

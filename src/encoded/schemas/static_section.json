@@ -60,6 +60,7 @@
     ],
     "identifyingProperties": [
         "aliases",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -69,9 +70,6 @@
         },
         {
             "$ref": "mixins.json#/attribution"
-        },
-        {
-            "$ref": "mixins.json#/category"
         },
         {
             "$ref": "mixins.json#/description"
@@ -102,14 +100,6 @@
         }
     ],
     "properties": {
-        "category": {
-            "items": {
-                "type": "string",
-                "enum": [
-                    "Page Section"
-                ]
-            }
-        },
         "identifier": {
             "pattern": "^([A-Za-z0-9-_]+[.])*[A-Za-z0-9-_]+$"
         },
@@ -126,7 +116,22 @@
             "$merge": "encoded_core:schemas/static_section.json#/properties/section_type"
         },
         "options": {
-            "$merge": "encoded_core:schemas/static_section.json#/properties/options"
+            "properties": {
+                "$merge": "encoded_core:schemas/static_section.json#/properties/options/properties",
+                "filetype": {
+                    "title": "File Type",
+                    "description": "What type of file or content is contained. If not set, HTML or format of file (if any) is used.",
+                    "type": "string",
+                    "enum": [
+                        "md",
+                        "html",
+                        "txt",
+                        "csv",
+                        "jsx",
+                        "rst"
+                    ]
+                }
+            }
         }
     }
 }
