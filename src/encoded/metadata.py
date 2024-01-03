@@ -93,44 +93,7 @@ def metadata_tsv(request):
     Alternatively, can accept a GET request wherein all files from ExpSets matching search query params are included.
     """
 
-    search_params = request.GET.dict_of_lists() # Must use request.GET to get URI query params only (exclude POST params, etc.)
-    # If conditions are met (equal number of accession per Item type), will be a list with tuples: (ExpSetAccession, ExpAccession, FileAccession)
-    accession_triples = None
-    filename_to_suggest = None
-    post_body = { "accession_triples" : None, "download_file_name" : None }
-
-    if request.POST.get('accession_triples') is not None: # Was submitted as a POST form JSON variable. Workaround to not being able to download files through AJAX.
-        try:
-            post_body['accession_triples'] = json.loads(request.POST.get('accession_triples'))
-            post_body['download_file_name'] = json.loads(request.POST.get('download_file_name')) # Note: Even though text string is requested, POST req should wrap it in JSON.stringify() else this fails.
-        except Exception:
-            pass
-    if isinstance(post_body['accession_triples'], list) and len(post_body['accession_triples']) > 0:
-        if isinstance(post_body['accession_triples'][0], list): # List of arrays
-            accession_triples = [ (acc_list[0], acc_list[1], acc_list[2] ) for acc_list in post_body['accession_triples'] ]
-    filename_to_suggest = post_body.get('download_file_name', None)
-
-    if 'referrer' in search_params:
-        search_path = '/{}/'.format(search_params.pop('referrer')[0])
-    else:
-        search_path = '/search/'
-    search_params['field'] = []
-    search_params['sort'] = ['accession']
-    search_params['type'] = search_params.get('type', ['File'])[0]
     header = []
-
-    def add_field_to_search_params(itemType, field):
-        search_params['field'].append(field)
-
-    for prop in TSV_MAPPING:
-        if 'File' in search_params['type']:
-            if TSV_MAPPING[prop][0] == FILE:
-                header.append(prop)
-        for param_field in TSV_MAPPING[prop][1]:
-            add_field_to_search_params(TSV_MAPPING[prop][0], param_field)
-    for itemType in EXTRA_FIELDS:
-        for param_field in EXTRA_FIELDS[itemType]:
-            add_field_to_search_params(itemType, param_field)
 
     file_cache = {}  # Exclude URLs of prev-encountered file(s).
     summary = {
