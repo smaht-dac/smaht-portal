@@ -8,6 +8,12 @@ Change Log
 ----------
 
 
+0.11.8
+======
+
+* Added gitinfo.json to buildspec.yml to make available to the app basic git info (branch/commit).
+
+
 0.11.7
 ======
 
