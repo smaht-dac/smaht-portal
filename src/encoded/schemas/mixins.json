@@ -257,9 +257,6 @@
                     }
                 },
                 "then": {
-                    "required": [
-                        "value"
-                    ],
                     "properties": {
                         "value": {
                             "type": "object",

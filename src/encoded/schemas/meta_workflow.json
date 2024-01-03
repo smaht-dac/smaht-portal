@@ -202,7 +202,10 @@
                     "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/if"
                 },
                 "then": {
-                    "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/then"
+                    "required": [
+                        "value"
+                    ],
+                    "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/then/properties"
                 },
                 "anyOf": [
                     {
