@@ -1002,9 +1002,15 @@ def assert_expected_access_key_permissions(
         identifying_insert = get_identifying_insert(testapp, insert, item_type)
         if idx == 0:
             post_item_to_fail(anontestapp, item_type, limited_insert)
-            post_item_then_delete(testapp, unassociated_user_app, item_type, limited_insert)
-            post_item_then_delete(testapp, submission_center_user_app, item_type, limited_insert)
-            post_item_then_delete(testapp, consortium_user_app, item_type, limited_insert)
+            post_item_then_delete(
+                testapp, unassociated_user_app, item_type, limited_insert
+            )
+            post_item_then_delete(
+                testapp, submission_center_user_app, item_type, limited_insert
+            )
+            post_item_then_delete(
+                testapp, consortium_user_app, item_type, limited_insert
+            )
         post_item(testapp, identifying_insert, item_type, status=201)
 
 
@@ -1025,7 +1031,9 @@ def assert_submittable_permissions(
         if idx == 0:
             post_item_to_fail(anontestapp, item_type, limited_insert)
             post_item_to_fail(unassociated_user_app, item_type, limited_insert)
-            post_item_then_delete(testapp, submission_center_user_app, item_type, limited_insert)
+            post_item_then_delete(
+                testapp, submission_center_user_app, item_type, limited_insert
+            )
             post_item_to_fail(consortium_user_app, item_type, limited_insert)
         post_item(testapp, identifying_insert, item_type, status=201)
 

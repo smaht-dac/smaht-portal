@@ -348,6 +348,9 @@ class SubmittedSmahtCollection(SMAHTCollection):
     }
 )
 class SubmittedItem(Item):
+    # TODO: Any use for defining the below?
+    # item_type = "submitted_item"
+    # base_types = ["SubmittedItem"] + Item.base_types
     Collection = SubmittedSmahtCollection
 
 

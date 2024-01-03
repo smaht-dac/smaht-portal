@@ -9,8 +9,11 @@ from .utils import (
     get_functional_item_types,
     get_item,
     get_schema,
+    get_submitted_item_types,
     get_unique_key,
     has_property,
+    has_submitted_id,
+    is_submitted_item,
     is_test_item,
 )
 
@@ -177,7 +180,7 @@ def get_item_via_unique_key(
 def get_parent_types(type_info: AbstractTypeInfo) -> List[AbstractTypeInfo]:
     """Get base items' type info.
 
-    Straightforward for non-abstract types, but a clunky for abstract
+    Straightforward for non-abstract types, but a bit clunky for abstract
     ones since not explicitly defined anywhere.
     """
     all_types = {**type_info.types.by_item_type, **type_info.types.by_abstract_type}
@@ -185,3 +188,22 @@ def get_parent_types(type_info: AbstractTypeInfo) -> List[AbstractTypeInfo]:
         item_type_info for item_type_info in all_types.values()
         if type_info.name in item_type_info.child_types
     ]
+
+
+def test_submitted_items_have_submitted_id(testapp: TestApp) -> None:
+    """Test presence of submitted_id on all SubmittedItem children."""
+    submitted_item_types = get_submitted_item_types(testapp)
+    for item_name, type_info in submitted_item_types.items():
+        assert has_submitted_id(type_info), (
+            f"{item_name} is child of SubmittedItem but lacks 'submitted_id'"
+        )
+
+
+def test_items_with_submitted_id_are_submitted_items(testapp: TestApp) -> None:
+    """Test items with submitted_id property are of type SubmittedItem."""
+    functional_item_types = get_functional_item_types(testapp)
+    for item_name, type_info in functional_item_types.items():
+        if has_submitted_id(type_info):
+            assert is_submitted_item(type_info), (
+                f"{item_name} has 'submitted_id' but is not SubmittedItem"
+            )

@@ -64,7 +64,7 @@
             "default": "1"
         },
         "submitted_id": {
-            "pattern": "^[A-Z-]{4,}_ANALYTE_[A-Z0-9-.]{4,}"
+            "pattern": "^[A-Z-]{4,}_ANALYTE_[A-Z0-9-.]{4,}$"
         },
         "a260_a280_ratio": {
             "title": "A260/A280 Ratio",

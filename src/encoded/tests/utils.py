@@ -3,11 +3,14 @@ import pkg_resources
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+from dcicutils import schema_utils
 from dcicutils.misc_utils import to_snake_case
 from pyramid.registry import Registry
 from snovault import Collection, COLLECTIONS, TYPES
 from snovault.typeinfo import AbstractTypeInfo, TypeInfo
 from webtest.app import TestApp
+
+from ..types.base import SubmittedItem
 
 
 def post_item_and_return_location(
@@ -184,6 +187,21 @@ def get_functional_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
     }
 
 
+def get_submitted_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
+    """Get all submitted item types."""
+    all_item_types = get_all_item_types(test_app)
+    return {
+        type_name: type_info
+        for type_name, type_info in all_item_types.items()
+        if is_submitted_item(type_info)
+    }
+
+
+def is_submitted_item(type_info: AbstractTypeInfo) -> bool:
+    """Is type child of SubmittedItem?"""
+    return issubclass(type_info.factory, SubmittedItem)
+
+
 def get_all_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
     """Get all item types in test app registry."""
     return test_app.app.registry.get(TYPES).by_item_type
@@ -195,6 +213,32 @@ def is_test_item(item_name: str) -> bool:
 
 def is_abstract_type(type_info: AbstractTypeInfo) -> bool:
     return type_info.is_abstract
+
+
+def get_schemas_with_submitted_id(testapp: TestApp) -> List[Dict[str, Any]]:
+    """Get all schemas with submitted_id property."""
+    item_types = get_all_item_types(testapp)
+    return [
+        type_info.schema
+        for type_info in item_types.values()
+        if has_submitted_id(type_info)
+    ]
+
+
+def get_items_with_submitted_id(testapp: TestApp) -> List[str]:
+    """Get all item types with submitted_id as a property.
+    Item names are snake_cased.
+    """
+    functional_item_types = get_functional_item_types(testapp)
+    return [
+        item_name
+        for item_name, item_type_info in functional_item_types.items()
+        if has_submitted_id(item_type_info)
+    ]
+
+
+def has_submitted_id(type_info: TypeInfo) -> bool:
+    return has_property(type_info.schema, "submitted_id")
 
 
 def get_schema(test_app: TestApp, item_type: str) -> Dict[str, Any]:
