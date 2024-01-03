@@ -113,6 +113,7 @@ RUN chown -R nginx:nginx /var/cache/nginx && \
 # For now, this is mastertest. - Will 04/29/21
 COPY deploy/docker/local/docker_development.ini development.ini
 COPY deploy/docker/local/entrypoint.sh entrypoint_local.sh
+COPY deploy/docker/local/gitinfo.json gitinfo.json
 RUN chown nginx:nginx development.ini
 RUN chmod +x entrypoint_local.sh
 
