@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 import pytest
+from dcicutils import schema_utils
 from pkg_resources import resource_listdir
 from snovault import COLLECTIONS, TYPES
 from snovault.schema_utils import load_schema
@@ -218,5 +219,4 @@ def test_unique_keys_are_identifying_properties(testapp: TestApp) -> None:
 
 def has_identifying_property(schema: Dict[str, Any], property_name: str) -> bool:
     """Return True if schema has property_name property."""
-    identifying_properties = schema.get("identifyingProperties", [])
-    return property_name in identifying_properties
+    return property_name in schema_utils.get_identifying_properties(schema)

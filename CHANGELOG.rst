@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+0.12.0
+======
+
+`PR 50: Upgrader implementation <https://github.com/smaht-dac/smaht-portal/pull/50>`_
+* Add upgrader functionality from encoded-core + tests
+* Update dcicutils with schema_utils module
+
+
 0.11.8
 ======
 
