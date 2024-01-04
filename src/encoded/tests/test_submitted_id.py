@@ -1,14 +1,22 @@
 import re
 from typing import Any, Dict, List
 
-import pytest
 from dcicutils import schema_utils
 from snovault.typeinfo import TypeInfo
 from webtest.app import TestApp
 
-from .datafixtures import TEST_SUBMISSION_CENTER_CODE
 from .utils import (
-    get_schema, get_submitted_item_types, patch_item, post_item
+    get_item_properties_from_workbook_inserts,
+    get_schema,
+    get_submitted_item_types,
+    patch_item,
+    post_identifying_insert,
+)
+from ..project.loadxl import ITEM_INDEX_ORDER as loadxl_order
+from ..types.submitted_item import (
+    SUBMITTED_ID_SEPARATOR,
+    SUBMISSION_CENTER_CODE_MISMATCH_ERROR,
+    get_submitted_id,
 )
 
 
@@ -29,71 +37,13 @@ with the elements as follows:
 """
 EXPECTED_SUBMITTED_ID_CENTER_CODE_PATTERN = r"\[A-Z-\]\{4,\}"
 EXPECTED_SUBMITTED_ID_IDENTIFIER_PATTERN = r"\[A-Z0-9-\.\]\{4,\}"
-SUBMITTED_ID_SEPARATOR = "_"
 EXPECTED_SUBMITTED_ID_PATTERN_FORMAT = re.compile(
     rf"^[\^]{EXPECTED_SUBMITTED_ID_CENTER_CODE_PATTERN}"
     rf"[{SUBMITTED_ID_SEPARATOR}][A-Z-]+[{SUBMITTED_ID_SEPARATOR}]"
     rf"{EXPECTED_SUBMITTED_ID_IDENTIFIER_PATTERN}[\$]$"
 )
 
-VALID_CELL_LINE_SUBMITTED_ID = (
-    f"{TEST_SUBMISSION_CENTER_CODE}_CELL-LINE_SOME-IDENTIFIER"
-)
-
-
-@pytest.fixture
-def cell_line_properties(
-    testapp: TestApp, test_submission_center: Dict[str, Any]
-) -> Dict[str, Any]:
-    return {
-        "submission_centers": [test_submission_center["uuid"]],
-        "source": "A moldy basement",
-        "title": "Best Cell Line",
-    }
-
-
-@pytest.fixture
-def cell_line(testapp: TestApp, cell_line_properties: Dict[str, Any]) -> Dict[str, Any]:
-    properties = {**cell_line_properties, "submitted_id": VALID_CELL_LINE_SUBMITTED_ID}
-    return post_item(testapp, properties, "CellLine", status=201)
-
-
-@pytest.mark.parametrize(
-    "submitted_id,expected_status",
-    [
-        ("", 422),
-        ("SOME-CODE_NOT-CELL-LINE_SOME-IDENTIFIER", 422),
-        ("SOME-CODE_CELL-LINE_SOME-IDENTIFIER", 422),
-        (VALID_CELL_LINE_SUBMITTED_ID, 201),
-    ],
-)
-def test_submitted_id_validation_on_post(
-    submitted_id: str,
-    expected_status: int,
-    testapp: TestApp,
-    cell_line_properties: Dict[str, Any],
-) -> None:
-    properties = {**cell_line_properties, "submitted_id": submitted_id}
-    post_item(testapp, properties, "CellLine", status=expected_status)
-
-
-@pytest.mark.parametrize(
-    "submitted_id,expected_status",
-    [
-        ("", 422),
-        ("SOME-CODE_NOT-CELL-LINE_SOME-IDENTIFIER", 422),
-        ("SOME-CODE_CELL-LINE_SOME-IDENTIFIER", 422),
-        (VALID_CELL_LINE_SUBMITTED_ID, 200),
-    ],
-)
-def test_submitted_id_validation_on_patch(
-    submitted_id: str,
-    expected_status: int,
-    testapp: TestApp,
-    cell_line: Dict[str, Any],
-) -> None:
-    patch_body = {"submitted_id": submitted_id}
-    patch_item(testapp, patch_body, cell_line["uuid"], status=expected_status)
+DUMMY_SUBMITTED_ID_CODE = "FOOBAR"
 
 
 def test_submitted_id_code_pattern(testapp: TestApp) -> None:
@@ -252,21 +202,147 @@ def get_submitted_id_pattern_item_type_failure(
 #     return ""
 
 
-def test_submitted_id_validated_on_post(
+def test_submitted_id_validated_on_post_and_patch(
     testapp: TestApp, test_submission_center: Dict[str, Any]
 ) -> None:
-    """Test SubmittedItems validate submitted_id on POST.
+    """Test SubmittedItems validate submitted_id on POST and PATCH.
+
+    Validation performed is on SubmissionCenter code, so use a dummy
+    that should fail to ensure validation performed.
+
+    If item is SubmittedItem, test for submitted_id validation;
+    otherwise, nothing to test, so just POST.
 
     Use workbook inserts indirectly for properties.
     """
     item_properties_to_test = get_item_properties_from_workbook_inserts(
         test_submission_center
     )
-    submitted_item_types = get_submitted_items(testapp)
+    assert_dummy_submitted_id_code_valid(item_properties_to_test)
+    submitted_item_types = get_submitted_item_types(testapp)
     for item_type in loadxl_order:
         if item_type in submitted_item_types:
-            assert_submitted_id_validation_on_post(
+            assert_submitted_id_validation_on_post_and_patch(
                 testapp, item_type, item_properties_to_test
             )
         else:
             post_items(testapp, item_type, item_properties_to_test)
+
+
+def assert_dummy_submitted_id_code_valid(
+    item_properties_to_test: Dict[str, Dict]
+) -> None:
+    """Ensure no conflicts between dummy code and existing ones."""
+    submission_center_inserts = item_properties_to_test["submission_center"]
+    existing_submitted_id_codes = [
+        insert.get("submitted_id_code") for insert in submission_center_inserts
+    ]
+    assert DUMMY_SUBMITTED_ID_CODE not in existing_submitted_id_codes, (
+        f"Dummy code {DUMMY_SUBMITTED_ID_CODE} exists in inserts and should"
+        f" be changed."
+    )
+
+def assert_submitted_id_validation_on_post_and_patch(
+    testapp: TestApp, item_type: str, item_properties_to_test: Dict[str, Dict]
+) -> None:
+    """Ensure submitted_id validated on POST.
+
+    For first insert of item type, try to POST with an invalid
+    submitted_id, check invalid as expected, then POST with
+    submitted_id from workbook (which should be valid).
+
+    For remaining inserts, just POST.
+    """
+    inserts_to_post = item_properties_to_test.get(item_type)
+    assert inserts_to_post, f"No workbook inserts found for {item_type}"
+    for idx, insert in enumerate(inserts_to_post):
+        if idx == 0:
+            assert_invalid_submitted_id_post(testapp, insert, item_type)
+            post_identifying_insert(testapp, insert, collection=item_type)
+            assert_invalid_submitted_id_on_patch(testapp, insert)
+        else:
+            post_identifying_insert(testapp, insert, collection=item_type)
+
+
+def assert_invalid_submitted_id_post(
+    testapp: TestApp, insert: Dict[str, Any], item_type: str
+) -> None:
+    """Trigger rejection of POST by submitted_id validator.
+
+    Parse error message to ensure invalidation via intended validator.
+    """
+    invalid_submitted_id_insert = get_insert_with_invalid_submitted_id(insert)
+    response = post_identifying_insert(
+        testapp, invalid_submitted_id_insert, item_type, status=422
+    )
+    assert is_invalid_submitted_id_response(response)
+
+
+def assert_invalid_submitted_id_on_patch(
+    testapp: TestApp, insert: Dict[str, Any]
+) -> None:
+    """Trigger rejection of PATCH by submitted_id validator.
+
+    Parse error message to ensure invalidation via intended validator.
+    """
+    insert_submitted_id = get_submitted_id(insert)
+    invalid_submitted_id_for_insert = get_invalid_submitted_id(
+        insert_submitted_id
+    )
+    patch_body = {"submitted_id": invalid_submitted_id_for_insert}
+    response = patch_item(testapp, patch_body, insert["uuid"], status=422)
+    assert is_invalid_submitted_id_response(response)
+
+
+def get_insert_with_invalid_submitted_id(insert: Dict[str, Any]) -> Dict[str, Any]:
+    """Create similar insert with invalid dummy submitted_id_code."""
+    return {
+        key: (value if key != "submitted_id" else get_invalid_submitted_id(value))
+        for key, value in insert.items()
+    }
+
+
+def get_invalid_submitted_id(submitted_id: str) -> str:
+    """Replace existing submitted_id_code in submitted_id with dummy."""
+    submitted_id_without_code = f"{SUBMITTED_ID_SEPARATOR}".join(
+        submitted_id.split(SUBMITTED_ID_SEPARATOR)[1:]
+    )
+    return (
+        f"{DUMMY_SUBMITTED_ID_CODE}{SUBMITTED_ID_SEPARATOR}{submitted_id_without_code}"
+    )
+
+
+def is_invalid_submitted_id_response(response: Dict[str, Any]) -> bool:
+    """Is response indicative of invalid submitted_id?
+
+    Strictly expects the only error is due to the expected submitted_id
+    validation failure.
+    """
+    error_type = response.get("@type", [])
+    errors = response.get("errors", [])
+    if is_error_validation_failure(error_type) and is_code_mismatch(errors):
+        return True
+    return False
+
+
+def is_error_validation_failure(error_types: List[str]) -> bool:
+    """Is ValidationFailure present in error types?"""
+    return "ValidationFailure" in error_types
+
+
+def is_code_mismatch(errors: List[Dict[str, str]]) -> bool:
+    """Is expected code mismatch the unique error?"""
+    if (
+        len(errors) == 1
+        and SUBMISSION_CENTER_CODE_MISMATCH_ERROR == errors[0].get("name")
+    ):
+        return True
+    return False
+
+
+def post_items(
+    testapp: TestApp, item_type: str, item_properties_to_test: Dict[str, Dict]
+) -> None:
+    """POST all inserts for given item type."""
+    for insert in item_properties_to_test.get(item_type, []):
+        post_identifying_insert(testapp, insert, item_type)

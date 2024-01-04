@@ -3,14 +3,13 @@ import pkg_resources
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from dcicutils import schema_utils
 from dcicutils.misc_utils import to_snake_case
 from pyramid.registry import Registry
 from snovault import Collection, COLLECTIONS, TYPES
 from snovault.typeinfo import AbstractTypeInfo, TypeInfo
 from webtest.app import TestApp
 
-from ..types.base import SubmittedItem
+from ..types.submitted_item import SubmittedItem
 
 
 def post_item_and_return_location(
@@ -313,6 +312,112 @@ def load_inserts(insert_file: Path) -> List[Dict[str, Any]]:
     """Load inserts from file."""
     with insert_file.open() as file_handle:
         return json.load(file_handle)
+
+
+def get_item_properties_from_workbook_inserts(
+    submission_center: Dict[str, Any]
+) -> Dict[str, Dict[str, Any]]:
+    """Get representative item types from workbook inserts.
+
+    For those with submission centers and consortia, wipe and replace
+    with only provided submission center.
+    """
+    inserts = get_workbook_inserts()
+    return clean_workbook_inserts(inserts, submission_center)
+
+
+def clean_workbook_inserts(
+    workbook_inserts: Dict[str, Dict[str, Any]],
+    submission_center: Dict[str, Any]
+) -> Dict[str, Dict[str, Any]]:
+    """Clean workbook inserts to only include submission center.
+
+    For those with submission centers and consortia, wipe and replace
+    with only provided submission center.
+    """
+    return {
+        item_type: replace_inserts_affiliations(item_inserts, submission_center)
+        for item_type, item_inserts in workbook_inserts.items()
+    }
+
+
+def replace_inserts_affiliations(
+    item_inserts: List[Dict[str, Any]],
+    submission_center: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Replace affiliations in item inserts with provided submission center."""
+    return [
+        replace_insert_affiliations(item_insert, submission_center)
+        for item_insert in item_inserts
+    ]
+
+
+def replace_insert_affiliations(
+    item_insert: Dict[str, Any],
+    submission_center: Dict[str, Any]
+) -> Dict[str, Any]:
+    """If needed, replace affiliations in item insert with provided
+    submission center.
+    """
+    if has_affiliations(item_insert):
+        return replace_affiliations(item_insert, submission_center)
+    return item_insert
+
+
+def has_affiliations(item_insert: Dict[str, Any]) -> bool:
+    """Check if item insert has submission centers or consortia."""
+    return any(
+        [
+            item_insert.get("submission_centers", []),
+            item_insert.get("consortia", []),
+        ]
+    )
+
+def replace_affiliations(
+    item_insert: Dict[str, Any],
+    submission_center: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Replace affiliations in item insert with provided submission center.
+
+    Assumes submission_centers property is valid. Can check schemas if
+    assumption no longer holds.
+    """
+    insert_without_affiliation = {
+        key: value for key, value in item_insert.items()
+        if key not in ["submission_centers", "consortia"]
+    }
+    return {
+        **insert_without_affiliation, "submission_centers": [submission_center["uuid"]]
+    }
+
+
+def post_identifying_insert(
+    test_app: TestApp,
+    insert: Dict[str, Any],
+    collection: str,
+    status: Optional[Union[int, List[int]]] = 201,
+) -> Dict[str, Any]:
+    """Get insert with limited properties and POST it."""
+    to_post = get_identifying_insert(test_app, insert, collection)
+    return post_item(test_app, to_post, collection=collection, status=status)
+
+
+def get_identifying_insert(
+    test_app: TestApp, insert: Dict[str, Any], item_type: str
+) -> Dict[str, Any]:
+    """Get insert with required + identifying properties for POST attempt.
+
+    Keep submission centers, if present.
+    """
+    identifying_properties = get_identifying_properties(test_app, item_type)
+    required_properties = get_required_properties(test_app, item_type)
+    if has_affiliations(insert):
+        properties_to_keep = (
+            identifying_properties + required_properties + ["submission_centers"]
+        )
+    else:
+        properties_to_keep = identifying_properties + required_properties
+    return {key: value for key, value in insert.items() if key in properties_to_keep}
 
 
 def get_required_properties(test_app: TestApp, item_type: str) -> List[str]:

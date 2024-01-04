@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import SubmittedItem
+from .submitted_item import SubmittedItem
 
 
 @collection(
