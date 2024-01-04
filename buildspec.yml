@@ -4,8 +4,8 @@ phases:
   pre_build:
     commands:
       - touch deploy/docker/local/docker_development.ini  # cheap substitute for prepare-docker to make ignored file
-      - chmod +x create_gitinfo.sh
-      - ./create_gitinfo.sh
+      - chmod +x ./buildspec_create_gitinfo.sh
+      - ./buildspec_create_gitinfo.sh
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
   build:
