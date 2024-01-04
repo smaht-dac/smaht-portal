@@ -8,6 +8,12 @@ Change Log
 ----------
 
 
+0.11.8
+======
+
+* Add portal side validation for QC rulesets
+
+
 0.11.7
 ======
 
