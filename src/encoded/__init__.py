@@ -44,6 +44,7 @@ def include_encoded(config):
     config.include('encoded.root')
     config.include('encoded.types')
     config.include('encoded.server_defaults')
+    config.include('encoded.metadata')
     # config.include('encoded.visualization')
     config.commit()
 
