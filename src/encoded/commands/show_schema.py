@@ -1,5 +1,6 @@
 import argparse
 import json
+from typing import Optional
 import yaml
 from dcicutils.structured_data import Portal, Schema
 from encoded.commands.captured_output import captured_output
@@ -24,12 +25,25 @@ def main() -> None:
         portal = Portal(args.env) if args.env else Portal.create_for_testing()
 
     schema = Schema.load_by_name(args.schema, portal)
+    if not schema:
+        if schema_name := rummage_for_schema_name(portal, args.schema):
+            schema = Schema.load_by_name(schema_name, portal)
+        if not schema:
+            print(f"Schema not found: {args.schema}")
+            exit(1)
     if args.yaml:
         print(yaml.dump(schema.data))
     elif args.raw:
         print(json.dumps(schema.data, default=str))
     else:
         print(json.dumps(schema.data, indent=4, default=str))
+
+
+def rummage_for_schema_name(portal: Portal, schema_name: str) -> Optional[str]:
+    if schemas := portal.get_schemas():
+        for schema in schemas:
+            if schema.lower() == schema_name.lower():
+                return schema
 
 
 if __name__ == "__main__":
