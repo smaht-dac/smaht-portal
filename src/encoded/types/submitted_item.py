@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Union
 
 from pyramid.request import Request
@@ -15,8 +16,38 @@ from .base import Item, SMAHTCollection, collection_add, item_edit
 from .utils import get_item, get_properties
 
 
-SUBMISSION_CENTER_CODE_MISMATCH_ERROR = "Submission Code Mismatch"
+SUBMITTED_ID_PROPERTY = "submitted_id"
+SUBMITTED_ID_CENTER_CODE_PATTERN = "[A-Z-]{4,}"
+SUBMITTED_ID_IDENTIFIER_PATTERN = "[A-Z0-9-.]{4,}"
 SUBMITTED_ID_SEPARATOR = "_"
+
+SUBMISSION_CENTER_CODE_MISMATCH_ERROR = "Submission Code Mismatch"
+
+
+@dataclass(frozen=True)
+class SubmittedId:
+
+    center_code: str
+    item_type: str
+    identifier: str
+
+    def to_string(self) -> str:
+        return (
+            f"{self.center_code}{SUBMITTED_ID_SEPARATOR}{self.item_type}"
+            f"{SUBMITTED_ID_SEPARATOR}{self.identifier}"
+        )
+
+
+def parse_submitted_id(submitted_id: str) -> SubmittedId:
+    """Parse submitted_id value to dataclass of components.
+
+    Heuristic here depends on expected format of course.
+    """
+    split_id = submitted_id.split(SUBMITTED_ID_SEPARATOR)
+    center_code = split_id[0]
+    item_type = split_id[1] if len(split_id) > 1 else ""
+    identifier = "".join(split_id[2:]) if len(split_id) > 2 else ""
+    return SubmittedId(center_code, item_type, identifier)
 
 
 class SubmittedSmahtCollection(SMAHTCollection):
@@ -55,7 +86,7 @@ def validate_submitted_id_on_add(
 
 
 def get_submitted_id(properties: Dict[str, Any]) -> str:
-    return properties.get("submitted_id", "")
+    return properties.get(SUBMITTED_ID_PROPERTY, "")
 
 
 def get_submission_centers(properties: Dict[str, Any]) -> List[str]:
@@ -70,41 +101,28 @@ def validate_submitted_id(
     request: Request, submitted_id: str, submission_centers: List[str]
 ) -> Union[ValidationFailure, None]:
     """Validate submitted_id for given submission centers."""
-    submitted_id_submission_center_code = get_submitted_id_submission_center_code(
-        submitted_id
-    )
+    submitted_id_data = parse_submitted_id(submitted_id)
     submission_center_codes = get_submission_center_codes(request, submission_centers)
-    if submitted_id_submission_center_code not in submission_center_codes:
-        return get_submitted_id_validation_error(submitted_id, submission_center_codes)
+    if submitted_id_data.center_code not in submission_center_codes:
+        return get_submitted_id_validation_error(
+            submitted_id_data, submission_center_codes
+        )
     return
 
 
 def get_submitted_id_validation_error(
-    submitted_id: str, code_options: List[str]
+    submitted_id: SubmittedId, code_options: List[str]
 ) -> ValidationFailure:
     return ValidationFailure(
-        location="submitted_id",
+        location=SUBMITTED_ID_PROPERTY,
         name=SUBMISSION_CENTER_CODE_MISMATCH_ERROR,
         description=(
-            f"Submitted ID {submitted_id} start"
-            f" ({get_submitted_id_submission_center_code(submitted_id)})"
+            f"Submitted ID {str(submitted_id)} start"
+            f" ({submitted_id.center_code})"
             f" does not match options for given submission centers:"
             f" {code_options}."
         ),
     )
-
-
-def get_submitted_id_submission_center_code(submitted_id: str) -> str:
-    """Get submission center code from submitted_id.
-
-    Strongly assumes submitted ID starts with
-    '{submission_center_code}_' and that the submission center code
-    lacks underscores.
-    """
-    split_submitted_id = submitted_id.split(SUBMITTED_ID_SEPARATOR)
-    if split_submitted_id:
-        return split_submitted_id[0]
-    return ""
 
 
 def get_submission_center_codes(

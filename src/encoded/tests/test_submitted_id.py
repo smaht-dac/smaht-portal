@@ -14,6 +14,8 @@ from .utils import (
 )
 from ..project.loadxl import ITEM_INDEX_ORDER as loadxl_order
 from ..types.submitted_item import (
+    SUBMITTED_ID_CENTER_CODE_PATTERN,
+    SUBMITTED_ID_IDENTIFIER_PATTERN,
     SUBMITTED_ID_SEPARATOR,
     SUBMISSION_CENTER_CODE_MISMATCH_ERROR,
     get_submitted_id,
@@ -35,12 +37,10 @@ with the elements as follows:
     - item type code: string to prevent cross-item references
     - identifier: submitted identifier of submitters' choosing
 """
-EXPECTED_SUBMITTED_ID_CENTER_CODE_PATTERN = r"\[A-Z-\]\{4,\}"
-EXPECTED_SUBMITTED_ID_IDENTIFIER_PATTERN = r"\[A-Z0-9-\.\]\{4,\}"
-EXPECTED_SUBMITTED_ID_PATTERN_FORMAT = re.compile(
-    rf"^[\^]{EXPECTED_SUBMITTED_ID_CENTER_CODE_PATTERN}"
+SUBMITTED_ID_PATTERN_FORMAT = re.compile(
+    rf"^[\^]{re.escape(SUBMITTED_ID_CENTER_CODE_PATTERN)}"
     rf"[{SUBMITTED_ID_SEPARATOR}][A-Z-]+[{SUBMITTED_ID_SEPARATOR}]"
-    rf"{EXPECTED_SUBMITTED_ID_IDENTIFIER_PATTERN}[\$]$"
+    rf"{re.escape(SUBMITTED_ID_IDENTIFIER_PATTERN)}[\$]$"
 )
 
 DUMMY_SUBMITTED_ID_CODE = "FOOBAR"
@@ -54,7 +54,7 @@ def test_submitted_id_code_pattern(testapp: TestApp) -> None:
     """
     submitted_id_code_pattern = get_submitted_id_code_pattern(testapp)
     assert submitted_id_code_pattern == (
-        f"^{EXPECTED_SUBMITTED_ID_CENTER_CODE_PATTERN}$"
+        f"^{SUBMITTED_ID_CENTER_CODE_PATTERN}$"
     )
 
 
@@ -155,11 +155,11 @@ def get_submitted_id_pattern_format_failure(pattern: str) -> str:
     Using a regex to check a regex here, so formatting is a little
     tricky to get right, particularly which characters to escape.
     """
-    match = EXPECTED_SUBMITTED_ID_PATTERN_FORMAT.match(pattern)
+    match = SUBMITTED_ID_PATTERN_FORMAT.match(pattern)
     if not match:
         return (
             f"Pattern {pattern} failed to match expected format"
-            f" {EXPECTED_SUBMITTED_ID_PATTERN_FORMAT}."
+            f" {SUBMITTED_ID_PATTERN_FORMAT}."
         )
     return ""
 
@@ -169,10 +169,10 @@ def get_submitted_id_pattern_format_failure(pattern: str) -> str:
 #     center_code_pattern = get_center_code_pattern_from_submitted_id_pattern(
 #         pattern
 #     )
-#     if center_code_pattern != f"^{EXPECTED_SUBMITTED_ID_CENTER_CODE_PATTERN}":
+#     if center_code_pattern != f"^{SUBMITTED_ID_CENTER_CODE_PATTERN}":
 #         return (
 #             f"Unexpected pattern for SubmissionCenter code: {center_code_pattern}."
-#             f" Expected {EXPECTED_SUBMITTED_ID_CENTER_CODE_PATTERN}"
+#             f" Expected {SUBMITTED_ID_CENTER_CODE_PATTERN}"
 #         )
 #     return ""
 
@@ -194,10 +194,10 @@ def get_submitted_id_pattern_item_type_failure(
 # def get_submitted_id_pattern_identifier_failure(pattern: str) -> str:
 #     """Check identifer failure and report issue, if found."""
 #     identifier_pattern = get_identifier_pattern_from_submitted_id_pattern(pattern)
-#     if identifier_pattern != f"{EXPECTED_SUBMITTED_ID_IDENTIFIER_PATTERN}$":
+#     if identifier_pattern != f"{SUBMITTED_ID_IDENTIFIER_PATTERN}$":
 #         return (
 #             f"Unexpected pattern for identifier: {identifier_pattern}."
-#             f" Expected {EXPECTED_SUBMITTED_ID_IDENTIFIER_PATTERN}"
+#             f" Expected {SUBMITTED_ID_IDENTIFIER_PATTERN}"
 #         )
 #     return ""
 
