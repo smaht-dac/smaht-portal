@@ -143,5 +143,24 @@
         }
     },
     "facets": {},
-    "columns": {}
+    "columns": {
+        "accession": {
+            "title": "File"
+        },
+        "data_type": {
+            "title": "Data Category"
+        },
+        "file_format.display_title": {
+            "title": "Data Format"
+        },
+        "submission_centers.display_title": {
+            "title": "GCC"
+        },
+        "file_size": {
+            "title": "File Size"
+        },
+        "date_created": {
+            "title": "Submission Date"
+        }
+    }
 }
