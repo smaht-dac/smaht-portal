@@ -161,16 +161,9 @@
                 10737418240,
                 107374182400
             ]
-        },
-        "date_created": {
-            "title": "Date Created",
-            "aggregation_type": "date_histogram"
         }
     },
     "columns": {
-        "accession": {
-            "title": "File"
-        },
         "data_type": {
             "title": "Data Category"
         },
