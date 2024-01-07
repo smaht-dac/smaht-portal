@@ -31,7 +31,7 @@ def main() -> None:
     # loading data into the database of a locally running portal.
     with captured_output():
         if args.load or not args.norefs:
-            portal = Portal.create_for_testing(args.load)
+            portal = Portal.create_for_testing(args.portal or args.load)
         else:
             portal = Portal.create_for_testing()
 
@@ -239,7 +239,9 @@ def parse_args() -> argparse.Namespace:
                         default=False, help=f"YAML (rather than JSON) output for loaded/displayed data.")
 
     parser.add_argument("--load", nargs="?", action=argparse_optional, const=True,
-                        default=False, help=f"Load data into database (optionally specify .ini file to use).")
+                        default=False, help=f"Load data into local portal/database (optionally specify .ini file to use).")
+    parser.add_argument("--portal", nargs="?", action=argparse_optional, const=True,
+                        default=False, help=f"Use local portal/database for checking references.")
     parser.add_argument("--post-only", required=False, action="store_true",
                         default=False, help=f"Only perform updates (POST) when loading data.")
     parser.add_argument("--patch-only", required=False, action="store_true",
