@@ -146,9 +146,9 @@ function LeftNavAuthenticated(props) {
     );
     return (
         <div className="navbar-nav mr-auto">
-            {/* <DataNavItem {...props} /> */}
+            <DataNavItem {...props} />
             <DocsNavItem {...props} />
-            {/* <AboutNavItem {...props} /> */}
+            <AboutNavItem {...props} />
         </div>
     );
 }
@@ -159,7 +159,7 @@ const LeftNavGuest = React.memo(function LeftNavGuest(props) {
 
     return (
         <div className="navbar-nav mr-auto">
-            {/*<AboutNavItem {...props} /> */}
+            <AboutNavItem {...props} />
             <DocsNavItem {...props} />
         </div>
     );
