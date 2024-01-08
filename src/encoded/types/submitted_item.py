@@ -26,7 +26,6 @@ SUBMISSION_CENTER_CODE_MISMATCH_ERROR = "Submission Code Mismatch"
 
 @dataclass(frozen=True)
 class SubmittedId:
-
     center_code: str
     item_type: str
     identifier: str
@@ -59,7 +58,7 @@ class SubmittedSmahtCollection(SMAHTCollection):
     properties={
         "title": "SMaHT Submitted Item Listing",
         "description": "Abstract collection of all submitted SMaHT items.",
-    }
+    },
 )
 class SubmittedItem(Item):
     # TODO: Any use for defining the below?
@@ -185,9 +184,8 @@ def get_submission_centers_for_validation(
     If submission_centers is being updated, use the updated value.
     Otherwise, use the existing value.
     """
-    return (
-        get_submission_centers(update_properties)
-        or get_submission_centers(existing_properties)
+    return get_submission_centers(update_properties) or get_submission_centers(
+        existing_properties
     )
 
 

@@ -53,9 +53,7 @@ def test_submitted_id_code_pattern(testapp: TestApp) -> None:
     SubmissionCenter, so these need to be synced.
     """
     submitted_id_code_pattern = get_submitted_id_code_pattern(testapp)
-    assert submitted_id_code_pattern == (
-        f"^{SUBMITTED_ID_CENTER_CODE_PATTERN}$"
-    )
+    assert submitted_id_code_pattern == (f"^{SUBMITTED_ID_CENTER_CODE_PATTERN}$")
 
 
 def get_submitted_id_code_pattern(testapp: TestApp) -> str:
@@ -77,9 +75,9 @@ def test_submitted_id_patterns(testapp: TestApp) -> None:
         - Identifying code pattern uniformly applied
     """
     pattern_failures = get_submitted_id_pattern_failures(testapp)
-    assert not pattern_failures, (
-        f"Issues found for submitted_id patterns: {pattern_failures}"
-    )
+    assert (
+        not pattern_failures
+    ), f"Issues found for submitted_id patterns: {pattern_failures}"
 
 
 def get_submitted_id_pattern_failures(testapp: TestApp) -> List[str]:
@@ -93,9 +91,7 @@ def get_submitted_id_pattern_failures(testapp: TestApp) -> List[str]:
     return result
 
 
-def get_submitted_id_pattern_failure(
-    item_name: str, type_info: TypeInfo
-) -> str:
+def get_submitted_id_pattern_failure(item_name: str, type_info: TypeInfo) -> str:
     """Report submitted_id pattern issues, if present."""
     pattern_issues = get_submitted_id_pattern_issues(type_info)
     if pattern_issues:
@@ -114,9 +110,7 @@ def split_submitted_id_pattern(submitted_id_pattern: str) -> str:
     return submitted_id_pattern.split(SUBMITTED_ID_SEPARATOR)
 
 
-def get_center_code_pattern_from_submitted_id_pattern(
-    submitted_id_pattern: str
-) -> str:
+def get_center_code_pattern_from_submitted_id_pattern(submitted_id_pattern: str) -> str:
     """Return portion of submitted_id pattern for SubmissionCenter code."""
     return split_submitted_id_pattern(submitted_id_pattern)[0]
 
@@ -129,9 +123,7 @@ def get_item_type_from_submitted_id_pattern(submitted_id_pattern: str) -> str:
     return ""
 
 
-def get_identifier_pattern_from_submitted_id_pattern(
-    submitted_id_pattern: str
-) -> str:
+def get_identifier_pattern_from_submitted_id_pattern(submitted_id_pattern: str) -> str:
     """Return portion of submitted_id pattern for submitted idenifier."""
     split_pattern = split_submitted_id_pattern(submitted_id_pattern)
     if len(split_pattern) >= 3:
@@ -242,6 +234,7 @@ def assert_dummy_submitted_id_code_valid(
         f" be changed."
     )
 
+
 def assert_submitted_id_validation_on_post_and_patch(
     testapp: TestApp, item_type: str, item_properties_to_test: Dict[str, Dict]
 ) -> None:
@@ -286,9 +279,7 @@ def assert_invalid_submitted_id_on_patch(
     Parse error message to ensure invalidation via intended validator.
     """
     insert_submitted_id = get_submitted_id(insert)
-    invalid_submitted_id_for_insert = get_invalid_submitted_id(
-        insert_submitted_id
-    )
+    invalid_submitted_id_for_insert = get_invalid_submitted_id(insert_submitted_id)
     patch_body = {"submitted_id": invalid_submitted_id_for_insert}
     response = patch_item(testapp, patch_body, insert["uuid"], status=422)
     assert is_invalid_submitted_id_response(response)
@@ -332,9 +323,8 @@ def is_error_validation_failure(error_types: List[str]) -> bool:
 
 def is_code_mismatch(errors: List[Dict[str, str]]) -> bool:
     """Is expected code mismatch the unique error?"""
-    if (
-        len(errors) == 1
-        and SUBMISSION_CENTER_CODE_MISMATCH_ERROR == errors[0].get("name")
+    if len(errors) == 1 and SUBMISSION_CENTER_CODE_MISMATCH_ERROR == errors[0].get(
+        "name"
     ):
         return True
     return False
