@@ -15,16 +15,20 @@ const CLTList = ({ list }) => {
                         <li key={i}>
                             <OverlayTrigger
                                 trigger={['hover', 'focus']}
-                                placement="right"
+                                // Looks like popperConfig's flip is broken here; might create an issue for that...
+                                // auto-start and auto-end seem to give us left/right alignment on large screens and
+                                // top/bottom on smaller ones; should suffice for now, in the absense of a better solution
+                                placement="auto-start"
                                 rootClose
                                 overlay={
-                                    <Popover id="">
+                                    <Popover
+                                        id={item.title}
+                                        className="md-w-25">
                                         <PopoverTitle>
                                             {item.title}
                                         </PopoverTitle>
                                         <PopoverContent>
-                                            Additional information about{' '}
-                                            {item.title} here
+                                            {item.data}
                                         </PopoverContent>
                                     </Popover>
                                 }>
@@ -64,10 +68,32 @@ export const CLTCard = ({ currentTier }) => {
             items: [
                 {
                     iconSrc: '/static/img/anatomy-icons/Brain.svg',
-                    title: 'Brain: 5 subregions',
+                    title: 'Brain: unrelated donors',
                     benchmarking: true,
+                    expansion: false,
+                    production: false,
+                    // TODO: Discuss implications adjusting overall popover style override for
+                    // max-width in _bootstrap-theme-overrides.scss (potential effect on consortium map?)
+                    data: (
+                        <>
+                            <div>Please Note:</div>
+                            <div className="font-italic">
+                                The donors for brain tissue differ from and are
+                                unrelated to those who supplied other
+                                benchmarking tissues (e.g. such as skin, liver,
+                                lung, and colon).
+                            </div>
+                        </>
+                    ),
+                },
+                {
+                    // Added a second version of Brain, since they are meant to have slightly different titles
+                    iconSrc: '/static/img/anatomy-icons/Brain.svg',
+                    title: 'Brain: 4 subregions',
+                    benchmarking: false,
                     expansion: true,
                     production: true,
+                    // TODO: Does this also require the same note as above?
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Sun-exposed skin.svg',
@@ -77,9 +103,10 @@ export const CLTCard = ({ currentTier }) => {
                     production: true,
                 },
                 {
+                    // TODO: Double check that it was correct to remove this from just Tier 0
                     iconSrc: '/static/img/anatomy-icons/Non-exposed skin.svg',
                     title: 'Non-exposed skin',
-                    benchmarking: true,
+                    benchmarking: false,
                     expansion: true,
                     production: true,
                 },
@@ -98,13 +125,6 @@ export const CLTCard = ({ currentTier }) => {
                 {
                     iconSrc: '/static/img/anatomy-icons/Heart.svg',
                     title: 'Heart',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
-                },
-                {
-                    iconSrc: '/static/img/anatomy-icons/Adipose Tissue.svg',
-                    title: 'Adipose Tissue',
                     benchmarking: false,
                     expansion: true,
                     production: true,
@@ -150,16 +170,24 @@ export const CLTCard = ({ currentTier }) => {
                     production: true,
                 },
                 {
+                    iconSrc: '/static/img/anatomy-icons/Colon.svg',
+                    title: 'Colon',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
+                {
                     iconSrc: '/static/img/anatomy-icons/Ascending Colon.svg',
                     title: 'Ascending Colon',
-                    benchmarking: true,
+                    benchmarking: false,
                     expansion: true,
                     production: true,
                 },
                 {
+                    // TODO: Double check it was correct to remove this from just tier 0
                     iconSrc: '/static/img/anatomy-icons/Descending Colon.svg',
                     title: 'Descending Colon',
-                    benchmarking: true,
+                    benchmarking: false,
                     expansion: true,
                     production: true,
                 },
