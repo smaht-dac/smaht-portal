@@ -57,6 +57,9 @@
             "description": "Number of samples produced for this source",
             "type": "integer",
             "minimum": 1
+        },
+        "submitted_id": {
+            "pattern": "[A-Z-]{4,}_SAMPLE-SOURCE_[A-Z0-9-.]{4,}"
         }
     }
 }

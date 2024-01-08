@@ -80,6 +80,9 @@
                 "type": "string",
                 "linkTo": "Sample"
             }
+        },
+        "submitted_id": {
+            "pattern": "[A-Z-]{4,}_CELL-SAMPLE_[A-Z0-9-.]{4,}"
         }
     }
 }

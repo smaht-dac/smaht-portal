@@ -66,6 +66,9 @@
             "title": "Vendor",
             "description": "Vendor of preparation kit",
             "type": "string"
+        },
+        "submitted_id": {
+            "pattern": "[A-Z-]{4,}_PREPARATION-KIT_[A-Z0-9-.]{4,}"
         }
     }
 }

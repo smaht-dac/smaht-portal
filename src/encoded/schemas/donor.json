@@ -84,6 +84,9 @@
             "description": "Weight of the donor in kilograms",
             "type": "number",
             "minimum": 0
+        },
+        "submitted_id": {
+            "pattern": "[A-Z-]{4,}_DONOR_[A-Z0-9-.]{4,}"
         }
     }
 }

@@ -116,6 +116,9 @@
             "description": "Cell line used for the cell culture",
             "type": "string",
             "linkTo": "CellLine"
+        },
+        "submitted_id": {
+            "pattern": "[A-Z-]{4,}_CELL-CULTURE_[A-Z0-9-.]{4,}"
         }
     }
 }

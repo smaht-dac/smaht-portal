@@ -111,6 +111,9 @@
             "description": "Expected read length for the sequencing",
             "type": "integer",
             "minimum": 0
+        },
+        "submitted_id": {
+            "pattern": "[A-Z-]{4,}_SEQUENCING_[A-Z0-9-.]{4,}"
         }
     }
 }

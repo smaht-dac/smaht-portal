@@ -74,6 +74,9 @@
             "description": "Tissue source for the sample",
             "type": "string",
             "linkTo": "Tissue"
+        },
+        "submitted_id": {
+            "pattern": "[A-Z-]{4,}_HISTOLOGY_[A-Z0-9-.]{4,}"
         }
     }
 }

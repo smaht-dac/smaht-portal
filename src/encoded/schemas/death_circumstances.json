@@ -5,7 +5,7 @@
     "type": "object",
     "required": [
         "donor",
-	"submission_centers",
+        "submission_centers",
         "submitted_id"
     ],
     "identifyingProperties": [
@@ -73,17 +73,17 @@
         "blood_transfusion_products": {
             "title": "Blood Transfusion Products",
             "description": "Blood transfusion products received by donor within 48 hours",
-	    "type": "array",
-	    "uniqueItems": true,
-	    "minItems": 1,
-	    "items": {
-            "type": "string",
-            "enum": [
-                "Cryoprecipitate",
-                "Fresh Frozen PlasmaPacked Red Blood Cells",
-                "Platelets"
-            ]
-	    }
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Cryoprecipitate",
+                    "Fresh Frozen PlasmaPacked Red Blood Cells",
+                    "Platelets"
+                ]
+            }
         },
         "brain_death_datetime": {
             "title": "Brain Death Datetime",
@@ -260,6 +260,9 @@
             "description": "Link to the associated donor",
             "type": "string",
             "linkTo": "Donor"
+        },
+        "submitted_id": {
+            "pattern": "[A-Z-]{4,}_DEATH-CIRCUMSTANCES_[A-Z0-9-.]{4,}"
         }
     }
 }
