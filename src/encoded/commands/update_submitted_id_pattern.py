@@ -12,7 +12,6 @@ from encoded.types.submitted_item import (
     SUBMITTED_ID_CENTER_CODE_PATTERN,
     SUBMITTED_ID_IDENTIFIER_PATTERN,
     SUBMITTED_ID_PROPERTY,
-    SUBMITTED_ID_SEPARATOR,
     SubmittedId,
     parse_submitted_id,
 )
@@ -46,7 +45,6 @@ def update_submitted_id_patterns(
 ) -> None:
     """Run through schemas and update submitted_id patterns."""
     for schema_path in get_schema_file_paths():
-        import pdb; pdb.set_trace()
         update_submitted_id_pattern(
             schema_path, submission_center_code_pattern, identifier_pattern
         )
