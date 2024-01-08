@@ -101,7 +101,6 @@ class TestMetadataTSV:
         self.check_key_and_length(header3, 'File Download URL')
         file_meta = parsed[3]
         self.check_key_and_length(file_meta, '00000000000000000000000000000001')
-        import pdb; pdb.set_trace()
         file2_meta = parsed[4]
         self.check_key_and_length(file2_meta, '00000000000000000000000000000002')
 
