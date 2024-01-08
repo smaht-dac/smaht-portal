@@ -222,14 +222,45 @@ def has_identifying_property(schema: Dict[str, Any], property_name: str) -> bool
 
 
 def test_submittable(testapp, registry):
-    test_uri = '/submission-schemas/analyte.json'
-    # import pdb; pdb.set_trace()
-    res = testapp.get(test_uri)
-    print(res)
+    expected_props = [
+        'a260_a280_ratio', 'analyte_preparation', 'components', 'concentration',
+        'molecule', 'protocols', 'ribosomal_rna_ratio', 'rna_integrity_number',
+        'rna_integrity_number_instrument', 'sample_quanitity', 'samples',
+        'submitted_id', 'tags', 'volume', 'weight',
+     ]
+    expected_req = ["components", "molecule", "samples", "submitted_id"]
+    expected_dep_req = ['rna_integrity_number', 'rna_integrity_number_instrument']
+    schema_name = 'analyte.json'
+    loaded_schema = load_schema('encoded:schemas/%s' % schema_name)
+    all_propnames = schema_utils.get_properties(loaded_schema).keys()
+    test_uri = f'/submission-schemas/{schema_name}'
+    res = testapp.get(test_uri).json
+    sub_props = schema_utils.get_properties(res)
+    assert len(sub_props) == len(expected_props)
+    non_sub_prop_cnt = 0
+    for prop in all_propnames:
+        if prop in expected_props:
+            assert prop in sub_props
+            if prop in expected_req:
+                assert 'is_required' in sub_props[prop]
+            if prop in expected_dep_req:
+                assert 'also_requires' in sub_props[prop]
+        else:
+            non_sub_prop_cnt += 1
+    assert len(sub_props) + non_sub_prop_cnt == len(all_propnames)
 
 
 def test_submittables(testapp, registry):
     test_uri = '/submission-schemas/'
-    import pdb; pdb.set_trace()
-    res = testapp.get(test_uri)
-    print(res)
+    expected_items = [
+        'AlignedReads', 'Analyte', 'AnalytePreparation', 'CellCulture',
+        'CellCultureMixture', 'CellCultureSample', 'CellLine', 'CellSample',
+        'DeathCircumstances', 'Demographic', 'Diagnosis', 'Donor', 'Exposure',
+        'FileSet', 'Histology', 'Library', 'LibraryPreparation', 'MedicalHistory',
+        'MolecularTest', 'PreparationKit', 'SamplePreparation', 'Sequencing',
+        'Software', 'Therapeutic', 'Tissue', 'TissueCollection', 'TissueSample',
+        'Treatment', 'UnalignedReads', 'VariantCalls']
+    res = testapp.get(test_uri).json
+    assert len(expected_items) == len(res)
+    for item in res.keys():
+        assert item in expected_items
