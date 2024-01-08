@@ -3,7 +3,8 @@ import pkg_resources
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from dcicutils.misc_utils import to_snake_case
+from dcicutils.misc_utils import to_camel_case, to_snake_case
+from dcicutils import schema_utils
 from pyramid.registry import Registry
 from snovault import Collection, COLLECTIONS, TYPES
 from snovault.typeinfo import AbstractTypeInfo, TypeInfo
@@ -76,6 +77,34 @@ def get_item(
     if response.status_int == 301:
         return response.follow().json
     return response.json
+
+
+def get_search(
+    testapp: TestApp,
+    query: str,
+    status: Union[int, List[int]] = 200,
+) -> List[Dict[str, Any]]:
+    """Get search results for given query."""
+    return testapp.get(query, status=status).json["@graph"]
+
+
+def format_search_query(query: str) -> str:
+    """Format search query for URL expectations."""
+    return f"/search/?{query}"
+
+
+def get_insert_identifier_for_item_type(testapp: TestApp, item_type: str) -> str:
+    """Get workbook insert identifier for given item type."""
+    search_results = get_inserts_for_item_type(testapp, item_type)
+    if not search_results:
+        raise RuntimeError(f"No inserts found for {item_type}")
+    return search_results[0]["uuid"]
+
+
+def get_inserts_for_item_type(testapp: TestApp, item_type: str) -> List[Dict[str, Any]]:
+    """Get inserts for given item type."""
+    search_query = format_search_query(f"type={to_camel_case(item_type)}")
+    return get_search(testapp, search_query)
 
 
 def get_frame_add_on(frame: Union[str, None]) -> str:
@@ -168,15 +197,27 @@ def assert_keys_conflict(response: Dict[str, Any]) -> None:
     assert response.get("detail", "").startswith("Keys conflict:")
 
 
-def get_functional_item_type_names(test_app: TestApp) -> List[str]:
+def get_functional_item_type_names(
+    item_with_registry: Union[Registry, TestApp]
+) -> List[str]:
     """Get all non-test, non-abstract item type names (snake-cased)."""
-    functional_item_types = get_functional_item_types(test_app)
+    functional_item_types = get_functional_item_types(item_with_registry)
     return functional_item_types.keys()
 
 
-def get_functional_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
+def get_functional_item_type_info(
+    item_with_registry: Union[Registry, TestApp]
+) -> List[TypeInfo]:
+    """Get TypeInfo classes for non-test, non-abstract item types."""
+    functional_item_types = get_functional_item_types(item_with_registry)
+    return functional_item_types.values()
+
+
+def get_functional_item_types(
+    item_with_registry: Union[Registry, TestApp]
+) -> Dict[str, TypeInfo]:
     """Get all non-test, non-abstract item types."""
-    all_item_types = get_all_item_types(test_app)
+    all_item_types = get_all_item_types(item_with_registry)
     return {
         type_name: type_info
         for type_name, type_info in all_item_types.items()
@@ -184,9 +225,12 @@ def get_functional_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
     }
 
 
-def get_all_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
-    """Get all item types in test app registry."""
-    return test_app.app.registry.get(TYPES).by_item_type
+def get_all_item_types(
+    item_with_registry: Union[Registry, TestApp]
+) -> Dict[str, TypeInfo]:
+    """Get all item types in registry."""
+    registry = get_registry(item_with_registry)
+    return registry.get(TYPES).by_item_type
 
 
 def is_test_item(item_name: str) -> bool:
@@ -197,6 +241,46 @@ def is_abstract_type(type_info: AbstractTypeInfo) -> bool:
     return type_info.is_abstract
 
 
+def get_schemas_with_submitted_id(testapp: TestApp) -> List[Dict[str, Any]]:
+    """Get all schemas with submitted_id property."""
+    item_types = get_all_item_types(testapp)
+    return [
+        type_info.schema
+        for type_info in item_types.values()
+        if has_submitted_id(type_info)
+    ]
+
+
+def get_items_with_submitted_id(testapp: TestApp) -> List[str]:
+    """Get all item types with submitted_id as a property.
+
+    Item names are snake_cased.
+    """
+    functional_item_types = get_functional_item_types(testapp)
+    return [
+        item_name
+        for item_name, item_type_info in functional_item_types.items()
+        if has_submitted_id(item_type_info)
+    ]
+
+
+def has_submitted_id(type_info: TypeInfo) -> bool:
+    return "submitted_id" in schema_utils.get_properties(type_info.schema)
+
+
+def get_items_without_submitted_id(testapp: TestApp) -> List[str]:
+    """Get all item types without submitted_id as a property.
+
+    Item names are snake_cased.
+    """
+    functional_item_types = get_functional_item_types(testapp)
+    return [
+        item_name
+        for item_name, item_type_info in functional_item_types.items()
+        if not has_submitted_id(item_type_info)
+    ]
+
+
 def get_schema(test_app: TestApp, item_type: str) -> Dict[str, Any]:
     """Get schema for given item type."""
     item_types = get_all_item_types(test_app)
@@ -205,7 +289,7 @@ def get_schema(test_app: TestApp, item_type: str) -> Dict[str, Any]:
 
 def has_property(schema: Dict[str, Any], property_name: str) -> bool:
     """Check if schema has given property."""
-    return property_name in schema.get("properties", {})
+    return property_name in schema_utils.get_properties(schema)
 
 
 def get_unique_key(type_info: AbstractTypeInfo) -> str:
@@ -225,8 +309,18 @@ def get_collection_for_type(type_info: AbstractTypeInfo) -> Collection:
     return result
 
 
-def get_registry(type_info: TypeInfo) -> Registry:
-    return type_info.types.registry
+def get_registry(item_with_registry: Union[Registry, TestApp, TypeInfo]) -> Registry:
+    """Get registry from given input."""
+    if isinstance(item_with_registry, Registry):
+        return item_with_registry
+    if isinstance(item_with_registry, TestApp):
+        return item_with_registry.app.registry
+    if isinstance(item_with_registry, TypeInfo):
+        return item_with_registry.types.registry
+    raise NotImplementedError(
+        f"Cannot get registry for {item_with_registry} of type"
+        f" {type(item_with_registry)}"
+    )
 
 
 def get_collection_for_item_name(
@@ -269,42 +363,3 @@ def load_inserts(insert_file: Path) -> List[Dict[str, Any]]:
     """Load inserts from file."""
     with insert_file.open() as file_handle:
         return json.load(file_handle)
-
-
-def get_required_properties(test_app: TestApp, item_type: str) -> List[str]:
-    """Get required + potentially required properties."""
-    schema = get_schema(test_app, item_type)
-    required_fields = schema.get("required", [])
-    any_of_required_fields = get_any_of_required_fields(schema)
-    one_of_required_fields = get_one_of_required_fields(schema)
-    return required_fields + any_of_required_fields + one_of_required_fields
-
-
-def get_any_of_required_fields(schema: Dict[str, Any]) -> List[str]:
-    """Get required fields from anyOf properties."""
-    any_of_properties = schema.get("anyOf", [])
-    return get_conditional_requirements(any_of_properties)
-
-
-def get_conditional_requirements(
-    conditional_options: List[Dict[str, Any]]
-) -> List[str]:
-    """Get required fields from conditional properties."""
-    return [
-        required_key
-        for entry in conditional_options
-        for key, value in entry.items()
-        for required_key in value
-        if key == "required"
-    ]
-
-
-def get_one_of_required_fields(schema: Dict[str, Any]) -> List[str]:
-    """Get required fields from oneOf properties."""
-    one_of_properties = schema.get("oneOf", [])
-    return get_conditional_requirements(one_of_properties)
-
-
-def get_identifying_properties(test_app: TestApp, item_type: str) -> List[str]:
-    schema = get_schema(test_app, item_type)
-    return schema.get("identifyingProperties", [])

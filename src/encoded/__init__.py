@@ -22,9 +22,7 @@ from pyramid.settings import asbool
 from snovault.app import session, json_from_path, configure_dbsession, changelogs
 from snovault.elasticsearch import APP_FACTORY
 from snovault.elasticsearch.interfaces import INVALIDATION_SCOPE_ENABLED
-from dcicutils.misc_utils import VirtualApp
 from .appdefs import APP_VERSION_REGISTRY_KEY
-# from snovault.loadxl import load_all
 
 
 # snovault.app.STATIC_MAX_AGE (8 seconds) is WAY too low for /static and /profiles - Will March 15 2022
@@ -45,6 +43,7 @@ def include_encoded(config):
     config.include('encoded.types')
     config.include('encoded.server_defaults')
     config.include('encoded.metadata')
+    config.include('encoded.upgrade')
     # config.include('encoded.visualization')
     config.commit()
 
