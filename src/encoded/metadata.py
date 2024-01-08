@@ -26,7 +26,8 @@ def includeme(config):
     config.scan(__name__)
 
 
-# For now, use enum code 0 for Files
+# For now, use enum code 0 for Files (this will expand greatly later to adapt support
+# for other types - Will 3 Jan 2023
 FILE = 0
 
 
@@ -74,12 +75,6 @@ TSV_MAPPING = {
 }
 
 
-# These are extra fields to include
-EXTRA_FIELDS = {
-    FILE: ['extra_files.href', 'extra_files.file_format', 'extra_files.md5sum', 'extra_files.file_size']
-}
-
-
 @view_config(route_name='metadata', request_method=['GET', 'POST'])
 @debug_log
 def metadata_tsv(context, request):
@@ -124,38 +119,39 @@ def metadata_tsv(context, request):
         line = []
         for _, tsv_descriptor in TSV_MAPPING.items():
             line.append(file.get(tsv_descriptor.field_name()[0], ''))
+        data_lines += [line]
         if 'extra_files' in file:
-            for _, tsv_descriptor in TSV_MAPPING.items():
-                line.append(file.get(tsv_descriptor.field_name()[0], ''))
-        data_lines += line
-
-    # Set response headers
-    response = Response(content_type='text/tsv')
+            efs = file.get('extra_files')
+            for ef in efs:
+                ef_line = []
+                for _, tsv_descriptor in TSV_MAPPING.items():
+                    ef_line.append(ef.get(tsv_descriptor.field_name()[0], ''))
+                data_lines += [ef_line]
 
     # Define a header
-    header = [
-            '###', 'Metadata TSV Download', '', '', '', '',
-            'Suggested command to download: ', '', '', 'cut -f 1 ./{} | tail -n +3 | grep -v ^# | xargs -n 1 curl -O -L --user <access_key_id>:<access_key_secret>'.format(download_file_name)
-    ]
-    header.append([key for key in TSV_MAPPING.keys()])
+    def generate_header():
+        header1 = ['###', 'Metadata TSV Download', '', '', '', '']
+        header2 = ['Suggested command to download: ', '', '',
+                   'cut -f 1 ./{} | tail -n +3 | grep -v ^# | xargs -n 1 curl -O -L '
+                   '--user <access_key_id>:<access_key_secret>'.format(download_file_name), '', '']
+        header3 = list(TSV_MAPPING.keys())
+        return header1, header2, header3
 
     # helper to generate the tsv
     def generate_tsv():
         line = DummyFileInterfaceImplementation()
         writer = csv.writer(line, delimiter='\t')
         # write the header
-        writer.writerow(
-            header
-        )
-        yield line.read().encode('utf-8')
+        for header in generate_header():
+            writer.writerow(
+                header
+            )
+            yield line.read().encode('utf-8')
 
         # write the data
-        #import pdb; pdb.set_trace()
-        writer.writerow(data_lines)
-        yield line.read().encode('utf-8')
-
-    # Set the app_iter to the generator function
-    response.app_iter = generate_tsv()
+        for entry in data_lines:
+            writer.writerow(entry)
+            yield line.read().encode('utf-8')
 
     return Response(
         content_type='text/tsv',
