@@ -33,18 +33,18 @@ FILE = 0
 class TSVDescriptor:
     """ Dataclass that holds the structure """
     def __init__(self, *, field_type, field_name, deduplicate=True):
-        self.field_type = field_type
-        self.field_name = field_name
-        self.deduplicate = deduplicate
+        self._field_type = field_type
+        self._field_name = field_name
+        self._deduplicate = deduplicate
 
     def field_type(self):
-        return self.field_type
+        return self._field_type
 
     def field_name(self):
-        return self.field_name
+        return self._field_name
 
     def deduplicate(self):
-        return self.deduplicate
+        return self._deduplicate
 
 
 class DummyFileInterfaceImplementation(object):
@@ -117,9 +117,17 @@ def metadata_tsv(context, request):
     if sort_param:
         search_param['sort'] = sort_param
     search_iter = get_iterable_search_results(request, param_lists=search_param)
+
     # process search iter
+    data_lines = []
     for file in search_iter:
-        import pdb; pdb.set_trace()
+        line = []
+        for _, tsv_descriptor in TSV_MAPPING.items():
+            line.append(file.get(tsv_descriptor.field_name()[0], ''))
+        if 'extra_files' in file:
+            for _, tsv_descriptor in TSV_MAPPING.items():
+                line.append(file.get(tsv_descriptor.field_name()[0], ''))
+        data_lines += line
 
     # Set response headers
     response = Response(content_type='text/tsv')
@@ -129,6 +137,7 @@ def metadata_tsv(context, request):
             '###', 'Metadata TSV Download', '', '', '', '',
             'Suggested command to download: ', '', '', 'cut -f 1 ./{} | tail -n +3 | grep -v ^# | xargs -n 1 curl -O -L --user <access_key_id>:<access_key_secret>'.format(download_file_name)
     ]
+    header.append([key for key in TSV_MAPPING.keys()])
 
     # helper to generate the tsv
     def generate_tsv():
@@ -140,9 +149,10 @@ def metadata_tsv(context, request):
         )
         yield line.read().encode('utf-8')
 
-        # write the column headers
-        for accession in accessions:
-            yield f"{accession}\t{download_file_name}\n"
+        # write the data
+        #import pdb; pdb.set_trace()
+        writer.writerow(data_lines)
+        yield line.read().encode('utf-8')
 
     # Set the app_iter to the generator function
     response.app_iter = generate_tsv()
