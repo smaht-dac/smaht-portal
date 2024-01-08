@@ -91,7 +91,7 @@ def update_submitted_id_pattern(
 
     If `submitted_id` not present in the schema, nothing to do.
     """
-    schema = load_schema(schema_path.absolute())
+    schema = load_schema(str(schema_path.absolute()))
     submitted_id_schema = schema_utils.get_property(
         schema, SUBMITTED_ID_PROPERTY
     )
@@ -306,8 +306,7 @@ def main() -> None:
     args = parser.parse_args()
     if args.verbose:
         logger.setLevel(logging.INFO)
-    else:
-        update_submitted_id_patterns(args.center_code, args.identifier)
+    update_submitted_id_patterns(args.center_code, args.identifier)
 
 
 if __name__ == "__main__":
