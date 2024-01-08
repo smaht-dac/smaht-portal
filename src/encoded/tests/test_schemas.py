@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 import pytest
 from dcicutils import schema_utils
+from dcicutils.misc_utils import to_camel_case
 from pkg_resources import resource_listdir
 from snovault import COLLECTIONS, TYPES
 from snovault.schema_utils import load_schema
@@ -14,6 +15,7 @@ from .utils import (
     get_unique_key,
     has_property,
     pluralize_collection,
+    get_items_with_submitted_id,
 )
 
 
@@ -221,7 +223,7 @@ def has_identifying_property(schema: Dict[str, Any], property_name: str) -> bool
     return property_name in schema_utils.get_identifying_properties(schema)
 
 
-def test_submittable(testapp, registry):
+def test_submittable(testapp):
     expected_props = [
         'a260_a280_ratio', 'analyte_preparation', 'components', 'concentration',
         'molecule', 'protocols', 'ribosomal_rna_ratio', 'rna_integrity_number',
@@ -234,7 +236,7 @@ def test_submittable(testapp, registry):
     loaded_schema = load_schema('encoded:schemas/%s' % schema_name)
     all_propnames = schema_utils.get_properties(loaded_schema).keys()
     test_uri = f'/submission-schemas/{schema_name}'
-    res = testapp.get(test_uri).json
+    res = testapp.get(test_uri, status=200).json
     sub_props = schema_utils.get_properties(res)
     assert len(sub_props) == len(expected_props)
     non_sub_prop_cnt = 0
@@ -250,17 +252,16 @@ def test_submittable(testapp, registry):
     assert len(sub_props) + non_sub_prop_cnt == len(all_propnames)
 
 
-def test_submittables(testapp, registry):
+def test_submittables(testapp):
     test_uri = '/submission-schemas/'
-    expected_items = [
-        'AlignedReads', 'Analyte', 'AnalytePreparation', 'CellCulture',
-        'CellCultureMixture', 'CellCultureSample', 'CellLine', 'CellSample',
-        'DeathCircumstances', 'Demographic', 'Diagnosis', 'Donor', 'Exposure',
-        'FileSet', 'Histology', 'Library', 'LibraryPreparation', 'MedicalHistory',
-        'MolecularTest', 'PreparationKit', 'SamplePreparation', 'Sequencing',
-        'Software', 'Therapeutic', 'Tissue', 'TissueCollection', 'TissueSample',
-        'Treatment', 'UnalignedReads', 'VariantCalls']
-    res = testapp.get(test_uri).json
+    expected_items = [to_camel_case(i) for i in get_items_with_submitted_id(testapp)]
+    res = testapp.get(test_uri, status=200).json
     assert len(expected_items) == len(res)
     for item in res.keys():
         assert item in expected_items
+
+
+def test_not_submittable(testapp):
+    non_submittable_schema = 'access_key.json'
+    test_uri = f'/submission-schemas/{non_submittable_schema}'
+    testapp.get(test_uri, status=404)
