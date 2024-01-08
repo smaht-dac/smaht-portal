@@ -70,14 +70,25 @@ def get_json_file_paths_in_schema_dir() -> Iterator[Path]:
 
 def is_schema_file(file_path: Path) -> bool:
     """Use simple heuristic to ensure item schema."""
-    with file_path.open("r") as file_handle:
-        contents = json.load(file_handle)
+    file_content = load_json_file(file_path)
     if (
-        schema_utils.is_object_schema(contents)
-        and schema_utils.has_property(contents, "schema_version")
+        isinstance(file_content, dict)
+        and schema_utils.is_object_schema(file_content)
+        and schema_utils.has_property(file_content, "schema_version")
     ):
         return True
     return False
+
+
+def load_json_file(file_path: Path) -> Any:
+    """Load given file as JSON."""
+    result = {}
+    try:
+        with file_path.open() as file_handle:
+            result = json.load(file_handle)
+    except json.decoder.JSONDecodeError:
+        logger.warning(f"Unable to load file: {file_path}")
+    return result
 
 
 def update_submitted_id_pattern(
@@ -91,14 +102,14 @@ def update_submitted_id_pattern(
 
     If `submitted_id` not present in the schema, nothing to do.
     """
-    schema = load_schema(str(schema_path.absolute()))
-    submitted_id_schema = schema_utils.get_property(
-        schema, SUBMITTED_ID_PROPERTY
-    )
+    resolved_schema = load_resolved_schema(schema_path)
+    resolved_submitted_id_schema = get_submitted_id_schema(resolved_schema)
+    raw_schema = load_json_file(schema_path)
+    raw_submitted_id_schema = get_submitted_id_schema(raw_schema)
     if (
-        submitted_id_schema
+        resolved_submitted_id_schema
         and does_pattern_require_update(
-            submitted_id_schema, submission_center_code_pattern, identifier_pattern
+            raw_submitted_id_schema, submission_center_code_pattern, identifier_pattern
         )
     ):
         write_pattern_to_schema_file(
@@ -106,6 +117,24 @@ def update_submitted_id_pattern(
             submission_center_code_pattern,
             identifier_pattern,
         )
+
+
+def get_submitted_id_schema(schema: Dict[str, Any]) -> Dict[str, Any]:
+    """Get `submitted_id` schema from properties."""
+    return schema_utils.get_property(schema, SUBMITTED_ID_PROPERTY)
+
+
+def load_resolved_schema(schema_path: Path) -> Dict[str, Any]:
+    """Load schema with all references resolved.
+
+    Catch errors with reference resolution and keep moving.
+    """
+    result = {}
+    try:
+        result = load_schema(str(schema_path.absolute()))
+    except Exception as e:
+        logger.warning(f"Unable to load resolved schema for {schema_path}: {e}")
+    return result
 
 
 def does_pattern_require_update(
@@ -275,7 +304,7 @@ def write_schema_file(
 ) -> None:
     """Write schema content to path."""
     with schema_path.open("w") as file_handle:
-        json.dump(file_handle, schema_contents, indent=4)
+        json.dump(schema_contents, file_handle, indent=4)
 
 
 def main() -> None:
