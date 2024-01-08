@@ -222,14 +222,14 @@ def has_identifying_property(schema: Dict[str, Any], property_name: str) -> bool
 
 
 def test_submittable(testapp, registry):
-    test_uri = '/can-submit/analyte.json'
-    import pdb; pdb.set_trace()
+    test_uri = '/submission-schemas/analyte.json'
+    # import pdb; pdb.set_trace()
     res = testapp.get(test_uri)
     print(res)
 
 
 def test_submittables(testapp, registry):
-    test_uri = '/can-submit/'
-    res = testapp.get(test_uri)
+    test_uri = '/submission-schemas/'
     import pdb; pdb.set_trace()
+    res = testapp.get(test_uri)
     print(res)
