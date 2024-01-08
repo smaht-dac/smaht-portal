@@ -184,10 +184,75 @@ $facetlist-excluding: #450000;
 
 @import "../../../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/facet-list.scss";
 
-
-
 .search-view-controls-and-results .facets-container {
 	background-color: #fff;
+	font-family: 'Inter';
+	border: none;
+
+	.facets-header {
+		background-color: transparent;
+
+		.facets-title-column {
+			.facets-title {
+				font-weight: 500;
+				color: #343741;
+			}
+			.icon-toggle {
+				border-color: #8E8E8E;
+				button {
+					background-color: transparent;
+					border: none;
+					.fa-icon {
+						fill: #343741;
+					}
+				}
+			}
+		}
+
+		// Styles for facets header when including
+		&[data-excluding="false"] {
+			background-color: #EEF9FF;
+
+			.facets-title-column {
+				.icon-toggle {
+					button[aria-pressed='true']{
+						background-color: #C6DDE9;
+					}
+				}
+			}
+		}
+
+		// Styles for facets header when excluding
+		&[data-excluding="true"] {
+			background-color: #FFDADA;
+
+			.facets-title-column {
+				.icon-toggle {
+					button[aria-pressed='true']{
+						background-color: #DD9E9F;
+					}
+				}
+			}
+		}
+	}
+
+	.facets-controls {
+		border: 1px solid #ECECEC;
+		background-color: transparent;
+		.properties-controls {
+			button {
+				border-width: 1px;
+				background-color: transparent;
+			}
+		}
+	}
+
+	.facet-list li.selected > a {
+		background-color: #317ac4;
+	}
+	.facet-list li.omitted > a {
+		background-color: #711219;
+	}
 }
 
 
