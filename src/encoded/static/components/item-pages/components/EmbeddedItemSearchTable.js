@@ -36,8 +36,8 @@ export function EmbeddedItemSearchTable(props) {
         onClearFiltersVirtual,
         isClearFiltersBtnVisible,
         onLoad,
-        rowHeight = 90, // Keep in sync w CSS
-        openRowHeight = 90,
+        rowHeight = 40, // Keep in sync w CSS
+        openRowHeight = 40,
         stickyFirstColumn = false,
         tableColumnClassName: propTableColumnClassName,
         facetColumnClassName: propFacetColumnClassName,

@@ -514,7 +514,13 @@ export default class UserView extends React.Component {
     }
 
     render() {
-        const { context: user, schemas, href, windowWidth } = this.props;
+        const {
+            context: user,
+            schemas,
+            href,
+            windowWidth,
+            alerts = [],
+        } = this.props;
         const { email, project } = user;
         const mayEdit = this.mayEdit();
         // Todo: remove
@@ -523,14 +529,26 @@ export default class UserView extends React.Component {
                 ? ' editing editable-fields-container'
                 : '';
 
+        const wrapperCls = alerts.length ? 'pb-5' : 'py-5';
+
         return (
-            <div className="user-profile-page container-wide bg-light py-5 border-top">
+            <div
+                className={
+                    'user-profile-page container-wide bg-light border-top ' +
+                    wrapperCls
+                }>
                 <div className="container" id="content">
                     <div
                         className={
                             'page-container data-display' +
                             ifCurrentlyEditingClass
                         }>
+                        <div className="row">
+                            <Alerts
+                                alerts={alerts}
+                                className="container mt-3"
+                            />
+                        </div>
                         <div className="row">
                             <div className="col-12 col-lg-6 col-xl-7 mb-2 mb-lg-0">
                                 <div className="user-info card h-100">
@@ -810,7 +828,7 @@ const UserViewPageTitle = React.memo(function UserViewPageTitle({
     context,
     schemas,
     currentAction,
-    alerts,
+    // Note: not passing alerts here; see UserView, these are now rendered there
 }) {
     const myDetails = JWT.getUserDetails();
     const myEmail = myDetails && myDetails.email;
@@ -822,8 +840,10 @@ const UserViewPageTitle = React.memo(function UserViewPageTitle({
     }
 
     return (
-        <PageTitleContainer alerts={alerts} className="container pb-55">
-            <OnlyTitle>{titleStr}</OnlyTitle>
+        <PageTitleContainer alerts={[]} className="container-fluid pb-55">
+            <div className="container">
+                <OnlyTitle>{titleStr}</OnlyTitle>
+            </div>
         </PageTitleContainer>
     );
 });
