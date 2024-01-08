@@ -68,7 +68,7 @@
             "type": "string"
         },
         "submitted_id": {
-            "pattern": "[A-Z-]{4,}_PREPARATION-KIT_[A-Z0-9-.]{4,}"
+            "pattern": "[A-Z-]{4,}_PREP-KIT_[A-Z0-9-.]{4,}"
         }
     }
 }
