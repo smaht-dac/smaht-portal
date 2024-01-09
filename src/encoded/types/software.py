@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional, List
 from snovault import collection, load_schema, Item as SnovaultItem
 from encoded_core.types.software import Software as CoreSoftware
 
-from .base import Item
+from .submitted_item import SubmittedItem
 
 
 @collection(
@@ -13,10 +13,12 @@ from .base import Item
         'title': 'Software',
         'description': 'Listing of software for analyses',
     })
-class Software(Item, CoreSoftware):
+class Software(SubmittedItem, CoreSoftware):
     item_type = 'software'
     schema = load_schema("encoded:schemas/software.json")
     embedded_list = []
 
-    def _update(self, properties: Dict[str, Any], sheets: Optional[List] = None) -> None:
+    def _update(
+        self, properties: Dict[str, Any], sheets: Optional[List] = None
+    ) -> None:
         return SnovaultItem._update(self, properties, sheets)

@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item
+from .submitted_item import SubmittedItem
 
 
 @collection(
@@ -11,7 +11,7 @@ from .base import Item
         "description": "Biological, chemical, or physical agent used during an experiment",
     },
 )
-class Treatment(Item):
+class Treatment(SubmittedItem):
     item_type = "treatment"
     schema = load_schema("encoded:schemas/treatment.json")
     embedded_list = []

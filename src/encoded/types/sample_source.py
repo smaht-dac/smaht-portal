@@ -1,6 +1,6 @@
 from snovault import abstract_collection, load_schema
 
-from .base import Item
+from .submitted_item import SubmittedItem
 
 
 @abstract_collection(
@@ -11,8 +11,8 @@ from .base import Item
         "description": "Source material for samples",
     },
 )
-class SampleSource(Item):
+class SampleSource(SubmittedItem):
     item_type = "sample_source"
-    base_types = ["SampleSource"] + Item.base_types
+    base_types = ["SampleSource"] + SubmittedItem.base_types
     schema = load_schema("encoded:schemas/sample_source.json")
     embedded_list = []

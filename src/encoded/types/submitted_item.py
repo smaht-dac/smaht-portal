@@ -30,7 +30,14 @@ class SubmittedId:
     item_type: str
     identifier: str
 
+    def __bool__(self) -> bool:
+        """Evaluate for truthiness."""
+        if self.center_code or self.item_type or self.identifier:
+            return True
+        return False
+
     def to_string(self) -> str:
+        """Format submitted ID back to string."""
         return (
             f"{self.center_code}{SUBMITTED_ID_SEPARATOR}{self.item_type}"
             f"{SUBMITTED_ID_SEPARATOR}{self.identifier}"
@@ -78,10 +85,13 @@ def validate_submitted_id_on_add(
     """
     properties = get_properties(request)
     submitted_id = get_submitted_id(properties)
-    submission_centers = get_submission_centers(properties)
-    validation_error = validate_submitted_id(request, submitted_id, submission_centers)
-    if validation_error:
-        raise validation_error
+    if submitted_id:
+        submission_centers = get_submission_centers(properties)
+        validation_error = validate_submitted_id(
+            request, submitted_id, submission_centers
+        )
+        if validation_error:
+            raise validation_error
 
 
 def get_submitted_id(properties: Dict[str, Any]) -> str:
@@ -102,7 +112,10 @@ def validate_submitted_id(
     """Validate submitted_id for given submission centers."""
     submitted_id_data = parse_submitted_id(submitted_id)
     submission_center_codes = get_submission_center_codes(request, submission_centers)
-    if submitted_id_data.center_code not in submission_center_codes:
+    if (
+        submitted_id_data
+        and submitted_id_data.center_code not in submission_center_codes
+    ):
         return get_submitted_id_validation_error(
             submitted_id_data, submission_center_codes
         )
@@ -116,7 +129,7 @@ def get_submitted_id_validation_error(
         location=SUBMITTED_ID_PROPERTY,
         name=SUBMISSION_CENTER_CODE_MISMATCH_ERROR,
         description=(
-            f"Submitted ID {str(submitted_id)} start"
+            f"Submitted ID {submitted_id.to_string()} start"
             f" ({submitted_id.center_code})"
             f" does not match options for given submission centers:"
             f" {code_options}."
