@@ -1379,11 +1379,15 @@ div#popover-consortium-map {
 				margin-top: 5px;
 			}
 			.stackrow-item-legend {
-				margin-top: 0px;
+				flex-direction: row;
+				width: 60%;
+				margin: auto;
+				margin-top: 5px;
 
 				.stackrow-item {
 					height: 17px;
 					width: 17px;
+					margin: auto;
 					display: flex;
 					justify-content: center;
 
@@ -1394,14 +1398,33 @@ div#popover-consortium-map {
 					}
 				}
 				.text {
-					font-size: 0.5rem;
-					margin-left: 5px;
+					font-size: 7px;
+    				margin-left: 10px;
+    				line-height: 10px;
 				}
 			}
 		}
     
-    
     }
+	
+	// .alluvial-container <576px
+	@media screen and (max-width: 576px) {
+		
+		// hide the alluvial/tab controls and show table
+		.nav {
+			display: none;
+
+		}
+		.tab-content {
+			div.tab-pane {
+				display: flex;
+				opacity: 1;
+				&.alluvial {
+					display: none;
+				}
+			}
+		}
+	}
     
 }
 
