@@ -16,6 +16,37 @@ from .base import Item, SMAHTCollection, collection_add, item_edit
 from .utils import get_item, get_properties
 
 
+"""
+SubmittedItems are the item types we expect to receive from external
+submitters.
+
+The `submitted_id` property should be present in all schemas for submitted
+items. Its pattern is dependent on the item type but follows an overall format
+which is checked in this module's tests.
+
+The overall format is:
+    <submission center code><separator><item type code><separator><identifier>
+with the elements as follows:
+    - submission center code: SubmissionCenter `submitted_id_code`
+    - separator: character to separate the 3 elements
+        * To facilitate parsing for validation, this character cannot be
+          present in the submission center code or the item type code
+    - item type code: string to prevent cross-item references
+    - identifier: submitted identifier of submitters' choosing
+
+
+The submission center code will be validated on item creation and edit.
+The item type is hard-coded in the schema and is expected to be the exact
+name of the item. The identifier portion of the `submitted_id` must only
+match the regex provided for it, which is expected to be uniform for all
+item types.
+
+If looking to update the `submitted_id` pattern, the
+`update_submitted_id_pattern` command in src/encoded/commands is likely
+useful.
+"""
+
+
 SUBMITTED_ID_PROPERTY = "submitted_id"
 SUBMITTED_ID_CENTER_CODE_PATTERN = "^[A-Z-]{4,}"
 SUBMITTED_ID_IDENTIFIER_PATTERN = "[A-Z0-9-_.]{4,}$"

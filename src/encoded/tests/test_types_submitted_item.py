@@ -6,9 +6,12 @@ from snovault.typeinfo import TypeInfo
 from webtest.app import TestApp
 
 from .utils import (
+    get_functional_item_types,
     get_item_properties_from_workbook_inserts,
     get_schema,
     get_submitted_item_types,
+    has_submitted_id,
+    is_submitted_item,
     patch_item,
     post_identifying_insert,
 )
@@ -24,21 +27,6 @@ from ..types.submitted_item import (
 )
 
 
-"""
-The `submitted_id` property should be present in all schemas for submitted
-items. Its pattern is dependent on the item type but follows an overall format
-which is checked in this module's tests.
-
-The overall format is:
-    <submission center code><separator><item type code><separator><identifier>
-with the elements as follows:
-    - submission center code: SubmissionCenter `submitted_id_code`
-    - separator: character to separate the 3 elements
-        * To facilitate parsing for validation, this character cannot be
-          present in the submission center code or the item type code
-    - item type code: string to prevent cross-item references
-    - identifier: submitted identifier of submitters' choosing
-"""
 SUBMITTED_ID_PATTERN_FORMAT = re.compile(
     rf"^{re.escape(SUBMITTED_ID_CENTER_CODE_PATTERN)}"
     rf"[{SUBMITTED_ID_SEPARATOR}][A-Z-]+[{SUBMITTED_ID_SEPARATOR}]"
@@ -297,3 +285,29 @@ def post_items(
     """POST all inserts for given item type."""
     for insert in item_properties_to_test.get(item_type, []):
         post_identifying_insert(testapp, insert, item_type)
+
+
+def test_submitted_items_have_submitted_id(testapp: TestApp) -> None:
+    """Test presence of submitted_id on all SubmittedItem children."""
+    submitted_item_types = get_submitted_item_types(testapp)
+    for item_name, type_info in submitted_item_types.items():
+        assert has_submitted_id(type_info), (
+            f"{item_name} is child of SubmittedItem but lacks 'submitted_id'"
+        )
+
+
+def test_items_with_submitted_id_are_submitted_items(testapp: TestApp) -> None:
+    """Test items with submitted_id property are of type SubmittedItem.
+
+    Also, ensure the inverse.
+    """
+    functional_item_types = get_functional_item_types(testapp)
+    for item_name, type_info in functional_item_types.items():
+        if has_submitted_id(type_info):
+            assert is_submitted_item(type_info), (
+                f"{item_name} has 'submitted_id' but is not SubmittedItem"
+            )
+        else:
+            assert not is_submitted_item(type_info), (
+                f"{item_name} is SubmittedItem but lacks 'submitted_id'"
+            )

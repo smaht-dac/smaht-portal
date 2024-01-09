@@ -1,7 +1,6 @@
 from typing import Any, Dict, List
 
 import pytest
-from snovault.typeinfo import TypeInfo
 from webtest.app import AppError, TestApp
 
 from .utils import (
@@ -12,6 +11,7 @@ from .utils import (
     get_item_properties_from_workbook_inserts,
     get_required_properties,
     has_affiliations,
+    has_submitted_id,
     patch_item,
     post_item
 )
@@ -780,10 +780,6 @@ def get_items_with_submitted_id(testapp: TestApp) -> List[str]:
         item_name for item_name, item_type_info in functional_item_types.items()
         if has_submitted_id(item_type_info)
     ]
-
-
-def has_submitted_id(type_info: TypeInfo) -> bool:
-    return "submitted_id" in type_info.schema.get("properties", {})
 
 
 def get_items_without_submitted_id(testapp: TestApp) -> List[str]:
