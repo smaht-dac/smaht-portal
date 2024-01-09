@@ -60,6 +60,7 @@ def compute_master_mixins():
     for key in mixin_keys:
         assert mixins[key]
 
+
 # TODO: Modify how this mock is implemented so it can be re-used via import as it is copied from snovault
 @contextlib.contextmanager
 def mock_get_submittable_item_names(sub_item_names):
