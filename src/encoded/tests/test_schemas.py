@@ -272,7 +272,7 @@ def test_submittable(testapp):
     expected_props = [
         'a260_a280_ratio', 'analyte_preparation', 'components', 'concentration',
         'molecule', 'protocols', 'ribosomal_rna_ratio', 'rna_integrity_number',
-        'rna_integrity_number_instrument', 'sample_quanitity', 'samples',
+        'rna_integrity_number_instrument', 'sample_quantity', 'samples',
         'submitted_id', 'tags', 'volume', 'weight',
      ]
     expected_req = ["components", "molecule", "samples", "submitted_id"]

@@ -129,7 +129,7 @@
                 "Caliper Life Sciences LabChip GX"
             ]
         },
-        "sample_quanitity": {
+        "sample_quantity": {
             "title": "Sample Quantity",
             "description": "The amount of sample used to generate the analyte (mg)",
             "type": "number",
