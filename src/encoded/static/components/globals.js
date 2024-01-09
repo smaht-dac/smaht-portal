@@ -17,7 +17,7 @@ const portalConfig = {
     title: 'SMaHT Data Portal',
 
     /**
-     * Hostnames which are considered to be canonical for 4DN data.
+     * Hostnames which are considered to be canonical for SMaHT data.
      * If "current" hostname is not in this list, is presumed to be a development environment,
      * and minor visual changes, such as the test data warning banner, appear.
      *

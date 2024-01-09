@@ -1,6 +1,6 @@
 {
     "title": "TrackingItem",
-    "description": "Schema for internal tracking of Fourfront events, such as downloads",
+    "description": "Schema for internal tracking of SMaHT events, such as downloads",
     "$id": "/profiles/tracking_item.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -16,10 +16,10 @@
     ],
     "properties": {
         "schema_version": {
-            "default": "2"
+            "default": "1"
         },
         "status": {
-            "default": "in review by lab"
+            "$merge": "encoded_core:schemas/tracking_item.json#/properties/status"
         },
         "tracking_type": {
             "title": "Tracking Type",
@@ -34,56 +34,7 @@
             ]
 		},
         "download_tracking": {
-            "title": "Download Tracking",
-            "type": "object",
-            "description": "Subobject to hold download tracking field. Allows additional properties",
-            "additionalProperties": true,
-            "properties": {
-                "user_agent" : {
-                    "title": "User Agent",
-                    "type": "string"
-                },
-                "remote_ip" : {
-                    "title": "Remote IP",
-                    "type": "string"
-                },
-                "geo_country": {
-                    "title": "Country",
-                    "type": "string"
-                },
-                "geo_city": {
-                    "title": "City",
-                    "type": "string"
-                },
-                "user_uuid": {
-                    "title": "User UUID",
-                    "type": "string"
-                },
-                "request_path" : {
-                    "title": "Request Path",
-                    "type": "string"
-                },
-                "filename" : {
-                    "title": "Filename",
-                    "type": "string"
-                },
-                "file_format" : {
-                    "title": "File Format",
-                    "type": "string"
-                },
-                "experiment_type" : {
-                    "title": "Experiment Type",
-                    "type": "string"
-                },
-                "range_query" : {
-                    "title": "Range Query",
-                    "type": "boolean"
-                },
-                "request_headers": {
-                    "title": "Request Headers",
-                    "type": "string"
-                }
-            }
+            "$merge": "encoded_core:schemas/tracking_item.json#/properties/download_tracking"
         },
         "google_analytics" : {
             "title" : "Google Analytics Data",
@@ -629,69 +580,16 @@
             }
         },
         "jupyterhub_session": {
-            "title": "JupyterHub Session",
-            "type": "object",
-            "description": "Subobject to track a JupyterHub session. Allows additional properties",
-            "additionalProperties": true,
-            "properties": {
-                "user_uuid": {
-                    "title": "User UUID",
-                    "type": "string"
-                },
-                "date_initialized": {
-                    "title": "Date Initialized",
-                    "type": "string",
-                    "anyOf": [
-                        {"format": "date-time"},
-                        {"format": "date"}
-                    ]
-                },
-                "date_culled": {
-                    "title": "Date Culled",
-                    "type": "string",
-                    "anyOf": [
-                        {"format": "date-time"},
-                        {"format": "date"}
-                    ]
-                },
-                "files_mounted": {
-                    "type" : "array",
-                    "title" : "Files Mounted",
-                    "description": "UUIDs of files mounted during this session.",
-                    "items" : {
-                        "title": "File UUID",
-                        "type":  "string"
-                    }
-                }
-            }
+            "$merge": "encoded_core:schemas/tracking_item.json#/properties/jupyterhub_session"
         },
         "other_tracking": {
-            "title": "Other Tracking",
-            "type": "object",
-            "description": "Subobject to misc. tracking fields. Allows additional properties",
-            "additionalProperties": true,
-            "properties": {}
+            "$merge": "encoded_core:schemas/tracking_item.json#/properties/other_tracking"
         }
     },
     "facets": {
-        "tracking_type": {
-            "title": "Tracking Type"
-        },
-        "download_tracking.user_agent": {
-            "title": "Download User Agent"
-        },
-        "download_tracking.file_format": {
-            "title": "Download File Format"
-        }
+        "$merge": "encoded_core:schemas/tracking_item.json#/facets"
     },
     "columns": {
-        "tracking_type": {
-            "title": "Tracking Type"
-        },
-        "google_analytics.for_date": {
-            "title": "Analytics Date",
-            "default_hidden" : true
-        }
-    },
-    "excludedColumns" : ["lab.display_title"]
+        "$merge": "encoded_core:schemas/tracking_item.json#/columns"
+    }
 }

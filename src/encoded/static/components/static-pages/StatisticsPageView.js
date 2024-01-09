@@ -32,7 +32,7 @@ export default class StatisticsPageView extends React.PureComponent {
         'usage' : {
             'title' : "Usage Statistics",
             'icon' : 'users fas',
-            'tip' : "View statistics related to usage of the 4DN Data Portal",
+            'tip' : "View statistics related to usage of the SMaHT Data Portal",
             // Now set upon load:
             // 'aggregationsToChartData' : _.pick(aggregationsToChartData,
             //     'sessions_by_country', 'fields_faceted', /* 'browse_search_queries', 'other_search_queries', */
