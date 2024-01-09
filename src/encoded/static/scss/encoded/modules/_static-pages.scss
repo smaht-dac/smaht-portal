@@ -891,6 +891,7 @@ div#popover-consortium-map {
 		}
 	}
 	@media screen and (max-width: 576px) {
+		max-width: 200px;
 		.popover-header {
 			font-size: 0.6rem;
 		}
