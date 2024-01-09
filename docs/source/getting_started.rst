@@ -5,11 +5,10 @@ Getting Started (User)
 
 In order to make your data accessible, searchable and assessable you should submit as much metadata as possible to the SMaHT system along with the raw files you have generated in your experiments.
 
-These pages are designed to
+These pages are designed to:
 
-
-* show you how to find out what kind of metadata we collect for your particular type of experiment
-* introduce the mechanisms by which you can submit your metadata and data to the SMaHT data portal.
+* Show you how to find out what kind of metadata we collect for your particular type of experiment.
+* Introduce the mechanisms by which you can submit your metadata and data to the SMaHT data portal.
 
 An overview of metadata structure is pending, check back soon!
 
@@ -19,8 +18,7 @@ We have two primary ways that you can submit data to the SMaHT data portal.
 Data Submission via Spreadsheet
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The excel metadata workbooks
-
+The Excel metadata workbooks:
 
 * Are useful for submitting metadata and data for several sequencing experiments or samples
 * Can be used to make bulk edits of submitted but not yet released metadata
