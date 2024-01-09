@@ -557,5 +557,16 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier": "statistics",
+        "uuid": "f0f0f0f0-0000-0000-0000-ffffff040000",
+        "title": "Portal Statistics (BETA)",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
