@@ -145,8 +145,8 @@ def is_pattern_up_to_date(
         current_pattern.center_code != submission_center_code_pattern
         or current_pattern.identifier != identifier_pattern
     ):
-        return True
-    return False
+        return False
+    return True
 
 
 def write_pattern_to_schema_file(

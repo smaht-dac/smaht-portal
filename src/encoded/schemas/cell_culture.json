@@ -118,7 +118,7 @@
             "linkTo": "CellLine"
         },
         "submitted_id": {
-            "pattern": "[A-Z-]{4,}_CELL-CULTURE_[A-Z0-9-.]{4,}"
+            "pattern": "^[A-Z-]{4,}_CELL-CULTURE_[A-Z0-9-.]{4,}$"
         }
     }
 }
