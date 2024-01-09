@@ -228,10 +228,16 @@ $facetlist-excluding: #450000;
 		background-color: transparent;
 		.properties-controls {
 			button {
+				color: #343741;
 				border-width: 1px;
 				background-color: transparent;
+				
+				&:hover {
+					background-color: #ced4da;
+				}
 			}
 		}
+
 	}
 
 	.facet-list li.selected > a {
