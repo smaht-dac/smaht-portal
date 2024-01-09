@@ -7,6 +7,29 @@ smaht-portal
 Change Log
 ----------
 
+
+0.12.0
+======
+
+`PR 50: Upgrader implementation <https://github.com/smaht-dac/smaht-portal/pull/50>`_
+* Add upgrader functionality from encoded-core + tests
+* Update dcicutils with schema_utils module
+
+
+0.11.8
+======
+
+* Add portal side validation for QC rulesets
+
+
+0.11.7
+======
+
+* Fix in ingestion.loadxl_extensions.load_data_into_database to handle errors correctly.
+* Added record (uw_gcc) to master-inserts/submission_center.json for testing.
+* Added test_structured_data.py back in after resolved GitHub Actions (only) failure.
+
+
 0.11.6
 ======
 
