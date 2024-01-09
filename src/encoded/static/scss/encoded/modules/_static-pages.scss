@@ -1475,6 +1475,10 @@ div#popover-consortium-data-alluvial-table {
 			}
 		}
 	}
+	// #popover-consortium-map-data-alluvial-table <576px
+	@media screen and (max-width: 576px) {
+		max-width: 200px;
+	}
 }
 
 /***
