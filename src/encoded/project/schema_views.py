@@ -10,8 +10,9 @@ class SMaHTProjectSchemaViews(SnovaultProjectSchemaViews):
         return 'submitted_id'
 
     def get_properties_for_exclusion(self):
-        return ['date_created', 'submitted_by', 'uuid', 'schema_version',
-                'submission_centers', 'consortia', 'principals_allowed']
+        return ['accession', 'consortia', 'date_created', 'principals_allowed',
+                'schema_version', 'status', 'submission_centers', 'submitted_by', 
+                'uuid']
 
     def get_attributes_for_exclusion(self):
         return {'permission': ['restricted_fields'], 'calculatedProperty': [True]}

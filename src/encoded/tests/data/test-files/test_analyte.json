@@ -1,6 +1,6 @@
 {
-    "title": "Analyte",
-    "$id": "/profiles/analyte.json",
+    "title": "Test Analyte",
+    "$id": "/profiles/test_analyte.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
@@ -129,7 +129,7 @@
                 "Caliper Life Sciences LabChip GX"
             ]
         },
-        "sample_quantity": {
+        "sample_quanitity": {
             "title": "Sample Quantity",
             "description": "The amount of sample used to generate the analyte (mg)",
             "type": "number",
