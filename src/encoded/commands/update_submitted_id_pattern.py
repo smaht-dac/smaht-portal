@@ -1,7 +1,6 @@
 import argparse
 import json
 import logging
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterator, List
 
@@ -12,31 +11,12 @@ from encoded.types.submitted_item import (
     SUBMITTED_ID_CENTER_CODE_PATTERN,
     SUBMITTED_ID_IDENTIFIER_PATTERN,
     SUBMITTED_ID_PROPERTY,
-    SubmittedId,
-    parse_submitted_id,
+    SubmittedIdPattern,
+    parse_submitted_id_pattern,
 )
 
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass(frozen=True)
-class SubmittedIdPattern(SubmittedId):
-    pass
-
-
-def parse_submitted_id_pattern(pattern: str) -> SubmittedIdPattern:
-    """Parse submitted_id pattern to dataclass.
-
-    No different from parsing a submitted_id value for now, but may
-    change.
-    """
-    parsed_pattern = parse_submitted_id(pattern)
-    return SubmittedIdPattern(
-        parsed_pattern.center_code,
-        parsed_pattern.item_type,
-        parsed_pattern.identifier
-    )
 
 
 def update_submitted_id_patterns(

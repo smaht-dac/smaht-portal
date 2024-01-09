@@ -56,6 +56,25 @@ def parse_submitted_id(submitted_id: str) -> SubmittedId:
     return SubmittedId(center_code, item_type, identifier)
 
 
+@dataclass(frozen=True)
+class SubmittedIdPattern(SubmittedId):
+    pass
+
+
+def parse_submitted_id_pattern(pattern: str) -> SubmittedIdPattern:
+    """Parse submitted_id pattern to dataclass.
+
+    No different from parsing a submitted_id value for now, but may
+    change.
+    """
+    parsed_pattern = parse_submitted_id(pattern)
+    return SubmittedIdPattern(
+        parsed_pattern.center_code,
+        parsed_pattern.item_type,
+        parsed_pattern.identifier
+    )
+
+
 class SubmittedSmahtCollection(SMAHTCollection):
     pass
 

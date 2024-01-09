@@ -19,6 +19,7 @@ from ..types.submitted_item import (
     SUBMITTED_ID_SEPARATOR,
     SUBMISSION_CENTER_CODE_MISMATCH_ERROR,
     get_submitted_id,
+    parse_submitted_id_pattern,
 )
 
 
@@ -105,30 +106,10 @@ def get_submitted_id_pattern(type_info: TypeInfo) -> str:
     return schema_utils.get_pattern(submitted_id)
 
 
-def split_submitted_id_pattern(submitted_id_pattern: str) -> str:
-    """Split submitted_id pattern into components via separator."""
-    return submitted_id_pattern.split(SUBMITTED_ID_SEPARATOR)
-
-
-def get_center_code_pattern_from_submitted_id_pattern(submitted_id_pattern: str) -> str:
-    """Return portion of submitted_id pattern for SubmissionCenter code."""
-    return split_submitted_id_pattern(submitted_id_pattern)[0]
-
-
 def get_item_type_from_submitted_id_pattern(submitted_id_pattern: str) -> str:
     """Return portion of submitted_id pattern for item type."""
-    split_pattern = split_submitted_id_pattern(submitted_id_pattern)
-    if len(split_pattern) >= 2:
-        return split_pattern[1]
-    return ""
-
-
-def get_identifier_pattern_from_submitted_id_pattern(submitted_id_pattern: str) -> str:
-    """Return portion of submitted_id pattern for submitted idenifier."""
-    split_pattern = split_submitted_id_pattern(submitted_id_pattern)
-    if len(split_pattern) >= 3:
-        return "".join(split_pattern[2:])
-    return ""
+    submitted_id_pattern_data = parse_submitted_id_pattern(submitted_id_pattern)
+    return submitted_id_pattern_data.item_type
 
 
 def get_submitted_id_pattern_issues(type_info: TypeInfo) -> List[str]:
@@ -156,19 +137,6 @@ def get_submitted_id_pattern_format_failure(pattern: str) -> str:
     return ""
 
 
-# def get_submitted_id_pattern_center_code_failure(pattern: str) -> str:
-#     """Check submission code pattern and report issue, if found."""
-#     center_code_pattern = get_center_code_pattern_from_submitted_id_pattern(
-#         pattern
-#     )
-#     if center_code_pattern != f"^{SUBMITTED_ID_CENTER_CODE_PATTERN}":
-#         return (
-#             f"Unexpected pattern for SubmissionCenter code: {center_code_pattern}."
-#             f" Expected {SUBMITTED_ID_CENTER_CODE_PATTERN}"
-#         )
-#     return ""
-
-
 def get_submitted_id_pattern_item_type_failure(
     pattern: str, type_info: TypeInfo
 ) -> str:
@@ -181,17 +149,6 @@ def get_submitted_id_pattern_item_type_failure(
             f" Expected {expected_item_type}"
         )
     return ""
-
-
-# def get_submitted_id_pattern_identifier_failure(pattern: str) -> str:
-#     """Check identifer failure and report issue, if found."""
-#     identifier_pattern = get_identifier_pattern_from_submitted_id_pattern(pattern)
-#     if identifier_pattern != f"{SUBMITTED_ID_IDENTIFIER_PATTERN}$":
-#         return (
-#             f"Unexpected pattern for identifier: {identifier_pattern}."
-#             f" Expected {SUBMITTED_ID_IDENTIFIER_PATTERN}"
-#         )
-#     return ""
 
 
 def test_submitted_id_validated_on_post_and_patch(
