@@ -90,6 +90,7 @@ def metadata_tsv(context, request):
     post_params = request.json_body
     type_param = request.params.get('type') or post_params.get('type')
     sort_param = request.params.get('sort') or post_params.get('sort')
+    include_extra_files = request.params.get('include_extra_files') or post_params.get('include_extra_files', False)
 
     # One of type param or accessions must be passed
     if not type_param and 'accessions' not in post_params:
@@ -120,7 +121,7 @@ def metadata_tsv(context, request):
         for _, tsv_descriptor in TSV_MAPPING.items():
             line.append(file.get(tsv_descriptor.field_name()[0], ''))
         data_lines += [line]
-        if 'extra_files' in file:
+        if include_extra_files and 'extra_files' in file:
             efs = file.get('extra_files')
             for ef in efs:
                 ef_line = []

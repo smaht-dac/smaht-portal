@@ -208,7 +208,7 @@ def validate_processed_file_produced_from_field(context, request):
 @view_config(context=File.Collection, permission='add', request_method='POST',
              validators=[validate_item_content_post,
                          validate_file_filename,
-                         #validate_extra_file_format, NOTE: does not function correctly at the moment - Will Jan 8 2023
+                         validate_extra_file_format,
                          validate_processed_file_unique_md5_with_bypass,
                          validate_processed_file_produced_from_field,
                          validate_user_submission_consistency])
@@ -223,14 +223,14 @@ def file_add(context, request, render=None):
 @view_config(context=File, permission='edit', request_method='PUT',
              validators=[validate_item_content_put,
                          validate_file_filename,
-                         #validate_extra_file_format,  NOTE: does not function correctly at the moment - Will Jan 8 2023
+                         validate_extra_file_format,
                          validate_processed_file_unique_md5_with_bypass,
                          validate_processed_file_produced_from_field,
                          validate_user_submission_consistency])
 @view_config(context=File, permission='edit', request_method='PATCH',
              validators=[validate_item_content_patch,
                          validate_file_filename,
-                         #validate_extra_file_format,  NOTE: does not function correctly at the moment - Will Jan 8 2023
+                         validate_extra_file_format,
                          validate_processed_file_unique_md5_with_bypass,
                          validate_processed_file_produced_from_field,
                          validate_user_submission_consistency])
@@ -244,7 +244,7 @@ def file_add(context, request, render=None):
 @view_config(context=File, permission='index', request_method='GET',
              validators=[validate_item_content_in_place,
                          validate_file_filename,
-                         #validate_extra_file_format,  NOTE: does not function correctly at the moment - Will Jan 8 2023
+                         validate_extra_file_format,
                          validate_processed_file_unique_md5_with_bypass,
                          validate_processed_file_produced_from_field,
                          validate_user_submission_consistency],
