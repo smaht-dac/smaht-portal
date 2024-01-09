@@ -129,7 +129,6 @@ def get_submitted_id_pattern_format_failure(pattern: str) -> str:
     Using a regex to check a regex here, so formatting is a little
     tricky to get right, particularly which characters to escape.
     """
-    import pdb; pdb.set_trace()
     match = SUBMITTED_ID_PATTERN_FORMAT.match(pattern)
     if not match:
         return (
