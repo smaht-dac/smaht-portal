@@ -5,7 +5,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "medical_history": "TEST_MEDICAL-HX_FEMALE",
+        "medical_history": "TEST_MEDICAL-HISTORY_FEMALE",
         "disease": "MONDO:0016668",
         "age_at_diagnosis": 5
     }

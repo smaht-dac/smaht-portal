@@ -4,7 +4,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE_FASTQ",
+        "submitted_id": "TEST_UNALIGNED-READS_FASTQ",
         "data_category": [
             "Sequencing Reads"
         ],

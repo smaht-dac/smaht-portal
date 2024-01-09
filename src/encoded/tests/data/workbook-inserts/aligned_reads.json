@@ -4,7 +4,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE_SOME_BAM",
+        "submitted_id": "TEST_ALIGNED-READS_SOME_BAM",
         "data_category": [
             "Sequencing Reads"
         ],

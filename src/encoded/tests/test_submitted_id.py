@@ -40,9 +40,9 @@ with the elements as follows:
     - identifier: submitted identifier of submitters' choosing
 """
 SUBMITTED_ID_PATTERN_FORMAT = re.compile(
-    rf"^[\^]{re.escape(SUBMITTED_ID_CENTER_CODE_PATTERN)}"
+    rf"^{re.escape(SUBMITTED_ID_CENTER_CODE_PATTERN)}"
     rf"[{SUBMITTED_ID_SEPARATOR}][A-Z-]+[{SUBMITTED_ID_SEPARATOR}]"
-    rf"{re.escape(SUBMITTED_ID_IDENTIFIER_PATTERN)}[\$]$"
+    rf"{re.escape(SUBMITTED_ID_IDENTIFIER_PATTERN)}$"
 )
 
 DUMMY_SUBMITTED_ID_CODE = "FOOBAR"
@@ -55,7 +55,7 @@ def test_submitted_id_code_pattern(testapp: TestApp) -> None:
     SubmissionCenter, so these need to be synced.
     """
     submitted_id_code_pattern = get_submitted_id_code_pattern(testapp)
-    assert submitted_id_code_pattern == (f"^{SUBMITTED_ID_CENTER_CODE_PATTERN}$")
+    assert submitted_id_code_pattern == (f"{SUBMITTED_ID_CENTER_CODE_PATTERN}$")
 
 
 def get_submitted_id_code_pattern(testapp: TestApp) -> str:

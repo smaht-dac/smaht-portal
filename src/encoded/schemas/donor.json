@@ -86,7 +86,7 @@
             "minimum": 0
         },
         "submitted_id": {
-            "pattern": "^[A-Z-]{4,}_DONOR_[A-Z0-9-.]{4,}$"
+            "pattern": "^[A-Z-]{4,}_DONOR_[A-Z0-9-_.]{4,}$"
         }
     }
 }

@@ -110,7 +110,7 @@
             }
         },
         "submitted_id": {
-            "pattern": "^[A-Z-]{4,}_SUBMITTED-FILE_[A-Z0-9-.]{4,}$"
+            "pattern": "^[A-Z-]{4,}_SUBMITTED-FILE_[A-Z0-9-_.]{4,}$"
         }
     }
 }

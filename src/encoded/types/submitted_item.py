@@ -18,7 +18,7 @@ from .utils import get_item, get_properties
 
 SUBMITTED_ID_PROPERTY = "submitted_id"
 SUBMITTED_ID_CENTER_CODE_PATTERN = "^[A-Z-]{4,}"
-SUBMITTED_ID_IDENTIFIER_PATTERN = "[A-Z0-9-.]{4,}$"
+SUBMITTED_ID_IDENTIFIER_PATTERN = "[A-Z0-9-_.]{4,}$"
 SUBMITTED_ID_SEPARATOR = "_"
 
 SUBMISSION_CENTER_CODE_MISMATCH_ERROR = "Submission Code Mismatch"
@@ -52,7 +52,7 @@ def parse_submitted_id(submitted_id: str) -> SubmittedId:
     split_id = submitted_id.split(SUBMITTED_ID_SEPARATOR)
     center_code = split_id[0]
     item_type = split_id[1] if len(split_id) > 1 else ""
-    identifier = "".join(split_id[2:]) if len(split_id) > 2 else ""
+    identifier = SUBMITTED_ID_SEPARATOR.join(split_id[2:]) if len(split_id) > 2 else ""
     return SubmittedId(center_code, item_type, identifier)
 
 

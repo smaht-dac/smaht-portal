@@ -126,7 +126,7 @@
             "$merge": "encoded_core:schemas/software.json#/properties/source_url"
         },
         "submitted_id": {
-            "pattern": "^[A-Z-]{4,}_SOFTWARE_[A-Z0-9-.]{4,}$"
+            "pattern": "^[A-Z-]{4,}_SOFTWARE_[A-Z0-9-_.]{4,}$"
         }
     }
 }
