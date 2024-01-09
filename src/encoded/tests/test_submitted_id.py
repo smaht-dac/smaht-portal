@@ -16,6 +16,7 @@ from ..project.loadxl import ITEM_INDEX_ORDER as loadxl_order
 from ..types.submitted_item import (
     SUBMITTED_ID_CENTER_CODE_PATTERN,
     SUBMITTED_ID_IDENTIFIER_PATTERN,
+    SUBMITTED_ID_PROPERTY,
     SUBMITTED_ID_SEPARATOR,
     SUBMISSION_CENTER_CODE_MISMATCH_ERROR,
     get_submitted_id,
@@ -102,7 +103,7 @@ def get_submitted_id_pattern_failure(item_name: str, type_info: TypeInfo) -> str
 
 def get_submitted_id_pattern(type_info: TypeInfo) -> str:
     """Get schema regex pattern for submitted_id."""
-    submitted_id = schema_utils.get_property(type_info.schema, "submitted_id")
+    submitted_id = schema_utils.get_property(type_info.schema, SUBMITTED_ID_PROPERTY)
     return schema_utils.get_pattern(submitted_id)
 
 
@@ -128,6 +129,7 @@ def get_submitted_id_pattern_format_failure(pattern: str) -> str:
     Using a regex to check a regex here, so formatting is a little
     tricky to get right, particularly which characters to escape.
     """
+    import pdb; pdb.set_trace()
     match = SUBMITTED_ID_PATTERN_FORMAT.match(pattern)
     if not match:
         return (
@@ -237,7 +239,7 @@ def assert_invalid_submitted_id_on_patch(
     """
     insert_submitted_id = get_submitted_id(insert)
     invalid_submitted_id_for_insert = get_invalid_submitted_id(insert_submitted_id)
-    patch_body = {"submitted_id": invalid_submitted_id_for_insert}
+    patch_body = {SUBMITTED_ID_PROPERTY: invalid_submitted_id_for_insert}
     response = patch_item(testapp, patch_body, insert["uuid"], status=422)
     assert is_invalid_submitted_id_response(response)
 
@@ -245,7 +247,10 @@ def assert_invalid_submitted_id_on_patch(
 def get_insert_with_invalid_submitted_id(insert: Dict[str, Any]) -> Dict[str, Any]:
     """Create similar insert with invalid dummy submitted_id_code."""
     return {
-        key: (value if key != "submitted_id" else get_invalid_submitted_id(value))
+        key: (
+            value if key != SUBMITTED_ID_PROPERTY
+            else get_invalid_submitted_id(value)
+        )
         for key, value in insert.items()
     }
 
