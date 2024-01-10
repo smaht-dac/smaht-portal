@@ -11,6 +11,7 @@ from .utils import (
     get_item_properties_from_workbook_inserts,
     get_items_with_submitted_id,
     get_items_without_submitted_id,
+    get_schema,
     has_affiliations,
     patch_item,
     post_item
