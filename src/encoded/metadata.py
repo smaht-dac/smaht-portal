@@ -22,7 +22,8 @@ log = structlog.getLogger(__name__)
 
 
 def includeme(config):
-    config.add_route('metadata', '/metadata')
+    config.add_route('metadata', '/metadata/')
+    config.add_route('metadata_redirect', '/metadata/{search_params}/{tsv}')
     config.scan(__name__)
 
 
@@ -87,7 +88,10 @@ def metadata_tsv(context, request):
 
     Alternatively, can accept a GET request wherein all files from ExpSets matching search query params are included.
     """
-    post_params = request.json_body
+    try:
+        post_params = request.json_body
+    except Exception:
+        post_params = {}  # might not get json
     type_param = request.params.get('type') or post_params.get('type')
     sort_param = request.params.get('sort') or post_params.get('sort')
     include_extra_files = request.params.get('include_extra_files') or post_params.get('include_extra_files', False)
