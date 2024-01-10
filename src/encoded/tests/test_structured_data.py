@@ -360,7 +360,6 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
-        "debug": True,
         "file": "library_20231119.csv", "as_file_name": "library.csv",
         "expected": "library_20231119.result.json",
         "expected_refs": [
@@ -416,6 +415,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
     },
     # ----------------------------------------------------------------------------------------------
     {
+        "debug": True,
         "file": "sequencing_20231120.csv",
         "as_file_name": "sequencing.csv",
         "expected": "sequencing_20231120.result.json",
