@@ -70,7 +70,7 @@
             "description": "Identifying code for the submission center's submitted items",
             "type": "string",
             "unique_key": true,
-            "pattern": "^[A-Z-]{2,}$",
+            "pattern": "^[A-Z]{2,}$",
             "permission": "restricted_fields"
         }
     }
