@@ -96,7 +96,7 @@
             "linkTo": "Donor"
         },
         "submitted_id": {
-            "pattern": "^[A-Z-]{4,}_DEMOGRAPHIC_[A-Z0-9-_.]{4,}$"
+            "pattern": "^[A-Z]{2,}_DEMOGRAPHIC_[A-Z0-9-_.]{4,}$"
         }
     }
 }

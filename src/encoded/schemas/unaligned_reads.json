@@ -77,7 +77,7 @@
             "default": "1"
         },
         "submitted_id": {
-            "pattern": "^[A-Z-]{4,}_UNALIGNED-READS_[A-Z0-9-_.]{4,}$"
+            "pattern": "^[A-Z]{2,}_UNALIGNED-READS_[A-Z0-9-_.]{4,}$"
         },
         "paired_with": {
             "description": "Link to associated paired-end file, if applicable",

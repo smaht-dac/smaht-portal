@@ -76,7 +76,7 @@
             "linkTo": "Tissue"
         },
         "submitted_id": {
-            "pattern": "^[A-Z-]{4,}_HISTOLOGY_[A-Z0-9-_.]{4,}$"
+            "pattern": "^[A-Z]{2,}_HISTOLOGY_[A-Z0-9-_.]{4,}$"
         }
     }
 }

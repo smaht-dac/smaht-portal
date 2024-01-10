@@ -50,7 +50,7 @@
             "default": "1"
         },
         "submitted_id": {
-            "pattern": "^[A-Z-]{4,}_ANALYTE-PREPARATION_[A-Z0-9-_.]{4,}$"
+            "pattern": "^[A-Z]{2,}_ANALYTE-PREPARATION_[A-Z0-9-_.]{4,}$"
         },
         "cell_lysis_method": {
             "title": "Cell Lysis Method",

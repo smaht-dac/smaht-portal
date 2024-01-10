@@ -68,7 +68,7 @@
             "default": "1"
         },
         "submitted_id": {
-            "pattern": "^[A-Z-]{4,}_CELL-CULTURE-SAMPLE_[A-Z0-9-_.]{4,}$"
+            "pattern": "^[A-Z]{2,}_CELL-CULTURE-SAMPLE_[A-Z0-9-_.]{4,}$"
         }
     }
 }
