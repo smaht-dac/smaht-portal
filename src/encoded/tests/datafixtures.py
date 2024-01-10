@@ -63,7 +63,7 @@ def remote_user_testapp(app, remote_user: str) -> TestApp:
 
 
 TEST_SUBMISSION_CENTER_CODE = 'TEST'
-TEST_SECOND_SUBMISSION_CENTER_CODE = 'SECOND-TEST'
+TEST_SECOND_SUBMISSION_CENTER_CODE = 'SECONDTEST'
 
 
 @pytest.fixture
@@ -368,7 +368,7 @@ def donor_properties(test_second_submission_center: Dict[str, Any]) -> Dict[str,
     """
     return {
         "submission_centers": [test_second_submission_center["uuid"]],
-        "submitted_id": "SECOND-TEST_DONOR_1234",
+        "submitted_id": f"{TEST_SECOND_SUBMISSION_CENTER_CODE}_DONOR_1234",
         "age": 35,
         "sex": "Male",
     }
