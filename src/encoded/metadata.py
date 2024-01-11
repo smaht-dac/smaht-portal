@@ -1,12 +1,8 @@
-from pyramid.httpexceptions import (
-    HTTPBadRequest,
-)
-from base64 import b64decode
+from urllib.parse import parse_qs
 from pyramid.view import view_config
 from pyramid.response import Response
-from snovault.util import simple_path_ids, debug_log
-from itertools import chain
-
+from snovault.util import debug_log
+from dcicutils.misc_utils import ignored
 from snovault.search.search import (
     get_iterable_search_results,
 )
@@ -58,8 +54,8 @@ class DummyFileInterfaceImplementation(object):
         return self._line
 
 
-# This dictionary is a key --> 3-tuple mapping that encodes options for the /metadata endpoint
-# given a field description
+# This dictionary is a key --> 3-tuple mapping that encodes options for the /metadata/ endpoint
+# given a field description. This also describes the order that fields show up in the TSV.
 TSV_MAPPING = {
     'File Download URL': TSVDescriptor(field_type=FILE,
                                        field_name=['href']),
@@ -88,20 +84,33 @@ def metadata_tsv(context, request):
 
     Alternatively, can accept a GET request wherein all files from ExpSets matching search query params are included.
     """
-    try:
-        post_params = request.json_body
-    except Exception:
-        post_params = {}  # might not get json
-    type_param = request.params.get('type') or post_params.get('type')
-    sort_param = request.params.get('sort') or post_params.get('sort')
-    include_extra_files = request.params.get('include_extra_files') or post_params.get('include_extra_files', False)
+    ignored(context)
+    # Process arguments
+    if request.content_type == 'application/json':
+        try:
+            post_params = request.json_body
+            accessions = post_params.get('accessions', [])
+            type_param = post_params.get('type')
+            sort_param = post_params.params.get('sort')
+            download_file_name = post_params.get('download_file_name')
+            include_extra_files = post_params.get('include_extra_files', False)
+        except json.JSONDecodeError:
+            return Response("Invalid JSON format", status=400)
+    elif request.content_type == 'application/x-www-form-urlencoded':
+        post_params = request.POST
+        accessions = parse_qs(post_params.get('accessions')).get('accessions', [])
+        type_param = post_params.get('type')
+        sort_param = post_params.get('sort')
+        download_file_name = post_params.get('download_file_name')
+        include_extra_files = post_params.get('include_extra_files', False)
+    else:
+        return Response("Unsupported media type", status=415)
 
     # One of type param or accessions must be passed
     if not type_param and 'accessions' not in post_params:
         return Response("Invalid parameters", status=400)
 
     # Process the data
-    accessions = post_params.get('accessions', [])
     download_file_name = post_params.get('download_file_name')
     if download_file_name is None:
         download_file_name = 'metadata_' + datetime.utcnow().strftime('%Y-%m-%d-%Hh-%Mm') + '.tsv'
@@ -118,19 +127,32 @@ def metadata_tsv(context, request):
         search_param['sort'] = sort_param
     search_iter = get_iterable_search_results(request, param_lists=search_param)
 
-    # process search iter
+    # Helper to grab field values if we reach a terminal field ie: not dict or list
+    def descend_field(d, field_name):
+        fields = field_name.split('.')
+        for field in fields:
+            d = d.get(field)
+        if isinstance(d, dict) or isinstance(d, list):  # we did not get a terminal field
+            return None
+        return d
+
+    # Process search iter
     data_lines = []
     for file in search_iter:
         line = []
         for _, tsv_descriptor in TSV_MAPPING.items():
-            line.append(file.get(tsv_descriptor.field_name()[0], ''))
+            field = descend_field(file, tsv_descriptor.field_name()[0])
+            if field:
+                line.append(descend_field(file, tsv_descriptor.field_name()[0]))
         data_lines += [line]
         if include_extra_files and 'extra_files' in file:
             efs = file.get('extra_files')
             for ef in efs:
                 ef_line = []
                 for _, tsv_descriptor in TSV_MAPPING.items():
-                    ef_line.append(ef.get(tsv_descriptor.field_name()[0], ''))
+                    field = descend_field(ef, tsv_descriptor.field_name()[0])
+                    if field:
+                        line.append(descend_field(ef, tsv_descriptor.field_name()[0]))
                 data_lines += [ef_line]
 
     # Define a header
@@ -142,7 +164,7 @@ def metadata_tsv(context, request):
         header3 = list(TSV_MAPPING.keys())
         return header1, header2, header3
 
-    # helper to generate the tsv
+    # Helper to generate the tsv
     def generate_tsv():
         line = DummyFileInterfaceImplementation()
         writer = csv.writer(line, delimiter='\t')
@@ -153,7 +175,6 @@ def metadata_tsv(context, request):
             )
             yield line.read().encode('utf-8')
 
-        # write the data
         for entry in data_lines:
             writer.writerow(entry)
             yield line.read().encode('utf-8')
@@ -161,5 +182,5 @@ def metadata_tsv(context, request):
     return Response(
         content_type='text/tsv',
         app_iter=generate_tsv(),
-        content_disposition='attachment;filename="%s"' % download_file_name
+        content_disposition=f'attachment;filename={download_file_name}'
     )
