@@ -11,6 +11,7 @@ Change Log
 0.13.1
 ======
 
+`PR 58: Culture mixture parent types <https://github.com/smaht-dac/smaht-portal/pull/58>`_
 * Include CellCulture as parent item of CellCultureMixture for resolving reference during submissions
 
 
