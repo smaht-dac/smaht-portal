@@ -175,17 +175,20 @@ $facetlist-excluding: #450000;
 	background-color: #fff;
 	font-family: 'Inter';
 	border: none;
+	padding-bottom: 0;
 
-	.facets-header {
+	.facets-header.row {
 		background-color: transparent;
+		margin: 0;
 
 		.facets-title-column {
 			.facets-title {
+				font-size: 18px;
 				font-weight: 500;
 				color: #343741;
 			}
 			.icon-toggle {
-				border-color: #8E8E8E;
+				border-color: rgb(0,0,0,.15);
 				button {
 					background-color: transparent;
 					border: none;
@@ -224,27 +227,93 @@ $facetlist-excluding: #450000;
 	}
 
 	.facets-controls {
-		border: 1px solid #ECECEC;
+		border-left: 1px solid rgb(0,0,0,.15);
+		border-right: 1px solid rgb(0,0,0,.15);
 		background-color: transparent;
+		margin: 0;
 		.properties-controls {
 			button {
 				color: #343741;
+				font-size: 12px;
 				border-width: 1px;
 				background-color: transparent;
 				
 				&:hover {
 					background-color: #ced4da;
 				}
+
+				&:disabled {
+					border-color: #ced4daa6;
+					color: #ced4daa6;
+
+					&:hover {
+						background-color: transparent;
+					}
+				}
 			}
 		}
 
 	}
 
-	.facet-list li.selected > a {
-		background-color: #317ac4;
-	}
-	.facet-list li.omitted > a {
-		background-color: #711219;
+	.facets-body {
+		border: 1px solid rgb(0,0,0,.15);
+		.facet {
+			margin: 0;
+			h5.facet-title {
+				color: #343741;
+				span.expand-toggle {
+					display: flex;
+					i.icon {
+						font-size: 12px;
+					}
+				}
+	
+				& > div > span {
+					font-size: 13px;
+				}
+			}
+
+			
+			.facet-list {
+				li {
+					& > a {
+						& > .facet-item {
+							font-size: 12px;
+						}
+						& > .facet-count {
+							font-size: 12px;
+						}
+					}
+					&.selected {
+						& > a {
+							background-color: #317ac4;
+						}
+					}
+					&.omitted {
+						& > a {
+							background-color: #711219;
+						}
+					}
+					
+					&:hover {
+						& > a {
+							& > .facet-item {
+								color: #343741;
+							}
+							& > .facet-count {
+								color: #343741;
+							}
+						}
+					}
+				}
+			}
+			
+			&.open {
+				h5.facet-title {
+					border-bottom: 1px solid rgb(0,0,0,.15);
+				}
+			}
+		}
 	}
 }
 
@@ -277,7 +346,7 @@ $facetlist-excluding: #450000;
 body[data-pathname="/search/"]:not([data-current-action="add"]) {
 	#application,
 	#layout {
-		background-color: $appSecondaryBackgroundColor;
+		background-color: white;
 	}
 }
 
