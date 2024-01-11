@@ -19,7 +19,7 @@ SAME_AS_NOREFS = {}
 
 # Ideally this flag would be False, i.e. we would like to use the actual/real (live)
 # schemas that are defined in (the schemas directory of) this repo for testing; but at
-# least currently (2023-01-10) these are undergoing a lot of change and leading to frequent
+# least currently (2024-01-10) these are undergoing a lot of change and leading to frequent
 # and annoying test breakage; so setting this to True will cause these tests to use a dump of
 # the schemas which were previously saved into a static file (data/test-files/schemas_dump.json).
 USE_SAVED_SCHEMAS_RATHER_THAN_LIVE_SCHEMAS = True
