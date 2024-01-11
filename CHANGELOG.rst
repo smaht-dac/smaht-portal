@@ -12,6 +12,8 @@ Change Log
 ======
 
 * Added gitinfo.json to buildspec.yml to make available to the app basic git info (branch/commit).
+* Updated test_structured_data.py to (optionally - default for now) insulate itself from change to the
+  schemas while they are undergoing a lot of modification, leading to frequent/annoying test breakage.
 
 
 0.12.0
