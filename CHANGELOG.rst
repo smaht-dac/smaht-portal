@@ -8,12 +8,20 @@ Change Log
 ----------
 
 
-0.13.0
+0.14.0
 ======
 
 * Added gitinfo.json to buildspec.yml to make available to the app basic git info (branch/commit).
 * Updated test_structured_data.py to (optionally - default for now) insulate itself from change to the
   schemas while they are undergoing a lot of modification, leading to frequent/annoying test breakage.
+
+
+0.13.0
+======
+
+`PR 56: Implement submittable item API <https://github.com/smaht-dac/smaht-portal/pull/56>`_
+* Add functionality and tests for submittable item api to smaht portal
+* update lockfile with latest snovault that contains the primitive for this 
 
 
 0.12.0

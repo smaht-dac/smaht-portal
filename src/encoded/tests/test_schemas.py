@@ -1,11 +1,15 @@
 from typing import Any, Dict
 
 import pytest
+from unittest import mock
+import contextlib
 from dcicutils import schema_utils
+from dcicutils.misc_utils import to_camel_case
 from pkg_resources import resource_listdir
 from snovault import COLLECTIONS, TYPES
 from snovault.schema_utils import load_schema
 from webtest import TestApp
+from ..project.schema_views import SMaHTProjectSchemaViews
 
 from .utils import (
     get_all_item_types,
@@ -14,6 +18,7 @@ from .utils import (
     get_unique_key,
     has_property,
     pluralize_collection,
+    get_items_with_submitted_id,
 )
 
 
@@ -56,6 +61,49 @@ def compute_master_mixins():
         assert mixins[key]
 
 
+# TODO: Modify how this mock is implemented so it can be re-used via import as it is copied from snovault
+@contextlib.contextmanager
+def mock_get_submittable_item_names(sub_item_names):
+    with mock.patch.object(SMaHTProjectSchemaViews, 'get_submittable_item_names', lambda x: sub_item_names):
+        yield
+
+
+@contextlib.contextmanager
+def mock_get_prop_for_submittable_items(sub_prop):
+    with mock.patch.object(SMaHTProjectSchemaViews, 'get_prop_for_submittable_items', lambda x: sub_prop):
+        yield
+
+
+@contextlib.contextmanager
+def mock_get_properties_for_exclusion(excl_props):
+    with mock.patch.object(SMaHTProjectSchemaViews, 'get_properties_for_exclusion', lambda x: excl_props):
+        yield
+
+
+@contextlib.contextmanager
+def mock_get_attributes_for_exclusion(excl_attrs):
+    with mock.patch.object(SMaHTProjectSchemaViews, 'get_attributes_for_exclusion', lambda x: excl_attrs):
+        yield
+
+
+@contextlib.contextmanager
+def composite_mocker_for_schema_utils(sub_item_names=[], sub_prop=None, excl_props=[], excl_attrs={}):
+    """ This function is generally repurposable but has been customized for a conditional contextmanager
+        that will handle any combination """
+    conditions_managers = [
+        (sub_item_names, mock_get_submittable_item_names),
+        (sub_prop, mock_get_prop_for_submittable_items),
+        (excl_props, mock_get_properties_for_exclusion),
+        (excl_attrs, mock_get_attributes_for_exclusion)
+    ]
+
+    with contextlib.ExitStack() as stack:
+        for condition, context_manager in conditions_managers:
+            if condition:
+                stack.enter_context(context_manager(condition))
+        yield
+
+
 def camel_case(name):
     return ''.join(x for x in name.title() if not x == '_')
 
@@ -71,7 +119,6 @@ def test_load_schema(schema, master_mixins, registry, testapp):
         'sample_source.json',
         'submitted_file.json',
     ]
-
     loaded_schema = load_schema('encoded:schemas/%s' % schema)
     assert loaded_schema
 
@@ -220,3 +267,63 @@ def test_unique_keys_are_identifying_properties(testapp: TestApp) -> None:
 def has_identifying_property(schema: Dict[str, Any], property_name: str) -> bool:
     """Return True if schema has property_name property."""
     return property_name in schema_utils.get_identifying_properties(schema)
+
+
+def test_submittable(testapp):
+    expected_props = [
+        'a260_a280_ratio', 'analyte_preparation', 'components', 'concentration',
+        'molecule', 'protocols', 'ribosomal_rna_ratio', 'rna_integrity_number',
+        'rna_integrity_number_instrument', 'sample_quantity', 'samples',
+        'submitted_id', 'tags', 'volume', 'weight',
+     ]
+    expected_req = ["components", "molecule", "samples", "submitted_id"]
+    expected_dep_req = ['rna_integrity_number', 'rna_integrity_number_instrument']
+    schema_name = 'test_analyte'
+    loaded_schema = load_schema(f'encoded:tests/data/test-files/{schema_name}.json')
+    all_propnames = schema_utils.get_properties(loaded_schema).keys()
+    test_uri = f'/submission-schemas/{schema_name}.json'
+    with composite_mocker_for_schema_utils(sub_prop='submitted_id',
+                                           excl_props=['accession', 'consortia', 'date_created',
+                                                       'principals_allowed', 'schema_version',
+                                                       'status', 'submission_centers', 'submitted_by',
+                                                       'uuid'],
+                                           excl_attrs={'permission': ['restricted_fields'],
+                                                       'calculatedProperty': [True]}):
+        with mock.patch('snovault.schema_views.schema',
+                        return_value=loaded_schema):
+            res = testapp.get(test_uri, status=200).json
+            sub_props = schema_utils.get_properties(res)
+            assert len(sub_props) == len(expected_props)
+            non_sub_prop_cnt = 0
+            for prop in all_propnames:
+                if prop in expected_props:
+                    assert prop in sub_props
+                    if prop in expected_req:
+                        assert 'is_required' in sub_props[prop]
+                    if prop in expected_dep_req:
+                        assert 'also_requires' in sub_props[prop]
+                else:
+                    non_sub_prop_cnt += 1
+            assert len(sub_props) + non_sub_prop_cnt == len(all_propnames)
+
+
+@pytest.fixture
+def submittable_items(testapp):
+    return get_items_with_submitted_id(testapp)
+
+
+def test_submittables(testapp, submittable_items):
+    test_uri = '/submission-schemas/'
+    expected_items = [to_camel_case(i) for i in submittable_items]
+    res = testapp.get(test_uri, status=200).json
+    assert len(expected_items) == len(res)
+    for item in res.keys():
+        assert item in expected_items
+
+
+@pytest.mark.parametrize('schema', [k for k in SCHEMA_FILES])
+def test_not_submittable(testapp, schema, submittable_items):
+    schema_file = f"{schema}.json"
+    if schema_file not in submittable_items:
+        test_uri = f'/submission-schemas/{schema_file}'
+        testapp.get(test_uri, status=404)
