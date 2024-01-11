@@ -8,6 +8,12 @@ Change Log
 ----------
 
 
+0.13.1
+======
+
+* Include CellCulture as parent item of CellCultureMixture for resolving reference during submissions
+
+
 0.13.0
 ======
 
