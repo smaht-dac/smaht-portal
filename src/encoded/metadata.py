@@ -91,7 +91,7 @@ def metadata_tsv(context, request):
             post_params = request.json_body
             accessions = post_params.get('accessions', [])
             type_param = post_params.get('type')
-            sort_param = post_params.params.get('sort')
+            sort_param = post_params.get('sort')
             download_file_name = post_params.get('download_file_name')
             include_extra_files = post_params.get('include_extra_files', False)
         except json.JSONDecodeError:
@@ -111,7 +111,6 @@ def metadata_tsv(context, request):
         return Response("Invalid parameters", status=400)
 
     # Process the data
-    accessions = post_params.get('accessions', [])
     download_file_name = post_params.get('download_file_name')
     if download_file_name is None:
         download_file_name = 'metadata_' + datetime.utcnow().strftime('%Y-%m-%d-%Hh-%Mm') + '.tsv'
