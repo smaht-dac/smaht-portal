@@ -6,6 +6,7 @@ from dcicutils.misc_utils import ignored
 from snovault.search.search import (
     get_iterable_search_results,
 )
+from typing import Tuple
 
 import csv
 import json
@@ -56,20 +57,62 @@ class DummyFileInterfaceImplementation(object):
 
 # This dictionary is a key --> 3-tuple mapping that encodes options for the /metadata/ endpoint
 # given a field description. This also describes the order that fields show up in the TSV.
+# TODO: move to another file or write in JSON
 TSV_MAPPING = {
-    'File Download URL': TSVDescriptor(field_type=FILE,
-                                       field_name=['href']),
-    'File Accession': TSVDescriptor(field_type=FILE,
-                                    field_name=['accession']),
-    'Size (MB)': TSVDescriptor(field_type=FILE,
-                               field_name=['file_size']),
-    'md5sum': TSVDescriptor(field_type=FILE,
-                            field_name=['md5sum']),
-    'File Type': TSVDescriptor(field_type=FILE,
-                               field_name=['file_type']),
-    'File Format': TSVDescriptor(field_type=FILE,
-                                 field_name=['file_format.display_title']),
+    FILE: {
+        'File Download URL': TSVDescriptor(field_type=FILE,
+                                           field_name=['href']),
+        'File Accession': TSVDescriptor(field_type=FILE,
+                                        field_name=['accession']),
+        'Size (MB)': TSVDescriptor(field_type=FILE,
+                                   field_name=['file_size']),
+        'md5sum': TSVDescriptor(field_type=FILE,
+                                field_name=['md5sum']),
+        'File Type': TSVDescriptor(field_type=FILE,
+                                   field_name=['file_type']),
+        'File Format': TSVDescriptor(field_type=FILE,
+                                     field_name=['file_format.display_title']),
+    }
 }
+
+
+def generate_file_download_header(download_file_name: str):
+    """ Helper function that generates a suitable header for the File download """
+    header1 = ['###', 'Metadata TSV Download', '', '', '', '']
+    header2 = ['Suggested command to download: ', '', '',
+               'cut -f 1 ./{} | tail -n +3 | grep -v ^# | xargs -n 1 curl -O -L '
+               '--user <access_key_id>:<access_key_secret>'.format(download_file_name), '', '']
+    header3 = list(TSV_MAPPING[FILE].keys())
+    return header1, header2, header3
+
+
+def descend_field(request, prop, field_name):
+    """ Helper to grab field values if we reach a terminal field ie: not dict or list """
+    fields = field_name.split('.')
+    for field in fields:
+        prop = prop.get(field)
+    if isinstance(prop, dict) or isinstance(prop, list):  # we did not get a terminal field
+        return None
+    if field_name == 'href':  # customization to inject server info to download URL
+        prop = f'{request.scheme}://{request.host}{prop}'
+    return prop
+
+
+def generate_tsv(header: Tuple, data_lines: list):
+    """ Helper function that actually generates the TSV """
+    line = DummyFileInterfaceImplementation()
+    writer = csv.writer(line, delimiter='\t')
+    # write the header
+    for header_row in header:
+        writer.writerow(
+            header_row
+        )
+        yield line.read().encode('utf-8')
+
+    # write the data
+    for entry in data_lines:
+        writer.writerow(entry)
+        yield line.read().encode('utf-8')
 
 
 @view_config(route_name='metadata', request_method=['GET', 'POST'])
@@ -110,12 +153,16 @@ def metadata_tsv(context, request):
     if not type_param and 'accessions' not in post_params:
         return Response("Invalid parameters", status=400)
 
-    # Process the data
-    download_file_name = post_params.get('download_file_name')
+    # Give reasonable file name
     if download_file_name is None:
         download_file_name = 'metadata_' + datetime.utcnow().strftime('%Y-%m-%d-%Hh-%Mm') + '.tsv'
 
-    # generate search
+    # Generate a header, resolve mapping
+    # Note that this will become more complex as we add additional header types
+    header = generate_file_download_header(download_file_name)
+    tsv_mapping = TSV_MAPPING[FILE]
+
+    # Generate search
     search_param = {}
     if not type_param:
         search_param['type'] = 'File'
@@ -127,63 +174,27 @@ def metadata_tsv(context, request):
         search_param['sort'] = sort_param
     search_iter = get_iterable_search_results(request, param_lists=search_param)
 
-    # Helper to grab field values if we reach a terminal field ie: not dict or list
-    def descend_field(d, field_name):
-        fields = field_name.split('.')
-        for field in fields:
-            d = d.get(field)
-        if isinstance(d, dict) or isinstance(d, list):  # we did not get a terminal field
-            return None
-        if field_name == 'href':  # customization to inject server info to download URL
-            d = f'{request.scheme}://{request.host}{d}'
-        return d
-
     # process search iter
     data_lines = []
     for file in search_iter:
         line = []
-        for _, tsv_descriptor in TSV_MAPPING.items():
-            field = descend_field(file, tsv_descriptor.field_name()[0])
+        for _, tsv_descriptor in tsv_mapping.items():
+            field = descend_field(request, file, tsv_descriptor.field_name()[0])
             if field:
-                line.append(descend_field(file, tsv_descriptor.field_name()[0]))
+                line.append(field)
         data_lines += [line]
         if include_extra_files and 'extra_files' in file:
             efs = file.get('extra_files')
             for ef in efs:
                 ef_line = []
-                for _, tsv_descriptor in TSV_MAPPING.items():
-                    field = descend_field(ef, tsv_descriptor.field_name()[0])
+                for _, tsv_descriptor in tsv_mapping.items():
+                    field = descend_field(request, ef, tsv_descriptor.field_name()[0])
                     if field:
-                        line.append(descend_field(ef, tsv_descriptor.field_name()[0]))
+                        line.append(field)
                 data_lines += [ef_line]
-
-    # Define a header
-    def generate_header():
-        header1 = ['###', 'Metadata TSV Download', '', '', '', '']
-        header2 = ['Suggested command to download: ', '', '',
-                   'cut -f 1 ./{} | tail -n +3 | grep -v ^# | xargs -n 1 curl -O -L '
-                   '--user <access_key_id>:<access_key_secret>'.format(download_file_name), '', '']
-        header3 = list(TSV_MAPPING.keys())
-        return header1, header2, header3
-
-    # Helper to generate the tsv
-    def generate_tsv():
-        line = DummyFileInterfaceImplementation()
-        writer = csv.writer(line, delimiter='\t')
-        # write the header
-        for header in generate_header():
-            writer.writerow(
-                header
-            )
-            yield line.read().encode('utf-8')
-
-        # write the data
-        for entry in data_lines:
-            writer.writerow(entry)
-            yield line.read().encode('utf-8')
 
     return Response(
         content_type='text/tsv',
-        app_iter=generate_tsv(),
+        app_iter=generate_tsv(header, data_lines),
         content_disposition=f'attachment;filename={download_file_name}'
     )
