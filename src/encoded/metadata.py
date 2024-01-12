@@ -91,7 +91,7 @@ def metadata_tsv(context, request):
             post_params = request.json_body
             accessions = post_params.get('accessions', [])
             type_param = post_params.get('type')
-            sort_param = post_params.params.get('sort')
+            sort_param = post_params.get('sort')
             download_file_name = post_params.get('download_file_name')
             include_extra_files = post_params.get('include_extra_files', False)
         except json.JSONDecodeError:
