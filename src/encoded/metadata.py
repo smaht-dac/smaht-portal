@@ -134,6 +134,8 @@ def metadata_tsv(context, request):
             d = d.get(field)
         if isinstance(d, dict) or isinstance(d, list):  # we did not get a terminal field
             return None
+        if field_name == 'href':  # customization to inject server info to download URL
+            d = f'{request.scheme}://{request.host}{d}'
         return d
 
     # Process search iter
