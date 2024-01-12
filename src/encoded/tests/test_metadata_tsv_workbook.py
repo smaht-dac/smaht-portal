@@ -24,7 +24,7 @@ class TestMetadataTSVHelper:
 
     @classmethod
     def check_type_length(cls, es_testapp, t, expected_count):
-        res = es_testapp.post_json('/metadata',
+        res = es_testapp.post_json('/metadata/',
                                    {'type': t})
         tsv = res._app_iter[0]
         parsed = cls.read_tsv_from_bytestream(tsv)
@@ -37,7 +37,7 @@ class TestMetadataTSVWorkbook:
     def test_metadata_tsv_workbook(self, workbook, es_testapp):
         """ Tests we can process regular files in multiples in the workbook """
         es_testapp.post_json('/index', {})  # index the files
-        res = es_testapp.post_json('/metadata',
+        res = es_testapp.post_json('/metadata/',
                                    {'type': 'File', 'include_extra_files': True})
         tsv = res._app_iter[0]
         assert b'Metadata TSV Download' in tsv
