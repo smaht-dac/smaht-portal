@@ -1,4 +1,3 @@
-from urllib.parse import parse_qs
 from pyramid.view import view_config
 from pyramid.response import Response
 from snovault.util import debug_log
@@ -141,7 +140,7 @@ def metadata_tsv(context, request):
             return Response("Invalid JSON format", status=400)
     elif request.content_type == 'application/x-www-form-urlencoded':
         post_params = request.POST
-        accessions = parse_qs(post_params.get('accessions')).get('accessions', [])
+        accessions = json.loads(post_params.get('accessions', ''))
         type_param = post_params.get('type')
         sort_param = post_params.get('sort')
         download_file_name = post_params.get('download_file_name')
@@ -153,7 +152,6 @@ def metadata_tsv(context, request):
     if not type_param and 'accessions' not in post_params:
         return Response("Invalid parameters", status=400)
 
-    # Give reasonable file name
     if download_file_name is None:
         download_file_name = 'metadata_' + datetime.utcnow().strftime('%Y-%m-%d-%Hh-%Mm') + '.tsv'
 
@@ -174,7 +172,7 @@ def metadata_tsv(context, request):
         search_param['sort'] = sort_param
     search_iter = get_iterable_search_results(request, param_lists=search_param)
 
-    # process search iter
+    # Process search iter
     data_lines = []
     for file in search_iter:
         line = []
