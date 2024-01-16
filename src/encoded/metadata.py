@@ -177,18 +177,16 @@ def metadata_tsv(context, request):
     for file in search_iter:
         line = []
         for _, tsv_descriptor in tsv_mapping.items():
-            field = descend_field(request, file, tsv_descriptor.field_name()[0])
-            if field:
-                line.append(field)
+            field = descend_field(request, file, tsv_descriptor.field_name()[0]) or ''
+            line.append(field)
         data_lines += [line]
         if include_extra_files and 'extra_files' in file:
             efs = file.get('extra_files')
             for ef in efs:
                 ef_line = []
                 for _, tsv_descriptor in tsv_mapping.items():
-                    field = descend_field(request, ef, tsv_descriptor.field_name()[0])
-                    if field:
-                        line.append(field)
+                    field = descend_field(request, ef, tsv_descriptor.field_name()[0]) or ''
+                    line.append(field)
                 data_lines += [ef_line]
 
     return Response(
