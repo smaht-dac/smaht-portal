@@ -13,6 +13,21 @@ Change Log
 * Adds `/metadata` support
 
 
+0.13.1
+======
+
+`PR 58: Culture mixture parent types <https://github.com/smaht-dac/smaht-portal/pull/58>`_
+* Include CellCulture as parent item of CellCultureMixture for resolving reference during submissions
+
+
+0.13.0
+======
+
+`PR 56: Implement submittable item API <https://github.com/smaht-dac/smaht-portal/pull/56>`_
+* Add functionality and tests for submittable item api to smaht portal
+* update lockfile with latest snovault that contains the primitive for this 
+
+
 0.12.0
 ======
 
