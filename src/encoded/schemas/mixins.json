@@ -214,6 +214,67 @@
             "title": "Submission Centers"
         }
     },
+    "file_links": {
+        "derived_from": {
+            "title": "Derived From",
+            "description": "Files used as input to create this file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "File"
+            }
+        },
+        "file_sets": {
+            "title": "File Sets",
+            "description": "File collections associated with this file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "FileSet"
+            }
+        },
+        "software": {
+            "title": "Software",
+            "description": "Software used to create this file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Software"
+            }
+        }
+    },
+    "file_release_links": {
+        "sequencing": {
+            "title": "Sequencing",
+            "description": "Sequencing associated with this file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "permission": "restricted_fields",
+            "items": {
+                "type": "string",
+                "linkTo": "Sequencing"
+            }
+        },
+        "assays": {
+            "title": "Assays",
+            "description": "Assays associated with this file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "permission": "restricted_fields",
+            "items": {
+                "type": "string",
+                "linkTo": "Assay"
+            }
+        }
+    },
     "identifier": {
         "identifier": {
             "title": "Identifier",
