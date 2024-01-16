@@ -171,10 +171,150 @@ $facetlist-excluding: #450000;
 
 @import "../../../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/facet-list.scss";
 
-
-
 .search-view-controls-and-results .facets-container {
 	background-color: #fff;
+	font-family: 'Inter';
+	border: none;
+	padding-bottom: 0;
+
+	.facets-header.row {
+		background-color: transparent;
+		margin: 0;
+
+		.facets-title-column {
+			.facets-title {
+				font-size: 18px;
+				font-weight: 500;
+				color: #343741;
+			}
+			.icon-toggle {
+				border-color: rgb(0,0,0,.15);
+				button {
+					background-color: transparent;
+					border: none;
+					.fa-icon {
+						fill: #343741;
+					}
+				}
+			}
+		}
+
+		// Styles for facets header when including
+		&[data-excluding="false"] {
+			background-color: #EEF9FF;
+
+			.facets-title-column {
+				.icon-toggle {
+					button[aria-pressed='true']{
+						background-color: #C6DDE9;
+					}
+				}
+			}
+		}
+
+		// Styles for facets header when excluding
+		&[data-excluding="true"] {
+			background-color: #FFDADA;
+
+			.facets-title-column {
+				.icon-toggle {
+					button[aria-pressed='true']{
+						background-color: #DD9E9F;
+					}
+				}
+			}
+		}
+	}
+
+	.facets-controls {
+		border-left: 1px solid rgb(0,0,0,.15);
+		border-right: 1px solid rgb(0,0,0,.15);
+		background-color: transparent;
+		margin: 0;
+		.properties-controls {
+			button {
+				color: #343741;
+				font-size: 12px;
+				border-width: 1px;
+				background-color: transparent;
+				
+				&:hover {
+					background-color: #ced4da;
+				}
+
+				&:disabled {
+					border-color: #ced4daa6;
+					color: #ced4daa6;
+
+					&:hover {
+						background-color: transparent;
+					}
+				}
+			}
+		}
+
+	}
+
+	.facets-body {
+		border: 1px solid rgb(0,0,0,.15);
+		.facet {
+			margin: 0;
+			h5.facet-title {
+				color: #343741;
+				span.expand-toggle {
+					display: flex;
+					i.icon {
+						font-size: 12px;
+					}
+				}
+	
+				& > div > span {
+					font-size: 13px;
+				}
+			}
+
+			
+			.facet-list {
+				li {
+					& > a {
+						& > .facet-item {
+							font-size: 12px;
+						}
+						& > .facet-count {
+							font-size: 12px;
+						}
+					}
+					&.selected {
+						& > a {
+							background-color: #317ac4;
+						}
+					}
+					&.omitted {
+						& > a {
+							background-color: #711219;
+						}
+					}
+					
+					&:hover {
+						& > a {
+							& > .facet-item {
+								color: #343741;
+							}
+							& > .facet-count {
+								color: #343741;
+							}
+						}
+					}
+				}
+			}
+			
+			&.open {
+				h5.facet-title {
+					border-bottom: 1px solid rgb(0,0,0,.15);
+				}
+			}
+		}
+	}
 }
 
 
@@ -206,7 +346,7 @@ $facetlist-excluding: #450000;
 body[data-pathname="/search/"]:not([data-current-action="add"]) {
 	#application,
 	#layout {
-		background-color: $appSecondaryBackgroundColor;
+		background-color: white;
 	}
 }
 
