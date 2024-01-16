@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.14.0
+======
+
+* Adds `/metadata` support
+
 
 0.13.1
 ======
