@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.13.0.1b4"  # TODO: To become 0.14.0
+version = "0.14.0.1b1"  # TODO: To become 0.15.0
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -190,8 +190,6 @@ purge-item-type = "encoded.commands.purge_item_type:main"
 run-upgrade-on-inserts = "encoded.commands.run_upgrader_on_inserts:main"
 spreadsheet-to-json = "encoded.commands.spreadsheet_to_json:main"
 submission-test = "encoded.commands.submission_test:main"
-# Use the same-named script in SubmitCGAP instead.
-# submit-metadata-bundle = "encoded.commands.submit_metadata_bundle:main"
 update-inserts-from-server = "encoded.commands.update_inserts_from_server:main"
 verify-item = "encoded.commands.verify_item:main"
 parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/testing only

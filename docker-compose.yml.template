@@ -7,7 +7,7 @@ services:
   # sqlalchemy.url = postgresql://postgres:postgres@db:5432/postgres
   db:
     build: ./deploy/docker/postgres
-    container_name: cgap-postgres
+    container_name: smaht-postgres
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres

@@ -50,7 +50,7 @@ else:
     my_selected_env = os.environ.get("ENV_NAME")
 
     if not my_selected_account or my_selected_account == "643366669028":
-        PRINT("The legacy account can no longer be used for testing cgap-portal.")
+        PRINT("The legacy account cannot be used for testing smaht-portal.")
         exit(1)
     elif not my_selected_env:
         print("ENV_NAME was not set. It is being set to ")

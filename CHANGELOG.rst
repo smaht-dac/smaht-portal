@@ -8,12 +8,26 @@ Change Log
 ----------
 
 
-0.14.0
+0.15.0
 ======
 
 * Added gitinfo.json to buildspec.yml to make available to the app basic git info (branch/commit).
 * Updated test_structured_data.py to (optionally - default for now) insulate itself from change to the
   schemas while they are undergoing a lot of modification, leading to frequent/annoying test breakage.
+* Fixed load(xl) error handling for ingestion submission to report back to submitr properly.
+
+
+0.14.0
+======
+
+* Adds `/metadata` support
+
+
+0.13.1
+======
+
+`PR 58: Culture mixture parent types <https://github.com/smaht-dac/smaht-portal/pull/58>`_
+* Include CellCulture as parent item of CellCultureMixture for resolving reference during submissions
 
 
 0.13.0
