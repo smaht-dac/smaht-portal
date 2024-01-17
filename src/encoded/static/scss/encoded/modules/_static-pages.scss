@@ -159,6 +159,15 @@
 		// body.scrolled-past-top & {
 		// 	top : 42px;
 		// }
+		body.scrolled-past-160 & {
+			top : 200px;
+		}
+		body.scrolled-past-240 & {
+			top : 150px;
+		}
+		body.scrolled-past-360 & {
+			top : 42px;
+		}
 
 		max-width: 650px;
 		&.width-bounded {

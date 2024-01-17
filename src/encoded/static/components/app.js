@@ -1747,6 +1747,7 @@ class BodyElement extends React.PureComponent {
             scrolledPast80: null,
             scrolledPast160: null,
             scrolledPast240: null,
+            scrolledPast360: null,
             //'scrollTop'             : null // Not used, too many state updates if were to be.
             windowWidth: null,
             windowHeight: null,
@@ -2056,6 +2057,7 @@ class BodyElement extends React.PureComponent {
                 let scrolledPast80 = false;
                 let scrolledPast160 = false;
                 let scrolledPast240 = false;
+                let scrolledPast360 = false;
 
                 if (
                     // Fixed nav takes effect at medium grid breakpoint or wider.
@@ -2073,6 +2075,9 @@ class BodyElement extends React.PureComponent {
                     if (currentScrollTop > 240) {
                         scrolledPast240 = true;
                     }
+                    if (currentScrollTop > 360) {
+                        scrolledPast360 = true;
+                    }
                 }
 
                 return {
@@ -2080,6 +2085,7 @@ class BodyElement extends React.PureComponent {
                     scrolledPast80,
                     scrolledPast160,
                     scrolledPast240,
+                    scrolledPast360,
                 };
             });
         };
@@ -2138,6 +2144,7 @@ class BodyElement extends React.PureComponent {
             scrolledPast80,
             scrolledPast160,
             scrolledPast240,
+            scrolledPast360,
             scrolledPastTop,
             classList,
             isFullscreen,
@@ -2151,6 +2158,7 @@ class BodyElement extends React.PureComponent {
         if (scrolledPast80) bodyClassList.push('scrolled-past-80');
         if (scrolledPast160) bodyClassList.push('scrolled-past-160');
         if (scrolledPast240) bodyClassList.push('scrolled-past-240');
+        if (scrolledPast360) bodyClassList.push('scrolled-past-360');
         if (isFullscreen) {
             bodyClassList.push('is-full-screen');
         } else if (testWarningPresent) {
