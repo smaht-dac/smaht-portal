@@ -225,7 +225,7 @@ def format_issue(issue: dict, original_file: Optional[str] = None) -> str:
 
 
 def analyze_objects(portal: Portal, structured_data: dict) -> None:
-    PRINT("> Object Status:")
+    PRINT("\n> Object Status:")
     for portal_object_type in structured_data:
         for portal_object in structured_data[portal_object_type]:
             analyze_object(portal, portal_object, portal_object_type)
@@ -233,13 +233,13 @@ def analyze_objects(portal: Portal, structured_data: dict) -> None:
 
 def analyze_object(portal: Portal, portal_object: dict, portal_object_type: str) -> None:
     portal_object = PortalObject(portal, portal_object, portal_object_type)
-    existing_portal_object, existing_portal_object_path = portal_object.lookup(True)
-    if existing_portal_object_path:
-        print(f"  - {existing_portal_object_path}")
-        if existing_portal_object:
-            print(f"    Exists")
+    existing_object, existing_identifying_path = portal_object.lookup(include_identifying_path=True, raw=True)
+    if existing_identifying_path:
+        print(f"  - {existing_identifying_path}")
+        if existing_object:
+            print(f"     Exists -> {PortalObject.get_uuid(existing_object)}")
         else:
-            print(f"    Does not exist")
+            print(f"     Does not exist")
 
 
 def parse_args() -> argparse.Namespace:
