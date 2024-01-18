@@ -50,6 +50,9 @@
             "$ref": "mixins.json#/modified"
         },
         {
+            "$ref": "mixins.json#/reference_genome"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -60,6 +63,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/variant_type"
         },
         {
             "$ref": "file.json#/properties"
@@ -84,9 +90,6 @@
         },
         "read_pair_number": {
             "$merge": "encoded:schemas/unaligned_reads.json#/properties/read_pair_number"
-        },
-        "variant_type": {
-            "$merge": "encoded:schemas/mixins.json#/variant_type/variant_type"
         }
     }
 }
