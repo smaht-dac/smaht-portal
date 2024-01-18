@@ -257,7 +257,7 @@ $facetlist-excluding: #450000;
 	}
 
 	.facets-body {
-		border: 1px solid rgb(0,0,0,.15);
+		border: 1px solid #EEEEEE;
 		background-color: #FBFBFC;
 		padding: 0px;
 
@@ -315,7 +315,7 @@ $facetlist-excluding: #450000;
 			&.open {
 				background-color: white;
 				h5.facet-title {
-					border-bottom: 1px solid rgb(0,0,0,.15);
+					border-bottom: 1px solid #EEEEEE;
 				}
 			}
 		}
