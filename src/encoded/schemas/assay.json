@@ -34,6 +34,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/code"
+        },
+        {
             "$ref": "mixins.json#/description"
         },
         {
@@ -61,12 +64,6 @@
         },
         "schema_version": {
             "default": "1"
-        },
-        "code": {
-            "title": "Code",
-            "description": "Assay code used in file naming scheme",
-            "type": "integer",
-            "minimum": 0
         }
     }
 }
