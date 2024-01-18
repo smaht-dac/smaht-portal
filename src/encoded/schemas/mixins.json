@@ -249,7 +249,7 @@
             }
         }
     },
-    "file_release_links": {
+    "file_release": {
         "sequencing": {
             "title": "Sequencing",
             "description": "Sequencing associated with this file",
@@ -273,6 +273,29 @@
                 "type": "string",
                 "linkTo": "Assay"
             }
+        },
+        "dataset": {
+            "title": "Dataset",
+            "description": "Dataset associated with the file",
+            "comment": "Use by front-end in search query for showing appropriate files in tables",
+            "type": "string",
+            "permission": "restricted_fields",
+            "enum": [
+                "colo829bl",
+                "colo829t",
+                "colo829blt_50to1"
+            ]
+        },
+        "access_status": {
+            "title": "Access Status",
+            "description": "Access status for the file contents",
+            "comment": "Use as dummy variable for display of benchmarking files for now; has no actual implications on data access",
+            "type": "string",
+            "permission": "restricted_fields",
+            "enum": [
+                "Open",
+                "Protected"
+            ]
         }
     },
     "identifier": {
