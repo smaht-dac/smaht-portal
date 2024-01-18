@@ -56,6 +56,11 @@
         "schema_version": {
             "default": "1"
         },
+        "flowcell": {
+            "title": "Flowcell",
+            "description": "Flowcell used for sequencing",
+            "type": "string"
+        },
         "instrument_model": {
             "title": "Instrument Model",
             "description": "Model of instrument used to obtain data",
