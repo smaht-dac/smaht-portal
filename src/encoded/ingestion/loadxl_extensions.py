@@ -99,7 +99,7 @@ def summary_of_load_data_results(load_data_response: Optional[Dict],
     else:
         status = "OK"
     summary = [
-        f"Submittion UUID: {submission.id}",
+        f"Submission UUID: {submission.id}" if submission else None,
         f"Status: {status}",
         f"File: {submission.data_file_name}" if submission else None,
         f"S3 File: {submission.s3_data_file_location}" if submission else None,
