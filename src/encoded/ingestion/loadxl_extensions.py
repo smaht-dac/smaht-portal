@@ -78,6 +78,7 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
         overwrite=True,
         itype=None,
         from_json=True,
+        continue_on_exception=True,
         verbose=True,
         post_only=post_only,
         patch_only=patch_only,
