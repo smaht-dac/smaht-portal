@@ -52,6 +52,8 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
             'analyte_preparation',
             'library',
             'library_preparation',
+            'assay',
+            'sequencer',
             'sequencing',
             'file_set',
             'unaligned_reads',
