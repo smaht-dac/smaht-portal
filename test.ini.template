@@ -1,10 +1,10 @@
 [app:app]
 use = config:base.ini#app
 session.secret = superlegitrealsecret
-file_upload_bucket = cgap-unit-testing-files
-blob_bucket = cgap-unit-testing-blobs
-metadata_bundles_bucket = cgap-unit-testing-metadata-bundles
-file_wfout_bucket = cgap-unit-testing-wfout
+file_upload_bucket = smaht-unit-testing-files
+blob_bucket = smaht-unit-testing-blobs
+metadata_bundles_bucket = smaht-unit-testing-metadata-bundles
+file_wfout_bucket = smaht-unit-testing-wfout
 #blob_store_profile_name = encoded-4dn-files
 accession_factory = encoded.server_defaults.test_accession
 elasticsearch.server = 172.31.49.128:9872
@@ -16,7 +16,7 @@ utils_version = 333.444.555
 eb_app_version = app-v-test-simulation
 create_tables = true
 load_test_data = encoded.loadxl:load_test_data
-env.name = cgap-test-${USER}
+env.name = smaht-test-${USER}
 
 [composite:indexer]
 use = config:base.ini#indexer
