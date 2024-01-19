@@ -326,7 +326,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
         children: 'Download',
         className: 'btn-primary',
         // analyticsAddFilesToCart: false,
-        action: '/metadata',
+        action: '/metadata/',
     };
 
     constructor(props) {
