@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pyramid.view import view_config
 from encoded_core.types.file import (
@@ -54,6 +54,14 @@ def show_upload_credentials(
     return request.has_permission("edit", context)
 
 
+def _build_file_embedded_list() -> List[str]:
+    """Embeds for search on files."""
+    return [
+        "sequencing.sequencer.display_title",
+        "software.name",
+    ]
+
+
 @abstract_collection(
     name="files",
     unique_key='accession',
@@ -65,7 +73,7 @@ def show_upload_credentials(
 class File(Item, CoreFile):
     item_type = "file"
     schema = load_schema("encoded:schemas/file.json")
-    embedded_list = []
+    embedded_list = _build_file_embedded_list()
 
     Item.SUBMISSION_CENTER_STATUS_ACL.update({
         'uploaded': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,

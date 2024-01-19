@@ -9,6 +9,7 @@
         "instrument_model": "NovaSeq",
         "read_type": "Paired-end",
         "target_coverage": 500,
-        "target_read_length": 150
+        "target_read_length": 150,
+        "sequencer": "illumina_novaseqx"
     }
 ]
