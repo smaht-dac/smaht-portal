@@ -30,6 +30,12 @@
             "$ref": "mixins.json#/description"
         },
         {
+            "$ref": "mixins.json#/file_links"
+        },
+        {
+            "$ref": "mixins.json#/file_release"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
