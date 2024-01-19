@@ -250,17 +250,22 @@
         }
     },
     "file_release": {
-        "sequencing": {
-            "title": "Sequencing",
-            "description": "Sequencing associated with this file",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
+        "access_status": {
+            "title": "Access Status",
+            "description": "Access status for the file contents",
+            "comment": "Use as dummy variable for display of benchmarking files for now; has no actual implications on data access",
+            "type": "string",
             "permission": "restricted_fields",
-            "items": {
-                "type": "string",
-                "linkTo": "Sequencing"
-            }
+            "enum": [
+                "Open",
+                "Protected"
+            ]
+        },
+        "annotated_filename": {
+            "title": "Annotated Filename",
+            "description": "Filename containing controlled metadata",
+            "type": "string",
+            "permission": "restricted_fields"
         },
         "assays": {
             "title": "Assays",
@@ -286,16 +291,17 @@
                 "colo829blt_50to1"
             ]
         },
-        "access_status": {
-            "title": "Access Status",
-            "description": "Access status for the file contents",
-            "comment": "Use as dummy variable for display of benchmarking files for now; has no actual implications on data access",
-            "type": "string",
+        "sequencing": {
+            "title": "Sequencing",
+            "description": "Sequencing associated with this file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
             "permission": "restricted_fields",
-            "enum": [
-                "Open",
-                "Protected"
-            ]
+            "items": {
+                "type": "string",
+                "linkTo": "Sequencing"
+            }
         }
     },
     "identifier": {
