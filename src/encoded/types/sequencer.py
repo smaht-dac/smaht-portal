@@ -4,8 +4,8 @@ from .base import Item
 
 
 @collection(
-    name="Sequencer",
-    unique_key="identifier",
+    name="sequencers",
+    unique_key="sequencer:identifier",
     properties={
         "title": "Sequencer",
         "description": "Sequencing machine used for data generation",

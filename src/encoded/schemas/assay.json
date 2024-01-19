@@ -40,6 +40,9 @@
             "$ref": "mixins.json#/description"
         },
         {
+            "$ref": "mixins.json#/identifier"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {

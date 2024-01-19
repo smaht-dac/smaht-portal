@@ -6,7 +6,7 @@ from .base import Item
 
 @collection(
     name="assays",
-    unique_key="assay:identifier",  # For shorthand reference as linkTo
+    unique_key="assay:identifier",
     acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         "title": "SMaHT Assay",
