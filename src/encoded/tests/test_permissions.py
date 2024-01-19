@@ -1,15 +1,15 @@
 from typing import Any, Dict, List
 
 import pytest
-from snovault.typeinfo import TypeInfo
+from dcicutils import schema_utils
 from webtest.app import AppError, TestApp
 
 from .utils import (
     delete_item,
-    get_functional_item_types,
-    get_identifying_properties,
     get_item,
-    get_required_properties,
+    get_items_with_submitted_id,
+    get_items_without_submitted_id,
+    get_schema,
     get_workbook_inserts,
     patch_item,
     post_item
@@ -769,34 +769,6 @@ def is_user_affiliated_with_submission_center(
     return submission_center["uuid"] in user.get("submission_centers", [])
 
 
-def get_items_with_submitted_id(testapp: TestApp) -> List[str]:
-    """Get all item types with submitted_id as a property.
-
-    Item names are snake_cased.
-    """
-    functional_item_types = get_functional_item_types(testapp)
-    return [
-        item_name for item_name, item_type_info in functional_item_types.items()
-        if has_submitted_id(item_type_info)
-    ]
-
-
-def has_submitted_id(type_info: TypeInfo) -> bool:
-    return "submitted_id" in type_info.schema.get("properties", {})
-
-
-def get_items_without_submitted_id(testapp: TestApp) -> List[str]:
-    """Get all item types without submitted_id as a property.
-
-    Item names are snake_cased.
-    """
-    functional_item_types = get_functional_item_types(testapp)
-    return [
-        item_name for item_name, item_type_info in functional_item_types.items()
-        if not has_submitted_id(item_type_info)
-    ]
-
-
 def get_item_properties_from_workbook_inserts(
     submission_center: Dict[str, Any]
 ) -> Dict[str, Dict[str, Any]]:
@@ -881,7 +853,8 @@ def get_limited_insert(
 
     Keep only required fields plus submission centers, if present.
     """
-    required_properties = get_required_properties(test_app, item_type)
+    schema = get_schema(test_app, item_type)
+    required_properties = schema_utils.get_conditional_required(schema)
     if has_affiliations(insert):
         properties_to_keep = required_properties + ["submission_centers"]
     else:
@@ -896,8 +869,9 @@ def get_identifying_insert(
 
     Keep submission centers, if present.
     """
-    identifying_properties = get_identifying_properties(test_app, item_type)
-    required_properties = get_required_properties(test_app, item_type)
+    schema = get_schema(test_app, item_type)
+    required_properties = schema_utils.get_conditional_required(schema)
+    identifying_properties = schema_utils.get_identifying_properties(schema)
     if has_affiliations(insert):
         properties_to_keep = (
             identifying_properties + required_properties + ["submission_centers"]

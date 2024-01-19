@@ -7,11 +7,56 @@ smaht-portal
 Change Log
 ----------
 
-0.12.0
+0.15.0
 =====
 
 * Merge in ui-dev4 branch: `PR: ##: UI-Dev 4 <>`_
 * TODO: add branches merged into ui-dev4
+
+
+0.14.0
+======
+
+* Adds `/metadata` support
+
+
+0.13.1
+======
+
+`PR 58: Culture mixture parent types <https://github.com/smaht-dac/smaht-portal/pull/58>`_
+* Include CellCulture as parent item of CellCultureMixture for resolving reference during submissions
+
+
+0.13.0
+======
+
+`PR 56: Implement submittable item API <https://github.com/smaht-dac/smaht-portal/pull/56>`_
+* Add functionality and tests for submittable item api to smaht portal
+* update lockfile with latest snovault that contains the primitive for this 
+
+
+0.12.0
+======
+
+`PR 50: Upgrader implementation <https://github.com/smaht-dac/smaht-portal/pull/50>`_
+* Add upgrader functionality from encoded-core + tests
+* Update dcicutils with schema_utils module
+
+
+0.11.8
+======
+
+* Add portal side validation for QC rulesets
+
+
+0.11.7
+======
+
+* Fix in ingestion.loadxl_extensions.load_data_into_database to handle errors correctly.
+* Added record (uw_gcc) to master-inserts/submission_center.json for testing.
+* Added test_structured_data.py back in after resolved GitHub Actions (only) failure.
+
+>>>>>>> 103881ce7d00c6e2281710597876ba43e1ef511e
 
 0.11.6
 ======

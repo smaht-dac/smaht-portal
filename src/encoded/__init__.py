@@ -22,9 +22,7 @@ from pyramid.settings import asbool
 from snovault.app import session, json_from_path, configure_dbsession, changelogs
 from snovault.elasticsearch import APP_FACTORY
 from snovault.elasticsearch.interfaces import INVALIDATION_SCOPE_ENABLED
-from dcicutils.misc_utils import VirtualApp
 from .appdefs import APP_VERSION_REGISTRY_KEY
-# from snovault.loadxl import load_all
 
 
 # snovault.app.STATIC_MAX_AGE (8 seconds) is WAY too low for /static and /profiles - Will March 15 2022
@@ -44,6 +42,8 @@ def include_encoded(config):
     config.include('encoded.root')
     config.include('encoded.types')
     config.include('encoded.server_defaults')
+    config.include('encoded.metadata')
+    config.include('encoded.upgrade')
     # config.include('encoded.visualization')
     config.commit()
 
@@ -108,6 +108,7 @@ def static_resources(config):
     mimetypes.init([pkg_resources.resource_filename('encoded', 'static/mime.types')])
     config.add_static_view('static', 'static', cache_max_age=CGAP_STATIC_MAX_AGE)
     config.add_static_view('profiles', 'schemas', cache_max_age=CGAP_STATIC_MAX_AGE)
+    config.add_static_view('submmission-schemas', 'submittables', cache_max_age=CGAP_STATIC_MAX_AGE)
 
     # Favicon
     favicon_path = '/static/img/favicon.ico'

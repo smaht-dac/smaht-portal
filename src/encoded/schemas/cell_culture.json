@@ -101,7 +101,7 @@
         },
         "lot_number": {
             "title": "Lot Number",
-            "description": "Lot number of cell source",
+            "description": "Lot number of cell line",
             "type": "integer",
             "minimum": 0
         },
