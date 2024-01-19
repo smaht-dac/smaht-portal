@@ -116,6 +116,12 @@
             "description": "Expected read length for the sequencing",
             "type": "integer",
             "minimum": 0
+        },
+        "sequencer": {
+            "title": "Sequencer",
+            "description": "Instrument used for sequencing",
+            "type": "string",
+            "linkTo": "Sequencer"
         }
     }
 }
