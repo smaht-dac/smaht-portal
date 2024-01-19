@@ -63,6 +63,16 @@
             "$ref": "submitted_file.json#/properties"
         }
     ],
+    "mixinFacets": [
+        {
+            "$ref": "file.json#/facets"
+        }
+    ],
+    "mixinColumns": [
+        {
+            "$ref": "file.json#/columns"
+        }
+    ],
     "properties": {
         "accession": {
             "accessionType": "AR"
