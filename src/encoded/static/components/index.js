@@ -16,6 +16,7 @@ import StaticPage from './static-pages/StaticPage';
 import DirectoryPage from './static-pages/DirectoryPage';
 
 import HomePage from './static-pages/HomePage';
+import StatisticsPageView from './static-pages/StatisticsPageView';
 
 import DefaultItemView from './item-pages/DefaultItemView';
 import HealthView from './item-pages/HealthView';
@@ -36,6 +37,7 @@ content_views.register(StaticPage, 'StaticPage');
 content_views.register(DirectoryPage, 'DirectoryPage');
 
 content_views.register(HomePage, 'HomePage');
+content_views.register(StatisticsPageView, 'StatisticsPage');
 
 content_views.register(DefaultItemView, 'Item');
 content_views.register(HealthView, 'Health');
