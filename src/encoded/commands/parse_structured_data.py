@@ -237,7 +237,7 @@ def analyze_object(portal: Portal, portal_object: dict, portal_object_type: str)
     if existing_identifying_path:
         print(f"  - {existing_identifying_path}")
         if existing_object:
-            print(f"     Exists -> {PortalObject.get_uuid(existing_object)}")
+            print(f"     Exists -> {existing_object.uuid}")
         else:
             print(f"     Does not exist")
 
