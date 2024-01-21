@@ -1,7 +1,7 @@
 {
     "hostnameTrackerIDMapping" : {
-        "data.smaht.org" : ["GTM-XXX", "G-XXX"],
-        "staging.smaht.org" : ["GTM-XXX", "G-XXX"],
+        "data.smaht.org" : ["GTM-PFZSVQJZ", "G-QH87V2XZ9E"],
+        "staging.smaht.org" : ["GTM-NBD69BXJ", "G-2JPJXP2V24"],
         "localhost:8000" : ["GTM-5JDWH48G", "G-3SB94K0K5B"],
         "localhost:6543" : ["GTM-5JDWH48G", "G-3SB94K0K5B"],
         "default" : []
