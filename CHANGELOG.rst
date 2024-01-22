@@ -13,6 +13,7 @@ Change Log
 
 * Version updates to dcicutils, dcicsnovault, encoded-core.
   Changes to itemize SMaHT submission ingestion create/update/diff situation.
+* Removed Rahi from admin group for submission ingestion testing purposes (master-inserts/user.json).
 
 
 0.15.0
