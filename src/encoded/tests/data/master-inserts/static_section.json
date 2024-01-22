@@ -76,11 +76,49 @@
         ]
     },
     {
+        "identifier": "benchmarking.COLO829",
+        "title": "COLO829 Data Table",
+        "file": "/docs/public/benchmarking_COLO829.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "dea41934-619a-4a3b-a2bd-0521d0fffab1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier" : "account_creation",
         "uuid" : "442c8aa0-dc6c-43d7-814a-854af460b014",
         "file" : "/docs/source/account_creation.rst",
         "section_type": "Page Section",
         "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.intro",
+        "title": "Intro Benchmarking Data Table",
+        "file": "/docs/public/benchmarking_intro.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "56a7ca2a-e9aa-4c19-960d-2cd0ca2d9686",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -102,11 +140,67 @@
         ]
     },
     {
+        "identifier": "benchmarking.placeholder",
+        "title": "Benchmarking Placeholder",
+        "file": "/docs/public/benchmarking_placeholder.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "cb2cdf19-ebec-4332-ae08-490404384d56",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier" : "excel_submission",
         "uuid" : "442c8aa0-dc6c-43d7-814a-854af460b016",
         "file" : "/docs/source/excel_submission.rst",
         "section_type": "Page Section",
         "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "legal",
+        "title": "Legal",
+        "file": "/docs/public/legal.md",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "032e2512-9168-4db4-b21d-5a10a8b8b14c",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "privacy-policy",
+        "title": "Privacy Policy",
+        "file": "/docs/public/privacy-policy.md",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "collapsible": false,
+            "default_open": true
+        },
+        "uuid": "ad816266-12c7-47bd-9617-dfe2a2328528",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
