@@ -7,11 +7,20 @@ smaht-portal
 Change Log
 ----------
 
-0.15.0
+0.16.0
 =====
 
 * Merge in ui-dev4 branch: `PR: ##: UI-Dev 4 <>`_
 * TODO: add branches merged into ui-dev4
+
+
+0.15.0
+======
+
+* Added gitinfo.json to buildspec.yml to make available to the app basic git info (branch/commit).
+* Updated test_structured_data.py to (optionally - default for now) insulate itself from change to the
+  schemas while they are undergoing a lot of modification, leading to frequent/annoying test breakage.
+* Fixed load(xl) error handling for ingestion submission to report back to submitr properly.
 
 
 0.14.0
