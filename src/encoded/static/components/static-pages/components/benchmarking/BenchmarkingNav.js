@@ -16,11 +16,13 @@ import {
 
 export const BenchmarkingUINav = (props) => {
     const { href = '' } = props;
+    console.log('BenchmarkingUINav, href', href);
 
     const urlParts = memoizedUrlParse(href);
-    const { path = '', hash = '' } = urlParts || {};
+    const { path, hash } = urlParts || {};
 
-    const currPath = `${path}${hash}`;
+    const currPath = `${path || ''}${hash || ''}`;
+    console.log('BenchmarkingUINav, currPath', currPath);
 
     const cellLinePages = BenchmarkingDataKeys.filter(
         (key) => BenchmarkingDataMap[key].type === 'Cell Line Data'
@@ -31,8 +33,10 @@ export const BenchmarkingUINav = (props) => {
 
     return (
         <div className="w-100 benchmarking-nav">
-            <div>
-                <span className="text-small text-600">Cell Line Data</span>
+            <div className="benchmarking-nav-section">
+                <div className="benchmarking-nav-section-title text-small text-600">
+                    Cell Line Data
+                </div>
                 <div>
                     <BenchmarkingUINavLinkGenerator
                         {...{ currPath }}
@@ -42,8 +46,10 @@ export const BenchmarkingUINav = (props) => {
                 </div>
             </div>
             <hr />
-            <div>
-                <span className="text-small text-600">Primary Tissue Data</span>
+            <div className="benchmarking-nav-section">
+                <div className="benchmarking-nav-section-title text-small text-600">
+                    Primary Tissue Data
+                </div>
                 <div>
                     <BenchmarkingUINavLinkGenerator
                         {...{ currPath }}
@@ -107,7 +113,7 @@ const BenchmarkingUINavLinkGenerator = ({
                         <BenchmarkingUINavDrop
                             key={page}
                             eventKey={i.toString()}
-                            {...{ currPath }}
+                            {...{ currPath, path }}
                             title={navBarTitle}>
                             <ul>
                                 {tabMapArray.map((obj) => (
@@ -128,7 +134,8 @@ const BenchmarkingUINavLinkGenerator = ({
                         <BenchmarkingUINavLink
                             key={page}
                             title={navBarTitle}
-                            {...{ currPath }}
+                            {...{ currPath, path }}
+                            isTop
                             href={`${path}${
                                 tabMapArray[0] ? tabMapArray[0].eventKey : ''
                             }`}
@@ -151,11 +158,16 @@ const BenchmarkingUINavWrapper = (props) => {
 };
 
 const BenchmarkingUINavDrop = (props) => {
-    const { href, title, eventKey, children } = props;
+    const { path, currPath, title, eventKey, children } = props;
+
+    console.log('BenchmarkingUINavDrop path', path);
+    console.log('BenchmarkingUINavDrop currPath', currPath);
+
+    const isActive = currPath.includes(path);
     return (
         <li>
             <ContextAwareToggle {...{ eventKey }}>
-                <span className="navlink-drop" {...{ href }}>
+                <span className={`navlink-drop ${isActive ? 'active' : ''}`}>
                     {title}
                 </span>
             </ContextAwareToggle>
@@ -167,14 +179,14 @@ const BenchmarkingUINavDrop = (props) => {
 };
 
 const BenchmarkingUINavLink = (props) => {
-    const { href, currPath: pageHref, title, cls } = props;
-
+    const { href, currPath: pageHref, title, isTop, cls = '' } = props;
     const isActive = href === pageHref;
-    const activeStyle = 'navlink-active';
-    const inactiveStyle = '';
 
     return (
-        <li className={`${isActive ? activeStyle : inactiveStyle}`}>
+        <li
+            className={`sidenav-link ${isActive ? 'active' : ''} ${
+                isTop ? 'top' : ''
+            } ${cls}`}>
             <a {...{ href }}>{title}</a>
         </li>
     );

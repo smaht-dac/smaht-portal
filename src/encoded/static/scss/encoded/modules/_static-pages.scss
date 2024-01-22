@@ -1492,9 +1492,19 @@ body[data-pathname^="/data/benchmarking"] {
 
 	// Side nav
 	.benchmarking-nav {
+
+		>.benchmarking-nav-section {
+			>.benchmarking-nav-section-title {
+				margin-bottom: 10px;
+			}
+		}
+
 		.accordion > ul {
 			list-style-type: none;
 			padding-left: 0;
+			gap: 10px;
+			display: flex;
+			flex-direction: column;
 
 			> li > div.collapse > ul,
 			> li > div.collapsing > ul {
@@ -1505,10 +1515,44 @@ body[data-pathname^="/data/benchmarking"] {
 				}
 			}
 
-			li.navlink-active {
-				border-radius: 4px;
-				border: 1px solid #E2ECF2;
-				background: #EBF3F9; 
+			li.sidenav-link {
+				font-family: Inter;
+				font-size: 14px;
+				font-weight: 400;
+
+				> a {
+					color: #717378;
+				}
+
+				&.top {
+					font-size: 16px;
+				}
+				&.active {
+					font-weight: 500;
+					&.top {
+						font-weight: 700;
+					}
+					&:not(.top) {
+						border-radius: 4px;
+						border: 1px solid #E2ECF2;
+						background: #EBF3F9; 
+					}
+					
+					> a {
+						color: #343741;
+					}
+				}
+			}
+
+			span.navlink-drop {
+				color: #717378;
+				font-size: 16px;
+				font-weight: 400;
+				font-family: Inter;
+				&.active {
+					color: #343741;
+					font-weight: 700;
+				}
 			}
 		}
 	}
