@@ -124,6 +124,18 @@ export const BenchmarkingDataMap = {
             },
         ],
     },
+    Liver: {
+        navBarTitle: 'Liver',
+        type: 'Primary Tissue Data',
+        path: '/data/benchmarking/liver',
+        tabMapArray: [
+            {
+                eventKey: '#main',
+                title: 'Data',
+                searchHref: '/search/?type=ReferenceFile',
+            },
+        ],
+    },
     Colon: {
         navBarTitle: 'Colon',
         type: 'Primary Tissue Data',

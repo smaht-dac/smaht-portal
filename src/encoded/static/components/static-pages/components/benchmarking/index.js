@@ -133,6 +133,23 @@ export const LiverData = ({ schemas, session, facets, href, context }) => {
     );
 };
 
+export const LungData = ({ schemas, session, facets, href, context }) => {
+    const lungTabMapArray = BenchmarkingDataMap.Lung.tabMapArray;
+
+    return (
+        <BenchmarkingLayout
+            {...{ schemas }}
+            title="Lung Primary Tissue Data"
+            description="<COPY NEEDED>">
+            <HashBasedTabController
+                {...{ schemas, session, facets, href, context }}
+                controllerId="Lung-Tab-Renderer"
+                tabMapArray={lungTabMapArray}
+            />
+        </BenchmarkingLayout>
+    );
+};
+
 export const ColonData = ({ schemas, session, facets, href, context }) => {
     const HapMapTabMapArray = BenchmarkingDataMap.Colon.tabMapArray;
 
