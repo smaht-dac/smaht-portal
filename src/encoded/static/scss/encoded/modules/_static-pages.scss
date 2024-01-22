@@ -1491,20 +1491,39 @@ body[data-pathname^="/data/benchmarking"] {
 	.static-section-entry>.section-title { display: none; }
 
 	// Header and description text
-	.benchmarking-layout>.row>div {
-		>h2 {
-			color: #343741;
-			font-family: Inter;
-			font-size: 24px;
-			font-weight: 600;
-			margin-top: 5px;
+	.benchmarking-layout{
+		>nav.nav-tabs {
+			a.nav-link {
+				color: #5D5E63;
+				font-family: Inter;
+				font-size: 16px;
+				font-weight: 400; 
+
+				&.active {
+					color: #343741;
+					font-weight: 600; 
+				}
+				&.disabled {
+					color: #9BA5B7;
+				}
+			}
 		}
 
-		>p {
-			color: #5D5E63;
-			font-family: Inter;
-			font-size: 14px;
-			line-height: 20px;
+		>.row>div {
+			>h2 {
+				color: #343741;
+				font-family: Inter;
+				font-size: 24px;
+				font-weight: 600;
+				margin-top: 5px;
+			}
+
+			>p {
+				color: #5D5E63;
+				font-family: Inter;
+				font-size: 14px;
+				line-height: 20px;
+			}
 		}
 	}
 
