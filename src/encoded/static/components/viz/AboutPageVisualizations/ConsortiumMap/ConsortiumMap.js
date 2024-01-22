@@ -122,10 +122,10 @@ const ConsortiumPopoverContent = ({ data }) => {
 const MARKER_SIZE = 40;
 const LINE_COLOR = '#636262';
 
-let drawn = false;
 export const ConsortiumMap = () => {
     const [showOverlay, setShowOverlay] = useState(false);
     const overlayTarget = useRef(null);
+    const isDrawn = useRef(false);
 
     const handleShowOverlay = (e, d) => {
         overlayTarget.current = {
@@ -311,9 +311,9 @@ export const ConsortiumMap = () => {
     };
 
     useEffect(() => {
-        if (!drawn) {
+        if (isDrawn.current === false && mapReference.current !== null) {
             drawChart();
-            drawn = true;
+            isDrawn.current = true;
         }
     }, []);
 
@@ -328,8 +328,9 @@ export const ConsortiumMap = () => {
                     className="mb-3 float-right"
                     variant="pills">
                     <Tab eventKey="map" title="Map view">
+                        <p>Here is some content!</p>
                         <div ref={mapReference}>
-                            <Overlay
+                            {/* <Overlay
                                 target={overlayTarget?.current?.node}
                                 show={showOverlay}
                                 placement="bottom"
@@ -348,7 +349,7 @@ export const ConsortiumMap = () => {
                                         />
                                     </PopoverContent>
                                 </Popover>
-                            </Overlay>
+                            </Overlay> */}
                             {/* Load MapMarker svg to link to from <use> elements */}
                             <MapMarkerSvg />
                         </div>
