@@ -38,7 +38,7 @@ class UserContent(Item, CoreUserContent):
         convert_ext_links = request and request.domain and options and options.get('convert_ext_links', True)
 
         if file_type == 'rst':
-            output = publish_parts(content, writer_name='html')
+            output = publish_parts(content, writer_name='html', settings_overrides={'doctitle_xform':False})
             if convert_ext_links:
                 return convert_external_links(output["html_body"], request.domain)
             return output["html_body"]

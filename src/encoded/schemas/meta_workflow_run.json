@@ -148,6 +148,12 @@
                         ]
                     }
                 ],
+                "if": {
+                    "$merge": "encoded:schemas/meta_workflow.json#/properties/input/items/if"
+                },
+                "then": {
+                    "$merge": "encoded:schemas/meta_workflow.json#/properties/input/items/then"
+                },
                 "properties": {
                     "argument_name": {
                         "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/properties/argument_name"

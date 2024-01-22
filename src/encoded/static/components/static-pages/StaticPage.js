@@ -126,7 +126,7 @@ export const StaticEntryContent = React.memo(function StaticEntryContent(
     props
 ) {
     const { section, className } = props;
-    const { content = null, options = {}, filetype = null } = section;
+    const { content = null, content_as_html = null, options = {}, filetype = null } = section;
     let renderedContent;
 
     if (!content) return null;
