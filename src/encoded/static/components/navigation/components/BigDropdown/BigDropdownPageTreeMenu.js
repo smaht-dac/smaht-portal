@@ -13,6 +13,7 @@ import { BigDropdownIntroductionWrapper } from './BigDropdownIntroductionWrapper
 
 export function BigDropdownPageTreeMenuIntroduction(props) {
     const {
+        linkToTopLevelDirPage = true,
         menuTree,
         windowHeight,
         windowWidth,
@@ -32,7 +33,11 @@ export function BigDropdownPageTreeMenuIntroduction(props) {
         <BigDropdownIntroductionWrapper
             {...{ windowHeight, windowWidth, titleIcon, isActive }}>
             <h4 className="mt-0 mb-0">
-                <a href={'/' + pathName}>{display_title}</a>
+                {linkToTopLevelDirPage ? (
+                    <a href={'/' + pathName}>{display_title}</a>
+                ) : (
+                    display_title
+                )}
             </h4>
             {description ? (
                 <div className="description">{description}</div>
@@ -43,7 +48,11 @@ export function BigDropdownPageTreeMenuIntroduction(props) {
 
 export function BigDropdownPageTreeMenu(props) {
     const { menuTree, href } = props;
-    const { display_title, identifier: pathName, children = [] } = menuTree || {};
+    const {
+        display_title,
+        identifier: pathName,
+        children = [],
+    } = menuTree || {};
 
     if (!pathName || !display_title) return null;
 
@@ -90,7 +99,8 @@ export function BigDropdownPageTreeMenu(props) {
                     (!hasLevel2Children ? ' col-lg-8' : ' col-lg-4')
                 }>
                 {level1ChildrenWithoutSubChildren.map(function (child) {
-                    const active = urlParts.pathname.indexOf(child.identifier) > -1;
+                    const active =
+                        urlParts.pathname.indexOf(child.identifier) > -1;
                     return (
                         <Level1Title
                             childPageItem={child}
