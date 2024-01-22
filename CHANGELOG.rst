@@ -8,6 +8,13 @@ Change Log
 ----------
 
 
+0.16.0
+======
+
+* Version updates to dcicutils, dcicsnovault, encoded-core.
+  Changes to itemize SMaHT submission ingestion create/update/diff situation.
+
+
 0.15.0
 ======
 
