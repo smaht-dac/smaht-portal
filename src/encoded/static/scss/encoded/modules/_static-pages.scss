@@ -1417,24 +1417,6 @@ div#popover-consortium-map {
     
     }
 	
-	// .alluvial-container <576px
-	@media screen and (max-width: 576px) {
-		
-		// hide the alluvial/tab controls and show table
-		.nav {
-			display: none;
-
-		}
-		.tab-content {
-			div.tab-pane {
-				display: flex;
-				opacity: 1;
-				&.alluvial {
-					display: none;
-				}
-			}
-		}
-	}
     
 }
 
