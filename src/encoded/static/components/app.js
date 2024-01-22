@@ -1387,6 +1387,8 @@ export default class App extends React.PureComponent {
             onBodySubmit: this.handleSubmit,
         });
 
+        const gtag4Script = analyticsID && ("https://www.googletagmanager.com/gtag/js?id=" + analyticsID);
+
         const contentSecurityPolicyStr = [
             "default-src 'self'",
             "img-src 'self' https://* https://i.ytimg.com data:",
@@ -1394,7 +1396,7 @@ export default class App extends React.PureComponent {
             // Allowing unsafe-eval temporarily re: 'box-intersect' dependency of some HiGlass tracks.
             'frame-src https://www.google.com/recaptcha/ https://www.youtube.com',
             // Allow anything on https://*.auth0.com domain to allow customization of Auth0 - Will Jan 31 2023
-            "script-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://*.auth0.com https://secure.gravatar.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'unsafe-eval'", // + (typeof BUILDTYPE === "string" && BUILDTYPE === "quick" ? " 'unsafe-eval'" : ""),
+            "script-src 'self' www.google-analytics.com www.googletagmanager.com https://*.auth0.com https://secure.gravatar.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'unsafe-eval'", // + (typeof BUILDTYPE === "string" && BUILDTYPE === "quick" ? " 'unsafe-eval'" : ""),
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com  https://unpkg.com",
             "font-src 'self' https://fonts.gstatic.com",
             "worker-src 'self' blob:",
@@ -1405,35 +1407,17 @@ export default class App extends React.PureComponent {
 
         // `lastBuildTime` is used for both CSS and JS because is most likely they change at the same time on production from recompiling
 
-        const gtagURL =
-            analyticsID &&
-            'https://www.googletagmanager.com/gtag/js?id=' + analyticsID;
-
         return (
             <html lang="en">
                 <head>
                     <meta charSet="utf-8" />
-                    <meta
-                        httpEquiv="Content-Type"
-                        content="text/html, charset=UTF-8"
-                    />
-                    <meta
-                        httpEquiv="Content-Security-Policy"
-                        content={contentSecurityPolicyStr}
-                    />
+                    <meta httpEquiv="Content-Type" content="text/html, charset=UTF-8" />
+                    <meta httpEquiv="Content-Security-Policy" content={contentSecurityPolicyStr} />
                     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-                    <meta
-                        name="viewport"
-                        content="width=device-width, initial-scale=1, maximum-scale=1"
-                    />
-                    <meta
-                        name="google-site-verification"
-                        content="sia9P1_R16tk3XW93WBFeJZvlTt3h0qL00aAJd3QknU"
-                    />
+                    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+                    <meta name="google-site-verification" content="sia9P1_R16tk3XW93WBFeJZvlTt3h0qL00aAJd3QknU" />
                     <meta name="robots" content="noindex" />
-                    <HTMLTitle
-                        {...{ context, currentAction, canonical, status }}
-                    />
+                    <HTMLTitle {...{ context, currentAction, canonical, status }} />
                     <script
                         data-prop-name="user_info"
                         type="application/json"
@@ -1447,18 +1431,8 @@ export default class App extends React.PureComponent {
                                   }
                         }
                     />
-                    <script
-                        data-prop-name="lastBuildTime"
-                        type="application/json"
-                        dangerouslySetInnerHTML={{ __html: lastBuildTime }}
-                    />
-                    <link
-                        rel="stylesheet"
-                        href={
-                            '/static/css/style.css?build=' +
-                            (lastBuildTime || 0)
-                        }
-                    />
+                    <script data-prop-name="lastBuildTime" type="application/json" dangerouslySetInnerHTML={{ __html: lastBuildTime }} />
+                    <link rel="stylesheet" href={'/static/css/style.css?build=' + (lastBuildTime || 0)} />
                     <DeferMount>
                         <link
                             rel="stylesheet"
@@ -1469,45 +1443,18 @@ export default class App extends React.PureComponent {
                             }
                         />
                     </DeferMount>
-                    <SEO.CurrentContext
-                        {...{ context, hrefParts, baseDomain }}
-                    />
-                    <link
-                        rel="preconnect"
-                        href="https://fonts.googleapis.com"
-                    />
-                    {/* TODO: re-enable when ready to configure google analytics
+                    <SEO.CurrentContext {...{ context, hrefParts, baseDomain }} />
+                    <link rel="preconnect" href="https://fonts.googleapis.com/" />
                     <link rel="preconnect" href="//www.google-analytics.com" />
                     <link rel="preconnect" href="//www.googletagmanager.com" />
-                    {gtag4Script && <script async type="application/javascript" src={gtag4Script} />}
-                    */}
-                    <link
-                        rel="preconnect"
-                        href="https://fonts.gstatic.com"
-                        crossOrigin="true"
-                    />
-                    <link
-                        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@800&display=swap"
-                        rel="stylesheet"
-                    />
+                    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@800&display=swap" rel="stylesheet" />
                     {/* Can set webpack.config.js browser build's externals "react":"React" and load via CDN but need to then allow cross-origin requests to CDN domain
                     <script crossOrigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
                     <script crossOrigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
                     */}
-                    <script
-                        defer
-                        type="application/javascript"
-                        src="//www.google-analytics.com/analytics.js"
-                    />
-                    <script
-                        defer
-                        type="application/javascript"
-                        src={
-                            '/static/build/bundle.js?build=' +
-                            (lastBuildTime || 0)
-                        }
-                        charSet="utf-8"
-                    />
+                    {gtag4Script && <script async type="application/javascript" src={gtag4Script} />}
+                    <script defer type="application/javascript" src={"/static/build/bundle.js?build=" + (lastBuildTime || 0)} charSet="utf-8" />
                     <link rel="canonical" href={canonical} />
                     {/* <script data-prop-name="inline" type="application/javascript" charSet="utf-8" dangerouslySetInnerHTML={{__html: this.props.inline}}/> <-- SAVED FOR REFERENCE */}
                 </head>
@@ -1747,6 +1694,7 @@ class BodyElement extends React.PureComponent {
             scrolledPast80: null,
             scrolledPast160: null,
             scrolledPast240: null,
+            scrolledPast360: null,
             //'scrollTop'             : null // Not used, too many state updates if were to be.
             windowWidth: null,
             windowHeight: null,
@@ -2056,6 +2004,7 @@ class BodyElement extends React.PureComponent {
                 let scrolledPast80 = false;
                 let scrolledPast160 = false;
                 let scrolledPast240 = false;
+                let scrolledPast360 = false;
 
                 if (
                     // Fixed nav takes effect at medium grid breakpoint or wider.
@@ -2073,6 +2022,9 @@ class BodyElement extends React.PureComponent {
                     if (currentScrollTop > 240) {
                         scrolledPast240 = true;
                     }
+                    if (currentScrollTop > 360) {
+                        scrolledPast360 = true;
+                    }
                 }
 
                 return {
@@ -2080,6 +2032,7 @@ class BodyElement extends React.PureComponent {
                     scrolledPast80,
                     scrolledPast160,
                     scrolledPast240,
+                    scrolledPast360,
                 };
             });
         };
@@ -2138,6 +2091,7 @@ class BodyElement extends React.PureComponent {
             scrolledPast80,
             scrolledPast160,
             scrolledPast240,
+            scrolledPast360,
             scrolledPastTop,
             classList,
             isFullscreen,
@@ -2151,6 +2105,7 @@ class BodyElement extends React.PureComponent {
         if (scrolledPast80) bodyClassList.push('scrolled-past-80');
         if (scrolledPast160) bodyClassList.push('scrolled-past-160');
         if (scrolledPast240) bodyClassList.push('scrolled-past-240');
+        if (scrolledPast360) bodyClassList.push('scrolled-past-360');
         if (isFullscreen) {
             bodyClassList.push('is-full-screen');
         } else if (testWarningPresent) {
