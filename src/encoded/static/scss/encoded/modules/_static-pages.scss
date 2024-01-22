@@ -1490,6 +1490,24 @@ body[data-pathname^="/data/benchmarking"] {
 	// Hide titles
 	.static-section-entry>.section-title { display: none; }
 
+	// Header and description text
+	.benchmarking-layout {
+		>h2 {
+			color: #343741;
+			font-family: Inter;
+			font-size: 24px;
+			font-weight: 600;
+			margin-top: 5px;
+		}
+
+		>p {
+			color: #5D5E63;
+			font-family: Inter;
+			font-size: 14px;
+			line-height: 20px;
+		}
+	}
+
 	// Side nav
 	.benchmarking-nav {
 
@@ -1555,6 +1573,13 @@ body[data-pathname^="/data/benchmarking"] {
 				}
 			}
 		}
+	}
+
+	.tbd-notice {
+		color: #343741;
+		font-family: Inter;
+		font-size: 20px;
+		font-weight: 600;
 	}
 
 	// Benchmarking search table (in future maybe make this the general style for all search tables)

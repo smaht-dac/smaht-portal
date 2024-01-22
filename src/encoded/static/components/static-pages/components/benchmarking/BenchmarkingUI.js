@@ -16,7 +16,7 @@ export const BenchmarkingLayout = ({
     const cls = `readable ${!schemas ? 'mb-5' : 'mb-2'}`;
 
     return (
-        <div>
+        <div className="benchmarking-layout">
             <h2>{title}</h2>
             <p className={cls}>{description}</p>
             {/* Schemas are loading, so hash won't be available yet; can't pick correct tab */}

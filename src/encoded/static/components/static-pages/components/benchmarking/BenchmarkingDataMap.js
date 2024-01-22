@@ -47,7 +47,7 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#main',
                 title: 'Data',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },
@@ -59,7 +59,7 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#main',
                 title: 'Data',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },
@@ -71,27 +71,27 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#frontal-lobe',
                 title: 'Frontal Lobe',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
             {
                 eventKey: '#cerebellum',
                 title: 'Cerebellum',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
             {
                 eventKey: '#hippocampus',
                 title: 'Hippocampus',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
             {
                 eventKey: '#temporal-lobe',
                 title: 'Temporal Lobe',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
             {
                 eventKey: '#dendate-gyrus',
                 title: 'Dendate Gyrus',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },
@@ -103,12 +103,12 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#sun-exposed',
                 title: 'Sun Exposed',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
             {
                 eventKey: '#non-sun-exposed',
                 title: 'Non Sun Exposed',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },
@@ -120,7 +120,7 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#main',
                 title: 'Data',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },
@@ -132,7 +132,7 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#main',
                 title: 'Data',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },
@@ -144,12 +144,12 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#ascending',
                 title: 'Ascending',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
             {
                 eventKey: '#descending',
                 title: 'Descending',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },
@@ -161,7 +161,7 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#main',
                 title: 'Data',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },

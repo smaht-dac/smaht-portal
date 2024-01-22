@@ -26,6 +26,14 @@ export const BenchmarkingTableController = (props) => {
     const columnExtensionMap =
         EmbeddedItemSearchTable.defaultProps.columnExtensionMap;
 
+    if (!searchHref) {
+        return (
+            <div className="tbd-notice mt-2">
+                Data: <span className="font-italic">To Be Generated</span>
+            </div>
+        );
+    }
+
     return (
         <SelectedItemsController
             {...{ context, href, columnExtensionMap }}
