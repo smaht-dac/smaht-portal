@@ -416,7 +416,7 @@
         "title": "HapMap",
         "status": "in review",
         "content": [
-            "cb2cdf19-ebec-4332-ae08-490404384d56"
+            "5b5d9021-4dca-4023-bc5e-123b5ef66ff2"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -437,7 +437,7 @@
         "title": "iPSC and Fibroblasts",
         "status": "in review",
         "content": [
-            "cb2cdf19-ebec-4332-ae08-490404384d56"
+            "a08bb75d-93e2-455f-9fe2-aa8f4969d233"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -458,7 +458,7 @@
         "title": "Brain",
         "status": "in review",
         "content": [
-            "cb2cdf19-ebec-4332-ae08-490404384d56"
+            "9104db8e-9a11-4430-bc86-87a43a0fc857"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -479,7 +479,7 @@
         "title": "Lung",
         "status": "in review",
         "content": [
-            "cb2cdf19-ebec-4332-ae08-490404384d56"
+            "cdcd25cd-cc37-4a35-8494-8573e92dac12"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -496,11 +496,32 @@
         ]
     },
     {
+        "identifier": "data/benchmarking/liver",
+        "title": "Liver",
+        "status": "in review",
+        "content": [
+            "c789600c-4104-4246-a238-af9cc89d74f1"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "74e2fa93-bc3e-4186-aeab-aead6720cc5a",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "data/benchmarking/heart",
         "title": "Heart",
         "status": "in review",
         "content": [
-            "cb2cdf19-ebec-4332-ae08-490404384d56"
+            "09abdc2d-bbb5-4814-9dec-c39e58ee7d4f"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -521,7 +542,7 @@
         "title": "Colon",
         "status": "in review",
         "content": [
-            "cb2cdf19-ebec-4332-ae08-490404384d56"
+            "3a097f93-4478-4487-a7ac-fb805774fcad"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -542,7 +563,7 @@
         "title": "Skin",
         "status": "in review",
         "content": [
-            "cb2cdf19-ebec-4332-ae08-490404384d56"
+            "91f38a47-a6d8-402f-9c84-08358309efbc"
         ],
         "table-of-contents": {
             "enabled": false,
