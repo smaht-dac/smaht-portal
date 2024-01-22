@@ -1491,7 +1491,7 @@ body[data-pathname^="/data/benchmarking"] {
 	.static-section-entry>.section-title { display: none; }
 
 	// Header and description text
-	.benchmarking-layout {
+	.benchmarking-layout>.row>div {
 		>h2 {
 			color: #343741;
 			font-family: Inter;

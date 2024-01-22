@@ -17,11 +17,22 @@ export const BenchmarkingLayout = ({
 
     return (
         <div className="benchmarking-layout">
-            <h2>{title}</h2>
-            <p className={cls}>{description}</p>
+            <div className="row">
+                <div className="col-md-8 col-12">
+                    <h2>{title}</h2>
+                    <p className={cls}>{description}</p>
+                </div>
+                <div className="col-md-4 col-12">
+                    <a
+                        className="btn btn-outline-secondary float-right"
+                        href="#">
+                        Benchmarking Assay Documentation
+                    </a>
+                </div>
+            </div>
             {/* Schemas are loading, so hash won't be available yet; can't pick correct tab */}
             {!schemas && (
-                <div className="readable d-flex bg-light py-5">
+                <div className="w-100 d-flex bg-light py-5">
                     <i className="icon fas icon-spin icon-circle-notch icon-lg m-auto" />
                 </div>
             )}

@@ -288,7 +288,7 @@ class SelectAllFilesButton extends React.PureComponent {
                 : 'check-square far');
         const cls =
             'btn btn-sm mr-05 align-items-center ' +
-            (isAllSelected ? 'btn-outline-secondary' : 'btn-secondary');
+            (isAllSelected ? 'btn-secondary' : 'btn-outline-secondary');
         const tooltip =
             !isAllSelected && !isEnabled
                 ? `"Select All" is disabled since the total file count exceeds the upper limit: ${SELECT_ALL_LIMIT}`
