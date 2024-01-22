@@ -313,8 +313,10 @@ export const ConsortiumMap = () => {
     useEffect(() => {
         if (isDrawn.current === false && mapReference.current !== null) {
             drawChart();
-            isDrawn.current = true;
         }
+        return () => {
+            isDrawn.current = true; // use cleanup function to prevent rerender
+        };
     }, []);
 
     return (
@@ -328,9 +330,8 @@ export const ConsortiumMap = () => {
                     className="mb-3 float-right"
                     variant="pills">
                     <Tab eventKey="map" title="Map view">
-                        <p>Here is some content!</p>
                         <div ref={mapReference}>
-                            {/* <Overlay
+                            <Overlay
                                 target={overlayTarget?.current?.node}
                                 show={showOverlay}
                                 placement="bottom"
@@ -349,7 +350,7 @@ export const ConsortiumMap = () => {
                                         />
                                     </PopoverContent>
                                 </Popover>
-                            </Overlay> */}
+                            </Overlay>
                             {/* Load MapMarker svg to link to from <use> elements */}
                             <MapMarkerSvg />
                         </div>

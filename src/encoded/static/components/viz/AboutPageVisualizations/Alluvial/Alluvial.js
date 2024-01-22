@@ -21,13 +21,14 @@ import Tabs from 'react-bootstrap/Tabs';
  * Component for rendering the svg containing the alluvial plot.
  * @returns
  */
-let isDrawn;
 export const Alluvial = () => {
+    const isDrawn = useRef(false);
+
     const graph = { ...graphData };
 
     // Create ref for appending d3 visualization to the DOM
     const containerRef = useRef(null);
-    isDrawn = false;
+
     // Run after JSX renders (for the ref), then add to the DOM
     useEffect(() => {
         const color_schemes = {
@@ -67,7 +68,7 @@ export const Alluvial = () => {
             },
         };
 
-        if (graph && containerRef.current && !isDrawn) {
+        if (graph && containerRef.current && isDrawn.current === false) {
             const container = containerRef.current;
 
             const margin = { top: 150, right: 200, bottom: 50, left: 100 },
@@ -430,7 +431,7 @@ export const Alluvial = () => {
         }
 
         return () => {
-            isDrawn = true; // use cleanup function to prevent rerender
+            isDrawn.current = true; // use cleanup function to prevent rerender
         };
     }, []);
 
