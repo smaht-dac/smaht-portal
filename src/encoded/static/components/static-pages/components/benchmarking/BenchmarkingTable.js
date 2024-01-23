@@ -512,9 +512,9 @@ const SelectedItemsDownloadModal = function (props) {
                     <hr className="my-2" />
                     <ol className="pl-2">
                         <li className="mb-1">
-                            Please press the "Download" button below to save the
-                            manifest file which contains download URLs and other
-                            information for the selected files.
+                            Please press the &quot;Download&quot; button below
+                            to save the manifest file which contains download
+                            URLs and other information for the selected files.
                         </li>
                         <li>
                             Once you have saved the manifest you may download
