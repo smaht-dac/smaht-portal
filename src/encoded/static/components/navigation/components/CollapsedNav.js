@@ -126,7 +126,9 @@ function DataNavItem(props) {
                     titleIcon="database fas"
                     linkToTopLevelDirPage={false}
                 />
-                <BigDropdownPageTreeMenu />
+                <BigDropdownPageTreeMenu
+                    childrenToHide={['data/benchmarking']}
+                />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
     );

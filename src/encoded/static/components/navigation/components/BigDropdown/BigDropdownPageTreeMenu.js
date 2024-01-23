@@ -47,7 +47,7 @@ export function BigDropdownPageTreeMenuIntroduction(props) {
 }
 
 export function BigDropdownPageTreeMenu(props) {
-    const { menuTree, href } = props;
+    const { menuTree, href, childrenToHide = [] } = props;
     const {
         display_title,
         identifier: pathName,
@@ -66,7 +66,12 @@ export function BigDropdownPageTreeMenu(props) {
 
     function filterOutChildren(child) {
         // Ensure Item has view permission, title, and name (now identifier) (route/URL).
-        return !child.error && child.display_title && child.identifier;
+        return (
+            !child.error &&
+            child.display_title &&
+            child.identifier &&
+            !childrenToHide.includes(child.identifier)
+        );
     }
 
     const level1ChildrenWithoutSubChildren = [];
