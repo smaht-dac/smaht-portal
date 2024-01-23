@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import snovault
 from pyramid.request import Request
@@ -229,7 +229,7 @@ class Item(SnovaultItem):
         submitted_id: Optional[str] = None,
         accession: Optional[str] = None,
         uuid: Optional[str] = None,
-    ) -> str:
+    ) -> Union[str, None]:
         """Generate display title with sane defaults for SMaHT."""
         if title:
             return title

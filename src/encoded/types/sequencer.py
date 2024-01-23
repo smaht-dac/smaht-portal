@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 from pyramid.request import Request
 from snovault import calculated_property, collection, display_title_schema, load_schema
@@ -27,7 +27,7 @@ class Sequencer(Item):
         model: Optional[str] = None,
         identifier: Optional[str] = None,
         accession: Optional[str] = None,
-    ) -> str:
+    ) -> Union[str, None]:
         if platform and model:
             return f"{platform} {model}"
         if identifier:

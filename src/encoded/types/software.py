@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, Union
 
 from encoded_core.types.software import Software as CoreSoftware
 from pyramid.request import Request
@@ -40,7 +40,7 @@ class Software(Item, CoreSoftware):
         name: Optional[str] = None,
         submitted_id: Optional[str] = None,
         accession: Optional[str] = None,
-    ) -> str:
+    ) -> Union[str, None]:
         if code:
             return code
         if title:
