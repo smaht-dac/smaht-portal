@@ -7,7 +7,7 @@ import url from 'url';
 import queryString from 'query-string';
 import { get as getSchemas, Term } from './../../util/Schemas';
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { columnExtensionMap as columnExtensionMapCGAP } from './../../browse/columnExtensionMap';
+import { columnExtensionMap as columnExtensionMapSMaHT } from './../../browse/columnExtensionMap';
 import { EmbeddedSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
 
 export function EmbeddedItemSearchTable(props) {
@@ -103,7 +103,7 @@ export function EmbeddedItemSearchTable(props) {
     );
 }
 EmbeddedItemSearchTable.defaultProps = {
-    columnExtensionMap: columnExtensionMapCGAP,
+    columnExtensionMap: columnExtensionMapSMaHT,
     facets: undefined, // Default to those from search response.
 };
 

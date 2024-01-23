@@ -16,15 +16,15 @@ import { display as dateTimeDisplay } from '@hms-dbmi-bgm/shared-portal-componen
 import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 
 import { EmbeddedItemSearchTable } from '../../../item-pages/components/EmbeddedItemSearchTable';
+import { benchmarkingColExtMap } from './BenchmarkingColExtMap';
 
 export const BenchmarkingTableController = (props) => {
     // Mostly serves as an intermediary/wrapper HOC to make selectedItemsController methods
     // and props available in BenchmarkingTable's aboveTableComponent
     const { searchHref, schemas, facets, session, href, context } = props;
 
-    // TODO: maybe create benchmarking-specific columnExtensionMap/columns in future...
-    const columnExtensionMap =
-        EmbeddedItemSearchTable.defaultProps.columnExtensionMap;
+    // Benchmarking-specific columnExtensionMap/columns + original ones
+    const columnExtensionMap = benchmarkingColExtMap;
 
     if (!searchHref) {
         return (
