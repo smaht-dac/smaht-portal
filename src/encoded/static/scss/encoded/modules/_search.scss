@@ -188,7 +188,7 @@ $facetlist-excluding: #450000;
 				color: #343741;
 			}
 			.icon-toggle {
-				border-color: rgb(0,0,0,.15);
+				border-color: #8E9CAD;
 				button {
 					background-color: transparent;
 					border: none;
@@ -227,24 +227,28 @@ $facetlist-excluding: #450000;
 	}
 
 	.facets-controls {
-		border-left: 1px solid rgb(0,0,0,.15);
-		border-right: 1px solid rgb(0,0,0,.15);
+		border-top: 1px solid #9BA5B7;
+		border-left: 1px solid #E5E5E5;
+		border-right: 1px solid #E5E5E5;
 		background-color: transparent;
 		margin: 0;
 		.properties-controls {
 			button {
 				color: #343741;
 				font-size: 12px;
-				border-width: 1px;
+				font-weight: 500;
+				line-height: 1.7;
 				background-color: transparent;
+				border: 1px solid #C6CFD4;
+				padding: 2px 0px;
 				
 				&:hover {
 					background-color: #ced4da;
 				}
 
 				&:disabled {
-					border-color: #ced4daa6;
-					color: #ced4daa6;
+					border-color: #C6CFD4;
+					color: #C6CFD4;
 
 					&:hover {
 						background-color: transparent;
@@ -256,11 +260,17 @@ $facetlist-excluding: #450000;
 	}
 
 	.facets-body {
-		border: 1px solid rgb(0,0,0,.15);
+		border: 1px solid #EEEEEE;
+		background-color: #FBFBFC;
+		padding: 0px;
+
 		.facet {
+			background-color: #FBFBFC;
 			margin: 0;
+			padding: 0 10px;
 			h5.facet-title {
 				color: #343741;
+				font-weight: 500;
 				span.expand-toggle {
 					display: flex;
 					i.icon {
@@ -272,8 +282,6 @@ $facetlist-excluding: #450000;
 					font-size: 13px;
 				}
 			}
-
-			
 			.facet-list {
 				li {
 					& > a {
@@ -309,8 +317,10 @@ $facetlist-excluding: #450000;
 			}
 			
 			&.open {
+				background-color: white;
 				h5.facet-title {
-					border-bottom: 1px solid rgb(0,0,0,.15);
+					border-bottom: 1px solid #EEEEEE;
+					font-weight: 600;
 				}
 			}
 		}
