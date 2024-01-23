@@ -23,10 +23,10 @@ class Sequencer(Item):
     def display_title(
         self,
         request: Request,
-        platform: Optional[str],
-        model: Optional[str],
-        identifier: Optional[str],
-        accession: Optional[str],
+        platform: Optional[str] = None,
+        model: Optional[str] = None,
+        identifier: Optional[str] = None,
+        accession: Optional[str] = None,
     ) -> str:
         if platform and model:
             return f"{platform} {model}"

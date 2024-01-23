@@ -35,11 +35,11 @@ class Software(Item, CoreSoftware):
     def display_title(
         self,
         request: Request,
-        code: Optional[str],
-        title: Optional[str],
-        name: Optional[str],
-        submitted_id: Optional[str],
-        accession: Optional[str],
+        code: Optional[str] = None,
+        title: Optional[str] = None,
+        name: Optional[str] = None,
+        submitted_id: Optional[str] = None,
+        accession: Optional[str] = None,
     ) -> str:
         if code:
             return code
