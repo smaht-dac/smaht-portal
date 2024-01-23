@@ -49,7 +49,7 @@ export const HapMapData = ({ schemas, session, facets, href, context }) => {
         <BenchmarkingLayout
             {...{ schemas }}
             title="HapMap Cell Line Data"
-            description="<COPY NEEDED>">
+            description="">
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="HapMap-Tab-Renderer"
@@ -72,7 +72,7 @@ export const IPSCFibroblastData = ({
         <BenchmarkingLayout
             {...{ schemas }}
             title="iPSc Cell Line Data"
-            description="<COPY NEEDED>">
+            description="">
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="IPSC-Tab-Renderer"
@@ -89,7 +89,7 @@ export const BrainData = ({ schemas, session, facets, href, context }) => {
         <BenchmarkingLayout
             {...{ schemas }}
             title="Brain Primary Tissue Data"
-            description="<COPY NEEDED>">
+            description="">
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Brain-Tab-Renderer"
@@ -106,7 +106,7 @@ export const SkinData = ({ schemas, session, facets, href, context }) => {
         <BenchmarkingLayout
             {...{ schemas }}
             title="Skin Primary Tissue Data"
-            description="<COPY NEEDED>">
+            description="">
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Skin-Tab-Renderer"
@@ -123,7 +123,7 @@ export const LiverData = ({ schemas, session, facets, href, context }) => {
         <BenchmarkingLayout
             {...{ schemas }}
             title="Liver Primary Tissue Data"
-            description="<COPY NEEDED>">
+            description="">
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Liver-Tab-Renderer"
@@ -140,7 +140,7 @@ export const LungData = ({ schemas, session, facets, href, context }) => {
         <BenchmarkingLayout
             {...{ schemas }}
             title="Lung Primary Tissue Data"
-            description="<COPY NEEDED>">
+            description="">
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Lung-Tab-Renderer"
@@ -157,7 +157,7 @@ export const ColonData = ({ schemas, session, facets, href, context }) => {
         <BenchmarkingLayout
             {...{ schemas }}
             title="Colon Primary Tissue Data"
-            description="<COPY NEEDED>">
+            description="">
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Colon-Tab-Renderer"
@@ -174,7 +174,7 @@ export const HeartData = ({ schemas, session, facets, href, context }) => {
         <BenchmarkingLayout
             {...{ schemas }}
             title="Heart Primary Tissue Data"
-            description="<COPY NEEDED>">
+            description="">
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Heart-Tab-Renderer"
