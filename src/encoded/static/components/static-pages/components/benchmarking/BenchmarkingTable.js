@@ -29,7 +29,7 @@ export const BenchmarkingTableController = (props) => {
     if (!searchHref) {
         return (
             <div className="tbd-notice mt-2">
-                Data: <span className="font-italic">To Be Generated</span>
+                Data: <span className="font-italic">Coming Soon</span>
             </div>
         );
     }
