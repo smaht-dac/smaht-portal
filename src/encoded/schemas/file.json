@@ -143,10 +143,10 @@
         }
     },
     "facets": {
-        "assays.display_title": {
+        "file_sets.assay.display_title": {
             "title": "Experimental Assay"
         },
-        "sequencing.sequencer.display_title": {
+        "file_sets.sequencing.sequencer.display_title": {
             "title": "Sequencing Platform"
         },
         "software.display_title": {
@@ -172,10 +172,10 @@
         "data_type": {
             "title": "Data Category"
         },
-        "assays.display_title": {
+        "file_sets.assay.display_title": {
             "title": "Assay"
         },
-        "sequencing.sequencer.display_title": {
+        "file_sets.sequencing.sequencer.display_title": {
             "title": "Platform"
         },
         "file_format.display_title": {
