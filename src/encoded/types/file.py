@@ -57,7 +57,8 @@ def show_upload_credentials(
 def _build_file_embedded_list() -> List[str]:
     """Embeds for search on files."""
     return [
-        "sequencing.sequencer.display_title",
+        "file_sets.assay.display_title",
+        "file_sets.sequencing.sequencer.display_title",
         "software.name",
     ]
 
