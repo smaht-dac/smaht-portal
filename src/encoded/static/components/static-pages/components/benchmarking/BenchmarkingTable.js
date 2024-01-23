@@ -429,71 +429,112 @@ const SelectedItemsDownloadModal = function (props) {
             onHide={onHide}
             bsSize="large">
             <Modal.Header closeButton>
-                <Modal.Title>
-                    <span className="text-400">
-                        Download{' '}
-                        <span className="text-600">{selectedItems.length}</span>{' '}
-                        Files
-                    </span>
+                <Modal.Title className="pl-2 d-flex align-items-center">
+                    <img
+                        className="mr-1"
+                        src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
+                        height="47"
+                    />
+                    SMaHT Data Download
                 </Modal.Title>
             </Modal.Header>
 
             <Modal.Body>
-                <div className="important-notes-section">
-                    <h4 className="mb-07 text-500">Important</h4>
-                    <ul>
-                        <li className="mb-05">
-                            <span className="text-danger">
-                                You must include an <b>access key</b> in your
-                                cURL command for bulk downloads.
-                            </span>
+                <div className="col-auto mb-4 px-3">
+                    <h2 className="text-larger">SMaHT Policy</h2>
+                    <hr className="my-2" />
+                    <ul className="pl-2">
+                        <li className="mb-1">
+                            <strong>Data Use:</strong> Please read the{' '}
+                            <a
+                                href="https://docs.google.com/document/d/16gLiH07v_KWljTFd_EqK6NQ1d_c08utEXEmU6DTgfFs/edit"
+                                target="_blank"
+                                rel="noreferrer noopener">
+                                SMaHT Data Use Policy
+                            </a>{' '}
+                            for the use of open- and protected-access data.
                         </li>
-                        <li className="mb-05">
-                            You can configure the access key in{' '}
-                            {session ? (
-                                <a
-                                    href={profileHref}
-                                    target="_blank"
-                                    rel="noopener noreferrer">
-                                    your profile
-                                </a>
-                            ) : (
-                                'your profile'
-                            )}
-                            , then use it in place of{' '}
-                            <em>{'<access_key_id>:<access_key_secret>'}</em>,
-                            below.
+                        <li>
+                            <strong>Publication:</strong> Please read the{' '}
+                            <a
+                                href="https://docs.google.com/document/d/1PQF0uEvPNuAco3sVxl2dOdl1mxuZ1zbfcbUJbIdW6Ac/edit"
+                                target="_blank"
+                                rel="noreferrer noopener">
+                                SMaHT Publication Policy
+                            </a>
+                            .
                         </li>
-                        {!session ? (
-                            <li>
-                                {
-                                    "If you don't already have an account, you can "
-                                }
-                                <a
-                                    onClick={onLoginNavItemClick}
-                                    href="#loginbtn">
-                                    log in
-                                </a>
-                                {' with your Google or GitHub credentials.'}
-                            </li>
-                        ) : null}
                     </ul>
                 </div>
-                <p>
-                    Please press the &quot;Download&quot; button below to save
-                    the metadata TSV file which contains download URLs and other
-                    information for the selected files.
-                </p>
-                <p>
-                    Once you have saved the metadata TSV, you may download the
-                    files on any machine or server with the following cURL
-                    command:
-                </p>
-                <ModalCodeSnippet
-                    filename={suggestedFilename}
-                    session={session}
-                />
-
+                <div className="col-auto mb-4">
+                    <h2 className="text-larger">Data Overview</h2>
+                    <div className="card tsv-metadata-overview flex-row p-4">
+                        <div>
+                            <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
+                                File Count
+                            </div>
+                            <div className="tsv-metadata-stat">
+                                {selectedItems.size}
+                            </div>
+                        </div>
+                        <div className="ml-8">
+                            <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
+                                File Size
+                            </div>
+                            <div className="tsv-metadata-stat">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-auto mb-4">
+                    <h2 className="text-larger">
+                        <i className="fas icon-exclamation-triangle text-danger mr-1" />{' '}
+                        Important Reminders
+                    </h2>
+                    <hr className="my-2" />
+                    <ul className="pl-2">
+                        <li className="mb-1">
+                            You{' '}
+                            <span className="text-danger text-500">
+                                must include an access key in your cURL command
+                            </span>{' '}
+                            for bulk downloads.
+                        </li>
+                        <li>
+                            You can configure the access key in your profile,
+                            then use it in place of
+                            &lt;access_key_id&gt;:&lt;access_key_secret&gt;,
+                            below.
+                        </li>
+                    </ul>
+                </div>
+                <div className="col-auto mb-4">
+                    <h2 className="text-larger">Instructions for Download</h2>
+                    <hr className="my-2" />
+                    <ol className="pl-2">
+                        <li className="mb-1">
+                            Please press the "Download" button below to save the
+                            manifest file which contains download URLs and other
+                            information for the selected files.
+                        </li>
+                        <li>
+                            Once you have saved the manifest you may download
+                            the files on any machine or server with the
+                            following cURL command:
+                        </li>
+                    </ol>
+                    <ModalCodeSnippet
+                        filename={suggestedFilename}
+                        session={session}
+                    />
+                </div>
+            </Modal.Body>
+            <Modal.Footer>
+                <button
+                    type="reset"
+                    onClick={onHide}
+                    className="btn btn-outline-secondary btn-block-xs-only">
+                    Cancel
+                </button>
                 <SelectedItemsDownloadStartButton
                     {...{
                         selectedItems,
@@ -501,14 +542,7 @@ const SelectedItemsDownloadModal = function (props) {
                         action,
                     }}
                 />
-
-                <button
-                    type="reset"
-                    onClick={onHide}
-                    className="btn btn-outline-dark mt-1 btn-block-xs-only">
-                    Cancel
-                </button>
-            </Modal.Body>
+            </Modal.Footer>
         </Modal>
     );
 };
@@ -533,7 +567,7 @@ const ModalCodeSnippet = React.memo(function ModalCodeSnippet(props) {
     return (
         <object.CopyWrapper
             value={plainValue}
-            className="curl-command-wrapper"
+            className="curl-command-wrapper mt-2"
             data-tip={'Click to copy'}
             wrapperElement="div"
             iconProps={{}}>
@@ -595,11 +629,11 @@ const SelectedItemsDownloadStartButton = React.memo(
                 <button
                     type="submit"
                     name="Download"
-                    className="btn btn-primary mt-1 mr-1 btn-block-xs-only"
+                    className="btn btn-primary mt-0 mr-1 btn-block-xs-only"
                     // onClick={onClick} // TODO: re-add onclick to handle analytics move-to-cart
                     data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
-                    <i className="icon icon-fw icon-file-alt fas mr-1" />
-                    Download metadata for files
+                    <i className="icon icon-fw icon-download fas mr-1" />
+                    Download Manifest
                 </button>
             </form>
         );
