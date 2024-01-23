@@ -68,6 +68,9 @@
         "accession": {
             "accessionType": "AS"
         },
+        "code": {
+            "pattern": "^[0-9]{3}$"
+        },
         "schema_version": {
             "default": "1"
         }

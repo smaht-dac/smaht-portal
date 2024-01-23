@@ -66,6 +66,9 @@
         "accession": {
             "accessionType": "SR"
         },
+        "code": {
+            "pattern": "^[A-Z]{1}$"
+        },
         "schema_version": {
             "default": "1"
         },

@@ -59,6 +59,9 @@
         "accession": {
             "accessionType": "CM"
         },
+        "code": {
+            "pattern": "^[A-Z0-9]{3,}$"
+        },
         "schema_version": {
             "default": "1"
         },
