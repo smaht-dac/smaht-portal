@@ -82,7 +82,10 @@ function AboutNavItem(props) {
                 id="about-menu-item"
                 navItemHref="/about"
                 navItemContent="About">
-                <BigDropdownPageTreeMenuIntroduction titleIcon="info-circle fas" />
+                <BigDropdownPageTreeMenuIntroduction
+                    titleIcon="info-circle fas"
+                    linkToTopLevelDirPage={false}
+                />
                 <BigDropdownPageTreeMenu />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
@@ -99,7 +102,10 @@ function DocsNavItem(props) {
                 id="docs-menu-item"
                 navItemHref="/docs"
                 navItemContent="Documentation">
-                <BigDropdownPageTreeMenuIntroduction titleIcon="book fas" />
+                <BigDropdownPageTreeMenuIntroduction
+                    titleIcon="book fas"
+                    linkToTopLevelDirPage={false}
+                />
                 <BigDropdownPageTreeMenu />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
@@ -116,8 +122,13 @@ function DataNavItem(props) {
                 id="data-menu-item"
                 navItemHref="/data"
                 navItemContent="Data">
-                <BigDropdownPageTreeMenuIntroduction titleIcon="database fas" />
-                <BigDropdownPageTreeMenu />
+                <BigDropdownPageTreeMenuIntroduction
+                    titleIcon="database fas"
+                    linkToTopLevelDirPage={false}
+                />
+                <BigDropdownPageTreeMenu
+                    childrenToHide={['data/benchmarking']}
+                />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
     );

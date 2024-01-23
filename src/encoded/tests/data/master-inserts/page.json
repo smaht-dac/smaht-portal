@@ -344,9 +344,7 @@
         "identifier": "data",
         "title": "Data",
         "status": "public",
-        "children": [
-            "39deafe0-34ae-4ab8-8261-3661b0c79a38"
-        ],
+        "children": ["39deafe0-34ae-4ab8-8261-3661b0c79a38"],
         "table-of-contents": {
             "enabled": true,
             "header-depth": 4
@@ -593,6 +591,17 @@
             "include-top-link": false
         },
         "uuid": "a5b90fc7-cb21-4a84-8bf2-b6c2b282cf0b",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "statistics",
+        "uuid": "f0f0f0f0-0000-0000-0000-ffffff040000",
+        "title": "Portal Statistics (BETA)",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

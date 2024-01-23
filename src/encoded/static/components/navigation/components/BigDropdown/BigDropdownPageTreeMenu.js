@@ -13,6 +13,7 @@ import { BigDropdownIntroductionWrapper } from './BigDropdownIntroductionWrapper
 
 export function BigDropdownPageTreeMenuIntroduction(props) {
     const {
+        linkToTopLevelDirPage = true,
         menuTree,
         windowHeight,
         windowWidth,
@@ -32,7 +33,11 @@ export function BigDropdownPageTreeMenuIntroduction(props) {
         <BigDropdownIntroductionWrapper
             {...{ windowHeight, windowWidth, titleIcon, isActive }}>
             <h4 className="mt-0 mb-0">
-                <a href={'/' + pathName}>{display_title}</a>
+                {linkToTopLevelDirPage ? (
+                    <a href={'/' + pathName}>{display_title}</a>
+                ) : (
+                    display_title
+                )}
             </h4>
             {description ? (
                 <div className="description">{description}</div>
@@ -42,8 +47,12 @@ export function BigDropdownPageTreeMenuIntroduction(props) {
 }
 
 export function BigDropdownPageTreeMenu(props) {
-    const { menuTree, href } = props;
-    const { display_title, identifier: pathName, children = [] } = menuTree || {};
+    const { menuTree, href, childrenToHide = [] } = props;
+    const {
+        display_title,
+        identifier: pathName,
+        children = [],
+    } = menuTree || {};
 
     if (!pathName || !display_title) return null;
 
@@ -57,7 +66,12 @@ export function BigDropdownPageTreeMenu(props) {
 
     function filterOutChildren(child) {
         // Ensure Item has view permission, title, and name (now identifier) (route/URL).
-        return !child.error && child.display_title && child.identifier;
+        return (
+            !child.error &&
+            child.display_title &&
+            child.identifier &&
+            !childrenToHide.includes(child.identifier)
+        );
     }
 
     const level1ChildrenWithoutSubChildren = [];
@@ -90,7 +104,8 @@ export function BigDropdownPageTreeMenu(props) {
                     (!hasLevel2Children ? ' col-lg-8' : ' col-lg-4')
                 }>
                 {level1ChildrenWithoutSubChildren.map(function (child) {
-                    const active = urlParts.pathname.indexOf(child.identifier) > -1;
+                    const active =
+                        urlParts.pathname.indexOf(child.identifier) > -1;
                     return (
                         <Level1Title
                             childPageItem={child}
@@ -161,6 +176,7 @@ export function BigDropdownPageTreeMenu(props) {
     return (
         <div className={cls}>
             {topLeftMenuCol}
+            <CustomStaticLinks {...{ pathName, href }} />
             {childItems}
         </div>
     );
@@ -181,4 +197,96 @@ function Level1Title({ childPageItem, active }) {
             </a>
         </div>
     );
+}
+
+function CustomStaticLinks({ pathName, href }) {
+    console.log('href, pathName', href, pathName, href.includes(pathName));
+    switch (pathName) {
+        case 'data':
+            return (
+                <div className="help-menu-tree level-1 col-12 col-md-6 col-lg-8 has-children">
+                    <div
+                        className={`level-1-title-container ${
+                            href.includes(pathName + '/benchmarking')
+                                ? ' active'
+                                : ''
+                        }`}>
+                        <div className="level-1-title text-medium">
+                            Benchmarking Data
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="level-2 col-12 col-md-6">
+                            <div className="level-2-title-container my-1">
+                                <div className="level-2-title text-medium text-600">
+                                    Cell Lines
+                                </div>
+                            </div>
+
+                            <div className="level-3">
+                                <a
+                                    className="level-3-title text-small d-block"
+                                    href="/data/benchmarking/COLO829"
+                                    id="menutree-linkto-colo829_page">
+                                    <span>COLO829</span>
+                                </a>
+                                <a
+                                    className="level-3-title text-small d-block"
+                                    href="/data/benchmarking/HapMap#main"
+                                    id="menutree-linkto-hapmap_page">
+                                    <span>HapMap</span>
+                                </a>
+                                <a
+                                    className="level-3-title text-small d-block"
+                                    href="/data/benchmarking/iPSC-fibroblasts#main"
+                                    id="menutree-linkto-ipscfirbro_page">
+                                    <span>iPSc and Fibroblasts</span>
+                                </a>
+                            </div>
+                        </div>
+                        <div className="level-2 col-12 col-md-6 mt-md-0 mt-1">
+                            <div className="level-2-title-container my-1">
+                                <div className="level-2-title text-medium text-600">
+                                    Primary Tissues
+                                </div>
+                            </div>
+                            <div className="level-3">
+                                <a
+                                    className="level-3-title text-small d-block"
+                                    href="/data/benchmarking/brain"
+                                    id="menutree-linkto-brain_page">
+                                    <span>Brain</span>
+                                </a>
+                                <a
+                                    className="level-3-title text-small d-block"
+                                    href="/data/benchmarking/skin"
+                                    id="menutree-linkto-skin_page">
+                                    <span>Skin</span>
+                                </a>
+                                <a
+                                    className="level-3-title text-small d-block"
+                                    href="/data/benchmarking/lung"
+                                    id="menutree-linkto-lung_page">
+                                    <span>Lung</span>
+                                </a>
+                                <a
+                                    className="level-3-title text-small d-block"
+                                    href="/data/benchmarking/colon"
+                                    id="menutree-linkto-colon_page">
+                                    <span>Colon</span>
+                                </a>
+                                <a
+                                    className="level-3-title text-small d-block"
+                                    href="/data/benchmarking/heart"
+                                    id="menutree-linkto-heart_page">
+                                    <span>Heart</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        default:
+            return null;
+    }
 }

@@ -78,6 +78,7 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
         overwrite=True,
         itype=None,
         from_json=True,
+        continue_on_exception=True,
         verbose=True,
         post_only=post_only,
         patch_only=patch_only,
@@ -94,19 +95,29 @@ def summary_of_load_data_results(load_data_response: Optional[Dict],
     object in the Portal database (see SubmissionFolio.record_results); this is what will
     get displayed, by default, by the submitr tool when it detects processing has completed.
     """
+    if (errors := load_data_response.get("errors")) and (errors := [error for error in errors if error]):
+        status = "FAILED"
+    else:
+        status = "OK"
     summary = [
-        f"Successful ingestion summary:",
-        f"File:    {submission.data_file_name}" if submission else None,
+        f"Submission UUID: {submission.id}" if submission else None,
+        f"Status: {status}",
+        f"File: {submission.data_file_name}" if submission else None,
         f"S3 File: {submission.s3_data_file_location}" if submission else None,
         f"Details: {submission.s3_details_location}" if submission else None,
-        f"Total:   {load_data_response['total']}",
+        f"Total: {load_data_response['total']}",
+        f"Types: {len(load_data_response['types'])}",
         f"Created: {len(load_data_response['created'])}",
         f"Updated: {len(load_data_response['updated'])}",
         f"Skipped: {len(load_data_response['skipped'])}",
-        f"Checked: {len(load_data_response['validated'])}",
-        f"Errored: {len(load_data_response['errors'])}",
-        f"Types:   {len(load_data_response['types'])}"
+        f"Checked: {len(load_data_response['validated'])}"
     ]
+    if errors:
+        summary.append(f"Errored: {len(errors)}")
+        for error in errors:
+            if error.startswith("ERROR: "):
+                error = error[7:]
+            summary.append(f"Error: {error}")
     return [item for item in summary if item is not None]
 
 
