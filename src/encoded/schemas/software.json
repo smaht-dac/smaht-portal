@@ -5,7 +5,6 @@
     "type": "object",
     "required": [
         "category",
-        "name",
         "title",
         "version"
     ],
@@ -52,6 +51,9 @@
         },
         {
             "$ref": "mixins.json#/category"
+        },
+        {
+            "$ref": "mixins.json#/code"
         },
         {
             "$ref": "mixins.json#/description"
