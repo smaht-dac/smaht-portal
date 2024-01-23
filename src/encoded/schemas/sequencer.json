@@ -75,30 +75,12 @@
         "model": {
             "title": "Instrument Model",
             "description": "Model of instrument used to obtain data",
-            "type": "string",
-            "enum": [
-                "NovaSeq",
-                "NovaSeq X",
-                "NovaSeq X Plus",
-                "NovaSeq 6000",
-                "Revio",
-                "PromethION",
-                "UG100",
-                "Xenium",
-                "Ultralong Promethion R10"
-            ]
+            "type": "string"
         },
         "platform": {
             "title": "Platform",
             "description": "Name of the platform used to obtain data",
-            "type": "string",
-            "enum": [
-                "Illumina",
-                "PacBio",
-                "Ultima",
-                "ONT",
-                "10X Genomics"
-            ]
+            "type": "string"
         },
         "read_length_category": {
             "title": "Read Length Classification",
