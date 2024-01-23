@@ -90,6 +90,7 @@ const BenchmarkingTable = (props) => {
                 facets,
                 columnExtensionMap,
             }}
+            hideFacets={['dataset']}
         />
     );
 };
