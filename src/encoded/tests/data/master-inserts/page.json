@@ -344,7 +344,6 @@
         "identifier": "data",
         "title": "Data",
         "status": "public",
-        "children": [],
         "table-of-contents": {
             "enabled": true,
             "header-depth": 4
