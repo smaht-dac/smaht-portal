@@ -12,7 +12,7 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#main',
                 title: 'COLO829T',
-                searchHref: '/search/?type=SubmittedFile&dataset=colo829t',
+                searchHref: '/search/?type=ReferenceFile',
             },
             {
                 eventKey: '#BL',
@@ -20,22 +20,15 @@ export const BenchmarkingDataMap = {
                 searchHref: '/search/?type=SubmittedFile&dataset=colo829bl',
             },
             {
-                eventKey: '#110',
-                title: 'Mix 1:10',
-                searchHref:
-                    '/search/?type=SubmittedFile&dataset=colo829blt_10to1',
-            },
-            {
                 eventKey: '#150',
-                title: 'Mix 1:50',
+                title: 'COLO829BLT50',
                 searchHref:
                     '/search/?type=SubmittedFile&dataset=colo829blt_50to1',
             },
             {
-                eventKey: '#1200',
-                title: 'Mix 1:200',
-                searchHref:
-                    '/search/?type=SubmittedFile&dataset=colo829blt_200to1',
+                eventKey: '#silico',
+                title: 'In Silico Mix',
+                // searchHref: '/search/?type=SubmittedFile&dataset=colo829blt_200to1',
             },
         ],
     },
