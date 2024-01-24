@@ -11,6 +11,8 @@ Change Log
 ======
 
 * Adds `/peak-metadata` support for retrieving facet information from the metadata.tsv
+* Merge in ui-dev4 branch: `PR: ##: UI-Dev 4 <>`_
+* TODO: add branches merged into ui-dev4
 
 
 0.15.0
@@ -64,12 +66,6 @@ Change Log
 * Added record (uw_gcc) to master-inserts/submission_center.json for testing.
 * Added test_structured_data.py back in after resolved GitHub Actions (only) failure.
 
-
-0.12.0
-=====
-
-* Merge in ui-dev4 branch: `PR: ##: UI-Dev 4 <>`_
-* TODO: add branches merged into ui-dev4
 
 0.11.6
 ======

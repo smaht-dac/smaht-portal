@@ -12,27 +12,30 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#main',
                 title: 'COLO829T',
-                searchHref: '/search/?type=ReferenceFile',
+                searchHref: '/search/?type=SubmittedFile&dataset=colo829t',
             },
             {
                 eventKey: '#BL',
                 title: 'COLO829BL',
-                searchHref: '/search/?type=Item',
+                searchHref: '/search/?type=SubmittedFile&dataset=colo829bl',
             },
             {
                 eventKey: '#110',
                 title: 'Mix 1:10',
-                searchHref: '/search/?type=Page',
+                searchHref:
+                    '/search/?type=SubmittedFile&dataset=colo829blt_10to1',
             },
             {
                 eventKey: '#150',
                 title: 'Mix 1:50',
-                searchHref: '/search/?type=User',
+                searchHref:
+                    '/search/?type=SubmittedFile&dataset=colo829blt_50to1',
             },
             {
                 eventKey: '#1200',
                 title: 'Mix 1:200',
-                searchHref: '/search/?type=StaticSection',
+                searchHref:
+                    '/search/?type=SubmittedFile&dataset=colo829blt_200to1',
             },
         ],
     },
