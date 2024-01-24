@@ -9,11 +9,11 @@
         <li>14 Tools and Technology Development Projects what focus on developing novel experimental assays and computational methods to detect somatic mutations.</li>
     </ol>
 
-    <p>The SMaHT Network aims to generate sequencing data using multiple short- and long-read technologies and profiling assays. Please refer to our data overview here for more information.</p>
+    <p>The SMaHT Network aims to generate sequencing data using multiple short- and long-read technologies and profiling assays. Please refer to our <a href="/about/consortium/data">data overview</a> for more information.</p>
 
     <p>The location and more information about the SMaHT Network members are below.</p>
 
-    <p>For more information about the Network, please visit the SMaHT Organization Center website.</p>
+    <p>For more information about the Network, please visit the <a href="https://www.smaht.org">SMaHT Organization Center website.</a></p>
 
     <ConsortiumMap />
 </>

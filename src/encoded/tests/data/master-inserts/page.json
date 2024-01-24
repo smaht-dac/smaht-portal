@@ -4,7 +4,6 @@
         "title": "About",
         "status": "public",
         "children": [
-            "c57a5299-64aa-4e8d-bf01-6668d815b94f",
             "d2d042e7-09e5-4a34-a8c5-530ba9c9cdec",
             "af03023c-1ce0-49a1-b85b-20f5abd8cc30"
         ],
@@ -16,27 +15,6 @@
             "header-depth": 4
         },
         "uuid": "c79afee0-7ba5-4dc6-9c1c-684984f85607",
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
-    },
-    {
-        "identifier": "about/what-is-smaht",
-        "title": "What is SMaHT?",
-        "status": "public",
-        "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
-        ],
-        "table-of-contents": {
-          "enabled": false,
-          "skip-depth": 1,
-          "header-depth": 4,
-          "include-top-link": false
-        },
-        "uuid": "c57a5299-64aa-4e8d-bf01-6668d815b94f",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -95,7 +73,7 @@
     },
     {
         "identifier": "about/consortium/awardees",
-        "title": "SMaHT Awardees",
+        "title": "SMaHT Consortium Members",
         "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5",
