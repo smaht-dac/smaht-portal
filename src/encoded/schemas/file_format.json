@@ -52,6 +52,9 @@
             "$ref": "mixins.json#/submitted"
         },
         {
+            "$ref": "mixins.json#/title"
+        },
+        {
             "$ref": "mixins.json#/tags"
         },
         {

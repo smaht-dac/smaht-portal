@@ -276,18 +276,6 @@
             "type": "string",
             "permission": "restricted_fields"
         },
-        "assays": {
-            "title": "Assays",
-            "description": "Assays associated with this file",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "permission": "restricted_fields",
-            "items": {
-                "type": "string",
-                "linkTo": "Assay"
-            }
-        },
         "dataset": {
             "title": "Dataset",
             "description": "Dataset associated with the file",
@@ -299,18 +287,6 @@
                 "colo829t",
                 "colo829blt_50to1"
             ]
-        },
-        "sequencing": {
-            "title": "Sequencing",
-            "description": "Sequencing associated with this file",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "permission": "restricted_fields",
-            "items": {
-                "type": "string",
-                "linkTo": "Sequencing"
-            }
         }
     },
     "identifier": {
