@@ -344,9 +344,7 @@
         "identifier": "data",
         "title": "Data",
         "status": "public",
-        "children": [
-            "39deafe0-34ae-4ab8-8261-3661b0c79a38"
-        ],
+        "children": ["39deafe0-34ae-4ab8-8261-3661b0c79a38"],
         "table-of-contents": {
             "enabled": true,
             "header-depth": 4
