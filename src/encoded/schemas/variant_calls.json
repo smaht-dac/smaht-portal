@@ -82,7 +82,9 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Variant Calls"
+                    "Variant Calls",
+                    "Germline Variant Calls",
+                    "Somatic Variant Calls"
                 ]
             }
         },
@@ -90,6 +92,11 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Copy Number Variant",
+                    "Insertion-deletion",
+                    "Mobile Element Insertion",
+                    "Single Nucleotide Variant",
+                    "Structural Variant",
                     "Germline Variants",
                     "Somatic Variants"
                 ]

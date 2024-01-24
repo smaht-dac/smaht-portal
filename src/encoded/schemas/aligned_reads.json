@@ -89,7 +89,9 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Aligned Reads"
+                    "Aligned Reads",
+                    "Sorted Reads",
+                    "Phased Reads"
                 ]
             }
         },
