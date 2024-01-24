@@ -321,6 +321,10 @@ export const ConsortiumMap = () => {
 
     return (
         <div className="consortium-map-container container py-5">
+            <p className="visualization-warning d-block d-sm-none">
+                <span>Note:</span> for the best experience, please view the
+                visualization below on a tablet or desktop.
+            </p>
             <div className="consortium-map">
                 <div
                     id="consortiumMapTooltip"
