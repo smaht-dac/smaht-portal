@@ -56,3 +56,29 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_type_length(es_testapp, 'ReferenceFile', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'OutputFile', 1)
+
+    def test_peak_metadata_workbook(self, workbook, es_testapp):
+        """ Tests we can peak at metadata for files and get facet information (just file size for now) """
+        es_testapp.post_json('/index', {})  # index the files
+        # check all types
+        res = es_testapp.post_json('/peak-metadata/',
+                                   {'type': 'File', 'include_extra_files': True}).json
+        for facet in res:
+            if facet['field'] == 'file_size':
+                assert facet['count'] == 5
+                assert facet['min'] == 1000.0
+                assert facet['max'] == 100000.0
+                assert facet['avg'] == 24800.0
+                assert facet['sum'] == 124000.0
+            break
+        # check an individual type
+        res = es_testapp.post_json('/peak-metadata/',
+                                   {'type': 'AlignedReads', 'include_extra_files': True}).json
+        for facet in res:
+            if facet['field'] == 'file_size':
+                assert facet['count'] == 1
+                assert facet['min'] == 1000.0
+                assert facet['max'] == 1000.0
+                assert facet['avg'] == 1000.0
+                assert facet['sum'] == 1000.0
+            break
