@@ -842,7 +842,7 @@ export function UsageStatsView(props){
 
                 : null }
 
-            {/* {session && file_views ?
+            {session && file_views ?
 
                 <ColorScaleProvider resetScalesWhenChange={file_views}>
 
@@ -869,7 +869,7 @@ export function UsageStatsView(props){
 
                 </ColorScaleProvider>
 
-                : null} */}
+                : null}
 
             { sessions_by_country ?
 
