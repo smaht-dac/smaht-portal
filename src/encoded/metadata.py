@@ -65,6 +65,8 @@ TSV_MAPPING = {
                                            field_name=['href']),
         'File Accession': TSVDescriptor(field_type=FILE,
                                         field_name=['accession']),
+        'File Name': TSVDescriptor(field_type=FILE,
+                                   field_name=['annotated_filename']),
         'Size (MB)': TSVDescriptor(field_type=FILE,
                                    field_name=['file_size']),
         'md5sum': TSVDescriptor(field_type=FILE,
@@ -79,10 +81,10 @@ TSV_MAPPING = {
 
 def generate_file_download_header(download_file_name: str):
     """ Helper function that generates a suitable header for the File download """
-    header1 = ['###', 'Metadata TSV Download', '', '', '', '']
+    header1 = ['###', 'Metadata TSV Download', '', '', '', '', '']
     header2 = ['Suggested command to download: ', '', '',
                'cut -f 1 ./{} | tail -n +3 | grep -v ^# | xargs -n 1 curl -O -L '
-               '--user <access_key_id>:<access_key_secret>'.format(download_file_name), '', '']
+               '--user <access_key_id>:<access_key_secret>'.format(download_file_name), '', '', '']
     header3 = list(TSV_MAPPING[FILE].keys())
     return header1, header2, header3
 
@@ -157,6 +159,7 @@ def handle_metadata_arguments(context, request):
 @view_config(route_name='peak_metadata', request_method=['GET', 'POST'])
 @debug_log
 def peak_metadata(context, request):
+    """ Helper for the UI that will retrieve faceting information about data retrieved from /metadata """
     # get arguments from helper
     (accessions, sort_param, type_param, include_extra_files, download_file_name,
      header, tsv_mapping) = handle_metadata_arguments(context, request)
@@ -172,6 +175,8 @@ def peak_metadata(context, request):
     if sort_param:
         search_param['sort'] = sort_param
     search_param['limit'] = [1]  # we don't care about results, just the facets
+    if include_extra_files:
+        search_param['additional_facet'] = 'extra_files.file_size'
     subreq = make_search_subreq(request, '{}?{}'.format('/search', urlencode(search_param, True)), inherit_user=True)
     result = search(context, subreq)
     return result['facets']

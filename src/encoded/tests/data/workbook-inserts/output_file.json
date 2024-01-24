@@ -10,12 +10,43 @@
         "file_format": "BAM",
         "extra_files": [
             {
+                "filename": "a_bam_bai.bai",
+                "file_size": 3000,
+                "status": "uploaded",
                 "file_format": "BAI"
+            },
+            {
+                "filename": "a_vcf.vcf",
+                "file_size": 5000,
+                "status": "uploaded",
+                "file_format": "VCF"
             }
         ],
         "consortia": [
             "smaht"
         ],
         "file_size": 5000
+    },
+    {
+        "uuid": "cca15caa-bc11-4a6a-8998-ea0c69df8b9e",
+        "data_category": [
+            "Sequencing Reads"
+        ],
+        "data_type": [
+            "Aligned Reads"
+        ],
+        "file_format": "BAM",
+        "extra_files": [
+            {
+                "filename": "a_second_bam_bai.bai",
+                "file_size": 6000,
+                "status": "uploaded",
+                "file_format": "BAI"
+            }
+        ],
+        "consortia": [
+            "smaht"
+        ],
+        "file_size": 10000
     }
 ]
