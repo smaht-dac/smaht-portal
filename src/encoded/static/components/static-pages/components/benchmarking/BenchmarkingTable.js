@@ -10,21 +10,27 @@ import {
     memoizedUrlParse,
     object,
     logger,
-    JWT,
+    valueTransforms,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { display as dateTimeDisplay } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
-import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
+import {
+    LocalizedTime,
+    display as dateTimeDisplay,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
+import {
+    SelectedItemsController,
+    SelectionItemCheckbox,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 
 import { EmbeddedItemSearchTable } from '../../../item-pages/components/EmbeddedItemSearchTable';
-import { benchmarkingColExtMap } from './BenchmarkingColExtMap';
 
 export const BenchmarkingTableController = (props) => {
     // Mostly serves as an intermediary/wrapper HOC to make selectedItemsController methods
     // and props available in BenchmarkingTable's aboveTableComponent
     const { searchHref, schemas, facets, session, href, context } = props;
 
-    // Benchmarking-specific columnExtensionMap/columns + original ones
-    const columnExtensionMap = benchmarkingColExtMap;
+    // Some fields overriden in BenchmarkingTable component
+    const originalColExtMap =
+        EmbeddedItemSearchTable.defaultProps.columnExtensionMap;
 
     if (!searchHref) {
         return (
@@ -36,9 +42,10 @@ export const BenchmarkingTableController = (props) => {
 
     return (
         <SelectedItemsController
-            {...{ context, href, columnExtensionMap }}
+            {...{ context, href }}
             currentAction={'multiselect'}>
             <BenchmarkingTable
+                columnExtensionMap={originalColExtMap}
                 {...{
                     session,
                     searchHref,
@@ -46,7 +53,6 @@ export const BenchmarkingTableController = (props) => {
                     href,
                     context,
                     facets,
-                    columnExtensionMap,
                 }}
             />
         </SelectedItemsController>
@@ -59,14 +65,95 @@ const BenchmarkingTable = (props) => {
         schemas,
         facets,
         session,
-        children,
         href,
-        context,
-        columnExtensionMap,
+        columnExtensionMap: originalColExtMap,
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
     } = props;
+
+    const selectedFileProps = {
+        selectedItems, // From SelectedItemsController
+        onSelectItem, // From SelectedItemsController
+        onResetSelectedItems, // From SelectedItemsController
+        href,
+        searchHref,
+    };
+
+    /**
+     * A column extension map speifically for benchmarking tables.
+     * Some of these things may be worth moving to the global colextmap eventually.
+     */
+    const benchmarkingColExtMap = {
+        ...originalColExtMap, // Pull in defaults for all tables
+        // Then overwrite or add onto the ones that already are there:
+        // Select all button
+        accession: {
+            colTitle: (
+                // Context now passed in from HeadersRowColumn (for file count)
+                <SelectAllFilesButton {...selectedFileProps} type="checkbox" />
+            ),
+            hideTooltip: true,
+            noSort: true,
+            widthMap: { lg: 63, md: 63, sm: 63 },
+            render: (result, parentProps) => {
+                return (
+                    <SelectionItemCheckbox
+                        {...{ selectedItems, onSelectItem, result }}
+                        isMultiSelect={true}
+                    />
+                );
+            },
+        },
+        // Format
+        'file_format.display_title': {
+            colTitle: 'Format',
+            widthMap: { lg: 100, md: 90, sm: 80 },
+        },
+        // Center
+        'submission_centers.display_title': {
+            colTitle: 'Center',
+            render: function (result, parentProps) {
+                const { submission_centers: gccs = [] } = result || {};
+                if (gccs.length === 0) return null;
+                return (
+                    <span className="value text-left">
+                        {gccs.map((gcc) => gcc.display_title).join(', ')}
+                    </span>
+                );
+            },
+        },
+        // File Size
+        file_size: {
+            widthMap: { lg: 150, md: 140, sm: 130 },
+            render: function (result, parentProps) {
+                const value = result?.file_size;
+                if (!value) return null;
+                return (
+                    <span className="value text-right">
+                        {valueTransforms.bytesToLargerUnit(value)}
+                    </span>
+                );
+            },
+        },
+        // Submission Date
+        date_created: {
+            widthMap: { lg: 180, md: 160, sm: 140 },
+            render: function (result, parentProps) {
+                const value = result?.date_created;
+                if (!value) return null;
+                return (
+                    <span className="value text-right">
+                        <LocalizedTime
+                            timestamp={value}
+                            formatType="date-file"
+                        />
+                    </span>
+                );
+            },
+        },
+    };
+
     return (
         <EmbeddedItemSearchTable
             embeddedTableHeader={
@@ -88,9 +175,10 @@ const BenchmarkingTable = (props) => {
                 schemas,
                 session,
                 facets,
-                columnExtensionMap,
             }}
+            columnExtensionMap={benchmarkingColExtMap}
             hideFacets={['dataset']}
+            hideColumns={['display_title']}
         />
     );
 };
@@ -139,7 +227,7 @@ const BenchmarkingAboveTableComponent = React.memo(
                 <div className="ml-auto col-auto mr-0 pr-0">
                     <SelectAllFilesButton
                         {...selectedFileProps}
-                        {...{ searchHref, href, context }}
+                        {...{ context }}
                         totalFilesCount={totalResultCount}
                     />
                     <SelectedItemsDownloadButton
@@ -180,32 +268,30 @@ class SelectAllFilesButton extends React.PureComponent {
     }
 
     isEnabled() {
-        const { totalFilesCount } = this.props;
-        if (!totalFilesCount) return true;
+        const { totalFilesCount, context } = this.props;
+        const { total: totalFromPropContext = 0 } = context || {};
+        if (!totalFilesCount && !totalFromPropContext) return true;
         if (totalFilesCount > SELECT_ALL_LIMIT) return false;
         return true;
     }
 
     isAllSelected() {
-        const { totalFilesCount, selectedItems } = this.props;
-        if (!totalFilesCount) return false;
+        const { totalFilesCount, selectedItems, context } = this.props;
+        const { total: totalFromPropContext = 0 } = context || {};
+
+        if (!totalFilesCount && !totalFromPropContext) return false;
         // totalFilesCount as returned from bar plot aggs at moment is unique.
-        if (totalFilesCount === selectedItems.size) {
+        if (
+            totalFilesCount === selectedItems.size ||
+            totalFromPropContext === selectedItems.size
+        ) {
             return true;
         }
         return false;
     }
 
     handleSelectAll(evt) {
-        const {
-            href,
-            searchHref,
-            onSelectItem,
-            selected,
-            onResetSelectedItems,
-            context,
-            totalFilesCount,
-        } = this.props;
+        const { searchHref, onSelectItem, onResetSelectedItems } = this.props;
         if (
             typeof onSelectItem !== 'function' ||
             typeof onResetSelectedItems !== 'function'
@@ -220,9 +306,6 @@ class SelectAllFilesButton extends React.PureComponent {
 
         this.setState({ selecting: true }, () => {
             if (!this.isAllSelected()) {
-                console.log('searchHref', searchHref);
-                console.log('href', href);
-
                 const currentHrefParts = memoizedUrlParse(searchHref);
                 const currentHrefQuery = _.extend({}, currentHrefParts.query);
                 currentHrefQuery.field = SelectAllFilesButton.fieldsToRequest;
@@ -278,6 +361,8 @@ class SelectAllFilesButton extends React.PureComponent {
 
     render() {
         const { selecting } = this.state;
+        const { type } = this.props;
+
         const isAllSelected = this.isAllSelected();
         const isEnabled = this.isEnabled();
         const iconClassName =
@@ -294,6 +379,17 @@ class SelectAllFilesButton extends React.PureComponent {
             !isAllSelected && !isEnabled
                 ? `"Select All" is disabled since the total file count exceeds the upper limit: ${SELECT_ALL_LIMIT}`
                 : null;
+
+        if (type === 'checkbox') {
+            return (
+                <input
+                    type="checkbox"
+                    disabled={selecting || (!isAllSelected && !isEnabled)}
+                    checked={isAllSelected}
+                    onChange={this.handleSelectAll}
+                />
+            );
+        }
 
         return (
             <button
@@ -402,12 +498,6 @@ const SelectedItemsDownloadModal = function (props) {
         filenamePrefix +
         dateTimeDisplay(new Date(), 'date-time-file', '-', false) +
         '.tsv';
-    const userInfo = JWT.getUserInfo();
-    const profileHref =
-        (session &&
-            userInfo.user_actions &&
-            _.findWhere(userInfo.user_actions, { id: 'profile' }).href) ||
-        '/me';
 
     if ('search' === analytics.hrefToListName(window && window.location.href)) {
         action = '/metadata/?type=File&sort=accession';

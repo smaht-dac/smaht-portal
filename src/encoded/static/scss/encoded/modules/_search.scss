@@ -18,6 +18,31 @@ $search-results-header-row-height: 52px; /* 46px is existing default for both re
 @import "./../../../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/search-view-table.scss";
 
 
+.search-result-row>.result-table-row>.search-result-column-block {
+
+	&[data-field="access_status"],
+	&[data-field="annotation_filename"],
+	&[data-field="data_type"],
+	&[data-field="file_sets.assay.display_title"],
+	&[data-field="file_sets.sequencing.sequencer.display_title"],
+	&[data-field="file_format.display_title"],
+	&[data-field="software.name"],
+	&[data-field="submission_centers.display_title"] {
+		> .inner,
+		> span.value {
+			text-align: left !important;
+		}
+	}
+
+	&[data-field="file_size"],
+	&[data-field="date_created"] {
+		> .inner,
+		> span.value {
+			text-align: right !important;
+		}
+	}
+}
+
 
 
 

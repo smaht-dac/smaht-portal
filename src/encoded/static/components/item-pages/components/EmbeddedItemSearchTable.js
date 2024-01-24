@@ -93,6 +93,7 @@ export function EmbeddedItemSearchTable(props) {
         termTransformFxn: Term.toName,
         separateSingleTermFacets: false,
         allowPostRequest: true,
+        defaultColAlignment: ' ',
     };
 
     return (
