@@ -14,4 +14,5 @@ from .cell_culture import CellCulture
 class CellCultureMixture(CellCulture):
     item_type = "cell_culture_mixture"
     schema = load_schema("encoded:schemas/cell_culture_mixture.json")
+    base_types = ["CellCulture"] + CellCulture.base_types
     embedded_list = []

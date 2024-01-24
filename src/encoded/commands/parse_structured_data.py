@@ -10,6 +10,7 @@ with captured_output():
     from encoded.ingestion.loadxl_extensions import load_data_into_database, summary_of_load_data_results
 from encoded.ingestion.ingestion_processors import parse_structured_data
 from dcicutils.structured_data import Portal, Schema
+from dcicutils.portal_object_utils import PortalObject
 
 
 # For dev/testing only.
@@ -30,10 +31,13 @@ def main() -> None:
     # returns a Portal object suitable for local integration testing including, for example,
     # loading data into the database of a locally running portal.
     with captured_output():
-        if args.load or not args.norefs:
-            portal = Portal.create_for_testing(args.load)
+        if not args.env:
+            if args.load or not args.norefs:
+                portal = Portal.create_for_testing(args.portal or args.load)
+            else:
+                portal = Portal.create_for_testing()
         else:
-            portal = Portal.create_for_testing()
+            portal = Portal(args.env)
 
     # Manually override implementation specifics for --noschemas.
     if args.noschemas:
@@ -152,6 +156,9 @@ def main() -> None:
         PRINT("  ", end="")
         PRINT("\n  ".join(yaml.dump(load_results).split("\n")))
 
+    if args.status:
+        analyze_objects(portal, structured_data)
+
     if args.verbose:
         PRINT("\n> Done.")
 
@@ -217,6 +224,24 @@ def format_issue(issue: dict, original_file: Optional[str] = None) -> str:
     return f"{src_string(issue)}: {issue_message}" if issue_message else ""
 
 
+def analyze_objects(portal: Portal, structured_data: dict) -> None:
+    PRINT("\n> Object Status:")
+    for portal_object_type in structured_data:
+        for portal_object in structured_data[portal_object_type]:
+            analyze_object(portal, portal_object, portal_object_type)
+
+
+def analyze_object(portal: Portal, portal_object: dict, portal_object_type: str) -> None:
+    portal_object = PortalObject(portal, portal_object, portal_object_type)
+    existing_object, existing_identifying_path = portal_object.lookup(include_identifying_path=True, raw=True)
+    if existing_identifying_path:
+        print(f"  - {existing_identifying_path}")
+        if existing_object:
+            print(f"     Exists -> {existing_object.uuid}")
+        else:
+            print(f"     Does not exist")
+
+
 def parse_args() -> argparse.Namespace:
 
     class argparse_optional(argparse.Action):
@@ -237,15 +262,19 @@ def parse_args() -> argparse.Namespace:
                         default=False, help=f"Do not validate parsed data using JSON schema.")
     parser.add_argument("--yaml", required=False, action="store_true",
                         default=False, help=f"YAML (rather than JSON) output for loaded/displayed data.")
-
+    parser.add_argument("--env", default=False, help=f"Environment name for Portal (e.g. via ~/.smaht-keys.json).")
     parser.add_argument("--load", nargs="?", action=argparse_optional, const=True,
-                        default=False, help=f"Load data into database (optionally specify .ini file to use).")
+                        default=False, help=f"Load data into local portal/database (optionally specify .ini file to use).")
+    parser.add_argument("--portal", nargs="?", action=argparse_optional, const=True,
+                        default=False, help=f"Use local portal/database for checking references.")
     parser.add_argument("--post-only", required=False, action="store_true",
                         default=False, help=f"Only perform updates (POST) when loading data.")
     parser.add_argument("--patch-only", required=False, action="store_true",
                         default=False, help=f"Only perform updates (PATCH) when loading data.")
     parser.add_argument("--validate-only", required=False, action="store_true",
                         default=False, help=f"Only perform validation when loading data.")
+    parser.add_argument("--status", required=False, action="store_true",
+                        default=False, help=f"TODO")
 
     parser.add_argument("--verbose", required=False, action="store_true",
                         default=False, help=f"Verbose output.")
