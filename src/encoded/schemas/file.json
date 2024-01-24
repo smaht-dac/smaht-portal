@@ -111,7 +111,9 @@
                     "Quality Control",
                     "Reference Genome",
                     "Sequencing Reads",
-                    "Variant Calls"
+                    "Variant Calls",
+                    "Germline Variant Calls",
+                    "Somatic Variant Calls"
                 ]
             }
         },
@@ -132,7 +134,14 @@
                     "Sequence Interval",
                     "Somatic Variant Calls",
                     "Statistics",
-                    "Unaligned Reads"
+                    "Unaligned Reads",
+                    "Sorted Reads",
+                    "Phased Reads",
+                    "Copy Number Variant",
+                    "Insertion-deletion",
+                    "Mobile Element Insertion",
+                    "Single Nucleotide Variant",
+                    "Structural Variant"
                 ]
             }
         },
