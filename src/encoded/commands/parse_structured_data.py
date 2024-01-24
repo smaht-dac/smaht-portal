@@ -74,7 +74,6 @@ def main() -> None:
     PRINT(f"> Data:")
     PRINT("  ", end="")
     if args.yaml:
-        x = yaml.dump(structured_data)
         PRINT("\n  ".join(yaml.dump(structured_data).split("\n")))
     else:
         PRINT("\n  ".join(json.dumps(structured_data, indent=4, default=str).split("\n")))
