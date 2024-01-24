@@ -1601,9 +1601,9 @@ body[data-pathname^="/data/benchmarking"] {
 		font-weight: 600;
 	}
 
-	.search-result-row-detail-closed >.columns>.search-result-column-block {
+	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
 		&[data-first-visible-column=true] {
-			padding-left: 20px;
+			padding-left: 15px !important;
 		}
 
 		>.inner>.toggle-detail-button-container {
