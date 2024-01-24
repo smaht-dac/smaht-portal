@@ -474,9 +474,9 @@ const aggregationsToChartData = {
             const countKey = 'ga:metric2'; // Download Count
             let topCount = 0; //all
 
-            if (countBy === 'experiment_type'){
-                useReport = 'file_downloads_by_experiment_type';
-                groupingKey = 'ga:dimension5'; // Experiment Type
+            if (countBy === 'assay_type'){
+                useReport = 'file_downloads_by_assay_type';
+                groupingKey = 'ga:dimension5'; // Assay Type
             } else if (countBy === 'top_files'){
                 useReport = 'top_files_downloaded';
                 groupingKey = 'ga:productSku'; // File
@@ -488,20 +488,7 @@ const aggregationsToChartData = {
 
             console.log("AGGR", resp, props, countBy, groupingKey, useReport);
 
-            //if (props.file_downloads_by_experiment_type_group_by === 'term') groupingKey = 'ga:dimension4';
-            //if (props.file_downloads_by_experiment_type_group_by === 'field+term') groupingKey = 'ga:eventLabel';
-
             return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, topCount);
-
-            // if (!resp || !resp.aggregations || !props.countBy || !props.countBy.file_downloads) return null;
-            // const dateAggBucket = props.currentGroupBy && (props.currentGroupBy + '_interval_date_created');
-            // const dateIntervalBuckets = resp && resp.aggregations && resp.aggregations[dateAggBucket] && resp.aggregations[dateAggBucket].buckets;
-
-            // if (!Array.isArray(dateIntervalBuckets) || dateIntervalBuckets.length < 2) return null;
-
-            // return commonParsingFxn.countsToCountTotals(
-            //     commonParsingFxn.bucketDocCounts(dateIntervalBuckets, props.countBy.file_downloads)
-            // );
         }
     },
     'file_views' : {
@@ -569,7 +556,7 @@ export class UsageStatsViewController extends React.PureComponent {
                     "fields_faceted",
                     "sessions_by_country",
                     "sessions_by_device_category",
-                    "file_downloads_by_experiment_type",
+                    "file_downloads_by_assay_type",
                     "file_downloads_by_filetype",
                     "file_downloads_by_country",
                     "top_files_downloaded",
@@ -735,7 +722,7 @@ class UsageChartsCountByDropdown extends React.PureComponent {
             menuOptions.set('expset_clicks',       <React.Fragment><i className="icon far icon-fw icon-hand-point-up mr-1"/>Search Result Click</React.Fragment>);
         } else if (chartID === 'file_downloads'){
             menuOptions.set('filetype',         <React.Fragment><i className="icon far icon-fw icon-file-alt mr-1"/>File Type</React.Fragment>);
-            menuOptions.set('experiment_type',  <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Experiment Type</React.Fragment>);
+            menuOptions.set('assay_type',       <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Assay Type</React.Fragment>);
             menuOptions.set('top_files',        <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Top 10 Files</React.Fragment>);
             // menuOptions.set('geo_country',     <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Country</React.Fragment>);
         } else if (chartID === 'file_views'){
@@ -823,7 +810,7 @@ export function UsageStatsView(props){
                 </div>
             </GroupByDropdown>
 
-            {/* { session && file_downloads ?
+            { session && file_downloads ?
 
                 <ColorScaleProvider resetScalesWhenChange={file_downloads}>
 
@@ -833,11 +820,11 @@ export function UsageStatsView(props){
                         title={
                             <div>
                                 <h4 className="text-500 mt-0 mb-0">File Downloads</h4>
-                                <div className="mb-1">
+                                {/* <div className="mb-1">
                                     <small>
                                         <em>Download tracking started in August 2018 | Re-Implemented in Feb 2020 and August 2023</em>
                                     </small>
-                                </div>
+                                </div> */}
                             </div>
                         }
                         extraButtons={
@@ -853,7 +840,7 @@ export function UsageStatsView(props){
 
                 </ColorScaleProvider>
 
-                : null } */}
+                : null }
 
             {/* {session && file_views ?
 
