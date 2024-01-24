@@ -463,11 +463,33 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 
 	.search-results-outer-container {
 
-		.search-headers-row {
+		.search-headers-row { 
+			background-color: $search-header-background-color;
+			border-bottom: 1px solid $search-header-border-color;
 			position: sticky;
 			top: 0px;
 			@include navbar-fixed-position {
 				top: $cgap-search-sticky-header-top-offset;
+			}
+		
+			> .headers-columns-overflow-container > .columns > .search-headers-column-block {
+		
+				.width-adjuster.react-draggable::after {
+					border-color: darken($color: $search-header-background-color, $amount: 30%)
+				}
+		
+				&[data-first-visible-column] {
+					padding-left: 44px;
+				}
+		
+				.inner > .column-title {
+					text-align: left;
+					color: $search-header-text-color;
+				}
+		
+				.inner > .column-sort-icon {
+					color: $search-header-text-color;
+				}
 			}
 		}
 

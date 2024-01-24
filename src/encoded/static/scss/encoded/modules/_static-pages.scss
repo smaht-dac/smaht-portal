@@ -1601,29 +1601,13 @@ body[data-pathname^="/data/benchmarking"] {
 		font-weight: 600;
 	}
 
-	// Benchmarking search table (in future maybe make this the general style for all search tables)
-	.search-headers-row { 
-		background-color: $search-header-background-color;
-		border-bottom: 1px solid $search-header-border-color;
-	
-		> .headers-columns-overflow-container > .columns > .search-headers-column-block {
-	
-			.width-adjuster.react-draggable::after {
-				border-color: darken($color: $search-header-background-color, $amount: 30%)
-			}
-	
-			&[data-first-visible-column] {
-				padding-left: 44px;
-			}
-	
-			.inner > .column-title {
-				text-align: left;
-				color: $search-header-text-color;
-			}
-	
-			.inner > .column-sort-icon {
-				color: $search-header-text-color;
-			}
+	.search-result-row-detail-closed >.columns>.search-result-column-block {
+		&[data-first-visible-column=true] {
+			padding-left: 20px;
+		}
+
+		>.inner>.toggle-detail-button-container {
+			display: none;
 		}
 	}
 
