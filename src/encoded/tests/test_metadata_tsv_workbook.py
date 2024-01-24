@@ -61,7 +61,7 @@ class TestMetadataTSVWorkbook:
         """ Tests we can peak at metadata for files and get facet information (just file size for now) """
         es_testapp.post_json('/index', {})  # index the files
         # check all types
-        res = es_testapp.post_json('/peak-metadata/',
+        res = es_testapp.post_json('/peek-metadata/',
                                    {'type': 'File', 'include_extra_files': False}).json
         for facet in res:
             if facet['field'] == 'file_size':
@@ -72,7 +72,7 @@ class TestMetadataTSVWorkbook:
             if facet['field'] == 'extra_files.file_size':
                 raise AssertionError('Extra files information present when not desired')
         # check an individual type (with extra files)
-        res = es_testapp.post_json('/peak-metadata/',
+        res = es_testapp.post_json('/peek-metadata/',
                                    {'type': 'OutputFile', 'include_extra_files': True}).json
         for facet in res:
             if facet['field'] == 'extra_files.file_size':
