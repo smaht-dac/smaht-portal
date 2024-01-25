@@ -286,7 +286,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 		> .headers-columns-overflow-container > .columns > .search-headers-column-block {
 	
 			.width-adjuster.react-draggable::after {
-				border-color: darken($color: $search-header-background-color, $amount: 30%)
+				border-color: $search-header-icon-color;
 			}
 	
 			&[data-first-visible-column] {
@@ -299,7 +299,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 			}
 	
 			.inner > .column-sort-icon {
-				color: $search-header-text-color;
+				color: $search-header-icon-color;
 			}
 		}
 	}
