@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import queryString from 'query-string';
 import _ from 'underscore';
@@ -137,7 +137,8 @@ const BenchmarkingAboveTableComponent = React.memo(
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
                         className="btn btn-primary btn-sm mr-05 align-items-center"
-                        {...{ selectedItems, session }}>
+                        {...{ selectedItems, session }}
+                        analyticsAddItemsToCart>
                         <i className="icon icon-download fas mr-03" />
                         Download {selectedItems.size} Selected Files
                     </SelectedItemsDownloadButton>
@@ -317,7 +318,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
         context: PropTypes.object,
         session: PropTypes.bool,
         action: PropTypes.string,
-        // analyticsAddFilesToCart: PropTypes.bool,
+        analyticsAddItemsToCart: PropTypes.bool,
     };
 
     static defaultProps = {
@@ -325,7 +326,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
         filenamePrefix: 'smaht_metadata_',
         children: 'Download',
         className: 'btn-primary',
-        // analyticsAddFilesToCart: false,
+        analyticsAddItemsToCart: false,
         action: '/metadata/',
     };
 
@@ -349,7 +350,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
             filenamePrefix,
             children,
             disabled,
-            // analyticsAddFilesToCart,
+            analyticsAddItemsToCart,
             action,
             session,
             ...btnProps
@@ -373,7 +374,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
                         {...{
                             selectedItems,
                             filenamePrefix,
-                            // analyticsAddFilesToCart,
+                            analyticsAddItemsToCart,
                             action,
                             session,
                         }}
@@ -388,6 +389,34 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
 const SelectedItemsDownloadModal = function (props) {
     const { onHide, filenamePrefix, selectedItems, session } = props;
     let { action } = props;
+
+    useEffect(() => {
+        const { analyticsAddItemsToCart = false, itemCountUnique, selectedItems = {}, context } = props;
+        if (!analyticsAddItemsToCart){
+            return;
+        }
+
+        // const itemList = _.keys(selectedItems).map(function(accessionTripleString){
+        //     return selectedItems[accessionTripleString];
+        // });
+        const itemList = Array.from(selectedItems.values());
+        //analytics
+        const extData = { item_list_name: analytics.hrefToListName(window && window.location.href) };
+        const products = analytics.transformItemsToProducts(itemList, extData);
+        const productsLength = Array.isArray(products) ? products.length : itemList.length;
+        analytics.event(
+            "begin_checkout",
+            "SelectedFilesDownloadModal",
+            "Mounted",
+            function() { console.info(`Will download ${productsLength} items in the cart.`); },
+            {
+                items: Array.isArray(products) ? products : null,
+                list_name: extData.item_list_name,
+                value: itemCountUnique || itemList.length || 0,
+                filters: analytics.getStringifiedCurrentFilters((context && context.filters) || null)
+            }
+        );
+    }, []);
 
     const suggestedFilename =
         filenamePrefix +
