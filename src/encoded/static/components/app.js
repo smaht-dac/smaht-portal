@@ -384,13 +384,19 @@ export default class App extends React.PureComponent {
 
             // TODO: Remove this temporary alert in first official launch version in 2024
             Alerts.queue({
-                style: 'danger',
+                style: 'warning',
                 message: (
                     <>
-                        <b>Attention Users:</b> This is an unofficial release of
-                        the SMaHT Data Portal, made available to provide the
-                        access keys for metadata submission. SMaHT data are
-                        coming soon.
+                        <b>New Features:</b> The SMaHT Data Portal, V1
+                        Benchmarking release, now makes benchmarking data
+                        available for download for authenticated consortium
+                        members. Users can continue to obtain the access keys
+                        for metadata submission.
+                        <br />
+                        <br />
+                        <b>Attention Users:</b> The V1 Benchmarking data portal
+                        will be open to SMaHT consortium members only at this
+                        time.
                     </>
                 ),
             });
@@ -1387,7 +1393,9 @@ export default class App extends React.PureComponent {
             onBodySubmit: this.handleSubmit,
         });
 
-        const gtag4Script = analyticsID && ("https://www.googletagmanager.com/gtag/js?id=" + analyticsID);
+        const gtag4Script =
+            analyticsID &&
+            'https://www.googletagmanager.com/gtag/js?id=' + analyticsID;
 
         const contentSecurityPolicyStr = [
             "default-src 'self'",
@@ -1411,13 +1419,27 @@ export default class App extends React.PureComponent {
             <html lang="en">
                 <head>
                     <meta charSet="utf-8" />
-                    <meta httpEquiv="Content-Type" content="text/html, charset=UTF-8" />
-                    <meta httpEquiv="Content-Security-Policy" content={contentSecurityPolicyStr} />
+                    <meta
+                        httpEquiv="Content-Type"
+                        content="text/html, charset=UTF-8"
+                    />
+                    <meta
+                        httpEquiv="Content-Security-Policy"
+                        content={contentSecurityPolicyStr}
+                    />
                     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-                    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-                    <meta name="google-site-verification" content="sia9P1_R16tk3XW93WBFeJZvlTt3h0qL00aAJd3QknU" />
+                    <meta
+                        name="viewport"
+                        content="width=device-width, initial-scale=1, maximum-scale=1"
+                    />
+                    <meta
+                        name="google-site-verification"
+                        content="sia9P1_R16tk3XW93WBFeJZvlTt3h0qL00aAJd3QknU"
+                    />
                     <meta name="robots" content="noindex" />
-                    <HTMLTitle {...{ context, currentAction, canonical, status }} />
+                    <HTMLTitle
+                        {...{ context, currentAction, canonical, status }}
+                    />
                     <script
                         data-prop-name="user_info"
                         type="application/json"
@@ -1431,8 +1453,18 @@ export default class App extends React.PureComponent {
                                   }
                         }
                     />
-                    <script data-prop-name="lastBuildTime" type="application/json" dangerouslySetInnerHTML={{ __html: lastBuildTime }} />
-                    <link rel="stylesheet" href={'/static/css/style.css?build=' + (lastBuildTime || 0)} />
+                    <script
+                        data-prop-name="lastBuildTime"
+                        type="application/json"
+                        dangerouslySetInnerHTML={{ __html: lastBuildTime }}
+                    />
+                    <link
+                        rel="stylesheet"
+                        href={
+                            '/static/css/style.css?build=' +
+                            (lastBuildTime || 0)
+                        }
+                    />
                     <DeferMount>
                         <link
                             rel="stylesheet"
@@ -1443,18 +1475,44 @@ export default class App extends React.PureComponent {
                             }
                         />
                     </DeferMount>
-                    <SEO.CurrentContext {...{ context, hrefParts, baseDomain }} />
-                    <link rel="preconnect" href="https://fonts.googleapis.com/" />
+                    <SEO.CurrentContext
+                        {...{ context, hrefParts, baseDomain }}
+                    />
+                    <link
+                        rel="preconnect"
+                        href="https://fonts.googleapis.com/"
+                    />
                     <link rel="preconnect" href="//www.google-analytics.com" />
                     <link rel="preconnect" href="//www.googletagmanager.com" />
-                    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
-                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@800&display=swap" rel="stylesheet" />
+                    <link
+                        rel="preconnect"
+                        href="https://fonts.gstatic.com"
+                        crossOrigin="true"
+                    />
+                    <link
+                        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@800&display=swap"
+                        rel="stylesheet"
+                    />
                     {/* Can set webpack.config.js browser build's externals "react":"React" and load via CDN but need to then allow cross-origin requests to CDN domain
                     <script crossOrigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
                     <script crossOrigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
                     */}
-                    {gtag4Script && <script async type="application/javascript" src={gtag4Script} />}
-                    <script defer type="application/javascript" src={"/static/build/bundle.js?build=" + (lastBuildTime || 0)} charSet="utf-8" />
+                    {gtag4Script && (
+                        <script
+                            async
+                            type="application/javascript"
+                            src={gtag4Script}
+                        />
+                    )}
+                    <script
+                        defer
+                        type="application/javascript"
+                        src={
+                            '/static/build/bundle.js?build=' +
+                            (lastBuildTime || 0)
+                        }
+                        charSet="utf-8"
+                    />
                     <link rel="canonical" href={canonical} />
                     {/* <script data-prop-name="inline" type="application/javascript" charSet="utf-8" dangerouslySetInnerHTML={{__html: this.props.inline}}/> <-- SAVED FOR REFERENCE */}
                 </head>
