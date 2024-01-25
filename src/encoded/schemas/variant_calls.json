@@ -98,7 +98,12 @@
                     "Single Nucleotide Variant",
                     "Structural Variant",
                     "Germline Variants",
-                    "Somatic Variants"
+                    "Somatic Variants",
+                    "CNV",
+                    "Indel",
+                    "MEI",
+                    "SNV",
+                    "SV"
                 ]
             }
         },
