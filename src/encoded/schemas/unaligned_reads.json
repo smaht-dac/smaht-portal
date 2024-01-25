@@ -98,6 +98,7 @@
             "linkTo": "UnalignedReads"
         },
         "read_pair_number": {
+            "title": "Read Pair Number",
             "description": "Read pair number, if paired-end",
             "type": "string",
             "enum": [
