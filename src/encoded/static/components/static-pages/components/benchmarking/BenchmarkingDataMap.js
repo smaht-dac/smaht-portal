@@ -104,18 +104,18 @@ export const BenchmarkingDataMap = {
             },
         ],
     },
-    Lung: {
-        navBarTitle: 'Lung',
-        type: 'Primary Tissue Data',
-        path: '/data/benchmarking/lung',
-        tabMapArray: [
-            {
-                eventKey: '#main',
-                title: 'Data',
-                // searchHref: '/search/?type=ReferenceFile',
-            },
-        ],
-    },
+    // Lung: {
+    //     navBarTitle: 'Lung',
+    //     type: 'Primary Tissue Data',
+    //     path: '/data/benchmarking/lung',
+    //     tabMapArray: [
+    //         {
+    //             eventKey: '#main',
+    //             title: 'Data',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //     ],
+    // },
     Liver: {
         navBarTitle: 'Liver',
         type: 'Primary Tissue Data',

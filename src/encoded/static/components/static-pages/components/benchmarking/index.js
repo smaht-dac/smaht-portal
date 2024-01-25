@@ -131,6 +131,7 @@ export const LiverData = ({ schemas, session, facets, href, context }) => {
     );
 };
 
+// TODO: Not in use currently
 export const LungData = ({ schemas, session, facets, href, context }) => {
     const lungTabMapArray = BenchmarkingDataMap.Lung.tabMapArray;
 
