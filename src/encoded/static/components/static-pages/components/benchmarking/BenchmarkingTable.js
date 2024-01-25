@@ -573,7 +573,7 @@ const SelectedItemsDownloadStartButton = React.memo(
     function SelectedItemsDownloadStartButton(props) {
         const { suggestedFilename, selectedItems, action } = props;
 
-        const { accessionArray } = useMemo(
+        const { accessionArray, onClick } = useMemo(
             function () {
                 // Flatten selected items into an array (currently a set, I believe)
                 console.log('selectedItems', selectedItems);
@@ -593,7 +593,36 @@ const SelectedItemsDownloadStartButton = React.memo(
                     }
                 });
 
-                return { accessionArray };
+                /**
+                 * We're going to consider download of metadata.tsv file to be akin to one step before the purchasing.
+                 * Something they might download later...
+                 */
+                function onClick(evt) {
+                    setTimeout(function () {
+                        //analytics
+                        const itemList = Array.from(selectedItems.values());
+                        const extData = {
+                            item_list_name: analytics.hrefToListName(window && window.location.href)
+                        };
+                        const products = analytics.transformItemsToProducts(itemList, extData);
+                        const productsLength = Array.isArray(products) ? products.length : 0;
+                        analytics.event(
+                            "add_payment_info",
+                            "SelectedFilesDownloadModal",
+                            "Download metadata.tsv Button Pressed",
+                            function () { console.info(`Will download metadata.tsv having ${productsLength} items in the cart.`); },
+                            {
+                                items: Array.isArray(products) ? products : null,
+                                payment_type: "Metadata.tsv Download",
+                                list_name: extData.item_list_name,
+                                value: products && products.length || 0,
+                                // filters: analytics.getStringifiedCurrentFilters((context && context.filters) || null)
+                            }
+                        );
+                    }, 0);
+                }
+
+                return { accessionArray, onClick };
             },
             [selectedItems]
         );
@@ -616,6 +645,7 @@ const SelectedItemsDownloadStartButton = React.memo(
                 <button
                     type="submit"
                     name="Download"
+                    onClick={onClick}
                     className="btn btn-primary mt-1 mr-1 btn-block-xs-only"
                     // onClick={onClick} // TODO: re-add onclick to handle analytics move-to-cart
                     data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
