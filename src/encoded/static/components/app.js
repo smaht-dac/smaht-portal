@@ -384,19 +384,21 @@ export default class App extends React.PureComponent {
 
             // TODO: Remove this temporary alert in first official launch version in 2024
             Alerts.queue({
-                style: 'warning',
+                style: 'info',
                 message: (
                     <>
-                        <b>New Features:</b> The SMaHT Data Portal, V1
-                        Benchmarking release, now makes benchmarking data
-                        available for download for authenticated consortium
-                        members. Users can continue to obtain the access keys
-                        for metadata submission.
-                        <br />
-                        <br />
-                        <b>Attention Users:</b> The V1 Benchmarking data portal
-                        will be open to SMaHT consortium members only at this
-                        time.
+                        <div>
+                            <b>New Features:</b> The SMaHT Data Portal, V1
+                            Benchmarking release, now makes benchmarking data
+                            available for download for authenticated consortium
+                            members. Users can continue to obtain the access
+                            keys for metadata submission.
+                        </div>
+                        <div className="mt-1">
+                            <b>Attention Users:</b> The V1 Benchmarking data
+                            portal will be open to SMaHT consortium members only
+                            at this time.
+                        </div>
                     </>
                 ),
             });
