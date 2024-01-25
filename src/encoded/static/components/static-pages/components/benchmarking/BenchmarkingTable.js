@@ -793,19 +793,27 @@ const ModalCodeSnippet = React.memo(function ModalCodeSnippet(props) {
     const { filename, session } = props;
     const htmlValue = (
         <pre className="mb-15 curl-command">
-            cut -f 1 <b>{filename}</b> | tail -n +3 | grep -v ^# | xargs -n 1
+            cut -f 1,3 <b>{filename}</b> | tail -n +3 | grep -v ^# | xargs -n 2
             curl -O -L
             {session ? (
-                <code style={{ opacity: 0.5 }}>
-                    {' '}
-                    --user <em>{'<access_key_id>:<access_key_secret>'}</em>
-                </code>
-            ) : null}
+                <>
+                    <code style={{ opacity: 0.5 }}>
+                        {' '}
+                        --user <em>{'<access_key_id>:<access_key_secret>'}</em>
+                    </code>{' '}
+                    $0 --output $1
+                </>
+            ) : (
+                ' $0 --output $1'
+            )}
         </pre>
     );
     const plainValue =
-        `cut -f 1 ${filename} | tail -n +3 | grep -v ^# | xargs -n 1 curl -O -L` +
-        (session ? ' --user <access_key_id>:<access_key_secret>' : '');
+        `cut -f 1,3 ${filename} | tail -n +3 | grep -v ^# | xargs -n 2 curl -O -L` +
+        (session
+            ? ' --user <access_key_id>:<access_key_secret> $0 --output $1'
+            : ' $0 --output $1');
+
     return (
         <object.CopyWrapper
             value={plainValue}
