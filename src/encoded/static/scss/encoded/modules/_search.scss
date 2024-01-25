@@ -193,18 +193,32 @@ $facetlist-excluding: #450000;
 						& > a {
 							background-color: #317ac4;
 						}
+						&:hover {
+							& > a {
+								& > .facet-item,
+								& > .facet-count {
+									color: #ffffff;
+								}
+							}
+						}
 					}
 					&.omitted {
 						& > a {
 							background-color: #711219;
 						}
+						&:hover {
+							& > a {
+								& > .facet-item,
+								& > .facet-count {
+									color: #ffffff;
+								}
+							}
+						}
 					}
 					
 					&:hover {
 						& > a {
-							& > .facet-item {
-								color: #343741;
-							}
+							& > .facet-item,
 							& > .facet-count {
 								color: #343741;
 							}

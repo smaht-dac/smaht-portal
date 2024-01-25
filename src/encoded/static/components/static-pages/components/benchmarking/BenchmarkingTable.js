@@ -766,7 +766,7 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
         const errorIndicatorAndRetry = (
             <>
                 <i
-                    className="icon icon-exclamation-circle icon-xs fas text-danger"
+                    className="icon icon-exclamation-circle icon-xs fas text-warning"
                     data-tip="Error: something went wrong while fetching statistics"
                 />
                 <button
@@ -808,7 +808,7 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
                             Extra Files
                             <i
                                 className="icon icon-info-circle fas ml-03"
-                                data-tip="Extra files associated with selected files (e.g. index file of BAM (*.bai) or CRAM (*.crai)) are included in the download by default. These files are found in the manifest file"
+                                data-tip="Extra files associated with selected files (e.g. index file of BAM (*.bai) or CRAM (*.crai)) are included in the download by default. These files are found in the manifest file."
                             />
                         </div>
                         <div className="tsv-metadata-stat">

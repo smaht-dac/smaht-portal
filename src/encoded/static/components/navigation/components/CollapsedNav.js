@@ -86,7 +86,7 @@ function AboutNavItem(props) {
                     titleIcon="info-circle fas"
                     linkToTopLevelDirPage={false}
                 />
-                <BigDropdownPageTreeMenu />
+                <BigDropdownPageTreeMenu disableLinksOnLevel1Titles={true} />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
     );
