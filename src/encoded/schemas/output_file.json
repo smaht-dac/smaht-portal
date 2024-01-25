@@ -32,6 +32,9 @@
             "$ref": "mixins.json#/accession"
         },
         {
+            "$ref": "mixins.json#/alignment_details"
+        },
+        {
             "$ref": "mixins.json#/aliases"
         },
         {
