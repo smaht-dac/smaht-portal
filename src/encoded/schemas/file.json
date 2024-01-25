@@ -135,13 +135,16 @@
                     "Somatic Variant Calls",
                     "Statistics",
                     "Unaligned Reads",
-                    "Sorted Reads",
-                    "Phased Reads",
                     "Copy Number Variant",
                     "Insertion-deletion",
                     "Mobile Element Insertion",
                     "Single Nucleotide Variant",
-                    "Structural Variant"
+                    "Structural Variant",
+                    "CNV",
+                    "Indel",
+                    "MEI",
+                    "SNV",
+                    "SV"
                 ]
             }
         },
@@ -200,7 +203,7 @@
             "title": "File Size"
         },
         "date_created": {
-            "title": "Submission Date"
+            "title": "Date Submitted"
         }
     }
 }

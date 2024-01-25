@@ -24,6 +24,9 @@
             "$ref": "mixins.json#/accession"
         },
         {
+            "$ref": "mixins.json#/alignment_details"
+        },
+        {
             "$ref": "mixins.json#/attribution"
         },
         {
@@ -89,9 +92,7 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Aligned Reads",
-                    "Sorted Reads",
-                    "Phased Reads"
+                    "Aligned Reads"
                 ]
             }
         },

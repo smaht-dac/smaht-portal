@@ -44,6 +44,22 @@
             }
         }
     },
+    "alignment_details": {
+        "alignment_details": {
+            "title": "Data Details",
+            "description": "Additional details about the data contents",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Phased",
+                    "Sorted"
+                ]
+            }
+        }
+    },
     "alternative_ids": {
         "alternative_ids": {
             "title": "Alternative identifiers",

@@ -73,6 +73,12 @@
             "description": "URL for vendor information on the cell line",
             "type": "string",
             "format": "uri"
+        },
+        "donor": {
+            "title": "Donor",
+            "description": "Donor associated with the cell line",
+            "type": "string",
+            "linkTo": "Donor"
         }
     }
 }

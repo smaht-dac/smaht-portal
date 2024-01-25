@@ -1,6 +1,6 @@
 from typing import Optional, Union
 from pyramid.view import view_config
-from snovault import calculated_property, collection, load_schema
+from snovault import calculated_property, collection, display_title_schema, load_schema
 from snovault.types.user import User as SnovaultUser
 from snovault.types.user import user_page_view as SnoUserPageView
 from snovault.types.user import USER_PAGE_VIEW_ATTRIBUTES
@@ -24,6 +24,13 @@ class User(Item, SnovaultUser):
     item_type = "user"
     schema = load_schema("encoded:schemas/user.json")
     embedded_list = []
+
+    @calculated_property(schema=display_title_schema)
+    def display_title(
+        self, first_name: Optional[str], last_name: Optional[str]
+    ) -> Union[str, None]:
+        if first_name and last_name:
+            return SnovaultUser.display_title(self, first_name, last_name)
 
     @calculated_property(schema={"title": "Title", "type": "string"})
     def title(self, first_name: Optional[str], last_name: Optional[str]) -> Union[str, None]:
