@@ -7,11 +7,17 @@ smaht-portal
 Change Log
 ----------
 
-0.16.0
-=====
+0.16.1
+======
 
 * Merge in ui-dev4 branch: `PR: ##: UI-Dev 4 <>`_
 * TODO: add branches merged into ui-dev4
+
+
+0.16.0
+=======
+
+* Adds `/peek-metadata` support for retrieving facet information from the metadata.tsv
 
 
 0.15.0
@@ -41,7 +47,7 @@ Change Log
 
 `PR 56: Implement submittable item API <https://github.com/smaht-dac/smaht-portal/pull/56>`_
 * Add functionality and tests for submittable item api to smaht portal
-* update lockfile with latest snovault that contains the primitive for this 
+* update lockfile with latest snovault that contains the primitive for this
 
 
 0.12.0
