@@ -239,7 +239,8 @@ const BenchmarkingAboveTableComponent = React.memo(
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
                         className="btn btn-primary btn-sm mr-05 align-items-center"
-                        {...{ selectedItems, session }}>
+                        {...{ selectedItems, session }}
+                        analyticsAddItemsToCart>
                         <i className="icon icon-download fas mr-03" />
                         Download {selectedItems.size} Selected Files
                     </SelectedItemsDownloadButton>
@@ -427,7 +428,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
         context: PropTypes.object,
         session: PropTypes.bool,
         action: PropTypes.string,
-        // analyticsAddFilesToCart: PropTypes.bool,
+        analyticsAddItemsToCart: PropTypes.bool,
     };
 
     static defaultProps = {
@@ -435,7 +436,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
         filenamePrefix: 'smaht_metadata_',
         children: 'Download',
         className: 'btn-primary',
-        // analyticsAddFilesToCart: false,
+        analyticsAddItemsToCart: false,
         action: '/metadata/',
     };
 
@@ -459,7 +460,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
             filenamePrefix,
             children,
             disabled,
-            // analyticsAddFilesToCart,
+            analyticsAddItemsToCart,
             action,
             session,
             ...btnProps
@@ -483,7 +484,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
                         {...{
                             selectedItems,
                             filenamePrefix,
-                            // analyticsAddFilesToCart,
+                            analyticsAddItemsToCart,
                             action,
                             session,
                         }}
@@ -498,6 +499,51 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
 const SelectedItemsDownloadModal = function (props) {
     const { onHide, filenamePrefix, selectedItems, session } = props;
     let { action } = props;
+
+    useEffect(() => {
+        const {
+            analyticsAddItemsToCart = false,
+            itemCountUnique,
+            selectedItems = {},
+            context,
+        } = props;
+        if (!analyticsAddItemsToCart) {
+            return;
+        }
+
+        // const itemList = _.keys(selectedItems).map(function(accessionTripleString){
+        //     return selectedItems[accessionTripleString];
+        // });
+        const itemList = Array.from(selectedItems.values());
+        //analytics
+        const extData = {
+            item_list_name: analytics.hrefToListName(
+                window && window.location.href
+            ),
+        };
+        const products = analytics.transformItemsToProducts(itemList, extData);
+        const productsLength = Array.isArray(products)
+            ? products.length
+            : itemList.length;
+        analytics.event(
+            'begin_checkout',
+            'SelectedFilesDownloadModal',
+            'Mounted',
+            function () {
+                console.info(
+                    `Will download ${productsLength} items in the cart.`
+                );
+            },
+            {
+                items: Array.isArray(products) ? products : null,
+                list_name: extData.item_list_name,
+                value: itemCountUnique || itemList.length || 0,
+                filters: analytics.getStringifiedCurrentFilters(
+                    (context && context.filters) || null
+                ),
+            }
+        );
+    }, []);
 
     const suggestedFilename =
         filenamePrefix +
@@ -640,6 +686,7 @@ const SelectedItemsDownloadModal = function (props) {
                 </button>
                 <SelectedItemsDownloadStartButton
                     {...{
+                        selectedItems,
                         accessionArray,
                         suggestedFilename,
                         action,
@@ -834,7 +881,61 @@ const ModalCodeSnippet = React.memo(function ModalCodeSnippet(props) {
  */
 const SelectedItemsDownloadStartButton = React.memo(
     function SelectedItemsDownloadStartButton(props) {
-        const { suggestedFilename, accessionArray = [], action } = props;
+        const {
+            suggestedFilename,
+            selectedItems,
+            accessionArray = [],
+            action,
+        } = props;
+
+        const { onClick } = useMemo(
+            function () {
+                /**
+                 * We're going to consider download of metadata.tsv file to be akin to one step before the purchasing.
+                 * Something they might download later...
+                 */
+                function onClick(evt) {
+                    setTimeout(function () {
+                        //analytics
+                        const itemList = Array.from(selectedItems.values());
+                        const extData = {
+                            item_list_name: analytics.hrefToListName(
+                                window && window.location.href
+                            ),
+                        };
+                        const products = analytics.transformItemsToProducts(
+                            itemList,
+                            extData
+                        );
+                        const productsLength = Array.isArray(products)
+                            ? products.length
+                            : 0;
+                        analytics.event(
+                            'add_payment_info',
+                            'SelectedFilesDownloadModal',
+                            'Download metadata.tsv Button Pressed',
+                            function () {
+                                console.info(
+                                    `Will download metadata.tsv having ${productsLength} items in the cart.`
+                                );
+                            },
+                            {
+                                items: Array.isArray(products)
+                                    ? products
+                                    : null,
+                                payment_type: 'Metadata.tsv Download',
+                                list_name: extData.item_list_name,
+                                value: (products && products.length) || 0,
+                                // filters: analytics.getStringifiedCurrentFilters((context && context.filters) || null)
+                            }
+                        );
+                    }, 0);
+                }
+
+                return { onClick };
+            },
+            [selectedItems]
+        );
 
         return (
             <form
@@ -859,8 +960,8 @@ const SelectedItemsDownloadStartButton = React.memo(
                 <button
                     type="submit"
                     name="Download"
+                    onClick={onClick}
                     className="btn btn-primary mt-0 mr-1 btn-block-xs-only"
-                    // onClick={onClick} // TODO: re-add onclick to handle analytics move-to-cart
                     data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
                     <i className="icon icon-fw icon-download fas mr-1" />
                     Download Manifest

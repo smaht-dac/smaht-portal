@@ -711,11 +711,11 @@ body[data-path="/"]>#application>#layout {
 
 // Consortium Map
 .consortium-map {
-    font-family: Inter;
+	font-family: Inter;
 	position: relative;
-    nav {
-        font-weight: 400;
-    }
+	nav {
+		font-weight: 400;
+	}
 	text {
 		font-family: Inter;
 	}
@@ -725,109 +725,109 @@ body[data-path="/"]>#application>#layout {
 		transition: stroke-width 150ms;
 	}
 
-    // Map styles 
-    & > h1 {
-        font-family: Inter;
-        font-weight: 600;
-        margin: none;
-    }
+	// Map styles 
+	& > h1 {
+		font-family: Inter;
+		font-weight: 600;
+		margin: none;
+	}
 
 	#map-marker-svg:hover {
 		cursor: pointer;
 	}
 
 	
-    
-    .consortium-legend {
-        background-color: #e3e3e3;
-        position: absolute;
-    }
-    .consortium-tooltip {
+	
+	.consortium-legend {
+		background-color: #e3e3e3;
+		position: absolute;
+	}
+	.consortium-tooltip {
 		line-height: 20px;
-        font-family: Inter;
-        font-weight: 500;
-        background-color: #e3e3e3;
-        position: absolute; 
-        opacity: 0;
+		font-family: Inter;
+		font-weight: 500;
+		background-color: #e3e3e3;
+		position: absolute; 
+		opacity: 0;
 		z-index: 2;
-    }
-    .consortium-tooltip-wrapper {
-        max-width: 220px;
-        font-size: 14px;
-        font-weight: 600;
+	}
+	.consortium-tooltip-wrapper {
+		max-width: 220px;
+		font-size: 14px;
+		font-weight: 600;
 		z-index: 2;
-    }
-    .consortium-tooltip-content {
-        font-family: Inter;
-        font-weight: 400;
-        font-size: 14px;
-    }
-    .consortium-tooltip-header {
-        font-family: Inter;
-        font-weight: 600;
-        font-size: 12px;
-    }
+	}
+	.consortium-tooltip-content {
+		font-family: Inter;
+		font-weight: 400;
+		font-size: 14px;
+	}
+	.consortium-tooltip-header {
+		font-family: Inter;
+		font-weight: 600;
+		font-size: 12px;
+	}
 
 
-    // Table styles
-    table.table-striped {
-        th {
-            background-color: #F1F9FF; 
-            font-weight: 600;
-            text-align: left;
+	// Table styles
+	table.table-striped {
+		th {
+			background-color: #F1F9FF; 
+			font-weight: 600;
+			text-align: left;
 			border-top: none;
 			padding: 8px 0 8px 15px;
 			border-bottom: #9BA5B7;
-        }
-        tbody {
-            td {
-                border: 1px solid lightgray;
-                text-align: left;
+		}
+		tbody {
+			td {
+				border: 1px solid lightgray;
+				text-align: left;
 				padding: 5px 15px;
 				
 				&.center-type {
 					padding: 10px;
 				}
-            }
-            td.consortium-table-OC {
-                font-size: 22px;
-                background-color: #DEF2FE;
-                cursor: default;
-                color: #2E82B2;
-            }
-            td.consortium-table-DAC {
-                font-size: 22px;
-                background-color: #FFE1E2;
-                cursor: default;
-                color: #EA0018;
-            }
-            td.consortium-table-TPC {
-                font-size: 22px;
-                background-color: #F6E9F7;
-                cursor: default;
-                color: #8F4895;
-            }
-            td.consortium-table-GCC {
-                font-size: 22px;
-                background-color: #FFE7D5;
-                cursor: default;
-                color: #FF691A;
-            }
-            td.consortium-table-TTD {
-                font-size: 22px;
-                background-color: #D9F7DC;
-                cursor: default;
-                color: #225928;
-            }
-            td.consortium-table-header {
+			}
+			td.consortium-table-OC {
+				font-size: 22px;
+				background-color: #DEF2FE;
+				cursor: default;
+				color: #2E82B2;
+			}
+			td.consortium-table-DAC {
+				font-size: 22px;
+				background-color: #FFE1E2;
+				cursor: default;
+				color: #EA0018;
+			}
+			td.consortium-table-TPC {
+				font-size: 22px;
+				background-color: #F6E9F7;
+				cursor: default;
+				color: #8F4895;
+			}
+			td.consortium-table-GCC {
+				font-size: 22px;
+				background-color: #FFE7D5;
+				cursor: default;
+				color: #FF691A;
+			}
+			td.consortium-table-TTD {
+				font-size: 22px;
+				background-color: #D9F7DC;
+				cursor: default;
+				color: #225928;
+			}
+			td.consortium-table-header {
 				font-weight: 400px;
 				font-size: 0.9rem;
-                position: -webkit-sticky;
-                position: sticky;
-                top: 0;
-            }
-        }
-    }
+				position: -webkit-sticky;
+				position: sticky;
+				top: 0;
+			}
+		}
+	}
 }
 
 div#popover-consortium-map {
@@ -900,6 +900,7 @@ div#popover-consortium-map {
 		}
 	}
 	@media screen and (max-width: 576px) {
+		max-width: 200px;
 		.popover-header {
 			font-size: 0.6rem;
 		}
@@ -1388,11 +1389,15 @@ div#popover-consortium-map {
 				margin-top: 5px;
 			}
 			.stackrow-item-legend {
-				margin-top: 0px;
+				flex-direction: row;
+				width: 60%;
+				margin: auto;
+				margin-top: 5px;
 
 				.stackrow-item {
 					height: 17px;
 					width: 17px;
+					margin: auto;
 					display: flex;
 					justify-content: center;
 
@@ -1403,15 +1408,18 @@ div#popover-consortium-map {
 					}
 				}
 				.text {
-					font-size: 0.5rem;
-					margin-left: 5px;
+					font-size: 7px;
+    				margin-left: 10px;
+    				line-height: 10px;
 				}
 			}
 		}
     
-    
     }
-    
+	
+    @media screen and (max-width: 576px) {
+		margin-top: 40px;
+	}
 }
 
 div#popover-consortium-data-alluvial-table {
@@ -1460,6 +1468,20 @@ div#popover-consortium-data-alluvial-table {
 				font-size: 0.6rem;
 			}
 		}
+	}
+	// #popover-consortium-map-data-alluvial-table <576px
+	@media screen and (max-width: 576px) {
+		max-width: 200px;
+	}
+}
+
+// styles for user visualization warning 
+.visualization-warning {
+	font-size: .9rem;
+	margin-bottom: 20px;
+	
+	span {
+		font-weight: 600;
 	}
 }
 
