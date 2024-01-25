@@ -45,17 +45,19 @@
         }
     },
     "alignment_details": {
-        "title": "Data Details",
-        "description": "Additional details about the data contents",
-        "type": "array",
-        "minItems": 1,
-        "uniqueItems": true,
-        "items": {
-            "type": "string",
-            "enum": [
-                "Phased",
-                "Sorted"
-            ]
+        "alignment_details": {
+            "title": "Data Details",
+            "description": "Additional details about the data contents",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Phased",
+                    "Sorted"
+                ]
+            }
         }
     },
     "alternative_ids": {
