@@ -1020,7 +1020,7 @@ body[data-current-action="multiselect"] {
                                 font-weight: 500;
                                 padding: 8px 0 6px 0;
                                 border-radius: 2px;
-                                &:not(div):hover {
+                                &:not(div, span):hover {
                                     border-color: #5d8a8e;
                                     text-decoration: none;
                                     color: #2DB3FF; 
@@ -1047,21 +1047,6 @@ body[data-current-action="multiselect"] {
                                 }
                             }
                         }
-
-                        /*
-                        &:not(.has-children) {
-                            > .level-1-title-container {
-                                border: 1px solid #ddd;
-                                border-radius: 3px;
-                                margin-top: 17px;
-                                > a.level-1-title {
-                                    padding-top: 7px;
-                                    padding-left: 10px;
-                                    padding-right: 10px;
-                                }
-                            }
-                        }
-                        */
 
                         &.level-1-no-child-links {
                             > .level-1-title-container {
