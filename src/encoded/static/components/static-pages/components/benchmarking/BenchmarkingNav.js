@@ -46,7 +46,7 @@ export const BenchmarkingUINav = (props) => {
             <hr />
             <div className="benchmarking-nav-section">
                 <div className="benchmarking-nav-section-title text-small text-600">
-                    Primary Tissue Data
+                    Benchmarking Tissue Data
                 </div>
                 <div>
                     <BenchmarkingUINavLinkGenerator
