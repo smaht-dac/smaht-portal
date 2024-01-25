@@ -88,7 +88,7 @@ const BenchmarkingTable = (props) => {
         ...originalColExtMap, // Pull in defaults for all tables
         // Then overwrite or add onto the ones that already are there:
         // Select all button
-        accession: {
+        '@type': {
             colTitle: (
                 // Context now passed in from HeadersRowColumn (for file count)
                 <SelectAllFilesButton {...selectedFileProps} type="checkbox" />
