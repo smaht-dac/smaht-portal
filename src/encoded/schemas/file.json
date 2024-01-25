@@ -196,7 +196,7 @@
         "submission_centers.display_title": {
             "title": "Center"
         },
-        "software.name": {
+        "software.display_title": {
             "title": "Method"
         },
         "file_size": {
