@@ -761,7 +761,7 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
                             Extra Files
                             <i
                                 className="icon icon-info-circle fas ml-03"
-                                data-tip="Extra files (e.g. .BAIs or .VCFs) related to the selected files are included in SMaHT download manifests by default."
+                                data-tip="Extra files associated with selected files (e.g. index file of BAM (*.bai) or CRAM (*.crai)) are included in the download by default. These files are found in the manifest file"
                             />
                         </div>
                         <div className="tsv-metadata-stat">
