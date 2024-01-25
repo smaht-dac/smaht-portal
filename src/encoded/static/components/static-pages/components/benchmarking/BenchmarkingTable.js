@@ -683,7 +683,7 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
             if (error) setError(false);
 
             ajax.load(
-                '/peek_metadata/',
+                '/peek-metadata/',
                 callbackFxn,
                 'POST',
                 fallbackFxn,

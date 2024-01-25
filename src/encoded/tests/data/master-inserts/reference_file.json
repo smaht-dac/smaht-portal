@@ -11,7 +11,8 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],
-        "uuid": "98790088-f485-4193-b9a1-52e9aec69036"
+        "uuid": "98790088-f485-4193-b9a1-52e9aec69036",
+        "file_size": 5000
     },
     {
         "status": "public",
@@ -25,6 +26,7 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],
-        "uuid": "a069fdc9-13b2-47d4-881f-f6cf28cb5e0e"
+        "uuid": "a069fdc9-13b2-47d4-881f-f6cf28cb5e0e",
+        "file_size": 10000
     }
 ]
