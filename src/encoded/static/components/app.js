@@ -1034,7 +1034,6 @@ export default class App extends React.PureComponent {
                         currentRequestInThisScope ===
                             this.currentNavigationRequest
                     ) {
-                        console.log('TIMEOUT!!!');
                         this.setState(function ({ slowLoad }) {
                             if (slowLoad) return null;
                             return { slowLoad: true };
