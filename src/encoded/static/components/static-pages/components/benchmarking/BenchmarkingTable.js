@@ -669,10 +669,19 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
         };
 
         const callbackFxn = useCallback((resp) => {
-            console.log('BenchmarkingDataDownloadOverviewStats resp', resp);
+            const {
+                0: { sum: selectedFileSizeResp = 0 } = {},
+                2: { sum: extraFileSizeResp, count: numExtraFilesResp } = {},
+            } = resp || [];
+            // console.log('BenchmarkingDataDownloadOverviewStats resp', resp);
             setLoading(false);
             setError(false);
-            // TODO: setFileStats with value from resp
+
+            setFileStats({
+                selectedFileSize: selectedFileSizeResp,
+                extraFilesSize: extraFileSizeResp,
+                numExtraFiles: numExtraFilesResp,
+            });
         });
 
         const fallbackFxn = useCallback((resp) => {
@@ -682,12 +691,11 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
         });
 
         const getStatistics = useCallback(() => {
-            // Clear status indicator; set loading
             if (!loading) setLoading(true);
             if (error) setError(false);
 
             ajax.load(
-                '/peek_metadata/',
+                '/peek-metadata/',
                 callbackFxn,
                 'POST',
                 fallbackFxn,
@@ -742,12 +750,19 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
                         <div className="tsv-metadata-stat">
                             {loading && loadingIndicator}
                             {error && errorIndicatorAndRetry}
-                            {selectedFileSize}
+                            {selectedFileSize !== null &&
+                                valueTransforms.bytesToLargerUnit(
+                                    selectedFileSize
+                                )}
                         </div>
                     </div>
                     <div>
                         <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
                             Extra Files
+                            <i
+                                className="icon icon-info-circle fas ml-03"
+                                data-tip="Extra files (e.g. .BAIs or .VCFs) related to the selected files are included in SMaHT download manifests by default."
+                            />
                         </div>
                         <div className="tsv-metadata-stat">
                             {loading && loadingIndicator}
@@ -762,7 +777,10 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
                         <div className="tsv-metadata-stat">
                             {loading && loadingIndicator}
                             {error && errorIndicatorAndRetry}
-                            {extraFilesSize}
+                            {numExtraFiles !== null &&
+                                valueTransforms.bytesToLargerUnit(
+                                    extraFilesSize
+                                )}
                         </div>
                     </div>
                 </div>
