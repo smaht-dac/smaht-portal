@@ -106,6 +106,10 @@ const BenchmarkingTable = (props) => {
                 );
             },
         },
+        // File
+        annotated_filename: {
+            widthMap: { lg: 500, md: 400, sm: 300 },
+        },
         // Format
         'file_format.display_title': {
             colTitle: 'Format',
@@ -126,7 +130,7 @@ const BenchmarkingTable = (props) => {
         },
         // File Size
         file_size: {
-            widthMap: { lg: 150, md: 140, sm: 130 },
+            widthMap: { lg: 130, md: 120, sm: 100 },
             render: function (result, parentProps) {
                 const value = result?.file_size;
                 if (!value) return null;
