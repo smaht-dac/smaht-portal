@@ -79,7 +79,7 @@
         "identifier": "benchmarking.COLO829",
         "title": "COLO829 Data Table",
         "file": "/docs/public/benchmarking_COLO829.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -87,6 +87,158 @@
         },
         "section_type": "Page Section",
         "uuid": "dea41934-619a-4a3b-a2bd-0521d0fffab1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.HapMap",
+        "title": "HapMap Data Table",
+        "file": "/docs/public/benchmarking_HapMap.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "5b5d9021-4dca-4023-bc5e-123b5ef66ff2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.iPSCFibroblast",
+        "title": "iPSC Fibroblast Data Table",
+        "file": "/docs/public/benchmarking_iPSCFibroblast.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "a08bb75d-93e2-455f-9fe2-aa8f4969d233",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.Heart",
+        "title": "Heart Data Table",
+        "file": "/docs/public/benchmarking_Heart.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "09abdc2d-bbb5-4814-9dec-c39e58ee7d4f",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.Colon",
+        "title": "Colon Data Table",
+        "file": "/docs/public/benchmarking_Colon.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "3a097f93-4478-4487-a7ac-fb805774fcad",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.Liver",
+        "title": "Liver Data Table",
+        "file": "/docs/public/benchmarking_Liver.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "c789600c-4104-4246-a238-af9cc89d74f1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.Lung",
+        "title": "Lung Data Table",
+        "file": "/docs/public/benchmarking_Lung.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "cdcd25cd-cc37-4a35-8494-8573e92dac12",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.Skin",
+        "title": "Skin Data Table",
+        "file": "/docs/public/benchmarking_Skin.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "91f38a47-a6d8-402f-9c84-08358309efbc",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.Brain",
+        "title": "Brain Data Table",
+        "file": "/docs/public/benchmarking_Brain.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "9104db8e-9a11-4430-bc86-87a43a0fc857",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -111,7 +263,7 @@
         "identifier": "benchmarking.intro",
         "title": "Intro Benchmarking Data Table",
         "file": "/docs/public/benchmarking_intro.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -143,7 +295,7 @@
         "identifier": "benchmarking.placeholder",
         "title": "Benchmarking Placeholder",
         "file": "/docs/public/benchmarking_placeholder.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,

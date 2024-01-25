@@ -47,7 +47,12 @@ export function BigDropdownPageTreeMenuIntroduction(props) {
 }
 
 export function BigDropdownPageTreeMenu(props) {
-    const { menuTree, href, childrenToHide = [] } = props;
+    const {
+        menuTree,
+        href,
+        childrenToHide = [],
+        disableLinksOnLevel1Titles = false,
+    } = props;
     const {
         display_title,
         identifier: pathName,
@@ -132,7 +137,11 @@ export function BigDropdownPageTreeMenu(props) {
             (hasChildren ? ' has-children' : '');
         return (
             <div className={outerCls} key={childLevel1.identifier}>
-                <Level1Title childPageItem={childLevel1} active={active} />
+                <Level1Title
+                    childPageItem={childLevel1}
+                    active={active}
+                    disableLinks={disableLinksOnLevel1Titles}
+                />
                 {hasChildren
                     ? level1Children.map(function (childLevel2) {
                           return (
@@ -182,9 +191,24 @@ export function BigDropdownPageTreeMenu(props) {
     );
 }
 
-/** TODO test & port to 4DN if works decently */
-function Level1Title({ childPageItem, active }) {
+function Level1Title({ childPageItem, active, disableLinks }) {
     const { identifier, display_title, description } = childPageItem;
+    if (disableLinks) {
+        return (
+            <div
+                className={
+                    'level-1-title-container' + (active ? ' active' : '')
+                }>
+                <span
+                    className="level-1-title text-medium"
+                    data-tip={description}
+                    data-delay-show={500}
+                    id={'menutree-linkto-' + identifier.replace(/\//g, '_')}>
+                    <span>{display_title}</span>
+                </span>
+            </div>
+        );
+    }
     return (
         <div className={'level-1-title-container' + (active ? ' active' : '')}>
             <a
@@ -263,11 +287,17 @@ function CustomStaticLinks({ pathName, href }) {
                                     id="menutree-linkto-skin_page">
                                     <span>Skin</span>
                                 </a>
-                                <a
+                                {/* <a
                                     className="level-3-title text-small d-block"
                                     href="/data/benchmarking/lung"
                                     id="menutree-linkto-lung_page">
                                     <span>Lung</span>
+                                </a> */}
+                                <a
+                                    className="level-3-title text-small d-block"
+                                    href="/data/benchmarking/liver"
+                                    id="menutree-linkto-liver_page">
+                                    <span>Liver</span>
                                 </a>
                                 <a
                                     className="level-3-title text-small d-block"

@@ -711,11 +711,11 @@ body[data-path="/"]>#application>#layout {
 
 // Consortium Map
 .consortium-map {
-    font-family: Inter;
+	font-family: Inter;
 	position: relative;
-    nav {
-        font-weight: 400;
-    }
+	nav {
+		font-weight: 400;
+	}
 	text {
 		font-family: Inter;
 	}
@@ -725,109 +725,109 @@ body[data-path="/"]>#application>#layout {
 		transition: stroke-width 150ms;
 	}
 
-    // Map styles 
-    & > h1 {
-        font-family: Inter;
-        font-weight: 600;
-        margin: none;
-    }
+	// Map styles 
+	& > h1 {
+		font-family: Inter;
+		font-weight: 600;
+		margin: none;
+	}
 
 	#map-marker-svg:hover {
 		cursor: pointer;
 	}
 
 	
-    
-    .consortium-legend {
-        background-color: #e3e3e3;
-        position: absolute;
-    }
-    .consortium-tooltip {
+	
+	.consortium-legend {
+		background-color: #e3e3e3;
+		position: absolute;
+	}
+	.consortium-tooltip {
 		line-height: 20px;
-        font-family: Inter;
-        font-weight: 500;
-        background-color: #e3e3e3;
-        position: absolute; 
-        opacity: 0;
+		font-family: Inter;
+		font-weight: 500;
+		background-color: #e3e3e3;
+		position: absolute; 
+		opacity: 0;
 		z-index: 2;
-    }
-    .consortium-tooltip-wrapper {
-        max-width: 220px;
-        font-size: 14px;
-        font-weight: 600;
+	}
+	.consortium-tooltip-wrapper {
+		max-width: 220px;
+		font-size: 14px;
+		font-weight: 600;
 		z-index: 2;
-    }
-    .consortium-tooltip-content {
-        font-family: Inter;
-        font-weight: 400;
-        font-size: 14px;
-    }
-    .consortium-tooltip-header {
-        font-family: Inter;
-        font-weight: 600;
-        font-size: 12px;
-    }
+	}
+	.consortium-tooltip-content {
+		font-family: Inter;
+		font-weight: 400;
+		font-size: 14px;
+	}
+	.consortium-tooltip-header {
+		font-family: Inter;
+		font-weight: 600;
+		font-size: 12px;
+	}
 
 
-    // Table styles
-    table.table-striped {
-        th {
-            background-color: #F1F9FF; 
-            font-weight: 600;
-            text-align: left;
+	// Table styles
+	table.table-striped {
+		th {
+			background-color: #F1F9FF; 
+			font-weight: 600;
+			text-align: left;
 			border-top: none;
 			padding: 8px 0 8px 15px;
 			border-bottom: #9BA5B7;
-        }
-        tbody {
-            td {
-                border: 1px solid lightgray;
-                text-align: left;
+		}
+		tbody {
+			td {
+				border: 1px solid lightgray;
+				text-align: left;
 				padding: 5px 15px;
 				
 				&.center-type {
 					padding: 10px;
 				}
-            }
-            td.consortium-table-OC {
-                font-size: 22px;
-                background-color: #DEF2FE;
-                cursor: default;
-                color: #2E82B2;
-            }
-            td.consortium-table-DAC {
-                font-size: 22px;
-                background-color: #FFE1E2;
-                cursor: default;
-                color: #EA0018;
-            }
-            td.consortium-table-TPC {
-                font-size: 22px;
-                background-color: #F6E9F7;
-                cursor: default;
-                color: #8F4895;
-            }
-            td.consortium-table-GCC {
-                font-size: 22px;
-                background-color: #FFE7D5;
-                cursor: default;
-                color: #FF691A;
-            }
-            td.consortium-table-TTD {
-                font-size: 22px;
-                background-color: #D9F7DC;
-                cursor: default;
-                color: #225928;
-            }
-            td.consortium-table-header {
+			}
+			td.consortium-table-OC {
+				font-size: 22px;
+				background-color: #DEF2FE;
+				cursor: default;
+				color: #2E82B2;
+			}
+			td.consortium-table-DAC {
+				font-size: 22px;
+				background-color: #FFE1E2;
+				cursor: default;
+				color: #EA0018;
+			}
+			td.consortium-table-TPC {
+				font-size: 22px;
+				background-color: #F6E9F7;
+				cursor: default;
+				color: #8F4895;
+			}
+			td.consortium-table-GCC {
+				font-size: 22px;
+				background-color: #FFE7D5;
+				cursor: default;
+				color: #FF691A;
+			}
+			td.consortium-table-TTD {
+				font-size: 22px;
+				background-color: #D9F7DC;
+				cursor: default;
+				color: #225928;
+			}
+			td.consortium-table-header {
 				font-weight: 400px;
 				font-size: 0.9rem;
-                position: -webkit-sticky;
-                position: sticky;
-                top: 0;
-            }
-        }
-    }
+				position: -webkit-sticky;
+				position: sticky;
+				top: 0;
+			}
+		}
+	}
 }
 
 div#popover-consortium-map {
@@ -900,6 +900,7 @@ div#popover-consortium-map {
 		}
 	}
 	@media screen and (max-width: 576px) {
+		max-width: 200px;
 		.popover-header {
 			font-size: 0.6rem;
 		}
@@ -1388,11 +1389,15 @@ div#popover-consortium-map {
 				margin-top: 5px;
 			}
 			.stackrow-item-legend {
-				margin-top: 0px;
+				flex-direction: row;
+				width: 60%;
+				margin: auto;
+				margin-top: 5px;
 
 				.stackrow-item {
 					height: 17px;
 					width: 17px;
+					margin: auto;
 					display: flex;
 					justify-content: center;
 
@@ -1403,15 +1408,18 @@ div#popover-consortium-map {
 					}
 				}
 				.text {
-					font-size: 0.5rem;
-					margin-left: 5px;
+					font-size: 7px;
+    				margin-left: 10px;
+    				line-height: 10px;
 				}
 			}
 		}
     
-    
     }
-    
+	
+    @media screen and (max-width: 576px) {
+		margin-top: 40px;
+	}
 }
 
 div#popover-consortium-data-alluvial-table {
@@ -1461,6 +1469,20 @@ div#popover-consortium-data-alluvial-table {
 			}
 		}
 	}
+	// #popover-consortium-map-data-alluvial-table <576px
+	@media screen and (max-width: 576px) {
+		max-width: 200px;
+	}
+}
+
+// styles for user visualization warning 
+.visualization-warning {
+	font-size: .9rem;
+	margin-bottom: 20px;
+	
+	span {
+		font-weight: 600;
+	}
 }
 
 /***
@@ -1490,11 +1512,58 @@ body[data-pathname^="/data/benchmarking"] {
 	// Hide titles
 	.static-section-entry>.section-title { display: none; }
 
+	// Header and description text
+	.benchmarking-layout{
+		>nav.nav-tabs {
+			a.nav-link {
+				color: #5D5E63;
+				font-family: Inter;
+				font-size: 16px;
+				font-weight: 400; 
+
+				&.active {
+					color: #343741;
+					font-weight: 600; 
+				}
+				&.disabled {
+					color: #9BA5B7;
+				}
+			}
+		}
+
+		>.row>div {
+			>h2 {
+				color: #343741;
+				font-family: Inter;
+				font-size: 24px;
+				font-weight: 600;
+				margin-top: 5px;
+			}
+
+			>p {
+				color: #5D5E63;
+				font-family: Inter;
+				font-size: 14px;
+				line-height: 20px;
+			}
+		}
+	}
+
 	// Side nav
 	.benchmarking-nav {
+
+		>.benchmarking-nav-section {
+			>.benchmarking-nav-section-title {
+				margin-bottom: 10px;
+			}
+		}
+
 		.accordion > ul {
 			list-style-type: none;
 			padding-left: 0;
+			gap: 10px;
+			display: flex;
+			flex-direction: column;
 
 			> li > div.collapse > ul,
 			> li > div.collapsing > ul {
@@ -1505,37 +1574,62 @@ body[data-pathname^="/data/benchmarking"] {
 				}
 			}
 
-			li.navlink-active {
-				border-radius: 4px;
-				border: 1px solid #E2ECF2;
-				background: #EBF3F9; 
+			li.sidenav-link {
+				font-family: Inter;
+				font-size: 14px;
+				font-weight: 400;
+
+				> a {
+					color: #717378;
+				}
+
+				&.top {
+					font-size: 16px;
+				}
+				&.active {
+					font-weight: 500;
+					&.top {
+						font-weight: 700;
+					}
+					&:not(.top) {
+						border-radius: 4px;
+						border: 1px solid #E2ECF2;
+						background: #EBF3F9; 
+					}
+					
+					> a {
+						color: #343741;
+					}
+				}
+			}
+
+			span.navlink-drop {
+				color: #717378;
+				font-size: 16px;
+				font-weight: 400;
+				font-family: Inter;
+				&.active {
+					color: #343741;
+					font-weight: 700;
+				}
 			}
 		}
 	}
 
-	// Benchmarking search table (in future maybe make this the general style for all search tables)
-	.search-headers-row { 
-		background-color: $search-header-background-color;
-		border-bottom: 1px solid $search-header-border-color;
-	
-		> .headers-columns-overflow-container > .columns > .search-headers-column-block {
-	
-			.width-adjuster.react-draggable::after {
-				border-color: darken($color: $search-header-background-color, $amount: 30%)
-			}
-	
-			&[data-first-visible-column] {
-				padding-left: 44px;
-			}
-	
-			.inner > .column-title {
-				text-align: left;
-				color: $search-header-text-color;
-			}
-	
-			.inner > .column-sort-icon {
-				color: $search-header-text-color;
-			}
+	.tbd-notice {
+		color: #343741;
+		font-family: Inter;
+		font-size: 20px;
+		font-weight: 600;
+	}
+
+	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
+		&[data-first-visible-column=true] {
+			padding-left: 15px !important;
+		}
+
+		>.inner>.toggle-detail-button-container {
+			display: none;
 		}
 	}
 
@@ -1543,24 +1637,77 @@ body[data-pathname^="/data/benchmarking"] {
 	.batch-files-download-modal {
 		> .modal-dialog {
 			min-width: 75%;
-		}
 
-		/*** metadata.tsv modal ***/
-		pre.curl-command {
-			border: 1px dashed #dedede;
-			padding: 5px;
-			text-overflow: ellipsis;
-		}
-		.curl-command-wrapper i.icon-copy {
-			margin-left: 5px;
+			>.modal-content {
+				border-radius: 11px;
 
-			&:after {
-				content : "Copy";
-				font-family: $font-family-base;
-				font-weight: 600;
-				padding-left: 6px;
+				>.modal-header>.modal-title {
+					color: #343741;
+					font-size: 24px;
+					font-weight: 600;
+				}
+				>.modal-body {
+					h2 {
+						color: #343741;
+						font-size: 18px;
+						font-weight: 600;
+					}
+			
+					li {
+						font-size: 14px;
+					}
+
+					.tsv-metadata-overview {
+						border-radius: 7px;
+						border: 1px solid #CAE5FE;
+						background: #F1F9FF;
+						box-shadow: none;
+						gap: 30px;
+						
+						@include media-breakpoint-between(md, lg){
+							gap: 50px;
+						}
+
+						@include media-breakpoint-between(lg, xl){
+							gap: 70px;
+						}
+
+						@include media-breakpoint-up(xl){
+							gap: 90px;
+						}
+			
+						.tsv-metadata-stat-title {
+							color: #387FC1;
+						}
+			
+						.tsv-metadata-stat {
+							color: #343741;
+							font-size: 24px;
+							font-weight: 600;
+						}
+					}
+
+					/*** metadata.tsv modal ***/
+					pre.curl-command {
+						border: 1px dashed #dedede;
+						padding: 5px;
+						text-overflow: ellipsis;
+					}
+					.curl-command-wrapper i.icon-copy {
+						margin-left: 5px;
+
+						&:after {
+							content : "Copy";
+							font-family: $font-family-base;
+							font-weight: 600;
+							padding-left: 6px;
+						}
+					}
+				}
+				>.modal-footer {
+					background-color: #F8F8F8;
+				}
 			}
 		}
 	}
-
 }

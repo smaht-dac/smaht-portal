@@ -15,146 +15,48 @@ $search-results-edge-background-color: #e2e2e2;
 $search-results-edge-shadow-color : rgba(0,0,0,0.5);
 $search-results-result-row-height: 30px; /* +9px margin bottom +1px border bottom = 90px rowHeight. */
 $search-results-header-row-height: 52px; /* 46px is existing default for both result and header height. */
+
+// Search Tables
+$search-header-background-color: $baby-20;
+$search-header-text-color: $gray-70;
+$search-header-border-color: $gray-30;
+$search-header-icon-color: #BACAD7;
+$search-row-banding-alt-background-color: $gray-10;
+
+// Facets
+$facet-including-background: $search-header-background-color;
+$facet-including-button-bg: #C6DDE9;
+$facet-excluding-background: #FFDADA;
+$facet-excluding-button-bg: #DD9E9F;
+
+$facetlist-selected-term-color: $primary;
+$facetlist-omitted-term-color: #901414;
+$facetlist-excluding: #450000;
+
 @import "./../../../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/search-view-table.scss";
+@import "../../../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/facet-list.scss";
 
+.search-result-row>.result-table-row>.search-result-column-block {
 
-.search-result-row .result-table-row .search-result-column-block {
-
-	.inner {
-
-		a.adv-block-link {
-			color: $body-color;
-
-			&:hover {
-				color: $link-hover-color;
-				h4, h5, h6 {
-					color: $link-hover-color;
-					text-decoration: underline;
-				}
-			}
-
-		}
-
-		.multi-field-cell {
-			/* Is usually a child of adv-block-link, but not necessarily (if no link needed). */
-			flex: 1 1 0px;
-			width: 100%;
-
-			.top-row {
-				display: flex;
-				justify-content: space-between;
-				.col-topleft {
-					@include text-truncate();
-				}
-			}
-			.top-row,
-			.col-date {
-				line-height: 20px;
-				white-space: nowrap;
-				@include text-truncate();
-			}
-			.col-main {
-				margin: 0;
-				font-weight: 400;
-				/*
-				Given we have a 80px row height, we increase this from default (~30px) for visual appeal.
-				We could also use flex+flex-grow to increase this up to available space in row height, but
-				setting explicit min-height instead allows to make quicker fine-tuning. Can change more later.
-				*/
-				min-height: 34px;
-				display: flex;
-				align-items: center;
-				> span {
-					flex-grow: 1;
-					text-align: center;
-					width: 100%;
-					@include text-truncate();
-				}
-			}
-			.col-topleft {
-				font-size: 0.75em;
-			}
-			.col-date {
-				text-align: center;
-			}
+	&[data-field="access_status"],
+	&[data-field="annotation_filename"],
+	&[data-field="data_type"],
+	&[data-field="file_sets.assay.display_title"],
+	&[data-field="file_sets.sequencing.sequencer.display_title"],
+	&[data-field="file_format.display_title"],
+	&[data-field="software.name"],
+	&[data-field="submission_centers.display_title"] {
+		> .inner,
+		> span.value {
+			text-align: left !important;
 		}
 	}
 
-	&[data-field="display_title"] {
-		.inner {
-			> .title-block {
-				white-space: normal; /* Allow to wrap by default (overrides SPC's default white-space: nowrap;) since we have tall-ish rows. */
-			}
-		}
-	}
-	
-	&[data-field="status"] {
-		> .inner {
-			/* Overrides SPC's search-view-table.scss text-align: left */
-			text-align: center !important;
-			i.status-indicator-dot {
-				margin-left: 4px;
-				margin-right: 2px;
-			}
-		}
-	}
-	&[data-field="lab.display_title"],
-	&[data-field="track_and_facet_info.lab_name"]{
-		> .inner {
-			text-align: left;
-		}
-		i.user-icon {
-			cursor: help;
-			margin-right: 5px;
-		}
-	}
-	&[data-field="display_title"]{
-		.expset-checkbox {
-			margin-right: 15px;
-			margin-top: -1px;
-			display: inline-block;
-			vertical-align: text-top;
-		}
-		.mono-text,
-		.text-monospace {
-			letter-spacing: 0.5px;
-		}
-		img.in-search-table-title-image {
-			margin-top: -10px;
-			margin-bottom: -8px;
-			border-radius: 4px;
-			margin-right: 10px;
-			filter: saturate(0.3);
-			transition: filter .2s, opacity .2s;
-			opacity: 0.85;
-		}
-		&:hover {
-			img.in-search-table-title-image {
-				filter: none;
-				opacity: 1;
-			}
-		}
-	}
-	&[data-field="experiments_in_set.experiment_categorizer.combined"]{
-		> .inner {
-			position: relative;
-			text-overflow: none;
-			white-space: normal;
-			div.exp-categorizer-cell {
-				text-align: left;
-
-				> small {
-					position: relative;
-					top: -9px;
-					font-weight: 500;
-				}
-				> div {
-					position: relative;
-					top: -8px;
-					width: 100%;
-				}
-			}
-
+	&[data-field="file_size"],
+	&[data-field="date_created"] {
+		> .inner,
+		> span.value {
+			text-align: right !important;
 		}
 	}
 }
@@ -163,13 +65,8 @@ $search-results-header-row-height: 52px; /* 46px is existing default for both re
 
 
 
+
 /*** FACETS CONTAINER STICKY ***/
-
-$facetlist-selected-term-color: $primary;
-$facetlist-omitted-term-color: #901414;
-$facetlist-excluding: #450000;
-
-@import "../../../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/facet-list.scss";
 
 .search-view-controls-and-results .facets-container {
 	background-color: #fff;
@@ -201,12 +98,12 @@ $facetlist-excluding: #450000;
 
 		// Styles for facets header when including
 		&[data-excluding="false"] {
-			background-color: #EEF9FF;
+			background-color: $facet-including-background;
 
 			.facets-title-column {
 				.icon-toggle {
 					button[aria-pressed='true']{
-						background-color: #C6DDE9;
+						background-color: $facet-including-button-bg;
 					}
 				}
 			}
@@ -214,12 +111,12 @@ $facetlist-excluding: #450000;
 
 		// Styles for facets header when excluding
 		&[data-excluding="true"] {
-			background-color: #FFDADA;
+			background-color: $facet-excluding-background;
 
 			.facets-title-column {
 				.icon-toggle {
 					button[aria-pressed='true']{
-						background-color: #DD9E9F;
+						background-color: $facet-excluding-button-bg;
 					}
 				}
 			}
@@ -296,18 +193,32 @@ $facetlist-excluding: #450000;
 						& > a {
 							background-color: #317ac4;
 						}
+						&:hover {
+							& > a {
+								& > .facet-item,
+								& > .facet-count {
+									color: #ffffff;
+								}
+							}
+						}
 					}
 					&.omitted {
 						& > a {
 							background-color: #711219;
 						}
+						&:hover {
+							& > a {
+								& > .facet-item,
+								& > .facet-count {
+									color: #ffffff;
+								}
+							}
+						}
 					}
 					
 					&:hover {
 						& > a {
-							& > .facet-item {
-								color: #343741;
-							}
+							& > .facet-item,
 							& > .facet-count {
 								color: #343741;
 							}
@@ -394,6 +305,93 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 
 	}
 
+	.search-headers-row { 
+		background-color: $search-header-background-color;
+		border-bottom: 1px solid $search-header-border-color;
+	
+		> .headers-columns-overflow-container > .columns > .search-headers-column-block {
+	
+			.width-adjuster.react-draggable::after {
+				border-color: $search-header-icon-color;
+			}
+	
+			&[data-first-visible-column] {
+				padding-left: 16px;
+			}
+	
+			.inner > .column-title {
+				text-align: left;
+				color: $search-header-text-color;
+			}
+	
+			.inner > .column-sort-icon {
+				color: $search-header-icon-color;
+			}
+		}
+	}
+	
+	.search-result-row .result-table-row .search-result-column-block {
+	
+		.inner {
+	
+			a.adv-block-link {
+				color: $body-color;
+	
+				&:hover {
+					color: $link-hover-color;
+					h4, h5, h6 {
+						color: $link-hover-color;
+						text-decoration: underline;
+					}
+				}
+	
+			}
+	
+			.multi-field-cell {
+				/* Is usually a child of adv-block-link, but not necessarily (if no link needed). */
+				flex: 1 1 0px;
+				width: 100%;
+	
+				.top-row {
+					display: flex;
+					justify-content: space-between;
+					.col-topleft {
+						@include text-truncate();
+					}
+				}
+				.top-row,
+				.col-date {
+					line-height: 20px;
+					white-space: nowrap;
+					@include text-truncate();
+				}
+				.col-main {
+					margin: 0;
+					font-weight: 400;
+					/*
+					Given we have a 80px row height, we increase this from default (~30px) for visual appeal.
+					We could also use flex+flex-grow to increase this up to available space in row height, but
+					setting explicit min-height instead allows to make quicker fine-tuning. Can change more later.
+					*/
+					min-height: 34px;
+					display: flex;
+					align-items: center;
+					> span {
+						flex-grow: 1;
+						text-align: center;
+						width: 100%;
+						@include text-truncate();
+					}
+				}
+				.col-topleft {
+					font-size: 0.75em;
+				}
+				.col-date {
+					text-align: center;
+				}
+			}
+		}
+	}
 }
 
 .search-results-outer-container .search-results-container .shadow-border-layer > .edge-scroll-button {
@@ -470,9 +468,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 				top: $cgap-search-sticky-header-top-offset;
 			}
 		}
-
 	}
-
 }
 
 

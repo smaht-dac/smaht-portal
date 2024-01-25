@@ -122,10 +122,10 @@ const ConsortiumPopoverContent = ({ data }) => {
 const MARKER_SIZE = 40;
 const LINE_COLOR = '#636262';
 
-let drawn = false;
 export const ConsortiumMap = () => {
     const [showOverlay, setShowOverlay] = useState(false);
     const overlayTarget = useRef(null);
+    const isDrawn = useRef(false);
 
     const handleShowOverlay = (e, d) => {
         overlayTarget.current = {
@@ -311,14 +311,20 @@ export const ConsortiumMap = () => {
     };
 
     useEffect(() => {
-        if (!drawn) {
+        if (isDrawn.current === false && mapReference.current !== null) {
             drawChart();
-            drawn = true;
         }
+        return () => {
+            isDrawn.current = true; // use cleanup function to prevent rerender
+        };
     }, []);
 
     return (
         <div className="consortium-map-container container py-5">
+            <p className="visualization-warning d-block d-sm-none">
+                <span>Note:</span> for the best experience, please view the
+                visualization below on a tablet or desktop.
+            </p>
             <div className="consortium-map">
                 <div
                     id="consortiumMapTooltip"
