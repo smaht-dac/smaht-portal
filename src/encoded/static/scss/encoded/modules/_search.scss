@@ -15,8 +15,26 @@ $search-results-edge-background-color: #e2e2e2;
 $search-results-edge-shadow-color : rgba(0,0,0,0.5);
 $search-results-result-row-height: 30px; /* +9px margin bottom +1px border bottom = 90px rowHeight. */
 $search-results-header-row-height: 52px; /* 46px is existing default for both result and header height. */
-@import "./../../../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/search-view-table.scss";
 
+// Search Tables
+$search-header-background-color: $baby-20;
+$search-header-text-color: $gray-70;
+$search-header-border-color: $gray-30;
+$search-header-icon-color: #BACAD7;
+$search-row-banding-alt-background-color: $gray-10;
+
+// Facets
+$facet-including-background: $search-header-background-color;
+$facet-including-button-bg: #C6DDE9;
+$facet-excluding-background: #FFDADA;
+$facet-excluding-button-bg: #DD9E9F;
+
+$facetlist-selected-term-color: $primary;
+$facetlist-omitted-term-color: #901414;
+$facetlist-excluding: #450000;
+
+@import "./../../../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/search-view-table.scss";
+@import "../../../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/facet-list.scss";
 
 .search-result-row>.result-table-row>.search-result-column-block {
 
@@ -50,12 +68,6 @@ $search-results-header-row-height: 52px; /* 46px is existing default for both re
 
 /*** FACETS CONTAINER STICKY ***/
 
-$facetlist-selected-term-color: $primary;
-$facetlist-omitted-term-color: #901414;
-$facetlist-excluding: #450000;
-
-@import "../../../../../../node_modules/@hms-dbmi-bgm/shared-portal-components/scss/facet-list.scss";
-
 .search-view-controls-and-results .facets-container {
 	background-color: #fff;
 	font-family: 'Inter';
@@ -86,12 +98,12 @@ $facetlist-excluding: #450000;
 
 		// Styles for facets header when including
 		&[data-excluding="false"] {
-			background-color: #EEF9FF;
+			background-color: $facet-including-background;
 
 			.facets-title-column {
 				.icon-toggle {
 					button[aria-pressed='true']{
-						background-color: #C6DDE9;
+						background-color: $facet-including-button-bg;
 					}
 				}
 			}
@@ -99,12 +111,12 @@ $facetlist-excluding: #450000;
 
 		// Styles for facets header when excluding
 		&[data-excluding="true"] {
-			background-color: #FFDADA;
+			background-color: $facet-excluding-background;
 
 			.facets-title-column {
 				.icon-toggle {
 					button[aria-pressed='true']{
-						background-color: #DD9E9F;
+						background-color: $facet-excluding-button-bg;
 					}
 				}
 			}
@@ -286,7 +298,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 		> .headers-columns-overflow-container > .columns > .search-headers-column-block {
 	
 			.width-adjuster.react-draggable::after {
-				border-color: darken($color: $search-header-background-color, $amount: 30%)
+				border-color: $search-header-icon-color;
 			}
 	
 			&[data-first-visible-column] {
@@ -299,7 +311,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 			}
 	
 			.inner > .column-sort-icon {
-				color: $search-header-text-color;
+				color: $search-header-icon-color;
 			}
 		}
 	}

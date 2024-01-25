@@ -106,6 +106,10 @@ const BenchmarkingTable = (props) => {
                 );
             },
         },
+        // File
+        annotated_filename: {
+            widthMap: { lg: 500, md: 400, sm: 300 },
+        },
         // Format
         'file_format.display_title': {
             colTitle: 'Format',
@@ -126,7 +130,7 @@ const BenchmarkingTable = (props) => {
         },
         // File Size
         file_size: {
-            widthMap: { lg: 150, md: 140, sm: 130 },
+            widthMap: { lg: 130, md: 120, sm: 100 },
             render: function (result, parentProps) {
                 const value = result?.file_size;
                 if (!value) return null;
@@ -665,10 +669,19 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
         };
 
         const callbackFxn = useCallback((resp) => {
-            console.log('BenchmarkingDataDownloadOverviewStats resp', resp);
+            const {
+                0: { sum: selectedFileSizeResp = 0 } = {},
+                2: { sum: extraFileSizeResp, count: numExtraFilesResp } = {},
+            } = resp || [];
+            // console.log('BenchmarkingDataDownloadOverviewStats resp', resp);
             setLoading(false);
             setError(false);
-            // TODO: setFileStats with value from resp
+
+            setFileStats({
+                selectedFileSize: selectedFileSizeResp,
+                extraFilesSize: extraFileSizeResp,
+                numExtraFiles: numExtraFilesResp,
+            });
         });
 
         const fallbackFxn = useCallback((resp) => {
@@ -678,7 +691,6 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
         });
 
         const getStatistics = useCallback(() => {
-            // Clear status indicator; set loading
             if (!loading) setLoading(true);
             if (error) setError(false);
 
@@ -738,12 +750,19 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
                         <div className="tsv-metadata-stat">
                             {loading && loadingIndicator}
                             {error && errorIndicatorAndRetry}
-                            {selectedFileSize}
+                            {selectedFileSize !== null &&
+                                valueTransforms.bytesToLargerUnit(
+                                    selectedFileSize
+                                )}
                         </div>
                     </div>
                     <div>
                         <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
                             Extra Files
+                            <i
+                                className="icon icon-info-circle fas ml-03"
+                                data-tip="Extra files associated with selected files (e.g. index file of BAM (*.bai) or CRAM (*.crai)) are included in the download by default. These files are found in the manifest file"
+                            />
                         </div>
                         <div className="tsv-metadata-stat">
                             {loading && loadingIndicator}
@@ -758,7 +777,10 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
                         <div className="tsv-metadata-stat">
                             {loading && loadingIndicator}
                             {error && errorIndicatorAndRetry}
-                            {extraFilesSize}
+                            {numExtraFiles !== null &&
+                                valueTransforms.bytesToLargerUnit(
+                                    extraFilesSize
+                                )}
                         </div>
                     </div>
                 </div>
@@ -771,19 +793,27 @@ const ModalCodeSnippet = React.memo(function ModalCodeSnippet(props) {
     const { filename, session } = props;
     const htmlValue = (
         <pre className="mb-15 curl-command">
-            cut -f 1 <b>{filename}</b> | tail -n +3 | grep -v ^# | xargs -n 1
+            cut -f 1,3 <b>{filename}</b> | tail -n +3 | grep -v ^# | xargs -n 2
             curl -O -L
             {session ? (
-                <code style={{ opacity: 0.5 }}>
-                    {' '}
-                    --user <em>{'<access_key_id>:<access_key_secret>'}</em>
-                </code>
-            ) : null}
+                <>
+                    <code style={{ opacity: 0.5 }}>
+                        {' '}
+                        --user <em>{'<access_key_id>:<access_key_secret>'}</em>
+                    </code>{' '}
+                    $0 --output $1
+                </>
+            ) : (
+                ' $0 --output $1'
+            )}
         </pre>
     );
     const plainValue =
-        `cut -f 1 ${filename} | tail -n +3 | grep -v ^# | xargs -n 1 curl -O -L` +
-        (session ? ' --user <access_key_id>:<access_key_secret>' : '');
+        `cut -f 1,3 ${filename} | tail -n +3 | grep -v ^# | xargs -n 2 curl -O -L` +
+        (session
+            ? ' --user <access_key_id>:<access_key_secret> $0 --output $1'
+            : ' $0 --output $1');
+
     return (
         <object.CopyWrapper
             value={plainValue}
