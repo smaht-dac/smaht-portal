@@ -12,31 +12,23 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#main',
                 title: 'COLO829T',
-                searchHref: '/search/?type=SubmittedFile&dataset=colo829t',
+                searchHref: '/search/?type=File', //&dataset=colo829t',
             },
             {
                 eventKey: '#BL',
                 title: 'COLO829BL',
-                searchHref: '/search/?type=SubmittedFile&dataset=colo829bl',
-            },
-            {
-                eventKey: '#110',
-                title: 'Mix 1:10',
-                searchHref:
-                    '/search/?type=SubmittedFile&dataset=colo829blt_10to1',
+                searchHref: '/search/?type=File&dataset=colo829bl',
             },
             {
                 eventKey: '#150',
-                title: 'Mix 1:50',
-                searchHref:
-                    '/search/?type=SubmittedFile&dataset=colo829blt_50to1',
+                title: 'COLO829BLT50',
+                searchHref: '/search/?type=File&dataset=colo829blt_50to1',
             },
-            {
-                eventKey: '#1200',
-                title: 'Mix 1:200',
-                searchHref:
-                    '/search/?type=SubmittedFile&dataset=colo829blt_200to1',
-            },
+            // {
+            //     eventKey: '#silico',
+            //     title: 'In Silico Mix',
+            //     // searchHref: '/search/?type=SubmittedFile&dataset=colo829blt_200to1',
+            // },
         ],
     },
     HapMap: {
@@ -47,7 +39,7 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#main',
                 title: 'Data',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },
@@ -59,7 +51,7 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#main',
                 title: 'Data',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },
@@ -71,27 +63,27 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#frontal-lobe',
                 title: 'Frontal Lobe',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
             {
                 eventKey: '#cerebellum',
                 title: 'Cerebellum',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
             {
                 eventKey: '#hippocampus',
                 title: 'Hippocampus',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
             {
                 eventKey: '#temporal-lobe',
                 title: 'Temporal Lobe',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
             {
                 eventKey: '#dendate-gyrus',
                 title: 'Dendate Gyrus',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },
@@ -103,12 +95,12 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#sun-exposed',
                 title: 'Sun Exposed',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
             {
                 eventKey: '#non-sun-exposed',
                 title: 'Non Sun Exposed',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },
@@ -120,7 +112,19 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#main',
                 title: 'Data',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
+            },
+        ],
+    },
+    Liver: {
+        navBarTitle: 'Liver',
+        type: 'Primary Tissue Data',
+        path: '/data/benchmarking/liver',
+        tabMapArray: [
+            {
+                eventKey: '#main',
+                title: 'Data',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },
@@ -132,12 +136,12 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#ascending',
                 title: 'Ascending',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
             {
                 eventKey: '#descending',
                 title: 'Descending',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },
@@ -149,7 +153,7 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#main',
                 title: 'Data',
-                searchHref: '/search/?type=ReferenceFile',
+                // searchHref: '/search/?type=ReferenceFile',
             },
         ],
     },

@@ -22,6 +22,7 @@ import {
     LiverData,
     ColonData,
     HeartData,
+    LungData,
 } from '../components/benchmarking';
 
 /**
@@ -43,6 +44,7 @@ const placeholders = {
     LiverData,
     ColonData,
     HeartData,
+    LungData,
 };
 
 export const replaceString = memoize(
