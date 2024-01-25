@@ -420,7 +420,9 @@ export class StaticPageBreadcrumbs extends React.Component {
         }
         return (
             <div
-                className="static-breadcrumb"
+                className={
+                    'static-breadcrumb ' + (!redirect ? 'nonclickable' : '')
+                }
                 data-name={ancestor.name}
                 key={ancestor['@id']}>
                 {index > 0 ? (

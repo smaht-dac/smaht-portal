@@ -395,6 +395,14 @@
 		display: inline-block;
 		vertical-align: middle;
 		font-size: 0.875rem;
+		
+		.icon {
+			color: #9BA5B7;
+		}
+
+		&.nonclickable {
+			color: #5B698B;
+		}
 	}
 }
 
