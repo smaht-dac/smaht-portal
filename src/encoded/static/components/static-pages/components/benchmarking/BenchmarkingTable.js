@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import queryString from 'query-string';
 import _ from 'underscore';
 import { Modal } from 'react-bootstrap';
+import ReactTooltip from 'react-tooltip';
 
 import {
     ajax,
@@ -513,12 +514,34 @@ const SelectedItemsDownloadModal = function (props) {
         action += '&' + modifiedSearch;
     }
 
+    const { accessionArray } = useMemo(
+        function () {
+            // Flatten selected items into an array (currently a set, I believe)
+            const itemAtIds = Array.from(selectedItems.keys());
+
+            const accessionArray = [];
+
+            itemAtIds.forEach((atId) => {
+                const value = selectedItems.get(atId);
+
+                if (value?.accession) {
+                    accessionArray.push(value.accession);
+                } else {
+                    throw new Error('File Item without accession found!');
+                }
+            });
+
+            return { accessionArray };
+        },
+        [selectedItems]
+    );
+
     return (
         <Modal
             show
             className="batch-files-download-modal"
             onHide={onHide}
-            bsSize="large">
+            size="lg">
             <Modal.Header closeButton>
                 <Modal.Title className="pl-2 d-flex align-items-center">
                     <img
@@ -557,25 +580,10 @@ const SelectedItemsDownloadModal = function (props) {
                         </li>
                     </ul>
                 </div>
-                <div className="col-auto mb-4">
-                    <h2 className="text-larger">Data Overview</h2>
-                    <div className="card tsv-metadata-overview flex-row p-4">
-                        <div>
-                            <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
-                                File Count
-                            </div>
-                            <div className="tsv-metadata-stat">
-                                {selectedItems.size}
-                            </div>
-                        </div>
-                        <div className="ml-8">
-                            <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
-                                File Size
-                            </div>
-                            <div className="tsv-metadata-stat">-</div>
-                        </div>
-                    </div>
-                </div>
+                <BenchmarkingDataDownloadOverviewStats
+                    {...{ accessionArray }}
+                    numSelectedFiles={selectedItems.size}
+                />
                 <div className="col-auto mb-4">
                     <h2 className="text-larger">
                         <i className="fas icon-exclamation-triangle text-danger mr-1" />{' '}
@@ -628,7 +636,7 @@ const SelectedItemsDownloadModal = function (props) {
                 </button>
                 <SelectedItemsDownloadStartButton
                     {...{
-                        selectedItems,
+                        accessionArray,
                         suggestedFilename,
                         action,
                     }}
@@ -637,6 +645,127 @@ const SelectedItemsDownloadModal = function (props) {
         </Modal>
     );
 };
+
+const BenchmarkingDataDownloadOverviewStats = React.memo(
+    function BenchmarkingDataDownloadOverviewStats(props) {
+        const { numSelectedFiles, accessionArray } = props;
+
+        const [loading, setLoading] = useState(true);
+        const [error, setError] = useState(false);
+        const [fileStats, setFileStats] = useState({});
+        const {
+            selectedFileSize = null,
+            numExtraFiles = null,
+            extraFilesSize = null,
+        } = fileStats;
+
+        const postData = {
+            accessions: accessionArray,
+            include_extra_files: true,
+        };
+
+        const callbackFxn = useCallback((resp) => {
+            console.log('BenchmarkingDataDownloadOverviewStats resp', resp);
+            setLoading(false);
+            setError(false);
+            // TODO: setFileStats with value from resp
+        });
+
+        const fallbackFxn = useCallback((resp) => {
+            console.log('BenchmarkingDataDownloadOverviewStats error', resp);
+            setLoading(false);
+            setError(true);
+        });
+
+        const getStatistics = useCallback(() => {
+            // Clear status indicator; set loading
+            if (!loading) setLoading(true);
+            if (error) setError(false);
+
+            ajax.load(
+                '/peek_metadata/',
+                callbackFxn,
+                'POST',
+                fallbackFxn,
+                JSON.stringify(postData)
+            );
+        }, [callbackFxn, fallbackFxn, postData]);
+
+        // On mount, get statistics
+        useEffect(() => {
+            getStatistics();
+        }, []);
+
+        // When error is triggered, reload tooltips
+        useEffect(() => {
+            ReactTooltip.rebuild();
+        }, [error]);
+
+        const loadingIndicator = (
+            <i className="icon icon-circle-notch icon-spin fas" />
+        );
+        const errorIndicatorAndRetry = (
+            <>
+                <i
+                    className="icon icon-exclamation-circle icon-xs fas text-danger"
+                    data-tip="Error: something went wrong while fetching statistics"
+                />
+                <button
+                    type="button"
+                    className="btn-xs btn-link btn text-secondary"
+                    onClick={getStatistics}>
+                    Retry?
+                </button>
+            </>
+        );
+
+        return (
+            <div className="col-auto mb-4">
+                <h2 className="text-larger">Data Overview</h2>
+                <div className="card tsv-metadata-overview flex-row p-4">
+                    <div>
+                        <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
+                            Selected File(s)
+                        </div>
+                        <div className="tsv-metadata-stat">
+                            {numSelectedFiles}
+                        </div>
+                    </div>
+                    <div className="ml-8">
+                        <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
+                            Selected File(s) Size
+                        </div>
+                        <div className="tsv-metadata-stat">
+                            {loading && loadingIndicator}
+                            {error && errorIndicatorAndRetry}
+                            {selectedFileSize}
+                        </div>
+                    </div>
+                    <div className="ml-8">
+                        <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
+                            Extra File(s)
+                        </div>
+                        <div className="tsv-metadata-stat">
+                            {loading && loadingIndicator}
+                            {error && errorIndicatorAndRetry}
+                            {numExtraFiles}
+                        </div>
+                    </div>
+                    <div className="ml-8">
+                        <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
+                            Extra File(s) Size
+                        </div>
+                        <div className="tsv-metadata-stat">
+                            {loading && loadingIndicator}
+                            {error && errorIndicatorAndRetry}
+                            {extraFilesSize}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+);
 
 const ModalCodeSnippet = React.memo(function ModalCodeSnippet(props) {
     const { filename, session } = props;
@@ -675,32 +804,7 @@ const ModalCodeSnippet = React.memo(function ModalCodeSnippet(props) {
  */
 const SelectedItemsDownloadStartButton = React.memo(
     function SelectedItemsDownloadStartButton(props) {
-        const { suggestedFilename, selectedItems, action } = props;
-
-        const { accessionArray } = useMemo(
-            function () {
-                // Flatten selected items into an array (currently a set, I believe)
-                console.log('selectedItems', selectedItems);
-
-                const itemAtIds = Array.from(selectedItems.keys());
-                console.log('itemAtIds', itemAtIds);
-
-                const accessionArray = [];
-
-                itemAtIds.forEach((atId) => {
-                    const value = selectedItems.get(atId);
-
-                    if (value?.accession) {
-                        accessionArray.push(value.accession);
-                    } else {
-                        throw new Error('File Item without accession found!');
-                    }
-                });
-
-                return { accessionArray };
-            },
-            [selectedItems]
-        );
+        const { suggestedFilename, accessionArray = [], action } = props;
 
         return (
             <form
@@ -716,6 +820,11 @@ const SelectedItemsDownloadStartButton = React.memo(
                     type="hidden"
                     name="download_file_name"
                     value={JSON.stringify(suggestedFilename)}
+                />
+                <input
+                    type="hidden"
+                    name="include_extra_files"
+                    value={JSON.stringify(true)}
                 />
                 <button
                     type="submit"
