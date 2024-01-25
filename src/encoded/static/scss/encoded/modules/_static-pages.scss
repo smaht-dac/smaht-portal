@@ -1512,11 +1512,58 @@ body[data-pathname^="/data/benchmarking"] {
 	// Hide titles
 	.static-section-entry>.section-title { display: none; }
 
+	// Header and description text
+	.benchmarking-layout{
+		>nav.nav-tabs {
+			a.nav-link {
+				color: #5D5E63;
+				font-family: Inter;
+				font-size: 16px;
+				font-weight: 400; 
+
+				&.active {
+					color: #343741;
+					font-weight: 600; 
+				}
+				&.disabled {
+					color: #9BA5B7;
+				}
+			}
+		}
+
+		>.row>div {
+			>h2 {
+				color: #343741;
+				font-family: Inter;
+				font-size: 24px;
+				font-weight: 600;
+				margin-top: 5px;
+			}
+
+			>p {
+				color: #5D5E63;
+				font-family: Inter;
+				font-size: 14px;
+				line-height: 20px;
+			}
+		}
+	}
+
 	// Side nav
 	.benchmarking-nav {
+
+		>.benchmarking-nav-section {
+			>.benchmarking-nav-section-title {
+				margin-bottom: 10px;
+			}
+		}
+
 		.accordion > ul {
 			list-style-type: none;
 			padding-left: 0;
+			gap: 10px;
+			display: flex;
+			flex-direction: column;
 
 			> li > div.collapse > ul,
 			> li > div.collapsing > ul {
@@ -1527,37 +1574,62 @@ body[data-pathname^="/data/benchmarking"] {
 				}
 			}
 
-			li.navlink-active {
-				border-radius: 4px;
-				border: 1px solid #E2ECF2;
-				background: #EBF3F9; 
+			li.sidenav-link {
+				font-family: Inter;
+				font-size: 14px;
+				font-weight: 400;
+
+				> a {
+					color: #717378;
+				}
+
+				&.top {
+					font-size: 16px;
+				}
+				&.active {
+					font-weight: 500;
+					&.top {
+						font-weight: 700;
+					}
+					&:not(.top) {
+						border-radius: 4px;
+						border: 1px solid #E2ECF2;
+						background: #EBF3F9; 
+					}
+					
+					> a {
+						color: #343741;
+					}
+				}
+			}
+
+			span.navlink-drop {
+				color: #717378;
+				font-size: 16px;
+				font-weight: 400;
+				font-family: Inter;
+				&.active {
+					color: #343741;
+					font-weight: 700;
+				}
 			}
 		}
 	}
 
-	// Benchmarking search table (in future maybe make this the general style for all search tables)
-	.search-headers-row { 
-		background-color: $search-header-background-color;
-		border-bottom: 1px solid $search-header-border-color;
-	
-		> .headers-columns-overflow-container > .columns > .search-headers-column-block {
-	
-			.width-adjuster.react-draggable::after {
-				border-color: darken($color: $search-header-background-color, $amount: 30%)
-			}
-	
-			&[data-first-visible-column] {
-				padding-left: 44px;
-			}
-	
-			.inner > .column-title {
-				text-align: left;
-				color: $search-header-text-color;
-			}
-	
-			.inner > .column-sort-icon {
-				color: $search-header-text-color;
-			}
+	.tbd-notice {
+		color: #343741;
+		font-family: Inter;
+		font-size: 20px;
+		font-weight: 600;
+	}
+
+	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
+		&[data-first-visible-column=true] {
+			padding-left: 15px !important;
+		}
+
+		>.inner>.toggle-detail-button-container {
+			display: none;
 		}
 	}
 
@@ -1565,24 +1637,77 @@ body[data-pathname^="/data/benchmarking"] {
 	.batch-files-download-modal {
 		> .modal-dialog {
 			min-width: 75%;
-		}
 
-		/*** metadata.tsv modal ***/
-		pre.curl-command {
-			border: 1px dashed #dedede;
-			padding: 5px;
-			text-overflow: ellipsis;
-		}
-		.curl-command-wrapper i.icon-copy {
-			margin-left: 5px;
+			>.modal-content {
+				border-radius: 11px;
 
-			&:after {
-				content : "Copy";
-				font-family: $font-family-base;
-				font-weight: 600;
-				padding-left: 6px;
+				>.modal-header>.modal-title {
+					color: #343741;
+					font-size: 24px;
+					font-weight: 600;
+				}
+				>.modal-body {
+					h2 {
+						color: #343741;
+						font-size: 18px;
+						font-weight: 600;
+					}
+			
+					li {
+						font-size: 14px;
+					}
+
+					.tsv-metadata-overview {
+						border-radius: 7px;
+						border: 1px solid #CAE5FE;
+						background: #F1F9FF;
+						box-shadow: none;
+						gap: 30px;
+						
+						@include media-breakpoint-between(md, lg){
+							gap: 50px;
+						}
+
+						@include media-breakpoint-between(lg, xl){
+							gap: 70px;
+						}
+
+						@include media-breakpoint-up(xl){
+							gap: 90px;
+						}
+			
+						.tsv-metadata-stat-title {
+							color: #387FC1;
+						}
+			
+						.tsv-metadata-stat {
+							color: #343741;
+							font-size: 24px;
+							font-weight: 600;
+						}
+					}
+
+					/*** metadata.tsv modal ***/
+					pre.curl-command {
+						border: 1px dashed #dedede;
+						padding: 5px;
+						text-overflow: ellipsis;
+					}
+					.curl-command-wrapper i.icon-copy {
+						margin-left: 5px;
+
+						&:after {
+							content : "Copy";
+							font-family: $font-family-base;
+							font-weight: 600;
+							padding-left: 6px;
+						}
+					}
+				}
+				>.modal-footer {
+					background-color: #F8F8F8;
+				}
 			}
 		}
 	}
-
 }
