@@ -16,13 +16,11 @@ import {
 
 export const BenchmarkingUINav = (props) => {
     const { href = '' } = props;
-    console.log('BenchmarkingUINav, href', href);
 
     const urlParts = memoizedUrlParse(href);
     const { path, hash } = urlParts || {};
 
     const currPath = `${path || ''}${hash || ''}`;
-    console.log('BenchmarkingUINav, currPath', currPath);
 
     const cellLinePages = BenchmarkingDataKeys.filter(
         (key) => BenchmarkingDataMap[key].type === 'Cell Line Data'
