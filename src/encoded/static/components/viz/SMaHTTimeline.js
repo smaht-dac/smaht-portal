@@ -11,7 +11,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
         <div className="container">
             <div id="timeline" className={`${currentTier}`}>
                 <span className="latest-release">
-                    <b>Latest Release: </b>December 14<sup>th</sup>, 2023
+                    <b>Latest Release: </b>February 1<sup>st</sup>, 2024
                 </span>
                 <div
                     className={
