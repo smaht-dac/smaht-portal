@@ -79,7 +79,7 @@
         "identifier": "benchmarking.COLO829",
         "title": "COLO829 Data Table",
         "file": "/docs/public/benchmarking_COLO829.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -98,7 +98,7 @@
         "identifier": "benchmarking.HapMap",
         "title": "HapMap Data Table",
         "file": "/docs/public/benchmarking_HapMap.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -117,7 +117,7 @@
         "identifier": "benchmarking.iPSCFibroblast",
         "title": "iPSC Fibroblast Data Table",
         "file": "/docs/public/benchmarking_iPSCFibroblast.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -136,7 +136,7 @@
         "identifier": "benchmarking.Heart",
         "title": "Heart Data Table",
         "file": "/docs/public/benchmarking_Heart.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -155,7 +155,7 @@
         "identifier": "benchmarking.Colon",
         "title": "Colon Data Table",
         "file": "/docs/public/benchmarking_Colon.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -174,7 +174,7 @@
         "identifier": "benchmarking.Liver",
         "title": "Liver Data Table",
         "file": "/docs/public/benchmarking_Liver.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -193,7 +193,7 @@
         "identifier": "benchmarking.Lung",
         "title": "Lung Data Table",
         "file": "/docs/public/benchmarking_Lung.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -212,7 +212,7 @@
         "identifier": "benchmarking.Skin",
         "title": "Skin Data Table",
         "file": "/docs/public/benchmarking_Skin.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -231,7 +231,7 @@
         "identifier": "benchmarking.Brain",
         "title": "Brain Data Table",
         "file": "/docs/public/benchmarking_Brain.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -263,7 +263,7 @@
         "identifier": "benchmarking.intro",
         "title": "Intro Benchmarking Data Table",
         "file": "/docs/public/benchmarking_intro.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -295,7 +295,7 @@
         "identifier": "benchmarking.placeholder",
         "title": "Benchmarking Placeholder",
         "file": "/docs/public/benchmarking_placeholder.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
