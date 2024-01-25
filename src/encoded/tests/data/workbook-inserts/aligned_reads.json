@@ -21,6 +21,7 @@
         ],
         "reference_genome": "GRCh38",
         "access_status": "Open",
-        "annotated_filename": "SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam"
+        "annotated_filename": "SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam",
+        "file_size": 1000
     }
 ]
