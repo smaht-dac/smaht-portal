@@ -30,24 +30,3 @@ class Software(Item, CoreSoftware):
         self, properties: Dict[str, Any], sheets: Optional[List] = None
     ) -> None:
         return SnovaultItem._update(self, properties, sheets)
-
-    @calculated_property(schema=display_title_schema)
-    def display_title(
-        self,
-        request: Request,
-        code: Optional[str] = None,
-        title: Optional[str] = None,
-        name: Optional[str] = None,
-        submitted_id: Optional[str] = None,
-        accession: Optional[str] = None,
-    ) -> Union[str, None]:
-        if code:
-            return code
-        if title:
-            return title
-        if name:
-            return name
-        if submitted_id:
-            return submitted_id
-        if accession:
-            return accession
