@@ -16,6 +16,7 @@
         "file_sets": [
             "TEST_FILE-SET_LIVER"
         ],
-        "read_pair_number": "R1"
+        "read_pair_number": "R1",
+        "file_size": 10000
     }
 ]
