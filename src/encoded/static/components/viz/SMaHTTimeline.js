@@ -11,7 +11,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
         <div className="container">
             <div id="timeline" className={`${currentTier}`}>
                 <span className="latest-release">
-                    <b>Latest Release: </b>December 14<sup>th</sup>, 2023
+                    <b>Latest Release: </b>February 1<sup>st</sup>, 2024
                 </span>
                 <div
                     className={
@@ -55,18 +55,19 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 values={[
                                     { number: '2', units: ['Cell', 'Lines'] },
                                     {
-                                        number: '-',
+                                        number: '3',
                                         units: ['Assays'],
                                     },
                                     {
-                                        number: '-',
+                                        number: '1',
                                         units: ['Mutations'],
                                     },
                                     {
-                                        number: '-',
+                                        number: '31',
                                         units: ['Files', 'Generated'],
                                     },
                                 ]}
+                                href="/data/benchmarking/COLO829#main"
                             />
                             <TimelineAccordionDrawer
                                 eventKey={2}
@@ -91,6 +92,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                         units: ['Files', 'Generated'],
                                     },
                                 ]}
+                                href="/data/benchmarking/HapMap#main"
                             />
                             <TimelineAccordionDrawer
                                 eventKey={3}
@@ -115,6 +117,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                         units: ['Files', 'Generated'],
                                     },
                                 ]}
+                                href="/data/benchmarking/iPSC-fibroblasts#main"
                             />
                             <TimelineAccordionDrawer
                                 eventKey={4}
@@ -139,6 +142,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                         units: ['Files', 'Generated'],
                                     },
                                 ]}
+                                href="/data/benchmarking/brain"
                             />
                         </TimelineAccordion>
                     </div>
@@ -265,6 +269,7 @@ function ContextAwareToggle({
     currentTier,
     tier,
     setCurrentTier,
+    href,
 }) {
     const currentEventKey = useContext(AccordionContext);
 
@@ -293,7 +298,7 @@ function ContextAwareToggle({
                     {children}
                 </div>
             </button>
-            <a className="card-header-link">
+            <a href={href} className="card-header-link">
                 <svg
                     width="22"
                     height="16"
@@ -323,12 +328,13 @@ function TimelineAccordionDrawer(props) {
         currentTier,
         tier,
         setCurrentTier,
+        href,
     } = props;
     return (
         <Card>
             <Card.Header>
                 <ContextAwareToggle
-                    {...{ eventKey, tier, currentTier, setCurrentTier }}>
+                    {...{ eventKey, tier, currentTier, setCurrentTier, href }}>
                     <span className="text-left">{title}</span>
                 </ContextAwareToggle>
             </Card.Header>
