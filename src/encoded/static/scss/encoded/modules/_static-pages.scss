@@ -1640,6 +1640,19 @@ body[data-pathname^="/data/benchmarking"] {
 						border: 1px solid #CAE5FE;
 						background: #F1F9FF;
 						box-shadow: none;
+						gap: 30px;
+						
+						@include media-breakpoint-between(md, lg){
+							gap: 50px;
+						}
+
+						@include media-breakpoint-between(lg, xl){
+							gap: 70px;
+						}
+
+						@include media-breakpoint-up(xl){
+							gap: 90px;
+						}
 			
 						.tsv-metadata-stat-title {
 							color: #387FC1;

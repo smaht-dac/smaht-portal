@@ -722,18 +722,18 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
         return (
             <div className="col-auto mb-4">
                 <h2 className="text-larger">Data Overview</h2>
-                <div className="card tsv-metadata-overview flex-row p-4">
+                <div className="card tsv-metadata-overview flex-row flex-wrap p-4">
                     <div>
                         <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
-                            Selected File(s)
+                            Selected Files
                         </div>
                         <div className="tsv-metadata-stat">
                             {numSelectedFiles}
                         </div>
                     </div>
-                    <div className="ml-8">
+                    <div>
                         <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
-                            Selected File(s) Size
+                            Selected Files Size
                         </div>
                         <div className="tsv-metadata-stat">
                             {loading && loadingIndicator}
@@ -741,9 +741,9 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
                             {selectedFileSize}
                         </div>
                     </div>
-                    <div className="ml-8">
+                    <div>
                         <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
-                            Extra File(s)
+                            Extra Files
                         </div>
                         <div className="tsv-metadata-stat">
                             {loading && loadingIndicator}
@@ -751,9 +751,9 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
                             {numExtraFiles}
                         </div>
                     </div>
-                    <div className="ml-8">
+                    <div>
                         <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
-                            Extra File(s) Size
+                            Extra Files Size
                         </div>
                         <div className="tsv-metadata-stat">
                             {loading && loadingIndicator}
