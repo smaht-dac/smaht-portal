@@ -55,15 +55,15 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 values={[
                                     { number: '2', units: ['Cell', 'Lines'] },
                                     {
-                                        number: '-',
+                                        number: '3',
                                         units: ['Assays'],
                                     },
                                     {
-                                        number: '-',
+                                        number: '1',
                                         units: ['Mutations'],
                                     },
                                     {
-                                        number: '-',
+                                        number: '31',
                                         units: ['Files', 'Generated'],
                                     },
                                 ]}
