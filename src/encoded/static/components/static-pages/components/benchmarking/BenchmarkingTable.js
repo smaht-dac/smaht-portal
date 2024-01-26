@@ -326,37 +326,37 @@ class SelectAllFilesButton extends React.PureComponent {
                     onSelectItem(filesToSelect, true);
                     this.setState({ selecting: false });
 
-                    // //analytics: TODO: maybe adjust and re-add in future
-                    // const extData = {
-                    //     item_list_name: analytics.hrefToListName(
-                    //         window && window.location.href
-                    //     ),
-                    // };
-                    // const products = analytics.transformItemsToProducts(
-                    //     allExtendedFiles,
-                    //     extData
-                    // );
-                    // const productsLength = Array.isArray(products)
-                    //     ? products.length
-                    //     : allExtendedFiles.length;
-                    // analytics.event(
-                    //     'add_to_cart',
-                    //     'SelectAllFilesButton',
-                    //     'Select All',
-                    //     function () {
-                    //         console.info(
-                    //             `Adding ${productsLength} items from cart.`
-                    //         );
-                    //     },
-                    //     {
-                    //         items: Array.isArray(products) ? products : null,
-                    //         list_name: extData.item_list_name,
-                    //         value: productsLength,
-                    //         filters: analytics.getStringifiedCurrentFilters(
-                    //             (context && context.filters) || null
-                    //         ),
-                    //     }
-                    // );
+                    //analytics
+                    const extData = {
+                        item_list_name: analytics.hrefToListName(
+                            window && window.location.href
+                        ),
+                    };
+                    const products = analytics.transformItemsToProducts(
+                        filesToSelect,
+                        extData
+                    );
+                    const productsLength = Array.isArray(products)
+                        ? products.length
+                        : filesToSelect.length;
+                    analytics.event(
+                        'add_to_cart',
+                        'SelectAllFilesButton',
+                        'Select All',
+                        function () {
+                            console.info(
+                                `Adding ${productsLength} items from cart.`
+                            );
+                        },
+                        {
+                            items: Array.isArray(products) ? products : null,
+                            list_name: extData.item_list_name,
+                            value: productsLength,
+                            // filters: analytics.getStringifiedCurrentFilters(
+                            //     (context && context.filters) || null
+                            // ),
+                        }
+                    );
                 });
             } else {
                 onResetSelectedItems();
