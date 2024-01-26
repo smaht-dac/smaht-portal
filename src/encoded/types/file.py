@@ -114,14 +114,11 @@ class File(Item, CoreFile):
         self,
         request: Request,
         annotated_filename: Optional[str] = None,
-        filename: Optional[str] = None,
         accession: Optional[str] = None,
         file_format: Optional[str] = None,
     ) -> str:
         if annotated_filename:
             return annotated_filename
-        if filename:
-            return filename
         return CoreFile.display_title(self, request, file_format, accession=accession)
 
     @calculated_property(schema=HREF_SCHEMA)
