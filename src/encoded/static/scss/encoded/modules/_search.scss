@@ -183,10 +183,12 @@ $facetlist-excluding: #450000;
 				li {
 					& > a {
 						& > .facet-item {
-							font-size: 12px;
+							color: #727272;
+							font-size: 13px;
 						}
 						& > .facet-count {
-							font-size: 12px;
+							color: #727272;
+							font-size: 13px;
 						}
 					}
 					&.selected {
