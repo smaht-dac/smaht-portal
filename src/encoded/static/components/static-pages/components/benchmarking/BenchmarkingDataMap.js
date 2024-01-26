@@ -1,6 +1,10 @@
 /**
  * Not sure it's worth converting this to json and running JSON.parse on every page...
  * Also nice to be able to include comments, use consts, etc.
+ *
+ * NOTE: Because there is a custom top nav component (BigDropdownPageTreeMenu) being used
+ * to render these items in two lists, you will need to also update that there whenever
+ * adding or deleting a key to/from this object.
  */
 
 export const BenchmarkingDataMap = {
@@ -55,67 +59,67 @@ export const BenchmarkingDataMap = {
             },
         ],
     },
-    Brain: {
-        navBarTitle: 'Brain',
-        type: 'Primary Tissue Data',
-        path: '/data/benchmarking/brain',
-        tabMapArray: [
-            {
-                eventKey: '#frontal-lobe',
-                title: 'Frontal Lobe',
-                // searchHref: '/search/?type=ReferenceFile',
-            },
-            {
-                eventKey: '#cerebellum',
-                title: 'Cerebellum',
-                // searchHref: '/search/?type=ReferenceFile',
-            },
-            {
-                eventKey: '#hippocampus',
-                title: 'Hippocampus',
-                // searchHref: '/search/?type=ReferenceFile',
-            },
-            {
-                eventKey: '#temporal-lobe',
-                title: 'Temporal Lobe',
-                // searchHref: '/search/?type=ReferenceFile',
-            },
-            {
-                eventKey: '#dendate-gyrus',
-                title: 'Dendate Gyrus',
-                // searchHref: '/search/?type=ReferenceFile',
-            },
-        ],
-    },
-    Skin: {
-        navBarTitle: 'Skin',
-        type: 'Primary Tissue Data',
-        path: '/data/benchmarking/skin',
-        tabMapArray: [
-            {
-                eventKey: '#sun-exposed',
-                title: 'Sun Exposed',
-                // searchHref: '/search/?type=ReferenceFile',
-            },
-            {
-                eventKey: '#non-sun-exposed',
-                title: 'Non Sun Exposed',
-                // searchHref: '/search/?type=ReferenceFile',
-            },
-        ],
-    },
-    // Lung: {
-    //     navBarTitle: 'Lung',
+    // Brain: {
+    //     navBarTitle: 'Brain',
     //     type: 'Primary Tissue Data',
-    //     path: '/data/benchmarking/lung',
+    //     path: '/data/benchmarking/brain',
     //     tabMapArray: [
     //         {
-    //             eventKey: '#main',
-    //             title: 'Data',
+    //             eventKey: '#frontal-lobe',
+    //             title: 'Frontal Lobe',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //         {
+    //             eventKey: '#cerebellum',
+    //             title: 'Cerebellum',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //         {
+    //             eventKey: '#hippocampus',
+    //             title: 'Hippocampus',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //         {
+    //             eventKey: '#temporal-lobe',
+    //             title: 'Temporal Lobe',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //         {
+    //             eventKey: '#dendate-gyrus',
+    //             title: 'Dendate Gyrus',
     //             // searchHref: '/search/?type=ReferenceFile',
     //         },
     //     ],
     // },
+    // Skin: {
+    //     navBarTitle: 'Skin',
+    //     type: 'Primary Tissue Data',
+    //     path: '/data/benchmarking/skin',
+    //     tabMapArray: [
+    //         {
+    //             eventKey: '#sun-exposed',
+    //             title: 'Sun Exposed',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //         {
+    //             eventKey: '#non-sun-exposed',
+    //             title: 'Non Sun Exposed',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //     ],
+    // },
+    Lung: {
+        navBarTitle: 'Lung',
+        type: 'Primary Tissue Data',
+        path: '/data/benchmarking/lung',
+        tabMapArray: [
+            {
+                eventKey: '#main',
+                title: 'Data',
+                // searchHref: '/search/?type=ReferenceFile',
+            },
+        ],
+    },
     Liver: {
         navBarTitle: 'Liver',
         type: 'Primary Tissue Data',
@@ -145,18 +149,18 @@ export const BenchmarkingDataMap = {
             },
         ],
     },
-    Heart: {
-        navBarTitle: 'Heart',
-        type: 'Primary Tissue Data',
-        path: '/data/benchmarking/heart',
-        tabMapArray: [
-            {
-                eventKey: '#main',
-                title: 'Data',
-                // searchHref: '/search/?type=ReferenceFile',
-            },
-        ],
-    },
+    // Heart: {
+    //     navBarTitle: 'Heart',
+    //     type: 'Primary Tissue Data',
+    //     path: '/data/benchmarking/heart',
+    //     tabMapArray: [
+    //         {
+    //             eventKey: '#main',
+    //             title: 'Data',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //     ],
+    // },
 };
 
 export const BenchmarkingDataKeys = Object.keys(BenchmarkingDataMap);
