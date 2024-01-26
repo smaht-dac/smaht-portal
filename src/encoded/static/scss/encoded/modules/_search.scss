@@ -483,7 +483,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 		background-color: $search-row-banding-alt-background-color;
 	}
 
-	border-bottom: 1px solid #00000015;
+	border-bottom: 1px solid rgba(0,0,0,.05);
 	box-shadow: 0 1px 5px -2px #0002;
 	// margin-bottom: 9px;
 
