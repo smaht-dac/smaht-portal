@@ -178,7 +178,7 @@
         "access_status": {
             "title": "Access"
         },
-        "annotated_filename": {
+        "display_title": {
             "title": "File"
         },
         "data_type": {
