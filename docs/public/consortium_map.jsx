@@ -13,7 +13,7 @@
 
     <p>The location and more information about the SMaHT Network members are below.</p>
 
-    <p>For more information about the Network, please visit the <a href="https://www.smaht.org">SMaHT Organization Center website.</a></p>
+    <p>For more information about the Network, please visit the <a href="https://www.smaht.org" target="_blank">SMaHT Organization Center website.</a></p>
 
     <ConsortiumMap />
 </>
