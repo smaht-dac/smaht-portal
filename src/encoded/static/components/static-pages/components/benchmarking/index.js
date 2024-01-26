@@ -80,6 +80,7 @@ export const IPSCFibroblastData = ({
     );
 };
 
+// TODO: Not in use currently
 export const BrainData = ({ schemas, session, facets, href, context }) => {
     const brainTabMapArray = BenchmarkingDataMap.Brain.tabMapArray;
 
@@ -97,6 +98,7 @@ export const BrainData = ({ schemas, session, facets, href, context }) => {
     );
 };
 
+// TODO: Not in use currently
 export const SkinData = ({ schemas, session, facets, href, context }) => {
     const skinTabMapArray = BenchmarkingDataMap.Skin.tabMapArray;
 
@@ -131,7 +133,6 @@ export const LiverData = ({ schemas, session, facets, href, context }) => {
     );
 };
 
-// TODO: Not in use currently
 export const LungData = ({ schemas, session, facets, href, context }) => {
     const lungTabMapArray = BenchmarkingDataMap.Lung.tabMapArray;
 
@@ -166,6 +167,7 @@ export const ColonData = ({ schemas, session, facets, href, context }) => {
     );
 };
 
+// TODO: Not in use currently
 export const HeartData = ({ schemas, session, facets, href, context }) => {
     const heartTabMapArray = BenchmarkingDataMap.Heart.tabMapArray;
 
