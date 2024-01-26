@@ -19,6 +19,7 @@
         "reference_genome": "GRCh38",
         "variant_type": [
             "Single Nucleotide Variant"
-        ]
+        ],
+        "file_size": 100000
     }
 ]
