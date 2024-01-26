@@ -16,6 +16,7 @@
         "file_sets": [
             "TEST_FILE-SET_LIVER"
         ],
-        "reference_genome": "GRCh38"
+        "reference_genome": "GRCh38",
+        "file_size": 1000
     }
 ]

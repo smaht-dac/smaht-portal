@@ -15,7 +15,8 @@
         "identifier": "BAM",
         "standard_file_extension": "bam",
 		"extra_file_formats": [
-			"BAI"
+			"BAI",
+            "VCF"
 		]
     },
     {
