@@ -734,11 +734,22 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
         };
 
         const callbackFxn = useCallback((resp) => {
-            const {
-                0: { sum: selectedFileSizeResp = 0 } = {},
-                2: { sum: extraFileSizeResp, count: numExtraFilesResp } = {},
-            } = resp || [];
             // console.log('BenchmarkingDataDownloadOverviewStats resp', resp);
+            const facets = resp || [];
+
+            // Figure out which ones are the facets we need
+            let selectedFileSizeResp;
+            let extraFileSizeResp;
+            let numExtraFilesResp;
+            facets.forEach((facet, i) => {
+                if (facet.field === 'extra_files.file_size') {
+                    extraFileSizeResp = facet.sum;
+                    numExtraFilesResp = facet.count;
+                } else if (facet.field === 'file_size') {
+                    selectedFileSizeResp = facet.sum;
+                }
+            });
+
             setLoading(false);
             setError(false);
 
