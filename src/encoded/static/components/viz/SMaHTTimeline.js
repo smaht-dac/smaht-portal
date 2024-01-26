@@ -142,7 +142,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                         units: ['Files', 'Generated'],
                                     },
                                 ]}
-                                href="/data/benchmarking/brain"
+                                href="/data/benchmarking/lung"
                             />
                         </TimelineAccordion>
                     </div>
