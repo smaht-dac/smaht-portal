@@ -80,22 +80,13 @@ export const HashBasedTabController = ({
         [path]
     );
 
-    // On first mount, if hash is blank, redirect to main
-    useEffect(() => {
-        // Double checking schemas are loaded, just incase
-        if (schemas && !hash) {
-            navigate(path + '#main', {
-                skipRequest: true,
-                skipUpdateHref: false,
-            });
-        }
-    }, [schemas]);
+    // TODO: In future, handle case for hashes that are incorrect/not assigned to a tab
 
     return (
         <Tabs
             {...{ defaultActiveKey }}
             id={controllerId}
-            activeKey={hash}
+            activeKey={hash || defaultActiveKey}
             onSelect={selectNewTab}>
             {tabMapArray.map((tabMap) => {
                 const { eventKey, title, searchHref } = tabMap;
