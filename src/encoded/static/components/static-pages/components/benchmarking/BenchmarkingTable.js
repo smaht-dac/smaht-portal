@@ -109,6 +109,24 @@ const BenchmarkingTable = (props) => {
         // File
         annotated_filename: {
             widthMap: { lg: 500, md: 400, sm: 300 },
+            render: function (result, parentProps) {
+                const {
+                    '@id': atId,
+                    display_title,
+                    annotated_filename,
+                } = result || {};
+
+                return (
+                    <span className="value text-left">
+                        <a
+                            href={atId}
+                            target="_blank"
+                            rel="noreferrer noopener">
+                            {annotated_filename || display_title}
+                        </a>
+                    </span>
+                );
+            },
         },
         // Format
         'file_format.display_title': {
