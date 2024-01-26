@@ -24,7 +24,7 @@ export const BenchmarkingUI = (props) => {
 };
 
 export const COLO829Data = ({ schemas, session, facets, href, context }) => {
-    const colo829TabMapArray = BenchmarkingDataMap.COLO829.tabMapArray;
+    const colo829TabMapArray = BenchmarkingDataMap.COLO829?.tabMapArray;
 
     return (
         <BenchmarkingLayout
@@ -41,7 +41,7 @@ export const COLO829Data = ({ schemas, session, facets, href, context }) => {
 };
 
 export const HapMapData = ({ schemas, session, facets, href, context }) => {
-    const hapMapTabMapArray = BenchmarkingDataMap.HapMap.tabMapArray;
+    const hapMapTabMapArray = BenchmarkingDataMap.HapMap?.tabMapArray;
 
     return (
         <BenchmarkingLayout
@@ -64,7 +64,7 @@ export const IPSCFibroblastData = ({
     href,
     context,
 }) => {
-    const iPSCTabMapArray = BenchmarkingDataMap.iPScFibroblasts.tabMapArray;
+    const iPSCTabMapArray = BenchmarkingDataMap.iPScFibroblasts?.tabMapArray;
 
     return (
         <BenchmarkingLayout
@@ -82,7 +82,7 @@ export const IPSCFibroblastData = ({
 
 // TODO: Not in use currently
 export const BrainData = ({ schemas, session, facets, href, context }) => {
-    const brainTabMapArray = BenchmarkingDataMap.Brain.tabMapArray;
+    const brainTabMapArray = BenchmarkingDataMap.Brain?.tabMapArray;
 
     return (
         <BenchmarkingLayout
@@ -100,7 +100,7 @@ export const BrainData = ({ schemas, session, facets, href, context }) => {
 
 // TODO: Not in use currently
 export const SkinData = ({ schemas, session, facets, href, context }) => {
-    const skinTabMapArray = BenchmarkingDataMap.Skin.tabMapArray;
+    const skinTabMapArray = BenchmarkingDataMap.Skin?.tabMapArray;
 
     return (
         <BenchmarkingLayout
@@ -117,7 +117,7 @@ export const SkinData = ({ schemas, session, facets, href, context }) => {
 };
 
 export const LiverData = ({ schemas, session, facets, href, context }) => {
-    const liverTabMapArray = BenchmarkingDataMap.Liver.tabMapArray;
+    const liverTabMapArray = BenchmarkingDataMap.Liver?.tabMapArray;
 
     return (
         <BenchmarkingLayout
@@ -134,7 +134,7 @@ export const LiverData = ({ schemas, session, facets, href, context }) => {
 };
 
 export const LungData = ({ schemas, session, facets, href, context }) => {
-    const lungTabMapArray = BenchmarkingDataMap.Lung.tabMapArray;
+    const lungTabMapArray = BenchmarkingDataMap.Lung?.tabMapArray;
 
     return (
         <BenchmarkingLayout
@@ -151,7 +151,7 @@ export const LungData = ({ schemas, session, facets, href, context }) => {
 };
 
 export const ColonData = ({ schemas, session, facets, href, context }) => {
-    const HapMapTabMapArray = BenchmarkingDataMap.Colon.tabMapArray;
+    const HapMapTabMapArray = BenchmarkingDataMap.Colon?.tabMapArray;
 
     return (
         <BenchmarkingLayout
@@ -169,7 +169,7 @@ export const ColonData = ({ schemas, session, facets, href, context }) => {
 
 // TODO: Not in use currently
 export const HeartData = ({ schemas, session, facets, href, context }) => {
-    const heartTabMapArray = BenchmarkingDataMap.Heart.tabMapArray;
+    const heartTabMapArray = BenchmarkingDataMap.Heart?.tabMapArray;
 
     return (
         <BenchmarkingLayout

@@ -53,7 +53,7 @@ export const HashBasedTabController = ({
     controllerId,
     defaultActiveKeyProp = null,
 }) => {
-    if (!tabMapArray.length) {
+    if (!tabMapArray || !tabMapArray.length) {
         return <div>Coming Soon</div>;
     }
 
