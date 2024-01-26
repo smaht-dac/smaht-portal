@@ -18,6 +18,7 @@ from encoded_core.file_views import (
 )
 from snovault import (
     calculated_property,
+    display_title_schema,
     load_schema,
     abstract_collection,
 )
@@ -107,6 +108,21 @@ class File(Item, CoreFile):
     def get_bucket(cls, registry):
         """ Files by default live in the upload bucket, unless they are output files """
         return registry.settings['file_upload_bucket']
+
+    @calculated_property(schema=display_title_schema)
+    def display_title(
+        self,
+        request: Request,
+        annotated_filename: Optional[str] = None,
+        filename: Optional[str] = None,
+        accession: Optional[str] = None,
+        file_format: Optional[str] = None,
+    ) -> str:
+        if annotated_filename:
+            return annotated_filename
+        if filename:
+            return filename
+        return CoreFile.display_title(self, request, file_format, accession=accession)
 
     @calculated_property(schema=HREF_SCHEMA)
     def href(
