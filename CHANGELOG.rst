@@ -71,7 +71,6 @@ Change Log
 * Added record (uw_gcc) to master-inserts/submission_center.json for testing.
 * Added test_structured_data.py back in after resolved GitHub Actions (only) failure.
 
->>>>>>> 103881ce7d00c6e2281710597876ba43e1ef511e
 
 0.11.6
 ======

@@ -271,11 +271,11 @@ function CustomStaticLinks({ pathName, href }) {
                         <div className="level-2 col-12 col-md-6 mt-md-0 mt-1">
                             <div className="level-2-title-container my-1">
                                 <div className="level-2-title text-medium text-600">
-                                    Primary Tissues
+                                    Benchmarking Tissues
                                 </div>
                             </div>
                             <div className="level-3">
-                                <a
+                                {/* <a
                                     className="level-3-title text-small d-block"
                                     href="/data/benchmarking/brain"
                                     id="menutree-linkto-brain_page">
@@ -286,13 +286,13 @@ function CustomStaticLinks({ pathName, href }) {
                                     href="/data/benchmarking/skin"
                                     id="menutree-linkto-skin_page">
                                     <span>Skin</span>
-                                </a>
-                                {/* <a
+                                </a> */}
+                                <a
                                     className="level-3-title text-small d-block"
                                     href="/data/benchmarking/lung"
                                     id="menutree-linkto-lung_page">
                                     <span>Lung</span>
-                                </a> */}
+                                </a>
                                 <a
                                     className="level-3-title text-small d-block"
                                     href="/data/benchmarking/liver"
@@ -305,12 +305,12 @@ function CustomStaticLinks({ pathName, href }) {
                                     id="menutree-linkto-colon_page">
                                     <span>Colon</span>
                                 </a>
-                                <a
+                                {/* <a
                                     className="level-3-title text-small d-block"
                                     href="/data/benchmarking/heart"
                                     id="menutree-linkto-heart_page">
                                     <span>Heart</span>
-                                </a>
+                                </a> */}
                             </div>
                         </div>
                     </div>

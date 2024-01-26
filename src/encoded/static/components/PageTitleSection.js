@@ -403,21 +403,26 @@ export class StaticPageBreadcrumbs extends React.Component {
      * Renders each individual crumb.
      *
      * @private
-     * @param {Item} ancestor   JSON representing an ancestor. Should have at least an @id and a display_title.
-     * @param {number} index    Current ancestor index.
-     * @param {Item[]} all      List of all ancestors being iterated.
+     * @param {Item} ancestor        JSON representing an ancestor. Should have at least an @id and a display_title.
+     * @param {number} index         Current ancestor index.
+     * @param {Item[]} all           List of all ancestors being iterated.
+     * @param {boolean} redirect     Determines if crumb should redirect the user upon click.
      * @returns {JSX.Element} A div element representing a breadcrumb.
      */
-    renderCrumb(ancestor, index, all) {
+    renderCrumb(ancestor, index, all, redirect = true) {
         var inner;
         if (ancestor['@id'] === this.props.context['@id']) {
             inner = null; //ancestor.display_title;
+        } else if (!redirect) {
+            inner = <span>{ancestor.display_title}</span>;
         } else {
             inner = <a href={ancestor['@id']}>{ancestor.display_title}</a>;
         }
         return (
             <div
-                className="static-breadcrumb"
+                className={
+                    'static-breadcrumb ' + (!redirect ? 'nonclickable' : '')
+                }
                 data-name={ancestor.name}
                 key={ancestor['@id']}>
                 {index > 0 ? (
@@ -503,9 +508,23 @@ export class StaticPageBreadcrumbs extends React.Component {
 
     /** @private */
     render() {
-        var { context, className } = this.props,
-            ancestors = StaticPageBreadcrumbs.getAncestors(context),
+        var { context, className } = this.props;
+        var ancestors = StaticPageBreadcrumbs.getAncestors(context);
+        var crumbs;
+
+        // Disable breadcrumb links in the benchmarking pages for V1
+        const isBenchmarkingPage = context.identifier
+            .split('/')
+            .includes('benchmarking');
+
+        // Do not redirect for benchmarking pages
+        if (isBenchmarkingPage && ancestors) {
+            crumbs = ancestors.map((ancestor, i) =>
+                this.renderCrumb(ancestor, i, this, !isBenchmarkingPage)
+            );
+        } else {
             crumbs = ancestors && _.map(ancestors, this.renderCrumb);
+        }
 
         return (
             <div
