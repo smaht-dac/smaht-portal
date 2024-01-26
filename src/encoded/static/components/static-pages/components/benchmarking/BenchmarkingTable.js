@@ -433,7 +433,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
 
     static defaultProps = {
         id: null,
-        filenamePrefix: 'smaht_metadata_',
+        filenamePrefix: 'smaht_manifest_',
         children: 'Download',
         className: 'btn-primary',
         analyticsAddItemsToCart: false,
