@@ -201,9 +201,6 @@
         },
         "file_size": {
             "title": "File Size"
-        },
-        "date_created": {
-            "title": "Date Submitted"
         }
     }
 }
