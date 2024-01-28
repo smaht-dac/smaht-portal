@@ -244,7 +244,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             }]
         },
         "expected_errors": [
-            {"src": {"type": "Donor", "row": 1}, "error": "Additional properties are not allowed ('something' was unexpected)"}
+            {"src": {"type": "Donor", "row": 1}, "error": "Validation error at '$': Additional properties are not allowed ('something' was unexpected)"}
         ]
     },
     # ----------------------------------------------------------------------------------------------
@@ -979,8 +979,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 }
              ]
         },
-        "expected_errors": [{'src': {'type': 'SomeTypeFour', 'row': 1}, 'error': "{'foo': 123} is not of type 'string'"},
-                            {'src': {'type': 'SomeTypeFour', 'row': 2}, 'error': "{'charlie': {'delta': 'hellocharlie'}} is not of type 'string'"}]
+        "expected_errors": [{'src': {'type': 'SomeTypeFour', 'row': 1}, 'error': "Validation error at '$.alfa.bravo': {'foo': 123} is not of type 'string'"},
+                            {'src': {'type': 'SomeTypeFour', 'row': 2}, 'error': "Validation error at '$.alfa.bravo': {'charlie': {'delta': 'hellocharlie'}} is not of type 'string'"}]
     },
     # ----------------------------------------------------------------------------------------------
     {
