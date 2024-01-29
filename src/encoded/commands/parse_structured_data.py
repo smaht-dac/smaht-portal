@@ -9,7 +9,7 @@ from encoded.commands.captured_output import captured_output
 with captured_output():
     from encoded.ingestion.loadxl_extensions import load_data_into_database, summary_of_load_data_results
 from encoded.ingestion.ingestion_processors import parse_structured_data
-from dcicutils.structured_data import Portal, Schema
+from dcicutils.structured_data import Portal, Schema, StructuredDataSet
 from dcicutils.portal_object_utils import PortalObject
 
 
@@ -132,6 +132,10 @@ def main() -> None:
         else:
             dump_schemas(list(structured_data.keys()), portal)
 
+
+    if args.diffs:
+        print_structured_data_status(portal, structured_data_set)
+
     if args.load:
         if args.verbose:
             PRINT("> Loading data into local portal database", end="")
@@ -241,6 +245,30 @@ def analyze_object(portal: Portal, portal_object: dict, portal_object_type: str)
             print(f"     Does not exist")
 
 
+def print_structured_data_status(portal: Portal, structured_data: StructuredDataSet) -> None:
+    PRINT("\n> Object Create/Update Situation:")
+    diffs = structured_data.compare()
+    for object_type in diffs:
+        PRINT(f"  TYPE: {object_type}")
+        for object_info in diffs[object_type]:
+            PRINT(f"  - OBJECT: {object_info.path}")
+            if not object_info.uuid:
+                PRINT(f"     Does not exist -> Will be CREATED")
+            else:
+                PRINT(f"     Already exists -> {object_info.uuid} -> Will be UPDATED", end="")
+                if not object_info.diffs:
+                    PRINT(" (but NO substantive diffs)")
+                else:
+                    PRINT(" (substantive DIFFs below)")
+                    for diff_path in object_info.diffs:
+                        if (diff := object_info.diffs[diff_path]).creating_value:
+                            PRINT(f"      CREATE {diff_path}: {diff.value}")
+                        elif diff.updating_value:
+                            PRINT(f"      UPDATE {diff_path}: {diff.updating_value} -> {diff.value}")
+                        elif (diff := object_info.diffs[diff_path]).deleting_value:
+                            PRINT(f"      DELETE {diff_path}: {diff.value}")
+
+
 def parse_args() -> argparse.Namespace:
 
     class argparse_optional(argparse.Action):
@@ -272,6 +300,8 @@ def parse_args() -> argparse.Namespace:
                         default=False, help=f"Only perform updates (PATCH) when loading data.")
     parser.add_argument("--validate-only", required=False, action="store_true",
                         default=False, help=f"Only perform validation when loading data.")
+    parser.add_argument("--diffs", required=False, action="store_true",
+                        default=False, help=f"Output object create/update/diff status.")
     parser.add_argument("--status", required=False, action="store_true",
                         default=False, help=f"TODO")
 
