@@ -59,7 +59,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                         units: ['Assays'],
                                     },
                                     {
-                                        number: '1',
+                                        number: '-',
                                         units: ['Mutations'],
                                     },
                                     {
