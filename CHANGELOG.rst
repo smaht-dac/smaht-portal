@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.16.1
+======
+
+* Repair small bug in extra file line generation, implement/test field fallbacks
+
+
 0.16.0
 ======
 
