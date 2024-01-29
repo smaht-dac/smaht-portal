@@ -412,6 +412,7 @@ export class StaticPageBreadcrumbs extends React.Component {
     renderCrumb(ancestor, index, all, redirect = true) {
         var inner;
 
+        // Hard-coded link groups to disable
         const breadcrumbsToDisable = ['docs', 'data', 'about'];
         const shouldDisable = ancestor.identifier
             .split('/')
