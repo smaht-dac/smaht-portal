@@ -46,7 +46,7 @@
     },
     {
         "identifier": "about/join",
-        "title": "How to Join SMaHt",
+        "title": "How to Join SMaHT",
         "status": "public",
         "children": [
             "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd"
@@ -112,7 +112,7 @@
     },
     {
         "identifier": "about/join/policy",
-        "title": "Associate Membership policy",
+        "title": "Associate Membership Policy",
         "status": "public",
         "content": [
             "dd5198bb-72ba-4c5b-9736-3ba785814a20"
