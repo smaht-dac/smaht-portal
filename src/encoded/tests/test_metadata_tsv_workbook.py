@@ -103,7 +103,6 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_type_length(es_testapp, 'ReferenceFile', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'OutputFile', 2)
-        import pdb; pdb.set_trace()
 
     def test_peak_metadata_workbook(self, workbook, es_testapp):
         """ Tests we can peak at metadata for files and get facet information (just file size for now) """
