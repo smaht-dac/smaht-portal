@@ -411,9 +411,15 @@ export class StaticPageBreadcrumbs extends React.Component {
      */
     renderCrumb(ancestor, index, all, redirect = true) {
         var inner;
+
+        const breadcrumbsToDisable = ['docs', 'data', 'about'];
+        const shouldDisable = ancestor.identifier
+            .split('/')
+            .some((ancestor) => breadcrumbsToDisable.includes(ancestor));
+
         if (ancestor['@id'] === this.props.context['@id']) {
             inner = null; //ancestor.display_title;
-        } else if (!redirect) {
+        } else if (shouldDisable) {
             inner = <span>{ancestor.display_title}</span>;
         } else {
             inner = <a href={ancestor['@id']}>{ancestor.display_title}</a>;
@@ -421,7 +427,7 @@ export class StaticPageBreadcrumbs extends React.Component {
         return (
             <div
                 className={
-                    'static-breadcrumb ' + (!redirect ? 'nonclickable' : '')
+                    'static-breadcrumb ' + (shouldDisable ? 'nonclickable' : '')
                 }
                 data-name={ancestor.name}
                 key={ancestor['@id']}>
@@ -512,20 +518,7 @@ export class StaticPageBreadcrumbs extends React.Component {
         var ancestors = StaticPageBreadcrumbs.getAncestors(context);
         var crumbs;
 
-        // Disable breadcrumb links in the benchmarking pages for V1
-        const isBenchmarkingPage = context.identifier
-            .split('/')
-            .includes('benchmarking');
-
-        // Do not redirect for benchmarking pages
-        if (isBenchmarkingPage && ancestors) {
-            crumbs = ancestors.map((ancestor, i) =>
-                this.renderCrumb(ancestor, i, this, !isBenchmarkingPage)
-            );
-        } else {
-            crumbs = ancestors && _.map(ancestors, this.renderCrumb);
-        }
-
+        crumbs = ancestors && _.map(ancestors, this.renderCrumb);
         return (
             <div
                 className={
