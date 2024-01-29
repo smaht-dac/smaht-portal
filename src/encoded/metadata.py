@@ -78,7 +78,7 @@ TSV_MAPPING = {
         'File Accession': TSVDescriptor(field_type=FILE,
                                         field_name=['accession']),
         'File Name': TSVDescriptor(field_type=FILE,
-                                   field_name=['annotated_filename', 'accession']),
+                                   field_name=['annotated_filename', 'display_title']),
         'Size (MB)': TSVDescriptor(field_type=FILE,
                                    field_name=['file_size']),
         'md5sum': TSVDescriptor(field_type=FILE,
@@ -108,7 +108,7 @@ def descend_field(request, prop, field_names):
         fields = possible_field.split('.')
         for field in fields:
             current_prop = current_prop.get(field)
-        if isinstance(current_prop, dict) or isinstance(current_prop, list) or not current_prop:
+        if current_prop is None or isinstance(current_prop, dict) or isinstance(current_prop, list):
             continue
         elif possible_field == 'href':
             return f'{request.scheme}://{request.host}{current_prop}'
