@@ -81,7 +81,8 @@ def main() -> None:
 
     PRINT("> Types:")
     for type_name in structured_data_set.data:
-        PRINT(f"  {type_name}: {len(structured_data_set.data)} object{'s' if len(structured_data_set.data) != 1 else ''}")
+        nobjects = len(structured_data_set.data[type_name])
+        PRINT(f"  {type_name}: {nobjects} object{'s' if nobjects != 1 else ''}")
 
     PRINT(f"\n> Files:")
     if files := structured_data_set.upload_files:
