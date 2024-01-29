@@ -553,7 +553,7 @@
     {
         "identifier": "privacy-policy",
         "title": "Privacy Policy",
-        "status": "public",
+        "status": "deleted",
         "content": [
             "ad816266-12c7-47bd-9617-dfe2a2328528"
         ],
@@ -574,7 +574,7 @@
     {
         "identifier": "legal",
         "title": "Legal",
-        "status": "public",
+        "status": "deleted",
         "content": [
             "032e2512-9168-4db4-b21d-5a10a8b8b14c"
         ],
