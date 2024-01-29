@@ -10,6 +10,12 @@ Change Log
 0.16.1
 ======
 
+* Repair small bug in extra file line generation, implement/test field fallbacks
+
+
+0.16.0
+======
+
 * Merge in ui-dev4 branch: `PR: ##: UI-Dev 4 <>`_
 * TODO: add branches merged into ui-dev4
 
