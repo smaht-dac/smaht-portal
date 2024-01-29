@@ -885,7 +885,7 @@ const ModalCodeSnippet = React.memo(function ModalCodeSnippet(props) {
         </pre>
     );
     const plainValue =
-        `cut -f 1,3 ${filename} | tail -n +3 | grep -v ^# | xargs -n 2 curl -O -L` +
+        `cut -f 1,3 ${filename} | tail -n +4 | grep -v ^# | xargs -n 2 curl -O -L` +
         (session
             ? ' --user <access_key_id>:<access_key_secret> $0 --output $1'
             : ' $0 --output $1');

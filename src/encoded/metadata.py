@@ -95,7 +95,7 @@ def generate_file_download_header(download_file_name: str):
     """ Helper function that generates a suitable header for the File download """
     header1 = ['###', 'Metadata TSV Download', '', '', '', '', '']
     header2 = ['Suggested command to download: ', '', '',
-               'cut -f 1,3 ./{} | tail -n +3 | grep -v ^# | xargs -n 2 curl -O -L '
+               'cut -f 1,3 ./{} | tail -n +4 | grep -v ^# | xargs -n 2 curl -O -L '
                '--user <access_key_id>:<access_key_secret> $0 --output $1'.format(download_file_name), '', '', '']
     header3 = list(TSV_MAPPING[FILE].keys())
     return header1, header2, header3
