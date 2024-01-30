@@ -263,11 +263,15 @@ Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
         .click()
         .end()
         .get(navUserAcctLoginBtnSelector)
-        .should('contain', 'Log In')
+        .should('contain', 'Login')
         .end()
         .get('#slow-load-container')
         .should('not.have.class', 'visible')
-        .end();
+        .end()
+        .get('#full-alerts-container>.alerts.container')
+        .children()
+        .should('have.length', 1)
+        .should('contain', 'Logged Out');
 });
 
 /** Session Caching */
