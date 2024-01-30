@@ -58,7 +58,7 @@
     },
     {
         "identifier": "alluvial",
-        "title": "SMaHT Benchmarking Experimental Assays",
+        "title": "SMaHT Data Overview",
         "file": "/docs/public/alluvial.jsx",
         "status": "public",
         "options": {
@@ -77,7 +77,7 @@
     },
     {
         "identifier": "assay-table",
-        "title": "SMaHT Benchmarking Sequencing Platforms",
+        "title": "SMaHT Benchmarking Experimental Assays",
         "file": "/docs/public/assay-table.jsx",
         "status": "public",
         "options": {
