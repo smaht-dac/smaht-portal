@@ -103,6 +103,11 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_type_length(es_testapp, 'ReferenceFile', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'OutputFile', 2)
+        res = es_testapp.post_json('/metadata/', {'type': 'OutputFile', 'include_extra_files': True})
+        tsv = res._app_iter[0]
+        parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
+        last_extra_file_name = parsed[-1][2]  # filename in 3rd position in tsv
+        assert last_extra_file_name == 'a_second_bam_bai.bai'
 
     def test_peak_metadata_workbook(self, workbook, es_testapp):
         """ Tests we can peak at metadata for files and get facet information (just file size for now) """
