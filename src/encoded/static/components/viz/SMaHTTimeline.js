@@ -59,7 +59,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                         units: ['Assays'],
                                     },
                                     {
-                                        number: '1',
+                                        number: '-',
                                         units: ['Mutations'],
                                     },
                                     {
@@ -142,7 +142,6 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                         units: ['Files', 'Generated'],
                                     },
                                 ]}
-                                href="/data/benchmarking/lung"
                             />
                         </TimelineAccordion>
                     </div>

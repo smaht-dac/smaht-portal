@@ -19,17 +19,17 @@
         ]
     },
     {
-        "identifier": "about.introduction",
-        "title": "Introduction",
-        "file": "/docs/public/about_introduction.jsx",
+        "identifier": "about.associate_membership_policy",
+        "title": "Associate Membership Policy",
+        "file": "/docs/public/about_membership_policy.md",
         "status": "public",
         "options": {
-            "filetype": "jsx",
+            "filetype": "md",
             "collapsible": false,
             "default_open": true
         },
         "section_type": "Page Section",
-        "uuid": "3fd92b15-9771-4218-a3f9-77b15805443e",
+        "uuid": "dd5198bb-72ba-4c5b-9736-3ba785814a20",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
