@@ -364,7 +364,7 @@
     {
         "identifier": "data/benchmarking/COLO829",
         "title": "COLO829",
-        "status": "in review",
+        "status": "public",
         "content": [
             "dea41934-619a-4a3b-a2bd-0521d0fffab1"
         ],
@@ -448,7 +448,7 @@
     {
         "identifier": "data/benchmarking/lung",
         "title": "Lung",
-        "status": "in review",
+        "status": "public",
         "content": [
             "cdcd25cd-cc37-4a35-8494-8573e92dac12"
         ],
@@ -469,7 +469,7 @@
     {
         "identifier": "data/benchmarking/liver",
         "title": "Liver",
-        "status": "in review",
+        "status": "public",
         "content": [
             "c789600c-4104-4246-a238-af9cc89d74f1"
         ],
@@ -511,7 +511,7 @@
     {
         "identifier": "data/benchmarking/colon",
         "title": "Colon",
-        "status": "in review",
+        "status": "public",
         "content": [
             "3a097f93-4478-4487-a7ac-fb805774fcad"
         ],
