@@ -104,7 +104,6 @@ def main() -> None:
 
     PRINT(f"\n> Files:")
     if files := structured_data_set.upload_files_located(args.directory):
-#   if files := structured_data_set.upload_files:
         for file in files:
             PRINT(f"  - {file.get('type')}: {file.get('file')}")
             if file.get('path'):
