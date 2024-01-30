@@ -79,14 +79,38 @@ def main() -> None:
         PRINT("\n  ".join(json.dumps(structured_data, indent=4, default=str).split("\n")))
         PRINT()
 
+    PRINT("> Portal:")
+    if portal.env:
+        PRINT(f"  - ENV: {portal.env}")
+    if portal.keys_file:
+        PRINT(f"  - Keys File: {portal.keys_file}")
+    if portal.key:
+        PRINT(f"  - Key: {portal.key_id}")
+    if portal.secret:
+        PRINT(f"  - Secret: {portal.secret[0]}*******")
+    if portal.server:
+        PRINT(f"  - Server: {portal.server}")
+    if portal.ini_file:
+        PRINT(f"  - INI File: {portal.ini_file}")
+    if portal.vapp:
+        PRINT(f"  - VAPP: ✓")
+    PRINT(f"  - Ping: {'✓' if portal.ping() else '✗'}")
+    PRINT()
+
     PRINT("> Types:")
     for type_name in structured_data_set.data:
         nobjects = len(structured_data_set.data[type_name])
         PRINT(f"  {type_name}: {nobjects} object{'s' if nobjects != 1 else ''}")
 
     PRINT(f"\n> Files:")
-    if files := structured_data_set.upload_files:
-        [PRINT(f"  - {file.get('type')}: {file.get('file')}") for file in files]
+    if files := structured_data_set.upload_files_located(args.directory):
+#   if files := structured_data_set.upload_files:
+        for file in files:
+            PRINT(f"  - {file.get('type')}: {file.get('file')}")
+            if file.get('path'):
+                PRINT(f"    Found -> {file.get('path')} -> {format_file_size(get_file_size(file.get('path')))}")
+            else:
+                PRINT(f"    Not found!")
     else:
         PRINT("  No files.")
 
@@ -133,8 +157,7 @@ def main() -> None:
         else:
             dump_schemas(list(structured_data.keys()), portal)
 
-
-    if args.diffs:
+    if not args.nodiffs:
         print_structured_data_status(portal, structured_data_set)
 
     if args.load:
@@ -159,9 +182,6 @@ def main() -> None:
         PRINT("\n> Load Results:")
         PRINT("  ", end="")
         PRINT("\n  ".join(yaml.dump(load_results).split("\n")))
-
-    if args.status:
-        analyze_objects(portal, structured_data)
 
     if args.verbose:
         PRINT("\n> Done.")
@@ -228,24 +248,6 @@ def format_issue(issue: dict, original_file: Optional[str] = None) -> str:
     return f"{src_string(issue)}: {issue_message}" if issue_message else ""
 
 
-def analyze_objects(portal: Portal, structured_data: dict) -> None:
-    PRINT("\n> Object Status:")
-    for portal_object_type in structured_data:
-        for portal_object in structured_data[portal_object_type]:
-            analyze_object(portal, portal_object, portal_object_type)
-
-
-def analyze_object(portal: Portal, portal_object: dict, portal_object_type: str) -> None:
-    portal_object = PortalObject(portal, portal_object, portal_object_type)
-    existing_object, existing_identifying_path = portal_object.lookup(include_identifying_path=True, raw=True)
-    if existing_identifying_path:
-        print(f"  - {existing_identifying_path}")
-        if existing_object:
-            print(f"     Exists -> {existing_object.uuid}")
-        else:
-            print(f"     Does not exist")
-
-
 def print_structured_data_status(portal: Portal, structured_data: StructuredDataSet) -> None:
     PRINT("\n> Object Create/Update Situation:")
     diffs = structured_data.compare()
@@ -268,6 +270,18 @@ def print_structured_data_status(portal: Portal, structured_data: StructuredData
                             PRINT(f"      UPDATE {diff_path}: {diff.updating_value} -> {diff.value}")
                         elif (diff := object_info.diffs[diff_path]).deleting_value:
                             PRINT(f"      DELETE {diff_path}: {diff.value}")
+
+
+def get_file_size(file: str) -> int:
+    return os.path.getsize(file)
+
+
+def format_file_size(nbytes: int) -> str:
+    for unit in ["b", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb", "Zb"]:
+        if abs(nbytes) < 1024.0:
+            return f"{nbytes:3.1f}{unit}"
+        nbytes /= 1024.0
+    return f"{nbytes:.1f}Yb"
 
 
 def parse_args() -> argparse.Namespace:
@@ -294,18 +308,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--load", nargs="?", action=argparse_optional, const=True,
                         default=False, help=f"Load data into local portal/database (optionally specify .ini file to use).")
     parser.add_argument("--portal", nargs="?", action=argparse_optional, const=True,
-                        default=False, help=f"Use local portal/database for checking references.")
+                        default=False,
+                        help=f"Use local portal/database for checking references (optionally specify .ini file to use).")
     parser.add_argument("--post-only", required=False, action="store_true",
                         default=False, help=f"Only perform updates (POST) when loading data.")
     parser.add_argument("--patch-only", required=False, action="store_true",
                         default=False, help=f"Only perform updates (PATCH) when loading data.")
     parser.add_argument("--validate-only", required=False, action="store_true",
                         default=False, help=f"Only perform validation when loading data.")
-    parser.add_argument("--diffs", required=False, action="store_true",
-                        default=False, help=f"Output object create/update/diff status.")
-    parser.add_argument("--status", required=False, action="store_true",
-                        default=False, help=f"TODO")
-
+    parser.add_argument("--nodiffs", required=False, action="store_true",
+                        default=False, help=f"Disable output of object create/update/diff status.")
+    parser.add_argument("--directory", "-d", type=str, nargs="?", help=f"Directory in which to look for upload files.")
     parser.add_argument("--verbose", required=False, action="store_true",
                         default=False, help=f"Verbose output.")
     parser.add_argument("--debug", required=False, action="store_true",
