@@ -7,14 +7,13 @@ from snovault.types.user import USER_PAGE_VIEW_ATTRIBUTES
 from snovault.types.user import user_add as SnoUserAdd
 from snovault.util import debug_log
 
-from .acl import ONLY_ADMIN_VIEW_ACL
+from .acl import ONLY_ADMIN_VIEW_ACL, ONLY_ADMIN_VIEW_USER_DETAILS_ACL, ONLY_OWNER_VIEW_PROFILE_ACL, DELETED_USER_ACL
 from .base import Item
 
 
 @collection(
     name='users',
     unique_key="user:email",  # Required to GET via /users/{email}/
-    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         "title": "SMaHT Users",
         "description": "Listing of current SMaHT users",
@@ -24,6 +23,13 @@ class User(Item, SnovaultUser):
     item_type = "user"
     schema = load_schema("encoded:schemas/user.json")
     embedded_list = []
+
+    STATUS_ACL = {
+        'current': ONLY_OWNER_VIEW_PROFILE_ACL,
+        'deleted': DELETED_USER_ACL,
+        'revoked': DELETED_USER_ACL,
+        'inactive': ONLY_OWNER_VIEW_PROFILE_ACL,
+    }
 
     @calculated_property(schema={"title": "Title", "type": "string"})
     def title(self, first_name: Optional[str], last_name: Optional[str]) -> Union[str, None]:
