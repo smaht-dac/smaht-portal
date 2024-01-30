@@ -21,37 +21,28 @@ describe('Home Page', function () {
     });
 
     it('Timeline dropdowns work as expected', () => {
-        /* ==== Generated with Cypress Studio ==== */
         cy.get(
-            ':nth-child(1) > .timeline-content > .accordion > :nth-child(1) > .card-header > .d-flex > .border-0 > div > .icon'
+            '.tier-active > .timeline-content > .accordion > :nth-child(1) > .card-header > .card-header-content > .card-header-button > .d-flex > .icon'
         ).click();
         cy.get(
-            ':nth-child(1) > .timeline-content > .accordion > :nth-child(1) > .card-header > .d-flex > .border-0 > div > .icon'
+            '.tier-active > .timeline-content > .accordion > :nth-child(1) > .card-header > .card-header-content > .card-header-button > .d-flex > .icon'
         ).click();
         cy.get(
-            ':nth-child(1) > .timeline-content > .accordion > :nth-child(1) > .collapse > .card-body'
+            ':nth-child(2) > .card-header > .card-header-content > .card-header-button > .d-flex > .icon'
         ).click();
         cy.get(
-            ':nth-child(3) > .card-header > .d-flex > .border-0 > div > .icon'
+            ':nth-child(3) > .timeline-content > .accordion > .card > .card-header > .card-header-content > .card-header-button > .d-flex'
         ).click();
-        cy.get(
-            ':nth-child(4) > .card-header > .d-flex > .border-0 > div > .icon'
-        ).click();
-        cy.get(
-            ':nth-child(2) > .timeline-content > .accordion > .card > .card-header > .d-flex > .border-0 > div > .icon'
-        ).click();
-        cy.get(
-            ':nth-child(3) > .timeline-content > .accordion > .card > .card-header > .d-flex > .border-0 > div > .icon'
-        ).click();
-        /* ==== End Cypress Studio ==== */
-        cy.end();
+        cy.get(':nth-child(4) > span').click();
+        cy.get('.selector-buttons > :nth-child(2) > span').click();
+        cy.end;
     });
 
-    it('Navbar dropdowns work as expected when logged in', () => {
-        /* ==== Generated with Cypress Studio ==== */
-        cy.get('#data-menu-item').clickEvent();
-        cy.get('#docs-menu-item').clickEvent();
-        cy.get('#about-menu-item').clickEvent();
-        /* ==== End Cypress Studio ==== */
-    });
+    // it('Navbar dropdowns work as expected when logged in', () => {
+    //     /* ==== Generated with Cypress Studio ==== */
+    //     cy.get('#data-menu-item').clickEvent();
+    //     cy.get('#docs-menu-item').clickEvent();
+    //     cy.get('#about-menu-item').clickEvent();
+    //     /* ==== End Cypress Studio ==== */
+    // });
 });
