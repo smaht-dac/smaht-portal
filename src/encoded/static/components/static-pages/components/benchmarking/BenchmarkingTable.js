@@ -451,7 +451,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
 
     static defaultProps = {
         id: null,
-        filenamePrefix: '~/Downloads/smaht_manifest_',
+        filenamePrefix: 'smaht_manifest_',
         children: 'Download',
         className: 'btn-primary',
         analyticsAddItemsToCart: false,
@@ -869,8 +869,8 @@ const ModalCodeSnippet = React.memo(function ModalCodeSnippet(props) {
     const { filename, session } = props;
     const htmlValue = (
         <pre className="mb-15 curl-command">
-            cut -f 1,3 <b>{filename}</b> | tail -n +4 | grep -v ^# | xargs -n 2
-            -L 1 sh -c &apos;curl -L
+            cut -f 1,3 <b>~/Downloads/{filename}</b> | tail -n +4 | grep -v ^# |
+            xargs -n 2 -L 1 sh -c &apos;curl -L
             {session ? (
                 <>
                     <code style={{ opacity: 0.5 }}>
@@ -885,7 +885,7 @@ const ModalCodeSnippet = React.memo(function ModalCodeSnippet(props) {
         </pre>
     );
     const plainValue =
-        `cut -f 1,3 ${filename} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L` +
+        `cut -f 1,3 ~/Downloads/${filename} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L` +
         (session
             ? " --user <access_key_id>:<access_key_secret> $0 --output $1'"
             : " $0 --output $1'");
