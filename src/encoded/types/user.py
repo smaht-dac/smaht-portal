@@ -38,6 +38,15 @@ class User(Item, SnovaultUser):
         'inactive': ONLY_OWNER_VIEW_PROFILE_ACL,
     }
 
+    def __acl__(self):
+        """ Note that in smaht-portal, because of how __acl__ is written in base.py, this function
+            MUST be overridden in order to trigger custom behavior (unlike in CGAP/Fourfront where one
+            can simply override STATUS_ACL
+        """
+        properties = self.upgrade_properties().copy()
+        status = properties.get('status')
+        return self.STATUS_ACL.get(status, ONLY_ADMIN_VIEW_ACL)
+
     @calculated_property(schema={"title": "Title", "type": "string"})
     def title(self, first_name: Optional[str], last_name: Optional[str]) -> Union[str, None]:
         if first_name and last_name:
@@ -51,6 +60,10 @@ class User(Item, SnovaultUser):
     ) -> Union[str, None]:
         return SnovaultUser.contact_email(self, email, preferred_email=preferred_email)
 
+    def __ac_local_roles__(self):
+        """return the owner user."""
+        owner = 'userid.%s' % self.uuid
+        return {owner: 'role.owner'}
 
 @view_config(context=User, permission='view', request_method='GET', name='page')
 @debug_log
