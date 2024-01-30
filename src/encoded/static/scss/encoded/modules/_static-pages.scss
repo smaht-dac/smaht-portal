@@ -1498,7 +1498,7 @@ div#popover-consortium-data-alluvial-table {
 Unique styling of page title container for static pages
 (also used for user profiles)
 **/
-body[data-pathname^="/users/"] #page-title-container,
+body.is-item-view[data-pathname^="/users/"] #page-title-container,
 #page-title-container.static-page-title {
 	background: $ss-title-background;
 	background-size: cover;

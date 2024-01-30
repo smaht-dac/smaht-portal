@@ -7,9 +7,6 @@
             "d2d042e7-09e5-4a34-a8c5-530ba9c9cdec",
             "af03023c-1ce0-49a1-b85b-20f5abd8cc30"
         ],
-        "content": [
-           "3fd92b15-9771-4218-a3f9-77b15805443e"
-        ],
         "table-of-contents": {
             "enabled": true,
             "header-depth": 4
@@ -49,7 +46,7 @@
     },
     {
         "identifier": "about/join",
-        "title": "How to Join SMaHt",
+        "title": "How to Join SMaHT",
         "status": "public",
         "children": [
             "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd"
@@ -116,10 +113,10 @@
     },
     {
         "identifier": "about/join/policy",
-        "title": "Associate Membership policy",
+        "title": "Associate Membership Policy",
         "status": "public",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "dd5198bb-72ba-4c5b-9736-3ba785814a20"
         ],
         "table-of-contents": {
           "enabled": false,
@@ -368,7 +365,7 @@
     {
         "identifier": "data/benchmarking/COLO829",
         "title": "COLO829",
-        "status": "in review",
+        "status": "public",
         "content": [
             "dea41934-619a-4a3b-a2bd-0521d0fffab1"
         ],
@@ -452,7 +449,7 @@
     {
         "identifier": "data/benchmarking/lung",
         "title": "Lung",
-        "status": "in review",
+        "status": "public",
         "content": [
             "cdcd25cd-cc37-4a35-8494-8573e92dac12"
         ],
@@ -473,7 +470,7 @@
     {
         "identifier": "data/benchmarking/liver",
         "title": "Liver",
-        "status": "in review",
+        "status": "public",
         "content": [
             "c789600c-4104-4246-a238-af9cc89d74f1"
         ],
@@ -515,7 +512,7 @@
     {
         "identifier": "data/benchmarking/colon",
         "title": "Colon",
-        "status": "in review",
+        "status": "public",
         "content": [
             "3a097f93-4478-4487-a7ac-fb805774fcad"
         ],
@@ -557,7 +554,7 @@
     {
         "identifier": "privacy-policy",
         "title": "Privacy Policy",
-        "status": "public",
+        "status": "deleted",
         "content": [
             "ad816266-12c7-47bd-9617-dfe2a2328528"
         ],
@@ -578,7 +575,7 @@
     {
         "identifier": "legal",
         "title": "Legal",
-        "status": "public",
+        "status": "deleted",
         "content": [
             "032e2512-9168-4db4-b21d-5a10a8b8b14c"
         ],

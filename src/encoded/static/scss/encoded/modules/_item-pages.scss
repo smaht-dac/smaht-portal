@@ -338,8 +338,16 @@ $tabbar-height: 46px;
 	Alerts - Shown differently on ItemPages than others
 **************************/
 
-#full-alerts-container {
-	// Note: removed stickiness
+.item-page-container {
+	> #full-alerts-container {
+		// Note: removed stickiness
+		.alerts {
+			.alert {
+				border-radius: 0px;
+				margin-bottom: 0px;
+			}
+		}
+	}
 }
 
 /** Styling right pane menu which comes out upon ItemActionsTab click **/

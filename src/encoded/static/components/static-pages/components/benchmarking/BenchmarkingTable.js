@@ -109,6 +109,24 @@ const BenchmarkingTable = (props) => {
         // File
         annotated_filename: {
             widthMap: { lg: 500, md: 400, sm: 300 },
+            render: function (result, parentProps) {
+                const {
+                    '@id': atId,
+                    display_title,
+                    annotated_filename,
+                } = result || {};
+
+                return (
+                    <span className="value text-left">
+                        <a
+                            href={atId}
+                            target="_blank"
+                            rel="noreferrer noopener">
+                            {annotated_filename || display_title}
+                        </a>
+                    </span>
+                );
+            },
         },
         // Format
         'file_format.display_title': {
@@ -716,11 +734,22 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
         };
 
         const callbackFxn = useCallback((resp) => {
-            const {
-                0: { sum: selectedFileSizeResp = 0 } = {},
-                2: { sum: extraFileSizeResp, count: numExtraFilesResp } = {},
-            } = resp || [];
             // console.log('BenchmarkingDataDownloadOverviewStats resp', resp);
+            const facets = resp || [];
+
+            // Figure out which ones are the facets we need
+            let selectedFileSizeResp;
+            let extraFileSizeResp;
+            let numExtraFilesResp;
+            facets.forEach((facet, i) => {
+                if (facet.field === 'extra_files.file_size') {
+                    extraFileSizeResp = facet.sum;
+                    numExtraFilesResp = facet.count;
+                } else if (facet.field === 'file_size') {
+                    selectedFileSizeResp = facet.sum;
+                }
+            });
+
             setLoading(false);
             setError(false);
 
@@ -840,26 +869,26 @@ const ModalCodeSnippet = React.memo(function ModalCodeSnippet(props) {
     const { filename, session } = props;
     const htmlValue = (
         <pre className="mb-15 curl-command">
-            cut -f 1,3 <b>{filename}</b> | tail -n +3 | grep -v ^# | xargs -n 2
-            curl -O -L
+            cut -f 1,3 <b>~/Downloads/{filename}</b> | tail -n +4 | grep -v ^# |
+            xargs -n 2 -L 1 sh -c &apos;curl -L
             {session ? (
                 <>
                     <code style={{ opacity: 0.5 }}>
                         {' '}
                         --user <em>{'<access_key_id>:<access_key_secret>'}</em>
                     </code>{' '}
-                    $0 --output $1
+                    $0 --output $1&apos;
                 </>
             ) : (
-                ' $0 --output $1'
+                " $0 --output $1'"
             )}
         </pre>
     );
     const plainValue =
-        `cut -f 1,3 ${filename} | tail -n +3 | grep -v ^# | xargs -n 2 curl -O -L` +
+        `cut -f 1,3 ~/Downloads/${filename} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L` +
         (session
-            ? ' --user <access_key_id>:<access_key_secret> $0 --output $1'
-            : ' $0 --output $1');
+            ? " --user <access_key_id>:<access_key_secret> $0 --output $1'"
+            : " $0 --output $1'");
 
     return (
         <object.CopyWrapper

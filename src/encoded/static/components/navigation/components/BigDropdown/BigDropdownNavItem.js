@@ -101,7 +101,7 @@ export class BigDropdownNavItem extends React.PureComponent {
             id,
             active,
             key: id,
-            href: navItemHref,
+            href: !children ? navItemHref : null,
             className:
                 'clickable id-' + id + (className ? ' ' + className : ''),
         };
@@ -109,7 +109,7 @@ export class BigDropdownNavItem extends React.PureComponent {
         if (!children || !mounted || isLoadingMenuTree) {
             // Normal link to 'href'
             return (
-                <Nav.Link {...navItemProps} disabled={!href}>
+                <Nav.Link {...navItemProps} disabled={!href || !children}>
                     {navItemContent}
                 </Nav.Link>
             );

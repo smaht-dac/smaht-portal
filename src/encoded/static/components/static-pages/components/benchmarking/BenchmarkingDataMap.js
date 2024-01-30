@@ -138,15 +138,15 @@ export const BenchmarkingDataMap = {
         path: '/data/benchmarking/colon',
         tabMapArray: [
             {
-                eventKey: '#ascending',
-                title: 'Ascending',
+                eventKey: '#main',
+                title: 'Data',
                 // searchHref: '/search/?type=ReferenceFile',
             },
-            {
-                eventKey: '#descending',
-                title: 'Descending',
-                // searchHref: '/search/?type=ReferenceFile',
-            },
+            // {
+            //     eventKey: '#descending',
+            //     title: 'Descending',
+            //     // searchHref: '/search/?type=ReferenceFile',
+            // },
         ],
     },
     // Heart: {
