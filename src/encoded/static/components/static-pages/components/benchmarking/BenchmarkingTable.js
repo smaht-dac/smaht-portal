@@ -451,7 +451,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
 
     static defaultProps = {
         id: null,
-        filenamePrefix: 'smaht_manifest_',
+        filenamePrefix: '~/Downloads/smaht_manifest_',
         children: 'Download',
         className: 'btn-primary',
         analyticsAddItemsToCart: false,
@@ -869,26 +869,26 @@ const ModalCodeSnippet = React.memo(function ModalCodeSnippet(props) {
     const { filename, session } = props;
     const htmlValue = (
         <pre className="mb-15 curl-command">
-            cut -f 1,3 <b>{filename}</b> | tail -n +3 | grep -v ^# | xargs -n 2
-            curl -O -L
+            cut -f 1,3 <b>{filename}</b> | tail -n +4 | grep -v ^# | xargs -n 2
+            -L 1 sh -c &apos;curl -L
             {session ? (
                 <>
                     <code style={{ opacity: 0.5 }}>
                         {' '}
                         --user <em>{'<access_key_id>:<access_key_secret>'}</em>
                     </code>{' '}
-                    $0 --output $1
+                    $0 --output $1&apos;
                 </>
             ) : (
-                ' $0 --output $1'
+                " $0 --output $1'"
             )}
         </pre>
     );
     const plainValue =
-        `cut -f 1,3 ${filename} | tail -n +3 | grep -v ^# | xargs -n 2 curl -O -L` +
+        `cut -f 1,3 ${filename} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L` +
         (session
-            ? ' --user <access_key_id>:<access_key_secret> $0 --output $1'
-            : ' $0 --output $1');
+            ? " --user <access_key_id>:<access_key_secret> $0 --output $1'"
+            : " $0 --output $1'");
 
     return (
         <object.CopyWrapper
