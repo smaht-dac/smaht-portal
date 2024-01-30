@@ -405,55 +405,6 @@ def get_cell_line_id_from_cell_culture(
     return get_code(cell_line)
 
 
-# def get_cell_culture_data_from_cell_culture_sample(
-#     sample_item: Dict[str, Any], auth_key: Dict[str, str]
-# ) -> CellLineData:
-#     """Get cell line data from cell culture sample."""
-#     cell_line = get_cell_line_from_sample(sample_item, auth_key)
-#     return CellLineData(cell_line_id=get_code(cell_line))
-#
-#
-# def get_cell_line_from_sample(
-#     sample_item: Dict[str, Any], auth_key: Dict[str, str]
-# ) -> Dict[str, Any]:
-#     """Get cell line from CellCultureSample."""
-#     result = {}
-#     sample_sources = get_sample_sources_from_sample(sample_item, auth_key)
-#     cell_lines = []
-#     for sample_source in sample_sources:
-#         cell_lines.extend(get_cell_lines_from_sample_source(sample_source, auth_key))
-#     unique_cell_lines = deduplicate_items_by_uuid(cell_lines)
-#     if not unique_cell_lines:
-#         logger.error(
-#             f"No unique cell line found for sample {sample_item.get(PortalConstants.UUID)}"
-#         )
-#     elif len(unique_cell_lines) > 1:
-#         logger.error(
-#             f"Multiple unique cell lines found for sample {sample_item.get(PortalConstants.UUID)}:"
-#             f" {unique_cell_lines}"
-#         )
-#     else:
-#         result = unique_cell_lines[0]
-#     return result
-#
-#
-# def get_cell_lines_from_sample_source(
-#     sample_source_item: Dict[str, Any], auth_key: Dict[str, str]
-# ) -> List[Dict[str, Any]]:
-#     """Get cell culture from sample source."""
-#     if is_cell_culture_mixture(sample_source_item):
-#         cell_cultures = get_cell_cultures_from_cell_culture_mixture(
-#             sample_source_item, auth_key
-#         )
-#         return [
-#             get_cell_line_from_cell_culture(cell_culture, auth_key)
-#             for cell_culture in cell_cultures
-#         ]
-#     if is_cell_culture(sample_source_item):
-#         return [get_cell_line_from_cell_culture(sample_source_item, auth_key)]
-#     return []
-
-
 def get_cell_line_from_cell_culture(
     cell_culture_item: Dict[str, Any], auth_key: Dict[str, str]
 ) -> Dict[str, Any]:
@@ -469,10 +420,10 @@ def get_sample_from_file(
     result = {}
     samples = get_samples_from_file(file_item, auth_key)
     if not samples:
-        logger.error(f"No sample found for file {file_item.get(PortalConstants.UUID)}")
+        logger.error(f"No sample found for file {get_uuid(file_item)}")
     elif len(samples) > 1:
         logger.error(
-            f"Multiple samples found for file {file_item.get(PortalConstants.UUID)}:"
+            f"Multiple samples found for file {get_uuid(file_item)}:"
             f" {samples}"
         )
     else:
@@ -555,10 +506,10 @@ def get_donor_from_file(
     sample_sources = get_sample_sources_from_file(file_item, auth_key)
     donors = get_donors_from_sample_sources(sample_sources, auth_key)
     if not donors:
-        logger.error(f"No donor found for file {file_item.get(PortalConstants.UUID)}")
+        logger.error(f"No donor found for file {get_uuid(file_item)}")
     elif len(donors) > 1:
         logger.error(
-            f"Multiple donors found for file {file_item.get(PortalConstants.UUID)}:"
+            f"Multiple donors found for file {get_uuid(file_item)}:"
             f" {donors}"
         )
     else:
@@ -654,12 +605,12 @@ def get_donor_from_cell_culture_mixture(
     if not unique_donors:
         logger.error(
             f"No unique donor found for cell culture mixture"
-            f" {cell_culture_mixture_item.get(PortalConstants.UUID)}"
+            f" {get_uuid(cell_culture_mixture_item)}"
         )
     elif len(unique_donors) > 1:
         logger.error(
             f"Multiple unique donors found for cell culture mixture"
-            f" {cell_culture_mixture_item.get(PortalConstants.UUID)}:"
+            f" {get_uuid(cell_culture_mixture_item)}:"
             f" {unique_donors}"
         )
     else:
@@ -718,11 +669,11 @@ def get_sequencing_code(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> 
     ]
     if not sequencers:
         logger.error(
-            f"No sequencers found for file {file_item.get(PortalConstants.UUID)}"
+            f"No sequencers found for file {get_uuid(file_item)}"
         )
     elif len(sequencers) > 1:
         logger.error(
-            f"Multiple sequencers found for file {file_item.get(PortalConstants.UUID)}:"
+            f"Multiple sequencers found for file {get_uuid(file_item)}:"
             f" {sequencers}"
         )
     else:
@@ -770,10 +721,10 @@ def get_assay_code(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> str:
     result = ""
     assays = get_assays_from_file(file_item, auth_key)
     if not assays:
-        logger.error(f"No assays found for file {file_item.get(PortalConstants.UUID)}")
+        logger.error(f"No assays found for file {get_uuid(file_item)}")
     elif len(assays) > 1:
         logger.error(
-            f"Multiple assays found for file {file_item.get(PortalConstants.UUID)}:"
+            f"Multiple assays found for file {get_uuid(file_item)}:"
             f" {assays}"
         )
     else:
@@ -861,11 +812,11 @@ def get_software(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> str:
     software_codes = get_unique_codes(software)
     if not software_codes:
         logger.error(
-            f"No software codes found for file {file_item.get(PortalConstants.UUID)}"
+            f"No software codes found for file {get_uuid(file_item)}"
         )
     elif len(software_codes) > 1:
         logger.error(
-            f"Multiple software codes found for file {file_item.get(PortalConstants.UUID)}:"
+            f"Multiple software codes found for file {get_uuid(file_item)}:"
             f" {software_codes}"
         )
     else:
@@ -895,11 +846,11 @@ def get_software_version(file_item: Dict[str, Any], auth_key: Dict[str, str]) ->
     ]
     if not software_with_codes:
         logger.error(
-            f"No software version codes found for file {file_item.get(PortalConstants.UUID)}"
+            f"No software version codes found for file {get_uuid(file_item)}"
         )
     elif len(software_with_codes) > 1:
         logger.error(
-            f"Multiple software version codes found for file {file_item.get(PortalConstants.UUID)}:"
+            f"Multiple software version codes found for file {get_uuid(file_item)}:"
             f" {software_with_codes}"
         )
     else:
