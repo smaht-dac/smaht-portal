@@ -21,6 +21,15 @@ export const BenchmarkingLayout = ({
                 <div className="col-auto">
                     <h2>{title}</h2>
                     <p className={cls}>{description}</p>
+                    {description ? (
+                        <p className="readable disclaimer mb-2">
+                            <span className="">Note:</span> The unaligned BAM
+                            and FASTQ files, and data from unofficial
+                            benchmarking samples will be available upon request
+                            &#40;through Globus&#41; or at the next release of
+                            the portal.
+                        </p>
+                    ) : null}
                 </div>
                 {/* TODO: Re-add this once we have this documentation available
                 <div className="col-md-4 col-12">
