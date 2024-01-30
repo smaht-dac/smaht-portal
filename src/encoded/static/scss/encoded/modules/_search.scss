@@ -192,6 +192,11 @@ $facetlist-excluding: #450000;
 					&.selected {
 						& > a {
 							background-color: #317ac4;
+
+							& > .facet-item,
+							& > .facet-count {
+								color: #ffffff;
+							}
 						}
 						&:hover {
 							& > a {
@@ -205,6 +210,10 @@ $facetlist-excluding: #450000;
 					&.omitted {
 						& > a {
 							background-color: #711219;
+								& > .facet-item,
+								& > .facet-count {
+									color: #ffffff;
+								}
 						}
 						&:hover {
 							& > a {
