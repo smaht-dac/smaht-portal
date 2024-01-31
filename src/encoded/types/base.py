@@ -219,7 +219,7 @@ class Item(SnovaultItem):
             keys['accession'].append(properties['accession'])
         return keys
 
-    @calculated_property(schema=display_title_schema)
+    @calculated_property(schema={"title": "Display Title", "type": "string"})
     def display_title(
         self,
         request: Request,
