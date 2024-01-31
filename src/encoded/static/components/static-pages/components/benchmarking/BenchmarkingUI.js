@@ -14,6 +14,8 @@ export const BenchmarkingLayout = ({
     schemas,
     title,
     description,
+    showBamQCLink = false,
+    bamQCHash = '', // TODO: Other datasets will have qcs on same page accessible by anchor hash
     children,
 }) => {
     const cls = `readable ${!schemas ? 'mb-5' : 'mb-2'}`;
@@ -21,18 +23,22 @@ export const BenchmarkingLayout = ({
     return (
         <div className="benchmarking-layout">
             <div className="row">
-                <div className="col-auto">
+                <div className="col-auto col-lg-9">
                     <h2>{title}</h2>
                     <p className={cls}>{description}</p>
                 </div>
-                {/* TODO: Re-add this once we have this documentation available
-                <div className="col-md-4 col-12">
-                    <a
-                        className="btn btn-outline-secondary float-right"
-                        href="#">
-                        Benchmarking Assay Documentation
-                    </a>
-                </div> */}
+                {/* TODO: Re-add documentation button once we have it available */}
+                <div className="col-auto mb-2 mb-lg-0 col-lg-3">
+                    {showBamQCLink && (
+                        <a
+                            className="btn btn-outline-secondary float-right"
+                            href={'/bam-qc-overview' + bamQCHash}
+                            rel="noreferrer noopener"
+                            target="_blank">
+                            BAM QC Results
+                        </a>
+                    )}
+                </div>
             </div>
             {/* Schemas are loading, so hash won't be available yet; can't pick correct tab */}
             {!schemas && (
