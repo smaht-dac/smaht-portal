@@ -157,6 +157,10 @@ class Item(SnovaultItem):
         'obsolete': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'deleted': DELETED_ACL
     }
+    MINIMAL_STATUS_VIEW = {
+        'released': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'public': acl.ALLOW_EVERYONE_VIEW_ACL,
+    }
 
     def __init__(self, registry, models):
         super().__init__(registry, models)
@@ -182,8 +186,8 @@ class Item(SnovaultItem):
                 PRINT(f'DEBUG_PERMISSIONS: Using consortia ACLs status {status} for {self}')
             return self.CONSORTIUM_STATUS_ACL.get(status, acl.ONLY_ADMIN_VIEW_ACL)
         if DEBUG_PERMISSIONS:
-            PRINT(f'DEBUG_PERMISSIONS: Falling back to admin view for {self}')
-        return acl.ONLY_ADMIN_VIEW_ACL
+            PRINT(f'DEBUG_PERMISSIONS: Falling back to minimal status view for {self}')
+        return self.MINIMAL_STATUS_VIEW.get(status, acl.ONLY_ADMIN_VIEW_ACL)
 
     def __ac_local_roles__(self):
         """ Overrides the default permissioning to add some additional roles to the item based on
@@ -202,6 +206,12 @@ class Item(SnovaultItem):
         if 'submitted_by' in properties:
             submitter = 'userid.%s' % properties['submitted_by']
             roles[submitter] = 'role.owner'
+        if self.type_info.name == 'Consortium':
+            consortium_identifier = f'{acl.CONSORTIUM_MEMBER_RW}.{str(self.uuid)}'
+            roles[consortium_identifier] = acl.CONSORTIUM_MEMBER_RW
+        if self.type_info.name == 'SubmissionCenter':
+            center = f'{acl.SUBMISSION_CENTER_RW}.{str(self.uuid)}'
+            roles[center] = acl.SUBMISSION_CENTER_RW
         if DEBUG_PERMISSIONS:
             PRINT(f'DEBUG_PERMISSIONS: Returning roles {roles} for {self}')
         return roles
