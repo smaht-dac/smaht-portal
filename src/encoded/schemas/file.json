@@ -152,6 +152,12 @@
             "title": "O2 Path",
             "description": "Path to file on O2",
             "type": "string"
+        },
+        "sequencing_center": {
+            "title": "Sequencing Center",
+            "description": "Sequencing Center",
+            "type": "string",
+            "linkTo": "SubmissionCenter"
         }
     },
     "facets": {
@@ -171,7 +177,10 @@
             "title": "Data Format"
         },
         "submission_centers.display_title": {
-            "title": "Center"
+            "title": "Submitter"
+        },
+        "sequencing_center.display_title": {
+            "title": "Sequencing Center"
         }
     },
     "columns": {
@@ -194,7 +203,10 @@
             "title": "Data Format"
         },
         "submission_centers.display_title": {
-            "title": "Center"
+            "title": "Submitter"
+        },
+        "sequencing_center.display_title": {
+            "title": "Sequencing Center"
         },
         "software.display_title": {
             "title": "Method"
