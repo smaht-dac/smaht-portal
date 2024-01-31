@@ -201,6 +201,11 @@
 			position: relative;
 			font-weight: 400;
 
+			// Hide parent link for v1
+			&.parent-entry {
+				display: none;
+			}
+
 			&[data-depth="0"] {
 				padding-top: 0;
 			}
