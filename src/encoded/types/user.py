@@ -62,8 +62,10 @@ class User(Item, SnovaultUser):
 
     def __ac_local_roles__(self):
         """return the owner user."""
+        roles = super().__ac_local_roles__()
         owner = 'userid.%s' % self.uuid
-        return {owner: 'role.owner'}
+        roles[owner] = 'role.owner'
+        return roles
 
 @view_config(context=User, permission='view', request_method='GET', name='page')
 @debug_log
