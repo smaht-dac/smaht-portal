@@ -14,6 +14,7 @@ from .base import Item
 @collection(
     name='users',
     unique_key="user:email",  # Required to GET via /users/{email}/
+    acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         "title": "SMaHT Users",
         "description": "Listing of current SMaHT users",
