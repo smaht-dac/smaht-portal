@@ -142,6 +142,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                         units: ['Files', 'Generated'],
                                     },
                                 ]}
+                                href="/data/benchmarking/lung#main"
                             />
                         </TimelineAccordion>
                     </div>
