@@ -26,7 +26,7 @@ class UserCSVProcessorException(Exception):
 
 class UserCSVProcessor:
 
-    def __init__(self, env='staging'):
+    def __init__(self, env='data'):
         self.key = SMaHTKeyManager().get_keydict_for_env(env)
         self.submission_centers = []
         self.user_dict = {}
@@ -85,15 +85,16 @@ class UserCSVProcessor:
         for email, _ in self.user_dict.items():
             try:
                 ff_utils.get_metadata(f'/users/{email}', key=self.key)
+                PRINT(f'Skipping already present user {email}')
                 self.user_dict[email] = None  # we want to (effectively) remove this key if we got here
             except Exception:
+                PRINT(f'User {email} queued for update')
                 continue  # we want to keep this user
 
     def post_users_to_portal(self):
         """ Posts the user_dict to the portal """
         number_updated = 0
         for _, user in self.user_dict.items():
-            PRINT(user)
             if user:  # could have been set to None in previous step
                 try:
                     post_body = {
@@ -133,10 +134,18 @@ def main():
     parser = argparse.ArgumentParser(description="Reads a CSV of users in expected format and updates the data "
                                                  "portal.")
     parser.add_argument("csv_file_path", help="Path to the User CSV file")
+    parser.add_argument("--env", help="env to use (if not data)", default='data')
     parser.add_argument("--validate-only", action='store_true', default=False,
                         help="Only validate the posting of users")
     args = parser.parse_args()
-    UserCSVProcessor().main(args)
+    env = args.env
+    PRINT(f'Attempting user load on env {env}, please confirm with y/n')
+    y = input()
+    if y.lower() != 'y':
+        PRINT('Confirmation failed - exiting')
+        exit(0)
+    UserCSVProcessor(env=env).main(args)
+    exit(0)
 
 
 if __name__ == "__main__":
