@@ -1538,6 +1538,7 @@ body[data-pathname^="/data/benchmarking"] {
 				&.active {
 					color: #343741;
 					font-weight: 600; 
+					border-top: 4px solid #E99415;
 				}
 				&.disabled {
 					color: #9BA5B7;
