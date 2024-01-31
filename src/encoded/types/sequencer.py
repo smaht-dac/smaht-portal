@@ -1,7 +1,7 @@
 from typing import Optional, Union
 
 from pyramid.request import Request
-from snovault import calculated_property, collection, display_title_schema, load_schema
+from snovault import calculated_property, collection, load_schema
 
 from .base import Item
 
@@ -19,7 +19,7 @@ class Sequencer(Item):
     schema = load_schema("encoded:schemas/sequencer.json")
     embedded_list = []
 
-    @calculated_property(schema=display_title_schema)
+    @calculated_property(schema={"title": "Display Title", "type": "string"})
     def display_title(
         self,
         request: Request,
