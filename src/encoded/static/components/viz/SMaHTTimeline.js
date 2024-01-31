@@ -63,7 +63,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                         units: ['Mutations'],
                                     },
                                     {
-                                        number: '31',
+                                        number: '30',
                                         units: ['Files', 'Generated'],
                                     },
                                 ]}
