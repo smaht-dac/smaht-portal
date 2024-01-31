@@ -271,6 +271,11 @@
         "file" : "/docs/source/account_creation.rst",
         "section_type": "Page Section",
         "status": "public",
+        "options": {
+            "filetype": "rst",
+            "initial_header_level": 4
+        },
+        "title": "Account Creation",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -303,6 +308,11 @@
         "file" : "/docs/source/getting_started.rst",
         "section_type": "Page Section",
         "status": "public",
+        "options": {
+            "filetype": "rst",
+            "initial_header_level": 4
+        },
+        "title": "Getting Started (User)",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -335,6 +345,11 @@
         "file" : "/docs/source/excel_submission.rst",
         "section_type": "Page Section",
         "status": "public",
+        "options": {
+            "filetype": "rst",
+            "initial_header_level": 4
+        },
+        "title": "Excel Submission",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

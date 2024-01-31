@@ -1,8 +1,3 @@
-================
-Account Creation
-================
-
-
 * Please email data wranglers at `smhelp@hms-dbmi.atlassian.net <mailto:smhelp@hms-dbmi.atlassian.net>`_ to get set up with an account with the access credentials for your role.
 * Please provide an email address which you wish to use for your account and CC your PI for validation purposes. **The email associated with the account you use for login must be the same as the one registered with the SMaHT OC.**
 
