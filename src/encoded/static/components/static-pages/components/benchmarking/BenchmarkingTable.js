@@ -179,6 +179,7 @@ const BenchmarkingTable = (props) => {
 
     return (
         <EmbeddedItemSearchTable
+            key={session}
             embeddedTableHeader={
                 <BenchmarkingAboveTableComponent
                     {...{
