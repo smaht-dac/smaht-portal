@@ -385,7 +385,7 @@
     {
         "identifier": "data/benchmarking/HapMap",
         "title": "HapMap",
-        "status": "in review",
+        "status": "public",
         "content": [
             "5b5d9021-4dca-4023-bc5e-123b5ef66ff2"
         ],
@@ -406,7 +406,7 @@
     {
         "identifier": "data/benchmarking/iPSC-fibroblasts",
         "title": "iPSC and Fibroblasts",
-        "status": "in review",
+        "status": "public",
         "content": [
             "a08bb75d-93e2-455f-9fe2-aa8f4969d233"
         ],
