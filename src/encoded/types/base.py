@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import snovault
 from pyramid.request import Request
 from pyramid.view import view_config
-from snovault import abstract_collection, calculated_property, display_title_schema
+from snovault import abstract_collection, calculated_property
 from snovault.types.base import (
     Collection,
     DELETED_ACL,
