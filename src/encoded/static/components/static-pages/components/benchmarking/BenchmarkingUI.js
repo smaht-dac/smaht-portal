@@ -4,8 +4,11 @@ import _ from 'underscore';
 import { Tab, Tabs } from 'react-bootstrap';
 
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
+
 import { BenchmarkingTableController } from './BenchmarkingTable';
 import { navigate } from '../../../util';
+import { NotLoggedInAlert } from '../../../navigation/components';
 
 export const BenchmarkingLayout = ({
     schemas,
@@ -81,6 +84,13 @@ export const HashBasedTabController = ({
     );
 
     // TODO: In future, handle case for hashes that are incorrect/not assigned to a tab
+
+    // If user logs in or logs out without refreshing, ensure they get the not logged in alert
+    useEffect(() => {
+        if (!session) {
+            Alerts.queue(NotLoggedInAlert);
+        }
+    }, [session]);
 
     return (
         <Tabs
