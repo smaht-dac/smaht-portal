@@ -2,7 +2,6 @@ import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 
 import graphData from './data/alluvial_data.json';
-import tableData from './data/stackrow_data.json';
 
 import { sankeyFunc } from './sankey';
 import { StackRowTable } from './StackRowTable';
@@ -441,28 +440,11 @@ export const Alluvial = () => {
                 <span>Note:</span> for the best experience, please view the
                 visualization below on a tablet or desktop.
             </p>
-            <div>
-                <Tabs
-                    defaultActiveKey="alluvial"
-                    className="mb-3 float-right"
-                    variant="pills">
-                    <Tab
-                        className="alluvial"
-                        eventKey="alluvial"
-                        title="Alluvial view">
-                        <div ref={containerRef}></div>
-                        <div className="footnote">
-                            Technologies and assays are proposed and are not
-                            final.
-                        </div>
-                    </Tab>
-                    <Tab
-                        className="stackrow-table"
-                        eventKey="table"
-                        title="Table view">
-                        <StackRowTable data={tableData} />
-                    </Tab>
-                </Tabs>
+            <div className="alluvial">
+                <div ref={containerRef}></div>
+                <div className="footnote">
+                    Technologies and assays are proposed and are not final.
+                </div>
             </div>
         </div>
     );

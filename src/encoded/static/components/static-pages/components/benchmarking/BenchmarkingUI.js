@@ -4,13 +4,18 @@ import _ from 'underscore';
 import { Tab, Tabs } from 'react-bootstrap';
 
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
+
 import { BenchmarkingTableController } from './BenchmarkingTable';
 import { navigate } from '../../../util';
+import { NotLoggedInAlert } from '../../../navigation/components';
 
 export const BenchmarkingLayout = ({
     schemas,
     title,
     description,
+    showBamQCLink = false,
+    bamQCHash = '', // TODO: Other datasets will have qcs on same page accessible by anchor hash
     children,
 }) => {
     const cls = `readable ${!schemas ? 'mb-5' : 'mb-2'}`;
@@ -18,18 +23,31 @@ export const BenchmarkingLayout = ({
     return (
         <div className="benchmarking-layout">
             <div className="row">
-                <div className="col-auto">
+                <div className="col-auto col-lg-9">
                     <h2>{title}</h2>
                     <p className={cls}>{description}</p>
+                    {description ? (
+                        <p className="readable disclaimer mb-2">
+                            <span className="">Note:</span> The unaligned BAM
+                            and FASTQ files, and data from unofficial
+                            benchmarking samples will be available upon request
+                            &#40;through Globus&#41; or at the next release of
+                            the portal.
+                        </p>
+                    ) : null}
                 </div>
-                {/* TODO: Re-add this once we have this documentation available
-                <div className="col-md-4 col-12">
-                    <a
-                        className="btn btn-outline-secondary float-right"
-                        href="#">
-                        Benchmarking Assay Documentation
-                    </a>
-                </div> */}
+                {/* TODO: Re-add documentation button once we have it available */}
+                <div className="col-auto mb-2 mb-lg-0 col-lg-3">
+                    {showBamQCLink && (
+                        <a
+                            className="btn btn-outline-secondary float-right"
+                            href={'/bam-qc-overview' + bamQCHash}
+                            rel="noreferrer noopener"
+                            target="_blank">
+                            BAM QC Results
+                        </a>
+                    )}
+                </div>
             </div>
             {/* Schemas are loading, so hash won't be available yet; can't pick correct tab */}
             {!schemas && (
@@ -81,6 +99,13 @@ export const HashBasedTabController = ({
     );
 
     // TODO: In future, handle case for hashes that are incorrect/not assigned to a tab
+
+    // If user logs in or logs out without refreshing, ensure they get the not logged in alert
+    useEffect(() => {
+        if (!session) {
+            Alerts.queue(NotLoggedInAlert);
+        }
+    }, [session]);
 
     return (
         <Tabs

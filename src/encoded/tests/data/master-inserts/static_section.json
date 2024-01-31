@@ -58,7 +58,7 @@
     },
     {
         "identifier": "alluvial",
-        "title": "SMaHT Data Alluvial Diagram",
+        "title": "SMaHT Data Overview",
         "file": "/docs/public/alluvial.jsx",
         "status": "public",
         "options": {
@@ -68,6 +68,25 @@
         },
         "section_type": "Page Section",
         "uuid": "d3d9c545-4340-495a-92ea-7ccb7eebc71b",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "assay-table",
+        "title": "SMaHT Benchmarking Experimental Assays",
+        "file": "/docs/public/assay-table.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "eb1d19d5-5ebe-4e89-a8d7-fc50a8c85a61",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -136,7 +155,7 @@
         "identifier": "benchmarking.Heart",
         "title": "Heart Data Table",
         "file": "/docs/public/benchmarking_Heart.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -212,7 +231,7 @@
         "identifier": "benchmarking.Skin",
         "title": "Skin Data Table",
         "file": "/docs/public/benchmarking_Skin.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -231,7 +250,7 @@
         "identifier": "benchmarking.Brain",
         "title": "Brain Data Table",
         "file": "/docs/public/benchmarking_Brain.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -252,6 +271,11 @@
         "file" : "/docs/source/account_creation.rst",
         "section_type": "Page Section",
         "status": "public",
+        "options": {
+            "filetype": "rst",
+            "initial_header_level": 4
+        },
+        "title": "Account Creation",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -284,6 +308,11 @@
         "file" : "/docs/source/getting_started.rst",
         "section_type": "Page Section",
         "status": "public",
+        "options": {
+            "filetype": "rst",
+            "initial_header_level": 4
+        },
+        "title": "Getting Started (User)",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -316,6 +345,11 @@
         "file" : "/docs/source/excel_submission.rst",
         "section_type": "Page Section",
         "status": "public",
+        "options": {
+            "filetype": "rst",
+            "initial_header_level": 4
+        },
+        "title": "Excel Submission",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

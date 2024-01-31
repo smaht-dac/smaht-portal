@@ -94,7 +94,8 @@
         "title": "SMaHT Data",
         "status": "public",
         "content": [
-            "d3d9c545-4340-495a-92ea-7ccb7eebc71b"
+            "d3d9c545-4340-495a-92ea-7ccb7eebc71b",
+            "eb1d19d5-5ebe-4e89-a8d7-fc50a8c85a61"
         ],
         "table-of-contents": {
           "enabled": false,
@@ -385,7 +386,7 @@
     {
         "identifier": "data/benchmarking/HapMap",
         "title": "HapMap",
-        "status": "in review",
+        "status": "public",
         "content": [
             "5b5d9021-4dca-4023-bc5e-123b5ef66ff2"
         ],
@@ -406,7 +407,7 @@
     {
         "identifier": "data/benchmarking/iPSC-fibroblasts",
         "title": "iPSC and Fibroblasts",
-        "status": "in review",
+        "status": "public",
         "content": [
             "a08bb75d-93e2-455f-9fe2-aa8f4969d233"
         ],

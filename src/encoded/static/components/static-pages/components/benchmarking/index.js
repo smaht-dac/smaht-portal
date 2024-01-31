@@ -29,6 +29,7 @@ export const COLO829Data = ({ schemas, session, facets, href, context }) => {
     return (
         <BenchmarkingLayout
             {...{ schemas }}
+            showBamQCLink={true}
             title="COLO829 Cell Line Data"
             description="COLO829 (COLO829T) is a metastatic melanoma cancer cell line, which has a matched normal lymphoblast cell line, COLO892BL, derived from the same individual. For benchmarking analysis, COLO829T cells were mixed with COLO829BL cells at a mixture ratio of 1:50 (COLO829BLT50).">
             <HashBasedTabController
