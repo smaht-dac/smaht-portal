@@ -70,7 +70,7 @@ export const IPSCFibroblastData = ({
     return (
         <BenchmarkingLayout
             {...{ schemas }}
-            title="iPSc Cell Line Data"
+            title="iPSC Cell Line Data"
             description="">
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
