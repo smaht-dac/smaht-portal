@@ -135,7 +135,6 @@ const BenchmarkingTable = (props) => {
         },
         // Center
         'submission_centers.display_title': {
-            colTitle: 'Center',
             render: function (result, parentProps) {
                 const { submission_centers: gccs = [] } = result || {};
                 if (gccs.length === 0) return null;
