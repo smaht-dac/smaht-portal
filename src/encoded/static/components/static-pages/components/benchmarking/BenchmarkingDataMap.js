@@ -48,7 +48,7 @@ export const BenchmarkingDataMap = {
         ],
     },
     iPScFibroblasts: {
-        navBarTitle: 'iPSc and Fibroblasts',
+        navBarTitle: 'iPSC and Fibroblasts',
         type: 'Cell Line Data',
         path: '/data/benchmarking/iPSC-fibroblasts',
         tabMapArray: [

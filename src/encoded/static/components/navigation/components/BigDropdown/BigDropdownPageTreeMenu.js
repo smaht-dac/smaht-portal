@@ -264,7 +264,7 @@ function CustomStaticLinks({ pathName, href }) {
                                     className="level-3-title text-small d-block"
                                     href="/data/benchmarking/iPSC-fibroblasts#main"
                                     id="menutree-linkto-ipscfirbro_page">
-                                    <span>iPSc and Fibroblasts</span>
+                                    <span>iPSC and Fibroblasts</span>
                                 </a>
                             </div>
                         </div>
