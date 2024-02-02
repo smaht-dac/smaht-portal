@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.17.0
+======
+
+`PR 63: Benchmarking release data model <https://github.com/smaht-dac/smaht-portal/pull/63>`_
+* Add two new item types: Sequencer + Assay
+* Add `code` property to multiple item types to store file naming conventions
+* Share SubmittedFile release properties with OutputFile
+* Update file facets + columns and embed fields for search
+
+
 0.16.0
 ======
 
