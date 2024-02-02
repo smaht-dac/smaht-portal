@@ -47,7 +47,7 @@
     "alignment_details": {
         "alignment_details": {
             "title": "Data Details",
-            "description": "Additional details about the data contents",
+            "description": "Additional details about sequencing alignment",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,

@@ -134,11 +134,6 @@
                     "Somatic Variant Calls",
                     "Statistics",
                     "Unaligned Reads",
-                    "Copy Number Variant",
-                    "Insertion-deletion",
-                    "Mobile Element Insertion",
-                    "Single Nucleotide Variant",
-                    "Structural Variant",
                     "CNV",
                     "Indel",
                     "MEI",
@@ -156,7 +151,8 @@
             "title": "Sequencing Center",
             "description": "Sequencing Center",
             "type": "string",
-            "linkTo": "SubmissionCenter"
+            "linkTo": "SubmissionCenter",
+            "permission": "restricted_fields"
         }
     },
     "facets": {
