@@ -206,7 +206,7 @@ export const ConsortiumMap = () => {
             .attr('class', 'map-marker-icon')
             .style('cursor', 'pointer')
             .attr('transform', (d) => {
-                return `translate(${d.x}, ${d.y})`;
+                return `translate(${d.x + 8}, ${d.y + 4})`;
             })
             .on('mouseover', (evt, d) => {
                 handleShowOverlay(evt, d);
