@@ -10,7 +10,6 @@ with captured_output():
     from encoded.ingestion.loadxl_extensions import load_data_into_database, summary_of_load_data_results
 from encoded.ingestion.ingestion_processors import parse_structured_data
 from dcicutils.structured_data import Portal, Schema, StructuredDataSet
-from dcicutils.portal_object_utils import PortalObject
 
 
 # For dev/testing only.
