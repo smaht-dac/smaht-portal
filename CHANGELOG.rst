@@ -7,10 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.17.0
+0.18.0
 ======
 
 * Adds a command to load users from a master OC spreadsheet (not tracked in git)
+
+
+0.17.0
+======
+
+* Version updates to dcicutils, dcicsnovault, encoded-core.
+  Changes to itemize SMaHT submission ingestion create/update/diff situation and deletes.
+* Removed Rahi from admin group for submission ingestion testing purposes (master-inserts/user.json).
 
 
 0.16.0

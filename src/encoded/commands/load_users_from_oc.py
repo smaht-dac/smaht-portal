@@ -80,7 +80,7 @@ class UserCSVProcessor:
             self.user_dict[user.email] = user
         return self.user_dict
 
-    def remove_existing_users(self):
+    def ignore_existing_users(self):
         """ Strips out users who already have a user record """
         for email, _ in self.user_dict.items():
             try:
@@ -125,7 +125,7 @@ class UserCSVProcessor:
         self.validate_submission_center_list()
         self.generate_users(user_csv_list)
         PRINT(f'Found {len(self.user_dict.items())} (at most) to post')
-        self.remove_existing_users()
+        self.ignore_existing_users()
         number_updated = self.post_users_to_portal()
         PRINT(f'{number_updated} users have been posted to the portal')
 
