@@ -334,7 +334,13 @@ export const ConsortiumMap = () => {
                     className="mb-3 float-right"
                     variant="pills">
                     <Tab eventKey="map" title="Map view">
-                        <div ref={mapReference}>
+                        <div
+                            className="consortium-map-container"
+                            ref={mapReference}>
+                            <span className="interaction-notice">
+                                Hover over pins to read more about each SMaHT
+                                Consortium Member
+                            </span>
                             <Overlay
                                 target={overlayTarget?.current?.node}
                                 show={showOverlay}

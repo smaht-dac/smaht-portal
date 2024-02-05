@@ -737,6 +737,14 @@ body[data-path="/"]>#application>#layout {
 	position: relative;
 	nav {
 		font-weight: 400;
+		position: absolute;
+		right: 0;
+		
+		.nav-item {
+			&.active {
+				font-weight: 500;
+			}
+		}
 	}
 	text {
 		font-family: Inter;
@@ -756,6 +764,33 @@ body[data-path="/"]>#application>#layout {
 
 	#map-marker-svg:hover {
 		cursor: pointer;
+	}
+
+	&-container {
+		padding-top: 75px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+
+		svg {
+			margin: auto;
+		}
+	}
+
+	.interaction-notice {
+        color: gray;
+		font-size: .6rem;
+        font-style: italic;
+		margin: auto;
+		@include media-breakpoint-up(sm) {
+			font-size: .7rem;
+		}
+		@include media-breakpoint-up(md) {
+			font-size: .8rem;
+		}
+		@include media-breakpoint-up(lg) {
+			font-size: .9rem;
+		}
 	}
 
 	
@@ -971,6 +1006,7 @@ div#popover-consortium-map {
         overflow: visible;
 		max-width: 100%;
 		height: 100%;
+		width: 100%;
 
         .header {
             font-family: Inter;
