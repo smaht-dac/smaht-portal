@@ -267,6 +267,9 @@
     {
         "email": "rahi_navelkar@hms.harvard.edu",
         "uuid": "06344dd1-30b3-40a0-b06a-1ab8111d3ce5",
+        "groups": [
+            "admin"
+        ],
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
