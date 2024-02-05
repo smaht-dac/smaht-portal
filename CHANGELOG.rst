@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.18.0
+======
+
+* Adds a command to load users from a master OC spreadsheet (not tracked in git)
+
 
 0.17.0
 ======
