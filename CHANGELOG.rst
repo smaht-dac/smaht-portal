@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.19.0
+======
+
+* Repair small bug in extra file line generation, implement/test field fallbacks
+* Repair permissions issues coming from snovault
+* Update extra file names in encoded-core
+
+
 0.18.0
 ======
 
@@ -19,6 +27,7 @@ Change Log
 * Version updates to dcicutils, dcicsnovault, encoded-core.
   Changes to itemize SMaHT submission ingestion create/update/diff situation and deletes.
 * Removed Rahi from admin group for submission ingestion testing purposes (master-inserts/user.json).
+>>>>>>> main
 
 
 0.16.0
