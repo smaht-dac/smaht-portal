@@ -7,6 +7,11 @@ Excel Submission
 ================
 
 
+.. image:: /static/img/docs/somescreenshot.png
+   :target: /static/img/docs/somescreenshot.png
+   :alt: Some Screenshot
+
+
 Overview
 --------
 

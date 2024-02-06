@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.19.0
+======
+
+* Documentation updates related to submission.
+
+
 0.18.0
 ======
 

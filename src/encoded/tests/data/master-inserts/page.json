@@ -165,6 +165,7 @@
         "children": [
             "5153c902-a0d2-4246-9b41-cea7a1c91f52",
             "6292facf-9eb4-451e-8d05-2e56e1bd7cbe",
+            "9410a992-c9b2-4be8-81e8-cc9559c0e488",
             "6292facf-9eb4-451e-8d05-2e56e1bd7cbf"
         ],
         "table-of-contents": {
@@ -284,7 +285,7 @@
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
-     {
+    {
         "identifier": "docs/user-guide/account-creation",
         "uuid": "5153c902-a0d2-4246-9b41-cea7a1c91f52",
         "title": "Creating an Account",
@@ -315,6 +316,24 @@
         },
         "status": "public",
         "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/user-guide/excel-submission",
+        "uuid": "9410a992-c9b2-4be8-81e8-cc9559c0e488",
+        "title": "Excel Spreadsheet Submission",
+        "content": [
+            "442c8aa0-dc6c-43d7-814a-854af460b016"
+        ],
+        "table-of-contents": {
+            "enabled": true
+        },
+        "status": "public",
+         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "submission_centers": [

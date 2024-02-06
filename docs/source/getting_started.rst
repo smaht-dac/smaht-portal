@@ -2,53 +2,68 @@
 Getting Started (User)
 ======================
 
-
-In order to make your data accessible, searchable and assessable you should submit as much metadata as possible to the SMaHT system along with the raw files you have generated in your experiments.
+In order to make your data accessible, searchable and assessable you should submit as much metadata as possible
+to the SMaHT system along with the raw files you have generated in your experiments.
 
 These pages are designed to:
 
 * Show you how to find out what kind of metadata we collect for your particular type of experiment.
-* Introduce the mechanisms by which you can submit your metadata and data to the SMaHT data portal.
+* Introduce the mechanisms by which you can submit your metadata and associated data files to the SMaHT data portal.
 
 An overview of metadata structure is pending, check back soon!
 
-We have two primary ways that you can submit data to the SMaHT data portal.
+The primary way to submit data to the SMaHT data portal is via Excel spreadsheet, as described below.
 
 
-Data Submission via Spreadsheet
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Data Submission via Excel Spreadsheet
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Data may be uploaded to the SMaHT data portal using a software tool called ``smaht-submitr``.
+Uploading metadata and associated data files to the SMaHT data portal can be done using a software tool called ``smaht-submitr``.
 This is a Python based command-line tool which is distributed on `PyPi <https://pypi.org/>`_ here: `smaht-submitr <https://pypi.org/project/smaht-submitr/>`_
+The metadata is represented by an Excel spreadsheet (also called `workbook`) which contains a number of sheets (also called `worksheets`).
 
-This ``smaht-submitr`` tool allows you to upload metadata and associated data files 
+Such Excel metadata workbooks:
 
-The Excel metadata workbooks:
-
-* Are useful for submitting metadata and data for several sequencing experiments or samples
-* Can be used to make bulk edits of submitted but not yet released metadata
-* Contain multiple sheets where each sheet corresponds to an object type and each column a field of metadata
-* Can be generated using the ``smaht-submitr`` software
+* Are useful for submitting metadata and data for several sequencing experiments or samples.
+* Can be used to make bulk edits of submitted but not yet released metadata.
+* Contain multiple sheets where each sheet corresponds to an object type and each column a field of metadata.
 * Are used as input to the ``smaht-submitr`` software which validates submissions and pushes the content of the forms to our database.
 
-Documentation of the data submission process using these forms will soon be available
-`here <https://submitr.readthedocs.io/en/latest/>`_.
+Spreadsheet generation tools may be made available in the future; please contact the DAC directly for data submission templates.
+More extensive documentation of the data submission process can be found `here <https://submitr.readthedocs.io/en/latest/>`_.
 
 
-REST API
-^^^^^^^^
+|
 
-For both meta/data submission and retrival, you can also access our database directly via the REST-API.
+Formatting Files for Submission
+-------------------------------
+The file format recommended for the metadata is an Excel spreadsheet file (e.g. ``your_metadata_file.xlsx``),
+comprised of one or more sheets. Each sheet name must be the name of a SMaHT data portal entity or `object` defined within the system.
 
+Each sheet must have as its first row, a special `header` row, which enumerates the names of the object properties as the column names;
+each column name must match exactly the name of the property for the Portal object.
+Each sheet may contain any number of rows, each representing an instance of the object.
 
-* Data objects exchanged with the server conform to the standard JavaScript Object Notation (JSON) format.
-* Our implementation is analagous to the one developed
-  by the `ENCODE DCC <https://www.encodeproject.org/help/rest-api/>`_.
+Note that the first row which is entirely empty marks the end of the input, and any subsequenct rows will be entirely ignored.
 
+And similarly, the first column in the header column which is empty marks the end of the header,
+and any subsequent columns will be entirely ignored.
 
+A column value within a (non-header) row may be empty, but this means the value would be ignored
+when creating or updating the associated object. In order to delete a property value a special
+value ``*delete*`` should be used as the the property value.
+
+For example:
+
+.. image:: /static/img/docs/excel_screenshot.png
+   :target: /static/img/docs/excel_screenshot.png
+   :alt: Excel Spreadsheet Screenshot
+
+|
 
 Referencing existing objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TODO
 
 
 Using submitted_id
@@ -68,7 +83,7 @@ Other ways to reference existing items
 
 You don't need to use a submitted_id if you are referencing an item that already exists in the database.
 
-Any of the following can be used to reference an existing item in an excel sheet or when using the REST-API.
+Any of the following can be used to reference an existing item in an Excel spreadsheet.
 
 
 * **accession** - Objects of some types (eg. Files, Analytes, Samples etc) are *accessioned*\ , e.g. SMAFI4723419.
@@ -136,7 +151,6 @@ If you have been designated as a submitter for the project and plan to use eithe
    * However you can specify your own filename and file location as parameters to the software (see below).
    * The key information is stored in JSON format and is used to establish a secure connection.
    * the JSON must be formatted as shown below - replace key and secret with your new “Access Key ID” and “Secret Access Key”.
-   * You can use the same key and secret to use the SMaHT REST API.
 
 **Sample content for ~/.smaht-keys.json**
 
