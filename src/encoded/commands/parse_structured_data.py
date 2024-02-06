@@ -254,9 +254,9 @@ def print_structured_data_status(portal: Portal, structured_data: StructuredData
         for object_info in diffs[object_type]:
             PRINT(f"  - OBJECT: {object_info.path}")
             if not object_info.uuid:
-                PRINT(f"     Does not exist -> Will be CREATED")
+                PRINT(f"    Does not exist -> Will be CREATED")
             else:
-                PRINT(f"     Already exists -> {object_info.uuid} -> Will be UPDATED", end="")
+                PRINT(f"    Already exists -> {object_info.uuid} -> Will be UPDATED", end="")
                 if not object_info.diffs:
                     PRINT(" (but NO substantive diffs)")
                 else:
