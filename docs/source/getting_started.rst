@@ -1,3 +1,8 @@
+======================
+Getting Started (User)
+======================
+
+
 In order to make your data accessible, searchable and assessable you should submit as much metadata as possible to the SMaHT system along with the raw files you have generated in your experiments.
 
 These pages are designed to:
