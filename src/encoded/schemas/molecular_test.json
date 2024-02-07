@@ -96,7 +96,7 @@
             "linkTo": "MedicalHistory"
         },
         "submitted_id": {
-            "pattern": "^[A-Z]{2,}_MOLECULAR-TEST_[A-Z0-9-_.]{4,}$"
+            "pattern": "^[A-Z0-9]{3,}_MOLECULAR-TEST_[A-Z0-9-_.]{4,}$"
         }
     }
 }

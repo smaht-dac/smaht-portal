@@ -100,7 +100,7 @@
             "default": "1"
         },
         "submitted_id": {
-            "pattern": "^[A-Z]{2,}_ALIGNED-READS_[A-Z0-9-_.]{4,}$"
+            "pattern": "^[A-Z0-9]{3,}_ALIGNED-READS_[A-Z0-9-_.]{4,}$"
         }
     }
 }

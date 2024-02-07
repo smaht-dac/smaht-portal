@@ -57,7 +57,7 @@
             "default": "1"
         },
         "submitted_id": {
-            "pattern": "^[A-Z]{2,}_SEQUENCING_[A-Z0-9-_.]{4,}$"
+            "pattern": "^[A-Z0-9]{3,}_SEQUENCING_[A-Z0-9-_.]{4,}$"
         },
         "flowcell": {
             "title": "Flowcell",
