@@ -18,13 +18,18 @@ We have two primary ways that you can submit data to the SMaHT data portal.
 Data Submission via Spreadsheet
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Data may be uploaded to the SMaHT data portal using a software tool called ``smaht-submitr``.
+This is a Python based command-line tool which is distributed on `PyPi <https://pypi.org/>`_ here: `smaht-submitr <https://pypi.org/project/smaht-submitr/>`_
+
+This ``smaht-submitr`` tool allows you to upload metadata and associated data files 
+
 The Excel metadata workbooks:
 
 * Are useful for submitting metadata and data for several sequencing experiments or samples
 * Can be used to make bulk edits of submitted but not yet released metadata
 * Contain multiple sheets where each sheet corresponds to an object type and each column a field of metadata
-* Can be generated using the ``submitr`` software
-* Are used as input to the ``submitr`` software which validates submissions and pushes the content of the forms to our database.
+* Can be generated using the ``smaht-submitr`` software
+* Are used as input to the ``smaht-submitr`` software which validates submissions and pushes the content of the forms to our database.
 
 Documentation of the data submission process using these forms will soon be available
 `here <https://submitr.readthedocs.io/en/latest/>`_.

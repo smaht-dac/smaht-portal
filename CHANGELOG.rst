@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.17.0
+0.20.0
 ======
 
 `PR 63: Benchmarking release data model <https://github.com/smaht-dac/smaht-portal/pull/63>`_
@@ -15,6 +15,28 @@ Change Log
 * Add `code` property to multiple item types to store file naming conventions
 * Share SubmittedFile release properties with OutputFile
 * Update file facets + columns and embed fields for search
+
+
+0.19.0
+======
+
+* Repair small bug in extra file line generation, implement/test field fallbacks
+* Repair permissions issues coming from snovault
+* Update extra file names in encoded-core
+
+
+0.18.0
+======
+
+* Adds a command to load users from a master OC spreadsheet (not tracked in git)
+
+
+0.17.0
+======
+
+* Version updates to dcicutils, dcicsnovault, encoded-core.
+  Changes to itemize SMaHT submission ingestion create/update/diff situation and deletes.
+* Removed Rahi from admin group for submission ingestion testing purposes (master-inserts/user.json).
 
 
 0.16.0
