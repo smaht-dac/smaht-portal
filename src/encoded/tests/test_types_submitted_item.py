@@ -37,9 +37,9 @@ DUMMY_SUBMITTED_ID_CODE = "FOOBAR"
 
 
 def test_submitted_id_code_pattern(testapp: TestApp) -> None:
-    """Ensure SubmissionCenter submitter_id_code pattern as expected.
+    """Ensure SubmissionCenter `code` pattern as expected.
 
-    First portion of the submitted_id corresponds to the submitted_id_code of
+    First portion of the submitted_id corresponds to the code of
     SubmissionCenter, so these need to be synced.
     """
     submitted_id_code_pattern = get_submitted_id_code_pattern(testapp)
@@ -47,12 +47,17 @@ def test_submitted_id_code_pattern(testapp: TestApp) -> None:
 
 
 def get_submitted_id_code_pattern(testapp: TestApp) -> str:
-    """Get SubmissionCenter submitted_id_code pattern."""
+    """Get SubmissionCenter `code` pattern.
+
+    `code` pattern is lowercase for file naming, but `submitted_id` is
+    uppercase, so convert for comparison.
+    """
     submission_center_schema = get_schema(testapp, "submission_center")
-    submitted_id_code = schema_utils.get_property(
-        submission_center_schema, "submitted_id_code"
+    submission_center_code = schema_utils.get_property(
+        submission_center_schema, "code"
     )
-    return schema_utils.get_pattern(submitted_id_code)
+    code_pattern = schema_utils.get_pattern(submission_center_code)
+    return code_pattern.upper()
 
 
 def test_submitted_id_patterns(testapp: TestApp) -> None:

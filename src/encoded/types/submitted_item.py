@@ -48,7 +48,7 @@ useful.
 
 
 SUBMITTED_ID_PROPERTY = "submitted_id"
-SUBMITTED_ID_CENTER_CODE_PATTERN = "^[A-Z]{2,}"
+SUBMITTED_ID_CENTER_CODE_PATTERN = "^[A-Z0-9]{3,}"
 SUBMITTED_ID_IDENTIFIER_PATTERN = "[A-Z0-9-_.]{4,}$"
 SUBMITTED_ID_SEPARATOR = "_"
 
@@ -153,7 +153,12 @@ def get_submission_centers(properties: Dict[str, Any]) -> List[str]:
 
 
 def get_submitted_id_code(properties: Dict[str, Any]) -> str:
-    return properties.get("submitted_id_code", "")
+    """Get submission center code from properties.
+
+    Note: `code` is lower-cased for file naming purposes but
+    upper-cased for `submitted_id` purposes.
+    """
+    return properties.get("code", "").upper()
 
 
 def validate_submitted_id(
