@@ -26,16 +26,16 @@ You can resume execution with the upload part by doing::
 
    resume-uploads --env <environment-name> <uuid>
 
-where the ``uuid`` argument is the UUID for the submission which should have been displayed in the output of the ``submit-metadata-bundle`` command.
+where the ``uuid`` argument is the UUID for the submission which should have been displayed in the output of the ``submit-metadata-bundle`` command;
+this will upload `all` of the files references for the given submission UUID.
 
-You can upload individual files referenced in the original submission separately by doing::
+Or, you can upload `individual` files referenced in the original submission separately by doing::
 
-   resume-uploads --env <environment-name> <referenced-file-uuid-or-accesssion-id> --uuid <item-uuid>
+   resume-uploads --env <environment-name> <referenced-file-uuid> --uuid <item-uuid>
 
-where the ``<referenced-file-uuid-or-accesssion-id>`` is the uuid (or the accession ID or accession based file name) of the 
-individual file referenced (`not` the submission or metadata bundle UUID) which you wish to upload.
-
-The **uuid** (or accession ID or accession based file name) is included in the output of ``submit-metadata-bundle``;
+where the ``<referenced-file-uuid>`` is the uuid individual file referenced, `or`
+the accession ID or accession ID based file name of the referenced file.
+This **uuid**, or accession ID or accession ID based file name, is included in the output of ``submit-metadata-bundle``;
 specifically in the **Upload Info** section of that output.
 
 For both of these commands above, you will be asked to confirm if you would like to continue with the stated action.
