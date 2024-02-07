@@ -2,7 +2,8 @@
 Uploading Referenced Files
 ==========================
 
-As mentioned above, after ``submit-metadata-bundle`` processes the main submission file, it will (after prompting) upload files referenced within the submission file. These files should reside
+
+As mentioned in the `Getting Started with Submissions </docs/user-guide/getting-started>`_ section, after ``submit-metadata-bundle`` processes the main submission file, it will (after prompting) upload files referenced within the submission file. These files should reside
 in the same directory as the submission file.
 Or, if they do not, then yo must specify the directory where these files can be found, like this::
 
@@ -41,6 +42,8 @@ scheduler or in the background, you can pass the ``--no_query`` or ``-nq`` argum
 
     submit-metadata-bundle your_metadata_file.xlsx --no_query
 
+|
+
 Other File Upload Considerations
 --------------------------------
 
@@ -48,7 +51,8 @@ Since ``smaht-submitr`` will only upload files found on the local computer runni
 if your files are not stored locally and are instead in cloud storage or a local cluster,
 you need to consider other options for uploading such files.
 
-**Load the files locally**
+
+**Loading Files Locally**
 
 This option works well for uploading a small number
 of files or files of small size. Files can be
