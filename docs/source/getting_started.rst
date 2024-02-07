@@ -37,18 +37,15 @@ More extensive documentation of the data submission process can be found `here <
 Formatting Files for Submission
 -------------------------------
 The file format recommended for the metadata is an Excel spreadsheet file (e.g. ``your_metadata_file.xlsx``),
-comprised of one or more sheets. Each sheet name must be the name of a SMaHT data portal entity or `object` defined within the system.
+comprised of one or more sheets.
+Note these important aspects of the acceptable spreadsheet format:
 
-For details specifics of the Excel metadata spreadsheet format please see: `this page </docs/user-guide/excel-submission>`_.
-
-Each sheet must have as its first row, a special `header` row, which enumerates the names of the object properties as the column names;
-each column name must match exactly the name of the property for the Portal object.
-Each sheet may contain any number of rows, each representing an instance of the object.
-
-Note that the first row which is entirely empty marks the end of the input, and any subsequenct rows will be entirely ignored.
-
-And similarly, the first column in the header column which is empty marks the end of the header,
-and any subsequent columns will be entirely ignored.
+#. Each sheet name must be the name of a SMaHT Portal entity or `object` defined within the system.
+#. Each sheet must have as its first row, a special `header` row, which enumerates the names of the Portal object properties as the column names.
+#. Each of these columns name must match exactly the name of the property for the Portal object.
+#. Each sheet may contain any number of rows, each representing an instance of the Portal object.
+#. The first row which is entirely empty marks the end of the input, and any subsequenct rows will be entirely ignored.
+#. The first column in the header column which is empty marks the end of the header, and any subsequent columns will be entirely ignored.
 
 Here is screenshot of a simple example Excel spreadsheet: 
 
