@@ -124,11 +124,11 @@ using the standard Python ``pip`` utility like this::
 
     pip install smaht-submitr
 
-For more details on installation process pleae see `here <https://submitr.readthedocs.io/en/latest/>`_.
+For more details on installation process please see `here <https://submitr.readthedocs.io/en/latest/>`_.
 
 **Basic Usage**
 
-To get help about the command, do::
+The basic ``smaht-submitr`` command is called ``submit-metadata-bundle``. To get help about this command, do::
 
    submit-metadata-bundle --help
 
