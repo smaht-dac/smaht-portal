@@ -118,7 +118,7 @@ A brief tour of this command, its arguments, and function is described below.
 
 **Installation**
 
-The ``smaht-submitr`` tool is a Python based command-line tool, distributed `here <https://pypi.org/project/smaht-submitr/>`
+The ``smaht-submitr`` tool is a Python based command-line tool, distributed `here <https://pypi.org/project/smaht-submitr/>`_
 on `PyPi <https://pypi.org/project/smaht-submitr/>`_ which can be installed
 using the standard Python ``pip`` utility. For more details on installation pleae see `here <https://submitr.readthedocs.io/en/latest/>`_.
 
