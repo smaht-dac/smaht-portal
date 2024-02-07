@@ -64,7 +64,7 @@ representing (in this example) data for the objects ``CellCultureSample``, ``Ana
 
 **Column Deletions**
 
-A column value within a (non-header) row may be empty, but this only means that the value will be ignored
+A column value within a (non-header) data row may be empty, but this only means that the value will be ignored
 when creating or updating the associated object. In order to actually `delete` a property value from an object,
 a special value - ``*delete*`` - should be used as the the property value.
 
@@ -72,7 +72,8 @@ a special value - ``*delete*`` - should be used as the the property value.
 
 Some Portal object properties defined to contain other `nested` objects.
 Since a (Excel spreadsheet) inherently defines a "flat" structure,
-rather than the more hierarchical structure supported by Portal objects, in which such nested objects can be defined,
+rather than the more hierarchical structure supported by Portal objects (which are actually `JSON <https://en.wikipedia.org/wiki/JSON>`_ objects),
+in which such nested objects can be defined,
 a special syntactic convention is needed to be able to reference the properties of these nested objects.
 
 For this we will use a `dot-notation` whereby dots (``.``) are used to separate a parent property from its child property.
