@@ -1,4 +1,4 @@
-
+@import "../encoded/modules/tokens";
 
 /*************************************************************
  ************ SMaHT-Brand-Specific Variables & Config *********
@@ -99,8 +99,10 @@ $navbar-transition-length: .3s;
 $navbar-transition-easing: ease-out;
 $navbar-separator-color : scale-color($navbar-link-color, $alpha: -80%) !default;
 
-$footer-background-color: #F5F9FB;
-$footer-text-color: #5B7595;
+$footer-border-color: $slate-20;
+$footer-background-color: $slate-10;
+$footer-text-color: $slate-60;
+$footer-link-color: $slate-60;
 
 // We set navbar to become fixed position @ Bootstrap's medium size.
 @mixin navbar-fixed-position {
@@ -123,7 +125,7 @@ $link-color: #428bca;
 $expset-table-border-color : #eee;
 
 
-$primary:       #2543C3;
+$primary:       #0E74D2;
 $secondary:     #6c757d;
 $success:       #4C994C;
 $info:          #4ca6ea;

@@ -15,6 +15,7 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
             'reference_file',
             'reference_genome',
             'software',
+            'tracking_item',
             'workflow',
             'workflow_run',
             'meta_workflow',

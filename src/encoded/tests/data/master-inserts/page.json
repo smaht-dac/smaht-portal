@@ -2,14 +2,10 @@
     {
         "identifier": "about",
         "title": "About",
-        "status": "in review",
+        "status": "public",
         "children": [
-            "c57a5299-64aa-4e8d-bf01-6668d815b94f",
             "d2d042e7-09e5-4a34-a8c5-530ba9c9cdec",
             "af03023c-1ce0-49a1-b85b-20f5abd8cc30"
-        ],
-        "content": [
-           "3fd92b15-9771-4218-a3f9-77b15805443e"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -24,30 +20,9 @@
         ]
     },
     {
-        "identifier": "about/what-is-smaht",
-        "title": "What is SMaHT?",
-        "status": "in review",
-        "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
-        ],
-        "table-of-contents": {
-          "enabled": false,
-          "skip-depth": 1,
-          "header-depth": 4,
-          "include-top-link": false
-        },
-        "uuid": "c57a5299-64aa-4e8d-bf01-6668d815b94f",
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
-    },
-    {
         "identifier": "about/consortium",
         "title": "SMaHT Consortium Information",
-        "status": "in review",
+        "status": "public",
         "children": [
             "6da98599-12a7-456f-8598-da510a88c7e8",
             "1ef242a4-954c-4c77-9193-3ec3b1a8e7d7"
@@ -71,8 +46,8 @@
     },
     {
         "identifier": "about/join",
-        "title": "How to Join SMaHt",
-        "status": "in review",
+        "title": "How to Join SMaHT",
+        "status": "public",
         "children": [
             "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd"
         ],
@@ -95,10 +70,9 @@
     },
     {
         "identifier": "about/consortium/awardees",
-        "title": "SMaHT Awardees",
-        "status": "in review",
+        "title": "SMaHT Consortium Members",
+        "status": "public",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5",
             "f1601ba5-483b-4133-a76b-5bec7caa2dd2"
         ],
         "table-of-contents": {
@@ -118,10 +92,10 @@
     {
         "identifier": "about/consortium/data",
         "title": "SMaHT Data",
-        "status": "in review",
+        "status": "public",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5",
-            "d3d9c545-4340-495a-92ea-7ccb7eebc71b"
+            "d3d9c545-4340-495a-92ea-7ccb7eebc71b",
+            "eb1d19d5-5ebe-4e89-a8d7-fc50a8c85a61"
         ],
         "table-of-contents": {
           "enabled": false,
@@ -139,10 +113,10 @@
     },
     {
         "identifier": "about/join/policy",
-        "title": "Associate Membership policy",
-        "status": "in review",
+        "title": "Associate Membership Policy",
+        "status": "public",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "dd5198bb-72ba-4c5b-9736-3ba785814a20"
         ],
         "table-of-contents": {
           "enabled": false,
@@ -187,9 +161,9 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-            "enabled": false,
-            "skip-depth": 1,
-            "header-depth": 4,
+            "enabled": true,
+            "skip-depth": 3,
+            "header-depth": 6,
             "include-top-link": false
         },
         "uuid": "859b2c48-0bda-406c-b49b-07d68bd236d4",
@@ -208,9 +182,9 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-            "enabled": false,
-            "skip-depth": 1,
-            "header-depth": 4,
+            "enabled": true,
+            "skip-depth": 3,
+            "header-depth": 6,
             "include-top-link": false
         },
         "uuid": "faabe1c0-3d8a-4651-bc86-072fb49ad016",
@@ -229,9 +203,9 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-            "enabled": false,
-            "skip-depth": 1,
-            "header-depth": 4,
+            "enabled": true,
+            "skip-depth": 3,
+            "header-depth": 6,
             "include-top-link": false
         },
         "uuid": "4a63980c-d43a-403d-b872-51b658e1d39c",
@@ -250,9 +224,9 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-            "enabled": false,
-            "skip-depth": 1,
-            "header-depth": 4,
+            "enabled": true,
+            "skip-depth": 3,
+            "header-depth": 6,
             "include-top-link": false
         },
         "uuid": "d753df69-8830-4cce-bf5c-44f55686d8a7",
@@ -271,9 +245,9 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-            "enabled": false,
-            "skip-depth": 1,
-            "header-depth": 4,
+            "enabled": true,
+            "skip-depth": 3,
+            "header-depth": 6,
             "include-top-link": false
         },
         "uuid": "22cf1831-aa96-4da1-bc62-4bccba4365af",
@@ -343,10 +317,8 @@
     {
         "identifier": "data",
         "title": "Data",
-        "status": "in review",
-        "children": [
-            "39deafe0-34ae-4ab8-8261-3661b0c79a38"
-        ],
+        "status": "public",
+        "children": ["39deafe0-34ae-4ab8-8261-3661b0c79a38"],
         "table-of-contents": {
             "enabled": true,
             "header-depth": 4
@@ -362,7 +334,7 @@
     {
         "identifier": "data/benchmarking",
         "title": "Benchmarking Data",
-        "status": "in review",
+        "status": "public",
         "children": [
             "63dde5c8-75b7-4335-9fc7-04a25c494148",
             "086fd04b-0098-4138-aa15-0f4affd649a3",
@@ -371,13 +343,14 @@
             "35dbba20-3df6-48e9-8e6a-47051d2289f5",
             "253d3f85-b471-4802-b29c-6d979f7233a5",
             "13386ef6-696b-47bd-955c-bee2384739c9",
-            "66053267-3ffc-499e-989d-da8163d4cafe"
+            "66053267-3ffc-499e-989d-da8163d4cafe",
+            "74e2fa93-bc3e-4186-aeab-aead6720cc5a"
         ],
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "56a7ca2a-e9aa-4c19-960d-2cd0ca2d9686"
         ],
         "table-of-contents": {
-            "enabled": true,
+            "enabled": false,
             "skip-depth": 1,
             "header-depth": 4,
             "include-top-link": false
@@ -393,9 +366,9 @@
     {
         "identifier": "data/benchmarking/COLO829",
         "title": "COLO829",
-        "status": "in review",
+        "status": "public",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "dea41934-619a-4a3b-a2bd-0521d0fffab1"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -414,9 +387,9 @@
     {
         "identifier": "data/benchmarking/HapMap",
         "title": "HapMap",
-        "status": "in review",
+        "status": "public",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "5b5d9021-4dca-4023-bc5e-123b5ef66ff2"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -435,9 +408,9 @@
     {
         "identifier": "data/benchmarking/iPSC-fibroblasts",
         "title": "iPSC and Fibroblasts",
-        "status": "in review",
+        "status": "public",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "a08bb75d-93e2-455f-9fe2-aa8f4969d233"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -458,7 +431,7 @@
         "title": "Brain",
         "status": "in review",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "9104db8e-9a11-4430-bc86-87a43a0fc857"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -477,9 +450,9 @@
     {
         "identifier": "data/benchmarking/lung",
         "title": "Lung",
-        "status": "in review",
+        "status": "public",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "cdcd25cd-cc37-4a35-8494-8573e92dac12"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -496,11 +469,32 @@
         ]
     },
     {
+        "identifier": "data/benchmarking/liver",
+        "title": "Liver",
+        "status": "public",
+        "content": [
+            "c789600c-4104-4246-a238-af9cc89d74f1"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "74e2fa93-bc3e-4186-aeab-aead6720cc5a",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "data/benchmarking/heart",
         "title": "Heart",
         "status": "in review",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "09abdc2d-bbb5-4814-9dec-c39e58ee7d4f"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -519,9 +513,9 @@
     {
         "identifier": "data/benchmarking/colon",
         "title": "Colon",
-        "status": "in review",
+        "status": "public",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "3a097f93-4478-4487-a7ac-fb805774fcad"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -542,7 +536,7 @@
         "title": "Skin",
         "status": "in review",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "91f38a47-a6d8-402f-9c84-08358309efbc"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -551,6 +545,59 @@
             "include-top-link": false
         },
         "uuid": "66053267-3ffc-499e-989d-da8163d4cafe",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "privacy-policy",
+        "title": "Privacy Policy",
+        "status": "deleted",
+        "content": [
+            "ad816266-12c7-47bd-9617-dfe2a2328528"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "92b70c7e-6503-47e4-8f6a-35512d85099b",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "legal",
+        "title": "Legal",
+        "status": "deleted",
+        "content": [
+            "032e2512-9168-4db4-b21d-5a10a8b8b14c"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "a5b90fc7-cb21-4a84-8bf2-b6c2b282cf0b",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "statistics",
+        "uuid": "f0f0f0f0-0000-0000-0000-ffffff040000",
+        "title": "Portal Statistics (BETA)",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

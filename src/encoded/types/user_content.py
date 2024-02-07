@@ -38,7 +38,9 @@ class UserContent(Item, CoreUserContent):
         convert_ext_links = request and request.domain and options and options.get('convert_ext_links', True)
 
         if file_type == 'rst':
-            output = publish_parts(content, writer_name='html')
+            # html header: range <h1> to <h6>
+            initial_header_level = options.get('initial_header_level', 4) if options is not None else 4
+            output = publish_parts(content, writer_name='html', settings_overrides={'doctitle_xform':False, 'initial_header_level': initial_header_level})
             if convert_ext_links:
                 return convert_external_links(output["html_body"], request.domain)
             return output["html_body"]

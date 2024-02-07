@@ -82,8 +82,11 @@ function AboutNavItem(props) {
                 id="about-menu-item"
                 navItemHref="/about"
                 navItemContent="About">
-                <BigDropdownPageTreeMenuIntroduction titleIcon="info-circle fas" />
-                <BigDropdownPageTreeMenu />
+                <BigDropdownPageTreeMenuIntroduction
+                    titleIcon="info-circle fas"
+                    linkToTopLevelDirPage={false}
+                />
+                <BigDropdownPageTreeMenu disableLinksOnLevel1Titles={true} />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
     );
@@ -99,7 +102,10 @@ function DocsNavItem(props) {
                 id="docs-menu-item"
                 navItemHref="/docs"
                 navItemContent="Documentation">
-                <BigDropdownPageTreeMenuIntroduction titleIcon="book fas" />
+                <BigDropdownPageTreeMenuIntroduction
+                    titleIcon="book fas"
+                    linkToTopLevelDirPage={false}
+                />
                 <BigDropdownPageTreeMenu />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
@@ -116,8 +122,13 @@ function DataNavItem(props) {
                 id="data-menu-item"
                 navItemHref="/data"
                 navItemContent="Data">
-                <BigDropdownPageTreeMenuIntroduction titleIcon="database fas" />
-                <BigDropdownPageTreeMenu />
+                <BigDropdownPageTreeMenuIntroduction
+                    titleIcon="database fas"
+                    linkToTopLevelDirPage={false}
+                />
+                <BigDropdownPageTreeMenu
+                    childrenToHide={['data/benchmarking']}
+                />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
     );
@@ -146,9 +157,9 @@ function LeftNavAuthenticated(props) {
     );
     return (
         <div className="navbar-nav mr-auto">
-            {/* <DataNavItem {...props} /> */}
+            <DataNavItem {...props} />
             <DocsNavItem {...props} />
-            {/* <AboutNavItem {...props} /> */}
+            <AboutNavItem {...props} />
         </div>
     );
 }
@@ -159,7 +170,7 @@ const LeftNavGuest = React.memo(function LeftNavGuest(props) {
 
     return (
         <div className="navbar-nav mr-auto">
-            {/*<AboutNavItem {...props} /> */}
+            <AboutNavItem {...props} />
             <DocsNavItem {...props} />
         </div>
     );
