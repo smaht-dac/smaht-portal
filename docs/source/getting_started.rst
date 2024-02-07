@@ -43,7 +43,8 @@ Note these important aspects of the acceptable spreadsheet format:
 #. Each sheet name must be the name of a SMaHT Portal entity or `object` defined within the system.
 #. Each sheet must have as its first row, a special `header` row, which enumerates the names of the Portal object properties as the column names.
 #. Each of these columns name must match exactly the name of the property for the Portal object.
-#. Each sheet may contain any number of rows, each representing an instance of the Portal object.
+#. Each sheet may contain any number of `data` rows, each representing an instance of the Portal object.
+#. The values in the cells/columns of each data row correspond to the property in same column of the header row. 
 #. The first row which is entirely empty marks the end of the input, and any subsequenct rows will be entirely ignored.
 #. The first column in the header column which is empty marks the end of the header, and any subsequent columns will be entirely ignored.
 
@@ -55,7 +56,7 @@ Here is screenshot of a simple example Excel spreadsheet:
 
 |
 
-Notice that the first row comprises the property/column `header`, defining properties named ``submitted_id``, ``submission_centers``, and so on.
+Notice that the first row comprises the property/column `header`, defining properties named ``submitted_id``, ``molecule``, ``components``, and so on.
 
 And also notice the multiple tabs at the bottom for the different sheets within the spreadsheet,
 representing (in this example) data for the objects ``CellCultureSample``, ``Analyte``, and so on.
@@ -72,6 +73,7 @@ Some Portal object properties defined to contain other `nested` objects.
 Since a (Excel spreadsheet) inherently defines a "flat" structure,
 rather than the more hierarchical structure supported by Portal objects, in which such nested objects can be defined,
 a special syntactic convention is needed to be able to reference the properties of these nested objects.
+
 For this we will use a `dot-notation` whereby dots (``.``) are used to separate a parent property from its child property.
 For example, an object may define a ``components`` property which itself may contain a ``cell_culture`` property;
 to reference the ``cell_culture`` property then, the spreadsheet column header would need to be ``components.cell_culture``.

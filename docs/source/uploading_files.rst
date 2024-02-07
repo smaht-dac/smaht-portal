@@ -96,7 +96,9 @@ files in AWS S3 and an appropriate IAM role,
 executing the script below (named upload_files.sh)
 with the command::
 
-BUCKETS=&lt;S3 buckets to mount&gt; SUBMISSION_UUIDS=&lt;Ingestion Submission UUID(s) for submitted file(s)&gt; bash upload_files.sh
+    BUCKETS=<S3 buckets to mount>
+    SUBMISSION_UUIDS=<Ingestion submission UUID(s) for the submitted file(s)>
+    bash upload_files.sh
 
 will mount the indicated bucket(s) and upload the
 appropriate files to the DAC if found within the buckets::
