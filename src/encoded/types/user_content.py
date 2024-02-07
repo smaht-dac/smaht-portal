@@ -5,6 +5,7 @@ from docutils.core import publish_parts
 from typing import Any, Dict, Optional
 
 from snovault import abstract_collection, Item as SnovaultItem, load_schema, calculated_property
+from snovault.server_defaults import add_last_modified
 from encoded_core.types.user_content import UserContent as CoreUserContent
 
 from .base import Item
@@ -22,6 +23,7 @@ class UserContent(Item, CoreUserContent):
     embedded_list = []
 
     def _update(self, properties: Dict[str, Any], sheets: Optional[Dict] = None) -> None:
+        add_last_modified(properties)
         return SnovaultItem._update(self, properties, sheets=sheets)
 
     @calculated_property(schema={

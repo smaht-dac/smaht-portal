@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.20.1
+======
+
+* Adds `last_modified` to all items for edit tracking
+
+
 0.20.0
 ======
 
