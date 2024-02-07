@@ -1,14 +1,8 @@
 [
     {
-        "title": "SMaHT DAC",
+        "title": "HMS DAC",
         "identifier": "smaht_dac",
         "uuid": "9626d82e-8110-4213-ac75-0a50adf890ff",
-        "status": "public"
-    },
-    {
-        "title": "SMaHT DAC",
-        "identifier": "uw_gcc",
-        "uuid": "ba5c9ba7-738a-4815-a4fc-91d1ca0b63ae",
         "status": "public"
     }
 ]

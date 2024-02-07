@@ -1,11 +1,13 @@
 {
-    "title": "Reference Genome",
-    "$id": "/profiles/reference_genome.json",
+    "title": "Sequencer",
+    "$id": "/profiles/sequencer.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
+        "code",
         "identifier",
-        "title"
+        "model",
+        "platform"
     ],
     "anyOf": [
         {
@@ -21,7 +23,6 @@
     ],
     "identifyingProperties": [
         "accession",
-        "aliases",
         "identifier",
         "uuid"
     ],
@@ -29,9 +30,6 @@
     "mixinProperties": [
         {
             "$ref": "mixins.json#/accession"
-        },
-        {
-            "$ref": "mixins.json#/aliases"
         },
         {
             "$ref": "mixins.json#/attribution"
@@ -61,34 +59,41 @@
             "$ref": "mixins.json#/tags"
         },
         {
-            "$ref": "mixins.json#/title"
-        },
-        {
-            "$ref": "mixins.json#/url"
-        },
-        {
             "$ref": "mixins.json#/uuid"
         }
     ],
     "properties": {
         "accession": {
-            "accessionType": "RG"
+            "accessionType": "SR"
         },
         "code": {
-            "pattern": "^[A-Za-z0-9]{3,}$"
+            "pattern": "^[A-Z]{1}$"
         },
         "schema_version": {
             "default": "1"
         },
-        "files": {
-            "title": "Files",
-            "description": "Files associated with the reference genome",
+        "model": {
+            "title": "Instrument Model",
+            "description": "Model of instrument used to obtain data",
+            "type": "string"
+        },
+        "platform": {
+            "title": "Platform",
+            "description": "Name of the platform used to obtain data",
+            "type": "string"
+        },
+        "read_length_category": {
+            "title": "Read Length Classification",
+            "description": "Categories of read lengths available for the sequencer",
             "type": "array",
-            "minItems": 1,
             "uniqueItems": true,
+            "minItems": 1,
             "items": {
                 "type": "string",
-                "linkTo": "File"
+                "enum": [
+                    "Long-read",
+                    "Short-read"
+                ]
             }
         }
     }
