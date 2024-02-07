@@ -54,6 +54,12 @@
         "schema_version": {
             "default": "1"
         },
+        "assay": {
+            "title": "Assay",
+            "description": "Link to associated assay",
+            "type": "string",
+            "linkTo": "Assay"
+        },
         "libraries": {
             "title": "Libraries",
             "description": "Links to associated libraries",

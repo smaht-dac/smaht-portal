@@ -7,6 +7,73 @@ smaht-portal
 Change Log
 ----------
 
+0.20.0
+======
+
+`PR 63: Benchmarking release data model <https://github.com/smaht-dac/smaht-portal/pull/63>`_
+* Add two new item types: Sequencer + Assay
+* Add `code` property to multiple item types to store file naming conventions
+* Share SubmittedFile release properties with OutputFile
+* Update file facets + columns and embed fields for search
+
+
+0.19.0
+======
+
+* Repair small bug in extra file line generation, implement/test field fallbacks
+* Repair permissions issues coming from snovault
+* Update extra file names in encoded-core
+
+
+0.18.0
+======
+
+* Adds a command to load users from a master OC spreadsheet (not tracked in git)
+
+
+0.17.0
+======
+
+* Version updates to dcicutils, dcicsnovault, encoded-core.
+  Changes to itemize SMaHT submission ingestion create/update/diff situation and deletes.
+* Removed Rahi from admin group for submission ingestion testing purposes (master-inserts/user.json).
+
+
+0.16.0
+======
+
+* Adds `/peak-metadata` support for retrieving facet information from the metadata.tsv
+
+
+0.15.0
+======
+
+* Added gitinfo.json to buildspec.yml to make available to the app basic git info (branch/commit).
+* Updated test_structured_data.py to (optionally - default for now) insulate itself from change to the
+  schemas while they are undergoing a lot of modification, leading to frequent/annoying test breakage.
+* Fixed load(xl) error handling for ingestion submission to report back to submitr properly.
+
+
+0.14.0
+======
+
+* Adds `/metadata` support
+
+
+0.13.1
+======
+
+`PR 58: Culture mixture parent types <https://github.com/smaht-dac/smaht-portal/pull/58>`_
+* Include CellCulture as parent item of CellCultureMixture for resolving reference during submissions
+
+
+0.13.0
+======
+
+`PR 56: Implement submittable item API <https://github.com/smaht-dac/smaht-portal/pull/56>`_
+* Add functionality and tests for submittable item api to smaht portal
+* update lockfile with latest snovault that contains the primitive for this
+
 
 0.12.0
 ======

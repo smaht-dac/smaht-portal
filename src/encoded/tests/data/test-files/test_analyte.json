@@ -1,6 +1,6 @@
 {
-    "title": "Analyte",
-    "$id": "/profiles/analyte.json",
+    "title": "Test Analyte",
+    "$id": "/profiles/test_analyte.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
@@ -62,9 +62,6 @@
         },
         "schema_version": {
             "default": "1"
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z]{2,}_ANALYTE_[A-Z0-9-_.]{4,}$"
         },
         "a260_a280_ratio": {
             "title": "A260/A280 Ratio",

@@ -5,11 +5,10 @@ Getting Started (User)
 
 In order to make your data accessible, searchable and assessable you should submit as much metadata as possible to the SMaHT system along with the raw files you have generated in your experiments.
 
-These pages are designed to
+These pages are designed to:
 
-
-* show you how to find out what kind of metadata we collect for your particular type of experiment
-* introduce the mechanisms by which you can submit your metadata and data to the SMaHT data portal.
+* Show you how to find out what kind of metadata we collect for your particular type of experiment.
+* Introduce the mechanisms by which you can submit your metadata and data to the SMaHT data portal.
 
 An overview of metadata structure is pending, check back soon!
 
@@ -19,14 +18,18 @@ We have two primary ways that you can submit data to the SMaHT data portal.
 Data Submission via Spreadsheet
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The excel metadata workbooks
+Data may be uploaded to the SMaHT data portal using a software tool called ``smaht-submitr``.
+This is a Python based command-line tool which is distributed on `PyPi <https://pypi.org/>`_ here: `smaht-submitr <https://pypi.org/project/smaht-submitr/>`_
 
+This ``smaht-submitr`` tool allows you to upload metadata and associated data files 
+
+The Excel metadata workbooks:
 
 * Are useful for submitting metadata and data for several sequencing experiments or samples
 * Can be used to make bulk edits of submitted but not yet released metadata
 * Contain multiple sheets where each sheet corresponds to an object type and each column a field of metadata
-* Can be generated using the ``submitr`` software
-* Are used as input to the ``submitr`` software which validates submissions and pushes the content of the forms to our database.
+* Can be generated using the ``smaht-submitr`` software
+* Are used as input to the ``smaht-submitr`` software which validates submissions and pushes the content of the forms to our database.
 
 Documentation of the data submission process using these forms will soon be available
 `here <https://submitr.readthedocs.io/en/latest/>`_.

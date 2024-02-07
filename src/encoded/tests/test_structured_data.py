@@ -22,6 +22,7 @@ SAME_AS_NOREFS = {}
 # least currently (2024-01-10) these are undergoing a lot of change and leading to frequent
 # and annoying test breakage; so setting this to True will cause these tests to use a dump of
 # the schemas which were previously saved into a static file (data/test-files/schemas_dump.json).
+# Note: to dump all schemes into single file -> show-schema all
 USE_SAVED_SCHEMAS_RATHER_THAN_LIVE_SCHEMAS = True
 
 if USE_SAVED_SCHEMAS_RATHER_THAN_LIVE_SCHEMAS:
@@ -243,7 +244,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
             }]
         },
         "expected_errors": [
-            {"src": {"type": "Donor", "row": 1}, "error": "Additional properties are not allowed ('something' was unexpected)"}
+            {"src": {"type": "Donor", "row": 1}, "error": "Validation error at '$': Additional properties are not allowed ('something' was unexpected)"}
         ]
     },
     # ----------------------------------------------------------------------------------------------
@@ -978,8 +979,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 }
              ]
         },
-        "expected_errors": [{'src': {'type': 'SomeTypeFour', 'row': 1}, 'error': "{'foo': 123} is not of type 'string'"},
-                            {'src': {'type': 'SomeTypeFour', 'row': 2}, 'error': "{'charlie': {'delta': 'hellocharlie'}} is not of type 'string'"}]
+        "expected_errors": [{'src': {'type': 'SomeTypeFour', 'row': 1}, 'error': "Validation error at '$.alfa.bravo': {'foo': 123} is not of type 'string'"},
+                            {'src': {'type': 'SomeTypeFour', 'row': 2}, 'error': "Validation error at '$.alfa.bravo': {'charlie': {'delta': 'hellocharlie'}} is not of type 'string'"}]
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -1349,7 +1350,7 @@ def _test_parse_structured_data(testapp: TestApp,
             nonlocal norefs, expected_refs, refs_actual
             refs_actual.add(ref := f"/{type_name}/{value}")
             if norefs is True or (isinstance(norefs, list) and ref in norefs):
-                return ["dummy"]
+                return [{"type": "dummy", "uuid": "dummy"}]
             return real_ref_exists(self, type_name, value)
         with mock.patch("dcicutils.structured_data.Portal.ref_exists",
                         side_effect=mocked_ref_exists, autospec=True):

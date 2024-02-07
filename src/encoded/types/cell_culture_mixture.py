@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .sample_source import SampleSource
+from .cell_culture import CellCulture
 
 
 @collection(
@@ -11,7 +11,8 @@ from .sample_source import SampleSource
         "description": "Mixtures of cell cultures for further study",
     },
 )
-class CellCultureMixture(SampleSource):
+class CellCultureMixture(CellCulture):
     item_type = "cell_culture_mixture"
     schema = load_schema("encoded:schemas/cell_culture_mixture.json")
+    base_types = ["CellCulture"] + CellCulture.base_types
     embedded_list = []

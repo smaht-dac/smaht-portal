@@ -23,7 +23,7 @@
         "category": [
             "Alignment"
         ],
-        "name": "vep_v3",
+        "name": "vep",
         "title": "VEP",
         "version": "3.1.1"
     }

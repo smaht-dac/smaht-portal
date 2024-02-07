@@ -9,7 +9,7 @@ from encoded.commands.captured_output import captured_output
 with captured_output():
     from encoded.ingestion.loadxl_extensions import load_data_into_database, summary_of_load_data_results
 from encoded.ingestion.ingestion_processors import parse_structured_data
-from dcicutils.structured_data import Portal, Schema
+from dcicutils.structured_data import Portal, Schema, StructuredDataSet
 
 
 # For dev/testing only.
@@ -30,10 +30,13 @@ def main() -> None:
     # returns a Portal object suitable for local integration testing including, for example,
     # loading data into the database of a locally running portal.
     with captured_output():
-        if args.load or not args.norefs:
-            portal = Portal.create_for_testing(args.load)
+        if not args.env:
+            if args.load or not args.norefs:
+                portal = Portal.create_for_testing(args.portal or args.load)
+            else:
+                portal = Portal.create_for_testing()
         else:
-            portal = Portal.create_for_testing()
+            portal = Portal(args.env)
 
     # Manually override implementation specifics for --noschemas.
     if args.noschemas:
@@ -70,19 +73,42 @@ def main() -> None:
     PRINT(f"> Data:")
     PRINT("  ", end="")
     if args.yaml:
-        x = yaml.dump(structured_data)
         PRINT("\n  ".join(yaml.dump(structured_data).split("\n")))
     else:
         PRINT("\n  ".join(json.dumps(structured_data, indent=4, default=str).split("\n")))
         PRINT()
 
+    PRINT("> Portal:")
+    if portal.env:
+        PRINT(f"  - ENV: {portal.env}")
+    if portal.keys_file:
+        PRINT(f"  - Keys File: {portal.keys_file}")
+    if portal.key:
+        PRINT(f"  - Key: {portal.key_id}")
+    if portal.secret:
+        PRINT(f"  - Secret: {portal.secret[0]}*******")
+    if portal.server:
+        PRINT(f"  - Server: {portal.server}")
+    if portal.ini_file:
+        PRINT(f"  - INI File: {portal.ini_file}")
+    if portal.vapp:
+        PRINT(f"  - VAPP: ✓")
+    PRINT(f"  - Ping: {'✓' if portal.ping() else '✗'}")
+    PRINT()
+
     PRINT("> Types:")
     for type_name in structured_data_set.data:
-        PRINT(f"  {type_name}: {len(structured_data_set.data)} object{'s' if len(structured_data_set.data) != 1 else ''}")
+        nobjects = len(structured_data_set.data[type_name])
+        PRINT(f"  {type_name}: {nobjects} object{'s' if nobjects != 1 else ''}")
 
     PRINT(f"\n> Files:")
-    if files := structured_data_set.upload_files:
-        [PRINT(f"  - {file.get('type')}: {file.get('file')}") for file in files]
+    if files := structured_data_set.upload_files_located(args.directory):
+        for file in files:
+            PRINT(f"  - {file.get('type')}: {file.get('file')}")
+            if file.get('path'):
+                PRINT(f"    Found -> {file.get('path')} -> {format_file_size(get_file_size(file.get('path')))}")
+            else:
+                PRINT(f"    Not found!")
     else:
         PRINT("  No files.")
 
@@ -128,6 +154,9 @@ def main() -> None:
             PRINT("  - No schemas because the --noschemas argument was specified.")
         else:
             dump_schemas(list(structured_data.keys()), portal)
+
+    if not args.nodiffs:
+        print_structured_data_status(portal, structured_data_set)
 
     if args.load:
         if args.verbose:
@@ -217,6 +246,42 @@ def format_issue(issue: dict, original_file: Optional[str] = None) -> str:
     return f"{src_string(issue)}: {issue_message}" if issue_message else ""
 
 
+def print_structured_data_status(portal: Portal, structured_data: StructuredDataSet) -> None:
+    PRINT("\n> Object Create/Update Situation:")
+    diffs = structured_data.compare()
+    for object_type in diffs:
+        PRINT(f"  TYPE: {object_type}")
+        for object_info in diffs[object_type]:
+            PRINT(f"  - OBJECT: {object_info.path}")
+            if not object_info.uuid:
+                PRINT(f"     Does not exist -> Will be CREATED")
+            else:
+                PRINT(f"     Already exists -> {object_info.uuid} -> Will be UPDATED", end="")
+                if not object_info.diffs:
+                    PRINT(" (but NO substantive diffs)")
+                else:
+                    PRINT(" (substantive DIFFs below)")
+                    for diff_path in object_info.diffs:
+                        if (diff := object_info.diffs[diff_path]).creating_value:
+                            PRINT(f"      CREATE {diff_path}: {diff.value}")
+                        elif diff.updating_value:
+                            PRINT(f"      UPDATE {diff_path}: {diff.updating_value} -> {diff.value}")
+                        elif (diff := object_info.diffs[diff_path]).deleting_value:
+                            PRINT(f"      DELETE {diff_path}: {diff.value}")
+
+
+def get_file_size(file: str) -> int:
+    return os.path.getsize(file)
+
+
+def format_file_size(nbytes: int) -> str:
+    for unit in ["b", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb", "Zb"]:
+        if abs(nbytes) < 1024.0:
+            return f"{nbytes:3.1f}{unit}"
+        nbytes /= 1024.0
+    return f"{nbytes:.1f}Yb"
+
+
 def parse_args() -> argparse.Namespace:
 
     class argparse_optional(argparse.Action):
@@ -237,16 +302,21 @@ def parse_args() -> argparse.Namespace:
                         default=False, help=f"Do not validate parsed data using JSON schema.")
     parser.add_argument("--yaml", required=False, action="store_true",
                         default=False, help=f"YAML (rather than JSON) output for loaded/displayed data.")
-
+    parser.add_argument("--env", default=False, help=f"Environment name for Portal (e.g. via ~/.smaht-keys.json).")
     parser.add_argument("--load", nargs="?", action=argparse_optional, const=True,
-                        default=False, help=f"Load data into database (optionally specify .ini file to use).")
+                        default=False, help=f"Load data into local portal/database (optionally specify .ini file to use).")
+    parser.add_argument("--portal", nargs="?", action=argparse_optional, const=True,
+                        default=False,
+                        help=f"Use local portal/database for checking references (optionally specify .ini file to use).")
     parser.add_argument("--post-only", required=False, action="store_true",
                         default=False, help=f"Only perform updates (POST) when loading data.")
     parser.add_argument("--patch-only", required=False, action="store_true",
                         default=False, help=f"Only perform updates (PATCH) when loading data.")
     parser.add_argument("--validate-only", required=False, action="store_true",
                         default=False, help=f"Only perform validation when loading data.")
-
+    parser.add_argument("--nodiffs", required=False, action="store_true",
+                        default=False, help=f"Disable output of object create/update/diff status.")
+    parser.add_argument("--directory", "-d", type=str, nargs="?", help=f"Directory in which to look for upload files.")
     parser.add_argument("--verbose", required=False, action="store_true",
                         default=False, help=f"Verbose output.")
     parser.add_argument("--debug", required=False, action="store_true",

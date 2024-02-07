@@ -634,6 +634,19 @@ def test_link_to_another_submission_center_item(
     post_item(submission_center_user_app, tissue_properties, "Tissue", status=201)
 
 
+def test_user_can_view_profile(protected_consortium_user_app: TestApp,
+                               smaht_consortium_protected_user: Dict[str, Any]) -> None:
+    """ Tests that a non-admin user can view their own profile """
+    assert protected_consortium_user_app.get(f'{smaht_consortium_protected_user["@id"]}', status=200)
+
+
+def test_user_cannot_view_other_profile(protected_consortium_user_app: TestApp,
+                                        smaht_consortium_protected_user: Dict[str, Any],
+                                        smaht_gcc_user) -> None:
+    """ Tests that a non-admin user cannot view other profiles """
+    assert protected_consortium_user_app.get(f'{smaht_gcc_user["@id"]}', status=403)
+
+
 POST_FAIL_STATUSES = [403, 422]
 
 

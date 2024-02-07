@@ -6,7 +6,7 @@ echo "Running a SMAHT deployment on the given environment"
 # secrets manager - this builds production.ini
 poetry run python -m assume_identity
 
-# Clear db/es on cgap-devtest if we run an "initial" deploy
+# Clear db/es on smaht-devtest eventually if we run an "initial" deploy
 # Do nothing on other environments
 # TEMP: add --allow-prod
 if [ -n "${INITIAL_DEPLOYMENT}" ]; then
@@ -26,8 +26,6 @@ else
     poetry run load-data-by-type production.ini --app-name app --prod --overwrite --indir master-inserts --itype higlass_view_config
     # Added load of the following item types on 2023-10-20 for testing on staging - Bianca
     # Reordering these to respect data relations - Will
-    poetry run load-data-by-type production.ini --app-name app --prod --overwrite --indir master-inserts --itype consortium
-    poetry run load-data-by-type production.ini --app-name app --prod --overwrite --indir master-inserts --itype submission_center
     poetry run load-data-by-type production.ini --app-name app --prod --overwrite --indir master-inserts --itype user
     poetry run load-data-by-type production.ini --app-name app --prod --overwrite --indir master-inserts --itype static_section
     poetry run load-data-by-type production.ini --app-name app --prod --overwrite --indir master-inserts --itype page

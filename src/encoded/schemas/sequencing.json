@@ -56,6 +56,14 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z]{2,}_SEQUENCING_[A-Z0-9-_.]{4,}$"
+        },
+        "flowcell": {
+            "title": "Flowcell",
+            "description": "Flowcell used for sequencing",
+            "type": "string"
+        },
         "instrument_model": {
             "title": "Instrument Model",
             "description": "Model of instrument used to obtain data",
@@ -112,8 +120,11 @@
             "type": "integer",
             "minimum": 0
         },
-        "submitted_id": {
-            "pattern": "^[A-Z]{2,}_SEQUENCING_[A-Z0-9-_.]{4,}$"
+        "sequencer": {
+            "title": "Sequencer",
+            "description": "Instrument used for sequencing",
+            "type": "string",
+            "linkTo": "Sequencer"
         }
     }
 }

@@ -22,6 +22,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/code"
+        },
+        {
             "$ref": "mixins.json#/description"
         },
         {
@@ -55,6 +58,9 @@
     "properties": {
         "accession": {
             "accessionType": "CM"
+        },
+        "code": {
+            "pattern": "^[A-Z0-9]{3,}$"
         },
         "schema_version": {
             "default": "1"
