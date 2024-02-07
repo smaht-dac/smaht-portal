@@ -102,9 +102,9 @@
         ]
     },
     {
-        "identifier" : "excel_submission",
+        "identifier" : "credentials",
         "uuid" : "442c8aa0-dc6c-43d7-814a-854af460b016",
-        "file" : "/docs/source/excel_submission.rst",
+        "file" : "/docs/source/credentials.rst",
         "section_type": "Page Section",
         "status": "public",
         "consortia": [

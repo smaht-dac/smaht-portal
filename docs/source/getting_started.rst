@@ -1,6 +1,6 @@
-======================
-Getting Started (User)
-======================
+===============
+Getting Started
+===============
 
 In order to make your data accessible, searchable and assessable you should submit as much metadata as possible
 to the SMaHT system along with the raw files you have generated in your experiments.
@@ -63,9 +63,6 @@ Notice that the first row comprises the property/column `header`, defining prope
 And also notice the multiple tabs at the bottom for the different sheets within the spreadsheet,
 representing (in this example) data for the objects ``CellCultureSample``, ``Analyte``, and so on.
 
-N.B. Though ``submission_center`` is shown in the above screenshot,
-that particular field is not actually required, as it is automatically added by the ``smaht-submitr`` tool.
-
 **Column Deletions**
 
 A column value within a (non-header) row may be empty, but this only means that the value will be ignored
@@ -91,7 +88,7 @@ value to an array with the two elements ``DNA`` and ``RNA``, use the value ``DNA
 
 Less common, but still supported, is the ability to set values for individual array elements.
 This is accomplished by the convention suffixing the property name in the column header with
-a pound sign (``#``) folowing by an integer representing the zero-indexed array element.
+a pound sign (``#``) followed by an integer representing the zero-indexed array element.
 For example to set the first element of the ``molecules`` property (using the example above), use column header value ``molecule#0``.
 
 **Boolean Type Properties**
@@ -112,56 +109,134 @@ are ``submitted_id`` and ``accession``.
 
 |
 
-Getting Added as a SMaHT User or Submitter
-------------------------------------------
+Submission
+----------
 
-Before you can view protected data or submit data to the SMaHT system you must be a registered user of the site and have the appropriate access credentials.
+The type of submission supported is called a "metadata bundles", or `accessioning`.
+And the name of the command-line tool to initiate a submission is ``submit-metadata-bundle``.
+A brief tour of this command, its arguments, and function is described below.
 
+**Installation**
 
-* To view data that is still in the review phase you must be registered as a member of the submission center that produced the data.
-* To submit metadata and files you must be designated as a submitter for a submission center
-* Most current SMaHT consortia members should already be registered in our system.
+The ``smaht-submitr`` tool is a Python based command-line tool which can be installed
+using the standard Python ``pip`` utility. For more details on installation pleae see `here <https://submitr.readthedocs.io/en/latest/>`_.
 
-For instructions on creating an account, please see `this page </docs/user-guide/account-creation>`_.
+**Basic Usage**
 
-**Metadata and data accessibility.**
+To get help about the command, do::
 
-Most metadata items have the following default permissions:
+   submit-metadata-bundle --help
 
-  * members of the submitting lab can view
-  * submitters for the lab can edit
-  * to help you review and edit a lab's submissions the DAC data wranglers can view and edit
-  * Once the data and metadata are complete and quality controlled, they will be released according to the data release policy adopted by the SMaHT consortia.
-  * After release the data can no longer be edited by data submitters - contact the DAC to report data issues and we can work together to get them resolved
+For many cases it will suffice simply to specify the metadata bundle file you want to upload,
+and the SMaHT environment name (such as ``data`` or ``staging``) from your ``~/.smaht-keys.json`` keys file).
+For example::
+
+   submit-metadata-bundle your_metadata_file.xlsx --env data
+
+You can omit the ``--env`` option entirely if your ``~/.smaht-keys.json`` file has only one entry.
+
+This command should do everything, including uploading referenced file; it will prompt first for confirmation;
+see the `Uploading Referenced Files` section just below for more on this.
+
+If you belong to
+multiple consortia and/or submission centers, you can also add the ``--consortium <consortium>``
+and ``--submission-center <submission-center>`` options; if you belong to only one of either,
+the command will automatically detect (based on your user profile) and use those.
+
+**Valdation Only**
+
+To invoke the submission for validation only, without having SMaHT actually ingest anything into its data store, do::
+
+   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --validate-only
+
+To be clear, this `will` submit the file to SMaHT for processing, but no data ingestion will take place, and any problems
+will be reported back to you from the SMaHT server. To sanity check the file you are submitting  `before` actually
+submitting it to SMaHT, you should use the ``--check`` option described now below.
+
+**Sanity Checking**
+
+To invoke the submission for with `local` sanity checking, where "local" means - `before` actually submitting to SMaHT, do::
+
+   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --check
+
+And to invoke the submission for with `only` local sanity checking, without actually submitting to SMaHT at all, do::
+
+   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --check-only
+
+These ``--check`` and ``--check-only`` options can be very useful and their use is encouraged.
+They ensure that everything is in order before sending the submission off to SMaHT for processing.
+
+In fact, this (``--check`` option) is actually the `default` behavior unless your user profile indicates that you are an `admin` user.
+To be more specific, these sanity checks include the following:
+
+#. Ensures the basic integrity of the format of the submission file.
+#. Validates the objects defined within the submission file against the corresponding Portal schemas for these objects.
+#. Confirms that any objects referenced within the submission file can be resolved; i.e. either they already exist within the Portal, or are defined within the submission file itself.
+#. Checks that referenced files (to be subsequently uploaded) actually exist on the file system.
+
+**Example Screenshots**
+
+The output of a successfully completed ``submit-metadata-bundle`` will look something like this:
+
+.. image:: /static/img/docs/submitr_output.png
+    :target: /static/img/docs/submitr_output.png
+    :alt: Excel Spreadsheet Screenshot
+
+When specifying the ``--check`` the additional sanity checking output will look something like this:
+
+.. image:: /static/img/docs/submitr_check.png
+    :target: /static/img/docs/submitr_check.png
+    :alt: Excel Spreadsheet Screenshot
 
 |
 
-Getting Access Keys for the SMaHT Data Portal servers
------------------------------------------------------
+Uploading Referenced Files
+--------------------------
+As mentioned above, after ``submit-metadata-bundle`` processes the main submission file, it will (after prompting) upload files referenced within the submission file. These files should reside
+in the same directory as the submission file.
+Or, if they do not, then yo must specify the directory where these files can be found, like this::
 
-If you have been designated as a submitter for the project and plan to use either our spreadsheet-based submission system or the REST-API an access key and a secret key are required to establish a connection to the DAC database and to fetch, upload (post), or change (patch) data. Please follow these steps to get your keys.
+   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --directory <path-to-files>
 
+The above commands will only look for the files to upload only directly within the specified directory
+(and not any sub-directories therein). To look within subdirectories, do::
 
-#. Log in to the SMaHT `website <https://data.smaht.org>`_ with your username (email) and password. If you have not yet created an account, see `this page </docs/user-guide/account-creation>`_ for instructions.
-#. Once logged in, go to your ”Profile” page by clicking **Account** on the upper right side of the page.
-#. In your profile page, click the green “Add Access Key” button, and copy the “access key ID” and “secret access key” values from the pop-up page. *Note that once the pop-up page disappears you will not be able to see the secret access key value.* However, if you forget or lose your secret key you can always delete and add new access keys from your profile page at any time.
-#. Create a file to store this information.
+   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --directory <path-to-files> --subdirectories
 
-   * The default parameters used by the submission software is to look for a file named ``~/.smaht-keys.json`` in your home directory.
-   * However you can specify your own filename and file location as parameters to the software (see below).
-   * The key information is stored in JSON format and is used to establish a secure connection.
-   * the JSON must be formatted as shown below - replace key and secret with your new “Access Key ID” and “Secret Access Key”.
+|
 
-**Sample content for ~/.smaht-keys.json**
+Resuming Uploads
+----------------
+When using ``submit-metadata-bundle`` you can choose `not` to upload any referenced files when prompted.
+In this case, you will probably want to manually upload them subsequently;
+you can do this using the ``resume-uploads`` command.
 
-.. code-block:: json
+You can resume execution with the upload part by doing::
 
-   {
-     "default": {
-       "key": "ABCDEFG",
-       "secret": "abcdefabcd1ab",
-       "server": "https://data.smaht.org/"
-     }
-   }
+   resume-uploads --env <environment-name> <uuid>
 
-**If you have any questions or need to set up access credentials for data submission, please contact the SMaHT DAC team through HelpDesk.**
+where the ``uuid`` argument is the UUID for the submission which should have been displayed in the output of the ``submit-metadata-bundle`` command.
+
+You can upload individual files referenced in the original submission separately by doing::
+
+   resume-uploads --env <environment-name> <referenced-file-uuid-or-accesssion-id> --uuid <item-uuid>
+
+where the ``<referenced-file-uuid-or-accesssion-id>`` is the uuid (or the accession ID or accession based file name) of the 
+individual file referenced (`not` the submission or metadata bundle UUID) which you wish to upload;
+this uuid (or accession ID or accession based file name) is included in the output of ``submit-metadata-bundle``. 
+
+For both of these commands above, you will be asked to confirm if you would like to continue with the stated action.
+If you would like to skip these prompts so the commands can be run by a
+scheduler or in the background, you can pass the ``--no_query`` or ``-nq`` argument, such as::
+
+    submit-metadata-bundle your_metadata_file.xlsx --no_query
+
+|
+
+Getting Submission Info
+-----------------------
+To view relevant information about a submission using, do::
+
+   check-submission --env <environment-name> <uuid>
+
+where the ``uuid`` argument is the UUID for the submission which should have been displayed in the output of the ``submit-metadata-bundle`` command.
