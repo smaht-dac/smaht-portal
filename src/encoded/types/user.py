@@ -1,13 +1,13 @@
 from typing import Optional, Union
 from pyramid.view import view_config
-from snovault import calculated_property, collection, load_schema
+from snovault import calculated_property, collection, display_title_schema, load_schema
 from snovault.types.user import User as SnovaultUser
 from snovault.types.user import user_page_view as SnoUserPageView
 from snovault.types.user import USER_PAGE_VIEW_ATTRIBUTES
 from snovault.types.user import user_add as SnoUserAdd
 from snovault.util import debug_log
 
-from .acl import ONLY_ADMIN_VIEW_ACL, ONLY_ADMIN_VIEW_USER_DETAILS_ACL, ONLY_OWNER_VIEW_PROFILE_ACL, DELETED_USER_ACL
+from .acl import ONLY_ADMIN_VIEW_ACL, ONLY_OWNER_VIEW_PROFILE_ACL, DELETED_USER_ACL
 from .base import Item
 
 
@@ -40,6 +40,13 @@ class User(Item, SnovaultUser):
         properties = self.upgrade_properties().copy()
         status = properties.get('status')
         return self.STATUS_ACL.get(status, ONLY_ADMIN_VIEW_ACL)
+
+    @calculated_property(schema=display_title_schema)
+    def display_title(
+        self, first_name: Optional[str], last_name: Optional[str]
+    ) -> Union[str, None]:
+        if first_name and last_name:
+            return SnovaultUser.display_title(self, first_name, last_name)
 
     @calculated_property(schema={"title": "Title", "type": "string"})
     def title(self, first_name: Optional[str], last_name: Optional[str]) -> Union[str, None]:

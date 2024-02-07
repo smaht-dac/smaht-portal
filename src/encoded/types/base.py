@@ -1,6 +1,7 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import snovault
+from pyramid.request import Request
 from pyramid.view import view_config
 from snovault import abstract_collection, calculated_property
 from snovault.types.base import (
@@ -227,6 +228,31 @@ class Item(SnovaultItem):
         if properties.get('status') != 'replaced' and 'accession' in properties:
             keys['accession'].append(properties['accession'])
         return keys
+
+    @calculated_property(schema={"title": "Display Title", "type": "string"})
+    def display_title(
+        self,
+        request: Request,
+        title: Optional[str] = None,
+        name: Optional[str] = None,
+        identifier: Optional[str] = None,
+        submitted_id: Optional[str] = None,
+        accession: Optional[str] = None,
+        uuid: Optional[str] = None,
+    ) -> Union[str, None]:
+        """Generate display title with sane defaults for SMaHT."""
+        if title:
+            return title
+        if name:
+            return name
+        if identifier:
+            return identifier
+        if submitted_id:
+            return submitted_id
+        if accession:
+            return accession
+        if uuid:
+            return uuid
 
 
 @calculated_property(context=Item.AbstractCollection, category='action')
