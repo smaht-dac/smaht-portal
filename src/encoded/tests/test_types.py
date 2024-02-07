@@ -38,6 +38,7 @@ def test_expected_unique_keys(testapp: TestApp) -> None:
         "output_file": None,
         "quality_metric": None,
         "reference_file": None,
+        "tracking_item": None,
         "user": "email",
         "workflow": None,
         "workflow_run": None,
