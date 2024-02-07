@@ -26,8 +26,6 @@ else
     poetry run load-data-by-type production.ini --app-name app --prod --overwrite --indir master-inserts --itype higlass_view_config
     # Added load of the following item types on 2023-10-20 for testing on staging - Bianca
     # Reordering these to respect data relations - Will
-    poetry run load-data-by-type production.ini --app-name app --prod --overwrite --indir master-inserts --itype consortium
-    poetry run load-data-by-type production.ini --app-name app --prod --overwrite --indir master-inserts --itype submission_center
     poetry run load-data-by-type production.ini --app-name app --prod --overwrite --indir master-inserts --itype user
     poetry run load-data-by-type production.ini --app-name app --prod --overwrite --indir master-inserts --itype static_section
     poetry run load-data-by-type production.ini --app-name app --prod --overwrite --indir master-inserts --itype page
