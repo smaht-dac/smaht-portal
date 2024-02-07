@@ -149,16 +149,6 @@ multiple consortia and/or submission centers, you can also add the ``--consortiu
 and ``--submission-center <submission-center>`` options; if you belong to only one of either,
 the command will automatically detect (based on your user profile) and use those.
 
-**Valdation Only**
-
-To invoke the submission for validation only, without having SMaHT actually ingest anything into its data store, do::
-
-   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --validate-only
-
-To be clear, this `will` submit the file to SMaHT for processing, but no data ingestion will take place, and any problems
-will be reported back to you from the SMaHT server. To sanity check the file you are submitting  `before` actually
-submitting it to SMaHT, you should use the ``--check`` option described now below.
-
 **Sanity Checking**
 
 To invoke the submission for with `local` sanity checking, where "local" means - `before` actually submitting to SMaHT, do::
@@ -179,6 +169,16 @@ To be more specific, these sanity checks include the following:
 #. Validates the objects defined within the submission file against the corresponding Portal schemas for these objects.
 #. Confirms that any objects referenced within the submission file can be resolved; i.e. either they already exist within the Portal, or are defined within the submission file itself.
 #. Checks that referenced files (to be subsequently uploaded) actually exist on the file system.
+
+**Valdation Only**
+
+To invoke the submission for validation only, without having SMaHT actually ingest anything into its data store, do::
+
+   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --validate-only
+
+To be clear, this `will` submit the file to SMaHT for processing, but no data ingestion will take place, and any problems
+will be reported back to you from the SMaHT server. To sanity check the file you are submitting  `before` actually
+submitting it to SMaHT, you should use the ``--check`` option described now below.
 
 **Example Screenshots**
 
