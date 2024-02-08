@@ -153,6 +153,26 @@
             "type": "string",
             "linkTo": "SubmissionCenter",
             "permission": "restricted_fields"
+        },
+        "s3_lifecycle_category": {
+            "$merge": "encoded_core:schemas/file.json#/properties/s3_lifecycle_category",
+            "suggested_enum": [],
+            "enum": [
+                "ignore",
+                "long_term_access",
+                "long_term_access_long_term_archive",
+                "long_term_archive",
+                "no_storage",
+                "short_term_access",
+                "short_term_access_long_term_archive",
+                "short_term_archive"
+            ]
+        },
+        "s3_lifecycle_last_checked": {
+            "$merge": "encoded_core:schemas/file.json#/properties/s3_lifecycle_last_checked"
+        },
+        "s3_lifecycle_status": {
+            "$merge": "encoded_core:schemas/file.json#/properties/s3_lifecycle_status"
         }
     },
     "facets": {
