@@ -1,13 +1,9 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 
-import graphData from './data/alluvial_data.json';
-
 import { sankeyFunc } from './sankey';
-import { StackRowTable } from './StackRowTable';
 
-import Tab from 'react-bootstrap/Tab';
-import Tabs from 'react-bootstrap/Tabs';
+import fixed_data from './data/data_v2.json';
 
 /**
  * Alluvial Plot:
@@ -23,13 +19,14 @@ import Tabs from 'react-bootstrap/Tabs';
 export const Alluvial = () => {
     const isDrawn = useRef(false);
 
-    const graph = { ...graphData };
+    const graph = { ...fixed_data };
 
     // Create ref for appending d3 visualization to the DOM
     const containerRef = useRef(null);
 
     // Run after JSX renders (for the ref), then add to the DOM
     useEffect(() => {
+        console.log({ ...fixed_data });
         const color_schemes = {
             data_generator: d3
                 .scaleOrdinal()
@@ -139,10 +136,11 @@ export const Alluvial = () => {
                         'transform',
                         'translate(' + 150 + ',' + (paddingTop + 15) + ')'
                     );
+
                 color_array.forEach((color, i) => {
                     row.append('rect')
-                        .attr('width', 20)
-                        .attr('height', 20)
+                        .attr('width', 15)
+                        .attr('height', 15)
                         .attr('fill', color)
                         .attr('stroke', d3.rgb(color).darker(1))
                         .attr(
@@ -152,23 +150,25 @@ export const Alluvial = () => {
                 });
             };
 
+            legend_row('GCC', [color_schemes.data_generator('GCC')], 0, -60);
+            legend_row('TTD', [color_schemes.data_generator('TTD')], 30, -60);
             legend_row(
                 'genetic',
                 graph.colors.genetic,
                 0,
-                width - margin.right + 120
+                width - margin.right + 125
             );
             legend_row(
                 'epigenetic',
                 graph.colors.epigenetic,
                 30,
-                width - margin.right + 120
+                width - margin.right + 125
             );
             legend_row(
                 'transcriptomic',
                 graph.colors.transcriptomic,
                 60,
-                width - margin.right + 120
+                width - margin.right + 125
             );
 
             const svg = svgContainer
@@ -210,7 +210,7 @@ export const Alluvial = () => {
                 .style('stroke', function (d) {
                     if (d.source.type === 'data_generator') {
                         d.source.color = color_schemes['data_generator'](
-                            d.source.name
+                            d.source.data_generator_category
                         );
                         return d.source.color;
                     }
@@ -226,13 +226,15 @@ export const Alluvial = () => {
                         );
                         return d.source.color;
                     }
-                    d.source.color = color_schemes['molecular_feature'](
-                        d.source.name
-                    );
+                    if (d.source.type === 'molecular_feature') {
+                        d.source.color = color_schemes['molecular_feature'](
+                            d.source.name
+                        );
+                    }
                     return d.source.color;
                 })
                 .style('stroke-width', function (d) {
-                    return 15; // constant stroke width
+                    return 12; // constant stroke width
                 })
                 .sort(function (a, b) {
                     return b.dy - a.dy;
@@ -316,7 +318,9 @@ export const Alluvial = () => {
                 .enter()
                 .append('g')
                 .attr('class', 'node')
-                .attr('category', (d) => d.category ?? '')
+                .attr('category', (d) => {
+                    return d?.category ?? '';
+                })
                 .attr('id', (d) => d.name)
                 .attr('transform', function (d) {
                     return 'translate(' + d.x + ',' + d.y + ')';
@@ -353,9 +357,10 @@ export const Alluvial = () => {
                 .attr('height', (d) => d.dy)
                 .attr('width', sankey.nodeWidth())
                 .style('fill', function (d) {
-                    // return 'gray'
                     if (d.type === 'data_generator') {
-                        d.color = color_schemes['data_generator'](d.name);
+                        d.color = color_schemes['data_generator'](
+                            d.data_generator_category
+                        );
                         return d.color;
                     }
                     if (d.type === 'assay_type') {
