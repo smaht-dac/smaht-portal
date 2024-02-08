@@ -7,15 +7,27 @@ smaht-portal
 Change Log
 ----------
 
+0.21.3
+======
+
+`PR 74: Table of Content improvements for RST content <https://github.com/smaht-dac/smaht-portal/pull/74>`_
+* user_content.py is updated to support multi-level TOC generation for RST content
+* Static_section.json in master-inserts is updated to correct text and navigation URL in Next - Previous links under the TOC
+* Level 1 titles are disabled under Documents in top navigation bar
+* Serkan Utku Öztürk added to users
+
+
 0.21.2
 ======
 
 * Add lifecycle properties to File schema
 
+
 0.21.1
 ======
 
 * Update SPC from 0.1.76b1 to 0.1.76
+
 
 0.21.0
 ======
