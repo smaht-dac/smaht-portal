@@ -359,6 +359,12 @@ def get_unique_key_property_name(collection: Collection) -> str:
     return unique_key
 
 
+def get_workbook_inserts_for_collection(collection: str) -> List[Dict[str, Any]]:
+    """Get workbook inserts for given collection."""
+    workbook_inserts = get_workbook_inserts()
+    return workbook_inserts.get(collection, [])
+
+
 def get_workbook_inserts() -> Dict[str, Dict[str, Any]]:
     """Load all workbook inserts."""
     workbook_schemas_path = pkg_resources.resource_filename(

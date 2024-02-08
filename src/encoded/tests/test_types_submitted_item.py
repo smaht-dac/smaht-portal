@@ -10,6 +10,7 @@ from .utils import (
     get_item_properties_from_workbook_inserts,
     get_schema,
     get_submitted_item_types,
+    get_workbook_inserts_for_collection,
     has_submitted_id,
     is_submitted_item,
     patch_item,
@@ -33,6 +34,7 @@ SUBMITTED_ID_PATTERN_FORMAT = re.compile(
     rf"{re.escape(SUBMITTED_ID_IDENTIFIER_PATTERN)}$"
 )
 
+WORKBOOK_SUBMISSION_CENTER_CODE = "test"
 DUMMY_SUBMITTED_ID_CODE = "FOOBAR"
 
 
@@ -145,9 +147,7 @@ def get_submitted_id_pattern_item_type_failure(
     return ""
 
 
-def test_submitted_id_validated_on_post_and_patch(
-    testapp: TestApp, test_submission_center: Dict[str, Any]
-) -> None:
+def test_submitted_id_validated_on_post_and_patch(testapp: TestApp) -> None:
     """Test SubmittedItems validate submitted_id on POST and PATCH.
 
     Validation performed is on SubmissionCenter code, so use a dummy
@@ -158,12 +158,15 @@ def test_submitted_id_validated_on_post_and_patch(
 
     Use workbook inserts indirectly for properties.
     """
+    submission_center = get_test_submission_center_from_inserts(testapp)
     item_properties_to_test = get_item_properties_from_workbook_inserts(
-        test_submission_center
+        submission_center
     )
     assert_dummy_submitted_id_code_valid(item_properties_to_test)
     submitted_item_types = get_submitted_item_types(testapp)
     for item_type in loadxl_order:
+        if item_type == "submission_center":
+            continue  # Already POSTed relevant SubmissionCenter
         if item_type in submitted_item_types:
             assert_submitted_id_validation_on_post_and_patch(
                 testapp, item_type, item_properties_to_test
@@ -172,13 +175,37 @@ def test_submitted_id_validated_on_post_and_patch(
             post_items(testapp, item_type, item_properties_to_test)
 
 
+def get_test_submission_center_from_inserts(testapp: TestApp) -> Dict[str, Any]:
+    """Get SubmissionCenter from workbook used for submitted IDs."""
+    submission_center_inserts = get_workbook_inserts_for_collection("submission_center")
+    submission_center_to_use = get_test_submission_center(submission_center_inserts)
+    return post_identifying_insert(
+        testapp, submission_center_to_use, "submission_center"
+    )
+
+
+def get_test_submission_center(
+    submission_center_inserts: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """Get SubmissionCenter to use for submitted IDs."""
+    matching_centers = [
+        insert for insert in submission_center_inserts
+        if insert.get("code") == WORKBOOK_SUBMISSION_CENTER_CODE
+    ]
+    assert len(matching_centers) == 1, (
+        f"Expected one SubmissionCenter with code {WORKBOOK_SUBMISSION_CENTER_CODE}"
+        f" but found {len(matching_centers)}"
+    )
+    return matching_centers[0]
+
+
 def assert_dummy_submitted_id_code_valid(
     item_properties_to_test: Dict[str, Dict]
 ) -> None:
     """Ensure no conflicts between dummy code and existing ones."""
     submission_center_inserts = item_properties_to_test["submission_center"]
     existing_submitted_id_codes = [
-        insert.get("submitted_id_code") for insert in submission_center_inserts
+        insert.get("code") for insert in submission_center_inserts
     ]
     assert DUMMY_SUBMITTED_ID_CODE not in existing_submitted_id_codes, (
         f"Dummy code {DUMMY_SUBMITTED_ID_CODE} exists in inserts and should"

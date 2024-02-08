@@ -63,7 +63,7 @@ def remote_user_testapp(app, remote_user: str) -> TestApp:
 
 
 TEST_SUBMISSION_CENTER_CODE = "test"
-TEST_SECOND_SUBMISSION_CENTER_CODE = "SECONDTEST"
+TEST_SECOND_SUBMISSION_CENTER_CODE = "secondtest"
 
 
 @pytest.fixture
