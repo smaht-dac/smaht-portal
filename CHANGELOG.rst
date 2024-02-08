@@ -15,6 +15,12 @@ Change Log
   * Validation includes: SubmissionCenter code, item type, and unique identifier
 
 
+0.21.2
+======
+
+* Add lifecycle properties to File schema
+
+
 0.21.1
 ======
 
