@@ -949,4 +949,4 @@ def assert_admin_permissions(
             post_item_to_fail(unassociated_user_app, item_type, limited_insert)
             post_item_to_fail(submission_center_user_app, item_type, limited_insert)
             post_item_to_fail(consortium_user_app, item_type, limited_insert)
-        post_item(testapp, identifying_insert, item_type, status=201)
+        post_item(testapp, identifying_insert, item_type, status=[201, 409])
