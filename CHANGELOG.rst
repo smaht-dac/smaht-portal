@@ -51,16 +51,9 @@ Change Log
 
 
 0.16.0
-======
+=====
 
-* Merge in ui-dev4 branch: `PR: ##: UI-Dev 4 <>`_
-* TODO: add branches merged into ui-dev4
-
-
-0.16.0
-=======
-
-* Adds `/peek-metadata` support for retrieving facet information from the metadata.tsv
+* Adds `/peak-metadata` support for retrieving facet information from the metadata.tsv
 
 
 0.15.0
