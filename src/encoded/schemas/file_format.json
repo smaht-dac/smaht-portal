@@ -62,14 +62,27 @@
         "schema_version": {
             "default": "1"
         },
-        "standard_file_extension": {
-            "$merge": "encoded_core:schemas/file_format.json#/properties/standard_file_extension"
+        "extra_file_formats": {
+            "$merge": "encoded_core:schemas/file_format.json#/properties/extrafile_formats"
         },
         "other_allowed_extensions": {
             "$merge": "encoded_core:schemas/file_format.json#/properties/other_allowed_extensions"
         },
-        "extra_file_formats": {
-            "$merge": "encoded_core:schemas/file_format.json#/properties/extrafile_formats"
+        "standard_file_extension": {
+            "$merge": "encoded_core:schemas/file_format.json#/properties/standard_file_extension"
+        },
+        "valid_item_types": {
+            "$merge": "encoded_core:schemas/file_format.json#/properties/valid_item_types",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "AlignedReads",
+                    "OutputFile",
+                    "ReferenceFile",
+                    "UnalignedReads",
+                    "VariantCalls"
+                ]
+            }
         }
     }
 }
