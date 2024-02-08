@@ -7,6 +7,22 @@ smaht-portal
 Change Log
 ----------
 
+0.21.1
+======
+
+* Update SPC from 0.1.76b1 to 0.1.76
+
+0.21.0
+======
+
+`PR 45: UI Dev 4: End of January Release w/Benchmarking <https://github.com/smaht-dac/smaht-portal/pull/45>`_
+* UIs for Benchmarking Data
+* Google Analytics implementation
+* Navigation edits to accommodate new documentation, about, data pages
+* Various other front-end tweaks to home page, user pages, etc
+* Note: many PRs included in this one - see link above for breakdown, commit history
+
+
 0.20.0
 ======
 
@@ -40,7 +56,7 @@ Change Log
 
 
 0.16.0
-======
+=====
 
 * Adds `/peak-metadata` support for retrieving facet information from the metadata.tsv
 

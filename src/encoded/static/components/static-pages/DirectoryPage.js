@@ -14,6 +14,9 @@ import { StaticPageBase } from '@hms-dbmi-bgm/shared-portal-components/es/compon
 export default class DirectoryPage extends React.PureComponent {
     render() {
         const { context } = this.props;
+        const {
+            'table-of-contents': { enabled: tableOfContentsEnabled } = {},
+        } = context || {};
         const childrenHaveChildren = _.any(
             context.children || [],
             function (c) {
@@ -39,10 +42,13 @@ export default class DirectoryPage extends React.PureComponent {
                             : ' leaf-directory')
                     }
                     key="wrapper">
-                    <DirectoryBodyGrid
-                        {...this.props}
-                        childrenHaveChildren={childrenHaveChildren}
-                    />
+                    {content}
+                    {tableOfContentsEnabled && (
+                        <DirectoryBodyGrid
+                            {...this.props}
+                            childrenHaveChildren={childrenHaveChildren}
+                        />
+                    )}
                     {!childrenHaveChildren ? (
                         <NextPreviousPageSection
                             context={context}
@@ -50,7 +56,6 @@ export default class DirectoryPage extends React.PureComponent {
                             previousTitle="Previous Section"
                         />
                     ) : null}
-                    {content}
                 </div>
             </div>
         );

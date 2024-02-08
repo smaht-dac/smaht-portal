@@ -1,19 +1,14 @@
 {
     "hostnameTrackerIDMapping" : {
-
-    },
-    "dimensionNameMap" : {
-        "currentFilters"    : 1,
-        "name"              : 2,
-        "field"             : 3,
-        "term"              : 4,
-        "experimentType"    : 5
-    },
-    "metricNameMap" : {
-        "filesize"          : 1,
-        "downloads"         : 2
+        "data.smaht.org" : ["GTM-PFZSVQJZ", "G-QH87V2XZ9E"],
+        "staging.smaht.org" : ["GTM-PFZSVQJZ", "G-QH87V2XZ9E"],
+        "wolf.smaht.org" : ["GTM-NBD69BXJ", "G-2JPJXP2V24"],
+        "localhost:8000" : ["GTM-5JDWH48G", "G-3SB94K0K5B"],
+        "localhost:6543" : ["GTM-5JDWH48G", "G-3SB94K0K5B"],
+        "default" : []
     },
     "isAnalyticsScriptOnPage" : true,
-    "enhancedEcommercePlugin": true,
-    "anonymizeTypes" : ["User", "Individual", "Patient"]
+    "trackCrossSessions": true,
+    "anonymizeTypes" : ["User", "Individual", "Patient"],
+    "excludeAdminTrackingOnHostnames" : ["data.smaht.org"]
 }

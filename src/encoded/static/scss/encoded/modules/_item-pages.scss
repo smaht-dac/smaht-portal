@@ -336,31 +336,18 @@ $tabbar-height: 46px;
 
 /*************************
 	Alerts - Shown differently on ItemPages than others
-	(same styling also applied to homepage)
 **************************/
 
-#full-alerts-container {
-	display: none;
-	// position: sticky;
-	// z-index: 500;
-	// top: 0px;
-
-	// @include navbar-fixed-position {
-	// 	top: 40px;
-	// }
-
-	// > .alerts {
-	// 	> .alert {
-	// 		margin-bottom: 0px;
-	// 		border-radius: 0;
-	// 		border-left: none;
-	// 		border-right: none;
-	// 		border-top: none;
-	// 		&:last-child {
-	// 			border-bottom: none;
-	// 		}
-	// 	}
-	// }
+.item-page-container {
+	> #full-alerts-container {
+		// Note: removed stickiness
+		.alerts {
+			.alert {
+				border-radius: 0px;
+				margin-bottom: 0px;
+			}
+		}
+	}
 }
 
 /** Styling right pane menu which comes out upon ItemActionsTab click **/
@@ -884,7 +871,7 @@ div.user-profile-page {
 	background-color: #eee;
 
 	@include media-breakpoint-up(md){
-		min-height: calc(100vh - 250px); // 250px is sum of header, footer, and page title. If any of those change, this needs updating.
+		min-height: calc(100vh - 231px); // 250px is sum of header, footer, and page title. If any of those change, this needs updating.
 	}
 
 
