@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pyramid.view import view_config
 from encoded_core.types.file import (
@@ -18,6 +18,7 @@ from encoded_core.file_views import (
 )
 from snovault import (
     calculated_property,
+    display_title_schema,
     load_schema,
     abstract_collection,
 )
@@ -54,6 +55,16 @@ def show_upload_credentials(
     return request.has_permission("edit", context)
 
 
+def _build_file_embedded_list() -> List[str]:
+    """Embeds for search on files."""
+    return [
+        "file_sets.assay",
+        "file_sets.libraries",
+        "file_sets.sequencing.sequencer",
+        "software.name",
+    ]
+
+
 @abstract_collection(
     name="files",
     unique_key='accession',
@@ -65,7 +76,7 @@ def show_upload_credentials(
 class File(Item, CoreFile):
     item_type = "file"
     schema = load_schema("encoded:schemas/file.json")
-    embedded_list = []
+    embedded_list = _build_file_embedded_list()
 
     Item.SUBMISSION_CENTER_STATUS_ACL.update({
         'uploaded': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
@@ -97,6 +108,18 @@ class File(Item, CoreFile):
     def get_bucket(cls, registry):
         """ Files by default live in the upload bucket, unless they are output files """
         return registry.settings['file_upload_bucket']
+
+    @calculated_property(schema=display_title_schema)
+    def display_title(
+        self,
+        request: Request,
+        annotated_filename: Optional[str] = None,
+        accession: Optional[str] = None,
+        file_format: Optional[str] = None,
+    ) -> str:
+        if annotated_filename:
+            return annotated_filename
+        return CoreFile.display_title(self, request, file_format, accession=accession)
 
     @calculated_property(schema=HREF_SCHEMA)
     def href(

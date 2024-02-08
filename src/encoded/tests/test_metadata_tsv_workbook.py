@@ -1,6 +1,7 @@
 import pytest
 import io
 import csv
+from ..metadata import descend_field
 
 
 class TestMetadataTSVHelper:
@@ -31,7 +32,53 @@ class TestMetadataTSVHelper:
         assert len(parsed[3:]) == expected_count  # there is 1 file of this type
 
 
+class DummyRequest:
+    scheme = 'http'
+    host = 'localhost'
+
+
 class TestMetadataTSVWorkbook:
+
+    @staticmethod
+    @pytest.mark.parametrize('field_dict,list_of_names,expected', [
+        ({
+            'simple': 1
+        }, ['simple'], 1),
+        ({
+             'href': '/download',
+         }, ['href'], 'http://localhost/download'),
+        ({
+             'simple': 1
+         }, ['not_simple', 'simple'], 1),
+        ({
+             'simple': 1
+         }, ['not_simple'], None),
+        ({
+             'simple': {
+                 'simple2': 1
+             }
+         }, ['simple.simple2'], 1),
+        ({
+             'simple': {
+                 'simple2': 1
+             }
+         }, ['simple.simple3', 'simple.simple2'], 1),
+        ({
+            'simple': {
+                'simple2': {
+                    'dict': 1
+                }
+            }
+        }, ['simple.simple2'], None),
+        ({
+             'simple': {
+                 'simple2': ['array']
+             }
+         }, ['simple.simple2'], None)
+    ])
+    def test_descend_field(field_dict, list_of_names, expected):
+        """ Helper that tests that we can retrieve fields in various expected scenarios """
+        assert descend_field(DummyRequest, field_dict, list_of_names) == expected
 
     @pytest.mark.workbook
     def test_metadata_tsv_workbook(self, workbook, es_testapp):
@@ -56,6 +103,11 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_type_length(es_testapp, 'ReferenceFile', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'OutputFile', 2)
+        res = es_testapp.post_json('/metadata/', {'type': 'OutputFile', 'include_extra_files': True})
+        tsv = res._app_iter[0]
+        parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
+        last_extra_file_name = parsed[-1][2]  # filename in 3rd position in tsv
+        assert last_extra_file_name == 'a_second_bam_bai.bai'
 
     def test_peak_metadata_workbook(self, workbook, es_testapp):
         """ Tests we can peak at metadata for files and get facet information (just file size for now) """

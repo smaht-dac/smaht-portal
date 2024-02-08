@@ -17,6 +17,9 @@
             "$ref": "mixins.json#/aliases"
         },
         {
+            "$ref": "mixins.json#/code"
+        },
+        {
             "$ref": "mixins.json#/identifier"
         },
         {

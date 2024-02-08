@@ -127,10 +127,10 @@
                             "additional_properties": false,
                             "properties": {
                                 "description": {
-                                    "$merge": "encoded:schemas/output_file.json#/properties/description"
+                                    "$merge": "encoded:schemas/mixins.json#/description/description"
                                 },
                                 "variant_type": {
-                                    "$merge": "encoded:schemas/output_file.json#/properties/variant_type"
+                                    "$merge": "encoded:schemas/mixins.json#/variant_type/variant_type"
                                 },
                                 "data_category": {
                                     "$merge": "encoded:schemas/file.json#/properties/data_category"

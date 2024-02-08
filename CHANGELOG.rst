@@ -7,6 +7,35 @@ smaht-portal
 Change Log
 ----------
 
+0.21.0
+======
+
+`PR 45: UI Dev 4: End of January Release w/Benchmarking <https://github.com/smaht-dac/smaht-portal/pull/45>`_
+* UIs for Benchmarking Data
+* Google Analytics implementation
+* Navigation edits to accommodate new documentation, about, data pages
+* Various other front-end tweaks to home page, user pages, etc
+* Note: many PRs included in this one - see link above for breakdown, commit history
+
+
+0.20.0
+======
+
+`PR 63: Benchmarking release data model <https://github.com/smaht-dac/smaht-portal/pull/63>`_
+* Add two new item types: Sequencer + Assay
+* Add `code` property to multiple item types to store file naming conventions
+* Share SubmittedFile release properties with OutputFile
+* Update file facets + columns and embed fields for search
+
+
+0.19.0
+======
+
+* Repair small bug in extra file line generation, implement/test field fallbacks
+* Repair permissions issues coming from snovault
+* Update extra file names in encoded-core
+
+
 0.18.0
 ======
 

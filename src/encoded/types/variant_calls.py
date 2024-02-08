@@ -13,4 +13,4 @@ from .submitted_file import SubmittedFile
 class VariantCalls(SubmittedFile):
     item_type = "variant_calls"
     schema = load_schema("encoded:schemas/variant_calls.json")
-    embedded_list = []
+    embedded_list = SubmittedFile.embedded_list
