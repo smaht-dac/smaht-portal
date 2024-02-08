@@ -1036,16 +1036,14 @@ body[data-current-action="multiselect"] {
                                 position: relative;
                                 > .level-1-title {
                                     text-shadow: 0 0 0;
-                                    //temporarily, disable level-1 clicks and hide arrow icon 
-                                    pointer-events: none;
-                                    // &:before {
-                                    //     font-family: $fa-font-family;
-                                    //     font-weight: 900;
-                                    //     content: "\f105";
-                                    //     position: absolute;
-                                    //     left: -15px;
-                                    //     top: 9px;
-                                    // }
+                                    &:before {
+                                        font-family: $fa-font-family;
+                                        font-weight: 900;
+                                        content: "\f105";
+                                        position: absolute;
+                                        left: -15px;
+                                        top: 9px;
+                                    }
                                 }
                             }
                         }
