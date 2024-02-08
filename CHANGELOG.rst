@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.21.3
+======
+
+* Update `derived_from` linkTo from File to SubmittedFile
+
+
 0.21.2
 ======
 
