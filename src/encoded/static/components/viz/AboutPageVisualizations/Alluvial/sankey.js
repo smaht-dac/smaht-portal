@@ -309,10 +309,10 @@ export function sankeyFunc() {
                         sortFn = alphabetical;
                         break;
                     case 'sequencing_platform':
-                        sortFn = ascendingDepth;
+                        sortFn = descendingDepth;
                         break;
                     case 'assay_type':
-                        sortFn = ascendingDepth;
+                        sortFn = descendingDepth;
                         break;
                     case 'molecular_feature':
                         sortFn = categorical;
@@ -353,8 +353,8 @@ export function sankeyFunc() {
             return a.category.localeCompare(b.category);
         }
 
-        function ascendingDepth(a, b) {
-            return a.y - b.y;
+        function descendingDepth(a, b) {
+            return b.dy - a.dy;
         }
     }
 
