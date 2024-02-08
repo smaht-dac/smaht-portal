@@ -1,0 +1,23 @@
+[
+    {
+        "uuid": "e9351dbd-835f-41fe-b325-a7e2d8228311",
+        "status": "in review",
+        "tracking_type": "google_analytics",
+        "google_analytics": {
+            "reports": {
+                "views_by_file": [],
+                "fields_faceted": [],
+                "sessions_by_country": [],
+                "top_files_downloaded": [],
+                "metadata_tsv_by_country": [],
+                "views_by_experiment_set": [],
+                "file_downloads_by_country": [],
+                "file_downloads_by_filetype": [],
+                "sessions_by_device_category": [],
+                "file_downloads_by_experiment_type": []
+            },
+            "for_date": "2023-12-29",
+            "date_increment": "daily"
+        }
+    }
+]
