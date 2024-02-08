@@ -483,14 +483,11 @@ def get_identifying_insert(
 
     Keep submission centers, if present.
     """
-    identifying_properties = get_identifying_properties(test_app, item_type)
-    required_properties = get_required_properties(test_app, item_type)
-    if has_affiliations(insert):
-        properties_to_keep = (
-            identifying_properties + required_properties + ["submission_centers"]
-        )
-    else:
-        properties_to_keep = identifying_properties + required_properties
+    properties_to_keep = [
+        "submission_centers",
+        *get_identifying_properties(test_app, item_type),
+        *get_required_properties(test_app, item_type),
+    ]
     return {key: value for key, value in insert.items() if key in properties_to_keep}
 
 
