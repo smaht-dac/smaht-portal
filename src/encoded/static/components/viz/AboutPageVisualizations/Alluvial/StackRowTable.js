@@ -6,7 +6,7 @@ import {
     PopoverTitle,
 } from 'react-bootstrap';
 import tableData from './data/stackrow_data.json';
-import graph from './data/alluvial_data.json';
+import graph from './data/data_v2.json';
 
 // Legend rendered below the table
 const StackRowItemLegend = ({ text }) => {
@@ -103,8 +103,9 @@ const StackRowTopLabel = ({ assayType }) => {
                         onMouseLeave={() => setShowPopover(false)}>
                         <PopoverTitle>{assayType.display_name}</PopoverTitle>
                         <PopoverContent>
-                            {assayType.description}
-                            <br />
+                            {assayType.description ? (
+                                <p>{assayType.description}</p>
+                            ) : null}
                             {assayType.link && (
                                 <a
                                     className="read-more"

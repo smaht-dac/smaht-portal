@@ -77,5 +77,19 @@
         "name": "Tranquil-Seq",
         "display_name": "Tranquil-Seq",
         "description": "Single-cell full-length RNA-Seq using long-read platforms."
+    },
+    {
+        "name": "CompDuplex-Seq",
+        "display_name": "CompDuplex-Seq",
+        "description": "Accurate detection of somatic mutations by duplex-seq with comprehensive genome coverage",
+        "link": "https://www.protocols.io/view/compduplex-accurate-detection-of-somatic-mutations-c7rkzm4w"
+    },
+    {
+        "name": "WGS scCompDuplex-Seq",
+        "display_name": "WGS scCompDuplex-Seq"
+    },
+    {
+        "name": "WGS MALBAC-amplifed",
+        "display_name": "WGS MALBAC-amplifed"
     }
 ]
