@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.21.2
+======
+
+* Add lifecycle properties to File schema
+
 0.21.1
 ======
 
