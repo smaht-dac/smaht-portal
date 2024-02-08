@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.21.1
+======
+
+* Update SPC from 0.1.76b1 to 0.1.76
+
 0.21.0
 ======
 
