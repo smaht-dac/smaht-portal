@@ -20,8 +20,9 @@ export const Footer = React.memo(function Footer() {
                                 SMaHT is funded by the{' '}
                                 <a
                                     href="https://commonfund.nih.gov/"
-                                    target="blank"
-                                    rel="noreferrer noopener">
+                                    target="_blank"
+                                    className="underline"
+                                    rel="noopener noreferrer">
                                     NIH Common Fund
                                 </a>
                             </div>
@@ -29,15 +30,11 @@ export const Footer = React.memo(function Footer() {
                     </div>
                     {/* <div className="col-sm-6">
                         <div className="footer-section copy-notice d-flex align-items-center justify-content-center justify-content-sm-end">
-                            <div className="text-larger">
-                                <a className="text-decoration-none" href="">
+                            <div>
+                                <a className="text-decoration-none" href="/privacy-policy" className="mr-2">
                                     Privacy Policy
-                                </a>
-                                <a
-                                    className="text-decoration-none ml-5"
-                                    href="">
-                                    Legal
-                                </a>
+                                </a>{' '}
+                                <a className="text-decoration-none ml-5" href="/legal">Legal</a>
                             </div>
                         </div>
                     </div> */}

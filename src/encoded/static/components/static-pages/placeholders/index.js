@@ -4,6 +4,7 @@ import React from 'react';
 import JsxParser from 'react-jsx-parser';
 import { ConsortiumMap } from '../../viz/AboutPageVisualizations/ConsortiumMap/ConsortiumMap';
 import { Alluvial } from '../../viz/AboutPageVisualizations/Alluvial/Alluvial';
+import { StackRowTable } from '../../viz/AboutPageVisualizations/Alluvial/StackRowTable';
 import memoize from 'memoize-one';
 import _ from 'underscore';
 
@@ -12,6 +13,18 @@ import {
     SearchTableTitle,
 } from './../../item-pages/components/EmbeddedItemSearchTable';
 import { YoutubeVideoEmbed } from '../components/YoutubeVideoEmbed';
+import {
+    BenchmarkingUI,
+    COLO829Data,
+    HapMapData,
+    IPSCFibroblastData,
+    BrainData,
+    SkinData,
+    LiverData,
+    ColonData,
+    HeartData,
+    LungData,
+} from '../components/benchmarking';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -23,6 +36,17 @@ const placeholders = {
     YoutubeVideoEmbed,
     ConsortiumMap,
     Alluvial,
+    StackRowTable,
+    BenchmarkingUI,
+    COLO829Data,
+    HapMapData,
+    IPSCFibroblastData,
+    BrainData,
+    SkinData,
+    LiverData,
+    ColonData,
+    HeartData,
+    LungData,
 };
 
 export const replaceString = memoize(

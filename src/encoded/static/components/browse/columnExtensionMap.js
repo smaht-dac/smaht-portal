@@ -9,5 +9,5 @@ export const DEFAULT_WIDTH_MAP = { lg: 200, md: 180, sm: 120, xs: 120 };
 
 export const columnExtensionMap = {
     ...basicColumnExtensionMap,
-    // Extend as needed for smaht search tables
+    // Extend as needed for smaht search tables (note, changes made here apply to all search tables across the board)
 };

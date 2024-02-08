@@ -153,6 +153,16 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
     @include button-variant(#e4e4e4, #e0e0e0);
 }
 
+.btn.btn-outline-secondary {
+	font-family: Inter, sans-serif;
+	border-color: #DEE2E6;
+	background: #FCFDFF;
+	color: #343741;
+	&:hover {
+		background: #DEE2E6;
+	}
+}
+
 .btn.btn-outline-primary {
 	@include button-outline-variant($primary, #ffffff, $primary-dark, $primary-dark);
 }

@@ -2,7 +2,6 @@ import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 
 import graphData from './data/alluvial_data.json';
-import tableData from './data/stackrow_data.json';
 
 import { sankeyFunc } from './sankey';
 import { StackRowTable } from './StackRowTable';
@@ -21,13 +20,14 @@ import Tabs from 'react-bootstrap/Tabs';
  * Component for rendering the svg containing the alluvial plot.
  * @returns
  */
-let isDrawn;
 export const Alluvial = () => {
+    const isDrawn = useRef(false);
+
     const graph = { ...graphData };
 
     // Create ref for appending d3 visualization to the DOM
     const containerRef = useRef(null);
-    isDrawn = false;
+
     // Run after JSX renders (for the ref), then add to the DOM
     useEffect(() => {
         const color_schemes = {
@@ -67,7 +67,7 @@ export const Alluvial = () => {
             },
         };
 
-        if (graph && containerRef.current && !isDrawn) {
+        if (graph && containerRef.current && isDrawn.current === false) {
             const container = containerRef.current;
 
             const margin = { top: 150, right: 200, bottom: 50, left: 100 },
@@ -430,28 +430,21 @@ export const Alluvial = () => {
         }
 
         return () => {
-            isDrawn = true; // use cleanup function to prevent rerender
+            isDrawn.current = true; // use cleanup function to prevent rerender
         };
     }, []);
 
     return (
-        <div className="alluvial-container container py-5">
-            <div>
-                <Tabs
-                    defaultActiveKey="alluvial"
-                    className="mb-3 float-right"
-                    variant="pills">
-                    <Tab eventKey="alluvial" title="Alluvial view">
-                        <div ref={containerRef}></div>
-                        <div className="footnote">
-                            Technologies and assays are proposed and are not
-                            final.
-                        </div>
-                    </Tab>
-                    <Tab eventKey="table" title="Table view">
-                        <StackRowTable data={tableData} />
-                    </Tab>
-                </Tabs>
+        <div className="alluvial-container container py-sm-5">
+            <p className="visualization-warning d-block d-sm-none">
+                <span>Note:</span> for the best experience, please view the
+                visualization below on a tablet or desktop.
+            </p>
+            <div className="alluvial">
+                <div ref={containerRef}></div>
+                <div className="footnote">
+                    Technologies and assays are proposed and are not final.
+                </div>
             </div>
         </div>
     );

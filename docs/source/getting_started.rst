@@ -1,8 +1,3 @@
-======================
-Getting Started (User)
-======================
-
-
 In order to make your data accessible, searchable and assessable you should submit as much metadata as possible to the SMaHT system along with the raw files you have generated in your experiments.
 
 These pages are designed to:
@@ -98,7 +93,7 @@ Any of the following can be used to reference an existing item in an excel sheet
 
 
 Getting Added as a SMaHT User or Submitter
-------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before you can view protected data or submit data to the SMaHT system you must be a registered user of the site and have the appropriate access credentials.
 
@@ -122,7 +117,7 @@ Most metadata items have the following default permissions:
   * After release the data can no longer be edited by data submitters - contact the DAC to report data issues and we can work together to get them resolved
 
 Getting Access Keys for the SMaHT Data Portal servers
------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you have been designated as a submitter for the project and plan to use either our spreadsheet-based submission system or the REST-API an access key and a secret key are required to establish a connection to the DAC database and to fetch, upload (post), or change (patch) data. Please follow these steps to get your keys.
 
