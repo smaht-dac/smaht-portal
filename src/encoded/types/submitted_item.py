@@ -4,13 +4,13 @@ from typing import Any, Dict, List, Optional, Union
 from pyramid.request import Request
 from pyramid.view import view_config
 from snovault import abstract_collection
-from snovault.validation import ValidationFailure
 from snovault.util import debug_log
 from snovault.validators import (
     validate_item_content_post,
     validate_item_content_put,
     validate_item_content_patch,
 )
+from snovault.validation import ValidationFailure
 
 from .base import Item, SMAHTCollection, collection_add, item_edit
 from .utils import get_item, get_properties
@@ -118,9 +118,7 @@ class SubmittedSmahtCollection(SMAHTCollection):
     },
 )
 class SubmittedItem(Item):
-    # TODO: Any use for defining the below?
-    # item_type = "submitted_item"
-    # base_types = ["SubmittedItem"] + Item.base_types
+
     Collection = SubmittedSmahtCollection
 
 

@@ -44,7 +44,7 @@ def test_update_references():
                 with open(file_path, "r") as f:
                     content = f.readlines()
                     for i, line in enumerate(content):
-                        if "_update" in line:
+                        if "def _update(" in line:
                             for nearby_line in content[max(0, i - 10):i + 10]:
                                 if "add_last_modified" in nearby_line:
                                     break
