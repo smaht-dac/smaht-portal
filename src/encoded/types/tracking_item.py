@@ -3,11 +3,12 @@ from snovault.server_defaults import add_last_modified
 from snovault import collection, load_schema, calculated_property, Item as SnovaultItem
 from encoded_core.types.tracking_item import TrackingItem as CoreTrackingItem
 
-# from .acl import ONLY_ADMIN_VIEW_ACL, ALLOW_OWNER_EDIT_ACL
+from .acl import ALLOW_AUTHENTICATED_VIEW_ACL
 from .base import Item
 
 @collection(
     name='tracking-items',
+    acl=ALLOW_AUTHENTICATED_VIEW_ACL,
     properties={
         "title": "TrackingItem",
         "description": "For internal tracking of Fourfront events",

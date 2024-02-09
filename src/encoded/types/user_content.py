@@ -1,6 +1,7 @@
 import markdown
 import re
 from docutils.core import publish_parts
+from bs4 import BeautifulSoup
 
 from typing import Any, Dict, Optional
 
@@ -41,11 +42,17 @@ class UserContent(Item, CoreUserContent):
 
         if file_type == 'rst':
             # html header: range <h1> to <h6>
-            initial_header_level = options.get('initial_header_level', 4) if options is not None else 4
-            output = publish_parts(content, writer_name='html', settings_overrides={'doctitle_xform':False, 'initial_header_level': initial_header_level})
+            initial_header_level = options.get('initial_header_level', 2) if options is not None else 4
+            settings_overrides = {
+                'doctitle_xform': False,
+                'initial_header_level': initial_header_level
+            }
+            parts = publish_parts(content, writer_name='html', settings_overrides=settings_overrides)
+            
+            output = post_process_rst_html(parts["html_body"])
             if convert_ext_links:
-                return convert_external_links(output["html_body"], request.domain)
-            return output["html_body"]
+                return convert_external_links(output, request.domain)
+            return output
         elif file_type == 'html':
             if convert_ext_links:
                 return convert_external_links(content, request.domain)
@@ -90,3 +97,32 @@ def convert_external_links(content, reference_domain):
             content = content.replace(match[0], external_link)
 
     return content
+
+
+def post_process_rst_html(raw_html):
+    # Parse the HTML content with BeautifulSoup
+    soup = BeautifulSoup(raw_html, 'html.parser')
+
+    # rename default wrapper class
+    document_div = soup.find('div', class_='document')
+    if document_div:
+        document_div['class'] = ['rst-container']
+
+    # Find all div elements with class="section" and unwrap them
+    section_divs = soup.find_all('div', class_='section')
+    for section_div in section_divs:
+        section_div.unwrap()
+
+    output = str(soup)
+    
+    # Find all <pre> tags with their attributes and content
+    pre_matches = re.findall(r'<pre.*?>(.*?)</pre>', output, re.DOTALL)
+
+    # Replace '\n' outside of <pre> tags with an empty string
+    output = re.sub(r'(<pre.*?>.*?</pre>)|(\n)', lambda match: match.group(1) or '', output, flags=re.DOTALL)
+
+    # Restore the original content within <pre> tags
+    for pre_match in pre_matches:
+        output = output.replace(f'<pre>{pre_match}</pre>', f'<pre>{pre_match}</pre>')
+
+    return output
