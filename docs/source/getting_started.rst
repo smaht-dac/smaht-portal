@@ -86,7 +86,7 @@ to reference the ``cell_culture`` property then, the spreadsheet column header w
 Some Portal object properties are defined to be lists (or `arrays`) of values.
 Defining the values for such array properties, separate the individual array values by a pipe character (``|``).
 For example if an object defines a ``molecules`` property as an array type, then to set this
-value to an array with the two elements ``DNA`` and ``RNA``, use the value ``DNA,RNA`` in the associated spreadsheet cell.
+value to an array with the two elements ``DNA`` and ``RNA``, use the value ``DNA|RNA`` in the associated spreadsheet cell.
 
 Less common, but still supported, is the ability to set values for individual array elements.
 This is accomplished by the convention suffixing the property name in the column header with
