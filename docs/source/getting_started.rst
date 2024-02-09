@@ -117,7 +117,7 @@ It is important to know that the ``smaht-submitr`` tool and SMaHT will ensure th
 objects actually exist within the SMaHT Portal, `or` are defined within the spreadsheet itself;
 if this is not the case then an error will be the result.
 The identifying value for an object varies depending on the specific object in question,
-though the ``uuid`` is common to all objects; other common identifying properties
+though the ``uuid`` property is common to all objects; other common identifying properties
 are ``submitted_id`` and ``accession``.
 
 |
