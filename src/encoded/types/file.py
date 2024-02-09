@@ -35,6 +35,7 @@ from snovault.validators import (
     no_validate_item_content_put,
     no_validate_item_content_patch
 )
+from snovault.server_defaults import add_last_modified
 
 from . import acl
 from .base import (
@@ -102,6 +103,7 @@ class File(Item, CoreFile):
     def _update(
         self, properties: Dict[str, Any], sheets: Optional[Dict] = None
     ) -> None:
+        add_last_modified(properties)
         return CoreFile._update(self, properties, sheets=sheets)
 
     @classmethod

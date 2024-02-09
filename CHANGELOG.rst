@@ -7,11 +7,16 @@ smaht-portal
 Change Log
 ----------
 
-
-0.21.5
+0.21.6
 ======
 * Documentation updates related to submission.
 * Test fixes for test_structured_data related to date/time type handling.
+
+
+0.21.5
+======
+
+* Adds `last_modified` to all items for edit tracking
 
 
 0.21.4

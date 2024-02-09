@@ -407,7 +407,14 @@ class WorkbookCache:
         #    testapp.post_json('/index', {'record': True})
         # instead would seem to 'fix', even though the record part is not strictly needed.
         # Perhaps because it waits until done, or waits long enough, that indexing completes. -kmp 31-Jan-2023
+        # As an update to Kent's comment above, not sure it's a timing error
+        # as much as it's just not indexing long enough to get everything in...
+        # Adding the loop below should fix that - Will Feb 9 2024
         testapp.post_json('/index', {})
+        counts_total = testapp.get('/counts').json['db_es_total']
+        while 'more items' in counts_total:  # this string is always present in uneven counts
+            testapp.post_json('/index', {})
+            counts_total = testapp.get('/counts').json['db_es_total']
         return True
 
 
