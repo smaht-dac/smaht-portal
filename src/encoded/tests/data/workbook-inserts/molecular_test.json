@@ -1,12 +1,12 @@
 [
     {
         "uuid": "70041b43-7f5d-4cb7-b596-84a36979c7b1",
-        "submitted_id": "TEST_MOLECULAR-TEST_HIV",
+        "submitted_id": "TEST_MOLECULAR-TEST_HIV1",
         "submission_centers": [
             "smaht"
         ],
         "title": "HIV 1 NAT",
         "result_classification": "Inconclusive",
-        "medical_history": "TEST_MEDICAL_FEMALE"
+        "medical_history": "TEST_MEDICAL-HISTORY_FEMALE"
     }
 ]

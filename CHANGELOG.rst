@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.22.0
+======
+
+`PR 57: Submitter ID Validation <https://github.com/smaht-dac/smaht-portal/pull/57>`_
+* Validate `submitter_id` for all submitted items
+  * Validation includes: SubmissionCenter code, item type, and unique identifier
+
+
 0.21.6
 ======
 

@@ -7,7 +7,7 @@ from snovault import (
     Item as SnovaultItem,
 )
 
-from .base import Item
+from .submitted_item import SubmittedItem
 
 
 @collection(
@@ -18,7 +18,7 @@ from .base import Item
         "description": "Listing of software for analyses",
     },
 )
-class Software(Item, CoreSoftware):
+class Software(SubmittedItem, CoreSoftware):
     item_type = "software"
     schema = load_schema("encoded:schemas/software.json")
     embedded_list = []

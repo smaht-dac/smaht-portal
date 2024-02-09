@@ -7,7 +7,7 @@
         "submitted_id": "TEST_THERAPEUTIC_DISEASE-MODIFIER",
         "agent": "MONDO:0016668",
         "diagnosis": "TEST_DIAGNOSIS_FEMALE",
-        "medical_history": "TEST_MEDICAL_FEMALE",
+        "medical_history": "TEST_MEDICAL-HISTORY_FEMALE",
         "dose": 5.5,
         "dose_units": "mg"
     }
