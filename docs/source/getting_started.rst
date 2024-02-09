@@ -92,6 +92,14 @@ This is accomplished by the convention suffixing the property name in the column
 a pound sign (``#``) followed by an integer representing the zero-indexed array element.
 For example to set the first element of the ``molecules`` property (using the example above), use column header value ``molecule#0``.
 
+**Date/Time Type Properties**
+
+For Portal object properties which are defined as `date` values,
+the required format is ``YYYY-MM-DD``, for example ``2024-02-09``.
+
+For Portal object properties which are defined as `date-time` values,
+the required format is ``YYYY-MM-DD hh:mm:ss``, for example ``2024-02-09 08:25:10``.
+
 **Boolean Type Properties**
 
 For Portal object properties which are defined as `boolean` values, meaning either `true` or `false`,
