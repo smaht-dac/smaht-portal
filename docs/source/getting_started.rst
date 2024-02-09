@@ -48,6 +48,7 @@ Note these important aspects of the acceptable spreadsheet format:
 #. The first column in the header column which is empty marks the end of the header, and any subsequent columns will be entirely ignored.
 #. The first row which is entirely empty marks the end of the input, and any subsequenct rows will be entirely ignored;
    this means you can include comments in your spreadsheet in rows after the first blank row indicating the end of data input.
+#. The name of the spreadsheet file must be suffixed with ``.xls`` or ``.xlsx``; there are no other requirements for the name of this file.
 
 Here is screenshot of a simple example Excel spreadsheet: 
 
@@ -60,7 +61,7 @@ Here is screenshot of a simple example Excel spreadsheet:
 Notice that the first row comprises the property/column `header`, defining properties named ``submitted_id``, ``molecule``, ``components``, and so on.
 
 And also notice the multiple tabs at the bottom for the different sheets within the spreadsheet,
-representing (in this example) data for the objects ``CellCultureSample``, ``Analyte``, and so on.
+representing (in this example) data for the Portal objects ``CellCultureSample``, ``Analyte``, and so on.
 
 **Column Deletions**
 
