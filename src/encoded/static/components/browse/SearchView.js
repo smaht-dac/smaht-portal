@@ -187,8 +187,8 @@ export class SearchViewBody extends React.PureComponent {
                     renderDetailPane={null}
                     termTransformFxn={Schemas.Term.toName}
                     separateSingleTermFacets={false}
-                    rowHeight={90}
-                    openRowHeight={90}
+                    rowHeight={31}
+                    openRowHeight={40}
                 />
             </div>
         );

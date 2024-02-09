@@ -8,11 +8,49 @@ Change Log
 ----------
 
 
+0.21.5
+======
+* Documentation updates related to submission.
+* Test fixes for test_structured_data related to date/time type handling.
+
+
+0.21.4
+======
+
+`PR 74: Table of Content improvements for RST content <https://github.com/smaht-dac/smaht-portal/pull/74>`_
+* user_content.py is updated to support multi-level TOC generation for RST content
+* Static_section.json in master-inserts is updated to correct text and navigation URL in Next - Previous links under the TOC
+* Level 1 titles are disabled under Documents in top navigation bar
+* Serkan Utku Öztürk added to users
+
+
+0.21.3
+======
+
+* Update `derived_from` linkTo from File to SubmittedFile
+
+
+0.21.2
+======
+
+* Add lifecycle properties to File schema
+
+
+0.21.1
+======
+
+* Update SPC from 0.1.76b1 to 0.1.76
+
+
 0.21.0
 ======
 
-* Documentation updates related to submission.
-* Test fixes for test_structured_data related to date/time type handling.
+`PR 45: UI Dev 4: End of January Release w/Benchmarking <https://github.com/smaht-dac/smaht-portal/pull/45>`_
+* UIs for Benchmarking Data
+* Google Analytics implementation
+* Navigation edits to accommodate new documentation, about, data pages
+* Various other front-end tweaks to home page, user pages, etc
+* Note: many PRs included in this one - see link above for breakdown, commit history
 
 
 0.20.0
@@ -48,7 +86,7 @@ Change Log
 
 
 0.16.0
-======
+=====
 
 * Adds `/peak-metadata` support for retrieving facet information from the metadata.tsv
 

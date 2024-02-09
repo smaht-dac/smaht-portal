@@ -117,7 +117,8 @@ The type of submission supported is called a "metadata bundles", or `accessionin
 And the name of the command-line tool to initiate a submission is ``submit-metadata-bundle``.
 A brief tour of this command, its arguments, and function is described below.
 
-**Installation**
+Getting Added as a SMaHT User or Submitter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``smaht-submitr`` tool is a Python based command-line tool, distributed
 on the `Python Package Index <https://pypi.org/project/smaht-submitr/>`_ which can be installed

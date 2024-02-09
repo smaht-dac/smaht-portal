@@ -67,7 +67,7 @@ export const PageTitleSection = React.memo(function PageTitle(props) {
     }
 
     return (
-        <PageTitleContainer alerts={alerts}>
+        <PageTitleContainer {...{ alerts }}>
             <OnlyTitle>
                 {object.itemUtil.getTitleStringFromContext(context) || (
                     <em>Unknown</em>
@@ -80,7 +80,13 @@ export const PageTitleSection = React.memo(function PageTitle(props) {
 export const EditingItemPageTitle = React.memo(function EditingItemPageTitle(
     props
 ) {
-    const { currentAction, context, schemas, alerts } = props;
+    const {
+        currentAction,
+        context,
+        schemas,
+        alerts,
+        alertsBelowTitleContainer,
+    } = props;
     const subtitle =
         currentAction === 'edit'
             ? object.itemUtil.getTitleStringFromContext(context) // on item view
@@ -90,7 +96,7 @@ export const EditingItemPageTitle = React.memo(function EditingItemPageTitle(
             ? schemaTransforms.getSchemaTypeFromSearchContext(context, schemas) // on search view
             : schemaTransforms.getItemTypeTitle(context, schemas);
     return (
-        <PageTitleContainer alerts={alerts}>
+        <PageTitleContainer {...{ alerts, alertsBelowTitleContainer }}>
             <TitleAndSubtitleBeside subtitle={subtitle}>
                 {currentAction === 'edit' ? 'Editing' : 'Creating'}
             </TitleAndSubtitleBeside>
@@ -106,12 +112,23 @@ export const PageTitleContainer = React.memo(function PageTitleContainer({
     alerts,
     alertsContainerClassName,
     className = 'container',
+    alertsBelowTitleContainer = false,
 }) {
+    if (!alertsBelowTitleContainer) {
+        return (
+            <div id="page-title-container" className={className}>
+                {children}
+                <Alerts alerts={alerts} className={alertsContainerClassName} />
+            </div>
+        );
+    }
     return (
-        <div id="page-title-container" className={className}>
-            {children}
+        <>
+            <div id="page-title-container" className={className}>
+                {children}
+            </div>
             <Alerts alerts={alerts} className={alertsContainerClassName} />
-        </div>
+        </>
     );
 });
 
@@ -188,21 +205,22 @@ const StaticPageTitle = React.memo(function StaticPageTitle(props) {
         context['@type'].indexOf('StaticPage') > -1 &&
         context['table-of-contents'] &&
         context['table-of-contents'].enabled;
-    const commonCls = 'col-12' + hasToc ? ' col-lg-9' : '';
+    const commonCls = 'col-12';
     return (
         <PageTitleContainer
             alerts={alerts}
-            className="container"
-            alertsContainerClassName={commonCls + ' mt-2'}>
-            <div className="row">
+            alertsBelowTitleContainer={true}
+            className="container-wide pb-2 static-page-title"
+            alertsContainerClassName={'container mt-3'}>
+            <div className="container-wide m-auto p-xl-0">
                 {!breadCrumbsVisible ? (
                     <StaticPageBreadcrumbs
                         {...{ context, session, href }}
                         key="breadcrumbs"
-                        className={commonCls}
+                        className={commonCls + ' mx-0 px-0'}
                     />
                 ) : null}
-                <OnlyTitle className={commonCls}>
+                <OnlyTitle className={commonCls + ' mx-0 px-0'}>
                     {children || context.display_title}
                 </OnlyTitle>
             </div>
@@ -385,21 +403,33 @@ export class StaticPageBreadcrumbs extends React.Component {
      * Renders each individual crumb.
      *
      * @private
-     * @param {Item} ancestor   JSON representing an ancestor. Should have at least an @id and a display_title.
-     * @param {number} index    Current ancestor index.
-     * @param {Item[]} all      List of all ancestors being iterated.
+     * @param {Item} ancestor        JSON representing an ancestor. Should have at least an @id and a display_title.
+     * @param {number} index         Current ancestor index.
+     * @param {Item[]} all           List of all ancestors being iterated.
+     * @param {boolean} redirect     Determines if crumb should redirect the user upon click.
      * @returns {JSX.Element} A div element representing a breadcrumb.
      */
-    renderCrumb(ancestor, index, all) {
+    renderCrumb(ancestor, index, all, redirect = true) {
         var inner;
+
+        // Hard-coded link groups to disable
+        const breadcrumbsToDisable = ['docs', 'data', 'about'];
+        const shouldDisable = ancestor.identifier
+            .split('/')
+            .some((ancestor) => breadcrumbsToDisable.includes(ancestor));
+
         if (ancestor['@id'] === this.props.context['@id']) {
             inner = null; //ancestor.display_title;
+        } else if (shouldDisable) {
+            inner = <span>{ancestor.display_title}</span>;
         } else {
             inner = <a href={ancestor['@id']}>{ancestor.display_title}</a>;
         }
         return (
             <div
-                className="static-breadcrumb"
+                className={
+                    'static-breadcrumb ' + (shouldDisable ? 'nonclickable' : '')
+                }
                 data-name={ancestor.name}
                 key={ancestor['@id']}>
                 {index > 0 ? (
@@ -485,10 +515,11 @@ export class StaticPageBreadcrumbs extends React.Component {
 
     /** @private */
     render() {
-        var { context, className } = this.props,
-            ancestors = StaticPageBreadcrumbs.getAncestors(context),
-            crumbs = ancestors && _.map(ancestors, this.renderCrumb);
+        var { context, className } = this.props;
+        var ancestors = StaticPageBreadcrumbs.getAncestors(context);
+        var crumbs;
 
+        crumbs = ancestors && _.map(ancestors, this.renderCrumb);
         return (
             <div
                 className={
