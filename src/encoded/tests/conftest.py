@@ -412,7 +412,7 @@ class WorkbookCache:
         # Adding the loop below should fix that - Will Feb 9 2024
         testapp.post_json('/index', {})
         counts_total = testapp.get('/counts').json['db_es_total']
-        while 'more_items' in counts_total:
+        while 'more items' in counts_total:  # this string is always present in uneven counts
             testapp.post_json('/index', {})
             counts_total = testapp.get('/counts').json['db_es_total']
         return True
