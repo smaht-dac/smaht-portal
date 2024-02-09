@@ -112,6 +112,7 @@ simply use these values, i.e. ``true`` or ``false``.
 
 Some Portal object properties are defined as being references to other Portal objects (also known as `linkTo` properties).
 The values of these in the spreadsheet should be the unique identifying value for that object.
+
 It is important to know that the ``smaht-submitr`` tool and SMaHT will ensure that the referenced
 objects actually exist within the SMaHT Portal, `or` are defined within the spreadsheet itself;
 if this is not the case then an error will be the result.
