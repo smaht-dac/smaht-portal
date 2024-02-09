@@ -206,7 +206,6 @@ def test_real_validation_error(es_app, setup_and_teardown, indexer_testapp, es_t
     notice_pytest_fixtures(setup_and_teardown)
     es = es_app.registry[ELASTIC_SEARCH]
     fp_body = {
-        'schema_version': '3',
         'uuid': str(uuid.uuid4()),
         'data_category': ['Sequencing Reads'],
         'data_type': ['Aligned Reads'],

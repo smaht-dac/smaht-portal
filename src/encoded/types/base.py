@@ -23,6 +23,7 @@ from snovault.validators import (
     no_validate_item_content_put,
     no_validate_item_content_patch
 )
+from snovault.server_defaults import add_last_modified
 
 from . import acl
 from .utils import get_item
@@ -165,6 +166,10 @@ class Item(SnovaultItem):
     def __init__(self, registry, models):
         super().__init__(registry, models)
         self.STATUS_ACL = self.__class__.STATUS_ACL
+
+    def _update(self, properties, sheets=None):
+        add_last_modified(properties)
+        super(Item, self)._update(properties, sheets)
 
     def __acl__(self):
         """This sets the ACL for the item based on mapping of status to ACL.

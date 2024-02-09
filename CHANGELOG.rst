@@ -15,6 +15,12 @@ Change Log
   * Validation includes: SubmissionCenter code, item type, and unique identifier
 
 
+0.21.5
+======
+
+* Adds `last_modified` to all items for edit tracking
+
+
 0.21.4
 ======
 

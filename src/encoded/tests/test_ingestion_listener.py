@@ -134,7 +134,7 @@ def test_ingestion_queue_add_and_receive(fresh_ingestion_queue_manager_for_testi
     _expect_message_uuids(queue_manager, test_uuids)
 
 
-def test_ingestion_queue_add_via_route(fresh_ingestion_queue_manager_for_testing, workbook, es_testapp):
+def test_ingestion_queue_add_via_route(fresh_ingestion_queue_manager_for_testing, es_testapp):
     """ Tests adding uuids to the queue via /queue_ingestion """
     queue_manager = fresh_ingestion_queue_manager_for_testing
     test_uuids = [str(uuid4()), str(uuid4())]
@@ -151,7 +151,7 @@ def test_ingestion_queue_add_via_route(fresh_ingestion_queue_manager_for_testing
     _expect_message_uuids(queue_manager, test_uuids)
 
 
-def test_ingestion_queue_delete(fresh_ingestion_queue_manager_for_testing, workbook, es_testapp):
+def test_ingestion_queue_delete(fresh_ingestion_queue_manager_for_testing, es_testapp):
     """ Tests deleting messages from SQS results in no messages being there. """
     queue_manager = fresh_ingestion_queue_manager_for_testing
     request_body = {

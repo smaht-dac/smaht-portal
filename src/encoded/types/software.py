@@ -1,5 +1,5 @@
-from typing import Any, Dict, Optional, List, Union
-
+from typing import Any, Dict, Optional, List
+from snovault.server_defaults import add_last_modified
 from encoded_core.types.software import Software as CoreSoftware
 from snovault import (
     collection,
@@ -26,4 +26,5 @@ class Software(SubmittedItem, CoreSoftware):
     def _update(
         self, properties: Dict[str, Any], sheets: Optional[List] = None
     ) -> None:
+        add_last_modified(properties)
         return SnovaultItem._update(self, properties, sheets)
