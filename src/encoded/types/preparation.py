@@ -1,6 +1,6 @@
 from snovault import abstract_collection, load_schema
 
-from .base import Item
+from .submitted_item import SubmittedItem
 
 
 @abstract_collection(
@@ -11,8 +11,8 @@ from .base import Item
         "description": "Data on methods used to process a biological entity",
     },
 )
-class Preparation(Item):
+class Preparation(SubmittedItem):
     item_type = "preparation"
-    base_types = ["Preparation"] + Item.base_types
+    base_types = ["Preparation"] + SubmittedItem.base_types
     schema = load_schema("encoded:schemas/preparation.json")
     embedded_list = []

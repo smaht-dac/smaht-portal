@@ -6,7 +6,7 @@
     "required": [
         "disease",
         "medical_history",
-	"submission_centers",
+        "submission_centers",
         "submitted_id"
     ],
     "identifyingProperties": [
@@ -90,6 +90,9 @@
                 "type": "string",
                 "linkTo": "Therapeutic"
             }
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_DIAGNOSIS_[A-Z0-9-_.]{4,}$"
         }
     }
 }

@@ -14,7 +14,7 @@
         "a260_a280_ratio": 3.2,
         "concentration": 6.2,
         "samples": [
-            "TEST_SAMPLE_LIVER"
+            "TEST_TISSUE-SAMPLE_LIVER"
         ]
     }
 ]

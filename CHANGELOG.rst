@@ -7,10 +7,25 @@ smaht-portal
 Change Log
 ----------
 
-0.21.6
+0.23.0
 ======
+
 * Documentation updates related to submission.
 * Test fixes for test_structured_data related to date/time type handling.
+
+
+0.22.0
+======
+
+`PR 57: Submitter ID Validation <https://github.com/smaht-dac/smaht-portal/pull/57>`_
+* Validate `submitter_id` for all submitted items
+  * Validation includes: SubmissionCenter code, item type, and unique identifier
+
+
+0.21.6
+======
+
+* Repair test namespacing in unit tests
 
 
 0.21.5
