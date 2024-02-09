@@ -11,11 +11,35 @@
         "submitted_id"
     ],
     "dependentRequired": {
+        "concentration": [
+            "concentration_unit"
+        ],
+        "concentration_unit": [
+            "concentration"
+        ],
         "rna_integrity_number": [
             "rna_integrity_number_instrument"
         ],
         "rna_integrity_number_instrument": [
             "rna_integrity_number"
+        ],
+        "sample_quantity": [
+            "sample_quantity_unit"
+        ],
+        "sample_quantity_unit": [
+            "sample_quantity"
+        ],
+        "volume": [
+            "volume_unit"
+        ],
+        "volume_unit": [
+            "volume"
+        ],
+        "weight": [
+            "weight_unit"
+        ],
+        "weight_unit": [
+            "weight"
         ]
     },
     "identifyingProperties": [
@@ -89,9 +113,18 @@
         },
         "concentration": {
             "title": "Concentration",
-            "description": "Analyte concentration (mg/mL)",
+            "description": "Analyte concentration",
             "type": "number",
             "minimum": 0
+        },
+        "concentration_unit": {
+            "title": "Concentration Unit",
+            "description": "Unit of the concentration",
+            "type": "string",
+            "enum": [
+                "ng/uL",
+                "mg/mL"
+            ]
         },
         "molecule": {
             "title": "Molecule",
@@ -131,21 +164,53 @@
         },
         "sample_quantity": {
             "title": "Sample Quantity",
-            "description": "The amount of sample used to generate the analyte (mg)",
+            "description": "The amount of sample used to generate the analyte",
             "type": "number",
             "minimum": 0
+        },
+        "sample_quantity_unit": {
+            "title": "Sample Quantity Unit",
+            "description": "Unit of the sample quantity",
+            "type": "string",
+            "enum": [
+                "cells",
+                "uL",
+                "mL",
+                "ug",
+                "mg",
+                "g"
+            ]
         },
         "volume": {
             "title": "Volume",
-            "description": "Analyte volume (mL)",
+            "description": "Analyte volume",
             "type": "number",
             "minimum": 0
         },
+        "volume_unit": {
+            "title": "Volume Unit",
+            "description": "Unit of the volume",
+            "type": "string",
+            "enum": [
+                "uL",
+                "mL"
+            ]
+        },
         "weight": {
             "title": "Weight",
-            "description": "Analyte weight (mg)",
+            "description": "Analyte weight",
             "type": "number",
             "minimum": 0
+        },
+        "weight_unit": {
+            "title": "Weight Unit",
+            "description": "Unit of the weight",
+            "type": "string",
+            "enum": [
+                "ug",
+                "mg",
+                "g"
+            ]
         },
         "analyte_preparation": {
             "title": "Analyte Preparation",
