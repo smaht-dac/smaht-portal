@@ -15,6 +15,12 @@ Change Log
   * Validation includes: SubmissionCenter code, item type, and unique identifier
 
 
+0.21.6
+======
+
+* Repair test namespacing in unit tests
+
+
 0.21.5
 ======
 

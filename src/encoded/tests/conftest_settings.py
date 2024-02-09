@@ -1,11 +1,12 @@
 import os
+from random import randint
 
 
 REPOSITORY_ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 
 
 _app_settings = {
-    "env.name": "smaht-testing",
+    "env.name": f"smaht-{randint(1000, 100000)}",
     "collection_datastore": "database",
     "item_datastore": "database",
     "multiauth.policies": "session remoteuser accesskey auth0",

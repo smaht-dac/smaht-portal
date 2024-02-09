@@ -410,10 +410,10 @@ class WorkbookCache:
         # As an update to Kent's comment above, not sure it's a timing error
         # as much as it's just not indexing long enough to get everything in...
         # Adding the loop below should fix that - Will Feb 9 2024
-        testapp.post_json('/index', {})
+        testapp.post_json('/index', {'record': True})
         counts_total = testapp.get('/counts').json['db_es_total']
         while 'more items' in counts_total:  # this string is always present in uneven counts
-            testapp.post_json('/index', {})
+            testapp.post_json('/index', {'record': True})
             counts_total = testapp.get('/counts').json['db_es_total']
         return True
 
