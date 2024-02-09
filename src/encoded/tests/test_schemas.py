@@ -56,7 +56,7 @@ def compute_master_mixins():
         'tags',
         'facets_common',
         'supplementary_files',
-        'last_modified'
+        'modified'
     ]
     for key in mixin_keys:
         assert mixins[key]
