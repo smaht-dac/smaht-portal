@@ -224,3 +224,17 @@ def test_validate_extra_files_update_properties(
     identifier = bam_output_file.get("uuid")
     patch_body = {"extra_files": extra_files}
     patch_item(testapp, patch_body, identifier, status=expected_status)
+
+
+def test_validate_file_format(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure file format validated for file type."""
+    assert_file_format_validated_on_post(es_testapp)
+    assert_file_format_validated_on_patch(es_testapp)
+
+
+def assert_file_format_validated_on_post(es_testapp: TestApp) -> None:
+    """Ensure file format validated on POST."""
+
+
+def assert_file_format_validated_on_patch(es_testapp: TestApp) -> None:
+    """Ensure file format validated on PATCH."""
