@@ -182,6 +182,14 @@
             }
         }
     },
+    "cell_count": {
+        "cell_count": {
+            "title": "Cell Count",
+            "description": "The number of cells in the sample",
+            "type": "integer",
+            "minimum": 1
+        }
+    },
     "code": {
         "code": {
             "title": "Code",

@@ -24,6 +24,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/cell_count"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -57,12 +60,6 @@
         },
         "schema_version": {
             "default": "1"
-        },
-        "cell_count": {
-            "title": "Cell Count",
-            "description": "Number of cells collected",
-            "type": "integer",
-            "minimum": 0
         },
         "cell_ontology_id": {
             "title": "Cell Ontology ID",
