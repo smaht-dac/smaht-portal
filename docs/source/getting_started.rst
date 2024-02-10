@@ -191,7 +191,7 @@ To invoke the submission for validation only, without having SMaHT actually inge
 
 To be clear, this `will` submit the file to SMaHT for processing, but no data ingestion will take place, and any problems
 will be reported back to you from the SMaHT server. To sanity check the file you are submitting  `before` actually
-submitting it to SMaHT, you should use the ``--check`` option described now below.
+submitting it to SMaHT, you should use the ``--check`` option described above.
 
 **Example Screenshots**
 
