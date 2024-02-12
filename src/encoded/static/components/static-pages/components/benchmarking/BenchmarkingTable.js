@@ -654,7 +654,7 @@ const SelectedItemsDownloadModal = function (props) {
                         <li className="mb-1">
                             <strong>Data Use:</strong> Please read the{' '}
                             <a
-                                href="https://docs.google.com/document/d/16gLiH07v_KWljTFd_EqK6NQ1d_c08utEXEmU6DTgfFs/edit"
+                                href="https://smaht.org/policies/"
                                 target="_blank"
                                 rel="noreferrer noopener">
                                 SMaHT Data Use Policy
@@ -664,7 +664,7 @@ const SelectedItemsDownloadModal = function (props) {
                         <li>
                             <strong>Publication:</strong> Please read the{' '}
                             <a
-                                href="https://docs.google.com/document/d/1PQF0uEvPNuAco3sVxl2dOdl1mxuZ1zbfcbUJbIdW6Ac/edit"
+                                href="https://smaht.org/policies/"
                                 target="_blank"
                                 rel="noreferrer noopener">
                                 SMaHT Publication Policy
