@@ -77,6 +77,12 @@
                 "Ultralong Promethion R10"
             ]
         },
+        "movie_length": {
+            "title": "Movie Length",
+            "description": "Length of movie used in sequencing",
+            "type": "integer",
+            "minimum": 0
+        },
         "platform": {
             "title": "Platform",
             "description": "Name of the platform used to obtain data",
