@@ -81,6 +81,12 @@
     "properties": {
         "schema_version": {
             "default": "1"
+        },
+        "submitted_md5sum": {
+            "title": "Submitted MD5",
+            "description": "Submitted MD5 checksum of the file",
+            "type": "string",
+            "format": "hex"
         }
     }
 }

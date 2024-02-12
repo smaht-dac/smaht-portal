@@ -38,6 +38,9 @@
             "$ref": "mixins.json#/modified"
         },
         {
+            "$ref": "mixins.json#/reads_details"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -92,11 +95,6 @@
         "schema_version": {
             "default": "1"
         },
-        "paired_with": {
-            "description": "Link to associated paired-end file, if applicable",
-            "type": "string",
-            "linkTo": "UnalignedReads"
-        },
         "read_pair_number": {
             "title": "Read Pair Number",
             "description": "Read pair number, if paired-end",
@@ -106,6 +104,11 @@
                 "R2",
                 "Not Applicable"
             ]
+        },
+        "paired_with": {
+            "description": "Link to associated paired-end file, if applicable",
+            "type": "string",
+            "linkTo": "UnalignedReads"
         }
     }
 }
