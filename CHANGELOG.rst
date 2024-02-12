@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.23.0
+======
+
+`PR 84: More Benchmarking Data Sets <https://github.com/smaht-dac/smaht-portal/pull/84>`_
+* Update enums File `dataset` to include all expected cell line benchmarking data sets
+
+
 0.22.0
 ======
 
