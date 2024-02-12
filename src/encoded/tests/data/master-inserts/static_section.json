@@ -273,9 +273,8 @@
         "status": "public",
         "options": {
             "filetype": "rst",
-            "initial_header_level": 4
+            "initial_header_level": 2
         },
-        "title": "Account Creation",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -310,9 +309,8 @@
         "status": "public",
         "options": {
             "filetype": "rst",
-            "initial_header_level": 4
+            "initial_header_level": 2
         },
-        "title": "Getting Started (User)",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -347,7 +345,7 @@
         "status": "public",
         "options": {
             "filetype": "rst",
-            "initial_header_level": 4
+            "initial_header_level": 2
         },
         "title": "Excel Submission",
         "consortia": [

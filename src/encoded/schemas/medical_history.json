@@ -56,6 +56,9 @@
             "enum": [
                 "TBD"
             ]
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_MEDICAL-HISTORY_[A-Z0-9-_.]{4,}$"
         }
     }
 }

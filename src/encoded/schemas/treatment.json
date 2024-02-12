@@ -80,6 +80,9 @@
             "title": "Temperature",
             "description": "Temperature of the treatment (Celsius)",
             "type": "number"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_TREATMENT_[A-Z0-9-_.]{4,}$"
         }
     }
 }

@@ -4,7 +4,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_CELL-CULTURE-MIX_HELA-HEK293",
+        "submitted_id": "TEST_CELL-CULTURE-MIXTURE_HELA-HEK293",
         "components": [
             {
                 "cell_culture": "TEST_CELL-CULTURE_HELA",

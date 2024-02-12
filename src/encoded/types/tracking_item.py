@@ -1,13 +1,14 @@
 from typing import Any, Dict, Optional, List
-
+from snovault.server_defaults import add_last_modified
 from snovault import collection, load_schema, calculated_property, Item as SnovaultItem
 from encoded_core.types.tracking_item import TrackingItem as CoreTrackingItem
 
-# from .acl import ONLY_ADMIN_VIEW_ACL, ALLOW_OWNER_EDIT_ACL
+from .acl import ALLOW_AUTHENTICATED_VIEW_ACL
 from .base import Item
 
 @collection(
     name='tracking-items',
+    acl=ALLOW_AUTHENTICATED_VIEW_ACL,
     properties={
         "title": "TrackingItem",
         "description": "For internal tracking of Fourfront events",
@@ -18,8 +19,9 @@ class TrackingItem(Item, CoreTrackingItem):
     embedded_list = []
 
     def _update(self, properties: Dict[str, Any], sheets: Optional[List] = None) -> None:
+        add_last_modified(properties)
         return SnovaultItem._update(self, properties, sheets)
-    
+
     @calculated_property(schema={
         "title": "Title",
         "type": "string",

@@ -62,12 +62,20 @@ def remote_user_testapp(app, remote_user: str) -> TestApp:
     return TestApp(app, environ)
 
 
+TEST_SUBMISSION_CENTER_CODE = "test"
+TEST_SECOND_SUBMISSION_CENTER_CODE = "secondtest"
+TEST_SECOND_CENTER_SUBMITTED_ID_CODE = (
+    TEST_SECOND_SUBMISSION_CENTER_CODE.upper()
+)
+
+
 @pytest.fixture
 def test_submission_center(testapp):
     """ Tests the posting of a submission center """
     item = {
         'identifier': 'SMaHTTestGCC',
-        'title': 'SMaHT Test GCC'
+        'title': 'SMaHT Test GCC',
+        'code': TEST_SUBMISSION_CENTER_CODE,
     }
     return post_item_and_return_location(testapp, item, 'submission_center')
 
@@ -77,7 +85,8 @@ def test_second_submission_center(testapp):
     """ Tests the posting of a submission center """
     item = {
         'identifier': 'SecondSMaHTTestGCC',
-        'title': 'Second SMaHT Test GCC'
+        'title': 'Second SMaHT Test GCC',
+        'code': TEST_SECOND_SUBMISSION_CENTER_CODE,
     }
     return post_item_and_return_location(testapp, item, 'submission_center')
 
@@ -362,7 +371,7 @@ def donor_properties(test_second_submission_center: Dict[str, Any]) -> Dict[str,
     """
     return {
         "submission_centers": [test_second_submission_center["uuid"]],
-        "submitted_id": "TEST_DONOR_1234",
+        "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_DONOR_1234",
         "age": 35,
         "sex": "Male",
     }

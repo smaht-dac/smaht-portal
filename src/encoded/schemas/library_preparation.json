@@ -201,6 +201,9 @@
                 "type": "string",
                 "linkTo": "Treatment"
             }
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_LIBRARY-PREPARATION_[A-Z0-9-_.]{4,}$"
         }
     }
 }

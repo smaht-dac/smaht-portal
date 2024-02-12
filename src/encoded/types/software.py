@@ -1,16 +1,13 @@
-from typing import Any, Dict, Optional, List, Union
-
+from typing import Any, Dict, Optional, List
+from snovault.server_defaults import add_last_modified
 from encoded_core.types.software import Software as CoreSoftware
-from pyramid.request import Request
 from snovault import (
     collection,
-    calculated_property,
-    display_title_schema,
     load_schema,
     Item as SnovaultItem,
 )
 
-from .base import Item
+from .submitted_item import SubmittedItem
 
 
 @collection(
@@ -21,7 +18,7 @@ from .base import Item
         "description": "Listing of software for analyses",
     },
 )
-class Software(Item, CoreSoftware):
+class Software(SubmittedItem, CoreSoftware):
     item_type = "software"
     schema = load_schema("encoded:schemas/software.json")
     embedded_list = []
@@ -29,4 +26,5 @@ class Software(Item, CoreSoftware):
     def _update(
         self, properties: Dict[str, Any], sheets: Optional[List] = None
     ) -> None:
+        add_last_modified(properties)
         return SnovaultItem._update(self, properties, sheets)

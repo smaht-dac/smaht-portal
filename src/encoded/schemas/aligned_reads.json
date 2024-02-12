@@ -98,6 +98,9 @@
         },
         "schema_version": {
             "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_ALIGNED-READS_[A-Z0-9-_.]{4,}$"
         }
     }
 }

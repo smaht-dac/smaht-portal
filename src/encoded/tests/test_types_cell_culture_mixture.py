@@ -11,13 +11,13 @@ def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None
     """
     get_item(
         es_testapp,
-        "TEST_CELL-CULTURE-MIX_HELA-HEK293",
+        "TEST_CELL-CULTURE-MIXTURE_HELA-HEK293",
         collection="SampleSource",
         status=301,
     )
     get_item(
         es_testapp,
-        "TEST_CELL-CULTURE-MIX_HELA-HEK293",
+        "TEST_CELL-CULTURE-MIXTURE_HELA-HEK293",
         collection="CellCulture",
         status=301,
     )
