@@ -301,7 +301,14 @@
             "enum": [
                 "colo829bl",
                 "colo829t",
-                "colo829blt_50to1"
+                "colo829blt_50to1",
+                "hapmap",
+                "lb_fibroblast",
+                "lb_ipsc_1",
+                "lb_ipsc_2",
+                "lb_ipsc_3",
+                "lb_ipsc_4",
+                "lb_ipsc_5"
             ]
         }
     },
