@@ -6,8 +6,10 @@ from typing import Any, Dict, List, Optional, Union
 from dcicutils.misc_utils import to_camel_case, to_snake_case
 from dcicutils import schema_utils
 from pyramid.registry import Registry
+from pyramid.router import Router
 from snovault import Collection, COLLECTIONS, TYPES
 from snovault.typeinfo import AbstractTypeInfo, TypeInfo
+from snovault.upgrader import UPGRADER, Upgrader
 from webtest.app import TestApp
 
 
@@ -363,3 +365,8 @@ def load_inserts(insert_file: Path) -> List[Dict[str, Any]]:
     """Load inserts from file."""
     with insert_file.open() as file_handle:
         return json.load(file_handle)
+
+
+def get_upgrader(app: Router) -> Upgrader:
+    """Get upgrader from app."""
+    return app.registry[UPGRADER]
