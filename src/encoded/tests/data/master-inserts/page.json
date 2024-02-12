@@ -137,9 +137,7 @@
         "title": "Documentation",
         "status": "public",
         "children": [
-            "5153c902-a0d2-4246-9b41-cea7a1c91f52",
-            "6292facf-9eb4-451e-8d05-2e56e1bd7cbe",
-            "6292facf-9eb4-451e-8d05-2e56e1bd7cbf"
+            "302faaf2-ca18-4a56-82d2-b961f7f2764d"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -258,7 +256,27 @@
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
-     {
+    {
+        "identifier": "docs/user-guide",
+        "uuid": "302faaf2-ca18-4a56-82d2-b961f7f2764d",
+        "title": "User Guide",
+        "status": "public",
+        "children": [
+            "5153c902-a0d2-4246-9b41-cea7a1c91f52",
+            "6292facf-9eb4-451e-8d05-2e56e1bd7cbe",
+            "6292facf-9eb4-451e-8d05-2e56e1bd7cbf"
+        ],
+        "table-of-contents": {
+            "enabled": true
+        },
+         "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "docs/user-guide/account-creation",
         "uuid": "5153c902-a0d2-4246-9b41-cea7a1c91f52",
         "title": "Creating an Account",

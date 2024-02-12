@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item
+from .submitted_item import SubmittedItem
 
 
 @collection(
@@ -11,7 +11,7 @@ from .base import Item
         "description": "Details of library sequencing",
     },
 )
-class Sequencing(Item):
+class Sequencing(SubmittedItem):
     item_type = "sequencing"
     schema = load_schema("encoded:schemas/sequencing.json")
     embedded_list = []

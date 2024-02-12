@@ -86,7 +86,7 @@ function AboutNavItem(props) {
                     titleIcon="info-circle fas"
                     linkToTopLevelDirPage={false}
                 />
-                <BigDropdownPageTreeMenu disableLinksOnLevel1Titles={true} />
+                <BigDropdownPageTreeMenu disableLinksOnLevel1Titles />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
     );
@@ -106,7 +106,7 @@ function DocsNavItem(props) {
                     titleIcon="book fas"
                     linkToTopLevelDirPage={false}
                 />
-                <BigDropdownPageTreeMenu />
+                <BigDropdownPageTreeMenu disableLinksOnLevel1Titles />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
     );

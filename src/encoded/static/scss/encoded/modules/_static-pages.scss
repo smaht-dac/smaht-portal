@@ -52,7 +52,8 @@
 
 	.heading-with-bottom-border,
 	.homepage-section-title,
-	.section-title {
+	.section-title,
+	.rst-container h2:first-child {
 		margin-bottom: 20px;
 		margin-top: 20px;
 		padding-bottom: 15px;
@@ -136,6 +137,23 @@
 
 	table.docutils {
 		margin: 40px 0;
+	}
+
+	// since rst-to-html non-customizable,
+	// tweak some css rules to display h3/h4 like h4/h5 respectively
+	.rst-container {
+		h3 {
+			font-size: 1.3rem;
+			margin-bottom: 0.5rem;
+		}
+
+		h4 {
+			font-size: 1rem;
+		}
+		
+		ul {
+			margin-top: 1rem;
+		}
 	}
 }
 
@@ -314,7 +332,7 @@
 					//left: -40px;
 					top: 50%;
 					margin-top: -9px;
-					font-size: 0.85rem;
+					font-size: 0.6rem;
 					cursor: pointer;
 					width: 15px;
 					height: 15px;
@@ -1749,7 +1767,6 @@ body[data-pathname^="/data/benchmarking"] {
 					pre.curl-command {
 						border: 1px dashed #dedede;
 						padding: 5px;
-						text-overflow: ellipsis;
 					}
 					.curl-command-wrapper i.icon-copy {
 						margin-left: 5px;
