@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.22.1
+======
+
+* Hooks in QC Download API
+
+
 0.22.0
 ======
 
