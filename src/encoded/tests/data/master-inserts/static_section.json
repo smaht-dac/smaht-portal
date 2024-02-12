@@ -397,10 +397,10 @@
     {
         "identifier": "file_uploads",
         "title": "SMaHT Data File Uploads",
-        "file": "/docs/public/file_uploads.jsx",
+        "file": "/docs/public/file_uploads.md",
         "status": "public",
         "options": {
-            "filetype": "jsx",
+            "filetype": "md",
             "collapsible": false,
             "default_open": true
         },
