@@ -126,14 +126,17 @@
                             "comment": "ToDo: Make these properties sharable directly without needing to update here and in OutputFile schema",
                             "additional_properties": false,
                             "properties": {
-                                "description": {
-                                    "$merge": "encoded:schemas/mixins.json#/description/description"
-                                },
                                 "data_category": {
                                     "$merge": "encoded:schemas/file.json#/properties/data_category"
                                 },
                                 "data_type": {
                                     "$merge": "encoded:schemas/file.json#/properties/data_type"
+                                },
+                                "description": {
+                                    "$merge": "encoded:schemas/mixins.json#/description/description"
+                                },
+                                "software": {
+                                    "$merge": "encoded:schemas/mixins.json#/file_links/software"
                                 }
                             }
                         }
