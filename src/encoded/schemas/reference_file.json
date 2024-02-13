@@ -56,9 +56,6 @@
             "$ref": "mixins.json#/uuid"
         },
         {
-            "$ref": "mixins.json#/variant_type"
-        },
-        {
             "$ref": "file.json#/properties"
         }
     ],

@@ -6,10 +6,11 @@
         ],
         "submitted_id": "TEST_FILE_VCF",
         "data_category": [
-            "Variant Calls"
+            "Germline Variant Calls"
         ],
         "data_type": [
-            "Germline Variants"
+            "SNV",
+            "Indel"
         ],
         "file_format": "VCF",
         "filename": "some_vcf.vcf",
