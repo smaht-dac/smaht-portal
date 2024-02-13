@@ -76,17 +76,17 @@ requests = ">=0.14.0"
 
 [[package]]
 name = "awscli"
-version = "1.32.39"
+version = "1.32.40"
 description = "Universal Command Line Environment for AWS."
 optional = false
 python-versions = ">= 3.8"
 files = [
-    {file = "awscli-1.32.39-py3-none-any.whl", hash = "sha256:978817d69009331d19a9996808f4259585ed088e336dd04aa2b5971368f49882"},
-    {file = "awscli-1.32.39.tar.gz", hash = "sha256:805c1744fea2daf0e88068c04d32eafb1f7760897fec6f4df87f2d76167947be"},
+    {file = "awscli-1.32.40-py3-none-any.whl", hash = "sha256:6035050473f622bfa8531f15983cff505c6da059c9117e0894ba1d56d06fc9d7"},
+    {file = "awscli-1.32.40.tar.gz", hash = "sha256:1be3ba0ce853fc0f7ed189fa55cd60d3efc3ae3329103b1947ba73b2e04736d9"},
 ]
 
 [package.dependencies]
-botocore = "1.34.39"
+botocore = "1.34.40"
 colorama = ">=0.2.5,<0.4.5"
 docutils = ">=0.10,<0.17"
 PyYAML = ">=3.10,<6.1"
@@ -116,17 +116,17 @@ lxml = ["lxml"]
 
 [[package]]
 name = "boto3"
-version = "1.34.39"
+version = "1.34.40"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">= 3.8"
 files = [
-    {file = "boto3-1.34.39-py3-none-any.whl", hash = "sha256:476896e70d36c9134d4125834280c597c17b54bff4902baf2e5fcde74f8acec8"},
-    {file = "boto3-1.34.39.tar.gz", hash = "sha256:35bcbecf1b5d3620c93f0062d2994177f8bda25a9d2cba144d6462793c16065b"},
+    {file = "boto3-1.34.40-py3-none-any.whl", hash = "sha256:49eb215e4142d441e26eedaf5d0b43065200f0849d82c904bc9a62d1328016cd"},
+    {file = "boto3-1.34.40.tar.gz", hash = "sha256:81d026ed8c8305b880c71f9f287f9b745b52bd358a91cfc133844c907db4d7ee"},
 ]
 
 [package.dependencies]
-botocore = ">=1.34.39,<1.35.0"
+botocore = ">=1.34.40,<1.35.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -135,13 +135,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "boto3-stubs"
-version = "1.34.39"
-description = "Type annotations for boto3 1.34.39 generated with mypy-boto3-builder 7.23.1"
+version = "1.34.40"
+description = "Type annotations for boto3 1.34.40 generated with mypy-boto3-builder 7.23.1"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-stubs-1.34.39.tar.gz", hash = "sha256:cb00a61b389dde855a26596297cc66f7d6a18075298bb8b203818b3963b1d153"},
-    {file = "boto3_stubs-1.34.39-py3-none-any.whl", hash = "sha256:7bb2f187f93fac404b92ce59653cc720596075f7c7ac07d80883316d5dec54e1"},
+    {file = "boto3-stubs-1.34.40.tar.gz", hash = "sha256:ad0a67c78fe647cd2b611f3f82daf2569e1643781d53cbc869f18062e177ae28"},
+    {file = "boto3_stubs-1.34.40-py3-none-any.whl", hash = "sha256:a57dee7d314ef76620ed35097a583ae41e44ac97e5c7e858f38b79774ab8c23f"},
 ]
 
 [package.dependencies]
@@ -191,7 +191,7 @@ bedrock-agent = ["mypy-boto3-bedrock-agent (>=1.34.0,<1.35.0)"]
 bedrock-agent-runtime = ["mypy-boto3-bedrock-agent-runtime (>=1.34.0,<1.35.0)"]
 bedrock-runtime = ["mypy-boto3-bedrock-runtime (>=1.34.0,<1.35.0)"]
 billingconductor = ["mypy-boto3-billingconductor (>=1.34.0,<1.35.0)"]
-boto3 = ["boto3 (==1.34.39)", "botocore (==1.34.39)"]
+boto3 = ["boto3 (==1.34.40)", "botocore (==1.34.40)"]
 braket = ["mypy-boto3-braket (>=1.34.0,<1.35.0)"]
 budgets = ["mypy-boto3-budgets (>=1.34.0,<1.35.0)"]
 ce = ["mypy-boto3-ce (>=1.34.0,<1.35.0)"]
@@ -533,13 +533,13 @@ xray = ["mypy-boto3-xray (>=1.34.0,<1.35.0)"]
 
 [[package]]
 name = "botocore"
-version = "1.34.39"
+version = "1.34.40"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">= 3.8"
 files = [
-    {file = "botocore-1.34.39-py3-none-any.whl", hash = "sha256:e175360445424b83b0e28ae20d301b99cf44ff2c9d5ab1d8670899bec05a9753"},
-    {file = "botocore-1.34.39.tar.gz", hash = "sha256:9f00bd5e4698bcdd37ce6e224a896baf58d209678ed92834944b767de9061cc5"},
+    {file = "botocore-1.34.40-py3-none-any.whl", hash = "sha256:a3edd774653a61a1b211e4ea88cdb1c2655ffcc7660ba77b41a4027b097d145d"},
+    {file = "botocore-1.34.40.tar.gz", hash = "sha256:cb794bdb5b3d41845749a182ec93cb1453560e52b97ae0ab43ace81deb011f6d"},
 ]
 
 [package.dependencies]
@@ -555,13 +555,13 @@ crt = ["awscrt (==0.19.19)"]
 
 [[package]]
 name = "botocore-stubs"
-version = "1.34.39"
+version = "1.34.40"
 description = "Type annotations and code completion for botocore"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "botocore_stubs-1.34.39-py3-none-any.whl", hash = "sha256:f1d689abbaaf4ba50aa5534417ee0be3513acab785b8f8fbd1107639ae2c0ae5"},
-    {file = "botocore_stubs-1.34.39.tar.gz", hash = "sha256:2caf0a0d547ded49306408ea959d94aba39dd960b7de119d906c2829d149ece6"},
+    {file = "botocore_stubs-1.34.40-py3-none-any.whl", hash = "sha256:50870a5ac8b638dac575aa26d92506dda8cc38e179f93ce2ffe48197ce054dbf"},
+    {file = "botocore_stubs-1.34.40.tar.gz", hash = "sha256:d6322bfb9aa882006fe7f8fc3d8a933a66c5627dcf571e65d65a5233c6c172be"},
 ]
 
 [package.dependencies]
@@ -928,20 +928,20 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "dcicsnovault"
-version = "11.11.0"
+version = "11.11.0.1b2"
 description = "Storage support for 4DN Data Portals."
 optional = false
 python-versions = ">=3.8.1,<3.12"
 files = [
-    {file = "dcicsnovault-11.11.0-py3-none-any.whl", hash = "sha256:034101c4cfec442a370c1109356af78a0987c625f54792c71d9f41b4a3b8a9ef"},
-    {file = "dcicsnovault-11.11.0.tar.gz", hash = "sha256:9f33dcabc7d96a4f45e896691fe49208a3b2b524e0916b159f5049497fcdcd1f"},
+    {file = "dcicsnovault-11.11.0.1b2-py3-none-any.whl", hash = "sha256:c36797121a2d86ed6a9afd147ef6bec5f6d2729b9a58beafea7699297bc4dfac"},
+    {file = "dcicsnovault-11.11.0.1b2.tar.gz", hash = "sha256:b83441379bb8b1834b0f5c64b370e5cd6452f9a151f748e83f00d85f5aebbea7"},
 ]
 
 [package.dependencies]
 aws_requests_auth = ">=0.4.1,<0.5.0"
 boto3 = ">=1.28.62"
 botocore = ">=1.31.62"
-dcicutils = ">=8.7.2,<9.0.0"
+dcicutils = ">=8.7.2.1b6,<9.0.0.0"
 elasticsearch = "7.13.4"
 elasticsearch_dsl = ">=7.4.0,<8.0.0"
 future = ">=0.15.2,<1"
@@ -984,13 +984,13 @@ xlrd = ">=1.0.0,<2.0.0"
 
 [[package]]
 name = "dcicutils"
-version = "8.7.2.1b5"
+version = "8.7.2.1b6"
 description = "Utility package for interacting with the 4DN Data Portal and other 4DN resources"
 optional = false
 python-versions = ">=3.8,<3.12"
 files = [
-    {file = "dcicutils-8.7.2.1b5-py3-none-any.whl", hash = "sha256:22f77079b90dd4d22f529d139110b4c5baa51942367c40b4048fc8d05efa8d7c"},
-    {file = "dcicutils-8.7.2.1b5.tar.gz", hash = "sha256:c0f5a9585bb6caa5c8bce3f6e4dbf2d3812954f2bf5e06d0ecd05ade4ddbc1c0"},
+    {file = "dcicutils-8.7.2.1b6-py3-none-any.whl", hash = "sha256:8086fba778334494f1c8441c360e19226461329b694f36a044da1e3c82df5c37"},
+    {file = "dcicutils-8.7.2.1b6.tar.gz", hash = "sha256:f52783ac8997587058a41c5fb1b3ae778797886108a2bf67e96eccc0be23ed39"},
 ]
 
 [package.dependencies]
@@ -2755,18 +2755,18 @@ tornado = ["tornado (>=5)"]
 
 [[package]]
 name = "setuptools"
-version = "69.0.3"
+version = "69.1.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "setuptools-69.0.3-py3-none-any.whl", hash = "sha256:385eb4edd9c9d5c17540511303e39a147ce2fc04bc55289c322b9e5904fe2c05"},
-    {file = "setuptools-69.0.3.tar.gz", hash = "sha256:be1af57fc409f93647f2e8e4573a142ed38724b8cdd389706a867bb4efcf1e78"},
+    {file = "setuptools-69.1.0-py3-none-any.whl", hash = "sha256:c054629b81b946d63a9c6e732bc8b2513a7c3ea645f11d0139a2191d735c60c6"},
+    {file = "setuptools-69.1.0.tar.gz", hash = "sha256:850894c4195f09c4ed30dba56213bf7c3f21d86ed6bdaafb5df5972593bfc401"},
 ]
 
 [package.extras]
 docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "rst.linker (>=1.9)", "sphinx (<7.2.5)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (>=1,<2)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
-testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8-2020", "ini2toml[lite] (>=0.9)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pip (>=19.1)", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-mypy (>=0.9.1)", "pytest-perf", "pytest-ruff", "pytest-timeout", "pytest-xdist", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
+testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8-2020", "ini2toml[lite] (>=0.9)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pip (>=19.1)", "pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-home (>=0.5)", "pytest-mypy (>=0.9.1)", "pytest-perf", "pytest-ruff (>=0.2.1)", "pytest-timeout", "pytest-xdist", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
 testing-integration = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "packaging (>=23.1)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
 
 [[package]]
@@ -3469,4 +3469,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "2484ba2052cf176d131f65df40d70eba8f20a7ff5a151613a9bb21522d700cc0"
+content-hash = "1e348122b598d2f807e2eb6316b60f6b80353caf389ce458250a22264ae7c917"

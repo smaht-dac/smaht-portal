@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.24.0
+======
+
+* Updates to suppress reference (linkTo) errors on validate_only,
+  iff not reference errors according to structured_data; has dependent
+  changes in snovault loadxl and schema_validation (version >= 11.11.0.1b2).
+
+
 0.23.0
 ======
 
