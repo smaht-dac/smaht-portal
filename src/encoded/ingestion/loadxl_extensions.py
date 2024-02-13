@@ -36,16 +36,22 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
                 continue
             if (action := LOADXL_ACTION_NAME[match.group(1).upper()]) == "errors":
                 response_value = match.group(0)
-                # If we are in validate_only mode, and if this is a reference (linkTo) error, and if
-                # the given resolved_refs (structured_data in ingestion_processors), contains the the
-                # reference to which this error refers, then no error afterall; this is because in
-                # validate_only mode we may well get false reference errors, and/but we already
-                # did referential integrity checking in the structured_data processing, so we
+                # If we are in validate_only (or validate_first) mode, and if this is a reference (linkTo)
+                # error/exception, and if the given resolved_refs (from ingestion_processors/structured_data),
+                # contains the reference to which this error refers, then no error after all; this is because
+                # in validate_only (or validate_first) mode we may well get false reference errors, and/but
+                # we already did referential integrity checking in the structured_data processing, so we
                 # can regard that as the source of truth for referential ingegrity.
                 if resolved_refs:
                     instance_type, instance_identifying_value, ref_error_path = (
                         _get_ref_error_info_from_exception_string(response_value))
                     if instance_type and instance_identifying_value and (ref_error_path in resolved_refs):
+                        # Here we have a reference (linkTo) error/exception, but because we are in
+                        # validate_only (or validate_first) mode, and because the reference was
+                        # actually resolved via structured_data referential ingegrity checking 
+                        # in ingestion_processors, then this is a false error; so ignore it;
+                        # and/but include this object (which refers to the reference in
+                        # question in the "validated" section of the results.
                         if not [r for r in response["validated"]
                                 if r.get("type") == instance_type and r.get("uuid") == instance_identifying_value]:
                             response["validated"].append({"uuid": instance_identifying_value, "type": instance_type})
@@ -109,22 +115,6 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
             return response
 
     return call_loadxl(validate_only=validate_only)
-
-
-    loadxl_load_data_response = loadxl_load_data(
-        testapp=portal_vapp,
-        inserts=data,
-        docsdir=None,
-        overwrite=True,
-        itype=None,
-        from_json=True,
-        continue_on_exception=True,
-        verbose=True,
-        post_only=post_only,
-        patch_only=patch_only,
-        validate_only=validate_only)
-
-    return package_loadxl_response(loadxl_load_data_response)
 
 
 def summary_of_load_data_results(load_data_response: Optional[Dict],
