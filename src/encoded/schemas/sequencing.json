@@ -4,9 +4,8 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "instrument_model",
-        "platform",
         "read_type",
+        "sequencer",
         "submission_centers",
         "submitted_id",
         "target_read_length"
@@ -54,46 +53,18 @@
             "accessionType": "SQ"
         },
         "schema_version": {
-            "default": "1"
+            "default": "2"
         },
         "flowcell": {
             "title": "Flowcell",
             "description": "Flowcell used for sequencing",
             "type": "string"
         },
-        "instrument_model": {
-            "title": "Instrument Model",
-            "description": "Model of instrument used to obtain data",
-            "type": "string",
-            "enum": [
-                "NovaSeq",
-                "NovaSeq X",
-                "NovaSeq X Plus",
-                "NovaSeq 6000",
-                "Revio",
-                "PromethION",
-                "UG100",
-                "Xenium",
-                "Ultralong Promethion R10"
-            ]
-        },
         "movie_length": {
             "title": "Movie Length",
             "description": "Length of movie used in sequencing",
             "type": "integer",
             "minimum": 0
-        },
-        "platform": {
-            "title": "Platform",
-            "description": "Name of the platform used to obtain data",
-            "type": "string",
-            "enum": [
-                "Illumina",
-                "PacBio",
-                "Ultima",
-                "ONT",
-                "10X Genomics"
-            ]
         },
         "read_type": {
             "title": "Read Type",
