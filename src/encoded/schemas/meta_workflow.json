@@ -126,6 +126,9 @@
                             "comment": "ToDo: Make these properties sharable directly without needing to update here and in OutputFile schema",
                             "additional_properties": false,
                             "properties": {
+                                "alignment_details": {
+                                    "$merge": "encoded:schemas/mixins.json#/alignment_details/alignment_details"
+                                },
                                 "data_category": {
                                     "$merge": "encoded:schemas/file.json#/properties/data_category"
                                 },
@@ -134,6 +137,12 @@
                                 },
                                 "description": {
                                     "$merge": "encoded:schemas/mixins.json#/description/description"
+                                },
+                                "reference_genome": {
+                                    "$merge": "encoded:schemas/mixins.json#/reference_genome/reference_genome"
+                                },
+                                "s3_lifecycle_category": {
+                                    "$merge": "encoded:schemas/file.json#/properties/s3_lifecycle_category"
                                 },
                                 "software": {
                                     "$merge": "encoded:schemas/mixins.json#/file_links/software"
