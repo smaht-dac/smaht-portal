@@ -9,7 +9,8 @@ Change Log
 
 0.24.0
 ======
-
+* Documentation updates related to submission.
+* Test fixes for test_structured_data related to date/time type handling.
 * Update for smaht-submitr to suppress reference (linkTo) errors on validate_only,
   iff not reference errors according to structured_data; has dependent
   changes in snovault loadxl and schema_validation (version >= 11.11.0.1b2).
@@ -20,8 +21,8 @@ Change Log
 0.23.0
 ======
 
-* Documentation updates related to submission.
-* Test fixes for test_structured_data related to date/time type handling.
+`PR 84: More Benchmarking Data Sets <https://github.com/smaht-dac/smaht-portal/pull/84>`_
+* Update enums File `dataset` to include all expected cell line benchmarking data sets
 
 
 0.22.0
