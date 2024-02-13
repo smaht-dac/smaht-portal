@@ -34,12 +34,6 @@
         ],
         "volume_unit": [
             "volume"
-        ],
-        "weight": [
-            "weight_unit"
-        ],
-        "weight_unit": [
-            "weight"
         ]
     },
     "identifyingProperties": [
@@ -194,22 +188,6 @@
             "enum": [
                 "uL",
                 "mL"
-            ]
-        },
-        "weight": {
-            "title": "Weight",
-            "description": "Analyte weight",
-            "type": "number",
-            "minimum": 0
-        },
-        "weight_unit": {
-            "title": "Weight Unit",
-            "description": "Unit of the weight",
-            "type": "string",
-            "enum": [
-                "ug",
-                "mg",
-                "g"
             ]
         },
         "analyte_preparation": {
