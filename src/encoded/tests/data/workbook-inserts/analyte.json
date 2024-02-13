@@ -13,6 +13,7 @@
         ],
         "a260_a280_ratio": 3.2,
         "concentration": 6.2,
+        "concentration_unit": "ng/uL",
         "samples": [
             "TEST_SAMPLE_LIVER"
         ]
