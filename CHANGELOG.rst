@@ -10,9 +10,11 @@ Change Log
 0.24.0
 ======
 
-* Updates to suppress reference (linkTo) errors on validate_only,
+* Update for smaht-submitr to suppress reference (linkTo) errors on validate_only,
   iff not reference errors according to structured_data; has dependent
   changes in snovault loadxl and schema_validation (version >= 11.11.0.1b2).
+* Update for smaht-submitr to support --validate-first option, which means
+  we do a validate_only check first before loading the data (both via loadxl).
 
 
 0.23.0

@@ -10,6 +10,7 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
                             post_only: bool = False,
                             patch_only: bool = False,
                             validate_only: bool = False,
+                            validate_first: bool = False,
                             resolved_refs: List[str] = None) -> Dict:
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
@@ -86,6 +87,30 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
         )
         return response
 
+    def call_loadxl(validate_only: bool):
+        nonlocal portal_vapp, data, post_only, patch_only
+        return package_loadxl_response(
+                loadxl_load_data(
+                    testapp=portal_vapp,
+                    inserts=data,
+                    docsdir=None,
+                    overwrite=True,
+                    itype=None,
+                    from_json=True,
+                    continue_on_exception=True,
+                    verbose=True,
+                    post_only=post_only,
+                    patch_only=patch_only,
+                    validate_only=validate_only))
+
+    if validate_first and not validate_only:
+        response = call_loadxl(validate_only=True)
+        if response.get("errors", []):
+            return response
+
+    return call_loadxl(validate_only=validate_only)
+
+
     loadxl_load_data_response = loadxl_load_data(
         testapp=portal_vapp,
         inserts=data,
@@ -160,8 +185,7 @@ def _get_ref_error_info_from_exception_string(exception: str) -> Optional[Tuple[
     REF_ERROR_PATTERN = re.compile(r"^\s*ERROR\s*:\s*([^\s]+)\s+Exception\s+encountered\s+on\s+VirtualApp\s*URL\s*:\s*\/.*?"
                                    r"\?skip_indexing=true.*Unable\s+to\s+resolve\s+link\s*:\s*(.*?)\".*$")
     match = REF_ERROR_PATTERN.match(exception.replace("\n", " "))
-    if (match and (match.re.groups == 2) and
-        (instance_path := match.group(1)) and (ref_error_path := match.group(2))):
+    if match and (match.re.groups == 2) and (instance_path := match.group(1)) and (ref_error_path := match.group(2)):
         # N.B. The part of the exception message matching this ref_error_path, which comes from
         # code snovault.schema_validation.normalize_links (after "Unable to resolve link:", used to
         # just have the identifying value path, without the initial path (i.e. the schema/type name);
