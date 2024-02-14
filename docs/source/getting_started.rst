@@ -36,18 +36,21 @@ More extensive documentation of the data submission process can be found `here <
 
 Formatting Files for Submission
 -------------------------------
-The file format recommended for the metadata is an Excel spreadsheet file (e.g. ``your_metadata_file.xlsx``),
+Most commonly, the file format recommended for metadata submission to SMaHT Portal,
+is an Excel spreadsheet file (e.g. ``your_metadata_file.xlsx``),
 comprised of one or more sheets.
-Note these important aspects of the acceptable spreadsheet format:
+Note these important aspects of using the Excel spreadsheet format:
 
 #. Each sheet name must be the name of a SMaHT Portal entity or `object` defined within the system.
-#. Each sheet must have as its first row, a special `header` row, which enumerates in each colum, the names of the Portal object properties as the column names; order does `not` matter.
-#. Each of these columns name must match exactly the name of the property for the Portal object.
-#. Each sheet may contain any number of `data` rows (directly below the header row), each representing an instance of the Portal object.
-#. The values in the cells/columns of each data row correspond to the property in same column of the header row. 
-#. The first column in the header column which is empty marks the end of the header, and any subsequent columns will be entirely ignored.
+#. Each sheet must have as its first row, a special `header` row, which enumerates in each column, the names of the Portal object properties as the column names; order does `not` matter.
+#. Each of these column names must match `exactly` the name of the property for the Portal object.
+#. Each sheet may contain any number of `data` rows (`directly` below the header row), each representing an instance of the Portal object.
+#. The values in the cells/columns of each data row correspond each to the property named in same column of the header row. 
+#. The first column in the header row which is empty marks the end of the header, and any subsequent columns will be entirely ignored.
 #. The first row which is entirely empty marks the end of the input, and any subsequenct rows will be entirely ignored;
    this means you can include comments in your spreadsheet in rows after (below) the first blank row indicating the end of data input.
+#. Sheets which are marked as "hidden" will be ignored; this provides a way of including sheets with other auxiliary information
+   without its content interfering the submission tool.
 #. The name of the spreadsheet file must be suffixed with ``.xls`` or ``.xlsx``; there are no other requirements for the name of this file.
 
 Here is screenshot of a simple example Excel spreadsheet: 
@@ -61,9 +64,9 @@ Here is screenshot of a simple example Excel spreadsheet:
 Notice that the first row comprises the property/column `header`, defining properties named ``submitted_id``, ``molecule``, ``components``, and so on.
 
 And also notice the multiple tabs at the bottom for the different sheets within the spreadsheet,
-representing (in this example) data for the Portal objects ``CellCultureSample``, ``Analyte``, and so on.
+representing (in this example) data for the Portal objects ``CellCultureSample``, ``Analyte``, ``Library``, and so on.
 
-**Column Deletions**
+**Property Deletions**
 
 A column value within a (non-header) data row may be empty, but this only means that the value will be ignored
 when creating or updating the associated object. In order to actually `delete` a property value from an object,
