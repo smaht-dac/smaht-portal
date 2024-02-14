@@ -663,7 +663,6 @@ def test_item_create_permissions(
     submission_center_user_app: TestApp,
     consortium_user_app: TestApp,
     testapp: TestApp,
-    file_formats: Dict[str, Any],
     test_submission_center: Dict[str, Any],
 ) -> None:
     """Test create permissions for all item types.
@@ -698,8 +697,6 @@ def test_item_create_permissions(
     for item_type in loadxl_order:
         test_properties = item_properties_to_test.get(item_type)
         assert test_properties, f"Missing workbook properties for {item_type}"
-        if item_type == 'file_format':
-            continue  # ignore these, we bring them in another way due to deps
         if item_type in special_item_types:
             assert_expected_special_permissions(
                 test_properties,
