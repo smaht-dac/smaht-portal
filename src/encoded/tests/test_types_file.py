@@ -234,7 +234,37 @@ def test_validate_file_format(es_testapp: TestApp, workbook: None) -> None:
 
 def assert_file_format_validated_on_post(es_testapp: TestApp) -> None:
     """Ensure file format validated on POST."""
+    es_testapp.post_json('/output_file?check_only=true', {
+        "file_format": "BAM",
+        "md5sum": "00000000000000000000000000000002",
+        "filename": "my.bam",
+        "status": "in review",
+        "data_category": ["Sequencing Reads"],
+        "data_type": ["Unaligned Reads"],
+        "consortia": ["smaht"],
+    }, status=200)
+    es_testapp.post_json('/output_file?check_only=true', {
+        "file_format": "BAM",
+        "md5sum": "00000000000000000000000000000002",
+        "filename": "my.fastq",  # bad file extension
+        "status": "in review",
+        "data_category": ["Sequencing Reads"],
+        "data_type": ["Unaligned Reads"],
+        "consortia": ["smaht"],
+    }, status=422)
 
 
 def assert_file_format_validated_on_patch(es_testapp: TestApp) -> None:
     """Ensure file format validated on PATCH."""
+    es_testapp.patch_json('/cca15caa-bc11-4a6a-8998-ea0c69df8b9e?check_only=true', {
+        'file_format': 'VCF',
+        'filename': 'my.vcf'
+    }, status=200)
+    es_testapp.patch_json('/cca15caa-bc11-4a6a-8998-ea0c69df8b9e?check_only=true', {
+        'file_format': 'VCF',
+        'filename': 'my.bam'
+    }, status=422)  # mismatched extension
+    es_testapp.patch_json('/cca15caa-bc11-4a6a-8998-ea0c69df8b9e?check_only=true', {
+        'file_format': 'none',  # bad file format
+        'filename': 'my.bam'
+    }, status=422)
