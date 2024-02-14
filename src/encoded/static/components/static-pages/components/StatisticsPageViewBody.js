@@ -475,7 +475,7 @@ const aggregationsToChartData = {
             let topCount = 0; //all
 
             if (countBy === 'assay_type'){
-                useReport = 'file_downloads_by_assay_type';
+                useReport = 'file_downloads_by_experiment_type';
                 groupingKey = 'ga:dimension5'; // Assay Type
             } else if (countBy === 'top_files'){
                 useReport = 'top_files_downloaded';
@@ -556,7 +556,7 @@ export class UsageStatsViewController extends React.PureComponent {
                     "fields_faceted",
                     "sessions_by_country",
                     "sessions_by_device_category",
-                    "file_downloads_by_assay_type",
+                    "file_downloads_by_experiment_type",
                     "file_downloads_by_filetype",
                     "file_downloads_by_country",
                     "top_files_downloaded",
