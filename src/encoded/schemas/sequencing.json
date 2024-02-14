@@ -65,7 +65,7 @@
         },
         "movie_length": {
             "title": "Movie Length",
-            "description": "Length of movie used in sequencing",
+            "description": "Length of movie used in sequencing (hours)",
             "type": "integer",
             "minimum": 0
         },
