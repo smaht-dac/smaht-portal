@@ -222,7 +222,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         "expected_refs": [
             "/Consortium/smaht",
             "/Software/SMAHT_SOFTWARE_FASTQC",
-            "/Software/SMAHT_SOFTWARE_VEP",
+            "/Software/SMAHT_SOFTWARE_VEPX",
             "/FileFormat/fastq",
             "/Workflow/smaht:workflow-basic"
         ],
@@ -237,7 +237,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         "norefs": ["/SubmissionCenter/smaht_dac"],
         "expected": {
             "Donor": [{
-                "submitted_id": "FOOBAR",
+                "submitted_id": "XY_DONOR_ABCD",
                 "sex": "Female", "age": 5,
                 "submission_centers": [ "smaht_dac" ],
                 "something": "else"

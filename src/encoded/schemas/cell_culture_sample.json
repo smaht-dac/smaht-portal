@@ -70,6 +70,9 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_CELL-CULTURE-SAMPLE_[A-Z0-9-_.]{4,}$"
+        },
         "cell_density": {
             "title": "Cell Density",
             "description": "The number of cells per mL of storage medium",

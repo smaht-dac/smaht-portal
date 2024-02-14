@@ -77,6 +77,9 @@
                 "type": "string",
                 "linkTo": "Sample"
             }
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_CELL-SAMPLE_[A-Z0-9-_.]{4,}$"
         }
     }
 }

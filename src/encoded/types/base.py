@@ -1,14 +1,18 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import snovault
+from dcicutils.misc_utils import PRINT
 from pyramid.request import Request
 from pyramid.view import view_config
-from snovault import abstract_collection, calculated_property
+from snovault import AbstractCollection, abstract_collection, calculated_property
+from snovault.crud_views import (
+    collection_add as sno_collection_add,
+    item_edit as sno_item_edit,
+)
 from snovault.types.base import (
     Collection,
     DELETED_ACL,
+    Item as SnovaultItem,
 )
-from snovault.types.base import Item as SnovaultItem
 from snovault.util import debug_log
 from snovault.validators import (
     validate_item_content_post,
@@ -19,15 +23,11 @@ from snovault.validators import (
     no_validate_item_content_put,
     no_validate_item_content_patch
 )
-from snovault.crud_views import (
-    collection_add as sno_collection_add,
-    item_edit as sno_item_edit,
-)
-from dcicutils.misc_utils import PRINT
+from snovault.server_defaults import add_last_modified
 
 from . import acl
-from ..local_roles import DEBUG_PERMISSIONS
 from .utils import get_item
+from ..local_roles import DEBUG_PERMISSIONS
 from ..utils import get_remote_user
 
 
@@ -54,7 +54,7 @@ def mixin_smaht_permission_types(schema: dict) -> dict:
     return schema
 
 
-class AbstractCollection(snovault.AbstractCollection):
+class AbstractCollection(AbstractCollection):
     """smth."""
 
     def __init__(self, *args, **kw):
@@ -166,6 +166,10 @@ class Item(SnovaultItem):
     def __init__(self, registry, models):
         super().__init__(registry, models)
         self.STATUS_ACL = self.__class__.STATUS_ACL
+
+    def _update(self, properties, sheets=None):
+        add_last_modified(properties)
+        super(Item, self)._update(properties, sheets)
 
     def __acl__(self):
         """This sets the ACL for the item based on mapping of status to ACL.

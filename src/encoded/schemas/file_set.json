@@ -78,6 +78,9 @@
             "description": "Link to associated sequencing",
             "type": "string",
             "linkTo": "Sequencing"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_FILE-SET_[A-Z0-9-_.]{4,}$"
         }
     }
 }

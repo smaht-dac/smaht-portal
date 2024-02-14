@@ -187,6 +187,9 @@
             "description": "Link to associated library preparation",
             "type": "string",
             "linkTo": "LibraryPreparation"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_LIBRARY_[A-Z0-9-_.]{4,}$"
         }
     }
 }

@@ -7,6 +7,39 @@ smaht-portal
 Change Log
 ----------
 
+0.23.1
+======
+
+* Hooks in QC Download API
+
+  
+0.23.0
+======
+
+`PR 84: More Benchmarking Data Sets <https://github.com/smaht-dac/smaht-portal/pull/84>`_
+* Update enums File `dataset` to include all expected cell line benchmarking data sets
+
+
+0.22.0
+======
+
+`PR 57: Submitter ID Validation <https://github.com/smaht-dac/smaht-portal/pull/57>`_
+* Validate `submitter_id` for all submitted items
+  * Validation includes: SubmissionCenter code, item type, and unique identifier
+
+
+0.21.6
+======
+
+* Repair test namespacing in unit tests
+
+
+0.21.5
+======
+
+* Adds `last_modified` to all items for edit tracking
+
+
 0.21.4
 ======
 

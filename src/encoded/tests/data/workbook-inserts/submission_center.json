@@ -1,6 +1,7 @@
 [
     {
         "identifier": "smaht",
-        "title": "SMaHT Test Center"
+        "title": "SMaHT Test Center",
+        "code": "test"
     }
 ]

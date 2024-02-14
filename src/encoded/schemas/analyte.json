@@ -81,6 +81,9 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_ANALYTE_[A-Z0-9-_.]{4,}$"
+        },
         "a260_a280_ratio": {
             "title": "A260/A280 Ratio",
             "description": "Ratio of nucleic acid absorbance at 260 nm and 280 nm, used to determine a measure of DNA purity",
