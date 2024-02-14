@@ -230,10 +230,30 @@ def validate_processed_file_produced_from_field(context, request):
         request.validated.update({})
 
 
+def validate_file_format_validity_for_file_type(context, request):
+    """Check if the specified file format (e.g. fastq) is allowed for the file type (e.g. FileFastq).
+    """
+    data = request.json
+    if 'file_format' in data:
+        file_format_item = get_item_or_none(request, data['file_format'], 'file-formats')
+        if not file_format_item:
+            # item level validation will take care of generating the error
+            return
+        file_format_name = file_format_item['identifier']
+        allowed_types = file_format_item.get('valid_item_types', [])
+        file_type = context.type_info.name
+        if file_type not in allowed_types:
+            msg = 'File format {} is not allowed for {}'.format(file_format_name, file_type)
+            request.errors.add('body', 'File: invalid format', msg)
+        else:
+            request.validated.update({})
+
+
 @view_config(context=File.Collection, permission='add', request_method='POST',
              validators=[validate_item_content_post,
                          validate_file_filename,
                          validate_extra_file_format,
+                         validate_file_format_validity_for_file_type,
                          validate_processed_file_unique_md5_with_bypass,
                          validate_processed_file_produced_from_field,
                          validate_user_submission_consistency])
@@ -249,6 +269,7 @@ def file_add(context, request, render=None):
              validators=[validate_item_content_put,
                          validate_file_filename,
                          validate_extra_file_format,
+                         validate_file_format_validity_for_file_type,
                          validate_processed_file_unique_md5_with_bypass,
                          validate_processed_file_produced_from_field,
                          validate_user_submission_consistency])
@@ -256,6 +277,7 @@ def file_add(context, request, render=None):
              validators=[validate_item_content_patch,
                          validate_file_filename,
                          validate_extra_file_format,
+                         validate_file_format_validity_for_file_type,
                          validate_processed_file_unique_md5_with_bypass,
                          validate_processed_file_produced_from_field,
                          validate_user_submission_consistency])
@@ -270,6 +292,7 @@ def file_add(context, request, render=None):
              validators=[validate_item_content_in_place,
                          validate_file_filename,
                          validate_extra_file_format,
+                         validate_file_format_validity_for_file_type,
                          validate_processed_file_unique_md5_with_bypass,
                          validate_processed_file_produced_from_field,
                          validate_user_submission_consistency],

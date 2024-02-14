@@ -27,6 +27,13 @@ def fastq_format(testapp: TestApp, test_consortium: Dict[str, Any]):
         'standard_file_extension': 'fastq.gz',
         'other_allowed_extensions': ['fq.gz'],
         'consortia': [test_consortium['uuid']],
+        "valid_item_types": [
+            "AlignedReads",
+            "OutputFile",
+            "ReferenceFile",
+            "UnalignedReads",
+            "VariantCalls"
+        ]
     }, status=201).json['@graph'][0]
 
 
@@ -656,6 +663,7 @@ def test_item_create_permissions(
     submission_center_user_app: TestApp,
     consortium_user_app: TestApp,
     testapp: TestApp,
+    file_formats: Dict[str, Any],
     test_submission_center: Dict[str, Any],
 ) -> None:
     """Test create permissions for all item types.
@@ -690,6 +698,8 @@ def test_item_create_permissions(
     for item_type in loadxl_order:
         test_properties = item_properties_to_test.get(item_type)
         assert test_properties, f"Missing workbook properties for {item_type}"
+        if item_type == 'file_format':
+            continue  # ignore these, we bring them in another way due to deps
         if item_type in special_item_types:
             assert_expected_special_permissions(
                 test_properties,
@@ -905,7 +915,6 @@ def assert_expected_access_key_permissions(
                 testapp, consortium_user_app, item_type, limited_insert
             )
         post_item(testapp, identifying_insert, item_type, status=201)
-
 
 
 def assert_submittable_permissions(

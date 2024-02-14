@@ -147,7 +147,7 @@ def get_submitted_id_pattern_item_type_failure(
     return ""
 
 
-def test_submitted_id_validated_on_post_and_patch(testapp: TestApp) -> None:
+def test_submitted_id_validated_on_post_and_patch(testapp: TestApp, file_formats) -> None:
     """Test SubmittedItems validate submitted_id on POST and PATCH.
 
     Validation performed is on SubmissionCenter code, so use a dummy
@@ -167,6 +167,8 @@ def test_submitted_id_validated_on_post_and_patch(testapp: TestApp) -> None:
     for item_type in loadxl_order:
         if item_type == "submission_center":
             continue  # Already POSTed relevant SubmissionCenter
+        elif item_type == "file_format":
+            continue  # we bring these in from datafixtures to avoid validation errors
         if item_type in submitted_item_types:
             assert_submitted_id_validation_on_post_and_patch(
                 testapp, item_type, item_properties_to_test

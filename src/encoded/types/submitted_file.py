@@ -5,7 +5,6 @@ from .file import File
 from .submitted_item import SubmittedItem
 
 
-
 @abstract_collection(
     name="submitted-files",
     unique_key="submitted_id",

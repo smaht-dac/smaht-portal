@@ -18,12 +18,43 @@ def file_formats(testapp, test_consortium):
         'beddb': {"standard_file_extension": "beddb"},
     }
     format_info = {
-        'fastq': {'standard_file_extension': 'fastq.gz',
-                  'other_allowed_extensions': ['fq.gz']},
+        'FASTQ': {'standard_file_extension': 'fastq.gz',
+                  'other_allowed_extensions': ['fq.gz'],
+                  'valid_item_types': [
+                    "AlignedReads",
+                    "OutputFile",
+                    "ReferenceFile",
+                    "UnalignedReads",
+                    "VariantCalls"
+                  ]},
         'pairs': {'standard_file_extension': 'pairs.gz',
-                  "extra_file_formats": ['pairs_px2', 'pairsam_px2']},
-        'bam': {'standard_file_extension': 'bam',
-                'extra_file_formats': ['bai']},
+                  "extra_file_formats": ['pairs_px2', 'pairsam_px2'],
+                  'valid_item_types': [
+                      "AlignedReads",
+                      "OutputFile",
+                      "ReferenceFile",
+                      "UnalignedReads",
+                      "VariantCalls"
+                  ]},
+        'BAM': {'standard_file_extension': 'bam',
+                'extra_file_formats': ['bai'],
+                'valid_item_types': [
+                    "AlignedReads",
+                    "OutputFile",
+                    "ReferenceFile",
+                    "UnalignedReads",
+                    "VariantCalls"
+                ]},
+        'VCF': {
+            "standard_file_extension": "vcf",
+            "valid_item_types": [
+                "AlignedReads",
+                "OutputFile",
+                "ReferenceFile",
+                "UnalignedReads",
+                "VariantCalls"
+            ]
+        },
         'mcool': {'standard_file_extension': 'mcool'},
         'zip': {'standard_file_extension': 'zip'},
         'chromsizes': {'standard_file_extension': 'chrom.sizes'},
@@ -300,9 +331,9 @@ def output_file(
 ) -> Dict[str, Any]:
     item = {
         "uuid": OUTPUT_FILE_UUID,
-        "file_format": file_formats.get("fastq", {}).get("uuid", ""),
+        "file_format": file_formats.get("BAM", {}).get("uuid", ""),
         "md5sum": "00000000000000000000000000000001",
-        "filename": "my.fastq.gz",
+        "filename": "my.bam",
         "status": "uploaded",
         "data_category": ["Sequencing Reads"],
         "data_type": ["Unaligned Reads"],

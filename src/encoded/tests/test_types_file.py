@@ -6,7 +6,7 @@ from webtest.app import TestApp
 from .utils import patch_item, post_item, post_item_and_return_location
 
 
-OUTPUT_FILE_FORMAT = "fastq"
+OUTPUT_FILE_FORMAT = "FASTQ"
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ def bam_output_file_properties(
         "submission_centers": [test_submission_center["uuid"]],
         "data_category": ["Sequencing Reads"],
         "data_type": ["Unaligned Reads"],
-        "file_format": file_formats.get("bam", {}).get("uuid"),
+        "file_format": file_formats.get("BAM", {}).get("uuid"),
     }
 
 

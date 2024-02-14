@@ -227,7 +227,7 @@ def test_real_validation_error(es_app, setup_and_teardown, indexer_testapp, es_t
     time.sleep(2)
     namespaced_fp = get_namespaced_index(es_app, 'output_file')
     es_res = es.get(index=namespaced_fp, id=res['@graph'][0]['uuid'])
-    assert len(es_res['_source'].get('validation_errors', [])) == 2
+    assert len(es_res['_source'].get('validation_errors', [])) == 3
     # check that validation-errors view works
     val_err_view = es_testapp.get(fp_id + '@@validation-errors', status=200).json
     assert val_err_view['@id'] == fp_id

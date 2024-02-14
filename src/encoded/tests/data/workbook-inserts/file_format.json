@@ -5,7 +5,14 @@
             "smaht"
         ],
         "identifier": "FASTQ",
-        "standard_file_extension": "fastq.gz"
+        "standard_file_extension": "fastq.gz",
+        "valid_item_types": [
+            "AlignedReads",
+            "OutputFile",
+            "ReferenceFile",
+            "UnalignedReads",
+            "VariantCalls"
+        ]
     },
     {
         "uuid": "73ff94bf-6c2e-408b-8faa-e05a3e249e30",
@@ -17,7 +24,14 @@
 		"extra_file_formats": [
 			"BAI",
             "VCF"
-		]
+		],
+        "valid_item_types": [
+            "AlignedReads",
+            "OutputFile",
+            "ReferenceFile",
+            "UnalignedReads",
+            "VariantCalls"
+        ]
     },
     {
         "uuid": "4761dada-9a9a-4cc6-becd-9c242ee61276",
@@ -25,7 +39,14 @@
             "smaht"
         ],
         "identifier": "BAI",
-        "standard_file_extension": "bai"
+        "standard_file_extension": "bai",
+        "valid_item_types": [
+            "AlignedReads",
+            "OutputFile",
+            "ReferenceFile",
+            "UnalignedReads",
+            "VariantCalls"
+        ]
     },
     {
         "uuid": "ed177463-2126-47dc-b1b9-1147498c04b9",
@@ -33,6 +54,13 @@
             "smaht"
         ],
         "identifier": "VCF",
-        "standard_file_extension": "vcf"
+        "standard_file_extension": "vcf",
+        "valid_item_types": [
+            "AlignedReads",
+            "OutputFile",
+            "ReferenceFile",
+            "UnalignedReads",
+            "VariantCalls"
+        ]
     }
 ]
