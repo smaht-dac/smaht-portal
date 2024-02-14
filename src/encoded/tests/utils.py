@@ -10,6 +10,8 @@ from snovault import Collection, COLLECTIONS, TYPES
 from snovault.typeinfo import AbstractTypeInfo, TypeInfo
 from webtest.app import TestApp
 
+from ..types.submitted_item import SubmittedItem
+
 
 def post_item_and_return_location(
     testapp: TestApp, item: dict, collection: str
@@ -225,6 +227,21 @@ def get_functional_item_types(
     }
 
 
+def get_submitted_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
+    """Get all submitted item types."""
+    all_item_types = get_all_item_types(test_app)
+    return {
+        type_name: type_info
+        for type_name, type_info in all_item_types.items()
+        if is_submitted_item(type_info)
+    }
+
+
+def is_submitted_item(type_info: AbstractTypeInfo) -> bool:
+    """Is type child of SubmittedItem?"""
+    return issubclass(type_info.factory, SubmittedItem)
+
+
 def get_all_item_types(
     item_with_registry: Union[Registry, TestApp]
 ) -> Dict[str, TypeInfo]:
@@ -265,7 +282,7 @@ def get_items_with_submitted_id(testapp: TestApp) -> List[str]:
 
 
 def has_submitted_id(type_info: TypeInfo) -> bool:
-    return "submitted_id" in schema_utils.get_properties(type_info.schema)
+    return has_property(type_info.schema, "submitted_id")
 
 
 def get_items_without_submitted_id(testapp: TestApp) -> List[str]:
@@ -342,6 +359,12 @@ def get_unique_key_property_name(collection: Collection) -> str:
     return unique_key
 
 
+def get_workbook_inserts_for_collection(collection: str) -> List[Dict[str, Any]]:
+    """Get workbook inserts for given collection."""
+    workbook_inserts = get_workbook_inserts()
+    return workbook_inserts.get(collection, [])
+
+
 def get_workbook_inserts() -> Dict[str, Dict[str, Any]]:
     """Load all workbook inserts."""
     workbook_schemas_path = pkg_resources.resource_filename(
@@ -363,3 +386,145 @@ def load_inserts(insert_file: Path) -> List[Dict[str, Any]]:
     """Load inserts from file."""
     with insert_file.open() as file_handle:
         return json.load(file_handle)
+
+
+def get_item_properties_from_workbook_inserts(
+    submission_center: Dict[str, Any]
+) -> Dict[str, Dict[str, Any]]:
+    """Get representative item types from workbook inserts.
+
+    For those with submission centers and consortia, wipe and replace
+    with only provided submission center.
+    """
+    inserts = get_workbook_inserts()
+    return clean_workbook_inserts(inserts, submission_center)
+
+
+def clean_workbook_inserts(
+    workbook_inserts: Dict[str, Dict[str, Any]],
+    submission_center: Dict[str, Any]
+) -> Dict[str, Dict[str, Any]]:
+    """Clean workbook inserts to only include submission center.
+
+    For those with submission centers and consortia, wipe and replace
+    with only provided submission center.
+    """
+    return {
+        item_type: replace_inserts_affiliations(item_inserts, submission_center)
+        for item_type, item_inserts in workbook_inserts.items()
+    }
+
+
+def replace_inserts_affiliations(
+    item_inserts: List[Dict[str, Any]],
+    submission_center: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Replace affiliations in item inserts with provided submission center."""
+    return [
+        replace_insert_affiliations(item_insert, submission_center)
+        for item_insert in item_inserts
+    ]
+
+
+def replace_insert_affiliations(
+    item_insert: Dict[str, Any],
+    submission_center: Dict[str, Any]
+) -> Dict[str, Any]:
+    """If needed, replace affiliations in item insert with provided
+    submission center.
+    """
+    if has_affiliations(item_insert):
+        return replace_affiliations(item_insert, submission_center)
+    return item_insert
+
+
+def has_affiliations(item_insert: Dict[str, Any]) -> bool:
+    """Check if item insert has submission centers or consortia."""
+    return any(
+        [
+            item_insert.get("submission_centers", []),
+            item_insert.get("consortia", []),
+        ]
+    )
+
+def replace_affiliations(
+    item_insert: Dict[str, Any],
+    submission_center: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Replace affiliations in item insert with provided submission center.
+
+    Assumes submission_centers property is valid. Can check schemas if
+    assumption no longer holds.
+    """
+    insert_without_affiliation = {
+        key: value for key, value in item_insert.items()
+        if key not in ["submission_centers", "consortia"]
+    }
+    return {
+        **insert_without_affiliation, "submission_centers": [submission_center["uuid"]]
+    }
+
+
+def post_identifying_insert(
+    test_app: TestApp,
+    insert: Dict[str, Any],
+    collection: str,
+    status: Optional[Union[int, List[int]]] = 201,
+) -> Dict[str, Any]:
+    """Get insert with limited properties and POST it."""
+    to_post = get_identifying_insert(test_app, insert, collection)
+    return post_item(test_app, to_post, collection=collection, status=status)
+
+
+def get_identifying_insert(
+    test_app: TestApp, insert: Dict[str, Any], item_type: str
+) -> Dict[str, Any]:
+    """Get insert with required + identifying properties for POST attempt.
+
+    Keep submission centers, if present.
+    """
+    properties_to_keep = [
+        "submission_centers",
+        *get_identifying_properties(test_app, item_type),
+        *get_required_properties(test_app, item_type),
+    ]
+    return {key: value for key, value in insert.items() if key in properties_to_keep}
+
+
+def get_required_properties(test_app: TestApp, item_type: str) -> List[str]:
+    """Get required + potentially required properties."""
+    schema = get_schema(test_app, item_type)
+    required_fields = schema.get("required", [])
+    any_of_required_fields = get_any_of_required_fields(schema)
+    one_of_required_fields = get_one_of_required_fields(schema)
+    return required_fields + any_of_required_fields + one_of_required_fields
+
+
+def get_any_of_required_fields(schema: Dict[str, Any]) -> List[str]:
+    """Get required fields from anyOf properties."""
+    any_of_properties = schema.get("anyOf", [])
+    return get_conditional_requirements(any_of_properties)
+
+
+def get_conditional_requirements(
+    conditional_options: List[Dict[str, Any]]
+) -> List[str]:
+    """Get required fields from conditional properties."""
+    return [
+        required_key
+        for entry in conditional_options
+        for key, value in entry.items()
+        for required_key in value
+        if key == "required"
+    ]
+
+
+def get_one_of_required_fields(schema: Dict[str, Any]) -> List[str]:
+    """Get required fields from oneOf properties."""
+    one_of_properties = schema.get("oneOf", [])
+    return get_conditional_requirements(one_of_properties)
+
+
+def get_identifying_properties(test_app: TestApp, item_type: str) -> List[str]:
+    schema = get_schema(test_app, item_type)
+    return schema.get("identifyingProperties", [])

@@ -85,6 +85,9 @@
                 "type": "string",
                 "linkTo": "SampleSource"
             }
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_SAMPLE_[A-Z0-9-_.]{4,}$"
         }
     }
 }

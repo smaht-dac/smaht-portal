@@ -26,7 +26,7 @@
                 "somesubctr"
             ],
             "protocols": ["protocol1"],
-            "submitted_id": "library-id-1",
+            "submitted_id": "XY_LIBRARY_ABC1",
             "uuid": "uuid1"
         },
         {
@@ -52,7 +52,7 @@
             "submission_centers": [
                 "Center1"
             ],
-            "submitted_id": "library-id-2",
+            "submitted_id": "XY_LIBRARY_ABC2",
             "uuid": "uuid2"
         },
         {
@@ -81,7 +81,7 @@
                 "anothersubctr"
             ],
             "protocols": ["protocol3"],
-            "submitted_id": "library-id-3",
+            "submitted_id": "XY_LIBRARY_ABC3",
             "uuid": "uuid3"
         }
     ]

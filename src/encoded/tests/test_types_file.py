@@ -109,7 +109,7 @@ def test_upload_key(
     output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]
 ) -> None:
     """Ensure upload key formatted as expected.
-    
+
     Expected format is {uuid}/{accession}.{file_format_extension}
     """
     expected = (

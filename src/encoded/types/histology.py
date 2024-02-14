@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item
+from .submitted_item import SubmittedItem
 
 
 @collection(
@@ -11,7 +11,7 @@ from .base import Item
         "description": "Histological analyses of tissues",
     },
 )
-class Histology(Item):
+class Histology(SubmittedItem):
     item_type = "histology"
     schema = load_schema("encoded:schemas/histology.json")
     embedded_list = []

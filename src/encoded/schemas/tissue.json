@@ -131,6 +131,9 @@
             "description": "Link to the associated donor",
             "type": "string",
             "linkTo": "Donor"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_TISSUE_[A-Z0-9-_.]{4,}$"
         }
     }
 }
