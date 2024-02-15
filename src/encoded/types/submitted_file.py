@@ -1,5 +1,3 @@
-from typing import Any, Dict
-
 from pyramid.request import Request
 from pyramid.view import view_config
 from snovault import abstract_collection, load_schema
