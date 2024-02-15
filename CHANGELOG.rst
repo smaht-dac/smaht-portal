@@ -7,6 +7,7 @@ smaht-portal
 Change Log
 ----------
 
+
 0.24.0
 ======
 * Documentation updates related to submission.
@@ -18,6 +19,12 @@ Change Log
   we do a validate_only check first before loading the data (both via loadxl).
 
 
+0.23.1
+======
+
+* Hooks in QC Download API
+
+  
 0.23.0
 ======
 
