@@ -249,54 +249,84 @@ def validate_file_format_validity_for_file_type(context, request):
             request.validated.update({})
 
 
-@view_config(context=File.Collection, permission='add', request_method='POST',
-             validators=[validate_item_content_post,
-                         validate_file_filename,
-                         validate_extra_file_format,
-                         validate_file_format_validity_for_file_type,
-                         validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field,
-                         validate_user_submission_consistency])
+FILE_ADD_VALIDATORS = [
+    validate_item_content_post,
+    validate_file_filename,
+    validate_extra_file_format,
+    validate_file_format_validity_for_file_type,
+    validate_processed_file_unique_md5_with_bypass,
+    validate_processed_file_produced_from_field,
+    validate_user_submission_consistency
+]
+FILE_ADD_UNVALIDATED_VALIDATORS = [no_validate_item_content_post]
+
+
+@view_config(
+    context=File.Collection,
+    permission='add',
+    request_method='POST',
+    validators=FILE_ADD_VALIDATORS,
+)
 @view_config(context=File.Collection, permission='add_unvalidated', request_method='POST',
-             validators=[no_validate_item_content_post],
+             validators=FILE_ADD_UNVALIDATED_VALIDATORS,
              request_param=['validate=false'])
 @debug_log
 def file_add(context, request, render=None):
     return collection_add(context, request, render)
 
 
-@view_config(context=File, permission='edit', request_method='PUT',
-             validators=[validate_item_content_put,
-                         validate_file_filename,
-                         validate_extra_file_format,
-                         validate_file_format_validity_for_file_type,
-                         validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field,
-                         validate_user_submission_consistency])
-@view_config(context=File, permission='edit', request_method='PATCH',
-             validators=[validate_item_content_patch,
-                         validate_file_filename,
-                         validate_extra_file_format,
-                         validate_file_format_validity_for_file_type,
-                         validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field,
-                         validate_user_submission_consistency])
-@view_config(context=File, permission='edit_unvalidated', request_method='PUT',
-             validators=[no_validate_item_content_put,
-                         validate_user_submission_consistency],
-             request_param=['validate=false'])
-@view_config(context=File, permission='edit_unvalidated', request_method='PATCH',
-             validators=[no_validate_item_content_patch],
-             request_param=['validate=false'])
-@view_config(context=File, permission='index', request_method='GET',
-             validators=[validate_item_content_in_place,
-                         validate_file_filename,
-                         validate_extra_file_format,
-                         validate_file_format_validity_for_file_type,
-                         validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field,
-                         validate_user_submission_consistency],
-             request_param=['check_only=true'])
+COMMON_FILE_EDIT_VALIDATORS = [
+     validate_file_filename,
+     validate_extra_file_format,
+     validate_file_format_validity_for_file_type,
+     validate_processed_file_unique_md5_with_bypass,
+     validate_processed_file_produced_from_field,
+     validate_user_submission_consistency,
+]
+FILE_EDIT_PUT_VALIDATORS = [validate_item_content_put] + COMMON_FILE_EDIT_VALIDATORS
+FILE_EDIT_PATCH_VALIDATORS = [validate_item_content_patch] + COMMON_FILE_EDIT_VALIDATORS
+FILE_EDIT_UNVALIDATED_PUT_VALIDATORS = [
+    no_validate_item_content_put, validate_user_submission_consistency
+]
+FILE_EDIT_UNVALIDATED_PATCH_VALIDATORS = [no_validate_item_content_patch]
+FILE_INDEX_GET_VALIDATORS = [
+    validate_item_content_in_place
+] + COMMON_FILE_EDIT_VALIDATORS
+
+
+@view_config(
+    context=File,
+    permission='edit',
+    request_method='PUT',
+    validators=FILE_EDIT_PUT_VALIDATORS,
+)
+@view_config(
+    context=File,
+    permission='edit',
+    request_method='PATCH',
+    validators=FILE_EDIT_PATCH_VALIDATORS,
+)
+@view_config(
+    context=File,
+    permission='edit_unvalidated',
+    request_method='PUT',
+    validators=FILE_EDIT_UNVALIDATED_PUT_VALIDATORS,
+    request_param=['validate=false'],
+)
+@view_config(
+    context=File,
+    permission='edit_unvalidated',
+    request_method='PATCH',
+    validators=FILE_EDIT_UNVALIDATED_PATCH_VALIDATORS,
+    request_param=['validate=false'],
+)
+@view_config(
+    context=File,
+    permission='index',
+    request_method='GET',
+    validators=FILE_INDEX_GET_VALIDATORS,
+    request_param=['check_only=true'],
+)
 @debug_log
 def file_edit(context, request, render=None):
     return item_edit(context, request, render)
