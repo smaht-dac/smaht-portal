@@ -301,7 +301,28 @@ def assert_file_format_validated_on_post(
     """Ensure file format validated on POST."""
     item_to_post = generate_file_insert_for_type(es_testapp, file_type_data)
     response = post_item(es_testapp, item_to_post, file_type_data.file_type, status=422)
-    assert response.json["errors"][0]["name"] == "file_format"
+    assert_file_format_invalid(response, file_type_data)
+
+
+
+def assert_file_format_invalid(
+    response: Dict[str, Any], file_type_data: FileTypeTestData
+) -> None:
+    """Ensure invalid file format for file type error in response."""
+    assert "ValidationFailure" in response.get("@type", [])
+    assert response.get("status") == "error"
+    errors = response.get("errors", [])
+    assert errors
+    invalid_file_format_for_type_error_found = False
+    for error in errors:
+        if error.get("description") == (
+            f"File format {file_type_data.invalid_file_format['identifier']} is"
+            f" not allowed for {file_type_data.file_type}"
+        ):
+            invalid_file_format_for_type_error_found = True
+            break
+    assert invalid_file_format_for_type_error_found
+
 
 
 def generate_file_insert_for_type(
@@ -356,4 +377,4 @@ def assert_file_format_validated_on_patch(
     item_to_patch = file_type_data.insert.get("uuid")
     patch_body = {"file_format": file_type_data.invalid_file_format.get("uuid")}
     response = patch_item(es_testapp, patch_body, item_to_patch, status=422)
-    assert response.json["errors"][0]["name"] == "file_format"
+    assert_file_format_invalid(response, file_type_data)
