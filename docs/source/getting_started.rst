@@ -41,9 +41,8 @@ is an Excel spreadsheet file (e.g. ``your_metadata_file.xlsx``),
 comprised of one or more sheets.
 Note these important aspects of using the Excel spreadsheet format:
 
-#. Each sheet name must be the name of a SMaHT Portal entity or `object` defined within the system.
-#. Each sheet must have as its first row, a special `header` row, which enumerates in each column, the names of the Portal object properties as the column names; order does `not` matter.
-#. Each of these column names must match `exactly` the name of the property for the Portal object.
+#. Each sheet name must be the `exact` name of a SMaHT Portal entity or `object` defined within the system.
+#. Each sheet must have as its first row, a special `header` row, which enumerates in each column, the `exact` names of the Portal object `properties` as the column names; order does `not` matter.
 #. Each sheet may contain any number of `data` rows (`directly` below the header row), each representing an instance of the Portal object.
 #. The values in the cells/columns of each data row correspond each to the property named in same column of the header row. 
 #. The first column in the header row which is empty marks the end of the header, and any subsequent columns will be entirely ignored.
@@ -66,13 +65,15 @@ Notice that the first row comprises the property/column `header`, defining prope
 And also notice the multiple tabs at the bottom for the different sheets within the spreadsheet,
 representing (in this example) data for the Portal objects ``CellCultureSample``, ``Analyte``, ``Library``, and so on.
 
-**Property Deletions**
+Property Deletions
+~~~~~~~~~~~~~~~~~~
 
 A column value within a (non-header) data row may be empty, but this only means that the value will be ignored
 when creating or updating the associated object. In order to actually `delete` a property value from an object,
 a special value - ``*delete*`` - should be used as the the property value.
 
-**Nested Properties**
+Nested Properties
+~~~~~~~~~~~~~~~~~
 
 Some Portal object properties defined to contain other `nested` objects.
 Since a (Excel spreadsheet) inherently defines a "flat" structure,
@@ -84,7 +85,8 @@ For this we will use a `dot-notation` whereby dots (``.``) are used to separate 
 For example, an object may define a ``components`` property which itself may contain a ``cell_culture`` property;
 to reference the ``cell_culture`` property then, the spreadsheet column header would need to be ``components.cell_culture``.
 
-**Array Type Properties**
+Array Type Properties
+~~~~~~~~~~~~~~~~~~~~~
 
 Some Portal object properties are defined to be lists (or `arrays`) of values.
 Defining the values for such array properties, separate the individual array values by a pipe character (``|``).
@@ -96,7 +98,8 @@ This is accomplished by the convention suffixing the property name in the column
 a pound sign (``#``) followed by an integer representing the zero-indexed array element.
 For example to set the first element of the ``molecules`` property (using the example above), use column header value ``molecule#0``.
 
-**Date/Time Type Properties**
+Date/Time Type Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For Portal object properties which are defined as `date` values,
 the required format is ``YYYY-MM-DD``, for example ``2024-02-09``.
@@ -106,12 +109,14 @@ the required format is ``YYYY-MM-DD hh:mm:ss``, for example ``2024-02-09 08:25:1
 This will default to your local timezone; if you want to specify a timezone
 use a suffix like ``+hh:mm`` where ``hh`` and ``mm`` are the hour and minute (respectively) offsets from GMT.
 
-**Boolean Type Properties**
+Boolean Type Properties
+~~~~~~~~~~~~~~~~~~~~~~~
 
 For Portal object properties which are defined as `boolean` values, meaning either `true` or `false`,
 simply use these values, i.e. ``true`` or ``false``.
 
-**Object Reference Properties**
+Object Reference Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Some Portal object properties are defined as being references to other Portal objects (also known as `linkTo` properties).
 The values of these in the spreadsheet should be the unique identifying value for that object.
@@ -131,70 +136,70 @@ Submission
 The type of submission supported is called a "metadata bundles", or `accessioning`.
 And the name of the command-line tool to initiate a submission is ``submit-metadata-bundle``.
 A brief tour of this command, its arguments, and function is described below.
-
-Getting Added as a SMaHT User or Submitter
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The ``smaht-submitr`` tool is a Python based command-line tool, distributed
-on the `Python Package Index <https://pypi.org/project/smaht-submitr/>`_ which can be installed
-using the standard Python ``pip`` utility like this::
-
-    pip install smaht-submitr
-
-For more details on installation process please see `here <https://submitr.readthedocs.io/en/latest/>`_.
-
-**Basic Usage**
-
-The basic ``smaht-submitr`` command is called ``submit-metadata-bundle``. To get help about this command, do::
+To get help about the command, do::
 
    submit-metadata-bundle --help
 
 For many cases it will suffice simply to specify the metadata bundle file you want to upload,
-and the SMaHT environment name (such as ``data`` or ``staging``) from your ``~/.smaht-keys.json`` keys file).
+and the SMaHT environment name (such as ``data`` or ``staging``) from your ``~/.smaht-keys.json`` keys file (as described in the `Credentials <credentials.html>`_ section),
+as an argument to the ``--env`` option.
 For example::
 
    submit-metadata-bundle your_metadata_file.xlsx --env data
 
-You can omit the ``--env`` option entirely if your ``~/.smaht-keys.json`` file has only one entry.
+You can omit the ``--env`` option entirely if your ``~/.smaht-keys.json`` file has only `one` single entry.
 
-This command should do everything, including uploading referenced file; it will prompt first for confirmation;
-see the `Uploading Referenced Files` section just below for more on this.
+.. note::
+    If you opted to use a file other than ``~/.smaht-keys.json`` to store
+    your `credentials <credentials.html>`_, you will need to use the ``--keys``
+    options with the path name to your alternate file as an argument.
+
+This command should do everything, `including` uploading any referenced files,
+prompting first for confirmation;
+see the `Uploading Files <uploading_files.html>`_ section for more on this.
 
 If you belong to
 multiple consortia and/or submission centers, you can also add the ``--consortium <consortium>``
-and ``--submission-center <submission-center>`` options; if you belong to only one of either,
+and ``--submission-center <submission-center>`` options; if you belong to only one,
 the command will automatically detect (based on your user profile) and use those.
 
-**Sanity Checking**
+.. tip::
+    You may wonder: Is it okay to submit the same metadata file more that once?
+    The answer is: Yes. And, if you had made any changes to the file, updates
+    will be applied as expected.
 
-To invoke the submission for with `local` sanity checking, where "local" means - `before` actually submitting to SMaHT, do::
+Validation
+----------
 
-   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --check
+To invoke the submission with validation checking, do::
 
-And to invoke the submission for with `only` local sanity checking, without actually submitting to SMaHT at all, do::
+   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --validate
 
-   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --check-only
+This is the recommended usage, and in fact, this (``--validate`` option) is actually the `default`
+behavior unless your user profile indicates that you are an `admin` user.
 
-These ``--check`` and ``--check-only`` options can be very useful and their use is encouraged.
-They ensure that everything is in order before sending the submission off to SMaHT for processing.
+To be more specific, the validation checks include the following:
 
-In fact, this (``--check`` option) is actually the `default` behavior unless your user profile indicates that you are an `admin` user.
-To be more specific, these sanity checks include the following:
+#. Ensures the basic integrity of the format of the metadata submission file.
+#. Validates that objects defined within the metadata submission file conform to the corresponding Portal schemas for these objects.
+#. Confirms that any objects referenced within the submission file can be resolved; i.e. either they already exist within the Portal, or are defined within the metadata submission file itself.
+#. Verifies that referenced files (to be subsequently uploaded) actually exist on the file system.
 
-#. Ensures the basic integrity of the format of the submission file.
-#. Validates the objects defined within the submission file against the corresponding Portal schemas for these objects.
-#. Confirms that any objects referenced within the submission file can be resolved; i.e. either they already exist within the Portal, or are defined within the submission file itself.
-#. Checks that referenced files (to be subsequently uploaded) actually exist on the file system.
+.. tip::
+    Using this ``--validate`` feature, if any errors are encountered, the actual ingestion of data
+    will `not` commence. (Even if no errors are encountered, you `will` be prompted as to 
+    whether or not you wish to proceed). In other words, this constitutes a sort of "**dry run**" facility.
 
-**Valdation Only**
+Not generally necessary to know,
+but for more detailed information on the validation process
+see the `Advanced Usage <advanced_usage.html#more-on-validation>`_ section.
 
-To invoke the submission for validation only, without having SMaHT actually ingest anything into its data store, do::
-
-   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --validate-only
-
-To be clear, this `will` submit the file to SMaHT for processing, but no data ingestion will take place, and any problems
-will be reported back to you from the SMaHT server. To sanity check the file you are submitting  `before` actually
-submitting it to SMaHT, you should use the ``--check`` option described above.
+.. note::
+    Even in the absence of validation,
+    if there are problems with specific objects within your submitted data,
+    they will `not` be ingested into SMaHT Portal; i.e. no worries that corrupt data will sneak into the system.
+    However, `without` the ``--validate`` option it `is` possible that `some` of your objects
+    will be ingested properly, and other, problematic ones, will `not` be ingested at all.
 
 **Example Screenshots**
 
