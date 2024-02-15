@@ -7,11 +7,9 @@
         "identifier": "FASTQ",
         "standard_file_extension": "fastq.gz",
         "valid_item_types": [
-            "AlignedReads",
             "OutputFile",
             "ReferenceFile",
-            "UnalignedReads",
-            "VariantCalls"
+            "UnalignedReads"
         ]
     },
     {
@@ -21,10 +19,10 @@
         ],
         "identifier": "BAM",
         "standard_file_extension": "bam",
-		"extra_file_formats": [
-			"BAI",
+        "extra_file_formats": [
+            "BAI",
             "VCF"
-		],
+        ],
         "valid_item_types": [
             "AlignedReads",
             "OutputFile",
@@ -56,10 +54,6 @@
         "identifier": "VCF",
         "standard_file_extension": "vcf",
         "valid_item_types": [
-            "AlignedReads",
-            "OutputFile",
-            "ReferenceFile",
-            "UnalignedReads",
             "VariantCalls"
         ]
     }

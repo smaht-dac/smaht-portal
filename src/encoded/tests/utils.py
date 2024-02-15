@@ -84,15 +84,27 @@ def get_item(
 def get_search(
     testapp: TestApp,
     query: str,
-    status: Union[int, List[int]] = 200,
+    status: Union[int, List[int]] = [200, 301],
 ) -> List[Dict[str, Any]]:
     """Get search results for given query."""
-    return testapp.get(query, status=status).json["@graph"]
+    formatted_query = format_search_query(query)
+    response = testapp.get(formatted_query, status=status)
+    if response.status_int == 301:
+        return response.follow().json["@graph"]
+    if response.status_int == 200:
+        return response.json["@graph"]
+    return response.json
 
 
 def format_search_query(query: str) -> str:
     """Format search query for URL expectations."""
-    return f"/search/?{query}"
+    if query.startswith("/search"):
+        return query
+    if not query.startswith("/") and query.startswith("search"):
+        return f"/{query}"
+    if not query.startswith("?"):
+        return f"/search/?{query}"
+    return f"/search/{query}"
 
 
 def get_insert_identifier_for_item_type(testapp: TestApp, item_type: str) -> str:
