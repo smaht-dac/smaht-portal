@@ -18,43 +18,19 @@ def file_formats(testapp, test_consortium):
         'beddb': {"standard_file_extension": "beddb"},
     }
     format_info = {
-        'FASTQ': {'standard_file_extension': 'fastq.gz',
-                  'other_allowed_extensions': ['fq.gz'],
-                  'valid_item_types': [
-                    "AlignedReads",
-                    "OutputFile",
-                    "ReferenceFile",
-                    "UnalignedReads",
-                    "VariantCalls"
-                  ]},
-        'pairs': {'standard_file_extension': 'pairs.gz',
-                  "extra_file_formats": ['pairs_px2', 'pairsam_px2'],
-                  'valid_item_types': [
-                      "AlignedReads",
-                      "OutputFile",
-                      "ReferenceFile",
-                      "UnalignedReads",
-                      "VariantCalls"
-                  ]},
-        'BAM': {'standard_file_extension': 'bam',
-                'extra_file_formats': ['bai'],
-                'valid_item_types': [
-                    "AlignedReads",
-                    "OutputFile",
-                    "ReferenceFile",
-                    "UnalignedReads",
-                    "VariantCalls"
-                ]},
-        'VCF': {
-            "standard_file_extension": "vcf",
-            "valid_item_types": [
-                "AlignedReads",
-                "OutputFile",
-                "ReferenceFile",
-                "UnalignedReads",
-                "VariantCalls"
-            ]
+        'FASTQ': {
+            'standard_file_extension': 'fastq.gz',
+            'other_allowed_extensions': ['fq.gz'],
         },
+        'pairs': {
+            'standard_file_extension': 'pairs.gz',
+            "extra_file_formats": ['pairs_px2', 'pairsam_px2'],
+        },
+        'BAM': {
+            'standard_file_extension': 'bam',
+            'extra_file_formats': ['bai'],
+        },
+        'VCF': {"standard_file_extension": "vcf",},
         'mcool': {'standard_file_extension': 'mcool'},
         'zip': {'standard_file_extension': 'zip'},
         'chromsizes': {'standard_file_extension': 'chrom.sizes'},
@@ -66,10 +42,19 @@ def file_formats(testapp, test_consortium):
                 "extra_file_formats": ['beddb']},
     }
 
+    all_file_item_types = [
+        "OutputFile",
+        "ReferenceFile",
+        "AlignedReads",
+        "UnalignedReads",
+        "VariantCalls",
+    ]
     for eff, info in ef_format_info.items():
         info['identifier'] = eff
         info['uuid'] = str(uuid4())
         info['consortia'] = [test_consortium['@id']]
+        if not info.get("valid_item_types"):
+            info["valid_item_types"] = all_file_item_types
         formats[eff] = testapp.post_json('/file_format', info, status=201).json['@graph'][0]
     for ff, info in format_info.items():
         info['identifier'] = ff
@@ -80,6 +65,8 @@ def file_formats(testapp, test_consortium):
                 eff2add.append(formats[eff].get('@id'))
             info['extra_file_formats'] = eff2add
         info['consortia'] = [test_consortium['@id']]
+        if not info.get("valid_item_types"):
+            info["valid_item_types"] = all_file_item_types
         formats[ff] = testapp.post_json('/file_format', info, status=201).json['@graph'][0]
     return formats
 
