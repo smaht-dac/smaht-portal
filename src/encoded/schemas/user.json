@@ -50,7 +50,8 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "admin"
+                    "admin",
+                    "dbgap"
                 ]
             }
         },

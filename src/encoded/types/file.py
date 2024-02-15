@@ -8,6 +8,7 @@ from encoded_core.types.file import (
     File as CoreFile,
 )
 from pyramid.request import Request
+from pyramid.exceptions import HTTPForbidden
 from encoded_core.file_views import (
     validate_file_filename,
     validate_extra_file_format,
@@ -163,9 +164,23 @@ def post_upload(context, request):
     return CorePostUpload(context, request)
 
 
+def validate_user_has_protected_access(request):
+    """ Validates that the user who executed the request context either is
+        an admin or has the dbgap group
+    """
+    principals = request.effective_principals
+    if 'group.admin' in principals or 'group.dbgap' in principals:
+        return True
+    else:
+        return False
+
+
 @view_config(name='download', context=File, request_method='GET',
              permission='view', subpath_segments=[0, 1])
 def download(context, request):
+    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
+        raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval, '
+                            'Please check with DAC/your PI about your status.')
     return CoreDownload(context, request)
 
 

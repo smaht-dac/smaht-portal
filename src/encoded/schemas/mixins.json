@@ -735,7 +735,8 @@
                 "released",
                 "in review",
                 "obsolete",
-                "deleted"
+                "deleted",
+                "restricted"
             ]
         }
     },

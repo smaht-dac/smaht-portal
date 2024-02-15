@@ -82,6 +82,24 @@ def protected_file(testapp, fastq_format, test_protected_consortium):
 
 
 @pytest.fixture
+def restricted_file(testapp, fastq_format, test_protected_consortium):
+    item = {
+        'file_format': fastq_format['uuid'],
+        'md5sum': '00000000000000000000000000000002',
+        'filename': 'my.fastq.gz',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
+        'status': 'restricted',  # this status is important as this will make it viewable by consortium but
+                                 # only downloadable by those with group.dbgap
+        'consortia': [
+            test_protected_consortium['uuid']
+        ]
+    }
+    res = testapp.post_json('/OutputFile', item)
+    return res.json['@graph'][0]
+
+
+@pytest.fixture
 def released_file(testapp, fastq_format, test_submission_center, test_consortium):
     item = {
         'file_format': fastq_format['uuid'],
@@ -272,10 +290,11 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
         'obsolete',
         'archived',
         'deleted',
-        'public'
+        'public',
+        'restricted'
     ])
     def test_submission_center_cannot_edit_file(test_submission_center, submission_center_user_app, released_file,
-                                             testapp, new_status):
+                                                testapp, new_status):
         """ Tests that submission center user cannot edit metadata in the non-editable statuses """
         atid = released_file['@id']
         testapp.patch_json(f'/{atid}', {'status': new_status})
@@ -375,7 +394,8 @@ class TestConsortiumPermissions(TestPermissionsHelper):
         "obsolete",
         "archived",
         "deleted",
-        "public"
+        "public",
+        "restricted"
     ])
     def test_consortium_user_cannot_edit_submission_center_data(submission_center_file, new_status, testapp,
                                                                 consortium_user_app):
@@ -397,7 +417,8 @@ class TestConsortiumPermissions(TestPermissionsHelper):
     @pytest.mark.parametrize('new_status', [
         "released",
         "obsolete",
-        "public"
+        "public",
+        "restricted"
     ])
     def test_consortium_user_can_view_dual_tagged_data(released_file, consortium_user_app, new_status,
                                                        testapp):
@@ -598,6 +619,21 @@ class TestUserSubmissionConsistency:
         submission_center_user_app.post_json('/FilterSet', {
             'title': 'test', 'submission_centers': [test_second_submission_center['@id']]
         }, status=422)
+
+
+def test_output_file_restricted_status(testapp, anontestapp, restricted_file, test_submission_center,
+                                       submission_center_user_app):
+    """ Tests that only admins and folks with group.dbgap can download the restricted file but a
+        consortia member can view it
+    """
+    atid = restricted_file['@id']
+    res = testapp.get(f'/{atid}@@download', status=307).json
+    assert 'smaht-unit-testing-wfout.s3.amazonaws.com' in res['message']
+    anontestapp.get(f'/{atid}@@download', status=403)
+    submission_center_user_app.get(f'/{atid}@@download', status=403)
+    testapp.patch_json(f'/{submission_center_user_app.extra_environ["REMOTE_USER"]}', {'groups': ['dbgap']})
+    res = submission_center_user_app.get(f'/{atid}@@download', status=307).json
+    assert 'smaht-unit-testing-wfout.s3.amazonaws.com' in res['message']
 
 
 @pytest.mark.parametrize(
