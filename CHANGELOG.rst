@@ -13,6 +13,12 @@ Change Log
 * Permissions update: support for ``submits_for`` and ``restricted`` status
 
 
+0.23.2
+======
+
+* Schema additions to facilitate automation
+
+
 0.23.1
 ======
 
