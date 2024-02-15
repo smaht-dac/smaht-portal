@@ -93,6 +93,14 @@
         },
         "read_pair_number": {
             "$merge": "encoded:schemas/unaligned_reads.json#/properties/read_pair_number"
+        },
+        "role": {
+            "title": "Role",
+            "description": "Role of this file within the MetaWorkflowRun",
+            "type": "string",
+            "enum": [
+                "Final Output"
+            ]
         }
     }
 }
