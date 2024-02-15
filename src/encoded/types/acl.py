@@ -20,6 +20,7 @@ SUBMISSION_CENTER_MEMBER_CREATE = SUBMISSION_CENTER_SUBMITTER = 'role.submission
 CONSORTIUM_MEMBER_RW = 'role.consortium_member_rw'
 SUBMISSION_CENTER_RW = 'role.submission_center_member_rw'
 OWNER_ROLE = 'role.owner'
+SUBMITTER_ROLE = 'group.submitter'
 
 
 ############################## GLOBAL ACLS ##############################
@@ -80,8 +81,13 @@ ALLOW_AUTHENTICATED_CREATE_ACL: Acl = [
 # of it
 # Note additionally that generally add/create require view permissions
 SUBMISSION_CENTER_MEMBER_CREATE_ACL: Acl = [
-    (Allow, SUBMISSION_CENTER_MEMBER_CREATE, 'add'),
-    (Allow, SUBMISSION_CENTER_MEMBER_CREATE, 'create'),
+    (Allow, SUBMITTER_ROLE, 'add'),
+    (Allow, SUBMITTER_ROLE, 'create'),
+    # Previously, we alowed all submission center members to create items
+    # we now no longer allow this, they must have the "submits_for" field populated with a
+    # center they submit for. - Will 12 Feb 2024
+    # (Allow, SUBMISSION_CENTER_MEMBER_CREATE, 'add'),
+    # (Allow, SUBMISSION_CENTER_MEMBER_CREATE, 'create'),
 ]
 CONSORTIUM_MEMBER_CREATE_ACL: Acl = [
     (Allow, CONSORTIUM_MEMBER_CREATE, 'add'),
@@ -108,7 +114,9 @@ ALLOW_OWNER_EDIT_ACL: Acl = [
 
 # These two ACLs allow item editing
 SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = [
-    (Allow, SUBMISSION_CENTER_RW, ['view', 'edit'])
+    # Note that only submitters can edit
+    (Allow, SUBMITTER_ROLE, ['edit']),
+    (Allow, SUBMISSION_CENTER_RW, ['view'])
 ]
 CONSORTIUM_MEMBER_EDIT_ACL: Acl = [
     (Allow, CONSORTIUM_MEMBER_RW, ['view', 'edit'])
