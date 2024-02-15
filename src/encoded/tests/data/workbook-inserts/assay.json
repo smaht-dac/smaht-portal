@@ -1,0 +1,11 @@
+[
+    {
+        "uuid": "00ed2e04-c0ad-47f3-9368-b0f63ad518bd",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "bulk_wgs",
+        "title": "Bulk WGS",
+        "code": "001"
+    }
+]

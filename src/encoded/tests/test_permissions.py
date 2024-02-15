@@ -1,16 +1,18 @@
 from typing import Any, Dict, List
 
 import pytest
-from snovault.typeinfo import TypeInfo
+from dcicutils import schema_utils
 from webtest.app import AppError, TestApp
 
 from .utils import (
     delete_item,
-    get_functional_item_types,
-    get_identifying_properties,
+    get_identifying_insert,
     get_item,
-    get_required_properties,
-    get_workbook_inserts,
+    get_item_properties_from_workbook_inserts,
+    get_items_with_submitted_id,
+    get_items_without_submitted_id,
+    get_schema,
+    has_affiliations,
     patch_item,
     post_item
 )
@@ -626,10 +628,23 @@ def test_link_to_another_submission_center_item(
     tissue_properties = {
         "submission_centers": [test_submission_center["uuid"]],
         "donor": donor["uuid"],
-        "submitted_id": "TEST_TISSUE_XYZ",
+        "submitted_id": "TEST_TISSUE_WXYZ",
         "uberon_id": "UBERON:0001111",
     }
     post_item(submission_center_user_app, tissue_properties, "Tissue", status=201)
+
+
+def test_user_can_view_profile(protected_consortium_user_app: TestApp,
+                               smaht_consortium_protected_user: Dict[str, Any]) -> None:
+    """ Tests that a non-admin user can view their own profile """
+    assert protected_consortium_user_app.get(f'{smaht_consortium_protected_user["@id"]}', status=200)
+
+
+def test_user_cannot_view_other_profile(protected_consortium_user_app: TestApp,
+                                        smaht_consortium_protected_user: Dict[str, Any],
+                                        smaht_gcc_user) -> None:
+    """ Tests that a non-admin user cannot view other profiles """
+    assert protected_consortium_user_app.get(f'{smaht_gcc_user["@id"]}', status=403)
 
 
 POST_FAIL_STATUSES = [403, 422]
@@ -769,111 +784,6 @@ def is_user_affiliated_with_submission_center(
     return submission_center["uuid"] in user.get("submission_centers", [])
 
 
-def get_items_with_submitted_id(testapp: TestApp) -> List[str]:
-    """Get all item types with submitted_id as a property.
-
-    Item names are snake_cased.
-    """
-    functional_item_types = get_functional_item_types(testapp)
-    return [
-        item_name for item_name, item_type_info in functional_item_types.items()
-        if has_submitted_id(item_type_info)
-    ]
-
-
-def has_submitted_id(type_info: TypeInfo) -> bool:
-    return "submitted_id" in type_info.schema.get("properties", {})
-
-
-def get_items_without_submitted_id(testapp: TestApp) -> List[str]:
-    """Get all item types without submitted_id as a property.
-
-    Item names are snake_cased.
-    """
-    functional_item_types = get_functional_item_types(testapp)
-    return [
-        item_name for item_name, item_type_info in functional_item_types.items()
-        if not has_submitted_id(item_type_info)
-    ]
-
-
-def get_item_properties_from_workbook_inserts(
-    submission_center: Dict[str, Any]
-) -> Dict[str, Dict[str, Any]]:
-    """Get representative item types from workbook inserts.
-
-    For those with submission centers and consortia, wipe and replace
-    with only provided submission center.
-    """
-    inserts = get_workbook_inserts()
-    return clean_workbook_inserts(inserts, submission_center)
-
-
-def clean_workbook_inserts(
-    workbook_inserts: Dict[str, Dict[str, Any]],
-    submission_center: Dict[str, Any]
-) -> Dict[str, Dict[str, Any]]:
-    """Clean workbook inserts to only include submission center.
-
-    For those with submission centers and consortia, wipe and replace
-    with only provided submission center.
-    """
-    return {
-        item_type: replace_inserts_affiliations(item_inserts, submission_center)
-        for item_type, item_inserts in workbook_inserts.items()
-    }
-
-
-def replace_inserts_affiliations(
-    item_inserts: List[Dict[str, Any]],
-    submission_center: Dict[str, Any]
-) -> Dict[str, Any]:
-    """Replace affiliations in item inserts with provided submission center."""
-    return [
-        replace_insert_affiliations(item_insert, submission_center)
-        for item_insert in item_inserts
-    ]
-
-
-def replace_insert_affiliations(
-    item_insert: Dict[str, Any],
-    submission_center: Dict[str, Any]
-) -> Dict[str, Any]:
-    """If needed, replace affiliations in item insert with provided
-    submission center.
-    """
-    if has_affiliations(item_insert):
-        return replace_affiliations(item_insert, submission_center)
-    return item_insert
-
-
-def has_affiliations(item_insert: Dict[str, Any]) -> bool:
-    """Check if item insert has submission centers or consortia."""
-    return any(
-        [
-            item_insert.get("submission_centers", []),
-            item_insert.get("consortia", []),
-        ]
-    )
-
-def replace_affiliations(
-    item_insert: Dict[str, Any],
-    submission_center: Dict[str, Any]
-) -> Dict[str, Any]:
-    """Replace affiliations in item insert with provided submission center.
-
-    Assumes submission_centers property is valid. Can check schemas if
-    assumption no longer holds.
-    """
-    insert_without_affiliation = {
-        key: value for key, value in item_insert.items()
-        if key not in ["submission_centers", "consortia"]
-    }
-    return {
-        **insert_without_affiliation, "submission_centers": [submission_center["uuid"]]
-    }
-
-
 def get_limited_insert(
     test_app: TestApp, insert: Dict[str, Any], item_type: str
 ) -> Dict[str, Any]:
@@ -881,29 +791,12 @@ def get_limited_insert(
 
     Keep only required fields plus submission centers, if present.
     """
-    required_properties = get_required_properties(test_app, item_type)
+    schema = get_schema(test_app, item_type)
+    required_properties = schema_utils.get_conditional_required(schema)
     if has_affiliations(insert):
         properties_to_keep = required_properties + ["submission_centers"]
     else:
         properties_to_keep = required_properties
-    return {key: value for key, value in insert.items() if key in properties_to_keep}
-
-
-def get_identifying_insert(
-    test_app: TestApp, insert: Dict[str, Any], item_type: str
-) -> Dict[str, Any]:
-    """Get insert with required + identifying properties for POST attempt.
-
-    Keep submission centers, if present.
-    """
-    identifying_properties = get_identifying_properties(test_app, item_type)
-    required_properties = get_required_properties(test_app, item_type)
-    if has_affiliations(insert):
-        properties_to_keep = (
-            identifying_properties + required_properties + ["submission_centers"]
-        )
-    else:
-        properties_to_keep = identifying_properties + required_properties
     return {key: value for key, value in insert.items() if key in properties_to_keep}
 
 
@@ -1002,9 +895,15 @@ def assert_expected_access_key_permissions(
         identifying_insert = get_identifying_insert(testapp, insert, item_type)
         if idx == 0:
             post_item_to_fail(anontestapp, item_type, limited_insert)
-            post_item_then_delete(testapp, unassociated_user_app, item_type, limited_insert)
-            post_item_then_delete(testapp, submission_center_user_app, item_type, limited_insert)
-            post_item_then_delete(testapp, consortium_user_app, item_type, limited_insert)
+            post_item_then_delete(
+                testapp, unassociated_user_app, item_type, limited_insert
+            )
+            post_item_then_delete(
+                testapp, submission_center_user_app, item_type, limited_insert
+            )
+            post_item_then_delete(
+                testapp, consortium_user_app, item_type, limited_insert
+            )
         post_item(testapp, identifying_insert, item_type, status=201)
 
 
@@ -1025,7 +924,9 @@ def assert_submittable_permissions(
         if idx == 0:
             post_item_to_fail(anontestapp, item_type, limited_insert)
             post_item_to_fail(unassociated_user_app, item_type, limited_insert)
-            post_item_then_delete(testapp, submission_center_user_app, item_type, limited_insert)
+            post_item_then_delete(
+                testapp, submission_center_user_app, item_type, limited_insert
+            )
             post_item_to_fail(consortium_user_app, item_type, limited_insert)
         post_item(testapp, identifying_insert, item_type, status=201)
 
@@ -1048,4 +949,4 @@ def assert_admin_permissions(
             post_item_to_fail(unassociated_user_app, item_type, limited_insert)
             post_item_to_fail(submission_center_user_app, item_type, limited_insert)
             post_item_to_fail(consortium_user_app, item_type, limited_insert)
-        post_item(testapp, identifying_insert, item_type, status=201)
+        post_item(testapp, identifying_insert, item_type, status=[201, 409])

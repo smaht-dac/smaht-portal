@@ -4,7 +4,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE_VCF",
+        "submitted_id": "TEST_VARIANT-CALLS_SOME_VCF",
         "data_category": [
             "Variant Calls"
         ],
@@ -19,6 +19,7 @@
         "reference_genome": "GRCh38",
         "variant_type": [
             "Single Nucleotide Variant"
-        ]
+        ],
+        "file_size": 100000
     }
 ]

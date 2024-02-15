@@ -4,7 +4,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-	"submission_centers",
+        "submission_centers",
         "submitted_id"
     ],
     "identifyingProperties": [
@@ -48,6 +48,9 @@
         },
         "schema_version": {
             "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_ANALYTE-PREPARATION_[A-Z0-9-_.]{4,}$"
         },
         "cell_lysis_method": {
             "title": "Cell Lysis Method",

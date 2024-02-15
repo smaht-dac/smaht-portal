@@ -5,7 +5,6 @@
     "type": "object",
     "required": [
         "category",
-        "name",
         "title",
         "version"
     ],
@@ -52,6 +51,9 @@
         },
         {
             "$ref": "mixins.json#/category"
+        },
+        {
+            "$ref": "mixins.json#/code"
         },
         {
             "$ref": "mixins.json#/description"
@@ -112,6 +114,9 @@
                 ]
             }
         },
+        "code": {
+            "pattern": "^[A-Za-z0-9]{2,}$"
+        },
         "version": {
             "pattern": ".+",
             "comment": "TODO: Replace with a proper version pattern"
@@ -124,6 +129,9 @@
         },
         "source_url": {
             "$merge": "encoded_core:schemas/software.json#/properties/source_url"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_SOFTWARE_[A-Z0-9-_.]{4,}$"
         }
     }
 }

@@ -37,6 +37,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/code"
+        },
+        {
             "$ref": "mixins.json#/description"
         },
         {
@@ -70,6 +73,9 @@
     "properties": {
         "accession": {
             "accessionType": "RG"
+        },
+        "code": {
+            "pattern": "^[A-Za-z0-9]{3,}$"
         },
         "schema_version": {
             "default": "1"

@@ -101,7 +101,7 @@
         },
         "lot_number": {
             "title": "Lot Number",
-            "description": "Lot number of cell source",
+            "description": "Lot number of cell line",
             "type": "integer",
             "minimum": 0
         },
@@ -116,6 +116,9 @@
             "description": "Cell line used for the cell culture",
             "type": "string",
             "linkTo": "CellLine"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_CELL-CULTURE_[A-Z0-9-_.]{4,}$"
         }
     }
 }

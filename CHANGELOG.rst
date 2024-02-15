@@ -7,6 +7,165 @@ smaht-portal
 Change Log
 ----------
 
+0.24.0
+======
+
+* Permissions update: support for ``submits_for`` and ``restricted`` status
+
+
+0.23.1
+======
+
+* Hooks in QC Download API
+
+
+0.23.0
+======
+
+`PR 84: More Benchmarking Data Sets <https://github.com/smaht-dac/smaht-portal/pull/84>`_
+* Update enums File `dataset` to include all expected cell line benchmarking data sets
+
+
+0.22.0
+======
+
+`PR 57: Submitter ID Validation <https://github.com/smaht-dac/smaht-portal/pull/57>`_
+* Validate `submitter_id` for all submitted items
+  * Validation includes: SubmissionCenter code, item type, and unique identifier
+
+
+0.21.6
+======
+
+* Repair test namespacing in unit tests
+
+
+0.21.5
+======
+
+* Adds `last_modified` to all items for edit tracking
+
+
+0.21.4
+======
+
+`PR 74: Table of Content improvements for RST content <https://github.com/smaht-dac/smaht-portal/pull/74>`_
+* user_content.py is updated to support multi-level TOC generation for RST content
+* Static_section.json in master-inserts is updated to correct text and navigation URL in Next - Previous links under the TOC
+* Level 1 titles are disabled under Documents in top navigation bar
+* Serkan Utku Öztürk added to users
+
+
+0.21.3
+======
+
+* Update `derived_from` linkTo from File to SubmittedFile
+
+
+0.21.2
+======
+
+* Add lifecycle properties to File schema
+
+
+0.21.1
+======
+
+* Update SPC from 0.1.76b1 to 0.1.76
+
+
+0.21.0
+======
+
+`PR 45: UI Dev 4: End of January Release w/Benchmarking <https://github.com/smaht-dac/smaht-portal/pull/45>`_
+* UIs for Benchmarking Data
+* Google Analytics implementation
+* Navigation edits to accommodate new documentation, about, data pages
+* Various other front-end tweaks to home page, user pages, etc
+* Note: many PRs included in this one - see link above for breakdown, commit history
+
+
+0.20.0
+======
+
+`PR 63: Benchmarking release data model <https://github.com/smaht-dac/smaht-portal/pull/63>`_
+* Add two new item types: Sequencer + Assay
+* Add `code` property to multiple item types to store file naming conventions
+* Share SubmittedFile release properties with OutputFile
+* Update file facets + columns and embed fields for search
+
+
+0.19.0
+======
+
+* Repair small bug in extra file line generation, implement/test field fallbacks
+* Repair permissions issues coming from snovault
+* Update extra file names in encoded-core
+
+
+0.18.0
+======
+
+* Adds a command to load users from a master OC spreadsheet (not tracked in git)
+
+
+0.17.0
+======
+
+* Version updates to dcicutils, dcicsnovault, encoded-core.
+  Changes to itemize SMaHT submission ingestion create/update/diff situation and deletes.
+* Removed Rahi from admin group for submission ingestion testing purposes (master-inserts/user.json).
+
+
+0.16.0
+=====
+
+* Adds `/peak-metadata` support for retrieving facet information from the metadata.tsv
+
+
+0.15.0
+======
+
+* Added gitinfo.json to buildspec.yml to make available to the app basic git info (branch/commit).
+* Updated test_structured_data.py to (optionally - default for now) insulate itself from change to the
+  schemas while they are undergoing a lot of modification, leading to frequent/annoying test breakage.
+* Fixed load(xl) error handling for ingestion submission to report back to submitr properly.
+
+
+0.14.0
+======
+
+* Adds `/metadata` support
+
+
+0.13.1
+======
+
+`PR 58: Culture mixture parent types <https://github.com/smaht-dac/smaht-portal/pull/58>`_
+* Include CellCulture as parent item of CellCultureMixture for resolving reference during submissions
+
+
+0.13.0
+======
+
+`PR 56: Implement submittable item API <https://github.com/smaht-dac/smaht-portal/pull/56>`_
+* Add functionality and tests for submittable item api to smaht portal
+* update lockfile with latest snovault that contains the primitive for this
+
+
+0.12.0
+======
+
+`PR 50: Upgrader implementation <https://github.com/smaht-dac/smaht-portal/pull/50>`_
+* Add upgrader functionality from encoded-core + tests
+* Update dcicutils with schema_utils module
+
+
+0.11.8
+======
+
+* Add portal side validation for QC rulesets
+
 
 0.11.7
 ======

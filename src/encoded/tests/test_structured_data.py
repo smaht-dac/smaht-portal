@@ -7,8 +7,6 @@ import re
 from typing import Callable, List, Optional, Union
 from unittest import mock
 from webtest import TestApp
-from dcicutils.bundle_utils import RefHint
-from dcicutils.misc_utils import to_camel_case
 from dcicutils.tmpfile_utils import temporary_file
 from dcicutils.validation_utils import SchemaManager  # noqa
 from dcicutils.structured_data import Portal, Schema, _StructuredRowTemplate  # noqa
@@ -18,6 +16,24 @@ THIS_TEST_MODULE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 TEST_FILES_DIR = f"{THIS_TEST_MODULE_DIRECTORY}/data/test-files"
 SAME_AS_EXPECTED_REFS = {}
 SAME_AS_NOREFS = {}
+
+# Ideally this flag would be False, i.e. we would like to use the actual/real (live)
+# schemas that are defined in (the schemas directory of) this repo for testing; but at
+# least currently (2024-01-10) these are undergoing a lot of change and leading to frequent
+# and annoying test breakage; so setting this to True will cause these tests to use a dump of
+# the schemas which were previously saved into a static file (data/test-files/schemas_dump.json).
+# Note: to dump all schemes into single file -> show-schema all
+USE_SAVED_SCHEMAS_RATHER_THAN_LIVE_SCHEMAS = True
+
+if USE_SAVED_SCHEMAS_RATHER_THAN_LIVE_SCHEMAS:
+    from functools import lru_cache
+    from dcicutils.portal_utils import Portal as PortalBase
+    @lru_cache(maxsize=1)
+    def _mocked_portal_get_schemas(self):
+        with open(os.path.join(TEST_FILES_DIR, "schemas_dump.json"), "r") as f:
+            schemas = json.load(f)
+        return schemas
+    PortalBase.get_schemas = _mocked_portal_get_schemas
 
 
 def _load_json_from_file(file: str) -> dict:
@@ -206,7 +222,7 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         "expected_refs": [
             "/Consortium/smaht",
             "/Software/SMAHT_SOFTWARE_FASTQC",
-            "/Software/SMAHT_SOFTWARE_VEP",
+            "/Software/SMAHT_SOFTWARE_VEPX",
             "/FileFormat/fastq",
             "/Workflow/smaht:workflow-basic"
         ],
@@ -221,14 +237,14 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
         "norefs": ["/SubmissionCenter/smaht_dac"],
         "expected": {
             "Donor": [{
-                "submitted_id": "FOOBAR",
+                "submitted_id": "XY_DONOR_ABCD",
                 "sex": "Female", "age": 5,
                 "submission_centers": [ "smaht_dac" ],
                 "something": "else"
             }]
         },
         "expected_errors": [
-            {"src": {"type": "Donor", "row": 1}, "error": "Additional properties are not allowed ('something' was unexpected)"}
+            {"src": {"type": "Donor", "row": 1}, "error": "Validation error at '$': Additional properties are not allowed ('something' was unexpected)"}
         ]
     },
     # ----------------------------------------------------------------------------------------------
@@ -963,8 +979,8 @@ def _pytest_kwargs(kwargs: List[dict]) -> List[dict]:
                 }
              ]
         },
-        "expected_errors": [{'src': {'type': 'SomeTypeFour', 'row': 1}, 'error': "{'foo': 123} is not of type 'string'"},
-                            {'src': {'type': 'SomeTypeFour', 'row': 2}, 'error': "{'charlie': {'delta': 'hellocharlie'}} is not of type 'string'"}]
+        "expected_errors": [{'src': {'type': 'SomeTypeFour', 'row': 1}, 'error': "Validation error at '$.alfa.bravo': {'foo': 123} is not of type 'string'"},
+                            {'src': {'type': 'SomeTypeFour', 'row': 2}, 'error': "Validation error at '$.alfa.bravo': {'charlie': {'delta': 'hellocharlie'}} is not of type 'string'"}]
     },
     # ----------------------------------------------------------------------------------------------
     {
@@ -1320,9 +1336,9 @@ def _test_parse_structured_data(testapp: TestApp,
     def mocked_refs():
         real_ref_exists = Portal.ref_exists
         real_map_function_ref = Schema._map_function_ref
-        def mocked_map_function_ref(self, typeinfo):
+        def mocked_map_function_ref(self, typeinfo):  # noqa
             map_ref = real_map_function_ref(self, typeinfo)
-            def mocked_map_ref(value, link_to, portal, src):
+            def mocked_map_ref(value, link_to, portal, src):  # noqa
                 nonlocal norefs, expected_refs, refs_actual
                 if not value:
                     refs_actual.add(ref := f"/{link_to}/<null>")
@@ -1330,11 +1346,11 @@ def _test_parse_structured_data(testapp: TestApp,
                         return value
                 return map_ref(value, src)
             return lambda value, src: mocked_map_ref(value, typeinfo.get("linkTo"), self._portal, src)
-        def mocked_ref_exists(self, type_name, value):
+        def mocked_ref_exists(self, type_name, value):  # noqa
             nonlocal norefs, expected_refs, refs_actual
             refs_actual.add(ref := f"/{type_name}/{value}")
             if norefs is True or (isinstance(norefs, list) and ref in norefs):
-                return ["dummy"]
+                return [{"type": "dummy", "uuid": "dummy"}]
             return real_ref_exists(self, type_name, value)
         with mock.patch("dcicutils.structured_data.Portal.ref_exists",
                         side_effect=mocked_ref_exists, autospec=True):
@@ -1403,8 +1419,8 @@ def _test_rationalize_column_name(column_name: str, schema_column_name: str, exp
         class FakeTypeInfo:
             def __init__(self, value):
                 self._value = value
-            def get(self, column_name):
+            def get(self, column_name):  # noqa
                 return self._value
-        def __init__(self, value):
+        def __init__(self, value):  # noqa
             self._typeinfo = FakeSchema.FakeTypeInfo(value)
     assert FakeSchema(schema_column_name).rationalize_column_name(column_name) == expected

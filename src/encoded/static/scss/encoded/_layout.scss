@@ -277,8 +277,8 @@ body.is-full-screen {
 ********************************************************** */
 
 #page-footer {
-	background-color: #F5F9FB;
-	border-top: 1px solid #EDF3F6;
+	background-color: $footer-background-color;
+	border-top: 1px solid $footer-border-color;
 
 	> .page-footer {
 		text-align: center;

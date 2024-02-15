@@ -3,6 +3,20 @@ Assorted Mixins and other SASS utilities for making our lives easier.
 */
 
 
+.underline {
+    text-decoration: underline;
+}
+
+.readable {
+    max-width: 1000px;
+
+    &.disclaimer {
+        span {
+            font-weight: 500;
+        }
+    }
+}
+
 // Mixins
 
 @mixin prefix($prop, $val) {

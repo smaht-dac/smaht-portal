@@ -40,6 +40,27 @@ ONLY_ADMIN_VIEW_ACL: Acl = [
 ]
 
 
+# User ACLs
+ONLY_ADMIN_VIEW_USER_DETAILS_ACL = [
+    (Allow, 'group.admin', ['view', 'view_details', 'edit']),
+    (Allow, 'remoteuser.INDEXER', ['view']),
+    (Allow, 'remoteuser.EMBED', ['view']),
+    (Deny, Everyone, ['view', 'view_details', 'edit']),
+]
+
+
+ONLY_OWNER_VIEW_PROFILE_ACL = [
+    (Allow, 'role.owner', 'view'),
+    # (Allow, 'role.owner', 'edit'),
+    # (Allow, 'role.owner', 'view_details'),
+] + ONLY_ADMIN_VIEW_USER_DETAILS_ACL
+
+
+DELETED_USER_ACL = [
+    (Deny, Everyone, 'visible_for_edit')
+] + ONLY_ADMIN_VIEW_USER_DETAILS_ACL
+
+
 ############################## CREATION ACLS ##############################
 # These ACLs are meant to be associated via the acl keyword argument in the
 # collection decorator or the __acl__ method for more complex function

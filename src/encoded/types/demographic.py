@@ -1,6 +1,6 @@
 from snovault import collection, load_schema
 
-from .base import Item
+from .submitted_item import SubmittedItem
 
 
 @collection(
@@ -11,7 +11,7 @@ from .base import Item
         "description": "Details of donors' demographics",
     },
 )
-class Demographic(Item):
+class Demographic(SubmittedItem):
     item_type = "demographic"
     schema = load_schema("encoded:schemas/demographic.json")
     embedded_list = []

@@ -28,6 +28,12 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/file_links"
+        },
+        {
+            "$ref": "mixins.json#/file_release"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -58,6 +64,16 @@
             "$ref": "submitted_file.json#/properties"
         }
     ],
+    "mixinFacets": [
+        {
+            "$ref": "file.json#/facets"
+        }
+    ],
+    "mixinColumns": [
+        {
+            "$ref": "file.json#/columns"
+        }
+    ],
     "properties": {
         "accession": {
             "accessionType": "VC"
@@ -66,7 +82,9 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Variant Calls"
+                    "Variant Calls",
+                    "Germline Variant Calls",
+                    "Somatic Variant Calls"
                 ]
             }
         },
@@ -74,13 +92,26 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Copy Number Variant",
+                    "Insertion-deletion",
+                    "Mobile Element Insertion",
+                    "Single Nucleotide Variant",
+                    "Structural Variant",
                     "Germline Variants",
-                    "Somatic Variants"
+                    "Somatic Variants",
+                    "CNV",
+                    "Indel",
+                    "MEI",
+                    "SNV",
+                    "SV"
                 ]
             }
         },
         "schema_version": {
             "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_VARIANT-CALLS_[A-Z0-9-_.]{4,}$"
         }
     }
 }

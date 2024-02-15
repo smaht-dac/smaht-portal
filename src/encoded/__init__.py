@@ -3,6 +3,7 @@ import netaddr
 import encoded.project_defs  # VERY Important - loads application specific behavior
 
 import logging
+import json
 import mimetypes
 import os
 import pkg_resources
@@ -13,6 +14,7 @@ from dcicutils.log_utils import set_logging
 from dcicutils.env_utils import get_mirror_env_from_context
 from dcicutils.ff_utils import get_health_page
 from dcicutils.ecs_utils import ECSUtils
+from dcicutils.secrets_utils import assume_identity
 from codeguru_profiler_agent import Profiler
 from sentry_sdk.integrations.pyramid import PyramidIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
@@ -22,9 +24,7 @@ from pyramid.settings import asbool
 from snovault.app import session, json_from_path, configure_dbsession, changelogs
 from snovault.elasticsearch import APP_FACTORY
 from snovault.elasticsearch.interfaces import INVALIDATION_SCOPE_ENABLED
-from dcicutils.misc_utils import VirtualApp
 from .appdefs import APP_VERSION_REGISTRY_KEY
-# from snovault.loadxl import load_all
 
 
 # snovault.app.STATIC_MAX_AGE (8 seconds) is WAY too low for /static and /profiles - Will March 15 2022
@@ -44,6 +44,8 @@ def include_encoded(config):
     config.include('encoded.root')
     config.include('encoded.types')
     config.include('encoded.server_defaults')
+    config.include('encoded.metadata')
+    config.include('encoded.upgrade')
     # config.include('encoded.visualization')
     config.commit()
 
@@ -108,6 +110,7 @@ def static_resources(config):
     mimetypes.init([pkg_resources.resource_filename('encoded', 'static/mime.types')])
     config.add_static_view('static', 'static', cache_max_age=CGAP_STATIC_MAX_AGE)
     config.add_static_view('profiles', 'schemas', cache_max_age=CGAP_STATIC_MAX_AGE)
+    config.add_static_view('submmission-schemas', 'submittables', cache_max_age=CGAP_STATIC_MAX_AGE)
 
     # Favicon
     favicon_path = '/static/img/favicon.ico'
@@ -160,7 +163,21 @@ def app_version(config):
         version = os.environ.get("ENCODED_VERSION", "test")
         config.registry.settings[APP_VERSION_REGISTRY_KEY] = version
 
-    # Fourfront does GA stuff here that makes no sense in CGAP (yet).
+    # GA Config
+    ga_conf_file = config.registry.settings.get('ga_config_location')
+    ga_conf_existing = config.registry.settings.get('ga_config')
+    if ga_conf_file and not ga_conf_existing:
+        ga_conf_file = os.path.normpath(
+            os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),  # Absolute loc. of this file
+                "../../",                                    # Go back up to repo dir
+                ga_conf_file
+            )
+        )
+        if not os.path.exists(ga_conf_file):
+            raise Exception(ga_conf_file + " does not exist in filesystem. Aborting.")
+        with open(ga_conf_file) as json_file:
+            config.registry.settings["ga_config"] = json.load(json_file)
 
 
 def init_sentry(dsn):
@@ -221,6 +238,16 @@ def set_auth0_config(settings):
     }
 
 
+def set_ga4_config(settings):
+    # ga4 api secret
+    if 'IDENTITY' in os.environ:
+        identity = assume_identity()
+        if 'ga4.secret' not in settings:
+            settings['ga4.secret'] = identity.get('GA4_API_SECRET', os.environ.get('GA4Secret'))
+    else:
+        settings['ga4.secret'] = settings.get('ga4.secret', os.environ.get('GA4Secret'))
+
+
 def set_mirror_settings(settings):
     # set mirrored Elasticsearch location (for staging and production servers)
     mirror = get_mirror_env_from_context(settings)
@@ -245,6 +272,8 @@ def main(global_config, **local_config):
     settings['g.recaptcha.secret'] = os.environ.get('reCaptchaSecret')
     settings['snovault.jsonld.terms_prefix'] = 'encode'
     set_auth0_config(settings)
+    # set google analytics keys
+    set_ga4_config(settings) 
 
     # enable invalidation scope, mirror settings
     settings[INVALIDATION_SCOPE_ENABLED] = True

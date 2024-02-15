@@ -29,6 +29,12 @@
             "$ref": "mixins.json#/description"
         },
         {
+            "$ref": "mixins.json#/file_links"
+        },
+        {
+            "$ref": "mixins.json#/file_release"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -51,6 +57,16 @@
         },
         {
             "$ref": "submitted_file.json#/properties"
+        }
+    ],
+    "mixinFacets": [
+        {
+            "$ref": "file.json#/facets"
+        }
+    ],
+    "mixinColumns": [
+        {
+            "$ref": "file.json#/columns"
         }
     ],
     "properties": {
@@ -76,12 +92,16 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_UNALIGNED-READS_[A-Z0-9-_.]{4,}$"
+        },
         "paired_with": {
             "description": "Link to associated paired-end file, if applicable",
             "type": "string",
             "linkTo": "UnalignedReads"
         },
         "read_pair_number": {
+            "title": "Read Pair Number",
             "description": "Read pair number, if paired-end",
             "type": "string",
             "enum": [

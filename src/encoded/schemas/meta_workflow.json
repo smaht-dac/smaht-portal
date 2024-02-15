@@ -127,10 +127,10 @@
                             "additional_properties": false,
                             "properties": {
                                 "description": {
-                                    "$merge": "encoded:schemas/output_file.json#/properties/description"
+                                    "$merge": "encoded:schemas/mixins.json#/description/description"
                                 },
                                 "variant_type": {
-                                    "$merge": "encoded:schemas/output_file.json#/properties/variant_type"
+                                    "$merge": "encoded:schemas/mixins.json#/variant_type/variant_type"
                                 },
                                 "data_category": {
                                     "$merge": "encoded:schemas/file.json#/properties/data_category"
@@ -198,6 +198,15 @@
                     "argument_name",
                     "argument_type"
                 ],
+                "if": {
+                    "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/if"
+                },
+                "then": {
+                    "required": [
+                        "value"
+                    ],
+                    "$merge": "encoded:schemas/mixins.json#/meta_workflow_input/meta_workflow_input/items/then"
+                },
                 "anyOf": [
                     {
                         "required": [

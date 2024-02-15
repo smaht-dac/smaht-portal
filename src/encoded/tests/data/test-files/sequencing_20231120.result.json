@@ -22,7 +22,7 @@
                 "Center1"
             ],
             "submitted_by": "User1",
-            "submitted_id": "SEQ12345",
+            "submitted_id": "XY_SEQUENCING_ABC1",
             "tags": [
                 "tag1",
                 "tag2"
@@ -53,7 +53,7 @@
                 "somesubctr"
             ],
             "submitted_by": "User3",
-            "submitted_id": "SEQ67890",
+            "submitted_id": "XY_SEQUENCING_ABC2",
             "tags": [
                 "tag3",
                 "tag4"
@@ -84,7 +84,7 @@
                 "Center2"
             ],
             "submitted_by": "User5",
-            "submitted_id": "SEQ54321",
+            "submitted_id": "XY_SEQUENCING_ABC3",
             "tags": [
                 "tag5",
                 "tag6"

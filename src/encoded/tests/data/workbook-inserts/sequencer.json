@@ -1,0 +1,15 @@
+[
+    {
+        "uuid": "fa4121e3-b2bb-498d-86fa-f2525d8f1cd5",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "illumina_novaseqx",
+        "platform": "Illumina",
+        "model": "NovaSeq X",
+        "read_length_category": [
+            "Short-read"
+        ],
+        "code": "A"
+    }
+]

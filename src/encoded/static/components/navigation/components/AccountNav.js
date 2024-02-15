@@ -35,9 +35,10 @@ export const auth0Options = {
         },
     },
     socialButtonStyle: 'big',
+    // Use SMaHT Logo
     theme: {
-        logo: '/static/img/exported-logo-no-stroke.svg',
-        icon: '/static/img/exported-logo-no-stroke.svg',
+        logo: '/static/img/SMaHT_Vertical-Logo-Solo_FV.png',
+        icon: '/static/img/SMaHT_Vertical-Logo-Solo_FV.png',
         primaryColor: '#1b75b9',
     },
     allowedConnections: ['partners', 'hms-it', 'bch', 'google-oauth2'],

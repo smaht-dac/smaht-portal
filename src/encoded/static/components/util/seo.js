@@ -9,7 +9,7 @@ import { getNestedProperty } from '@hms-dbmi-bgm/shared-portal-components/es/com
 import { isServerSide } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/misc';
 import { patchedConsoleInstance as console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/patched-console';
 
-// TODO refactor for CGAP
+// @TODO Refactor for SMaHT
 
 export function shouldDisplayStructuredData(baseDomain) {
     if (baseDomain.indexOf('data.4dnucleome.org') > -1) return true;

@@ -1,7 +1,5 @@
-from typing import Optional, Union
-
 from encoded_core.types.file_format import FileFormat as CoreFileFormat
-from snovault import calculated_property, collection, display_title_schema, load_schema
+from snovault import collection, load_schema
 
 from .acl import ONLY_ADMIN_VIEW_ACL
 from .base import Item
@@ -20,8 +18,3 @@ class FileFormat(Item, CoreFileFormat):
     item_type = 'file_format'
     schema = load_schema("encoded:schemas/file_format.json")
     embedded_list = []
-
-    @calculated_property(schema=display_title_schema)
-    def display_title(self, identifier: Optional[str] = None) -> Union[str, None]:
-        if identifier:
-            return identifier
