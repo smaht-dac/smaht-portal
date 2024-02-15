@@ -137,6 +137,9 @@
                                 },
                                 "data_type": {
                                     "$merge": "encoded:schemas/file.json#/properties/data_type"
+                                },
+                                "output_status": {
+                                    "$merge": "output_file.json#/properties/output_status"
                                 }
                             }
                         }

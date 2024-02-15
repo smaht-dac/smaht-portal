@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.23.2
+======
+
+* Schema additions to facilitate automation
+
+
 0.23.1
 ======
 
