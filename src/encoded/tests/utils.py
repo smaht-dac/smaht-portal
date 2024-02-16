@@ -11,6 +11,7 @@ from snovault.typeinfo import AbstractTypeInfo, TypeInfo
 from webtest.app import TestApp
 
 from ..types.submitted_item import SubmittedItem
+from ..types.submitted_file import SubmittedFile
 
 
 def post_item_and_return_location(
@@ -251,7 +252,7 @@ def get_submitted_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
 
 def is_submitted_item(type_info: AbstractTypeInfo) -> bool:
     """Is type child of SubmittedItem?"""
-    return issubclass(type_info.factory, SubmittedItem)
+    return issubclass(type_info.factory, SubmittedItem) or issubclass(type_info.factory, SubmittedFile)
 
 
 def get_all_item_types(
