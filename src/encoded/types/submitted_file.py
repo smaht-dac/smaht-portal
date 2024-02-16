@@ -4,7 +4,7 @@ from snovault import abstract_collection, load_schema
 from snovault.util import debug_log
 
 from .acl import SUBMISSION_CENTER_MEMBER_CREATE_ACL
-from .base import collection_add, Item
+from .base import collection_add, Item, item_edit
 from .file import (
     FILE_ADD_UNVALIDATED_VALIDATORS,
     FILE_ADD_VALIDATORS,
@@ -46,7 +46,7 @@ class SubmittedFileCollection(Item.Collection):
         "title": "SMaHT Submitted Files",
         "description": "Listing of SMaHT Submitted Files",
     })
-class SubmittedFile(SubmittedItem, File):
+class SubmittedFile(File):
     item_type = "submitted_file"
     base_types = ["SubmittedFile"] + File.base_types
     schema = load_schema("encoded:schemas/submitted_file.json")
@@ -108,4 +108,4 @@ def submitted_file_add(context: Item, request: Request, render=None):
 )
 @debug_log
 def submitted_file_edit(context: Item, request: Request, render=None):
-    return collection_add(context, request, render)
+    return item_edit(context, request, render)
