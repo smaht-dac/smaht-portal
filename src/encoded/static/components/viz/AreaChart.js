@@ -963,7 +963,6 @@ export class AreaChart extends React.PureComponent {
                                         const term =
                                             AreaChart.isTermUrl(c.term) ?
                                                 <a key={c.term} href={c.term} target="_blank" rel="noreferrer" onClick={handleOnClick}>{c.term}</a> : c.term;
-                                        console.log('xxx c.term:', c.term);
                                         return (
                                             <tr key={c.term || i} className={currentTerm === c.term ? 'active' : null}>
                                                 <td className="patch-cell">
