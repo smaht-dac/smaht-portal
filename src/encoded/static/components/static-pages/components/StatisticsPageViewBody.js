@@ -820,11 +820,6 @@ export function UsageStatsView(props){
                         title={
                             <div>
                                 <h4 className="text-500 mt-0 mb-0">File Downloads</h4>
-                                {/* <div className="mb-1">
-                                    <small>
-                                        <em>Download tracking started in August 2018 | Re-Implemented in Feb 2020 and August 2023</em>
-                                    </small>
-                                </div> */}
                             </div>
                         }
                         extraButtons={
@@ -894,59 +889,6 @@ export function UsageStatsView(props){
 
                 : null }
 
-            {/*
-                Disabled for now until/if we want to bring this back:
-
-                browse_search_queries || other_search_queries ?
-
-                <ColorScaleProvider resetScalesWhenChange={browse_search_queries}>
-
-                    <hr className="mt-3"/>
-
-                    <HorizontalD3ScaleLegend {...{ loadingStatus }} />
-
-                    { browse_search_queries ?
-                        <AreaChartContainer {...commonContainerProps} id="browse_search_queries"
-                            title={<span><span className="text-500">Experiment Set Search Queries</span> { currentGroupBy === 'sessions' ? '- Sessions' : '- Views' }</span>}>
-                            <AreaChart data={browse_search_queries} xDomain={commonXDomain} />
-                        </AreaChartContainer>
-                    : null }
-
-                    { other_search_queries ?
-                        <AreaChartContainer {...commonContainerProps} id="other_search_queries"
-                            title={<span><span className="text-500">Other Search Queries</span> { currentGroupBy === 'sessions' ? '- Sessions' : '- Views' }</span>}>
-                            <AreaChart data={other_search_queries} xDomain={commonXDomain} />
-                        </AreaChartContainer>
-                    : null }
-
-                </ColorScaleProvider>
-
-
-            : null */}
-
-            {/* { session && experiment_set_views ?
-
-                <ColorScaleProvider resetScaleLegendWhenChange={experiment_set_views}>
-
-                    <hr className="mt-3"/>
-
-                    <AreaChartContainer {...commonContainerProps} id="experiment_set_views"
-                        title={
-                            <h4 className="text-300 mt-0">
-                                <span className="text-500">Experiment Set Detail Views</span>{' '}
-                                { countBy.experiment_set_views === 'expset_list_views' ? '- appearances in search results' :
-                                    countBy.experiment_set_views === 'expset_clicks' ? '- clicks from browse results' : '- page detail views' }
-                            </h4>
-                        }
-                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="experiment_set_views" />}>
-                        <AreaChart {...commonChartProps} data={experiment_set_views} />
-                    </AreaChartContainer>
-
-                    <HorizontalD3ScaleLegend {...{ loadingStatus }} />
-
-                </ColorScaleProvider>
-
-                : null } */}
 
             { session && fields_faceted ?
 
@@ -1085,14 +1027,6 @@ SubmissionsStatsView.colorScaleForPublicVsInternal = function(term){
         throw new Error("Term supplied is not one of 'Internal Release' or 'Public Release': '" + term + "'.");
     }
 };
-
-
-
-
-
-
-
-
 
 function groupExternalChildren(children, externalTermMap){
 
