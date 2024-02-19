@@ -420,51 +420,12 @@ const aggregationsToChartData = {
             return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey);
         }
     },
-    /*
-    'browse_search_queries' : {
-        'requires' : 'TrackingItem',
-        'function' : function(resp, props){
-            if (!resp || !resp['@graph']) return null;
-
-            var countKey = 'ga:pageviews';
-            if (props.currentGroupBy === 'sessions') countKey = 'ga:users'; // "Sessions" not saved in analytics for search queries.
-
-            return commonParsingFxn.analytics_to_buckets(resp, 'browse_search_queries', 'ga:searchKeyword', countKey);
-        }
-    },
-    'other_search_queries' : {
-        'requires' : 'TrackingItem',
-        'function' : function(resp, props){
-            if (!resp || !resp['@graph']) return null;
-
-            var countKey = 'ga:pageviews';
-            if (props.currentGroupBy === 'sessions') countKey = 'ga:users'; // "Sessions" not saved in analytics for search queries.
-
-            return commonParsingFxn.analytics_to_buckets(resp, 'search_search_queries', 'ga:searchKeyword', countKey);
-        }
-    },
-    */
-    'experiment_set_views' : {
-        'requires' : 'TrackingItem',
-        'function' : function(resp, props){
-            if (!resp || !resp['@graph']) return null;
-
-            //var termBucketField = function(subBucket){ return subBucket['ga:productBrand'] + ' - ' + subBucket['ga:productName']; };
-            const termBucketField = 'ga:productBrand';
-            let countKey = 'ga:productDetailViews';
-
-            if (props.countBy.experiment_set_views === 'expset_list_views') countKey = 'ga:productListViews';
-            else if (props.countBy.experiment_set_views === 'expset_clicks') countKey = 'ga:productListClicks';
-
-            return commonParsingFxn.analytics_to_buckets(resp, 'views_by_experiment_set', termBucketField, countKey);
-        }
-    },
     /**
      * For this function, props.currentGroupBy is the interval or time duration, not the actual 'group by' as it is for submissions.
      * Instead, `props.countBy.file_downloads` is used similar to the google analytics approach.
      */
     'file_downloads' : {
-        'requires'  : "TrackingItem", //'TrackingItemDownload',
+        'requires'  : "TrackingItem",
         'function'  : function(resp, props){
             if (!resp || !resp['@graph']) return null;
             const { countBy : { file_downloads : countBy } } = props;
@@ -475,7 +436,7 @@ const aggregationsToChartData = {
             let topCount = 0; //all
 
             if (countBy === 'assay_type'){
-                useReport = 'file_downloads_by_experiment_type';
+                useReport = 'file_downloads_by_assay_type';
                 groupingKey = 'ga:dimension5'; // Assay Type
             } else if (countBy === 'top_files'){
                 useReport = 'top_files_downloaded';
@@ -523,7 +484,7 @@ export const submissionsAggsToChartData = _.pick(aggregationsToChartData,
 );
 
 export const usageAggsToChartData = _.pick(aggregationsToChartData,
-    'sessions_by_country', 'fields_faceted', 'experiment_set_views', 'file_downloads', 'file_views'
+    'sessions_by_country', 'fields_faceted', 'file_downloads', 'file_views'
 );
 
 
@@ -556,7 +517,7 @@ export class UsageStatsViewController extends React.PureComponent {
                     "fields_faceted",
                     "sessions_by_country",
                     "sessions_by_device_category",
-                    "file_downloads_by_experiment_type",
+                    "file_downloads_by_assay_type",
                     "file_downloads_by_filetype",
                     "file_downloads_by_country",
                     "top_files_downloaded",
@@ -605,8 +566,6 @@ export class UsageStatsViewController extends React.PureComponent {
                 // Not high enough priority to spend much time improving this file, albeit much straightforward room for it exists.
             } else if (k === 'file_views'){
                 countBy[k] = 'file_detail_views';
-            } else if (k === 'experiment_set_views'){
-                countBy[k] = 'expset_detail_views';
             } else {
                 countBy[k] = 'views';
             }
@@ -716,11 +675,7 @@ class UsageChartsCountByDropdown extends React.PureComponent {
 
         const menuOptions = new Map();
 
-        if (chartID === 'experiment_set_views'){
-            menuOptions.set('expset_detail_views', <React.Fragment><i className="icon fas icon-fw icon-eye mr-1"/>Detail View</React.Fragment>);
-            menuOptions.set('expset_list_views',   <React.Fragment><i className="icon fas icon-fw icon-list mr-1"/>Appearance in Search Results</React.Fragment>);
-            menuOptions.set('expset_clicks',       <React.Fragment><i className="icon far icon-fw icon-hand-point-up mr-1"/>Search Result Click</React.Fragment>);
-        } else if (chartID === 'file_downloads'){
+        if (chartID === 'file_downloads'){
             menuOptions.set('filetype',         <React.Fragment><i className="icon far icon-fw icon-file-alt mr-1"/>File Type</React.Fragment>);
             menuOptions.set('assay_type',       <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Assay Type</React.Fragment>);
             menuOptions.set('top_files',        <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Top 10 Files</React.Fragment>);
@@ -759,8 +714,8 @@ export function UsageStatsView(props){
         loadingStatus, mounted, session, groupByOptions, handleGroupByChange, currentGroupBy, windowWidth,
         changeCountByForChart, countBy,
         // Passed in from StatsChartViewAggregator:
-        sessions_by_country, chartToggles, fields_faceted, /* fields_faceted_group_by, browse_search_queries, other_search_queries, */
-        experiment_set_views, file_downloads, file_views, smoothEdges, onChartToggle, onSmoothEdgeToggle
+        sessions_by_country, chartToggles, fields_faceted,
+        file_downloads, file_views, smoothEdges, onChartToggle, onSmoothEdgeToggle
     } = props;
 
     if (loadingStatus === 'failed'){
@@ -848,7 +803,7 @@ export function UsageStatsView(props){
                             <div>
                                 <h4 className="text-300 mt-0 mb-0">
                                     <span className="text-500">File Views</span>
-                                    {countBy.file_views === 'metadata_tsv_by_country' ? '- Metadata.tsv Files Count by Country' :
+                                    {countBy.file_views === 'metadata_tsv_by_country' ? '- metadata.tsv files count by country' :
                                         (countBy.file_views === 'file_list_views' ? '- appearances in search results' :
                                             countBy.file_views === 'file_clicks' ? '- clicks from search results' : '- file detail views')}
                                 </h4>
