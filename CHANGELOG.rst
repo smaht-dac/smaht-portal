@@ -11,6 +11,7 @@ Change Log
 ======
 
 `PR 95: Tracking Item and Misc. Google Analytics Updates <https://github.com/smaht-dac/smaht-portal/pull/95>`_
+
 * Fixed a bug that prevents collecting submission center and file type dimensions in file views
 * Fixed the incorrect links in top files download statistics tooltip
 * Adds tracking_item py test
