@@ -18,16 +18,28 @@ export const BenchmarkingUINav = (props) => {
     const { href = '' } = props;
 
     const urlParts = memoizedUrlParse(href);
-    const { path, hash } = urlParts || {};
+    const { path = '', hash = '' } = urlParts || {};
 
     const currPath = `${path || ''}${hash || ''}`;
 
-    const cellLinePages = BenchmarkingDataKeys.filter(
-        (key) => BenchmarkingDataMap[key].type === 'Cell Line Data'
-    );
-    const primaryTissuePages = BenchmarkingDataKeys.filter(
-        (key) => BenchmarkingDataMap[key].type === 'Primary Tissue Data'
-    );
+    let isCellLinePage = false;
+    let isPrimaryTissuePage = false;
+    let currPageIndex = '0';
+
+    const cellLinePages = BenchmarkingDataKeys.filter((key, i) => {
+        if (currPath.startsWith(BenchmarkingDataMap[key]['path'])) {
+            isCellLinePage = true;
+            currPageIndex = i.toString();
+        }
+        return BenchmarkingDataMap[key].type === 'Cell Line Data';
+    });
+    const primaryTissuePages = BenchmarkingDataKeys.filter((key, i) => {
+        if (currPath.startsWith(BenchmarkingDataMap[key]['path'])) {
+            isPrimaryTissuePage = true;
+            currPageIndex = i.toString();
+        }
+        return BenchmarkingDataMap[key].type === 'Primary Tissue Data';
+    });
 
     return (
         <div className="w-100 benchmarking-nav">
@@ -39,7 +51,9 @@ export const BenchmarkingUINav = (props) => {
                     <BenchmarkingUINavLinkGenerator
                         {...{ currPath }}
                         pages={cellLinePages}
-                        defaultActiveKey={'0'}
+                        defaultActiveKey={
+                            (isCellLinePage && currPageIndex) || null
+                        }
                     />
                 </div>
             </div>
@@ -52,6 +66,9 @@ export const BenchmarkingUINav = (props) => {
                     <BenchmarkingUINavLinkGenerator
                         {...{ currPath }}
                         pages={primaryTissuePages}
+                        defaultActiveKey={
+                            (isPrimaryTissuePage && currPageIndex) || null
+                        }
                     />
                 </div>
             </div>
