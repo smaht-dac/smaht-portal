@@ -420,51 +420,12 @@ const aggregationsToChartData = {
             return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey);
         }
     },
-    /*
-    'browse_search_queries' : {
-        'requires' : 'TrackingItem',
-        'function' : function(resp, props){
-            if (!resp || !resp['@graph']) return null;
-
-            var countKey = 'ga:pageviews';
-            if (props.currentGroupBy === 'sessions') countKey = 'ga:users'; // "Sessions" not saved in analytics for search queries.
-
-            return commonParsingFxn.analytics_to_buckets(resp, 'browse_search_queries', 'ga:searchKeyword', countKey);
-        }
-    },
-    'other_search_queries' : {
-        'requires' : 'TrackingItem',
-        'function' : function(resp, props){
-            if (!resp || !resp['@graph']) return null;
-
-            var countKey = 'ga:pageviews';
-            if (props.currentGroupBy === 'sessions') countKey = 'ga:users'; // "Sessions" not saved in analytics for search queries.
-
-            return commonParsingFxn.analytics_to_buckets(resp, 'search_search_queries', 'ga:searchKeyword', countKey);
-        }
-    },
-    */
-    'experiment_set_views' : {
-        'requires' : 'TrackingItem',
-        'function' : function(resp, props){
-            if (!resp || !resp['@graph']) return null;
-
-            //var termBucketField = function(subBucket){ return subBucket['ga:productBrand'] + ' - ' + subBucket['ga:productName']; };
-            const termBucketField = 'ga:productBrand';
-            let countKey = 'ga:productDetailViews';
-
-            if (props.countBy.experiment_set_views === 'expset_list_views') countKey = 'ga:productListViews';
-            else if (props.countBy.experiment_set_views === 'expset_clicks') countKey = 'ga:productListClicks';
-
-            return commonParsingFxn.analytics_to_buckets(resp, 'views_by_experiment_set', termBucketField, countKey);
-        }
-    },
     /**
      * For this function, props.currentGroupBy is the interval or time duration, not the actual 'group by' as it is for submissions.
      * Instead, `props.countBy.file_downloads` is used similar to the google analytics approach.
      */
     'file_downloads' : {
-        'requires'  : "TrackingItem", //'TrackingItemDownload',
+        'requires'  : "TrackingItem",
         'function'  : function(resp, props){
             if (!resp || !resp['@graph']) return null;
             const { countBy : { file_downloads : countBy } } = props;
@@ -523,7 +484,7 @@ export const submissionsAggsToChartData = _.pick(aggregationsToChartData,
 );
 
 export const usageAggsToChartData = _.pick(aggregationsToChartData,
-    'sessions_by_country', 'fields_faceted', 'experiment_set_views', 'file_downloads', 'file_views'
+    'sessions_by_country', 'fields_faceted', 'file_downloads', 'file_views'
 );
 
 
@@ -575,7 +536,7 @@ export class UsageStatsViewController extends React.PureComponent {
 
                 // For simpler testing & debugging -- if on localhost, connects to data.4dn by default.
                 // if (href && href.indexOf('http://localhost') > -1){
-                //     uri = 'https://data.4dnucleome.org' + uri;
+                //     uri = 'https://data.smaht.org' + uri;
                 // }
                 return uri;
             }
@@ -605,8 +566,6 @@ export class UsageStatsViewController extends React.PureComponent {
                 // Not high enough priority to spend much time improving this file, albeit much straightforward room for it exists.
             } else if (k === 'file_views'){
                 countBy[k] = 'file_detail_views';
-            } else if (k === 'experiment_set_views'){
-                countBy[k] = 'expset_detail_views';
             } else {
                 countBy[k] = 'views';
             }
@@ -647,7 +606,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
                 const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
 
                 // For local dev/debugging; don't forget to comment out if using.
-                //uri = 'https://data.4dnucleome.org' + uri;
+                //uri = 'https://data.smaht.org' + uri;
                 return uri;
             }
         },
@@ -716,11 +675,7 @@ class UsageChartsCountByDropdown extends React.PureComponent {
 
         const menuOptions = new Map();
 
-        if (chartID === 'experiment_set_views'){
-            menuOptions.set('expset_detail_views', <React.Fragment><i className="icon fas icon-fw icon-eye mr-1"/>Detail View</React.Fragment>);
-            menuOptions.set('expset_list_views',   <React.Fragment><i className="icon fas icon-fw icon-list mr-1"/>Appearance in Search Results</React.Fragment>);
-            menuOptions.set('expset_clicks',       <React.Fragment><i className="icon far icon-fw icon-hand-point-up mr-1"/>Search Result Click</React.Fragment>);
-        } else if (chartID === 'file_downloads'){
+        if (chartID === 'file_downloads'){
             menuOptions.set('filetype',         <React.Fragment><i className="icon far icon-fw icon-file-alt mr-1"/>File Type</React.Fragment>);
             menuOptions.set('assay_type',       <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Assay Type</React.Fragment>);
             menuOptions.set('top_files',        <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Top 10 Files</React.Fragment>);
@@ -759,8 +714,8 @@ export function UsageStatsView(props){
         loadingStatus, mounted, session, groupByOptions, handleGroupByChange, currentGroupBy, windowWidth,
         changeCountByForChart, countBy,
         // Passed in from StatsChartViewAggregator:
-        sessions_by_country, chartToggles, fields_faceted, /* fields_faceted_group_by, browse_search_queries, other_search_queries, */
-        experiment_set_views, file_downloads, file_views, smoothEdges, onChartToggle, onSmoothEdgeToggle
+        sessions_by_country, chartToggles, fields_faceted,
+        file_downloads, file_views, smoothEdges, onChartToggle, onSmoothEdgeToggle
     } = props;
 
     if (loadingStatus === 'failed'){
@@ -819,12 +774,11 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="file_downloads" defaultHeight={fileDownloadClickToTooltip ? 350 : commonContainerProps.defaultHeight}
                         title={
                             <div>
-                                <h4 className="text-500 mt-0 mb-0">File Downloads</h4>
-                                {/* <div className="mb-1">
-                                    <small>
-                                        <em>Download tracking started in August 2018 | Re-Implemented in Feb 2020 and August 2023</em>
-                                    </small>
-                                </div> */}
+                                <h4 className="text-300 mt-0 mb-0">
+                                    <span className="text-500">File Downloads</span>
+                                    {countBy.file_downloads === 'assay_type' ? '- by assay type' :
+                                        (countBy.file_downloads === 'filetype' ? '- by file type' : '- top 10 files')}
+                                </h4>
                             </div>
                         }
                         extraButtons={
@@ -853,7 +807,7 @@ export function UsageStatsView(props){
                             <div>
                                 <h4 className="text-300 mt-0 mb-0">
                                     <span className="text-500">File Views</span>
-                                    {countBy.file_views === 'metadata_tsv_by_country' ? '- Metadata.tsv Files Count by Country' :
+                                    {countBy.file_views === 'metadata_tsv_by_country' ? '- metadata.tsv files count by country' :
                                         (countBy.file_views === 'file_list_views' ? '- appearances in search results' :
                                             countBy.file_views === 'file_clicks' ? '- clicks from search results' : '- file detail views')}
                                 </h4>
@@ -894,59 +848,6 @@ export function UsageStatsView(props){
 
                 : null }
 
-            {/*
-                Disabled for now until/if we want to bring this back:
-
-                browse_search_queries || other_search_queries ?
-
-                <ColorScaleProvider resetScalesWhenChange={browse_search_queries}>
-
-                    <hr className="mt-3"/>
-
-                    <HorizontalD3ScaleLegend {...{ loadingStatus }} />
-
-                    { browse_search_queries ?
-                        <AreaChartContainer {...commonContainerProps} id="browse_search_queries"
-                            title={<span><span className="text-500">Experiment Set Search Queries</span> { currentGroupBy === 'sessions' ? '- Sessions' : '- Views' }</span>}>
-                            <AreaChart data={browse_search_queries} xDomain={commonXDomain} />
-                        </AreaChartContainer>
-                    : null }
-
-                    { other_search_queries ?
-                        <AreaChartContainer {...commonContainerProps} id="other_search_queries"
-                            title={<span><span className="text-500">Other Search Queries</span> { currentGroupBy === 'sessions' ? '- Sessions' : '- Views' }</span>}>
-                            <AreaChart data={other_search_queries} xDomain={commonXDomain} />
-                        </AreaChartContainer>
-                    : null }
-
-                </ColorScaleProvider>
-
-
-            : null */}
-
-            {/* { session && experiment_set_views ?
-
-                <ColorScaleProvider resetScaleLegendWhenChange={experiment_set_views}>
-
-                    <hr className="mt-3"/>
-
-                    <AreaChartContainer {...commonContainerProps} id="experiment_set_views"
-                        title={
-                            <h4 className="text-300 mt-0">
-                                <span className="text-500">Experiment Set Detail Views</span>{' '}
-                                { countBy.experiment_set_views === 'expset_list_views' ? '- appearances in search results' :
-                                    countBy.experiment_set_views === 'expset_clicks' ? '- clicks from browse results' : '- page detail views' }
-                            </h4>
-                        }
-                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="experiment_set_views" />}>
-                        <AreaChart {...commonChartProps} data={experiment_set_views} />
-                    </AreaChartContainer>
-
-                    <HorizontalD3ScaleLegend {...{ loadingStatus }} />
-
-                </ColorScaleProvider>
-
-                : null } */}
 
             { session && fields_faceted ?
 
@@ -1085,14 +986,6 @@ SubmissionsStatsView.colorScaleForPublicVsInternal = function(term){
         throw new Error("Term supplied is not one of 'Internal Release' or 'Public Release': '" + term + "'.");
     }
 };
-
-
-
-
-
-
-
-
 
 function groupExternalChildren(children, externalTermMap){
 
