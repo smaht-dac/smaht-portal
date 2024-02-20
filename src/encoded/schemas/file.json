@@ -178,17 +178,14 @@
         }
     },
     "facets": {
+        "data_type": {
+            "title": "Data Category"
+        },
         "file_sets.assay.display_title": {
             "title": "Experimental Assay"
         },
         "file_sets.sequencing.sequencer.display_title": {
             "title": "Sequencing Platform"
-        },
-        "software.display_title": {
-            "title": "Analysis Method"
-        },
-        "data_type": {
-            "title": "Data Category"
         },
         "file_format.display_title": {
             "title": "Data Format"
@@ -198,6 +195,9 @@
         },
         "sequencing_center.display_title": {
             "title": "Sequencing Center"
+        },
+        "software.display_title": {
+            "title": "Analysis Method"
         }
     },
     "columns": {

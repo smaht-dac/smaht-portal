@@ -108,7 +108,23 @@ const BenchmarkingTable = (props) => {
         },
         // Access
         access_status: {
-            widthMap: { lg: 100, md: 100, sm: 100 },
+            widthMap: { lg: 60, md: 60, sm: 60 },
+            colTitle: <i className="icon icon-lock fas" data-tip="Access" />,
+            render: function (result, parentProps) {
+                const { access_status } = result || {};
+
+                if (access_status === 'Protected') {
+                    return (
+                        <span className="value">
+                            <i
+                                className="icon icon-lock fas"
+                                data-tip="Protected"
+                            />
+                        </span>
+                    );
+                }
+                return <span className="value text-left">{access_status}</span>;
+            },
         },
         // File
         annotated_filename: {
@@ -654,7 +670,7 @@ const SelectedItemsDownloadModal = function (props) {
                         <li className="mb-1">
                             <strong>Data Use:</strong> Please read the{' '}
                             <a
-                                href="https://docs.google.com/document/d/16gLiH07v_KWljTFd_EqK6NQ1d_c08utEXEmU6DTgfFs/edit"
+                                href="https://smaht.org/policies/"
                                 target="_blank"
                                 rel="noreferrer noopener">
                                 SMaHT Data Use Policy
@@ -664,7 +680,7 @@ const SelectedItemsDownloadModal = function (props) {
                         <li>
                             <strong>Publication:</strong> Please read the{' '}
                             <a
-                                href="https://docs.google.com/document/d/1PQF0uEvPNuAco3sVxl2dOdl1mxuZ1zbfcbUJbIdW6Ac/edit"
+                                href="https://smaht.org/policies/"
                                 target="_blank"
                                 rel="noreferrer noopener">
                                 SMaHT Publication Policy
