@@ -6,8 +6,7 @@
     "type": "object",
     "required": [
         "identifier",
-        "standard_file_extension",
-        "valid_item_types"
+        "standard_file_extension"
     ],
     "anyOf": [
         {
