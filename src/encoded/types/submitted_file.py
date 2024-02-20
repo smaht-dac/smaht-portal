@@ -46,7 +46,7 @@ class SubmittedFileCollection(Item.Collection):
         "title": "SMaHT Submitted Files",
         "description": "Listing of SMaHT Submitted Files",
     })
-class SubmittedFile(File):
+class SubmittedFile(File, SubmittedItem):
     item_type = "submitted_file"
     base_types = ["SubmittedFile"] + File.base_types
     schema = load_schema("encoded:schemas/submitted_file.json")
