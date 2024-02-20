@@ -10,7 +10,10 @@ Change Log
 0.24.1
 ======
 
-* Updated robots.txt to allow search engines/disallow known bots
+`PR 96: Bm robots fix <https://github.com/smaht-dac/smaht-portal/pull/96>`_
+* Updated robots.txt to allow search engines, disallow known bots, and block /ingestion_status & /*-files downloads
+* Update SEO utilities to reflect SMaHT-specific text & branding (will need further adjustments in future, most likely)
+* Add small square SMaHT logo for use in search engines
 
 
 0.24.0
