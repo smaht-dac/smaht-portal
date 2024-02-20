@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.24.1
+======
+
+* Updated robots.txt to allow search engines/disallow known bots
+
+
 0.24.0
 ======
 
