@@ -108,7 +108,23 @@ const BenchmarkingTable = (props) => {
         },
         // Access
         access_status: {
-            widthMap: { lg: 100, md: 100, sm: 100 },
+            widthMap: { lg: 60, md: 60, sm: 60 },
+            colTitle: <i className="icon icon-lock fas" data-tip="Access" />,
+            render: function (result, parentProps) {
+                const { access_status } = result || {};
+
+                if (access_status === 'Protected') {
+                    return (
+                        <span className="value">
+                            <i
+                                className="icon icon-lock fas"
+                                data-tip="Protected"
+                            />
+                        </span>
+                    );
+                }
+                return <span className="value text-left">{access_status}</span>;
+            },
         },
         // File
         annotated_filename: {
