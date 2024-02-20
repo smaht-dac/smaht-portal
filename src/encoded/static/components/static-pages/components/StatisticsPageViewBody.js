@@ -536,7 +536,7 @@ export class UsageStatsViewController extends React.PureComponent {
 
                 // For simpler testing & debugging -- if on localhost, connects to data.4dn by default.
                 // if (href && href.indexOf('http://localhost') > -1){
-                //     uri = 'https://data.4dnucleome.org' + uri;
+                //     uri = 'https://data.smaht.org' + uri;
                 // }
                 return uri;
             }
@@ -606,7 +606,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
                 const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
 
                 // For local dev/debugging; don't forget to comment out if using.
-                //uri = 'https://data.4dnucleome.org' + uri;
+                //uri = 'https://data.smaht.org' + uri;
                 return uri;
             }
         },
@@ -774,7 +774,11 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="file_downloads" defaultHeight={fileDownloadClickToTooltip ? 350 : commonContainerProps.defaultHeight}
                         title={
                             <div>
-                                <h4 className="text-500 mt-0 mb-0">File Downloads</h4>
+                                <h4 className="text-300 mt-0 mb-0">
+                                    <span className="text-500">File Downloads</span>
+                                    {countBy.file_downloads === 'assay_type' ? '- by assay type' :
+                                        (countBy.file_downloads === 'filetype' ? '- by file type' : '- top 10 files')}
+                                </h4>
                             </div>
                         }
                         extraButtons={
