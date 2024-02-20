@@ -239,7 +239,6 @@ export default class App extends React.PureComponent {
         }, analyticsConfigurationOptions);
 
         // ANALYTICS INITIALIZATION; Sets userID (if any), performs initial pageview track
-        // TODO: add a google analytics configuration for smaht; currently this will never run
         if (analyticsID) {
             analytics.initializeGoogleAnalytics(analyticsID, {
                 ...analyticsOptions,
