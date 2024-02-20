@@ -393,17 +393,14 @@
         ]
     },
     {
-        "identifier": "file_uploads",
-        "title": "SMaHT Data File Uploads",
-        "file": "/docs/public/file_uploads.md",
+        "identifier" : "uploading_files",
+        "uuid" : "1a2fdcbf-eead-4441-a028-76c5a3e2ac16",
+        "file" : "/docs/source/uploading_files.rst",
+        "section_type": "Page Section",
         "status": "public",
         "options": {
-            "filetype": "md",
-            "collapsible": false,
-            "default_open": true
+            "filetype": "rst"
         },
-        "section_type": "Page Section",
-        "uuid": "d3d9c545-4340-495a-92ea-7ccb7eebc71c",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
