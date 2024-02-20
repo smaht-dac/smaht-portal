@@ -6,7 +6,8 @@
     "type": "object",
     "required": [
         "identifier",
-        "standard_file_extension"
+        "standard_file_extension",
+        "valid_item_types"
     ],
     "anyOf": [
         {
@@ -60,7 +61,7 @@
     ],
     "properties": {
         "schema_version": {
-            "default": "1"
+            "default": "2"
         },
         "extra_file_formats": {
             "$merge": "encoded_core:schemas/file_format.json#/properties/extrafile_formats"
