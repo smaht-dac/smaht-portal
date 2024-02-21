@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {
@@ -15,6 +15,7 @@ import {
 } from './BenchmarkingDataMap';
 
 export const BenchmarkingUINav = (props) => {
+    const [showNav, setShowNav] = useState(true);
     const { href = '' } = props;
 
     const urlParts = memoizedUrlParse(href);
@@ -30,29 +31,46 @@ export const BenchmarkingUINav = (props) => {
     );
 
     return (
-        <div className="w-100 benchmarking-nav">
-            <div className="benchmarking-nav-section">
-                <div className="benchmarking-nav-section-title text-small text-600">
-                    Cell Line Data
+        <div
+            className={
+                'benchmarking-nav-container d-none d-lg-flex' +
+                (showNav ? ' open' : ' collapsed')
+            }>
+            <button
+                className="toggle-button"
+                onClick={() => setShowNav(!showNav)}>
+                <span>
+                    {showNav ? (
+                        <i className="icon icon-bars icon-fw fas"></i>
+                    ) : (
+                        <i className="icon icon-bars icon-fw fas"></i>
+                    )}
+                </span>
+            </button>
+            <div className="benchmarking-nav">
+                <div className="benchmarking-nav-section">
+                    <div className="benchmarking-nav-section-title text-small text-600">
+                        Cell Line Data
+                    </div>
+                    <div>
+                        <BenchmarkingUINavLinkGenerator
+                            {...{ currPath }}
+                            pages={cellLinePages}
+                            defaultActiveKey={'0'}
+                        />
+                    </div>
                 </div>
-                <div>
-                    <BenchmarkingUINavLinkGenerator
-                        {...{ currPath }}
-                        pages={cellLinePages}
-                        defaultActiveKey={'0'}
-                    />
-                </div>
-            </div>
-            <hr />
-            <div className="benchmarking-nav-section">
-                <div className="benchmarking-nav-section-title text-small text-600">
-                    Benchmarking Tissue Data
-                </div>
-                <div>
-                    <BenchmarkingUINavLinkGenerator
-                        {...{ currPath }}
-                        pages={primaryTissuePages}
-                    />
+                <hr />
+                <div className="benchmarking-nav-section">
+                    <div className="benchmarking-nav-section-title text-small text-600">
+                        Benchmarking Tissue Data
+                    </div>
+                    <div>
+                        <BenchmarkingUINavLinkGenerator
+                            {...{ currPath }}
+                            pages={primaryTissuePages}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

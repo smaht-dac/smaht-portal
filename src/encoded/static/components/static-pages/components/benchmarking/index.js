@@ -14,10 +14,8 @@ export const BenchmarkingUI = (props) => {
 
     // Note: each child needs to be passed schemas, session, facets, href, and context
     return (
-        <div className="row">
-            <div className="d-none d-lg-flex col-lg-2 border-right">
-                <BenchmarkingUINav {...{ href }} />
-            </div>
+        <div className="benchmarking-ui-container row">
+            <BenchmarkingUINav {...{ href }} />
             <div className="col-12 col-lg-10 pl-2">{children}</div>
         </div>
     );

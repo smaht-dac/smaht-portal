@@ -1551,109 +1551,169 @@ body[data-pathname^="/data/benchmarking"] {
 	// Hide titles
 	.static-section-entry>.section-title { display: none; }
 
-	// Header and description text
-	.benchmarking-layout{
-		>nav.nav-tabs {
-			a.nav-link {
-				color: #5D5E63;
-				font-family: Inter;
-				font-size: 16px;
-				font-weight: 400; 
+	.benchmarking-ui-container {
+		display: flex;
+		flex-wrap: nowrap;
 
-				&.active {
-					color: #343741;
-					font-weight: 600; 
-					border-top: 4px solid #E99415;
+		// Side nav
+		.benchmarking-nav-container {
+			position: relative;
+			padding: 5px 10px;
+			overflow: hidden;
+
+			.toggle-button {
+				position: absolute;
+				display: flex;
+				padding: 0;
+				height: 20px;
+				width: 20px;
+				background-color: white;
+				border: 1px solid black;
+				top: 5px;
+				right: 10px;
+
+				& > span {
+					display: flex;
+					margin: auto;
+					& > i {
+						font-size: 10px;
+					}
 				}
-				&.disabled {
-					color: #9BA5B7;
+
+				&:hover {
+					background-color: lightgray;
 				}
 			}
+			&.open {
+				border-right: 1px solid #dee2e6;
+				width: 16.67%;
+				transition: width 350ms ease-out;
+
+				.benchmarking-nav {
+					>.benchmarking-nav-section {
+						>.benchmarking-nav-section-title {
+							margin-bottom: 10px;
+						}
+					}
+			
+					.accordion > ul {
+						list-style-type: none;
+						padding-left: 0;
+						gap: 10px;
+						display: flex;
+						flex-direction: column;
+			
+						> li > div.collapse > ul,
+						> li > div.collapsing > ul {
+								list-style-type: none;
+								padding-left: 0; 
+							> li {
+								padding-left: 15px;
+							}
+						}
+			
+						li.sidenav-link {
+							font-family: Inter;
+							font-size: 14px;
+							font-weight: 400;
+			
+							> a {
+								color: #717378;
+							}
+			
+							&.top {
+								font-size: 16px;
+							}
+							&.active {
+								font-weight: 500;
+								&.top {
+									font-weight: 700;
+								}
+								&:not(.top) {
+									border-radius: 4px;
+									border: 1px solid #E2ECF2;
+									background: #EBF3F9; 
+								}
+								
+								> a {
+									color: #343741;
+								}
+							}
+						}
+			
+						span.navlink-drop {
+							color: #717378;
+							font-size: 16px;
+							font-weight: 400;
+							font-family: Inter;
+							&.active {
+								color: #343741;
+								font-weight: 700;
+							}
+						}
+					}
+				}
+				.toggle-button {
+					& > span {
+						display: flex;
+						margin: auto;
+						& > i {
+							font-size: 10px;
+						}
+					}
+				}
+			}
+			&.collapsed {
+				width: 50px;
+				border: none;
+				transition: width 350ms ease-out;
+
+				.benchmarking-nav {
+					display: none;
+					width: 300px;
+				}
+			}
+			
 		}
 
-		>.row>div {
-			>h2 {
-				color: #343741;
-				font-family: Inter;
-				font-size: 24px;
-				font-weight: 600;
-				margin-top: 5px;
-			}
-
-			>p {
-				color: #5D5E63;
-				font-family: Inter;
-				font-size: 14px;
-				line-height: 20px;
-			}
-		}
-	}
-
-	// Side nav
-	.benchmarking-nav {
-
-		>.benchmarking-nav-section {
-			>.benchmarking-nav-section-title {
-				margin-bottom: 10px;
-			}
-		}
-
-		.accordion > ul {
-			list-style-type: none;
-			padding-left: 0;
-			gap: 10px;
-			display: flex;
-			flex-direction: column;
-
-			> li > div.collapse > ul,
-			> li > div.collapsing > ul {
-					list-style-type: none;
-					padding-left: 0; 
-				> li {
-					padding-left: 15px;
-				}
-			}
-
-			li.sidenav-link {
-				font-family: Inter;
-				font-size: 14px;
-				font-weight: 400;
-
-				> a {
-					color: #717378;
-				}
-
-				&.top {
+		// Header and description text
+		.benchmarking-layout{
+			>nav.nav-tabs {
+				a.nav-link {
+					color: #5D5E63;
+					font-family: Inter;
 					font-size: 16px;
-				}
-				&.active {
-					font-weight: 500;
-					&.top {
-						font-weight: 700;
-					}
-					&:not(.top) {
-						border-radius: 4px;
-						border: 1px solid #E2ECF2;
-						background: #EBF3F9; 
-					}
-					
-					> a {
+					font-weight: 400; 
+	
+					&.active {
 						color: #343741;
+						font-weight: 600; 
+						border-top: 4px solid #E99415;
+					}
+					&.disabled {
+						color: #9BA5B7;
 					}
 				}
 			}
-
-			span.navlink-drop {
-				color: #717378;
-				font-size: 16px;
-				font-weight: 400;
-				font-family: Inter;
-				&.active {
+	
+			>.row>div {
+				>h2 {
 					color: #343741;
-					font-weight: 700;
+					font-family: Inter;
+					font-size: 24px;
+					font-weight: 600;
+					margin-top: 5px;
+				}
+	
+				>p {
+					color: #5D5E63;
+					font-family: Inter;
+					font-size: 14px;
+					line-height: 20px;
 				}
 			}
 		}
+		
 	}
 
 	.tbd-notice {
