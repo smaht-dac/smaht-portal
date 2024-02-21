@@ -359,7 +359,8 @@
             "6206008f-9288-4156-b55d-52a75f5332e8"
         ],
         "table-of-contents": {
-            "enabled": true
+            "enabled": true,
+            "header-depth": 4
         },
         "status": "public",
         "consortia": [

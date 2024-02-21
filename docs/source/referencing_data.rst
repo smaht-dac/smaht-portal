@@ -2,4 +2,64 @@
 Referencing Data
 ================
 
-The data in the `data` attribute of a `Dataset` object is a `DataArray` object. This is a multi-dimensional array with labeled dimensions and coordinates. The `DataArray` object has a `coords` attribute that contains the coordinates of the array. The `coords` attribute is a dictionary-like object that maps coordinate names to arrays of coordinate values. The `coords` attribute also has a `dims` attribute that contains the names of the dimensions of the array.
+Existing items in the database are sometimes required to submit new items. The links below will display all options available for referencing data already in the database.
+
+
+DAC-Controlled Items
+--------------------
+
+To reference an item controlled by the DAC, you can use values for any of the following properties:
+
+* `identifier`
+* `uuid`
+* `accession`
+
+
+`Sequencers </search/?type=Sequencer>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+`Assays </search/?type=Assay>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+FileFormats
+^^^^^^^^^^^
+
+* For `UnalignedReads </search/?type=FileFormat&valid_item_types=UnalignedReads>`_
+* For `AlignedReads </search/?type=FileFormat&valid_item_types=AlignedReads>`_
+* For `VariantCalls </search/?type=FileFormat&valid_item_types=VariantCalls>`_
+
+
+`ReferenceGenomes </search/?type=ReferenceGenome>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Submitted Items
+---------------
+
+To reference an item submitted by other users, you can use values for any of the following properties:
+
+* `submitted_id`
+* `uuid`
+* `accession`
+
+
+`CellCultures </search/?type=CellCulture>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+`Analytes </search/?type=Analyte>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+`Libraries </search/?type=Library>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+`FileSets </search/?type=FileSet>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+`Software </search/?type=Software>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
