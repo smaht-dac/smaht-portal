@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.25.0
+======
+
+`PR 92: Schema updates for submission <https://github.com/smaht-dac/smaht-portal/pull/92>`_
+
+* Add new properties suggested by previous submitters
+* Add fields to MetaWorkflow `custom_pf_fields` to bring in metadata from pipelines to files required for release
+* Breaking property requirement changes with upgraders to clean up schema changes from benchmarking data model release
+
+
 0.24.1
 ======
 
