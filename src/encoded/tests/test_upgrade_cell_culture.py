@@ -1,0 +1,31 @@
+from typing import Any, Dict
+
+import pytest
+from pyramid.router import Router
+
+from .utils import get_upgrader
+
+
+@pytest.mark.parametrize(
+    "cell_culture,expected",
+    [
+        ({}, {"schema_version": "2"}),
+        ({"lot_number": "123"}, {"lot_number": ["123"], "schema_version": "2"}),
+        (
+            {"lot_number": "123", "schema_version": "1"},
+            {"lot_number": ["123"], "schema_version": "2"},
+        ),
+        (
+            {"lot_number": "", "schema_version": "1"},
+            {"schema_version": "2"},
+        ),
+    ]
+)
+def test_upgrade_cell_culture_1_2(
+    app: Router, cell_culture: Dict[str, Any], expected: Dict[str, Any]
+) -> None:
+    """Test cell culture upgrader from version 1 to 2."""
+    upgrader = get_upgrader(app)
+    assert upgrader.upgrade(
+        "cell_culture", cell_culture, current_version="1", target_version="2"
+    ) == expected
