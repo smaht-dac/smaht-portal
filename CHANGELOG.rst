@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.24.2
+======
+
+* Added missing valid_items_types property to file_format.json in master-inserts.
+
+
 0.24.1
 ======
 
