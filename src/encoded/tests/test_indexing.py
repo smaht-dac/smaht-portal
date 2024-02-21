@@ -3,7 +3,6 @@
 The fixtures in this module setup a full system with postgresql and
 elasticsearch running as subprocesses.
 """
-import json
 import pytest
 import re
 import time
@@ -30,8 +29,6 @@ from webtest.app import TestApp
 from zope.sqlalchemy import mark_changed
 
 from .. import main
-from .datafixtures import post_item_and_return_location
-from .verifier import verify_item
 
 
 pytestmark = [pytest.mark.working, pytest.mark.indexing]
@@ -125,6 +122,7 @@ def bam_format(es_testapp: TestApp, consortium: Dict[str, Any]) -> Dict[str, Any
         'standard_file_extension': 'bam',
         'other_allowed_extensions': ['bam.gz'],
         'consortia': [consortium['uuid']],
+        'valid_item_types': ['OutputFile'],
     }, status=201).json['@graph'][0]
 
 
@@ -232,5 +230,3 @@ def test_real_validation_error(es_app, setup_and_teardown, indexer_testapp, es_t
     val_err_view = es_testapp.get(fp_id + '@@validation-errors', status=200).json
     assert val_err_view['@id'] == fp_id
     assert val_err_view['validation_errors'] == es_res['_source']['validation_errors']
-
-

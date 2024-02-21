@@ -84,6 +84,12 @@
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_SUBMITTED-FILE_[A-Z0-9-_.]{4,}$"
+        },
+        "submitted_md5sum": {
+            "title": "Submitted MD5",
+            "description": "Submitted MD5 checksum of the file",
+            "type": "string",
+            "format": "hex"
         }
     }
 }
