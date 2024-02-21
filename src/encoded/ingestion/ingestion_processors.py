@@ -31,11 +31,15 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
             # this (traceback.txt) is done in snovault.types.ingestion.SubmissionFolio.processing_context.
             # raise Exception(validation_errors)
             return
-        load_data_response = load_data_into_database(data=structured_data.data,
-                                                     portal_vapp=submission.portal_vapp,
-                                                     post_only=submission.post_only,
-                                                     patch_only=submission.patch_only,
-                                                     validate_only=submission.validate_only)
+        load_data_response = load_data_into_database(
+            data=structured_data.data,
+            portal_vapp=submission.portal_vapp,
+            post_only=submission.post_only,
+            patch_only=submission.patch_only,
+            validate_only=submission.validate_only,
+            validate_first=submission.validate_first,
+            resolved_refs=(structured_data.resolved_refs
+                           if submission.validate_only or submission.validate_first else None))
         load_data_summary = summary_of_load_data_results(load_data_response, submission)
         submission.record_results(load_data_response, load_data_summary)
 

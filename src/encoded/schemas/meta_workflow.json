@@ -138,6 +138,9 @@
                                 "description": {
                                     "$merge": "encoded:schemas/mixins.json#/description/description"
                                 },
+                                "output_status": {
+                                    "$merge": "output_file.json#/properties/output_status"
+                                },
                                 "reference_genome": {
                                     "$merge": "encoded:schemas/mixins.json#/reference_genome/reference_genome"
                                 },

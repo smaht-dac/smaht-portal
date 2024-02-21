@@ -1,12 +1,15 @@
+from dataclasses import dataclass
 from typing import Any, Dict, List
 
 import pytest
 from webtest.app import TestApp
 
-from .utils import patch_item, post_item, post_item_and_return_location
+from .utils import (
+    get_item, get_search, patch_item, post_item, post_item_and_return_location
+)
 
 
-OUTPUT_FILE_FORMAT = "fastq"
+OUTPUT_FILE_FORMAT = "FASTQ"
 
 
 @pytest.fixture
@@ -54,7 +57,7 @@ def bam_output_file_properties(
         "submission_centers": [test_submission_center["uuid"]],
         "data_category": ["Sequencing Reads"],
         "data_type": ["Unaligned Reads"],
-        "file_format": file_formats.get("bam", {}).get("uuid"),
+        "file_format": file_formats.get("BAM", {}).get("uuid"),
     }
 
 
@@ -224,3 +227,154 @@ def test_validate_extra_files_update_properties(
     identifier = bam_output_file.get("uuid")
     patch_body = {"extra_files": extra_files}
     patch_item(testapp, patch_body, identifier, status=expected_status)
+
+
+def test_validate_file_format_for_file_type(
+    es_testapp: TestApp,
+    workbook: None,
+) -> None:
+    """Ensure file format validated for file type.
+
+    Using workbook inserts here, so presumably positive validation
+    has been successful. Thus, only testing negative validation here.
+    """
+    file_types_test_data = get_file_types_test_data(es_testapp)
+    for file_type_data in file_types_test_data:
+        assert_file_format_validated_on_post(es_testapp, file_type_data)
+        assert_file_format_validated_on_patch(es_testapp, file_type_data)
+
+
+@dataclass(frozen=True)
+class FileTypeTestData:
+    file_type: str
+    insert: Dict[str, Any]
+    invalid_file_format: Dict[str, Any]
+
+
+def get_file_types_test_data(es_testapp: TestApp) -> List[FileTypeTestData]:
+    """Collect test data for all file types in workbook inserts."""
+    file_types_to_inserts = get_file_types_to_inserts(es_testapp)
+    return [
+        FileTypeTestData(
+            file_type, insert, get_invalid_file_format(es_testapp, file_type)
+        )
+        for file_type, insert in file_types_to_inserts.items()
+    ]
+
+
+def get_file_types_to_inserts(es_testapp: TestApp) -> Dict[str, Dict[str, Any]]:
+    """Collect all file types in workbook and map to 1 insert each."""
+    workbook_files = get_search(es_testapp, "/search/?type=File")
+    seen_file_types = set()
+    file_types_to_inserts = {}
+    for file_insert in workbook_files:
+        file_type = get_file_type(file_insert)
+        if file_type and file_type not in seen_file_types:
+            file_types_to_inserts[file_type] = file_insert
+            seen_file_types.add(file_type)
+    return file_types_to_inserts
+
+
+def get_file_type(file: Dict[str, Any]) -> str:
+    """Get file type from file."""
+    result = ""
+    if len(file.get("@type", [])) > 0:
+        result = file["@type"][0]
+    return result
+
+
+def get_invalid_file_format(es_testapp: TestApp, file_type: str) -> str:
+    """Retrieve an invalid file format for a given file type."""
+    try:
+        file_formats = get_search(
+            es_testapp,
+            f"/search/?type=FileFormat&valid_item_types!={file_type}",
+        )
+    except Exception:
+        raise Exception(f"Workbook is missing file format invalid for {file_type}")
+    return file_formats[0]
+
+
+def assert_file_format_validated_on_post(
+    es_testapp: TestApp, file_type_data: FileTypeTestData
+) -> None:
+    """Ensure file format validated on POST."""
+    item_to_post = generate_file_insert_for_type(es_testapp, file_type_data)
+    response = post_item(es_testapp, item_to_post, file_type_data.file_type, status=422)
+    assert_file_format_invalid(response, file_type_data)
+
+
+
+def assert_file_format_invalid(
+    response: Dict[str, Any], file_type_data: FileTypeTestData
+) -> None:
+    """Ensure invalid file format for file type error in response."""
+    assert "ValidationFailure" in response.get("@type", [])
+    assert response.get("status") == "error"
+    errors = response.get("errors", [])
+    assert errors
+    invalid_file_format_for_type_error_found = False
+    for error in errors:
+        if error.get("description") == (
+            f"File format {file_type_data.invalid_file_format['identifier']} is"
+            f" not allowed for {file_type_data.file_type}"
+        ):
+            invalid_file_format_for_type_error_found = True
+            break
+    assert invalid_file_format_for_type_error_found
+
+
+
+def generate_file_insert_for_type(
+    es_testapp: TestApp, file_type_data: FileTypeTestData
+) -> Dict[str, Any]:
+    """Generate a file for a given file type with invalid file format."""
+    raw_insert = get_item(es_testapp, file_type_data.insert["uuid"], frame="raw")
+    keys_to_skip = [
+        "uuid",
+        "accession",
+        "aliases",
+        "md5sum",
+        "content_md5sum",
+        "submitted_id",
+        "schema_version",
+    ]
+    existing_keys_to_use = {
+        key: value for key, value in raw_insert.items()
+        if key not in keys_to_skip
+    }
+    filename_to_use = get_test_filename(file_type_data)
+    submitted_id_to_use = get_test_submitted_id(file_type_data)
+    return {
+        **existing_keys_to_use,
+        **filename_to_use,
+        **submitted_id_to_use,
+        "file_format": file_type_data.invalid_file_format["uuid"],
+    }
+
+
+def get_test_filename(file_type_data: FileTypeTestData) -> Dict[str, Any]:
+    """Get a filename for test file insert."""
+    existing_filename = file_type_data.insert.get("filename", "")
+    if existing_filename:
+        extension_to_use = file_type_data.invalid_file_format["standard_file_extension"]
+        return {"filename": f"{existing_filename}.{extension_to_use}"}
+    return {}
+
+
+def get_test_submitted_id(file_type_data: FileTypeTestData) -> Dict[str, Any]:
+    """Get a submitted ID for test file insert."""
+    existing_submitted_id = file_type_data.insert.get("submitted_id", "")
+    if existing_submitted_id:
+        return {"submitted_id": f"{existing_submitted_id}-TEST"}
+    return {}
+
+
+def assert_file_format_validated_on_patch(
+    es_testapp: TestApp, file_type_data: FileTypeTestData
+) -> None:
+    """Ensure file format validated on PATCH."""
+    item_to_patch = file_type_data.insert.get("uuid")
+    patch_body = {"file_format": file_type_data.invalid_file_format.get("uuid")}
+    response = patch_item(es_testapp, patch_body, item_to_patch, status=422)
+    assert_file_format_invalid(response, file_type_data)

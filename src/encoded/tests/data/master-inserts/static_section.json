@@ -338,9 +338,9 @@
         ]
     },
     {
-        "identifier" : "excel_submission",
+        "identifier" : "credentials",
         "uuid" : "442c8aa0-dc6c-43d7-814a-854af460b016",
-        "file" : "/docs/source/excel_submission.rst",
+        "file" : "/docs/source/credentials.rst",
         "section_type": "Page Section",
         "status": "public",
         "options": {
@@ -393,17 +393,11 @@
         ]
     },
     {
-        "identifier": "file_uploads",
-        "title": "SMaHT Data File Uploads",
-        "file": "/docs/public/file_uploads.jsx",
-        "status": "public",
-        "options": {
-            "filetype": "jsx",
-            "collapsible": false,
-            "default_open": true
-        },
+        "identifier" : "uploading_files",
+        "uuid" : "1a2fdcbf-eead-4441-a028-76c5a3e2ac16",
+        "file" : "/docs/source/uploading_files.rst",
         "section_type": "Page Section",
-        "uuid": "d3d9c545-4340-495a-92ea-7ccb7eebc71c",
+        "status": "public",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
