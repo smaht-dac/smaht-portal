@@ -31,10 +31,10 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-          "enabled": false,
-          "skip-depth": 1,
-          "header-depth": 4,
-          "include-top-link": false
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
         },
         "uuid": "d2d042e7-09e5-4a34-a8c5-530ba9c9cdec",
         "consortia": [
@@ -55,10 +55,10 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-          "enabled": false,
-          "skip-depth": 1,
-          "header-depth": 4,
-          "include-top-link": false
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
         },
         "uuid": "af03023c-1ce0-49a1-b85b-20f5abd8cc30",
         "consortia": [
@@ -76,10 +76,10 @@
             "f1601ba5-483b-4133-a76b-5bec7caa2dd2"
         ],
         "table-of-contents": {
-          "enabled": false,
-          "skip-depth": 1,
-          "header-depth": 4,
-          "include-top-link": false
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
         },
         "uuid": "6da98599-12a7-456f-8598-da510a88c7e8",
         "consortia": [
@@ -98,10 +98,10 @@
             "eb1d19d5-5ebe-4e89-a8d7-fc50a8c85a61"
         ],
         "table-of-contents": {
-          "enabled": false,
-          "skip-depth": 1,
-          "header-depth": 4,
-          "include-top-link": false
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
         },
         "uuid": "1ef242a4-954c-4c77-9193-3ec3b1a8e7d7",
         "consortia": [
@@ -119,10 +119,10 @@
             "dd5198bb-72ba-4c5b-9736-3ba785814a20"
         ],
         "table-of-contents": {
-          "enabled": false,
-          "skip-depth": 1,
-          "header-depth": 4,
-          "include-top-link": false
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
         },
         "uuid": "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd",
         "consortia": [
@@ -265,12 +265,13 @@
             "5153c902-a0d2-4246-9b41-cea7a1c91f52",
             "9410a992-c9b2-4be8-81e8-cc9559c0e488",
             "6292facf-9eb4-451e-8d05-2e56e1bd7cbe",
+            "0382a63b-9639-403d-9cfb-1d461ab7087c",
             "ae1498e9-6ebd-4683-9390-e171c54a9811"
         ],
         "table-of-contents": {
             "enabled": true
         },
-         "consortia": [
+        "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "submission_centers": [
@@ -288,7 +289,7 @@
             "enabled": true
         },
         "status": "public",
-         "consortia": [
+        "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "submission_centers": [
@@ -325,7 +326,7 @@
             "enabled": true
         },
         "status": "public",
-         "consortia": [
+        "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "submission_centers": [
@@ -343,7 +344,25 @@
             "enabled": true
         },
         "status": "public",
-         "consortia": [
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/user-guide/referencing-data",
+        "uuid": "0382a63b-9639-403d-9cfb-1d461ab7087c",
+        "title": "Referencing Data",
+        "content": [
+            "6206008f-9288-4156-b55d-52a75f5332e8"
+        ],
+        "table-of-contents": {
+            "enabled": true
+        },
+        "status": "public",
+        "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "submission_centers": [
@@ -354,7 +373,9 @@
         "identifier": "data",
         "title": "Data",
         "status": "public",
-        "children": ["39deafe0-34ae-4ab8-8261-3661b0c79a38"],
+        "children": [
+            "39deafe0-34ae-4ab8-8261-3661b0c79a38"
+        ],
         "table-of-contents": {
             "enabled": true,
             "header-depth": 4
