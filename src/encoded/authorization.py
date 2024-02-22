@@ -118,7 +118,6 @@ def smaht_groupfinder(login, request):
         principals.append('group.submitter')
         principals.extend(f'submits_for.{submission_center}' for submission_center in submits_for)
     if submission_centers:
-        # add_principal('role.submission_center_member_create')  # for add/create permissions
         add_principal('role.consortium_member_rw')  # all submission centers can read consortium level data
         # for view permissions
         for submission_center in submission_centers:

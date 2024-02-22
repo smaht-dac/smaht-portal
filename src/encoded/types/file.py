@@ -171,15 +171,14 @@ def validate_user_has_protected_access(request):
     principals = request.effective_principals
     if 'group.admin' in principals or 'group.dbgap' in principals:
         return True
-    else:
-        return False
+    return False
 
 
 @view_config(name='download', context=File, request_method='GET',
              permission='view', subpath_segments=[0, 1])
 def download(context, request):
     if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
-        raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval, '
+        raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
     return CoreDownload(context, request)
 

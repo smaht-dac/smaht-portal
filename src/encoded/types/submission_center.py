@@ -21,8 +21,8 @@ class SubmissionCenter(Item):
     def __ac_local_roles__(self):
         """This creates roles that the submission center item needs so it can be edited & viewed"""
         roles = {}
-        sc_submitters = 'submits_for.%s' % self.uuid
+        sc_submitters = f'submits_for.{self.uuid}'
         roles[sc_submitters] = SUBMISSION_CENTER_SUBMITTER
-        sc_member = 'submission_centers.%s' % self.uuid
+        sc_member = f'submission_centers.{self.uuid}'
         roles[sc_member] = SUBMISSION_CENTER_RW
         return roles
