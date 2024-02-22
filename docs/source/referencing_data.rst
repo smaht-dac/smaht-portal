@@ -1,6 +1,6 @@
-================
-Referencing Data
-================
+=========================
+Referencing Existing Data
+=========================
 
 Existing items in the database are sometimes required to submit new items. The links below will display all options available for referencing data already in the database.
 
@@ -15,24 +15,51 @@ To reference an item controlled by the DAC, you can use values for any of the fo
 * `accession`
 
 
-`Sequencers </search/?type=Sequencer>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|Sequencers|
+^^^^^^^^^^^^
+
+.. |Sequencers| raw:: html
+
+   <a href="/search/?type=Sequencer", target="_blank">Sequencers</a>
 
 
-`Assays </search/?type=Assay>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|Assays|
+^^^^^^^^
+
+.. |Assays| raw:: html
+
+   <a href="/search/?type=Assay", target="_blank">Assays</a>
 
 
 FileFormats
 ^^^^^^^^^^^
 
-* For `UnalignedReads </search/?type=FileFormat&valid_item_types=UnalignedReads>`_
-* For `AlignedReads </search/?type=FileFormat&valid_item_types=AlignedReads>`_
-* For `VariantCalls </search/?type=FileFormat&valid_item_types=VariantCalls>`_
+* For |UnalignedReads|
+* For |AlignedReads|
+* For |VariantCalls|
 
 
-`ReferenceGenomes </search/?type=ReferenceGenome>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. |UnalignedReads| raw:: html
+
+   <a href="/search/?type=FileFormat&valid_item_types=UnalignedReads", target="_blank">UnalignedReads</a>
+
+
+.. |AlignedReads| raw:: html
+
+   <a href="/search/?type=FileFormat&valid_item_types=AlignedReads", target="_blank">AlignedReads</a>
+
+
+.. |VariantCalls| raw:: html
+
+   <a href="/search/?type=FileFormat&valid_item_types=VariantCalls", target="_blank">VariantCalls</a>
+
+
+|ReferenceGenomes|
+^^^^^^^^^^^^^^^^^^
+
+.. |ReferenceGenomes| raw:: html
+
+   <a href="/search/?type=ReferenceGenome", target="_blank">ReferenceGenomes</a>
 
 
 Submitted Items
@@ -45,29 +72,57 @@ To reference an item submitted by other users, you can use values for any of the
 * `accession`
 
 
-`CellCultures </search/?type=CellCulture>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|CellCultures|
+^^^^^^^^^^^^^^
+
+.. |CellCultures| raw:: html
+
+   <a href="/search/?type=CellCulture", target="_blank">CellCultures</a>
 
 
-`Samples </search/?type=Sample>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|Samples|
+^^^^^^^^^
+
+.. |Samples| raw:: html
+
+   <a href="/search/?type=Sample", target="_blank">Samples</a>
 
 
-`Analytes </search/?type=Analyte>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|Analytes|
+^^^^^^^^^^
+
+.. |Analytes| raw:: html
+
+   <a href="/search/?type=Analyte", target="_blank">Analytes</a>
 
 
-`Libraries </search/?type=Library>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|Libraries|
+^^^^^^^^^^^
+
+.. |Libraries| raw:: html
+
+   <a href="/search/?type=Library", target="_blank">Libraries</a>
 
 
-`FileSets </search/?type=FileSet>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|FileSets|
+^^^^^^^^^^
+
+.. |FileSets| raw:: html
+
+   <a href="/search/?type=FileSet", target="_blank">FileSets</a>
 
 
-`Files </search/?type=File>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|Files|
+^^^^^^^
+
+.. |Files| raw:: html
+
+   <a href="/search/?type=File", target="_blank">Files</a>
 
 
-`Software </search/?type=Software>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|Software|
+^^^^^^^^^^
+
+.. |Software| raw:: html
+
+   <a href="/search/?type=Software", target="_blank">Software</a>
