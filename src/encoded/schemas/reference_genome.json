@@ -91,5 +91,13 @@
                 "linkTo": "File"
             }
         }
+    },
+    "columns": {
+        "identifier": {
+            "title": "Identifier"
+        },
+        "code": {
+            "title": "Code"
+        }
     }
 }

@@ -49,6 +49,10 @@ To reference an item submitted by other users, you can use values for any of the
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
+`Samples </search/?type=Sample>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
 `Analytes </search/?type=Analyte>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -59,6 +63,10 @@ To reference an item submitted by other users, you can use values for any of the
 
 `FileSets </search/?type=FileSet>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+`Files </search/?type=File>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 `Software </search/?type=Software>`_
