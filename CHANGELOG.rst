@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.25.1
+======
+* Remove unnecessary file_format.json & insert from master-inserts
+* Remove duplicate code key from smaht-dac submission center in master-inserts
+
+
 0.25.0
 ======
 
