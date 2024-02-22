@@ -229,6 +229,7 @@ def test_validate_extra_files_update_properties(
     patch_item(testapp, patch_body, identifier, status=expected_status)
 
 
+@pytest.mark.workbook
 def test_validate_file_format_for_file_type(
     es_testapp: TestApp,
     workbook: None,
@@ -378,3 +379,27 @@ def assert_file_format_validated_on_patch(
     patch_body = {"file_format": file_type_data.invalid_file_format.get("uuid")}
     response = patch_item(es_testapp, patch_body, item_to_patch, status=422)
     assert_file_format_invalid(response, file_type_data)
+
+
+@pytest.mark.workbook
+def test_meta_workflow_run_inputs_rev_link(
+    es_testapp: TestApp,
+    workbook: None,
+) -> None:
+    """Ensure meta workflow run inputs rev link is correct."""
+    file_search = get_search(
+        es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid!=No+value"
+    )
+    assert file_search
+
+
+@pytest.mark.workbook
+def test_meta_workflow_run_outputs_rev_link(
+    es_testapp: TestApp,
+    workbook: None,
+) -> None:
+    """Ensure meta workflow run outputs rev link is correct."""
+    file_search = get_search(
+        es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid!=No+value"
+    )
+    assert file_search
