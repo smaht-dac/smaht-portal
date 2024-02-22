@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
@@ -38,5 +38,8 @@ class FileSet(SubmittedItem):
             },
         },
     )
-    def files(self, request: Request) -> List[str]:
-        return self.rev_link_atids(request, "files")
+    def files(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "files")
+        if result:
+            return result
+        return

@@ -387,10 +387,14 @@ def test_meta_workflow_run_inputs_rev_link(
     workbook: None,
 ) -> None:
     """Ensure meta workflow run inputs rev link is correct."""
-    file_search = get_search(
+    file_with_inputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid!=No+value"
     )
-    assert file_search
+    assert file_with_inputs_search
+    file_without_inputs_search = get_search(
+        es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid=No+value"
+    )
+    assert file_without_inputs_search
 
 
 @pytest.mark.workbook
@@ -399,7 +403,11 @@ def test_meta_workflow_run_outputs_rev_link(
     workbook: None,
 ) -> None:
     """Ensure meta workflow run outputs rev link is correct."""
-    file_search = get_search(
+    file_with_outputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid!=No+value"
     )
-    assert file_search
+    assert file_with_outputs_search
+    file_without_outputs_search = get_search(
+        es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid=No+value"
+    )
+    assert file_without_outputs_search
