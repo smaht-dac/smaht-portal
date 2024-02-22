@@ -27,6 +27,13 @@ def fastq_format(testapp: TestApp, test_consortium: Dict[str, Any]):
         'standard_file_extension': 'fastq.gz',
         'other_allowed_extensions': ['fq.gz'],
         'consortia': [test_consortium['uuid']],
+        "valid_item_types": [
+            "AlignedReads",
+            "OutputFile",
+            "ReferenceFile",
+            "UnalignedReads",
+            "VariantCalls"
+        ]
     }, status=201).json['@graph'][0]
 
 
@@ -941,7 +948,6 @@ def assert_expected_access_key_permissions(
                 testapp, consortium_user_app, item_type, limited_insert
             )
         post_item(testapp, identifying_insert, item_type, status=201)
-
 
 
 def assert_submittable_permissions(

@@ -112,7 +112,6 @@
                     "Quality Control",
                     "Reference Genome",
                     "Sequencing Reads",
-                    "Variant Calls",
                     "Germline Variant Calls",
                     "Somatic Variant Calls"
                 ]
@@ -127,12 +126,10 @@
                 "type": "string",
                 "enum": [
                     "Aligned Reads",
-                    "Germline Variant Calls",
                     "Image",
                     "Index",
                     "Reference Sequence",
                     "Sequence Interval",
-                    "Somatic Variant Calls",
                     "Statistics",
                     "Unaligned Reads",
                     "CNV",
