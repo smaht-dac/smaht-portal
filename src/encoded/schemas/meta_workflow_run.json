@@ -181,5 +181,40 @@
                 }
             }
         }
+    },
+    "facets": {
+        "meta_workflow.category": {
+            "title": "Category"
+        },
+        "meta_workflow.name": {
+            "title": "Meta Workflow"
+        },
+        "meta_workflow.version": {
+            "title": "Version"
+        },
+        "final_status": {
+            "title": "Run Status"
+        },
+        "cost": {
+            "title": "Cost",
+            "aggregation_type": "stats"
+        }
+    },
+    "columns": {
+        "meta_workflow.category": {
+            "title": "Category"
+        },
+        "meta_workflow.name": {
+            "title": "Meta Workflow"
+        },
+        "meta_workflow.version": {
+            "title": "Version"
+        },
+        "final_status": {
+            "title": "Run Status"
+        },
+        "cost": {
+            "title": "Cost"
+        }
     }
 }
