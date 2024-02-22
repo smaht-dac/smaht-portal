@@ -1,4 +1,7 @@
-from snovault import collection, load_schema
+from typing import List
+
+from pyramid.request import Request
+from snovault import calculated_property, collection, load_schema
 
 from .submitted_item import SubmittedItem
 
@@ -21,3 +24,19 @@ class FileSet(SubmittedItem):
     item_type = "file_set"
     schema = load_schema("encoded:schemas/file_set.json")
     embedded_list = _build_file_set_embedded_list()
+    rev = {
+        "files": ("File", "file_sets"),
+    }
+
+    @calculated_property(
+        schema={
+            "title": "Files",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "File",
+            },
+        },
+    )
+    def files(self, request: Request) -> List[str]:
+        return self.rev_link_atids(request, "files")
