@@ -182,6 +182,14 @@
             }
         }
     },
+    "cell_count": {
+        "cell_count": {
+            "title": "Cell Count",
+            "description": "The number of cells in the sample",
+            "type": "integer",
+            "minimum": 1
+        }
+    },
     "code": {
         "code": {
             "title": "Code",
@@ -651,6 +659,31 @@
                 "type": "string",
                 "linkTo": "Protocol"
             }
+        }
+    },
+    "reads_details": {
+        "read_count": {
+            "title": "Submitted Read Count",
+            "description": "Submitted number of reads in the file",
+            "type": "integer"
+        },
+        "read_length_median": {
+            "title": "Submitted Median Read Length",
+            "description": "Submitted median read length",
+            "type": "integer",
+            "minimum": 0
+        },
+        "read_length_ninetieth_percentile": {
+            "title": "Submitted Ninetieth Percentile Read Length",
+            "description": "Submitted ninetieth percentile read length",
+            "type": "integer",
+            "minimum": 0
+        },
+        "read_length_tenth_percentile": {
+            "title": "Submitted Tenth Percentile Read Length",
+            "description": "Submitted tenth percentile read length",
+            "type": "integer",
+            "minimum": 0
         }
     },
     "reference_genome": {
