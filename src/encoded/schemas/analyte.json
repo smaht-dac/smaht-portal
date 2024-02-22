@@ -215,7 +215,7 @@
         "submission_centers.display_title": {
             "title": "Submitted By"
         },
-        "Molecule": {
+        "molecule": {
             "title": "Molecule"
         },
         "status": {
@@ -226,7 +226,7 @@
         "submission_centers.display_title": {
             "title": "Submission Centers"
         },
-        "Molecule": {
+        "molecule": {
             "title": "Molecule"
         }
     }
