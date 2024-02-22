@@ -7,13 +7,40 @@ smaht-portal
 Change Log
 ----------
 
-0.24.1
+0.25.2
 ======
 
 `PR 96: Bm robots fix <https://github.com/smaht-dac/smaht-portal/pull/96>`_
 * Updated robots.txt to allow search engines, disallow known bots, and block /ingestion_status & /*-files downloads
 * Update SEO utilities to reflect SMaHT-specific text & branding (will need further adjustments in future, most likely)
 * Add small square SMaHT logo for use in search engines
+
+
+0.25.1
+======
+* Remove unnecessary file_format.json & insert from master-inserts
+* Remove duplicate code key from smaht-dac submission center in master-inserts
+
+
+0.25.0
+======
+
+`PR 92: Schema updates for submission <https://github.com/smaht-dac/smaht-portal/pull/92>`_
+
+* Add new properties suggested by previous submitters
+* Add fields to MetaWorkflow `custom_pf_fields` to bring in metadata from pipelines to files required for release
+* Breaking property requirement changes with upgraders to clean up schema changes from benchmarking data model release
+
+
+0.24.1
+======
+
+`PR 95: Tracking Item and Misc. Google Analytics Updates <https://github.com/smaht-dac/smaht-portal/pull/95>`_
+
+* Fixed a bug that prevents collecting submission center and file type dimensions in file views
+* Fixed the incorrect links in top files download statistics tooltip
+* Adds tracking_item py test
+* Removes/Replaces legacy 4DN-specific reports and styles
 
 
 0.24.0
@@ -44,6 +71,7 @@ Change Log
 ======
 
 `PR 84: More Benchmarking Data Sets <https://github.com/smaht-dac/smaht-portal/pull/84>`_
+
 * Update enums File `dataset` to include all expected cell line benchmarking data sets
 
 
@@ -51,6 +79,7 @@ Change Log
 ======
 
 `PR 57: Submitter ID Validation <https://github.com/smaht-dac/smaht-portal/pull/57>`_
+
 * Validate `submitter_id` for all submitted items
   * Validation includes: SubmissionCenter code, item type, and unique identifier
 
@@ -71,6 +100,7 @@ Change Log
 ======
 
 `PR 74: Table of Content improvements for RST content <https://github.com/smaht-dac/smaht-portal/pull/74>`_
+
 * user_content.py is updated to support multi-level TOC generation for RST content
 * Static_section.json in master-inserts is updated to correct text and navigation URL in Next - Previous links under the TOC
 * Level 1 titles are disabled under Documents in top navigation bar
@@ -99,6 +129,7 @@ Change Log
 ======
 
 `PR 45: UI Dev 4: End of January Release w/Benchmarking <https://github.com/smaht-dac/smaht-portal/pull/45>`_
+
 * UIs for Benchmarking Data
 * Google Analytics implementation
 * Navigation edits to accommodate new documentation, about, data pages
@@ -110,6 +141,7 @@ Change Log
 ======
 
 `PR 63: Benchmarking release data model <https://github.com/smaht-dac/smaht-portal/pull/63>`_
+
 * Add two new item types: Sequencer + Assay
 * Add `code` property to multiple item types to store file naming conventions
 * Share SubmittedFile release properties with OutputFile
@@ -163,6 +195,7 @@ Change Log
 ======
 
 `PR 58: Culture mixture parent types <https://github.com/smaht-dac/smaht-portal/pull/58>`_
+
 * Include CellCulture as parent item of CellCultureMixture for resolving reference during submissions
 
 
@@ -170,6 +203,7 @@ Change Log
 ======
 
 `PR 56: Implement submittable item API <https://github.com/smaht-dac/smaht-portal/pull/56>`_
+
 * Add functionality and tests for submittable item api to smaht portal
 * update lockfile with latest snovault that contains the primitive for this
 
@@ -178,6 +212,7 @@ Change Log
 ======
 
 `PR 50: Upgrader implementation <https://github.com/smaht-dac/smaht-portal/pull/50>`_
+
 * Add upgrader functionality from encoded-core + tests
 * Update dcicutils with schema_utils module
 
@@ -200,6 +235,7 @@ Change Log
 ======
 
 `PR 47: Fix admin affiliation validation <https://github.com/smaht-dac/smaht-portal/pull/47>`_
+
 * Fix and test item affiliation validation for admins
 
 
@@ -207,6 +243,7 @@ Change Log
 ======
 
 `PR 48: More QC value types <https://github.com/smaht-dac/smaht-portal/pull/48>`_
+
 * Allow any non-object JSON type for QC values instead of just strings
 
 
@@ -220,6 +257,7 @@ Change Log
 ======
 
 `PR 42: Bm user org profile <https://github.com/smaht-dac/smaht-portal/pull/42/files>`_
+
 * Rework broken editable fields on User Page
 * Add consortia and submission centers to User Page
 
