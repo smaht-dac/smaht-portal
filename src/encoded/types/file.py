@@ -76,6 +76,8 @@ def _build_file_embedded_list() -> List[str]:
     },
 )
 class File(Item, CoreFile):
+    OPEN = 'Open'
+    PROTECTED = 'Protected'
     item_type = "file"
     schema = load_schema("encoded:schemas/file.json")
     embedded_list = _build_file_embedded_list()
@@ -142,6 +144,22 @@ class File(Item, CoreFile):
     @calculated_property(schema=UPLOAD_KEY_SCHEMA)
     def upload_key(self, request: Request) -> str:
         return CoreFile.upload_key(self, request)
+
+    @calculated_property(schema={
+        "title": "File Access Status",
+        "description": "Access status for the file contents",
+        "type": "string",
+        "enum": [
+            "Open",
+            "Protected"
+        ]
+    })
+    def file_access_status(self, status: str) -> Optional[str]:
+        if status in ['public', 'released']:
+            return self.OPEN
+        elif status == 'restricted':
+            return self.PROTECTED
+        return None
 
 
 @view_config(name='drs', context=File, request_method='GET',
