@@ -156,8 +156,11 @@ class File(Item, CoreFile):
             },
         }
     )
-    def meta_workflow_run_inputs(self, request: Request) -> List[str]:
-        return self.rev_link_atids(request, "meta_workflow_run_inputs")
+    def meta_workflow_run_inputs(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "meta_workflow_run_inputs")
+        if result:
+            return result
+        return
 
     @calculated_property(
         schema={
@@ -169,8 +172,11 @@ class File(Item, CoreFile):
             },
         }
     )
-    def meta_workflow_run_outputs(self, request: Request) -> List[str]:
-        return self.rev_link_atids(request, "meta_workflow_run_outputs")
+    def meta_workflow_run_outputs(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "meta_workflow_run_outputs")
+        if result:
+            return result
+        return
 
 
 @view_config(name='drs', context=File, request_method='GET',

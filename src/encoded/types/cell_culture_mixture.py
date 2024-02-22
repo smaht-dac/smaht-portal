@@ -54,7 +54,11 @@ class CellCultureMixture(CellCulture):
                 for cell_culture_id in cell_culture_ids
             ]
             cell_lines = set(
-                [cell_culture.get("cell_line") for cell_culture in cell_cultures]
+                [
+                    cell_culture.get("cell_line") for cell_culture in cell_cultures
+                    if cell_culture.get("cell_line")
+                ]
             )
-            result = [cell_line for cell_line in cell_lines if cell_line]
+            if cell_lines:
+                result = sorted(list(cell_lines))
         return result
