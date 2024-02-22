@@ -154,7 +154,7 @@ class File(Item, CoreFile):
             "Protected"
         ]
     })
-    def file_access_status(self, status: str) -> Optional[str]:
+    def file_access_status(self, status: str = 'in review') -> Optional[str]:
         if status in ['public', 'released']:
             return self.OPEN
         elif status == 'restricted':

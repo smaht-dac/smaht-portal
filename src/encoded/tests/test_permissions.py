@@ -307,6 +307,112 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
         testapp.patch_json(f'/{atid}', {'status': new_status})
         submission_center_user_app.patch_json(f'/{atid}', {}, status=403)
 
+    @staticmethod
+    def test_submission_center_user_lacking_submits_for_cannot_create_or_edit(test_submission_center,
+                                                                              test_second_submission_center,
+                                                                              submission_center_user_app,
+                                                                              released_file, testapp,
+                                                                              smaht_gcc_user):
+        """ Tests that lacking submits_for prevents you from submitting data under your submission center
+            (and a different one) but you can still post personal data ie: access key
+        """
+        file_atid = released_file['@id']
+        user_atid = smaht_gcc_user['@id']
+        testapp.patch_json(f'{user_atid}?delete_fields=submits_for', {})
+        submission_center_user_app.patch_json(f'{file_atid}', {}, status=403)
+        submission_center_user_app.post_json('/Donor', {  # cannot submit a donor
+            'age': 37,
+            'sex': 'Female',
+            'submission_centers': [test_submission_center['uuid']],
+            'submitted_id': 'TEST_DONOR_ABCD'
+        }, status=403)
+        submission_center_user_app.post_json('/Donor', {  # cannot submit a donor under a diferrent center
+            'age': 37,
+            'sex': 'Female',
+            'submission_centers': [test_second_submission_center['uuid']],
+            'submitted_id': 'TEST_DONOR_ABCD'
+        }, status=403)
+        submission_center_user_app.post_json('/AccessKey', {  # can still create an access key
+            'user': smaht_gcc_user['@id'],
+            'description': 'test key',
+        }, status=201)
+
+    @staticmethod
+    def test_mixed_submission_center_no_write_overlap(test_submission_center, test_second_submission_center,
+                                                      submission_center_user_app, submission_center2_user_app):
+        """ Tests that users cannot submit for submission centers they are not a part of """
+        submission_center_user_app.post_json('/Donor', {  # cannot submit a donor on opposing center
+            'age': 37,
+            'sex': 'Female',
+            'submission_centers': [test_second_submission_center['uuid']],
+            'submitted_id': 'SECONDTEST_DONOR_ABCD'
+        }, status=403)
+        submission_center2_user_app.post_json('/Donor', {  # cannot submit a donor on opposing center
+            'age': 37,
+            'sex': 'Female',
+            'submission_centers': [test_submission_center['uuid']],
+            'submitted_id': 'TEST_DONOR_ABCD'
+        }, status=403)
+
+    @staticmethod
+    @pytest.mark.parametrize('new_status', [
+        'uploading',
+        'uploaded',
+        'upload failed',
+        'to be uploaded by workflow',
+        'in review'
+    ])
+    def test_mixed_submission_center_no_edit_overlap(test_submission_center, test_second_submission_center,
+                                                     submission_center_user_app, submission_center2_user_app,
+                                                     testapp, released_file, new_status):
+        """ Tests that users with different submits_for centers cannot edit each the opposing data in all editable
+            statuses
+        """
+        atid = released_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        submission_center_user_app.get(f'/{atid}', status=200)  # get should work
+        submission_center_user_app.patch_json(f'/{atid}', {}, status=200)  # matching submission center
+        submission_center2_user_app.get(f'/{atid}', status=403)  # get will not work since not in released status
+        submission_center2_user_app.patch_json(f'/{atid}', {}, status=422)  # different submits_for
+
+    @staticmethod
+    @pytest.mark.parametrize('new_status', [
+        'released',
+        'public',
+        'restricted'
+    ])
+    def test_mixed_submission_center_can_view_but_not_edit(test_submission_center, test_second_submission_center,
+                                                           submission_center_user_app, submission_center2_user_app,
+                                                           testapp, released_file, new_status):
+        """ Tests that users of opposing submission centers can view but not edit released data """
+        atid = released_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': new_status})
+        submission_center_user_app.get(f'/{atid}', status=200)
+        submission_center_user_app.patch_json(f'/{atid}', {}, status=[422, 403])
+        submission_center2_user_app.get(f'/{atid}', status=200)
+        submission_center2_user_app.patch_json(f'/{atid}', {}, status=[422, 403])
+
+    @staticmethod
+    def test_dbgap_group_with_restricted_status(submission_center_user_app, submission_center2_user_app, testapp,
+                                                protected_consortium_user_app, released_file, anontestapp,
+                                                authenticated_testapp):
+        """ Tests that users with the dbgap group can download protected data while others cannot """
+        atid = released_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': 'restricted'})
+        # all consortia members can view metadata
+        submission_center_user_app.get(f'/{atid}', status=200)
+        submission_center2_user_app.get(f'/{atid}', status=200)
+        protected_consortium_user_app.get(f'/{atid}', status=200)
+        anontestapp.get(f'/{atid}', status=403)
+        authenticated_testapp.get(f'/{atid}', status=403)
+        # but only protected user can download
+        submission_center_user_app.get(f'/{atid}@@download', status=403)
+        submission_center2_user_app.get(f'/{atid}@@download', status=403)
+        anontestapp.get(f'/{atid}@@download', status=403)
+        authenticated_testapp.get(f'/{atid}@@download', status=403)
+        protected_consortium_user_app.get(f'/{atid}@@download', status=307)
+        testapp.get(f'/{atid}@@download', status=307)  # admin as well
+
 
 class TestConsortiumPermissions(TestPermissionsHelper):
     """ Similar to above class, tests that consortium members can view (note: NOT edit) items
