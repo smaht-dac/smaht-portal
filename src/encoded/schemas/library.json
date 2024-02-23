@@ -122,6 +122,12 @@
             "type": "number",
             "minimum": 0
         },
+        "insert_coefficient_of_variation": {
+            "title": "Insert Coefficient of Variation",
+            "description": "Coefficient of variation of the length of the sample molecule in the fragments to be sequenced",
+            "type": "number",
+            "minimum": 0
+        },
         "insert_maximum_length": {
             "title": "Insert Maximum Length",
             "description": "Maximum length of the sample molecule in the fragments to be sequenced",
@@ -151,6 +157,24 @@
             "description": "Date of library preparation",
             "type": "string",
             "format": "date"
+        },
+        "target_insert_maximum_length": {
+            "title": "Target Insert Maximum Length",
+            "description": "Target maximum length of the insert (bp)",
+            "type": "integer",
+            "minimum": 0
+        },
+        "target_insert_mean_length": {
+            "title": "Target Insert Mean Length",
+            "description": "Target mean length of the insert (bp)",
+            "type": "integer",
+            "minimum": 0
+        },
+        "target_insert_minimum_length": {
+            "title": "Target Insert Minimum Length",
+            "description": "Target minimum length of the insert (bp)",
+            "type": "integer",
+            "minimum": 0
         },
         "analyte": {
             "title": "Analyte",

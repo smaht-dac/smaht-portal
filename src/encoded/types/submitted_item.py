@@ -255,11 +255,25 @@ def get_submission_centers_for_validation(
     )
 
 
+SUBMITTED_ITEM_ADD_VALIDATORS = [
+    validate_item_content_post,
+    validate_submitted_id_on_add,
+]
+SUBMITTED_ITEM_EDIT_PUT_VALIDATORS = [
+    validate_item_content_put,
+    validate_submitted_id_on_edit,
+]
+SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS = [
+    validate_item_content_patch,
+    validate_submitted_id_on_edit,
+]
+
+
 @view_config(
     context=SubmittedSmahtCollection,
     permission="add",
     request_method="POST",
-    validators=[validate_item_content_post, validate_submitted_id_on_add],
+    validators=SUBMITTED_ITEM_ADD_VALIDATORS,
 )
 @debug_log
 def submitted_collection_add(
@@ -272,13 +286,13 @@ def submitted_collection_add(
     context=SubmittedItem,
     permission="edit",
     request_method="PUT",
-    validators=[validate_item_content_put, validate_submitted_id_on_edit],
+    validators=SUBMITTED_ITEM_EDIT_PUT_VALIDATORS,
 )
 @view_config(
     context=SubmittedItem,
     permission="edit",
     request_method="PATCH",
-    validators=[validate_item_content_patch, validate_submitted_id_on_edit],
+    validators=SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS,
 )
 @debug_log
 def submitted_item_edit(
