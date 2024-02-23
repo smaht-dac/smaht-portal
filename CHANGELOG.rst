@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.25.3
+======
+
+`PR 100: Upgrader fixes <https://github.com/smaht-dac/smaht-portal/pull/100>`_
+
+* Fix file upgrader for handling additional enum values
+* Add upgrader for MetaWorkflow `custom_pf_fields`
+
+
 0.25.1
 ======
 * Remove unnecessary file_format.json & insert from master-inserts
