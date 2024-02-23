@@ -254,13 +254,24 @@ $facetlist-excluding: #450000;
 .above-results-table-row {
 	margin-top: 5px;
 
-	.right-buttons {
-		> button.btn {
-			display: inline-flex;
-			align-items: center;
-			@extend .fixed-height;
+	.row {
+		.right-buttons {
+			> button.btn.control {
+				display: inline-flex;
+				align-items: center;
+				
+				@extend .btn-outline-secondary;
+				@extend .fixed-height;
+
+				&:hover {
+					background: #DEE2E6;
+					border-color: #DEE2E6;
+					color: #343741;
+				}
+			}
 		}
 	}
+
 
 	// .search-result-config-panel {
 	// 	> .inner {
