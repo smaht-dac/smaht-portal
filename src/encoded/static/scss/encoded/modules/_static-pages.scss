@@ -753,8 +753,13 @@ body[data-path="/"]>#application>#layout {
 .consortium-map {
 	font-family: Inter;
 	position: relative;
-	nav {
+	.nav {
 		font-weight: 400;
+
+		.nav-item.active {
+			border: 2px solid #0B62BA;
+			font-weight: 500;
+		}
 	}
 	text {
 		font-family: Inter;
