@@ -1731,7 +1731,6 @@ body[data-pathname^="/data/benchmarking"] {
 					pre.curl-command {
 						border: 1px dashed #dedede;
 						padding: 5px;
-						text-overflow: ellipsis;
 					}
 					.curl-command-wrapper i.icon-copy {
 						margin-left: 5px;

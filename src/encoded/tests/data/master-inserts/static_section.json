@@ -398,6 +398,9 @@
         "file" : "/docs/source/uploading_files.rst",
         "section_type": "Page Section",
         "status": "public",
+        "options": {
+            "filetype": "rst"
+        },
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
