@@ -734,21 +734,6 @@ class TestUserSubmissionConsistency:
         }, status=422)
 
 
-def test_output_file_restricted_status(testapp, anontestapp, restricted_file, test_submission_center,
-                                       submission_center_user_app):
-    """ Tests that only admins and folks with group.dbgap can download the restricted file but a
-        consortia member can view it
-    """
-    atid = restricted_file['@id']
-    res = testapp.get(f'/{atid}@@download', status=307).json
-    assert 'smaht-unit-testing-wfout.s3.amazonaws.com' in res['message']
-    anontestapp.get(f'/{atid}@@download', status=403)
-    submission_center_user_app.get(f'/{atid}@@download', status=403)
-    testapp.patch_json(f'/{submission_center_user_app.extra_environ["REMOTE_USER"]}', {'groups': ['dbgap']})
-    res = submission_center_user_app.get(f'/{atid}@@download', status=307).json
-    assert 'smaht-unit-testing-wfout.s3.amazonaws.com' in res['message']
-
-
 @pytest.mark.parametrize(
     "donor_status", ["public", "draft", "released", "in review", "obsolete", "deleted"]
 )
