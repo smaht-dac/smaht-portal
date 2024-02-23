@@ -2,13 +2,13 @@
 Referencing Existing Data
 =========================
 
-Existing items in the database are sometimes required to submit new items. The links below will display all options available for referencing data already in the database.
+References to existing items in the database are sometimes required to submit new items. The links below will display all options available for referencing data already in the database.
 
 
 DAC-Controlled Items
 --------------------
 
-To reference an item controlled by the DAC, you can use values for any of the following properties:
+To link to an item controlled by the DAC, you can use values for any of the following properties:
 
 * `identifier`
 * `uuid`
@@ -65,7 +65,7 @@ FileFormats
 Submitted Items
 ---------------
 
-To reference an item submitted by other users, you can use values for any of the following properties:
+To link to an item submitted by other users, you can use values for any of the following properties:
 
 * `submitted_id`
 * `uuid`
