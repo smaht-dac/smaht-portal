@@ -16,7 +16,7 @@ def bam_file_json(
 ) -> Dict[str, Any]:
     """ Duplicating fixture since these live in another file that is not shared """
     item = {
-        'file_format': file_formats.get('bam').get('uuid'),
+        'file_format': file_formats.get('BAM').get('uuid'),
         'md5sum': '00000000000000000000000000000000',
         'content_md5sum': '00000000000000000000000000000000',
         'filename': 'my.bam',
@@ -34,10 +34,10 @@ def file(
 ) -> Dict[str, Any]:
     """ Duplicating fixture since these live in another file that is not shared """
     item = {
-        'file_format': file_formats.get('fastq').get('uuid'),
+        'file_format': file_formats.get('BAM').get('uuid'),
         'md5sum': '00000000000000000000000000000000',
         'content_md5sum': '00000000000000000000000000000000',
-        'filename': 'my.fastq.gz',
+        'filename': 'my.bam',
         'status': 'in review',
         'consortia': [test_consortium['uuid']],
         'data_category': ['Sequencing Reads'],

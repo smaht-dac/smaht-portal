@@ -181,6 +181,7 @@ const BenchmarkingTable = (props) => {
         // Sequencing Center
         'sequencing_center.display_title': {
             widthMap: { lg: 190, md: 190, sm: 190 },
+            colTitle: 'Seq Center',
         },
         // Method
         'software.display_title': {

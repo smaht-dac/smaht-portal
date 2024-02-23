@@ -11,8 +11,7 @@
         "filename",
         "reference_genome",
         "submission_centers",
-        "submitted_id",
-        "variant_type"
+        "submitted_id"
     ],
     "identifyingProperties": [
         "accession",
@@ -55,9 +54,6 @@
             "$ref": "mixins.json#/uuid"
         },
         {
-            "$ref": "mixins.json#/variant_type"
-        },
-        {
             "$ref": "file.json#/properties"
         },
         {
@@ -82,7 +78,6 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Variant Calls",
                     "Germline Variant Calls",
                     "Somatic Variant Calls"
                 ]
@@ -92,13 +87,6 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Copy Number Variant",
-                    "Insertion-deletion",
-                    "Mobile Element Insertion",
-                    "Single Nucleotide Variant",
-                    "Structural Variant",
-                    "Germline Variants",
-                    "Somatic Variants",
                     "CNV",
                     "Indel",
                     "MEI",
@@ -108,7 +96,7 @@
             }
         },
         "schema_version": {
-            "default": "1"
+            "default": "2"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_VARIANT-CALLS_[A-Z0-9-_.]{4,}$"

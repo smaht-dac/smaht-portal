@@ -6,11 +6,14 @@ from typing import Any, Dict, List, Optional, Union
 from dcicutils.misc_utils import to_camel_case, to_snake_case
 from dcicutils import schema_utils
 from pyramid.registry import Registry
+from pyramid.router import Router
 from snovault import Collection, COLLECTIONS, TYPES
 from snovault.typeinfo import AbstractTypeInfo, TypeInfo
+from snovault.upgrader import UPGRADER, Upgrader
 from webtest.app import TestApp
 
 from ..types.submitted_item import SubmittedItem
+from ..types.submitted_file import SubmittedFile
 
 
 def post_item_and_return_location(
@@ -84,15 +87,27 @@ def get_item(
 def get_search(
     testapp: TestApp,
     query: str,
-    status: Union[int, List[int]] = 200,
+    status: Union[int, List[int]] = [200, 301],
 ) -> List[Dict[str, Any]]:
     """Get search results for given query."""
-    return testapp.get(query, status=status).json["@graph"]
+    formatted_query = format_search_query(query)
+    response = testapp.get(formatted_query, status=status)
+    if response.status_int == 301:
+        return response.follow().json["@graph"]
+    if response.status_int == 200:
+        return response.json["@graph"]
+    return response.json
 
 
 def format_search_query(query: str) -> str:
     """Format search query for URL expectations."""
-    return f"/search/?{query}"
+    if query.startswith("/search"):
+        return query
+    if not query.startswith("/") and query.startswith("search"):
+        return f"/{query}"
+    if not query.startswith("?"):
+        return f"/search/?{query}"
+    return f"/search/{query}"
 
 
 def get_insert_identifier_for_item_type(testapp: TestApp, item_type: str) -> str:
@@ -239,7 +254,7 @@ def get_submitted_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
 
 def is_submitted_item(type_info: AbstractTypeInfo) -> bool:
     """Is type child of SubmittedItem?"""
-    return issubclass(type_info.factory, SubmittedItem)
+    return issubclass(type_info.factory, SubmittedItem) or issubclass(type_info.factory, SubmittedFile)
 
 
 def get_all_item_types(
@@ -386,6 +401,11 @@ def load_inserts(insert_file: Path) -> List[Dict[str, Any]]:
     """Load inserts from file."""
     with insert_file.open() as file_handle:
         return json.load(file_handle)
+
+
+def get_upgrader(app: Router) -> Upgrader:
+    """Get upgrader from app."""
+    return app.registry[UPGRADER]
 
 
 def get_item_properties_from_workbook_inserts(
