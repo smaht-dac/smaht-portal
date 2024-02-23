@@ -4,8 +4,8 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "components",
         "molecule",
+        "molecule_detail",
         "samples",
         "submission_centers",
         "submitted_id"
@@ -90,24 +90,6 @@
             "type": "number",
             "minimum": 0
         },
-        "components": {
-            "title": "Components",
-            "description": "Biological features included in the analyte",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "enum": [
-                    "Total DNA",
-                    "mRNA",
-                    "tRNA",
-                    "rRNA",
-                    "MicroRNA",
-                    "Total RNA"
-                ]
-            }
-        },
         "concentration": {
             "title": "Concentration",
             "description": "Analyte concentration",
@@ -134,6 +116,24 @@
                 "enum": [
                     "DNA",
                     "RNA"
+                ]
+            }
+        },
+        "molecule_detail": {
+            "title": "Molecule Detail",
+            "description": "Biological features included in the analyte",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Total DNA",
+                    "mRNA",
+                    "tRNA",
+                    "rRNA",
+                    "MicroRNA",
+                    "Total RNA"
                 ]
             }
         },
