@@ -13,6 +13,15 @@ Change Log
 * Permissions update: support for ``submits_for`` and ``restricted`` status
 
 
+0.25.2
+======
+
+`PR 96: Bm robots fix <https://github.com/smaht-dac/smaht-portal/pull/96>`_
+* Updated robots.txt to allow search engines, disallow known bots, and block /ingestion_status & /*-files downloads
+* Update SEO utilities to reflect SMaHT-specific text & branding (will need further adjustments in future, most likely)
+* Add small square SMaHT logo for use in search engines
+
+
 0.25.1
 ======
 * Remove unnecessary file_format.json & insert from master-inserts
