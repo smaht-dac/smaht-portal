@@ -68,6 +68,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/version"
         }
     ],
     "properties": {
@@ -79,6 +82,9 @@
         },
         "schema_version": {
             "default": "1"
+        },
+        "version": {
+            "pattern": "^[A-Za-z0-9_-.]{3,}$"
         },
         "files": {
             "title": "Files",
