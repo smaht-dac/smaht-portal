@@ -137,7 +137,8 @@
         "title": "Documentation",
         "status": "public",
         "children": [
-            "302faaf2-ca18-4a56-82d2-b961f7f2764d"
+            "302faaf2-ca18-4a56-82d2-b961f7f2764d",
+            "1ada4fca-af4b-4304-947d-59e2918ab728"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -344,6 +345,42 @@
         },
         "status": "public",
          "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources",
+        "uuid": "1ada4fca-af4b-4304-947d-59e2918ab728",
+        "title": "Additional Resources",
+        "status": "public",
+        "children": [
+            "27d149b5-164a-4351-9095-7be11d6371f7"
+        ],
+        "table-of-contents": {
+            "enabled": true
+        },
+         "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/sample-file-nomenclature",
+        "uuid": "27d149b5-164a-4351-9095-7be11d6371f7",
+        "title": "Sample and File Nomenclature",
+        "content": [
+            "e88a8a3d-cee8-430e-bfed-5c056bc384ea"
+        ],
+        "table-of-contents": {
+            "enabled": true
+        },
+        "status": "public",
+        "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "submission_centers": [
