@@ -2,6 +2,8 @@
  * NOTE: Because there is a custom top nav component (BigDropdownPageTreeMenu) being used
  * to render these items in two lists, you will need to also update that there whenever
  * adding or deleting a top-level key to/from this object (or if changing URL).
+ *
+ * Order of these items is reflected in the side nav on benchmarking page
  */
 
 export const BenchmarkingDataMap = {
@@ -88,59 +90,6 @@ export const BenchmarkingDataMap = {
             },
         ],
     },
-    // Brain: {
-    //     navBarTitle: 'Brain',
-    //     title: "Brain Primary Tissue Data",
-    //     description: "",
-    //     type: 'Primary Tissue Data',
-    //     path: '/data/benchmarking/brain',
-    //     tabMapArray: [
-    //         {
-    //             eventKey: '#frontal-lobe',
-    //             title: 'Frontal Lobe',
-    //             // searchHref: '/search/?type=ReferenceFile',
-    //         },
-    //         {
-    //             eventKey: '#cerebellum',
-    //             title: 'Cerebellum',
-    //             // searchHref: '/search/?type=ReferenceFile',
-    //         },
-    //         {
-    //             eventKey: '#hippocampus',
-    //             title: 'Hippocampus',
-    //             // searchHref: '/search/?type=ReferenceFile',
-    //         },
-    //         {
-    //             eventKey: '#temporal-lobe',
-    //             title: 'Temporal Lobe',
-    //             // searchHref: '/search/?type=ReferenceFile',
-    //         },
-    //         {
-    //             eventKey: '#dendate-gyrus',
-    //             title: 'Dendate Gyrus',
-    //             // searchHref: '/search/?type=ReferenceFile',
-    //         },
-    //     ],
-    // },
-    // Skin: {
-    //     navBarTitle: 'Skin',
-    //     title: "Skin Primary Tissue Data",
-    //     description: "",
-    //     type: 'Primary Tissue Data',
-    //     path: '/data/benchmarking/skin',
-    //     tabMapArray: [
-    //         {
-    //             eventKey: '#sun-exposed',
-    //             title: 'Sun Exposed',
-    //             // searchHref: '/search/?type=ReferenceFile',
-    //         },
-    //         {
-    //             eventKey: '#non-sun-exposed',
-    //             title: 'Non Sun Exposed',
-    //             // searchHref: '/search/?type=ReferenceFile',
-    //         },
-    //     ],
-    // },
     Lung: {
         navBarTitle: 'Lung',
         title: 'Lung Primary Tissue Data',
@@ -208,6 +157,59 @@ export const BenchmarkingDataMap = {
     //         {
     //             eventKey: '#main',
     //             title: 'Data',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //     ],
+    // },
+    // Brain: {
+    //     navBarTitle: 'Brain',
+    //     title: "Brain Primary Tissue Data",
+    //     description: "",
+    //     type: 'Primary Tissue Data',
+    //     path: '/data/benchmarking/brain',
+    //     tabMapArray: [
+    //         {
+    //             eventKey: '#frontal-lobe',
+    //             title: 'Frontal Lobe',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //         {
+    //             eventKey: '#cerebellum',
+    //             title: 'Cerebellum',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //         {
+    //             eventKey: '#hippocampus',
+    //             title: 'Hippocampus',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //         {
+    //             eventKey: '#temporal-lobe',
+    //             title: 'Temporal Lobe',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //         {
+    //             eventKey: '#dendate-gyrus',
+    //             title: 'Dendate Gyrus',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //     ],
+    // },
+    // Skin: {
+    //     navBarTitle: 'Skin',
+    //     title: "Skin Primary Tissue Data",
+    //     description: "",
+    //     type: 'Primary Tissue Data',
+    //     path: '/data/benchmarking/skin',
+    //     tabMapArray: [
+    //         {
+    //             eventKey: '#sun-exposed',
+    //             title: 'Sun Exposed',
+    //             // searchHref: '/search/?type=ReferenceFile',
+    //         },
+    //         {
+    //             eventKey: '#non-sun-exposed',
+    //             title: 'Non Sun Exposed',
     //             // searchHref: '/search/?type=ReferenceFile',
     //         },
     //     ],

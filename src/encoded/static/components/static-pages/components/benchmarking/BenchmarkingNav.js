@@ -24,21 +24,41 @@ export const BenchmarkingUINav = (props) => {
 
     let isCellLinePage = false;
     let isPrimaryTissuePage = false;
-    let currPageIndex = '0';
+    let currPageIndex = null;
 
+    // Create arrays by type
     const cellLinePages = BenchmarkingDataKeys.filter((key, i) => {
-        if (currPath.startsWith(BenchmarkingDataMap[key]['path'])) {
+        const isCellLine = BenchmarkingDataMap[key].type === 'Cell Line Data';
+        if (
+            currPath.startsWith(BenchmarkingDataMap[key]['path']) &&
+            isCellLine
+        ) {
             isCellLinePage = true;
-            currPageIndex = i.toString();
         }
-        return BenchmarkingDataMap[key].type === 'Cell Line Data';
+        return isCellLine;
     });
     const primaryTissuePages = BenchmarkingDataKeys.filter((key, i) => {
-        if (currPath.startsWith(BenchmarkingDataMap[key]['path'])) {
+        const isPrimaryTissue =
+            BenchmarkingDataMap[key].type === 'Primary Tissue Data';
+        if (
+            currPath.startsWith(BenchmarkingDataMap[key]['path']) &&
+            isPrimaryTissue
+        ) {
             isPrimaryTissuePage = true;
+        }
+        return isPrimaryTissue;
+    });
+
+    // Grab index of current item
+    cellLinePages.forEach((key, i) => {
+        if (currPath.startsWith(BenchmarkingDataMap[key]['path'])) {
             currPageIndex = i.toString();
         }
-        return BenchmarkingDataMap[key].type === 'Primary Tissue Data';
+    });
+    primaryTissuePages.forEach((key, i) => {
+        if (currPath.startsWith(BenchmarkingDataMap[key]['path'])) {
+            currPageIndex = i.toString();
+        }
     });
 
     return (
