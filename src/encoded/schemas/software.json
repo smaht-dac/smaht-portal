@@ -30,6 +30,12 @@
             "required": [
                 "submitted_id"
             ]
+        },
+        {
+            "required": [
+                "aliases",
+                "submitted_id"
+            ]
         }
     ],
     "identifyingProperties": [
