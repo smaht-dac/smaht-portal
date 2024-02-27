@@ -254,20 +254,20 @@ def print_structured_data_status(portal: Portal, structured_data: StructuredData
         for object_info in diffs[object_type]:
             PRINT(f"  - OBJECT: {object_info.path}")
             if not object_info.uuid:
-                PRINT(f"     Does not exist -> Will be CREATED")
+                PRINT(f"    Does not exist -> Will be CREATED")
             else:
-                PRINT(f"     Already exists -> {object_info.uuid} -> Will be UPDATED", end="")
+                PRINT(f"    Already exists -> {object_info.uuid} -> Will be UPDATED", end="")
                 if not object_info.diffs:
                     PRINT(" (but NO substantive diffs)")
                 else:
                     PRINT(" (substantive DIFFs below)")
                     for diff_path in object_info.diffs:
                         if (diff := object_info.diffs[diff_path]).creating_value:
-                            PRINT(f"      CREATE {diff_path}: {diff.value}")
+                            PRINT(f"     CREATE {diff_path}: {diff.value}")
                         elif diff.updating_value:
-                            PRINT(f"      UPDATE {diff_path}: {diff.updating_value} -> {diff.value}")
+                            PRINT(f"     UPDATE {diff_path}: {diff.updating_value} -> {diff.value}")
                         elif (diff := object_info.diffs[diff_path]).deleting_value:
-                            PRINT(f"      DELETE {diff_path}: {diff.value}")
+                            PRINT(f"     DELETE {diff_path}: {diff.value}")
 
 
 def get_file_size(file: str) -> int:

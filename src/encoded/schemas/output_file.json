@@ -68,9 +68,6 @@
             "$ref": "mixins.json#/uuid"
         },
         {
-            "$ref": "mixins.json#/variant_type"
-        },
-        {
             "$ref": "file.json#/properties"
         }
     ],
@@ -86,13 +83,21 @@
     ],
     "properties": {
         "schema_version": {
-            "default": "1"
+            "default": "2"
         },
         "extra_files": {
             "$merge": "encoded_core:schemas/file.json#/properties/extra_files"
         },
         "read_pair_number": {
             "$merge": "encoded:schemas/unaligned_reads.json#/properties/read_pair_number"
+        },
+        "output_status": {
+            "title": "Output status",
+            "description": "Output status of this file within the MetaWorkflowRun",
+            "type": "string",
+            "enum": [
+                "Final Output"
+            ]
         }
     }
 }

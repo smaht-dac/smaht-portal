@@ -5,8 +5,6 @@
             "smaht"
         ],
         "submitted_id": "TEST_SEQUENCING_NOVASEQ-500X",
-        "platform": "Illumina",
-        "instrument_model": "NovaSeq",
         "read_type": "Paired-end",
         "target_coverage": 500,
         "target_read_length": 150,
