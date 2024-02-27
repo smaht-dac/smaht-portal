@@ -60,7 +60,7 @@ def _build_file_embedded_list() -> List[str]:
     """Embeds for search on files."""
     return [
         "file_sets.assay",
-        "file_sets.library",
+        "file_sets.libraries",
         "file_sets.sequencing.sequencer",
         "software.name",
     ]
