@@ -4,8 +4,6 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "data_category",
-        "data_type",
         "file_format",
         "file_sets",
         "filename",
@@ -89,7 +87,10 @@
                 "enum": [
                     "Sequencing Reads"
                 ]
-            }
+            },
+            "default": [
+                "Sequencing Reads"
+            ]
         },
         "data_type": {
             "items": {
@@ -97,7 +98,10 @@
                 "enum": [
                     "Aligned Reads"
                 ]
-            }
+            },
+            "default": [
+                "Aligned Reads"
+            ]
         },
         "schema_version": {
             "default": "1"
