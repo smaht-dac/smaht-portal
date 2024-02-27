@@ -275,7 +275,7 @@ def test_submittable(testapp):
         'a260_a280_ratio', 'analyte_preparation', 'components', 'concentration',
         'molecule', 'protocols', 'ribosomal_rna_ratio', 'rna_integrity_number',
         'rna_integrity_number_instrument', 'sample_quantity', 'samples',
-        'submitted_id', 'tags', 'volume', 'weight',
+        'submitted_id', 'volume', 'weight',
      ]
     expected_req = ["components", "molecule", "samples", "submitted_id"]
     expected_dep_req = ['rna_integrity_number', 'rna_integrity_number_instrument']
