@@ -17,7 +17,7 @@ from dcicutils.creds_utils import SMaHTKeyManager
 #   DAC code in the portal
 
 # Define the named tuple
-User = namedtuple('User', ['first_name', 'last_name', 'email', 'submission_center'])
+User = namedtuple('User', ['first_name', 'last_name', 'email', 'submission_center', 'submits_for'])
 
 
 class UserCSVProcessorException(Exception):
@@ -42,8 +42,8 @@ class UserCSVProcessor:
     @staticmethod
     def build_user_from_row(row: list) -> User:
         """ Builds a 'User' namedtuple extracting from the format above """
-        first_name, last_name, email, submission_center = row[2], row[1], row[3], row[6]
-        return User(first_name, last_name, email, submission_center)
+        first_name, last_name, email, submission_center, submits_for = row[2], row[1], row[3], row[6], row[7]
+        return User(first_name, last_name, email, submission_center, submits_for)
 
     def generate_submission_center_list(self, user_csv_list: list[list]):
         """ Goes through the CSV and populates the submission center list """
@@ -107,8 +107,14 @@ class UserCSVProcessor:
                     }
                     if user.submission_center != 'nih':  # XXX: hardcode as NIH has no submission center
                         post_body['submission_centers'] = [user.submission_center]
+                        if user.submits_for == 'Yes':
+                            post_body['submits_for'] = [
+                                user.submission_center
+                            ]
                     if user.submission_center == 'dac':  # XXX: hardcode as this differs in spreadsheet
                         post_body['submission_centers'] = ['smaht_dac']
+                        post_body['submits_for'] = ['smaht_dac']  # all dac users can submit for us
+
                     ff_utils.post_metadata(post_body, '/User',  key=self.key,
                                            add_on='?check_only=true' if self.validate_only else '')
                     number_updated += 1
