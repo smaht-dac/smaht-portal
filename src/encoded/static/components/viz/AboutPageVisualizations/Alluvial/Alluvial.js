@@ -337,14 +337,12 @@ export const Alluvial = () => {
                             // When the element is dragged, use d3.pointer
                             // to correct the position
                             d.oldy = d3.pointer(event, this)[1];
-                            d3.select(this).attr('transform', (d) => {
-                                d.drag_event_start = event.y;
-                                return 'translate(' + d.x + ',' + d.y + ')';
-                            });
-
-                            frontElt
-                                .attr('href', `#${d.name}`)
-                                .attr('class', 'node');
+                            d3.select(this)
+                                .attr('transform', (d) => {
+                                    d.drag_event_start = event.y;
+                                    return 'translate(' + d.x + ',' + d.y + ')';
+                                })
+                                .raise();
                         })
                         .on('drag', dragmove)
                 );
@@ -427,11 +425,6 @@ export const Alluvial = () => {
                     link.attr('d', sankey.link());
                 }
             }
-
-            const frontElt = svg
-                .append('use')
-                .attr('id', 'use')
-                .attr('href', '');
         }
 
         return () => {
