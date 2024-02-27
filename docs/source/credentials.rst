@@ -29,11 +29,6 @@ Once you've obtained access and secret keys (per the previous) section, they sho
            "key": "<your-access-key-id>",
            "secret": "<your-secret-access-key>",
            "server": "https://data.smaht.org"
-       },
-       "staging": {
-           "key": "<your-access-key-id>",
-           "secret": "<your-secret-access-key>",
-           "server": "https://staging.smaht.org"
        }
    }
 
@@ -44,7 +39,7 @@ For example, using ``TextEdit``, from a MacOS Terminal window, like this::
 
 The environment name, e.g. ``data`` in the above example, is of your own choosing; this name will be used
 as the ``--env`` argument to the various `smaht-submitr` commands, e.g. ``submit-metadata-bundle`` and ``resume-uploads``.
-Though if you only have one environment defined in this file then this (``-env`` argument) will not be necessary.
+Though if you only have one environment defined in this file (as above) then this (``--env`` argument) will not be necessary.
 
 N.B. If you are not sure what ``server`` you should be submitting to, reach out to your contact on the SMaHT DAC Team.
 

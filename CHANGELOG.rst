@@ -12,6 +12,7 @@ Change Log
 
 * Removed master-inserts/file_format.json.
 * Changes for new skip_links (snovault.loadxl) mode for smaht-submitr. 
+* Documentation related to smaht-submitr updates.
 
 
 0.25.3
