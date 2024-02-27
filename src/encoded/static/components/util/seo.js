@@ -9,10 +9,10 @@ import { getNestedProperty } from '@hms-dbmi-bgm/shared-portal-components/es/com
 import { isServerSide } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/misc';
 import { patchedConsoleInstance as console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/patched-console';
 
-// @TODO Refactor for SMaHT
+// @TODO Additional refactoring for SMaHT
 
 export function shouldDisplayStructuredData(baseDomain) {
-    if (baseDomain.indexOf('data.4dnucleome.org') > -1) return true;
+    if (baseDomain.indexOf('data.smaht.org') > -1) return true;
     if (baseDomain.indexOf('localhost') > -1) return true;
     return false;
 }
@@ -48,9 +48,10 @@ export class CurrentContext extends React.PureComponent {
             '@id': currentURL,
         };
         // Optional but common
-        //if (context.accession || context.uuid){
-        //    base.identifier = context.accession || context.uuid;
-        //}
+        // if (context.identifier || context.accession || context.uuid) {
+        //     base.identifier =
+        //         context.identifier || context.accession || context.uuid;
+        // }
         if (context.description) {
             base.description = context.description;
         }
@@ -61,13 +62,17 @@ export class CurrentContext extends React.PureComponent {
         return base;
     }
 
+    /**
+     * @deprecated FROM 4DN
+     * TODO: May want to do something like this in the future for the various consortia/submission centers
+     */
     static labToSchema(lab, baseDomain) {
         if (!lab || !lab['@id'] || !lab.display_title) return null;
         var labRetObj = {
             '@type': 'EducationalOrganization',
             name: lab.display_title,
             url: baseDomain + lab['@id'],
-            knowsAbout: FullSite.dcicOrganization(baseDomain),
+            knowsAbout: FullSite.smahtConsortium(baseDomain),
         };
         if (lab.url && typeof lab.url === 'string') {
             labRetObj['sameAs'] = lab.url;
@@ -87,68 +92,69 @@ export class CurrentContext extends React.PureComponent {
         },
 
         /**
+         * @deprecated Need to double check if this will be useful for SMaHT; will we use TechArticle?
          * Generate an 'TechArticle' schema item for Help pages.
          * _OR_ a directory schema item if is a DirectoryPage, as well.
          */
-        HelpPage: function (context, hrefParts, baseDomain) {
-            if (context['@id'].slice(0, 6) !== '/help/') {
-                return null; // Skip if we're on Item page for a Static Page
-            }
-            var dcicOrg = FullSite.dcicOrganization(baseDomain);
+        // HelpPage: function (context, hrefParts, baseDomain) {
+        //     if (context['@id'].slice(0, 6) !== '/help/') {
+        //         return null; // Skip if we're on Item page for a Static Page
+        //     }
+        //     var dcicOrg = FullSite.smahtConsortium(baseDomain);
 
-            if (context['@type'].indexOf('DirectoryPage') > -1) {
-                return _.extend(
-                    _.omit(
-                        CurrentContext.commonSchemaBase(
-                            context,
-                            hrefParts,
-                            baseDomain,
-                            {
-                                '@type': 'CollectionPage',
-                                '@id': baseDomain + context['@id'],
-                            }
-                        ),
-                        'datePublished',
-                        'dateModified',
-                        '@id'
-                    ),
-                    {
-                        '@type': 'ItemList',
-                        itemListElement: _.map(
-                            context.children,
-                            function (childPage, idx) {
-                                return {
-                                    '@type': 'ListItem',
-                                    position: idx + 1,
-                                    url: baseDomain + '/' + childPage.name,
-                                };
-                            }
-                        ),
-                    }
-                );
-            } else {
-                return _.extend(
-                    _.omit(
-                        CurrentContext.commonSchemaBase(
-                            context,
-                            hrefParts,
-                            baseDomain,
-                            { '@id': baseDomain + context['@id'] }
-                        ),
-                        '@id'
-                    ),
-                    {
-                        '@type': 'TechArticle',
-                        headline: context.display_title || context.title,
-                        author: dcicOrg,
-                        publisher: dcicOrg,
-                        articleSection: 'Help',
-                        isAccessibleForFree: true,
-                        image: FullSite.logo4DN(baseDomain),
-                    }
-                );
-            }
-        },
+        //     if (context['@type'].indexOf('DirectoryPage') > -1) {
+        //         return _.extend(
+        //             _.omit(
+        //                 CurrentContext.commonSchemaBase(
+        //                     context,
+        //                     hrefParts,
+        //                     baseDomain,
+        //                     {
+        //                         '@type': 'CollectionPage',
+        //                         '@id': baseDomain + context['@id'],
+        //                     }
+        //                 ),
+        //                 'datePublished',
+        //                 'dateModified',
+        //                 '@id'
+        //             ),
+        //             {
+        //                 '@type': 'ItemList',
+        //                 itemListElement: _.map(
+        //                     context.children,
+        //                     function (childPage, idx) {
+        //                         return {
+        //                             '@type': 'ListItem',
+        //                             position: idx + 1,
+        //                             url: baseDomain + '/' + childPage.name,
+        //                         };
+        //                     }
+        //                 ),
+        //             }
+        //         );
+        //     } else {
+        //         return _.extend(
+        //             _.omit(
+        //                 CurrentContext.commonSchemaBase(
+        //                     context,
+        //                     hrefParts,
+        //                     baseDomain,
+        //                     { '@id': baseDomain + context['@id'] }
+        //                 ),
+        //                 '@id'
+        //             ),
+        //             {
+        //                 '@type': 'TechArticle',
+        //                 headline: context.display_title || context.title,
+        //                 author: dcicOrg,
+        //                 publisher: dcicOrg,
+        //                 articleSection: 'Help',
+        //                 isAccessibleForFree: true,
+        //                 image: FullSite.logoSMaHT(baseDomain),
+        //             }
+        //         );
+        //     }
+        // },
     };
 
     /**
@@ -190,10 +196,10 @@ export class CurrentContext extends React.PureComponent {
 }
 
 const FullSite = {
-    logo4DN: function (baseDomain = 'https://data.4dnucleome.org') {
+    logoSMaHT: function (baseDomain = 'https://data.smaht.org') {
         return {
             '@type': 'ImageObject',
-            caption: 'Logo for the 4DN Data Portal',
+            caption: 'Logo for the SMaHT Data Portal',
             width: {
                 '@type': 'QuantitativeValue',
                 unitCode: 'E37',
@@ -204,18 +210,17 @@ const FullSite = {
                 unitCode: 'E37',
                 value: 300,
             },
-            //"url" : "https://data.4dnucleome.org/static/img/4dn_logo.svg" // TODO: Update to .png version
-            url: baseDomain + '/static/img/4dn-logo-raster.png', // TODO: Update to .png version
+            url: baseDomain + '/static/img/smaht-logo-seo.png',
         };
     },
 
-    dcicOrganization: function (portalBaseDomain, short = true) {
+    smahtConsortium: function (portalBaseDomain, short = true) {
         var shortVersion = {
             '@type': 'EducationalOrganization',
-            name: '4DN Data Coordination and Integration Center',
-            sameAs: 'http://dcic.4dnucleome.org/',
-            url: 'https://data.4dnucleome.org/',
-            logo: FullSite.logo4DN(portalBaseDomain),
+            name: 'Somatic Mosaicism across Human Tissues (SMaHT) Network',
+            // sameAs: 'http://dcic.4dnucleome.org/', // TODO: when we have an "about" page, maybe add that here
+            url: 'https://data.smaht.org/',
+            logo: FullSite.logoSMaHT(portalBaseDomain),
         };
         if (short) return shortVersion;
         return _.extend(shortVersion, {
@@ -235,26 +240,13 @@ const FullSite = {
                     },
                     sameAs: 'https://www.youtube.com/HarvardDBMI',
                 },
-                {
-                    '@type': 'EducationalOrganization',
-                    name: 'Mirny Lab',
-                    url: 'http://mirnylab.mit.edu/',
-                    logo: 'http://mirnylab.mit.edu/assets/images/logo.jpg',
-                    parentOrganization: {
-                        '@type': 'CollegeOrUniversity',
-                        name: 'MIT',
-                        alternateName: 'Massachusetts Institute of Technology',
-                        url: 'http://web.mit.edu',
-                        logo: 'http://www.mit.edu/themes/mit/assets/favicon/android-icon-192x192.png',
-                    },
-                },
+                // TODO: Should we add other non-DAC consortium members here? Which ones?
             ],
             knowsAbout: [
-                'http://higlass.io/',
-                'https://higlass.4dnucleome.org/',
-                'http://www.4dnucleome.org/',
-                'http://www.4dnucleome.org/',
-                'https://commonfund.nih.gov/4dnucleome',
+                // 'http://higlass.io/', TODO: May want to restore this, add chromoscope, goslang, any others, etc. in future.
+                'http://www.smaht.org/',
+                'https://www.smaht.org/',
+                'https://commonfund.nih.gov/smaht',
             ],
         });
     },
@@ -266,8 +258,8 @@ const FullSite = {
                 '@type': 'WebSite',
                 url: baseDomain + '/',
                 description:
-                    'The 4D Nucleome Data Portal hosts data generated by the 4DN Network and other reference nucleomics data sets, and an expanding tool set for open data processing and visualization.',
-                creator: FullSite.dcicOrganization(baseDomain, false),
+                    'The SMaHT Data Portal hosts data generated by the Somatic Mosaicism across Human Tissues (SMaHT) Network and provides a platform to search, visualize, and download somatic mosaic variants in normal tissues.',
+                creator: FullSite.smahtConsortium(baseDomain, false),
             }
         );
     },

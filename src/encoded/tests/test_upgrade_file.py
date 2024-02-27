@@ -97,6 +97,19 @@ from .utils import get_upgrader
                 "schema_version": "2",
             },
         ),
+        (
+            {
+                "data_category": ["Variant Calls"],
+                "data_type": ["Somatic Variant Calls"],
+                "variant_type": ["Single Nucleotide Variant", "Insertion-deletion"],
+                "schema_version": "1",
+            },
+            {
+                "data_category": ["Somatic Variant Calls"],
+                "data_type": ["SNV", "Indel"],
+                "schema_version": "2",
+            },
+        ),
     ]
 )
 def test_upgrade_variant_info_1_2(
