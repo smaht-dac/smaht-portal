@@ -49,6 +49,16 @@
             "$ref": "sample.json#/properties"
         }
     ],
+    "mixinFacets": [
+        {
+            "$ref": "sample.json#/facets"
+        }
+    ],
+    "mixinColumns": [
+        {
+            "$ref": "sample.json#/columns"
+        }
+    ],
     "properties": {
         "accession": {
             "accessionType": "TS"

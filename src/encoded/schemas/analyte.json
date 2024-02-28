@@ -210,5 +210,24 @@
                 "linkTo": "Sample"
             }
         }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "molecule": {
+            "title": "Molecule"
+        },
+        "status": {
+            "title": "Status"
+        }
+    },
+    "columns": {
+        "submission_centers.display_title": {
+            "title": "Submission Centers"
+        },
+        "molecule": {
+            "title": "Molecule"
+        }
     }
 }

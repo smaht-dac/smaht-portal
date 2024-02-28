@@ -96,5 +96,18 @@
                 ]
             }
         }
+    },
+    "facets": {
+        "platform": {
+            "title": "Platform"
+        }
+    },
+    "columns": {
+        "identifier": {
+            "title": "Identifier"
+        },
+        "code": {
+            "title": "Code"
+        }
     }
 }

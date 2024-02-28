@@ -56,6 +56,9 @@
             "$ref": "mixins.json#/tags"
         },
         {
+            "$ref": "mixins.json#/title"
+        },
+        {
             "$ref": "mixins.json#/uuid"
         }
     ],
@@ -84,6 +87,19 @@
                     "VariantCalls"
                 ]
             }
+        }
+    },
+    "facets": {
+        "valid_item_types": {
+            "title": "Valid File Types"
+        }
+    },
+    "columns": {
+        "identifier": {
+            "title": "Identifier"
+        },
+        "standard_file_extension": {
+            "title": "Standard File Extension"
         }
     }
 }

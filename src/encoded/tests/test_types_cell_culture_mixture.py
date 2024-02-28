@@ -21,3 +21,14 @@ def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None
         collection="CellCulture",
         status=301,
     )
+
+
+@pytest.mark.workbook
+def test_cell_line(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure cell_line calcprop working."""
+    item = get_item(
+        es_testapp,
+        "TEST_CELL-CULTURE-MIXTURE_HELA-HEK293",
+        collection="CellCulture",
+    )
+    assert len(item.get("cell_line", [])) == 1

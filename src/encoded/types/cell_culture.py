@@ -3,6 +3,13 @@ from snovault import collection, load_schema
 from .sample_source import SampleSource
 
 
+def _build_cell_culture_embedded_list():
+    """Embeds for search on cell cultures."""
+    return [
+        "cell_line.code",
+    ]
+
+
 @collection(
     name="cell-cultures",
     unique_key="submitted_id",
@@ -14,4 +21,4 @@ from .sample_source import SampleSource
 class CellCulture(SampleSource):
     item_type = "cell_culture"
     schema = load_schema("encoded:schemas/cell_culture.json")
-    embedded_list = []
+    embedded_list = _build_cell_culture_embedded_list()

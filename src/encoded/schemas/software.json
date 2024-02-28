@@ -139,5 +139,30 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_SOFTWARE_[A-Z0-9-_.]{4,}$"
         }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "category": {
+            "title": "Category"
+        },
+        "status": {
+            "title": "Status"
+        }
+    },
+    "columns": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "category": {
+            "title": "Category"
+        },
+        "title": {
+            "title": "Name"
+        },
+        "version": {
+            "title": "Version"
+        }
     }
 }
