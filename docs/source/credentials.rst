@@ -57,7 +57,8 @@ Before you can view protected data or data submitted to the SMaHT system you mus
 
 For instructions on creating an account, please see `this page </docs/user-guide/account-creation>`_.
 
-**Metadata and data accessibility.**
+Metadata and Data Accessibility
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Most metadata items have the following default permissions:
 

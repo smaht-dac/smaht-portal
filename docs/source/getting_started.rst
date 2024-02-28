@@ -62,7 +62,7 @@ Most commonly, the file format recommended for metadata submission to SMaHT Port
    without its content interfering the submission tool.
 #. The name of the spreadsheet file must be suffixed with ``.xls`` or ``.xlsx``; there are no other requirements for the name of this file.
 
-Here is screenshot of a simple example Excel spreadsheet:
+Despite the rather dense chunk of text here, it is actually pretty intiutive, straightforward, and almost self-explanatory. Here is screenshot of a simple example Excel spreadsheet:
 
 .. image:: /static/img/docs/excel_screenshot.png
    :target: /static/img/docs/excel_screenshot.png
@@ -159,7 +159,7 @@ If you belong to multiple consortia and/or submission centers, you can also add 
 Validation
 ----------
 
-As mentioned in the `previous section <usage.html#submission>`_, using the ``--submit`` option `will` perform validation of your metadata before submitting it (after prompting you to do so). But if you want to `only` run validation `without` submitting the metadata to SMaHT Portal, then invoke ``submit-metadata-bundle`` with the ``--validate`` option like::
+As mentioned in the previous section, using the ``--submit`` option `will` perform validation of your metadata before submitting it (after prompting you to do so). But if you want to `only` run validation `without` submitting the metadata to SMaHT Portal, then invoke ``submit-metadata-bundle`` with the ``--validate`` option like::
 
    submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --validate
 
