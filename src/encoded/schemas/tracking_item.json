@@ -74,6 +74,11 @@
                                         "type" : "string",
                                         "title" : "Country"
                                     },
+                                    "ga:users" : {
+                                        "type" : "integer",
+                                        "title" : "Users",
+                                        "description" : "Total Number of Users"
+                                    },
                                     "ga:sessions" : {
                                         "type" : "integer",
                                         "title" : "Session Count",
@@ -109,6 +114,11 @@
                                     "ga:deviceCategory" : {
                                         "type" : "string",
                                         "title" : "Country"
+                                    },
+                                    "ga:users" : {
+                                        "type" : "integer",
+                                        "title" : "Users",
+                                        "description" : "Total Number of Users"
                                     },
                                     "ga:sessions" : {
                                         "type" : "integer",
