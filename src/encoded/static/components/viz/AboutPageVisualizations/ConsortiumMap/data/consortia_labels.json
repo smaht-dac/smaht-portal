@@ -65,9 +65,14 @@
         "institution": ["University of Utah"]
     },
     {
-        "x": 635,
-        "y": 170,
+        "x": 680,
+        "y": 155,
         "institution": ["University of", "Michigan"]
+    },
+    {
+        "x": 630,
+        "y": 210,
+        "institution": ["Van Andel", "Institute"]
     },
     {
         "x": 10,

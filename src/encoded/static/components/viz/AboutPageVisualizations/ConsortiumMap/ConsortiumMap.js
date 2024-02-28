@@ -27,45 +27,47 @@ const ConsortiumTable = () => {
     const centerRows = [];
 
     consortia.forEach((c, i) => {
-        const centerTypeClass =
-            'center-type align-middle text-center consortium-table-' +
-            c['center-type-short'];
-        const pis = c['pis'].map((p, j) => {
-            return (
-                <div className="text-nowrap" key={j}>
-                    {p}
-                </div>
+        if (c['include_in_table']) {
+            const centerTypeClass =
+                'center-type align-middle text-center consortium-table-' +
+                c['center-type-short'];
+            const pis = c['pis'].map((p, j) => {
+                return (
+                    <div className="text-nowrap" key={j}>
+                        {p}
+                    </div>
+                );
+            });
+            centerRows.push(
+                <tr key={i}>
+                    <td className={centerTypeClass}>
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            placement="right"
+                            overlay={
+                                <Tooltip id="button-tooltip-2">
+                                    {c['center-type']}
+                                </Tooltip>
+                            }>
+                            <div className="px-1">{c['center-type-short']}</div>
+                        </OverlayTrigger>
+                    </td>
+                    <td className="align-middle border-right">{pis}</td>
+                    <td className="align-middle border-right">
+                        {c?.table_institution_name ?? c['institution']}
+                    </td>
+                    <td className="align-middle">
+                        {c['project']} <br />
+                        <small>
+                            Project number:{' '}
+                            <a href={c['url']} target="_blank" rel="noreferrer">
+                                {c['project-number']}
+                            </a>
+                        </small>
+                    </td>
+                </tr>
             );
-        });
-        centerRows.push(
-            <tr key={i}>
-                <td className={centerTypeClass}>
-                    <OverlayTrigger
-                        trigger={['hover', 'focus']}
-                        placement="right"
-                        overlay={
-                            <Tooltip id="button-tooltip-2">
-                                {c['center-type']}
-                            </Tooltip>
-                        }>
-                        <div className="px-1">{c['center-type-short']}</div>
-                    </OverlayTrigger>
-                </td>
-                <td className="align-middle border-right">{pis}</td>
-                <td className="align-middle border-right">
-                    {c['institution']}
-                </td>
-                <td className="align-middle">
-                    {c['project']} <br />
-                    <small>
-                        Project number:{' '}
-                        <a href={c['url']} target="_blank" rel="noreferrer">
-                            {c['project-number']}
-                        </a>
-                    </small>
-                </td>
-            </tr>
-        );
+        }
     });
 
     return (
@@ -129,7 +131,7 @@ export const ConsortiumMap = () => {
 
     const handleShowOverlay = (e, d) => {
         overlayTarget.current = {
-            node: e.target,
+            node: d3.select(`[data-marker-project='${d['iid']}']`).node(),
             data: d,
         };
         setShowOverlay(true);
@@ -195,19 +197,24 @@ export const ConsortiumMap = () => {
         addConnectionLines(svg, centerCoods['WashU'], 'St. Louis');
         addConnectionLines(svg, centerCoods['Baylor'], 'Houston');
 
-        svg.selectAll('.m')
+        const mapMarkerIcons = svg
+            .selectAll('.map-marker-icon')
             .data(consortia)
             .enter()
-            .append('use')
-            .attr('href', '#map-marker-svg')
+            .append('g')
+            .attr('transform', (d) => {
+                return `translate(${d.x}, ${d.y + 4})`;
+            })
+            .append('svg')
+            .attr('data-marker-project', (d, i) => {
+                d['iid'] = d['project-number'] + '-' + i;
+                return d['iid'];
+            })
+            .attr('viewBox', '0 0 60 100')
             .attr('height', MARKER_SIZE)
             .attr('width', MARKER_SIZE)
             .attr('fill', (d) => d['marker-color-hex'])
             .attr('class', 'map-marker-icon')
-            .style('cursor', 'pointer')
-            .attr('transform', (d) => {
-                return `translate(${d.x + 8}, ${d.y + 4})`;
-            })
             .on('mouseover', (evt, d) => {
                 handleShowOverlay(evt, d);
             })
@@ -223,6 +230,23 @@ export const ConsortiumMap = () => {
                 evt.preventDefault();
                 window.open(d.url, '_blank');
             });
+
+        mapMarkerIcons
+            .append('path')
+            .attr(
+                'd',
+                'M28.9998 0.416992C13.4188 0.416992 0.798828 13.044 0.798828 28.618C0.798828 34.945 2.88183 40.786 6.40083 45.491L24.4898 76.823C24.5948 77.025 24.6998 77.226 24.8288 77.411L24.8688 77.48L24.8798 77.474C25.8038 78.752 27.2908 79.585 29.0148 79.585C30.5708 79.585 31.9268 78.877 32.8598 77.786L32.9068 77.813L33.0858 77.503C33.3498 77.147 33.5838 76.767 33.7528 76.348L51.4748 45.65C55.0668 40.917 57.2008 35.018 57.2008 28.618C57.2008 13.044 44.5808 0.416992 28.9998 0.416992ZM28.7208 42.915C21.0438 42.915 14.8258 36.694 14.8258 29.02C14.8258 21.347 21.0438 15.125 28.7208 15.125C36.3978 15.125 42.6158 21.347 42.6158 29.02C42.6158 36.693 36.3978 42.915 28.7208 42.915Z'
+            )
+            .attr('opacity', '1');
+
+        mapMarkerIcons
+            .append('path')
+            .attr(
+                'd',
+                'M43 28.5C43 36.5081 36.5081 43 28.5 43C20.4919 43 14 36.5081 14 28.5C14 20.4919 20.4919 14 28.5 14C36.5081 14 43 20.4919 43 28.5Z'
+            )
+            .attr('fill', 'black')
+            .attr('opacity', '0');
 
         addMarkerDots(svg);
 
@@ -241,17 +265,42 @@ export const ConsortiumMap = () => {
         const legendBasePosY = 470;
 
         consortiaLegend.forEach((label, i) => {
-            svg.append('use')
-                .attr('href', '#map-marker-svg')
-                .attr('height', 27)
-                .attr('width', 27)
+            const labelSvgGroup = svg
+                .append('g')
+                .attr('class', 'consortium-legend');
+
+            const labelSvg = labelSvgGroup
+                .append('svg')
                 .attr('x', legendBasePosX)
                 .attr('y', legendBasePosY + i * 25)
+                .attr('viewBox', '0 0 60 100')
+                .attr('class', 'map-marker-icon')
+                .attr('height', 27)
+                .attr('width', 27)
                 .attr('fill', label['marker-color-hex']);
 
-            svg.append('text')
+            labelSvg
+                .append('path')
+                .attr(
+                    'd',
+                    'M28.9998 0.416992C13.4188 0.416992 0.798828 13.044 0.798828 28.618C0.798828 34.945 2.88183 40.786 6.40083 45.491L24.4898 76.823C24.5948 77.025 24.6998 77.226 24.8288 77.411L24.8688 77.48L24.8798 77.474C25.8038 78.752 27.2908 79.585 29.0148 79.585C30.5708 79.585 31.9268 78.877 32.8598 77.786L32.9068 77.813L33.0858 77.503C33.3498 77.147 33.5838 76.767 33.7528 76.348L51.4748 45.65C55.0668 40.917 57.2008 35.018 57.2008 28.618C57.2008 13.044 44.5808 0.416992 28.9998 0.416992ZM28.7208 42.915C21.0438 42.915 14.8258 36.694 14.8258 29.02C14.8258 21.347 21.0438 15.125 28.7208 15.125C36.3978 15.125 42.6158 21.347 42.6158 29.02C42.6158 36.693 36.3978 42.915 28.7208 42.915Z'
+                )
+                .attr('opacity', '1');
+
+            labelSvg
+                .append('path')
+                .attr(
+                    'd',
+                    'M43 28.5C43 36.5081 36.5081 43 28.5 43C20.4919 43 14 36.5081 14 28.5C14 20.4919 20.4919 14 28.5 14C36.5081 14 43 20.4919 43 28.5Z'
+                )
+                .attr('fill', 'black')
+                .attr('opacity', '0');
+
+            labelSvgGroup
+                .append('text')
                 .attr('x', legendBasePosX + 28)
                 .attr('y', legendBasePosY + 15 + i * 25)
+                .attr('fill', 'black')
                 .text(label['center-type'])
                 .style('font-size', '15px')
                 .attr('alignment-baseline', 'middle');

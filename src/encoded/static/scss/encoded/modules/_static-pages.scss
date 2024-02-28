@@ -767,7 +767,7 @@ body[data-path="/"]>#application>#layout {
 	text {
 		font-family: Inter;
 	}
-	use.map-marker-icon:hover {
+	.map-marker-icon:hover {
 		stroke: #636262ba;
 		stroke-width: 1px;
 		transition: stroke-width 150ms;
@@ -780,7 +780,7 @@ body[data-path="/"]>#application>#layout {
 		margin: none;
 	}
 
-	#map-marker-svg:hover {
+	.map-marker-icon:hover {
 		cursor: pointer;
 	}
 
@@ -816,6 +816,11 @@ body[data-path="/"]>#application>#layout {
 	.consortium-legend {
 		background-color: #e3e3e3;
 		position: absolute;
+
+		.map-marker-icon:hover {
+			cursor:default;
+		}
+	
 	}
 	.consortium-tooltip {
 		line-height: 20px;
