@@ -40,7 +40,7 @@ export const BenchmarkingLayout = ({
                 <div className="col-auto mb-2 mb-lg-0 col-lg-3">
                     {showBamQCLink && (
                         <a
-                            className="btn btn-outline-secondary float-right"
+                            className="btn btn-outline-secondary btn-sm float-right"
                             href={'/bam-qc-overview' + bamQCHash}
                             rel="noreferrer noopener"
                             target="_blank">

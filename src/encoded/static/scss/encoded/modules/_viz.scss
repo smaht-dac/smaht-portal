@@ -644,6 +644,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     @media screen and (min-width: 576px) {
 
         &-content {
+            height: 100%;
             .card {
                 &-body {
                     width: 350px;
@@ -658,6 +659,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             justify-content: space-between;
             margin-bottom: 50px;
             padding: 0px 25px;
+            height: 695px;
             .card {
                 width: fit-content;
                 margin: 0px;
@@ -737,6 +739,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         &-content {
             margin-bottom: 0px;
             padding: 0px;
+            height: 665px;
             .card {
                 width: auto;
                 
@@ -821,6 +824,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     
         &-content {
             margin-bottom: 0px;
+            height: 665px;
     
             .card {
                 width: auto;
