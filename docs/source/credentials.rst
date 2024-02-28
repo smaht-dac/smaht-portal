@@ -4,7 +4,6 @@ Credentials
 
 If you have been designated as a submitter for the project, and plan to use spreadsheet-based submission system (``smaht-submitr``) to view, upload, create, or update data from/to the SMaHT data portal, you are required to obtain and setup an access and secret key from the SMaHT data portal. These must stored in a specific format and file on your local system. Please follow these steps below to get your access keys and configure your local system for ``smath-submitr`` usage.
 
-|
 
 Obtaining SMaHT Data Portal Access Keys
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -14,7 +13,6 @@ Obtaining SMaHT Data Portal Access Keys
 #. On your profile page, click the green **Add Access Key** button, and copy the **Access Key ID** and **Secret Access Key** values from the popup page. Note that *once the pop-up page disappears you will not be able to see the secret access key value*. However, if you forget/lose your secret key you can always delete and add new access keys from your profile page at any time.
 #. Store these values the file ``~/.smaht-keys.json`` on your local machine; see the next section for details.
 
-|
 
 Storing SMaHT Data Portal Access Keys
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -48,9 +46,9 @@ For extra security, this file should **not** be readable by others; only yoursel
    $ ls -l ~/.smaht-keys.json
    -rw-------  1 youruser  staff  137 Jan 31 08:55 /Users/your_username/.smaht-keys.json
 
-|
-
 Getting Added as a SMaHT User or Submitter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Before you can view protected data or data submitted to the SMaHT system you must be a registered user of the site and have the appropriate access credentials.
 
 * To view data that is still in the review phase you must be registered as a member of the submission center that produced the data.

@@ -82,7 +82,6 @@ And also notice the multiple tabs at the bottom for the different sheets within 
 
 **Tip:** Other file formats besides Excel actually `are` supported; see `this document <https://submitr.readthedocs.io/en/draft/advanced_usage.html#other-files-formats>`_ for more information.
 
-|
 
 Object Reference Properties
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -127,7 +126,6 @@ Property Deletions
 
 A column value within a (non-header) data row may be empty, but this only means that the value will be ignored when creating or updating the associated object. In order to actually `delete` a property value from an object, a special value - ``*delete*`` - should be used as the the property value.
 
-|
 
 Submission
 ----------
@@ -155,6 +153,7 @@ This command should do everything, `including` uploading any referenced files, p
 If you belong to multiple consortia and/or submission centers, you can also add the ``--consortium <consortium>`` and ``--submission-center <submission-center>`` options; if you belong to only one, the command will automatically detect (based on your user profile) and use those.
 
 **Tip**: You may wonder: Is it okay to submit the same metadata file more that once? The answer is: Yes. And, if you had made any changes to the file, updates will be applied as expected.
+
 
 Validation
 ----------
@@ -198,7 +197,6 @@ And if you additionally specify the ``--verbose`` option the output will look so
     :target: /static/img/docs/validate_verbose_output.png
     :alt: Validation Verbose Output Screenshot
 
-|
 
 Getting Submission Info
 -----------------------
@@ -208,7 +206,6 @@ To view relevant information about a submission using, do::
 
 where the ``uuid`` argument is the UUID for the submission which should have been displayed in the output of the ``submit-metadata-bundle`` command.
 
-|
 
 Listing Recent Submissions
 --------------------------
