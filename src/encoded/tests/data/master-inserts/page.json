@@ -31,10 +31,10 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-          "enabled": false,
-          "skip-depth": 1,
-          "header-depth": 4,
-          "include-top-link": false
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
         },
         "uuid": "d2d042e7-09e5-4a34-a8c5-530ba9c9cdec",
         "consortia": [
@@ -55,10 +55,10 @@
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
         "table-of-contents": {
-          "enabled": false,
-          "skip-depth": 1,
-          "header-depth": 4,
-          "include-top-link": false
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
         },
         "uuid": "af03023c-1ce0-49a1-b85b-20f5abd8cc30",
         "consortia": [
@@ -76,10 +76,10 @@
             "f1601ba5-483b-4133-a76b-5bec7caa2dd2"
         ],
         "table-of-contents": {
-          "enabled": false,
-          "skip-depth": 1,
-          "header-depth": 4,
-          "include-top-link": false
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
         },
         "uuid": "6da98599-12a7-456f-8598-da510a88c7e8",
         "consortia": [
@@ -98,10 +98,10 @@
             "eb1d19d5-5ebe-4e89-a8d7-fc50a8c85a61"
         ],
         "table-of-contents": {
-          "enabled": false,
-          "skip-depth": 1,
-          "header-depth": 4,
-          "include-top-link": false
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
         },
         "uuid": "1ef242a4-954c-4c77-9193-3ec3b1a8e7d7",
         "consortia": [
@@ -119,10 +119,10 @@
             "dd5198bb-72ba-4c5b-9736-3ba785814a20"
         ],
         "table-of-contents": {
-          "enabled": false,
-          "skip-depth": 1,
-          "header-depth": 4,
-          "include-top-link": false
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
         },
         "uuid": "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd",
         "consortia": [
@@ -258,7 +258,7 @@
     },
     {
         "identifier": "docs/user-guide",
-        "uuid": "302faaf2-ca18-4a56-82d2-b961f7f2764d",
+        "uuid": "cdb6ad75-303b-4629-acdc-4fc533fc5aca",
         "title": "User Guide",
         "status": "public",
         "children": [
@@ -270,7 +270,7 @@
         "table-of-contents": {
             "enabled": true
         },
-         "consortia": [
+        "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "submission_centers": [
@@ -288,7 +288,7 @@
             "enabled": true
         },
         "status": "public",
-         "consortia": [
+        "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "submission_centers": [
@@ -325,7 +325,7 @@
             "enabled": true
         },
         "status": "public",
-         "consortia": [
+        "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "submission_centers": [
@@ -343,7 +343,7 @@
             "enabled": true
         },
         "status": "public",
-         "consortia": [
+        "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "submission_centers": [
@@ -354,7 +354,9 @@
         "identifier": "data",
         "title": "Data",
         "status": "public",
-        "children": ["39deafe0-34ae-4ab8-8261-3661b0c79a38"],
+        "children": [
+            "39deafe0-34ae-4ab8-8261-3661b0c79a38"
+        ],
         "table-of-contents": {
             "enabled": true,
             "header-depth": 4
