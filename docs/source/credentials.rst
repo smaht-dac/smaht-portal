@@ -13,6 +13,36 @@ Obtaining SMaHT Data Portal Access Keys
 #. On your profile page, click the green **Add Access Key** button, and copy the **Access Key ID** and **Secret Access Key** values from the popup page. Note that *once the pop-up page disappears you will not be able to see the secret access key value*. However, if you forget/lose your secret key you can always delete and add new access keys from your profile page at any time.
 #. Store these values the file ``~/.smaht-keys.json`` on your local machine; see the next section for details.
 
+| 
+
+For example, getting to your **Profile** and clicking **Add Access Key** ...
+
+|
+
+.. image:: /static/img/docs/credentials_access_key_before.png
+   :target: /static/img/docs/credentials_access_key_before.png
+   :alt: Portal Access Key Creation
+
+|
+
+After clicking on **Add Access Key** - Save the **Access Key ID** and **Secret Access Key** to your keys file ...
+
+|
+
+.. image:: /static/img/docs/credentials_access_key_created.png
+   :target: /static/img/docs/credentials_access_key_created.png
+   :alt: Portal Access Key Creation
+
+|
+
+After after dismissing the above by clicking the **X** ...
+
+|
+
+.. image:: /static/img/docs/credentials_access_key_after.png
+   :target: /static/img/docs/credentials_access_key_after.png
+   :alt: Portal Access Key Creation
+
 
 Storing SMaHT Data Portal Access Keys
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
