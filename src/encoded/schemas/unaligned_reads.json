@@ -36,9 +36,6 @@
             "$ref": "mixins.json#/modified"
         },
         {
-            "$ref": "mixins.json#/reads_details"
-        },
-        {
             "$ref": "mixins.json#/schema_version"
         },
         {
