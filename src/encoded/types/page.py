@@ -43,7 +43,7 @@ def validate_unique_page_name(context, request):
             if hasattr(context, 'uuid') and getattr(lookup_res, 'uuid', None) == context.uuid:
                 return
             error_msg = ("page %s already exists with name '%s'. This field must be unique"
-                         % (lookup_res.uuid, data['name']))
+                         % (lookup_res.uuid, data['identifier']))
             request.errors.add('body', 'Page: non-unique identifier',  error_msg)
             return
 
