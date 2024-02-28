@@ -35,6 +35,8 @@ To create or modify and edit this file, use a text editor of your choice (``vim`
 
 The environment name, e.g. ``data`` in the above example, is of your own choosing; this name will be used as the ``--env`` argument to the various `smaht-submitr` commands, e.g. ``submit-metadata-bundle`` and ``resume-uploads``. Though if you only have one environment defined in this file (as above) then this (``--env`` argument) will not be necessary. N.B. If you are not sure what ``server`` you should be submitting to, reach out to your contact on the SMaHT DAC Team.
 
+If you only have `one` single environment defined in your keys file then the ``--env`` argument will `not` be necessary when using the ``smaht-submit`` commands.
+
 Securing SMaHT Data Portal Access Keys
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
