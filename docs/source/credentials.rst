@@ -25,7 +25,7 @@ For example, getting to your **Profile** and clicking **Add Access Key** ...
 
 |
 
-After clicking on **Add Access Key** - Save the **Access Key ID** and **Secret Access Key** to your keys file ...
+After clicking **Add Access Key** - Save the **Access Key ID** and **Secret Access Key** to your keys file ...
 
 |
 
@@ -35,7 +35,7 @@ After clicking on **Add Access Key** - Save the **Access Key ID** and **Secret A
 
 |
 
-After after dismissing the above by clicking the **X** ...
+After dismissing the above by clicking the **X** ...
 
 |
 
