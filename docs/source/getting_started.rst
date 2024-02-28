@@ -183,7 +183,7 @@ The output of a successful ``submit-metadata-bundle --submit`` will look somethi
     :target: /static/img/docs/submit_output.png
     :alt: Submission Output Screenshot
 
-Notice the **Submission tracking ID** value in section as well as **Upload File ID** values; these may be used in a subsequent ``resume-uploads`` invocation; see the `Uploading Files <uploading_files.html>`_ section for more on this.
+Notice the **Submission tracking ID** value in section as well as **Upload File ID** values; these may be used in a subsequent ``resume-uploads`` invocation; see the Uploading Files  section for more on this.
 
 When instead specifying the ``--validate`` option the output will look something like this:
 
