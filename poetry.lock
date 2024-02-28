@@ -1135,14 +1135,13 @@ develop = ["coverage (<5.0.0)", "mock", "pytest (>=3.0.0)", "pytest-cov", "pytes
 
 [[package]]
 name = "encoded-core"
-version = "0.8.1"
+version = "0.8.2"
 description = "Core data models for Park Lab ENCODE based projects"
 category = "main"
 optional = false
 python-versions = ">=3.8.1,<3.12"
 files = [
-    {file = "encoded_core-0.8.1-py3-none-any.whl", hash = "sha256:85739e82b9bcfea943d2de3b8eb2f9e46eb63d73010e295d59cf3533e6a19177"},
-    {file = "encoded_core-0.8.1.tar.gz", hash = "sha256:90ed2c40b11c19ac68ed54d187cce00e1278cd5661478ed07e94f7ff349dfa69"},
+    {file = "encoded_core-0.8.2-py3-none-any.whl", hash = "sha256:21b8eb4323e9b54dd69a54075b59701423607fe871bb16e0a54da93dcc3ef349"},
 ]
 
 [package.dependencies]
@@ -3634,4 +3633,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "bf4a9554b6afc0ab75711898b7668a7a20eb8113e884cdaa0f7b3969a72849d1"
+content-hash = "b1365ec1fb528e8f554efbfb4161a6fcb02f5e008fdcd3608224b060b923de6f"
