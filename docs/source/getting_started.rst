@@ -9,25 +9,21 @@ These pages are designed to:
 * Show you how to find out what kind of metadata we collect for your particular type of experiment.
 * Introduce the mechanisms by which you can submit your metadata and associated data files to the SMaHT data portal.
 
-An overview of metadata structure is pending, check back soon!
-
 The primary way to submit data to the SMaHT data portal is via Excel spreadsheet, as described below.
 
-Installing the Submission Tool
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The SMaHT data portal submission tool is implemented as a command-line Python package,
-and is distributed on `PyPi <https://pypi.org/project/smaht-submitr/>`_.
-It requires Python version 3.9, 3.10, or 3.11.
-Installation is done via the standard Python ``pip`` command-line install tool like this::
+**Tip**: More more detailed, comprehsensive (though perhaps a bit more developer oriented) documentation, please see the ReadTheDocs documentation here:
 
-    pip install smaht-submitr
+* https://submitr.readthedocs.io/en/draft/
 
-Once installed, these key commands will be available for execution form the command-line: ``submit-metadata-bundle``, ``resume-uploads``
+An overview of the actual metadata structure is pending, check back soon! Though for now a reference can be found here:
+
+* https://submitr.readthedocs.io/en/draft/object_model.html
+
 
 Data Submission via Excel Spreadsheet
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Uploading metadata and associated data files to the SMaHT data portal can be done using a software tool called ``smaht-submitr``. This is a Python based command-line tool which is distributed on `PyPi <https://pypi.org/>`_ here: `smaht-submitr <https://pypi.org/project/smaht-submitr/>`_ The metadata is represented by an Excel spreadsheet (also called `workbook`) which contains a number of sheets (also called `worksheets`).
+Uploading metadata and associated data files to the SMaHT data portal can be done using a software tool called ``smaht-submitr``. This is a Python based command-line tool which is distributed on PyPi. The metadata is represented by an Excel spreadsheet (also called `workbook`) which contains a number of sheets (also called `worksheets`).
 
 Such Excel metadata workbooks:
 
@@ -38,7 +34,15 @@ Such Excel metadata workbooks:
 
 Spreadsheet generation tools may be made available in the future; please contact the DAC directly for data submission templates. More extensive documentation of the data submission process can be found `here <https://submitr.readthedocs.io/en/latest/>`_.
 
-|
+
+Installing the Submission Tool
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The SMaHT data portal submission tool is implemented as a command-line Python package, and is distributed on `PyPi <https://pypi.org/project/smaht-submitr/>`_.  It requires Python version 3.9, 3.10, or 3.11.  Installation is done via the standard Python ``pip`` command-line install tool like this::
+
+    pip install smaht-submitr
+
+Once installed, these key commands will be available for execution form the command-line: ``submit-metadata-bundle``, ``resume-uploads``
+
 
 Formatting Files for Submission
 -------------------------------
