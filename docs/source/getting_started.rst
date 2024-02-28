@@ -11,7 +11,7 @@ These pages are designed to:
 
 The primary way to submit data to the SMaHT data portal is via Excel spreadsheet, as described below.
 
-**Tip**: More more detailed, comprehsensive (though perhaps a bit more developer oriented) documentation, please see the ReadTheDocs documentation here:
+**Tip**: For more detailed, comprehsensive (though perhaps a bit more developer oriented) documentation, please see our ReadTheDocs based documentation here:
 
 * https://submitr.readthedocs.io/en/draft/
 
@@ -23,7 +23,7 @@ An overview of the actual metadata structure is pending, check back soon! Though
 Data Submission via Excel Spreadsheet
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Uploading metadata and associated data files to the SMaHT data portal can be done using a software tool called ``smaht-submitr``. This is a Python based command-line tool which is distributed on PyPi. The metadata is represented by an Excel spreadsheet (also called `workbook`) which contains a number of sheets (also called `worksheets`).
+Uploading metadata and associated data files to the SMaHT data portal can be done using a software tool called ``smaht-submitr``. This is a Python based command-line tool which is distributed on PyPi. The metadata is represented by an Excel spreadsheet (also called a `workbook`) which contains a number of sheets (also called `worksheets`).
 
 Such Excel metadata workbooks:
 
@@ -132,13 +132,11 @@ A column value within a (non-header) data row may be empty, but this only means 
 Submission
 ----------
 
-The type of submission supported is called a "metadata bundles", or `accessioning`. And the name of the command-line tool to initiate a submission is ``submit-metadata-bundle``. A brief tour of this command, its arguments, and function is described below.
-To get help about the command, do::
+The type of submission supported is called a "metadata bundles", or `accessioning`. And the name of the command-line tool to initiate a submission is ``submit-metadata-bundle``. A brief tour of this command, its arguments, and function is described below. To get help about the command, do::
 
   submit-metadata-bundle --help
 
-To submit your metadata run ``submit-metadata-bundle`` with your metadata file, and the SMaHT environment name (e.g. ``data``) from your keys file (as described in the `Credentials </docs/user-guide/credentials>`_ section) as an argument to the ``--env`` option, and the `--submit` option.
-For example::
+To submit your metadata run ``submit-metadata-bundle`` with your metadata file, and the SMaHT environment name (e.g. ``data``) from your keys file (as described in the `Credentials </docs/user-guide/credentials>`_ section) as an argument to the ``--env`` option, and the ``--submit`` option. For example::
 
    submit-metadata-bundle your_metadata_file.xlsx --env data --submit
 
@@ -161,7 +159,7 @@ If you belong to multiple consortia and/or submission centers, you can also add 
 Validation
 ----------
 
-As mentioned in the `previous section <usage.html#submission>`_, using the ``--submit`` option `will` perform validation of your metadata before submitting it (after prompting you to do so). But if you want to `only` run validation `without` submitting the metadata to SMaHT Portal, then invoke ``submit-metadata-bundle`` with the :boldcode:`--validate` option like::
+As mentioned in the `previous section <usage.html#submission>`_, using the ``--submit`` option `will` perform validation of your metadata before submitting it (after prompting you to do so). But if you want to `only` run validation `without` submitting the metadata to SMaHT Portal, then invoke ``submit-metadata-bundle`` with the ``--validate`` option like::
 
    submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --validate
 
@@ -186,8 +184,7 @@ The output of a successful ``submit-metadata-bundle --submit`` will look somethi
     :target: /static/img/docs/submit_output.png
     :alt: Submission Output Screenshot
 
-Notice the **Submission tracking ID** value in section as well as **Upload File ID** values;
-these may be used in a subsequent ``resume-uploads`` invocation; see the `Uploading Files <uploading_files.html>`_ section for more on this.
+Notice the **Submission tracking ID** value in section as well as **Upload File ID** values; these may be used in a subsequent ``resume-uploads`` invocation; see the `Uploading Files <uploading_files.html>`_ section for more on this.
 
 When instead specifying the ``--validate`` option the output will look something like this:
 
