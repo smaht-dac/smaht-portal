@@ -220,6 +220,7 @@ export const ConsortiumMap = () => {
                     .style('top', evt.offsetY + 70 + 'px');
             })
             .on('click', function (evt, d) {
+                evt.preventDefault();
                 window.open(d.url, '_blank');
             });
 
