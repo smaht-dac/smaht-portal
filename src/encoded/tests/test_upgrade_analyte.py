@@ -15,8 +15,8 @@ from .utils import get_upgrader
             {"schema_version": "2"},
         ),
         (
-            {"components": ["Genomic DNA"], "schema_version": "1"},
-            {"molecule_detail": ["Genomic DNA"], "schema_version": "2"},
+            {"components": ["Total DNA", "mRNA"], "schema_version": "1"},
+            {"molecule_detail": ["Total DNA", "mRNA"], "schema_version": "2"},
         ),
     ],
 )
