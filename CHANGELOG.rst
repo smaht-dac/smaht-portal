@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+0.27.0
+======
+
+`PR 104: Automated submission alignment <https://github.com/smaht-dac/smaht-portal/pull/104>`_
+
+* Update select property names to align with those in the 'manual' submission template
+* Remove select properties suggested by feedback from submitters
+* Create defaults and remove requirements for properties that currently only have one enum value
+* Fix UUIDs in master-inserts to match items in the database
+
+
 0.26.0
 ======
 
