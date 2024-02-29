@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * NOTE: Because there is a custom top nav component (BigDropdownPageTreeMenu) being used
  * to render these items in two lists, you will need to also update that there whenever
@@ -5,6 +7,9 @@
  *
  * Order of these items is reflected in the side nav on benchmarking page
  */
+
+const primaryTissuePageDescription =
+    'The SMaHT benchmarking tissues were obtained from two post mortem donors. From each donor, three tissue types, i.e., lung, liver, and colon, were obtained, homogenized and subjected to sequencing.';
 
 export const BenchmarkingDataMap = {
     COLO829: {
@@ -54,7 +59,22 @@ export const BenchmarkingDataMap = {
     iPScFibroblasts: {
         navBarTitle: 'iPSC and Fibroblasts',
         title: 'iPSC Cell Line Data',
-        description: '',
+        description: (
+            <span>
+                For the SMaHT benchmarking study, five distinct clones of
+                induced pluripotent stem cells (iPSCs; specifically the clone
+                #1, #2, #4, #52, and #60) derived from a fibroblast cell line,
+                LB-LA2, were cultured and expanded. The iPSC lines and the
+                fibroblast cell lines were initially described in{' '}
+                <a
+                    href="https://pubmed.ncbi.nlm.nih.gov/33737484/"
+                    target="_blank"
+                    rel="noreferrer noopener">
+                    Fasching L et al. (2021) Science
+                </a>
+                .
+            </span>
+        ),
         type: 'Cell Line Data',
         path: '/data/benchmarking/iPSC-fibroblasts',
         tabMapArray: [
@@ -93,7 +113,7 @@ export const BenchmarkingDataMap = {
     Lung: {
         navBarTitle: 'Lung',
         title: 'Lung Primary Tissue Data',
-        description: '',
+        description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
         path: '/data/benchmarking/lung',
         tabMapArray: [
@@ -112,7 +132,7 @@ export const BenchmarkingDataMap = {
     Liver: {
         navBarTitle: 'Liver',
         title: 'Liver Primary Tissue Data',
-        description: '',
+        description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
         path: '/data/benchmarking/liver',
         tabMapArray: [
@@ -131,7 +151,7 @@ export const BenchmarkingDataMap = {
     Colon: {
         navBarTitle: 'Colon',
         title: 'Colon Primary Tissue Data',
-        description: '',
+        description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
         path: '/data/benchmarking/colon',
         tabMapArray: [
