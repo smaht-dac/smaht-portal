@@ -70,7 +70,7 @@
     {
         "name": "STORM-Seq",
         "display_name": "STORM-Seq",
-        "description": "Single-cell TOtal RNA Miniaturized sequencing; a single-cell full-length ribo-reduced total RNA sequencing using short-read platforms.",
+        "description": "Single-cell Total RNA Miniaturized sequencing; a single-cell full-length ribo-reduced total RNA sequencing using short-read platforms.",
         "link": "https://www.biorxiv.org/content/10.1101/2022.03.14.484332v1"
     },
     {
