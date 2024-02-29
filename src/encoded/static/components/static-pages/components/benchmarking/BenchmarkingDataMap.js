@@ -8,8 +8,13 @@ import React from 'react';
  * Order of these items is reflected in the side nav on benchmarking page
  */
 
-const primaryTissuePageDescription =
-    'The SMaHT benchmarking tissues were obtained from two post mortem donors. From each donor, three tissue types, i.e., lung, liver, and colon, were obtained, homogenized and subjected to sequencing.';
+const primaryTissuePageDescription = (
+    <span>
+        The SMaHT benchmarking tissues were obtained from two <i>post mortem</i>{' '}
+        donors. From each donor, three tissue types, i.e., lung, liver, and
+        colon, were obtained, homogenized and subjected to sequencing.
+    </span>
+);
 
 export const BenchmarkingDataMap = {
     COLO829: {
