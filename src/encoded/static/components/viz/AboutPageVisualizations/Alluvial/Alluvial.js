@@ -96,7 +96,7 @@ export const Alluvial = () => {
             header_row
                 .append('text')
                 .attr('class', 'header')
-                .attr('transform', 'translate(' + 645 + ',' + 20 + ')')
+                .attr('transform', 'translate(' + 640 + ',' + 20 + ')')
                 .text('Assay Type');
 
             header_row
@@ -165,7 +165,7 @@ export const Alluvial = () => {
 
             // Legend rows for Assay Groups
             legend_row(
-                'WGS',
+                'Whole Genome',
                 [
                     graph.colors.assay_group['1-1'],
                     graph.colors.assay_group['1-2'],
@@ -174,10 +174,10 @@ export const Alluvial = () => {
                 0,
                 523
             );
-            legend_row('Group 2', [graph.colors.assay_group['2-1']], 30, 523);
-            legend_row('Group 3', [graph.colors.assay_group['3-1']], 60, 523);
+            legend_row('NT-Seq', [graph.colors.assay_group['2-1']], 30, 523);
+            legend_row('Hi-C', [graph.colors.assay_group['3-1']], 60, 523);
             legend_row(
-                'RNA-Seq',
+                'Whole Transcriptome',
                 [
                     graph.colors.assay_group['4-1'],
                     graph.colors.assay_group['4-2'],
