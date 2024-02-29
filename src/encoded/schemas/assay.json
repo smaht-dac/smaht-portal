@@ -74,5 +74,13 @@
         "schema_version": {
             "default": "1"
         }
+    },
+    "columns": {
+        "identifier": {
+            "title": "Identifier"
+        },
+        "code": {
+            "title": "Code"
+        }
     }
 }

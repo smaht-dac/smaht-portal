@@ -7,12 +7,26 @@ smaht-portal
 Change Log
 ----------
 
-0.25.4
+0.27.0
 ======
 
-`PR 105: GA4 file sequencing center updates <https://github.com/smaht-dac/smaht-portal/pull/105>`_
+`PR 104: Automated submission alignment <https://github.com/smaht-dac/smaht-portal/pull/104>`_
 
-* Replaces submission center with sequencing center in file views/downloads GA4 analytics
+* Update select property names to align with those in the 'manual' submission template
+* Remove select properties suggested by feedback from submitters
+* Create defaults and remove requirements for properties that currently only have one enum value
+* Fix UUIDs in master-inserts to match items in the database
+
+
+0.26.0
+======
+
+`PR 99: Submission links <https://github.com/smaht-dac/smaht-portal/pull/99>`_
+
+* Add documentation page for finding data relevant to submissions
+* Add templates for submissions
+* Improve columns + facets for searching on collections
+* Add calcprops for searching on collections
 
 
 0.25.3

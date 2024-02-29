@@ -4,8 +4,6 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "data_category",
-        "data_type",
         "file_format",
         "file_sets",
         "filename",
@@ -16,6 +14,33 @@
         "accession",
         "submitted_id",
         "uuid"
+    ],
+    "oneOf": [
+        {
+            "properties": {
+                "read_pair_number": {
+                    "const": "R2"
+                }
+            },
+            "required": [
+                "paired_with",
+                "read_pair_number"
+            ]
+        },
+        {
+            "properties": {
+                "read_pair_number": {
+                    "not": {
+                        "const": "R2"
+                    }
+                }
+            },
+            "not": {
+                "required": [
+                    "paired_with"
+                ]
+            }
+        }
     ],
     "additionalProperties": false,
     "mixinProperties": [
@@ -36,9 +61,6 @@
         },
         {
             "$ref": "mixins.json#/modified"
-        },
-        {
-            "$ref": "mixins.json#/reads_details"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -82,7 +104,10 @@
                 "enum": [
                     "Sequencing Reads"
                 ]
-            }
+            },
+            "default": [
+                "Sequencing Reads"
+            ]
         },
         "data_type": {
             "items": {
@@ -90,7 +115,10 @@
                 "enum": [
                     "Unaligned Reads"
                 ]
-            }
+            },
+            "default": [
+                "Unaligned Reads"
+            ]
         },
         "schema_version": {
             "default": "1"

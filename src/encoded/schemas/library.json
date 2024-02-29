@@ -53,6 +53,9 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_LIBRARY_[A-Z0-9-_.]{4,}$"
+        },
         "a260_a280_ratio": {
             "title": "A260 A280 Ratio",
             "description": "Ratio of nucleic acid absorbance at 260 nm and 280 nm, used to determine a measure of DNA purity",
@@ -75,18 +78,6 @@
             "type": "integer",
             "minimum": 0
         },
-        "amplification_end_mass": {
-            "title": "Amplification End Mass",
-            "description": "Weight of analyte after PCR (ng)",
-            "type": "number",
-            "minimum": 0
-        },
-        "amplification_start_mass": {
-            "title": "Amplification Start Mass",
-            "description": "Weight of analyte prior to PCR (ng)",
-            "type": "number",
-            "minimum": 0
-        },
         "analyte_weight": {
             "title": "Analyte Weight",
             "description": "Weight of analyte used to prepare library (mg)",
@@ -96,7 +87,12 @@
         "barcode_sequences": {
             "title": "Barcode Sequences",
             "description": "Barcode sequence for multiplexed sequencing",
-            "type": "string"
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string"
+            }
         },
         "fragment_maximum_length": {
             "title": "Fragment Maximum Length",
@@ -187,9 +183,19 @@
             "description": "Link to associated library preparation",
             "type": "string",
             "linkTo": "LibraryPreparation"
+        }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
         },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_LIBRARY_[A-Z0-9-_.]{4,}$"
+        "status": {
+            "title": "Status"
+        }
+    },
+    "columns": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
         }
     }
 }
