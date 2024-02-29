@@ -7,7 +7,6 @@ import us from './data/us.json';
 import consortia from './data/consortia.json';
 import consortiaLegend from './data/consortia_legend.json';
 import consortiaLabels from './data/consortia_labels.json';
-import { MapMarkerSvg } from './MapMarkerSvg';
 
 import {
     OverlayTrigger,
@@ -411,8 +410,6 @@ export const ConsortiumMap = () => {
                                     </PopoverContent>
                                 </Popover>
                             </Overlay>
-                            {/* Load MapMarker svg to link to from <use> elements */}
-                            <MapMarkerSvg />
                         </div>
                     </Tab>
                     <Tab eventKey="table" title="Table view" className="pt-5">

@@ -26,7 +26,6 @@ export const Alluvial = () => {
 
     // Run after JSX renders (for the ref), then add to the DOM
     useEffect(() => {
-        console.log({ ...fixed_data });
         const color_schemes = {
             data_generator: d3
                 .scaleOrdinal()
