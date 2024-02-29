@@ -50,13 +50,41 @@ export const BenchmarkingDataMap = {
     HapMap: {
         navBarTitle: 'HapMap',
         title: 'HapMap Cell Line Data',
-        description: '',
+        description: (
+            <div>
+                <p>
+                    For the SMaHT benchmarking study, six cell lines profiled in
+                    the International HapMap project (hence the “HapMap” cell
+                    lines) were mixed at Coriell, and the cell mixture samples
+                    were distributed to GCCs and TTDs for analyses.
+                </p>
+
+                <p>
+                    Information about the six HapMap cell lines and mixture
+                    ratios are the following:
+                </p>
+
+                <ul>
+                    <li>
+                        0.5%: HG00438 (Female; Asian Chinese Han in the South)
+                    </li>
+                    <li>2%: HG002 (Male; European Ashkenazim Jewish)</li>
+                    <li>2%: HG02257 (Female; African Caribbean in Barbados)</li>
+                    <li>2%: HG02486 (Male; African Caribbean in Barbados)</li>
+                    <li>
+                        10%: HG02622 (Female; African Gambian in Western
+                        Division, Mandinka)
+                    </li>
+                    <li>83.5%: HG005 (Male; Asian Chinese)</li>
+                </ul>
+            </div>
+        ),
         type: 'Cell Line Data',
         path: '/data/benchmarking/HapMap',
         tabMapArray: [
             {
                 eventKey: '#main',
-                title: 'Data',
+                title: 'HapMap mixture',
                 searchHref: '/search/?type=File&dataset=hapmap',
             },
         ],
