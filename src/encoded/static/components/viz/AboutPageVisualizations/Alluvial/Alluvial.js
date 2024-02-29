@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 
 import { sankeyFunc } from './sankey';
 
-import fixed_data from './data/data_v2.json';
+import fixed_data from './data/alluvial_data.json';
 
 /**
  * Alluvial Plot:
