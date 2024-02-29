@@ -137,7 +137,7 @@
         "title": "Documentation",
         "status": "public",
         "children": [
-            "302faaf2-ca18-4a56-82d2-b961f7f2764d"
+            "cdb6ad75-303b-4629-acdc-4fc533fc5aca"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -258,7 +258,7 @@
     },
     {
         "identifier": "docs/user-guide",
-        "uuid": "302faaf2-ca18-4a56-82d2-b961f7f2764d",
+        "uuid": "cdb6ad75-303b-4629-acdc-4fc533fc5aca",
         "title": "User Guide",
         "status": "public",
         "children": [

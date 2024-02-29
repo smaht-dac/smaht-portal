@@ -655,6 +655,7 @@
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
+            "permission": "restricted_fields",
             "items": {
                 "type": "string",
                 "linkTo": "Protocol"

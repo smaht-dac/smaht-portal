@@ -142,6 +142,7 @@
         "o2_path": {
             "title": "O2 Path",
             "description": "Path to file on O2",
+            "permission": "restricted_fields",
             "type": "string"
         },
         "sequencing_center": {

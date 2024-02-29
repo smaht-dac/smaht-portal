@@ -273,7 +273,7 @@ def has_identifying_property(schema: Dict[str, Any], property_name: str) -> bool
 def test_submittable(testapp):
     expected_props = [
         'a260_a280_ratio', 'analyte_preparation', 'components', 'concentration',
-        'molecule', 'protocols', 'ribosomal_rna_ratio', 'rna_integrity_number',
+        'molecule', 'ribosomal_rna_ratio', 'rna_integrity_number',
         'rna_integrity_number_instrument', 'sample_quantity', 'samples',
         'submitted_id', 'volume', 'weight',
      ]

@@ -63,10 +63,9 @@
         },
         "libraries": {
             "title": "Libraries",
-            "description": "Links to associated libraries",
+            "description": "Link to associated libraries",
             "type": "array",
             "minItems": 1,
-            "maxItems": 1,
             "uniqueItems": true,
             "items": {
                 "type": "string",
