@@ -758,6 +758,8 @@ i.status-indicator-dot {
 			> .item-value {
 				> .inner {
 					border-bottom-color: transparent;
+					padding-top:10px;
+					padding-bottom: 20px;
 				}
 			}
 		}
@@ -768,9 +770,12 @@ i.status-indicator-dot {
 				tr th {
 					white-space: normal;
 					word-break: normal;
-					padding: 7px 4px;
+					padding: 7px 4px 7px 20px;
+					text-align: left;
 
 					&.has-children {
+						padding: 7px 4px;
+						text-align: center;
 						> .tooltip-info-container {
 							padding-left: 36px;
 							border-bottom: 1px solid #ddd;
@@ -792,7 +797,8 @@ i.status-indicator-dot {
 				}
 				tr td {
 					word-break: normal;
-					padding: 7px 8px;
+					padding: 7px 8px 7px 20px;
+					text-align: left;
 					&.child-list-row-container {
 						padding: 0;
 						border-left: 1px dotted #ccc;

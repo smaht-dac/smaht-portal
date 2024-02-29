@@ -168,7 +168,8 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 }
 
 .btn.btn-primary {
-	@include button-variant($primary, $primary, $primary-dark);
+	font-weight: 500;
+	@include button-variant($primary, #0B62BA, $primary-dark);
 }
 
 
@@ -192,8 +193,6 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
         padding-right: 29px;
     }
 }
-
-
 
 // /* Except if is a split button -- */
 // .dropdown.btn-group > .dropdown-toggle.btn {

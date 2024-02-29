@@ -359,10 +359,10 @@ div.navbar-fixed-top {
                     }
 
                     .user-account-item {
-                        
+
                         @media screen and (min-width: 767px) {
                             background-color: #0E74D2;
-                            border: 1px solid #0B62BA;
+                            border: 2px solid #0B62BA;
                             border-radius: 4px;
                             height: 35px;
                             width: 120px;
@@ -373,6 +373,62 @@ div.navbar-fixed-top {
                                 font-weight: 500;
                                 margin: auto;
                             }
+
+                            &.is-logged-in {
+                                background-color: transparent;
+                                max-width: 140px;
+                                width: min-content;
+                                border: none;
+                                border-radius: 0px;
+                                color: black;
+                                padding: 0px 15px 0px 15px;
+                                height: 100%;
+
+                                img {
+                                    border-radius: 8px;
+                                    margin-right: 0px;
+                                }
+
+                                span {
+                                    color: black;
+                                    font-weight: 500;
+                                    margin: auto 12px auto 13px;
+                                }
+
+                                &:hover {
+                                    background-color: rgba(91, 117, 149, 0.2784313725);
+                                }
+                            }
+
+
+                            &:hover {
+                                color: #fff;
+                                background-color: #094c8a;
+                                border-color: #08498a;
+                            }
+                        }
+
+                        i.icon.account-icon {
+                            margin-right: 12px;
+                        }
+
+                        .dropdown-menu {
+                            /** Align it to right edge so doesn't go off-screen **/
+                            left: auto;
+                            right: 0;
+                        }
+
+                        @include navbar-fixed-position {
+                            max-width: 200px; //120px;
+                        }
+
+                        @include media-breakpoint-between(lg, xl) {
+                            max-width: 300px; // 150px;
+                            margin-left: 15px;
+                        }
+
+                        @include media-breakpoint-up(xl) {
+                            max-width: 320px; // 180px;
                         }
 
                         i.icon.account-icon {
@@ -399,95 +455,6 @@ div.navbar-fixed-top {
                                 img.account-icon-image {
                                     margin-right: 12px;
                                 }
-                            }
-                        }
-
-    
-                        &.user-account-item {
-                            @media screen and (min-width: 767px) {
-                                background-color: #0E74D2;
-                                border: 1px solid #0B62BA;
-                                border-radius: 4px;
-                                height: 35px;
-                                margin: auto;
-                                padding: 0px 37px;
-
-                                span {
-                                    color: white;
-                                }
-    
-                                &.is-logged-in {
-                                    background-color: transparent;
-                                    max-width: 140px;
-                                    width: min-content;
-                                    border: none;
-                                    border-radius: 0px;
-                                    color: black;
-                                    padding: 0px 15px 0px 15px;
-                                    height: 100%;
-
-                                    img {
-                                        border-radius: 8px;
-                                        margin-right: 0px;
-                                    }
-
-                                    span {
-                                        color: black;
-                                        font-weight: 500;
-                                        margin: auto 12px auto 13px;
-                                    }
-
-                                    &:hover {
-                                        background-color: rgba(91, 117, 149, 0.2784313725);
-                                    }
-                                }
-                            }
-    
-                            i.icon.account-icon {
-                                margin-right: 12px;
-                            }
-    
-                            // &.has-image {
-                            //     // padding-left: 8px;
-                            //     display: flex;
-                            //     align-items: center;
-                            //     img.account-icon-image {
-                            //         margin-right: 8px;
-                            //         border-radius: 8px;
-                            //         width: 30px;
-                            //         height: 30px;
-                            //     }
-                            //     .user-first-name {
-                            //         flex-grow: 0;
-                            //         flex-shrink: 1;
-                            //         overflow: hidden;
-                            //         text-overflow: ellipsis;
-                            //     }
-                            //     @include media-breakpoint-up(lg){
-                            //         img.account-icon-image {
-                            //             margin-right: 12px;
-                            //         }
-                            //     }
-                
-                            // }
-    
-                            .dropdown-menu {
-                                /** Align it to right edge so doesn't go off-screen **/
-                                left: auto;
-                                right: 0;
-                            }
-    
-                            @include navbar-fixed-position {
-                                max-width: 200px; //120px;
-                            }
-    
-                            @include media-breakpoint-between(lg, xl) {
-                                max-width: 300px; // 150px;
-                                margin-left: 15px;
-                            }
-    
-                            @include media-breakpoint-up(xl) {
-                                max-width: 320px; // 180px;
                             }
                         }
                     }
