@@ -239,15 +239,13 @@ export function sankeyFunc() {
             nodesByBreadth.forEach(function (nodes) {
                 nodes.forEach(function (node, i) {
                     node.y = i;
-                    node.dy = node.value * ky;
                     if (node.type === 'data_generator') {
                         node.dy =
                             (size[1] - (nodes.length - 1) * nodePadding) /
                             nodes.length;
+                    } else {
+                        node.dy = node.value * ky;
                     }
-                    // if (node.type === "sequencing_platform") {
-                    //     node.dy = (size[1] - (nodes.length - 1) * nodePadding) / nodes.length;
-                    // }
                 });
             });
 
@@ -364,7 +362,6 @@ export function sankeyFunc() {
             let b_group = b.assay_group.split('-');
 
             return a_group[0] - b_group[0] || a_group[1] - b_group[1];
-            // return b.dy - a.dy;
         }
     }
 
