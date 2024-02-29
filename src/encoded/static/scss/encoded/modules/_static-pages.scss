@@ -1083,6 +1083,11 @@ div#popover-consortium-map {
 		margin-top: 40px;
 	}
 }
+
+
+$gcc-color: #2D7DD2;
+$ttd-color: #08A4BD;
+
 .stackrow-table-container {
 	width: 100%;
 	height: auto;
@@ -1179,31 +1184,31 @@ div#popover-consortium-map {
 						border-style: none none none solid;
 	
 						&[data-row-title="BCM-GCC"] {
-							border-color: rgb(68, 161, 160);
+							border-color: $gcc-color;
 							background-color: #F8F8F8;
 						}
 						&[data-row-title="Broad"] {
-							border-color: rgb(68, 161, 160);
+							border-color: $gcc-color;
 							background-color: white;
 						}
 						&[data-row-title="NYGC"] {
-							border-color: rgb(68, 161, 160);
+							border-color: $gcc-color;
 							background-color: #F8F8F8;
 						}
 						&[data-row-title="UW"] {
-							border-color: rgb(68, 161, 160);
+							border-color: $gcc-color;
 							background-color: white;
 						}
 						&[data-row-title="WashU"] {
-							border-color: rgb(68, 161, 160);
+							border-color: $gcc-color;
 							background-color: #F8F8F8;
 						}
 						&[data-row-title="BCM-TTD"] {
-							border-color: rgb(155, 210, 116);
+							border-color: $ttd-color;
 							background-color: white;
 						}
 						&[data-row-title="UMich"] {
-							border-color: rgb(155, 210, 116);
+							border-color: $ttd-color;
 							background-color: #F8F8F8;
 						}
 

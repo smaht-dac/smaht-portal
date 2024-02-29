@@ -62,7 +62,7 @@ export const Alluvial = () => {
         if (graph && containerRef.current && isDrawn.current === false) {
             const container = containerRef.current;
 
-            const margin = { top: 150, right: 200, bottom: 50, left: 100 },
+            const margin = { top: 200, right: 200, bottom: 50, left: 100 },
                 width = 1200 - margin.left - margin.right,
                 height = 700 - margin.top - margin.bottom;
 
@@ -113,6 +113,16 @@ export const Alluvial = () => {
                 .attr('width', width + margin.left + margin.right)
                 .attr('height', margin.top);
 
+            /**
+             * Render a series of square elements whose colors are defined by
+             * [color_array], along with a text element [category_name] to its
+             * left. Position this group with [paddingTop] and [offset] which
+             * are relative to the containing svg.
+             * @param {string} category_name The text to appear to the left
+             * @param {string[]} color_array colors for the squares (in order)
+             * @param {number} paddingTop space (in px) above the group
+             * @param {number} offset space (in px) to the left of the group
+             */
             const legend_row = (
                 category_name,
                 color_array,
@@ -140,7 +150,11 @@ export const Alluvial = () => {
                         .attr('stroke', d3.rgb(color).darker(1))
                         .attr(
                             'transform',
-                            'translate(' + 160 + ',' + paddingTop + ')'
+                            'translate(' +
+                                (160 + 20 * i) +
+                                ',' +
+                                paddingTop +
+                                ')'
                         );
                 });
             };
@@ -150,7 +164,27 @@ export const Alluvial = () => {
             legend_row('TTD', [color_schemes.data_generator('TTD')], 30, -60);
 
             // Legend rows for Assay Groups
-            // legend_row('Group 1', )
+            legend_row(
+                'WGS',
+                [
+                    graph.colors.assay_group['1-1'],
+                    graph.colors.assay_group['1-2'],
+                    graph.colors.assay_group['1-3'],
+                ],
+                0,
+                523
+            );
+            legend_row('Group 2', [graph.colors.assay_group['2-1']], 30, 523);
+            legend_row('Group 3', [graph.colors.assay_group['3-1']], 60, 523);
+            legend_row(
+                'RNA-Seq',
+                [
+                    graph.colors.assay_group['4-1'],
+                    graph.colors.assay_group['4-2'],
+                ],
+                90,
+                523
+            );
 
             // Legend rows for Molecular Features
             legend_row(
