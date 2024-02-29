@@ -30,6 +30,16 @@
                 "argument_name": "foo",
                 "argument_type": "parameter",
                 "value": 40
+            },
+            {
+                "argument_name": "bar",
+                "argument_type": "file",
+                "files": [
+                    {
+                        "file": "21902743-3067-4fa5-b719-074512c54e54",
+                        "dimension": "0"
+                    }
+                ]
             }
         ]
     }

@@ -68,6 +68,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/version"
         }
     ],
     "properties": {
@@ -80,6 +83,9 @@
         "schema_version": {
             "default": "1"
         },
+        "version": {
+            "pattern": "^[A-Za-z0-9_-.]{3,}$"
+        },
         "files": {
             "title": "Files",
             "description": "Files associated with the reference genome",
@@ -90,6 +96,14 @@
                 "type": "string",
                 "linkTo": "File"
             }
+        }
+    },
+    "columns": {
+        "identifier": {
+            "title": "Identifier"
+        },
+        "code": {
+            "title": "Code"
         }
     }
 }

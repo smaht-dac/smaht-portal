@@ -866,6 +866,7 @@
             "type": "array",
             "uniqueItems": true,
             "ff_flag": "clear clone",
+            "permission": "restricted_fields",
             "items": {
                 "title": "Tag",
                 "description": "A tag for the item.",
