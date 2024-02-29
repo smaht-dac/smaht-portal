@@ -1178,24 +1178,32 @@ div#popover-consortium-map {
 						border-left: 10px solid;
 						border-style: none none none solid;
 	
-						&[data-row-title="BCM"] {
-							border-color: hsla(185, 50%, 45%, 1);
+						&[data-row-title="BCM-GCC"] {
+							border-color: rgb(68, 161, 160);
 							background-color: #F8F8F8;
 						}
 						&[data-row-title="Broad"] {
-							border-color: hsla(60, 70%, 44%, 1);
+							border-color: rgb(68, 161, 160);
 							background-color: white;
 						}
 						&[data-row-title="NYGC"] {
-							border-color: rgb(98, 72, 72);
+							border-color: rgb(68, 161, 160);
 							background-color: #F8F8F8;
 						}
 						&[data-row-title="UW"] {
-							border-color: hsla(13, 68%, 60%, 1);
+							border-color: rgb(68, 161, 160);
 							background-color: white;
 						}
 						&[data-row-title="WashU"] {
-							border-color: hsla(10, 30%, 42%, 1);
+							border-color: rgb(68, 161, 160);
+							background-color: #F8F8F8;
+						}
+						&[data-row-title="BCM-TTD"] {
+							border-color: rgb(155, 210, 116);
+							background-color: white;
+						}
+						&[data-row-title="UMich"] {
+							border-color: rgb(155, 210, 116);
 							background-color: #F8F8F8;
 						}
 
