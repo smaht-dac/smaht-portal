@@ -1301,14 +1301,90 @@ div#popover-consortium-map {
 		}
 	}
 
-	@media screen and (min-width: 768px) and (max-width: 992px) {
+
+	// >1200px
+	@media screen and (min-width: 1200px) {
+
+		// .stackrow {
+		// 	&-table {
+		// 		&-top-labels {
+		// 			margin-top: 40px;
+		// 			padding-right: 10px;
+		// 			.label {
+		// 				width: 22px;
+		// 				font-size: 0.5rem;
+
+		// 				span {
+		// 					transform: rotate(-60deg) translate(5px, 20px);
+		// 				}
+		// 			}
+		// 		}
+		// 		&-body {
+		// 			padding-right: 0;
+		// 			.stackrow {
+		// 				&-row {
+		// 					.stackrow-left-label {
+		// 						height: 22px;
+		// 						width: 80px;
+		// 						padding-left: 9px;
+		// 						border-left: 6px solid;
+		// 						border-style: none none none solid;
+								
+		// 						.label {
+		// 							font-weight: 300;
+		// 							font-size: 0.5rem;
+		// 						}
+		// 					}
+		// 					.stackrow-item {
+		// 						height: 22px;
+		// 						width: 22px;
+		// 						display: flex;
+		// 						justify-content: center;
+		// 						border-right: 1px solid rgba(238, 238, 238, 0.6);
+	
+		// 						&-container {
+		// 							height: 16px;
+		// 							width: 16px;
+		// 							margin: auto;
+		// 							font-size: 0.6rem;
+		// 							line-height: normal;
+		// 						}
+		// 					}
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
+		// .stackrow-table-footnote {
+		// 	font-size: 0.7rem;
+		// 	margin-top: 15px;
+		// }
+		// .stackrow-item-legend {
+		// 	margin-top: 15px;
+
+		// 	.stackrow-item {
+		// 		&-container {
+		// 			width: 20px;
+		// 			height: 20px;
+		// 			font-size: 0.6rem;
+		// 		}
+		// 	}
+			
+		// 	.text {
+		// 		font-size: 0.7rem;
+		// 	}
+		// }
+	}
+	// >992px
+	@media screen and (min-width: 992px) and (max-width: 1200px) {
+
 		.stackrow {
 			&-table {
 				&-top-labels {
 					margin-top: 60px;
 					padding-right: 35px;
 					.label {
-						width: 40px;
+						width: 36px;
 						font-size: 0.8rem;
 					}
 				}
@@ -1316,15 +1392,23 @@ div#popover-consortium-map {
 					.stackrow {
 						&-row {
 							.stackrow-left-label {
-								height: 40px;
+								height: 36px;
+								width: 110px;
+
+								.label {
+									font-size: 0.8rem;
+								}
 							}
 							.stackrow-item {
-								width: 40px;
-								height: 40px;
+								width: 36px;
+								height: 36px;
 	
 								&-container {
-									height: 25px;
-									width: 25px;
+									height: 27px;
+									width: 27px;
+									margin: auto;
+									font-size: 0.8rem;
+									line-height: normal;
 								}
 							}
 						}
@@ -1352,7 +1436,67 @@ div#popover-consortium-map {
 			}
 		}
 	}
+
 	// 768px - 992px
+	@media screen and (min-width: 768px) and (max-width: 992px) {
+		.stackrow {
+			&-table {
+				&-top-labels {
+					margin-top: 60px;
+					padding-right: 35px;
+					.label {
+						width: 32px;
+						font-size: 0.7rem;
+					}
+				}
+				&-body {
+					.stackrow {
+						&-row {
+							.stackrow-left-label {
+								height: 32px;
+								width: 100px;
+
+								.label {
+									font-size: 0.7rem;
+								}
+							}
+							.stackrow-item {
+								width: 32px;
+								height: 32px;
+	
+								&-container {
+									height: 25px;
+									width: 25px;
+									margin: auto;
+									font-size: 0.8rem;
+									line-height: normal;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		.stackrow-table-footnote {
+			font-size: 0.8rem;
+			margin-top: 20px;
+		}
+		.stackrow-item-legend {
+			margin-top: 20px;
+
+			.stackrow-item {
+				&-container {
+					width: 25px;
+					height: 25px;
+					font-size: 0.7rem;
+				}
+			}
+			
+			.text {
+				font-size: 0.8rem;
+			}
+		}
+	}
 	@media screen and (min-width: 576px) and (max-width: 768px) {
 
 		.stackrow {
@@ -1361,8 +1505,8 @@ div#popover-consortium-map {
 					margin-top: 40px;
 					padding-right: 10px;
 					.label {
-						width: 25px;
-						font-size: 0.7rem;
+						width: 22px;
+						font-size: 0.5rem;
 
 						span {
 							transform: rotate(-60deg) translate(5px, 20px);
@@ -1374,7 +1518,7 @@ div#popover-consortium-map {
 					.stackrow {
 						&-row {
 							.stackrow-left-label {
-								height: 25px;
+								height: 22px;
 								width: 80px;
 								padding-left: 9px;
 								border-left: 6px solid;
@@ -1382,19 +1526,19 @@ div#popover-consortium-map {
 								
 								.label {
 									font-weight: 300;
-									font-size: 0.7rem;
+									font-size: 0.5rem;
 								}
 							}
 							.stackrow-item {
-								height: 25px;
-								width: 25px;
+								height: 22px;
+								width: 22px;
 								display: flex;
 								justify-content: center;
 								border-right: 1px solid rgba(238, 238, 238, 0.6);
 	
 								&-container {
-									height: 18px;
-									width: 18px;
+									height: 16px;
+									width: 16px;
 									margin: auto;
 									font-size: 0.6rem;
 									line-height: normal;
@@ -1434,8 +1578,8 @@ div#popover-consortium-map {
 					margin-top: 0;
 					padding-right: 15px;
 					.label {
-						width: 17px;
-						font-size: 0.4rem;
+						width: 14px;
+						font-size: 0.3rem;
 
 						> span {
 							transform: rotate(-60deg) translate(-5px, 10px);
@@ -1447,29 +1591,29 @@ div#popover-consortium-map {
 					.stackrow {
 						&-row {
 							.stackrow-left-label {
-								height: 15px;
-								width: 40px;
+								height: 14px;
+								width: 35px;
 								padding-left: 5px;
 								border-left: 3px solid;
 								border-style: none none none solid;
 								
 								.label {
 									font-weight: 300;
-									font-size: 0.5rem;
+									font-size: 0.3rem;
 								}
 							}
 							.stackrow-item {
-								height: 17px;
-								width: 17px;
+								height: 14px;
+								width: 14px;
 								display: flex;
 								justify-content: center;
 								border-right: 1px solid rgba(238, 238, 238, 0.6);
 	
 								&-container {
-									height: 11px;
-									width: 11px;
+									height: 9px;
+									width: 9px;
 									margin: auto;
-									font-size: 0.4rem;
+									font-size: 0.3rem;
 									line-height: normal;
 								}
 							}
