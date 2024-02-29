@@ -141,16 +141,16 @@
     ],
     "colors": 
     {
-        "data_generator":["#08A4BD","#2D7DD2"],
+        "data_generator":["rgba(77, 175, 74, 0.8)","rgba(255, 128, 0, 0.6)"],
         "sequencing_platform":["#9467BD","#D62728","#C3CEDF","#E78026","#1F77B4","#E377C2"],
         "assay_type":["#39A2AC","#BCBD22","#7F7F7F","#DE7154","#8C564B","#96897B","#8CBBD9","#A87F38","#4DCE46","#E2E050","#DEB487","#C464C3","#3D348B","#FFD766","#134074","#698996","#DAD6D6","#CEB3AB","#CF995F","#E87D91"],
         "genetic":["#AFA8F5"],
         "epigenetic":["#AD4A66"],
         "transcriptomic":["#F694C1"],
         "assay_group": {
-            "1-1": "#BDDB39", "1-2": "#63c268", "1-3": "#2F7F33",
+            "1-1": "#BDDB39", "1-2": "#039863", "1-3": "#2F7F33",
             "2-1": "#E2C290",
-            "3-1": "#EB7D00",
+            "3-1": "#2D7DD2",
             "4-1": "#FFF175", "4-2": "#F2D13A"
         }
     }
