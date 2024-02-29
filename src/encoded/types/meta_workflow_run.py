@@ -15,4 +15,4 @@ from .base import Item
 class MetaWorkflowRun(Item, CoreMetaWorkflowRun):
     item_type = 'meta_workflow_run'
     schema = load_schema("encoded:schemas/meta_workflow_run.json")
-    embedded_list = []
+    embedded_list = ['meta_workflow.name']

@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.25.4
+======
+
+* Embed MetaWorkflow name into MetaWorkflowRun
+
+
 0.25.3
 ======
 
