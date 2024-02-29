@@ -15,6 +15,33 @@
         "submitted_id",
         "uuid"
     ],
+    "oneOf": [
+        {
+            "properties": {
+                "read_pair_number": {
+                    "const": "R2"
+                }
+            },
+            "required": [
+                "paired_with",
+                "read_pair_number"
+            ]
+        },
+        {
+            "properties": {
+                "read_pair_number": {
+                    "not": {
+                        "const": "R2"
+                    }
+                }
+            },
+            "not": {
+                "required": [
+                    "paired_with"
+                ]
+            }
+        }
+    ],
     "additionalProperties": false,
     "mixinProperties": [
         {
