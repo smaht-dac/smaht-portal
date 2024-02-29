@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+0.26.0
+======
+
+`PR 99: Submission links <https://github.com/smaht-dac/smaht-portal/pull/99>`_
+
+* Add documentation page for finding data relevant to submissions
+* Add templates for submissions
+* Improve columns + facets for searching on collections
+* Add calcprops for searching on collections
+
+
 0.25.3
 ======
 

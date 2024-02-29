@@ -265,6 +265,7 @@
             "5153c902-a0d2-4246-9b41-cea7a1c91f52",
             "9410a992-c9b2-4be8-81e8-cc9559c0e488",
             "6292facf-9eb4-451e-8d05-2e56e1bd7cbe",
+            "0382a63b-9639-403d-9cfb-1d461ab7087c",
             "ae1498e9-6ebd-4683-9390-e171c54a9811"
         ],
         "table-of-contents": {
@@ -341,6 +342,25 @@
         ],
         "table-of-contents": {
             "enabled": true
+        },
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/user-guide/referencing-data",
+        "uuid": "0382a63b-9639-403d-9cfb-1d461ab7087c",
+        "title": "Referencing Data",
+        "content": [
+            "6206008f-9288-4156-b55d-52a75f5332e8"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
         },
         "status": "public",
         "consortia": [
