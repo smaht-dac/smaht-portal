@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.27.2
+======
+
+`PR 107: Documentation updates <https://github.com/smaht-dac/smaht-portal/pull/107>`_
+
+* Update small sections of documentation for referencing existing items
+
+
 0.27.1
 ======
 
