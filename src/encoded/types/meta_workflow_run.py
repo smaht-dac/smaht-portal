@@ -9,7 +9,7 @@ def _build_meta_workflow_run_embedded_list():
     """Embeds for MetaWorkflowRun."""
     return [
         "meta_workflow.category",
-        "meta_workflow.name",
+        "meta_workflow.name",  # Required for foursight checks
         "meta_workflow.version",
     ]
 
