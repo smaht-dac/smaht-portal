@@ -38,10 +38,6 @@ export const Alluvial = () => {
                     graph.nodes.filter((n) => n.type === 'sequencing_platform')
                 )
                 .range(graph.colors.sequencing_platform),
-            assay_type: d3
-                .scaleOrdinal()
-                .domain(graph.nodes.filter((n) => n.type === 'assay_type'))
-                .range(graph.colors.assay_type),
             molecular_feature: {
                 genetic: d3
                     .scaleOrdinal()
@@ -150,22 +146,28 @@ export const Alluvial = () => {
                 });
             };
 
+            // Legend rows for GCC/TTD Column
             legend_row('GCC', [color_schemes.data_generator('GCC')], 0, -60);
             legend_row('TTD', [color_schemes.data_generator('TTD')], 30, -60);
+
+            // Legend rows for Assay Groups
+            // legend_row('Group 1', )
+
+            // Legend rows for Molecular Features
             legend_row(
-                'genetic',
+                'Genetic',
                 graph.colors.genetic,
                 0,
                 width - margin.right + 125
             );
             legend_row(
-                'epigenetic',
+                'Epigenetic',
                 graph.colors.epigenetic,
                 30,
                 width - margin.right + 125
             );
             legend_row(
-                'transcriptomic',
+                'Transcriptomic',
                 graph.colors.transcriptomic,
                 60,
                 width - margin.right + 125
@@ -215,9 +217,8 @@ export const Alluvial = () => {
                         return d.source.color;
                     }
                     if (d.source.type === 'assay_type') {
-                        d.source.color = color_schemes['assay_type'](
-                            d.source.name
-                        );
+                        d.source.color =
+                            graph.colors['assay_group'][d.source.assay_group];
                         return d.source.color;
                     }
                     if (d.source.type === 'sequencing_platform') {
@@ -362,7 +363,7 @@ export const Alluvial = () => {
                         return d.color;
                     }
                     if (d.type === 'assay_type') {
-                        d.color = color_schemes['assay_type'](d.name);
+                        d.color = graph.colors['assay_group'][d.assay_group];
                         return d.color;
                     }
                     if (d.type === 'sequencing_platform') {

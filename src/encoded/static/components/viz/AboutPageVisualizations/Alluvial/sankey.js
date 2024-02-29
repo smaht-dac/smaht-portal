@@ -312,7 +312,7 @@ export function sankeyFunc() {
                         sortFn = descendingDepth;
                         break;
                     case 'assay_type':
-                        sortFn = descendingDepth;
+                        sortFn = descendingDepthCategorical;
                         break;
                     case 'molecular_feature':
                         sortFn = categorical;
@@ -355,6 +355,16 @@ export function sankeyFunc() {
 
         function descendingDepth(a, b) {
             return b.dy - a.dy;
+        }
+
+        function descendingDepthCategorical(a, b) {
+            if (b.dy - a.dy === 0 && b.type === 'assay_type') {
+            }
+            let a_group = a.assay_group.split('-');
+            let b_group = b.assay_group.split('-');
+
+            return a_group[0] - b_group[0] || a_group[1] - b_group[1];
+            // return b.dy - a.dy;
         }
     }
 

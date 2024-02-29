@@ -1046,6 +1046,7 @@ div#popover-consortium-map {
     
         &:hover {
             cursor: pointer;
+			filter: brightness(0.95);
             
             text {
                 fill: black;
