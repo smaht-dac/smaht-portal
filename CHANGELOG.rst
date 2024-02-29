@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.27.1
+======
+
+`PR 105: GA4 file sequencing center updates <https://github.com/smaht-dac/smaht-portal/pull/105>`_
+
+* Replaces submission center with sequencing center in file views/downloads GA4 analytics
+
+
 0.27.0
 ======
 
