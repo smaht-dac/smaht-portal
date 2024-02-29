@@ -298,7 +298,7 @@
     },
     {
         "email": "ozturkutku@gmail.com",
-        "uuid": "336b1174-8b79-4c39-a3ce-298be2cc1509",
+        "uuid": "1ade49a9-78e9-4d38-b127-92ac65598137",
         "groups": [
             "admin"
         ],
@@ -310,6 +310,6 @@
         ],
         "time_zone": "US/Eastern",
         "first_name": "Serkan Utku",
-        "last_name": "Öztürk"
+        "last_name": "\u00d6zt\u00fcrk"
     }
 ]
