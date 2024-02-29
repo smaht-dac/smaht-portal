@@ -53,7 +53,8 @@
 	.heading-with-bottom-border,
 	.homepage-section-title,
 	.section-title,
-	.rst-container h2:first-child {
+	.rst-container h2:first-child,
+	.html-container h2:first-child {
 		margin-bottom: 20px;
 		margin-top: 20px;
 		padding-bottom: 15px;
@@ -141,7 +142,9 @@
 
 	// since rst-to-html non-customizable,
 	// tweak some css rules to display h3/h4 like h4/h5 respectively
-	.rst-container {
+	.rst-container,
+	// use the same styles for raw HTML
+	.html-container {
 		h3 {
 			font-size: 1.3rem;
 			margin-bottom: 0.5rem;
