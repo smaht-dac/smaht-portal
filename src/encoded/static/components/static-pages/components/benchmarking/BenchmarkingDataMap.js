@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * NOTE: Because there is a custom top nav component (BigDropdownPageTreeMenu) being used
  * to render these items in two lists, you will need to also update that there whenever
@@ -5,6 +7,14 @@
  *
  * Order of these items is reflected in the side nav on benchmarking page
  */
+
+const primaryTissuePageDescription = (
+    <span>
+        The SMaHT benchmarking tissues were obtained from two <i>post mortem</i>{' '}
+        donors. From each donor, three tissue types, i.e., lung, liver, and
+        colon, were obtained, homogenized and subjected to sequencing.
+    </span>
+);
 
 export const BenchmarkingDataMap = {
     COLO829: {
@@ -40,52 +50,125 @@ export const BenchmarkingDataMap = {
     HapMap: {
         navBarTitle: 'HapMap',
         title: 'HapMap Cell Line Data',
-        description: '',
+        description: (
+            <div>
+                <p>
+                    For the SMaHT benchmarking study, six cell lines profiled in
+                    the International HapMap project (hence the “HapMap” cell
+                    lines) were mixed at Coriell, and the cell mixture samples
+                    were distributed to GCCs and TTDs for analyses.
+                </p>
+
+                <p>
+                    Information about the six HapMap cell lines and mixture
+                    ratios are the following:
+                </p>
+
+                <ul>
+                    <li>
+                        0.5%: HG00438 (Female; Asian Chinese Han in the South)
+                    </li>
+                    <li>2%: HG002 (Male; European Ashkenazim Jewish)</li>
+                    <li>2%: HG02257 (Female; African Caribbean in Barbados)</li>
+                    <li>2%: HG02486 (Male; African Caribbean in Barbados)</li>
+                    <li>
+                        10%: HG02622 (Female; African Gambian in Western
+                        Division, Mandinka)
+                    </li>
+                    <li>83.5%: HG005 (Male; Asian Chinese)</li>
+                </ul>
+            </div>
+        ),
         type: 'Cell Line Data',
         path: '/data/benchmarking/HapMap',
         tabMapArray: [
             {
-                eventKey: '#main',
-                title: 'Data',
+                eventKey: '#hapmap-mixture',
+                title: 'HapMap mixture',
                 searchHref: '/search/?type=File&dataset=hapmap',
+            },
+            {
+                eventKey: '#hg002',
+                title: 'HG002',
+                searchHref: '/search/?type=File&dataset=hg002',
+            },
+            {
+                eventKey: '#hg00438',
+                title: 'HG00438',
+                searchHref: '/search/?type=File&dataset=hg00438',
+            },
+            {
+                eventKey: '#hg005',
+                title: 'HG005',
+                searchHref: '/search/?type=File&dataset=hg005',
+            },
+            {
+                eventKey: '#hg02257',
+                title: 'HG02257',
+                searchHref: '/search/?type=File&dataset=hg02257',
+            },
+            {
+                eventKey: '#hg02486',
+                title: 'HG02486',
+                searchHref: '/search/?type=File&dataset=hg02486',
+            },
+            {
+                eventKey: '#hg02622',
+                title: 'HG02622',
+                searchHref: '/search/?type=File&dataset=hg02622',
             },
         ],
     },
     iPScFibroblasts: {
         navBarTitle: 'iPSC and Fibroblasts',
         title: 'iPSC Cell Line Data',
-        description: '',
+        description: (
+            <span>
+                For the SMaHT benchmarking study, five distinct clones of
+                induced pluripotent stem cells (iPSCs; specifically the clone
+                #1, #2, #4, #52, and #60) derived from a fibroblast cell line,
+                LB-LA2, were cultured and expanded. The iPSC lines and the
+                fibroblast cell lines were initially described in{' '}
+                <a
+                    href="https://pubmed.ncbi.nlm.nih.gov/33737484/"
+                    target="_blank"
+                    rel="noreferrer noopener">
+                    Fasching L et al. (2021) Science
+                </a>
+                .
+            </span>
+        ),
         type: 'Cell Line Data',
         path: '/data/benchmarking/iPSC-fibroblasts',
         tabMapArray: [
             {
                 eventKey: '#lb-fibroblast',
-                title: 'LB-FIBROBLAST',
+                title: 'LB-LA2',
                 searchHref: '/search/?type=File&dataset=lb_fibroblast',
             },
             {
                 eventKey: '#lb_ipsc_1',
-                title: 'iPSC-LA2#1',
+                title: 'LB-LA2 iPSC 1',
                 searchHref: '/search/?type=File&dataset=lb_ipsc_1',
             },
             {
                 eventKey: '#lb_ipsc_2',
-                title: 'iPSC-LA2#2',
+                title: 'LB-LA2 iPSC 2',
                 searchHref: '/search/?type=File&dataset=lb_ipsc_2',
             },
             {
                 eventKey: '#lb_ipsc_4',
-                title: 'iPSC-LA2#4',
+                title: 'LB-LA2 iPSC 4',
                 searchHref: '/search/?type=File&dataset=lb_ipsc_4',
             },
             {
                 eventKey: '#lb_ipsc_52',
-                title: 'iPSC-LA2#52',
+                title: 'LB-LA2 iPSC 52',
                 searchHref: '/search/?type=File&dataset=lb_ipsc_52',
             },
             {
                 eventKey: '#lb_ipsc_60',
-                title: 'iPSC-LA2#60',
+                title: 'LB-LA2 iPSC 60',
                 searchHref: '/search/?type=File&dataset=lb_ipsc_60',
             },
         ],
@@ -93,7 +176,7 @@ export const BenchmarkingDataMap = {
     Lung: {
         navBarTitle: 'Lung',
         title: 'Lung Primary Tissue Data',
-        description: '',
+        description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
         path: '/data/benchmarking/lung',
         tabMapArray: [
@@ -112,7 +195,7 @@ export const BenchmarkingDataMap = {
     Liver: {
         navBarTitle: 'Liver',
         title: 'Liver Primary Tissue Data',
-        description: '',
+        description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
         path: '/data/benchmarking/liver',
         tabMapArray: [
@@ -131,7 +214,7 @@ export const BenchmarkingDataMap = {
     Colon: {
         navBarTitle: 'Colon',
         title: 'Colon Primary Tissue Data',
-        description: '',
+        description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
         path: '/data/benchmarking/colon',
         tabMapArray: [
