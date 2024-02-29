@@ -80,32 +80,32 @@ export const BenchmarkingDataMap = {
         tabMapArray: [
             {
                 eventKey: '#lb-fibroblast',
-                title: 'LB-FIBROBLAST',
+                title: 'LB-LA2',
                 searchHref: '/search/?type=File&dataset=lb_fibroblast',
             },
             {
                 eventKey: '#lb_ipsc_1',
-                title: 'iPSC-LA2#1',
+                title: 'LB-LA2 iPSC 1',
                 searchHref: '/search/?type=File&dataset=lb_ipsc_1',
             },
             {
                 eventKey: '#lb_ipsc_2',
-                title: 'iPSC-LA2#2',
+                title: 'LB-LA2 iPSC 2',
                 searchHref: '/search/?type=File&dataset=lb_ipsc_2',
             },
             {
                 eventKey: '#lb_ipsc_4',
-                title: 'iPSC-LA2#4',
+                title: 'LB-LA2 iPSC 4',
                 searchHref: '/search/?type=File&dataset=lb_ipsc_4',
             },
             {
                 eventKey: '#lb_ipsc_52',
-                title: 'iPSC-LA2#52',
+                title: 'LB-LA2 iPSC 52',
                 searchHref: '/search/?type=File&dataset=lb_ipsc_52',
             },
             {
                 eventKey: '#lb_ipsc_60',
-                title: 'iPSC-LA2#60',
+                title: 'LB-LA2 iPSC 60',
                 searchHref: '/search/?type=File&dataset=lb_ipsc_60',
             },
         ],
