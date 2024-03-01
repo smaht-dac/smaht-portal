@@ -11,7 +11,7 @@ These pages are designed to:
 
 The primary way to submit data to the SMaHT data portal is via Excel spreadsheet, as described below.
 
-**Tip**: For more detailed and comprehsensive documentation, please see our ReadTheDocs based documentation here:
+**Tip**: For more detailed and comprehensive documentation, please see our ReadTheDocs based documentation here:
 
 * https://submitr.readthedocs.io/en/draft/
 
