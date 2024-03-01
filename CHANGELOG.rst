@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.29.0
+======
+
+* Permissions update: support for ``submits_for`` and ``restricted`` status
+
+
 0.28.0
 ======
 
@@ -132,7 +138,7 @@ Change Log
 
 * Hooks in QC Download API
 
-  
+
 0.23.0
 ======
 

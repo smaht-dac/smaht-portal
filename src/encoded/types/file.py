@@ -8,6 +8,7 @@ from encoded_core.types.file import (
     File as CoreFile,
 )
 from pyramid.request import Request
+from pyramid.exceptions import HTTPForbidden
 from encoded_core.file_views import (
     validate_file_filename,
     validate_extra_file_format,
@@ -75,6 +76,8 @@ def _build_file_embedded_list() -> List[str]:
     },
 )
 class File(Item, CoreFile):
+    OPEN = 'Open'
+    PROTECTED = 'Protected'
     item_type = "file"
     schema = load_schema("encoded:schemas/file.json")
     embedded_list = _build_file_embedded_list()
@@ -146,6 +149,22 @@ class File(Item, CoreFile):
     def upload_key(self, request: Request) -> str:
         return CoreFile.upload_key(self, request)
 
+    @calculated_property(schema={
+        "title": "File Access Status",
+        "description": "Access status for the file contents",
+        "type": "string",
+        "enum": [
+            "Open",
+            "Protected"
+        ]
+    })
+    def file_access_status(self, status: str = 'in review') -> Optional[str]:
+        if status in ['public', 'released']:
+            return self.OPEN
+        elif status == 'restricted':
+            return self.PROTECTED
+        return None
+
     @calculated_property(
         schema={
             "title": "Input to MetaWorkflowRun",
@@ -199,9 +218,22 @@ def post_upload(context, request):
     return CorePostUpload(context, request)
 
 
+def validate_user_has_protected_access(request):
+    """ Validates that the user who executed the request context either is
+        an admin or has the dbgap group
+    """
+    principals = request.effective_principals
+    if 'group.admin' in principals or 'group.dbgap' in principals:
+        return True
+    return False
+
+
 @view_config(name='download', context=File, request_method='GET',
              permission='view', subpath_segments=[0, 1])
 def download(context, request):
+    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
+        raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval. '
+                            'Please check with DAC/your PI about your status.')
     return CoreDownload(context, request)
 
 

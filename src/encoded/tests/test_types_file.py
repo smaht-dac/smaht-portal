@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pytest
 from webtest.app import TestApp
@@ -106,6 +106,28 @@ def test_upload_credentials(
             "key", "upload_url", "AccessKeyId", "SessionToken", "SecretAccessKey"
         ):
             assert expected_key in result
+
+
+@pytest.mark.parametrize(
+    "status,expected",
+    [
+        ("released", "Open"),
+        ("public", "Open"),
+        ("restricted", "Protected"),
+        ("deleted", None),  # test just one additional since there is significant setup cost
+    ]
+)
+def test_file_access_status(status: str, expected: Optional[str], testapp: TestApp,
+                            output_file: Dict[str, Any]) -> None:
+    """ Ensure calcprop for file_access_status reports Open, Protected or None in the
+        appropriate cases
+    """
+    patch_body = {"status": status}
+    patch_response = patch_item(
+        testapp, patch_body, output_file.get("uuid")
+    )
+    result = patch_response.get("file_access_status", None)
+    assert result == expected
 
 
 def test_upload_key(
