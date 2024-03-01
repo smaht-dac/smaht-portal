@@ -74,6 +74,11 @@
                                         "type" : "string",
                                         "title" : "Country"
                                     },
+                                    "ga:users" : {
+                                        "type" : "integer",
+                                        "title" : "Users",
+                                        "description" : "Total Number of Users"
+                                    },
                                     "ga:sessions" : {
                                         "type" : "integer",
                                         "title" : "Session Count",
@@ -109,6 +114,11 @@
                                     "ga:deviceCategory" : {
                                         "type" : "string",
                                         "title" : "Country"
+                                    },
+                                    "ga:users" : {
+                                        "type" : "integer",
+                                        "title" : "Users",
+                                        "description" : "Total Number of Users"
                                     },
                                     "ga:sessions" : {
                                         "type" : "integer",
@@ -152,7 +162,7 @@
                                     },
                                     "ga:productBrand" : {
                                         "type" : "string",
-                                        "title" : "Submission Center"
+                                        "title" : "Sequencing Center"
                                     },
                                     "ga:productCategoryLevel2" : {
                                         "type" : "string",
@@ -210,7 +220,7 @@
                                     },
                                     "ga:productBrand" : {
                                         "type" : "string",
-                                        "title" : "Submission Center"
+                                        "title" : "Sequencing Center"
                                     },
                                     "ga:productCategoryHierarchy" : {
                                         "type" : "string",
@@ -426,7 +436,7 @@
                                     },
                                     "ga:productBrand" : {
                                         "type" : "string",
-                                        "title" : "Submission Center"
+                                        "title" : "Sequencing Center"
                                     },
                                     "ga:productVariant" : {
                                         "type" : "string",

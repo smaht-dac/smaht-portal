@@ -2,7 +2,7 @@
 Getting Started
 ===============
 
-In order to make your data accessible, searchable and assessable you should submit as much metadata as possible to the SMaHT system along with the raw files you have generated in your experiments.
+In order to make your data accessible, searchable, and assessable, you should submit as much metadata as possible to the SMaHT system along with the raw files you have generated in your experiments.
 
 These pages are designed to:
 
@@ -42,6 +42,27 @@ The SMaHT data portal submission tool is implemented as a command-line Python pa
     pip install smaht-submitr
 
 Once installed, these key commands will be available for execution form the command-line: ``submit-metadata-bundle``, ``resume-uploads``
+
+
+Templates
+---------
+
+A workbook containing worksheets for each item type with all properties available for submission can be found |template_workbook|.
+
+.. |template_workbook| raw:: html
+
+   <a href="https://docs.google.com/spreadsheets/d/1sEXIA3JvCd35_PFHLj2BC-ZyImin4T-TtoruUe6dKT4/edit?usp=sharing" target="_blank">here</a>
+
+This workbook is a Google Sheet, and you can make a copy of it to your own Google Drive, or download it as an Excel file. For detailed information on an individual property, refer to its tooltip in the template by clicking or hovering over the column name.
+
+An example of a filled out workbook ready for submission can be found |example_workbook|.
+
+.. |example_workbook| raw:: html
+
+   <a href="https://docs.google.com/spreadsheets/d/1b5W-8iBEvWfnJQFkcrO9_rG-K7oJEIJlaLr6ZH5qjjA/edit?usp=sharing" target="_blank">here</a>
+
+
+|
 
 
 Formatting Files for Submission
