@@ -15,6 +15,7 @@ from dcicutils.creds_utils import SMaHTKeyManager
 #   Association,
 #   Grant Component,
 #   DAC code in the portal
+#   Submitter (Yes/No)
 
 # Define the named tuple
 User = namedtuple('User', ['first_name', 'last_name', 'email', 'submission_center', 'submits_for'])
@@ -40,9 +41,18 @@ class UserCSVProcessor:
         return user_list
 
     @staticmethod
-    def build_user_from_row(row: list) -> User:
+    def clean_str(s, lower=True):
+        """ Cleans strings for ingestion into the database by lowercasing them and stripping whitespace"""
+        if lower:
+            s = s.lower()
+        return s.strip()
+
+    def build_user_from_row(self, row: list) -> User:
         """ Builds a 'User' namedtuple extracting from the format above """
-        first_name, last_name, email, submission_center, submits_for = row[2], row[1], row[3], row[6], row[7]
+        first_name, last_name, email, submission_center, submits_for = (self.clean_str(row[2], lower=False),
+                                                                        self.clean_str(row[1], lower=False),
+                                                                        self.clean_str(row[3]),
+                                                                        row[6], row[7])
         return User(first_name, last_name, email, submission_center, submits_for)
 
     def generate_submission_center_list(self, user_csv_list: list[list]):
@@ -80,7 +90,7 @@ class UserCSVProcessor:
             self.user_dict[user.email] = user
         return self.user_dict
 
-    def ignore_existing_users(self):
+    def ignore_existing_users(self) -> None:
         """ Strips out users who already have a user record """
         for email, _ in self.user_dict.items():
             try:
@@ -91,7 +101,7 @@ class UserCSVProcessor:
                 PRINT(f'User {email} queued for update')
                 continue  # we want to keep this user
 
-    def post_users_to_portal(self):
+    def post_users_to_portal(self) -> int:
         """ Posts the user_dict to the portal """
         number_updated = 0
         for _, user in self.user_dict.items():
@@ -120,7 +130,28 @@ class UserCSVProcessor:
                     number_updated += 1
                 except Exception as e:
                     PRINT(f'Exiting - error encountered in user {user.email}: {e}')
-                    return number_updated
+                    break
+        return number_updated
+
+    def update_submits_for(self) -> int:
+        """ Iterates through the user list updating submits_for specifically where applicable """
+        number_updated = 0
+        for _, user in self.user_dict.items():
+            try:
+                if not user.submits_for:  # do not do an update on users who do not have this value
+                    continue
+                patch_body = {}
+                if user.submission_center != 'nih':  # XXX: hardcode as NIH has no submission center
+                    patch_body['submits_for'] = [user.submission_center]
+                if user.submission_center == 'dac':  # XXX: hardcode as this differs in spreadsheet
+                    patch_body['submits_for'] = ['smaht_dac']  # all dac users can submit for us
+
+                ff_utils.patch_metadata(patch_body, f'/{user.email}',
+                                        add_on='?check_only=true' if self.validate_only else '')
+                number_updated += 1
+            except Exception as e:
+                PRINT(f'Exiting - error encountered in user {user.email}: {e}')
+                break
         return number_updated
 
     def main(self, args):
@@ -131,9 +162,12 @@ class UserCSVProcessor:
         self.validate_submission_center_list()
         self.generate_users(user_csv_list)
         PRINT(f'Found {len(self.user_dict.items())} (at most) to post')
-        self.ignore_existing_users()
-        number_updated = self.post_users_to_portal()
-        PRINT(f'{number_updated} users have been posted to the portal')
+        if not args.submits_for_only:
+            self.ignore_existing_users()
+            number_updated = self.post_users_to_portal()
+        else:
+            number_updated = self.update_submits_for()
+        PRINT(f'{number_updated} users have been updated on the portal')
 
 
 def main():
@@ -143,6 +177,8 @@ def main():
     parser.add_argument("--env", help="env to use (if not data)", default='data')
     parser.add_argument("--validate-only", action='store_true', default=False,
                         help="Only validate the posting of users")
+    parser.add_argument("--submits-for-only", action='store_true', default=False,
+                        help="Do not post new users - only update submits_for fields")
     args = parser.parse_args()
     env = args.env
     PRINT(f'Attempting user load on env {env}, please confirm with y/n')
