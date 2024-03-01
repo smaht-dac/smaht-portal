@@ -1,14 +1,14 @@
 =========================
-Referencing Existing Data
+Links to Existing Data
 =========================
 
-References to existing items in the database are sometimes required to submit new items. The links below will display all options available for referencing data already in the database.
+References to existing data are frequently required to submit new data. The links below will display all options available for referencing data already in the database.
 
 
-DAC-Controlled Items
+DAC-Controlled Data
 --------------------
 
-To link to an item controlled by the DAC, you can use values for any of the following properties:
+To link to data controlled by the DAC, you can use values for any of the following properties:
 
 * `identifier`
 * `uuid`
@@ -33,6 +33,8 @@ To link to an item controlled by the DAC, you can use values for any of the foll
 
 FileFormats
 ^^^^^^^^^^^
+
+Each file type available in the database accepts a limited selection of file formats. Use the following links to see options for the following file types:
 
 * For |UnalignedReads|
 * For |AlignedReads|
@@ -62,10 +64,10 @@ FileFormats
    <a href="/search/?type=ReferenceGenome", target="_blank">ReferenceGenomes</a>
 
 
-Submitted Items
----------------
+Data Submitted by the Consortium
+--------------------------------
 
-To link to an item submitted by other users, you can use values for any of the following properties:
+To link to data submitted by other consortium members, you can use values for any of the following properties:
 
 * `submitted_id`
 * `uuid`

@@ -43,7 +43,7 @@ A workbook containing worksheets for each item type with all properties availabl
 
    <a href="https://docs.google.com/spreadsheets/d/1sEXIA3JvCd35_PFHLj2BC-ZyImin4T-TtoruUe6dKT4/edit?usp=sharing" target="_blank">here</a>
 
-This workbook is a Google Sheet, and you can make a copy of it to your own Google Drive, or download it as an Excel file. For detailed information on an individual property, refer to its tooltip in the template.
+This workbook is a Google Sheet, and you can make a copy of it to your own Google Drive, or download it as an Excel file. For detailed information on an individual property, refer to its tooltip in the template by clicking or hovering over the column name.
 
 An example of a filled out workbook ready for submission can be found |example_workbook|.
 
