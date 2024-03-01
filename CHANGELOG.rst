@@ -7,12 +7,33 @@ smaht-portal
 Change Log
 ----------
 
+0.29.0
+======
+
+* Removed master-inserts/file_format.json.
+* Changes for new skip_links (snovault.loadxl) mode for smaht-submitr. 
+* Documentation related to smaht-submitr updates.
+
+
 0.28.0
 ======
 
 * Removed master-inserts/file_format.json.
 * Changes for new skip_links (snovault.loadxl) mode for smaht-submitr. 
 * Documentation related to smaht-submitr updates.
+`PR 82: UI Dev 5 - March 1st Benchmarking Release <https://github.com/smaht-dac/smaht-portal/pull/82>`_
+
+* Feedback and bugfixes from v1 release (see trello for full list: https://trello.com/c/2TSRUHWT/880-feedback-from-feb-1-release)
+* v2 benchmarking with support for cell line pages
+* Updated/improved alluvial, etc. visualizations
+* New documentation page for SMaHT nomenclature PDF download
+* Merged PRs:
+  - https://github.com/smaht-dac/smaht-portal/pull/101
+  - https://github.com/smaht-dac/smaht-portal/pull/85
+  - https://github.com/smaht-dac/smaht-portal/pull/97
+  - https://github.com/smaht-dac/smaht-portal/pull/103
+  - https://github.com/smaht-dac/smaht-portal/pull/86
+
 
 0.27.2
 ======

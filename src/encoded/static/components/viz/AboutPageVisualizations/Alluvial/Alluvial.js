@@ -1,13 +1,9 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 
-import graphData from './data/alluvial_data.json';
-
 import { sankeyFunc } from './sankey';
-import { StackRowTable } from './StackRowTable';
 
-import Tab from 'react-bootstrap/Tab';
-import Tabs from 'react-bootstrap/Tabs';
+import fixed_data from './data/alluvial_data.json';
 
 /**
  * Alluvial Plot:
@@ -23,7 +19,7 @@ import Tabs from 'react-bootstrap/Tabs';
 export const Alluvial = () => {
     const isDrawn = useRef(false);
 
-    const graph = { ...graphData };
+    const graph = { ...fixed_data };
 
     // Create ref for appending d3 visualization to the DOM
     const containerRef = useRef(null);
@@ -41,10 +37,6 @@ export const Alluvial = () => {
                     graph.nodes.filter((n) => n.type === 'sequencing_platform')
                 )
                 .range(graph.colors.sequencing_platform),
-            assay_type: d3
-                .scaleOrdinal()
-                .domain(graph.nodes.filter((n) => n.type === 'assay_type'))
-                .range(graph.colors.assay_type),
             molecular_feature: {
                 genetic: d3
                     .scaleOrdinal()
@@ -70,7 +62,7 @@ export const Alluvial = () => {
         if (graph && containerRef.current && isDrawn.current === false) {
             const container = containerRef.current;
 
-            const margin = { top: 150, right: 200, bottom: 50, left: 100 },
+            const margin = { top: 200, right: 200, bottom: 50, left: 100 },
                 width = 1200 - margin.left - margin.right,
                 height = 700 - margin.top - margin.bottom;
 
@@ -104,7 +96,7 @@ export const Alluvial = () => {
             header_row
                 .append('text')
                 .attr('class', 'header')
-                .attr('transform', 'translate(' + 645 + ',' + 20 + ')')
+                .attr('transform', 'translate(' + 640 + ',' + 20 + ')')
                 .text('Assay Type');
 
             header_row
@@ -121,6 +113,16 @@ export const Alluvial = () => {
                 .attr('width', width + margin.left + margin.right)
                 .attr('height', margin.top);
 
+            /**
+             * Render a series of square elements whose colors are defined by
+             * [color_array], along with a text element [category_name] to its
+             * left. Position this group with [paddingTop] and [offset] which
+             * are relative to the containing svg.
+             * @param {string} category_name The text to appear to the left
+             * @param {string[]} color_array colors for the squares (in order)
+             * @param {number} paddingTop space (in px) above the group
+             * @param {number} offset space (in px) to the left of the group
+             */
             const legend_row = (
                 category_name,
                 color_array,
@@ -139,36 +141,69 @@ export const Alluvial = () => {
                         'transform',
                         'translate(' + 150 + ',' + (paddingTop + 15) + ')'
                     );
+
                 color_array.forEach((color, i) => {
                     row.append('rect')
-                        .attr('width', 20)
-                        .attr('height', 20)
+                        .attr('width', 15)
+                        .attr('height', 15)
                         .attr('fill', color)
                         .attr('stroke', d3.rgb(color).darker(1))
                         .attr(
                             'transform',
-                            'translate(' + 160 + ',' + paddingTop + ')'
+                            'translate(' +
+                                (160 + 20 * i) +
+                                ',' +
+                                paddingTop +
+                                ')'
                         );
                 });
             };
 
+            // Legend rows for GCC/TTD Column
+            legend_row('GCC', [color_schemes.data_generator('GCC')], 0, -60);
+            legend_row('TTD', [color_schemes.data_generator('TTD')], 30, -60);
+
+            // Legend rows for Assay Groups
             legend_row(
-                'genetic',
+                'Whole Genome',
+                [
+                    graph.colors.assay_group['1-1'],
+                    graph.colors.assay_group['1-2'],
+                    graph.colors.assay_group['1-3'],
+                ],
+                0,
+                523
+            );
+            legend_row('NT-Seq', [graph.colors.assay_group['2-1']], 30, 523);
+            legend_row('Hi-C', [graph.colors.assay_group['3-1']], 60, 523);
+            legend_row(
+                'Whole Transcriptome',
+                [
+                    graph.colors.assay_group['4-1'],
+                    graph.colors.assay_group['4-2'],
+                ],
+                90,
+                523
+            );
+
+            // Legend rows for Molecular Features
+            legend_row(
+                'Genetic',
                 graph.colors.genetic,
                 0,
-                width - margin.right + 120
+                width - margin.right + 125
             );
             legend_row(
-                'epigenetic',
+                'Epigenetic',
                 graph.colors.epigenetic,
                 30,
-                width - margin.right + 120
+                width - margin.right + 125
             );
             legend_row(
-                'transcriptomic',
+                'Transcriptomic',
                 graph.colors.transcriptomic,
                 60,
-                width - margin.right + 120
+                width - margin.right + 125
             );
 
             const svg = svgContainer
@@ -210,14 +245,13 @@ export const Alluvial = () => {
                 .style('stroke', function (d) {
                     if (d.source.type === 'data_generator') {
                         d.source.color = color_schemes['data_generator'](
-                            d.source.name
+                            d.source.data_generator_category
                         );
                         return d.source.color;
                     }
                     if (d.source.type === 'assay_type') {
-                        d.source.color = color_schemes['assay_type'](
-                            d.source.name
-                        );
+                        d.source.color =
+                            graph.colors['assay_group'][d.source.assay_group];
                         return d.source.color;
                     }
                     if (d.source.type === 'sequencing_platform') {
@@ -226,13 +260,15 @@ export const Alluvial = () => {
                         );
                         return d.source.color;
                     }
-                    d.source.color = color_schemes['molecular_feature'](
-                        d.source.name
-                    );
+                    if (d.source.type === 'molecular_feature') {
+                        d.source.color = color_schemes['molecular_feature'](
+                            d.source.name
+                        );
+                    }
                     return d.source.color;
                 })
                 .style('stroke-width', function (d) {
-                    return 15; // constant stroke width
+                    return 12; // constant stroke width
                 })
                 .sort(function (a, b) {
                     return b.dy - a.dy;
@@ -316,7 +352,9 @@ export const Alluvial = () => {
                 .enter()
                 .append('g')
                 .attr('class', 'node')
-                .attr('category', (d) => d.category ?? '')
+                .attr('category', (d) => {
+                    return d?.category ?? '';
+                })
                 .attr('id', (d) => d.name)
                 .attr('transform', function (d) {
                     return 'translate(' + d.x + ',' + d.y + ')';
@@ -333,14 +371,12 @@ export const Alluvial = () => {
                             // When the element is dragged, use d3.pointer
                             // to correct the position
                             d.oldy = d3.pointer(event, this)[1];
-                            d3.select(this).attr('transform', (d) => {
-                                d.drag_event_start = event.y;
-                                return 'translate(' + d.x + ',' + d.y + ')';
-                            });
-
-                            frontElt
-                                .attr('href', `#${d.name}`)
-                                .attr('class', 'node');
+                            d3.select(this)
+                                .attr('transform', (d) => {
+                                    d.drag_event_start = event.y;
+                                    return 'translate(' + d.x + ',' + d.y + ')';
+                                })
+                                .raise();
                         })
                         .on('drag', dragmove)
                 );
@@ -353,13 +389,14 @@ export const Alluvial = () => {
                 .attr('height', (d) => d.dy)
                 .attr('width', sankey.nodeWidth())
                 .style('fill', function (d) {
-                    // return 'gray'
                     if (d.type === 'data_generator') {
-                        d.color = color_schemes['data_generator'](d.name);
+                        d.color = color_schemes['data_generator'](
+                            d.data_generator_category
+                        );
                         return d.color;
                     }
                     if (d.type === 'assay_type') {
-                        d.color = color_schemes['assay_type'](d.name);
+                        d.color = graph.colors['assay_group'][d.assay_group];
                         return d.color;
                     }
                     if (d.type === 'sequencing_platform') {
@@ -422,11 +459,6 @@ export const Alluvial = () => {
                     link.attr('d', sankey.link());
                 }
             }
-
-            const frontElt = svg
-                .append('use')
-                .attr('id', 'use')
-                .attr('href', '');
         }
 
         return () => {
