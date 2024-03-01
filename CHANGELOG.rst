@@ -7,10 +7,65 @@ smaht-portal
 Change Log
 ----------
 
-0.26.0
+0.29.0
 ======
 
 * Permissions update: support for ``submits_for`` and ``restricted`` status
+
+
+0.28.0
+======
+
+`PR 82: UI Dev 5 - March 1st Benchmarking Release <https://github.com/smaht-dac/smaht-portal/pull/82>`_
+
+* Feedback and bugfixes from v1 release (see trello for full list: https://trello.com/c/2TSRUHWT/880-feedback-from-feb-1-release)
+* v2 benchmarking with support for cell line pages
+* Updated/improved alluvial, etc. visualizations
+* New documentation page for SMaHT nomenclature PDF download
+* Merged PRs:
+  - https://github.com/smaht-dac/smaht-portal/pull/101
+  - https://github.com/smaht-dac/smaht-portal/pull/85
+  - https://github.com/smaht-dac/smaht-portal/pull/97
+  - https://github.com/smaht-dac/smaht-portal/pull/103
+  - https://github.com/smaht-dac/smaht-portal/pull/86
+
+
+0.27.2
+======
+
+`PR 107: Documentation updates <https://github.com/smaht-dac/smaht-portal/pull/107>`_
+
+* Update small sections of documentation for referencing existing items
+
+
+0.27.1
+======
+
+`PR 105: GA4 file sequencing center updates <https://github.com/smaht-dac/smaht-portal/pull/105>`_
+
+* Replaces submission center with sequencing center in file views/downloads GA4 analytics
+
+
+0.27.0
+======
+
+`PR 104: Automated submission alignment <https://github.com/smaht-dac/smaht-portal/pull/104>`_
+
+* Update select property names to align with those in the 'manual' submission template
+* Remove select properties suggested by feedback from submitters
+* Create defaults and remove requirements for properties that currently only have one enum value
+* Fix UUIDs in master-inserts to match items in the database
+
+
+0.26.0
+======
+
+`PR 99: Submission links <https://github.com/smaht-dac/smaht-portal/pull/99>`_
+
+* Add documentation page for finding data relevant to submissions
+* Add templates for submissions
+* Improve columns + facets for searching on collections
+* Add calcprops for searching on collections
 
 
 0.25.3

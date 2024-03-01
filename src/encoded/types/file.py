@@ -81,6 +81,10 @@ class File(Item, CoreFile):
     item_type = "file"
     schema = load_schema("encoded:schemas/file.json")
     embedded_list = _build_file_embedded_list()
+    rev = {
+        "meta_workflow_run_inputs": ("MetaWorkflowRun", "input.files.file"),
+        "meta_workflow_run_outputs": ("MetaWorkflowRun", "workflow_runs.output.file"),
+    }
 
     Item.SUBMISSION_CENTER_STATUS_ACL.update({
         'uploaded': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
@@ -160,6 +164,38 @@ class File(Item, CoreFile):
         elif status == 'restricted':
             return self.PROTECTED
         return None
+
+    @calculated_property(
+        schema={
+            "title": "Input to MetaWorkflowRun",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "MetaWorkflowRun",
+            },
+        }
+    )
+    def meta_workflow_run_inputs(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "meta_workflow_run_inputs")
+        if result:
+            return result
+        return
+
+    @calculated_property(
+        schema={
+            "title": "Output of MetaWorkflowRun",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "MetaWorkflowRun",
+            },
+        }
+    )
+    def meta_workflow_run_outputs(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "meta_workflow_run_outputs")
+        if result:
+            return result
+        return
 
 
 @view_config(name='drs', context=File, request_method='GET',

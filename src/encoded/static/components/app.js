@@ -218,9 +218,7 @@ export default class App extends React.PureComponent {
                         '@type': itemType,
                         display_title,
                         title,
-                        submission_centers: [
-                            { display_title: submissionCenterTitle },
-                        ] = [{}],
+                        sequencing_center: { display_title: sequencingCenterTitle } = {},
                         file_sets: [
                             { assay: { display_title: assayTitle } = {} } = {},
                         ] = [{}],
@@ -239,7 +237,7 @@ export default class App extends React.PureComponent {
                             categories.length >= 2 ? categories[1] : 'Unknown',
                         item_category3:
                             categories.length >= 3 ? categories[2] : 'Unknown',
-                        item_brand: submissionCenterTitle || null,
+                        item_brand: sequencingCenterTitle || null,
                         experiment_type: assayTitle || null,
                         item_variant: file_type || null,
                     };
