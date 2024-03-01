@@ -11,7 +11,7 @@ These pages are designed to:
 
 The primary way to submit data to the SMaHT data portal is via Excel spreadsheet, as described below.
 
-**Tip**: For more detailed, comprehsensive (though perhaps a bit more developer oriented) documentation, please see our ReadTheDocs based documentation here:
+**Tip**: For more detailed and comprehsensive documentation, please see our ReadTheDocs based documentation here:
 
 * https://submitr.readthedocs.io/en/draft/
 
@@ -32,7 +32,7 @@ Such Excel metadata workbooks:
 * Contain multiple sheets where each sheet corresponds to an object type and each column a field of metadata.
 * Are used as input to the ``smaht-submitr`` software which validates submissions and pushes the content of the forms to our database.
 
-Spreadsheet generation tools may be made available in the future; please contact the DAC directly for data submission templates. More extensive documentation of the data submission process can be found `here <https://submitr.readthedocs.io/en/latest/>`_.
+Spreadsheet generation tools may be made available in the future; please contact the DAC directly for data submission templates. More extensive documentation of the data submission process can be found `here <https://submitr.readthedocs.io/en/draft/>`_.
 
 
 Installing the Submission Tool
