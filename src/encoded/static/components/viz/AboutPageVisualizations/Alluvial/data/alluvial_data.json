@@ -29,9 +29,9 @@
         {"type":"assay_type","name":"Targeted RNA-Seq","display_name":"10X Genomics Xenium","description":"Targeted spatial RNA-Sequencing.","node":24,"assay_type":"Targeted RNA-Seq", "assay_group": "4-2"},
         {"type":"assay_type","name":"STORM-Seq","display_name":"STORM-Seq","description":"Single-cell TOtal RNA Miniaturized sequencing; a single-cell full-length ribo-reduced total RNA sequencing using short-read platforms.","link":"https://www.biorxiv.org/content/10.1101/2022.03.14.484332v1","node":25,"assay_type":"STORM-Seq", "assay_group": "4-2"},
         {"type":"assay_type","name":"Tranquil-Seq","display_name":"Tranquil-Seq","description":"Single-cell full-length RNA-Seq using long-read platforms.","node":26,"assay_type":"Tranquil-Seq", "assay_group": "4-2"},
-        {"type":"assay_type","name":"WGS CompDuplex-Seq","node":27,"assay_type":"WGS CompDuplex-Seq", "assay_group": "1-3"},
-        {"type":"assay_type","name":"WGS scCompDuplex-Seq","node":28,"assay_type":"WGS scCompDuplex-Seq", "assay_group": "1-3"},
-        {"type":"assay_type","name":"WGS MALBAC-amplifed","node":29,"assay_type":"WGS MALBAC-amplifed", "assay_group": "1-2"},
+        {"type":"assay_type","name":"WGS CompDuplex-Seq","node":27,"assay_type":"WGS CompDuplex-Seq", "display_name": "CompDuplex-Seq", "assay_group": "1-3"},
+        {"type":"assay_type","name":"WGS scCompDuplex-Seq","node":28,"assay_type":"WGS scCompDuplex-Seq", "display_name":"scCompDuplex-Seq", "assay_group": "1-3"},
+        {"type":"assay_type","name":"WGS MALBAC-amplifed","node":29,"display_name":"MALBAC-amplifed WGS", "assay_type":"WGS MALBAC-amplifed", "assay_group": "1-2"},
         
         {"type":"molecular_feature","category":"genetic","name":"SNV","desc":"Single nucleotide variants (SNV)","node":30,"molecular_feature":"SNV"},
         {"type":"molecular_feature","category":"genetic","name":"InDel","desc":"Small insertions and deletions (InDel)","node":31,"molecular_feature":"InDel"},
