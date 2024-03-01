@@ -7,6 +7,23 @@ smaht-portal
 Change Log
 ----------
 
+0.28.0
+======
+
+`PR 82: UI Dev 5 - March 1st Benchmarking Release <https://github.com/smaht-dac/smaht-portal/pull/82>`_
+
+* Feedback and bugfixes from v1 release
+* v2 benchmarking with support for cell line pages
+* Updated/improved alluvial, etc. visualizations
+* New documentation page for SMaHT nomenclature PDF download
+* Merged PRs:
+  - https://github.com/smaht-dac/smaht-portal/pull/101
+  - https://github.com/smaht-dac/smaht-portal/pull/85
+  - https://github.com/smaht-dac/smaht-portal/pull/97
+  - https://github.com/smaht-dac/smaht-portal/pull/103
+  - https://github.com/smaht-dac/smaht-portal/pull/86
+
+
 0.27.2
 ======
 
