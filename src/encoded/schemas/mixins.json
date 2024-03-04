@@ -8,7 +8,7 @@
                 "FFedit-create"
             ],
             "type": "string",
-            "format": "accession",
+            "pattern": "^SMA[A-Z]{2}[A-Z1-9]{7}$",
             "permission": "restricted_fields",
             "serverDefault": "accession"
         },
@@ -22,7 +22,7 @@
                 "description": "An accession previously assigned to an object that has been merged with this object.",
                 "type": "string",
                 "permission": "restricted_fields",
-                "format": "accession"
+                "pattern": "^SMA[A-Z]{2}[A-Z1-9]{7}$"
             }
         }
     },
