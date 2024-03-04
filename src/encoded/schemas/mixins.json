@@ -623,7 +623,8 @@
             "type": "string",
             "pattern": "^[A-Za-z0-9-_]+$",
             "minLength": 3,
-            "comment": "Not for identifying name; use 'identifier' for that purpose."
+            "comment": "Not for identifying name; use 'identifier' for that purpose.",
+            "permission": "restricted_fields"
         }
     },
     "notes": {
