@@ -3,6 +3,9 @@ from typing import Any, Dict, Optional
 import pytest
 from jsonschema import validate, ValidationError
 from snovault import load_schema
+from webtest import TestApp
+
+from .utils import get_search, patch_item
 
 
 def get_mixins_schema() -> Dict[str, Any]:
@@ -207,6 +210,7 @@ def test_meta_workflow_input(meta_workflow_input: str, expected_errors: bool) ->
         assert errors
 
 
+@pytest.mark.workbook
 @pytest.mark.parametrize(
     "accession,expected_errors",
     [
@@ -221,16 +225,31 @@ def test_meta_workflow_input(meta_workflow_input: str, expected_errors: bool) ->
         ("SMALL1234567", False),
     ],
 )
-def test_accession(accession: str, expected_errors: bool) -> None:
+def test_accession(
+    es_testapp: TestApp, workbook: None, accession: str, expected_errors: bool
+) -> None:
     """Ensure accession schema validating pattern as expected."""
-    schema = get_mixins_field("accession")
-    errors = validate_schema(schema, accession)
+    item_with_accession = get_item_with_an_accession(es_testapp)
+    identifier = item_with_accession["@id"]
+    patch_body = {"accession": accession}
     if expected_errors is False:
-        assert not errors
+        patch_item(es_testapp, patch_body, identifier, status=200)
     else:
-        assert errors
+        response = patch_item(es_testapp, patch_body, identifier, status=422)
+        import pdb
+
+        pdb.set_trace()
+        assert response.json["errors"]
 
 
+def get_item_with_an_accession(es_testapp: TestApp) -> Dict[str, Any]:
+    """Pull any item with an accession for testing."""
+    search = get_search(es_testapp, "?type=Item&accession!=No+value")
+    assert len(search) > 0
+    return search[0]
+
+
+@pytest.mark.workbook
 @pytest.mark.parametrize(
     "accession,expected_errors",
     [
@@ -245,12 +264,15 @@ def test_accession(accession: str, expected_errors: bool) -> None:
         ("SMALL1234567", False),
     ],
 )
-def test_alternate_accessions(accession: str, expected_errors: bool) -> None:
+def test_alternate_accessions(
+    es_testapp: TestApp, workbook: None, accession: str, expected_errors: bool
+) -> None:
     """Ensure alternate_accessions schema validating pattern as expected."""
-    schema = get_mixins_field("accession", nested_key="alternate_accessions")
-    alternate_accessions = [accession]
-    errors = validate_schema(schema, alternate_accessions)
+    item_with_accession = get_item_with_an_accession(es_testapp)
+    identifier = item_with_accession["@id"]
+    patch_body = {"accession": accession}
     if expected_errors is False:
-        assert not errors
+        patch_item(es_testapp, patch_body, identifier, status=200)
     else:
-        assert errors
+        response = patch_item(es_testapp, patch_body, identifier, status=422)
+        assert response.json["errors"]
