@@ -205,3 +205,52 @@ def test_meta_workflow_input(meta_workflow_input: str, expected_errors: bool) ->
         assert not errors
     else:
         assert errors
+
+
+@pytest.mark.parametrize(
+    "accession,expected_errors",
+    [
+        ("", True),
+        ("GAPFI1234567", True),  # Invalid prefix
+        ("SMA4L1234567", True),  # Numbers in item-type section
+        ("SMALLABCDEFGH", True),  # Too long
+        ("SMALLABCdEFG", True),  # Lowercase
+        ("SMALLAB34N60", True),  # Zero not allowed
+        ("SMALLABCDEFG", False),
+        ("SMALLAB34N6Y", False),
+        ("SMALL1234567", False),
+    ],
+)
+def test_accession(accession: str, expected_errors: bool) -> None:
+    """Ensure accession schema validating pattern as expected."""
+    schema = get_mixins_field("accession")
+    errors = validate_schema(schema, accession)
+    if expected_errors is False:
+        assert not errors
+    else:
+        assert errors
+
+
+@pytest.mark.parametrize(
+    "accession,expected_errors",
+    [
+        ("", True),
+        ("GAPFI1234567", True),  # Invalid prefix
+        ("SMA4L1234567", True),  # Numbers in item-type section
+        ("SMALLABCDEFGH", True),  # Too long
+        ("SMALLABCdEFG", True),  # Lowercase
+        ("SMALLAB34N60", True),  # Zero not allowed
+        ("SMALLABCDEFG", False),
+        ("SMALLAB34N6Y", False),
+        ("SMALL1234567", False),
+    ],
+)
+def test_alternate_accessions(accession: str, expected_errors: bool) -> None:
+    """Ensure alternate_accessions schema validating pattern as expected."""
+    schema = get_mixins_field("accession", nested_key="alternate_accessions")
+    alternate_accessions = [accession]
+    errors = validate_schema(schema, alternate_accessions)
+    if expected_errors is False:
+        assert not errors
+    else:
+        assert errors
