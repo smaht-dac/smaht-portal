@@ -25,7 +25,7 @@ def is_accession(instance):
     )
 
 
-@FormatChecker.checks("accession")
+@FormatChecker.cls_checks("accession")
 def is_accession_for_server(instance):
     # Unfortunately we cannot access the accessionType here
     if accession_re.match(instance):
