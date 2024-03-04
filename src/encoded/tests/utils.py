@@ -548,3 +548,16 @@ def get_one_of_required_fields(schema: Dict[str, Any]) -> List[str]:
 def get_identifying_properties(test_app: TestApp, item_type: str) -> List[str]:
     schema = get_schema(test_app, item_type)
     return schema.get("identifyingProperties", [])
+
+
+def delete_field(
+    test_app: TestApp,
+    identifier: str,
+    to_delete: str,
+    status: Union[int, List[int]] = 200,
+) -> Dict[str, Any]:
+    """Delete field from item with given identifier."""
+    resource_path = get_formatted_resource_path(
+        identifier, add_on=f"delete_fields={to_delete}"
+    )
+    return patch_item(test_app, {}, resource_path, status=status)

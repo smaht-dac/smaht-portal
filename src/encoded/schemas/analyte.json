@@ -4,8 +4,8 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "components",
         "molecule",
+        "molecule_detail",
         "samples",
         "submission_centers",
         "submitted_id"
@@ -79,7 +79,7 @@
             "accessionType": "AN"
         },
         "schema_version": {
-            "default": "1"
+            "default": "2"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_ANALYTE_[A-Z0-9-_.]{4,}$"
@@ -89,24 +89,6 @@
             "description": "Ratio of nucleic acid absorbance at 260 nm and 280 nm, used to determine a measure of DNA purity",
             "type": "number",
             "minimum": 0
-        },
-        "components": {
-            "title": "Components",
-            "description": "Biological features included in the analyte",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "enum": [
-                    "Total DNA",
-                    "mRNA",
-                    "tRNA",
-                    "rRNA",
-                    "MicroRNA",
-                    "Total RNA"
-                ]
-            }
         },
         "concentration": {
             "title": "Concentration",
@@ -134,6 +116,24 @@
                 "enum": [
                     "DNA",
                     "RNA"
+                ]
+            }
+        },
+        "molecule_detail": {
+            "title": "Molecule Detail",
+            "description": "Biological features included in the analyte",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Total DNA",
+                    "mRNA",
+                    "tRNA",
+                    "rRNA",
+                    "MicroRNA",
+                    "Total RNA"
                 ]
             }
         },
@@ -209,6 +209,25 @@
                 "type": "string",
                 "linkTo": "Sample"
             }
+        }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "molecule": {
+            "title": "Molecule"
+        },
+        "status": {
+            "title": "Status"
+        }
+    },
+    "columns": {
+        "submission_centers.display_title": {
+            "title": "Submission Centers"
+        },
+        "molecule": {
+            "title": "Molecule"
         }
     }
 }

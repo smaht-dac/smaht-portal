@@ -293,5 +293,27 @@
                 }
             }
         }
+    },
+    "facets": {
+        "category": {
+            "title": "Category"
+        },
+        "name": {
+            "title": "Name"
+        },
+        "version": {
+            "title": "Version"
+        }
+    },
+    "columns": {
+        "category": {
+            "title": "Category"
+        },
+        "name": {
+            "title": "Name"
+        },
+        "version": {
+            "title": "Version"
+        }
     }
 }

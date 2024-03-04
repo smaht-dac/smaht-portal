@@ -30,8 +30,8 @@ export const COLO829Data = ({ schemas, session, facets, href, context }) => {
         <BenchmarkingLayout
             {...{ schemas }}
             showBamQCLink={true}
-            title="COLO829 Cell Line Data"
-            description="COLO829 (COLO829T) is a metastatic melanoma cancer cell line, which has a matched normal lymphoblast cell line, COLO892BL, derived from the same individual. For benchmarking analysis, COLO829T cells were mixed with COLO829BL cells at a mixture ratio of 1:50 (COLO829BLT50).">
+            title={BenchmarkingDataMap.COLO829?.title}
+            description={BenchmarkingDataMap.COLO829?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="COLO829-Tab-Renderer"
@@ -47,8 +47,8 @@ export const HapMapData = ({ schemas, session, facets, href, context }) => {
     return (
         <BenchmarkingLayout
             {...{ schemas }}
-            title="HapMap Cell Line Data"
-            description="">
+            title={BenchmarkingDataMap.HapMap?.title}
+            description={BenchmarkingDataMap.HapMap?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="HapMap-Tab-Renderer"
@@ -70,8 +70,8 @@ export const IPSCFibroblastData = ({
     return (
         <BenchmarkingLayout
             {...{ schemas }}
-            title="iPSC Cell Line Data"
-            description="">
+            title={BenchmarkingDataMap.iPScFibroblasts?.title}
+            description={BenchmarkingDataMap.iPScFibroblasts?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="IPSC-Tab-Renderer"
@@ -88,8 +88,8 @@ export const BrainData = ({ schemas, session, facets, href, context }) => {
     return (
         <BenchmarkingLayout
             {...{ schemas }}
-            title="Brain Primary Tissue Data"
-            description="">
+            title={BenchmarkingDataMap.Brain?.title}
+            description={BenchmarkingDataMap.Brain?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Brain-Tab-Renderer"
@@ -106,8 +106,8 @@ export const SkinData = ({ schemas, session, facets, href, context }) => {
     return (
         <BenchmarkingLayout
             {...{ schemas }}
-            title="Skin Primary Tissue Data"
-            description="">
+            title={BenchmarkingDataMap.Skin?.title}
+            description={BenchmarkingDataMap.Skin?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Skin-Tab-Renderer"
@@ -123,8 +123,8 @@ export const LiverData = ({ schemas, session, facets, href, context }) => {
     return (
         <BenchmarkingLayout
             {...{ schemas }}
-            title="Liver Primary Tissue Data"
-            description="">
+            title={BenchmarkingDataMap.Liver?.title}
+            description={BenchmarkingDataMap.Liver?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Liver-Tab-Renderer"
@@ -140,8 +140,8 @@ export const LungData = ({ schemas, session, facets, href, context }) => {
     return (
         <BenchmarkingLayout
             {...{ schemas }}
-            title="Lung Primary Tissue Data"
-            description="">
+            title={BenchmarkingDataMap.Lung?.title}
+            description={BenchmarkingDataMap.Lung?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Lung-Tab-Renderer"
@@ -157,8 +157,8 @@ export const ColonData = ({ schemas, session, facets, href, context }) => {
     return (
         <BenchmarkingLayout
             {...{ schemas }}
-            title="Colon Primary Tissue Data"
-            description="">
+            title={BenchmarkingDataMap.Colon?.title}
+            description={BenchmarkingDataMap.Colon?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Colon-Tab-Renderer"
@@ -175,8 +175,8 @@ export const HeartData = ({ schemas, session, facets, href, context }) => {
     return (
         <BenchmarkingLayout
             {...{ schemas }}
-            title="Heart Primary Tissue Data"
-            description="">
+            title={BenchmarkingDataMap.Heart?.title}
+            description={BenchmarkingDataMap.Heart?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Heart-Tab-Renderer"
