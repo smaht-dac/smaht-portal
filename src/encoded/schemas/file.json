@@ -77,7 +77,8 @@
                 "obsolete",
                 "archived",
                 "deleted",
-                "public"
+                "public",
+                "restricted"
             ]
         },
         "file_format": {

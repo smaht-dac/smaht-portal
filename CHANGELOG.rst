@@ -7,12 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.29.0
+0.30.0
 ======
 
 * Removed master-inserts/file_format.json.
 * Changes for new skip_links (snovault.loadxl) mode for smaht-submitr. 
 * Documentation related to smaht-submitr updates.
+
+
+0.29.0
+======
+
+* Permissions update: support for ``submits_for`` and ``restricted`` status
 
 
 0.28.0
@@ -143,7 +149,7 @@ Change Log
 
 * Hooks in QC Download API
 
-  
+
 0.23.0
 ======
 

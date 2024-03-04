@@ -10,6 +10,7 @@ from ..types.acl import (
 class SMaHTProjectAuthorization(SnovaultProjectAuthorization):
 
     def authorization_create_principals(self, login, user, collections):
+        """ NOTE: This is unused at the moment, should be refactored """
         user_properties = user.properties
         principals = ['userid.%s' % user.uuid]
 

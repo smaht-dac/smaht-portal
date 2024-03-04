@@ -180,7 +180,32 @@ def smaht_gcc_user(testapp, test_submission_center, test_consortium):
         'consortia': [
             test_consortium['uuid']
         ],
+        'submits_for': [
+            test_submission_center['uuid']
+        ],
         'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188308'
+    }
+    return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
+def smaht_gcc_user_2(testapp, test_second_submission_center, test_consortium):
+    """ A GCC user would be a consortia member and a submission center member """
+    item = {
+        'first_name': 'Test2',
+        'last_name': 'User',
+        'email': 'gcc_user2@example.org',
+        'status': 'current',
+        'submission_centers': [
+            test_second_submission_center['uuid']
+        ],
+        'consortia': [
+            test_consortium['uuid']
+        ],
+        'submits_for': [
+            test_second_submission_center['uuid']
+        ],
+        'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188309'
     }
     return post_item_and_return_location(testapp, item, 'user')
 
@@ -211,9 +236,13 @@ def smaht_consortium_protected_user(testapp, test_consortium, test_protected_con
         'status': 'current',
         'consortia': [
             test_consortium['uuid'],
-            test_protected_consortium['uuid']
+            test_protected_consortium['uuid']  # use of the protected consortia is obsolete but remains for
+                                               # demonstration purposes if we do want to have "hidden" data
         ],
-        'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188310'
+        'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188310',
+        'groups': [  # This group now indicates "protected" access via the ability to download restricted files
+            'dbgap'
+        ]
     }
     return post_item_and_return_location(testapp, item, 'user')
 
@@ -263,6 +292,12 @@ def smaht_protected_gcc_user(testapp, test_submission_center, test_consortium, t
 def submission_center_user_app(testapp, test_submission_center, smaht_gcc_user):
     """ App associated with a consortia member who is a submitter """
     return remote_user_testapp(testapp.app, smaht_gcc_user['uuid'])
+
+
+@pytest.fixture
+def submission_center2_user_app(testapp, test_second_submission_center, smaht_gcc_user_2):
+    """ App associated with a consortia member who is a submitter """
+    return remote_user_testapp(testapp.app, smaht_gcc_user_2['uuid'])
 
 
 @pytest.fixture
