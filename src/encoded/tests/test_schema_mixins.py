@@ -236,7 +236,16 @@ def test_accession(
         patch_item(es_testapp, patch_body, identifier, status=200)
     else:
         response = patch_item(es_testapp, patch_body, identifier, status=422)
-        assert response
+        assert_is_invalid_accession_response(response)
+
+
+def assert_is_invalid_accession_response(response: Dict[str, Any]) -> bool:
+    """Check if response indicates invalid accession."""
+    assert "ValidationFailure" in response.get("@type", [])
+    errors = response.get("errors", [])
+    assert len(errors) == 1
+    error = errors[0]
+    assert "accession" in error.get("name", "")
 
 
 def get_item_with_an_accession(es_testapp: TestApp) -> Dict[str, Any]:
@@ -272,4 +281,4 @@ def test_alternate_accessions(
         patch_item(es_testapp, patch_body, identifier, status=200)
     else:
         response = patch_item(es_testapp, patch_body, identifier, status=422)
-        assert response
+        assert_is_invalid_accession_response(response)
