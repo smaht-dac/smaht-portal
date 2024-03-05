@@ -5,7 +5,6 @@
     "type": "object",
     "required": [
         "cell_ontology_id",
-        "preservation_type",
         "sample_sources",
         "submission_centers",
         "submitted_id"
