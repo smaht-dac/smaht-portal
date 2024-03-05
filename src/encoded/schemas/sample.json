@@ -61,10 +61,7 @@
         "preservation_medium": {
             "title": "Preservation Medium",
             "description": "Medium used for sample preservation",
-            "type": "string",
-            "enum": [
-                "TBD"
-            ]
+            "type": "string"
         },
         "preservation_type": {
             "title": "Preservation Type",
