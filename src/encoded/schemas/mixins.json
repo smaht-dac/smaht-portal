@@ -298,6 +298,7 @@
             "title": "Annotated Filename",
             "description": "Filename containing controlled metadata",
             "type": "string",
+            "uniqueKey": true,
             "permission": "restricted_fields"
         },
         "dataset": {
