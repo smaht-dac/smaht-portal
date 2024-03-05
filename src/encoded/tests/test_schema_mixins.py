@@ -236,10 +236,7 @@ def test_accession(
         patch_item(es_testapp, patch_body, identifier, status=200)
     else:
         response = patch_item(es_testapp, patch_body, identifier, status=422)
-        import pdb
-
-        pdb.set_trace()
-        assert response.json["errors"]
+        assert response
 
 
 def get_item_with_an_accession(es_testapp: TestApp) -> Dict[str, Any]:

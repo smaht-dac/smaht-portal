@@ -2,6 +2,15 @@ from dcicutils.misc_utils import ignored
 from snovault.schema_validation import NO_DEFAULT
 from snovault.schema_utils import server_default
 from snovault.server_defaults import get_user_resource
+# NOTE: these are retrieved from the ini files, so despite not being directly used here, they are in fact used
+from snovault.server_defaults import (  # noqa: F401 (imported but unused)
+    add_last_modified,
+    enc_accession,
+    get_now,
+    get_userid,
+    get_user_resource,
+    test_accession
+)
 
 
 ACCESSION_FACTORY = __name__ + ':accession_factory'
@@ -10,6 +19,12 @@ ACCESSION_TEST_PREFIX = 'TST'
 
 
 def includeme(config):
+    accession_factory = config.registry.settings.get('accession_factory')
+    if accession_factory:
+        factory = DottedNameResolver().resolve(accession_factory)
+    else:
+        factory = enc_accession
+    config.registry[ACCESSION_FACTORY] = factory
     config.scan(__name__)
 
 
