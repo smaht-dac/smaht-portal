@@ -1,6 +1,6 @@
 import re
 from pyramid.threadlocal import get_current_request
-from snovault.schema_formats import FormatChecker
+from snovault.schema_utils import format_checker
 from snovault.server_defaults import test_accession
 from .server_defaults import (
     ACCESSION_FACTORY,
@@ -25,7 +25,7 @@ def is_accession(instance):
     )
 
 
-@FormatChecker.cls_checks("accession")
+@format_checker.checks("accession")
 def is_accession_for_server(instance):
     # Unfortunately we cannot access the accessionType here
     if accession_re.match(instance):
