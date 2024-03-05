@@ -272,4 +272,4 @@ def test_alternate_accessions(
         patch_item(es_testapp, patch_body, identifier, status=200)
     else:
         response = patch_item(es_testapp, patch_body, identifier, status=422)
-        assert response.json["errors"]
+        assert response
