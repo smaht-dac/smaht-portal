@@ -11,7 +11,7 @@ These files should reside in the same directory as your submission file. Or, if 
 The above commands will only look for the files to upload directly within the specified directory
 (and not any sub-directories therein). To look (recursively) within sub-directories, do::
 
-   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --directory <path-to-files> --subdirectories
+   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --directory <path-to-files> --sub-directories
 
 
 Resuming Uploads
@@ -81,6 +81,6 @@ For example, if using an AWS EC2 instance running Amazon Linux 2 with files in A
 
     # Run smaht-submitr with mounted files (assuming you have python and pip installed).
     pip install smaht-submitr
-    resume-uploads your-upload-file-uuid --directory /path-to-your-mount-directory --subdirectories -nq 
+    resume-uploads your-upload-file-uuid --directory /path-to-your-mount-directory --sub-directories -nq 
 
 For further support or questions regarding file submission, please contact the SMaHT DAC Team at `smhelp@hms-dbmi.atlassian.net <mailto:smhelp@hms-dbmi.atlassian.net>`_
