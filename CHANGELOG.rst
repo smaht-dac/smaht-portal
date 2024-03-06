@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.30.0
+======
+
+* Only documentation updates (related to smaht-submitr) from add_valid_item_types_to_fileformat_in_masterinserts branch.
+
+
 0.29.0
 ======
 
