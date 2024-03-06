@@ -7,6 +7,7 @@ from snovault.types.ingestion import SubmissionFolio
 from ..project.loadxl import ITEM_INDEX_ORDER
 from .loadxl_extensions import load_data_into_database, summary_of_load_data_results
 from .submission_folio import SmahtSubmissionFolio
+from ..schema_formats import is_accession
 
 
 def includeme(config):
@@ -46,8 +47,16 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
 
 def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp, Portal]], novalidate: bool = False,
                           autoadd: Optional[dict] = None, prune: bool = True) -> StructuredDataSet:
+
+    def ref_lookup_strategy(type_name: str, value: str) -> int:
+        if is_accession(value):
+            return StructuredDataSet.REF_LOOKUP_DEFAULT | StructuredDataSet.REF_LOOKUP_ROOT_FIRST
+        else:
+            return StructuredDataSet.REF_LOOKUP_DEFAULT
+
     structured_data = StructuredDataSet.load(file=file, portal=portal,
-                                             autoadd=autoadd, order=ITEM_INDEX_ORDER, prune=prune)
+                                             autoadd=autoadd, order=ITEM_INDEX_ORDER, prune=prune,
+                                             ref_lookup_strategy=ref_lookup_strategy)
     if not novalidate:
         structured_data.validate()
     return structured_data
