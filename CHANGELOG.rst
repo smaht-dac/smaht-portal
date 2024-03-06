@@ -7,13 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-0.30.0
+0.31.0
 ======
 
 * Removed master-inserts/file_format.json.
 * Changes for new skip_links (snovault.loadxl) mode for smaht-submitr. 
 * Added submits_for to master-inserts/users.json.
 * Documentation related to smaht-submitr updates.
+
+
+0.30.0
+======
+
+* Only documentation updates (related to smaht-submitr) from add_valid_item_types_to_fileformat_in_masterinserts branch.
 
 
 0.29.0
@@ -25,9 +31,6 @@ Change Log
 0.28.0
 ======
 
-* Removed master-inserts/file_format.json.
-* Changes for new skip_links (snovault.loadxl) mode for smaht-submitr. 
-* Documentation related to smaht-submitr updates.
 `PR 82: UI Dev 5 - March 1st Benchmarking Release <https://github.com/smaht-dac/smaht-portal/pull/82>`_
 
 * Feedback and bugfixes from v1 release (see trello for full list: https://trello.com/c/2TSRUHWT/880-feedback-from-feb-1-release)
