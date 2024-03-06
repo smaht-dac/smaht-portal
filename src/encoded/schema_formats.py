@@ -1,6 +1,7 @@
 import re
 from pyramid.threadlocal import get_current_request
-from snovault.schema_validation import FormatChecker
+from jsonschema import FormatChecker
+# from snovault.schema_validation import FormatChecker
 from snovault.server_defaults import test_accession
 from .server_defaults import (
     ACCESSION_FACTORY,
