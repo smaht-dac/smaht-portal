@@ -26,6 +26,9 @@
             "$ref": "mixins.json#/cell_count"
         },
         {
+            "$ref": "mixins.json#/description"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
