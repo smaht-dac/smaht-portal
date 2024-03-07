@@ -7,12 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.29.1
+0.30.1
 ======
 
 `PR 111: Minor schema updates <https://github.com/smaht-dac/smaht-portal/pull/111>`_
 
 * Update select item properties to match those desired for "automated" submission
+
+
+0.30.0
+======
+
+* Only documentation updates (related to smaht-submitr) from add_valid_item_types_to_fileformat_in_masterinserts branch.
 
 
 0.29.0
