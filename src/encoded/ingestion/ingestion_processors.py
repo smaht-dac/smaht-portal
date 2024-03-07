@@ -23,7 +23,9 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
 
 def _process_submission(submission: SmahtSubmissionFolio) -> None:
     with submission.s3_file() as file:
-        structured_data = parse_structured_data(file, portal=submission.portal_vapp, autoadd=submission.autoadd)
+        structured_data = parse_structured_data(file, portal=submission.portal_vapp,
+                                                autoadd=submission.autoadd,
+                                                ref_nocache=submission.ref_nocache)
         if (errors := structured_data.errors):
             submission.record_results(errors, _summarize_errors(structured_data, submission))
             # If there are data validation errors then trigger an exception so that a traceback.txt
@@ -46,7 +48,8 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
 
 
 def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp, Portal]], novalidate: bool = False,
-                          autoadd: Optional[dict] = None, prune: bool = True) -> StructuredDataSet:
+                          autoadd: Optional[dict] = None, prune: bool = True,
+                          ref_nocache: bool = False) -> StructuredDataSet:
 
     def ref_lookup_strategy(type_name: str, value: str) -> int:
         if is_accession(value):
@@ -56,7 +59,8 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
 
     structured_data = StructuredDataSet.load(file=file, portal=portal,
                                              autoadd=autoadd, order=ITEM_INDEX_ORDER, prune=prune,
-                                             ref_lookup_strategy=ref_lookup_strategy)
+                                             ref_lookup_strategy=ref_lookup_strategy,
+                                             ref_lookup_nocache=ref_nocache)
     if not novalidate:
         structured_data.validate()
     return structured_data
