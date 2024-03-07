@@ -7,9 +7,9 @@ In order to make your data accessible, searchable, and assessable, you should su
 These pages are designed to:
 
 * Show you how to find out what kind of metadata we collect for your particular type of experiment.
-* Introduce the mechanisms by which you can submit your metadata and associated data files to the SMaHT data portal.
+* Introduce the mechanisms by which you can submit your metadata and associated data files to SMaHT data portal.
 
-The primary way to submit data to the SMaHT data portal is via Excel spreadsheet, as described below.
+The primary way to submit data to SMaHT data portal is via Excel spreadsheet, as described below.
 
 **Tip**: For more detailed and comprehensive documentation, please see our ReadTheDocs based documentation here:
 
@@ -23,7 +23,7 @@ An overview of the actual metadata structure is pending, check back soon! Though
 Data Submission via Excel Spreadsheet
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Uploading metadata and associated data files to the SMaHT data portal can be done using a software tool called ``smaht-submitr``. This is a Python based command-line tool which is distributed on PyPi. The metadata is represented by an Excel spreadsheet (also called a `workbook`) which contains a number of sheets (also called `worksheets`).
+Uploading metadata and associated data files to SMaHT data portal can be done using a software tool called ``smaht-submitr``. This is a Python based command-line tool which is distributed on PyPi. The metadata is represented by an Excel spreadsheet (also called a `workbook`) which contains a number of sheets (also called `worksheets`).
 
 Such Excel metadata workbooks:
 
@@ -41,7 +41,7 @@ The SMaHT data portal submission tool is implemented as a command-line Python pa
 
     pip install smaht-submitr
 
-Once installed, these key commands will be available for execution form the command-line: ``submit-metadata-bundle``, ``resume-uploads``
+Once installed, these key commands will be available for execution from the command-line: ``submit-metadata-bundle``, ``resume-uploads``
 
 
 Templates
@@ -70,20 +70,16 @@ Formatting Files for Submission
 Most commonly, the file format recommended for metadata submission to SMaHT Portal, is an Excel spreadsheet file (e.g. ``your_metadata_file.xlsx``), comprised of one or more sheets. Note these important aspects of using the Excel spreadsheet format:
 
 #. Each sheet name must be the `exact` name of a SMaHT Portal entity or `object` defined within the system.
-#. Each sheet must have as its first row, a special `header` row, which enumerates in each column, the `exact` names of the Portal object `properties` as the column names; order does `not` matter.
+#. Each sheet must have as its first row a special `header` row, which enumerates in each column, the `exact` names of the Portal object `properties` as the column names; order does `not` matter.
 #. Each sheet may contain any number of `data` rows (`directly` below the header row), each representing an instance of the Portal object.
-#. The values in the cells/columns of each data row correspond each to the property named in same column of the header row.
+#. The values in the cells/columns of each data row correspond to the property named in the same column of the header row.
 #. The first column in the header row which is empty marks the end of the header, and any subsequent columns will be entirely ignored.
-#. The first row which is entirely empty marks the end of the input, and any subsequenct rows will be entirely ignored;
-   this means you can include comments in your spreadsheet in rows after (below) the first blank row indicating the end of data input.
-#. Sheets which are marked as "hidden" will be ignored; this provides a way of including sheets with other auxiliary information
-   without its content interfering the submission tool.
-#. Sheets which have a name enclosed in parenthesis, for example ``(My Comments)``, will be completely ignored;
-   this provides a way of including sheets with other auxiliary information
-   without its content interfering the submission tool.
+#. The first row which is entirely empty marks the end of the input, and any subsequent rows will be entirely ignored; this means you can include comments in your spreadsheet in rows after (below) the first blank row indicating the end of data input.
+#. Sheets which are marked as "hidden" will be ignored; this provides a way of including sheets with other auxiliary information without their contents interfering with the submission tool.
+#. Sheets which have a name enclosed in parenthesis, for example ``(My Comments)``, will be completely ignored; this provides a way of including sheets with other auxiliary information without their contents interfering with the submission tool.
 #. The name of the spreadsheet file must be suffixed with ``.xls`` or ``.xlsx``; there are no other requirements for the name of this file.
 
-Despite the rather dense chunk of text here, it is actually pretty intiutive, straightforward, and almost self-explanatory. Here is screenshot of a simple example Excel spreadsheet:
+Despite the rather dense chunk of text here, it is actually pretty intuitive, straightforward, and almost self-explanatory. Here is screenshot of a simple example Excel spreadsheet:
 
 .. image:: /static/img/docs/excel_screenshot.png
    :target: /static/img/docs/excel_screenshot.png
@@ -97,19 +93,21 @@ And also notice the multiple tabs at the bottom for the different sheets within 
 
 |
 
-**Tip:** As mentioned above, if you want to include arbitrary comments or auxiliary information in your spreadsheet, without that content intefering with the parsing of the spreadsheet, you can make an individual sheet **hidden**. Such hidden sheets will be completely ignored.  To hide a sheet in Excel right-click on the tab and choose **Hide**. To **unhide** select **Format** > **Sheet** > **Unhide...** from the menu-bar. As also mentioned above, if your sheet name is enclosed in parenthesis, for example ``(My Comments)``, then it will also be completely ignored; again, useful for arbitrary comments, and without having to hide/unhide sheets.
-
-|
-
 **Tip:** Other file formats besides Excel actually `are` supported; see `this document <https://submitr.readthedocs.io/en/draft/advanced_usage.html#other-files-formats>`_ for more information.
 
 
 Object Reference Properties
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Some Portal object properties are defined as being references to other Portal objects (also known as `linkTo` properties). The values of these in the spreadsheet should be the unique identifying value for that object.
+Some Portal object properties are defined as being references to other Portal objects (also known as `linkTo` properties). The values of these properties in the spreadsheet should be a unique identifying value for the object you are referencing or linking to. The identifying value property for an object varies depending on the specific object in question; the ``uuid`` property is common to all objects, but other common identifying properties are ``submitted_id`` and ``accession``.
 
-It is important to know that the ``smaht-submitr`` tool and SMaHT will ensure that the referenced objects actually exist within the SMaHT Portal, `or` are defined within the spreadsheet itself; if this is not the case then an error will result. The identifying value property for an object varies depending on the specific object in question, though the ``uuid`` property is common to all objects; other common identifying properties are ``submitted_id`` and ``accession``.
+It is important to know that the ``smaht-submitr`` tool and SMaHT data portal will ensure that the referenced objects actually exist within SMaHT data portal, `or` are defined within the spreadsheet itself; if this is not the case, an error will be returned.
+
+You can view the identifying (and required) properties for objects here:
+
+* https://staging.smaht.org/docs/user-guide/referencing-data
+* https://submitr.readthedocs.io/en/draft/object_model.html
+
 
 Nested Properties
 ~~~~~~~~~~~~~~~~~
@@ -121,16 +119,16 @@ For this we will use a `dot-notation` whereby dots (``.``) are used to separate 
 Array Properties
 ~~~~~~~~~~~~~~~~
 
-Some Portal object properties are defined to be lists (or `arrays`) of values. Defining the values for such array properties, separate the individual array values by a pipe character (``|``). For example if an object defines a ``molecules`` property as an array type, then to set this value to an array with the two elements ``DNA`` and ``RNA``, use the value ``DNA|RNA`` in the associated spreadsheet cell.
+Some Portal object properties are defined to be lists (or `arrays`) of values. To define the values for such array properties, separate the individual array values by a pipe character (``|``). For example, if an object defines an ``alignment_details`` property as an array type, use the value ``Sorted|Phased`` to set this value to an array with the two elements ``Sorted`` and ``Phased``.
 
-Less common, but still supported, is the ability to set values for individual array elements. This is accomplished by the convention suffixing the property name in the column header with a pound sign (``#``) followed by an integer representing the zero-indexed array element. For example to set the first element of the ``molecules`` property (using the example above), use column header value ``molecule#0``.
+Less common, but still supported, is the ability to set values for individual array elements. This is accomplished by suffixing the property name in the column header with a pound sign (``#``) followed by an integer representing the zero-indexed array element. For example, to set the first element of the ``alignment_details`` property (using the example above), use column header value ``alignment_details#0``.
 
 Date/Time Properties
 ~~~~~~~~~~~~~~~~~~~~
 
 For Portal object properties which are defined as `date` values, the required format is ``YYYY-MM-DD``, for example ``2024-02-09``.
 
-For Portal object properties which are defined as `date-time` values, the required format is ``YYYY-MM-DD hh:mm:ss``, for example ``2024-02-09 08:25:10``. This will default to your local timezone; if you want to specify a timezone use a suffix like ``+hh:mm`` where ``hh`` and ``mm`` are the hour and minute (respectively) offsets from GMT.
+For Portal object properties which are defined as `date-time` values, the required format is ``YYYY-MM-DD hh:mm:ss``, for example ``2024-02-09 13:25:10`` (note the use of 24-hour based clock time). This will default to your local timezone; if you want to specify a timezone, use a suffix like ``+hh:mm`` where ``hh`` and ``mm`` are the hour and minute (respectively) offsets from GMT (for example: ``2024-02-09 13:25:10+05:00``).
 
 Boolean Properties
 ~~~~~~~~~~~~~~~~~~
@@ -140,7 +138,7 @@ For Portal object properties which are defined as `boolean` values, meaning eith
 Implicit Properties
 ~~~~~~~~~~~~~~~~~~~
 
-Some Portal objects require (or support) the specific ``submission_centers`` property. If you do not specify this though, ``smaht-submitr`` will `automatically` supply this particular property; it will `implicitly` be set to the submission center to which you belong.
+Some Portal objects require (or support) the ``submission_centers`` property. If you do not specify this though, ``smaht-submitr`` will `automatically` supply this particular property; it will `implicitly` be set to the submission center to which you belong.
 
 Property Deletions
 ~~~~~~~~~~~~~~~~~~
