@@ -112,33 +112,33 @@ You can view the identifying (and required) properties for objects here:
 Nested Properties
 ~~~~~~~~~~~~~~~~~
 
-Some Portal object properties defined to contain other `nested` objects. Since a (Excel spreadsheet) inherently defines a "flat" structure, rather than the more hierarchical structure supported by Portal objects (which are actually `JSON <https://en.wikipedia.org/wiki/JSON>`_ objects), in which such nested objects can be defined, a special syntactic convention is needed to be able to reference the properties of these nested objects.
+Some SMaHT data portal object properties defined to contain other `nested` objects. Since a (Excel spreadsheet) inherently defines a "flat" structure, rather than the more hierarchical structure supported by SMaHT data portal objects (which are actually `JSON <https://en.wikipedia.org/wiki/JSON>`_ objects), in which such nested objects can be defined, a special syntactic convention is needed to be able to reference the properties of these nested objects.
 
 For this we will use a `dot-notation` whereby dots (``.``) are used to separate a parent property from its child property. For example, an object may define a ``components`` property which itself may contain a ``cell_culture`` property; to reference the ``cell_culture`` property then, the spreadsheet column header would need to be ``components.cell_culture``.
 
 Array Properties
 ~~~~~~~~~~~~~~~~
 
-Some Portal object properties are defined to be lists (or `arrays`) of values. To define the values for such array properties, separate the individual array values by a pipe character (``|``). For example, if an object defines an ``alignment_details`` property as an array type, use the value ``Sorted|Phased`` to set this value to an array with the two elements ``Sorted`` and ``Phased``.
+Some SMaHT data portal object properties are defined to be lists (or `arrays`) of values. To define the values for such array properties, separate the individual array values by a pipe character (``|``). For example, if an object defines an ``alignment_details`` property as an array type, use the value ``Sorted|Phased`` to set this value to an array with the two elements ``Sorted`` and ``Phased``.
 
 Less common, but still supported, is the ability to set values for individual array elements. This is accomplished by suffixing the property name in the column header with a pound sign (``#``) followed by an integer representing the zero-indexed array element. For example, to set the first element of the ``alignment_details`` property (using the example above), use column header value ``alignment_details#0``.
 
 Date/Time Properties
 ~~~~~~~~~~~~~~~~~~~~
 
-For Portal object properties which are defined as `date` values, the required format is ``YYYY-MM-DD``, for example ``2024-02-09``.
+For SMaHT data portal object properties which are defined as `date` values, the required format is ``YYYY-MM-DD``, for example ``2024-02-09``.
 
-For Portal object properties which are defined as `date-time` values, the required format is ``YYYY-MM-DD hh:mm:ss``, for example ``2024-02-09 13:25:10`` (note the use of 24-hour based clock time). This will default to your local timezone; if you want to specify a timezone, use a suffix like ``+hh:mm`` where ``hh`` and ``mm`` are the hour and minute (respectively) offsets from GMT (for example: ``2024-02-09 13:25:10+05:00``).
+For SMaHT data portal object properties which are defined as `date-time` values, the required format is ``YYYY-MM-DD hh:mm:ss``, for example ``2024-02-09 13:25:10`` (note the use of 24-hour based clock time). This will default to your local timezone; if you want to specify a timezone, use a suffix like ``+hh:mm`` where ``hh`` and ``mm`` are the hour and minute (respectively) offsets from GMT (for example: ``2024-02-09 13:25:10+05:00``).
 
 Boolean Properties
 ~~~~~~~~~~~~~~~~~~
 
-For Portal object properties which are defined as `boolean` values, meaning either `true` or `false`, simply use these values, i.e. ``true`` or ``false``.
+For SMaHT data portal object properties which are defined as `boolean` values, meaning either `true` or `false`, simply use these values, i.e. ``true`` or ``false``.
 
 Implicit Properties
 ~~~~~~~~~~~~~~~~~~~
 
-Some Portal objects require (or support) the ``submission_centers`` property. If you do not specify this though, ``smaht-submitr`` will `automatically` supply this particular property; it will be `implicitly` set to the submission center to which you belong.
+Some SMaHT data portal objects require (or support) the ``submission_centers`` property. If you do not specify this though, ``smaht-submitr`` will `automatically` supply this particular property; it will be `implicitly` set to the submission center to which you belong.
 
 Property Deletions
 ~~~~~~~~~~~~~~~~~~
@@ -176,13 +176,13 @@ prompting the user for confirmation; see the `Uploading Files </docs/user-guide/
 
 If you belong to multiple consortia and/or submission centers, you can also add the ``--consortium <consortium>`` and ``--submission-center <submission-center>`` options to explicitly specify which consortium or submission center you are submitting on behalf of; if you belong to only one, the command will automatically detect which groups you are a part of (based on your user profile) and use those.
 
-**Tip**: You may wonder: Is it okay to submit the same metadata file more that once? The answer is: Yes. And, if you had made any changes to the file, updates will be applied as expected.
+**Tip**: You may wonder: Is it okay to submit the same metadata file more than once? The answer is: Yes. If any changes were made to the file, updates will be applied as expected.
 
 
 Validation
 ----------
 
-As mentioned in the previous section, using the ``--submit`` option `will` perform validation of your metadata before submitting it (after prompting you to do so). But if you want to `only` run validation `without` submitting the metadata to SMaHT Portal, then invoke ``submit-metadata-bundle`` with the ``--validate`` option like::
+As mentioned in the previous section, using the ``--submit`` option `will` perform validation of your metadata before submitting it (after prompting you to do so). But if you want to `only` run validation `without` submitting the metadata to SMaHT data portal, then invoke ``submit-metadata-bundle`` with the ``--validate`` option as follows::
 
    submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --validate
 
@@ -191,31 +191,38 @@ As mentioned in the previous section, using the ``--submit`` option `will` perfo
 To be more specific about the the validation checks, they include the following:
 
 #. Ensures the basic integrity of the format of the metadata submission file.
-#. Validates that objects defined within the metadata submission file conform to the corresponding Portal schemas for these objects.
-#. Confirms that any objects referenced within the submission file can be resolved; i.e. either they already exist within the Portal, or are defined within the metadata submission file itself.
+#. Validates that objects defined within the metadata submission file conform to the corresponding SMaHT data portal schemas for these objects.
+#. Confirms that any objects referenced within the submission file can be resolved, i.e. either they already exist within SMaHT data portal or are defined within the metadata submission file itself.
 #. Verifies that referenced files (to be subsequently uploaded) actually exist on the file system.
 
 |
 
-**Note**: If you get validation errors, and then you fix them, and then you try again, it is `possible` that you will get new, additional errors. I.e. it is not necessarily the case that `all` validation errors will be comprehensively reported all at once. This is because there are two kinds (or phases) of validation: local `client-side` and remote `server-side`. You can learn more about the details of ths validation process in the `Advanced Usage <https://submitr.readthedocs.io/en/draft/advanced_usage.html#more-on-validation>`_ section.
+**Note**: If you try to resubmit your metadata sheet after fixing your validation errors, it is possible that you will get new, additional errors. Not all validation errors will be comprehensively reported at once. This is because there are two kinds (or phases) of validation: local client-side and remote server-side. You can learn more about the details of the validation process in the `Advanced Usage <https://submitr.readthedocs.io/en/draft/advanced_usage.html#more-on-validation>`_ section.
+
 
 **Example Screenshots**
 
 The output of a successful ``submit-metadata-bundle --submit`` will look something like this:
 
+|
+
 .. image:: /static/img/docs/submit_output.png
     :target: /static/img/docs/submit_output.png
     :alt: Submission Output Screenshot
 
-Notice the **Submission tracking ID** value in section as well as **Upload File ID** values; these may be used in a subsequent ``resume-uploads`` invocation; see the Uploading Files  section for more on this.
+Notice the **Submission tracking ID** value as well as the **Upload File ID** values. These may be used in a subsequent ``resume-uploads`` invocation (see the Uploading Files section for more on this).
 
-When instead specifying the ``--validate`` option the output will look something like this:
+When instead specifying the ``--validate`` option, the output will look something like this:
+
+|
 
 .. image:: /static/img/docs/validate_output.png
     :target: /static/img/docs/validate_output.png
     :alt: Validation Output Screenshot
 
-And if you additionally specify the ``--verbose`` option the output will look something like this:
+If you additionally specify the ``--verbose`` option, the output will look something like this:
+
+|
 
 .. image:: /static/img/docs/validate_verbose_output.png
     :target: /static/img/docs/validate_verbose_output.png
@@ -224,19 +231,17 @@ And if you additionally specify the ``--verbose`` option the output will look so
 
 Getting Submission Info
 -----------------------
-To view relevant information about a submission using, do::
+To view relevant information about a submission, use the command::
 
    check-submission --env <environment-name> <uuid>
 
-where the ``uuid`` argument is the UUID for the submission which should have been displayed in the output of the ``submit-metadata-bundle`` command.
+where the ``uuid`` argument is the Submission tracking ID for the submission, which should have been displayed in the output of the ``submit-metadata-bundle`` command.
 
 
 Listing Recent Submissions
 --------------------------
-To view a list of recent submissions (with submission UUID and submission date/time),
-in order of most recent first, use the ``list-submissions`` command like this::
+To view a list of recent submissions (with submission UUID and submission date/time), in order of most to least recent, use the ``list-submissions`` command as follows::
 
    list-submissions --env <environment-name>
 
-Use the ``--verbose`` option to list more information for each of the recent submissions shown.
-You can control the maximum number of results output using the ``--count`` option with an integer count argument.
+Use the ``--verbose`` option to list more information for each of the recent submissions shown. You can control the maximum number of results output using the ``--count`` option with an integer count argument.
