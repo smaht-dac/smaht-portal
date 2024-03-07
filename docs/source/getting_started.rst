@@ -138,10 +138,12 @@ For Portal object properties which are defined as `boolean` values, meaning eith
 Implicit Properties
 ~~~~~~~~~~~~~~~~~~~
 
-Some Portal objects require (or support) the ``submission_centers`` property. If you do not specify this though, ``smaht-submitr`` will `automatically` supply this particular property; it will `implicitly` be set to the submission center to which you belong.
+Some Portal objects require (or support) the ``submission_centers`` property. If you do not specify this though, ``smaht-submitr`` will `automatically` supply this particular property; it will be `implicitly` set to the submission center to which you belong.
 
 Property Deletions
 ~~~~~~~~~~~~~~~~~~
+
+In order to delete a property value from an object after having already submitted metadata for that object, a special value - ``*delete*`` - should be put in the cell corresponding to that property value. Do not simply leave the value empty and resubmit the workbook: an empty column value within a (non-header) data row may be empty, but this only means that the value will be ignored when creating or updating the associated object. 
 
 A column value within a (non-header) data row may be empty, but this only means that the value will be ignored when creating or updating the associated object. In order to actually `delete` a property value from an object, a special value - ``*delete*`` - should be used as the the property value.
 
@@ -149,27 +151,30 @@ A column value within a (non-header) data row may be empty, but this only means 
 Submission
 ----------
 
-The type of submission supported is called a "metadata bundles", or `accessioning`. And the name of the command-line tool to initiate a submission is ``submit-metadata-bundle``. A brief tour of this command, its arguments, and function is described below. To get help about the command, do::
+The type of submission supported is called "metadata bundles" or `accessioning`. The name of the command-line tool to initiate a submission is ``submit-metadata-bundle``. A brief tour of this command, its arguments, and function is described below. To get additional information about the command, use the command::
 
   submit-metadata-bundle --help
 
-To submit your metadata run ``submit-metadata-bundle`` with your metadata file, and the SMaHT environment name (e.g. ``data``) from your keys file (as described in the `Credentials </docs/user-guide/credentials>`_ section) as an argument to the ``--env`` option, and the ``--submit`` option. For example::
+To submit your metadata, run the following command::
 
    submit-metadata-bundle your_metadata_file.xlsx --env data --submit
 
-This will first validate your metadata, and if no errors were encountered, it will do the actual metadata submmision; you `will` be prompted for confirmation before the submission is started. If errors were encountered, the submission will `not` commence; you will `not` be able to submit until you fix the errors.
+where ``<your_metdata_file.xlsx>`` is the path to your metadata file. The argument passed to the ``--env`` option corresponds to the SMaHT environment name (e.g. ``data``) from your keys file (as described in the `Credentials </docs/user-guide/credentials>`_ section).
+
+This will first validate your metadata, and if no errors were encountered, it will perform the actual metadata submission; you `will` be prompted for confirmation before the submission is started. If errors are encountered, the submission will `not` commence; you will `not` be able to submit until you fix the errors.
 
 |
 
-**Tip**: You can omit the ``--env`` option entirely if your keys file has only `one` single entry, or if you have your ``SMAHT_ENV`` environment variable setup (see the `Credentials </docs/user-guide/credentials>`_ section).
+**Tip**: You can omit the ``--env`` option entirely if your keys file has only `one` single entry or if you have your ``SMAHT_ENV`` environment variable setup (see the `Credentials </docs/user-guide/credentials>`_ section).
 
 |
 
-**Note**: If you opted to use a file other than ``~/.smaht-keys.json`` to store your credentials, you will need to use the ``--keys`` option with the path name to your alternate file as an argument; or have your ``SMAHT_KEYS`` environment variable setup (see the `Credentials </docs/user-guide/credentials>`_ section).
+**Note**: If you opted to use a file other than ``~/.smaht-keys.json`` to store your credentials, you will need to use the ``--keys`` option with the path name to your alternate file as an argument or have your ``SMAHT_KEYS`` environment variable setup (see the `Credentials </docs/user-guide/credentials>`_ section).
 
-This command should do everything, `including` uploading any referenced files, prompting first for confirmation; see the `Uploading Files </docs/user-guide/uploading-files>`_ section for more on this.
+This command should do everything, `including` uploading any referenced files, which will be done after first
+prompting the user for confirmation; see the `Uploading Files </docs/user-guide/uploading-files>`_ section for more on this.
 
-If you belong to multiple consortia and/or submission centers, you can also add the ``--consortium <consortium>`` and ``--submission-center <submission-center>`` options; if you belong to only one, the command will automatically detect (based on your user profile) and use those.
+If you belong to multiple consortia and/or submission centers, you can also add the ``--consortium <consortium>`` and ``--submission-center <submission-center>`` options to explicitly specify which consortium or submission center you are submitting on behalf of; if you belong to only one, the command will automatically detect which groups you are a part of (based on your user profile) and use those.
 
 **Tip**: You may wonder: Is it okay to submit the same metadata file more that once? The answer is: Yes. And, if you had made any changes to the file, updates will be applied as expected.
 
