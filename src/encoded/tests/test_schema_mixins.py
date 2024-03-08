@@ -223,6 +223,8 @@ def test_meta_workflow_input(meta_workflow_input: str, expected_errors: bool) ->
         ("SMALLABCDEFG", False),
         ("SMALLAB34N6Y", False),
         ("SMALL1234567", False),
+        ("SMAFI025LKA6", True),  # invalid, has a zero
+        ("SMAFIO25LKA6", False)  # valid, has an O
     ],
 )
 def test_accession(
