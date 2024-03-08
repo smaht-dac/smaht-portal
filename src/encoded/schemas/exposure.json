@@ -51,16 +51,37 @@
         "schema_version": {
             "default": "1"
         },
-        "age_at_exposure_end": {
-            "title": "Age At Exposure End",
-            "description": "Age when the exposure resolved in years",
-            "type": "number",
-            "minimum": 0
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_EXPOSURE_[A-Z0-9-_.]{4,}$"
         },
-        "age_at_exposure_start": {
-            "title": "Age At Exposure Start",
-            "description": "Age when the exposure began in years",
-            "type": "number",
+        "category": {
+            "title": "Exposure Category",
+            "description": "Category of the substance to which the donor was exposed",
+            "type": "string",
+            "enum": [
+                "Alcohol",
+                "Chemical",
+                "Environmental",
+                "Illicit Drug",
+                "Occupational",
+                "Tobacco",
+                "Other"
+            ]
+        },
+        "cessation": {
+            "title": "Cessation",
+            "description": "Whether exposure ceased prior to death",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "cessation_duration": {
+            "title": "Cessation Duration",
+            "description": "Duration since exposure ceased in years",
+            "type": "integer",
             "minimum": 0
         },
         "comments": {
@@ -68,20 +89,62 @@
             "description": "Additional information on the exposure",
             "type": "string"
         },
+        "duration": {
+            "title": "Duration",
+            "description": "Duration of the exposure in years",
+            "type": "number",
+            "minimum": 0
+        },
+        "frequency_category": {
+            "title": "Exposure Frequency",
+            "description": "Frequency of the exposure",
+            "type": "string",
+            "enum": [
+                "Light",
+                "Heavy",
+                "Moderate",
+                "Social",
+                "Unknown"
+            ]
+        },
+        "quantity": {
+            "title": "Quantity",
+            "description": "Quantity of the substance to which the donor was exposed",
+            "type": "integer"
+        },
+        "quantity_unit": {
+            "title": "Quantity Unit",
+            "description": "Unit of the quantity of the substance to which the donor was exposed",
+            "type": "string",
+            "enum": [
+                "Drinks Per Day",
+                "Drinks Per Week",
+                "Packs Per Day",
+                "Packs Per Year"
+            ]
+        },
+        "route": {
+            "title": "Exposure Route",
+            "description": "Route of the exposure",
+            "type": "string",
+            "enum": [
+                "Dermal",
+                "Inhalation",
+                "Ingestion",
+                "Injection",
+                "Unknown"
+            ]
+        },
+        "substance": {
+            "title": "Substance",
+            "description": "Substance to which the donor was exposed",
+            "type": "string"
+        },
         "medical_history": {
             "title": "Medical History",
             "description": "Link to the associated medical history",
             "type": "string",
             "linkTo": "MedicalHistory"
-        },
-        "substance": {
-            "title": "Substance",
-            "description": "Link to the associated ontology term for the substance to which the donor was exposed",
-            "type": "string",
-            "linkTo": "OntologyTerm"
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_EXPOSURE_[A-Z0-9-_.]{4,}$"
         }
     }
 }

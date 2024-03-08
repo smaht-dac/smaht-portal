@@ -51,6 +51,9 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_DONOR_[A-Z0-9-_.]{4,}$"
+        },
         "age": {
             "title": "Age",
             "description": "Age of the donor in years",
@@ -63,11 +66,26 @@
             "type": "number",
             "minimum": 0
         },
+        "eligibility_authorization": {
+            "title": "Eligibility Authorization",
+            "description": "Authorization for eligibility of the donor",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ]
+        },
         "height": {
             "title": "Height",
             "description": "Height of the donor in meters",
             "type": "number",
             "minimum": 0
+        },
+        "id": {
+            "title": "Identifier",
+            "description": "Identifier for the donor",
+            "type": "string"
         },
         "sex": {
             "title": "Sex",
@@ -84,9 +102,6 @@
             "description": "Weight of the donor in kilograms",
             "type": "number",
             "minimum": 0
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_DONOR_[A-Z0-9-_.]{4,}$"
         }
     }
 }

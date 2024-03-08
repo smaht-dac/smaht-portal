@@ -58,6 +58,7 @@
         "title": {
             "enum": [
                 "CMV Total Ab",
+		"COVID-19 PCR",
                 "EBV IgG Ab",
                 "EBV IgM Ab",
                 "HBcAb IgM",
@@ -84,9 +85,11 @@
             "description": "Categorical classification of the result value",
             "type": "string",
             "enum": [
-                "Within Normal Range",
-                "Outside Normal Range",
-                "Inconclusive"
+		    "Not Done",
+		    "Non-reactive",
+		    "Pending",
+		    "Reactive",
+		    "Undetermined"
             ]
         },
         "medical_history": {

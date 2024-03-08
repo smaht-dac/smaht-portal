@@ -1,10 +1,9 @@
 {
-    "title": "Therapeutic",
-    "$id": "/profiles/therapeutic.json",
+    "title": "Medical Treatment",
+    "$id": "/profiles/medical_treatment.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "agent",
         "medical_history",
         "submission_centers",
         "submitted_id"
@@ -14,14 +13,6 @@
         "submitted_id",
         "uuid"
     ],
-    "dependentRequired": {
-        "dose": [
-            "dose_units"
-        ],
-        "dose_units": [
-            "dose"
-        ]
-    },
     "additionalProperties": false,
     "mixinProperties": [
         {
@@ -49,48 +40,59 @@
             "$ref": "mixins.json#/tags"
         },
         {
+            "$ref": "mixins.json#/title"
+        },
+        {
             "$ref": "mixins.json#/uuid"
         }
     ],
     "properties": {
         "accession": {
-            "accessionType": "TX"
+            "accessionType": "MX"
         },
         "schema_version": {
             "default": "1"
         },
         "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_THERAPEUTIC_[A-Z0-9-_.]{4,}$"
+            "pattern": "^[A-Z0-9]{3,}_MEDICAL-TREATMENT_[A-Z0-9-_.]{4,}$"
         },
-        "dose": {
-            "title": "Dose",
-            "description": "Dose of the therapeutic used by the individual",
-            "type": "number",
-            "minimum": 0
+        "title": {
+            "description": "Name of the treatment"
         },
-        "dose_units": {
-            "title": "Dose Units",
-            "description": "Units for the dose of the therapeutic",
+        "category": {
+            "title": "Treatment Category",
+            "description": "Type of treatment",
             "type": "string",
             "enum": [
-                "mg",
-                "mL"
+                "Chemotherapy",
+                "Radiation",
+                "Surgery"
             ]
         },
-        "frequency": {
-            "title": "Frequency",
-            "description": "Frequency of administration of the therapeutic",
-            "type": "string",
-            "enum": [
-                "Once Per Day",
-                "Twice Per Day"
-            ]
+        "comments": {
+            "title": "Comments",
+            "description": "Additional information on the treatment",
+            "type": "string"
         },
-        "agent": {
-            "title": "Agent",
-            "description": "Link to the associated ontology term for the therapeutic agent",
-            "type": "string",
-            "linkTo": "OntologyTerm"
+        "counts": {
+            "title": "Counts",
+            "description": "Number of times the treatment was performed",
+            "type": "integer",
+            "minimum": 1
+        },
+        "year_end": {
+            "title": "Year Ended",
+            "description": "Year in which the treatment was last administered",
+            "type": "integer",
+            "minimum": 1900,
+            "maximum": 2100
+        },
+        "year_start": {
+            "title": "Year Started",
+            "description": "Year in which the treatment was first administered",
+            "type": "integer",
+            "minimum": 1900,
+            "maximum": 2100
         },
         "diagnosis": {
             "title": "Diagnosis",

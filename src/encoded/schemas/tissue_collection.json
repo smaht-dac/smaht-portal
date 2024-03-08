@@ -98,16 +98,9 @@
             "type": "string",
             "format": "date-time"
         },
-        "donor_type": {
-            "title": "Donor Type",
-            "type": "string",
-            "enum": [
-                "TBD"
-            ]
-        },
         "ischemic_time": {
             "title": "Ischemic Time",
-            "description": "Time interval in minutes of ischemia for tissue collection",
+            "description": "Time interval in minutes of ischemia for tissue collection, from cross-clamp to asystole",
             "type": "number",
             "minimum": 0
         },
@@ -161,16 +154,6 @@
             "description": "Interval of time in hours the donor was refrigerated prior to tissue collection",
             "type": "number",
             "minimum": 0
-        },
-        "ventilator_less_than_24_hours": {
-            "title": "Ventilator Less Than 24 Hours",
-            "description": "Whether donor was on a ventilator less than 24 hours prior to tissue collection",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No",
-                "Unknown"
-            ]
         },
         "donor": {
             "title": "Donor",

@@ -1,11 +1,11 @@
 {
-    "title": "Diagnosis",
-    "$id": "/profiles/diagnosis.json",
+    "title": "Family History",
+    "$id": "/profiles/family_history.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
         "disease",
-        "medical_history",
+        "relatives",
         "submission_centers",
         "submitted_id"
     ],
@@ -46,41 +46,43 @@
     ],
     "properties": {
         "accession": {
-            "accessionType": "DX"
+            "accessionType": "FX"
         },
         "schema_version": {
             "default": "1"
         },
         "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_DIAGNOSIS_[A-Z0-9-_.]{4,}$"
-        },
-        "age_at_diagnosis": {
-            "title": "Age At Diagnosis",
-            "description": "Age in years when the disease was diagnosed",
-            "type": "integer",
-            "minimum": 0
-        },
-        "age_at_resolution": {
-            "title": "Age At Resolution",
-            "description": "Age in years when the disease was determined to have resolved",
-            "type": "integer",
-            "minimum": 0
-        },
-        "comments": {
-            "title": "Comments",
-            "description": "Additional information on the diagnosis",
-            "type": "string"
+            "pattern": "^[A-Z0-9]{3,}_FAMILY-HISTORY_[A-Z0-9-_.]{4,}$"
         },
         "disease": {
             "title": "Disease",
-            "description": "Link to associated disease ontology term",
+            "description": "The disease or condition that is being reported",
             "type": "string"
         },
-        "medical_history": {
-            "title": "Medical History",
-            "description": "Link to the associated medical history",
-            "type": "string",
-            "linkTo": "MedicalHistory"
+        "relatives": {
+            "title": "Relatives",
+            "description": "The relatives affected by the disease",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Aunt",
+                    "Brother",
+                    "Cousin",
+                    "Daughter",
+                    "Father",
+                    "Grandfather",
+                    "Grandmother",
+                    "Mother",
+                    "Nephew",
+                    "Niece",
+                    "Son",
+                    "Sister",
+                    "Uncle"
+                ]
+            }
         }
     }
 }

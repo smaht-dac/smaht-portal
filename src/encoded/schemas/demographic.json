@@ -63,12 +63,42 @@
         "ethnicity": {
             "title": "Ethnicity",
             "description": "The ethnicity of the donor",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Hispanic or Latino",
+                    "Not Hispanic or Latino",
+                    "Not Reported"
+                ]
+            }
+        },
+        "military_association": {
+            "title": "Military Association",
+            "description": "Association of the donor with the military, either as a member, employee, or a dependent of a member of the military",
             "type": "string",
             "enum": [
-                "Hispanic or Latino",
-                "Not Hispanic or Latino",
-                "Not Reported"
+                "No",
+                "Unknown",
+                "Yes"
             ]
+        },
+        "military_base": {
+            "title": "Military Base",
+            "description": "Whether the donor lived or work on an international U.S. military base",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "military_base_details": {
+            "title": "Military Base Details",
+            "description": "Additional information about the donor's association with a military base",
+            "type": "string"
         },
         "occupation": {
             "title": "Occupation",
@@ -78,16 +108,21 @@
         "race": {
             "title": "Race",
             "description": "The race of the donor",
-            "type": "string",
-            "enum": [
-                "American Indian or Alaska Native",
-                "Asian",
-                "Black or African American",
-                "Hispanic or Latino",
-                "Native Hawaiian or other Pacific Islander",
-                "White",
-                "Not Reported"
-            ]
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "American Indian or Alaska Native",
+                    "Asian",
+                    "Black or African American",
+                    "Hispanic or Latino",
+                    "Native Hawaiian or other Pacific Islander",
+                    "White",
+                    "Not Reported"
+                ]
+            }
         },
         "donor": {
             "title": "Donor",
