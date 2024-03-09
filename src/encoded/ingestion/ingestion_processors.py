@@ -8,8 +8,7 @@ from snovault.types.ingestion import SubmissionFolio
 from ..project.loadxl import ITEM_INDEX_ORDER
 from .loadxl_extensions import load_data_into_database, summary_of_load_data_results
 from .submission_folio import SmahtSubmissionFolio
-from ..schema_formats import is_accession
-
+# from ..schema_formats import is_accession  # TODO: Problem with circular dependencies.
 
 def includeme(config):
     config.scan(__name__)
@@ -68,7 +67,7 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
         #
         not_an_identifying_property = "filename"
         if schema_properties := schema.get("properties"):
-            if schema_properties.get("accession") and is_accession(value):
+            if schema_properties.get("accession") and _is_accession_id(value):
                 # Case: lookup by accession (only by root).
                 return StructuredDataSet.REF_LOOKUP_ROOT, not_an_identifying_property
             elif schema_property_info_submitted_id := schema_properties.get("submitted_id"):
@@ -109,3 +108,9 @@ def _summarize_errors(structured_data: StructuredDataSet, submission: SmahtSubmi
     result["s3_file"] = submission.s3_data_file_location
     result["details"] = submission.s3_details_location
     return result
+
+
+def _is_accession_id(value: str) -> bool:
+    # See schema_formats.py
+    # TODO: Problem with circular dependencies.
+    return isinstance(value, str) and re.match(r"^SMA[1-9A-Z]{9}$", value) is not None
