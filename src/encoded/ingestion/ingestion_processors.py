@@ -1,5 +1,5 @@
 import re
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 from webtest.app import TestApp
 from dcicutils.misc_utils import VirtualApp
 from dcicutils.structured_data import Portal, StructuredDataSet
