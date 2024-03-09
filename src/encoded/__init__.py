@@ -25,7 +25,13 @@ from snovault.app import session, json_from_path, configure_dbsession, changelog
 from snovault.elasticsearch import APP_FACTORY
 from snovault.elasticsearch.interfaces import INVALIDATION_SCOPE_ENABLED
 from .appdefs import APP_VERSION_REGISTRY_KEY
-from .schema_formats import format_checker
+# The following import (2024-03-05 13:08) causes the below. Do not think we need this.
+# Autoload failed for project_defs in pyproject 'encoded'.
+# ImportError: cannot import name 'test_accession' from partially initialized module 'snovault.server_defaults'
+# (most likely due to a circular import) (.../site-packages/snovault/server_defaults.py)
+# https://github.com/smaht-dac/smaht-portal/blame/main/src/encoded/__init__.py
+# https://github.com/smaht-dac/smaht-portal/commit/b59561b869221078aaaadeef4c877e39b527b3e5
+# from .schema_formats import format_checker
 
 
 # snovault.app.STATIC_MAX_AGE (8 seconds) is WAY too low for /static and /profiles - Will March 15 2022
