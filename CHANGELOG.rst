@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.31.0
+======
+
+* Allow submission of extra_files
+
+
 0.30.0
 ======
 
