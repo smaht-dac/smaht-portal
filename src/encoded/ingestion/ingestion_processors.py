@@ -1,5 +1,5 @@
 import re
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 from webtest.app import TestApp
 from dcicutils.misc_utils import VirtualApp
 from dcicutils.structured_data import Portal, StructuredDataSet
@@ -51,9 +51,12 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
                           autoadd: Optional[dict] = None, prune: bool = True,
                           ref_nocache: bool = False) -> StructuredDataSet:
 
-    def ref_lookup_strategy(type_name: str, schema: dict, value: str) -> Tuple[int, Optional[str]]:
+    # N.B. This same bit of code is in smaht-submitr; not sure best way to share;
+    # It really should not go in dcicutils (structured_data) as this know pretty
+    # specific details about our (SMaHT) schemas, namely, submitted_id and accession.
+    def ref_lookup_strategy(type_name: str, schema: dict, value: str) -> (int, Optional[str]):
         #
-        # Note this situation WRT object lookups ...
+        # FYI: Note this situation WRT object lookups ...
         #
         # /{submitted_id}                # NOT FOUND
         # /UnalignedReads/{submitted_id} # OK
@@ -65,17 +68,40 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
         # /SubmittedFile/{accession}     # NOT FOUND
         # /File/{accession}              # OK
         #
-        not_an_identifying_property = "filename"
+        def ref_validator(schema: dict, property_name: str, property_value: str) -> Optional[bool]:
+            """
+            Returns False iff the type represented by the given schema, can NOT be referenced by
+            the given property name with the given property value, otherwise returns None.
+
+            For example, if the schema is for the UnalignedReads type and the property name
+            is accession, then we will return False iff the given property value is NOT a properly
+            formatted accession ID. Otherwise, we will return None, which indicates that the
+            caller (in dcicutils.structured_data.Portal.ref_exists) will continue executing
+            its default behavior, which is to check other ways in which the given type can NOT
+            be referenced by the given value, i.e. it checks other identifying properties for
+            the type and makes sure any patterns (e.g. for submitted_id or uuid) are ahered to.
+
+            The goal (in structured_data) being to detect if a type is being referenced in such
+            a way that cannot possibly be allowed, i.e. because none of its identifying types
+            are in the required form (if indeed there any requirements). Note that it is guaranteed
+            that the given property name is indeed an identifying property for the given type.
+            """
+            if property_format := schema.get("properties", {}).get(property_name, {}).get("format"):
+                if (property_format == "accession") and (property_name == "accession"):
+                    if not _is_accession_id(property_value):
+                        return False
+            return None
+
         if schema_properties := schema.get("properties"):
             if schema_properties.get("accession") and _is_accession_id(value):
                 # Case: lookup by accession (only by root).
-                return StructuredDataSet.REF_LOOKUP_ROOT, not_an_identifying_property
+                return StructuredDataSet.REF_LOOKUP_ROOT, ref_validator
             elif schema_property_info_submitted_id := schema_properties.get("submitted_id"):
                 if schema_property_pattern_submitted_id := schema_property_info_submitted_id.get("pattern"):
                     if re.match(schema_property_pattern_submitted_id, value):
                         # Case: lookup by submitted_id (only by specified type).
-                        return StructuredDataSet.REF_LOOKUP_SPECIFIED_TYPE, not_an_identifying_property
-        return StructuredDataSet.REF_LOOKUP_DEFAULT, not_an_identifying_property
+                        return StructuredDataSet.REF_LOOKUP_SPECIFIED_TYPE, ref_validator
+        return StructuredDataSet.REF_LOOKUP_DEFAULT, ref_validator
 
     structured_data = StructuredDataSet.load(file=file, portal=portal,
                                              autoadd=autoadd, order=ITEM_INDEX_ORDER, prune=prune,
