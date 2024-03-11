@@ -25,6 +25,7 @@ from snovault.app import session, json_from_path, configure_dbsession, changelog
 from snovault.elasticsearch import APP_FACTORY
 from snovault.elasticsearch.interfaces import INVALIDATION_SCOPE_ENABLED
 from .appdefs import APP_VERSION_REGISTRY_KEY
+from .schema_formats import format_checker
 
 
 # snovault.app.STATIC_MAX_AGE (8 seconds) is WAY too low for /static and /profiles - Will March 15 2022
@@ -43,7 +44,6 @@ def include_encoded(config):
     config.include('encoded.authentication')
     config.include('encoded.root')
     config.include('encoded.types')
-    config.include('encoded.server_defaults')
     config.include('encoded.metadata')
     config.include('encoded.upgrade')
     # config.include('encoded.visualization')
