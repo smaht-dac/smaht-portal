@@ -95,13 +95,13 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
         if schema_properties := schema.get("properties"):
             if schema_properties.get("accession") and _is_accession_id(value):
                 # Case: lookup by accession (only by root).
-                return StructuredDataSet.REF_LOOKUP_ROOT, ref_validator
+                return Portal.LOOKUP_ROOT, ref_validator
             elif schema_property_info_submitted_id := schema_properties.get("submitted_id"):
                 if schema_property_pattern_submitted_id := schema_property_info_submitted_id.get("pattern"):
                     if re.match(schema_property_pattern_submitted_id, value):
                         # Case: lookup by submitted_id (only by specified type).
-                        return StructuredDataSet.REF_LOOKUP_SPECIFIED_TYPE, ref_validator
-        return StructuredDataSet.REF_LOOKUP_DEFAULT, ref_validator
+                        return Portal.LOOKUP_SPECIFIED_TYPE, ref_validator
+        return Portal.LOOKUP_DEFAULT, ref_validator
 
     structured_data = StructuredDataSet.load(file=file, portal=portal,
                                              autoadd=autoadd, order=ITEM_INDEX_ORDER, prune=prune,
