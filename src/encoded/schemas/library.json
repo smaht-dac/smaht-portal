@@ -198,6 +198,9 @@
         "submission_centers.display_title": {
             "title": "Submitted By"
         },
+        "assay.display_title": {
+            "title": "Assay"
+        },
         "status": {
             "title": "Status"
         }
@@ -205,6 +208,9 @@
     "columns": {
         "submission_centers.display_title": {
             "title": "Submitted By"
+        },
+        "assay.display_title": {
+            "title": "Assay"
         }
     }
 }
