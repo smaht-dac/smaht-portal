@@ -10,6 +10,8 @@ Change Log
 0.30.2
 ======
 
+`PR 112: Assay link change #1 <https://github.com/smaht-dac/smaht-portal/pull/112>`_
+
 * Add assay linkTo to library in preparation for future removal from current location on file set
 * Add anyOf requirement on sequencing for coverage or read count
 
