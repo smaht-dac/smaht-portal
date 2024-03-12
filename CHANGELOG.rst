@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.30.2
+======
+
+* Add assay linkTo to library in preparation for future removal from current location on file set
+* Add anyOf requirement on sequencing for coverage or read count
+
+
 0.30.1
 ======
 
