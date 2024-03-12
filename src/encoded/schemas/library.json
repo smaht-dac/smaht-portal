@@ -181,6 +181,12 @@
             "type": "string",
             "linkTo": "Analyte"
         },
+        "assay": {
+            "title": "Assay",
+            "description": "Link to associated assay",
+            "type": "string",
+            "linkTo": "Assay"
+        },
         "library_preparation": {
             "title": "Library Preparation",
             "description": "Link to associated library preparation",
