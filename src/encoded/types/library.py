@@ -5,9 +5,7 @@ from .submitted_item import SubmittedItem
 
 def _build_library_embedded_list():
     """Embeds for search on libraries."""
-    return [
-        "assay",
-    ]
+    return []
 
 
 @collection(
