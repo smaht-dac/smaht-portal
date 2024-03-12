@@ -22,6 +22,14 @@ Change Log
   module 'snovault.server_defaults' (most likely due to a circular import).
 
 
+0.30.1
+======
+
+`PR 111: Minor schema updates <https://github.com/smaht-dac/smaht-portal/pull/111>`_
+
+* Update select item properties to match those desired for "automated" submission
+
+
 0.30.0
 ======
 

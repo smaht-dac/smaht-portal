@@ -8,7 +8,6 @@
         "cell_line": "TEST_CELL-LINE_HELA",
         "culture_duration": 15,
         "culture_start_date": "2023-12-25",
-        "doubling_time": 5.5,
         "growth_medium": "EMEM",
         "passage_number": 14
     },
