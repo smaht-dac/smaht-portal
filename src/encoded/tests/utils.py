@@ -254,7 +254,9 @@ def get_submitted_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
 
 def is_submitted_item(type_info: AbstractTypeInfo) -> bool:
     """Is type child of SubmittedItem?"""
-    return issubclass(type_info.factory, SubmittedItem) or issubclass(type_info.factory, SubmittedFile)
+    return issubclass(type_info.factory, SubmittedItem) or issubclass(
+        type_info.factory, SubmittedFile
+    )
 
 
 def get_all_item_types(
@@ -421,8 +423,7 @@ def get_item_properties_from_workbook_inserts(
 
 
 def clean_workbook_inserts(
-    workbook_inserts: Dict[str, Dict[str, Any]],
-    submission_center: Dict[str, Any]
+    workbook_inserts: Dict[str, Dict[str, Any]], submission_center: Dict[str, Any]
 ) -> Dict[str, Dict[str, Any]]:
     """Clean workbook inserts to only include submission center.
 
@@ -436,8 +437,7 @@ def clean_workbook_inserts(
 
 
 def replace_inserts_affiliations(
-    item_inserts: List[Dict[str, Any]],
-    submission_center: Dict[str, Any]
+    item_inserts: List[Dict[str, Any]], submission_center: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Replace affiliations in item inserts with provided submission center."""
     return [
@@ -447,8 +447,7 @@ def replace_inserts_affiliations(
 
 
 def replace_insert_affiliations(
-    item_insert: Dict[str, Any],
-    submission_center: Dict[str, Any]
+    item_insert: Dict[str, Any], submission_center: Dict[str, Any]
 ) -> Dict[str, Any]:
     """If needed, replace affiliations in item insert with provided
     submission center.
@@ -467,9 +466,9 @@ def has_affiliations(item_insert: Dict[str, Any]) -> bool:
         ]
     )
 
+
 def replace_affiliations(
-    item_insert: Dict[str, Any],
-    submission_center: Dict[str, Any]
+    item_insert: Dict[str, Any], submission_center: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Replace affiliations in item insert with provided submission center.
 
@@ -477,11 +476,13 @@ def replace_affiliations(
     assumption no longer holds.
     """
     insert_without_affiliation = {
-        key: value for key, value in item_insert.items()
+        key: value
+        for key, value in item_insert.items()
         if key not in ["submission_centers", "consortia"]
     }
     return {
-        **insert_without_affiliation, "submission_centers": [submission_center["uuid"]]
+        **insert_without_affiliation,
+        "submission_centers": [submission_center["uuid"]],
     }
 
 
@@ -554,10 +555,18 @@ def delete_field(
     test_app: TestApp,
     identifier: str,
     to_delete: str,
+    patch_body: Optional[Dict[str, Any]] = None,
     status: Union[int, List[int]] = 200,
 ) -> Dict[str, Any]:
     """Delete field from item with given identifier."""
     resource_path = get_formatted_resource_path(
         identifier, add_on=f"delete_fields={to_delete}"
     )
-    return patch_item(test_app, {}, resource_path, status=status)
+    return patch_item(test_app, patch_body or {}, resource_path, status=status)
+
+
+def get_item_from_search(test_app: TestApp, collection: str) -> Dict[str, Any]:
+    """Get workbook item for given collection via search."""
+    search_results = get_search(test_app, f"type={to_camel_case(collection)}")
+    assert search_results, f"No {collection} found in search results"
+    return search_results[0]
