@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.31.0
+======
+
+* Updates nginx version to latest as of 03/13/2024 to resolve security alerts 
+
+
 0.30.2
 ======
 
