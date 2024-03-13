@@ -1083,3 +1083,24 @@ def assert_admin_permissions(
             post_item_to_fail(submission_center_user_app, item_type, limited_insert)
             post_item_to_fail(consortium_user_app, item_type, limited_insert)
         post_item(testapp, identifying_insert, item_type, status=[201, 409])
+
+
+def test_authenticated_user_can_delete_access_key(
+    unassociated_user_app: TestApp,
+    submission_center_user_app: TestApp,
+    consortium_user_app: TestApp,
+) -> None:
+    """Test that authenticated user can delete access key.
+
+    Note: Patch to delete access key goes through but non-admin users
+    cannot see the response, so it's a 403.
+    """
+    for user_app in [
+        unassociated_user_app,
+        submission_center_user_app,
+        consortium_user_app,
+    ]:
+        access_key = post_item(user_app, {}, "AccessKey", status=201)
+        assert access_key["status"] == "current"
+        patch_body = {"status": "deleted"}
+        patch_item(user_app, patch_body, access_key["uuid"], status=403)
