@@ -76,6 +76,10 @@ For extra security, this file should **not** be readable by others; only yoursel
    $ ls -l ~/.smaht-keys.json
    -rw-------  1 youruser  staff  137 Jan 31 08:55 /Users/your_username/.smaht-keys.json
 
+**Important**: Please be careful with your **Secret Access Key** value.  This is **sensitive** information and, like a password, it should **never** be **shared** with anyone, and particularly through any insecure channels (like email or Slack or whatever).
+
+**Note**: If you `do` accidentally expose your **Secret Access Key**, we would ask you to please delete it and create a new one (and don't forget to update your keys file when you do this).
+
 Getting Added as a SMaHT User or Submitter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

@@ -7,6 +7,21 @@ smaht-portal
 Change Log
 ----------
 
+0.32.0
+======
+
+* Removed master-inserts/file_format.json.
+* Changes for new skip_links (snovault.loadxl) mode for smaht-submitr. 
+* Added submits_for to master-inserts/users.json.
+* Documentation related to smaht-submitr updates.
+* FYI: For the record some merging complications (2024-03-09 ~ 15:35) ...
+  Merged in some changes from commit c67d442e for __init__.py and server_defaults.py as
+  issues with make deploy1a load errors related to user_submission_centers, after merging
+  in from main, which had issues with make deploy1b WRT circular dependencies like
+  ImportError: cannot import name 'test_accession' from partially initialized
+  module 'snovault.server_defaults' (most likely due to a circular import).
+
+
 0.31.1
 ======
 
@@ -14,7 +29,6 @@ Change Log
 
 * Bring in updated snovault with fix for access key status
 * Create test for non-admin permissions to delete access keys
-* Add enum option for software category
 * Fix unnecessary embed on Library
 
 
