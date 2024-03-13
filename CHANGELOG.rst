@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.31.0
+0.32.0
 ======
 
 * Removed master-inserts/file_format.json.
@@ -20,6 +20,12 @@ Change Log
   in from main, which had issues with make deploy1b WRT circular dependencies like
   ImportError: cannot import name 'test_accession' from partially initialized
   module 'snovault.server_defaults' (most likely due to a circular import).
+
+
+0.31.0
+======
+
+* Updates nginx version to latest as of 03/13/2024 to resolve security alerts 
 
 
 0.30.2
