@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.32.1
+======
+
+* Add new option to Software category enum
+
+
 0.32.0
 ======
 
