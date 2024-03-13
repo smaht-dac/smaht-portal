@@ -15,6 +15,18 @@
         "submitted_id",
         "uuid"
     ],
+    "anyOf": [
+        {
+            "required": [
+                "target_coverage"
+            ]
+        },
+        {
+            "required": [
+                "target_read_count"
+            ]
+        }
+    ],
     "additionalProperties": false,
     "mixinProperties": [
         {

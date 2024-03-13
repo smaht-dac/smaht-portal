@@ -60,8 +60,7 @@ def show_upload_credentials(
 def _build_file_embedded_list() -> List[str]:
     """Embeds for search on files."""
     return [
-        "file_sets.assay",
-        "file_sets.libraries",
+        "file_sets.libraries.assay",
         "file_sets.sequencing.sequencer",
         "software.name",
     ]
