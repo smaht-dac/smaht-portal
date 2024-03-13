@@ -68,7 +68,8 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
         # /SubmittedFile/{accession}     # NOT FOUND
         # /File/{accession}              # OK
         #
-        def ref_validator(schema: dict, property_name: str, property_value: str) -> Optional[bool]:
+        def ref_validator(schema: Optional[dict],
+                          property_name: Optional[str], property_value: Optional[str]) -> Optional[bool]:
             """
             Returns False iff the type represented by the given schema, can NOT be referenced by
             the given property name with the given property value, otherwise returns None.
@@ -92,7 +93,11 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
                         return False
             return None
 
-        if schema_properties := schema.get("properties"):
+        if not schema and value:
+            nonlocal portal
+            if not (schema := portal.get_schema(type_name)):
+                return Portal.LOOKUP_DEFAULT, ref_validator
+        if value and (schema_properties := schema.get("properties")):
             if schema_properties.get("accession") and _is_accession_id(value):
                 # Case: lookup by accession (only by root).
                 return Portal.LOOKUP_ROOT, ref_validator
