@@ -715,6 +715,15 @@
             "requestMethod": []
         }
     },
+    "sequencing_center": {
+        "sequencing_center": {
+            "title": "Sequencing Center",
+            "description": "Sequencing Center",
+            "type": "string",
+            "linkTo": "SubmissionCenter",
+            "permission": "restricted_fields"
+        }
+    },
     "static_embeds": {
         "static_headers": {
             "title": "Static Headers",
