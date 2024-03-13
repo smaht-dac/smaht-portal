@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+0.31.1
+======
+
+`PR 113: Access key status fix <https://github.com/smaht-dac/smaht-portal/pull/113>`_
+
+* Bring in updated snovault with fix for access key status
+* Create test for non-admin permissions to delete access keys
+* Add enum option for software category
+* Fix unnecessary embed on Library
+
+
 0.31.0
 ======
 
