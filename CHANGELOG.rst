@@ -7,10 +7,61 @@ smaht-portal
 Change Log
 ----------
 
-0.31.0
+0.33.0
+======
+
+* This is a temporary branch (extra_files_plus_main_20240314)
+  which is Will's extra_files branch with main merged in (2024-03-14).
+
+
+0.32.2
 ======
 
 * Allow submission of extra_files
+
+
+0.32.1
+======
+
+* Add new option to Software category enum
+
+
+0.32.0
+======
+
+* Removed master-inserts/file_format.json.
+* Changes for new skip_links (snovault.loadxl) mode for smaht-submitr. 
+* Added submits_for to master-inserts/users.json.
+* Documentation related to smaht-submitr updates.
+* FYI: For the record some merging complications (2024-03-09 ~ 15:35) ...
+  Merged in some changes from commit c67d442e for __init__.py and server_defaults.py as
+  issues with make deploy1a load errors related to user_submission_centers, after merging
+  in from main, which had issues with make deploy1b WRT circular dependencies like
+  ImportError: cannot import name 'test_accession' from partially initialized
+  module 'snovault.server_defaults' (most likely due to a circular import).
+
+
+0.31.0
+======
+
+* Updates nginx version to latest as of 03/13/2024 to resolve security alerts 
+
+
+0.30.2
+======
+
+`PR 112: Assay link change #1 <https://github.com/smaht-dac/smaht-portal/pull/112>`_
+
+* Add assay linkTo to library in preparation for future removal from current location on file set
+* Add anyOf requirement on sequencing for coverage or read count
+
+
+0.30.1
+======
+
+`PR 111: Minor schema updates <https://github.com/smaht-dac/smaht-portal/pull/111>`_
+
+* Update select item properties to match those desired for "automated" submission
 
 
 0.30.0
