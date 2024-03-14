@@ -42,6 +42,9 @@
             "$ref": "mixins.json#/schema_version"
         },
         {
+            "$ref": "mixins.json#/sequencing_center"
+        },
+        {
             "$ref": "mixins.json#/submitted"
         },
         {

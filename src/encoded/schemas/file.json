@@ -47,6 +47,9 @@
             "$ref": "mixins.json#/schema_version"
         },
         {
+            "$ref": "mixins.json#/sequencing_center"
+        },
+        {
             "$ref": "mixins.json#/submitted"
         },
         {
@@ -145,9 +148,6 @@
             "description": "Path to file on O2",
             "permission": "restricted_fields",
             "type": "string"
-        },
-        "sequencing_center": {
-            "$ref": "mixins.json#/sequencing_center/sequencing_center"
         },
         "s3_lifecycle_category": {
             "description": "The lifecycle category determines how long a file remains in a certain storage class.  If set to ignore, lifecycle management will have no effect on this file",
