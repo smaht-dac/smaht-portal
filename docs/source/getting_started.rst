@@ -13,11 +13,11 @@ The primary way to submit data to SMaHT data portal is via Excel spreadsheet, as
 
 .. TIP::
    For more detailed and comprehensive documentation, please see our ReadTheDocs based documentation here:
-   
+
    * https://submitr.readthedocs.io/en/draft/
-   
+
    An overview of the actual metadata structure is pending, check back soon! Though for now a reference can be found here:
-   
+
    * https://submitr.readthedocs.io/en/draft/object_model.html
 
 
@@ -93,9 +93,6 @@ Notice that the first row comprises the property/column `header`, defining prope
 And also notice the multiple tabs at the bottom for the different sheets within the spreadsheet, representing (in this example) data for the Portal objects ``CellCultureSample``, ``Analyte``, ``Library``, and so on.
 
 .. TIP::
-   As mentioned above, if you want to include arbitrary comments or auxiliary information in your spreadsheet, without that content intefering with the parsing of the spreadsheet, you can make an individual sheet **hidden**. Such hidden sheets will be completely ignored.  To hide a sheet in Excel right-click on the tab and choose **Hide**. To **unhide** select **Format** > **Sheet** > **Unhide...** from the menu-bar. As also mentioned above, if your sheet name is enclosed in parenthesis, for example ``(My Comments)``, then it will also be completely ignored; again, useful for arbitrary comments, and without having to hide/unhide sheets.
-
-.. TIP::
    Other file formats besides Excel actually `are` supported; see `this document <https://submitr.readthedocs.io/en/draft/advanced_usage.html#other-files-formats>`_ for more information.
 
 
@@ -167,19 +164,19 @@ where ``<your_metdata_file.xlsx>`` is the path to your metadata file. The argume
 This will first validate your metadata, and if no errors were encountered, it will perform the actual metadata submission; you `will` be prompted for confirmation before the submission is started. If errors are encountered, the submission will `not` commence; you will `not` be able to submit until you fix the errors.
 
 .. TIP::
-   You can omit the ``--env`` option entirely if your keys file has only `one` single entry, or if you have your ``SMAHT_ENV`` environment variable setup (see the `Credentials </docs/user-guide/credentials>`_ section).
-
-.. TIP::
-   If you opted to use a file other than ``~/.smaht-keys.json`` to store your credentials, you will need to use the ``--keys`` option with the path name to your alternate file as an argument; or have your ``SMAHT_KEYS`` environment variable setup (see the `Credentials </docs/user-guide/credentials>`_ section).
+   You can omit the ``--env`` option entirely if your keys file has only `one` single entry or if you have your ``SMAHT_ENV`` environment variable setup (see the `Credentials </docs/user-guide/credentials>`_ section).
 
 |
 
-This command should do everything, `including` uploading any referenced files, prompting first for confirmation; see the `Uploading Files </docs/user-guide/uploading-files>`_ section for more on this.
+**Note**: If you opted to use a file other than ``~/.smaht-keys.json`` to store your credentials, you will need to use the ``--keys`` option with the path name to your alternate file as an argument or have your ``SMAHT_KEYS`` environment variable setup (see the `Credentials </docs/user-guide/credentials>`_ section).
+
+This command should do everything, `including` uploading any referenced files, which will be done after first
+prompting the user for confirmation; see the `Uploading Files </docs/user-guide/uploading-files>`_ section for more on this.
 
 If you belong to multiple consortia and/or submission centers, you can also add the ``--consortium <consortium>`` and ``--submission-center <submission-center>`` options to explicitly specify which consortium or submission center you are submitting on behalf of; if you belong to only one, the command will automatically detect which groups you are a part of (based on your user profile) and use those.
 
 .. TIP::
-   You may wonder: Is it okay to submit the same metadata file more that once? The answer is: Yes. And, if you had made any changes to the file, updates will be applied as expected.
+   You may wonder: Is it okay to submit the same metadata file more than once? The answer is: Yes. If any changes were made to the file, updates will be applied as expected.
 
 
 Validation
@@ -191,8 +188,6 @@ As mentioned in the previous section, using the ``--submit`` option `will` perfo
 
 .. TIP::
    This feature basically constitutes a sort of "**dry run**" facility.
-
-|
 
 To be more specific about the the validation checks, they include the following:
 
