@@ -5,12 +5,13 @@
             "smaht"
         ],
         "submitted_id": "TEST_LIBRARY_LIVER",
-		"analyte": "TEST_ANALYTE_LIVER",
+        "analyte": "TEST_ANALYTE_LIVER",
         "a260_a280_ratio": 3.2,
         "amplification_cycles": 10,
         "analyte_weight": 5.4,
         "fragment_mean_length": 150.7,
         "insert_mean_length": 150.2,
-        "preparation_date": "2023-05-11"
+        "preparation_date": "2023-05-11",
+        "assay": "bulk_wgs"
     }
 ]

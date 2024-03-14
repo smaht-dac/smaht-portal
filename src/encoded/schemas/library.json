@@ -22,6 +22,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/description"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -178,6 +181,12 @@
             "type": "string",
             "linkTo": "Analyte"
         },
+        "assay": {
+            "title": "Assay",
+            "description": "Link to associated assay",
+            "type": "string",
+            "linkTo": "Assay"
+        },
         "library_preparation": {
             "title": "Library Preparation",
             "description": "Link to associated library preparation",
@@ -189,6 +198,9 @@
         "submission_centers.display_title": {
             "title": "Submitted By"
         },
+        "assay.display_title": {
+            "title": "Assay"
+        },
         "status": {
             "title": "Status"
         }
@@ -196,6 +208,9 @@
     "columns": {
         "submission_centers.display_title": {
             "title": "Submitted By"
+        },
+        "assay.display_title": {
+            "title": "Assay"
         }
     }
 }
