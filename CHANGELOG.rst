@@ -13,6 +13,7 @@ Change Log
 * This is a temporary branch (extra_files_plus_main_20240314)
   which is Will's extra_files branch with main merged in (2024-03-14).
 * Added missing import of calculated_property from snovault to types/submitted_file.py.
+* Merged in utk_es_max_hit (with documentation changes).
 
 
 0.32.2
