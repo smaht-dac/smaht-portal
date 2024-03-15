@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.33.0
+======
+
+`PR 117: Assay link change #2 <https://github.com/smaht-dac/smaht-portal/pull/117>`_
+
+* Breaking scheme change: Assay link removed from file set and required on library
+* Create FileSet upgrader to remove assay link for schema version 1 items
+* Update loadxl order to account for new assay linkTo location
+
+
 0.32.1
 ======
 
