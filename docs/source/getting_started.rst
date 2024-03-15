@@ -22,7 +22,7 @@ The primary way to submit data to SMaHT data portal is via Excel spreadsheet, as
 
 
 Data Submission via Excel Spreadsheet
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=====================================
 
 Uploading metadata and associated data files to SMaHT data portal can be done using a software tool called ``smaht-submitr``. This is a Python based command-line tool which is distributed on PyPi. The metadata is represented by an Excel spreadsheet (also called a `workbook`) which contains a number of sheets (also called `worksheets`).
 
@@ -37,7 +37,7 @@ Spreadsheet generation tools may be made available in the future; please contact
 
 
 Installing the Submission Tool
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==============================
 The SMaHT data portal submission tool is implemented as a command-line Python package, and is distributed on `PyPi <https://pypi.org/project/smaht-submitr/>`_.  It requires Python version 3.9, 3.10, or 3.11.  Installation is done via the standard Python ``pip`` command-line install tool like this::
 
     pip install smaht-submitr
@@ -46,7 +46,7 @@ Once installed, these key commands will be available for execution from the comm
 
 
 Templates
----------
+=========
 
 A workbook containing worksheets for each item type with all properties available for submission can be found |template_workbook|.
 
@@ -67,7 +67,7 @@ An example of a filled out workbook ready for submission can be found |example_w
 
 
 Formatting Files for Submission
--------------------------------
+===============================
 Most commonly, the file format recommended for metadata submission to SMaHT Portal, is an Excel spreadsheet file (e.g. ``your_metadata_file.xlsx``), comprised of one or more sheets. Note these important aspects of using the Excel spreadsheet format:
 
 #. Each sheet name must be the `exact` name of a SMaHT Portal entity or `object` defined within the system.
@@ -100,7 +100,7 @@ Array Properties
 
 Some SMaHT data portal object properties are defined to be lists (or `arrays`) of values. To define the values for such array properties, separate the individual array values by a pipe character (``|``). For example, if an object defines an ``alignment_details`` property as an array type, use the value ``Sorted|Phased`` to set this value to an array with the two elements ``Sorted`` and ``Phased``.
 
-Less common, but still supported, is the ability to set values for individual array elements. This is accomplished by suffixing the property name in the column header with a pound sign (``#``) followed by an integer representing the zero-indexed array element. For example, to set the first element of the ``alignment_details`` property (using the example above), use column header value ``alignment_details#0``.
+For more on this please see the more extensive documentation here: `Array Properties <https://submitr.readthedocs.io/en/draft/usage.html#array-properties>`_
 
 Date/Time Properties
 ~~~~~~~~~~~~~~~~~~~~
@@ -124,9 +124,13 @@ Object Reference Properties
 
 Some Portal object properties references to other Portal objects (also known as `linkTo` properties). The values of these properties in the spreadsheet should be a uniquely identify the value for the object you are referencing. The identifying value property for an object varies depending on the specific object in question; the ``uuid`` property is common to all objects, but other common identifying properties are ``submitted_id`` and ``accession``. These might be thought of (for the database savvy) as `foreign` keys. Here is a visual which should make this clear:
 
+|
+
 .. image:: /static/img/docs/submitr_spreadsheet_ref.png
     :target: /static/img/docs/submitr_spreadsheet_refutput.png
     :alt: Spreadsheed Reference Screenshot
+
+|
 
 It is important to know that the ``smaht-submitr`` tool and SMaHT data portal will ensure that the referenced objects actually exist within SMaHT data portal, `or` are defined within the spreadsheet itself; if this is not the case, an error will be returned.
 
@@ -147,7 +151,7 @@ A column value within a (non-header) data row may be empty, but this only means 
 
 
 Submission
-----------
+==========
 
 The type of submission supported is called "metadata bundles" or `accessioning`. The name of the command-line tool to initiate a submission is ``submit-metadata-bundle``. A brief tour of this command, its arguments, and function is described below. To get additional information about the command, use the command::
 
@@ -178,7 +182,7 @@ If you belong to multiple consortia and/or submission centers, you can also add 
 
 
 Validation
-----------
+==========
 
 As mentioned in the previous section, using the ``--submit`` option `will` perform validation of your metadata before submitting it (after prompting you to do so). But if you want to `only` run validation `without` submitting the metadata to SMaHT data portal, then invoke ``submit-metadata-bundle`` with the ``--validate`` option as follows::
 
@@ -229,7 +233,7 @@ If you additionally specify the ``--verbose`` option, the output will look somet
 
 
 Getting Submission Info
------------------------
+=======================
 To view relevant information about a submission, use the command::
 
    check-submission --env <environment-name> <uuid>
@@ -238,7 +242,7 @@ where the ``uuid`` argument is the Submission tracking ID for the submission, wh
 
 
 Listing Recent Submissions
---------------------------
+==========================
 To view a list of recent submissions (with submission UUID and submission date/time), in order of most to least recent, use the ``list-submissions`` command as follows::
 
    list-submissions --env <environment-name>
