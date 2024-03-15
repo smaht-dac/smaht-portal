@@ -95,27 +95,6 @@ And also notice the multiple tabs at the bottom for the different sheets within 
 .. TIP::
    Other file formats besides Excel actually `are` supported; see `this document <https://submitr.readthedocs.io/en/draft/advanced_usage.html#other-files-formats>`_ for more information.
 
-
-Object Reference Properties
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Some Portal object properties are defined as being references to other Portal objects (also known as `linkTo` properties). The values of these properties in the spreadsheet should be a unique identifying value for the object you are referencing or linking to. The identifying value property for an object varies depending on the specific object in question; the ``uuid`` property is common to all objects, but other common identifying properties are ``submitted_id`` and ``accession``.
-
-It is important to know that the ``smaht-submitr`` tool and SMaHT data portal will ensure that the referenced objects actually exist within SMaHT data portal, `or` are defined within the spreadsheet itself; if this is not the case, an error will be returned.
-
-You can view the identifying (and required) properties for objects here:
-
-* https://staging.smaht.org/docs/user-guide/referencing-data
-* https://submitr.readthedocs.io/en/draft/object_model.html
-
-
-Nested Properties
-~~~~~~~~~~~~~~~~~
-
-Some SMaHT data portal object properties defined to contain other `nested` objects. Since a (Excel spreadsheet) inherently defines a "flat" structure, rather than the more hierarchical structure supported by SMaHT data portal objects (which are actually `JSON <https://en.wikipedia.org/wiki/JSON>`_ objects), in which such nested objects can be defined, a special syntactic convention is needed to be able to reference the properties of these nested objects.
-
-For this we will use a `dot-notation` whereby dots (``.``) are used to separate a parent property from its child property. For example, an object may define a ``components`` property which itself may contain a ``cell_culture`` property; to reference the ``cell_culture`` property then, the spreadsheet column header would need to be ``components.cell_culture``.
-
 Array Properties
 ~~~~~~~~~~~~~~~~
 
@@ -140,12 +119,31 @@ Implicit Properties
 
 Some SMaHT data portal objects require (or support) the ``submission_centers`` property. If you do not specify this though, ``smaht-submitr`` will `automatically` supply this particular property; it will be `implicitly` set to the submission center to which you belong.
 
+Object Reference Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some Portal object properties references to other Portal objects (also known as `linkTo` properties). The values of these properties in the spreadsheet should be a uniquely identify the value for the object you are referencing. The identifying value property for an object varies depending on the specific object in question; the ``uuid`` property is common to all objects, but other common identifying properties are ``submitted_id`` and ``accession``. These might be thought of (for the database savvy) as `foreign` keys. Here is a visual which should make this clear:
+
+.. image:: /static/img/docs/submitr_spreadsheet_ref.png
+    :target: /static/img/docs/submitr_spreadsheet_refutput.png
+    :alt: Spreadsheed Reference Screenshot
+
+It is important to know that the ``smaht-submitr`` tool and SMaHT data portal will ensure that the referenced objects actually exist within SMaHT data portal, `or` are defined within the spreadsheet itself; if this is not the case, an error will be returned.
+
+You can view the identifying (and required) properties for objects here:
+
+* https://staging.smaht.org/docs/user-guide/referencing-data
+* https://submitr.readthedocs.io/en/draft/object_model.html
+
+Nested Properties
+~~~~~~~~~~~~~~~~~
+
+Not common but some SMaHT data portal object properties defined to contain other `nested` objects, i.e. object which themselves are objects or are arrays of object. For more on this please see the more extensive documentation here: `Nested Properties <https://submitr.readthedocs.io/en/draft/usage.html#nested-properties>`_
+
 Property Deletions
 ~~~~~~~~~~~~~~~~~~
 
-In order to delete a property value from an object after having already submitted metadata for that object, a special value - ``*delete*`` - should be put in the cell corresponding to that property value. Do not simply leave the value empty and resubmit the workbook: an empty column value within a (non-header) data row may be empty, but this only means that the value will be ignored when creating or updating the associated object. 
-
-A column value within a (non-header) data row may be empty, but this only means that the value will be ignored when creating or updating the associated object. In order to actually `delete` a property value from an object, a special value - ``*delete*`` - should be used as the the property value.
+A column value within a (non-header) data row may be empty, but this only means that the value will be ignored when creating or updating the associated object. Not common butin order to actually `delete` a property value from an object please see the more extensive documentation here: `Property Deletions <https://submitr.readthedocs.io/en/draft/usage.html#property-deletions>`_
 
 
 Submission
