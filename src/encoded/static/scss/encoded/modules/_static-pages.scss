@@ -157,6 +157,43 @@
 		ul {
 			margin-top: 1rem;
 		}
+
+		pre {
+			margin-top: 1rem;
+			margin-bottom: 1rem;
+			padding: 10px;
+			border: 2px solid #f0f0f1;
+			border-radius: 5px;
+			background-color: #f8f8f8;
+			color: #212529;
+		}
+
+		.admonition.tip {
+			background-color: #F7F2F8;
+			padding: 12px;
+  			line-height: 24px;
+  			margin-top: 24px;
+
+			.admonition-title {
+				background-color: #9278AF;
+				font-weight: 700;
+  				display: block;
+  				color: #fff;
+				padding: 6px 12px;
+  				margin: -12px -12px 12px;
+				
+				&:before {
+					font-family: $fa-font-family;
+					content: "\f06a";
+					display: inline-block;
+  					font-style: normal;
+  					font-weight: 700;
+  					line-height: 1;
+  					text-decoration: inherit;
+					margin-right: 4px;
+				}
+			}
+		}
 	}
 }
 
