@@ -107,15 +107,25 @@ For properties defined as `date` types, the required format is ``YYYY-MM-DD``, f
 
 For properties defined as `date-time` types, the required format is ``YYYY-MM-DD hh:mm:ss``, for example ``2024-02-09 13:25:10`` (note the use of 24-hour based clock time). This will default to your local timezone; if you need to specify a timezone, use a suffix like ``+hh:mm`` where ``hh`` and ``mm`` are the hour and minute offsets from GMT (for example: ``2024-02-09 13:25:10+05:00``).
 
+Array Properties
+~~~~~~~~~~~~~~~~
+
+Some SMaHT data portal object properties are defined to be lists (or `arrays`) of values. To define the values for such array properties, separate the individual array values by a pipe character (``|``). For example, if an object defines an ``alignment_details`` property as an array type, use the value ``Sorted|Phased`` to set this value to an array with the two elements ``Sorted`` and ``Phased``.
+
+For more on this please see the more extensive documentation here: `Array Properties <https://submitr.readthedocs.io/en/draft/usage.html#array-properties>`_
+
+Here is an example of date/time and array properties:
+
+.. image:: /static/img/docs/submitr_spreadsheet_date_time_and_array.png
+   :target: /static/img/docs/submitr_spreadsheet_date_time_and_array.png
+   :alt: Excel Spreadsheet Date-Time-Array Screenshot
+
+|
+
 Boolean Properties
 ~~~~~~~~~~~~~~~~~~
 
 For properties defined as `boolean` types, meaning their value may be either `true` or `false`, simply use these values, i.e. ``true`` or ``false``.
-
-Implicit Properties
-~~~~~~~~~~~~~~~~~~~
-
-Some SMaHT data portal objects require (or support) the ``submission_centers`` property. If you do not specify this though, ``smaht-submitr`` will `automatically` supply this particular property; it will be `implicitly` set to the submission center to which you belong.
 
 Object Reference Properties
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -140,12 +150,10 @@ You can view the identifying (and required) properties for objects here:
 * https://staging.smaht.org/docs/user-guide/referencing-data
 * https://submitr.readthedocs.io/en/draft/object_model.html
 
-Array Properties
-~~~~~~~~~~~~~~~~
+Implicit Properties
+~~~~~~~~~~~~~~~~~~~
 
-Some SMaHT data portal object properties are defined to be lists (or `arrays`) of values. To define the values for such array properties, separate the individual array values by a pipe character (``|``). For example, if an object defines an ``alignment_details`` property as an array type, use the value ``Sorted|Phased`` to set this value to an array with the two elements ``Sorted`` and ``Phased``.
-
-For more on this please see the more extensive documentation here: `Array Properties <https://submitr.readthedocs.io/en/draft/usage.html#array-properties>`_
+Some SMaHT data portal objects require (or support) the ``submission_centers`` property. If you do not specify this though, ``smaht-submitr`` will `automatically` supply this particular property; it will be `implicitly` set to the submission center to which you belong.
 
 Nested Properties
 ~~~~~~~~~~~~~~~~~
