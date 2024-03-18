@@ -170,12 +170,17 @@
 			i.icon-copy {
 				position: absolute;
 				font-size: 0.875rem;
+				color: #888;
 				right: 6px;
 				top: 6px;
 
 				@include media-breakpoint-down(lg){
 					right: -20px;
 					top: 2px;
+				}
+
+				&:hover {
+					color: #212529;
 				}
 			}
 		}
