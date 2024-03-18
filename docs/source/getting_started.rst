@@ -120,8 +120,6 @@ Here is an example of date/time and array properties:
    :target: /static/img/docs/submitr_spreadsheet_date_time_and_array.png
    :alt: Excel Spreadsheet Date-Time-Array Screenshot
 
-|
-
 Boolean Properties
 ~~~~~~~~~~~~~~~~~~
 
@@ -144,6 +142,8 @@ It is important to know that the ``smaht-submitr`` tool and SMaHT data portal wi
 
 .. TIP::
    Note that the ``submitted_id`` in the above example is in all CAPS. This property specifically requires any letters to be capitalized.
+
+|
 
 You can view the identifying (and required) properties for objects here:
 
