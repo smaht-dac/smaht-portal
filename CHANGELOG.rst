@@ -7,20 +7,30 @@ smaht-portal
 Change Log
 ----------
 
-0.33.0
+0.34.0
 ======
 
 * This is a temporary branch (extra_files_plus_main_20240314)
-  which is Will's extra_files branch with main merged in (2024-03-14).
+  which is Will's extra_files branch with main merged in (2024-03-14), and
+  also Utku's utk_es_max_hit branch (PR-114) with documentation changes merge in.
 * Added missing import of calculated_property from snovault to types/submitted_file.py.
-* Merged in utk_es_max_hit branch (PR-114) with documentation changes.
 * Documentation changes.
+
+
+0.33.0
+======
+
+`PR 117: Assay link change #2 <https://github.com/smaht-dac/smaht-portal/pull/117>`_
+
+* Breaking scheme change: Assay link removed from file set and required on library
+* Create FileSet upgrader to remove assay link for schema version 1 items
+* Update loadxl order to account for new assay linkTo location
 
 
 0.32.2
 ======
 
-* Allow submission of extra_files
+* Add common_fields to MetaWorkflowRun and sequencing_center to WorkflowRun and QualityMetric
 
 
 0.32.1

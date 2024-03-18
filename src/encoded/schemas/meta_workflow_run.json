@@ -79,6 +79,21 @@
         "cost": {
             "$merge": "encoded_core:schemas/meta_workflow_run.json#/properties/cost"
         },
+        "common_fields": {
+            "title": "Common Fields",
+            "description": "Common fields that go into all workflow_run, output_files and quality_metric",
+            "comment": "The properties here must be valid for all item types in description above to prevent validation errors",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "sequencing_center": {
+                    "title": "Sequencing Center",
+                    "description": "Sequencing Center",
+                    "type": "string",
+                    "format": "uuid"
+                }
+            }
+        },
         "file_sets": {
             "title": "File Sets",
             "description": "File collections associated with this MetaWorkflowRun",

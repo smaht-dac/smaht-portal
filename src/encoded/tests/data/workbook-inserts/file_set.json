@@ -8,7 +8,6 @@
         "libraries": [
             "TEST_LIBRARY_LIVER"
         ],
-        "assay": "bulk_wgs",
         "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
     }
 ]
