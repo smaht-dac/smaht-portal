@@ -63,22 +63,19 @@ An example of a filled out workbook ready for submission can be found |example_w
    <a href="https://docs.google.com/spreadsheets/d/1b5W-8iBEvWfnJQFkcrO9_rG-K7oJEIJlaLr6ZH5qjjA/edit?usp=sharing" target="_blank">here</a>
 
 
-|
-
-
 Formatting Files for Submission
 ===============================
 Most commonly, the file format recommended for metadata submission to SMaHT Portal, is an Excel spreadsheet file (e.g. ``your_metadata_file.xlsx``), comprised of one or more sheets. Note these important aspects of using the Excel spreadsheet format:
 
 #. The spreadsheet must have a **file suffix** of ``.xls`` or ``.xlsx``; there are no other requirements for the name of this file.
 #. Each sheet name must be the `exact` name of a SMaHT Portal item or `object` defined within the system (e.g. ``AlignedReads``).
-#. Each sheet must have as its **first row** a special `header` row, which enumerates in each column, the `exact` names of the Portal object `properties` as the column names; order does `not` matter.
-#. Each sheet may contain any number of `data` rows (`directly` below the header row), each representing an instance of the Portal object.
+#. Each sheet must have as its **first row** a special `header` row, which enumerates in each column, the `exact` names of the Portal object **properties** as the column names; order does `not` matter.
+#. Each sheet may contain any number of **data rows** (`directly` below the header row), each representing an instance of the Portal object.
 #. The values in the cells/columns of each data row correspond to the `property` named in the same column of the header row.
 
-Note these important rules defining exactly the parts of the spreadsheet which are relevant for metadata submission.
+Note these important rules defining exactly the parts of the spreadsheet which are **relevant** for metadata submission.
 
-#. The **first row** which is entirely **empty* marks the **end of the data**, and any subsequent rows will be entirely **ignored**; this means you can include comments in your spreadsheet in rows after (below) the first blank row indicating the end of data input.
+#. The **first row** which is entirely **empty** marks the **end of the data**, and any subsequent rows will be entirely **ignored**; this means you can include comments in your spreadsheet in rows after (below) the first blank row indicating the end of data input.
 #. The **first column** in the header row which is **empty** marks the **end of the header**, and any subsequent columns will be entirely **ignored**.
 #. Sheets which are marked as **hidden** will be **ignored**; this provides a way of including sheets with other auxiliary information without their contents interfering with the submission tool.
 #. Sheets which have a name enclosed in parenthesis, for example ``(My Comments)``, will similarly be treated as **hidden** as described above.
@@ -97,6 +94,8 @@ And also notice the multiple tabs at the bottom for the different sheets within 
 
 .. TIP::
    Other file formats besides Excel actually `are` supported; see `this document <https://submitr.readthedocs.io/en/draft/advanced_usage.html#other-files-formats>`_ for more information.
+
+|
 
 SMaHT object `properties` have different `types`. Many of the types are simply text (or `strings`). Other types are described below.
 
@@ -207,6 +206,8 @@ As mentioned in the previous section, using the ``--submit`` option `will` perfo
 .. TIP::
    This feature basically constitutes a sort of "**dry run**" facility.
 
+|
+
 To be more specific about the the validation checks, they include the following:
 
 #. Ensures the basic integrity of the format of the metadata submission file.
@@ -263,4 +264,4 @@ To view a list of recent submissions (with submission UUID and submission date/t
 
    list-submissions --env <environment-name>
 
-Use the ``--verbose`` option to list more information for each of the recent submissions shown. You can control the maximum number of results output using the ``--count`` option with an integer count argument.
+Use the ``--verbose`` option to list more information for each of the recent submissions shown. You can control the maximum number of results output using the ``--count`` option with an integer count argument. Use the ``--mine`` option to see only your submissions.
