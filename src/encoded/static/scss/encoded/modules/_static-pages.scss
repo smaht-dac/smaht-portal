@@ -142,8 +142,8 @@
 
 	// since rst-to-html non-customizable,
 	// tweak some css rules to display h3/h4 like h4/h5 respectively
-	.rst-container,
 	// use the same styles for raw HTML
+	.rst-container,
 	.html-container {
 		h3 {
 			font-size: 1.3rem;
@@ -166,6 +166,18 @@
 			border-radius: 5px;
 			background-color: #f8f8f8;
 			color: #212529;
+
+			i.icon-copy {
+				position: absolute;
+				font-size: 0.875rem;
+				right: 6px;
+				top: 6px;
+
+				@include media-breakpoint-down(lg){
+					right: -20px;
+					top: 2px;
+				}
+			}
 		}
 
 		.admonition.tip {
