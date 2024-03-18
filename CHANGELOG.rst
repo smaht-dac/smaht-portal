@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.32.2
+======
+
+* Add common_fields to MetaWorkflowRun and sequencing_center to WorkflowRun and QualityMetric
+
+
 0.32.1
 ======
 
