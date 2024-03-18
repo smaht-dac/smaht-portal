@@ -3,6 +3,9 @@ from typing import Any, Dict, Optional
 import pytest
 from jsonschema import validate, ValidationError
 from snovault import load_schema
+from webtest import TestApp
+
+from .utils import get_search, patch_item
 
 
 def get_mixins_schema() -> Dict[str, Any]:
@@ -205,3 +208,79 @@ def test_meta_workflow_input(meta_workflow_input: str, expected_errors: bool) ->
         assert not errors
     else:
         assert errors
+
+
+@pytest.mark.workbook
+@pytest.mark.parametrize(
+    "accession,expected_errors",
+    [
+        ("", True),
+        ("GAPFI1234567", True),  # Invalid prefix
+        ("SMA4L1234567", True),  # Numbers in item-type section
+        ("SMALLABCDEFGH", True),  # Too long
+        ("SMALLABCdEFG", True),  # Lowercase
+        ("SMALLAB34N60", True),  # Zero not allowed
+        ("SMALLABCDEFG", False),
+        ("SMALLAB34N6Y", False),
+        ("SMALL1234567", False),
+        ("SMAFI025LKA6", True),  # invalid, has a zero
+        ("SMAFIO25LKA6", False)  # valid, has an O
+    ],
+)
+def test_accession(
+    es_testapp: TestApp, workbook: None, accession: str, expected_errors: bool
+) -> None:
+    """Ensure accession schema validating pattern as expected."""
+    item_with_accession = get_item_with_an_accession(es_testapp)
+    identifier = item_with_accession["@id"]
+    patch_body = {"accession": accession}
+    if expected_errors is False:
+        patch_item(es_testapp, patch_body, identifier, status=200)
+    else:
+        response = patch_item(es_testapp, patch_body, identifier, status=422)
+        assert_is_invalid_accession_response(response)
+
+
+def assert_is_invalid_accession_response(response: Dict[str, Any]) -> bool:
+    """Check if response indicates invalid accession."""
+    assert "ValidationFailure" in response.get("@type", [])
+    errors = response.get("errors", [])
+    assert len(errors) == 1
+    error = errors[0]
+    assert "accession" in error.get("name", "")
+
+
+def get_item_with_an_accession(es_testapp: TestApp) -> Dict[str, Any]:
+    """Pull any item with an accession for testing."""
+    search = get_search(es_testapp, "?type=Item&accession!=No+value")
+    assert len(search) > 0
+    return search[0]
+
+
+@pytest.mark.workbook
+@pytest.mark.parametrize(
+    "accession,expected_errors",
+    [
+        ("", True),
+        ("GAPFI1234567", True),  # Invalid prefix
+        ("SMA4L1234567", True),  # Numbers in item-type section
+        ("SMALLABCDEFGH", True),  # Too long
+        ("SMALLABCdEFG", True),  # Lowercase
+        ("SMALLAB34N60", True),  # Zero not allowed
+        ("SMALLABCDEFG", False),
+        ("SMALLAB34N6Y", False),
+        ("SMALL1234567", False),
+    ],
+)
+def test_alternate_accessions(
+    es_testapp: TestApp, workbook: None, accession: str, expected_errors: bool
+) -> None:
+    """Ensure alternate_accessions schema validating pattern as expected."""
+    item_with_accession = get_item_with_an_accession(es_testapp)
+    identifier = item_with_accession["@id"]
+    patch_body = {"accession": accession}
+    if expected_errors is False:
+        patch_item(es_testapp, patch_body, identifier, status=200)
+    else:
+        response = patch_item(es_testapp, patch_body, identifier, status=422)
+        assert_is_invalid_accession_response(response)

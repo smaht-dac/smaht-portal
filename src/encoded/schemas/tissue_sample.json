@@ -22,6 +22,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/description"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -47,6 +50,16 @@
         },
         {
             "$ref": "sample.json#/properties"
+        }
+    ],
+    "mixinFacets": [
+        {
+            "$ref": "sample.json#/facets"
+        }
+    ],
+    "mixinColumns": [
+        {
+            "$ref": "sample.json#/columns"
         }
     ],
     "properties": {

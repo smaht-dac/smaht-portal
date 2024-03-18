@@ -21,6 +21,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/description"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -52,13 +55,13 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_SAMPLE_[A-Z0-9-_.]{4,}$"
+        },
         "preservation_medium": {
             "title": "Preservation Medium",
             "description": "Medium used for sample preservation",
-            "type": "string",
-            "enum": [
-                "TBD"
-            ]
+            "type": "string"
         },
         "preservation_type": {
             "title": "Preservation Type",
@@ -85,9 +88,19 @@
                 "type": "string",
                 "linkTo": "SampleSource"
             }
+        }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
         },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_SAMPLE_[A-Z0-9-_.]{4,}$"
+        "status": {
+            "title": "Status"
+        }
+    },
+    "columns": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
         }
     }
 }

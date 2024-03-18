@@ -239,15 +239,13 @@ export function sankeyFunc() {
             nodesByBreadth.forEach(function (nodes) {
                 nodes.forEach(function (node, i) {
                     node.y = i;
-                    node.dy = node.value * ky;
                     if (node.type === 'data_generator') {
                         node.dy =
                             (size[1] - (nodes.length - 1) * nodePadding) /
                             nodes.length;
+                    } else {
+                        node.dy = node.value * ky;
                     }
-                    // if (node.type === "sequencing_platform") {
-                    //     node.dy = (size[1] - (nodes.length - 1) * nodePadding) / nodes.length;
-                    // }
                 });
             });
 
@@ -309,10 +307,10 @@ export function sankeyFunc() {
                         sortFn = alphabetical;
                         break;
                     case 'sequencing_platform':
-                        sortFn = ascendingDepth;
+                        sortFn = descendingDepth;
                         break;
                     case 'assay_type':
-                        sortFn = ascendingDepth;
+                        sortFn = descendingDepthCategorical;
                         break;
                     case 'molecular_feature':
                         sortFn = categorical;
@@ -353,8 +351,17 @@ export function sankeyFunc() {
             return a.category.localeCompare(b.category);
         }
 
-        function ascendingDepth(a, b) {
-            return a.y - b.y;
+        function descendingDepth(a, b) {
+            return b.dy - a.dy;
+        }
+
+        function descendingDepthCategorical(a, b) {
+            if (b.dy - a.dy === 0 && b.type === 'assay_type') {
+            }
+            let a_group = a.assay_group.split('-');
+            let b_group = b.assay_group.split('-');
+
+            return a_group[0] - b_group[0] || a_group[1] - b_group[1];
         }
     }
 

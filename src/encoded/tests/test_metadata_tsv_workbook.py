@@ -95,13 +95,12 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_key_and_length(header1, 'Metadata TSV Download')
         TestMetadataTSVHelper.check_key_and_length(header2, 'Suggested command to download: ')
         TestMetadataTSVHelper.check_key_and_length(header3, 'File Download URL')
-        assert len(parsed[3:]) == 10  # there are 10 entries in the workbook right now, including extra files
+        assert len(parsed[3:]) == 12  # there are 12 entries in the workbook right now, including extra files
         # test for various types
         TestMetadataTSVHelper.check_type_length(es_testapp, 'AlignedReads', 1)
-        TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 1)
+        TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 3)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'VariantCalls', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'ReferenceFile', 1)
-        TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'OutputFile', 2)
         res = es_testapp.post_json('/metadata/', {'type': 'OutputFile', 'include_extra_files': True})
         tsv = res._app_iter[0]
@@ -117,10 +116,10 @@ class TestMetadataTSVWorkbook:
                                    {'type': 'File', 'include_extra_files': False}).json
         for facet in res:
             if facet['field'] == 'file_size':
-                assert facet['count'] == 6
+                assert facet['count'] == 8
                 assert facet['min'] == 1000.0
                 assert facet['max'] == 100000.0
-                assert facet['sum'] == 134000.0
+                assert facet['sum'] == 184000.0
             if facet['field'] == 'extra_files.file_size':
                 raise AssertionError('Extra files information present when not desired')
         # check an individual type (with extra files)

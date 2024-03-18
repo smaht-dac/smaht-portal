@@ -71,18 +71,22 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
         )
         return response
 
-    loadxl_load_data_response = loadxl_load_data(
-        testapp=portal_vapp,
-        inserts=data,
-        docsdir=None,
-        overwrite=True,
-        itype=None,
-        from_json=True,
-        continue_on_exception=True,
-        verbose=True,
-        post_only=post_only,
-        patch_only=patch_only,
-        validate_only=validate_only)
+    def call_loadxl(validate_only: bool):
+        nonlocal portal_vapp, data, post_only, patch_only
+        return package_loadxl_response(
+                loadxl_load_data(
+                    testapp=portal_vapp,
+                    inserts=data,
+                    docsdir=None,
+                    overwrite=True,
+                    itype=None,
+                    from_json=True,
+                    continue_on_exception=True,
+                    verbose=True,
+                    post_only=post_only,
+                    patch_only=patch_only,
+                    validate_only=validate_only,
+                    skip_links=True))
 
     return package_loadxl_response(loadxl_load_data_response)
 

@@ -59,9 +59,15 @@ def get_updated_data_type(data_type: List[str], variant_type: List[str]) -> List
     Remove germline/somatic distinction and ensure all variant type
     information is included in abbreviated form.
     """
+    enums_to_drop = [
+        "Germline Variants",
+        "Somatic Variants",
+        "Germline Variant Calls",
+        "Somatic Variant Calls",
+    ]
     updated_data_type = [
         VARIANT_TYPE_1_2_TRANSLATION.get(value, value) for value in data_type
-        if value not in ["Germline Variants", "Somatic Variants"]
+        if value not in enums_to_drop
     ]
     for value in variant_type:
         translated_value = VARIANT_TYPE_1_2_TRANSLATION.get(value, value)

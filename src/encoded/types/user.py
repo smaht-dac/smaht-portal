@@ -23,7 +23,16 @@ from .base import Item
 class User(Item, SnovaultUser):
     item_type = "user"
     schema = load_schema("encoded:schemas/user.json")
-    embedded_list = []
+    embedded_list = [
+        # Consortia linkTo
+        'consortia.identifier',
+
+        # Submission Center linkTo
+        'submission_centers.identifier',
+
+        # Submission Center linkTo
+        'submits_for.identifier'
+    ]
 
     STATUS_ACL = {
         'current': ONLY_OWNER_VIEW_PROFILE_ACL,
@@ -67,6 +76,7 @@ class User(Item, SnovaultUser):
         owner = 'userid.%s' % self.uuid
         roles[owner] = 'role.owner'
         return roles
+
 
 @view_config(context=User, permission='view', request_method='GET', name='page')
 @debug_log

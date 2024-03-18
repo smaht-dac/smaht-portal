@@ -4,7 +4,6 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "preservation_type",
         "sample_sources",
         "submission_centers",
         "submitted_id"
@@ -54,6 +53,16 @@
         },
         {
             "$ref": "sample.json#/properties"
+        }
+    ],
+    "mixinFacets": [
+        {
+            "$ref": "sample.json#/facets"
+        }
+    ],
+    "mixinColumns": [
+        {
+            "$ref": "sample.json#/columns"
         }
     ],
     "properties": {
