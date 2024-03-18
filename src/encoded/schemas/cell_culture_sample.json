@@ -4,7 +4,6 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "preservation_type",
         "sample_sources",
         "submission_centers",
         "submitted_id"
@@ -21,6 +20,9 @@
         },
         {
             "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/cell_count"
         },
         {
             "$ref": "mixins.json#/description"
@@ -53,6 +55,16 @@
             "$ref": "sample.json#/properties"
         }
     ],
+    "mixinFacets": [
+        {
+            "$ref": "sample.json#/facets"
+        }
+    ],
+    "mixinColumns": [
+        {
+            "$ref": "sample.json#/columns"
+        }
+    ],
     "properties": {
         "accession": {
             "accessionType": "CU"
@@ -69,6 +81,18 @@
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_CELL-CULTURE-SAMPLE_[A-Z0-9-_.]{4,}$"
+        },
+        "cell_density": {
+            "title": "Cell Density",
+            "description": "The number of cells per mL of storage medium",
+            "type": "number",
+            "minimum": 0
+        },
+        "volume": {
+            "title": "Volume",
+            "description": "The volume of the sample in mL",
+            "type": "number",
+            "minimum": 0
         }
     }
 }

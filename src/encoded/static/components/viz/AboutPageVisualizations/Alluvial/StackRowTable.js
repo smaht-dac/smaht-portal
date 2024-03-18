@@ -103,8 +103,9 @@ const StackRowTopLabel = ({ assayType }) => {
                         onMouseLeave={() => setShowPopover(false)}>
                         <PopoverTitle>{assayType.display_name}</PopoverTitle>
                         <PopoverContent>
-                            {assayType.description}
-                            <br />
+                            {assayType.description ? (
+                                <p>{assayType.description}</p>
+                            ) : null}
                             {assayType.link && (
                                 <a
                                     className="read-more"

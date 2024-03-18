@@ -209,11 +209,49 @@ export default class App extends React.PureComponent {
             store.dispatch({ type: { href: windowHref } });
         }
 
+        const analyticsOptions = _.extend(
+            {
+                itemToProductTransform: function (item) {
+                    const {
+                        '@id': itemID,
+                        uuid: itemUUID,
+                        '@type': itemType,
+                        display_title,
+                        title,
+                        sequencing_center: { display_title: sequencingCenterTitle } = {},
+                        file_sets: [
+                            { assay: { display_title: assayTitle } = {} } = {},
+                        ] = [{}],
+                        data_category: [file_type] = [],
+                    } = item;
+
+                    const categories = Array.isArray(itemType)
+                        ? itemType.slice().reverse().slice(1)
+                        : [];
+                    const prodItem = {
+                        item_id: itemID || itemUUID,
+                        item_name: display_title || title || null,
+                        item_category:
+                            categories.length >= 1 ? categories[0] : 'Unknown',
+                        item_category2:
+                            categories.length >= 2 ? categories[1] : 'Unknown',
+                        item_category3:
+                            categories.length >= 3 ? categories[2] : 'Unknown',
+                        item_brand: sequencingCenterTitle || null,
+                        experiment_type: assayTitle || null,
+                        item_variant: file_type || null,
+                    };
+
+                    return prodItem;
+                },
+            },
+            analyticsConfigurationOptions
+        );
+
         // ANALYTICS INITIALIZATION; Sets userID (if any), performs initial pageview track
-        // TODO: add a google analytics configuration for smaht; currently this will never run
         if (analyticsID) {
             analytics.initializeGoogleAnalytics(analyticsID, {
-                ...analyticsConfigurationOptions,
+                ...analyticsOptions,
                 reduxStore: store,
                 initialContext: context,
                 initialHref: windowHref,
@@ -1437,7 +1475,6 @@ export default class App extends React.PureComponent {
                         name="google-site-verification"
                         content="sia9P1_R16tk3XW93WBFeJZvlTt3h0qL00aAJd3QknU"
                     />
-                    <meta name="robots" content="noindex" />
                     <HTMLTitle
                         {...{ context, currentAction, canonical, status }}
                     />

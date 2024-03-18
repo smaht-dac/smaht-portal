@@ -18,12 +18,19 @@ def file_formats(testapp, test_consortium):
         'beddb': {"standard_file_extension": "beddb"},
     }
     format_info = {
-        'fastq': {'standard_file_extension': 'fastq.gz',
-                  'other_allowed_extensions': ['fq.gz']},
-        'pairs': {'standard_file_extension': 'pairs.gz',
-                  "extra_file_formats": ['pairs_px2', 'pairsam_px2']},
-        'bam': {'standard_file_extension': 'bam',
-                'extra_file_formats': ['bai']},
+        'FASTQ': {
+            'standard_file_extension': 'fastq.gz',
+            'other_allowed_extensions': ['fq.gz'],
+        },
+        'pairs': {
+            'standard_file_extension': 'pairs.gz',
+            "extra_file_formats": ['pairs_px2', 'pairsam_px2'],
+        },
+        'BAM': {
+            'standard_file_extension': 'bam',
+            'extra_file_formats': ['bai'],
+        },
+        'VCF': {"standard_file_extension": "vcf",},
         'mcool': {'standard_file_extension': 'mcool'},
         'zip': {'standard_file_extension': 'zip'},
         'chromsizes': {'standard_file_extension': 'chrom.sizes'},
@@ -35,10 +42,19 @@ def file_formats(testapp, test_consortium):
                 "extra_file_formats": ['beddb']},
     }
 
+    all_file_item_types = [
+        "OutputFile",
+        "ReferenceFile",
+        "AlignedReads",
+        "UnalignedReads",
+        "VariantCalls",
+    ]
     for eff, info in ef_format_info.items():
         info['identifier'] = eff
         info['uuid'] = str(uuid4())
         info['consortia'] = [test_consortium['@id']]
+        if not info.get("valid_item_types"):
+            info["valid_item_types"] = all_file_item_types
         formats[eff] = testapp.post_json('/file_format', info, status=201).json['@graph'][0]
     for ff, info in format_info.items():
         info['identifier'] = ff
@@ -49,6 +65,8 @@ def file_formats(testapp, test_consortium):
                 eff2add.append(formats[eff].get('@id'))
             info['extra_file_formats'] = eff2add
         info['consortia'] = [test_consortium['@id']]
+        if not info.get("valid_item_types"):
+            info["valid_item_types"] = all_file_item_types
         formats[ff] = testapp.post_json('/file_format', info, status=201).json['@graph'][0]
     return formats
 
@@ -162,7 +180,32 @@ def smaht_gcc_user(testapp, test_submission_center, test_consortium):
         'consortia': [
             test_consortium['uuid']
         ],
+        'submits_for': [
+            test_submission_center['uuid']
+        ],
         'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188308'
+    }
+    return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
+def smaht_gcc_user_2(testapp, test_second_submission_center, test_consortium):
+    """ A GCC user would be a consortia member and a submission center member """
+    item = {
+        'first_name': 'Test2',
+        'last_name': 'User',
+        'email': 'gcc_user2@example.org',
+        'status': 'current',
+        'submission_centers': [
+            test_second_submission_center['uuid']
+        ],
+        'consortia': [
+            test_consortium['uuid']
+        ],
+        'submits_for': [
+            test_second_submission_center['uuid']
+        ],
+        'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188309'
     }
     return post_item_and_return_location(testapp, item, 'user')
 
@@ -193,9 +236,13 @@ def smaht_consortium_protected_user(testapp, test_consortium, test_protected_con
         'status': 'current',
         'consortia': [
             test_consortium['uuid'],
-            test_protected_consortium['uuid']
+            test_protected_consortium['uuid']  # use of the protected consortia is obsolete but remains for
+                                               # demonstration purposes if we do want to have "hidden" data
         ],
-        'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188310'
+        'uuid': '47be2cf5-4e19-47ff-86cb-b7b3c4188310',
+        'groups': [  # This group now indicates "protected" access via the ability to download restricted files
+            'dbgap'
+        ]
     }
     return post_item_and_return_location(testapp, item, 'user')
 
@@ -245,6 +292,12 @@ def smaht_protected_gcc_user(testapp, test_submission_center, test_consortium, t
 def submission_center_user_app(testapp, test_submission_center, smaht_gcc_user):
     """ App associated with a consortia member who is a submitter """
     return remote_user_testapp(testapp.app, smaht_gcc_user['uuid'])
+
+
+@pytest.fixture
+def submission_center2_user_app(testapp, test_second_submission_center, smaht_gcc_user_2):
+    """ App associated with a consortia member who is a submitter """
+    return remote_user_testapp(testapp.app, smaht_gcc_user_2['uuid'])
 
 
 @pytest.fixture
@@ -300,9 +353,9 @@ def output_file(
 ) -> Dict[str, Any]:
     item = {
         "uuid": OUTPUT_FILE_UUID,
-        "file_format": file_formats.get("fastq", {}).get("uuid", ""),
+        "file_format": file_formats.get("BAM", {}).get("uuid", ""),
         "md5sum": "00000000000000000000000000000001",
-        "filename": "my.fastq.gz",
+        "filename": "my.bam",
         "status": "uploaded",
         "data_category": ["Sequencing Reads"],
         "data_type": ["Unaligned Reads"],

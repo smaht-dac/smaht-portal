@@ -1,26 +1,51 @@
-=============================
-Credentials for smaht-submitr
-=============================
+===========
+Credentials
+===========
 
-If you have been designated as a submitter for the project,
-and plan to use spreadsheet-based submission system (``smaht-submitr``)
-to view, upload, create, or update data from/to the SMaHT data portal,
-you are required to obtain and setup an access and secret key from the SMaHT data portal.
-These must stored in a specific format and file on your local system.
-Please follow these steps below to get your access keys and configure your local system for ``smath-submitr`` usage.
+If you have been designated as a submitter for the project, and plan to use spreadsheet-based submission system (``smaht-submitr``) to view, upload, create, or update data from/to the SMaHT data portal, you are required to obtain and setup an access and secret key from the SMaHT data portal. These must stored in a specific format and file on your local system. Please follow these steps below to get your access keys and configure your local system for ``smath-submitr`` usage.
 
-|
 
-**Obtaining SMaHT Data Portal Access Keys**
+Obtaining SMaHT Data Portal Access Keys
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 #. Log in to the SMaHT `website <https://data.smaht.org>`_ with your username (email) and password. If you have not yet created an account, see `this page </docs/user-guide/account-creation>`_ for instructions.
 #. Once logged in, go to your **Profile** page by clicking **Account** on the upper right corner of the page.
 #. On your profile page, click the green **Add Access Key** button, and copy the **Access Key ID** and **Secret Access Key** values from the popup page. Note that *once the pop-up page disappears you will not be able to see the secret access key value*. However, if you forget/lose your secret key you can always delete and add new access keys from your profile page at any time.
 #. Store these values the file ``~/.smaht-keys.json`` on your local machine; see the next section for details.
 
+| 
+
+For example, getting to your **Profile** and clicking **Add Access Key** ...
+
 |
 
-**Storing SMaHT Data Portal Access Keys**
+.. image:: /static/img/docs/credentials_access_key_before.png
+   :target: /static/img/docs/credentials_access_key_before.png
+   :alt: Portal Access Key Creation
+
+|
+
+After clicking **Add Access Key** - Save the **Access Key ID** and **Secret Access Key** to your keys file ...
+
+|
+
+.. image:: /static/img/docs/credentials_access_key_created.png
+   :target: /static/img/docs/credentials_access_key_created.png
+   :alt: Portal Access Key Creation
+
+|
+
+After dismissing the above by clicking the **X** ...
+
+|
+
+.. image:: /static/img/docs/credentials_access_key_after.png
+   :target: /static/img/docs/credentials_access_key_after.png
+   :alt: Portal Access Key Creation
+
+
+Storing SMaHT Data Portal Access Keys
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Once you've obtained access and secret keys (per the previous) section, they should be stored in a file on your local machine called ``~/.smaht-keys.json``. (Note that the ``~`` there refers to your local home directory). The format of this file should look like this::
 
@@ -29,31 +54,21 @@ Once you've obtained access and secret keys (per the previous) section, they sho
            "key": "<your-access-key-id>",
            "secret": "<your-secret-access-key>",
            "server": "https://data.smaht.org"
-       },
-       "staging": {
-           "key": "<your-access-key-id>",
-           "secret": "<your-secret-access-key>",
-           "server": "https://staging.smaht.org"
        }
    }
 
-To create or modify and edit this file, use a text editor of your choice (``vim`` or ``TextEdit`` or whatever).
-For example, using ``TextEdit``, from a MacOS Terminal window, like this::
+To create or modify and edit this file, use a text editor of your choice (``vim`` or ``TextEdit`` or whatever). For example, using ``TextEdit``, from a MacOS Terminal window, like this::
 
     $ open -a TextEdit ~/.smaht-keys.json
 
-The environment name, e.g. ``data`` in the above example, is of your own choosing; this name will be used
-as the ``--env`` argument to the various `smaht-submitr` commands, e.g. ``submit-metadata-bundle`` and ``resume-uploads``.
-Though if you only have one environment defined in this file then this (``-env`` argument) will not be necessary.
+The environment name, e.g. ``data`` in the above example, is of your own choosing; this name will be used as the ``--env`` argument to the various `smaht-submitr` commands, e.g. ``submit-metadata-bundle`` and ``resume-uploads``. Though if you only have one environment defined in this file (as above) then this (``--env`` argument) will not be necessary. N.B. If you are not sure what ``server`` you should be submitting to, reach out to your contact on the SMaHT DAC Team.
 
-N.B. If you are not sure what ``server`` you should be submitting to, reach out to your contact on the SMaHT DAC Team.
+If you only have `one` single environment defined in your keys file then the ``--env`` argument will `not` be necessary when using the ``smaht-submit`` commands.
 
-**Securing SMaHT Data Portal Access Keys**
+Securing SMaHT Data Portal Access Keys
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For extra security, this file should **not** be readable by others; only yourself.
-Set its permissions accordingly by using ``chmod 600``,
-which sets the file to be readable and writable only by yourself,
-and gives no one else (but the system superuser) any permissions at all::
+For extra security, this file should **not** be readable by others; only yourself. Set its permissions accordingly by using ``chmod 600``, which sets the file to be readable and writable only by yourself, and gives no one else (but the system superuser) any permissions at all::
 
    $ ls -l ~/.smaht-keys.json
    -rw-r--r--  1 youruser  staff  137 Jan 31 08:55 /Users/your_username/.smaht-keys.json
@@ -61,10 +76,12 @@ and gives no one else (but the system superuser) any permissions at all::
    $ ls -l ~/.smaht-keys.json
    -rw-------  1 youruser  staff  137 Jan 31 08:55 /Users/your_username/.smaht-keys.json
 
-|
+**Important**: Please be careful with your **Secret Access Key** value.  This is **sensitive** information and, like a password, it should **never** be **shared** with anyone, and particularly through any insecure channels (like email or Slack or whatever).
+
+**Note**: If you `do` accidentally expose your **Secret Access Key**, we would ask you to please delete it and create a new one (and don't forget to update your keys file when you do this).
 
 Getting Added as a SMaHT User or Submitter
-------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before you can view protected data or data submitted to the SMaHT system you must be a registered user of the site and have the appropriate access credentials.
 
@@ -74,7 +91,8 @@ Before you can view protected data or data submitted to the SMaHT system you mus
 
 For instructions on creating an account, please see `this page </docs/user-guide/account-creation>`_.
 
-**Metadata and data accessibility.**
+Metadata and Data Accessibility
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Most metadata items have the following default permissions:
 

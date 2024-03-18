@@ -6,11 +6,14 @@ from typing import Any, Dict, List, Optional, Union
 from dcicutils.misc_utils import to_camel_case, to_snake_case
 from dcicutils import schema_utils
 from pyramid.registry import Registry
+from pyramid.router import Router
 from snovault import Collection, COLLECTIONS, TYPES
 from snovault.typeinfo import AbstractTypeInfo, TypeInfo
+from snovault.upgrader import UPGRADER, Upgrader
 from webtest.app import TestApp
 
 from ..types.submitted_item import SubmittedItem
+from ..types.submitted_file import SubmittedFile
 
 
 def post_item_and_return_location(
@@ -84,15 +87,27 @@ def get_item(
 def get_search(
     testapp: TestApp,
     query: str,
-    status: Union[int, List[int]] = 200,
+    status: Union[int, List[int]] = [200, 301],
 ) -> List[Dict[str, Any]]:
     """Get search results for given query."""
-    return testapp.get(query, status=status).json["@graph"]
+    formatted_query = format_search_query(query)
+    response = testapp.get(formatted_query, status=status)
+    if response.status_int == 301:
+        return response.follow().json["@graph"]
+    if response.status_int == 200:
+        return response.json["@graph"]
+    return response.json
 
 
 def format_search_query(query: str) -> str:
     """Format search query for URL expectations."""
-    return f"/search/?{query}"
+    if query.startswith("/search"):
+        return query
+    if not query.startswith("/") and query.startswith("search"):
+        return f"/{query}"
+    if not query.startswith("?"):
+        return f"/search/?{query}"
+    return f"/search/{query}"
 
 
 def get_insert_identifier_for_item_type(testapp: TestApp, item_type: str) -> str:
@@ -239,7 +254,9 @@ def get_submitted_item_types(test_app: TestApp) -> Dict[str, TypeInfo]:
 
 def is_submitted_item(type_info: AbstractTypeInfo) -> bool:
     """Is type child of SubmittedItem?"""
-    return issubclass(type_info.factory, SubmittedItem)
+    return issubclass(type_info.factory, SubmittedItem) or issubclass(
+        type_info.factory, SubmittedFile
+    )
 
 
 def get_all_item_types(
@@ -388,6 +405,11 @@ def load_inserts(insert_file: Path) -> List[Dict[str, Any]]:
         return json.load(file_handle)
 
 
+def get_upgrader(app: Router) -> Upgrader:
+    """Get upgrader from app."""
+    return app.registry[UPGRADER]
+
+
 def get_item_properties_from_workbook_inserts(
     submission_center: Dict[str, Any]
 ) -> Dict[str, Dict[str, Any]]:
@@ -401,8 +423,7 @@ def get_item_properties_from_workbook_inserts(
 
 
 def clean_workbook_inserts(
-    workbook_inserts: Dict[str, Dict[str, Any]],
-    submission_center: Dict[str, Any]
+    workbook_inserts: Dict[str, Dict[str, Any]], submission_center: Dict[str, Any]
 ) -> Dict[str, Dict[str, Any]]:
     """Clean workbook inserts to only include submission center.
 
@@ -416,8 +437,7 @@ def clean_workbook_inserts(
 
 
 def replace_inserts_affiliations(
-    item_inserts: List[Dict[str, Any]],
-    submission_center: Dict[str, Any]
+    item_inserts: List[Dict[str, Any]], submission_center: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Replace affiliations in item inserts with provided submission center."""
     return [
@@ -427,8 +447,7 @@ def replace_inserts_affiliations(
 
 
 def replace_insert_affiliations(
-    item_insert: Dict[str, Any],
-    submission_center: Dict[str, Any]
+    item_insert: Dict[str, Any], submission_center: Dict[str, Any]
 ) -> Dict[str, Any]:
     """If needed, replace affiliations in item insert with provided
     submission center.
@@ -447,9 +466,9 @@ def has_affiliations(item_insert: Dict[str, Any]) -> bool:
         ]
     )
 
+
 def replace_affiliations(
-    item_insert: Dict[str, Any],
-    submission_center: Dict[str, Any]
+    item_insert: Dict[str, Any], submission_center: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Replace affiliations in item insert with provided submission center.
 
@@ -457,11 +476,13 @@ def replace_affiliations(
     assumption no longer holds.
     """
     insert_without_affiliation = {
-        key: value for key, value in item_insert.items()
+        key: value
+        for key, value in item_insert.items()
         if key not in ["submission_centers", "consortia"]
     }
     return {
-        **insert_without_affiliation, "submission_centers": [submission_center["uuid"]]
+        **insert_without_affiliation,
+        "submission_centers": [submission_center["uuid"]],
     }
 
 
@@ -528,3 +549,24 @@ def get_one_of_required_fields(schema: Dict[str, Any]) -> List[str]:
 def get_identifying_properties(test_app: TestApp, item_type: str) -> List[str]:
     schema = get_schema(test_app, item_type)
     return schema.get("identifyingProperties", [])
+
+
+def delete_field(
+    test_app: TestApp,
+    identifier: str,
+    to_delete: str,
+    patch_body: Optional[Dict[str, Any]] = None,
+    status: Union[int, List[int]] = 200,
+) -> Dict[str, Any]:
+    """Delete field from item with given identifier."""
+    resource_path = get_formatted_resource_path(
+        identifier, add_on=f"delete_fields={to_delete}"
+    )
+    return patch_item(test_app, patch_body or {}, resource_path, status=status)
+
+
+def get_item_from_search(test_app: TestApp, collection: str) -> Dict[str, Any]:
+    """Get workbook item for given collection via search."""
+    search_results = get_search(test_app, f"type={to_camel_case(collection)}")
+    assert search_results, f"No {collection} found in search results"
+    return search_results[0]

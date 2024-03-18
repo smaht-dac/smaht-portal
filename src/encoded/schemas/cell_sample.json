@@ -5,7 +5,6 @@
     "type": "object",
     "required": [
         "cell_ontology_id",
-        "preservation_type",
         "sample_sources",
         "submission_centers",
         "submitted_id"
@@ -22,6 +21,12 @@
         },
         {
             "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/cell_count"
+        },
+        {
+            "$ref": "mixins.json#/description"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -51,18 +56,22 @@
             "$ref": "sample.json#/properties"
         }
     ],
+    "mixinFacets": [
+        {
+            "$ref": "sample.json#/facets"
+        }
+    ],
+    "mixinColumns": [
+        {
+            "$ref": "sample.json#/columns"
+        }
+    ],
     "properties": {
         "accession": {
             "accessionType": "CS"
         },
         "schema_version": {
             "default": "1"
-        },
-        "cell_count": {
-            "title": "Cell Count",
-            "description": "Number of cells collected",
-            "type": "integer",
-            "minimum": 0
         },
         "cell_ontology_id": {
             "title": "Cell Ontology ID",

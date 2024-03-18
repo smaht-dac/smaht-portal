@@ -145,6 +145,9 @@ class Item(SnovaultItem):
         'released': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         # Everyone can view - restricted to specific items via schemas.
         'public': acl.ALLOW_EVERYONE_VIEW_ACL,
+        # Intended to do additional computation to determine if download
+        # is allowed if it's a downloadable file, otherwise same as "released"
+        'restricted': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         # Intended to tag out-of-date data
         'obsolete': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'deleted': DELETED_ACL,
@@ -155,6 +158,9 @@ class Item(SnovaultItem):
         'in review': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'released': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'public': acl.ALLOW_EVERYONE_VIEW_ACL,
+        # Intended to do additional computation to determine if download
+        # is allowed if it's a downloadable file, otherwise same as "released"
+        'restricted': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'obsolete': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'deleted': DELETED_ACL
     }
@@ -202,8 +208,12 @@ class Item(SnovaultItem):
         properties = self.upgrade_properties()
         if 'submission_centers' in properties:
             for submission_center in properties['submission_centers']:
+                # add standard rw role
                 center = f'{acl.SUBMISSION_CENTER_RW}.{submission_center}'
                 roles[center] = acl.SUBMISSION_CENTER_RW
+                # add create role
+                submitter = f'submits_for.{submission_center}'
+                roles[submitter] = acl.SUBMISSION_CENTER_SUBMITTER
         if 'consortia' in properties:
             for consortium in properties['consortia']:
                 consortium_identifier = f'{acl.CONSORTIUM_MEMBER_RW}.{consortium}'

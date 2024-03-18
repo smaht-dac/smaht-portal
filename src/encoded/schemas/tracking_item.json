@@ -74,6 +74,11 @@
                                         "type" : "string",
                                         "title" : "Country"
                                     },
+                                    "ga:users" : {
+                                        "type" : "integer",
+                                        "title" : "Users",
+                                        "description" : "Total Number of Users"
+                                    },
                                     "ga:sessions" : {
                                         "type" : "integer",
                                         "title" : "Session Count",
@@ -110,6 +115,11 @@
                                         "type" : "string",
                                         "title" : "Country"
                                     },
+                                    "ga:users" : {
+                                        "type" : "integer",
+                                        "title" : "Users",
+                                        "description" : "Total Number of Users"
+                                    },
                                     "ga:sessions" : {
                                         "type" : "integer",
                                         "title" : "Session Count",
@@ -136,47 +146,6 @@
                             }
                         },
 
-                        "views_by_experiment_set" : {
-                            "type" : "array",
-                            "title" : "Experiment Set Views",
-                            "items" : {
-                                "type" : "object",
-                                "properties": {
-                                    "ga:productName" : {
-                                        "type" : "string",
-                                        "title" : "ExperimentSet Title"
-                                    },
-                                    "ga:productSku" : {
-                                        "type" : "string",
-                                        "title" : "ExperimentSet Accession"
-                                    },
-                                    "ga:productBrand" : {
-                                        "type" : "string",
-                                        "title" : "Lab Name"
-                                    },
-                                    "ga:productCategoryLevel2" : {
-                                        "type" : "string",
-                                        "title" : "Type of ExperimentSet"
-                                    },
-                                    "ga:productDetailViews" : {
-                                        "type" : "integer",
-                                        "title" : "Detail Views",
-                                        "description": "Number of times this ExperimentSet has been viewed via its Item page."
-                                    },
-                                    "ga:productListClicks" : {
-                                        "type" : "integer",
-                                        "title" : "Clicks from Browse",
-                                        "description": "Number of times this ExperimentSet has been clicked on from the Browse page."
-                                    },
-                                    "ga:productListViews" : {
-                                        "type" : "integer",
-                                        "title" : "List Views",
-                                        "description": "Number of times this ExperimentSet has been seen present in a Browse or Search results page."
-                                    }
-                                }
-                            }
-                        },
-
                         "views_by_file" : {
                             "type" : "array",
                             "title" : "File Views",
@@ -193,7 +162,7 @@
                                     },
                                     "ga:productBrand" : {
                                         "type" : "string",
-                                        "title" : "Lab Name"
+                                        "title" : "Sequencing Center"
                                     },
                                     "ga:productCategoryLevel2" : {
                                         "type" : "string",
@@ -237,7 +206,7 @@
                         "views_by_other_item" : {
                             "type" : "array",
                             "title" : "Item Views",
-                            "description" : "Item views for Item types which are not File or ExperimentSet.",
+                            "description" : "Item views for Item types which are not File",
                             "items" : {
                                 "type" : "object",
                                 "properties": {
@@ -251,7 +220,7 @@
                                     },
                                     "ga:productBrand" : {
                                         "type" : "string",
-                                        "title" : "Lab Name"
+                                        "title" : "Sequencing Center"
                                     },
                                     "ga:productCategoryHierarchy" : {
                                         "type" : "string",
@@ -380,17 +349,17 @@
                                     "ga:productDetailViews" : {
                                         "type" : "integer",
                                         "title" : "Detail Views",
-                                        "description": "Number of times this ExperimentSet has been viewed via its Item page."
+                                        "description": "Number of times this File has been viewed via its Item page."
                                     },
                                     "ga:productListClicks" : {
                                         "type" : "integer",
                                         "title" : "Clicks from Browse",
-                                        "description": "Number of times this ExperimentSet has been clicked on from the Browse page."
+                                        "description": "Number of times this File has been clicked on from the Browse page."
                                     },
                                     "ga:productListViews" : {
                                         "type" : "integer",
                                         "title" : "List Views",
-                                        "description": "Number of times this ExperimentSet has been seen present in a Browse or Search results page."
+                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
                                     },
                                     "ga:metric2" : {
                                         "type" : "integer",
@@ -422,17 +391,17 @@
                                     "ga:productDetailViews" : {
                                         "type" : "integer",
                                         "title" : "Detail Views",
-                                        "description": "Number of times this ExperimentSet has been viewed via its Item page."
+                                        "description": "Number of times this File has been viewed via its Item page."
                                     },
                                     "ga:productListClicks" : {
                                         "type" : "integer",
                                         "title" : "Clicks from Browse",
-                                        "description": "Number of times this ExperimentSet has been clicked on from the Browse page."
+                                        "description": "Number of times this File has been clicked on from the Browse page."
                                     },
                                     "ga:productListViews" : {
                                         "type" : "integer",
                                         "title" : "List Views",
-                                        "description": "Number of times this ExperimentSet has been seen present in a Browse or Search results page."
+                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
                                     },
                                     "ga:metric2" : {
                                         "type" : "integer",
@@ -467,7 +436,7 @@
                                     },
                                     "ga:productBrand" : {
                                         "type" : "string",
-                                        "title" : "Lab Name"
+                                        "title" : "Sequencing Center"
                                     },
                                     "ga:productVariant" : {
                                         "type" : "string",
@@ -480,17 +449,17 @@
                                     "ga:productDetailViews" : {
                                         "type" : "integer",
                                         "title" : "Detail Views",
-                                        "description": "Number of times this ExperimentSet has been viewed via its Item page."
+                                        "description": "Number of times this File has been viewed via its Item page."
                                     },
                                     "ga:productListClicks" : {
                                         "type" : "integer",
                                         "title" : "Clicks from Browse",
-                                        "description": "Number of times this ExperimentSet has been clicked on from the Browse page."
+                                        "description": "Number of times this File has been clicked on from the Browse page."
                                     },
                                     "ga:productListViews" : {
                                         "type" : "integer",
                                         "title" : "List Views",
-                                        "description": "Number of times this ExperimentSet has been seen present in a Browse or Search results page."
+                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
                                     },
                                     "ga:metric2" : {
                                         "type" : "integer",
@@ -532,31 +501,31 @@
                             }
                         },
 
-                        "file_downloads_by_experiment_type" : {
+                        "file_downloads_by_assay_type" : {
                             "type" : "array",
-                            "title" : "File Downloads by Experiment Type",
+                            "title" : "File Downloads by Assay Type",
                            "description": "File Downloads segmented by country",
                            "items" : {
                                 "type" : "object",
                                 "properties": {
                                     "ga:dimension5" : {
                                         "type" : "string",
-                                        "title" : "Experiment Type"
+                                        "title" : "Assay Type"
                                     },
                                     "ga:productVariant" : {
                                         "type" : "integer",
                                         "title" : "Detail Views",
-                                        "description": "Number of times this ExperimentSet has been viewed via its Item page."
+                                        "description": "Number of times this File has been viewed via its Item page."
                                     },
                                     "ga:productListClicks" : {
                                         "type" : "integer",
                                         "title" : "Clicks from Browse",
-                                        "description": "Number of times this ExperimentSet has been clicked on from the Browse page."
+                                        "description": "Number of times this File has been clicked on from the Browse page."
                                     },
                                     "ga:productListViews" : {
                                         "type" : "integer",
                                         "title" : "List Views",
-                                        "description": "Number of times this ExperimentSet has been seen present in a Browse or Search results page."
+                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
                                     },
                                     "ga:metric2" : {
                                         "type" : "integer",

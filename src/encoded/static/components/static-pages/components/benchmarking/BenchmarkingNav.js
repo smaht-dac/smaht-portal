@@ -19,16 +19,48 @@ export const BenchmarkingUINav = (props) => {
     const { href = '' } = props;
 
     const urlParts = memoizedUrlParse(href);
-    const { path, hash } = urlParts || {};
+    const { path = '', hash = '' } = urlParts || {};
 
     const currPath = `${path || ''}${hash || ''}`;
 
-    const cellLinePages = BenchmarkingDataKeys.filter(
-        (key) => BenchmarkingDataMap[key].type === 'Cell Line Data'
-    );
-    const primaryTissuePages = BenchmarkingDataKeys.filter(
-        (key) => BenchmarkingDataMap[key].type === 'Primary Tissue Data'
-    );
+    let isCellLinePage = false;
+    let isPrimaryTissuePage = false;
+    let currPageIndex = null;
+
+    // Create arrays by type
+    const cellLinePages = BenchmarkingDataKeys.filter((key, i) => {
+        const isCellLine = BenchmarkingDataMap[key].type === 'Cell Line Data';
+        if (
+            currPath.startsWith(BenchmarkingDataMap[key]['path']) &&
+            isCellLine
+        ) {
+            isCellLinePage = true;
+        }
+        return isCellLine;
+    });
+    const primaryTissuePages = BenchmarkingDataKeys.filter((key, i) => {
+        const isPrimaryTissue =
+            BenchmarkingDataMap[key].type === 'Primary Tissue Data';
+        if (
+            currPath.startsWith(BenchmarkingDataMap[key]['path']) &&
+            isPrimaryTissue
+        ) {
+            isPrimaryTissuePage = true;
+        }
+        return isPrimaryTissue;
+    });
+
+    // Grab index of current item
+    cellLinePages.forEach((key, i) => {
+        if (currPath.startsWith(BenchmarkingDataMap[key]['path'])) {
+            currPageIndex = i.toString();
+        }
+    });
+    primaryTissuePages.forEach((key, i) => {
+        if (currPath.startsWith(BenchmarkingDataMap[key]['path'])) {
+            currPageIndex = i.toString();
+        }
+    });
 
     return (
         <div
@@ -60,17 +92,29 @@ export const BenchmarkingUINav = (props) => {
                         />
                     </div>
                 </div>
-                <hr />
-                <div className="benchmarking-nav-section">
-                    <div className="benchmarking-nav-section-title text-small text-600">
-                        Benchmarking Tissue Data
-                    </div>
-                    <div>
-                        <BenchmarkingUINavLinkGenerator
-                            {...{ currPath }}
-                            pages={primaryTissuePages}
-                        />
-                    </div>
+                <div>
+                    <BenchmarkingUINavLinkGenerator
+                        {...{ currPath }}
+                        pages={cellLinePages}
+                        defaultActiveKey={
+                            (isCellLinePage && currPageIndex) || null
+                        }
+                    />
+                </div>
+            </div>
+            <hr />
+            <div className="benchmarking-nav-section">
+                <div className="benchmarking-nav-section-title text-small text-600">
+                    Benchmarking Tissue Data
+                </div>
+                <div>
+                    <BenchmarkingUINavLinkGenerator
+                        {...{ currPath }}
+                        pages={primaryTissuePages}
+                        defaultActiveKey={
+                            (isPrimaryTissuePage && currPageIndex) || null
+                        }
+                    />
                 </div>
             </div>
         </div>

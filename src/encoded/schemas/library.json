@@ -22,6 +22,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/description"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -53,6 +56,9 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_LIBRARY_[A-Z0-9-_.]{4,}$"
+        },
         "a260_a280_ratio": {
             "title": "A260 A280 Ratio",
             "description": "Ratio of nucleic acid absorbance at 260 nm and 280 nm, used to determine a measure of DNA purity",
@@ -75,18 +81,6 @@
             "type": "integer",
             "minimum": 0
         },
-        "amplification_end_mass": {
-            "title": "Amplification End Mass",
-            "description": "Weight of analyte after PCR (ng)",
-            "type": "number",
-            "minimum": 0
-        },
-        "amplification_start_mass": {
-            "title": "Amplification Start Mass",
-            "description": "Weight of analyte prior to PCR (ng)",
-            "type": "number",
-            "minimum": 0
-        },
         "analyte_weight": {
             "title": "Analyte Weight",
             "description": "Weight of analyte used to prepare library (mg)",
@@ -96,7 +90,12 @@
         "barcode_sequences": {
             "title": "Barcode Sequences",
             "description": "Barcode sequence for multiplexed sequencing",
-            "type": "string"
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string"
+            }
         },
         "fragment_maximum_length": {
             "title": "Fragment Maximum Length",
@@ -119,6 +118,12 @@
         "fragment_standard_deviation_length": {
             "title": "Fragment Standard Deviation Length",
             "description": "Standard deviation of length of the sequenced fragments (e.g., as predicted by Agilent Bioanalyzer)",
+            "type": "number",
+            "minimum": 0
+        },
+        "insert_coefficient_of_variation": {
+            "title": "Insert Coefficient of Variation",
+            "description": "Coefficient of variation of the length of the sample molecule in the fragments to be sequenced",
             "type": "number",
             "minimum": 0
         },
@@ -152,20 +157,60 @@
             "type": "string",
             "format": "date"
         },
+        "target_insert_maximum_length": {
+            "title": "Target Insert Maximum Length",
+            "description": "Target maximum length of the insert (bp)",
+            "type": "integer",
+            "minimum": 0
+        },
+        "target_insert_mean_length": {
+            "title": "Target Insert Mean Length",
+            "description": "Target mean length of the insert (bp)",
+            "type": "integer",
+            "minimum": 0
+        },
+        "target_insert_minimum_length": {
+            "title": "Target Insert Minimum Length",
+            "description": "Target minimum length of the insert (bp)",
+            "type": "integer",
+            "minimum": 0
+        },
         "analyte": {
             "title": "Analyte",
             "description": "Link to associated analyte",
             "type": "string",
             "linkTo": "Analyte"
         },
+        "assay": {
+            "title": "Assay",
+            "description": "Link to associated assay",
+            "type": "string",
+            "linkTo": "Assay"
+        },
         "library_preparation": {
             "title": "Library Preparation",
             "description": "Link to associated library preparation",
             "type": "string",
             "linkTo": "LibraryPreparation"
+        }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
         },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_LIBRARY_[A-Z0-9-_.]{4,}$"
+        "assay.display_title": {
+            "title": "Assay"
+        },
+        "status": {
+            "title": "Status"
+        }
+    },
+    "columns": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "assay.display_title": {
+            "title": "Assay"
         }
     }
 }

@@ -107,7 +107,8 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
                     verbose=True,
                     post_only=post_only,
                     patch_only=patch_only,
-                    validate_only=validate_only))
+                    validate_only=validate_only,
+                    skip_links=True))
 
     if validate_first and not validate_only:
         response = call_loadxl(validate_only=True)

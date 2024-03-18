@@ -7,6 +7,164 @@ smaht-portal
 Change Log
 ----------
 
+0.32.1
+======
+
+* Add new option to Software category enum
+
+
+0.32.0
+======
+
+* Removed master-inserts/file_format.json.
+* Changes for new skip_links (snovault.loadxl) mode for smaht-submitr. 
+* Added submits_for to master-inserts/users.json.
+* Documentation related to smaht-submitr updates.
+* FYI: For the record some merging complications (2024-03-09 ~ 15:35) ...
+  Merged in some changes from commit c67d442e for __init__.py and server_defaults.py as
+  issues with make deploy1a load errors related to user_submission_centers, after merging
+  in from main, which had issues with make deploy1b WRT circular dependencies like
+  ImportError: cannot import name 'test_accession' from partially initialized
+  module 'snovault.server_defaults' (most likely due to a circular import).
+
+
+0.31.0
+======
+
+* Updates nginx version to latest as of 03/13/2024 to resolve security alerts 
+
+
+0.30.2
+======
+
+`PR 112: Assay link change #1 <https://github.com/smaht-dac/smaht-portal/pull/112>`_
+
+* Add assay linkTo to library in preparation for future removal from current location on file set
+* Add anyOf requirement on sequencing for coverage or read count
+
+
+0.30.1
+======
+
+`PR 111: Minor schema updates <https://github.com/smaht-dac/smaht-portal/pull/111>`_
+
+* Update select item properties to match those desired for "automated" submission
+
+
+0.30.0
+======
+
+* Only documentation updates (related to smaht-submitr) from add_valid_item_types_to_fileformat_in_masterinserts branch.
+
+
+0.29.0
+======
+
+* Permissions update: support for ``submits_for`` and ``restricted`` status
+
+
+0.28.0
+======
+
+`PR 82: UI Dev 5 - March 1st Benchmarking Release <https://github.com/smaht-dac/smaht-portal/pull/82>`_
+
+* Feedback and bugfixes from v1 release (see trello for full list: https://trello.com/c/2TSRUHWT/880-feedback-from-feb-1-release)
+* v2 benchmarking with support for cell line pages
+* Updated/improved alluvial, etc. visualizations
+* New documentation page for SMaHT nomenclature PDF download
+* Merged PRs:
+  - https://github.com/smaht-dac/smaht-portal/pull/101
+  - https://github.com/smaht-dac/smaht-portal/pull/85
+  - https://github.com/smaht-dac/smaht-portal/pull/97
+  - https://github.com/smaht-dac/smaht-portal/pull/103
+  - https://github.com/smaht-dac/smaht-portal/pull/86
+
+
+0.27.2
+======
+
+`PR 107: Documentation updates <https://github.com/smaht-dac/smaht-portal/pull/107>`_
+
+* Update small sections of documentation for referencing existing items
+
+
+0.27.1
+======
+
+`PR 105: GA4 file sequencing center updates <https://github.com/smaht-dac/smaht-portal/pull/105>`_
+
+* Replaces submission center with sequencing center in file views/downloads GA4 analytics
+
+
+0.27.0
+======
+
+`PR 104: Automated submission alignment <https://github.com/smaht-dac/smaht-portal/pull/104>`_
+
+* Update select property names to align with those in the 'manual' submission template
+* Remove select properties suggested by feedback from submitters
+* Create defaults and remove requirements for properties that currently only have one enum value
+* Fix UUIDs in master-inserts to match items in the database
+
+
+0.26.0
+======
+
+`PR 99: Submission links <https://github.com/smaht-dac/smaht-portal/pull/99>`_
+
+* Add documentation page for finding data relevant to submissions
+* Add templates for submissions
+* Improve columns + facets for searching on collections
+* Add calcprops for searching on collections
+
+
+0.25.3
+======
+
+`PR 100: Upgrader fixes <https://github.com/smaht-dac/smaht-portal/pull/100>`_
+
+* Fix file upgrader for handling additional enum values
+* Add upgrader for MetaWorkflow `custom_pf_fields`
+
+
+0.25.2
+======
+
+`PR 96: Bm robots fix <https://github.com/smaht-dac/smaht-portal/pull/96>`_
+
+* Updated robots.txt to allow search engines, disallow known bots, and block /ingestion_status & /\*-files downloads
+* Update SEO utilities to reflect SMaHT-specific text & branding (will need further adjustments in future, most likely)
+* Add small square SMaHT logo for use in search engines
+
+
+0.25.1
+======
+
+* Remove unnecessary file_format.json & insert from master-inserts
+* Remove duplicate code key from smaht-dac submission center in master-inserts
+
+
+0.25.0
+======
+
+`PR 92: Schema updates for submission <https://github.com/smaht-dac/smaht-portal/pull/92>`_
+
+* Add new properties suggested by previous submitters
+* Add fields to MetaWorkflow `custom_pf_fields` to bring in metadata from pipelines to files required for release
+* Breaking property requirement changes with upgraders to clean up schema changes from benchmarking data model release
+
+
+0.24.1
+======
+
+`PR 95: Tracking Item and Misc. Google Analytics Updates <https://github.com/smaht-dac/smaht-portal/pull/95>`_
+
+* Fixed a bug that prevents collecting submission center and file type dimensions in file views
+* Fixed the incorrect links in top files download statistics tooltip
+* Adds tracking_item py test
+* Removes/Replaces legacy 4DN-specific reports and styles
+
+
 0.24.0
 ======
 
@@ -30,11 +188,12 @@ Change Log
 
 * Hooks in QC Download API
 
-  
+
 0.23.0
 ======
 
 `PR 84: More Benchmarking Data Sets <https://github.com/smaht-dac/smaht-portal/pull/84>`_
+
 * Update enums File `dataset` to include all expected cell line benchmarking data sets
 
 
@@ -42,6 +201,7 @@ Change Log
 ======
 
 `PR 57: Submitter ID Validation <https://github.com/smaht-dac/smaht-portal/pull/57>`_
+
 * Validate `submitter_id` for all submitted items
   * Validation includes: SubmissionCenter code, item type, and unique identifier
 
@@ -62,6 +222,7 @@ Change Log
 ======
 
 `PR 74: Table of Content improvements for RST content <https://github.com/smaht-dac/smaht-portal/pull/74>`_
+
 * user_content.py is updated to support multi-level TOC generation for RST content
 * Static_section.json in master-inserts is updated to correct text and navigation URL in Next - Previous links under the TOC
 * Level 1 titles are disabled under Documents in top navigation bar
@@ -90,6 +251,7 @@ Change Log
 ======
 
 `PR 45: UI Dev 4: End of January Release w/Benchmarking <https://github.com/smaht-dac/smaht-portal/pull/45>`_
+
 * UIs for Benchmarking Data
 * Google Analytics implementation
 * Navigation edits to accommodate new documentation, about, data pages
@@ -101,6 +263,7 @@ Change Log
 ======
 
 `PR 63: Benchmarking release data model <https://github.com/smaht-dac/smaht-portal/pull/63>`_
+
 * Add two new item types: Sequencer + Assay
 * Add `code` property to multiple item types to store file naming conventions
 * Share SubmittedFile release properties with OutputFile
@@ -154,6 +317,7 @@ Change Log
 ======
 
 `PR 58: Culture mixture parent types <https://github.com/smaht-dac/smaht-portal/pull/58>`_
+
 * Include CellCulture as parent item of CellCultureMixture for resolving reference during submissions
 
 
@@ -161,6 +325,7 @@ Change Log
 ======
 
 `PR 56: Implement submittable item API <https://github.com/smaht-dac/smaht-portal/pull/56>`_
+
 * Add functionality and tests for submittable item api to smaht portal
 * update lockfile with latest snovault that contains the primitive for this
 
@@ -169,6 +334,7 @@ Change Log
 ======
 
 `PR 50: Upgrader implementation <https://github.com/smaht-dac/smaht-portal/pull/50>`_
+
 * Add upgrader functionality from encoded-core + tests
 * Update dcicutils with schema_utils module
 
@@ -191,6 +357,7 @@ Change Log
 ======
 
 `PR 47: Fix admin affiliation validation <https://github.com/smaht-dac/smaht-portal/pull/47>`_
+
 * Fix and test item affiliation validation for admins
 
 
@@ -198,6 +365,7 @@ Change Log
 ======
 
 `PR 48: More QC value types <https://github.com/smaht-dac/smaht-portal/pull/48>`_
+
 * Allow any non-object JSON type for QC values instead of just strings
 
 
@@ -211,6 +379,7 @@ Change Log
 ======
 
 `PR 42: Bm user org profile <https://github.com/smaht-dac/smaht-portal/pull/42/files>`_
+
 * Rework broken editable fields on User Page
 * Add consortia and submission centers to User Page
 
