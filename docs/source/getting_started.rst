@@ -70,17 +70,20 @@ Formatting Files for Submission
 ===============================
 Most commonly, the file format recommended for metadata submission to SMaHT Portal, is an Excel spreadsheet file (e.g. ``your_metadata_file.xlsx``), comprised of one or more sheets. Note these important aspects of using the Excel spreadsheet format:
 
-#. Each sheet name must be the `exact` name of a SMaHT Portal entity or `object` defined within the system.
-#. Each sheet must have as its first row a special `header` row, which enumerates in each column, the `exact` names of the Portal object `properties` as the column names; order does `not` matter.
+#. The spreadsheet must have a **file suffix** of ``.xls`` or ``.xlsx``; there are no other requirements for the name of this file.
+#. Each sheet name must be the `exact` name of a SMaHT Portal item or `object` defined within the system (e.g. ``AlignedReads``).
+#. Each sheet must have as its **first row** a special `header` row, which enumerates in each column, the `exact` names of the Portal object `properties` as the column names; order does `not` matter.
 #. Each sheet may contain any number of `data` rows (`directly` below the header row), each representing an instance of the Portal object.
-#. The values in the cells/columns of each data row correspond to the property named in the same column of the header row.
-#. The first column in the header row which is empty marks the end of the header, and any subsequent columns will be entirely ignored.
-#. The first row which is entirely empty marks the end of the input, and any subsequent rows will be entirely ignored; this means you can include comments in your spreadsheet in rows after (below) the first blank row indicating the end of data input.
-#. Sheets which are marked as "hidden" will be ignored; this provides a way of including sheets with other auxiliary information without their contents interfering with the submission tool.
-#. Sheets which have a name enclosed in parenthesis, for example ``(My Comments)``, will be completely ignored; this provides a way of including sheets with other auxiliary information without their contents interfering with the submission tool.
-#. The name of the spreadsheet file must be suffixed with ``.xls`` or ``.xlsx``; there are no other requirements for the name of this file.
+#. The values in the cells/columns of each data row correspond to the `property` named in the same column of the header row.
 
-Despite the rather dense chunk of text here, it is actually pretty intuitive, straightforward, and almost self-explanatory. Here is screenshot of a simple example Excel spreadsheet:
+Note these important rules defining exactly the parts of the spreadsheet which are relevant for metadata submission.
+
+#. The **first row** which is entirely **empty* marks the **end of the data**, and any subsequent rows will be entirely **ignored**; this means you can include comments in your spreadsheet in rows after (below) the first blank row indicating the end of data input.
+#. The **first column** in the header row which is **empty** marks the **end of the header**, and any subsequent columns will be entirely **ignored**.
+#. Sheets which are marked as **hidden** will be **ignored**; this provides a way of including sheets with other auxiliary information without their contents interfering with the submission tool.
+#. Sheets which have a name enclosed in parenthesis, for example ``(My Comments)``, will similarly be treated as **hidden** as described above.
+
+It's actually pretty intuitive, straightforward, and almost self-explanatory, as this example Excel screenshot shouuld make clear:
 
 .. image:: /static/img/docs/excel_screenshot.png
    :target: /static/img/docs/excel_screenshot.png
@@ -95,24 +98,19 @@ And also notice the multiple tabs at the bottom for the different sheets within 
 .. TIP::
    Other file formats besides Excel actually `are` supported; see `this document <https://submitr.readthedocs.io/en/draft/advanced_usage.html#other-files-formats>`_ for more information.
 
-Array Properties
-~~~~~~~~~~~~~~~~
-
-Some SMaHT data portal object properties are defined to be lists (or `arrays`) of values. To define the values for such array properties, separate the individual array values by a pipe character (``|``). For example, if an object defines an ``alignment_details`` property as an array type, use the value ``Sorted|Phased`` to set this value to an array with the two elements ``Sorted`` and ``Phased``.
-
-For more on this please see the more extensive documentation here: `Array Properties <https://submitr.readthedocs.io/en/draft/usage.html#array-properties>`_
+SMaHT object `properties` have different `types`. Many of the types are simply text (or `strings`). Other types are described below.
 
 Date/Time Properties
 ~~~~~~~~~~~~~~~~~~~~
 
-For SMaHT data portal object properties which are defined as `date` values, the required format is ``YYYY-MM-DD``, for example ``2024-02-09``.
+For properties defined as `date` types, the required format is ``YYYY-MM-DD``, for example ``2024-02-09``.
 
-For SMaHT data portal object properties which are defined as `date-time` values, the required format is ``YYYY-MM-DD hh:mm:ss``, for example ``2024-02-09 13:25:10`` (note the use of 24-hour based clock time). This will default to your local timezone; if you want to specify a timezone, use a suffix like ``+hh:mm`` where ``hh`` and ``mm`` are the hour and minute (respectively) offsets from GMT (for example: ``2024-02-09 13:25:10+05:00``).
+For properties defined as `date-time` types, the required format is ``YYYY-MM-DD hh:mm:ss``, for example ``2024-02-09 13:25:10`` (note the use of 24-hour based clock time). This will default to your local timezone; if you need to specify a timezone, use a suffix like ``+hh:mm`` where ``hh`` and ``mm`` are the hour and minute offsets from GMT (for example: ``2024-02-09 13:25:10+05:00``).
 
 Boolean Properties
 ~~~~~~~~~~~~~~~~~~
 
-For SMaHT data portal object properties which are defined as `boolean` values, meaning either `true` or `false`, simply use these values, i.e. ``true`` or ``false``.
+For properties defined as `boolean` types, meaning their value may be either `true` or `false`, simply use these values, i.e. ``true`` or ``false``.
 
 Implicit Properties
 ~~~~~~~~~~~~~~~~~~~
@@ -134,20 +132,30 @@ Some Portal object properties references to other Portal objects (also known as 
 
 It is important to know that the ``smaht-submitr`` tool and SMaHT data portal will ensure that the referenced objects actually exist within SMaHT data portal, `or` are defined within the spreadsheet itself; if this is not the case, an error will be returned.
 
+.. TIP::
+   Note that the ``submitted_id`` in the above example is in all CAPS. This property specifically requires any letters to be capitalized.
+
 You can view the identifying (and required) properties for objects here:
 
 * https://staging.smaht.org/docs/user-guide/referencing-data
 * https://submitr.readthedocs.io/en/draft/object_model.html
 
+Array Properties
+~~~~~~~~~~~~~~~~
+
+Some SMaHT data portal object properties are defined to be lists (or `arrays`) of values. To define the values for such array properties, separate the individual array values by a pipe character (``|``). For example, if an object defines an ``alignment_details`` property as an array type, use the value ``Sorted|Phased`` to set this value to an array with the two elements ``Sorted`` and ``Phased``.
+
+For more on this please see the more extensive documentation here: `Array Properties <https://submitr.readthedocs.io/en/draft/usage.html#array-properties>`_
+
 Nested Properties
 ~~~~~~~~~~~~~~~~~
 
-Not common but some SMaHT data portal object properties defined to contain other `nested` objects, i.e. object which themselves are objects or are arrays of object. For more on this please see the more extensive documentation here: `Nested Properties <https://submitr.readthedocs.io/en/draft/usage.html#nested-properties>`_
+Though uncommon, some SMaHT data portal object properties defined to contain other `nested` objects, i.e. object which themselves are objects or are arrays of object. For more on this please see the more extensive documentation here: `Nested Properties <https://submitr.readthedocs.io/en/draft/usage.html#nested-properties>`_
 
 Property Deletions
 ~~~~~~~~~~~~~~~~~~
 
-A column value within a (non-header) data row may be empty, but this only means that the value will be ignored when creating or updating the associated object. Not common butin order to actually `delete` a property value from an object please see the more extensive documentation here: `Property Deletions <https://submitr.readthedocs.io/en/draft/usage.html#property-deletions>`_
+A column value within a (non-header) data row may be empty, but this only means that the value will be ignored when creating or updating the associated object. Though uncommon, the `deletion` of a property from an object is supported. Please see the more extensive documentation here: `Property Deletions <https://submitr.readthedocs.io/en/draft/usage.html#property-deletions>`_
 
 
 Submission
