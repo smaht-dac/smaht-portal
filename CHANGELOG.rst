@@ -17,6 +17,12 @@ Change Log
 * Update loadxl order to account for new assay linkTo location
 
 
+0.32.2
+======
+
+* Add common_fields to MetaWorkflowRun and sequencing_center to WorkflowRun and QualityMetric
+
+
 0.32.1
 ======
 
