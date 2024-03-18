@@ -52,7 +52,7 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
                           ref_nocache: bool = False) -> StructuredDataSet:
 
     # N.B. This same bit of code is in smaht-submitr; not sure best way to share;
-    # It really should not go in dcicutils (structured_data) as this know pretty
+    # It really should not go in dcicutils (structured_data) as this knows pretty
     # specific details about our (SMaHT) schemas, namely, submitted_id and accession.
     def ref_lookup_strategy(type_name: str, schema: dict, value: str) -> (int, Optional[str]):
         #
