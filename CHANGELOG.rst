@@ -41,6 +41,9 @@ Change Log
   is because this is a submission in the sense that an IngestionSubmission object is
   created, but not an actual submission because it is a validate_only submission.
 
+* Added display_title calculated property to IngestionSubmission to display either
+  Validation or Submission depending on validate_only (followed by colon and uuid).
+
 
 0.33.3
 ======
