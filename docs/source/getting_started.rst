@@ -48,6 +48,8 @@ The SMaHT data portal submission tool is implemented as a command-line Python pa
 .. TIP::
    If you do not even have Python install and need some help there, please take a look at our more extensive documentation here: `Installing Python <https://submitr.readthedocs.io/en/draft/installation_prerequisites.html#installing-python>`_
 
+|
+
 Once installed, these key commands will be available for execution from the command-line: ``submit-metadata-bundle``, ``resume-uploads``
 
 Templates
