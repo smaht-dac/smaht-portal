@@ -16,6 +16,31 @@ Change Log
 * Added missing import of calculated_property from snovault to types/submitted_file.py.
 * Documentation changes.
 
+* Changes to support "resuming" smaht-sumbitr submission after a server
+  validation "submission" timed out while waiting (via submit-metadata-bundle).
+
+  In this (server validation timeout) case the user can then run check-submission with
+  the UUID for the validation submission and if/when it is complete and successful,
+  the user will be allowed to continue on to do the actual submission. Slightly tricky
+  because the metadata file was uploaded (to S3) as a part of the validation submission,
+  and but when check-submission is run we don't want the user to have to specify this
+  file again, partly because it is an odd user experience, but mostly because when we
+  do the actual submission we want to make sure we use the EXACT file that was validated;
+  and so to do this we grab the file from where it was uploaded as part of the validation
+  submission (i.e. under an S3 key with the validation UUID) and copy it over to where
+  it would normally be (i.e. under an S3 key with the submission UUID); and from there
+  things continue as normal. Note also the both of the IngestionSubmission objects have
+  a pointer to the other; i.e. the validation submission object has "submission_uuid"
+  and the actual submission object has a "validation_uuid" (in the "parameters");
+  this hookup is done by the smaht-submitr code.
+
+  The "resuming" scare-quotes are because this is not really resuming a submission but
+  rather resuming the process the submit-metadata-bundle was doing, i.e. where it does
+  a server validation then then, if successful and okay with the user, it continues on
+  to do the actual submission. The the "submission" scare-quotes for the server validation
+  is because this is a submission in the sense that an IngestionSubmission object is
+  created, but not an actual submission because it is a validate_only submission.
+
 
 0.33.1
 ======
