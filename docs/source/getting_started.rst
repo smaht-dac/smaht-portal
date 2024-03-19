@@ -11,13 +11,14 @@ These pages are designed to:
 
 The primary way to submit data to SMaHT data portal is via Excel spreadsheet, as described below.
 
-**Tip**: For more detailed and comprehensive documentation, please see our ReadTheDocs based documentation here:
+.. TIP::
+   For more detailed and comprehensive documentation, please see our ReadTheDocs based documentation here:
 
-* https://submitr.readthedocs.io/en/draft/
+   * https://submitr.readthedocs.io/en/draft/
 
-An overview of the actual metadata structure is pending, check back soon! Though for now a reference can be found here:
+   An overview of the actual metadata structure is pending, check back soon! Though for now a reference can be found here:
 
-* https://submitr.readthedocs.io/en/draft/object_model.html
+   * https://submitr.readthedocs.io/en/draft/object_model.html
 
 
 Data Submission via Excel Spreadsheet
@@ -91,9 +92,8 @@ Notice that the first row comprises the property/column `header`, defining prope
 
 And also notice the multiple tabs at the bottom for the different sheets within the spreadsheet, representing (in this example) data for the Portal objects ``CellCultureSample``, ``Analyte``, ``Library``, and so on.
 
-|
-
-**Tip:** Other file formats besides Excel actually `are` supported; see `this document <https://submitr.readthedocs.io/en/draft/advanced_usage.html#other-files-formats>`_ for more information.
+.. TIP::
+   Other file formats besides Excel actually `are` supported; see `this document <https://submitr.readthedocs.io/en/draft/advanced_usage.html#other-files-formats>`_ for more information.
 
 
 Object Reference Properties
@@ -163,9 +163,8 @@ where ``<your_metdata_file.xlsx>`` is the path to your metadata file. The argume
 
 This will first validate your metadata, and if no errors were encountered, it will perform the actual metadata submission; you `will` be prompted for confirmation before the submission is started. If errors are encountered, the submission will `not` commence; you will `not` be able to submit until you fix the errors.
 
-|
-
-**Tip**: You can omit the ``--env`` option entirely if your keys file has only `one` single entry or if you have your ``SMAHT_ENV`` environment variable setup (see the `Credentials </docs/user-guide/credentials>`_ section).
+.. TIP::
+   You can omit the ``--env`` option entirely if your keys file has only `one` single entry or if you have your ``SMAHT_ENV`` environment variable setup (see the `Credentials </docs/user-guide/credentials>`_ section).
 
 |
 
@@ -176,7 +175,8 @@ prompting the user for confirmation; see the `Uploading Files </docs/user-guide/
 
 If you belong to multiple consortia and/or submission centers, you can also add the ``--consortium <consortium>`` and ``--submission-center <submission-center>`` options to explicitly specify which consortium or submission center you are submitting on behalf of; if you belong to only one, the command will automatically detect which groups you are a part of (based on your user profile) and use those.
 
-**Tip**: You may wonder: Is it okay to submit the same metadata file more than once? The answer is: Yes. If any changes were made to the file, updates will be applied as expected.
+.. TIP::
+   You may wonder: Is it okay to submit the same metadata file more than once? The answer is: Yes. If any changes were made to the file, updates will be applied as expected.
 
 
 Validation
@@ -186,7 +186,8 @@ As mentioned in the previous section, using the ``--submit`` option `will` perfo
 
    submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --validate
 
-**Tip**: This feature basically constitutes a sort of "**dry run**" facility.
+.. TIP::
+   This feature basically constitutes a sort of "**dry run**" facility.
 
 To be more specific about the the validation checks, they include the following:
 
