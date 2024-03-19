@@ -41,6 +41,13 @@ Change Log
   is because this is a submission in the sense that an IngestionSubmission object is
   created, but not an actual submission because it is a validate_only submission.
 
+0.33.2
+======
+
+`PR 121: Upgrader additions <https://github.com/smaht-dac/smaht-portal/pull/121>`_
+
+* Add upgraders for Sequencing and CellCulture for properties changed or removed in prior PRs
+
 
 0.33.1
 ======
