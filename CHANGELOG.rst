@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.33.2
+======
+
+`PR 121: Upgrader additions <https://github.com/smaht-dac/smaht-portal/pull/121>`_
+
+* Add upgraders for Sequencing and CellCulture for properties changed or removed in prior PRs
+
+
 0.33.1
 ======
 
