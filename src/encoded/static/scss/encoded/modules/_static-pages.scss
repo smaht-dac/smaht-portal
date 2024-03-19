@@ -1679,110 +1679,157 @@ body[data-pathname^="/data/benchmarking"] {
 	// Hide titles
 	.static-section-entry>.section-title { display: none; }
 
-	// Header and description text
-	.benchmarking-layout{
-		>nav.nav-tabs {
-			a.nav-link {
-				color: #5D5E63;
-				font-family: Inter;
-				font-size: 16px;
-				font-weight: 400; 
 
-				&.active {
-					color: #343741;
-					font-weight: 600; 
-					border-top: 4px solid #E99415;
-				}
-				&.disabled {
-					color: #9BA5B7;
-				}
-			}
-		}
-
-		>.row>div {
-			>h2 {
-				color: #343741;
-				font-family: Inter;
-				font-size: 24px;
-				font-weight: 600;
-				margin-top: 5px;
-			}
-
-			>p {
-				color: #5D5E63;
-				font-family: Inter;
-				font-size: 14px;
-				line-height: 20px;
-			}
-		}
-	}
-
-	// Side nav
-	.benchmarking-nav {
-
-		>.benchmarking-nav-section {
-			>.benchmarking-nav-section-title {
-				margin-bottom: 10px;
-			}
-		}
-
-		.accordion > ul {
-			list-style-type: none;
-			padding-left: 0;
-			gap: 10px;
-			display: flex;
-			flex-direction: column;
-
-			> li > div.collapse > ul,
-			> li > div.collapsing > ul {
-					list-style-type: none;
-					padding-left: 0; 
-				> li {
-					padding-left: 15px;
-				}
-			}
-
-			li.sidenav-link {
-				font-family: Inter;
-				font-size: 14px;
-				font-weight: 400;
-
-				> a {
-					color: #717378;
-				}
-
-				&.top {
+	.benchmarking-ui-container {
+		display: flex;
+		padding: 0px 10px;
+		// Header and description text
+		.benchmarking-layout{
+			>nav.nav-tabs {
+				a.nav-link {
+					color: #5D5E63;
+					font-family: Inter;
 					font-size: 16px;
-				}
-				&.active {
-					font-weight: 500;
-					&.top {
-						font-weight: 700;
-					}
-					&:not(.top) {
-						border-radius: 4px;
-						border: 1px solid #E2ECF2;
-						background: #EBF3F9; 
-					}
-					
-					> a {
+					font-weight: 400;
+					text-align: left;
+	
+					&.active {
 						color: #343741;
+						font-weight: 600; 
+						border-top: 4px solid #E99415;
+					}
+					&.disabled {
+						color: #9BA5B7;
 					}
 				}
 			}
-
-			span.navlink-drop {
-				color: #717378;
-				font-size: 16px;
-				font-weight: 400;
-				font-family: Inter;
-				&.active {
+	
+			>.row>div {
+				>h2 {
 					color: #343741;
-					font-weight: 700;
+					font-family: Inter;
+					font-size: 24px;
+					font-weight: 600;
+					margin-top: 5px;
+				}
+	
+				>p {
+					color: #5D5E63;
+					font-family: Inter;
+					font-size: 14px;
+					line-height: 20px;
+				}
+			}
+		}
+
+		// Side nav
+		.benchmarking-nav-container {
+			display: flex;
+			padding-top: 5px;
+
+			.benchmarking-nav {
+				position: relative;
+				padding: 0px 10px;
+		
+				>.benchmarking-nav-section {
+					>.benchmarking-nav-section-title {
+						margin-bottom: 10px;
+					}
+				}
+
+				.accordion > ul {
+					list-style-type: none;
+					padding-left: 0;
+					gap: 10px;
+					display: flex;
+					flex-direction: column;
+		
+					> li > div.collapse > ul,
+					> li > div.collapsing > ul {
+							list-style-type: none;
+							padding-left: 0; 
+						> li {
+							padding-left: 15px;
+						}
+					}
+		
+					li.sidenav-link {
+						font-family: Inter;
+						font-size: 14px;
+						font-weight: 400;
+		
+						> a {
+							color: #717378;
+						}
+		
+						&.top {
+							font-size: 16px;
+						}
+						&.active {
+							font-weight: 500;
+							&.top {
+								font-weight: 700;
+							}
+							&:not(.top) {
+								border-radius: 4px;
+								border: 1px solid #E2ECF2;
+								background: #EBF3F9; 
+							}
+							
+							> a {
+								color: #343741;
+							}
+						}
+					}
+
+					span.navlink-drop {
+						color: #717378;
+						font-size: 16px;
+						font-weight: 400;
+						font-family: Inter;
+						text-align: left;
+						&.active {
+							color: #343741;
+							font-weight: 700;
+						}
+					}
+				}
+
+				.toggle-button {
+					border-radius: 2px;
+					border: 1px solid lightgray;
+					position: absolute;
+					right: 10px;
+					width: 35px;
+					height: 30px;
+				}
+			}
+
+			&.show-nav {
+				border-right: 1px solid #dee2e6;
+				.benchmarking-nav {
+					width: 230px;
+					transition: width 100ms ease-in-out;
+					
+				}
+
+			}
+			&.collapse-nav {
+				border-right: none;
+				.benchmarking-nav {
+					width: 50px;
+					transition: width 100ms ease-in;
+					.benchmarking-nav-section {
+						display: none;
+					}
+				}
+				hr {
+					display: none;
 				}
 			}
 		}
 	}
+
 
 	.tbd-notice {
 		color: #343741;
