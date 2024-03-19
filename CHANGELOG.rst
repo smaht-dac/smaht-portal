@@ -20,16 +20,16 @@ Change Log
   validation "submission" timed out while waiting (via submit-metadata-bundle).
 
   In this (server validation timeout) case the user can then run check-submission with
-  the UUID for the validation submission and if/when it is complete and successful,
+  the UUID for the validation submission, and if/when it is complete and successful,
   the user will be allowed to continue on to do the actual submission. Slightly tricky
   because the metadata file was uploaded (to S3) as a part of the validation submission,
-  and but when check-submission is run we don't want the user to have to specify this
+  and/but when check-submission is run we don't want the user to have to specify this
   file again, partly because it is an odd user experience, but mostly because when we
   do the actual submission we want to make sure we use the EXACT file that was validated;
   and so to do this we grab the file from where it was uploaded as part of the validation
   submission (i.e. under an S3 key with the validation UUID) and copy it over to where
   it would normally be (i.e. under an S3 key with the submission UUID); and from there
-  things continue as normal. Note also the both of the IngestionSubmission objects have
+  things continue as normal. Note also that both of the IngestionSubmission objects have
   a pointer to the other; i.e. the validation submission object has "submission_uuid"
   and the actual submission object has a "validation_uuid" (in the "parameters");
   this hookup is done by the smaht-submitr code.
