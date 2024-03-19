@@ -38,6 +38,11 @@ Spreadsheet generation tools may be made available in the future; please contact
 
 Installing the Submission Tool
 ==============================
+
+.. image:: /static/img/docs/submitr_logo.png
+   :target: /static/img/docs/submitr_logo.png
+   :alt: Excel Spreadsheet Screenshot
+
 The SMaHT data portal submission tool is implemented as a command-line Python package, and is distributed on `PyPi <https://pypi.org/project/smaht-submitr/>`_.  It requires Python version 3.9, 3.10, or 3.11.  Installation is done via the standard Python ``pip`` command-line install tool like this::
 
     pip install smaht-submitr
