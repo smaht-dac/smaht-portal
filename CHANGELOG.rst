@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.33.3
+======
+
+`PR 114: ES total count, HealthView and rst content updates <https://github.com/smaht-dac/smaht-portal/pull/114>`_
+
+* Adds UI updates implemented in https://github.com/smaht-dac/smaht-portal/pull/114
+* Ports HealthView page fixes previously implemented in 4DN for package-lock.json v3
+* Adds admonition support for rst-to-html conversion in static content
+
+
 0.33.2
 ======
 
