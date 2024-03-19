@@ -32,18 +32,18 @@ class SmahtSubmissionFolio:
             except Exception:
                 pass
         if not self.validate_only and self.data_file_name == "null":
-            self.validation_uuid = get_parameter(submission.parameters, "validation_uuid", as_type=str, default=None)
-            if (self.validation_uuid and
+            validation_uuid = get_parameter(submission.parameters, "validation_uuid", as_type=str, default=None)
+            if (validation_uuid and
                 (validation_datafile := get_parameter(submission.parameters,
                                                       "validation_datafile", as_type=str, default=None))):
                 # Here we know that this submission was started via check-submission, and not submit-metadata-bundle,
                 # because the server validation had timed out (on the smaht-submitr side from submit-metadata-bundle),
-                # and the ID for that validation "submission" is self.validation_uuid. In this case self.data_file_name
+                # and the ID for that validation "submission" is validation_uuid. In this case self.data_file_name
                 # will be "null" as set by check-submission, which is just a dummy file, and the real submission file
-                # is at the S3 bucket of the validation, i.e. at s3://{self.bucket}/{self.validation_uuid}. And so we
+                # is at the S3 bucket of the validation, i.e. at s3://{self.bucket}/{validation_uuid}. And so we
                 # will copy it from that location to the location where it normally would be for a normal submission.
                 validation_datafile = self._construct_data_file_name_suitable_for_s3(validation_datafile)
-                validation_datafile_s3_key = f"{self.validation_uuid}/{validation_datafile}"
+                validation_datafile_s3_key = f"{validation_uuid}/{validation_datafile}"
                 self.data_file_name = validation_datafile
                 self.submission.object_name = f"{self.id}/{validation_datafile}"
                 self.s3_data_file_location = f"s3://{submission.bucket}/{submission.object_name}"
@@ -54,8 +54,6 @@ class SmahtSubmissionFolio:
                     self.submission.s3_client.upload_file(Filename=datafile,
                                                           Bucket=self.submission.bucket,
                                                           Key=self.submission.object_name)
-        else:
-            self.submission_uuid = None
         # TODO: what do we actually do we the consortium and submission_center?
         # Should we validate that each submitted object, if specified, contains
         # values for these which match these values here in the submission folio?
@@ -86,7 +84,7 @@ class SmahtSubmissionFolio:
         """
         if ((isinstance(validation_errors := results.get("validation"), list) and validation_errors) or
             (isinstance(ref_errors := results.get("ref"), list) and ref_errors) or
-            (isinstance(other_errors := results.get("errors"), list) and other_errors)):
+            (isinstance(other_errors := results.get("errors"), list) and other_errors)):  # noqa
             self.submission.fail()
 
         upload_info = results.get("upload_info")
