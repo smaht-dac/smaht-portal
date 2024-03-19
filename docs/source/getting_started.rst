@@ -20,7 +20,6 @@ The primary way to submit data to SMaHT data portal is via Excel spreadsheet, as
 
    * https://submitr.readthedocs.io/en/draft/object_model.html
 
-
 Data Submission via Excel Spreadsheet
 =====================================
 
@@ -35,7 +34,6 @@ Such Excel metadata workbooks:
 
 Spreadsheet generation tools may be made available in the future; please contact the DAC directly for data submission templates. More extensive documentation of the data submission process can be found `here <https://submitr.readthedocs.io/en/draft/>`_.
 
-
 Installing the Submission Tool
 ==============================
 
@@ -47,8 +45,10 @@ The SMaHT data portal submission tool is implemented as a command-line Python pa
 
     pip install smaht-submitr
 
-Once installed, these key commands will be available for execution from the command-line: ``submit-metadata-bundle``, ``resume-uploads``
+.. TIP::
+   If you do not even have Python install and need some help there, please take a look at our more extensive documentation here: `Installing Python <https://submitr.readthedocs.io/en/draft/installation_prerequisites.html#installing-python>`_
 
+Once installed, these key commands will be available for execution from the command-line: ``submit-metadata-bundle``, ``resume-uploads``
 
 Templates
 =========
@@ -66,7 +66,6 @@ An example of a filled out workbook ready for submission can be found |example_w
 .. |example_workbook| raw:: html
 
    <a href="https://docs.google.com/spreadsheets/d/1b5W-8iBEvWfnJQFkcrO9_rG-K7oJEIJlaLr6ZH5qjjA/edit?usp=sharing" target="_blank">here</a>
-
 
 Formatting Files for Submission
 ===============================
@@ -169,7 +168,6 @@ Property Deletions
 
 A column value within a (non-header) data row may be empty, but this only means that the value will be ignored when creating or updating the associated object. Though uncommon, the `deletion` of a property from an object is supported. Please see the more extensive documentation here: `Property Deletions <https://submitr.readthedocs.io/en/draft/usage.html#property-deletions>`_
 
-
 Submission
 ==========
 
@@ -200,7 +198,6 @@ If you belong to multiple consortia and/or submission centers, you can also add 
 .. TIP::
    You may wonder: Is it okay to submit the same metadata file more than once? The answer is: Yes. If any changes were made to the file, updates will be applied as expected.
 
-
 Validation
 ==========
 
@@ -224,10 +221,26 @@ To be more specific about the the validation checks, they include the following:
 
 **Note**: If you try to resubmit your metadata sheet after fixing your validation errors, it is possible that you will get new, additional errors. Not all validation errors will be comprehensively reported at once. This is because there are two kinds (or phases) of validation: local client-side and remote server-side. You can learn more about the details of the validation process in the `Advanced Usage <https://submitr.readthedocs.io/en/draft/advanced_usage.html#more-on-validation>`_ section.
 
+Getting Submission Info
+=======================
+To view relevant information about a submission, use the command::
 
-**Example Screenshots**
+   check-submission --env <environment-name> <uuid>
 
-The output of a successful ``submit-metadata-bundle --submit`` will look something like this:
+where the ``uuid`` argument is the Submission tracking ID for the submission, which should have been displayed in the output of the ``submit-metadata-bundle`` command.
+
+Listing Recent Submissions
+==========================
+To view a list of recent submissions (with submission UUID and submission date/time), in order of most to least recent, use the ``list-submissions`` command as follows::
+
+   list-submissions --env <environment-name>
+
+Use the ``--verbose`` option to list more information for each of the recent submissions shown. You can control the maximum number of results output using the ``--count`` option with an integer count argument. Use the ``--mine`` option to see only your submissions.
+
+Example Screenshots
+===================
+
+The output of a successful ``submit-metadata-bundle --submit`` run will look something like this:
 
 |
 
@@ -252,21 +265,3 @@ If you additionally specify the ``--verbose`` option, the output will look somet
 .. image:: /static/img/docs/validate_verbose_output.png
     :target: /static/img/docs/validate_verbose_output.png
     :alt: Validation Verbose Output Screenshot
-
-
-Getting Submission Info
-=======================
-To view relevant information about a submission, use the command::
-
-   check-submission --env <environment-name> <uuid>
-
-where the ``uuid`` argument is the Submission tracking ID for the submission, which should have been displayed in the output of the ``submit-metadata-bundle`` command.
-
-
-Listing Recent Submissions
-==========================
-To view a list of recent submissions (with submission UUID and submission date/time), in order of most to least recent, use the ``list-submissions`` command as follows::
-
-   list-submissions --env <environment-name>
-
-Use the ``--verbose`` option to list more information for each of the recent submissions shown. You can control the maximum number of results output using the ``--count`` option with an integer count argument. Use the ``--mine`` option to see only your submissions.
