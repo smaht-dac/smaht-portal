@@ -265,8 +265,7 @@ class Item(SnovaultItem):
             return submitted_id
         if accession:
             return accession
-        if uuid:
-            return uuid
+        return self.uuid
 
 
 @calculated_property(context=Item.AbstractCollection, category='action')
