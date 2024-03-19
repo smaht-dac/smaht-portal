@@ -1,6 +1,6 @@
-==========================
-Uploading Referenced Files
-==========================
+===============
+Uploading Files
+===============
 
 .. TIP::
    This assumes you have already installed ``smaht-submitr``. If you have not yet, please see the `Installation </docs/user-guide/getting-started#installing-the-submission-tool>`_ section.
@@ -13,9 +13,7 @@ These files should reside in the same directory as your submission file. Or, if 
    submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --directory <path-to-files>
 
 The above commands will only look for the files to upload directly within the specified directory
-(and not any sub-directories therein). To look (recursively) within sub-directories, do::
-
-   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --directory <path-to-files> --sub-directories
+and in any sub-directories therein. To look `only` within the specified directorye use the analogous ``--directory-only`` option.
 
 
 Resuming Uploads
