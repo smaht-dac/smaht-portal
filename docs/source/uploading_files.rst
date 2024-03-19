@@ -5,6 +5,7 @@ Uploading Files
 .. TIP::
    This assumes you have already installed ``smaht-submitr``. If you have not yet, please see the `Installation </docs/user-guide/getting-started#installing-the-submission-tool>`_ section.
 
+|
 
 As mentioned in the `Getting Started with Submissions </docs/user-guide/getting-started>`_ section, after ``submit-metadata-bundle`` processes the main submitted metadata file, it will (after prompting) upload any files referenced within the submission metadata file.
 
