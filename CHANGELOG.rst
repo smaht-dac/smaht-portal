@@ -17,6 +17,12 @@ Change Log
 * Documentation changes.
 
 
+0.33.1
+======
+
+* Updating ethnicity/nationality descriptions for HapMap
+
+
 0.33.0
 ======
 
