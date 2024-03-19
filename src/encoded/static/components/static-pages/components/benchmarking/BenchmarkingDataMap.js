@@ -65,17 +65,15 @@ export const BenchmarkingDataMap = {
                 </p>
 
                 <ul>
-                    <li>
-                        0.5%: HG00438 (Female; Asian Chinese Han in the South)
-                    </li>
-                    <li>2%: HG002 (Male; European Ashkenazim Jewish)</li>
+                    <li>0.5%: HG00438 (Female; Chinese Han in the South)</li>
+                    <li>2%: HG002 (Male; Ashkenazim Jewish)</li>
                     <li>2%: HG02257 (Female; African Caribbean in Barbados)</li>
                     <li>2%: HG02486 (Male; African Caribbean in Barbados)</li>
                     <li>
-                        10%: HG02622 (Female; African Gambian in Western
-                        Division, Mandinka)
+                        10%: HG02622 (Female; Gambian in Western Division,
+                        Mandinka)
                     </li>
-                    <li>83.5%: HG005 (Male; Asian Chinese)</li>
+                    <li>83.5%: HG005 (Male; Chinese)</li>
                 </ul>
             </div>
         ),
