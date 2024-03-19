@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.33.1
+======
+
+* Updating ethnicity/nationality descriptions for HapMap
+
+
 0.33.0
 ======
 
