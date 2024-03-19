@@ -23,7 +23,7 @@ export const BenchmarkingUI = (props) => {
                 }>
                 <BenchmarkingUINav {...{ showNav, setShowNav, href }} />
             </div>
-            <div className={'pl-2'}>{children}</div>
+            <div className="pl-2 benchmarking-layout-container">{children}</div>
         </div>
     );
 };
