@@ -73,10 +73,10 @@ Formatting Files for Submission
 Most commonly, the file format recommended for metadata submission to SMaHT Portal, is an Excel spreadsheet file (e.g. ``your_metadata_file.xlsx``), comprised of one or more sheets. Note these important aspects of using the Excel spreadsheet format:
 
 #. The spreadsheet must have a **file suffix** of ``.xls`` or ``.xlsx``; there are no other requirements for the name of this file.
-#. Each sheet name must be the `exact` name of a SMaHT Portal item or `object` defined within the system (e.g. ``AlignedReads``).
+#. Each **sheet name** must be the `exact` name of a SMaHT Portal item or `object` defined within the system (e.g. ``AlignedReads``).
 #. Each sheet must have as its **first row** a special `header` row, which enumerates in each column, the `exact` names of the Portal object **properties** as the column names; order does `not` matter.
 #. Each sheet may contain any number of **data rows** (`directly` below the header row), each representing an instance of the Portal object.
-#. The values in the cells/columns of each data row correspond to the `property` named in the same column of the header row.
+#. The values in the cells/columns of each data row correspond to **property names** in the same column of the header row.
 
 Note these important rules defining exactly the parts of the spreadsheet which are **relevant** for metadata submission.
 
