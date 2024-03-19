@@ -57,7 +57,7 @@
             "accessionType": "CC"
         },
         "schema_version": {
-            "default": "2"
+            "default": "3"
         },
         "culture_duration": {
             "title": "Culture Duration",
