@@ -1,6 +1,8 @@
+from typing import Any, Dict, List, Optional, Union
+
 from pyramid.request import Request
 from pyramid.view import view_config
-from snovault import abstract_collection, load_schema
+from snovault import abstract_collection, calculated_property, load_schema
 from snovault.util import debug_log
 
 from .acl import SUBMISSION_CENTER_MEMBER_CREATE_ACL
@@ -21,6 +23,8 @@ from .submitted_item import (
     SUBMITTED_ITEM_EDIT_PUT_VALIDATORS,
     SubmittedItem,
 )
+from ..item_utils import file_set as file_set_utils
+from ..item_utils.utils import RequestHandler
 
 
 SUBMITTED_FILE_ADD_VALIDATORS = list(
@@ -53,6 +57,340 @@ class SubmittedFile(File, SubmittedItem):
     embedded_list = File.embedded_list
 
     Collection = SubmittedFileCollection
+
+    @calculated_property(
+        schema={
+            "title": "Sequencing",
+            "description": "Sequencing associated with the file",
+            "type": "array",
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "linkTo": "Sequencing",
+            },
+        },
+    )
+    def sequencing(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Sequencing items associated with the file."""
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            sequencing_identifiers = file_set_utils.get_sequencing_ids(
+                request_handler, file_sets
+            )
+            if sequencing_identifiers:
+                return sequencing_identifiers
+        return
+
+    @calculated_property(
+        schema={
+            "title": "Assays",
+            "description": "Assays associated with the file",
+            "type": "array",
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "linkTo": "Assay",
+            },
+        },
+    )
+    def assays(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Assays associated with the file."""
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            assay_identifiers = file_set_utils.get_assay_ids(request_handler, file_sets)
+            if assay_identifiers:
+                return assay_identifiers
+        return
+
+    @calculated_property(
+        schema={
+            "title": "Analytes",
+            "description": "Analytes associated with the file",
+            "type": "array",
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "linkTo": "Analyte",
+            },
+        },
+    )
+    def analytes(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Analytes associated with the file."""
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            analyte_identifiers = file_set_utils.get_analyte_ids(request_handler, file_sets)
+            if analyte_identifiers:
+                return analyte_identifiers
+        return
+
+    @calculated_property(
+        schema={
+            "title": "Samples",
+            "description": "Samples associated with the file",
+            "type": "array",
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "linkTo": "Sample",
+            },
+        },
+    )
+    def samples(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Samples associated with the file."""
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            sample_identifiers = file_set_utils.get_sample_ids(request_handler, file_sets)
+            if sample_identifiers:
+                return sample_identifiers
+        return
+
+    @calculated_property(
+        schema={
+            "title": "Sample Sources",
+            "description": "Sample sources (e.g. cell lines or tissues) associated with the file",
+            "type": "array",
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "linkTo": "Tissue",
+            },
+        },
+    )
+    def sample_sources(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get SampleSources associated with the file."""
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            tissue_identifiers = file_set_utils.get_tissue_ids(
+                request_handler, file_sets
+            )
+            if tissue_identifiers:
+                return tissue_identifiers
+        return
+
+    @calculated_property(
+        schema={
+            "title": "Donors",
+            "description": "Donors associated with the file",
+            "type": "array",
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "linkTo": "Donor",
+            },
+        },
+    )
+    def donors(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Donors associated with the file."""
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            donor_identifiers = file_set_utils.get_donor_ids(request_handler, file_sets)
+            if donor_identifiers:
+                return donor_identifiers
+        return
+
+    @calculated_property(
+        schema={
+            "title": "File Summary",
+            "type": "object",
+            "properties": {
+                "annotated_name": {
+                    "title": "Annotated Name",
+                    "type": "string",
+                },
+                "access_status": {
+                    "title": "Access",
+                    "type": "string",
+                },
+                "uuid": {
+                    "title": "UUID",
+                    "type": "string",
+                },
+                "file_format": {
+                    "title": "Data Format",
+                    "type": "string",
+                },
+                "size": {
+                    "title": "Size",
+                    "type": "string",
+                },
+                "md5sum": {
+                    "title": "MD5 Checksum",
+                    "type": "string",
+                },
+                "consortia": {
+                    "title": "Consortium",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+            },
+        },
+    )
+    def file_summary(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[Dict[str, Any], None]:
+        """Get file summary for display on file overview page."""
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            file_summary = self._get_file_summary(request_handler, self.properties)
+            if file_summary:
+                return file_summary
+        return
+
+    def _get_file_summary(
+        self, request_handler: RequestHandler, file_properties: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Get file summary for display on file overview page."""
+        return {}
+
+    @calculated_property(
+        schema={
+            "title": "Data Generation Summary",
+            "description": "Summary of data generation",
+            "type": "object",
+            "properties": {
+                "data_category": {
+                    "title": "Data Category",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+                "data_type": {
+                    "title": "Data Type",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+                "sequencing_centers": {
+                    "title": "Sequencing Centers",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+                "submission_centers": {
+                    "title": "Generated By",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+                "assays": {
+                    "title": "Experimental Assay",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+                "sequencing_instruments": {
+                    "title": "Sequencing Platform",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+            },
+        },
+    )
+    def data_generation_summary(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[Dict[str, Any], None]:
+        """Get data generation summary for display on file overview page."""
+        request_handler = RequestHandler(request=request)
+        data_generation_summary = self._get_data_generation_summary(
+            request_handler, self.properties
+        )
+        if data_generation_summary:
+            return data_generation_summary
+        return
+
+    def _get_data_generation_summary(
+        self, request_handler: RequestHandler, file_properties: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Get data generation summary for display on file overview page."""
+        return {}
+
+    @calculated_property(
+        schema={
+            "title": "Sample Summary",
+            "type": "object",
+            "properties": {
+                "donor_ids": {
+                    "title": "Donor ID",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+                "tissues": {
+                    "title": "Tissue",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+                "sample_ids": {
+                    "title": "Sample ID",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+                "sample_descriptions": {
+                    "title": "Description",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+                "analytes": {
+                    "title": "Analyte",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+                "studies": {
+                    "title": "Study",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+            },
+        },
+    )
+    def sample_summary(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[Dict[str, Any], None]:
+        """Get sample summary for display on file overview page."""
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            sample_summary = self._get_sample_summary(request_handler, self.properties)
+            if sample_summary:
+                return sample_summary
+        return
+
+    def _get_sample_summary(
+        self, request_handler: RequestHandler, file_properties: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Get sample summary for display on file overview page."""
+        return {}
 
 
 @view_config(
