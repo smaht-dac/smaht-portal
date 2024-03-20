@@ -86,7 +86,7 @@ Note these important rules defining exactly the parts of the spreadsheet which a
 #. Sheets which are marked as **hidden** will be **ignored**; this provides a way of including sheets with other auxiliary information without their contents interfering with the submission tool.
 #. Sheets which have a name enclosed in parenthesis, for example ``(My Comments)``, will similarly be treated as **hidden** as described above.
 
-It's actually pretty intuitive, straightforward, and almost self-explanatory, as this example Excel screenshot shouuld make clear:
+It's actually pretty intuitive, straightforward, and almost self-explanatory, as this example Excel screenshot should make clear:
 
 .. image:: /static/img/docs/excel_screenshot.png
    :target: /static/img/docs/excel_screenshot.png
