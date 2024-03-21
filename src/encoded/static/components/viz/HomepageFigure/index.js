@@ -17,18 +17,18 @@ const TierSelector = ({ currentTier, setCurrentTier }) => {
         <div className="selector-buttons">
             <div className={'backdrop' + ' tier-' + currentTier}></div>
             <button
-                onClick={() => setCurrentTier('benchmarking')}
-                className={currentTier === 'benchmarking' ? 'active' : ''}>
+                onClick={() => setCurrentTier(0)}
+                className={currentTier === 0 ? 'active' : ''}>
                 <span>Tier 0</span>
             </button>
             <button
-                onClick={() => setCurrentTier('expansion')}
-                className={currentTier === 'expansion' ? 'active' : ''}>
+                onClick={() => setCurrentTier(1)}
+                className={currentTier === 1 ? 'active' : ''}>
                 <span>Tier 1</span>
             </button>
             <button
-                onClick={() => setCurrentTier('production')}
-                className={currentTier === 'production' ? 'active' : ''}>
+                onClick={() => setCurrentTier(2)}
+                className={currentTier === 2 ? 'active' : ''}>
                 <span>Tier 2</span>
             </button>
         </div>
