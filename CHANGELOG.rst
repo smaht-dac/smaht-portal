@@ -7,6 +7,55 @@ smaht-portal
 Change Log
 ----------
 
+0.34.0
+======
+
+* 2024-03-14: This is a temporary branch (extra_files_plus_main_20240314)
+  which is Will's extra_files branch with main merged in (2024-03-14), and
+  also Utku's utk_es_max_hit branch (PR-114) with documentation changes merge in.
+  FYI: Branch utk_es_max_hit was merged into main 2024-03-19.
+* Added missing import of calculated_property from snovault to types/submitted_file.py.
+* Documentation changes.
+
+* Changes to support "resuming" smaht-submitr submission after a server
+  validation "submission" timed out while waiting (via submit-metadata-bundle).
+
+  In this (server validation timeout) case the user can then run check-submission with
+  the UUID for the validation submission, and if/when it is complete and successful,
+  the user will be allowed to continue on to do the actual submission. Slightly tricky
+  because the metadata file was uploaded (to S3) as a part of the validation submission,
+  and/but when check-submission is run we don't want the user to have to specify this
+  file again, partly because it is an odd user experience, but mostly because when we
+  do the actual submission we want to make sure we use the EXACT file that was validated;
+  and so to do this we grab the file from where it was uploaded as part of the validation
+  submission (i.e. under an S3 key with the validation UUID) and copy it over to where
+  it would normally be (i.e. under an S3 key with the submission UUID); and from there
+  things continue as normal. Note also that both of the IngestionSubmission objects have
+  a pointer to the other; i.e. the validation submission object has "submission_uuid"
+  and the actual submission object has a "validation_uuid" (in the "parameters");
+  this hookup is done by the smaht-submitr code.
+
+  The "resuming" scare-quotes are because this is not really resuming a submission but
+  rather resuming the process the submit-metadata-bundle was doing, i.e. where it does
+  a server validation then then, if successful and okay with the user, it continues on
+  to do the actual submission. The "submission" scare-quotes for the server validation
+  is because this is a submission in the sense that an IngestionSubmission object is
+  created, but not an actual submission because it is a validate_only submission.
+
+* Added display_title calculated property to IngestionSubmission to display either
+  Validation or Submission depending on validate_only (followed by colon and uuid).
+
+
+0.33.3
+======
+
+`PR 114: ES total count, HealthView and rst content updates <https://github.com/smaht-dac/smaht-portal/pull/114>`_
+
+* Adds UI updates implemented in https://github.com/smaht-dac/smaht-portal/pull/114
+* Ports HealthView page fixes previously implemented in 4DN for package-lock.json v3
+* Adds admonition support for rst-to-html conversion in static content
+
+
 0.33.2
 ======
 
