@@ -40,6 +40,8 @@ class RequestHandler:
         self, identifier: str, collection: Optional[str] = None
     ) -> Dict[str, Any]:
         """Get item from request or auth_key"""
+        if not identifier:
+            return {}
         if self.request:
             return self._get_item_from_request(identifier, collection=collection)
         return self._get_item_from_auth_key(identifier)

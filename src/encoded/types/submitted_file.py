@@ -23,7 +23,7 @@ from .submitted_item import (
     SUBMITTED_ITEM_EDIT_PUT_VALIDATORS,
     SubmittedItem,
 )
-from ..item_utils import file_set as file_set_utils
+from ..item_utils import file as file_utils, item as item_utils
 from ..item_utils.utils import RequestHandler
 
 
@@ -76,12 +76,8 @@ class SubmittedFile(File, SubmittedItem):
         """Get Sequencing items associated with the file."""
         if file_sets:
             request_handler = RequestHandler(request=request)
-            sequencing_identifiers = file_set_utils.get_sequencing_ids(
-                request_handler, file_sets
-            )
-            if sequencing_identifiers:
-                return sequencing_identifiers
-        return
+            result = file_utils.get_sequencings(request_handler, self.properties)
+        return result or None
 
     @calculated_property(
         schema={
@@ -101,10 +97,8 @@ class SubmittedFile(File, SubmittedItem):
         """Get Assays associated with the file."""
         if file_sets:
             request_handler = RequestHandler(request=request)
-            assay_identifiers = file_set_utils.get_assay_ids(request_handler, file_sets)
-            if assay_identifiers:
-                return assay_identifiers
-        return
+            result = file_utils.get_assays(request_handler, self.properties)
+        return result or None
 
     @calculated_property(
         schema={
@@ -124,10 +118,8 @@ class SubmittedFile(File, SubmittedItem):
         """Get Analytes associated with the file."""
         if file_sets:
             request_handler = RequestHandler(request=request)
-            analyte_identifiers = file_set_utils.get_analyte_ids(request_handler, file_sets)
-            if analyte_identifiers:
-                return analyte_identifiers
-        return
+            result = file_utils.get_analytes(request_handler, self.properties)
+        return result or None
 
     @calculated_property(
         schema={
@@ -147,10 +139,8 @@ class SubmittedFile(File, SubmittedItem):
         """Get Samples associated with the file."""
         if file_sets:
             request_handler = RequestHandler(request=request)
-            sample_identifiers = file_set_utils.get_sample_ids(request_handler, file_sets)
-            if sample_identifiers:
-                return sample_identifiers
-        return
+            result = file_utils.get_samples(request_handler, self.properties)
+        return result or None
 
     @calculated_property(
         schema={
@@ -170,12 +160,8 @@ class SubmittedFile(File, SubmittedItem):
         """Get SampleSources associated with the file."""
         if file_sets:
             request_handler = RequestHandler(request=request)
-            tissue_identifiers = file_set_utils.get_tissue_ids(
-                request_handler, file_sets
-            )
-            if tissue_identifiers:
-                return tissue_identifiers
-        return
+            result = file_utils.get_sample_sources(request_handler, self.properties)
+        return result or None
 
     @calculated_property(
         schema={
@@ -195,10 +181,8 @@ class SubmittedFile(File, SubmittedItem):
         """Get Donors associated with the file."""
         if file_sets:
             request_handler = RequestHandler(request=request)
-            donor_identifiers = file_set_utils.get_donor_ids(request_handler, file_sets)
-            if donor_identifiers:
-                return donor_identifiers
-        return
+            result = file_utils.get_donors(request_handler, self.properties)
+        return result or None
 
     @calculated_property(
         schema={
@@ -221,7 +205,7 @@ class SubmittedFile(File, SubmittedItem):
                     "title": "Data Format",
                     "type": "string",
                 },
-                "size": {
+                "file_size": {
                     "title": "Size",
                     "type": "string",
                 },
@@ -245,16 +229,47 @@ class SubmittedFile(File, SubmittedItem):
         """Get file summary for display on file overview page."""
         if file_sets:
             request_handler = RequestHandler(request=request)
-            file_summary = self._get_file_summary(request_handler, self.properties)
+            file_summary = self._get_file_summary(
+                request_handler, self.properties, self.uuid
+            )
             if file_summary:
                 return file_summary
         return
 
     def _get_file_summary(
-        self, request_handler: RequestHandler, file_properties: Dict[str, Any]
+        self,
+        request_handler: RequestHandler,
+        file_properties: Dict[str, Any],
+        uuid: str,
     ) -> Dict[str, Any]:
         """Get file summary for display on file overview page."""
-        return {}
+        to_include = {
+            "annotated_name": file_utils.get_annotated_filename(file_properties),
+            "access_status": file_utils.get_access_status(file_properties),
+            "file_format": item_utils.get_display_title(
+                request_handler.get_item(file_utils.get_file_format(file_properties))
+            ),
+            "file_size": file_utils.get_file_size(file_properties),
+            "md5sum": file_utils.get_md5sum(file_properties),
+            "consortia": self._get_display_titles(
+                request_handler, item_utils.get_consortia(file_properties)
+            ),
+            "uuid": uuid,
+        }
+        return {
+            key: value for key, value in to_include.items() if value
+        }
+
+    @staticmethod
+    def _get_display_titles(
+        request_handler: RequestHandler, identifiers: List[str]
+    ) -> List[str]:
+        """Get display titles for item identifiers."""
+        items = request_handler.get_items(identifiers)
+        return [
+            item_utils.get_display_title(item) for item in items
+            if item_utils.get_display_title(item)
+        ]
 
     @calculated_property(
         schema={
@@ -276,12 +291,9 @@ class SubmittedFile(File, SubmittedItem):
                         "type": "string",
                     },
                 },
-                "sequencing_centers": {
+                "sequencing_center": {
                     "title": "Sequencing Centers",
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                    },
+                    "type": "string",
                 },
                 "submission_centers": {
                     "title": "Generated By",
@@ -297,7 +309,7 @@ class SubmittedFile(File, SubmittedItem):
                         "type": "string",
                     },
                 },
-                "sequencing_instruments": {
+                "sequencing_platforms": {
                     "title": "Sequencing Platform",
                     "type": "array",
                     "items": {
@@ -323,7 +335,30 @@ class SubmittedFile(File, SubmittedItem):
         self, request_handler: RequestHandler, file_properties: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Get data generation summary for display on file overview page."""
-        return {}
+        to_include = {
+            "data_category": file_utils.get_data_category(file_properties),
+            "data_type": file_utils.get_data_type(file_properties),
+            "sequencing_center": item_utils.get_display_title(
+                request_handler.get_item(
+                    file_utils.get_sequencing_center(file_properties)
+                )
+            ),
+            "submission_centers": self._get_display_titles(
+                request_handler,
+                item_utils.get_submission_centers(file_properties)
+            ),
+            "assays": self._get_display_titles(
+                request_handler,
+                file_utils.get_assays(request_handler, file_properties)
+            ),
+            "sequencing_platforms": self._get_display_titles(
+                request_handler,
+                file_utils.get_sequencings(request_handler, file_properties)
+            ),
+        }
+        return {
+            key: value for key, value in to_include.items() if value
+        }
 
     @calculated_property(
         schema={
@@ -390,7 +425,9 @@ class SubmittedFile(File, SubmittedItem):
         self, request_handler: RequestHandler, file_properties: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Get sample summary for display on file overview page."""
-        return {}
+        to_include = {
+        }
+        return {key: value for key, value in to_include.items() if value}
 
 
 @view_config(
