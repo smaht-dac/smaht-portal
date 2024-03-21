@@ -24,7 +24,11 @@ from .submitted_item import (
     SubmittedItem,
 )
 from ..item_utils import file as file_utils, item as item_utils
-from ..item_utils.utils import RequestHandler
+from ..item_utils.utils import (
+    get_property_value_from_identifier,
+    get_property_values_from_identifiers,
+    RequestHandler,
+)
 
 
 SUBMITTED_FILE_ADD_VALIDATORS = list(
@@ -246,30 +250,23 @@ class SubmittedFile(File, SubmittedItem):
         to_include = {
             "annotated_name": file_utils.get_annotated_filename(file_properties),
             "access_status": file_utils.get_access_status(file_properties),
-            "file_format": item_utils.get_display_title(
-                request_handler.get_item(file_utils.get_file_format(file_properties))
+            "file_format": get_property_value_from_identifier(
+                request_handler,
+                file_utils.get_file_format(file_properties),
+                item_utils.get_display_title,
             ),
             "file_size": file_utils.get_file_size(file_properties),
             "md5sum": file_utils.get_md5sum(file_properties),
-            "consortia": self._get_display_titles(
-                request_handler, item_utils.get_consortia(file_properties)
+            "consortia": get_property_values_from_identifiers(
+                request_handler,
+                item_utils.get_consortia(file_properties),
+                item_utils.get_display_title,
             ),
             "uuid": uuid,
         }
         return {
             key: value for key, value in to_include.items() if value
         }
-
-    @staticmethod
-    def _get_display_titles(
-        request_handler: RequestHandler, identifiers: List[str]
-    ) -> List[str]:
-        """Get display titles for item identifiers."""
-        items = request_handler.get_items(identifiers)
-        return [
-            item_utils.get_display_title(item) for item in items
-            if item_utils.get_display_title(item)
-        ]
 
     @calculated_property(
         schema={
@@ -338,22 +335,25 @@ class SubmittedFile(File, SubmittedItem):
         to_include = {
             "data_category": file_utils.get_data_category(file_properties),
             "data_type": file_utils.get_data_type(file_properties),
-            "sequencing_center": item_utils.get_display_title(
-                request_handler.get_item(
-                    file_utils.get_sequencing_center(file_properties)
-                )
-            ),
-            "submission_centers": self._get_display_titles(
+            "sequencing_center": get_property_value_from_identifier(
                 request_handler,
-                item_utils.get_submission_centers(file_properties)
+                file_utils.get_sequencing_center(file_properties),
+                item_utils.get_display_title,
             ),
-            "assays": self._get_display_titles(
+            "submission_centers": get_property_values_from_identifiers(
                 request_handler,
-                file_utils.get_assays(request_handler, file_properties)
+                item_utils.get_submission_centers(file_properties),
+                item_utils.get_display_title,
             ),
-            "sequencing_platforms": self._get_display_titles(
+            "assays": get_property_values_from_identifiers(
                 request_handler,
-                file_utils.get_sequencings(request_handler, file_properties)
+                file_utils.get_assays(request_handler, file_properties),
+                item_utils.get_display_title,
+            ),
+            "sequencing_platforms": get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_sequencings(request_handler, file_properties),
+                item_utils.get_display_title,
             ),
         }
         return {

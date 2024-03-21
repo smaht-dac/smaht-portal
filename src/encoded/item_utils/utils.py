@@ -62,10 +62,12 @@ class RequestHandler:
 
 
 def get_unique_values(
-    items: List[Dict[str, Any]], retriever: Callable
+    items: List[Dict[str, Any]], retriever: Callable, exclude_null: bool = True
 ) -> List[str]:
     """Get unique identifiers from items, as returned by the retriever."""
     values = unravel_lists([retriever(item) for item in items])
+    if exclude_null:
+        return list(set([value for value in values if value]))
     return list(set(values))
 
 
@@ -78,3 +80,26 @@ def unravel_lists(values: List[Any]) -> List[Any]:
         else:
             result.append(value)
     return result
+
+
+def get_property_values_from_identifiers(
+    request_handler: RequestHandler, identifiers: List[str], retriever: Callable
+) -> List[Any]:
+    """Get unique property values from items for given identifiers."""
+    items = request_handler.get_items(identifiers)
+    return get_property_values(items, retriever)
+
+
+def get_property_values(
+    items: List[Dict[str, Any]], retriever: Callable
+) -> List[Any]:
+    """Get unique property values from items."""
+    return get_unique_values(items, retriever)
+
+
+def get_property_value_from_identifier(
+    request_handler: RequestHandler, identifier: str, retriever: Callable
+) -> Any:
+    """Get property value from item for given identifier."""
+    item = request_handler.get_item(identifier)
+    return retriever(item)
