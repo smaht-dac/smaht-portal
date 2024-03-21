@@ -30,6 +30,7 @@ def home(context, request):
                         "figures": [
                             { "value": 2, "unit": "Cell Lines" },
                             { "value": 3, "unit": "Assays" },
+                            { "value": 0, "unit": "Mutations" },
                             { "value": 30, "unit": "Files Generated" }
                         ]
                     },
@@ -39,6 +40,7 @@ def home(context, request):
                         "figures": [
                             { "value": 6, "unit": "Cell Lines" },
                             { "value": 0, "unit": "Assays" },
+                            { "value": 0, "unit": "Mutations" },
                             { "value": 0, "unit": "Files Generated" }
                         ]
                     },
@@ -48,6 +50,7 @@ def home(context, request):
                         "figures": [
                             { "value": 5, "unit": "Cell Lines" },
                             { "value": 0, "unit": "Assays" },
+                            { "value": 0, "unit": "Mutations" },
                             { "value": 0, "unit": "Files Generated" }
                         ]
                     },
