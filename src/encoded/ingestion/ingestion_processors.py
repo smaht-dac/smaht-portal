@@ -52,7 +52,7 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
                           ref_nocache: bool = False) -> StructuredDataSet:
 
     # N.B. This same bit of code is in smaht-submitr; not sure best way to share;
-    # It really should not go in dcicutils (structured_data) as this know pretty
+    # It really should not go in dcicutils (structured_data) as this knows pretty
     # specific details about our (SMaHT) schemas, namely, submitted_id and accession.
     def ref_lookup_strategy(type_name: str, schema: dict, value: str) -> (int, Optional[str]):
         #
@@ -135,6 +135,14 @@ def _summarize_errors(structured_data: StructuredDataSet, submission: SmahtSubmi
         result["ref"] = ref_errors[:max_issues_per_group]
         if len(ref_errors) > max_issues_per_group:
             result["ref"].append(truncated_info(ref_errors))
+        ref_errors_grouped = []
+        for ref_error in ref_errors:
+            if ref_error_path := ref_error.get("error"):
+                if ref_error_group := [r for r in ref_errors_grouped if r.get("ref") == ref_error_path]:
+                    ref_error_group[0]["count"] += 1
+                else:
+                    ref_errors_grouped.append({"ref": ref_error_path, "count": 1})
+        result["ref_grouped"] = ref_errors_grouped
     result["file"] = submission.data_file_name
     result["s3_file"] = submission.s3_data_file_location
     result["details"] = submission.s3_details_location
