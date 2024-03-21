@@ -10,13 +10,14 @@ Change Log
 0.34.0
 ======
 
-* This is a temporary branch (extra_files_plus_main_20240314)
+* 2024-03-14: This is a temporary branch (extra_files_plus_main_20240314)
   which is Will's extra_files branch with main merged in (2024-03-14), and
   also Utku's utk_es_max_hit branch (PR-114) with documentation changes merge in.
+  FYI: Branch utk_es_max_hit was merged into main 2024-03-19.
 * Added missing import of calculated_property from snovault to types/submitted_file.py.
 * Documentation changes.
 
-* Changes to support "resuming" smaht-sumbitr submission after a server
+* Changes to support "resuming" smaht-submitr submission after a server
   validation "submission" timed out while waiting (via submit-metadata-bundle).
 
   In this (server validation timeout) case the user can then run check-submission with
@@ -37,7 +38,7 @@ Change Log
   The "resuming" scare-quotes are because this is not really resuming a submission but
   rather resuming the process the submit-metadata-bundle was doing, i.e. where it does
   a server validation then then, if successful and okay with the user, it continues on
-  to do the actual submission. The the "submission" scare-quotes for the server validation
+  to do the actual submission. The "submission" scare-quotes for the server validation
   is because this is a submission in the sense that an IngestionSubmission object is
   created, but not an actual submission because it is a validate_only submission.
 
