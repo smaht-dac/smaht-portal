@@ -42,3 +42,8 @@ def get_submission_centers(properties: Dict[str, Any]) -> List[str]:
 def get_consortia(properties: Dict[str, Any]) -> List[str]:
     """Get consortia from properties."""
     return properties.get("consortia", [])
+
+
+def get_code(properties: Dict[str, Any]) -> str:
+    """Get code from properties."""
+    return properties.get("code", "")

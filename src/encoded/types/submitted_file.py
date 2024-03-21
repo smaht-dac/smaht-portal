@@ -1,3 +1,4 @@
+import functools
 from typing import Any, Dict, List, Optional, Union
 
 from pyramid.request import Request
@@ -23,7 +24,13 @@ from .submitted_item import (
     SUBMITTED_ITEM_EDIT_PUT_VALIDATORS,
     SubmittedItem,
 )
-from ..item_utils import file as file_utils, item as item_utils
+from ..item_utils import (
+    analyte as analyte_utils,
+    donor as donor_utils,
+    file as file_utils,
+    item as item_utils,
+    sample as sample_utils,
+)
 from ..item_utils.utils import (
     get_property_value_from_identifier,
     get_property_values_from_identifiers,
@@ -379,7 +386,7 @@ class SubmittedFile(File, SubmittedItem):
                         "type": "string",
                     },
                 },
-                "sample_ids": {
+                "sample_names": {
                     "title": "Sample ID",
                     "type": "array",
                     "items": {
@@ -426,6 +433,34 @@ class SubmittedFile(File, SubmittedItem):
     ) -> Dict[str, Any]:
         """Get sample summary for display on file overview page."""
         to_include = {
+            "donor_ids": get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_donors(request_handler, file_properties),
+                donor_utils.get_id,
+            ),
+            "tissues": [],  # TODO: Implement once tissue name added with TPC updates
+            "sample_names": get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_samples(request_handler, file_properties),
+                functools.partial(sample_utils.get_sample_names, request_handler),
+            ),
+            "analytes": get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_analytes(request_handler, file_properties),
+                analyte_utils.get_molecule,
+            ),
+            "sample_descriptions": get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_samples(request_handler, file_properties),
+                functools.partial(
+                    sample_utils.get_sample_descriptions, request_handler
+                ),
+            ),
+            "studies": get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_samples(request_handler, file_properties),
+                functools.partial(sample_utils.get_studies, request_handler),
+            ),
         }
         return {key: value for key, value in to_include.items() if value}
 
