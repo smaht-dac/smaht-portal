@@ -2,9 +2,7 @@ import functools
 from typing import Any, Dict, List
 
 from . import cell_culture, cell_culture_mixture, item, tissue, tissue_sample
-from .utils import (
-    get_unique_values, get_property_value_from_identifier, RequestHandler
-)
+from .utils import get_unique_values, get_property_value_from_identifier, RequestHandler
 
 
 BENCHMARKING_PREFIX = "ST"
@@ -19,7 +17,8 @@ def get_tissues(
     """Get tissues associated with sample."""
     sample_sources = get_sample_sources(properties)
     return [
-        sample_source for sample_source in sample_sources
+        sample_source
+        for sample_source in sample_sources
         if tissue.is_tissue(request_handler.get_item(sample_source))
     ]
 
@@ -63,7 +62,7 @@ def get_sample_names(
     Otherwise, check sample sources for appropriate names, which are
     codes on CellLines or CellCultureMixtures.
     """
-    if (sample_id := get_id(properties)):
+    if sample_id := get_id(properties):
         return [sample_id]
     if not is_tissue_sample(properties):
         return get_sample_names_from_sources(request_handler, properties)
@@ -76,8 +75,7 @@ def get_sample_names_from_sources(
     """Attempt to get an official sample name from its sources."""
     sample_sources = request_handler.get_items(get_sample_sources(properties))
     return get_unique_values(
-        sample_sources,
-        functools.partial(get_sample_source_code, request_handler)
+        sample_sources, functools.partial(get_sample_source_code, request_handler)
     )
 
 
@@ -107,7 +105,7 @@ def get_sample_descriptions(
     Similar to the name, this depends on the sample type and/or its
     sources.
     """
-    if (category := tissue_sample.get_category(properties)):
+    if category := tissue_sample.get_category(properties):
         return [category]
     if not is_tissue_sample(properties):
         return get_sample_descriptions_from_sources(request_handler, properties)
@@ -121,7 +119,7 @@ def get_sample_descriptions_from_sources(
     sample_sources = request_handler.get_items(get_sample_sources(properties))
     return get_unique_values(
         sample_sources,
-        functools.partial(get_sample_source_description, request_handler)
+        functools.partial(get_sample_source_description, request_handler),
     )
 
 
@@ -155,7 +153,7 @@ def get_studies(
     - If has ID, check for benchmarking vs production based on TPC prefix
     - If no ID, check sample sources for codes
     """
-    if (sample_id := get_id(properties)):
+    if sample_id := get_id(properties):
         study = get_study_from_id(sample_id)
         if study:
             return [study]
@@ -178,8 +176,7 @@ def get_studies_from_sources(
     """Attempt to get an official study from its sources."""
     sample_sources = request_handler.get_items(get_sample_sources(properties))
     return get_unique_values(
-        sample_sources,
-        functools.partial(get_sample_source_study, request_handler)
+        sample_sources, functools.partial(get_sample_source_study, request_handler)
     )
 
 

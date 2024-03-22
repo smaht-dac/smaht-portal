@@ -14,11 +14,10 @@ from ..item_utils.utils import get_unique_values, unravel_lists
         (["a", 2, 3, [4, 5, 6]], ["a", 2, 3, 4, 5, 6]),
         (["a", 2, 3, [2, 3]], ["a", 2, 3, 2, 3]),  # Repeats remain
         (["a", 2, 3, [[2, 3]]], ["a", 2, 3, [2, 3]]),  # Nested list not handled
-    ]
+    ],
 )
 def test_unravel_lists(values: List[Any], expected: List[Any]) -> None:
     assert unravel_lists(values) == expected
-
 
 
 def get_foo(item: Dict[str, Any]) -> Any:
@@ -35,7 +34,7 @@ def get_foo(item: Dict[str, Any]) -> Any:
         ([{"foo": "a"}, {"fu": "b"}], get_foo, True, ["a"]),
         ([{"foo": "a"}, {"fu": "b"}], get_foo, False, ["a", None]),
         ([{"foo": "a"}, {"foo": "b"}, {"foo": "a"}], get_foo, True, ["a", "b"]),
-    ]
+    ],
 )
 def test_get_unique_values(
     items: List[Dict[str, Any]],
