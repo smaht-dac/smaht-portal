@@ -63,8 +63,11 @@ class RequestHandler:
 
 def get_unique_values(
     items: List[Dict[str, Any]], retriever: Callable, exclude_null: bool = True
-) -> List[str]:
-    """Get unique identifiers from items, as returned by the retriever."""
+) -> List[Any]:
+    """Get unique values from items, as returned by the retriever.
+
+    Note: Retrieved values must be hashable as implemented.
+    """
     values = unravel_lists([retriever(item) for item in items])
     if exclude_null:
         return list(set([value for value in values if value]))
