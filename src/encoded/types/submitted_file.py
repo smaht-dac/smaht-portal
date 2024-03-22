@@ -1,4 +1,3 @@
-import functools
 from typing import Any, Dict, List, Optional, Union
 
 from pyramid.request import Request
@@ -24,18 +23,6 @@ from .submitted_item import (
     SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS,
     SUBMITTED_ITEM_EDIT_PUT_VALIDATORS,
     SubmittedItem,
-)
-from ..item_utils import (
-    analyte as analyte_utils,
-    donor as donor_utils,
-    file as file_utils,
-    item as item_utils,
-    sample as sample_utils,
-)
-from ..item_utils.utils import (
-    get_property_value_from_identifier,
-    get_property_values_from_identifiers,
-    RequestHandler,
 )
 
 
