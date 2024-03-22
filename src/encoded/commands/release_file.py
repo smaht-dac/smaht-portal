@@ -127,7 +127,7 @@ class FileRelease:
         )
 
         # Get higher level items starting from file set in order to set them to released
-        self.add_release_item_to_patchdict(fileset, "FileSet")
+        self.add_release_item_to_patchdict(fileset, f"FileSet - {fileset[PC.SUBMITTED_ID]}")
         sequencing = self.get_metadata(fileset[PC.SEQUENCING])
         self.add_release_item_to_patchdict(sequencing, f"Sequencing - {sequencing[PC.SUBMITTED_ID]}")
 
