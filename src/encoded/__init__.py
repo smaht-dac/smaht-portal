@@ -46,6 +46,7 @@ def include_encoded(config):
     config.include('encoded.types')
     config.include('encoded.metadata')
     config.include('encoded.upgrade')
+    config.include('encoded.ingestion.ingestion_status')
     # config.include('encoded.visualization')
     config.commit()
 

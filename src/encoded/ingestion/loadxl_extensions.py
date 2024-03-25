@@ -4,22 +4,27 @@ from dcicutils.misc_utils import VirtualApp
 from dcicutils.structured_data import Portal
 from snovault.loadxl import load_all_gen as loadxl_load_data
 from .submission_folio import SmahtSubmissionFolio
+from .redis import Redis
 
 
-def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp,
+def load_data_into_database(submission: SmahtSubmissionFolio,
+                            data: Dict[str, List[Dict]], portal_vapp: VirtualApp,
                             post_only: bool = False,
                             patch_only: bool = False,
                             validate_only: bool = False,
                             validate_first: bool = False,
                             resolved_refs: List[str] = None) -> Dict:
 
+    redis = Redis()
+
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
-        nonlocal portal_vapp
+        nonlocal portal_vapp, redis
         portal = None
         upload_info = []
         LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*([a-zA-Z\/\d_-]+)\s*(\S+)\s*(\S+)?\s*(.*)$")
         LOADXL_ACTION_NAME = {"POST": "created", "PATCH": "updated", "SKIP": "skipped", "CHECK": "validated", "ERROR": "errors"}
         response = {value: [] for value in LOADXL_ACTION_NAME.values()}
+        ingestion_counts = {**{value: 0 for value in LOADXL_ACTION_NAME.values()}, "items": 0}
         for item in loadxl_response:
             # ASSUME each item in the loadxl response looks something like one of (string or bytes):
             # POST: beefcafe-01ce-4e61-be5d-cd04401dff29 FileFormat
@@ -75,6 +80,11 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
             if not response.get(action):
                 response[action] = []
             response[action].append(response_value)
+            if redis:
+                ingestion_counts["items"] += 1
+                if action:
+                    ingestion_counts[action] += 1
+                redis.put(submission.id, ingestion_counts)
         # Items flagged as SKIP in loadxl could ultimately be a PATCH (update),
         # so remove from the skip list any items which are also in the update list. 
         response["skipped"] = [item for item in response["skipped"] if item not in response["updated"]]

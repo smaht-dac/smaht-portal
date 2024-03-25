@@ -35,6 +35,7 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
             # raise Exception(validation_errors)
             return
         load_data_response = load_data_into_database(
+            submission=submission,
             data=structured_data.data,
             portal_vapp=submission.portal_vapp,
             post_only=submission.post_only,

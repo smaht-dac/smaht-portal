@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.35.0
+======
+* 2024-03-25
+* Changes to support tracking ingestion progess for smaht-submitr (via Redis).
+
+
 0.34.0
 ======
 
