@@ -1,10 +1,7 @@
 from __future__ import annotations
-
 import argparse
 from typing import Any, Dict, List, Union, Tuple
-from copy import deepcopy
 import pprint
-
 pp = pprint.PrettyPrinter(indent=2)
 
 from dcicutils import ff_utils
@@ -15,7 +12,7 @@ from dcicutils.creds_utils import SMaHTKeyManager
 ##################################################################
 ##
 ##  The file release will do the following updates to the metadata
-##  - Set file (and extra file) status to `released`
+##  - Set file status to `released`
 ##  - Associate the file with the fileset that the corresponding
 ##    submitted files are in
 ##  - Adds `dataset`` and `access_status`` to the file
@@ -25,12 +22,13 @@ from dcicutils.creds_utils import SMaHTKeyManager
 ##  - Set FileSet associated libraries, and sequencing to `released`
 ##  - Set library associated assay and analyte to `released`
 ##  - Set analyte associated samples to `released`
+##  - Set sample associated sample_source to `released`
 ##
 ##################################################################
 ##################################################################
 
 
-class PC: # PortalConstants
+class PC:  # PortalConstants
     ACCESSION = "accession"
     ACCESS_STATUS = "access_status"
     AGE = "age"
@@ -39,21 +37,10 @@ class PC: # PortalConstants
     ANALYTE = "analyte"
     ANNOTATED_FILENAME = "annotated_filename"
     ASSAY = "assay"
-    CELL_CULTURE = "cell_culture"
-    CELL_CULTURE_MIXTURE_TYPE = "CellCultureMixture"
-    CELL_CULTURE_TYPE = "CellCulture"
-    CELL_LINE = "cell_line"
-    CODE = "code"
-    COMPONENTS = "components"
     CONSORTIA = "consortia"
-    COPY_NUMBER_VARIANT = "Copy Number Variant"
-    DATA_TYPE = "data_type"
     DATA_CATEGORY = "data_category"
     DATASET = "dataset"
-    DONOR = "donor"
     EXTRA_FILES = "extra_files"
-    FEMALE_SEX = "Female"
-    FILE_FORMAT = "file_format"
     FILE_SETS = "file_sets"
     FILE_SET = "file_set"
     FILENAME = "filename"
@@ -62,45 +49,32 @@ class PC: # PortalConstants
     IDENTIFIER = "identifier"
     LIBRARIES = "libraries"
     LIBRARY = "library"
-    MALE_SEX = "Male"
-    MOBILE_ELEMENT_INSERTION = "Mobile Element Insertion"
-    OUTPUT_STATUS= "output_status"
+    OUTPUT_STATUS = "output_status"
     OPEN = "Open"
-    PHASED = "Phased"
     PROTECTED = "Protected"
     QUALITY_METRICS = "quality_metrics"
     QUALITY_METRIC = "quality_metric"
-    REFERENCE_GENOME = "reference_genome"
     RELEASED = "released"
     SAMPLE_SOURCES = "sample_sources"
     SAMPLES = "samples"
     SAMPLE = "sample"
-    SEQUENCER = "sequencer"
     SEQUENCING = "sequencing"
     SEQUENCING_CENTER = "sequencing_center"
     SEQUENCING_READS = "Sequencing Reads"
-    SEX = "sex"
-    SINGLE_NUCLEOTIDE_VARIANT = "Single Nucleotide Variant"
     SOMATIC_VARIANT_CALLS = "Somatic Variant Calls"
-    SOFTWARE = "software"
-    SORTED = "Sorted"
-    STANDARD_FILE_EXTENSION = "standard_file_extension"
     STATUS = "status"
-    STRUCTURAL_VARIANT = "Structural Variant"
     SUBMISSION_CENTERS = "submission_centers"
     SUBMITTER_ID = "submitter_id"
     SUBMITTED_ID = "submitted_id"
-    TISSUE_TYPE = "Tissue"
     TYPE = "@type"
+    UPLOADED = "uploaded"
     UUID = "uuid"
     VARIANT_TYPE = "variant_type"
     VERSION = "version"
 
 
-# TODO: ACTIVATE
 # dataset is required but comes in through input args for now
-#REQUIRED_FILE_PROPS = [PC.SEQUENCING_CENTER]
-REQUIRED_FILE_PROPS = []
+REQUIRED_FILE_PROPS = [PC.SEQUENCING_CENTER]
 
 
 class FileRelease:
@@ -110,10 +84,12 @@ class FileRelease:
         self.patch_infos = []
         self.patch_dicts = []
         self.warnings = []
+        self.file_accession = ""
 
     def prepare(self, file_identifier: str, dataset: str):
 
         file = self.get_metadata(file_identifier)
+        self.file_accession = file[PC.ACCESSION]
         self.check_file_validity(file)
         fileset = self.get_fileset_from_file(file)
         self.add_file_patchdict(file, fileset, dataset)
@@ -127,52 +103,91 @@ class FileRelease:
         )
 
         # Get higher level items starting from file set in order to set them to released
-        self.add_release_item_to_patchdict(fileset, f"FileSet - {fileset[PC.SUBMITTED_ID]}")
+        self.add_release_item_to_patchdict(
+            fileset, f"FileSet - {fileset[PC.SUBMITTED_ID]}"
+        )
         sequencing = self.get_metadata(fileset[PC.SEQUENCING])
-        self.add_release_item_to_patchdict(sequencing, f"Sequencing - {sequencing[PC.SUBMITTED_ID]}")
+        self.add_release_item_to_patchdict(
+            sequencing, f"Sequencing - {sequencing[PC.SUBMITTED_ID]}"
+        )
 
         if len(fileset[PC.LIBRARIES]) > 1:
-            self.warnings.append(
-                f"{bcolors.WARNING}WARNING:{bcolors.ENDC} Multiple libraries attached to file set {fileset[PC.ACCESSION]}"
+            self.add_warning(
+                f"Multiple libraries attached to file set {fileset[PC.ACCESSION]}"
             )
 
         for library_id in fileset[PC.LIBRARIES]:
             library = self.get_metadata(library_id)
-            self.add_release_item_to_patchdict(library, f"Library - {library[PC.SUBMITTED_ID]}")
+            self.add_release_item_to_patchdict(
+                library, f"Library - {library[PC.SUBMITTED_ID]}"
+            )
 
             assay = self.get_metadata(library[PC.ASSAY])
             self.add_release_item_to_patchdict(assay, f"Assay - {assay[PC.IDENTIFIER]}")
 
             analyte = self.get_metadata(library[PC.ANALYTE])
-            self.add_release_item_to_patchdict(analyte, f"Analyte - {analyte[PC.SUBMITTED_ID]}")
+            self.add_release_item_to_patchdict(
+                analyte, f"Analyte - {analyte[PC.SUBMITTED_ID]}"
+            )
 
             for sample_uuid in analyte[PC.SAMPLES]:
                 sample = self.get_metadata(sample_uuid)
-                self.add_release_item_to_patchdict(sample, f"Sample - {sample[PC.SUBMITTED_ID]}")
+                self.add_release_item_to_patchdict(
+                    sample, f"Sample - {sample[PC.SUBMITTED_ID]}"
+                )
 
                 sample_sources = sample[PC.SAMPLE_SOURCES]
                 for sample_source_id in sample_sources:
                     sample_source = self.get_metadata(sample_source_id)
-                    self.add_release_item_to_patchdict(sample_source, f"SampleSource - {sample_source[PC.SUBMITTED_ID]}")
+                    self.add_release_item_to_patchdict(
+                        sample_source,
+                        f"SampleSource - {sample_source[PC.SUBMITTED_ID]}",
+                    )
 
         print("\nThe following metadata patches will be carried out in the next step:")
         for info in self.patch_infos:
             print(info)
 
         if len(self.warnings) > 0:
-            print(f"\n{bcolors.WARNING}Please note the following warnings:{bcolors.ENDC}")
+            print(
+                f"\n{bcolors.WARNING}Please note the following warnings:{bcolors.ENDC}"
+            )
             for warning in self.warnings:
                 print(warning)
 
-        # pp.pprint(file)
-        # pp.pprint(fileset)
-        # pp.pprint(quality_metrics)
-        # pp.pprint(quality_metrics_zips)
-        # pp.pprint(self.patch_infos)
-        # pp.pprint(self.patch_dicts)
+    def execute(self):
+        print("Validating all patch dictionaries...")
+        try:
+            for patch_dict in self.patch_dicts:
+                ff_utils.patch_metadata(
+                    patch_dict,
+                    obj_id=patch_dict[PC.UUID],
+                    add_on="?check_only=true",
+                    key=self.key,
+                )
+        except Exception as e:
+            print(str(e))
+            self.print_error_and_exit("Validation failed.")
 
-    def execute(self, patch_dict):
-        pass
+        print("Validation done. Patching...")
+        try:
+            for patch_dict in self.patch_dicts:
+                ff_utils.patch_metadata(
+                    patch_dict,
+                    obj_id=patch_dict[PC.UUID],
+                    key=self.key,
+                )
+        except Exception as e:
+            print(str(e))
+            self.print_error_and_exit("Patching failed.")
+            
+        print(
+            f"{bcolors.OKGREEN}Release of File {self.file_accession} completed.{bcolors.ENDC}"
+        )
+
+    def show_patch_dicts(self):
+        print("\n")
+        pp.pprint(self.patch_dicts)
 
     def add_release_item_to_patchdict(self, item: Dict, item_desc: str):
         """Sets the status of the item to released and
@@ -185,28 +200,31 @@ class FileRelease:
         self.patch_infos.append(f"\n{item_desc} ({item[PC.ACCESSION]}):")
 
         if item[PC.STATUS] == PC.RELEASED:
-            self.patch_infos.append(f"  - {bcolors.OKBLUE}{PC.STATUS}{bcolors.ENDC} is already set to {bcolors.OKBLUE}{PC.RELEASED}{bcolors.ENDC}. Not patching.")
+            self.patch_infos.append(
+                f"  - {bcolors.OKBLUE}{PC.STATUS}{bcolors.ENDC} is already set to {bcolors.OKBLUE}{PC.RELEASED}{bcolors.ENDC}. Not patching."
+            )
             return
 
         patch_body = {
             PC.UUID: item[PC.UUID],
             PC.STATUS: PC.RELEASED,
         }
-        self.patch_infos.append(f"  - {bcolors.OKBLUE}{PC.STATUS}{bcolors.ENDC} is set to {bcolors.OKBLUE}{PC.RELEASED}{bcolors.ENDC}")
+        self.patch_infos.append(
+            f"  - {bcolors.OKBLUE}{PC.STATUS}{bcolors.ENDC} is set to {bcolors.OKBLUE}{PC.RELEASED}{bcolors.ENDC}"
+        )
 
         self.patch_dicts.append(patch_body)
 
-    def add_release_items_to_patchdict(self, items: List, type: str):
+    def add_release_items_to_patchdict(self, items: List, item_desc: str):
         """Sets the status to released in all items in the list and
         adds the corresponding patch dict
 
         Args:
             items (List): List of portal item
-            type (str): Type of the items to patch. Just used for generating
-            more usefuls patch infos
+            item_desc (str): Just used for generating more usefuls patch infos
         """
         for item in items:
-            self.add_release_item_to_patchdict(item, type)
+            self.add_release_item_to_patchdict(item, item_desc)
 
     def add_file_patchdict(self, file, fileset, dataset):
 
@@ -219,7 +237,7 @@ class FileRelease:
             PC.FILE_SETS: [fileset[PC.UUID]],
             PC.DATASET: dataset,
             PC.ACCESS_STATUS: access_status,
-            PC.ANNOTATED_FILENAME: annotated_filename
+            PC.ANNOTATED_FILENAME: annotated_filename,
         }
         self.patch_infos.extend(
             [
@@ -231,15 +249,6 @@ class FileRelease:
                 f"  - {bcolors.OKBLUE}{PC.ANNOTATED_FILENAME}{bcolors.ENDC} is set to {bcolors.OKBLUE}{annotated_filename}{bcolors.ENDC}",
             ]
         )
-
-        if PC.EXTRA_FILES in file:
-            extra_files = deepcopy(file[PC.EXTRA_FILES])
-            for ef in extra_files:
-                ef[PC.STATUS] = PC.RELEASED
-            patch_body[PC.EXTRA_FILES] = extra_files
-            self.patch_infos.append(
-                f"  - Setting {bcolors.OKBLUE}{PC.STATUS}{bcolors.ENDC} of {bcolors.OKBLUE}{len(extra_files)} extra files{bcolors.ENDC} to {bcolors.OKBLUE}{PC.RELEASED}{bcolors.ENDC}"
-            )
         self.patch_dicts.append(patch_body)
 
     def get_annotated_filename(self, file):
@@ -327,9 +336,8 @@ class FileRelease:
             )
 
         if len(file[PC.DATA_CATEGORY]) > 1:
-            self.warnings.append(
-                f"{bcolors.WARNING}WARNING:{bcolors.ENDC} File has multiple data categories. Check access_status."
-            )
+            self.add_warning(f"File has multiple data categories. Check access_status.")
+
         data_category = file[PC.DATA_CATEGORY][0]
 
         if data_category not in access_status_mapping[dataset_category]:
@@ -348,18 +356,26 @@ class FileRelease:
                 )
 
         if PC.FILE_SETS in file and len(file[PC.FILE_SETS]) > 0:
-            self.warnings.append(
-                f"{bcolors.WARNING}WARNING:{bcolors.ENDC} File {accession} already has an associated file set. It will be overwritten."
+            self.add_warning(
+                f"File {accession} already has an associated file set. It will be overwritten."
             )
 
         if file.get(PC.OUTPUT_STATUS) != PC.FINAL_OUTPUT:
-            self.warnings.append(
-                f"{bcolors.WARNING}WARNING:{bcolors.ENDC} File {accession} does not have {PC.OUTPUT_STATUS}='{PC.FINAL_OUTPUT}'."
+            self.add_warning(
+                f"File {accession} does not have {PC.OUTPUT_STATUS}='{PC.FINAL_OUTPUT}'."
+            )
+
+        if file.get(PC.STATUS) != PC.UPLOADED:
+            self.add_warning(
+                f"File {accession} has status `{file.get(PC.STATUS)}`. Expected `{PC.UPLOADED}`."
             )
 
     def print_error_and_exit(self, msg):
         print(f"{bcolors.FAIL}ERROR: {msg} Exiting.{bcolors.ENDC}")
         exit()
+
+    def add_warning(self, msg):
+        self.warnings.append(f"{bcolors.WARNING}WARNING:{bcolors.ENDC} {msg}")
 
     def get_quality_metrics_zip_files(self, quality_metrics) -> List:
         zip_files = []
@@ -372,17 +388,19 @@ class FileRelease:
                 zip_file = self.get_metadata(zip_accession)
                 zip_files.append(zip_file)
             else:
-                print(
-                    f"{bcolors.WARNING}WARNING:{bcolors.ENDC} Could not find a metrics zip file for QualityMetrics {qm[PC.ACCESSION]}"
+                self.add_warning(
+                    f"Could not find a metrics zip file for QualityMetrics {qm[PC.ACCESSION]}"
                 )
+
         return zip_files
 
     def get_quality_metrics_from_file(self, file) -> List:
         qms = file.get(PC.QUALITY_METRICS, [])
         if not qms:
-            self.warnings.append(
-                f"{bcolors.WARNING}WARNING:{bcolors.ENDC} File {file[PC.ACCESSION]} does not have an associated QualityMetrics item."
+            self.add_warning(
+                f"File {file[PC.ACCESSION]} does not have an associated QualityMetrics item."
             )
+
         quality_metrics = []
         for qm in qms:
             quality_metrics.append(self.get_metadata(qm))
@@ -429,7 +447,8 @@ class bcolors:
 #     if val != yes_value:
 #         print(f"{bcolors.FAIL}Aborted by user.{bcolors.ENDC}")
 #         exit()
-    
+
+
 def get_auth_key(env: str) -> Dict[str, str]:
     """Get auth key for given environment."""
     key_manager = SMaHTKeyManager()
@@ -451,13 +470,26 @@ def main() -> None:
     file_release = FileRelease(auth_key=auth_key)
     file_release.prepare(args.file, args.dataset)
 
-    resp = input(
-        "\nDo you want to proceed with the release and execute the metadata patches above? (y,n) "
-    )
-    if resp not in ["y", "yes"]:
-        print(f"{bcolors.FAIL}Aborted by user.{bcolors.ENDC}")
-        exit()
-    print("EXECUTING")
+    while True:
+        resp = input(
+            f"\nDo you want to proceed with the release and execute the metadata patches above? "
+            f"This will patch data on {bcolors.WARNING}{auth_key['server']}.{bcolors.ENDC} "
+            f"\nYou have the following options: "
+            f"\ny - Proceed with release"
+            f"\np - Show patch dictionaries "
+            f"\nn - Abort "
+            f"\n(y,p,n): "
+        )
+
+        if resp in ["y", "yes"]:
+            file_release.execute()
+            break
+        elif resp in ["p"]:
+            file_release.show_patch_dicts()
+            continue
+        if resp not in ["y", "yes"]:
+            print(f"{bcolors.FAIL}Aborted by user.{bcolors.ENDC}")
+            exit()
 
 
 if __name__ == "__main__":
