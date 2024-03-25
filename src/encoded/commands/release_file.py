@@ -2,6 +2,7 @@ from __future__ import annotations
 import argparse
 from typing import Any, Dict, List, Union, Tuple
 import pprint
+
 pp = pprint.PrettyPrinter(indent=2)
 
 from dcicutils import ff_utils
@@ -180,7 +181,7 @@ class FileRelease:
         except Exception as e:
             print(str(e))
             self.print_error_and_exit("Patching failed.")
-            
+
         print(
             f"{bcolors.OKGREEN}Release of File {self.file_accession} completed.{bcolors.ENDC}"
         )
@@ -416,6 +417,7 @@ class FileRelease:
 
         mwfr = mwfrs[0]
         file_sets = mwfr[PC.FILE_SETS]
+        # Might need to be more general in the future
         if len(file_sets) != 1:
             self.print_error_and_exit(
                 f"Expected exactly one associated FileSet, got {len(file_sets)} from MetaWorkflowRun {mwfr[PC.ACCESSION]}"
@@ -440,13 +442,6 @@ class bcolors:
     ENDC = "\033[0m"
     BOLD = "\033[1m"
     UNDERLINE = "\033[4m"
-
-
-# def get_user_confirmation(msg, yes_value="y"):
-#     val = input(msg)
-#     if val != yes_value:
-#         print(f"{bcolors.FAIL}Aborted by user.{bcolors.ENDC}")
-#         exit()
 
 
 def get_auth_key(env: str) -> Dict[str, str]:
