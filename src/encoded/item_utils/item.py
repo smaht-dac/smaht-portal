@@ -30,7 +30,7 @@ def get_type(properties: Dict[str, Any]) -> str:
     """Get "final" type from properties."""
     types = get_types(properties)
     if types:
-        return types[-1]
+        return types[0]
     return ""
 
 

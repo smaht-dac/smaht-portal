@@ -56,7 +56,7 @@ def get_sequencings(
     if request_handler:
         file_sets = request_handler.get_items(get_file_sets(properties))
         return get_unique_values(file_sets, file_set.get_sequencing)
-    return properties.get("sequencings", [])
+    return properties.get("sequencing", [])
 
 
 def get_libraries(

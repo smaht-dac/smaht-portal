@@ -8,9 +8,13 @@ from .utils import (
     get_item, get_search, patch_item, post_item, post_item_and_return_location
 )
 from ..item_utils import (
+    analyte as analyte_utils,
     file as file_utils,
     file_set as file_set_utils,
-    item as item_utils
+    item as item_utils,
+    library as library_utils,
+    sample as sample_utils,
+    tissue as tissue_utils,
 )
 
 
@@ -445,31 +449,33 @@ def test_libraries(es_testapp: TestApp, workbook: None) -> None:
     """Ensure 'libraries' calcprop is correct.
 
     Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
     """
     file_without_libraries_search = get_search(
         es_testapp, "/search/?type=File&file_sets.libraries.uuid=No+value"
     )
     assert file_without_libraries_search
     file = file_without_libraries_search[0]
-    assert_libraries_calcprop_matches_file_set(file)
+    assert_libraries_calcprop_matches_embeds(file)
 
     submitted_file_with_libraries_search = get_search(
         es_testapp, "/search/?type=SubmittedFile&file_sets.libraries.uuid!=No+value"
     )
     assert submitted_file_with_libraries_search
     submitted_file = submitted_file_with_libraries_search[0]
-    assert_libraries_calcprop_matches_file_set(submitted_file)
+    assert_libraries_calcprop_matches_embeds(submitted_file)
 
     output_file_with_libraries_search = get_search(
         es_testapp, "/search/?type=OutputFile&file_sets.libraries.uuid!=No+value"
     )
     assert output_file_with_libraries_search
     output_file = output_file_with_libraries_search[0]
-    assert_libraries_calcprop_matches_file_set(output_file)
+    assert_libraries_calcprop_matches_embeds(output_file)
 
 
-def assert_libraries_calcprop_matches_file_set(file: Dict[str, Any]) -> None:
-    """Ensure 'libraries' calcprop matches 'file_sets.libraries'."""
+def assert_libraries_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'libraries' calcprop matches file_sets.libraries."""
     libraries_from_calcprop = file_utils.get_libraries(file)
     file_sets = file_utils.get_file_sets(file)
     libraries_from_file_set = [
@@ -487,3 +493,316 @@ def assert_items_match(
     first_uuids = list(set(item_utils.get_uuid(item) for item in first))
     second_uuids = list(set(item_utils.get_uuid(item) for item in second))
     assert first_uuids == second_uuids
+
+
+@pytest.mark.workbook
+def test_sequencing(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'sequencing' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
+    """
+    file_without_sequencing_search = get_search(
+        es_testapp, "/search/?type=File&file_sets.sequencing.uuid=No+value"
+    )
+    assert file_without_sequencing_search
+    file = file_without_sequencing_search[0]
+    assert_sequencing_calcprop_matches_embeds(file)
+
+    submitted_file_with_sequencing_search = get_search(
+        es_testapp, "/search/?type=SubmittedFile&file_sets.sequencing.uuid!=No+value"
+    )
+    assert submitted_file_with_sequencing_search
+    submitted_file = submitted_file_with_sequencing_search[0]
+    assert_sequencing_calcprop_matches_embeds(submitted_file)
+
+    output_file_with_sequencing_search = get_search(
+        es_testapp, "/search/?type=OutputFile&file_sets.sequencing.uuid!=No+value"
+    )
+    assert output_file_with_sequencing_search
+    output_file = output_file_with_sequencing_search[0]
+    assert_sequencing_calcprop_matches_embeds(output_file)
+
+
+def assert_sequencing_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'sequencing' calcprop matches file_sets.sequencing."""
+    sequencing_from_calcprop = file_utils.get_sequencings(file)
+    file_sets = file_utils.get_file_sets(file)
+    sequencing_from_file_set = [
+        file_set_utils.get_sequencing(file_set) for file_set in file_sets
+    ]
+    assert_items_match(sequencing_from_calcprop, sequencing_from_file_set)
+
+
+@pytest.mark.workbook
+def test_assays(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'assays' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
+    """
+    file_without_assays_search = get_search(
+        es_testapp, "/search/?type=File&file_sets.libraries.assay.uuid=No+value"
+    )
+    assert file_without_assays_search
+    file = file_without_assays_search[0]
+    assert_assays_calcprop_matches_embeds(file)
+
+    submitted_file_with_assays_search = get_search(
+        es_testapp,
+        "/search/?type=SubmittedFile&file_sets.libraries.assay.uuid!=No+value",
+    )
+    assert submitted_file_with_assays_search
+    submitted_file = submitted_file_with_assays_search[0]
+    assert_assays_calcprop_matches_embeds(submitted_file)
+
+    output_file_with_assays_search = get_search(
+        es_testapp, "/search/?type=OutputFile&file_sets.libraries.assay.uuid!=No+value"
+    )
+    assert output_file_with_assays_search
+    output_file = output_file_with_assays_search[0]
+    assert_assays_calcprop_matches_embeds(output_file)
+
+
+def assert_assays_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'assays' calcprop matches file_sets.assay."""
+    assays_from_calcprop = file_utils.get_assays(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries = [
+        library
+        for file_set in file_sets
+        for library in file_set_utils.get_libraries(file_set)
+    ]
+    assays = [library_utils.get_assay(library) for library in libraries]
+    assert_items_match(assays_from_calcprop, assays)
+
+
+@pytest.mark.workbook
+def test_analytes(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'analytes' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
+    """
+    file_without_analytes_search = get_search(
+        es_testapp, "/search/?type=File&file_sets.libraries.analyte.uuid=No+value"
+    )
+    assert file_without_analytes_search
+    file = file_without_analytes_search[0]
+    assert_analytes_calcprop_matches_embeds(file)
+
+    submitted_file_with_analytes_search = get_search(
+        es_testapp,
+        "/search/?type=SubmittedFile&file_sets.libraries.analyte.uuid!=No+value",
+    )
+    assert submitted_file_with_analytes_search
+    submitted_file = submitted_file_with_analytes_search[0]
+    assert_analytes_calcprop_matches_embeds(submitted_file)
+
+    output_file_with_analytes_search = get_search(
+        es_testapp,
+        "/search/?type=OutputFile&file_sets.libraries.analyte.uuid!=No+value",
+    )
+    assert output_file_with_analytes_search
+    output_file = output_file_with_analytes_search[0]
+    assert_analytes_calcprop_matches_embeds(output_file)
+
+
+def assert_analytes_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'analytes' calcprop matches file_sets.libraries.analyte."""
+    analytes_from_calcprop = file_utils.get_analytes(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries = [
+        library
+        for file_set in file_sets
+        for library in file_set_utils.get_libraries(file_set)
+    ]
+    analytes = [library_utils.get_analyte(library) for library in libraries]
+    assert_items_match(analytes_from_calcprop, analytes)
+
+
+@pytest.mark.workbook
+def test_samples(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'samples' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
+    """
+    file_without_samples_search = get_search(
+        es_testapp,
+        "/search/?type=File&file_sets.libraries.analyte.samples.uuid=No+value",
+    )
+    assert file_without_samples_search
+    file = file_without_samples_search[0]
+    assert_samples_calcprop_matches_embeds(file)
+
+    submitted_file_with_samples_search = get_search(
+        es_testapp,
+        "/search/?type=SubmittedFile&file_sets.libraries.analyte.samples.uuid!=No+value",
+    )
+    assert submitted_file_with_samples_search
+    submitted_file = submitted_file_with_samples_search[0]
+    assert_samples_calcprop_matches_embeds(submitted_file)
+
+    output_file_with_samples_search = get_search(
+        es_testapp,
+        "/search/?type=OutputFile&file_sets.libraries.analyte.samples.uuid!=No+value",
+    )
+    assert output_file_with_samples_search
+    output_file = output_file_with_samples_search[0]
+    assert_samples_calcprop_matches_embeds(output_file)
+
+
+def assert_samples_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'samples' calcprop matches file_sets.libraries.analyte.samples."""
+    samples_from_calcprop = file_utils.get_samples(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries = [
+        library
+        for file_set in file_sets
+        for library in file_set_utils.get_libraries(file_set)
+    ]
+    analytes = [library_utils.get_analyte(library) for library in libraries]
+    samples = [
+        sample
+        for analyte in analytes
+        for sample in analyte_utils.get_samples(analyte)
+    ]
+    assert_items_match(samples_from_calcprop, samples)
+
+
+@pytest.mark.workbook
+def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'sample_sources' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
+    """
+    file_without_sample_sources_search = get_search(
+        es_testapp,
+        (
+            "/search/?type=File"
+            "&file_sets.libraries.analyte.samples.sample_sources.uuid=No+value"
+        ),
+    )
+    assert file_without_sample_sources_search
+    file = file_without_sample_sources_search[0]
+    assert_sample_sources_calcprop_matches_embeds(file)
+
+    submitted_file_with_sample_sources_search = get_search(
+        es_testapp,
+        (
+            "/search/?type=SubmittedFile"
+            "&file_sets.libraries.analyte.samples.sample_sources.uuid!=No+value"
+        ),
+    )
+    assert submitted_file_with_sample_sources_search
+    submitted_file = submitted_file_with_sample_sources_search[0]
+    assert_sample_sources_calcprop_matches_embeds(submitted_file)
+
+    output_file_with_sample_sources_search = get_search(
+        es_testapp,
+        (
+            "/search/?type=OutputFile"
+            "&file_sets.libraries.analyte.samples.sample_sources.uuid!=No+value"
+        ),
+    )
+    assert output_file_with_sample_sources_search
+    output_file = output_file_with_sample_sources_search[0]
+    assert_sample_sources_calcprop_matches_embeds(output_file)
+
+
+def assert_sample_sources_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'sample_sources' calcprop matches upstream sample sources."""
+    sample_sources_from_calcprop = file_utils.get_sample_sources(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries = [
+        library
+        for file_set in file_sets
+        for library in file_set_utils.get_libraries(file_set)
+    ]
+    analytes = [library_utils.get_analyte(library) for library in libraries]
+    samples = [
+        sample
+        for analyte in analytes
+        for sample in analyte_utils.get_samples(analyte)
+    ]
+    sample_sources = [
+        sample_source
+        for sample in samples
+        for sample_source in sample_utils.get_sample_sources(sample)
+    ]
+    assert_items_match(sample_sources_from_calcprop, sample_sources)
+
+
+@pytest.mark.workbook
+def test_donors(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'donors' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
+    """
+    file_without_donors_search = get_search(
+        es_testapp,
+        (
+            "/search/?type=File"
+            "&file_sets.libraries.analyte.samples.sample_sources.donor.uuid=No+value"
+        ),
+    )
+    assert file_without_donors_search
+    file = file_without_donors_search[0]
+    assert_donors_calcprop_matches_embeds(file)
+
+    submitted_file_with_donors_search = get_search(
+        es_testapp,
+        (
+            "/search/?type=SubmittedFile"
+            "&file_sets.libraries.analyte.samples.sample_sources.donor.uuid!=No+value"
+        ),
+    )
+    assert submitted_file_with_donors_search
+    submitted_file = submitted_file_with_donors_search[0]
+    assert_donors_calcprop_matches_embeds(submitted_file)
+
+    output_file_with_donors_search = get_search(
+        es_testapp,
+        (
+            "/search/?type=OutputFile"
+            "&file_sets.libraries.analyte.samples.sample_sources.donor.uuid!=No+value"
+        ),
+    )
+    assert output_file_with_donors_search
+    output_file = output_file_with_donors_search[0]
+    assert_donors_calcprop_matches_embeds(output_file)
+
+
+def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'donors' calcprop matches upstream donors."""
+    donors_from_calcprop = file_utils.get_donors(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries = [
+        library
+        for file_set in file_sets
+        for library in file_set_utils.get_libraries(file_set)
+    ]
+    analytes = [library_utils.get_analyte(library) for library in libraries]
+    samples = [
+        sample
+        for analyte in analytes
+        for sample in analyte_utils.get_samples(analyte)
+    ]
+    sample_sources = [
+        sample_source
+        for sample in samples
+        for sample_source in sample_utils.get_sample_sources(sample)
+    ]
+    donors = [
+        tissue_utils.get_donor(sample_source) for sample_source in sample_sources
+    ]
+    assert_items_match(donors_from_calcprop, donors)
