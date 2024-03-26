@@ -446,7 +446,7 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_libraries(request_handler, self.properties)
+            result = file_utils.get_libraries(self.properties, request_handler)
         return result or None
 
     def _get_sequencing(
@@ -456,7 +456,7 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_sequencings(request_handler, self.properties)
+            result = file_utils.get_sequencings(self.properties, request_handler)
         return result or None
 
     def _get_assays(
@@ -466,7 +466,7 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_assays(request_handler, self.properties)
+            result = file_utils.get_assays(self.properties, request_handler)
         return result or None
 
     def _get_analytes(
@@ -476,7 +476,7 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_analytes(request_handler, self.properties)
+            result = file_utils.get_analytes(self.properties, request_handler)
         return result or None
 
     def _get_samples(
@@ -486,7 +486,7 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_samples(request_handler, self.properties)
+            result = file_utils.get_samples(self.properties, request_handler)
         return result or None
 
     def _get_sample_sources(
@@ -496,7 +496,7 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_sample_sources(request_handler, self.properties)
+            result = file_utils.get_sample_sources(self.properties, request_handler)
         return result or None
 
     def _get_donors(
@@ -506,7 +506,7 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_donors(request_handler, self.properties)
+            result = file_utils.get_donors(self.properties, request_handler)
         return result or None
 
     def _get_file_summary(
@@ -594,13 +594,13 @@ class File(Item, CoreFile):
             ),
             constants.DATA_GENERATION_ASSAYS: get_property_values_from_identifiers(
                 request_handler,
-                file_utils.get_assays(request_handler, file_properties),
+                file_utils.get_assays(file_properties, request_handler),
                 item_utils.get_display_title,
             ),
             constants.DATA_GENERATION_SEQUENCING_PLATFORMS: (
                 get_property_values_from_identifiers(
                     request_handler,
-                    file_utils.get_sequencings(request_handler, file_properties),
+                    file_utils.get_sequencings(file_properties, request_handler),
                     item_utils.get_display_title,
                 )
             ),
@@ -629,24 +629,24 @@ class File(Item, CoreFile):
         to_include = {
             constants.SAMPLE_SUMMARY_DONOR_IDS: get_property_values_from_identifiers(
                 request_handler,
-                file_utils.get_donors(request_handler, file_properties),
+                file_utils.get_donors(file_properties, request_handler),
                 donor_utils.get_id,
             ),
             constants.SAMPLE_SUMMARY_TISSUES: [],  # TODO: Implement once tissue name added with TPC updates
             constants.SAMPLE_SUMMARY_SAMPLE_NAMES: get_property_values_from_identifiers(
                 request_handler,
-                file_utils.get_samples(request_handler, file_properties),
+                file_utils.get_samples(file_properties, request_handler),
                 functools.partial(sample_utils.get_sample_names, request_handler),
             ),
             constants.SAMPLE_SUMMARY_ANALYTES: get_property_values_from_identifiers(
                 request_handler,
-                file_utils.get_analytes(request_handler, file_properties),
+                file_utils.get_analytes(file_properties, request_handler),
                 analyte_utils.get_molecule,
             ),
             constants.SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS: (
                 get_property_values_from_identifiers(
                     request_handler,
-                    file_utils.get_samples(request_handler, file_properties),
+                    file_utils.get_samples(file_properties, request_handler),
                     functools.partial(
                         sample_utils.get_sample_descriptions, request_handler
                     ),
@@ -654,7 +654,7 @@ class File(Item, CoreFile):
             ),
             constants.SAMPLE_SUMMARY_STUDIES: get_property_values_from_identifiers(
                 request_handler,
-                file_utils.get_samples(request_handler, file_properties),
+                file_utils.get_samples(file_properties, request_handler),
                 functools.partial(sample_utils.get_studies, request_handler),
             ),
         }

@@ -12,7 +12,7 @@ PRODUCTION_STUDY = "Production"
 
 
 def get_tissues(
-    request_handler: RequestHandler, properties: Dict[str, Any]
+    properties: Dict[str, Any], request_handler: RequestHandler
 ) -> List[str]:
     """Get tissues associated with sample."""
     sample_sources = get_sample_sources(properties)
@@ -108,12 +108,12 @@ def get_sample_descriptions(
     if category := tissue_sample.get_category(properties):
         return [category]
     if not is_tissue_sample(properties):
-        return get_sample_descriptions_from_sources(request_handler, properties)
+        return get_sample_descriptions_from_sources(properties, request_handler)
     return []
 
 
 def get_sample_descriptions_from_sources(
-    request_handler: RequestHandler, properties: Dict[str, Any]
+    properties: Dict[str, Any], request_handler: RequestHandler
 ) -> List[str]:
     """Attempt to get an official sample description from its sources."""
     sample_sources = request_handler.get_items(get_sample_sources(properties))

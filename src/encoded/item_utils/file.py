@@ -1,10 +1,10 @@
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 from . import analyte, file_set, library, sample, tissue
 from .utils import RequestHandler, get_unique_values
 
 
-def get_file_format(properties: Dict[str, Any]) -> str:
+def get_file_format(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
     """Get file format from properties."""
     return properties.get("file_format", "")
 
@@ -39,79 +39,99 @@ def get_annotated_filename(properties: Dict[str, Any]) -> str:
     return properties.get("annotated_filename", "")
 
 
-def get_sequencing_center(properties: Dict[str, Any]) -> str:
+def get_sequencing_center(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
     """Get sequencing center from properties."""
     return properties.get("sequencing_center", [])
 
 
-def get_file_sets(properties: Dict[str, Any]) -> List[str]:
+def get_file_sets(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
     """Get file sets from properties."""
     return properties.get("file_sets", [])
 
 
 def get_sequencings(
-    request_handler: RequestHandler, properties: Dict[str, Any]
-) -> List[str]:
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
+) -> List[Union[str, Dict[str, Any]]]:
     """Get sequencings associated with file."""
-    file_sets = request_handler.get_items(get_file_sets(properties))
-    return get_unique_values(file_sets, file_set.get_sequencing)
+    if request_handler:
+        file_sets = request_handler.get_items(get_file_sets(properties))
+        return get_unique_values(file_sets, file_set.get_sequencing)
+    return properties.get("sequencings", [])
 
 
 def get_libraries(
-    request_handler: RequestHandler, properties: Dict[str, Any]
-) -> List[str]:
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
+) -> List[Union[str, Dict[str, Any]]]:
     """Get libraries associated with file."""
-    file_sets = request_handler.get_items(get_file_sets(properties))
-    return get_unique_values(file_sets, file_set.get_libraries)
+    if request_handler:
+        file_sets = request_handler.get_items(get_file_sets(properties))
+        return get_unique_values(file_sets, file_set.get_libraries)
+    return properties.get("libraries", [])
 
 
 def get_assays(
-    request_handler: RequestHandler, properties: Dict[str, Any]
-) -> List[str]:
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
+) -> List[Union[str, Dict[str, Any]]]:
     """Get assays associated with file."""
-    libraries = request_handler.get_items(get_libraries(request_handler, properties))
-    return get_unique_values(libraries, library.get_assay)
+    if request_handler:
+        libraries = request_handler.get_items(
+            get_libraries(properties, request_handler)
+        )
+        return get_unique_values(libraries, library.get_assay)
+    return properties.get("assays", [])
 
 
 def get_analytes(
-    request_handler: RequestHandler, properties: Dict[str, Any]
-) -> List[str]:
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
+) -> List[Union[str, Dict[str, Any]]]:
     """Get analytes associated with file."""
-    libraries = request_handler.get_items(get_libraries(request_handler, properties))
-    return get_unique_values(libraries, library.get_analyte)
+    if request_handler:
+        libraries = request_handler.get_items(
+            get_libraries(properties, request_handler)
+        )
+        return get_unique_values(libraries, library.get_analyte)
+    return properties.get("analytes", [])
 
 
 def get_samples(
-    request_handler: RequestHandler, properties: Dict[str, Any]
-) -> List[str]:
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
+) -> List[Union[str, Dict[str, Any]]]:
     """Get samples associated with file."""
-    analytes = request_handler.get_items(get_analytes(request_handler, properties))
-    return get_unique_values(analytes, analyte.get_samples)
+    if request_handler:
+        analytes = request_handler.get_items(get_analytes(properties, request_handler))
+        return get_unique_values(analytes, analyte.get_samples)
+    return properties.get("samples", [])
 
 
 def get_sample_sources(
-    request_handler: RequestHandler, properties: Dict[str, Any]
-) -> List[str]:
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
+) -> List[Union[str, Dict[str, Any]]]:
     """Get sample sources associated with file."""
-    samples = request_handler.get_items(get_samples(request_handler, properties))
-    return get_unique_values(samples, sample.get_sample_sources)
+    if request_handler:
+        samples = request_handler.get_items(get_samples(properties, request_handler))
+        return get_unique_values(samples, sample.get_sample_sources)
+    return properties.get("sample_sources", [])
 
 
 def get_tissues(
-    request_handler: RequestHandler, properties: Dict[str, Any]
-) -> List[str]:
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
+) -> List[Union[str, Dict[str, Any]]]:
     """Get tissues associated with file."""
-    sample_sources = get_sample_sources(request_handler, properties)
-    return [
-        sample_source
-        for sample_source in sample_sources
-        if tissue.is_tissue(request_handler.get_item(sample_source))
-    ]
+    if request_handler:
+        sample_sources = get_sample_sources(properties, request_handler)
+        return [
+            sample_source
+            for sample_source in sample_sources
+            if tissue.is_tissue(request_handler.get_item(sample_source))
+        ]
+    return properties.get("tissues", [])
 
 
 def get_donors(
-    request_handler: RequestHandler, properties: Dict[str, Any]
-) -> List[str]:
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
+) -> List[Union[str, Dict[str, Any]]]:
     """Get donors associated with file."""
-    tissues = request_handler.get_items(get_tissues(request_handler, properties))
-    return get_unique_values(tissues, tissue.get_donor)
+    if request_handler:
+        tissues = request_handler.get_items(get_tissues(properties, request_handler))
+        return get_unique_values(tissues, tissue.get_donor)
+    return properties.get("donors", [])

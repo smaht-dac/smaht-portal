@@ -7,6 +7,11 @@ from webtest.app import TestApp
 from .utils import (
     get_item, get_search, patch_item, post_item, post_item_and_return_location
 )
+from ..item_utils import (
+    file as file_utils,
+    file_set as file_set_utils,
+    item as item_utils
+)
 
 
 OUTPUT_FILE_FORMAT = "FASTQ"
@@ -433,3 +438,52 @@ def test_meta_workflow_run_outputs_rev_link(
         es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid=No+value"
     )
     assert file_without_outputs_search
+
+
+@pytest.mark.workbook
+def test_libraries(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'libraries' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+    """
+    file_without_libraries_search = get_search(
+        es_testapp, "/search/?type=File&file_sets.libraries.uuid=No+value"
+    )
+    assert file_without_libraries_search
+    file = file_without_libraries_search[0]
+    assert_libraries_calcprop_matches_file_set(file)
+
+    submitted_file_with_libraries_search = get_search(
+        es_testapp, "/search/?type=SubmittedFile&file_sets.libraries.uuid!=No+value"
+    )
+    assert submitted_file_with_libraries_search
+    submitted_file = submitted_file_with_libraries_search[0]
+    assert_libraries_calcprop_matches_file_set(submitted_file)
+
+    output_file_with_libraries_search = get_search(
+        es_testapp, "/search/?type=OutputFile&file_sets.libraries.uuid!=No+value"
+    )
+    assert output_file_with_libraries_search
+    output_file = output_file_with_libraries_search[0]
+    assert_libraries_calcprop_matches_file_set(output_file)
+
+
+def assert_libraries_calcprop_matches_file_set(file: Dict[str, Any]) -> None:
+    """Ensure 'libraries' calcprop matches 'file_sets.libraries'."""
+    libraries_from_calcprop = file_utils.get_libraries(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries_from_file_set = [
+        library
+        for file_set in file_sets
+        for library in file_set_utils.get_libraries(file_set)
+    ]
+    assert_items_match(libraries_from_calcprop, libraries_from_file_set)
+
+
+def assert_items_match(
+    first: List[Dict[str, Any]], second: List[Dict[str, Any]]
+) -> None:
+    """Ensure two lists of items match, per UUIDs."""
+    first_uuids = list(set(item_utils.get_uuid(item) for item in first))
+    second_uuids = list(set(item_utils.get_uuid(item) for item in second))
+    assert first_uuids == second_uuids

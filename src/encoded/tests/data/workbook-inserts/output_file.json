@@ -25,6 +25,9 @@
         "consortia": [
             "smaht"
         ],
+        "file_sets": [
+            "TEST_FILE-SET_LIVER"
+        ],
         "file_size": 5000
     },
     {
