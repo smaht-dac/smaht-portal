@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from typing import Callable, Dict, List, Generator, Optional, Tuple, Union
 from dcicutils.misc_utils import VirtualApp
 from dcicutils.structured_data import Portal
@@ -104,12 +105,13 @@ def load_data_into_database(submission_uuid: str,
     def define_progress_tracker(submission_uuid: str) -> Optional[Callable]:
         if not (redis := Redis.connection()):
             return None
-        progress_counts = {"submission_uuid": submission_uuid, enum.value: (0 for enum in PROGRESS)}
+        progress_counts = {"uuid": submission_uuid,
+                           "started": str(datetime.utcnow()), **{enum.value: 0 for enum in PROGRESS}}
         redis.set_expiration(submission_uuid, REDIS_INGESTION_STATUS_EXPIRATION)
         def progress_tracker(progress: PROGRESS) -> None:  # noqa
             nonlocal progress_counts
             progress_counts[progress.value] += 1
-            redis.set(submission_uuid, progress_counts)
+            redis.set(submission_uuid, {**progress_counts, "timestamp": str(datetime.utcnow())})
         return progress_tracker
 
     def call_loadxl(validate_only: bool):
