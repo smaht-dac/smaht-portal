@@ -5,9 +5,9 @@ from dcicutils.misc_utils import VirtualApp
 from dcicutils.structured_data import Portal, StructuredDataSet
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
-from ..project.loadxl import ITEM_INDEX_ORDER
-from .loadxl_extensions import load_data_into_database, summary_of_load_data_results
-from .submission_folio import SmahtSubmissionFolio
+from encoded.project.loadxl import ITEM_INDEX_ORDER
+from encoded.ingestion.loadxl_extensions import load_data_into_database, summary_of_load_data_results
+from encoded.ingestion.submission_folio import SmahtSubmissionFolio
 # from ..schema_formats import is_accession  # TODO: Problem with circular dependencies.
 
 def includeme(config):
@@ -35,7 +35,8 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
             # raise Exception(validation_errors)
             return
         load_data_response = load_data_into_database(
-            submission=submission,
+            submission_uuid=submission.id,
+            nrows=structured_data.nrows,
             data=structured_data.data,
             portal_vapp=submission.portal_vapp,
             post_only=submission.post_only,

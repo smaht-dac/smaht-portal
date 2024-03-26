@@ -1,33 +1,34 @@
 import re
-from typing import Dict, List, Generator, Optional, Tuple, Union
+from typing import Callable, Dict, List, Generator, Optional, Tuple, Union
 from dcicutils.misc_utils import VirtualApp
 from dcicutils.structured_data import Portal
-from snovault.loadxl import load_all_gen as loadxl_load_data
-from .submission_folio import SmahtSubmissionFolio
-from .redis import Redis
+from snovault.loadxl import load_all_gen as loadxl, PROGRESS
+from encoded.ingestion.submission_folio import SmahtSubmissionFolio
+from encoded.ingestion.redis import Redis
 
 
-def load_data_into_database(submission: SmahtSubmissionFolio,
+# Maxiumum amount of time the ingestion status (counts) for an IngestionSubmission
+# will remain in Redis -> 24 hours in seconds; this is relative to the last update
+# of the key value; the key is the uuid of the IngestionSubmission object.
+REDIS_INGESTION_STATUS_EXPIRATION = 60 * 60 * 24
+
+def load_data_into_database(submission_uuid: str,
                             data: Dict[str, List[Dict]], portal_vapp: VirtualApp,
+                            nrows: Optional[int] = None,
                             post_only: bool = False,
                             patch_only: bool = False,
                             validate_only: bool = False,
                             validate_first: bool = False,
                             resolved_refs: List[str] = None) -> Dict:
 
-    redis = Redis()
-
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
-        nonlocal portal_vapp, redis
+        nonlocal portal_vapp
         portal = None
         upload_info = []
         LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*([a-zA-Z\/\d_-]+)\s*(\S+)\s*(\S+)?\s*(.*)$")
         LOADXL_ACTION_NAME = {"POST": "created", "PATCH": "updated", "SKIP": "skipped", "CHECK": "validated", "ERROR": "errors"}
         response = {value: [] for value in LOADXL_ACTION_NAME.values()}
-        ingestion_counts = {**{value: 0 for value in LOADXL_ACTION_NAME.values()}, "items": 0}
         for item in loadxl_response:
-            if redis:
-                ingestion_counts["items"] += 1
             # ASSUME each item in the loadxl response looks something like one of (string or bytes):
             # POST: beefcafe-01ce-4e61-be5d-cd04401dff29 FileFormat
             # PATCH: deadbabe-7b4f-4923-824b-d0864a689bb Software
@@ -82,10 +83,6 @@ def load_data_into_database(submission: SmahtSubmissionFolio,
             if not response.get(action):
                 response[action] = []
             response[action].append(response_value)
-            if redis:
-                if action:
-                    ingestion_counts[action] += 1
-                redis.put(submission.id, ingestion_counts)
         # Items flagged as SKIP in loadxl could ultimately be a PATCH (update),
         # so remove from the skip list any items which are also in the update list. 
         response["skipped"] = [item for item in response["skipped"] if item not in response["updated"]]
@@ -104,10 +101,22 @@ def load_data_into_database(submission: SmahtSubmissionFolio,
         )
         return response
 
+    def define_progress_tracker(submission_uuid: str) -> Optional[Callable]:
+        if not (redis := Redis.connection()):
+            return None
+        progress_counts = {"submission_uuid": submission_uuid, enum.value: (0 for enum in PROGRESS)}
+        redis.set_expiration(submission_uuid, REDIS_INGESTION_STATUS_EXPIRATION)
+        def progress_tracker(progress: PROGRESS) -> None:  # noqa
+            nonlocal progress_counts
+            progress_counts[progress.value] += 1
+            redis.set(submission_uuid, progress_counts)
+        return progress_tracker
+
     def call_loadxl(validate_only: bool):
-        nonlocal portal_vapp, data, post_only, patch_only
+        nonlocal portal_vapp, data, post_only, patch_only, submission_uuid
+        progress_tracker = define_progress_tracker(submission_uuid)
         return package_loadxl_response(
-                loadxl_load_data(
+                loadxl(
                     testapp=portal_vapp,
                     inserts=data,
                     docsdir=None,
@@ -119,15 +128,15 @@ def load_data_into_database(submission: SmahtSubmissionFolio,
                     post_only=post_only,
                     patch_only=patch_only,
                     validate_only=validate_only,
-                    skip_links=True))
+                    skip_links=True,
+                    progress=progress_tracker))
 
     if validate_first and not validate_only:
         response = call_loadxl(validate_only=True)
         if response.get("errors", []):
             return response
 
-    response = call_loadxl(validate_only=validate_only)
-    return response
+    return call_loadxl(validate_only=validate_only)
 
 
 def summary_of_load_data_results(load_data_response: Optional[Dict],
