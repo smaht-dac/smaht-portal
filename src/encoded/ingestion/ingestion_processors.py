@@ -42,9 +42,7 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
             post_only=submission.post_only,
             patch_only=submission.patch_only,
             validate_only=submission.validate_only,
-            validate_first=submission.validate_first,
-            resolved_refs=(structured_data.resolved_refs
-                           if submission.validate_only or submission.validate_first else None))
+            resolved_refs=(structured_data.resolved_refs if submission.validate_only else None))
         load_data_summary = summary_of_load_data_results(load_data_response, submission)
         submission.record_results(load_data_response, load_data_summary)
 

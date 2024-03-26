@@ -19,7 +19,6 @@ def load_data_into_database(submission_uuid: str,
                             post_only: bool = False,
                             patch_only: bool = False,
                             validate_only: bool = False,
-                            validate_first: bool = False,
                             resolved_refs: List[str] = None) -> Dict:
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
@@ -45,10 +44,10 @@ def load_data_into_database(submission_uuid: str,
                 continue
             if (action := LOADXL_ACTION_NAME[match.group(1).upper()]) == "errors":
                 response_value = match.group(0)
-                # If we are in validate_only (or validate_first) mode, and if this is a reference (linkTo)
+                # If we are in validate_only mode, and if this is a reference (linkTo)
                 # error/exception, and if the given resolved_refs (from ingestion_processors/structured_data),
                 # contains the reference to which this error refers, then no error after all; this is because
-                # in validate_only (or validate_first) mode we may well get false reference errors, and/but
+                # in validate_only  mode we may well get false reference errors, and/but
                 # we already did referential integrity checking in the structured_data processing, so we
                 # can regard that as the source of truth for referential ingegrity.
                 if resolved_refs:
@@ -56,7 +55,7 @@ def load_data_into_database(submission_uuid: str,
                         _get_ref_error_info_from_exception_string(response_value))
                     if instance_type and instance_identifying_value and (ref_error_path in resolved_refs):
                         # Here we have a reference (linkTo) error/exception, but because we are in
-                        # validate_only (or validate_first) mode, and because the reference was
+                        # validate_only  mode, and because the reference was
                         # actually resolved via structured_data referential ingegrity checking 
                         # in ingestion_processors, then this is a false error; so ignore it;
                         # and/but include this object (which refers to the reference in
@@ -114,31 +113,22 @@ def load_data_into_database(submission_uuid: str,
             redis.set(submission_uuid, {**progress_counts, "timestamp": str(datetime.utcnow())})
         return progress_tracker
 
-    def call_loadxl(validate_only: bool):
-        nonlocal portal_vapp, data, post_only, patch_only, submission_uuid
-        progress_tracker = define_progress_tracker(submission_uuid)
-        return package_loadxl_response(
-                loadxl(
-                    testapp=portal_vapp,
-                    inserts=data,
-                    docsdir=None,
-                    overwrite=True,
-                    itype=None,
-                    from_json=True,
-                    continue_on_exception=True,
-                    verbose=True,
-                    post_only=post_only,
-                    patch_only=patch_only,
-                    validate_only=validate_only,
-                    skip_links=True,
-                    progress=progress_tracker))
+    loadxl_response = loadxl(
+        testapp=portal_vapp,
+        inserts=data,
+        docsdir=None,
+        overwrite=True,
+        itype=None,
+        from_json=True,
+        continue_on_exception=True,
+        verbose=True,
+        post_only=post_only,
+        patch_only=patch_only,
+        validate_only=validate_only,
+        skip_links=True,
+        progress=define_progress_tracker(submission_uuid))
 
-    if validate_first and not validate_only:
-        response = call_loadxl(validate_only=True)
-        if response.get("errors", []):
-            return response
-
-    return call_loadxl(validate_only=validate_only)
+    return package_loadxl_response(loadxl_response)
 
 
 def summary_of_load_data_results(load_data_response: Optional[Dict],
