@@ -15,6 +15,7 @@ from ..item_utils import (
     item as item_utils,
     library as library_utils,
     sample as sample_utils,
+    sequencing as sequencing_utils,
     tissue as tissue_utils,
 )
 from ..types.file import CalcPropConstants
@@ -898,3 +899,103 @@ def assert_all_summary_fields_present_in_items(
         field for field, exists in zip(fields, fields_exist) if not exists
     ]
     assert all(fields_exist), f"Missing fields: {missing_fields}"
+
+
+@pytest.mark.workbook
+def test_data_generation_summary(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'data_generation_summary' calcprop fields correct for inserts.
+
+    Expected on SubmittedFile and OutputFile items.
+
+    Checks fields present on inserts and as expected by parsing
+    properties/embeds, and all ensures all fields present on at least
+    one item.
+    """
+    search_key = "data_generation_summary.data_type"
+    file_without_summary_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_summary_search
+
+    submitted_file_with_summary_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
+    )
+    assert submitted_file_with_summary_search
+    for submitted_file in submitted_file_with_summary_search:
+        assert_data_generation_summary_matches_expected(submitted_file, es_testapp)
+
+    output_file_with_summary_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
+    )
+    assert output_file_with_summary_search
+    for output_file in output_file_with_summary_search:
+        assert_data_generation_summary_matches_expected(output_file, es_testapp)
+
+    all_items = submitted_file_with_summary_search + output_file_with_summary_search
+    all_fields = schema_utils.get_properties(
+        CalcPropConstants.DATA_GENERATION_SCHEMA
+    ).keys()
+    assert_all_summary_fields_present_in_items(
+        all_items, all_fields, "data_generation_summary"
+    )
+
+
+def assert_data_generation_summary_matches_expected(
+    file: Dict[str, Any], es_testapp: TestApp
+) -> None:
+    """Compare 'data_generation_summary' calcprop to expected values.
+
+    Expected values determined here by parsing file properties/embeds.
+    """
+    data_generation_summary = file_utils.get_data_generation_summary(file)
+    expected_data_category = file_utils.get_data_category(file)
+    expected_data_type = file_utils.get_data_type(file)
+    sequencing_center = file_utils.get_sequencing_center(file)
+    expected_sequencing_center = item_utils.get_display_title(
+        get_item(
+            es_testapp,
+            item_utils.get_uuid(sequencing_center),
+        )
+    ) if sequencing_center else ""
+    expected_submission_centers = [
+        item_utils.get_display_title(
+            get_item(es_testapp, item_utils.get_uuid(submission_center))
+        )
+        for submission_center in item_utils.get_submission_centers(file)
+    ]
+    assays = file_utils.get_assays(file)
+    expected_assays = [
+        item_utils.get_display_title(
+            get_item(es_testapp, item_utils.get_uuid(assay))
+        )
+        for assay in assays
+    ] if assays else []
+    sequencings = [
+        file_set_utils.get_sequencing(file_set)
+        for file_set in file_utils.get_file_sets(file)
+    ]
+    expected_platforms = [
+        item_utils.get_display_title(
+            get_item(
+                es_testapp,
+                item_utils.get_uuid(sequencing_utils.get_sequencer(sequencing)),
+            )
+        )
+        for sequencing in sequencings
+    ] if sequencings else []
+    assert_values_match_if_present(
+        data_generation_summary, "data_category", expected_data_category
+    )
+    assert_values_match_if_present(
+        data_generation_summary, "data_type", expected_data_type
+    )
+    assert_values_match_if_present(
+        data_generation_summary, "sequencing_center", expected_sequencing_center
+    )
+    assert_values_match_if_present(
+        data_generation_summary, "submission_centers", expected_submission_centers
+    )
+    assert_values_match_if_present(data_generation_summary, "assays", expected_assays)
+    assert_values_match_if_present(
+        data_generation_summary, "sequencing_platforms", expected_platforms
+    )

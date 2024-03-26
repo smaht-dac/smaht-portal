@@ -1,7 +1,9 @@
 from typing import Any, Dict, List, Optional, Union
 
-from . import analyte, file_set, library, sample, tissue
-from .utils import RequestHandler, get_unique_values
+from . import analyte, file_set, library, sample, sequencing, tissue
+from .utils import (
+    RequestHandler, get_property_values_from_identifiers ,get_unique_values
+)
 
 
 def get_file_format(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
@@ -41,7 +43,7 @@ def get_annotated_filename(properties: Dict[str, Any]) -> str:
 
 def get_sequencing_center(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
     """Get sequencing center from properties."""
-    return properties.get("sequencing_center", [])
+    return properties.get("sequencing_center", "")
 
 
 def get_file_sets(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
@@ -57,6 +59,16 @@ def get_sequencings(
         file_sets = request_handler.get_items(get_file_sets(properties))
         return get_unique_values(file_sets, file_set.get_sequencing)
     return properties.get("sequencing", [])
+
+
+def get_sequencers(
+    properties: Dict[str, Any], request_handler: RequestHandler
+) -> List[str]:
+    """Get sequencers associated with file."""
+    sequencings = get_sequencings(properties, request_handler)
+    return get_property_values_from_identifiers(
+        request_handler, sequencings, sequencing.get_sequencer
+    )
 
 
 def get_libraries(
@@ -140,3 +152,8 @@ def get_donors(
 def get_file_summary(properties: Dict[str, Any]) -> str:
     """Get file summary from properties."""
     return properties.get("file_summary", "")
+
+
+def get_data_generation_summary(properties: Dict[str, Any]) -> str:
+    """Get data generation summary from properties."""
+    return properties.get("data_generation_summary", "")

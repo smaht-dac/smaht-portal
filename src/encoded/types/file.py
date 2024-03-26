@@ -600,7 +600,7 @@ class File(Item, CoreFile):
             constants.DATA_GENERATION_SEQUENCING_PLATFORMS: (
                 get_property_values_from_identifiers(
                     request_handler,
-                    file_utils.get_sequencings(file_properties, request_handler),
+                    file_utils.get_sequencers(file_properties, request_handler),
                     item_utils.get_display_title,
                 )
             ),
