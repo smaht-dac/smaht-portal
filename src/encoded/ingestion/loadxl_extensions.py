@@ -101,10 +101,10 @@ def load_data_into_database(submission_uuid: str,
         )
         return response
 
-    def define_progress_tracker(submission_uuid: str) -> Optional[Callable]:
+    def define_progress_tracker(submission_uuid: str, total: int) -> Optional[Callable]:
         if not (redis := Redis.connection()):
             return None
-        progress_counts = {"uuid": submission_uuid,
+        progress_counts = {"uuid": submission_uuid, "total": total,
                            "started": str(datetime.utcnow()), **{enum.value: 0 for enum in PROGRESS}}
         redis.set_expiration(submission_uuid, REDIS_INGESTION_STATUS_EXPIRATION)
         def progress_tracker(progress: PROGRESS) -> None:  # noqa
@@ -126,7 +126,7 @@ def load_data_into_database(submission_uuid: str,
         patch_only=patch_only,
         validate_only=validate_only,
         skip_links=True,
-        progress=define_progress_tracker(submission_uuid))
+        progress=define_progress_tracker(submission_uuid, total=nrows))
 
     return package_loadxl_response(loadxl_response)
 
