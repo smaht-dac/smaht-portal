@@ -135,3 +135,8 @@ def get_donors(
         tissues = request_handler.get_items(get_tissues(properties, request_handler))
         return get_unique_values(tissues, tissue.get_donor)
     return properties.get("donors", [])
+
+
+def get_file_summary(properties: Dict[str, Any]) -> str:
+    """Get file summary from properties."""
+    return properties.get("file_summary", "")

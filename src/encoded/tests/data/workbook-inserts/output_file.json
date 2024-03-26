@@ -28,7 +28,8 @@
         "file_sets": [
             "TEST_FILE-SET_LIVER"
         ],
-        "file_size": 5000
+        "file_size": 5000,
+        "md5sum": "211e09ebf240c7256747d10e24cb99fd"
     },
     {
         "uuid": "cca15caa-bc11-4a6a-8998-ea0c69df8b9e",

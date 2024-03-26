@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 import pytest
+from dcicutils import schema_utils
 from webtest.app import TestApp
 
 from .utils import (
@@ -16,6 +17,7 @@ from ..item_utils import (
     sample as sample_utils,
     tissue as tissue_utils,
 )
+from ..types.file import CalcPropConstants
 
 
 OUTPUT_FILE_FORMAT = "FASTQ"
@@ -444,6 +446,18 @@ def test_meta_workflow_run_outputs_rev_link(
     assert file_without_outputs_search
 
 
+def search_type_for_key(
+    testapp: TestApp, item_type: str, key: str, exists: Optional[bool] = True
+) -> List[Dict[str, Any]]:
+    """Search for items of a given type for given key."""
+    query = f"?type={item_type}&{key}"
+    if exists:
+        query += "!=No+value"
+    else:
+        query += "=No+value"
+    return get_search(testapp, query)
+
+
 @pytest.mark.workbook
 def test_libraries(es_testapp: TestApp, workbook: None) -> None:
     """Ensure 'libraries' calcprop is correct.
@@ -452,26 +466,27 @@ def test_libraries(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    file_without_libraries_search = get_search(
-        es_testapp, "/search/?type=File&file_sets.libraries.uuid=No+value"
+    search_key = "file_sets.libraries.uuid"
+    file_without_libraries_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
     )
     assert file_without_libraries_search
-    file = file_without_libraries_search[0]
-    assert_libraries_calcprop_matches_embeds(file)
+    for file in file_without_libraries_search:
+        assert not file_utils.get_libraries(file)
 
-    submitted_file_with_libraries_search = get_search(
-        es_testapp, "/search/?type=SubmittedFile&file_sets.libraries.uuid!=No+value"
+    submitted_file_with_libraries_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
     )
     assert submitted_file_with_libraries_search
-    submitted_file = submitted_file_with_libraries_search[0]
-    assert_libraries_calcprop_matches_embeds(submitted_file)
+    for submitted_file in submitted_file_with_libraries_search:
+        assert_libraries_calcprop_matches_embeds(submitted_file)
 
-    output_file_with_libraries_search = get_search(
-        es_testapp, "/search/?type=OutputFile&file_sets.libraries.uuid!=No+value"
+    output_file_with_libraries_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
     )
     assert output_file_with_libraries_search
-    output_file = output_file_with_libraries_search[0]
-    assert_libraries_calcprop_matches_embeds(output_file)
+    for output_file in output_file_with_libraries_search:
+        assert_libraries_calcprop_matches_embeds(output_file)
 
 
 def assert_libraries_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
@@ -503,26 +518,27 @@ def test_sequencing(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    file_without_sequencing_search = get_search(
-        es_testapp, "/search/?type=File&file_sets.sequencing.uuid=No+value"
+    search_key = "file_sets.sequencing.uuid"
+    file_without_sequencing_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
     )
     assert file_without_sequencing_search
-    file = file_without_sequencing_search[0]
-    assert_sequencing_calcprop_matches_embeds(file)
+    for file in file_without_sequencing_search:
+        assert not file_utils.get_sequencings(file)
 
-    submitted_file_with_sequencing_search = get_search(
-        es_testapp, "/search/?type=SubmittedFile&file_sets.sequencing.uuid!=No+value"
+    submitted_file_with_sequencing_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
     )
     assert submitted_file_with_sequencing_search
-    submitted_file = submitted_file_with_sequencing_search[0]
-    assert_sequencing_calcprop_matches_embeds(submitted_file)
+    for submitted_file in submitted_file_with_sequencing_search:
+        assert_sequencing_calcprop_matches_embeds(submitted_file)
 
-    output_file_with_sequencing_search = get_search(
-        es_testapp, "/search/?type=OutputFile&file_sets.sequencing.uuid!=No+value"
+    output_file_with_sequencing_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
     )
     assert output_file_with_sequencing_search
-    output_file = output_file_with_sequencing_search[0]
-    assert_sequencing_calcprop_matches_embeds(output_file)
+    for output_file in output_file_with_sequencing_search:
+        assert_sequencing_calcprop_matches_embeds(output_file)
 
 
 def assert_sequencing_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
@@ -543,27 +559,27 @@ def test_assays(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    file_without_assays_search = get_search(
-        es_testapp, "/search/?type=File&file_sets.libraries.assay.uuid=No+value"
+    search_key = "file_sets.libraries.assay.uuid"
+    file_without_assays_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
     )
     assert file_without_assays_search
-    file = file_without_assays_search[0]
-    assert_assays_calcprop_matches_embeds(file)
+    for file in file_without_assays_search:
+        assert not file_utils.get_assays(file)
 
-    submitted_file_with_assays_search = get_search(
-        es_testapp,
-        "/search/?type=SubmittedFile&file_sets.libraries.assay.uuid!=No+value",
+    submitted_file_with_assays_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
     )
     assert submitted_file_with_assays_search
-    submitted_file = submitted_file_with_assays_search[0]
-    assert_assays_calcprop_matches_embeds(submitted_file)
+    for submitted_file in submitted_file_with_assays_search:
+        assert_assays_calcprop_matches_embeds(submitted_file)
 
-    output_file_with_assays_search = get_search(
-        es_testapp, "/search/?type=OutputFile&file_sets.libraries.assay.uuid!=No+value"
+    output_file_with_assays_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
     )
     assert output_file_with_assays_search
-    output_file = output_file_with_assays_search[0]
-    assert_assays_calcprop_matches_embeds(output_file)
+    for output_file in output_file_with_assays_search:
+        assert_assays_calcprop_matches_embeds(output_file)
 
 
 def assert_assays_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
@@ -587,28 +603,27 @@ def test_analytes(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    file_without_analytes_search = get_search(
-        es_testapp, "/search/?type=File&file_sets.libraries.analyte.uuid=No+value"
+    search_key = "file_sets.libraries.analyte.uuid"
+    file_without_analytes_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
     )
     assert file_without_analytes_search
-    file = file_without_analytes_search[0]
-    assert_analytes_calcprop_matches_embeds(file)
+    for file in file_without_analytes_search:
+        assert not file_utils.get_analytes(file)
 
-    submitted_file_with_analytes_search = get_search(
-        es_testapp,
-        "/search/?type=SubmittedFile&file_sets.libraries.analyte.uuid!=No+value",
+    submitted_file_with_analytes_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
     )
     assert submitted_file_with_analytes_search
-    submitted_file = submitted_file_with_analytes_search[0]
-    assert_analytes_calcprop_matches_embeds(submitted_file)
+    for submitted_file in submitted_file_with_analytes_search:
+        assert_analytes_calcprop_matches_embeds(submitted_file)
 
-    output_file_with_analytes_search = get_search(
-        es_testapp,
-        "/search/?type=OutputFile&file_sets.libraries.analyte.uuid!=No+value",
+    output_file_with_analytes_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
     )
     assert output_file_with_analytes_search
-    output_file = output_file_with_analytes_search[0]
-    assert_analytes_calcprop_matches_embeds(output_file)
+    for output_file in output_file_with_analytes_search:
+        assert_analytes_calcprop_matches_embeds(output_file)
 
 
 def assert_analytes_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
@@ -632,29 +647,27 @@ def test_samples(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    file_without_samples_search = get_search(
-        es_testapp,
-        "/search/?type=File&file_sets.libraries.analyte.samples.uuid=No+value",
+    search_key = "file_sets.libraries.analyte.samples.uuid"
+    file_without_samples_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
     )
     assert file_without_samples_search
-    file = file_without_samples_search[0]
-    assert_samples_calcprop_matches_embeds(file)
+    for file in file_without_samples_search:
+        assert not file_utils.get_samples(file)
 
-    submitted_file_with_samples_search = get_search(
-        es_testapp,
-        "/search/?type=SubmittedFile&file_sets.libraries.analyte.samples.uuid!=No+value",
+    submitted_file_with_samples_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
     )
     assert submitted_file_with_samples_search
-    submitted_file = submitted_file_with_samples_search[0]
-    assert_samples_calcprop_matches_embeds(submitted_file)
+    for submitted_file in submitted_file_with_samples_search:
+        assert_samples_calcprop_matches_embeds(submitted_file)
 
-    output_file_with_samples_search = get_search(
-        es_testapp,
-        "/search/?type=OutputFile&file_sets.libraries.analyte.samples.uuid!=No+value",
+    output_file_with_samples_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
     )
     assert output_file_with_samples_search
-    output_file = output_file_with_samples_search[0]
-    assert_samples_calcprop_matches_embeds(output_file)
+    for output_file in output_file_with_samples_search:
+        assert_samples_calcprop_matches_embeds(output_file)
 
 
 def assert_samples_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
@@ -683,38 +696,27 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    file_without_sample_sources_search = get_search(
-        es_testapp,
-        (
-            "/search/?type=File"
-            "&file_sets.libraries.analyte.samples.sample_sources.uuid=No+value"
-        ),
+    search_key = "file_sets.libraries.analyte.samples.sample_sources.uuid"
+    file_without_sample_sources_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
     )
     assert file_without_sample_sources_search
-    file = file_without_sample_sources_search[0]
-    assert_sample_sources_calcprop_matches_embeds(file)
+    for file in file_without_sample_sources_search:
+        assert not file_utils.get_sample_sources(file)
 
-    submitted_file_with_sample_sources_search = get_search(
-        es_testapp,
-        (
-            "/search/?type=SubmittedFile"
-            "&file_sets.libraries.analyte.samples.sample_sources.uuid!=No+value"
-        ),
+    submitted_file_with_sample_sources_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
     )
     assert submitted_file_with_sample_sources_search
-    submitted_file = submitted_file_with_sample_sources_search[0]
-    assert_sample_sources_calcprop_matches_embeds(submitted_file)
+    for submitted_file in submitted_file_with_sample_sources_search:
+        assert_sample_sources_calcprop_matches_embeds(submitted_file)
 
-    output_file_with_sample_sources_search = get_search(
-        es_testapp,
-        (
-            "/search/?type=OutputFile"
-            "&file_sets.libraries.analyte.samples.sample_sources.uuid!=No+value"
-        ),
+    output_file_with_sample_sources_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
     )
     assert output_file_with_sample_sources_search
-    output_file = output_file_with_sample_sources_search[0]
-    assert_sample_sources_calcprop_matches_embeds(output_file)
+    for output_file in output_file_with_sample_sources_search:
+        assert_sample_sources_calcprop_matches_embeds(output_file)
 
 
 def assert_sample_sources_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
@@ -748,38 +750,27 @@ def test_donors(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    file_without_donors_search = get_search(
-        es_testapp,
-        (
-            "/search/?type=File"
-            "&file_sets.libraries.analyte.samples.sample_sources.donor.uuid=No+value"
-        ),
+    search_key = "file_sets.libraries.analyte.samples.sample_sources.donor.uuid"
+    file_without_donors_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
     )
     assert file_without_donors_search
-    file = file_without_donors_search[0]
-    assert_donors_calcprop_matches_embeds(file)
+    for file in file_without_donors_search:
+        assert not file_utils.get_donors(file)
 
-    submitted_file_with_donors_search = get_search(
-        es_testapp,
-        (
-            "/search/?type=SubmittedFile"
-            "&file_sets.libraries.analyte.samples.sample_sources.donor.uuid!=No+value"
-        ),
+    submitted_file_with_donors_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
     )
     assert submitted_file_with_donors_search
-    submitted_file = submitted_file_with_donors_search[0]
-    assert_donors_calcprop_matches_embeds(submitted_file)
+    for submitted_file in submitted_file_with_donors_search:
+        assert_donors_calcprop_matches_embeds(submitted_file)
 
-    output_file_with_donors_search = get_search(
-        es_testapp,
-        (
-            "/search/?type=OutputFile"
-            "&file_sets.libraries.analyte.samples.sample_sources.donor.uuid!=No+value"
-        ),
+    output_file_with_donors_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
     )
     assert output_file_with_donors_search
-    output_file = output_file_with_donors_search[0]
-    assert_donors_calcprop_matches_embeds(output_file)
+    for output_file in output_file_with_donors_search:
+        assert_donors_calcprop_matches_embeds(output_file)
 
 
 def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
@@ -806,3 +797,104 @@ def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
         tissue_utils.get_donor(sample_source) for sample_source in sample_sources
     ]
     assert_items_match(donors_from_calcprop, donors)
+
+
+@pytest.mark.workbook
+def test_file_summary(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'file_summary' calcprop fields correct for inserts.
+
+    Expected on SubmittedFile and OutputFile items.
+
+    Checks fields present on inserts and as expected by parsing
+    properties/embeds, and all ensures all fields present on at least
+    one item.
+    """
+    search_key = "file_summary.uuid"  # should always be present if file_summary present
+    file_without_summary_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_summary_search
+
+    submitted_file_with_summary_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
+    )
+    assert submitted_file_with_summary_search
+    for submitted_file in submitted_file_with_summary_search:
+        assert_file_summary_matches_expected(submitted_file, es_testapp)
+
+    output_file_with_summary_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
+    )
+    assert output_file_with_summary_search
+    for output_file in output_file_with_summary_search:
+        assert_file_summary_matches_expected(output_file, es_testapp)
+
+    all_items = submitted_file_with_summary_search + output_file_with_summary_search
+    all_fields = schema_utils.get_properties(
+        CalcPropConstants.FILE_SUMMARY_SCHEMA
+    ).keys()
+    assert_all_summary_fields_present_in_items(all_items, all_fields, "file_summary")
+
+
+def assert_file_summary_matches_expected(
+    file: Dict[str, Any], es_testapp: TestApp
+) -> None:
+    """Compare 'file_summary' calcprop to expected values.
+
+    Expected values determined here by parsing file properties/embeds.
+    """
+    file_summary = file_utils.get_file_summary(file)
+    expected_annotated_name = file_utils.get_annotated_filename(file)
+    expected_access_status = file_utils.get_access_status(file)
+    expected_file_format = item_utils.get_display_title(
+        get_item(es_testapp, item_utils.get_uuid(file_utils.get_file_format(file)))
+    )
+    expected_file_size = file_utils.get_file_size(file)
+    expected_md5sum = file_utils.get_md5sum(file)
+    expected_consortia = [
+        item_utils.get_display_title(
+            get_item(es_testapp, item_utils.get_uuid(consortium))
+        )
+        for consortium in item_utils.get_consortia(file)
+    ]
+    expected_uuid = item_utils.get_uuid(file)
+    assert_values_match_if_present(
+        file_summary, "annotated_name", expected_annotated_name
+    )
+    assert_values_match_if_present(
+        file_summary, "access_status", expected_access_status
+    )
+    assert_values_match_if_present(file_summary, "file_format", expected_file_format)
+    assert_values_match_if_present(file_summary, "file_size", expected_file_size)
+    assert_values_match_if_present(file_summary, "md5sum", expected_md5sum)
+    assert_values_match_if_present(file_summary, "consortia", expected_consortia)
+    assert_values_match_if_present(file_summary, "uuid", expected_uuid)
+
+
+def assert_values_match_if_present(
+    summary_values: Dict[str, Any], key: str, expected_value: Any
+) -> None:
+    """Ensure key-value pair matches expected value.
+
+    If key present, value must match expected value. If key not present,
+    expected value must be falsy.
+    """
+    value = summary_values.get(key)
+    if value:
+        assert value == expected_value
+    else:
+        assert not expected_value
+
+
+def assert_all_summary_fields_present_in_items(
+    items: List[Dict[str, Any]], fields: List[str], summary_key: str
+) -> None:
+    """Ensure all summary fields have value for at least one item."""
+    fields_exist = [
+        any(item.get(summary_key, {}).get(field) for item in items)
+        for field in fields
+    ]
+    missing_fields = [
+        field for field, exists in zip(fields, fields_exist) if not exists
+    ]
+    assert all(fields_exist), f"Missing fields: {missing_fields}"
