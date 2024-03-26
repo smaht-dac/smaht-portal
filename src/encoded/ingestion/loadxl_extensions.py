@@ -26,6 +26,8 @@ def load_data_into_database(submission: SmahtSubmissionFolio,
         response = {value: [] for value in LOADXL_ACTION_NAME.values()}
         ingestion_counts = {**{value: 0 for value in LOADXL_ACTION_NAME.values()}, "items": 0}
         for item in loadxl_response:
+            if redis:
+                ingestion_counts["items"] += 1
             # ASSUME each item in the loadxl response looks something like one of (string or bytes):
             # POST: beefcafe-01ce-4e61-be5d-cd04401dff29 FileFormat
             # PATCH: deadbabe-7b4f-4923-824b-d0864a689bb Software
@@ -81,7 +83,6 @@ def load_data_into_database(submission: SmahtSubmissionFolio,
                 response[action] = []
             response[action].append(response_value)
             if redis:
-                ingestion_counts["items"] += 1
                 if action:
                     ingestion_counts[action] += 1
                 redis.put(submission.id, ingestion_counts)
@@ -125,7 +126,8 @@ def load_data_into_database(submission: SmahtSubmissionFolio,
         if response.get("errors", []):
             return response
 
-    return call_loadxl(validate_only=validate_only)
+    response = call_loadxl(validate_only=validate_only)
+    return response
 
 
 def summary_of_load_data_results(load_data_response: Optional[Dict],
