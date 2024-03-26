@@ -16,6 +16,7 @@ from ..item_utils import (
     library as library_utils,
     sample as sample_utils,
     sequencing as sequencing_utils,
+    software as software_utils,
     tissue as tissue_utils,
 )
 from ..types.file import CalcPropConstants
@@ -998,4 +999,145 @@ def assert_data_generation_summary_matches_expected(
     assert_values_match_if_present(data_generation_summary, "assays", expected_assays)
     assert_values_match_if_present(
         data_generation_summary, "sequencing_platforms", expected_platforms
+    )
+
+
+@pytest.mark.workbook
+def test_sample_summary(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'sample_summary' calcprop fields correct for inserts.
+
+    Expected on SubmittedFile and OutputFile items.
+
+    Checks fields present on inserts and as expected by parsing
+    properties/embeds, and all ensures all fields present on at least
+    one item.
+    """
+    search_key = "sample_summary.analytes"
+    file_without_summary_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_summary_search
+
+    submitted_file_with_summary_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
+    )
+    assert submitted_file_with_summary_search
+    for submitted_file in submitted_file_with_summary_search:
+        assert_sample_summary_matches_expected(submitted_file, es_testapp)
+
+    output_file_with_summary_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
+    )
+    assert output_file_with_summary_search
+    for output_file in output_file_with_summary_search:
+        assert_sample_summary_matches_expected(output_file, es_testapp)
+
+# TODO: Uncomment once all fields implemented
+#    all_items = submitted_file_with_summary_search + output_file_with_summary_search
+#    all_fields = schema_utils.get_properties(
+#        CalcPropConstants.SAMPLE_SUMMARY_SCHEMA
+#    ).keys()
+#    assert_all_summary_fields_present_in_items(
+#        all_items, all_fields, "sample_summary"
+#    )
+
+
+def assert_sample_summary_matches_expected(
+    file: Dict[str, Any], es_testapp: TestApp
+) -> None:
+    """Compare 'sample_summary' calcprop to expected values.
+
+    Expected values determined here by parsing file properties/embeds.
+    """
+    sample_summary = file_utils.get_sample_summary(file)
+    analytes = file_utils.get_analytes(file)
+    expected_analytes = [
+        analyte_utils.get_molecule(get_item(es_testapp, item_utils.get_uuid(analyte)))
+        for analyte in analytes
+    ] if analytes else []
+    # TODO: Implement expected values below once data model updates in
+    expected_sample_names = []
+    expected_tissues = []
+    expected_donor_ids = []
+    expected_sample_descriptions = []
+    epected_studies = []
+    assert_values_match_if_present(
+        sample_summary, "analytes", expected_analytes
+    )
+    assert_values_match_if_present(
+        sample_summary, "sample_names", expected_sample_names
+    )
+    assert_values_match_if_present(
+        sample_summary, "tissues", expected_tissues
+    )
+    assert_values_match_if_present(
+        sample_summary, "donor_ids", expected_donor_ids
+    )
+    assert_values_match_if_present(
+        sample_summary, "sample_descriptions", expected_sample_descriptions
+    )
+    assert_values_match_if_present(
+        sample_summary, "studies", epected_studies
+    )
+
+
+@pytest.mark.workbook
+def test_analysis_summary(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'analysis_summary' calcprop fields correct for inserts.
+
+    Expected on SubmittedFile and OutputFile items.
+
+    Checks fields present on inserts and as expected by parsing
+    properties/embeds, and all ensures all fields present on at least
+    one item.
+    """
+    search_key = "analysis_summary.software"
+    file_without_summary_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_summary_search
+
+    submitted_file_with_summary_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
+    )
+    assert submitted_file_with_summary_search
+    for submitted_file in submitted_file_with_summary_search:
+        assert_analysis_summary_matches_expected(submitted_file, es_testapp)
+
+    output_file_with_summary_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
+    )
+    assert output_file_with_summary_search
+    for output_file in output_file_with_summary_search:
+        assert_analysis_summary_matches_expected(output_file, es_testapp)
+
+    all_items = submitted_file_with_summary_search + output_file_with_summary_search
+    all_fields = schema_utils.get_properties(
+        CalcPropConstants.ANALYSIS_SUMMARY_SCHEMA
+    ).keys()
+    assert_all_summary_fields_present_in_items(
+        all_items, all_fields, "analysis_summary"
+    )
+
+
+def assert_analysis_summary_matches_expected(
+    file: Dict[str, Any], es_testapp: TestApp
+) -> None:
+    """Compare 'analysis_summary' calcprop to expected values.
+
+    Expected values determined here by parsing file properties/embeds.
+    """
+    analysis_summary = file_utils.get_analysis_summary(file)
+    software = file_utils.get_software(file)
+    reference_genome = file_utils.get_reference_genome(file)
+    expected_software = [
+        software_utils.get_title_with_version(item)
+        for item in software
+    ]
+    expected_reference_genome = item_utils.get_display_title(reference_genome)
+    assert_values_match_if_present(
+        analysis_summary, "software", expected_software
+    )
+    assert_values_match_if_present(
+        analysis_summary, "reference_genome", expected_reference_genome
     )

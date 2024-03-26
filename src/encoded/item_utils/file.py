@@ -46,6 +46,11 @@ def get_sequencing_center(properties: Dict[str, Any]) -> Union[str, Dict[str, An
     return properties.get("sequencing_center", "")
 
 
+def get_reference_genome(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
+    """Get reference genome from properties."""
+    return properties.get("reference_genome", "")
+
+
 def get_file_sets(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
     """Get file sets from properties."""
     return properties.get("file_sets", [])
@@ -149,11 +154,16 @@ def get_donors(
     return properties.get("donors", [])
 
 
-def get_file_summary(properties: Dict[str, Any]) -> str:
+def get_file_summary(properties: Dict[str, Any]) -> Dict[str, Any]:
     """Get file summary from properties."""
-    return properties.get("file_summary", "")
+    return properties.get("file_summary", {})
 
 
-def get_data_generation_summary(properties: Dict[str, Any]) -> str:
+def get_data_generation_summary(properties: Dict[str, Any]) -> Dict[str, Any]:
     """Get data generation summary from properties."""
-    return properties.get("data_generation_summary", "")
+    return properties.get("data_generation_summary", {})
+
+
+def get_sample_summary(properties: Dict[str, Any]) -> Dict[str, Any]:
+    """Get sample summary from properties."""
+    return properties.get("sample_summary", {})

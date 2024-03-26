@@ -48,10 +48,10 @@ from .base import (
 )
 from ..item_utils import (
     analyte as analyte_utils,
-    donor as donor_utils,
     file as file_utils,
     item as item_utils,
     sample as sample_utils,
+    software as software_utils,
 )
 from ..item_utils.utils import (
     get_property_value_from_identifier,
@@ -284,6 +284,25 @@ class CalcPropConstants:
             },
         },
     }
+    ANALYSIS_SUMMARY_SOFTWARE = "software",
+    ANALYSIS_SUMMARY_REFERENCE_GENOME = "reference_genome",
+    ANALYSIS_SUMMARY_SCHEMA = {
+        "title": "Analysis Summary",
+        "type": "object",
+        "properties": {
+            ANALYSIS_SUMMARY_SOFTWARE: {
+                "title": "Software",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            ANALYSIS_SUMMARY_REFERENCE_GENOME: {
+                "title": "Reference Genome",
+                "type": "string",
+            },
+        },
+    }
 
 
 
@@ -300,12 +319,15 @@ def show_upload_credentials(
 def _build_file_embedded_list() -> List[str]:
     """Embeds for search on files."""
     return [
+        "file_sets.libraries.analyte.molecule",
         "file_sets.libraries.analyte.samples.sample_sources.donor",
-        "file_sets.libraries.analyte.samples.sample_sources.cell_line",
+        "file_sets.libraries.analyte.samples.sample_sources.cell_line.code",
         "file_sets.libraries.analyte.samples.sample_sources.components.cell_culture.cell_line",
         "file_sets.libraries.assay",
         "file_sets.sequencing.sequencer",
-        "software.name",
+        "software.code",
+        "software.version",
+        "reference_genome",
     ]
 
 
@@ -627,11 +649,7 @@ class File(Item, CoreFile):
         """Get sample summary for display on file overview page."""
         constants = CalcPropConstants
         to_include = {
-            constants.SAMPLE_SUMMARY_DONOR_IDS: get_property_values_from_identifiers(
-                request_handler,
-                file_utils.get_donors(file_properties, request_handler),
-                donor_utils.get_id,
-            ),
+            constants.SAMPLE_SUMMARY_DONOR_IDS: [],  # TODO: Implement once donor ID added with TPC updates
             constants.SAMPLE_SUMMARY_TISSUES: [],  # TODO: Implement once tissue name added with TPC updates
             constants.SAMPLE_SUMMARY_SAMPLE_NAMES: get_property_values_from_identifiers(
                 request_handler,
@@ -656,6 +674,41 @@ class File(Item, CoreFile):
                 request_handler,
                 file_utils.get_samples(file_properties, request_handler),
                 functools.partial(sample_utils.get_studies, request_handler),
+            ),
+        }
+        return {key: value for key, value in to_include.items() if value}
+
+    def _get_analysis_summary(
+        self,
+        request: Request,
+        software: Optional[List[str]] = None,
+        reference_genome: Optional[str] = None,
+    ) -> Union[Dict[str, Any], None]:
+        """Get analysis summary for display on file overview page."""
+        result = None
+        if software or reference_genome:
+            result = self._get_analysis_summary_fields(
+                request, self.properties
+            )
+        return result or None
+
+    def _get_analysis_summary_fields(
+        self, request: Request, file_properties: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Get analysis summary for display on file overview page."""
+        constants = CalcPropConstants
+        to_include = {
+            constants.ANALYSIS_SUMMARY_SOFTWARE: get_property_values_from_identifiers(
+                request,
+                file_utils.get_software(file_properties),
+                software_utils.get_title_with_version,
+            ),
+            constants.ANALYSIS_SUMMARY_REFERENCE_GENOME: (
+                get_property_value_from_identifier(
+                    request,
+                    file_utils.get_reference_genome(file_properties),
+                    item_utils.get_display_title,
+                )
             ),
         }
         return {key: value for key, value in to_include.items() if value}
