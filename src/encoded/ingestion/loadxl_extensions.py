@@ -104,13 +104,47 @@ def load_data_into_database(submission_uuid: str,
     def define_progress_tracker(submission_uuid: str, total: int) -> Optional[Callable]:
         if not (redis := Redis.connection()):
             return None
-        progress_counts = {"uuid": submission_uuid, "total": total,
+        progress_status = {"uuid": submission_uuid, "total": total,
                            "started": str(datetime.utcnow()), **{enum.value: 0 for enum in PROGRESS}}
         redis.set_expiration(submission_uuid, REDIS_INGESTION_STATUS_EXPIRATION)
         def progress_tracker(progress: PROGRESS) -> None:  # noqa
-            nonlocal progress_counts
-            progress_counts[progress.value] += 1
-            redis.set(submission_uuid, {**progress_counts, "timestamp": str(datetime.utcnow())})
+            nonlocal progress_status
+            def progress_message() -> None:  # noqa
+                # Just a convenience.
+                nonlocal progress_status, total, validate_only
+                processed = progress_status[PROGRESS.ITEM.value]
+                gets = progress_status[PROGRESS.GET.value]
+                posts = progress_status[PROGRESS.POST.value]
+                patches = progress_status[PROGRESS.PATCH.value]
+                errors = progress_status[PROGRESS.ERROR.value]
+                started_second_round = progress_status[PROGRESS.START_SECOND_ROUND.value]
+                processed_second_round = progress_status[PROGRESS.ITEM_SECOND_ROUND.value]
+                done = progress_status[PROGRESS.DONE.value]
+                message = f"Items: {total}"
+                if started_second_round > 0:
+                    # We call the first round prevalidated/preprocessed and the second validated/processed.
+                    if done > 0:
+                        message += (f" | {'Validated' if validate_only else 'Processed'}:"
+                                    f" {max(processed, processed_second_round)}")
+                    else:
+                        message += f" | {'Validated' if validate_only else 'Processed'}: {processed_second_round}"
+                elif processed > 0:
+                    message += f" | {'Prevalidated' if validate_only else 'Preprocessed'}: {processed}"
+                message_verbose = message
+                if posts > 0:
+                    message_verbose += f" | {'Posts' if validate_only else 'Creates'}: {posts}"
+                if patches > 0:
+                    message_verbose += f" | {'Patches' if validate_only else 'Updates'}: {patches}"
+                if gets > 0:
+                    message_verbose += f" | Lookups: {gets}"
+                if errors > 0:
+                    message += (message_errors := f" | Errors: {errors}")
+                    message_verbose += message_errors
+                return message, message_verbose
+            progress_status[progress.value] += 1
+            message, message_verbose = progress_message()
+            redis.set(submission_uuid, {**progress_status, "timestamp": str(datetime.utcnow()),
+                                        "message": message, "message_verbose": message_verbose})
         return progress_tracker
 
     loadxl_response = loadxl(
