@@ -81,18 +81,18 @@ requests = ">=0.14.0"
 
 [[package]]
 name = "awscli"
-version = "1.32.63"
+version = "1.32.71"
 description = "Universal Command Line Environment for AWS."
 category = "main"
 optional = false
-python-versions = ">= 3.8"
+python-versions = ">=3.8"
 files = [
-    {file = "awscli-1.32.63-py3-none-any.whl", hash = "sha256:e40fd088c2239250578224bae8d628886aa440b72107df37ea9582c73aaa0905"},
-    {file = "awscli-1.32.63.tar.gz", hash = "sha256:9987d2d43c51684dd26bbee2152a78268169c29c23c07c091c6eba1c9f049ff4"},
+    {file = "awscli-1.32.71-py3-none-any.whl", hash = "sha256:8943b8a19067596fb22b13926a2ecbd28e5c65234694019955fa0a7709d1d425"},
+    {file = "awscli-1.32.71.tar.gz", hash = "sha256:7135bfcbc303a21556b1ca6c7e179131f7491cb2f06a1dbe7f1a9a9b4db74c25"},
 ]
 
 [package.dependencies]
-botocore = "1.34.63"
+botocore = "1.34.71"
 colorama = ">=0.2.5,<0.4.5"
 docutils = ">=0.10,<0.17"
 PyYAML = ">=3.10,<6.1"
@@ -123,18 +123,18 @@ lxml = ["lxml"]
 
 [[package]]
 name = "boto3"
-version = "1.34.63"
+version = "1.34.71"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
-python-versions = ">= 3.8"
+python-versions = ">=3.8"
 files = [
-    {file = "boto3-1.34.63-py3-none-any.whl", hash = "sha256:617174f9051b564a57fb1079186ad15db6519ab3bb0d1fb22cb54767b0c4f46e"},
-    {file = "boto3-1.34.63.tar.gz", hash = "sha256:e14f3866f6f372aadc5457ff9a052a45d9e2dd93466122ba86cdd5351cfeafaf"},
+    {file = "boto3-1.34.71-py3-none-any.whl", hash = "sha256:7ce8c9a50af2f8a159a0dd86b40011d8dfdaba35005a118e51cd3ac72dc630f1"},
+    {file = "boto3-1.34.71.tar.gz", hash = "sha256:d786e7fbe3c4152866199786468a625dc77b9f27294cd7ad4f63cd2e0c927287"},
 ]
 
 [package.dependencies]
-botocore = ">=1.34.63,<1.35.0"
+botocore = ">=1.34.71,<1.35.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -143,14 +143,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "boto3-stubs"
-version = "1.34.63"
-description = "Type annotations for boto3 1.34.63 generated with mypy-boto3-builder 7.23.2"
+version = "1.34.71"
+description = "Type annotations for boto3 1.34.71 generated with mypy-boto3-builder 7.23.2"
 category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-stubs-1.34.63.tar.gz", hash = "sha256:ac5235dd3d18d4ccfd8cb6209926c8e1b89dff3873b3c6dd7a29e56748f2dc8d"},
-    {file = "boto3_stubs-1.34.63-py3-none-any.whl", hash = "sha256:1e708beffcae5f12de41f745783a11a7fba3165c00ba3bf9cb1c4c1db405d6c3"},
+    {file = "boto3-stubs-1.34.71.tar.gz", hash = "sha256:c9959c48ee1b53e9d19e424898caacf365aaee34cee4c70f40692e2b47bc8099"},
+    {file = "boto3_stubs-1.34.71-py3-none-any.whl", hash = "sha256:1be579780a39a75394db0c413594aec380afde86dbc7eb5eb086a97a25d3c995"},
 ]
 
 [package.dependencies]
@@ -201,7 +201,7 @@ bedrock-agent = ["mypy-boto3-bedrock-agent (>=1.34.0,<1.35.0)"]
 bedrock-agent-runtime = ["mypy-boto3-bedrock-agent-runtime (>=1.34.0,<1.35.0)"]
 bedrock-runtime = ["mypy-boto3-bedrock-runtime (>=1.34.0,<1.35.0)"]
 billingconductor = ["mypy-boto3-billingconductor (>=1.34.0,<1.35.0)"]
-boto3 = ["boto3 (==1.34.63)", "botocore (==1.34.63)"]
+boto3 = ["boto3 (==1.34.71)", "botocore (==1.34.71)"]
 braket = ["mypy-boto3-braket (>=1.34.0,<1.35.0)"]
 budgets = ["mypy-boto3-budgets (>=1.34.0,<1.35.0)"]
 ce = ["mypy-boto3-ce (>=1.34.0,<1.35.0)"]
@@ -544,14 +544,14 @@ xray = ["mypy-boto3-xray (>=1.34.0,<1.35.0)"]
 
 [[package]]
 name = "botocore"
-version = "1.34.63"
+version = "1.34.71"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
-python-versions = ">= 3.8"
+python-versions = ">=3.8"
 files = [
-    {file = "botocore-1.34.63-py3-none-any.whl", hash = "sha256:8a6cbc3a5c5988725c00815f8f7f6baf81980b19d9a2ee414b031e726759dba9"},
-    {file = "botocore-1.34.63.tar.gz", hash = "sha256:2237743fc3ed68319bc358b451e7c13a02110242b1522b839806fd64fcee45fb"},
+    {file = "botocore-1.34.71-py3-none-any.whl", hash = "sha256:3bc9e23aee73fe6f097823d61f79a8877790436038101a83fa96c7593e8109f8"},
+    {file = "botocore-1.34.71.tar.gz", hash = "sha256:c58f9ed71af2ea53d24146187130541222d7de8c27eb87d23f15457e7b83d88b"},
 ]
 
 [package.dependencies]
@@ -567,14 +567,14 @@ crt = ["awscrt (==0.19.19)"]
 
 [[package]]
 name = "botocore-stubs"
-version = "1.34.63"
+version = "1.34.69"
 description = "Type annotations and code completion for botocore"
 category = "dev"
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = "<4.0,>=3.8"
 files = [
-    {file = "botocore_stubs-1.34.63-py3-none-any.whl", hash = "sha256:17a3f2bc2ce801bccdbe399d7ac0fd27a62d524231061868ded557c256e1859c"},
-    {file = "botocore_stubs-1.34.63.tar.gz", hash = "sha256:4c16af6a5e4cf85542d444fb9a46d99a314188c2b5edfe2f06b87983de5a8eed"},
+    {file = "botocore_stubs-1.34.69-py3-none-any.whl", hash = "sha256:0c3835c775db1387246c1ba8063b197604462fba8603d9b36b5dc60297197b2f"},
+    {file = "botocore_stubs-1.34.69.tar.gz", hash = "sha256:463248fd1d6e7b68a0c57bdd758d04c6bd0c5c2c3bfa81afdf9d64f0930b59bc"},
 ]
 
 [package.dependencies]
@@ -1135,13 +1135,14 @@ develop = ["coverage (<5.0.0)", "mock", "pytest (>=3.0.0)", "pytest-cov", "pytes
 
 [[package]]
 name = "encoded-core"
-version = "0.8.2"
+version = "0.8.3"
 description = "Core data models for Park Lab ENCODE based projects"
 category = "main"
 optional = false
-python-versions = ">=3.8.1,<3.12"
+python-versions = "<3.12,>=3.8.1"
 files = [
-    {file = "encoded_core-0.8.2-py3-none-any.whl", hash = "sha256:21b8eb4323e9b54dd69a54075b59701423607fe871bb16e0a54da93dcc3ef349"},
+    {file = "encoded_core-0.8.3-py3-none-any.whl", hash = "sha256:2b3026b0c341567a583a74b419164291a14c44ec0b79edb89fe84e8eb9bc6ad3"},
+    {file = "encoded_core-0.8.3.tar.gz", hash = "sha256:d30a70ed62f5464c3290c2cdbce5e5c6525438cc569ac49be598d1fb66152743"},
 ]
 
 [package.dependencies]
@@ -1444,14 +1445,14 @@ files = [
 
 [[package]]
 name = "importlib-metadata"
-version = "7.0.2"
+version = "7.1.0"
 description = "Read metadata from Python packages"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "importlib_metadata-7.0.2-py3-none-any.whl", hash = "sha256:f4bc4c0c070c490abf4ce96d715f68e95923320370efb66143df00199bb6c100"},
-    {file = "importlib_metadata-7.0.2.tar.gz", hash = "sha256:198f568f3230878cb1b44fbd7975f87906c22336dba2e4a7f05278c281fbd792"},
+    {file = "importlib_metadata-7.1.0-py3-none-any.whl", hash = "sha256:30962b96c0c223483ed6cc7280e7f0199feb01a0e40cfae4d4450fc6fab1f570"},
+    {file = "importlib_metadata-7.1.0.tar.gz", hash = "sha256:b78938b926ee8d5f020fc4772d487045805a55ddbad2ecf21c6d60938dc7fcd2"},
 ]
 
 [package.dependencies]
@@ -1460,7 +1461,7 @@ zipp = ">=0.5"
 [package.extras]
 docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-lint"]
 perf = ["ipython"]
-testing = ["flufl.flake8", "importlib-resources (>=1.3)", "packaging", "pyfakefs", "pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-mypy", "pytest-perf (>=0.9.2)", "pytest-ruff (>=0.2.1)"]
+testing = ["flufl.flake8", "importlib-resources (>=1.3)", "jaraco.test (>=5.4)", "packaging", "pyfakefs", "pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-mypy", "pytest-perf (>=0.9.2)", "pytest-ruff (>=0.2.1)"]
 
 [[package]]
 name = "iniconfig"
@@ -1657,14 +1658,14 @@ et-xmlfile = "*"
 
 [[package]]
 name = "opensearch-py"
-version = "2.4.2"
+version = "2.5.0"
 description = "Python client for OpenSearch"
 category = "main"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4"
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,<4,>=2.7"
 files = [
-    {file = "opensearch-py-2.4.2.tar.gz", hash = "sha256:564f175af134aa885f4ced6846eb4532e08b414fff0a7976f76b276fe0e69158"},
-    {file = "opensearch_py-2.4.2-py2.py3-none-any.whl", hash = "sha256:7867319132133e2974c09f76a54eb1d502b989229be52da583d93ddc743ea111"},
+    {file = "opensearch-py-2.5.0.tar.gz", hash = "sha256:0dde4ac7158a717d92a8cd81964cb99705a4b80bcf9258ba195b9a9f23f5226d"},
+    {file = "opensearch_py-2.5.0-py2.py3-none-any.whl", hash = "sha256:cf093a40e272b60663f20417fc1264ac724dcf1e03c1a4542a6b44835b1e6c49"},
 ]
 
 [package.dependencies]
@@ -1672,7 +1673,7 @@ certifi = ">=2022.12.07"
 python-dateutil = "*"
 requests = ">=2.4.0,<3.0.0"
 six = "*"
-urllib3 = ">=1.26.18"
+urllib3 = ">=1.26.18,<2"
 
 [package.extras]
 async = ["aiohttp (>=3,<4)"]
@@ -1817,6 +1818,18 @@ docs = ["furo", "olefile", "sphinx (>=2.4)", "sphinx-copybutton", "sphinx-inline
 tests = ["check-manifest", "coverage", "defusedxml", "markdown2", "olefile", "packaging", "pyroma", "pytest", "pytest-cov", "pytest-timeout"]
 
 [[package]]
+name = "pip"
+version = "24.0"
+description = "The PyPA recommended tool for installing Python packages."
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pip-24.0-py3-none-any.whl", hash = "sha256:ba0d021a166865d2265246961bec0152ff124de910c5cc39f1156ce3fa7c69dc"},
+    {file = "pip-24.0.tar.gz", hash = "sha256:ea9bd1a847e8c5774a5777bb398c19e80bcd4e2aa16a4b301b718fe6f593aba2"},
+]
+
+[[package]]
 name = "pip-licenses"
 version = "3.5.5"
 description = "Dump the software license list of Python packages installed with pip."
@@ -1836,19 +1849,22 @@ test = ["docutils", "pytest-cov", "pytest-pycodestyle", "pytest-runner"]
 
 [[package]]
 name = "pipdeptree"
-version = "2.16.1"
+version = "2.16.2"
 description = "Command line utility to show dependency tree of packages."
 category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pipdeptree-2.16.1-py3-none-any.whl", hash = "sha256:7131023df30220678b6a42c7372ce07453b39e0b3df935b129e832f0acf96b8a"},
-    {file = "pipdeptree-2.16.1.tar.gz", hash = "sha256:f1ca64ce4aff9373613711048b9c4e8106ad955dea0dd962b7974fa168d7650a"},
+    {file = "pipdeptree-2.16.2-py3-none-any.whl", hash = "sha256:4b60a20f632aa3449880141d1cd0bc99cb5f93ed46d54d689fd1c9b95f0e53d0"},
+    {file = "pipdeptree-2.16.2.tar.gz", hash = "sha256:96ecde8e6f40c95998491a385e4af56d387f94ff7d3b8f209aa34982a721bc43"},
 ]
+
+[package.dependencies]
+pip = ">=23.1.2"
 
 [package.extras]
 graphviz = ["graphviz (>=0.20.1)"]
-test = ["covdefaults (>=2.3)", "diff-cover (>=8.0.1)", "pip (>=23.3.1)", "pytest (>=7.4.3)", "pytest-cov (>=4.1)", "pytest-mock (>=3.12)", "virtualenv (>=20.25,<21)"]
+test = ["covdefaults (>=2.3)", "diff-cover (>=8.0.1)", "pytest (>=7.4.3)", "pytest-cov (>=4.1)", "pytest-mock (>=3.12)", "virtualenv (>=20.25,<21)"]
 
 [[package]]
 name = "plaster"
@@ -2314,14 +2330,14 @@ testing = ["argcomplete", "attrs (>=19.2.0)", "hypothesis (>=3.56)", "mock", "no
 
 [[package]]
 name = "pytest-cov"
-version = "4.1.0"
+version = "5.0.0"
 description = "Pytest plugin for measuring coverage."
 category = "dev"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "pytest-cov-4.1.0.tar.gz", hash = "sha256:3904b13dfbfec47f003b8e77fd5b589cd11904a21ddf1ab38a64f204d6a10ef6"},
-    {file = "pytest_cov-4.1.0-py3-none-any.whl", hash = "sha256:6ba70b9e97e69fcc3fb45bfeab2d0a138fb65c4d0d6a41ef33983ad114be8c3a"},
+    {file = "pytest-cov-5.0.0.tar.gz", hash = "sha256:5837b58e9f6ebd335b0f8060eecce69b662415b16dc503883a02f45dfeb14857"},
+    {file = "pytest_cov-5.0.0-py3-none-any.whl", hash = "sha256:4f0764a1219df53214206bf1feea4633c3b558a2925c8b59f144f682861ce652"},
 ]
 
 [package.dependencies]
@@ -2329,7 +2345,7 @@ coverage = {version = ">=5.2.1", extras = ["toml"]}
 pytest = ">=4.6"
 
 [package.extras]
-testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtualenv"]
+testing = ["fields", "hunter", "process-tests", "pytest-xdist", "virtualenv"]
 
 [[package]]
 name = "pytest-instafail"
@@ -2348,18 +2364,18 @@ pytest = ">=5"
 
 [[package]]
 name = "pytest-mock"
-version = "3.12.0"
+version = "3.14.0"
 description = "Thin-wrapper around the mock package for easier use with pytest"
 category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pytest-mock-3.12.0.tar.gz", hash = "sha256:31a40f038c22cad32287bb43932054451ff5583ff094bca6f675df2f8bc1a6e9"},
-    {file = "pytest_mock-3.12.0-py3-none-any.whl", hash = "sha256:0972719a7263072da3a21c7f4773069bcc7486027d7e8e1f81d98a47e701bc4f"},
+    {file = "pytest-mock-3.14.0.tar.gz", hash = "sha256:2719255a1efeceadbc056d6bf3df3d1c5015530fb40cf347c0f9afac88410bd0"},
+    {file = "pytest_mock-3.14.0-py3-none-any.whl", hash = "sha256:0b72c38033392a5f4621342fe11e9219ac11ec9d375f8e2a0c164539e0d70f6f"},
 ]
 
 [package.dependencies]
-pytest = ">=5.0"
+pytest = ">=6.2.5"
 
 [package.extras]
 dev = ["pre-commit", "pytest-asyncio", "tox"]
@@ -2578,14 +2594,14 @@ ocsp = ["cryptography (>=36.0.1)", "pyopenssl (==20.0.1)", "requests (>=2.26.0)"
 
 [[package]]
 name = "referencing"
-version = "0.33.0"
+version = "0.34.0"
 description = "JSON Referencing + Python"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "referencing-0.33.0-py3-none-any.whl", hash = "sha256:39240f2ecc770258f28b642dd47fd74bc8b02484de54e1882b74b35ebd779bd5"},
-    {file = "referencing-0.33.0.tar.gz", hash = "sha256:c775fedf74bc0f9189c2a3be1c12fd03e8c23f4d371dce795df44e06c5b412f7"},
+    {file = "referencing-0.34.0-py3-none-any.whl", hash = "sha256:d53ae300ceddd3169f1ffa9caf2cb7b769e92657e4fafb23d34b93679116dfd4"},
+    {file = "referencing-0.34.0.tar.gz", hash = "sha256:5773bd84ef41799a5a8ca72dc34590c041eb01bf9aa02632b4a973fb0181a844"},
 ]
 
 [package.dependencies]
@@ -2837,14 +2853,14 @@ crt = ["botocore[crt] (>=1.33.2,<2.0a.0)"]
 
 [[package]]
 name = "sentry-sdk"
-version = "1.42.0"
+version = "1.43.0"
 description = "Python client for Sentry (https://sentry.io)"
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "sentry-sdk-1.42.0.tar.gz", hash = "sha256:4a8364b8f7edbf47f95f7163e48334c96100d9c098f0ae6606e2e18183c223e6"},
-    {file = "sentry_sdk-1.42.0-py2.py3-none-any.whl", hash = "sha256:a654ee7e497a3f5f6368b36d4f04baeab1fe92b3105f7f6965d6ef0de35a9ba4"},
+    {file = "sentry-sdk-1.43.0.tar.gz", hash = "sha256:41df73af89d22921d8733714fb0fc5586c3461907e06688e6537d01a27e0e0f6"},
+    {file = "sentry_sdk-1.43.0-py2.py3-none-any.whl", hash = "sha256:8d768724839ca18d7b4c7463ef7528c40b7aa2bfbf7fe554d5f9a7c044acfd36"},
 ]
 
 [package.dependencies]
@@ -2858,6 +2874,7 @@ asyncpg = ["asyncpg (>=0.23)"]
 beam = ["apache-beam (>=2.12)"]
 bottle = ["bottle (>=0.12.13)"]
 celery = ["celery (>=3)"]
+celery-redbeat = ["celery-redbeat (>=2)"]
 chalice = ["chalice (>=1.16.0)"]
 clickhouse-driver = ["clickhouse-driver (>=0.2.0)"]
 django = ["django (>=1.8)"]
@@ -3284,14 +3301,14 @@ files = [
 
 [[package]]
 name = "types-python-dateutil"
-version = "2.8.19.20240311"
+version = "2.9.0.20240316"
 description = "Typing stubs for python-dateutil"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "types-python-dateutil-2.8.19.20240311.tar.gz", hash = "sha256:51178227bbd4cbec35dc9adffbf59d832f20e09842d7dcb8c73b169b8780b7cb"},
-    {file = "types_python_dateutil-2.8.19.20240311-py3-none-any.whl", hash = "sha256:ef813da0809aca76472ca88807addbeea98b19339aebe56159ae2f4b4f70857a"},
+    {file = "types-python-dateutil-2.9.0.20240316.tar.gz", hash = "sha256:5d2f2e240b86905e40944dd787db6da9263f0deabef1076ddaed797351ec0202"},
+    {file = "types_python_dateutil-2.9.0.20240316-py3-none-any.whl", hash = "sha256:6b8cb66d960771ce5ff974e9dd45e38facb81718cc1e208b10b1baccbfdbee3b"},
 ]
 
 [[package]]
@@ -3520,14 +3537,14 @@ files = [
 
 [[package]]
 name = "zipp"
-version = "3.18.0"
+version = "3.18.1"
 description = "Backport of pathlib-compatible object wrapper for zip files"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "zipp-3.18.0-py3-none-any.whl", hash = "sha256:c1bb803ed69d2cce2373152797064f7e79bc43f0a3748eb494096a867e0ebf79"},
-    {file = "zipp-3.18.0.tar.gz", hash = "sha256:df8d042b02765029a09b157efd8e820451045890acc30f8e37dd2f94a060221f"},
+    {file = "zipp-3.18.1-py3-none-any.whl", hash = "sha256:206f5a15f2af3dbaee80769fb7dc6f249695e940acca08dfb2a4769fe61e538b"},
+    {file = "zipp-3.18.1.tar.gz", hash = "sha256:2884ed22e7d8961de1c9a05142eb69a247f120291bc0206a00a7642f09b5b715"},
 ]
 
 [package.extras]
