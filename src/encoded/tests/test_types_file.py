@@ -806,37 +806,22 @@ def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
 def test_file_summary(es_testapp: TestApp, workbook: None) -> None:
     """Ensure 'file_summary' calcprop fields correct for inserts.
 
-    Expected on SubmittedFile and OutputFile items.
-
     Checks fields present on inserts and as expected by parsing
     properties/embeds, and all ensures all fields present on at least
     one item.
     """
     search_key = "file_summary.uuid"  # should always be present if file_summary present
-    file_without_summary_search = search_type_for_key(
-        es_testapp, "File", search_key, exists=False
+    file_with_summary_search = search_type_for_key(
+        es_testapp, "File", search_key
     )
-    assert file_without_summary_search
-
-    submitted_file_with_summary_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key
-    )
-    assert submitted_file_with_summary_search
-    for submitted_file in submitted_file_with_summary_search:
-        assert_file_summary_matches_expected(submitted_file, es_testapp)
-
-    output_file_with_summary_search = search_type_for_key(
-        es_testapp, "OutputFile", search_key
-    )
-    assert output_file_with_summary_search
-    for output_file in output_file_with_summary_search:
-        assert_file_summary_matches_expected(output_file, es_testapp)
-
-    all_items = submitted_file_with_summary_search + output_file_with_summary_search
+    for file in file_with_summary_search:
+        assert_file_summary_matches_expected(file, es_testapp)
     all_fields = schema_utils.get_properties(
         CalcPropConstants.FILE_SUMMARY_SCHEMA
     ).keys()
-    assert_all_summary_fields_present_in_items(all_items, all_fields, "file_summary")
+    assert_all_summary_fields_present_in_items(
+        file_with_summary_search, all_fields, "file_summary"
+    )
 
 
 def assert_file_summary_matches_expected(
@@ -911,38 +896,21 @@ def assert_all_summary_fields_present_in_items(
 def test_data_generation_summary(es_testapp: TestApp, workbook: None) -> None:
     """Ensure 'data_generation_summary' calcprop fields correct for inserts.
 
-    Expected on SubmittedFile and OutputFile items.
-
     Checks fields present on inserts and as expected by parsing
     properties/embeds, and all ensures all fields present on at least
     one item.
     """
     search_key = "data_generation_summary.data_type"
-    file_without_summary_search = search_type_for_key(
-        es_testapp, "File", search_key, exists=False
+    files_with_summary_search = search_type_for_key(
+        es_testapp, "File", search_key
     )
-    assert file_without_summary_search
-
-    submitted_file_with_summary_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key
-    )
-    assert submitted_file_with_summary_search
-    for submitted_file in submitted_file_with_summary_search:
-        assert_data_generation_summary_matches_expected(submitted_file, es_testapp)
-
-    output_file_with_summary_search = search_type_for_key(
-        es_testapp, "OutputFile", search_key
-    )
-    assert output_file_with_summary_search
-    for output_file in output_file_with_summary_search:
-        assert_data_generation_summary_matches_expected(output_file, es_testapp)
-
-    all_items = submitted_file_with_summary_search + output_file_with_summary_search
+    for file in files_with_summary_search:
+        assert_data_generation_summary_matches_expected(file, es_testapp)
     all_fields = schema_utils.get_properties(
         CalcPropConstants.DATA_GENERATION_SCHEMA
     ).keys()
     assert_all_summary_fields_present_in_items(
-        all_items, all_fields, "data_generation_summary"
+        files_with_summary_search, all_fields, "data_generation_summary"
     )
 
 
@@ -1011,8 +979,6 @@ def assert_data_generation_summary_matches_expected(
 def test_sample_summary(es_testapp: TestApp, workbook: None) -> None:
     """Ensure 'sample_summary' calcprop fields correct for inserts.
 
-    Expected on SubmittedFile and OutputFile items.
-
     Checks fields present on inserts and as expected by parsing
     properties/embeds, and all ensures all fields present on at least
     one item.
@@ -1021,29 +987,20 @@ def test_sample_summary(es_testapp: TestApp, workbook: None) -> None:
     file_without_summary_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
-    assert file_without_summary_search
+    assert file_without_summary_search  # Not expected for Reference Files
 
-    submitted_file_with_summary_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key
+    files_with_summary_search = search_type_for_key(
+        es_testapp, "File", search_key
     )
-    assert submitted_file_with_summary_search
-    for submitted_file in submitted_file_with_summary_search:
-        assert_sample_summary_matches_expected(submitted_file, es_testapp)
-
-    output_file_with_summary_search = search_type_for_key(
-        es_testapp, "OutputFile", search_key
-    )
-    assert output_file_with_summary_search
-    for output_file in output_file_with_summary_search:
-        assert_sample_summary_matches_expected(output_file, es_testapp)
+    for file in files_with_summary_search:
+        assert_sample_summary_matches_expected(file, es_testapp)
 
 # TODO: Uncomment once all fields implemented
-#    all_items = submitted_file_with_summary_search + output_file_with_summary_search
 #    all_fields = schema_utils.get_properties(
 #        CalcPropConstants.SAMPLE_SUMMARY_SCHEMA
 #    ).keys()
 #    assert_all_summary_fields_present_in_items(
-#        all_items, all_fields, "sample_summary"
+#        files_with_summary_search, all_fields, "sample_summary"
 #    )
 
 
@@ -1090,8 +1047,6 @@ def assert_sample_summary_matches_expected(
 def test_analysis_summary(es_testapp: TestApp, workbook: None) -> None:
     """Ensure 'analysis_summary' calcprop fields correct for inserts.
 
-    Expected on SubmittedFile and OutputFile items.
-
     Checks fields present on inserts and as expected by parsing
     properties/embeds, and all ensures all fields present on at least
     one item.
@@ -1100,28 +1055,18 @@ def test_analysis_summary(es_testapp: TestApp, workbook: None) -> None:
     file_without_summary_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
-    assert file_without_summary_search
+    assert file_without_summary_search  # Not expected for Reference Files
 
-    submitted_file_with_summary_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key
+    files_with_summary_search = search_type_for_key(
+        es_testapp, "File", search_key
     )
-    assert submitted_file_with_summary_search
-    for submitted_file in submitted_file_with_summary_search:
-        assert_analysis_summary_matches_expected(submitted_file, es_testapp)
-
-    output_file_with_summary_search = search_type_for_key(
-        es_testapp, "OutputFile", search_key
-    )
-    assert output_file_with_summary_search
-    for output_file in output_file_with_summary_search:
-        assert_analysis_summary_matches_expected(output_file, es_testapp)
-
-    all_items = submitted_file_with_summary_search + output_file_with_summary_search
+    for file in files_with_summary_search:
+        assert_analysis_summary_matches_expected(file, es_testapp)
     all_fields = schema_utils.get_properties(
         CalcPropConstants.ANALYSIS_SUMMARY_SCHEMA
     ).keys()
     assert_all_summary_fields_present_in_items(
-        all_items, all_fields, "analysis_summary"
+        files_with_summary_search, all_fields, "analysis_summary"
     )
 
 

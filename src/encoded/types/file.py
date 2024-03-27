@@ -461,6 +461,90 @@ class File(Item, CoreFile):
             return result
         return
 
+    @calculated_property(schema=CalcPropConstants.LIBRARIES_SCHEMA)
+    def libraries(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Libraries associated with the file."""
+        return self._get_libraries(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.SEQUENCINGS_SCHEMA)
+    def sequencing(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Sequencing items associated with the file."""
+        return self._get_sequencing(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.ASSAYS_SCHEMA)
+    def assays(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Assays associated with the file."""
+        return self._get_assays(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.ANALYTES_SCHEMA)
+    def analytes(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Analytes associated with the file."""
+        return self._get_analytes(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.SAMPLES_SCHEMA)
+    def samples(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Samples associated with the file."""
+        return self._get_samples(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.SAMPLE_SOURCES_SCHEMA)
+    def sample_sources(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get SampleSources associated with the file."""
+        return self._get_sample_sources(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.DONORS_SCHEMA)
+    def donors(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Donors associated with the file."""
+        return self._get_donors(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.FILE_SUMMARY_SCHEMA)
+    def file_summary(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[Dict[str, Any], None]:
+        """Get file summary for display on file overview page."""
+        return self._get_file_summary(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.DATA_GENERATION_SCHEMA)
+    def data_generation_summary(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[Dict[str, Any], None]:
+        """Get data generation summary for display on file overview page."""
+        return self._get_data_generation_summary(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.SAMPLE_SUMMARY_SCHEMA)
+    def sample_summary(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[Dict[str, Any], None]:
+        """Get sample summary for display on file overview page."""
+        return self._get_sample_summary(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.ANALYSIS_SUMMARY_SCHEMA)
+    def analysis_summary(
+        self,
+        request: Request,
+        software: Optional[List[str]] = None,
+        reference_genome: Optional[str] = None,
+    ) -> Union[Dict[str, Any], None]:
+        """Get analysis summary for display on file overview page."""
+        return self._get_analysis_summary(
+            request,
+            software=software,
+            reference_genome=reference_genome,
+        )
+
     def _get_libraries(
         self, request: Request, file_sets: Optional[List[str]] = None
     ) -> List[str]:
@@ -535,12 +619,10 @@ class File(Item, CoreFile):
         self, request: Request, file_sets: Optional[List[str]] = None
     ) -> Union[Dict[str, Any], None]:
         """Get file summary for display on file overview page."""
-        result = None
-        if file_sets:
-            request_handler = RequestHandler(request=request)
-            result = self._get_file_summary_fields(
-                request_handler, self.properties, self.uuid
-            )
+        request_handler = RequestHandler(request=request)
+        result = self._get_file_summary_fields(
+            request_handler, self.properties, self.uuid
+        )
         return result or None
 
     def _get_file_summary_fields(
@@ -580,12 +662,10 @@ class File(Item, CoreFile):
         self, request: Request, file_sets: Optional[List[str]] = None
     ) -> Union[Dict[str, Any], None]:
         """Get data generation summary for display on file overview page."""
-        result = None
-        if file_sets:
-            request_handler = RequestHandler(request=request)
-            result = self._get_data_generation_summary_fields(
-                request_handler, self.properties
-            )
+        request_handler = RequestHandler(request=request)
+        result = self._get_data_generation_summary_fields(
+            request_handler, self.properties
+        )
         return result or None
 
     def _get_data_generation_summary_fields(

@@ -1,5 +1,3 @@
-from typing import Any, Dict, List, Optional, Union
-
 from pyramid.request import Request
 from pyramid.view import view_config
 from snovault import abstract_collection, calculated_property, load_schema
@@ -15,7 +13,6 @@ from .file import (
     FILE_EDIT_PUT_VALIDATORS,
     FILE_EDIT_UNVALIDATED_PATCH_VALIDATORS,
     FILE_EDIT_UNVALIDATED_PUT_VALIDATORS,
-    CalcPropConstants,
     File,
 )
 from .submitted_item import (
@@ -62,90 +59,6 @@ class SubmittedFile(File, SubmittedItem):
     embedded_list = File.embedded_list
 
     Collection = SubmittedFileCollection
-
-    @calculated_property(schema=CalcPropConstants.LIBRARIES_SCHEMA)
-    def libraries(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> Union[List[str], None]:
-        """Get Libraries associated with the file."""
-        return self._get_libraries(request, file_sets=file_sets)
-
-    @calculated_property(schema=CalcPropConstants.SEQUENCINGS_SCHEMA)
-    def sequencing(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> Union[List[str], None]:
-        """Get Sequencing items associated with the file."""
-        return self._get_sequencing(request, file_sets=file_sets)
-
-    @calculated_property(schema=CalcPropConstants.ASSAYS_SCHEMA)
-    def assays(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> Union[List[str], None]:
-        """Get Assays associated with the file."""
-        return self._get_assays(request, file_sets=file_sets)
-
-    @calculated_property(schema=CalcPropConstants.ANALYTES_SCHEMA)
-    def analytes(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> Union[List[str], None]:
-        """Get Analytes associated with the file."""
-        return self._get_analytes(request, file_sets=file_sets)
-
-    @calculated_property(schema=CalcPropConstants.SAMPLES_SCHEMA)
-    def samples(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> Union[List[str], None]:
-        """Get Samples associated with the file."""
-        return self._get_samples(request, file_sets=file_sets)
-
-    @calculated_property(schema=CalcPropConstants.SAMPLE_SOURCES_SCHEMA)
-    def sample_sources(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> Union[List[str], None]:
-        """Get SampleSources associated with the file."""
-        return self._get_sample_sources(request, file_sets=file_sets)
-
-    @calculated_property(schema=CalcPropConstants.DONORS_SCHEMA)
-    def donors(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> Union[List[str], None]:
-        """Get Donors associated with the file."""
-        return self._get_donors(request, file_sets=file_sets)
-
-    @calculated_property(schema=CalcPropConstants.FILE_SUMMARY_SCHEMA)
-    def file_summary(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> Union[Dict[str, Any], None]:
-        """Get file summary for display on file overview page."""
-        return self._get_file_summary(request, file_sets=file_sets)
-
-    @calculated_property(schema=CalcPropConstants.DATA_GENERATION_SCHEMA)
-    def data_generation_summary(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> Union[Dict[str, Any], None]:
-        """Get data generation summary for display on file overview page."""
-        return self._get_data_generation_summary(request, self.properties)
-
-    @calculated_property(schema=CalcPropConstants.SAMPLE_SUMMARY_SCHEMA)
-    def sample_summary(
-        self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> Union[Dict[str, Any], None]:
-        """Get sample summary for display on file overview page."""
-        return self._get_sample_summary(request, self.properties)
-
-    @calculated_property(schema=CalcPropConstants.ANALYSIS_SUMMARY_SCHEMA)
-    def analysis_summary(
-        self,
-        request: Request,
-        software: Optional[List[str]] = None,
-        reference_genome: Optional[str] = None,
-    ) -> Union[Dict[str, Any], None]:
-        """Get analysis summary for display on file overview page."""
-        return self._get_analysis_summary(
-            request,
-            software=software,
-            reference_genome=reference_genome,
-        )
 
     @calculated_property(condition=show_upload_credentials, schema={
         "type": "object",
