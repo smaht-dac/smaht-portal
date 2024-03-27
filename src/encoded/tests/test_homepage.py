@@ -22,7 +22,7 @@ def test_home_page_workbook(es_testapp, workbook):
     assert 'figures' in home['@graph'][0]['categories'][0]
     # check file generated counts
     # from workbook inserts, not including 1 output file and 1 reference file
-    assert home['@graph'][0]['categories'][0]['figures'][-1]['value'] == 5
+    assert home['@graph'][0]['categories'][0]['figures'][-1]['value'] == 6
     assert home['@graph'][0]['categories'][0]['figures'][-1]['unit'] == 'Files Generated'
     # check assay count (should be 1 as of right now)
     assert home['@graph'][0]['categories'][0]['figures'][1]['value'] == 1
