@@ -140,6 +140,9 @@
                 ]
             }
         },
+        "extra_files": {
+            "$merge": "encoded_core:schemas/file.json#/properties/extra_files"
+        },
         "o2_path": {
             "title": "O2 Path",
             "description": "Path to file on O2",

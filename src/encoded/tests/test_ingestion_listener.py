@@ -174,3 +174,16 @@ def test_ingestion_listener_should_remain_online(fresh_ingestion_queue_manager_f
     IngestionListener.should_remain_online(override=_await)
     after = datetime.datetime.utcnow()
     assert after > (before + end_delta)
+
+
+def test__construct_data_file_name_suitable_for_s3():
+    from encoded.ingestion.submission_folio import SmahtSubmissionFolio
+    f = SmahtSubmissionFolio._construct_data_file_name_suitable_for_s3
+    assert f("abcdef.csv") == "datafile.csv"
+    assert f("abcdef") == "datafile"
+    assert f("abcdef.xlsx") == "datafile.xlsx"
+    assert f("abcdef.xyz.xlsx") == "datafile.xlsx"
+    assert f("abcdef.xlsx.gz") == "datafile.xlsx.gz"
+    assert f("abcdef.xyz.xlsx.gz") == "datafile.xlsx.gz"
+    assert f("null") == "datafile"
+    assert f("/dev/null") == "datafile"
