@@ -737,21 +737,22 @@ def get_assays_from_file(
 ) -> List[Dict[str, Any]]:
     """Get assays for file."""
     file_sets = get_file_sets_from_file(file_item, auth_key)
-    return get_assays_from_file_sets(file_sets, auth_key)
+    libraries = get_libraries_from_file_sets(file_sets, auth_key)
+    return get_assays_from_libraries(libraries, auth_key)
 
 
-def get_assays_from_file_sets(
-    file_sets: List[Dict[str, Any]], auth_key: Dict[str, str]
+def get_assays_from_libraries(
+    libraries: List[Dict[str, Any]], auth_key: Dict[str, str]
 ) -> List[Dict[str, Any]]:
-    """Get assays for file sets."""
-    return [get_assay_from_file_set(file_set, auth_key) for file_set in file_sets]
+    """Get assays for libraries."""
+    return [get_assay_from_library(library, auth_key) for library in libraries]
 
 
-def get_assay_from_file_set(
-    file_set_item: Dict[str, Any], auth_key: Dict[str, str]
+def get_assay_from_library(
+    library: Dict[str, Any], auth_key: Dict[str, str]
 ) -> Dict[str, Any]:
-    """Get assay for file set."""
-    assay = file_set_item.get(PortalConstants.ASSAY, {})
+    """Get assay for library."""
+    assay = library.get(PortalConstants.ASSAY, {})
     return get_item(assay, auth_key)
 
 
