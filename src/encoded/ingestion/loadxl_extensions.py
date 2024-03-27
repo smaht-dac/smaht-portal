@@ -110,8 +110,8 @@ def load_data_into_database(submission_uuid: str,
         def progress_tracker(progress: PROGRESS) -> None:  # noqa
             nonlocal progress_status
             def progress_message() -> None:  # noqa
-                # Just a convenience so the consumer (smaht-submitr) doesn't have to cobble together
-                # a status message; but the data is still there of course if they want/need to.
+                # Just a convenience/courtesy so the consumer (smaht-submitr) doesn't have to cobble
+                # together a status message; but the data is still there of course if they want/need to.
                 nonlocal progress_status, total, validate_only
                 processed = progress_status[PROGRESS.ITEM.value]
                 gets = progress_status[PROGRESS.GET.value]
