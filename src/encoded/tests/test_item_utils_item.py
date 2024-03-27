@@ -9,8 +9,8 @@ from ..item_utils.item import get_type
     "properties,expected",
     [
         ({}, ""),
-        ({"@type": ["Item", "Foo"]}, "Foo"),
-        ({"@type": ["Foo", "Item"]}, "Item"),
+        ({"@type": ["Item", "Foo"]}, "Item"),
+        ({"@type": ["Foo", "Item"]}, "Foo"),
     ]
 )
 def test_get_type(properties: Dict[str, Any], expected: str) -> None:

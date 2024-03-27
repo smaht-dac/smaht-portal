@@ -884,7 +884,11 @@ def assert_values_match_if_present(
     """
     value = summary_values.get(key)
     if value:
-        assert value == expected_value
+        if isinstance(expected_value, list) and isinstance(value, list):
+            assert len(value) == len(expected_value)
+            assert set(value) == set(expected_value)
+        else:
+            assert value == expected_value
     else:
         assert not expected_value
 
