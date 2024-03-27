@@ -1,3 +1,4 @@
+import functools
 from typing import Any, Dict, List, Optional, Union
 
 from pyramid.view import view_config
@@ -45,6 +46,245 @@ from .base import (
     item_edit,
     validate_user_submission_consistency
 )
+from ..item_utils import (
+    analyte as analyte_utils,
+    donor as donor_utils,
+    file as file_utils,
+    item as item_utils,
+    sample as sample_utils,
+)
+from ..item_utils.utils import (
+    get_property_value_from_identifier,
+    get_property_values_from_identifiers,
+    RequestHandler,
+)
+
+
+class CalcPropConstants:
+
+    LIBRARIES_SCHEMA = {
+        "title": "Libraries",
+        "description": "Libraries associated with the file",
+        "type": "array",
+        "uniqueItems": True,
+        "items": {
+            "type": "string",
+            "linkTo": "Library",
+        },
+    }
+    SEQUENCINGS_SCHEMA = {
+        "title": "Sequencing",
+        "description": "Sequencing associated with the file",
+        "type": "array",
+        "uniqueItems": True,
+        "items": {
+            "type": "string",
+            "linkTo": "Sequencing",
+        },
+    }
+    ASSAYS_SCHEMA = {
+        "title": "Assays",
+        "description": "Assays associated with the file",
+        "type": "array",
+        "uniqueItems": True,
+        "items": {
+            "type": "string",
+            "linkTo": "Assay",
+        },
+    }
+    ANALYTES_SCHEMA = {
+        "title": "Analytes",
+        "description": "Analytes associated with the file",
+        "type": "array",
+        "uniqueItems": True,
+        "items": {
+            "type": "string",
+            "linkTo": "Analyte",
+        },
+    }
+    SAMPLES_SCHEMA = {
+        "title": "Samples",
+        "description": "Samples associated with the file",
+        "type": "array",
+        "uniqueItems": True,
+        "items": {
+            "type": "string",
+            "linkTo": "Sample",
+        },
+    }
+    SAMPLE_SOURCES_SCHEMA = {
+        "title": "Sample Sources",
+        "description": (
+            "Sample sources (e.g. cell lines or tissues) associated with the file"
+        ),
+        "type": "array",
+        "uniqueItems": True,
+        "items": {
+            "type": "string",
+            "linkTo": "Tissue",
+        },
+    }
+    DONORS_SCHEMA = {
+        "title": "Donors",
+        "description": "Donors associated with the file",
+        "type": "array",
+        "uniqueItems": True,
+        "items": {
+            "type": "string",
+            "linkTo": "Donor",
+        },
+    }
+    FILE_SUMMARY_ANNOTATED_NAME = "annotated_name"
+    FILE_SUMMARY_ACCESS_STATUS = "access_status"
+    FILE_SUMMARY_UUID = "uuid"
+    FILE_SUMMARY_FILE_FORMAT = "file_format"
+    FILE_SUMMARY_FILE_SIZE = "file_size"
+    FILE_SUMMARY_MD5SUM = "md5sum"
+    FILE_SUMMARY_CONSORTIA = "consortia"
+    FILE_SUMMARY_SCHEMA = {
+        "title": "File Summary",
+        "type": "object",
+        "properties": {
+            FILE_SUMMARY_ANNOTATED_NAME: {
+                "title": "Annotated Name",
+                "type": "string",
+            },
+            FILE_SUMMARY_ACCESS_STATUS : {
+                "title": "Access",
+                "type": "string",
+            },
+            FILE_SUMMARY_UUID: {
+                "title": "UUID",
+                "type": "string",
+            },
+            FILE_SUMMARY_FILE_FORMAT: {
+                "title": "Data Format",
+                "type": "string",
+            },
+            FILE_SUMMARY_FILE_SIZE: {
+                "title": "Size",
+                "type": "string",
+            },
+            FILE_SUMMARY_MD5SUM: {
+                "title": "MD5 Checksum",
+                "type": "string",
+            },
+            FILE_SUMMARY_CONSORTIA: {
+                "title": "Consortium",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+        },
+    }
+    DATA_GENERATION_DATA_CATEGORY = "data_category"
+    DATA_GENERATION_DATA_TYPE = "data_type"
+    DATA_GENERATION_SEQUENCING_CENTER = "sequencing_center"
+    DATA_GENERATION_SUBMISSION_CENTERS = "submission_centers"
+    DATA_GENERATION_ASSAYS = "assays"
+    DATA_GENERATION_SEQUENCING_PLATFORMS = "sequencing_platforms"
+    DATA_GENERATION_SCHEMA = {
+        "title": "Data Generation Summary",
+        "description": "Summary of data generation",
+        "type": "object",
+        "properties": {
+            DATA_GENERATION_DATA_CATEGORY: {
+                "title": "Data Category",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            DATA_GENERATION_DATA_TYPE: {
+                "title": "Data Type",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            DATA_GENERATION_SEQUENCING_CENTER: {
+                "title": "Sequencing Centers",
+                "type": "string",
+            },
+            DATA_GENERATION_SUBMISSION_CENTERS: {
+                "title": "Generated By",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            DATA_GENERATION_ASSAYS: {
+                "title": "Experimental Assay",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            DATA_GENERATION_SEQUENCING_PLATFORMS: {
+                "title": "Sequencing Platform",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+        },
+    }
+    SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
+    SAMPLE_SUMMARY_TISSUES = "tissues"
+    SAMPLE_SUMMARY_SAMPLE_NAMES = "sample_names"
+    SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS = "sample_descriptions"
+    SAMPLE_SUMMARY_ANALYTES = "analytes"
+    SAMPLE_SUMMARY_STUDIES = "studies"
+    SAMPLE_SUMMARY_SCHEMA = {
+        "title": "Sample Summary",
+        "type": "object",
+        "properties": {
+            SAMPLE_SUMMARY_DONOR_IDS: {
+                "title": "Donor ID",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_TISSUES: {
+                "title": "Tissue",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_SAMPLE_NAMES: {
+                "title": "Sample ID",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS: {
+                "title": "Description",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_ANALYTES: {
+                "title": "Analyte",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_STUDIES: {
+                "title": "Study",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+        },
+    }
+
 
 
 def show_upload_credentials(
@@ -60,6 +300,9 @@ def show_upload_credentials(
 def _build_file_embedded_list() -> List[str]:
     """Embeds for search on files."""
     return [
+        "file_sets.libraries.analyte.samples.sample_sources.donor",
+        "file_sets.libraries.analyte.samples.sample_sources.cell_line",
+        "file_sets.libraries.analyte.samples.sample_sources.components.cell_culture.cell_line",
         "file_sets.libraries.assay",
         "file_sets.sequencing.sequencer",
         "software.name",
@@ -195,6 +438,227 @@ class File(Item, CoreFile):
         if result:
             return result
         return
+
+    def _get_libraries(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> List[str]:
+        """Get the libraries associated with the file."""
+        result = None
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            result = file_utils.get_libraries(request_handler, self.properties)
+        return result or None
+
+    def _get_sequencing(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> List[str]:
+        """Get the sequencing associated with the file."""
+        result = None
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            result = file_utils.get_sequencings(request_handler, self.properties)
+        return result or None
+
+    def _get_assays(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> List[str]:
+        """Get the assays associated with the file."""
+        result = None
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            result = file_utils.get_assays(request_handler, self.properties)
+        return result or None
+
+    def _get_analytes(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> List[str]:
+        """Get the analytes associated with the file."""
+        result = None
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            result = file_utils.get_analytes(request_handler, self.properties)
+        return result or None
+
+    def _get_samples(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> List[str]:
+        """Get the samples associated with the file."""
+        result = None
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            result = file_utils.get_samples(request_handler, self.properties)
+        return result or None
+
+    def _get_sample_sources(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> List[str]:
+        """Get the sample sources associated with the file."""
+        result = None
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            result = file_utils.get_sample_sources(request_handler, self.properties)
+        return result or None
+
+    def _get_donors(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> List[str]:
+        """Get the donors associated with the file."""
+        result = None
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            result = file_utils.get_donors(request_handler, self.properties)
+        return result or None
+
+    def _get_file_summary(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[Dict[str, Any], None]:
+        """Get file summary for display on file overview page."""
+        result = None
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            result = self._get_file_summary_fields(
+                request_handler, self.properties, self.uuid
+            )
+        return result or None
+
+    def _get_file_summary_fields(
+        self,
+        request_handler: RequestHandler,
+        file_properties: Dict[str, Any],
+        uuid: str,
+    ) -> Dict[str, Any]:
+        """Get file summary properties for display on file overview page."""
+        constants = CalcPropConstants
+        to_include = {
+            constants.FILE_SUMMARY_ANNOTATED_NAME: file_utils.get_annotated_filename(
+                file_properties
+            ),
+            constants.FILE_SUMMARY_ACCESS_STATUS: file_utils.get_access_status(
+                file_properties
+            ),
+            constants.FILE_SUMMARY_FILE_FORMAT: get_property_value_from_identifier(
+                request_handler,
+                file_utils.get_file_format(file_properties),
+                item_utils.get_display_title,
+            ),
+            constants.FILE_SUMMARY_FILE_SIZE: file_utils.get_file_size(file_properties),
+            constants.FILE_SUMMARY_MD5SUM: file_utils.get_md5sum(file_properties),
+            constants.FILE_SUMMARY_CONSORTIA: get_property_values_from_identifiers(
+                request_handler,
+                item_utils.get_consortia(file_properties),
+                item_utils.get_display_title,
+            ),
+            constants.FILE_SUMMARY_UUID: uuid,
+        }
+        return {
+            key: value for key, value in to_include.items() if value
+        }
+
+    def _get_data_generation_summary(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[Dict[str, Any], None]:
+        """Get data generation summary for display on file overview page."""
+        result = None
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            result = self._get_data_generation_summary_fields(
+                request_handler, self.properties
+            )
+        return result or None
+
+    def _get_data_generation_summary_fields(
+        self, request_handler: RequestHandler, file_properties: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Get data generation summary for display on file overview page."""
+        constants = CalcPropConstants
+        to_include = {
+            constants.DATA_GENERATION_DATA_CATEGORY: file_utils.get_data_category(
+                file_properties
+            ),
+            constants.DATA_GENERATION_DATA_TYPE: file_utils.get_data_type(
+                file_properties
+            ),
+            constants.DATA_GENERATION_SEQUENCING_CENTER: (
+                get_property_value_from_identifier(
+                    request_handler,
+                    file_utils.get_sequencing_center(file_properties),
+                    item_utils.get_display_title,
+                )
+            ),
+            constants.DATA_GENERATION_SUBMISSION_CENTERS: (
+                get_property_values_from_identifiers(
+                    request_handler,
+                    item_utils.get_submission_centers(file_properties),
+                    item_utils.get_display_title,
+                )
+            ),
+            constants.DATA_GENERATION_ASSAYS: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_assays(request_handler, file_properties),
+                item_utils.get_display_title,
+            ),
+            constants.DATA_GENERATION_SEQUENCING_PLATFORMS: (
+                get_property_values_from_identifiers(
+                    request_handler,
+                    file_utils.get_sequencings(request_handler, file_properties),
+                    item_utils.get_display_title,
+                )
+            ),
+        }
+        return {
+            key: value for key, value in to_include.items() if value
+        }
+
+    def _get_sample_summary(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[Dict[str, Any], None]:
+        """Get sample summary for display on file overview page."""
+        result = None
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            result = self._get_sample_summary_fields(
+                request_handler, self.properties
+            )
+        return result or None
+
+    def _get_sample_summary_fields(
+        self, request_handler: RequestHandler, file_properties: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Get sample summary for display on file overview page."""
+        constants = CalcPropConstants
+        to_include = {
+            constants.SAMPLE_SUMMARY_DONOR_IDS: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_donors(request_handler, file_properties),
+                donor_utils.get_id,
+            ),
+            constants.SAMPLE_SUMMARY_TISSUES: [],  # TODO: Implement once tissue name added with TPC updates
+            constants.SAMPLE_SUMMARY_SAMPLE_NAMES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_samples(request_handler, file_properties),
+                functools.partial(sample_utils.get_sample_names, request_handler),
+            ),
+            constants.SAMPLE_SUMMARY_ANALYTES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_analytes(request_handler, file_properties),
+                analyte_utils.get_molecule,
+            ),
+            constants.SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS: (
+                get_property_values_from_identifiers(
+                    request_handler,
+                    file_utils.get_samples(request_handler, file_properties),
+                    functools.partial(
+                        sample_utils.get_sample_descriptions, request_handler
+                    ),
+                )
+            ),
+            constants.SAMPLE_SUMMARY_STUDIES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_samples(request_handler, file_properties),
+                functools.partial(sample_utils.get_studies, request_handler),
+            ),
+        }
+        return {key: value for key, value in to_include.items() if value}
 
 
 @view_config(name='drs', context=File, request_method='GET',
