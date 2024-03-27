@@ -142,6 +142,7 @@ def load_data_into_database(submission_uuid: str,
                     message += (message_errors := f" | Errors: {errors}")
                     message_verbose += message_errors
                 return message, message_verbose
+            # Here is the actual count increment for the loadxl event.
             progress_status[progress.value] += 1
             message, message_verbose = progress_message()
             redis.set(submission_uuid, {**progress_status, "timestamp": str(datetime.utcnow()),
