@@ -161,7 +161,7 @@ def load_data_into_database(submission_uuid: str,
         patch_only=patch_only,
         validate_only=validate_only,
         skip_links=True,
-        progress=define_progress_tracker(submission_uuid, validation=validation_only, total=nrows))
+        progress=define_progress_tracker(submission_uuid, validation=validate_only, total=nrows))
 
     return package_loadxl_response(loadxl_response)
 
