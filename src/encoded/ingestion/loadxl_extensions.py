@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Generator, Optional, Union
+from typing import Dict, List, Generator, Optional, Tuple, Union
 from dcicutils.misc_utils import VirtualApp
 from dcicutils.structured_data import Portal
 from snovault.loadxl import load_all_gen as loadxl_load_data
@@ -9,13 +9,15 @@ from .submission_folio import SmahtSubmissionFolio
 def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp,
                             post_only: bool = False,
                             patch_only: bool = False,
-                            validate_only: bool = False) -> Dict:
+                            validate_only: bool = False,
+                            validate_first: bool = False,
+                            resolved_refs: List[str] = None) -> Dict:
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
         nonlocal portal_vapp
         portal = None
         upload_info = []
-        LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*([a-zA-Z\d_-]+)\s*(\S+)\s*(\S+)?\s*(.*)$")
+        LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*([a-zA-Z\/\d_-]+)\s*(\S+)\s*(\S+)?\s*(.*)$")
         LOADXL_ACTION_NAME = {"POST": "created", "PATCH": "updated", "SKIP": "skipped", "CHECK": "validated", "ERROR": "errors"}
         response = {value: [] for value in LOADXL_ACTION_NAME.values()}
         for item in loadxl_response:
@@ -34,6 +36,26 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
                 continue
             if (action := LOADXL_ACTION_NAME[match.group(1).upper()]) == "errors":
                 response_value = match.group(0)
+                # If we are in validate_only (or validate_first) mode, and if this is a reference (linkTo)
+                # error/exception, and if the given resolved_refs (from ingestion_processors/structured_data),
+                # contains the reference to which this error refers, then no error after all; this is because
+                # in validate_only (or validate_first) mode we may well get false reference errors, and/but
+                # we already did referential integrity checking in the structured_data processing, so we
+                # can regard that as the source of truth for referential ingegrity.
+                if resolved_refs:
+                    instance_type, instance_identifying_value, ref_error_path = (
+                        _get_ref_error_info_from_exception_string(response_value))
+                    if instance_type and instance_identifying_value and (ref_error_path in resolved_refs):
+                        # Here we have a reference (linkTo) error/exception, but because we are in
+                        # validate_only (or validate_first) mode, and because the reference was
+                        # actually resolved via structured_data referential ingegrity checking 
+                        # in ingestion_processors, then this is a false error; so ignore it;
+                        # and/but include this object (which refers to the reference in
+                        # question in the "validated" section of the results.
+                        if not [r for r in response["validated"]
+                                if r.get("type") == instance_type and r.get("uuid") == instance_identifying_value]:
+                            response["validated"].append({"uuid": instance_identifying_value, "type": instance_type})
+                        continue
             else:
                 identifying_value = match.group(2)
                 item_type = match.group(3)
@@ -71,20 +93,29 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
         )
         return response
 
-    loadxl_load_data_response = loadxl_load_data(
-        testapp=portal_vapp,
-        inserts=data,
-        docsdir=None,
-        overwrite=True,
-        itype=None,
-        from_json=True,
-        continue_on_exception=True,
-        verbose=True,
-        post_only=post_only,
-        patch_only=patch_only,
-        validate_only=validate_only)
+    def call_loadxl(validate_only: bool):
+        nonlocal portal_vapp, data, post_only, patch_only
+        return package_loadxl_response(
+                loadxl_load_data(
+                    testapp=portal_vapp,
+                    inserts=data,
+                    docsdir=None,
+                    overwrite=True,
+                    itype=None,
+                    from_json=True,
+                    continue_on_exception=True,
+                    verbose=True,
+                    post_only=post_only,
+                    patch_only=patch_only,
+                    validate_only=validate_only,
+                    skip_links=True))
 
-    return package_loadxl_response(loadxl_load_data_response)
+    if validate_first and not validate_only:
+        response = call_loadxl(validate_only=True)
+        if response.get("errors", []):
+            return response
+
+    return call_loadxl(validate_only=validate_only)
 
 
 def summary_of_load_data_results(load_data_response: Optional[Dict],
@@ -130,3 +161,31 @@ def _maybe_decode_bytes(str_or_bytes: Union[str, bytes], *, encoding: str = "utf
         return str_or_bytes
     else:
         return ""
+
+
+def _get_ref_error_info_from_exception_string(exception: str) -> Optional[Tuple[str, str, str]]:
+    """"
+    See if the given exception string represents a reference (linkTo) error, and if so, returns
+    a 3-tuple with the Portal path to the offending instance type and identifying value, and the
+    problematic reference, otherwise return a 3-tuple of None. This exception is constructed in
+    snovault.schema_validation.normalize_links. Here is an example of what we are trying to parse:
+
+    'ERROR: /Analyte/UWSC_ANALYTE_COLO Exception encountered on VirtualAppURL: /Analyte?skip_indexing=true&check_only=trueBODY: {\'submitted_id\': \'UWSC_ANALYTE_COLO\', \'submission_centers\': [\'uwsc_gcc\'], \'molecule\': [\'RNA\'], \'components\': [\'Total DNA\'], \'samples\': [\'UWSC_CELL-CULTURE-SAMPLE_UWSC\']}MSG: HTTP POST failed.Raw Exception: Bad response: 422 Unprocessable Entity (not 200 OK or 3xx redirect for http://localhost/Analyte?skip_indexing=true&check_only=true)b\'{"@type": ["ValidationFailure", "Error"], "status": "error", "code": 422, "title": "Unprocessable Entity", "description": "Failed validation", "errors": [{"location": "body", "name": "Schema: ", "description": "Unable to resolve link: /Sample/UWSC_CELL-CULTURE-SAMPLE_UWSC"}, {"location": "body", "name": "Schema: samples.0", "description": "\\\'UWSC_CELL-CULTURE-SAMPLE_UWSC\\\' not found"}]}\''
+    """
+
+    REF_ERROR_PATTERN = re.compile(r"^\s*ERROR\s*:\s*([^\s]+)\s+Exception\s+encountered\s+on\s+VirtualApp\s*URL\s*:\s*\/.*?"
+                                   r"\?skip_indexing=true.*Unable\s+to\s+resolve\s+link\s*:\s*(.*?)\".*$")
+    match = REF_ERROR_PATTERN.match(exception.replace("\n", " "))
+    if match and (match.re.groups == 2) and (instance_path := match.group(1)) and (ref_error_path := match.group(2)):
+        # N.B. The part of the exception message matching this ref_error_path, which comes from
+        # code snovault.schema_validation.normalize_links (after "Unable to resolve link:", used to
+        # just have the identifying value path, without the initial path (i.e. the schema/type name);
+        # and, the part of the exception containing the offending instance path (after "ERROR:")
+        # used to not be there at all; these changes were made to snovault circa 2024-02-13.
+        if instance_path[0] == "/":
+            instance_type = instance_path[1:]
+            if (slash := instance_type.find("/")) > 0:
+                instance_identifying_value = instance_type[slash + 1:]
+                instance_type = instance_type[:slash]
+                return instance_type, instance_identifying_value, ref_error_path
+    return None, None, None

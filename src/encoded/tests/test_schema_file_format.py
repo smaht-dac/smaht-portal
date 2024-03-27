@@ -21,6 +21,7 @@ def file_format(
         "aliases": ["foo:file_format-fastq"],
         "description": "Some description",
         "status": "in review",
+        "valid_item_types": ["OutputFile"],
     }
     return post_item(testapp, item, "FileFormat")
 
@@ -31,6 +32,7 @@ def test_identifier_unique(testapp: TestApp, file_format: Dict[str, Any]) -> Non
         "identifier": file_format.get("identifier", ""),
         "standard_file_extension": "foo",
         "consortia": file_format.get("consortia", []),
+        "valid_item_types": ["OutputFile"],
     }
     response = post_item(
         testapp, item_with_duplicate_identifier, "FileFormat", status=409

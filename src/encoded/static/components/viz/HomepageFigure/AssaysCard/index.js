@@ -195,6 +195,13 @@ export const AssaysCard = ({ currentTier }) => {
                     expansion: false,
                     production: false,
                 },
+                {
+                    iconSrc: '',
+                    title: 'CompDuplex-Seq',
+                    benchmarking: true,
+                    expansion: false,
+                    production: false,
+                },
             ],
         },
         {

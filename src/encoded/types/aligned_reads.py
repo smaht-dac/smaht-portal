@@ -14,4 +14,4 @@ from .submitted_file import SubmittedFile
 class AlignedReads(SubmittedFile):
     item_type = "aligned_reads"
     schema = load_schema("encoded:schemas/aligned_reads.json")
-    embedded_list = []
+    embedded_list = SubmittedFile.embedded_list

@@ -23,7 +23,7 @@ const auth0Options = {
 
 export const GuestHomeView = React.memo(function GuestHomeView(props) {
     const [currentTier, setCurrentTier] = useState('benchmarking');
-    const { updateAppSessionState } = props;
+    const { updateAppSessionState, alerts } = props;
 
     // Upon mount, unset alerts from any other pages, to prevent vertical scroll.
     useEffect(function () {

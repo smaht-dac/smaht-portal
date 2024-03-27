@@ -5,7 +5,6 @@
     "type": "object",
     "required": [
         "category",
-        "name",
         "title",
         "version"
     ],
@@ -31,6 +30,12 @@
             "required": [
                 "submitted_id"
             ]
+        },
+        {
+            "required": [
+                "aliases",
+                "submitted_id"
+            ]
         }
     ],
     "identifyingProperties": [
@@ -52,6 +57,9 @@
         },
         {
             "$ref": "mixins.json#/category"
+        },
+        {
+            "$ref": "mixins.json#/code"
         },
         {
             "$ref": "mixins.json#/description"
@@ -101,6 +109,7 @@
                     "Alignment",
                     "Alignment Manipulation",
                     "Assembly",
+                    "Basecaller",
                     "Data Compression",
                     "Feature Annotation",
                     "Format Conversion",
@@ -111,6 +120,9 @@
                     "Variant Manipulation"
                 ]
             }
+        },
+        "code": {
+            "pattern": "^[A-Za-z0-9_]{2,}$"
         },
         "version": {
             "pattern": ".+",
@@ -124,6 +136,34 @@
         },
         "source_url": {
             "$merge": "encoded_core:schemas/software.json#/properties/source_url"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_SOFTWARE_[A-Z0-9-_.]{4,}$"
+        }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "category": {
+            "title": "Category"
+        },
+        "status": {
+            "title": "Status"
+        }
+    },
+    "columns": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "category": {
+            "title": "Category"
+        },
+        "title": {
+            "title": "Name"
+        },
+        "version": {
+            "title": "Version"
         }
     }
 }

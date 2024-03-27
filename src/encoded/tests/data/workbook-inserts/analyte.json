@@ -5,7 +5,7 @@
             "smaht"
         ],
         "submitted_id": "TEST_ANALYTE_LIVER",
-        "components": [
+        "molecule_detail": [
             "Total DNA"
         ],
         "molecule": [
@@ -13,8 +13,9 @@
         ],
         "a260_a280_ratio": 3.2,
         "concentration": 6.2,
+        "concentration_unit": "ng/uL",
         "samples": [
-            "TEST_SAMPLE_LIVER"
+            "TEST_TISSUE-SAMPLE_LIVER"
         ]
     }
 ]

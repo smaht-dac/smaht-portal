@@ -38,6 +38,7 @@ def test_expected_unique_keys(testapp: TestApp) -> None:
         "output_file": None,
         "quality_metric": None,
         "reference_file": None,
+        "tracking_item": None,
         "user": "email",
         "workflow": None,
         "workflow_run": None,
@@ -177,7 +178,7 @@ def get_item_via_unique_key(
 def get_parent_types(type_info: AbstractTypeInfo) -> List[AbstractTypeInfo]:
     """Get base items' type info.
 
-    Straightforward for non-abstract types, but a clunky for abstract
+    Straightforward for non-abstract types, but a bit clunky for abstract
     ones since not explicitly defined anywhere.
     """
     all_types = {**type_info.types.by_item_type, **type_info.types.by_abstract_type}

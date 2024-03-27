@@ -55,7 +55,8 @@ def compute_master_mixins():
         'static_embeds',
         'tags',
         'facets_common',
-        'supplementary_files'
+        'supplementary_files',
+        'modified'
     ]
     for key in mixin_keys:
         assert mixins[key]
@@ -272,9 +273,9 @@ def has_identifying_property(schema: Dict[str, Any], property_name: str) -> bool
 def test_submittable(testapp):
     expected_props = [
         'a260_a280_ratio', 'analyte_preparation', 'components', 'concentration',
-        'molecule', 'protocols', 'ribosomal_rna_ratio', 'rna_integrity_number',
+        'molecule', 'ribosomal_rna_ratio', 'rna_integrity_number',
         'rna_integrity_number_instrument', 'sample_quantity', 'samples',
-        'submitted_id', 'tags', 'volume', 'weight',
+        'submitted_id', 'volume', 'weight',
      ]
     expected_req = ["components", "molecule", "samples", "submitted_id"]
     expected_dep_req = ['rna_integrity_number', 'rna_integrity_number_instrument']

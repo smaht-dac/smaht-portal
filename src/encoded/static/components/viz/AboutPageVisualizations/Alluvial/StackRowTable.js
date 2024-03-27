@@ -5,6 +5,7 @@ import {
     PopoverContent,
     PopoverTitle,
 } from 'react-bootstrap';
+import tableData from './data/stackrow_data.json';
 import graph from './data/alluvial_data.json';
 
 // Legend rendered below the table
@@ -102,8 +103,9 @@ const StackRowTopLabel = ({ assayType }) => {
                         onMouseLeave={() => setShowPopover(false)}>
                         <PopoverTitle>{assayType.display_name}</PopoverTitle>
                         <PopoverContent>
-                            {assayType.description}
-                            <br />
+                            {assayType.description ? (
+                                <p>{assayType.description}</p>
+                            ) : null}
                             {assayType.link && (
                                 <a
                                     className="read-more"
@@ -166,9 +168,13 @@ const StackRow = ({ rowTitle, platforms, data }) => {
  * StackRowTable is a table representing [data] as a table with horizontal
  * and vertical headers representing Assay Types and GCC's, respectively.
  */
-export const StackRowTable = ({ data }) => {
+export const StackRowTable = ({ data = tableData }) => {
     return (
         <div className="stackrow-table-container container">
+            <p className="visualization-warning d-block d-sm-none">
+                <span>Note:</span> for the best experience, please view the
+                visualization below on a tablet or desktop.
+            </p>
             <table className="stackrow-table">
                 {/* Render the row labels (across the top of table) */}
                 <thead className="stackrow-table-top-labels">

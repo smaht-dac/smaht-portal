@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pyramid.view import view_config
 from encoded_core.types.file import (
@@ -8,6 +8,7 @@ from encoded_core.types.file import (
     File as CoreFile,
 )
 from pyramid.request import Request
+from pyramid.exceptions import HTTPForbidden
 from encoded_core.file_views import (
     validate_file_filename,
     validate_extra_file_format,
@@ -18,6 +19,7 @@ from encoded_core.file_views import (
 )
 from snovault import (
     calculated_property,
+    display_title_schema,
     load_schema,
     abstract_collection,
 )
@@ -34,6 +36,7 @@ from snovault.validators import (
     no_validate_item_content_put,
     no_validate_item_content_patch
 )
+from snovault.server_defaults import add_last_modified
 
 from . import acl
 from .base import (
@@ -54,6 +57,15 @@ def show_upload_credentials(
     return request.has_permission("edit", context)
 
 
+def _build_file_embedded_list() -> List[str]:
+    """Embeds for search on files."""
+    return [
+        "file_sets.libraries.assay",
+        "file_sets.sequencing.sequencer",
+        "software.name",
+    ]
+
+
 @abstract_collection(
     name="files",
     unique_key='accession',
@@ -63,9 +75,15 @@ def show_upload_credentials(
     },
 )
 class File(Item, CoreFile):
+    OPEN = 'Open'
+    PROTECTED = 'Protected'
     item_type = "file"
     schema = load_schema("encoded:schemas/file.json")
-    embedded_list = []
+    embedded_list = _build_file_embedded_list()
+    rev = {
+        "meta_workflow_run_inputs": ("MetaWorkflowRun", "input.files.file"),
+        "meta_workflow_run_outputs": ("MetaWorkflowRun", "workflow_runs.output.file"),
+    }
 
     Item.SUBMISSION_CENTER_STATUS_ACL.update({
         'uploaded': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
@@ -91,12 +109,25 @@ class File(Item, CoreFile):
     def _update(
         self, properties: Dict[str, Any], sheets: Optional[Dict] = None
     ) -> None:
+        add_last_modified(properties)
         return CoreFile._update(self, properties, sheets=sheets)
 
     @classmethod
     def get_bucket(cls, registry):
         """ Files by default live in the upload bucket, unless they are output files """
         return registry.settings['file_upload_bucket']
+
+    @calculated_property(schema=display_title_schema)
+    def display_title(
+        self,
+        request: Request,
+        annotated_filename: Optional[str] = None,
+        accession: Optional[str] = None,
+        file_format: Optional[str] = None,
+    ) -> str:
+        if annotated_filename:
+            return annotated_filename
+        return CoreFile.display_title(self, request, file_format, accession=accession)
 
     @calculated_property(schema=HREF_SCHEMA)
     def href(
@@ -116,6 +147,54 @@ class File(Item, CoreFile):
     @calculated_property(schema=UPLOAD_KEY_SCHEMA)
     def upload_key(self, request: Request) -> str:
         return CoreFile.upload_key(self, request)
+
+    @calculated_property(schema={
+        "title": "File Access Status",
+        "description": "Access status for the file contents",
+        "type": "string",
+        "enum": [
+            "Open",
+            "Protected"
+        ]
+    })
+    def file_access_status(self, status: str = 'in review') -> Optional[str]:
+        if status in ['public', 'released']:
+            return self.OPEN
+        elif status == 'restricted':
+            return self.PROTECTED
+        return None
+
+    @calculated_property(
+        schema={
+            "title": "Input to MetaWorkflowRun",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "MetaWorkflowRun",
+            },
+        }
+    )
+    def meta_workflow_run_inputs(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "meta_workflow_run_inputs")
+        if result:
+            return result
+        return
+
+    @calculated_property(
+        schema={
+            "title": "Output of MetaWorkflowRun",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "MetaWorkflowRun",
+            },
+        }
+    )
+    def meta_workflow_run_outputs(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "meta_workflow_run_outputs")
+        if result:
+            return result
+        return
 
 
 @view_config(name='drs', context=File, request_method='GET',
@@ -138,9 +217,22 @@ def post_upload(context, request):
     return CorePostUpload(context, request)
 
 
+def validate_user_has_protected_access(request):
+    """ Validates that the user who executed the request context either is
+        an admin or has the dbgap group
+    """
+    principals = request.effective_principals
+    if 'group.admin' in principals or 'group.dbgap' in principals:
+        return True
+    return False
+
+
 @view_config(name='download', context=File, request_method='GET',
              permission='view', subpath_segments=[0, 1])
 def download(context, request):
+    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
+        raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval. '
+                            'Please check with DAC/your PI about your status.')
     return CoreDownload(context, request)
 
 
@@ -205,50 +297,103 @@ def validate_processed_file_produced_from_field(context, request):
         request.validated.update({})
 
 
-@view_config(context=File.Collection, permission='add', request_method='POST',
-             validators=[validate_item_content_post,
-                         validate_file_filename,
-                         validate_extra_file_format,
-                         validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field,
-                         validate_user_submission_consistency])
+def validate_file_format_validity_for_file_type(context, request):
+    """Check if the specified file format (e.g. fastq) is allowed for the file type (e.g. FileFastq).
+    """
+    data = request.json
+    if 'file_format' in data:
+        file_format_item = get_item_or_none(request, data['file_format'], 'file-formats')
+        if not file_format_item:
+            # item level validation will take care of generating the error
+            return
+        file_format_name = file_format_item['identifier']
+        allowed_types = file_format_item.get('valid_item_types', [])
+        file_type = context.type_info.name
+        if file_type not in allowed_types:
+            msg = 'File format {} is not allowed for {}'.format(file_format_name, file_type)
+            request.errors.add('body', 'File: invalid format', msg)
+        else:
+            request.validated.update({})
+
+
+FILE_ADD_VALIDATORS = [
+    validate_item_content_post,
+    validate_file_filename,
+    validate_extra_file_format,
+    validate_file_format_validity_for_file_type,
+    validate_processed_file_unique_md5_with_bypass,
+    validate_processed_file_produced_from_field,
+    validate_user_submission_consistency
+]
+FILE_ADD_UNVALIDATED_VALIDATORS = [no_validate_item_content_post]
+
+
+@view_config(
+    context=File.Collection,
+    permission='add',
+    request_method='POST',
+    validators=FILE_ADD_VALIDATORS,
+)
 @view_config(context=File.Collection, permission='add_unvalidated', request_method='POST',
-             validators=[no_validate_item_content_post],
+             validators=FILE_ADD_UNVALIDATED_VALIDATORS,
              request_param=['validate=false'])
 @debug_log
 def file_add(context, request, render=None):
     return collection_add(context, request, render)
 
 
-@view_config(context=File, permission='edit', request_method='PUT',
-             validators=[validate_item_content_put,
-                         validate_file_filename,
-                         validate_extra_file_format,
-                         validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field,
-                         validate_user_submission_consistency])
-@view_config(context=File, permission='edit', request_method='PATCH',
-             validators=[validate_item_content_patch,
-                         validate_file_filename,
-                         validate_extra_file_format,
-                         validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field,
-                         validate_user_submission_consistency])
-@view_config(context=File, permission='edit_unvalidated', request_method='PUT',
-             validators=[no_validate_item_content_put,
-                         validate_user_submission_consistency],
-             request_param=['validate=false'])
-@view_config(context=File, permission='edit_unvalidated', request_method='PATCH',
-             validators=[no_validate_item_content_patch],
-             request_param=['validate=false'])
-@view_config(context=File, permission='index', request_method='GET',
-             validators=[validate_item_content_in_place,
-                         validate_file_filename,
-                         validate_extra_file_format,
-                         validate_processed_file_unique_md5_with_bypass,
-                         validate_processed_file_produced_from_field,
-                         validate_user_submission_consistency],
-             request_param=['check_only=true'])
+COMMON_FILE_EDIT_VALIDATORS = [
+     validate_file_filename,
+     validate_extra_file_format,
+     validate_file_format_validity_for_file_type,
+     validate_processed_file_unique_md5_with_bypass,
+     validate_processed_file_produced_from_field,
+     validate_user_submission_consistency,
+]
+FILE_EDIT_PUT_VALIDATORS = [validate_item_content_put] + COMMON_FILE_EDIT_VALIDATORS
+FILE_EDIT_PATCH_VALIDATORS = [validate_item_content_patch] + COMMON_FILE_EDIT_VALIDATORS
+FILE_EDIT_UNVALIDATED_PUT_VALIDATORS = [
+    no_validate_item_content_put, validate_user_submission_consistency
+]
+FILE_EDIT_UNVALIDATED_PATCH_VALIDATORS = [no_validate_item_content_patch]
+FILE_INDEX_GET_VALIDATORS = [
+    validate_item_content_in_place
+] + COMMON_FILE_EDIT_VALIDATORS
+
+
+@view_config(
+    context=File,
+    permission='edit',
+    request_method='PUT',
+    validators=FILE_EDIT_PUT_VALIDATORS,
+)
+@view_config(
+    context=File,
+    permission='edit',
+    request_method='PATCH',
+    validators=FILE_EDIT_PATCH_VALIDATORS,
+)
+@view_config(
+    context=File,
+    permission='edit_unvalidated',
+    request_method='PUT',
+    validators=FILE_EDIT_UNVALIDATED_PUT_VALIDATORS,
+    request_param=['validate=false'],
+)
+@view_config(
+    context=File,
+    permission='edit_unvalidated',
+    request_method='PATCH',
+    validators=FILE_EDIT_UNVALIDATED_PATCH_VALIDATORS,
+    request_param=['validate=false'],
+)
+@view_config(
+    context=File,
+    permission='index',
+    request_method='GET',
+    validators=FILE_INDEX_GET_VALIDATORS,
+    request_param=['check_only=true'],
+)
 @debug_log
 def file_edit(context, request, render=None):
     return item_edit(context, request, render)

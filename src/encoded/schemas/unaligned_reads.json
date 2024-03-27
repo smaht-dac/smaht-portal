@@ -4,8 +4,6 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "data_category",
-        "data_type",
         "file_format",
         "file_sets",
         "filename",
@@ -17,6 +15,33 @@
         "submitted_id",
         "uuid"
     ],
+    "oneOf": [
+        {
+            "properties": {
+                "read_pair_number": {
+                    "const": "R2"
+                }
+            },
+            "required": [
+                "paired_with",
+                "read_pair_number"
+            ]
+        },
+        {
+            "properties": {
+                "read_pair_number": {
+                    "not": {
+                        "const": "R2"
+                    }
+                }
+            },
+            "not": {
+                "required": [
+                    "paired_with"
+                ]
+            }
+        }
+    ],
     "additionalProperties": false,
     "mixinProperties": [
         {
@@ -27,6 +52,12 @@
         },
         {
             "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/file_links"
+        },
+        {
+            "$ref": "mixins.json#/file_release"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -53,6 +84,16 @@
             "$ref": "submitted_file.json#/properties"
         }
     ],
+    "mixinFacets": [
+        {
+            "$ref": "file.json#/facets"
+        }
+    ],
+    "mixinColumns": [
+        {
+            "$ref": "file.json#/columns"
+        }
+    ],
     "properties": {
         "accession": {
             "accessionType": "UR"
@@ -63,7 +104,10 @@
                 "enum": [
                     "Sequencing Reads"
                 ]
-            }
+            },
+            "default": [
+                "Sequencing Reads"
+            ]
         },
         "data_type": {
             "items": {
@@ -71,17 +115,19 @@
                 "enum": [
                     "Unaligned Reads"
                 ]
-            }
+            },
+            "default": [
+                "Unaligned Reads"
+            ]
         },
         "schema_version": {
             "default": "1"
         },
-        "paired_with": {
-            "description": "Link to associated paired-end file, if applicable",
-            "type": "string",
-            "linkTo": "UnalignedReads"
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_UNALIGNED-READS_[A-Z0-9-_.]{4,}$"
         },
         "read_pair_number": {
+            "title": "Read Pair Number",
             "description": "Read pair number, if paired-end",
             "type": "string",
             "enum": [
@@ -89,6 +135,11 @@
                 "R2",
                 "Not Applicable"
             ]
+        },
+        "paired_with": {
+            "description": "Link to associated paired-end file, if applicable",
+            "type": "string",
+            "linkTo": "UnalignedReads"
         }
     }
 }

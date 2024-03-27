@@ -42,7 +42,7 @@ export default class HomePage extends React.PureComponent {
                 </div>
                 <GuestHomeView
                     {...commonProps}
-                    {...{ updateAppSessionState }}
+                    {...{ updateAppSessionState, alerts }}
                 />
             </div>
         );

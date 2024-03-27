@@ -1014,20 +1014,14 @@ body[data-current-action="multiselect"] {
                             margin-top: 0;
                             margin-bottom: 4px;
                             > .level-1-title {
-                                //border: 1px solid transparent;
                                 display: inline-block;
                                 color: #333;
                                 color: #fff;
                                 font-weight: 500;
                                 padding: 8px 0 6px 0;
-                                //margin-left: -12px;
-                                //margin-right: -11px;
                                 border-radius: 2px;
-                                //margin-bottom: -1px;
-                                &:hover {
-                                    border-color: #5d8a8e; 
-                                    //background-color: #e7e7e7;
-                                    //color: #fff;
+                                &:not(div, span):hover {
+                                    border-color: #5d8a8e;
                                     text-decoration: none;
                                     color: #2DB3FF; 
                                     text-shadow: 0 0 0;
@@ -1053,21 +1047,6 @@ body[data-current-action="multiselect"] {
                                 }
                             }
                         }
-
-                        /*
-                        &:not(.has-children) {
-                            > .level-1-title-container {
-                                border: 1px solid #ddd;
-                                border-radius: 3px;
-                                margin-top: 17px;
-                                > a.level-1-title {
-                                    padding-top: 7px;
-                                    padding-left: 10px;
-                                    padding-right: 10px;
-                                }
-                            }
-                        }
-                        */
 
                         &.level-1-no-child-links {
                             > .level-1-title-container {
@@ -1102,31 +1081,34 @@ body[data-current-action="multiselect"] {
                                 background-color: #2db3ff87;
                             }
                         }
-    
-                    }
-
-                    /*
-                    &.no-level-2-children {
-                        > .help-menu-tree.level-1-no-child-links {
-
-                            > .level-1-title-container {
+                        
+                        // Really only used for Data nav item ATM
+                        // TODO: make more specific in case styles are needed elsewhere
+                        .level-2 {
+                            .level-2-title-container {
+                                margin-top: 0;
                                 margin-bottom: 0;
-                                border-top-color: #5d5d5d;
-                                border-bottom: none;
-                                &:not(:first-child) {
-                                    border-top-width: 1px;
-                                    border-top-style: solid;
-                                }
-                                > a.level-1-title {
-                                    padding-top: 7px;
-                                    padding-bottom: 7px;
+                            }
+                            .level-3 {
+                                .level-3-title {
+                                    display: inline-block;
+                                    color: #333;
+                                    color: #fff;
+                                    padding: 4px 0 4px 10px;
+                                    border-radius: 2px;
+                                    &:hover {
+                                        background-color: #2db3ff91;
+                                        color: #fff;
+                                        text-decoration: none;
+                                    }
+                                    > * {
+                                        vertical-align: middle;
+                                    }
                                 }
                             }
-
                         }
+    
                     }
-                    */
-
                 }
 
                 @media screen and (min-width: 1600px) {

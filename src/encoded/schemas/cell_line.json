@@ -23,6 +23,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/code"
+        },
+        {
             "$ref": "mixins.json#/description"
         },
         {
@@ -54,8 +57,14 @@
         "accession": {
             "accessionType": "CL"
         },
+        "code": {
+            "pattern": "^[A-Z0-9]{3,}$"
+        },
         "schema_version": {
             "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_CELL-LINE_[A-Z0-9-_.]{4,}$"
         },
         "source": {
             "title": "Source",
@@ -67,6 +76,12 @@
             "description": "URL for vendor information on the cell line",
             "type": "string",
             "format": "uri"
+        },
+        "donor": {
+            "title": "Donor",
+            "description": "Donor associated with the cell line",
+            "type": "string",
+            "linkTo": "Donor"
         }
     }
 }

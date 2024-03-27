@@ -1,22 +1,30 @@
 from typing import Any, Dict, Optional, List
-
-from snovault import collection, load_schema, Item as SnovaultItem
+from snovault.server_defaults import add_last_modified
 from encoded_core.types.software import Software as CoreSoftware
+from snovault import (
+    collection,
+    load_schema,
+    Item as SnovaultItem,
+)
 
-from .base import Item
+from .submitted_item import SubmittedItem
 
 
 @collection(
-    name='software',
-    unique_key='submitted_id',
+    name="software",
+    unique_key="submitted_id",
     properties={
-        'title': 'Software',
-        'description': 'Listing of software for analyses',
-    })
-class Software(Item, CoreSoftware):
-    item_type = 'software'
+        "title": "Software",
+        "description": "Listing of software for analyses",
+    },
+)
+class Software(SubmittedItem, CoreSoftware):
+    item_type = "software"
     schema = load_schema("encoded:schemas/software.json")
     embedded_list = []
 
-    def _update(self, properties: Dict[str, Any], sheets: Optional[List] = None) -> None:
+    def _update(
+        self, properties: Dict[str, Any], sheets: Optional[List] = None
+    ) -> None:
+        add_last_modified(properties)
         return SnovaultItem._update(self, properties, sheets)

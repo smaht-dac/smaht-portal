@@ -25,8 +25,10 @@
             "submission_centers": [
                 "somesubctr"
             ],
-            "protocols": ["protocol1"],
-            "submitted_id": "library-id-1",
+            "protocols": [
+                "protocol1"
+            ],
+            "submitted_id": "XY_LIBRARY_ABC1",
             "uuid": "uuid1"
         },
         {
@@ -52,7 +54,7 @@
             "submission_centers": [
                 "Center1"
             ],
-            "submitted_id": "library-id-2",
+            "submitted_id": "XY_LIBRARY_ABC2",
             "uuid": "uuid2"
         },
         {
@@ -80,8 +82,10 @@
             "submission_centers": [
                 "anothersubctr"
             ],
-            "protocols": ["protocol3"],
-            "submitted_id": "library-id-3",
+            "protocols": [
+                "protocol3"
+            ],
+            "submitted_id": "XY_LIBRARY_ABC3",
             "uuid": "uuid3"
         }
     ]

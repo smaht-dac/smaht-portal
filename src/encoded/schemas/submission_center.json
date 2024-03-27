@@ -3,6 +3,7 @@
     "$id": "/profiles/submission_center.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "required": [
+        "code",
         "identifier",
         "title"
     ],
@@ -15,6 +16,9 @@
     "mixinProperties": [
         {
             "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/code"
         },
         {
             "$ref": "mixins.json#/description"
@@ -54,6 +58,9 @@
     "properties": {
         "schema_version": {
             "default": "1"
+        },
+        "code": {
+            "pattern": "^[a-z0-9]{3,}$"
         },
         "status": {
             "default": "released"

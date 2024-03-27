@@ -19,17 +19,17 @@
         ]
     },
     {
-        "identifier": "about.introduction",
-        "title": "Introduction",
-        "file": "/docs/public/about_introduction.jsx",
+        "identifier": "about.associate_membership_policy",
+        "title": "Associate Membership Policy",
+        "file": "/docs/public/about_membership_policy.md",
         "status": "public",
         "options": {
-            "filetype": "jsx",
+            "filetype": "md",
             "collapsible": false,
             "default_open": true
         },
         "section_type": "Page Section",
-        "uuid": "3fd92b15-9771-4218-a3f9-77b15805443e",
+        "uuid": "dd5198bb-72ba-4c5b-9736-3ba785814a20",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -58,7 +58,7 @@
     },
     {
         "identifier": "alluvial",
-        "title": "SMaHT Data Alluvial Diagram",
+        "title": "SMaHT Data Overview",
         "file": "/docs/public/alluvial.jsx",
         "status": "public",
         "options": {
@@ -76,48 +76,9 @@
         ]
     },
     {
-        "identifier" : "account_creation",
-        "uuid" : "442c8aa0-dc6c-43d7-814a-854af460b014",
-        "file" : "/docs/source/account_creation.rst",
-        "section_type": "Page Section",
-        "status": "public",
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
-    },
-    {
-        "identifier" : "getting_started",
-        "uuid" : "442c8aa0-dc6c-43d7-814a-854af460b015",
-        "file" : "/docs/source/getting_started.rst",
-        "section_type": "Page Section",
-        "status": "public",
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
-    },
-    {
-        "identifier" : "excel_submission",
-        "uuid" : "442c8aa0-dc6c-43d7-814a-854af460b016",
-        "file" : "/docs/source/excel_submission.rst",
-        "section_type": "Page Section",
-        "status": "public",
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
-    },
-    {
-        "identifier": "file_uploads",
-        "title": "SMaHT Data File Uploads",
-        "file": "/docs/public/file_uploads.jsx",
+        "identifier": "assay-table",
+        "title": "SMaHT Benchmarking Experimental Assays",
+        "file": "/docs/public/assay-table.jsx",
         "status": "public",
         "options": {
             "filetype": "jsx",
@@ -125,7 +86,369 @@
             "default_open": true
         },
         "section_type": "Page Section",
-        "uuid": "d3d9c545-4340-495a-92ea-7ccb7eebc71c",
+        "uuid": "eb1d19d5-5ebe-4e89-a8d7-fc50a8c85a61",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.COLO829",
+        "title": "COLO829 Data Table",
+        "file": "/docs/public/benchmarking_COLO829.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "dea41934-619a-4a3b-a2bd-0521d0fffab1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.HapMap",
+        "title": "HapMap Data Table",
+        "file": "/docs/public/benchmarking_HapMap.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "5b5d9021-4dca-4023-bc5e-123b5ef66ff2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.iPSCFibroblast",
+        "title": "iPSC Fibroblast Data Table",
+        "file": "/docs/public/benchmarking_iPSCFibroblast.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "a08bb75d-93e2-455f-9fe2-aa8f4969d233",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.Heart",
+        "title": "Heart Data Table",
+        "file": "/docs/public/benchmarking_Heart.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "09abdc2d-bbb5-4814-9dec-c39e58ee7d4f",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.Colon",
+        "title": "Colon Data Table",
+        "file": "/docs/public/benchmarking_Colon.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "3a097f93-4478-4487-a7ac-fb805774fcad",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.Liver",
+        "title": "Liver Data Table",
+        "file": "/docs/public/benchmarking_Liver.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "c789600c-4104-4246-a238-af9cc89d74f1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.Lung",
+        "title": "Lung Data Table",
+        "file": "/docs/public/benchmarking_Lung.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "cdcd25cd-cc37-4a35-8494-8573e92dac12",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.Skin",
+        "title": "Skin Data Table",
+        "file": "/docs/public/benchmarking_Skin.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "91f38a47-a6d8-402f-9c84-08358309efbc",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.Brain",
+        "title": "Brain Data Table",
+        "file": "/docs/public/benchmarking_Brain.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "9104db8e-9a11-4430-bc86-87a43a0fc857",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "account_creation",
+        "uuid": "442c8aa0-dc6c-43d7-814a-854af460b014",
+        "file": "/docs/source/account_creation.rst",
+        "section_type": "Page Section",
+        "status": "public",
+        "options": {
+            "filetype": "rst",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.intro",
+        "title": "Intro Benchmarking Data Table",
+        "file": "/docs/public/benchmarking_intro.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "56a7ca2a-e9aa-4c19-960d-2cd0ca2d9686",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "getting_started",
+        "uuid": "442c8aa0-dc6c-43d7-814a-854af460b015",
+        "file": "/docs/source/getting_started.rst",
+        "section_type": "Page Section",
+        "status": "public",
+        "options": {
+            "filetype": "rst",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.placeholder",
+        "title": "Benchmarking Placeholder",
+        "file": "/docs/public/benchmarking_placeholder.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "cb2cdf19-ebec-4332-ae08-490404384d56",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "credentials",
+        "uuid": "442c8aa0-dc6c-43d7-814a-854af460b016",
+        "file": "/docs/source/credentials.rst",
+        "section_type": "Page Section",
+        "status": "public",
+        "options": {
+            "filetype": "rst",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "legal",
+        "title": "Legal",
+        "file": "/docs/public/legal.md",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "032e2512-9168-4db4-b21d-5a10a8b8b14c",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "privacy-policy",
+        "title": "Privacy Policy",
+        "file": "/docs/public/privacy-policy.md",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "collapsible": false,
+            "default_open": true
+        },
+        "uuid": "ad816266-12c7-47bd-9617-dfe2a2328528",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "uploading_files",
+        "uuid": "1a2fdcbf-eead-4441-a028-76c5a3e2ac16",
+        "file": "/docs/source/uploading_files.rst",
+        "section_type": "Page Section",
+        "status": "public",
+        "options": {
+            "filetype": "rst"
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "troubleshooting",
+        "uuid": "a74b4355-3721-4a27-a444-e99a55a1407b",
+        "file": "/docs/source/troubleshooting.rst",
+        "section_type": "Page Section",
+        "status": "public",
+        "options": {
+            "filetype": "rst"
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier" : "smaht_nomenclature",
+        "uuid" : "e88a8a3d-cee8-430e-bfed-5c056bc384ea",
+        "file" : "/docs/public/smaht_nomenclature.html",
+        "section_type": "Page Section",
+        "status": "public",
+        "options": {
+            "filetype": "html"
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "referencing_data",
+        "uuid": "6206008f-9288-4156-b55d-52a75f5332e8",
+        "file": "/docs/source/referencing_data.rst",
+        "section_type": "Page Section",
+        "status": "public",
+        "options": {
+            "filetype": "rst",
+            "initial_header_level": 2
+        },
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

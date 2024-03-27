@@ -209,11 +209,49 @@ export default class App extends React.PureComponent {
             store.dispatch({ type: { href: windowHref } });
         }
 
+        const analyticsOptions = _.extend(
+            {
+                itemToProductTransform: function (item) {
+                    const {
+                        '@id': itemID,
+                        uuid: itemUUID,
+                        '@type': itemType,
+                        display_title,
+                        title,
+                        sequencing_center: { display_title: sequencingCenterTitle } = {},
+                        file_sets: [
+                            { assay: { display_title: assayTitle } = {} } = {},
+                        ] = [{}],
+                        data_category: [file_type] = [],
+                    } = item;
+
+                    const categories = Array.isArray(itemType)
+                        ? itemType.slice().reverse().slice(1)
+                        : [];
+                    const prodItem = {
+                        item_id: itemID || itemUUID,
+                        item_name: display_title || title || null,
+                        item_category:
+                            categories.length >= 1 ? categories[0] : 'Unknown',
+                        item_category2:
+                            categories.length >= 2 ? categories[1] : 'Unknown',
+                        item_category3:
+                            categories.length >= 3 ? categories[2] : 'Unknown',
+                        item_brand: sequencingCenterTitle || null,
+                        experiment_type: assayTitle || null,
+                        item_variant: file_type || null,
+                    };
+
+                    return prodItem;
+                },
+            },
+            analyticsConfigurationOptions
+        );
+
         // ANALYTICS INITIALIZATION; Sets userID (if any), performs initial pageview track
-        // TODO: add a google analytics configuration for smaht; currently this will never run
         if (analyticsID) {
             analytics.initializeGoogleAnalytics(analyticsID, {
-                ...analyticsConfigurationOptions,
+                ...analyticsOptions,
                 reduxStore: store,
                 initialContext: context,
                 initialHref: windowHref,
@@ -384,13 +422,21 @@ export default class App extends React.PureComponent {
 
             // TODO: Remove this temporary alert in first official launch version in 2024
             Alerts.queue({
-                style: 'danger',
+                style: 'info',
                 message: (
                     <>
-                        <b>Attention Users:</b> This is an unofficial release of
-                        the SMaHT Data Portal, made available to provide the
-                        access keys for metadata submission. SMaHT data are
-                        coming soon.
+                        <div>
+                            <b>New Features:</b> The SMaHT Data Portal, V1
+                            Benchmarking release, now makes benchmarking data
+                            available for download for authenticated consortium
+                            members. Users can continue to obtain the access
+                            keys for metadata submission.
+                        </div>
+                        <div className="mt-1">
+                            <b>Attention Users:</b> The V1 Benchmarking data
+                            portal will be open to SMaHT consortium members only
+                            at this time.
+                        </div>
                     </>
                 ),
             });
@@ -1028,7 +1074,6 @@ export default class App extends React.PureComponent {
                         currentRequestInThisScope ===
                             this.currentNavigationRequest
                     ) {
-                        console.log('TIMEOUT!!!');
                         this.setState(function ({ slowLoad }) {
                             if (slowLoad) return null;
                             return { slowLoad: true };
@@ -1387,6 +1432,10 @@ export default class App extends React.PureComponent {
             onBodySubmit: this.handleSubmit,
         });
 
+        const gtag4Script =
+            analyticsID &&
+            'https://www.googletagmanager.com/gtag/js?id=' + analyticsID;
+
         const contentSecurityPolicyStr = [
             "default-src 'self'",
             "img-src 'self' https://* https://i.ytimg.com data:",
@@ -1394,7 +1443,7 @@ export default class App extends React.PureComponent {
             // Allowing unsafe-eval temporarily re: 'box-intersect' dependency of some HiGlass tracks.
             'frame-src https://www.google.com/recaptcha/ https://www.youtube.com',
             // Allow anything on https://*.auth0.com domain to allow customization of Auth0 - Will Jan 31 2023
-            "script-src 'self' https://www.google-analytics.com https://www.googletagmanager.com https://*.auth0.com https://secure.gravatar.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'unsafe-eval'", // + (typeof BUILDTYPE === "string" && BUILDTYPE === "quick" ? " 'unsafe-eval'" : ""),
+            "script-src 'self' www.google-analytics.com www.googletagmanager.com https://*.auth0.com https://secure.gravatar.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ 'unsafe-eval'", // + (typeof BUILDTYPE === "string" && BUILDTYPE === "quick" ? " 'unsafe-eval'" : ""),
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com  https://unpkg.com",
             "font-src 'self' https://fonts.gstatic.com",
             "worker-src 'self' blob:",
@@ -1404,10 +1453,6 @@ export default class App extends React.PureComponent {
         // (from google csp eval -- Will says what we have is fine for now, though)
 
         // `lastBuildTime` is used for both CSS and JS because is most likely they change at the same time on production from recompiling
-
-        const gtagURL =
-            analyticsID &&
-            'https://www.googletagmanager.com/gtag/js?id=' + analyticsID;
 
         return (
             <html lang="en">
@@ -1430,7 +1475,6 @@ export default class App extends React.PureComponent {
                         name="google-site-verification"
                         content="sia9P1_R16tk3XW93WBFeJZvlTt3h0qL00aAJd3QknU"
                     />
-                    <meta name="robots" content="noindex" />
                     <HTMLTitle
                         {...{ context, currentAction, canonical, status }}
                     />
@@ -1474,13 +1518,10 @@ export default class App extends React.PureComponent {
                     />
                     <link
                         rel="preconnect"
-                        href="https://fonts.googleapis.com"
+                        href="https://fonts.googleapis.com/"
                     />
-                    {/* TODO: re-enable when ready to configure google analytics
                     <link rel="preconnect" href="//www.google-analytics.com" />
                     <link rel="preconnect" href="//www.googletagmanager.com" />
-                    {gtag4Script && <script async type="application/javascript" src={gtag4Script} />}
-                    */}
                     <link
                         rel="preconnect"
                         href="https://fonts.gstatic.com"
@@ -1494,11 +1535,13 @@ export default class App extends React.PureComponent {
                     <script crossOrigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
                     <script crossOrigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
                     */}
-                    <script
-                        defer
-                        type="application/javascript"
-                        src="//www.google-analytics.com/analytics.js"
-                    />
+                    {gtag4Script && (
+                        <script
+                            async
+                            type="application/javascript"
+                            src={gtag4Script}
+                        />
+                    )}
                     <script
                         defer
                         type="application/javascript"
@@ -1747,6 +1790,7 @@ class BodyElement extends React.PureComponent {
             scrolledPast80: null,
             scrolledPast160: null,
             scrolledPast240: null,
+            scrolledPast360: null,
             //'scrollTop'             : null // Not used, too many state updates if were to be.
             windowWidth: null,
             windowHeight: null,
@@ -2056,6 +2100,7 @@ class BodyElement extends React.PureComponent {
                 let scrolledPast80 = false;
                 let scrolledPast160 = false;
                 let scrolledPast240 = false;
+                let scrolledPast360 = false;
 
                 if (
                     // Fixed nav takes effect at medium grid breakpoint or wider.
@@ -2073,6 +2118,9 @@ class BodyElement extends React.PureComponent {
                     if (currentScrollTop > 240) {
                         scrolledPast240 = true;
                     }
+                    if (currentScrollTop > 360) {
+                        scrolledPast360 = true;
+                    }
                 }
 
                 return {
@@ -2080,6 +2128,7 @@ class BodyElement extends React.PureComponent {
                     scrolledPast80,
                     scrolledPast160,
                     scrolledPast240,
+                    scrolledPast360,
                 };
             });
         };
@@ -2138,6 +2187,7 @@ class BodyElement extends React.PureComponent {
             scrolledPast80,
             scrolledPast160,
             scrolledPast240,
+            scrolledPast360,
             scrolledPastTop,
             classList,
             isFullscreen,
@@ -2151,6 +2201,7 @@ class BodyElement extends React.PureComponent {
         if (scrolledPast80) bodyClassList.push('scrolled-past-80');
         if (scrolledPast160) bodyClassList.push('scrolled-past-160');
         if (scrolledPast240) bodyClassList.push('scrolled-past-240');
+        if (scrolledPast360) bodyClassList.push('scrolled-past-360');
         if (isFullscreen) {
             bodyClassList.push('is-full-screen');
         } else if (testWarningPresent) {

@@ -5,7 +5,11 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import memoize from 'memoize-one';
 import { compiler } from 'markdown-to-jsx';
-import { MarkdownHeading, TableOfContents } from '@hms-dbmi-bgm/shared-portal-components/es/components/static-pages/TableOfContents';
+import {
+    MarkdownHeading,
+    TableOfContents,
+    NextPreviousPageSection,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/static-pages/TableOfContents';
 import {
     console,
     object,
@@ -43,16 +47,36 @@ export const parseSectionsContent = memoize(function (context) {
 
     const jsxCompilerOptions = {
         replace: (domNode) => {
-            if (['h1','h2','h3','h4', 'h5', 'h6'].indexOf(domNode.name) >= 0) {
+            if (
+                ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].indexOf(domNode.name) >= 0
+            ) {
                 const children = _.pluck(domNode.children, 'data');
-                const title = TableOfContents.textFromReactChildren(children) || '';
+                const title =
+                    TableOfContents.textFromReactChildren(children) || '';
                 if (title.replace('-', '').trim().length === 0) {
                     return domNode;
                 }
                 const props = object.attributesToProps(domNode.attribs);
-                return <MarkdownHeading {...props} type={domNode.name}>{children}</MarkdownHeading>;
+                return (
+                    <MarkdownHeading {...props} type={domNode.name}>
+                        {children}
+                    </MarkdownHeading>
+                );
+            } else if (domNode.type === 'tag' && domNode.name === 'pre') {
+                const children = _.pluck(domNode.children, 'data');
+                const className = domNode.attribs.class;
+                return (
+                    <div style={{ position: 'relative' }}>
+                        <object.CopyWrapper
+                            value={children}
+                            className={(className || '') + " mt-2"}
+                            wrapperElement="pre"
+                            whitespace={false}>
+                            {children}
+                        </object.CopyWrapper>
+                    </div>);
             }
-        }
+        },
     };
 
     function parse(section) {
@@ -70,12 +94,19 @@ export const parseSectionsContent = memoize(function (context) {
                     content: compiler(section.content, markdownCompilerOptions),
                 });
             } else if (
-                (section.filetype === 'html' || section.filetype === 'rst' || section.filetype === 'md') &&
-                (typeof section.content_as_html === 'string' || typeof section.content === 'string')) {
-                    const contentStr = (section.filetype === 'md') ? section.content_as_html : (section.content_as_html || section.content);
-                    section =  _.extend({}, section, {
-                        'content' : object.htmlToJSX(contentStr, jsxCompilerOptions)
-                    });
+                (section.filetype === 'html' ||
+                    section.filetype === 'rst' ||
+                    section.filetype === 'md') &&
+                (typeof section.content_as_html === 'string' ||
+                    typeof section.content === 'string')
+            ) {
+                const contentStr =
+                    section.filetype === 'md'
+                        ? section.content_as_html
+                        : section.content_as_html || section.content;
+                section = _.extend({}, section, {
+                    content: object.htmlToJSX(contentStr, jsxCompilerOptions),
+                });
             } // else: retain plaintext or HTML representation
         } else if (
             Array.isArray(section['@type']) &&
@@ -108,7 +139,7 @@ export const StaticEntryContent = React.memo(function StaticEntryContent(
     props
 ) {
     const { section, className } = props;
-    const { content = null, options = {}, filetype = null } = section;
+    const { content = null, content_as_html = null, options = {}, filetype = null } = section;
     let renderedContent;
 
     if (!content) return null;
@@ -139,13 +170,76 @@ export const StaticEntryContent = React.memo(function StaticEntryContent(
     return <div className={cls}>{renderedContent}</div>;
 });
 
+const CustomWrapper = React.memo(function CustomWrapper(props) {
+    const { children, tableOfContents, title, context, windowWidth } = props;
+    const toc =
+        (context && context['table-of-contents']) ||
+        (tableOfContents && typeof tableOfContents === 'object'
+            ? tableOfContents
+            : null);
+    const pageTitle = title || (context && context.title) || null;
+    const tocExists = toc && toc.enabled !== false;
+
+    return (
+        <div className="container" id="content">
+            <div className="static-page row" key="wrapper">
+                {tocExists ? (
+                    <div
+                        key="toc-wrapper"
+                        className="col-12 col-xl-3 order-1 order-xl-3">
+                        <TableOfContents
+                            pageTitle={pageTitle}
+                            fixedGridWidth={3}
+                            maxHeaderDepth={toc['header-depth'] || 6}
+                            defaultExpanded={true}
+                            {..._.pick(
+                                props,
+                                'navigate',
+                                'windowWidth',
+                                'windowHeight',
+                                'context',
+                                'href',
+                                'registerWindowOnScrollHandler',
+                                'fixedPositionBreakpoint'
+                            )}
+                            // skipDepth={1} includeTop={toc['include-top-link']} listStyleTypes={['none'].concat((toc && toc['list-styles']) || this.props.tocListStyles)}
+                        />
+                    </div>
+                ) : null}
+                <div
+                    key="main-column"
+                    className={
+                        'order-2 col-12 col-xl-' + (tocExists ? '9' : '12')
+                    }>
+                    {children}
+                </div>
+                {tocExists ? (
+                    <div
+                        key="footer-next-prev"
+                        className="col-12 d-lg-none order-last">
+                        <NextPreviousPageSection
+                            context={context}
+                            windowInnerWidth={windowWidth}
+                        />
+                    </div>
+                ) : null}
+            </div>
+        </div>
+    );
+});
+CustomWrapper.defaultProps = {
+    //'contentColSize' : 12,
+    tableOfContents: false,
+    tocListStyles: ['decimal', 'lower-alpha', 'lower-roman'],
+};
+
 /**
  * This component shows an alert on mount if have been redirected from a different page, and
  * then renders out a list of StaticEntry components within a Wrapper in its render() method.
  * May be used by extending and then overriding the render() method.
  */
 export default class StaticPage extends React.PureComponent {
-    static Wrapper = StaticPageBase.Wrapper;
+    static Wrapper = CustomWrapper;
 
     render() {
         return (
@@ -154,6 +248,7 @@ export default class StaticPage extends React.PureComponent {
                 childComponent={StaticEntryContent}
                 contentParseFxn={parseSectionsContent}
                 fixedPositionBreakpoint={1500}
+                CustomWrapper={CustomWrapper}
             />
         );
     }
