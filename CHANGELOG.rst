@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.34.0
+======
+
+* Dynamic homepage count support
+* Isolate workbook and non-workbook tests
+
+
 0.33.3
 ======
 
@@ -57,7 +64,7 @@ Change Log
 ======
 
 * Removed master-inserts/file_format.json.
-* Changes for new skip_links (snovault.loadxl) mode for smaht-submitr. 
+* Changes for new skip_links (snovault.loadxl) mode for smaht-submitr.
 * Added submits_for to master-inserts/users.json.
 * Documentation related to smaht-submitr updates.
 * FYI: For the record some merging complications (2024-03-09 ~ 15:35) ...
@@ -71,7 +78,7 @@ Change Log
 0.31.0
 ======
 
-* Updates nginx version to latest as of 03/13/2024 to resolve security alerts 
+* Updates nginx version to latest as of 03/13/2024 to resolve security alerts
 
 
 0.30.2
