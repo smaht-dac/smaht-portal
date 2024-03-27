@@ -1,16 +1,24 @@
 import re
-from typing import Dict, List, Generator, Optional, Tuple, Union
+from datetime import datetime
+from typing import Callable, Dict, List, Generator, Optional, Tuple, Union
 from dcicutils.misc_utils import VirtualApp
 from dcicutils.structured_data import Portal
-from snovault.loadxl import load_all_gen as loadxl_load_data
-from .submission_folio import SmahtSubmissionFolio
+from snovault.loadxl import load_all_gen as loadxl, PROGRESS
+from encoded.ingestion.submission_folio import SmahtSubmissionFolio
+from encoded.ingestion.redis import Redis
 
 
-def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp,
+# Maxiumum amount of time the ingestion status (counts) for an IngestionSubmission
+# will remain in Redis -> 24 hours in seconds; this is relative to the last update
+# of the key value; the key is the uuid of the IngestionSubmission object.
+REDIS_INGESTION_STATUS_EXPIRATION = 60 * 60 * 24
+
+def load_data_into_database(submission_uuid: str,
+                            data: Dict[str, List[Dict]], portal_vapp: VirtualApp,
+                            nrows: Optional[int] = None,
                             post_only: bool = False,
                             patch_only: bool = False,
                             validate_only: bool = False,
-                            validate_first: bool = False,
                             resolved_refs: List[str] = None) -> Dict:
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
@@ -36,10 +44,10 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
                 continue
             if (action := LOADXL_ACTION_NAME[match.group(1).upper()]) == "errors":
                 response_value = match.group(0)
-                # If we are in validate_only (or validate_first) mode, and if this is a reference (linkTo)
+                # If we are in validate_only mode, and if this is a reference (linkTo)
                 # error/exception, and if the given resolved_refs (from ingestion_processors/structured_data),
                 # contains the reference to which this error refers, then no error after all; this is because
-                # in validate_only (or validate_first) mode we may well get false reference errors, and/but
+                # in validate_only  mode we may well get false reference errors, and/but
                 # we already did referential integrity checking in the structured_data processing, so we
                 # can regard that as the source of truth for referential ingegrity.
                 if resolved_refs:
@@ -47,7 +55,7 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
                         _get_ref_error_info_from_exception_string(response_value))
                     if instance_type and instance_identifying_value and (ref_error_path in resolved_refs):
                         # Here we have a reference (linkTo) error/exception, but because we are in
-                        # validate_only (or validate_first) mode, and because the reference was
+                        # validate_only  mode, and because the reference was
                         # actually resolved via structured_data referential ingegrity checking 
                         # in ingestion_processors, then this is a false error; so ignore it;
                         # and/but include this object (which refers to the reference in
@@ -93,29 +101,70 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
         )
         return response
 
-    def call_loadxl(validate_only: bool):
-        nonlocal portal_vapp, data, post_only, patch_only
-        return package_loadxl_response(
-                loadxl_load_data(
-                    testapp=portal_vapp,
-                    inserts=data,
-                    docsdir=None,
-                    overwrite=True,
-                    itype=None,
-                    from_json=True,
-                    continue_on_exception=True,
-                    verbose=True,
-                    post_only=post_only,
-                    patch_only=patch_only,
-                    validate_only=validate_only,
-                    skip_links=True))
+    def define_progress_tracker(submission_uuid: str, validation: bool, total: int) -> Optional[Callable]:
+        if not (redis := Redis.connection()):
+            return None
+        progress_status = {"uuid": submission_uuid, "validation": validation, "total": total,
+                           "started": str(datetime.utcnow()), **{enum.value: 0 for enum in PROGRESS}}
+        redis.set_expiration(submission_uuid, REDIS_INGESTION_STATUS_EXPIRATION)
+        def progress_tracker(progress: PROGRESS) -> None:  # noqa
+            nonlocal progress_status
+            def progress_message() -> None:  # noqa
+                # Just a convenience/courtesy so the consumer (smaht-submitr) doesn't have to cobble
+                # together a status message; but the data is still there of course if they want/need to.
+                nonlocal progress_status, total, validate_only
+                processed = progress_status[PROGRESS.ITEM.value]
+                gets = progress_status[PROGRESS.GET.value]
+                posts = progress_status[PROGRESS.POST.value]
+                patches = progress_status[PROGRESS.PATCH.value]
+                errors = progress_status[PROGRESS.ERROR.value]
+                started_second_round = progress_status[PROGRESS.START_SECOND_ROUND.value]
+                processed_second_round = progress_status[PROGRESS.ITEM_SECOND_ROUND.value]
+                done = progress_status[PROGRESS.DONE.value]
+                message = f"Items: {total}"
+                if started_second_round > 0:
+                    # We call the first round verified/preprocessed and the second validated/processed.
+                    if done > 0:
+                        message += (f" | {'Validated' if validate_only else 'Processed'}:"
+                                    f" {max(processed, processed_second_round)}")
+                    else:
+                        message += f" | {'Validated' if validate_only else 'Processed'}: {processed_second_round}"
+                elif processed > 0:
+                    message += f" | {'Verified' if validate_only else 'Preprocessed'}: {processed}"
+                message_verbose = message
+                if posts > 0:
+                    message_verbose += f" | {'Posts' if validate_only else 'Creates'}: {posts}"
+                if patches > 0:
+                    message_verbose += f" | {'Patches' if validate_only else 'Updates'}: {patches}"
+                if gets > 0:
+                    message_verbose += f" | Lookups: {gets}"
+                if errors > 0:
+                    message += (message_errors := f" | Errors: {errors}")
+                    message_verbose += message_errors
+                return message, message_verbose
+            # Here is the actual count increment for the loadxl event.
+            progress_status[progress.value] += 1
+            message, message_verbose = progress_message()
+            redis.set(submission_uuid, {**progress_status, "timestamp": str(datetime.utcnow()),
+                                        "message": message, "message_verbose": message_verbose})
+        return progress_tracker
 
-    if validate_first and not validate_only:
-        response = call_loadxl(validate_only=True)
-        if response.get("errors", []):
-            return response
+    loadxl_response = loadxl(
+        testapp=portal_vapp,
+        inserts=data,
+        docsdir=None,
+        overwrite=True,
+        itype=None,
+        from_json=True,
+        continue_on_exception=True,
+        verbose=True,
+        post_only=post_only,
+        patch_only=patch_only,
+        validate_only=validate_only,
+        skip_links=True,
+        progress=define_progress_tracker(submission_uuid, validation=validate_only, total=nrows))
 
-    return call_loadxl(validate_only=validate_only)
+    return package_loadxl_response(loadxl_response)
 
 
 def summary_of_load_data_results(load_data_response: Optional[Dict],

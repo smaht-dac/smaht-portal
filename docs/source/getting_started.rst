@@ -110,7 +110,7 @@ Date/Time Properties
 
 For properties defined as `date` types, the required format is ``YYYY-MM-DD``, for example ``2024-02-09``.
 
-For properties defined as `date-time` types, the required format is ``YYYY-MM-DD hh:mm:ss``, for example ``2024-02-09 13:25:10`` (note the use of 24-hour based clock time). This will default to your local timezone; if you need to specify a timezone, use a suffix like ``+hh:mm`` where ``hh`` and ``mm`` are the hour and minute offsets from GMT (for example: ``2024-02-09 13:25:10+05:00``).
+For properties defined as `date-time` types, the required format is ``YYYY-MM-DD hh:mm:ss``, for example ``2024-02-09 13:25:10`` (note the use of 24-hour based clock time). This will default to your local timezone; if you need to specify a timezone, use a suffix like ``+hh:mm`` where ``hh`` and ``mm`` are the hour and minute offsets from GMT (for example: ``2024-02-09`` ``13:25:10+05:00``).
 
 Array Properties
 ~~~~~~~~~~~~~~~~
@@ -242,7 +242,7 @@ Use the ``--verbose`` option to list more information for each of the recent sub
 Example Screenshots
 ===================
 
-The output of a successful ``submit-metadata-bundle --submit`` run will look something like this:
+The output of a successful ``submit-metadata-bundle`` ``--submit`` run will look something like this:
 
 |
 
