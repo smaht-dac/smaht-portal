@@ -15,15 +15,15 @@ export const BenchmarkingUI = (props) => {
 
     // Note: each child needs to be passed schemas, session, facets, href, and context
     return (
-        <div className="benchmarking-ui-container">
-            <div
-                className={
-                    'benchmarking-nav-container d-none d-lg-flex' +
-                    (showNav ? ' show-nav' : ' collapse-nav')
-                }>
+        <div
+            className={
+                'benchmarking-ui-container' +
+                (showNav ? ' show-nav' : ' collapse-nav')
+            }>
+            <div className="benchmarking-nav-container d-none d-lg-flex">
                 <BenchmarkingUINav {...{ showNav, setShowNav, href }} />
             </div>
-            <div className="pl-2 benchmarking-layout-container">{children}</div>
+            <div className="benchmarking-layout-container">{children}</div>
         </div>
     );
 };

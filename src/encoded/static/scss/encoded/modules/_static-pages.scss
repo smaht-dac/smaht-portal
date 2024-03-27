@@ -1671,9 +1671,14 @@ Unique styling for benchmarking pages
 body[data-pathname^="/data/benchmarking"] {
 	
 	#post-navbar-container>#content.container:not(.error-page) {
-		width: 100%;
-		max-width: calc(100% - 4em);
-		margin: 0 2em;
+		// width: 100%;
+		// max-width: calc(100% - 4em);
+		// margin: 0 2em;
+
+		margin: 0;
+		width:100%;
+		padding: 0;
+		max-width: none;
 	}
 
 	// Hide titles
@@ -1682,7 +1687,7 @@ body[data-pathname^="/data/benchmarking"] {
 
 	.benchmarking-ui-container {
 		display: flex;
-		padding: 0px 10px;
+		padding: 0px 32px;
 
 		// Side nav
 		.benchmarking-nav-container {
@@ -1768,7 +1773,10 @@ body[data-pathname^="/data/benchmarking"] {
 
 			}
 
-			&.show-nav {
+		}
+		&.show-nav {
+			.benchmarking-nav-container{
+				width: 20%;
 				border-right: 1px solid #dee2e6;
 				.benchmarking-nav {
 					width: 230px;
@@ -1778,12 +1786,17 @@ body[data-pathname^="/data/benchmarking"] {
 						width: 300px;
 					}
 				}
-
 			}
-			&.collapse-nav {
+			.benchmarking-layout-container {
+				width: 80%;
+			}
+		}
+		&.collapse-nav {
+			.benchmarking-nav-container{
+				width: 4%;
 				border-right: none;
 				.benchmarking-nav {
-					width: 50px;
+					width: 100%;
 					transition: width 100ms ease-in;
 					.benchmarking-nav-section {
 						display: none;
@@ -1793,11 +1806,14 @@ body[data-pathname^="/data/benchmarking"] {
 					display: none;
 				}
 			}
+			.benchmarking-layout-container {
+				width: 96%;
+			}
 		}
 
 		// Header and description text
 		.benchmarking-layout-container {
-			width: 100%;
+			padding-left: 20px;
 			.benchmarking-layout{
 				>nav.nav-tabs {
 					a.nav-link {
