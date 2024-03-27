@@ -123,14 +123,14 @@ def load_data_into_database(submission_uuid: str,
                 done = progress_status[PROGRESS.DONE.value]
                 message = f"Items: {total}"
                 if started_second_round > 0:
-                    # We call the first round prevalidated/preprocessed and the second validated/processed.
+                    # We call the first round verified/preprocessed and the second validated/processed.
                     if done > 0:
                         message += (f" | {'Validated' if validate_only else 'Processed'}:"
                                     f" {max(processed, processed_second_round)}")
                     else:
                         message += f" | {'Validated' if validate_only else 'Processed'}: {processed_second_round}"
                 elif processed > 0:
-                    message += f" | {'Prevalidated' if validate_only else 'Preprocessed'}: {processed}"
+                    message += f" | {'Verified' if validate_only else 'Preprocessed'}: {processed}"
                 message_verbose = message
                 if posts > 0:
                     message_verbose += f" | {'Posts' if validate_only else 'Creates'}: {posts}"
