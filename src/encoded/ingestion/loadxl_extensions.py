@@ -101,16 +101,17 @@ def load_data_into_database(submission_uuid: str,
         )
         return response
 
-    def define_progress_tracker(submission_uuid: str, total: int) -> Optional[Callable]:
+    def define_progress_tracker(submission_uuid: str, validation: bool, total: int) -> Optional[Callable]:
         if not (redis := Redis.connection()):
             return None
-        progress_status = {"uuid": submission_uuid, "total": total,
+        progress_status = {"uuid": submission_uuid, "validation": validation, "total": total,
                            "started": str(datetime.utcnow()), **{enum.value: 0 for enum in PROGRESS}}
         redis.set_expiration(submission_uuid, REDIS_INGESTION_STATUS_EXPIRATION)
         def progress_tracker(progress: PROGRESS) -> None:  # noqa
             nonlocal progress_status
             def progress_message() -> None:  # noqa
-                # Just a convenience.
+                # Just a convenience so the consumer (smaht-submitr) doesn't have to cobble together
+                # a status message; but the data is still there of course if they want/need to.
                 nonlocal progress_status, total, validate_only
                 processed = progress_status[PROGRESS.ITEM.value]
                 gets = progress_status[PROGRESS.GET.value]
@@ -160,7 +161,7 @@ def load_data_into_database(submission_uuid: str,
         patch_only=patch_only,
         validate_only=validate_only,
         skip_links=True,
-        progress=define_progress_tracker(submission_uuid, total=nrows))
+        progress=define_progress_tracker(submission_uuid, validation=validation_only, total=nrows))
 
     return package_loadxl_response(loadxl_response)
 
