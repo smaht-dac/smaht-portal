@@ -1,18 +1,15 @@
 from pyramid.view import view_config
 from snovault.util import debug_log
-from dcicutils.misc_utils import ignored
 from snovault.search.search import (
     search
 )
 from snovault.search.search_utils import make_search_subreq
 from urllib.parse import urlencode
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
+from structlog import getLogger
 
 
-import structlog
-
-
-log = structlog.getLogger(__name__)
+log = getLogger(__name__)
 
 
 def includeme(config):
@@ -20,10 +17,23 @@ def includeme(config):
     config.scan(__name__)
 
 
+class SearchBase:
+    """ Contains search params for getting various bits of information from the ES """
+    ALL_RELEASED_FILES_SEARCH_PARAMS = {
+        'type': 'File',
+        'status': ['released', 'restricted', 'public'],
+    }
+    COLO829_RELEASED_FILES_SEARCH_PARAMS = {
+        'type': 'File',
+        'status': ['released', 'restricted', 'public'],
+        'dataset': ['colo829blt_50to1', 'colo829t', 'colo829bl']
+    }
+
+
 def make_concurrent_search_requests(search_helpers):
     """ Execute multiple search functions concurrently using a thread pool (since this is I/O bound). """
     results = [-1] * len(search_helpers)  # watch out for -1 counts as indicative of an error
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor() as executor:
         futures = []
         for i, (func, kwargs) in enumerate(search_helpers):
             future = executor.submit(func, **kwargs)
@@ -33,7 +43,7 @@ def make_concurrent_search_requests(search_helpers):
                 result = future.result()
                 results[i] = result
             except Exception as e:
-                print(f"Exception occurred in function {search_helpers[i][0].__name__}: {e}")
+                log.error(f"Exception occurred in function {search_helpers[i][0].__name__}: {e}")
     return results
 
 
@@ -42,41 +52,46 @@ def extract_desired_facet_from_search(facets, desired_facet_name):
     for d in facets:
         if d['field'] == desired_facet_name:
             return d
+    log.error(f'Did not locate specified facet on homepage: {desired_facet_name}')
     return None
 
 
+def generate_admin_search_given_params(context, request, search_param):
+    """ Helper function for below that generates/executes a search given params AS ADMIN """
+    subreq = make_search_subreq(request, f'/search?{urlencode(search_param, True)}', inherit_user=False)
+    return search(context, subreq)
+
+
+def generate_search_total(context, request, search_param):
+    """ Helper function that executes a search and extracts the total """
+    search_param['limit'] = 0  # we do not care about search results, just total
+    return generate_admin_search_given_params(context, request, search_param)['total']
+
+
+def generate_unique_facet_count(context, request, search_param, desired_fact):
+    """ Helper function that extracts the number of unique facet terms """
+    search_param['limit'] = 0  # we do not care about search results, just facet counts
+    result = generate_admin_search_given_params(context, request, search_param)
+    facet = extract_desired_facet_from_search(result['facets'], desired_fact)
+    return len(facet['terms']) - 1  # remove "No value"
+
+
 def generate_colo829_cell_line_file_count(context, request):
-    """ Makes a search subrequest for released + public + restricted files
-        NOTE: this will need to be updated as we get more file requests
-    """
-    search_param = {
-        'type': 'File',
-        'status': ['released', 'restricted', 'public'],
-        'limit': 0
-    }
-    subreq = make_search_subreq(request, '{}?{}'.format('/search', urlencode(search_param, True)), inherit_user=True)
-    result = search(context, subreq)
-    return result['total']
+    """ Makes a search subrequest for released + public + restricted files """
+    search_param = SearchBase.COLO829_RELEASED_FILES_SEARCH_PARAMS
+    return generate_search_total(context, request, search_param)
 
 
 def generate_colo829_assay_count(context, request):
     """ Makes a search subrequest the same as the above to extract the assay counts """
-    search_param = {
-        'type': 'File',
-        'status': ['released', 'restricted', 'public'],
-        'limit': 0
-    }
-    subreq = make_search_subreq(request, '{}?{}'.format('/search', urlencode(search_param, True)), inherit_user=True)
-    result = search(context, subreq)
-    assays = extract_desired_facet_from_search(result['facets'], 'file_sets.libraries.assay.display_title')
-    assay_sum = len(assays['terms']) - 1  # remove "No value"
-    return assay_sum
+    search_param = SearchBase.COLO829_RELEASED_FILES_SEARCH_PARAMS
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
 
 
 @view_config(route_name='home', request_method=['GET'])
 @debug_log
 def home(context, request):
-    ignored(context), ignored(request)
+    """ Homepage API - has structure based on the front-end """
     search_results = make_concurrent_search_requests([
         (generate_colo829_assay_count, {'context': context, 'request': request}),
         (generate_colo829_cell_line_file_count, {'context': context, 'request': request})

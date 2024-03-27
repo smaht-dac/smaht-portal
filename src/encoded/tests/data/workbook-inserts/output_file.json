@@ -48,6 +48,7 @@
             "smaht"
         ],
         "file_size": 10000,
-        "status": "released"
+        "status": "released",
+        "dataset": "colo829t"
     }
 ]
