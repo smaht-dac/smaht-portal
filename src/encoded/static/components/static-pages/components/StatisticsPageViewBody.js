@@ -367,7 +367,7 @@ const aggregationsToChartData = {
         'requires'  : 'ExperimentSetReplicate',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations.weekly_interval_public_release && resp.aggregations.weekly_interval_public_release.buckets;
+            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
             if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
 
             return commonParsingFxn.countsToTotals(
@@ -478,8 +478,8 @@ const aggregationsToChartData = {
 
 // I forgot what purpose of all this was, kept because no time to refactor all now.
 export const submissionsAggsToChartData = _.pick(aggregationsToChartData,
-    'expsets_released', 'expsets_released_internal',
-    'expsets_released_vs_internal', 'files_released',
+    /*'expsets_released', 'expsets_released_internal',
+    'expsets_released_vs_internal', */'files_released',
     'file_volume_released'
 );
 
@@ -598,7 +598,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
     static defaultProps = {
         'searchURIs' : {
             'ExperimentSetReplicate' : function(props) {
-                const params = {};//navigate.getBrowseBaseParams(props.browseBaseState || null);
+                const params = {'type': 'File'};//navigate.getBrowseBaseParams(props.browseBaseState || null);
                 if (props.currentGroupBy){
                     params.group_by = props.currentGroupBy;
                 }
@@ -642,10 +642,10 @@ export class SubmissionStatsViewController extends React.PureComponent {
         const { externalTermMap } = this.state;
         if (!refresh && externalTermMap && _.keys(externalTermMap).length > 0) return;
 
-        ajax.load('/search/?type=Award&limit=all', (resp)=>{
+        ajax.load('/search/?type=SubmissionCenter&limit=all', (resp)=>{
             this.setState({
-                'externalTermMap' : _.object(_.map(resp['@graph'] || [], function(award){
-                    return [ award.center_title, award.project !== '4DN' ];
+                'externalTermMap' : _.object(_.map(resp['@graph'] || [], function(submissionCenter){
+                    return [ submissionCenter.display_title, submissionCenter.identifier !== 'smaht_dac' ];
                 }))
             });
         });
@@ -879,11 +879,11 @@ export function SubmissionsStatsView(props) {
     const {
         loadingStatus, mounted, session, currentGroupBy, groupByOptions, handleGroupByChange, windowWidth,
         // Passed in from StatsChartViewAggregator:
-        expsets_released, expsets_released_internal, files_released, file_volume_released,
-        expsets_released_vs_internal, chartToggles, smoothEdges, width, onChartToggle, onSmoothEdgeToggle
+        /*expsets_released, expsets_released_internal, */files_released, file_volume_released,
+        /*expsets_released_vs_internal,*/ chartToggles, smoothEdges, width, onChartToggle, onSmoothEdgeToggle
     } = props;
 
-    if (!mounted || (!expsets_released)){
+    if (!mounted || (!files_released)){
         return <div className="stats-charts-container" key="charts" id="submissions"><LoadingIcon/></div>;
     }
 
@@ -896,7 +896,7 @@ export function SubmissionsStatsView(props) {
         'onToggle' : onChartToggle, chartToggles, windowWidth,
         'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250
     };
-    const showInternalReleaseCharts = session && expsets_released_internal && expsets_released_vs_internal;
+    const showInternalReleaseCharts = false; //session && expsets_released_internal && expsets_released_vs_internal;
     const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter };
 
     return (
@@ -917,9 +917,9 @@ export function SubmissionsStatsView(props) {
 
                 : null }
 
-            <ColorScaleProvider width={width} resetScalesWhenChange={expsets_released}>
+            <ColorScaleProvider width={width} resetScalesWhenChange={files_released}>
 
-                <GroupByDropdown {...{ currentGroupBy, groupByOptions, handleGroupByChange, loadingStatus }} title="Group Charts Below By">
+                {/* <GroupByDropdown {...{ currentGroupBy, groupByOptions, handleGroupByChange, loadingStatus }} title="Group Charts Below By">
                     <div className="d-inline-block ml-15">
                         <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                     </div>
@@ -935,7 +935,7 @@ export function SubmissionsStatsView(props) {
                     </h4>
                 }>
                     <AreaChart {...commonChartProps} data={expsets_released} />
-                </AreaChartContainer>
+                </AreaChartContainer> */}
 
                 { showInternalReleaseCharts ?
                     <AreaChartContainer {...commonContainerProps} id="expsets_released_internal" title={

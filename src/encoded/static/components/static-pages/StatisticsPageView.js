@@ -110,11 +110,11 @@ export default class StatisticsPageView extends React.PureComponent {
 
         if (browseBaseState !== 'all'){
             _.extend(groupByOptions, {
-                'award.center_title'                 : <span><i className="icon icon-fw fas icon-university mr-1"/>Center</span>,
-                'lab.display_title'                  : <span><i className="icon icon-fw fas icon-users mr-1"/>Lab</span>,
-                'experiments_in_set.experiment_type.display_title' : <span><i className="icon icon-fw fas icon-chart-bar mr-1"/>Experiment Type</span>
+                'sequencing_center.display_title'                   : <span><i className="icon icon-fw fas icon-university mr-1"/>Sequencing Center</span>,
+                'lab.display_title'                                 : <span><i className="icon icon-fw fas icon-users mr-1"/>Lab</span>,
+                'experiments_in_set.experiment_type.display_title'  : <span><i className="icon icon-fw fas icon-chart-bar mr-1"/>Experiment Type</span>
             });
-            initialGroupBy = 'award.center_title';
+            initialGroupBy = 'sequencing_center.display_title';
         }
         return (
             <dynamicImports.GroupByController {...{ groupByOptions, initialGroupBy }}>
