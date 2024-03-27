@@ -55,6 +55,11 @@
             "smaht"
         ],
         "sequencing_center": "smaht",
-        "file_size": 10000
+        "file_size": 10000,
+        "software": [
+            "TEST_SOFTWARE_BWA-MEM",
+            "foo:software_vep"
+        ],
+        "reference_genome": "GRCh38"
     }
 ]

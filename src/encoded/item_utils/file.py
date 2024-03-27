@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from . import analyte, file_set, library, sample, sequencing, tissue
 from .utils import (
-    RequestHandler, get_property_values_from_identifiers ,get_unique_values
+    RequestHandler, get_property_values_from_identifiers, get_unique_values
 )
 
 
@@ -44,6 +44,11 @@ def get_annotated_filename(properties: Dict[str, Any]) -> str:
 def get_sequencing_center(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
     """Get sequencing center from properties."""
     return properties.get("sequencing_center", "")
+
+
+def get_software(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
+    """Get software from properties."""
+    return properties.get("software", [])
 
 
 def get_reference_genome(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
@@ -167,3 +172,8 @@ def get_data_generation_summary(properties: Dict[str, Any]) -> Dict[str, Any]:
 def get_sample_summary(properties: Dict[str, Any]) -> Dict[str, Any]:
     """Get sample summary from properties."""
     return properties.get("sample_summary", {})
+
+
+def get_analysis_summary(properties: Dict[str, Any]) -> Dict[str, Any]:
+    """Get analysis summary from properties."""
+    return properties.get("analysis_summary", {})

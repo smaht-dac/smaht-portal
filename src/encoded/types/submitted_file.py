@@ -133,6 +133,20 @@ class SubmittedFile(File, SubmittedItem):
         """Get sample summary for display on file overview page."""
         return self._get_sample_summary(request, self.properties)
 
+    @calculated_property(schema=CalcPropConstants.ANALYSIS_SUMMARY_SCHEMA)
+    def analysis_summary(
+        self,
+        request: Request,
+        software: Optional[List[str]] = None,
+        reference_genome: Optional[str] = None,
+    ) -> Union[Dict[str, Any], None]:
+        """Get analysis summary for display on file overview page."""
+        return self._get_analysis_summary(
+            request,
+            software=software,
+            reference_genome=reference_genome,
+        )
+
     @calculated_property(condition=show_upload_credentials, schema={
         "type": "object",
     })

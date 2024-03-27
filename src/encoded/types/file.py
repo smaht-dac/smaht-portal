@@ -284,8 +284,8 @@ class CalcPropConstants:
             },
         },
     }
-    ANALYSIS_SUMMARY_SOFTWARE = "software",
-    ANALYSIS_SUMMARY_REFERENCE_GENOME = "reference_genome",
+    ANALYSIS_SUMMARY_SOFTWARE = "software"
+    ANALYSIS_SUMMARY_REFERENCE_GENOME = "reference_genome"
     ANALYSIS_SUMMARY_SCHEMA = {
         "title": "Analysis Summary",
         "type": "object",
@@ -687,25 +687,26 @@ class File(Item, CoreFile):
         """Get analysis summary for display on file overview page."""
         result = None
         if software or reference_genome:
+            request_handler = RequestHandler(request=request)
             result = self._get_analysis_summary_fields(
-                request, self.properties
+                request_handler, self.properties
             )
         return result or None
 
     def _get_analysis_summary_fields(
-        self, request: Request, file_properties: Dict[str, Any]
+        self, request_handler: RequestHandler, file_properties: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Get analysis summary for display on file overview page."""
         constants = CalcPropConstants
         to_include = {
             constants.ANALYSIS_SUMMARY_SOFTWARE: get_property_values_from_identifiers(
-                request,
+                request_handler,
                 file_utils.get_software(file_properties),
                 software_utils.get_title_with_version,
             ),
             constants.ANALYSIS_SUMMARY_REFERENCE_GENOME: (
                 get_property_value_from_identifier(
-                    request,
+                    request_handler,
                     file_utils.get_reference_genome(file_properties),
                     item_utils.get_display_title,
                 )

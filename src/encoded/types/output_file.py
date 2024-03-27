@@ -90,6 +90,20 @@ class OutputFile(File):
         """Get sample summary for display on file overview page."""
         return self._get_sample_summary(request, self.properties)
 
+    @calculated_property(schema=CalcPropConstants.ANALYSIS_SUMMARY_SCHEMA)
+    def analysis_summary(
+        self,
+        request: Request,
+        software: Optional[List[str]] = None,
+        reference_genome: Optional[str] = None,
+    ) -> Union[Dict[str, Any], None]:
+        """Get analysis summary for display on file overview page."""
+        return self._get_analysis_summary(
+            request,
+            software=software,
+            reference_genome=reference_genome,
+        )
+
     # processed files don't want md5 as unique key
     def unique_keys(self, properties):
         keys = super(OutputFile, self).unique_keys(properties)

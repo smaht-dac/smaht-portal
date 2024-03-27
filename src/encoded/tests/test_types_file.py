@@ -19,6 +19,7 @@ from ..item_utils import (
     software as software_utils,
     tissue as tissue_utils,
 )
+from ..item_utils.utils import get_unique_values
 from ..types.file import CalcPropConstants
 
 
@@ -1051,10 +1052,10 @@ def assert_sample_summary_matches_expected(
     """
     sample_summary = file_utils.get_sample_summary(file)
     analytes = file_utils.get_analytes(file)
-    expected_analytes = [
-        analyte_utils.get_molecule(get_item(es_testapp, item_utils.get_uuid(analyte)))
-        for analyte in analytes
-    ] if analytes else []
+    expected_analytes = get_unique_values(
+        [get_item(es_testapp, item_utils.get_uuid(analyte)) for analyte in analytes],
+        analyte_utils.get_molecule,
+    )
     # TODO: Implement expected values below once data model updates in
     expected_sample_names = []
     expected_tissues = []
@@ -1128,7 +1129,10 @@ def assert_analysis_summary_matches_expected(
     Expected values determined here by parsing file properties/embeds.
     """
     analysis_summary = file_utils.get_analysis_summary(file)
-    software = file_utils.get_software(file)
+    software = [
+        get_item(es_testapp, item_utils.get_uuid(item))
+        for item in file_utils.get_software(file)
+    ]
     reference_genome = file_utils.get_reference_genome(file)
     expected_software = [
         software_utils.get_title_with_version(item)
