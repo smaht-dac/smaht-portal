@@ -2,7 +2,9 @@ from typing import Any, Dict, List, Optional, Union
 
 from . import analyte, file_set, library, sample, sequencing, tissue
 from .utils import (
-    RequestHandler, get_property_values_from_identifiers, get_unique_values
+    RequestHandler,
+    get_property_values_from_identifiers,
+    get_unique_values,
 )
 
 
