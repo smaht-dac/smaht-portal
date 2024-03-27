@@ -17,7 +17,8 @@
             "TEST_FILE-SET_LIVER"
         ],
         "read_pair_number": "R1",
-        "file_size": 10000
+        "file_size": 10000,
+        "status": "released"
     },
     {
         "uuid": "621e0ea9-0365-4e65-9790-05aa43c52261",
@@ -38,7 +39,8 @@
         ],
         "read_pair_number": "R2",
         "file_size": 20000,
-        "paired_with": "TEST_UNALIGNED-READS_FASTQ"
+        "paired_with": "TEST_UNALIGNED-READS_FASTQ",
+        "status": "released"
     },
     {
         "uuid": "92e8371b-bcdf-44de-ad49-3a5f108e91eb",
@@ -57,6 +59,7 @@
         "file_sets": [
             "TEST_FILE-SET_LIVER"
         ],
-        "file_size": 30000
+        "file_size": 30000,
+        "status": "released"
     }
 ]

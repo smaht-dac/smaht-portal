@@ -47,6 +47,7 @@
         "consortia": [
             "smaht"
         ],
-        "file_size": 10000
+        "file_size": 10000,
+        "status": "released"
     }
 ]

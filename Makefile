@@ -152,7 +152,8 @@ clean-python:
 test:
 	@git log -1 --decorate | head -1
 	@date
-	pytest -vv
+	pytest -vv -m "not workbook"
+	pytest -vv -m "workbook"
 	@git log -1 --decorate | head -1
 	@date
 
