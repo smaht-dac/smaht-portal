@@ -33,6 +33,11 @@ class SearchBase:
         'status': ['released', 'restricted', 'public'],
         'dataset': ['hapmap']
     }
+    IPSC_RELEASED_FILES_SEARCH_PARAMS = {
+        'type': 'File',
+        'status': ['released', 'restricted', 'public'],
+        'dataset': ['lb_fibroblast', 'lb_ipsc_1', 'lb_ipsc_2', 'lb_ipsc_4', 'lb_ipsc_52', 'lb_ipsc_60']
+    }
 
 
 def make_concurrent_search_requests(search_helpers):
@@ -90,14 +95,38 @@ def generate_unique_facet_count(context, request, search_param, desired_fact):
 
 
 def generate_colo829_cell_line_file_count(context, request):
-    """ Makes a search subrequest for released + public + restricted files """
+    """ Makes a search subrequest for released + public + restricted files for colo829 """
     search_param = SearchBase.COLO829_RELEASED_FILES_SEARCH_PARAMS
     return generate_search_total(context, request, search_param)
 
 
 def generate_colo829_assay_count(context, request):
-    """ Makes a search subrequest the same as the above to extract the assay counts """
+    """ Makes a search subrequest the same as the above to extract the assay counts for colo829 """
     search_param = SearchBase.COLO829_RELEASED_FILES_SEARCH_PARAMS
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+
+
+def generate_hapmap_cell_line_file_count(context, request):
+    """ Makes a search subrequest for released + public + restricted files for hapmap """
+    search_param = SearchBase.HAPMAP_RELEASED_FILES_SEARCH_PARAMS
+    return generate_search_total(context, request, search_param)
+
+
+def generate_hapmap_assay_count(context, request):
+    """ Makes a search subrequest the same as the above to extract the assay counts for hapmap """
+    search_param = SearchBase.HAPMAP_RELEASED_FILES_SEARCH_PARAMS
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+
+
+def generate_ipsc_cell_line_file_count(context, request):
+    """ Makes a search subrequest for released + public + restricted files for ipsc """
+    search_param = SearchBase.IPSC_RELEASED_FILES_SEARCH_PARAMS
+    return generate_search_total(context, request, search_param)
+
+
+def generate_ipsc_assay_count(context, request):
+    """ Makes a search subrequest the same as the above to extract the assay counts for ipsc """
+    search_param = SearchBase.IPSC_RELEASED_FILES_SEARCH_PARAMS
     return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
 
 
@@ -109,8 +138,17 @@ def home(context, request):
         homepage statistics
     """
     search_results = make_concurrent_search_requests([
-        (generate_colo829_assay_count, {'context': context, 'request': request}),
-        (generate_colo829_cell_line_file_count, {'context': context, 'request': request})
+        # colo829 stats
+        (generate_colo829_assay_count, {'context': context, 'request': request}),  # 0
+        (generate_colo829_cell_line_file_count, {'context': context, 'request': request}),  # 1
+
+        # HapMap stats
+        (generate_hapmap_assay_count, {'context': context, 'request': request}),  # 2
+        (generate_hapmap_cell_line_file_count, {'context': context, 'request': request}),  # 3
+
+        # iPSC & Firoblasts stats
+        (generate_ipsc_assay_count, {'context': context, 'request': request}),  # 4
+        (generate_ipsc_cell_line_file_count, {'context': context, 'request': request})  # 5
     ])
     response = {
         '@graph': [
@@ -135,9 +173,9 @@ def home(context, request):
                         "link": "/data/benchmarking/HapMap#main",
                         "figures": [
                             { "value": 6, "unit": "Cell Lines" },
-                            { "value": 0, "unit": "Assays" },
+                            { "value": search_results[2], "unit": "Assays" },
                             { "value": 0, "unit": "Mutations" },
-                            { "value": 0, "unit": "Files Generated" }
+                            { "value": search_results[3], "unit": "Files Generated" }
                         ]
                     },
                     {
@@ -145,9 +183,9 @@ def home(context, request):
                         "link": "/data/benchmarking/iPSC-fibroblasts#main",
                         "figures": [
                             { "value": 5, "unit": "Cell Lines" },
-                            { "value": 0, "unit": "Assays" },
+                            { "value": search_results[4], "unit": "Assays" },
                             { "value": 0, "unit": "Mutations" },
-                            { "value": 0, "unit": "Files Generated" }
+                            { "value": search_results[5], "unit": "Files Generated" }
                         ]
                     },
                     {
