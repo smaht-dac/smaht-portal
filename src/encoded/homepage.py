@@ -3,6 +3,7 @@ from snovault.util import debug_log
 from snovault.search.search import (
     search
 )
+from snovault.interfaces import DBSESSION
 from snovault.search.search_utils import make_search_subreq
 from urllib.parse import urlencode
 from concurrent.futures import ThreadPoolExecutor
@@ -40,10 +41,11 @@ class SearchBase:
     }
 
 
-def make_concurrent_search_requests(search_helpers):
+def make_concurrent_search_requests(registry, search_helpers):
     """ Execute multiple search functions concurrently using a thread pool (since this is I/O bound). """
+    session = registry[DBSESSION]()
     results = [-1] * len(search_helpers)  # watch out for -1 counts as indicative of an error
-    with ThreadPoolExecutor(max_workers=5) as executor:
+    with ThreadPoolExecutor() as executor:
         futures = []
         for i, (func, kwargs) in enumerate(search_helpers):
             future = executor.submit(func, **kwargs)
@@ -54,6 +56,7 @@ def make_concurrent_search_requests(search_helpers):
                 results[i] = result
             except Exception as e:
                 log.error(f"Exception occurred in function {search_helpers[i][0].__name__}: {e}")
+    session.close()
     return results
 
 
@@ -137,7 +140,7 @@ def home(context, request):
         Uses a threadpool to make several async requests to the ES to extract data for
         homepage statistics
     """
-    search_results = make_concurrent_search_requests([
+    search_results = make_concurrent_search_requests(request.registry, [
         # colo829 stats
         (generate_colo829_assay_count, {'context': context, 'request': request}),  # 0
         (generate_colo829_cell_line_file_count, {'context': context, 'request': request}),  # 1
