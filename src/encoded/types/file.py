@@ -48,10 +48,10 @@ from .base import (
 )
 from ..item_utils import (
     analyte as analyte_utils,
-    donor as donor_utils,
     file as file_utils,
     item as item_utils,
     sample as sample_utils,
+    software as software_utils,
 )
 from ..item_utils.utils import (
     get_property_value_from_identifier,
@@ -284,6 +284,25 @@ class CalcPropConstants:
             },
         },
     }
+    ANALYSIS_SUMMARY_SOFTWARE = "software"
+    ANALYSIS_SUMMARY_REFERENCE_GENOME = "reference_genome"
+    ANALYSIS_SUMMARY_SCHEMA = {
+        "title": "Analysis Summary",
+        "type": "object",
+        "properties": {
+            ANALYSIS_SUMMARY_SOFTWARE: {
+                "title": "Software",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            ANALYSIS_SUMMARY_REFERENCE_GENOME: {
+                "title": "Reference Genome",
+                "type": "string",
+            },
+        },
+    }
 
 
 
@@ -300,12 +319,22 @@ def show_upload_credentials(
 def _build_file_embedded_list() -> List[str]:
     """Embeds for search on files."""
     return [
-        "file_sets.libraries.analyte.samples.sample_sources.donor",
-        "file_sets.libraries.analyte.samples.sample_sources.cell_line",
-        "file_sets.libraries.analyte.samples.sample_sources.components.cell_culture.cell_line",
+        # Facets + Data generation summary + Link calcprops
         "file_sets.libraries.assay",
         "file_sets.sequencing.sequencer",
-        "software.name",
+
+        # Sample summary + Link calcprops
+        "file_sets.libraries.analyte.molecule",
+        "file_sets.libraries.analyte.samples.sample_sources.category",
+        "file_sets.libraries.analyte.samples.sample_sources.code",
+        "file_sets.libraries.analyte.samples.sample_sources.donor",
+        "file_sets.libraries.analyte.samples.sample_sources.cell_line.code",
+        "file_sets.libraries.analyte.samples.sample_sources.components.cell_culture.cell_line.code",
+
+        # Analysis summary
+        "software.code",
+        "software.title",
+        "software.version",
     ]
 
 
@@ -439,6 +468,90 @@ class File(Item, CoreFile):
             return result
         return
 
+    @calculated_property(schema=CalcPropConstants.LIBRARIES_SCHEMA)
+    def libraries(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Libraries associated with the file."""
+        return self._get_libraries(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.SEQUENCINGS_SCHEMA)
+    def sequencing(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Sequencing items associated with the file."""
+        return self._get_sequencing(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.ASSAYS_SCHEMA)
+    def assays(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Assays associated with the file."""
+        return self._get_assays(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.ANALYTES_SCHEMA)
+    def analytes(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Analytes associated with the file."""
+        return self._get_analytes(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.SAMPLES_SCHEMA)
+    def samples(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Samples associated with the file."""
+        return self._get_samples(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.SAMPLE_SOURCES_SCHEMA)
+    def sample_sources(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get SampleSources associated with the file."""
+        return self._get_sample_sources(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.DONORS_SCHEMA)
+    def donors(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """Get Donors associated with the file."""
+        return self._get_donors(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.FILE_SUMMARY_SCHEMA)
+    def file_summary(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[Dict[str, Any], None]:
+        """Get file summary for display on file overview page."""
+        return self._get_file_summary(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.DATA_GENERATION_SCHEMA)
+    def data_generation_summary(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[Dict[str, Any], None]:
+        """Get data generation summary for display on file overview page."""
+        return self._get_data_generation_summary(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.SAMPLE_SUMMARY_SCHEMA)
+    def sample_summary(
+        self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> Union[Dict[str, Any], None]:
+        """Get sample summary for display on file overview page."""
+        return self._get_sample_summary(request, file_sets=file_sets)
+
+    @calculated_property(schema=CalcPropConstants.ANALYSIS_SUMMARY_SCHEMA)
+    def analysis_summary(
+        self,
+        request: Request,
+        software: Optional[List[str]] = None,
+        reference_genome: Optional[str] = None,
+    ) -> Union[Dict[str, Any], None]:
+        """Get analysis summary for display on file overview page."""
+        return self._get_analysis_summary(
+            request,
+            software=software,
+            reference_genome=reference_genome,
+        )
+
     def _get_libraries(
         self, request: Request, file_sets: Optional[List[str]] = None
     ) -> List[str]:
@@ -446,7 +559,7 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_libraries(request_handler, self.properties)
+            result = file_utils.get_libraries(self.properties, request_handler)
         return result or None
 
     def _get_sequencing(
@@ -456,7 +569,7 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_sequencings(request_handler, self.properties)
+            result = file_utils.get_sequencings(self.properties, request_handler)
         return result or None
 
     def _get_assays(
@@ -466,7 +579,7 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_assays(request_handler, self.properties)
+            result = file_utils.get_assays(self.properties, request_handler)
         return result or None
 
     def _get_analytes(
@@ -476,7 +589,7 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_analytes(request_handler, self.properties)
+            result = file_utils.get_analytes(self.properties, request_handler)
         return result or None
 
     def _get_samples(
@@ -486,7 +599,7 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_samples(request_handler, self.properties)
+            result = file_utils.get_samples(self.properties, request_handler)
         return result or None
 
     def _get_sample_sources(
@@ -496,7 +609,7 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_sample_sources(request_handler, self.properties)
+            result = file_utils.get_sample_sources(self.properties, request_handler)
         return result or None
 
     def _get_donors(
@@ -506,19 +619,17 @@ class File(Item, CoreFile):
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            result = file_utils.get_donors(request_handler, self.properties)
+            result = file_utils.get_donors(self.properties, request_handler)
         return result or None
 
     def _get_file_summary(
         self, request: Request, file_sets: Optional[List[str]] = None
     ) -> Union[Dict[str, Any], None]:
         """Get file summary for display on file overview page."""
-        result = None
-        if file_sets:
-            request_handler = RequestHandler(request=request)
-            result = self._get_file_summary_fields(
-                request_handler, self.properties, self.uuid
-            )
+        request_handler = RequestHandler(request=request)
+        result = self._get_file_summary_fields(
+            request_handler, self.properties, self.uuid
+        )
         return result or None
 
     def _get_file_summary_fields(
@@ -558,12 +669,10 @@ class File(Item, CoreFile):
         self, request: Request, file_sets: Optional[List[str]] = None
     ) -> Union[Dict[str, Any], None]:
         """Get data generation summary for display on file overview page."""
-        result = None
-        if file_sets:
-            request_handler = RequestHandler(request=request)
-            result = self._get_data_generation_summary_fields(
-                request_handler, self.properties
-            )
+        request_handler = RequestHandler(request=request)
+        result = self._get_data_generation_summary_fields(
+            request_handler, self.properties
+        )
         return result or None
 
     def _get_data_generation_summary_fields(
@@ -594,13 +703,13 @@ class File(Item, CoreFile):
             ),
             constants.DATA_GENERATION_ASSAYS: get_property_values_from_identifiers(
                 request_handler,
-                file_utils.get_assays(request_handler, file_properties),
+                file_utils.get_assays(file_properties, request_handler),
                 item_utils.get_display_title,
             ),
             constants.DATA_GENERATION_SEQUENCING_PLATFORMS: (
                 get_property_values_from_identifiers(
                     request_handler,
-                    file_utils.get_sequencings(request_handler, file_properties),
+                    file_utils.get_sequencers(file_properties, request_handler),
                     item_utils.get_display_title,
                 )
             ),
@@ -627,26 +736,22 @@ class File(Item, CoreFile):
         """Get sample summary for display on file overview page."""
         constants = CalcPropConstants
         to_include = {
-            constants.SAMPLE_SUMMARY_DONOR_IDS: get_property_values_from_identifiers(
-                request_handler,
-                file_utils.get_donors(request_handler, file_properties),
-                donor_utils.get_id,
-            ),
+            constants.SAMPLE_SUMMARY_DONOR_IDS: [],  # TODO: Implement once donor ID added with TPC updates
             constants.SAMPLE_SUMMARY_TISSUES: [],  # TODO: Implement once tissue name added with TPC updates
             constants.SAMPLE_SUMMARY_SAMPLE_NAMES: get_property_values_from_identifiers(
                 request_handler,
-                file_utils.get_samples(request_handler, file_properties),
+                file_utils.get_samples(file_properties, request_handler),
                 functools.partial(sample_utils.get_sample_names, request_handler),
             ),
             constants.SAMPLE_SUMMARY_ANALYTES: get_property_values_from_identifiers(
                 request_handler,
-                file_utils.get_analytes(request_handler, file_properties),
+                file_utils.get_analytes(file_properties, request_handler),
                 analyte_utils.get_molecule,
             ),
             constants.SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS: (
                 get_property_values_from_identifiers(
                     request_handler,
-                    file_utils.get_samples(request_handler, file_properties),
+                    file_utils.get_samples(file_properties, request_handler),
                     functools.partial(
                         sample_utils.get_sample_descriptions, request_handler
                     ),
@@ -654,8 +759,44 @@ class File(Item, CoreFile):
             ),
             constants.SAMPLE_SUMMARY_STUDIES: get_property_values_from_identifiers(
                 request_handler,
-                file_utils.get_samples(request_handler, file_properties),
+                file_utils.get_samples(file_properties, request_handler),
                 functools.partial(sample_utils.get_studies, request_handler),
+            ),
+        }
+        return {key: value for key, value in to_include.items() if value}
+
+    def _get_analysis_summary(
+        self,
+        request: Request,
+        software: Optional[List[str]] = None,
+        reference_genome: Optional[str] = None,
+    ) -> Union[Dict[str, Any], None]:
+        """Get analysis summary for display on file overview page."""
+        result = None
+        if software or reference_genome:
+            request_handler = RequestHandler(request=request)
+            result = self._get_analysis_summary_fields(
+                request_handler, self.properties
+            )
+        return result or None
+
+    def _get_analysis_summary_fields(
+        self, request_handler: RequestHandler, file_properties: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Get analysis summary for display on file overview page."""
+        constants = CalcPropConstants
+        to_include = {
+            constants.ANALYSIS_SUMMARY_SOFTWARE: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_software(file_properties),
+                software_utils.get_title_with_version,
+            ),
+            constants.ANALYSIS_SUMMARY_REFERENCE_GENOME: (
+                get_property_value_from_identifier(
+                    request_handler,
+                    file_utils.get_reference_genome(file_properties),
+                    item_utils.get_display_title,
+                )
             ),
         }
         return {key: value for key, value in to_include.items() if value}

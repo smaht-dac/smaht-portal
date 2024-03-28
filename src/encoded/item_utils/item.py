@@ -21,6 +21,11 @@ def get_display_title(properties: Dict[str, Any]) -> str:
     return properties.get("display_title", "")
 
 
+def get_title(properties: Dict[str, Any]) -> str:
+    """Get title from properties."""
+    return properties.get("title", "")
+
+
 def get_types(properties: Dict[str, Any]) -> List[str]:
     """Get types from properties."""
     return properties.get("@type", [])
@@ -30,7 +35,7 @@ def get_type(properties: Dict[str, Any]) -> str:
     """Get "final" type from properties."""
     types = get_types(properties)
     if types:
-        return types[-1]
+        return types[0]
     return ""
 
 

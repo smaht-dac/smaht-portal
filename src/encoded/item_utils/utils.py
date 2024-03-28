@@ -50,9 +50,7 @@ class RequestHandler:
         self, identifier: str, collection: Optional[str] = None
     ) -> Dict[str, Any]:
         """Get item from request"""
-        return get_item_from_request(
-            self.request, identifier, collection=collection
-        )
+        return get_item_from_request(self.request, identifier, collection=collection)
 
     def _get_item_from_auth_key(self, identifier: str) -> Dict[str, Any]:
         """Get item from auth_key"""
@@ -63,8 +61,11 @@ class RequestHandler:
 
 def get_unique_values(
     items: List[Dict[str, Any]], retriever: Callable, exclude_null: bool = True
-) -> List[str]:
-    """Get unique identifiers from items, as returned by the retriever."""
+) -> List[Any]:
+    """Get unique values from items, as returned by the retriever.
+
+    Note: Retrieved values must be hashable as implemented.
+    """
     values = unravel_lists([retriever(item) for item in items])
     if exclude_null:
         return list(set([value for value in values if value]))
@@ -90,9 +91,7 @@ def get_property_values_from_identifiers(
     return get_property_values(items, retriever)
 
 
-def get_property_values(
-    items: List[Dict[str, Any]], retriever: Callable
-) -> List[Any]:
+def get_property_values(items: List[Dict[str, Any]], retriever: Callable) -> List[Any]:
     """Get unique property values from items."""
     return get_unique_values(items, retriever)
 
