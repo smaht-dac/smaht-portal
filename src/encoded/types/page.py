@@ -126,7 +126,6 @@ def cleanup_page_tree(node):
             child['sibling_position'] = child_idx
 
 
-
 def is_static_page(info, request):
     page_name = "/".join(info.get('match', {}).get('subpath'))
     if '@@' in page_name:
@@ -137,7 +136,9 @@ def is_static_page(info, request):
         return False
 
     request.set_property(lambda x: generate_page_tree(x, page_name), name='_static_page_tree', reify=True)
-    request.set_property(lambda x: request.registry[CONNECTION].storage.get_by_json('identifier', page_name, 'page'), name='_static_page_model', reify=True)
+    request.set_property(lambda x: request.registry[CONNECTION].storage.get_by_unique_key('identifier', page_name,
+                                                                                          item_type='page'),
+                         name='_static_page_model', reify=True)
 
     if request._static_page_model:
         return True
