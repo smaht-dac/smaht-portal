@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 
 def get_uuid(properties: Dict[str, Any]) -> str:
@@ -39,12 +39,14 @@ def get_type(properties: Dict[str, Any]) -> str:
     return ""
 
 
-def get_submission_centers(properties: Dict[str, Any]) -> List[str]:
+def get_submission_centers(
+    properties: Dict[str, Any]
+) -> List[Union[Dict[str, Any], str]]:
     """Get submission centers from properties."""
     return properties.get("submission_centers", [])
 
 
-def get_consortia(properties: Dict[str, Any]) -> List[str]:
+def get_consortia(properties: Dict[str, Any]) -> List[Union[Dict[str, Any], str]]:
     """Get consortia from properties."""
     return properties.get("consortia", [])
 
