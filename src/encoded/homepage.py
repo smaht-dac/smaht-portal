@@ -28,6 +28,11 @@ class SearchBase:
         'status': ['released', 'restricted', 'public'],
         'dataset': ['colo829blt_50to1', 'colo829t', 'colo829bl']
     }
+    HAPMAP_RELEASED_FILES_SEARCH_PARAMS = {
+        'type': 'File',
+        'status': ['released', 'restricted', 'public'],
+        'dataset': ['hapmap']
+    }
 
 
 def make_concurrent_search_requests(search_helpers):
@@ -76,7 +81,12 @@ def generate_unique_facet_count(context, request, search_param, desired_fact):
     search_param['limit'] = 0  # we do not care about search results, just facet counts
     result = generate_admin_search_given_params(context, request, search_param)
     facet = extract_desired_facet_from_search(result['facets'], desired_fact)
-    return len(facet['terms']) - 1  # remove "No value"
+    # correct for no value, worst case we check the whole list of facet terms
+    # but this is usually a manageable sized list - Will 28 March 2024
+    for term in facet['terms']:
+        if term['key'] == 'No value':
+            return len(facet['terms']) - 1
+    return len(facet['terms'])
 
 
 def generate_colo829_cell_line_file_count(context, request):
@@ -94,7 +104,10 @@ def generate_colo829_assay_count(context, request):
 @view_config(route_name='home', request_method=['GET'])
 @debug_log
 def home(context, request):
-    """ Homepage API - has structure based on the front-end """
+    """ Homepage API - has structure based on the front-end
+        Uses a threadpool to make several async requests to the ES to extract data for
+        homepage statistics
+    """
     search_results = make_concurrent_search_requests([
         (generate_colo829_assay_count, {'context': context, 'request': request}),
         (generate_colo829_cell_line_file_count, {'context': context, 'request': request})
