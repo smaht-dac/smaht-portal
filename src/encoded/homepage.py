@@ -73,7 +73,7 @@ def generate_admin_search_given_params(context, request, search_param):
     """ Helper function for below that generates/executes a search given params AS ADMIN
         BE EXTREMELY CAREFUL WITH THIS - do NOT use to return results directly
     """
-    request.remote_user = 'EMBED'  # this allows the below search to execute as admin
+    request.remote_user = 'IMPORT'  # this allows the below search to execute as admin
     subreq = make_search_subreq(request, f'/search?{urlencode(search_param, True)}')
     return search(context, subreq)
 
