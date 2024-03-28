@@ -66,13 +66,11 @@ export const BenchmarkingUINav = (props) => {
             <button
                 className="toggle-button"
                 onClick={() => props.setShowNav(!props.showNav)}>
-                <span>
-                    {props.showNav ? (
-                        <b>x</b>
-                    ) : (
-                        <i className="icon icon-bars icon-fw fas"></i>
-                    )}
-                </span>
+                {props.showNav ? (
+                    <i className="icon icon-arrow-left fas"></i>
+                ) : (
+                    <i className="icon icon-arrow-right fas"></i>
+                )}
             </button>
             <div className="benchmarking-nav-section">
                 <div className="benchmarking-nav-section-title text-small text-600">

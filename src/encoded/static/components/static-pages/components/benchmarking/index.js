@@ -17,13 +17,15 @@ export const BenchmarkingUI = (props) => {
     return (
         <div
             className={
-                'benchmarking-ui-container' +
+                'benchmarking-ui-container row' +
                 (showNav ? ' show-nav' : ' collapse-nav')
             }>
-            <div className="benchmarking-nav-container d-none d-lg-flex">
+            <div className="benchmarking-nav-container">
                 <BenchmarkingUINav {...{ showNav, setShowNav, href }} />
             </div>
-            <div className="benchmarking-layout-container">{children}</div>
+            <div className="benchmarking-layout-container col-12 col-lg-auto">
+                {children}
+            </div>
         </div>
     );
 };
