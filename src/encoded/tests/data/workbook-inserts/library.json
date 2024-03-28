@@ -13,5 +13,17 @@
         "insert_mean_length": 150.2,
         "preparation_date": "2023-05-11",
         "assay": "bulk_wgs"
+    },
+    {
+        "uuid": "f14533e1-de91-4390-9c16-28e420029d41",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY_HELA",
+        "analyte": "TEST_ANALYTE_HELA",
+        "a260_a280_ratio": 3.2,
+        "fragment_mean_length": 150.7,
+        "insert_mean_length": 150.2,
+        "assay": "bulk_wgs"
     }
 ]
