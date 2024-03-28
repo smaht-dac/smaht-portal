@@ -319,15 +319,22 @@ def show_upload_credentials(
 def _build_file_embedded_list() -> List[str]:
     """Embeds for search on files."""
     return [
-        "file_sets.libraries.analyte.molecule",
-        "file_sets.libraries.analyte.samples.sample_sources.donor",
-        "file_sets.libraries.analyte.samples.sample_sources.cell_line.code",
-        "file_sets.libraries.analyte.samples.sample_sources.components.cell_culture.cell_line",
+        # Facets + Data generation summary + Link calcprops
         "file_sets.libraries.assay",
         "file_sets.sequencing.sequencer",
+
+        # Sample summary + Link calcprops
+        "file_sets.libraries.analyte.molecule",
+        "file_sets.libraries.analyte.samples.sample_sources.category",
+        "file_sets.libraries.analyte.samples.sample_sources.code",
+        "file_sets.libraries.analyte.samples.sample_sources.donor",
+        "file_sets.libraries.analyte.samples.sample_sources.cell_line.code",
+        "file_sets.libraries.analyte.samples.sample_sources.components.cell_culture.cell_line.code",
+
+        # Analysis summary
         "software.code",
+        "software.title",
         "software.version",
-        "reference_genome",
     ]
 
 
