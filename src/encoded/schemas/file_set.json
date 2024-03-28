@@ -4,7 +4,6 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "assay",
         "libraries",
         "sequencing",
         "submission_centers",
@@ -22,6 +21,9 @@
         },
         {
             "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -53,13 +55,7 @@
             "accessionType": "FS"
         },
         "schema_version": {
-            "default": "1"
-        },
-        "assay": {
-            "title": "Assay",
-            "description": "Link to associated assay",
-            "type": "string",
-            "linkTo": "Assay"
+            "default": "2"
         },
         "libraries": {
             "title": "Libraries",
@@ -86,7 +82,7 @@
         "submission_centers.display_title": {
             "title": "Submitted By"
         },
-        "assay.display_title": {
+        "libraries.assay.display_title": {
             "title": "Assay"
         },
         "sequencing.sequencer.display_title": {
@@ -100,7 +96,7 @@
         "submission_centers.display_title": {
             "title": "Submitted By"
         },
-        "assay.display_title": {
+        "libraries.assay.display_title": {
             "title": "Assay"
         },
         "sequencing.sequencer.display_title": {

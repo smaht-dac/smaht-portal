@@ -7,6 +7,129 @@ smaht-portal
 Change Log
 ----------
 
+0.34.0
+======
+
+* 2024-03-14: This is a temporary branch (extra_files_plus_main_20240314)
+  which is Will's extra_files branch with main merged in (2024-03-14), and
+  also Utku's utk_es_max_hit branch (PR-114) with documentation changes merge in.
+  FYI: Branch utk_es_max_hit was merged into main 2024-03-19.
+* Added missing import of calculated_property from snovault to types/submitted_file.py.
+* Documentation changes.
+
+* Changes to support "resuming" smaht-submitr submission after a server
+  validation "submission" timed out while waiting (via submit-metadata-bundle).
+
+  In this (server validation timeout) case the user can then run check-submission with
+  the UUID for the validation submission, and if/when it is complete and successful,
+  the user will be allowed to continue on to do the actual submission. Slightly tricky
+  because the metadata file was uploaded (to S3) as a part of the validation submission,
+  and/but when check-submission is run we don't want the user to have to specify this
+  file again, partly because it is an odd user experience, but mostly because when we
+  do the actual submission we want to make sure we use the EXACT file that was validated;
+  and so to do this we grab the file from where it was uploaded as part of the validation
+  submission (i.e. under an S3 key with the validation UUID) and copy it over to where
+  it would normally be (i.e. under an S3 key with the submission UUID); and from there
+  things continue as normal. Note also that both of the IngestionSubmission objects have
+  a pointer to the other; i.e. the validation submission object has "submission_uuid"
+  and the actual submission object has a "validation_uuid" (in the "parameters");
+  this hookup is done by the smaht-submitr code.
+
+  The "resuming" scare-quotes are because this is not really resuming a submission but
+  rather resuming the process the submit-metadata-bundle was doing, i.e. where it does
+  a server validation then then, if successful and okay with the user, it continues on
+  to do the actual submission. The "submission" scare-quotes for the server validation
+  is because this is a submission in the sense that an IngestionSubmission object is
+  created, but not an actual submission because it is a validate_only submission.
+
+* Added display_title calculated property to IngestionSubmission to display either
+  Validation or Submission depending on validate_only (followed by colon and uuid).
+
+
+0.33.3
+======
+
+`PR 114: ES total count, HealthView and rst content updates <https://github.com/smaht-dac/smaht-portal/pull/114>`_
+
+* Adds UI updates implemented in https://github.com/smaht-dac/smaht-portal/pull/114
+* Ports HealthView page fixes previously implemented in 4DN for package-lock.json v3
+* Adds admonition support for rst-to-html conversion in static content
+
+
+0.33.2
+======
+
+`PR 121: Upgrader additions <https://github.com/smaht-dac/smaht-portal/pull/121>`_
+
+* Add upgraders for Sequencing and CellCulture for properties changed or removed in prior PRs
+
+
+0.33.1
+======
+
+* Updating ethnicity/nationality descriptions for HapMap
+
+
+0.33.0
+======
+
+`PR 117: Assay link change #2 <https://github.com/smaht-dac/smaht-portal/pull/117>`_
+
+* Breaking scheme change: Assay link removed from file set and required on library
+* Create FileSet upgrader to remove assay link for schema version 1 items
+* Update loadxl order to account for new assay linkTo location
+
+
+0.32.2
+======
+
+* Add common_fields to MetaWorkflowRun and sequencing_center to WorkflowRun and QualityMetric
+
+
+0.32.1
+======
+
+* Add new option to Software category enum
+
+
+0.32.0
+======
+
+* Removed master-inserts/file_format.json.
+* Changes for new skip_links (snovault.loadxl) mode for smaht-submitr. 
+* Added submits_for to master-inserts/users.json.
+* Documentation related to smaht-submitr updates.
+* FYI: For the record some merging complications (2024-03-09 ~ 15:35) ...
+  Merged in some changes from commit c67d442e for __init__.py and server_defaults.py as
+  issues with make deploy1a load errors related to user_submission_centers, after merging
+  in from main, which had issues with make deploy1b WRT circular dependencies like
+  ImportError: cannot import name 'test_accession' from partially initialized
+  module 'snovault.server_defaults' (most likely due to a circular import).
+
+
+0.31.0
+======
+
+* Updates nginx version to latest as of 03/13/2024 to resolve security alerts 
+
+
+0.30.2
+======
+
+`PR 112: Assay link change #1 <https://github.com/smaht-dac/smaht-portal/pull/112>`_
+
+* Add assay linkTo to library in preparation for future removal from current location on file set
+* Add anyOf requirement on sequencing for coverage or read count
+
+
+0.30.1
+======
+
+`PR 111: Minor schema updates <https://github.com/smaht-dac/smaht-portal/pull/111>`_
+
+* Update select item properties to match those desired for "automated" submission
+
+
 0.30.0
 ======
 

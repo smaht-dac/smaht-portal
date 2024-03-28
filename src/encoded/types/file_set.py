@@ -9,6 +9,7 @@ from .submitted_item import SubmittedItem
 def _build_file_set_embedded_list():
     """Embeds for search on file sets."""
     return [
+        "libraries.assay",
         "sequencing.sequencer.display_title",
     ]
 

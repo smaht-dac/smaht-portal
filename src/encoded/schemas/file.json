@@ -140,6 +140,9 @@
                 ]
             }
         },
+        "extra_files": {
+            "$merge": "encoded_core:schemas/file.json#/properties/extra_files"
+        },
         "o2_path": {
             "title": "O2 Path",
             "description": "Path to file on O2",
@@ -147,11 +150,7 @@
             "type": "string"
         },
         "sequencing_center": {
-            "title": "Sequencing Center",
-            "description": "Sequencing Center",
-            "type": "string",
-            "linkTo": "SubmissionCenter",
-            "permission": "restricted_fields"
+            "$merge": "mixins.json#/sequencing_center/sequencing_center"
         },
         "s3_lifecycle_category": {
             "description": "The lifecycle category determines how long a file remains in a certain storage class.  If set to ignore, lifecycle management will have no effect on this file",
@@ -180,7 +179,7 @@
         "data_type": {
             "title": "Data Category"
         },
-        "file_sets.assay.display_title": {
+        "file_sets.libraries.assay.display_title": {
             "title": "Experimental Assay"
         },
         "file_sets.sequencing.sequencer.display_title": {
@@ -209,7 +208,7 @@
         "data_type": {
             "title": "Data Category"
         },
-        "file_sets.assay.display_title": {
+        "file_sets.libraries.assay.display_title": {
             "title": "Assay"
         },
         "file_sets.sequencing.sequencer.display_title": {

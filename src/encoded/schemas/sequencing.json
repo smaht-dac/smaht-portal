@@ -15,6 +15,18 @@
         "submitted_id",
         "uuid"
     ],
+    "anyOf": [
+        {
+            "required": [
+                "target_coverage"
+            ]
+        },
+        {
+            "required": [
+                "target_read_count"
+            ]
+        }
+    ],
     "additionalProperties": false,
     "mixinProperties": [
         {
@@ -53,7 +65,7 @@
             "accessionType": "SQ"
         },
         "schema_version": {
-            "default": "2"
+            "default": "3"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_SEQUENCING_[A-Z0-9-_.]{4,}$"

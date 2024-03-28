@@ -57,7 +57,7 @@
             "accessionType": "CC"
         },
         "schema_version": {
-            "default": "2"
+            "default": "3"
         },
         "culture_duration": {
             "title": "Culture Duration",
@@ -76,18 +76,6 @@
             "description": "YYYY-MM-DD format date for cell culture start date",
             "type": "string",
             "format": "date"
-        },
-        "doubling_number": {
-            "title": "Doubling Number",
-            "description": "Number of times the population has doubled since the time of culture start date until harvest",
-            "type": "integer",
-            "minimum": 0
-        },
-        "doubling_time": {
-            "title": "Doubling Time",
-            "description": "Average time from culture start date until harvest it takes for the population to double (hours)",
-            "type": "number",
-            "minimum": 0
         },
         "growth_medium": {
             "title": "Growth Medium",
