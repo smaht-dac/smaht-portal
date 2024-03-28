@@ -26,6 +26,11 @@ def get_title(properties: Dict[str, Any]) -> str:
     return properties.get("title", "")
 
 
+def get_description(properties: Dict[str, Any]) -> str:
+    """Get description from properties."""
+    return properties.get("description", "")
+
+
 def get_types(properties: Dict[str, Any]) -> List[str]:
     """Get types from properties."""
     return properties.get("@type", [])
