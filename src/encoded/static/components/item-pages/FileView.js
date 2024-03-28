@@ -1,0 +1,406 @@
+'use strict';
+
+import React, { useEffect, useState } from 'react';
+import {
+    console,
+    layout,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+
+import DefaultItemView from './DefaultItemView';
+import { PageTitleContainer, OnlyTitle } from '../PageTitleSection';
+import {
+    DotRouter,
+    DotRouterTab,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
+
+/**
+ * Page containing the details of Items of type File
+ */
+export default class FileOverview extends DefaultItemView {
+    getTabViewContents() {
+        const initTabs = [];
+        initTabs.push(FileView.getTabObject(this.props));
+        return initTabs.concat(this.getCommonTabs()); // Add remainder of common tabs (Details, Attribution)
+    }
+}
+
+const DataCard = ({ header, data }) => {
+    return (
+        <div className="data-card">
+            <div className="header">
+                <span className="header-text">{header}</span>
+            </div>
+            <div className="body">
+                {data.map((datum, i) => {
+                    return (
+                        <div className="datum" key={i}>
+                            <span className="datum-title">{datum.title}</span>
+                            <span className="datum-value">{datum.value}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+const FileViewDataCards = ({ context }) => {
+    return (
+        <div className="data-cards-container">
+            <DataCard
+                header={'File Properties'}
+                data={[
+                    { title: 'property1', value: 'value1' },
+                    { title: 'property2', value: 'value2' },
+                    { title: 'property3', value: 'value3' },
+                ]}
+            />
+            <DataCard
+                header={'Data Information'}
+                data={[{ title: 'property1', value: 'value1' }]}
+            />
+            <DataCard
+                header={'Sample Information'}
+                data={[{ title: 'property1', value: 'value1' }]}
+            />
+        </div>
+    );
+};
+
+const FileViewHeader = ({ context }) => {
+    const { accession, status, description } = context;
+    return (
+        <div className="file-view-header">
+            <div className="data-group data-row header">
+                <h1 className="header-text">File Overview</h1>
+                <button className="btn btn-primary download-file-button">
+                    <svg
+                        width="13"
+                        height="15"
+                        viewBox="0 0 13 15"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M5.48438 -9.53674e-07H7.51562C7.85332 -9.53674e-07 8.125 0.303413 8.125 0.680555V5.44444H10.3518C10.8037 5.44444 11.0297 6.05411 10.7098 6.4114L6.84785 10.7273C6.65742 10.9399 6.34512 10.9399 6.15469 10.7273L2.2877 6.4114C1.96777 6.05411 2.19375 5.44444 2.6457 5.44444H4.875V0.680555C4.875 0.303413 5.14668 -9.53674e-07 5.48438 -9.53674e-07ZM13 10.662V13.838C13 14.2151 12.7283 14.5185 12.3906 14.5185H0.609375C0.27168 14.5185 0 14.2151 0 13.838V10.662C0 10.2849 0.27168 9.98148 0.609375 9.98148H4.33418L5.57832 11.3709C6.08867 11.9409 6.91133 11.9409 7.42168 11.3709L8.66582 9.98148H12.3906C12.7283 9.98148 13 10.2849 13 10.662ZM9.85156 13.1574C9.85156 12.8455 9.62305 12.5903 9.34375 12.5903C9.06445 12.5903 8.83594 12.8455 8.83594 13.1574C8.83594 13.4693 9.06445 13.7245 9.34375 13.7245C9.62305 13.7245 9.85156 13.4693 9.85156 13.1574ZM11.4766 13.1574C11.4766 12.8455 11.248 12.5903 10.9688 12.5903C10.6895 12.5903 10.4609 12.8455 10.4609 13.1574C10.4609 13.4693 10.6895 13.7245 10.9688 13.7245C11.248 13.7245 11.4766 13.4693 11.4766 13.1574Z"
+                            fill="white"
+                        />
+                    </svg>
+                    <span>Download File</span>
+                </button>
+            </div>
+            <div className="data-group data-row">
+                <div className="datum">
+                    <span className="datum-title">File Accession </span>
+                    <span className="vertical-divider">|</span>
+                    <span>
+                        <b className="accession">{accession}</b>
+                    </span>
+                </div>
+                <div className="right-group">
+                    <div className="status-group">
+                        <svg
+                            width="10"
+                            height="10"
+                            viewBox="0 0 10 10"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="5" cy="5" r="5" fill="#299902" />
+                        </svg>
+                        <span className="status">
+                            {status.charAt(0).toUpperCase() +
+                                status.substring(1)}
+                        </span>
+                    </div>
+                    <span className="vertical-divider">|</span>
+                    <a className="view-json">
+                        <svg
+                            width="10"
+                            height="13"
+                            viewBox="0 0 10 13"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <g clip-path="url(#clip0_246_465)">
+                                <path
+                                    d="M3.90365 8.86358L3.89844 8.8585L3.04427 8.12471L3.89844 7.39092C3.99219 7.30967 4.0026 7.16749 3.91927 7.07608L3.91406 7.071L3.46094 6.59874C3.3724 6.50733 3.22656 6.50479 3.13802 6.58858L1.63542 7.96221C1.53906 8.05108 1.53906 8.20088 1.63542 8.28721L3.13802 9.66085C3.17969 9.69893 3.23698 9.72178 3.29427 9.72178C3.35677 9.72178 3.41927 9.69639 3.46094 9.65069L3.91406 9.17842C4 9.08956 3.99479 8.94737 3.90365 8.86358ZM9.63281 2.48545L7.44792 0.355181C7.21354 0.126666 6.89583 -0.00282669 6.5651 -0.00282669H1.25C0.559896 -0.000287628 0 0.545611 0 1.21846V11.781C0 12.4538 0.559896 12.9997 1.25 12.9997H8.75C9.4401 12.9997 10 12.4538 10 11.781V3.34874C10 3.02627 9.86719 2.71397 9.63281 2.48545ZM6.66667 1.31749L8.64844 3.24971H6.66667V1.31749ZM8.75 11.781H1.25V1.21846H5.41667V3.85909C5.41667 4.19678 5.69531 4.46846 6.04167 4.46846H8.75V11.781ZM5.45833 5.43331C5.33594 5.39776 5.21094 5.46631 5.17448 5.58565L3.75 10.3616C3.71354 10.481 3.78385 10.6054 3.90625 10.6384L4.54167 10.8187C4.66406 10.8542 4.79167 10.7831 4.82552 10.6663L6.25 5.8878C6.28646 5.76846 6.21615 5.64405 6.09375 5.61104L5.45833 5.43331ZM6.09635 7.38585L6.10156 7.39092L6.95573 8.12471L6.10156 8.8585C6.00781 8.93975 5.9974 9.08194 6.08073 9.17334L6.08594 9.17842L6.53906 9.65069C6.625 9.73956 6.77083 9.74463 6.86198 9.66085L8.36458 8.28721C8.46094 8.19835 8.46094 8.04854 8.36458 7.96221L6.86198 6.58858C6.77083 6.50479 6.625 6.50733 6.53906 6.59874L6.08594 7.071C6 7.15987 6.00521 7.30206 6.09635 7.38585Z"
+                                    fill="#343741"
+                                />
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_246_465">
+                                    <rect width="10" height="13" fill="white" />
+                                </clipPath>
+                            </defs>
+                        </svg>
+                        <span>View JSON</span>
+                    </a>
+                </div>
+            </div>
+            <div className="data-group data-row">
+                <div className="datum description">
+                    <span className="datum-title">Description </span>
+                    <span className="vertical-divider">|</span>
+                    <span
+                        className={
+                            'datum-value' + (description ? '' : ' text-gray')
+                        }>
+                        {description || 'Coming Soon'}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AssociatedDataTab = ({ context }) => {
+    return (
+        <div className="content">
+            <h1 className="header">Analysis Overview</h1>
+            <div className="body">
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">Analysis ID</span>
+                        <span className="datum-value text-gray">
+                            Coming Soon
+                        </span>
+                    </div>
+                </div>
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">
+                            Workflow Description / Analysis Method
+                        </span>
+                        <span className="datum-value text-gray">
+                            Coming Soon
+                        </span>
+                    </div>
+                </div>
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">
+                            Reference Genome Build
+                        </span>
+                        <span className="datum-value">GCA_000001405.15</span>
+                    </div>
+                </div>
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">
+                            Reference Genome Name
+                        </span>
+                        <span className="datum-value">GRCh38</span>
+                    </div>
+                </div>
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">
+                            Read Group Name / Sample Name
+                        </span>
+                        <span className="datum-value text-gray">
+                            Coming Soon
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const QCOverviewTab = ({ context }) => {
+    const bamLinks = [
+        { name: 'BAMQC1', link: '/' },
+        { name: 'BAMQC2', link: '/' },
+        { name: 'BAMQC3', link: '/' },
+    ];
+    return (
+        <div className="content">
+            <h1 className="header">QC Overview</h1>
+            <div className="body">
+                <div className="data-group data-row">
+                    <div className="datum">
+                        <span className="datum-title">
+                            Full Quality Metrics{' '}
+                        </span>
+                        {bamLinks.map((bamLink, i) => {
+                            return (
+                                <div className="bamqc-link-group" key={i}>
+                                    <span className="vertical-divider">|</span>
+                                    <a href={bamLink.link}>{bamLink.name}</a>
+                                </div>
+                            );
+                        })}
+                        <span></span>
+                    </div>
+                </div>
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">Value 1</span>
+                        <span className="datum-value">Value</span>
+                        <span className="datum-value text-gray">
+                            &#91;Low Range - High Range &#93;
+                        </span>
+                    </div>
+                </div>
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">Value 2</span>
+                        <span className="datum-value">Value</span>
+                        <span className="datum-value text-gray">
+                            &#91;Low Range - High Range &#93;
+                        </span>
+                    </div>
+                </div>
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">Value 3</span>
+                        <span className="datum-value">Value</span>
+                        <span className="datum-value text-gray">
+                            &#91;Low Range - High Range &#93;
+                        </span>
+                    </div>
+                </div>
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">Value 4</span>
+                        <span className="datum-value">Value</span>
+                        <span className="datum-value text-gray">
+                            &#91;Low Range - High Range &#93;
+                        </span>
+                    </div>
+                </div>
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">Value 5</span>
+                        <span className="datum-value text-gray">
+                            Coming Soon
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AnalysisInformationTab = ({ context }) => {
+    return (
+        <div className="content">
+            <h1 className="header">Associated Data</h1>
+            <div className="body">
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">Analysis ID</span>
+                        <span className="datum-value text-gray">
+                            Coming Soon
+                        </span>
+                    </div>
+                </div>
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">
+                            Workflow Description / Analysis Method
+                        </span>
+                        <span className="datum-value text-gray">
+                            Coming Soon
+                        </span>
+                    </div>
+                </div>
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">
+                            Reference Genome Build
+                        </span>
+                        <span className="datum-value">GCA_000001405.15</span>
+                    </div>
+                </div>
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">
+                            Reference Genome Name
+                        </span>
+                        <span className="datum-value">GRCh38</span>
+                    </div>
+                </div>
+                <div className="data-group text-card">
+                    <div className="datum">
+                        <span className="datum-title">
+                            Read Group Name / Sample Name
+                        </span>
+                        <span className="datum-value text-gray">
+                            Coming Soon
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const FileViewTabs = ({ context, href }) => {
+    useEffect(() => {}, [href]);
+
+    return (
+        <div className="tabs-container">
+            <DotRouter
+                href={href}
+                navClassName=""
+                isActive={true}
+                prependDotPath="file-overview">
+                <DotRouterTab
+                    dotPath=".analysis-information"
+                    tabTitle="Analysis Information"
+                    arrowTabs={false}
+                    default>
+                    <AnalysisInformationTab />
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".qc-overview"
+                    tabTitle="QC Overview"
+                    active={true}
+                    arrowTabs={false}>
+                    <QCOverviewTab />
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".associated-data"
+                    tabTitle="Associated Data"
+                    arrowTabs={false}
+                    active={true}>
+                    <AssociatedDataTab />
+                </DotRouterTab>
+            </DotRouter>
+        </div>
+    );
+};
+
+const FileViewUI = ({ context, href }) => {
+    return (
+        <div>
+            <FileViewHeader context={context} />
+            <FileViewDataCards context={context} />
+            <FileViewTabs context={context} href={href} />
+        </div>
+    );
+};
+
+const FileView = React.memo(function FileView(props) {
+    const { context, session, href } = props;
+    return (
+        <div className="file-view container-wide">
+            <PageTitleContainer
+                context={context}
+                session={session}
+                className="container-fluid pb-55"
+                alerts={[]}
+                breadCrumbsVisible={true}>
+                {context.display_title}
+            </PageTitleContainer>
+            <FileViewUI context={context} href={href} />
+        </div>
+    );
+});
+
+FileView.getTabObject = function (props) {
+    return {
+        tab: <span>File Overview</span>,
+        key: 'file-overview',
+        content: <FileView {...props} />,
+    };
+};
