@@ -58,6 +58,7 @@ class PortalConstants:
     FILE_SETS = "file_sets"
     FILENAME = "filename"
     LIBRARIES = "libraries"
+    HAPMAP6 = "HAPMAP6"
     MALE_SEX = "Male"
     MOBILE_ELEMENT_INSERTION = "Mobile Element Insertion"
     PHASED = "Phased"
@@ -230,8 +231,9 @@ def get_item(
     if isinstance(item, str):
         return get_item_from_identifier(item, auth_key, add_on=add_on)
     if isinstance(item, dict):
-        identifier = get_uuid(item)
-        return get_item_from_identifier(identifier, auth_key, add_on=add_on)
+        if identifier := get_uuid(item):
+            return get_item_from_identifier(identifier, auth_key, add_on=add_on)
+        return {}
     raise ValueError(f"Invalid input: {item}")
 
 
@@ -274,6 +276,11 @@ def get_item_from_identifier_cache(
 def unhash_key(hashable_key: Tuple[str, str]) -> Dict[str, str]:
     """Unhash key."""
     return dict(hashable_key)
+
+
+def is_default_absent_field(value: Any) -> bool:
+    """Check if value is the default absent field."""
+    return value == DEFAULT_ABSENT_FIELD
 
 
 def get_filename_data(
@@ -423,8 +430,7 @@ def get_sample_from_file(
         logger.error(f"No sample found for file {get_uuid(file_item)}")
     elif len(samples) > 1:
         logger.error(
-            f"Multiple samples found for file {get_uuid(file_item)}:"
-            f" {samples}"
+            f"Multiple samples found for file {get_uuid(file_item)}:" f" {samples}"
         )
     else:
         result = samples[0]
@@ -496,7 +502,14 @@ def get_donor_data(
     donor = get_donor_from_file(file_item, auth_key)
     if donor:
         return get_donor_data_from_donor(donor)
+    elif is_hapmap6_mixture_derived(file_item, auth_key):
+        return get_default_absent_donor_data()
     return InvalidData()
+
+
+def get_default_absent_donor_data() -> DonorData:
+    """Get empty donor data."""
+    return DonorData(DEFAULT_ABSENT_FIELD, DEFAULT_ABSENT_FIELD)
 
 
 def get_donor_from_file(
@@ -509,8 +522,7 @@ def get_donor_from_file(
         logger.error(f"No donor found for file {get_uuid(file_item)}")
     elif len(donors) > 1:
         logger.error(
-            f"Multiple donors found for file {get_uuid(file_item)}:"
-            f" {donors}"
+            f"Multiple donors found for file {get_uuid(file_item)}:" f" {donors}"
         )
     else:
         return donors[0]
@@ -556,6 +568,21 @@ def get_donor_from_sample_source(
     if is_cell_culture(sample_source_item):
         return get_donor_from_cell_culture(sample_source_item, auth_key)
     return {}
+
+
+def is_hapmap6_mixture_derived(
+    file_item: Dict[str, Any], auth_key: Dict[str, str]
+) -> bool:
+    """Check if sample source is the HAPMAP6 mixture."""
+    sample_sources = get_sample_sources_from_file(file_item, auth_key)
+    if len(sample_sources) == 1 and is_hapmap6_mixture(sample_sources[0]):
+        return True
+    return False
+
+
+def is_hapmap6_mixture(sample_source_item: Dict[str, Any]) -> bool:
+    """Check if sample source is the HAPMAP6 mixture."""
+    return get_code(sample_source_item) == PortalConstants.HAPMAP6
 
 
 def get_donor_from_cell_culture(
@@ -668,9 +695,7 @@ def get_sequencing_code(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> 
         for sequencing_item in sequencing_items
     ]
     if not sequencers:
-        logger.error(
-            f"No sequencers found for file {get_uuid(file_item)}"
-        )
+        logger.error(f"No sequencers found for file {get_uuid(file_item)}")
     elif len(sequencers) > 1:
         logger.error(
             f"Multiple sequencers found for file {get_uuid(file_item)}:"
@@ -724,8 +749,7 @@ def get_assay_code(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> str:
         logger.error(f"No assays found for file {get_uuid(file_item)}")
     elif len(assays) > 1:
         logger.error(
-            f"Multiple assays found for file {get_uuid(file_item)}:"
-            f" {assays}"
+            f"Multiple assays found for file {get_uuid(file_item)}:" f" {assays}"
         )
     else:
         result = get_code(assays[0])
@@ -812,9 +836,7 @@ def get_software(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> str:
     software = get_software_from_file(file_item, auth_key)
     software_codes = get_unique_codes(software)
     if not software_codes:
-        logger.error(
-            f"No software codes found for file {get_uuid(file_item)}"
-        )
+        logger.error(f"No software codes found for file {get_uuid(file_item)}")
     elif len(software_codes) > 1:
         logger.error(
             f"Multiple software codes found for file {get_uuid(file_item)}:"
@@ -846,9 +868,7 @@ def get_software_version(file_item: Dict[str, Any], auth_key: Dict[str, str]) ->
         software_item for software_item in software if get_code(software_item)
     ]
     if not software_with_codes:
-        logger.error(
-            f"No software version codes found for file {get_uuid(file_item)}"
-        )
+        logger.error(f"No software version codes found for file {get_uuid(file_item)}")
     elif len(software_with_codes) > 1:
         logger.error(
             f"Multiple software version codes found for file {get_uuid(file_item)}:"
@@ -1194,7 +1214,9 @@ def validate_donor_data(donor_data: Union[InvalidData, DonorData]) -> List[str]:
         errors = []
         if not donor_data.sex:
             errors.append("No donor sex found")
-        elif not get_donor_sex_abbreviation(donor_data):
+        elif not is_default_absent_field(
+            donor_data.sex
+        ) and not get_donor_sex_abbreviation(donor_data):
             errors.append(f"Unexpected sex {donor_data.sex}")
         if not donor_data.age:
             errors.append("No donor age found")
