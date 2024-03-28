@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_PROJECT_ID = "SMHT"
 DEFAULT_ABSENT_FIELD = "X"
+ABSENT_AGE = "N"
+ABSENT_SEX = ABSENT_AGE
 FILENAME_SEPARATOR = "-"
 ANALYSIS_INFO_SEPARATOR = "_"
 
@@ -509,7 +511,7 @@ def get_donor_data(
 
 def get_default_absent_donor_data() -> DonorData:
     """Get empty donor data."""
-    return DonorData(DEFAULT_ABSENT_FIELD, DEFAULT_ABSENT_FIELD)
+    return DonorData(sex=ABSENT_SEX, age=ABSENT_AGE)
 
 
 def get_donor_from_file(
@@ -1193,7 +1195,7 @@ def create_donor_filename(donor_data: Union[InvalidData, DonorData]) -> str:
     """Create donor filename."""
     if isinstance(donor_data, DonorData):
         abbreviated_sex = get_donor_sex_abbreviation(donor_data)
-        return f"{abbreviated_sex}" f"{donor_data.age}"
+        return f"{abbreviated_sex}{donor_data.age}"
     return ""
 
 
@@ -1203,6 +1205,8 @@ def get_donor_sex_abbreviation(donor_data: DonorData) -> str:
         return MALE_SEX_ABBREVIATION
     if donor_data.sex == PortalConstants.FEMALE_SEX:
         return FEMALE_SEX_ABBREVIATION
+    if donor_data.sex == ABSENT_SEX:
+        return donor_data.sex
     return ""
 
 
@@ -1214,7 +1218,7 @@ def validate_donor_data(donor_data: Union[InvalidData, DonorData]) -> List[str]:
         errors = []
         if not donor_data.sex:
             errors.append("No donor sex found")
-        elif not is_default_absent_field(
+        elif not is_default_absent_sex(
             donor_data.sex
         ) and not get_donor_sex_abbreviation(donor_data):
             errors.append(f"Unexpected sex {donor_data.sex}")
@@ -1222,6 +1226,11 @@ def validate_donor_data(donor_data: Union[InvalidData, DonorData]) -> List[str]:
             errors.append("No donor age found")
         return errors
     return [f"Invalid donor data: {donor_data}"]
+
+
+def is_default_absent_sex(sex: str) -> bool:
+    """Is sex the default absent value?"""
+    return sex == ABSENT_SEX
 
 
 def create_experiment_part(filename_data: FilenameData) -> FilenamePart:
