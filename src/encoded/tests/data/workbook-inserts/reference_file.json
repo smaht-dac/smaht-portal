@@ -16,6 +16,7 @@
         "consortia": [
             "smaht"
         ],
-        "file_size": 8000
+        "file_size": 8000,
+        "status": "restricted"
     }
 ]

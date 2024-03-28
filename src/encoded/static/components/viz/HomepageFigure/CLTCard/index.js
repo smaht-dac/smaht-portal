@@ -69,9 +69,9 @@ export const CLTCard = ({ currentTier }) => {
                 {
                     iconSrc: '/static/img/anatomy-icons/Brain.svg',
                     title: 'Brain: unrelated donors',
-                    benchmarking: true,
-                    expansion: false,
-                    production: false,
+                    tier_0: true,
+                    tier_1: false,
+                    tier_2: false,
                     // TODO: Discuss implications adjusting overall popover style override for
                     // max-width in _bootstrap-theme-overrides.scss (potential effect on consortium map?)
                     data: (
@@ -90,32 +90,32 @@ export const CLTCard = ({ currentTier }) => {
                     // Added a second version of Brain, since they are meant to have slightly different titles
                     iconSrc: '/static/img/anatomy-icons/Brain.svg',
                     title: 'Brain: 4 subregions',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
+                    tier_0: false,
+                    tier_1: true,
+                    tier_2: true,
                     // TODO: Does this also require the same note as above?
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Sun-exposed skin.svg',
                     title: 'Sun-exposed skin',
-                    benchmarking: true,
-                    expansion: true,
-                    production: true,
+                    tier_0: true,
+                    tier_1: true,
+                    tier_2: true,
                 },
                 {
                     // TODO: Double check that it was correct to remove this from just Tier 0
                     iconSrc: '/static/img/anatomy-icons/Non-exposed skin.svg',
                     title: 'Non-exposed skin',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
+                    tier_0: false,
+                    tier_1: true,
+                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Adrenal Gland.svg',
                     title: 'Adrenal medulla',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
+                    tier_0: false,
+                    tier_1: true,
+                    tier_2: true,
                 },
             ],
         },
@@ -125,30 +125,30 @@ export const CLTCard = ({ currentTier }) => {
                 {
                     iconSrc: '/static/img/anatomy-icons/Heart.svg',
                     title: 'Heart',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
+                    tier_0: false,
+                    tier_1: true,
+                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Blood.svg',
                     title: 'Blood',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
+                    tier_0: false,
+                    tier_1: true,
+                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Skeletal Muscle.svg',
                     title: 'Skeletal Muscle',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
+                    tier_0: false,
+                    tier_1: true,
+                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Aorta.svg',
                     title: 'Aorta',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
+                    tier_0: false,
+                    tier_1: true,
+                    tier_2: true,
                 },
             ],
         },
@@ -158,45 +158,45 @@ export const CLTCard = ({ currentTier }) => {
                 {
                     iconSrc: '/static/img/anatomy-icons/Liver.svg',
                     title: 'Liver',
-                    benchmarking: true,
-                    expansion: true,
-                    production: true,
+                    tier_0: true,
+                    tier_1: true,
+                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Lung.svg',
                     title: 'Lung',
-                    benchmarking: true,
-                    expansion: true,
-                    production: true,
+                    tier_0: true,
+                    tier_1: true,
+                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Colon.svg',
                     title: 'Colon',
-                    benchmarking: true,
-                    expansion: false,
-                    production: false,
+                    tier_0: true,
+                    tier_1: false,
+                    tier_2: false,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Ascending Colon.svg',
                     title: 'Ascending Colon',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
+                    tier_0: false,
+                    tier_1: true,
+                    tier_2: true,
                 },
                 {
                     // TODO: Double check it was correct to remove this from just tier 0
                     iconSrc: '/static/img/anatomy-icons/Descending Colon.svg',
                     title: 'Descending Colon',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
+                    tier_0: false,
+                    tier_1: true,
+                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Esophagus.svg',
                     title: 'Esophagus',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
+                    tier_0: false,
+                    tier_1: true,
+                    tier_2: true,
                 },
             ],
         },
@@ -206,30 +206,30 @@ export const CLTCard = ({ currentTier }) => {
                 {
                     iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
                     title: 'COLO829 Mixture',
-                    benchmarking: true,
-                    expansion: false,
-                    production: false,
+                    tier_0: true,
+                    tier_1: false,
+                    tier_2: false,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
                     title: 'HapMap Mixture',
-                    benchmarking: true,
-                    expansion: false,
-                    production: false,
+                    tier_0: true,
+                    tier_1: false,
+                    tier_2: false,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
                     title: 'iPSC & Fibroblast',
-                    benchmarking: true,
-                    expansion: false,
-                    production: false,
+                    tier_0: true,
+                    tier_1: false,
+                    tier_2: false,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
                     title: 'Descending Colon',
-                    benchmarking: false,
-                    expansion: false,
-                    production: false,
+                    tier_0: false,
+                    tier_1: false,
+                    tier_2: false,
                 },
             ],
         },
@@ -239,23 +239,23 @@ export const CLTCard = ({ currentTier }) => {
                 {
                     iconSrc: '/static/img/anatomy-icons/Buccal Swab.svg',
                     title: 'Buccal Swab',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
+                    tier_0: false,
+                    tier_1: true,
+                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Fibroblast.svg',
                     title: 'Skin Fibroblast',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
+                    tier_0: false,
+                    tier_1: true,
+                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Testes or Ovary.svg',
                     title: 'Testis / Ovary',
-                    benchmarking: false,
-                    expansion: true,
-                    production: true,
+                    tier_0: false,
+                    tier_1: true,
+                    tier_2: true,
                 },
             ],
         },
@@ -264,7 +264,7 @@ export const CLTCard = ({ currentTier }) => {
     return (
         <div className="card clt">
             <div className="card-header">
-                {currentTier === 'benchmarking' ? (
+                {currentTier === 0 ? (
                     <h4>CELL LINES &amp; TISSUES</h4>
                 ) : (
                     <h4>TISSUES</h4>
@@ -273,7 +273,7 @@ export const CLTCard = ({ currentTier }) => {
             <div className="card-body">
                 {cltList.map((clt, i) => {
                     const activeItems = clt.items.filter(
-                        (item) => item[currentTier]
+                        (item) => item[`tier_${currentTier}`]
                     );
 
                     return activeItems.length > 0 ? (

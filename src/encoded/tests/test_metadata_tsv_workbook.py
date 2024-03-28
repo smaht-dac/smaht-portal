@@ -108,6 +108,7 @@ class TestMetadataTSVWorkbook:
         last_extra_file_name = parsed[-1][2]  # filename in 3rd position in tsv
         assert last_extra_file_name == 'a_second_bam_bai.bai'
 
+    @pytest.mark.workbook
     def test_peak_metadata_workbook(self, workbook, es_testapp):
         """ Tests we can peak at metadata for files and get facet information (just file size for now) """
         es_testapp.post_json('/index', {})  # index the files
