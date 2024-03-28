@@ -56,6 +56,9 @@
         ],
         "sequencing_center": "smaht",
         "file_size": 10000,
+        "file_sets": [
+            "TEST_FILE-SET_HELA"
+        ],
         "software": [
             "TEST_SOFTWARE_BWA-MEM",
             "foo:software_vep"
