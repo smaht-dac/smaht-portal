@@ -43,7 +43,7 @@ class SearchBase:
 def make_concurrent_search_requests(search_helpers):
     """ Execute multiple search functions concurrently using a thread pool (since this is I/O bound). """
     results = [-1] * len(search_helpers)  # watch out for -1 counts as indicative of an error
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=5) as executor:
         futures = []
         for i, (func, kwargs) in enumerate(search_helpers):
             future = executor.submit(func, **kwargs)
