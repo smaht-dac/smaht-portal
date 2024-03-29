@@ -84,6 +84,14 @@ class File(Item, CoreFile):
         "meta_workflow_run_inputs": ("MetaWorkflowRun", "input.files.file"),
         "meta_workflow_run_outputs": ("MetaWorkflowRun", "workflow_runs.output.file"),
     }
+    STATUS_TO_CHECK_REVISIONS = [
+        'uploading',
+        'uploaded',
+        'in review',
+        'released',
+        'restricted',
+        'public'
+    ]
 
     Item.SUBMISSION_CENTER_STATUS_ACL.update({
         'uploaded': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
@@ -163,6 +171,70 @@ class File(Item, CoreFile):
         elif status == 'restricted':
             return self.PROTECTED
         return None
+
+    @calculated_property(
+        schema={
+            "title": "File Status Tracking",
+            "type": "object",
+            "properties": {
+                "uploading": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "uploaded": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "in review": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "released": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "public": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "restricted": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        }
+    )
+    def file_status_tracking(self, request: Request) -> dict:
+        """ Uses the revision history to generate an object indicating dates the status
+            of the file changed - from this we can determine several things:
+                1. When metadata for this file was submitted (status = uploading or in review)
+                2. When the file was uploaded (status = uploaded)
+                3. When the file was released to consortia (status = released)
+                4. When the file was made public (status = released)
+                5. If protected data, when it was made released (status = restricted)
+
+            To make this reasonably efficient, we assume the following ordering:
+                Uploading --> uploaded --> all others
+            This way if status = uploading or uploaded, we don't need to request revision history
+        """
+        current_status = self.properties['status']
+        if current_status in ['uploading', 'in review']:
+            return {
+                current_status: self.properties['date_created']
+            }
+        else:  # we need the revision history
+            result = {}
+            revision_history = request.embed(f'/{self.uuid}/@@revision-history', as_user=True)
+            for revision in revision_history['revisions']:
+                status = revision.get('status')
+                if status and status not in result and status in self.STATUS_TO_CHECK_REVISIONS:
+                    if status in ['uploading', 'in review']:  # these are initial statuses
+                        result[status] = revision['date_created']
+                    else:
+                        last_modified = revision.get('last_modified')
+                        if last_modified:
+                            result[status] = last_modified['date_modified']
+            return result
 
     @calculated_property(
         schema={
