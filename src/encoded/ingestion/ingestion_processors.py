@@ -1,3 +1,4 @@
+from datetime import datetime
 import re
 from typing import Optional, Union
 from webtest.app import TestApp
@@ -6,6 +7,7 @@ from dcicutils.structured_data import Portal, StructuredDataSet
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
 from encoded.project.loadxl import ITEM_INDEX_ORDER
+from encoded.ingestion.ingestion_status_cache import IngestionStatusCache
 from encoded.ingestion.loadxl_extensions import load_data_into_database, summary_of_load_data_results
 from encoded.ingestion.submission_folio import SmahtSubmissionFolio
 # from ..schema_formats import is_accession  # TODO: Problem with circular dependencies.
@@ -18,6 +20,8 @@ def includeme(config):
 @ingestion_processor("metadata_bundle")
 @ingestion_processor("family_history")  # TODO: Do we need this?
 def handle_metadata_bundle(submission: SubmissionFolio) -> None:
+    if cache := IngestionStatusCache.connection(submission.vapp):
+        cache.upsert(submission.submission_id, {"ingester_started": str(datetime.utcnow())})
     with submission.processing_context():
         _process_submission(SmahtSubmissionFolio(submission))
 

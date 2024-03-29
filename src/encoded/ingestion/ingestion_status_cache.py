@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from pyramid.registry import Registry
 import structlog
@@ -27,8 +28,8 @@ class IngestionStatusCache:
     _singleton_lock = threading.Lock()
 
     def __init__(self, resource: ResourceType = DEFAULT_REDIS_URI, expiration: Optional[int] = None) -> None:
+        # Fail essentially silently so we work without Redis at all.
         if not (redis_uri := IngestionStatusCache._get_redis_uri_from_resource(resource)):
-            # Fail essentially silently so we work without Redis at all.
             log.error(f"Cannot get Redis URI for ingestion-status cache: {resource}")
             self._redis = None
             return
@@ -79,6 +80,20 @@ class IngestionStatusCache:
         # TODO: Check with Will on this dcicutils.redis_utils.RedisBase behavior.
         #
         self._redis.redis.expire(key, self._expiration)
+
+    def upsert(self, uuid: str, value: dict) -> None:
+        """
+        This is a higher level function intended to be the main one used for our purposes;
+        it merges the given JSON into any already existing value for the key; and it
+        automatically takes the key to be the given (submission) uuid.
+        """
+        if not self._redis:
+            return
+        if (not isinstance(uuid, str)) or (not uuid) or (not isinstance(value, dict)) or (not value):
+            return
+        existing_value = self.get_json(uuid, {})
+        value = {"uuid": uuid, **existing_value, **value, "timestamp": str(datetime.utcnow())}
+        self.set(uuid, value)
 
     @staticmethod
     def connection(resource: ResourceType = DEFAULT_REDIS_URI):

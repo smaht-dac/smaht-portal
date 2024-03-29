@@ -100,7 +100,7 @@ def load_data_into_database(submission_uuid: str,
                                 vapp: Optional[VirtualApp] = None) -> Optional[Callable]:
         if not (cache := IngestionStatusCache.connection(vapp)):
             return None
-        progress_status = {"uuid": submission_uuid, "validation": validation, "total": total,
+        progress_status = {"validation": validation, "total": total,
                            "started": str(datetime.utcnow()), **{enum.value: 0 for enum in PROGRESS}}
         def progress_tracker(progress: PROGRESS) -> None:  # noqa
             nonlocal progress_status
@@ -140,8 +140,7 @@ def load_data_into_database(submission_uuid: str,
             # Here is the actual count increment for the loadxl event.
             progress_status[progress.value] += 1
             message, message_verbose = progress_message()
-            cache.set(submission_uuid, {**progress_status, "timestamp": str(datetime.utcnow()),
-                                        "message": message, "message_verbose": message_verbose})
+            cache.upsert(submission_uuid, {**progress_status, "message": message, "message_verbose": message_verbose})
         return progress_tracker
 
     loadxl_response = loadxl(
