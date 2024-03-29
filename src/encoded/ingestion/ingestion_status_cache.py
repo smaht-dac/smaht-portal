@@ -14,7 +14,7 @@ log = structlog.getLogger(__name__)
 class IngestionStatusCache:
     """
     Minimal IngestionStatusCache wrapper class exposing only what we need here from dcicutils.RedisBase.
-    For tracking the progress, on the client-side (smaht-submitr command) of a server-side ingestion
+    For tracking the progress, on the client-side (smaht-submitr command), of a server-side ingestion
     validation or submission process. Since this class is specifically used only for this purpose and
     since this data is only and inherently transient data, we force all keys written to have a short
     expiration time, by default 24 hours (only this long just for easier troubleshooting if necessary).

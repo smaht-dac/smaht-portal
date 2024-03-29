@@ -18,7 +18,6 @@ def includeme(config):
 @ingestion_processor("metadata_bundle")
 @ingestion_processor("family_history")  # TODO: Do we need this?
 def handle_metadata_bundle(submission: SubmissionFolio) -> None:
-    import pdb ; pdb.set_trace()
     cache = IngestionStatusCache.connection(submission.vapp, submission.submission_id)
     cache.upsert({"ingester_initiate": str(datetime.utcnow())})
     with submission.processing_context():
