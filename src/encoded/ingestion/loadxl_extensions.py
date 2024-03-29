@@ -100,8 +100,7 @@ def load_data_into_database(submission_uuid: str,
                                 vapp: Optional[VirtualApp] = None) -> Optional[Callable]:
         if not (cache := IngestionStatusCache.connection(vapp)):
             return None
-        progress_status = {"validation": validation, "loadxl_total": total,
-                           "loadxl_progress": str(datetime.utcnow()), **{enum.value: 0 for enum in PROGRESS}}
+        progress_status = {"validation": validation, "loadxl_total": total, **{enum.value: 0 for enum in PROGRESS}}
         def progress_tracker(progress: PROGRESS) -> None:  # noqa
             nonlocal progress_status
             def progress_message() -> None:  # noqa
@@ -144,7 +143,7 @@ def load_data_into_database(submission_uuid: str,
                                            "loadxl_message_verbose": message_verbose})
         return progress_tracker
 
-    if cache := IngestionStatusCache.connection(vapp):
+    if cache := IngestionStatusCache.connection(portal_vapp):
         cache.upsert(submission_uuid, {"loadxl_started", str(datetime.utcnow())})
 
     loadxl_response = loadxl(
