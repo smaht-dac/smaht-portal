@@ -5,12 +5,12 @@ from dcicutils.misc_utils import VirtualApp
 from dcicutils.structured_data import Portal
 from snovault.loadxl import load_all_gen as loadxl, PROGRESS
 from encoded.ingestion.submission_folio import SmahtSubmissionFolio
-from encoded.ingestion.redis import Redis
+from encoded.ingestion.ingestion_status_cache import IngestionStatusCache
 
 
-# Maxiumum amount of time the ingestion status (counts) for an IngestionSubmission
-# will remain in Redis -> 24 hours in seconds; this is relative to the last update
-# of the key value; the key is the uuid of the IngestionSubmission object.
+# Maxiumum amount of time the ingestion status (counts) for an IngestionSubmission will
+# remain in IngestionStatusCache -> 24 hours in seconds; this is relative to the last
+# update of the key value; the key is the uuid of the IngestionSubmission object.
 REDIS_INGESTION_STATUS_EXPIRATION = 60 * 60 * 24
 
 def load_data_into_database(submission_uuid: str,
@@ -20,7 +20,7 @@ def load_data_into_database(submission_uuid: str,
                             patch_only: bool = False,
                             validate_only: bool = False,
                             resolved_refs: List[str] = None,
-                            redis_uri: Optional[str]= None) -> Dict:
+                            cache_uri: Optional[str]= None) -> Dict:
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
         nonlocal portal_vapp
@@ -103,12 +103,12 @@ def load_data_into_database(submission_uuid: str,
         return response
 
     def define_progress_tracker(submission_uuid: str, validation: bool, total: int) -> Optional[Callable]:
-        nonlocal redis_uri
-        if not (redis := Redis.connection(redis_uri)):
+        nonlocal cache_uri
+        if not (cache := IngestionStatusCache.connection(cache_uri)):
             return None
         progress_status = {"uuid": submission_uuid, "validation": validation, "total": total,
                            "started": str(datetime.utcnow()), **{enum.value: 0 for enum in PROGRESS}}
-        redis.set_expiration(submission_uuid, REDIS_INGESTION_STATUS_EXPIRATION)
+        cache.set_expiration(submission_uuid, REDIS_INGESTION_STATUS_EXPIRATION)
         def progress_tracker(progress: PROGRESS) -> None:  # noqa
             nonlocal progress_status
             def progress_message() -> None:  # noqa
@@ -147,7 +147,7 @@ def load_data_into_database(submission_uuid: str,
             # Here is the actual count increment for the loadxl event.
             progress_status[progress.value] += 1
             message, message_verbose = progress_message()
-            redis.set(submission_uuid, {**progress_status, "timestamp": str(datetime.utcnow()),
+            cache.set(submission_uuid, {**progress_status, "timestamp": str(datetime.utcnow()),
                                         "message": message, "message_verbose": message_verbose})
         return progress_tracker
 

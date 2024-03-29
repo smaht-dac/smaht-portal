@@ -1,11 +1,11 @@
 from pyramid.view import view_config
-from encoded.ingestion.redis import Redis
+from encoded.ingestion.ingestion_status_cache import IngestionStatusCache
 from snovault.util import debug_log
 
-# This endpoint /ingestion-status/{submission_uuid} is to support progress tracking 
-# of the server-side ingester validation/submission process by smaht-submitr.
-# We use Redis to store various snovault.loadxl event counts (by submission_uuid),
-# and expose them here. See loadxl_extensions.define_progress_tracker for details.
+# This endpoint is to support progress tracking of the server-side ingester validation/submission
+# process by smaht-submitr.  We use IngestionStatusCache, which is a Redis wrapper, to store
+# various snovault.loadxl event counts, by submission_uuid, and expose them here.
+# See loadxl_extensions.define_progress_tracker for details.
 
 def includeme(config):
     config.add_route("ingestion_status", "/ingestion-status/{uuid}")
@@ -15,9 +15,9 @@ def includeme(config):
 @view_config(route_name="ingestion_status", request_method=["GET"])
 @debug_log
 def ingestion_status(context, request):
-    if redis_uri := context.registry.settings.get("redis.server"):
+    if cache_uri := context.registry.settings.get("redis.server"):
         if submission_uuid := request.matchdict.get("uuid"):
-            redis = Redis.connection(redis_uri)
-            if submission_info := redis.get_json(submission_uuid):
+            cache = IngestionStatusCache.connection(cache_uri)
+            if submission_info := cache.get_json(submission_uuid):
                 return submission_info
     return {}
