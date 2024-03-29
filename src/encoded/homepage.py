@@ -83,7 +83,12 @@ def generate_admin_search_given_params(context, request, search_param):
     """ Helper function for below that generates/executes a search given params AS ADMIN
         BE EXTREMELY CAREFUL WITH THIS - do NOT use to return results directly
     """
-    request.remote_user = 'IMPORT'  # this allows the below search to execute as admin
+    # VERY IMPORTANT - the below lines eliminate database calls, which is necessary
+    # as making calls (as explained above) leaks connections - Will March 29 2024
+    request.remote_user = 'IMPORT'
+    if 'HTTP_AUTHORIZATION' in request.environ:
+        del request.environ['HTTP_AUTHORIZATION']
+
     subreq = make_search_subreq(request, f'/search?{urlencode(search_param, True)}')
     return search(context, subreq)
 
