@@ -136,8 +136,10 @@ def is_static_page(info, request):
         return False
 
     request.set_property(lambda x: generate_page_tree(x, page_name), name='_static_page_tree', reify=True)
-    request.set_property(lambda x: request.registry[CONNECTION].storage.get_by_unique_key('identifier', page_name,
-                                                                                          item_type='page'),
+
+    # NOTE: the below can cause DB connections to leak - we should implement a better looup - Will 28 March 2024
+    request.set_property(lambda x: request.registry[CONNECTION].storage.get_by_json('identifier', page_name,
+                                                                                     item_type='page'),
                          name='_static_page_model', reify=True)
 
     if request._static_page_model:
