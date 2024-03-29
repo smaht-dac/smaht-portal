@@ -17,6 +17,8 @@ def test_home_page_workbook(es_testapp, workbook):
     """ Tests that we get appropriate counts based on workbook inserts """
     home = es_testapp.get('/home').json
     # Validate some basic structure
+    assert home['@context'] == '/home'
+    assert 'EST' in home['date']
     assert '@graph' in home
     assert 'categories' in home['@graph'][0]
     assert 'figures' in home['@graph'][0]['categories'][0]

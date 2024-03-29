@@ -1,9 +1,11 @@
+import traceback
+from datetime import datetime
+from pytz import timezone
 from pyramid.view import view_config
 from snovault.util import debug_log
 from snovault.search.search import (
     search
 )
-import traceback
 from snovault.search.search_utils import make_search_subreq
 from urllib.parse import urlencode
 from concurrent.futures import ThreadPoolExecutor
@@ -46,7 +48,7 @@ def make_concurrent_search_requests(search_helpers):
 
         VERY IMPORTANT NOTE: Snovault's default DBSession is **NOT** threadsafe - therefore you CANNOT use this to
         make database requests (including doing things like looking up users on auth). You must use a remote_user
-        that results in a synthetic_result from the auth code.
+        that results in a synthetic_result from the auth code. This also applies to access keys!
 
         If you use this to make database requests, you will leak connections and start generating server
         side errors!
@@ -157,11 +159,15 @@ def home(context, request):
         (generate_hapmap_assay_count, {'context': context, 'request': request}),  # 2
         (generate_hapmap_cell_line_file_count, {'context': context, 'request': request}),  # 3
 
-        # iPSC & Firoblasts stats
+        # iPSC & Fibroblast stats
         (generate_ipsc_assay_count, {'context': context, 'request': request}),  # 4
         (generate_ipsc_cell_line_file_count, {'context': context, 'request': request})  # 5
     ])
+    time = datetime.now(timezone('EST'))
     response = {
+        '@context': '/home',
+        '@id': '/home',
+        'date': f'{time.strftime("%Y-%m-%d %H:%M")} EST',
         '@graph': [
             {
                 "title": "Tier 0: Benchmarking",
