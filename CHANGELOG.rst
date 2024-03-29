@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.34.1
+======
+* Add facets to HapMap and iPSC
+* Fix HapMap and iPSC links
+
+
 0.34.0
 ======
 
