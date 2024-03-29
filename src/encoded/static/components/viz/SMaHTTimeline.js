@@ -235,7 +235,9 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                 <span className="latest-release">
                     <b>Latest Release: </b>
                     {data.release_date ?? (
-                        <i className="icon icon-spin icon-circle-notch fas" />
+                        <span className="spinner">
+                            <i className="icon icon-spin icon-circle-notch fas" />
+                        </span>
                     )}
                 </span>
 

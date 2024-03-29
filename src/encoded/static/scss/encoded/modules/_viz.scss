@@ -42,17 +42,24 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     }
 
     .latest-release {
+        display: flex;
         font-size: 12px;
         margin-left: 35px;
         color: $homepage-subtitle-text-color;
 
         b {
             font-weight: 600;
+            margin-right: 5px;
         }
-        i {
-            font-size: 10px;
-            opacity: 0.5;
-            margin: auto;
+        .spinner {    
+            margin-left: 3px;
+            margin-top: -1px;
+
+            i {
+                font-size: 10px;
+                opacity: 0.5;
+                margin: auto;
+            }
         }
     }
 
