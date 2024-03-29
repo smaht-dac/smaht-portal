@@ -21,7 +21,7 @@ def includeme(config):
 @ingestion_processor("family_history")  # TODO: Do we need this?
 def handle_metadata_bundle(submission: SubmissionFolio) -> None:
     if cache := IngestionStatusCache.connection(submission.vapp):
-        cache.upsert(submission.submission_id, {"ingester_started": str(datetime.utcnow())})
+        cache.upsert(submission.submission_id, {"ingester_start": str(datetime.utcnow())})
     with submission.processing_context():
         _process_submission(SmahtSubmissionFolio(submission))
 
