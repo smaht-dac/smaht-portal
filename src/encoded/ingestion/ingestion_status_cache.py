@@ -28,7 +28,7 @@ class IngestionStatusCache:
     _singleton_lock = threading.Lock()
 
     def __init__(self, resource: ResourceType = DEFAULT_REDIS_URI, expiration: Optional[int] = None) -> None:
-        # Fail essentially silently so we work without Redis at all.
+        # Fail essentially silently so we work without Redis at all (but log).
         if not (redis_uri := IngestionStatusCache._get_redis_uri_from_resource(resource)):
             log.error(f"Cannot get Redis URI for ingestion-status cache: {resource}")
             self._redis = None
@@ -44,20 +44,19 @@ class IngestionStatusCache:
         else:
             self._expiration = IngestionStatusCache.DEFAULT_REDIS_KEY_EXPIRATION_SECONDS
 
-    def get(self, key: str, fallback: Optional[str] = None) -> Optional[str]:
+    def upsert(self, uuid: str, value: dict) -> None:
+        """
+        This is a higher level function intended to be the main one used for our purposes;
+        it merges the given JSON into any already existing value for the key; and it
+        automatically takes the key to be the given (submission) uuid.
+        """
         if not self._redis:
-            return None
-        return fallback if (value := self._redis.get(key or "")) is None else value
-
-    def get_json(self, key: str, fallback: Optional[dict] = None) -> Optional[dict]:
-        if not self._redis:
-            return None
-        if (value := self.get(key)) is not None:
-            try:
-                return json.loads(value)
-            except Exception:
-                pass
-        return fallback
+            return
+        if (not isinstance(uuid, str)) or (not uuid) or (not isinstance(value, dict)) or (not value):
+            return
+        existing_value = self.get(uuid, {})
+        value = {"uuid": uuid, **existing_value, **value, "timestamp": str(datetime.utcnow())}
+        self.set(uuid, value)
 
     def set(self, key: str, value: Optional[Any] = None) -> None:
         if not self._redis:
@@ -81,19 +80,20 @@ class IngestionStatusCache:
         #
         self._redis.redis.expire(key, self._expiration)
 
-    def upsert(self, uuid: str, value: dict) -> None:
-        """
-        This is a higher level function intended to be the main one used for our purposes;
-        it merges the given JSON into any already existing value for the key; and it
-        automatically takes the key to be the given (submission) uuid.
-        """
+    def get(self, key: str, fallback: Optional[dict] = None) -> Optional[dict]:
         if not self._redis:
-            return
-        if (not isinstance(uuid, str)) or (not uuid) or (not isinstance(value, dict)) or (not value):
-            return
-        existing_value = self.get_json(uuid, {})
-        value = {"uuid": uuid, **existing_value, **value, "timestamp": str(datetime.utcnow())}
-        self.set(uuid, value)
+            return None
+        if (value := self._get(key)) is not None:
+            try:
+                return json.loads(value)
+            except Exception:
+                pass
+        return fallback
+
+    def _get(self, key: str, fallback: Optional[str] = None) -> Optional[str]:
+        if not self._redis:
+            return None
+        return fallback if (value := self._redis.get(key or "")) is None else value
 
     @staticmethod
     def connection(resource: ResourceType = DEFAULT_REDIS_URI):
