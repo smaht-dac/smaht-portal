@@ -186,6 +186,7 @@ export const commonParsingFxn = {
     },
     'bucketTotalFilesVolume' : function(intervalBuckets, groupByField, externalTermMap){
         const gigabyte = 1024 * 1024 * 1024;
+        const megabyte = 1024 * 1024;
         const subBucketKeysToDate = new Set();
         const aggsList = intervalBuckets.map(function(bucket, index){
             const {
@@ -198,10 +199,10 @@ export const commonParsingFxn = {
                 subBucketKeysToDate.add(k);
             });
 
-            const fileSizeVol = totalFilesVolume / gigabyte;
+            const fileSizeVol = totalFilesVolume / megabyte/*gigabyte*/;
             const children = [ ...subBucketKeysToDate ].map(function(term){
                 const subBucket = _.findWhere(subBuckets, { 'key' : term });
-                const subFileSizeVol = ((subBucket && subBucket.total_files_volume && subBucket.total_files_volume.value) || 0) / gigabyte;
+                const subFileSizeVol = ((subBucket && subBucket.total_files_volume && subBucket.total_files_volume.value) || 0) / megabyte/*gigabyte*/;;
 
                 return { term, 'count' : subFileSizeVol };
             });
@@ -379,7 +380,7 @@ const aggregationsToChartData = {
         'requires'  : 'ExperimentSetReplicate',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp.aggregations.weekly_interval_public_release && resp.aggregations.weekly_interval_public_release.buckets;
+            var weeklyIntervalBuckets = resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
             if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
 
             return commonParsingFxn.countsToTotals(
@@ -960,7 +961,7 @@ export function SubmissionsStatsView(props) {
                         <span className="text-500">Total File Size</span> - { session ? 'publicly released' : 'released' }
                     </h4>
                 }>
-                    <AreaChart {...commonChartProps} data={file_volume_released} yAxisLabel="GB" />
+                    <AreaChart {...commonChartProps} data={file_volume_released} yAxisLabel="MB" />
                 </AreaChartContainer>
 
             </ColorScaleProvider>
