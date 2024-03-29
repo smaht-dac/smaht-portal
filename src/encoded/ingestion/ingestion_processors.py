@@ -1,8 +1,6 @@
 from datetime import datetime
 import re
-from typing import Optional, Union
-from webtest.app import TestApp
-from dcicutils.misc_utils import VirtualApp
+from typing import Optional
 from dcicutils.structured_data import Portal, StructuredDataSet
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
@@ -20,8 +18,9 @@ def includeme(config):
 @ingestion_processor("metadata_bundle")
 @ingestion_processor("family_history")  # TODO: Do we need this?
 def handle_metadata_bundle(submission: SubmissionFolio) -> None:
-    if cache := IngestionStatusCache.connection(submission.vapp):
-        cache.upsert(submission.submission_id, {"ingester_initiate": str(datetime.utcnow())})
+    import pdb ; pdb.set_trace()
+    cache = IngestionStatusCache.connection(submission.vapp, submission.submission_id)
+    cache.upsert({"ingester_initiate": str(datetime.utcnow())})
     with submission.processing_context():
         _process_submission(SmahtSubmissionFolio(submission))
 
@@ -30,7 +29,6 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
     with submission.s3_file() as file:
         structured_data = parse_structured_data(file, portal=submission.portal_vapp,
                                                 submission=submission,
-                                                autoadd=submission.autoadd,
                                                 ref_nocache=submission.ref_nocache)
         if (errors := structured_data.errors):
             submission.record_results(errors, _summarize_errors(structured_data, submission))
@@ -53,10 +51,12 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
         submission.record_results(load_data_response, load_data_summary)
 
 
-def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp, Portal]],
-                          submission: Optional[SubmissionFolio] = None, novalidate: bool = False,
-                          autoadd: Optional[dict] = None, prune: bool = True,
-                          ref_nocache: bool = False) -> StructuredDataSet:
+def parse_structured_data(file: str,
+                          submission: SubmissionFolio,
+                          ref_nocache: bool = False,
+                          prune: bool = True,
+                          novalidate: bool = False,
+                          portal: Optional[Portal] = None) -> StructuredDataSet:
 
     # N.B. This same bit of code is in smaht-submitr; not sure best way to share;
     # It really should not go in dcicutils (structured_data) as this knows pretty
@@ -104,7 +104,7 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
             nonlocal portal
             if not isinstance(portal, Portal) or not (schema := portal.get_schema(type_name)):
                 return Portal.LOOKUP_DEFAULT, ref_validator
-        if value and (schema_properties := schema.get("properties")):
+        if value and schema and (schema_properties := schema.get("properties")):
             if schema_properties.get("accession") and _is_accession_id(value):
                 # Case: lookup by accession (only by root).
                 return Portal.LOOKUP_ROOT, ref_validator
@@ -115,20 +115,23 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
                         return Portal.LOOKUP_SPECIFIED_TYPE, ref_validator
         return Portal.LOOKUP_DEFAULT, ref_validator
 
-    cache = IngestionStatusCache.connection(submission.portal_vapp) if submission else None
-    cache.upsert(submission.id, {"ingester_parse_start": str(datetime.utcnow())}) if cache else None
+    cache = IngestionStatusCache.connection(submission.portal_vapp, submission.id)
+    cache.upsert({"ingester_parse_start": str(datetime.utcnow())})
 
-    structured_data = StructuredDataSet.load(file=file, portal=portal,
-                                             autoadd=autoadd, order=ITEM_INDEX_ORDER, prune=prune,
+    structured_data = StructuredDataSet.load(file=file,
+                                             portal=submission.portal_vapp,
+                                             autoadd=submission.autoadd,
                                              ref_lookup_strategy=ref_lookup_strategy,
-                                             ref_lookup_nocache=ref_nocache)
+                                             ref_lookup_nocache=ref_nocache,
+                                             order=ITEM_INDEX_ORDER, prune=prune,
+                                             debug_sleep=submission.debug_sleep if submission else None)
 
-    cache.upsert(submission.id, {"ingester_parse_done": str(datetime.utcnow())}) if cache else None
+    cache.upsert({"ingester_parse_done": str(datetime.utcnow())})
 
     if not novalidate:
-        cache.upsert(submission.id, {"ingester_validate_start": str(datetime.utcnow())}) if cache else None
+        cache.upsert({"ingester_validate_start": str(datetime.utcnow())})
         structured_data.validate()
-        cache.upsert(submission.id, {"ingester_validate_done": str(datetime.utcnow())}) if cache else None
+        cache.upsert({"ingester_validate_done": str(datetime.utcnow())})
 
     return structured_data
 

@@ -1,9 +1,10 @@
+from collections import namedtuple
 from datetime import datetime
 import json
 from pyramid.registry import Registry
 import structlog
 import threading
-from typing import Any, Optional, Union
+from typing import Optional, Union
 from dcicutils.redis_utils import create_redis_client, RedisBase
 from dcicutils.misc_utils import VirtualApp
 from encoded.root import SMAHTRoot  as Context
@@ -54,18 +55,16 @@ class IngestionStatusCache:
             return
         if (not isinstance(uuid, str)) or (not uuid) or (not isinstance(value, dict)) or (not value):
             return
-        existing_value = self.get(uuid, {})
+        existing_value = self.get(uuid)
         value = {"uuid": uuid, **existing_value, **value, "timestamp": str(datetime.utcnow())}
         self.set(uuid, value)
 
-    def set(self, key: str, value: Optional[Any] = None) -> None:
+    def set(self, key: str, value: dict) -> None:
         if not self._redis:
             return
-        if isinstance(value, dict) or isinstance(value, list):
-            value = json.dumps(value)
-        elif not isinstance(value, str):
-            value = str(value)
-        self._redis.set(key, value)
+        if (not isinstance(key, str)) or (not key) or (not isinstance(value, dict)) or (not value):
+            return
+        self._redis.set(key, json.dumps(value, default=str))
         #
         # Need to reset the expiration time on each update/set; the expiration
         # time is always relative to the time of the most recently updated value.
@@ -80,23 +79,39 @@ class IngestionStatusCache:
         #
         self._redis.redis.expire(key, self._expiration)
 
-    def get(self, key: str, fallback: Optional[dict] = None) -> Optional[dict]:
+    def get(self, key: str) -> dict:
         if not self._redis:
-            return None
-        if (value := self._get(key)) is not None:
+            return {}
+        if (not isinstance(key, str)) or (not key):
+            return {}
+        if isinstance(value := self._redis.get(key), str):
             try:
                 return json.loads(value)
             except Exception:
                 pass
-        return fallback
-
-    def _get(self, key: str, fallback: Optional[str] = None) -> Optional[str]:
-        if not self._redis:
-            return None
-        return fallback if (value := self._redis.get(key or "")) is None else value
+        return {}
 
     @staticmethod
-    def connection(resource: ResourceType = DEFAULT_REDIS_URI):
+    def connection(resource: ResourceType, uuid: str) -> object:
+        """
+        This is a higher level convenience function which takes the (submission)  uuid as
+        an argument so the caller does not have to included it in subsequent calls on the
+        cache, and also returns suitable cache object whether or not Redis is running/enabled. 
+        """
+        cache = IngestionStatusCache.instance(resource)
+        def upsert(value: dict) -> None:  # noqa
+            nonlocal uuid, cache
+            cache.upsert(uuid, value) if cache else None
+        def set(value: dict) -> None:  # noqa
+            nonlocal uuid, cache
+            cache.set(uuid, value) if cache else None
+        def get(value: dict) -> Optional[dict]:  # noqa
+            nonlocal uuid, cache
+            return cache.get(uuid) if cache else None
+        return namedtuple("ingestion_status_cache", ["upsert", "set", "get"])(upsert, set, get)
+
+    @staticmethod
+    def instance(resource: ResourceType = DEFAULT_REDIS_URI):
         # This gets a singleton of an IngestionStatusCache object; slightly odd
         # having a single created with an argument, but no matter where it is coming
         # from (portal or ingester) this will alwasys resolve to the same thing.

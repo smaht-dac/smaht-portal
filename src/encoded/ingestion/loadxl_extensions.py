@@ -9,12 +9,16 @@ from encoded.ingestion.ingestion_status_cache import IngestionStatusCache
 
 
 def load_data_into_database(submission_uuid: str,
-                            data: Dict[str, List[Dict]], portal_vapp: VirtualApp,
+                            data: Dict[str, List[Dict]],
+                            portal_vapp: VirtualApp,
                             nrows: Optional[int] = None,
                             post_only: bool = False,
                             patch_only: bool = False,
                             validate_only: bool = False,
                             resolved_refs: List[str] = None) -> Dict:
+
+    cache = IngestionStatusCache.connection(portal_vapp, submission_uuid)
+    cache.upsert({"loadxl_initiate": str(datetime.utcnow())})
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
         nonlocal portal_vapp
@@ -98,8 +102,7 @@ def load_data_into_database(submission_uuid: str,
 
     def define_progress_tracker(submission_uuid: str, validation: bool, total: int,
                                 vapp: Optional[VirtualApp] = None) -> Optional[Callable]:
-        if not (cache := IngestionStatusCache.connection(vapp)):
-            return None
+        nonlocal cache
         progress_status = {"validation": validation, "loadxl_total": total, **{enum.value: 0 for enum in PROGRESS}}
         def progress_tracker(progress: PROGRESS) -> None:  # noqa
             nonlocal progress_status
@@ -139,12 +142,8 @@ def load_data_into_database(submission_uuid: str,
             # Here is the actual count increment for the loadxl event.
             progress_status[progress.value] += 1
             message, message_verbose = progress_message()
-            cache.upsert(submission_uuid, {**progress_status, "loadxl_message": message,
-                                           "loadxl_message_verbose": message_verbose})
+            cache.upsert({**progress_status, "loadxl_message": message, "loadxl_message_verbose": message_verbose})
         return progress_tracker
-
-    if cache := IngestionStatusCache.connection(portal_vapp):
-        cache.upsert(submission_uuid, {"loadxl_initiate": str(datetime.utcnow())})
 
     loadxl_response = loadxl(
         testapp=portal_vapp,

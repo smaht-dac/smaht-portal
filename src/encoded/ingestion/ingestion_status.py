@@ -15,8 +15,7 @@ def includeme(config):
 @view_config(route_name="ingestion_status", request_method=["GET"])
 @debug_log
 def ingestion_status(context, request):
-    if cache := IngestionStatusCache.connection(context):
-        if submission_uuid := request.matchdict.get("uuid"):
-            if submission_info := cache.get(submission_uuid):
-                return submission_info
+    if submission_uuid := request.matchdict.get("uuid"):
+        cache = IngestionStatusCache.connection(context, submission_uuid)
+        return cache.get(submission_uuid)
     return {}
