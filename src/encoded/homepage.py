@@ -42,7 +42,15 @@ class SearchBase:
 
 
 def make_concurrent_search_requests(search_helpers):
-    """ Execute multiple search functions concurrently using a thread pool (since this is I/O bound). """
+    """ Execute multiple search functions concurrently using a thread pool (since this is I/O bound).
+
+        VERY IMPORTANT NOTE: Snovault's default DBSession is **NOT** threadsafe - therefore you CANNOT use this to
+        make database requests (including doing things like looking up users on auth). You must use a remote_user
+        that results in a synthetic_result from the auth code.
+
+        If you use this to make database requests, you will leak connections and start generating server
+        side errors!
+    """
     results = [-1] * len(search_helpers)  # watch out for -1 counts as indicative of an error
     with ThreadPoolExecutor() as executor:
         futures = []
