@@ -1,10 +1,13 @@
 import json
 from pyramid.registry import Registry
+import structlog
 import threading
 from typing import Any, Optional, Union
 from dcicutils.redis_utils import create_redis_client, RedisBase
 from dcicutils.misc_utils import VirtualApp
 from encoded.root import SMAHTRoot  as Context
+
+log = structlog.getLogger(__name__)
 
 class IngestionStatusCache:
     """
@@ -25,17 +28,29 @@ class IngestionStatusCache:
 
     def __init__(self, resource: ResourceType = DEFAULT_REDIS_URI, expiration: Optional[int] = None) -> None:
         if not (redis_uri := IngestionStatusCache._get_redis_uri_from_resource(resource)):
-            raise Exception(f"Cannot get Redis URI for ingestion-status cache: {str(resource)}")
-        self._redis = RedisBase(create_redis_client(url=redis_uri))
+            # Fail essentially silently so we work without Redis at all.
+            log.error(f"Cannot get Redis URI for ingestion-status cache: {resource}")
+            self._redis = None
+            return
+        try:
+            self._redis = RedisBase(create_redis_client(url=redis_uri))
+        except Exception as e:
+            log.error(f"Cannot create Redis object for ingestion-status cache: {str(e)}")
+            self._redis = None
+            return
         if isinstance(expiration, int) and expiration >= 0:
             self._expiration = expiration
         else:
             self._expiration = IngestionStatusCache.DEFAULT_REDIS_KEY_EXPIRATION_SECONDS
 
     def get(self, key: str, fallback: Optional[str] = None) -> Optional[str]:
+        if not self._redis:
+            return None
         return fallback if (value := self._redis.get(key or "")) is None else value
 
     def get_json(self, key: str, fallback: Optional[dict] = None) -> Optional[dict]:
+        if not self._redis:
+            return None
         if (value := self.get(key)) is not None:
             try:
                 return json.loads(value)
@@ -44,6 +59,8 @@ class IngestionStatusCache:
         return fallback
 
     def set(self, key: str, value: Optional[Any] = None) -> None:
+        if not self._redis:
+            return
         if isinstance(value, dict) or isinstance(value, list):
             value = json.dumps(value)
         elif not isinstance(value, str):
