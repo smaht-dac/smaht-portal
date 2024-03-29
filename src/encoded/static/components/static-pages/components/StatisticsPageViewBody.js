@@ -199,10 +199,10 @@ export const commonParsingFxn = {
                 subBucketKeysToDate.add(k);
             });
 
-            const fileSizeVol = totalFilesVolume / megabyte/*gigabyte*/;
+            const fileSizeVol = totalFilesVolume / /*megabyte*/gigabyte;
             const children = [ ...subBucketKeysToDate ].map(function(term){
                 const subBucket = _.findWhere(subBuckets, { 'key' : term });
-                const subFileSizeVol = ((subBucket && subBucket.total_files_volume && subBucket.total_files_volume.value) || 0) / megabyte/*gigabyte*/;;
+                const subFileSizeVol = ((subBucket && subBucket.total_files_volume && subBucket.total_files_volume.value) || 0) / /*megabyte*/gigabyte;
 
                 return { term, 'count' : subFileSizeVol };
             });
@@ -961,7 +961,7 @@ export function SubmissionsStatsView(props) {
                         <span className="text-500">Total File Size</span> - { session ? 'publicly released' : 'released' }
                     </h4>
                 }>
-                    <AreaChart {...commonChartProps} data={file_volume_released} yAxisLabel="MB" />
+                    <AreaChart {...commonChartProps} data={file_volume_released} yAxisLabel="GB" />
                 </AreaChartContainer>
 
             </ColorScaleProvider>
