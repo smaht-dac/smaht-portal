@@ -55,9 +55,7 @@ class IngestionStatusCache:
             return
         if (not isinstance(uuid, str)) or (not uuid) or (not isinstance(value, dict)) or (not value):
             return
-        existing_value = self.get(uuid)
-        value = {"uuid": uuid, **existing_value, **value, "timestamp": str(datetime.utcnow())}
-        self.set(uuid, value)
+        self.set(uuid, {"uuid": uuid, **self.get(uuid), **value, "timestamp": str(datetime.utcnow())})
 
     def set(self, key: str, value: dict) -> None:
         if not self._redis:
