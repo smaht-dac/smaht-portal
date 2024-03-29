@@ -143,6 +143,9 @@ def load_data_into_database(submission_uuid: str,
             cache.upsert(submission_uuid, {**progress_status, "message": message, "message_verbose": message_verbose})
         return progress_tracker
 
+    if cache := IngestionStatusCache.connection(vapp):
+        cache.upsert(submission_uuid, {"loadxl_started", str(datetime.utcnow())})
+
     loadxl_response = loadxl(
         testapp=portal_vapp,
         inserts=data,
