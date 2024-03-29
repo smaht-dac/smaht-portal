@@ -4,6 +4,10 @@ from dcicutils.misc_utils import PRINT
 from snovault import COLLECTIONS
 from pyramid.security import Authenticated
 from snovault.authorization import DEBUG_PERMISSIONS
+from structlog import getLogger
+
+
+log = getLogger(__name__)
 
 
 def smaht_groupfinder(login, request):
@@ -52,6 +56,7 @@ def smaht_groupfinder(login, request):
 
     if namespace in ('mailto', 'remoteuser', 'auth0'):
         users = collections.by_item_type['user']
+        log.error(f'Performing lookup for user {login}, {namespace}, {localname}')
         try:
             user = users[localname]
             if DEBUG_PERMISSIONS:
