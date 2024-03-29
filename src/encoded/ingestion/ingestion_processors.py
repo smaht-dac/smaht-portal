@@ -11,11 +11,7 @@ from encoded.ingestion.submission_folio import SmahtSubmissionFolio
 # from ..schema_formats import is_accession  # TODO: Problem with circular dependencies.
 
 
-cache_uri = None  # TODO: What is the right way to get this at the point of use in loadxl_extensions?
-
 def includeme(config):
-    global cache_uri
-    cache_uri = config.registry.settings.get("redis.server")
     config.scan(__name__)
 
 
@@ -27,7 +23,6 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
 
 
 def _process_submission(submission: SmahtSubmissionFolio) -> None:
-    global cache_uri
     with submission.s3_file() as file:
         structured_data = parse_structured_data(file, portal=submission.portal_vapp,
                                                 autoadd=submission.autoadd,
@@ -48,8 +43,7 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
             post_only=submission.post_only,
             patch_only=submission.patch_only,
             validate_only=submission.validate_only,
-            resolved_refs=(structured_data.resolved_refs if submission.validate_only else None),
-            cache_uri=cache_uri)
+            resolved_refs=(structured_data.resolved_refs if submission.validate_only else None))
         load_data_summary = summary_of_load_data_results(load_data_response, submission)
         submission.record_results(load_data_response, load_data_summary)
 

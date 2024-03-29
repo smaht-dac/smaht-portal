@@ -8,19 +8,13 @@ from encoded.ingestion.submission_folio import SmahtSubmissionFolio
 from encoded.ingestion.ingestion_status_cache import IngestionStatusCache
 
 
-# Maxiumum amount of time the ingestion status (counts) for an IngestionSubmission will
-# remain in IngestionStatusCache -> 24 hours in seconds; this is relative to the last
-# update of the key value; the key is the uuid of the IngestionSubmission object.
-REDIS_INGESTION_STATUS_EXPIRATION = 60 * 60 * 24
-
 def load_data_into_database(submission_uuid: str,
                             data: Dict[str, List[Dict]], portal_vapp: VirtualApp,
                             nrows: Optional[int] = None,
                             post_only: bool = False,
                             patch_only: bool = False,
                             validate_only: bool = False,
-                            resolved_refs: List[str] = None,
-                            cache_uri: Optional[str]= None) -> Dict:
+                            resolved_refs: List[str] = None) -> Dict:
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
         nonlocal portal_vapp
@@ -102,9 +96,9 @@ def load_data_into_database(submission_uuid: str,
         )
         return response
 
-    def define_progress_tracker(submission_uuid: str, validation: bool, total: int) -> Optional[Callable]:
-        nonlocal cache_uri
-        if not (cache := IngestionStatusCache.connection(cache_uri)):
+    def define_progress_tracker(submission_uuid: str, validation: bool, total: int,
+                                vapp: Optional[VirtualApp] = None) -> Optional[Callable]:
+        if not (cache := IngestionStatusCache.connection(vapp)):
             return None
         progress_status = {"uuid": submission_uuid, "validation": validation, "total": total,
                            "started": str(datetime.utcnow()), **{enum.value: 0 for enum in PROGRESS}}
@@ -163,7 +157,7 @@ def load_data_into_database(submission_uuid: str,
         patch_only=patch_only,
         validate_only=validate_only,
         skip_links=True,
-        progress=define_progress_tracker(submission_uuid, validation=validate_only, total=nrows))
+        progress=define_progress_tracker(submission_uuid, validation=validate_only, total=nrows, vapp=portal_vapp))
 
     return package_loadxl_response(loadxl_response)
 
