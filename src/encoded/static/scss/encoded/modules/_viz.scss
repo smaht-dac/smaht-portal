@@ -49,6 +49,11 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         b {
             font-weight: 600;
         }
+        i {
+            font-size: 10px;
+            opacity: 0.5;
+            margin: auto;
+        }
     }
 
     .timeline-item {
@@ -218,6 +223,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         flex-direction: row;
                         justify-content: center;
                         padding: 0px;
+                        min-height: 55px;
 
                         &:hover {
                             text-decoration: none;
@@ -225,10 +231,16 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         }
 
                         h4 {
+                            display: flex;
                             font-size: 28px;
                             font-weight: 600;
                             color: $homepage-card-text-color;
                             margin-right: 8px;
+                            i {
+                                font-size: 14px;
+                                opacity: 0.5;
+                                margin: auto 10px auto auto;
+                            }
                         }
                         div {
                             display: flex;

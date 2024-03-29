@@ -155,10 +155,16 @@ function TimelineAccordionDrawer(props) {
 const TimelineCardContent = ({ values }) => {
     return (
         <>
-            {values.map(({ value, unit }, i) => {
+            {values.map(({ value = null, unit }, i) => {
                 return (
                     <div className="number-group" key={i}>
-                        <h4>{value || '-'}</h4>
+                        <h4>
+                            {value === null ? (
+                                <i className="icon icon-spin icon-circle-notch fas" />
+                            ) : (
+                                value || '-'
+                            )}
+                        </h4>
                         <div>
                             {unit.split(' ').map((line) => {
                                 return <span>{line}</span>;
@@ -174,51 +180,77 @@ const TimelineCardContent = ({ values }) => {
 /**
  * Create empty data to render template before data loads
  */
-const loadStateData = [
-    {
-        title: '',
-        categories: [
-            { title: '' },
-            { title: '' },
-            { title: '' },
-            { title: '' },
-        ],
-    },
-    { title: '', categories: [{ title: '' }] },
-    { title: '', categories: [{ title: '' }] },
-];
+const loadStateData = {
+    timeline_content: [
+        {
+            title: 'Tier 0: Benchmarking',
+            subtitle: 'with all technologies',
+            categories: [
+                {
+                    title: 'COLO829 Cell Line',
+                    figures: [
+                        { unit: 'Cell Lines' },
+                        { unit: 'Assays' },
+                        { unit: 'Mutations' },
+                        { unit: 'Files Generated' },
+                    ],
+                },
+                { title: 'HapMap Cell Line' },
+                { title: 'iPSC & Fibroblasts' },
+                { title: 'Benchmarking Tissues' },
+            ],
+        },
+        {
+            title: 'Tier 1',
+            subtitle: 'with core + additional technologies',
+            categories: [{ title: 'Primary Tissues' }],
+            // figures: [{}],
+        },
+        {
+            title: 'Tier 2',
+            subtitle: 'with core technologies',
+            categories: [{ title: 'Primary Tissues' }],
+            // figures: [{}],
+        },
+    ],
+};
 
 export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
     const [data, setData] = useState(loadStateData);
 
     useEffect(() => {
         ajax.load('/home', (res) => {
-            console.log(res['@graph']);
-            setData(res['@graph']);
+            const release_date = res['date'];
+            const data = {
+                release_date,
+                timeline_content: res['@graph'],
+            };
+            setData(data);
         });
     }, []);
 
     return (
         <div className="container">
-            {data ? (
-                <div id="timeline" className={`tier-${currentTier}`}>
-                    <span className="latest-release">
-                        <b>Latest Release: </b>March 1<sup>st</sup>, 2024
-                    </span>
+            <div id="timeline" className={`tier-${currentTier}`}>
+                <span className="latest-release">
+                    <b>Latest Release: </b>
+                    {data.release_date ?? (
+                        <i className="icon icon-spin icon-circle-notch fas" />
+                    )}
+                </span>
 
-                    {data.map((d, i) => {
-                        return (
-                            <TimelineItem
-                                currentTier={currentTier}
-                                setCurrentTier={setCurrentTier}
-                                data={d}
-                                itemKey={i}
-                                key={i}
-                            />
-                        );
-                    })}
-                </div>
-            ) : null}
+                {data.timeline_content.map((d, i) => {
+                    return (
+                        <TimelineItem
+                            currentTier={currentTier}
+                            setCurrentTier={setCurrentTier}
+                            data={d}
+                            itemKey={i}
+                            key={i}
+                        />
+                    );
+                })}
+            </div>
         </div>
     );
 }
