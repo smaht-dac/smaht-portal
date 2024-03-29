@@ -7,7 +7,7 @@ class Redis:
     Minimal Redis wrapper class exposing only what we need here from dcicutils.RedisBase.
     """
 
-    def __init__(self, uri: str = "redis://localhost:6379") -> None:
+    def __init__(self, uri: Optional[str] = "redis://localhost:6379") -> None:
         self._redis = RedisBase(create_redis_client(url=uri))
         self._expirations = {}
 
@@ -46,5 +46,5 @@ class Redis:
         self._redis.redis.expire(key, seconds)
 
     @staticmethod
-    def connection():
-        return Redis()
+    def connection(uri: Optional[str] = "redis://localhost:6379"):
+        return Redis(uri)

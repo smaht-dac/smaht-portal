@@ -15,8 +15,9 @@ def includeme(config):
 @view_config(route_name="ingestion_status", request_method=["GET"])
 @debug_log
 def ingestion_status(context, request):
-    if submission_uuid := request.matchdict.get("uuid"):
-        redis = Redis.connection()
-        if submission_info := redis.get_json(submission_uuid):
-            return submission_info
+    if redis_uri := context.registry.settings.get("redis.server"):
+        if submission_uuid := request.matchdict.get("uuid"):
+            redis = Redis.connection(redis_uri)
+            if submission_info := redis.get_json(submission_uuid):
+                return submission_info
     return {}

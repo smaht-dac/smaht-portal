@@ -19,7 +19,8 @@ def load_data_into_database(submission_uuid: str,
                             post_only: bool = False,
                             patch_only: bool = False,
                             validate_only: bool = False,
-                            resolved_refs: List[str] = None) -> Dict:
+                            resolved_refs: List[str] = None,
+                            redis_uri: Optional[str]= None) -> Dict:
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
         nonlocal portal_vapp
@@ -102,7 +103,8 @@ def load_data_into_database(submission_uuid: str,
         return response
 
     def define_progress_tracker(submission_uuid: str, validation: bool, total: int) -> Optional[Callable]:
-        if not (redis := Redis.connection()):
+        nonlocal redis_uri
+        if not (redis := Redis.connection(redis_uri)):
             return None
         progress_status = {"uuid": submission_uuid, "validation": validation, "total": total,
                            "started": str(datetime.utcnow()), **{enum.value: 0 for enum in PROGRESS}}
