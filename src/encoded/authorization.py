@@ -56,7 +56,6 @@ def smaht_groupfinder(login, request):
 
     if namespace in ('mailto', 'remoteuser', 'auth0'):
         users = collections.by_item_type['user']
-        log.error(f'Performing lookup for user {login}, {namespace}, {localname}')
         try:
             user = users[localname]
             if DEBUG_PERMISSIONS:
