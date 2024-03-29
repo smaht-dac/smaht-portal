@@ -21,7 +21,7 @@ def includeme(config):
 @ingestion_processor("family_history")  # TODO: Do we need this?
 def handle_metadata_bundle(submission: SubmissionFolio) -> None:
     if cache := IngestionStatusCache.connection(submission.vapp):
-        cache.upsert(submission.submission_id, {"ingester_start": str(datetime.utcnow())})
+        cache.upsert(submission.submission_id, {"ingester_initiate": str(datetime.utcnow())})
     with submission.processing_context():
         _process_submission(SmahtSubmissionFolio(submission))
 
@@ -29,6 +29,7 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
 def _process_submission(submission: SmahtSubmissionFolio) -> None:
     with submission.s3_file() as file:
         structured_data = parse_structured_data(file, portal=submission.portal_vapp,
+                                                submission=submission,
                                                 autoadd=submission.autoadd,
                                                 ref_nocache=submission.ref_nocache)
         if (errors := structured_data.errors):
@@ -52,7 +53,8 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
         submission.record_results(load_data_response, load_data_summary)
 
 
-def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp, Portal]], novalidate: bool = False,
+def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp, Portal]],
+                          submission: Optional[SubmissionFolio] = None, novalidate: bool = False,
                           autoadd: Optional[dict] = None, prune: bool = True,
                           ref_nocache: bool = False) -> StructuredDataSet:
 
@@ -100,7 +102,7 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
 
         if not schema and value:
             nonlocal portal
-            if not (schema := portal.get_schema(type_name)):
+            if not isinstance(portal, Portal) or not (schema := portal.get_schema(type_name)):
                 return Portal.LOOKUP_DEFAULT, ref_validator
         if value and (schema_properties := schema.get("properties")):
             if schema_properties.get("accession") and _is_accession_id(value):
@@ -113,12 +115,21 @@ def parse_structured_data(file: str, portal: Optional[Union[VirtualApp, TestApp,
                         return Portal.LOOKUP_SPECIFIED_TYPE, ref_validator
         return Portal.LOOKUP_DEFAULT, ref_validator
 
+    cache = IngestionStatusCache.connection(submission.portal_vapp) if submission else None
+    cache.upsert(submission.id, {"ingester_parse_start": str(datetime.utcnow())}) if cache else None
+
     structured_data = StructuredDataSet.load(file=file, portal=portal,
                                              autoadd=autoadd, order=ITEM_INDEX_ORDER, prune=prune,
                                              ref_lookup_strategy=ref_lookup_strategy,
                                              ref_lookup_nocache=ref_nocache)
+
+    cache.upsert(submission.id, {"ingester_parse_done": str(datetime.utcnow())}) if cache else None
+
     if not novalidate:
+        cache.upsert(submission.id, {"ingester_validate_start": str(datetime.utcnow())}) if cache else None
         structured_data.validate()
+        cache.upsert(submission.id, {"ingester_validate_done": str(datetime.utcnow())}) if cache else None
+
     return structured_data
 
 
