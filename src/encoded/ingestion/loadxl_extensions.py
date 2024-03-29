@@ -108,7 +108,6 @@ def load_data_into_database(submission_uuid: str,
             return None
         progress_status = {"uuid": submission_uuid, "validation": validation, "total": total,
                            "started": str(datetime.utcnow()), **{enum.value: 0 for enum in PROGRESS}}
-        cache.set_expiration(submission_uuid, REDIS_INGESTION_STATUS_EXPIRATION)
         def progress_tracker(progress: PROGRESS) -> None:  # noqa
             nonlocal progress_status
             def progress_message() -> None:  # noqa
