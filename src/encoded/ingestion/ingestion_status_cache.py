@@ -7,7 +7,7 @@ import threading
 from typing import Optional, Union
 from dcicutils.redis_utils import create_redis_client, RedisBase
 from dcicutils.misc_utils import VirtualApp
-from encoded.root import SMAHTRoot  as Context
+from encoded.root import SMAHTRoot as Context
 
 log = structlog.getLogger(__name__)
 
@@ -118,6 +118,8 @@ class IngestionStatusCache:
         # from the the portal ingestion-status endpoint (see ingestion_status module) or from
         # a vapp in the ingester listener (see loadxl_extension).
         try:
+            if not resource:
+                return None
             if isinstance(resource, str):
                 return resource
             elif isinstance(resource, dict):
@@ -128,6 +130,8 @@ class IngestionStatusCache:
                 return resource.settings.get(resource_name)
             elif isinstance(resource, VirtualApp):
                 return resource.app.registry.settings.get(resource_name)
+            elif hasattr(resource, "registry") and isinstance(resource.registry, Registry):
+                return resource.registry.settings.get(resource_name)
         except Exception:
             pass
         return None
