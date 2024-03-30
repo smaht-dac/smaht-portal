@@ -131,3 +131,7 @@ class IngestionStatusCache:
         except Exception:
             pass
         return None
+
+    @staticmethod
+    def now():
+        return str(datetime.utcnow())
