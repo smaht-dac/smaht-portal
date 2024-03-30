@@ -19,7 +19,7 @@ def includeme(config):
 @ingestion_processor("family_history")  # TODO: Do we need this?
 def handle_metadata_bundle(submission: SubmissionFolio) -> None:
     ingestion_status = IngestionStatusCache.connection(submission.submission_id, submission.vapp)
-    ingestion_status.update({PROGRESS_INGESTER.INITIATE.value: IngestionStatusCache.now()})
+    ingestion_status.update({PROGRESS_INGESTER.INITIATE: IngestionStatusCache.now()})
     with submission.processing_context():
         _process_submission(SmahtSubmissionFolio(submission))
 
@@ -121,7 +121,7 @@ def parse_structured_data(file: str,
         # ingestion_status.update(structured_data_set_status)
 
     ingestion_status = IngestionStatusCache.connection(submission.id, submission.portal_vapp)
-    ingestion_status.update({PROGRESS_INGESTER.PARSE_LOAD_INITIATE.value: IngestionStatusCache.now()})
+    ingestion_status.update({PROGRESS_INGESTER.PARSE_LOAD_INITIATE: IngestionStatusCache.now()})
 
     structured_data = StructuredDataSet.load(file=file,
                                              portal=submission.portal_vapp,
@@ -132,12 +132,12 @@ def parse_structured_data(file: str,
                                              progress=structured_data_set_progress,
                                              debug_sleep=submission.debug_sleep if submission else None)
 
-    ingestion_status.update({PROGRESS_INGESTER.PARSE_LOAD_DONE.value: IngestionStatusCache.now()})
+    ingestion_status.update({PROGRESS_INGESTER.PARSE_LOAD_DONE: IngestionStatusCache.now()})
 
     if not novalidate:
-        ingestion_status.update({PROGRESS_INGESTER.VALIDATE_LOAD_INITIATE.value: IngestionStatusCache.now()})
+        ingestion_status.update({PROGRESS_INGESTER.VALIDATE_LOAD_INITIATE: IngestionStatusCache.now()})
         structured_data.validate()
-        ingestion_status.update({PROGRESS_INGESTER.VALIDATE_LOAD_DONE.value: IngestionStatusCache.now()})
+        ingestion_status.update({PROGRESS_INGESTER.VALIDATE_LOAD_DONE: IngestionStatusCache.now()})
 
     return structured_data
 

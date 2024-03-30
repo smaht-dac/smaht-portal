@@ -18,7 +18,7 @@ def load_data_into_database(submission_uuid: str,
                             resolved_refs: List[str] = None) -> Dict:
 
     ingestion_status = IngestionStatusCache.connection(submission_uuid, portal_vapp)
-    ingestion_status.update({PROGRESS_INGESTER.LOADXL_INITIATE.value: PROGRESS_INGESTER.NOW()})
+    ingestion_status.update({PROGRESS_INGESTER.LOADXL_INITIATE: PROGRESS_INGESTER.NOW()})
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
         nonlocal portal_vapp
@@ -108,29 +108,29 @@ def load_data_into_database(submission_uuid: str,
         progress_status_string_values = [PROGRESS_LOADXL.MESSAGE,
                                          PROGRESS_LOADXL.MESSAGE_VERBOSE, PROGRESS_LOADXL.MESSAGE_DEBUG]
         progress_status = {}
-        for progress_status_enum in PROGRESS_LOADXL:
+        for progress_status_enum in PROGRESS_LOADXL.values():
             if ((progress_status_enum in progress_status_datetime_values) or
                 (progress_status_enum in progress_status_string_values)):  # noqa
-                progress_status[progress_status_enum.value] = None
+                progress_status[progress_status_enum] = None
             else:
-                progress_status[progress_status_enum.value] = 0
+                progress_status[progress_status_enum] = 0
         progress_status = {**progress_status,
-                           PROGRESS_LOADXL.TOTAL.value: total,
-                           PROGRESS_INGESTER.VALIDATION.value: validation}
+                           PROGRESS_LOADXL.TOTAL: total,
+                           PROGRESS_INGESTER.VALIDATION: validation}
         def progress_tracker(progress: PROGRESS_LOADXL) -> None:  # noqa
             nonlocal progress_status
             def progress_message() -> None:  # noqa
                 # Just a convenience/courtesy so the consumer (smaht-submitr) doesn't have to cobble
                 # together a status message; but the data is still there of course if they want/need to.
                 nonlocal progress_status, total, validate_only
-                processed = progress_status[PROGRESS_LOADXL.ITEM.value]
-                gets = progress_status[PROGRESS_LOADXL.GET.value]
-                posts = progress_status[PROGRESS_LOADXL.POST.value]
-                patches = progress_status[PROGRESS_LOADXL.PATCH.value]
-                errors = progress_status[PROGRESS_LOADXL.ERROR.value]
-                started_second_round = progress_status[PROGRESS_LOADXL.START_SECOND_ROUND.value]
-                processed_second_round = progress_status[PROGRESS_LOADXL.ITEM_SECOND_ROUND.value]
-                done = progress_status[PROGRESS_LOADXL.DONE.value]
+                processed = progress_status[PROGRESS_LOADXL.ITEM]
+                gets = progress_status[PROGRESS_LOADXL.GET]
+                posts = progress_status[PROGRESS_LOADXL.POST]
+                patches = progress_status[PROGRESS_LOADXL.PATCH]
+                errors = progress_status[PROGRESS_LOADXL.ERROR]
+                started_second_round = progress_status[PROGRESS_LOADXL.START_SECOND_ROUND]
+                processed_second_round = progress_status[PROGRESS_LOADXL.ITEM_SECOND_ROUND]
+                done = progress_status[PROGRESS_LOADXL.DONE]
                 message = f"Items: {total}"
                 if started_second_round is not None:
                     # We call the first round verified/preprocessed and the second validated/processed.
@@ -155,14 +155,14 @@ def load_data_into_database(submission_uuid: str,
                 return message, message_verbose, message_debug
             # Here is the actual count increment for the loadxl event.
             if progress in progress_status_datetime_values:
-                progress_status[progress.value] = PROGRESS_LOADXL.NOW()
+                progress_status[progress] = PROGRESS_LOADXL.NOW()
             elif progress not in progress_status_string_values:
-                progress_status[progress.value] += 1
+                progress_status[progress] += 1
             message, message_verbose, message_debug = progress_message()
             ingestion_status.update({**progress_status,
-                                     PROGRESS_LOADXL.MESSAGE.value: message,
-                                     PROGRESS_LOADXL.MESSAGE_VERBOSE.value: message_verbose,
-                                     PROGRESS_LOADXL.MESSAGE_DEBUG.value: message_debug})
+                                     PROGRESS_LOADXL.MESSAGE: message,
+                                     PROGRESS_LOADXL.MESSAGE_VERBOSE: message_verbose,
+                                     PROGRESS_LOADXL.MESSAGE_DEBUG: message_debug})
         return progress_tracker
 
     loadxl_response = loadxl(
@@ -182,7 +182,7 @@ def load_data_into_database(submission_uuid: str,
 
     loadxl_response = package_loadxl_response(loadxl_response)
 
-    ingestion_status.update({PROGRESS_INGESTER.LOADXL_DONE.value: PROGRESS_INGESTER.NOW()})
+    ingestion_status.update({PROGRESS_INGESTER.LOADXL_DONE: PROGRESS_INGESTER.NOW()})
 
     return loadxl_response
 
