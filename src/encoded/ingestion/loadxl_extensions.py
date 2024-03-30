@@ -1,5 +1,4 @@
 import re
-from datetime import datetime
 from typing import Callable, Dict, List, Generator, Optional, Tuple, Union
 from dcicutils.misc_utils import VirtualApp
 from dcicutils.progress_constants import PROGRESS_INGESTER, PROGRESS_LOADXL
@@ -19,7 +18,7 @@ def load_data_into_database(submission_uuid: str,
                             resolved_refs: List[str] = None) -> Dict:
 
     ingestion_status = IngestionStatusCache.connection(submission_uuid, portal_vapp)
-    ingestion_status.update({PROGRESS_INGESTER.LOADXL_INITIATE.value: str(datetime.utcnow())})
+    ingestion_status.update({PROGRESS_INGESTER.LOADXL_INITIATE.value: PROGRESS_INGESTER.NOW()})
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
         nonlocal portal_vapp
@@ -104,8 +103,18 @@ def load_data_into_database(submission_uuid: str,
     def define_progress_tracker(submission_uuid: str, validation: bool, total: int,
                                 vapp: Optional[VirtualApp] = None) -> Optional[Callable]:
         nonlocal ingestion_status
-        import pdb ; pdb.set_trace()
-        progress_status = {**{enum.value: 0 for enum in PROGRESS_LOADXL},
+        progress_status_datetime_values = [PROGRESS_LOADXL.START,
+                                           PROGRESS_LOADXL.START_SECOND_ROUND, PROGRESS_LOADXL.DONE]
+        progress_status_string_values = [PROGRESS_LOADXL.MESSAGE,
+                                         PROGRESS_LOADXL.MESSAGE_VERBOSE, PROGRESS_LOADXL.MESSAGE_DEBUG]
+        progress_status = {}
+        for progress_status_enum in PROGRESS_LOADXL:
+            if ((progress_status_enum in progress_status_datetime_values) or
+                (progress_status_enum in progress_status_string_values)):  # noqa
+                progress_status[progress_status_enum.value] = None
+            else:
+                progress_status[progress_status_enum.value] = 0
+        progress_status = {**progress_status,
                            PROGRESS_LOADXL.TOTAL.value: total,
                            PROGRESS_INGESTER.VALIDATION.value: validation}
         def progress_tracker(progress: PROGRESS_LOADXL) -> None:  # noqa
@@ -123,9 +132,9 @@ def load_data_into_database(submission_uuid: str,
                 processed_second_round = progress_status[PROGRESS_LOADXL.ITEM_SECOND_ROUND.value]
                 done = progress_status[PROGRESS_LOADXL.DONE.value]
                 message = f"Items: {total}"
-                if started_second_round > 0:
+                if started_second_round is not None:
                     # We call the first round verified/preprocessed and the second validated/processed.
-                    if done > 0:
+                    if done is not None:
                         message += (f" | {'Validated' if validate_only else 'Processed'}:"
                                     f" {max(processed, processed_second_round)}")
                     else:
@@ -145,7 +154,10 @@ def load_data_into_database(submission_uuid: str,
                 message_debug = message_verbose  # TODO
                 return message, message_verbose, message_debug
             # Here is the actual count increment for the loadxl event.
-            progress_status[progress.value] += 1
+            if progress in progress_status_datetime_values:
+                progress_status[progress.value] = PROGRESS_LOADXL.NOW()
+            elif progress not in progress_status_string_values:
+                progress_status[progress.value] += 1
             message, message_verbose, message_debug = progress_message()
             ingestion_status.update({**progress_status,
                                      PROGRESS_LOADXL.MESSAGE.value: message,
@@ -168,7 +180,11 @@ def load_data_into_database(submission_uuid: str,
         skip_links=True,
         progress=define_progress_tracker(submission_uuid, validation=validate_only, total=nrows, vapp=portal_vapp))
 
-    return package_loadxl_response(loadxl_response)
+    loadxl_response = package_loadxl_response(loadxl_response)
+
+    ingestion_status.update({PROGRESS_INGESTER.LOADXL_DONE.value: PROGRESS_INGESTER.NOW()})
+
+    return loadxl_response
 
 
 def summary_of_load_data_results(load_data_response: Optional[Dict],
