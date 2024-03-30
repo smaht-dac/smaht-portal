@@ -11,4 +11,4 @@ class SMaHTProjectIngestion(SnovaultProjectIngestion):
         from encoded.ingestion.ingestion_status_cache import IngestionStatusCache
         ingestion_status = IngestionStatusCache.connection(submission_uuid, context)
         # TODO: Put this string in dciciutils.progress_constants
-        ingestion_status.update({"ingester_queued": PROGRESS_INGESTER.NOW())})
+        ingestion_status.update({PROGRESS_INGESTER.QUEUED: PROGRESS_INGESTER.NOW()})
