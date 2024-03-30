@@ -16,6 +16,6 @@ def includeme(config):
 @debug_log
 def ingestion_status(context, request):
     if submission_uuid := request.matchdict.get("uuid"):
-        cache = IngestionStatusCache.connection(context, submission_uuid)
-        return cache.get(submission_uuid)
+        ingestion_status = IngestionStatusCache.connection(submission_uuid, context)
+        return ingestion_status.get(submission_uuid)
     return {}

@@ -21,14 +21,15 @@ class IngestionStatusCache:
     The connection info for this (i.e. e.g. redis://hostname:6379) comes from the main app ini file,
     e.g. development.ini (see the _get_redis_uri_from_resource static function below).
     """
+    REDIS_RESOURCE_NAME = "redis.server"
+    REDIS_KEY_EXPIRATION_SECONDS = 60 * 60 * 24
     DEFAULT_REDIS_URI = "redis://localhost:6379"
-    DEFAULT_REDIS_KEY_EXPIRATION_SECONDS = 60 * 60 * 24
     ResourceType = Optional[Union[str, dict, Context, Registry, VirtualApp]]
 
     _singleton_instance = None
     _singleton_lock = threading.Lock()
 
-    def __init__(self, resource: ResourceType = DEFAULT_REDIS_URI, expiration: Optional[int] = None) -> None:
+    def __init__(self, resource: ResourceType = DEFAULT_REDIS_URI) -> None:
         # Fail essentially silently so we work without Redis at all (but log).
         if not (redis_uri := IngestionStatusCache._get_redis_uri_from_resource(resource)):
             log.error(f"Cannot get Redis URI for ingestion-status cache: {resource}")
@@ -39,13 +40,20 @@ class IngestionStatusCache:
         except Exception as e:
             log.error(f"Cannot create Redis object for ingestion-status cache: {str(e)}")
             self._redis = None
-            return
-        if isinstance(expiration, int) and expiration >= 0:
-            self._expiration = expiration
-        else:
-            self._expiration = IngestionStatusCache.DEFAULT_REDIS_KEY_EXPIRATION_SECONDS
 
-    def upsert(self, uuid: str, value: dict) -> None:
+    def get(self, uuid: str) -> dict:
+        if not self._redis:
+            return {}
+        if (not isinstance(uuid, str)) or (not uuid):
+            return {}
+        if isinstance(value := self._redis.get(uuid), str):
+            try:
+                return json.loads(value)
+            except Exception:
+                pass
+        return {}
+
+    def update(self, uuid: str, value: dict) -> None:
         """
         This is a higher level function intended to be the main one used for our purposes;
         it merges the given JSON into any already existing value for the key; and it
@@ -55,14 +63,8 @@ class IngestionStatusCache:
             return
         if (not isinstance(uuid, str)) or (not uuid) or (not isinstance(value, dict)) or (not value):
             return
-        self.set(uuid, {"uuid": uuid, **self.get(uuid), **value, "timestamp": str(datetime.utcnow())})
-
-    def set(self, key: str, value: dict) -> None:
-        if not self._redis:
-            return
-        if (not isinstance(key, str)) or (not key) or (not isinstance(value, dict)) or (not value):
-            return
-        self._redis.set(key, json.dumps(value, default=str))
+        value = {"uuid": uuid, **self.get(uuid), **value, "timestamp": str(datetime.utcnow())}
+        self._redis.set(uuid, json.dumps(value, default=str))
         #
         # Need to reset the expiration time on each update/set; the expiration
         # time is always relative to the time of the most recently updated value.
@@ -75,38 +77,26 @@ class IngestionStatusCache:
         # then that ttl does not take, but if we use lt=True instead then it does take.
         # TODO: Check with Will on this dcicutils.redis_utils.RedisBase behavior.
         #
-        self._redis.redis.expire(key, self._expiration)
-
-    def get(self, key: str) -> dict:
-        if not self._redis:
-            return {}
-        if (not isinstance(key, str)) or (not key):
-            return {}
-        if isinstance(value := self._redis.get(key), str):
-            try:
-                return json.loads(value)
-            except Exception:
-                pass
-        return {}
+        self._redis.redis.expire(uuid, IngestionStatusCache.REDIS_KEY_EXPIRATION_SECONDS)
 
     @staticmethod
-    def connection(resource: ResourceType, uuid: str) -> object:
+    def connection(uuid: str, resource: ResourceType = DEFAULT_REDIS_URI) -> object:
         """
         This is a higher level convenience function which takes the (submission)  uuid as
         an argument so the caller does not have to included it in subsequent calls on the
         cache, and also returns suitable cache object whether or not Redis is running/enabled. 
         """
         cache = IngestionStatusCache.instance(resource)
-        def upsert(value: dict) -> None:  # noqa
+        def update(value: dict) -> None:  # noqa
             nonlocal uuid, cache
-            cache.upsert(uuid, value) if cache else None
+            cache.update(uuid, value) if cache else None
         def set(value: dict) -> None:  # noqa
             nonlocal uuid, cache
             cache.set(uuid, value) if cache else None
         def get(value: dict) -> Optional[dict]:  # noqa
             nonlocal uuid, cache
             return cache.get(uuid) if cache else None
-        return namedtuple("ingestion_status_cache", ["upsert", "set", "get"])(upsert, set, get)
+        return namedtuple("ingestion_status_cache", ["update", "set", "get"])(update, set, get)
 
     @staticmethod
     def instance(resource: ResourceType = DEFAULT_REDIS_URI):
@@ -120,7 +110,8 @@ class IngestionStatusCache:
         return IngestionStatusCache._singleton_instance
 
     @staticmethod
-    def _get_redis_uri_from_resource(resource: ResourceType, resource_name: str = "redis.server") -> Optional[str]:
+    def _get_redis_uri_from_resource(resource: ResourceType = DEFAULT_REDIS_URI,
+                                     resource_name: str = REDIS_RESOURCE_NAME) -> Optional[str]:
         # The redis.server value is defined in the main app ini file (e.g. development.ini).
         # This deals with getting that value via a vapp, context, registry, or settings object;
         # or a literal string may be specified as well. In practice this will only be a context
