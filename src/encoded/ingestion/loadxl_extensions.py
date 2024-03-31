@@ -104,9 +104,11 @@ def load_data_into_database(submission_uuid: str,
                                 vapp: Optional[VirtualApp] = None) -> Optional[Callable]:
         nonlocal ingestion_status
         progress_status_datetime_values = [PROGRESS_LOADXL.START,
-                                           PROGRESS_LOADXL.START_SECOND_ROUND, PROGRESS_LOADXL.DONE]
+                                           PROGRESS_LOADXL.START_SECOND_ROUND,
+                                           PROGRESS_LOADXL.DONE]
         progress_status_string_values = [PROGRESS_LOADXL.MESSAGE,
-                                         PROGRESS_LOADXL.MESSAGE_VERBOSE, PROGRESS_LOADXL.MESSAGE_DEBUG]
+                                         PROGRESS_LOADXL.MESSAGE_VERBOSE,
+                                         PROGRESS_LOADXL.MESSAGE_DEBUG]
         progress_status = {}
         for progress_status_enum in PROGRESS_LOADXL.values():
             if ((progress_status_enum in progress_status_datetime_values) or

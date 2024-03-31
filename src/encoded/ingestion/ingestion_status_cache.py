@@ -41,14 +41,15 @@ class IngestionStatusCache:
             log.error(f"Cannot create Redis object for ingestion-status cache: {str(e)}")
             self._redis = None
 
-    def get(self, uuid: str) -> dict:
+    def get(self, uuid: str, sort: bool = False) -> dict:
         if not self._redis:
             return {}
         if (not isinstance(uuid, str)) or (not uuid):
             return {}
         if isinstance(value := self._redis.get(uuid), str):
             try:
-                return json.loads(value)
+                response = json.loads(value)
+                return dict(sorted(response.items(), key=lambda item: item[0])) if sort else response
             except Exception:
                 pass
         return {}
@@ -63,7 +64,7 @@ class IngestionStatusCache:
             return
         if (not isinstance(uuid, str)) or (not uuid) or (not isinstance(value, dict)) or (not value):
             return
-        value = {"uuid": uuid, **self.get(uuid), **value, "timestamp": str(datetime.utcnow())}
+        value = {"uuid": uuid, **self.get(uuid), **value, "timestamp": IngestionStatusCache._now()}
         self._redis.set(uuid, json.dumps(value, default=str))
         #
         # Need to reset the expiration time on each update/set; the expiration
@@ -93,9 +94,9 @@ class IngestionStatusCache:
         def set(value: dict) -> None:  # noqa
             nonlocal uuid, cache
             cache.set(uuid, value) if cache else None
-        def get(value: dict) -> Optional[dict]:  # noqa
+        def get(value: dict, sort: bool = False) -> Optional[dict]:  # noqa
             nonlocal uuid, cache
-            return cache.get(uuid) if cache else None
+            return cache.get(uuid, sort=sort) if cache else None
         return namedtuple("ingestion_status_cache", ["update", "set", "get"])(update, set, get)
 
     @staticmethod
@@ -137,5 +138,5 @@ class IngestionStatusCache:
         return None
 
     @staticmethod
-    def now():
-        return str(datetime.utcnow())
+    def _now() -> str:
+        return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")

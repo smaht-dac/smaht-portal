@@ -18,6 +18,8 @@ class SmahtSubmissionFolio:
         self.submission = submission
         self.id = submission.submission_id
         self.data_file_name = get_parameter(submission.parameters, "datafile")
+        self.data_file_size = get_parameter(submission.parameters, "datafile_size", default=0)
+        self.data_file_checksum = get_parameter(submission.parameters, "datafile_checksum", default=None)
         self.s3_data_file_location = f"s3://{submission.bucket}/{submission.object_name}"
         self.s3_details_location = f"s3://{submission.bucket}/{submission.submission_id}/submission.json"
         self.post_only = get_parameter(submission.parameters, "post_only", as_type=bool, default=False)
