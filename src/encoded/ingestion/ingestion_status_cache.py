@@ -122,7 +122,7 @@ class IngestionStatusCache:
         return namedtuple("ingestion_status_cache", ["get", "update", "set", "keys"])(get, update, set, keys)
 
     @staticmethod
-    def instance(resource: ResourceType = DEFAULT_REDIS_URI):
+    def instance(resource: ResourceType = DEFAULT_REDIS_URI) -> object:
         # This gets a singleton of an IngestionStatusCache object; slightly odd
         # having a single created with an argument, but no matter where it is coming
         # from (portal or ingester) this will alwasys resolve to the same thing.
