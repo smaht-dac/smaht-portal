@@ -17,12 +17,12 @@ class IngestionStatusCache:
     For tracking the progress, on the client-side (smaht-submitr command), of a server-side ingestion
     validation or submission process. Since this class is specifically used only for this purpose and
     since this data is only and inherently transient data, we force all keys written to have a short
-    expiration time, by default 24 hours (only this long just for easier troubleshooting if necessary).
+    expiration time, by default 3 days (way longer than we need but could be useful for troubleshooting).
     The connection info for this (i.e. e.g. redis://hostname:6379) comes from the main app ini file,
     e.g. development.ini (see the _get_redis_uri_from_resource static function below).
     """
     REDIS_RESOURCE_NAME = "redis.server"
-    REDIS_KEY_EXPIRATION_SECONDS = 60 * 60 * 24
+    REDIS_KEY_EXPIRATION_SECONDS = 60 * 60 * 24 * 3
     DEFAULT_REDIS_URI = "redis://localhost:6379"
     ResourceType = Optional[Union[str, dict, Context, Registry, VirtualApp]]
 
