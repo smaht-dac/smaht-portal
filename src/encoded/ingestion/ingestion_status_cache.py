@@ -4,7 +4,7 @@ import json
 from pyramid.registry import Registry
 import structlog
 import threading
-from typing import Optional, Union
+from typing import List, Optional, Union
 from dcicutils.redis_utils import create_redis_client, RedisBase
 from dcicutils.misc_utils import VirtualApp
 from encoded.root import SMAHTRoot as Context
@@ -41,44 +41,63 @@ class IngestionStatusCache:
             log.error(f"Cannot create Redis object for ingestion-status cache: {str(e)}")
             self._redis = None
 
-    def get(self, uuid: str, sort: bool = False) -> dict:
+    def get(self, key: str, sort: bool = False) -> dict:
         if not self._redis:
             return {}
-        if (not isinstance(uuid, str)) or (not uuid):
+        if (not isinstance(key, str)) or (not key):
             return {}
-        if isinstance(value := self._redis.get(uuid), str):
+        if isinstance(value := self._redis.get(key), str):
             try:
                 response = json.loads(value)
+                response["ttl"] = self._redis.ttl(key)
                 return dict(sorted(response.items(), key=lambda item: item[0])) if sort else response
             except Exception:
                 pass
         return {}
 
-    def update(self, uuid: str, value: dict) -> None:
+    def update(self, uuid: str, value: dict) -> bool:
         """
         This is a higher level function intended to be the main one used for our purposes;
         it merges the given JSON into any already existing value for the key; and it
         automatically takes the key to be the given (submission) uuid.
         """
         if not self._redis:
-            return
+            return False
         if (not isinstance(uuid, str)) or (not uuid) or (not isinstance(value, dict)) or (not value):
-            return
+            return False
         value = {"uuid": uuid, **self.get(uuid), **value, "timestamp": IngestionStatusCache._now()}
-        self._redis.set(uuid, json.dumps(value, default=str))
-        #
-        # Need to reset the expiration time on each update/set; the expiration
-        # time is always relative to the time of the most recently updated value.
-        #
-        # And need to set this directly because the RedisBase.set_expiration function in
-        # dcicutils.redis_utils uses the Redis.expire gt=True argument which prevents the
-        # expiration from being set at all, for some reason; it seems like gt=True and lt=True
-        # functionality is backwards; if we set a key which then has a -1 ttl, and then call
-        # redis.expire on the key with a positive seconds integer and the gt=True flag,
-        # then that ttl does not take, but if we use lt=True instead then it does take.
-        # TODO: Check with Will on this dcicutils.redis_utils.RedisBase behavior.
-        #
-        self._redis.redis.expire(uuid, IngestionStatusCache.REDIS_KEY_EXPIRATION_SECONDS)
+        return self.set(uuid, value)
+
+    def set(self, key: str, value: dict) -> bool:
+        if not self._redis:
+            return False
+        try:
+            self._redis.set(key, json.dumps(value, default=str))
+            #
+            # Need to reset the expiration time on each update/set; the expiration
+            # time is always relative to the time of the most recently updated value.
+            #
+            # And need to set this directly because the RedisBase.set_expiration function in
+            # dcicutils.redis_utils uses the Redis.expire gt=True argument which prevents the
+            # expiration from being set at all, for some reason; it seems like gt=True and lt=True
+            # functionality is backwards; if we set a key which then has a -1 ttl, and then call
+            # redis.expire on the key with a positive seconds integer and the gt=True flag,
+            # then that ttl does not take, but if we use lt=True instead then it does take.
+            # TODO: Check with Will on this dcicutils.redis_utils.RedisBase behavior.
+            #
+            self._redis.redis.expire(key, IngestionStatusCache.REDIS_KEY_EXPIRATION_SECONDS)
+            return True
+        except Exception:
+            return False
+
+    def keys(self, sort: bool = False) -> List[str]:
+        try:
+            keys = [key.decode("utf-8") for key in self._redis.redis.keys("*")]
+            if sort:
+                keys = sorted(keys)
+            return keys
+        except Exception:
+            return []
 
     @staticmethod
     def connection(uuid: str, resource: ResourceType = DEFAULT_REDIS_URI) -> object:
@@ -88,16 +107,19 @@ class IngestionStatusCache:
         cache, and also returns suitable cache object whether or not Redis is running/enabled. 
         """
         cache = IngestionStatusCache.instance(resource)
-        def update(value: dict) -> None:  # noqa
-            nonlocal uuid, cache
-            cache.update(uuid, value) if cache else None
-        def set(value: dict) -> None:  # noqa
-            nonlocal uuid, cache
-            cache.set(uuid, value) if cache else None
         def get(value: dict, sort: bool = False) -> Optional[dict]:  # noqa
             nonlocal uuid, cache
             return cache.get(uuid, sort=sort) if cache else None
-        return namedtuple("ingestion_status_cache", ["update", "set", "get"])(update, set, get)
+        def update(value: dict) -> bool:  # noqa
+            nonlocal uuid, cache
+            cache.update(uuid, value) if cache else False
+        def set(value: dict) -> bool:  # noqa
+            nonlocal uuid, cache
+            cache.set(uuid, value) if cache else False
+        def keys(sort: bool = False) -> List[str]:  # noqa
+            nonlocal cache
+            return cache.keys(sort=sort) if cache else []
+        return namedtuple("ingestion_status_cache", ["get", "update", "set", "keys"])(get, update, set, keys)
 
     @staticmethod
     def instance(resource: ResourceType = DEFAULT_REDIS_URI):

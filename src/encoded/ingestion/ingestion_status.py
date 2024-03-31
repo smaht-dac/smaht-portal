@@ -17,5 +17,8 @@ def includeme(config):
 def ingestion_status(context, request):
     if submission_uuid := request.matchdict.get("uuid"):
         ingestion_status = IngestionStatusCache.connection(submission_uuid, context)
+        if submission_uuid.lower() == "list":
+            sort = isinstance(sort := request.GET.get("sort"), str) and ((sort := sort.lower()) in ["true", "1"])
+            return {"keys": ingestion_status.keys(sort=sort)}
         return ingestion_status.get(submission_uuid, sort=True)
     return {}
