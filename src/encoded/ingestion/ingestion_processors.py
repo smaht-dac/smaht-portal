@@ -25,7 +25,7 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
         ingestion_status.update({"file": submission.data_file_name,
                                  "file_size": submission.data_file_size,
                                  "file_checksum": submission.data_file_checksum,
-                                 "bucket": submission.bucket})
+                                 "bucket": submission.s3_bucket})
         _process_submission(submission)
         ingestion_status.update({PROGRESS_INGESTER.CLEANUP: PROGRESS_INGESTER.NOW()})
     ingestion_status.update({PROGRESS_INGESTER.OUTCOME: submission.outcome})
