@@ -107,7 +107,7 @@ class IngestionStatusCache:
         cache, and also returns suitable cache object whether or not Redis is running/enabled. 
         """
         cache = IngestionStatusCache.instance(resource)
-        def get(value: dict, sort: bool = False) -> Optional[dict]:  # noqa
+        def get(sort: bool = False) -> Optional[dict]:  # noqa
             nonlocal uuid, cache
             return cache.get(uuid, sort=sort) if cache else None
         def update(value: dict) -> bool:  # noqa
