@@ -141,20 +141,21 @@ class IngestionStatusCache:
         # from the the portal ingestion-status endpoint (see ingestion_status), or from a vapp
         # in the ingester listener (see loadxl_extension), or a vapp in the main ingester
         # process (see snovault.ingestion.ingestion_listener).
-        if resource:
-            try:
-                if isinstance(resource, str):
-                    return resource
-                elif isinstance(resource, dict):
-                    return resource.get(resource_name)
-                elif isinstance(resource, Context):
-                    return resource.registry.settings.get(resource_name)
-                elif isinstance(resource, Registry):
-                    return resource.settings.get(resource_name)
-                elif isinstance(resource, VirtualApp):
-                    return resource.app.registry.settings.get(resource_name)
-                elif hasattr(resource, "registry") and isinstance(resource.registry, Registry):
-                    return resource.registry.settings.get(resource_name)
+        try:
+            if not resource:
+                return None
+            elif isinstance(resource, str):
+                return resource
+            elif isinstance(resource, dict):
+                return resource.get(resource_name)
+            elif isinstance(resource, Context):
+                return resource.registry.settings.get(resource_name)
+            elif isinstance(resource, Registry):
+                return resource.settings.get(resource_name)
+            elif isinstance(resource, VirtualApp):
+                return resource.app.registry.settings.get(resource_name)
+            elif hasattr(resource, "registry") and isinstance(resource.registry, Registry):
+                return resource.registry.settings.get(resource_name)
         except Exception:
             pass
         return None
