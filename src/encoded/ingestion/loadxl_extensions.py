@@ -1,7 +1,7 @@
 import re
 from typing import Callable, Dict, List, Generator, Optional, Tuple, Union
 from dcicutils.misc_utils import VirtualApp
-from dcicutils.progress_constants import PROGRESS_INGESTER, PROGRESS_LOADXL
+from dcicutils.submitr.progress_constants import PROGRESS_INGESTER, PROGRESS_LOADXL
 from dcicutils.structured_data import Portal
 from snovault.loadxl import load_all_gen as loadxl
 from encoded.ingestion.submission_folio import SmahtSubmissionFolio

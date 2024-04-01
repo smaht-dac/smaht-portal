@@ -1,5 +1,5 @@
 import json
-from dcicutils.progress_constants import PROGRESS_INGESTER
+from dcicutils.submitr.progress_constants import PROGRESS_INGESTER
 from snovault.project.ingestion import SnovaultProjectIngestion
 
 
