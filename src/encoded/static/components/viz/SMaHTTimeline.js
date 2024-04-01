@@ -1,266 +1,62 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
     Accordion,
     AccordionContext,
     useAccordionToggle,
 } from 'react-bootstrap';
 import Card from 'react-bootstrap/esm/Card';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
-export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
+const TimelineItem = ({ currentTier, setCurrentTier, data, itemKey }) => {
+    const { title, subtitle, categories } = data;
+
     return (
-        <div className="container">
-            <div id="timeline" className={`${currentTier}`}>
-                <span className="latest-release">
-                    <b>Latest Release: </b>March 1<sup>st</sup>, 2024
-                </span>
-                <div
-                    className={
-                        'timeline-item ' +
-                        (currentTier === 'benchmarking'
-                            ? 'tier-active'
-                            : 'tier-inactive')
-                    }>
-                    <div
-                        className="timeline-marker"
-                        onClick={() => setCurrentTier('benchmarking')}></div>
-                    <div className="timeline-item-header">
-                        <h3 className="text-left">
-                            Tier 0: Benchmarking&nbsp;
-                            <i className="timeline-item-subheader">
-                                <span className="d-none d-sm-inline d-lg-none d-xl-inline">
-                                    -
-                                </span>{' '}
-                                with all technologies
-                            </i>
-                        </h3>
-                    </div>
-                    <div className="timeline-content">
-                        <TimelineAccordion
-                            defaultActiveKey={1}
-                            tier="benchmarking"
-                            currentTier={currentTier}
-                            activeKey={
-                                currentTier === 'benchmarking'
-                                    ? undefined
-                                    : null
-                            }>
+        <div
+            className={
+                'timeline-item ' +
+                (currentTier === itemKey ? 'tier-active' : 'tier-inactive')
+            }
+            key={itemKey}>
+            <div
+                className="timeline-marker"
+                onClick={() => setCurrentTier(itemKey)}></div>
+            <div className="timeline-item-header">
+                <h3 className="text-left">
+                    {title}&nbsp;
+                    {subtitle ? (
+                        <i className="timeline-item-subheader">
+                            <span className="d-none d-sm-inline d-lg-none d-xl-inline">
+                                -
+                            </span>{' '}
+                            {subtitle}
+                        </i>
+                    ) : null}
+                </h3>
+            </div>
+            <div className="timeline-content">
+                <TimelineAccordion
+                    defaultActiveKey={1}
+                    activeKey={currentTier === itemKey ? undefined : null}>
+                    {categories.map((category, j) => {
+                        return (
                             <TimelineAccordionDrawer
-                                eventKey={1}
-                                title="COLO829 Cell Line"
-                                tier="benchmarking"
+                                eventKey={j + 1}
+                                title={category.title}
+                                tier={itemKey}
                                 currentTier={currentTier}
-                                setCurrentTier={() =>
-                                    setCurrentTier('benchmarking')
-                                }
-                                values={[
-                                    { number: '2', units: ['Cell', 'Lines'] },
-                                    {
-                                        number: '3',
-                                        units: ['Assays'],
-                                    },
-                                    {
-                                        number: '-',
-                                        units: ['Mutations'],
-                                    },
-                                    {
-                                        number: '30',
-                                        units: ['Files', 'Generated'],
-                                    },
-                                ]}
-                                href="/data/benchmarking/COLO829#main"
+                                setCurrentTier={() => setCurrentTier(itemKey)}
+                                values={category.figures}
+                                link={category.link}
+                                categoryKey={j}
+                                key={j}
                             />
-                            <TimelineAccordionDrawer
-                                eventKey={2}
-                                title="HapMap Cell Line"
-                                tier="benchmarking"
-                                currentTier={currentTier}
-                                setCurrentTier={() =>
-                                    setCurrentTier('benchmarking')
-                                }
-                                values={[
-                                    { number: '6', units: ['Cell', 'Lines'] },
-                                    {
-                                        number: '-',
-                                        units: ['Assays'],
-                                    },
-                                    {
-                                        number: '-',
-                                        units: ['Mutations'],
-                                    },
-                                    {
-                                        number: '-',
-                                        units: ['Files', 'Generated'],
-                                    },
-                                ]}
-                                href="/data/benchmarking/HapMap#main"
-                            />
-                            <TimelineAccordionDrawer
-                                eventKey={3}
-                                title="iPSC & Fibroblasts"
-                                tier="benchmarking"
-                                currentTier={currentTier}
-                                setCurrentTier={() =>
-                                    setCurrentTier('benchmarking')
-                                }
-                                values={[
-                                    { number: '5', units: ['Cell', 'Lines'] },
-                                    {
-                                        number: '-',
-                                        units: ['Assays'],
-                                    },
-                                    {
-                                        number: '-',
-                                        units: ['Mutations'],
-                                    },
-                                    {
-                                        number: '-',
-                                        units: ['Files', 'Generated'],
-                                    },
-                                ]}
-                                href="/data/benchmarking/iPSC-fibroblasts#main"
-                            />
-                            <TimelineAccordionDrawer
-                                eventKey={4}
-                                title="Benchmarking Tissues"
-                                tier="benchmarking"
-                                currentTier={currentTier}
-                                setCurrentTier={() =>
-                                    setCurrentTier('benchmarking')
-                                }
-                                values={[
-                                    { number: '-', units: ['Donors'] },
-                                    {
-                                        number: '-',
-                                        units: ['Tissue', 'Types'],
-                                    },
-                                    {
-                                        number: '-',
-                                        units: ['Assays'],
-                                    },
-                                    {
-                                        number: '-',
-                                        units: ['Files', 'Generated'],
-                                    },
-                                ]}
-                                href="/data/benchmarking/lung#main"
-                            />
-                        </TimelineAccordion>
-                    </div>
-                </div>
-
-                <div
-                    className={
-                        'timeline-item ' +
-                        (currentTier === 'expansion'
-                            ? 'tier-active'
-                            : 'tier-inactive')
-                    }>
-                    <div
-                        className="timeline-marker"
-                        onClick={() => setCurrentTier('expansion')}></div>
-                    <div className="timeline-item-header">
-                        <h3 className="text-left">
-                            Tier 1&nbsp;
-                            <i className="timeline-item-subheader">
-                                <span className="d-none d-sm-inline d-lg-none d-xl-inline">
-                                    -
-                                </span>{' '}
-                                with core + additional technologies
-                            </i>
-                        </h3>
-                    </div>
-                    <div className="timeline-content">
-                        <TimelineAccordion
-                            defaultActiveKey={1}
-                            activeKey={
-                                currentTier === 'expansion' ? undefined : null
-                            }>
-                            <TimelineAccordionDrawer
-                                eventKey={1}
-                                title="Primary Tissues"
-                                tier="expansion"
-                                currentTier={currentTier}
-                                setCurrentTier={() =>
-                                    setCurrentTier('expansion')
-                                }
-                                values={[
-                                    { number: '-', units: ['Donors'] },
-                                    {
-                                        number: '-',
-                                        units: ['Tissue', 'Types'],
-                                    },
-                                    {
-                                        number: '-',
-                                        units: ['Assays'],
-                                    },
-                                    {
-                                        number: '-',
-                                        units: ['Files', 'Generated'],
-                                    },
-                                ]}
-                            />
-                        </TimelineAccordion>
-                    </div>
-                </div>
-
-                <div
-                    className={
-                        'timeline-item ' +
-                        (currentTier === 'production'
-                            ? 'tier-active'
-                            : 'tier-inactive')
-                    }>
-                    <div
-                        className="timeline-marker"
-                        onClick={() => setCurrentTier('production')}></div>
-                    <div className="timeline-item-header">
-                        <h3 className="text-left">
-                            Tier 2&nbsp;
-                            <i className="timeline-item-subheader">
-                                <span className="d-none d-sm-inline d-lg-none d-xl-inline">
-                                    -
-                                </span>{' '}
-                                with core technologies
-                            </i>
-                        </h3>
-                    </div>
-                    <div className="timeline-content">
-                        <TimelineAccordion
-                            defaultActiveKey={1}
-                            activeKey={
-                                currentTier === 'production' ? undefined : null
-                            }>
-                            <TimelineAccordionDrawer
-                                eventKey={1}
-                                title="Primary Tissues"
-                                tier="production"
-                                currentTier={currentTier}
-                                setCurrentTier={() =>
-                                    setCurrentTier('production')
-                                }
-                                values={[
-                                    { number: '-', units: ['Donors'] },
-                                    {
-                                        number: '-',
-                                        units: ['Tissue', 'Types'],
-                                    },
-                                    {
-                                        number: '-',
-                                        units: ['Assays'],
-                                    },
-                                    {
-                                        number: '-',
-                                        units: ['Files', 'Generated'],
-                                    },
-                                ]}
-                            />
-                        </TimelineAccordion>
-                    </div>
-                </div>
+                        );
+                    })}
+                </TimelineAccordion>
             </div>
         </div>
     );
-}
+};
 
 function ContextAwareToggle({
     children,
@@ -269,7 +65,7 @@ function ContextAwareToggle({
     currentTier,
     tier,
     setCurrentTier,
-    href,
+    link,
 }) {
     const currentEventKey = useContext(AccordionContext);
 
@@ -298,8 +94,8 @@ function ContextAwareToggle({
                     {children}
                 </div>
             </button>
-            {href ? (
-                <a href={href} className="card-header-link">
+            {link ? (
+                <a href={link} className="card-header-link">
                     <svg
                         width="22"
                         height="16"
@@ -330,13 +126,19 @@ function TimelineAccordionDrawer(props) {
         currentTier,
         tier,
         setCurrentTier,
-        href,
+        link,
     } = props;
     return (
         <Card>
             <Card.Header>
                 <ContextAwareToggle
-                    {...{ eventKey, tier, currentTier, setCurrentTier, href }}>
+                    {...{
+                        eventKey,
+                        tier,
+                        currentTier,
+                        setCurrentTier,
+                        link,
+                    }}>
                     <span className="text-left">{title}</span>
                 </ContextAwareToggle>
             </Card.Header>
@@ -353,14 +155,20 @@ function TimelineAccordionDrawer(props) {
 const TimelineCardContent = ({ values }) => {
     return (
         <>
-            {values.map(({ number, units }, i) => {
+            {values.map(({ value = null, unit }, i) => {
                 return (
                     <div className="number-group" key={i}>
-                        <h4>{number}</h4>
+                        <h4>
+                            {value === null ? (
+                                <i className="icon icon-spin icon-circle-notch fas" />
+                            ) : (
+                                value || '-'
+                            )}
+                        </h4>
                         <div>
-                            {units.map((line, i) => (
-                                <span key={i}>{line}</span>
-                            ))}
+                            {unit.split(' ').map((line) => {
+                                return <span>{line}</span>;
+                            })}
                         </div>
                     </div>
                 );
@@ -368,3 +176,83 @@ const TimelineCardContent = ({ values }) => {
         </>
     );
 };
+
+/**
+ * Create empty data to render template before data loads
+ */
+const loadStateData = {
+    timeline_content: [
+        {
+            title: 'Tier 0: Benchmarking',
+            subtitle: 'with all technologies',
+            categories: [
+                {
+                    title: 'COLO829 Cell Line',
+                    figures: [
+                        { unit: 'Cell Lines' },
+                        { unit: 'Assays' },
+                        { unit: 'Mutations' },
+                        { unit: 'Files Generated' },
+                    ],
+                },
+                { title: 'HapMap Cell Line' },
+                { title: 'iPSC & Fibroblasts' },
+                { title: 'Benchmarking Tissues' },
+            ],
+        },
+        {
+            title: 'Tier 1',
+            subtitle: 'with core + additional technologies',
+            categories: [{ title: 'Primary Tissues' }],
+            // figures: [{}],
+        },
+        {
+            title: 'Tier 2',
+            subtitle: 'with core technologies',
+            categories: [{ title: 'Primary Tissues' }],
+            // figures: [{}],
+        },
+    ],
+};
+
+export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
+    const [data, setData] = useState(loadStateData);
+
+    useEffect(() => {
+        ajax.load('/home', (res) => {
+            const release_date = res['date'];
+            const data = {
+                release_date,
+                timeline_content: res['@graph'],
+            };
+            setData(data);
+        });
+    }, []);
+
+    return (
+        <div className="container">
+            <div id="timeline" className={`tier-${currentTier}`}>
+                <span className="latest-release">
+                    <b>Latest Release: </b>
+                    {data.release_date ?? (
+                        <span className="spinner">
+                            <i className="icon icon-spin icon-circle-notch fas" />
+                        </span>
+                    )}
+                </span>
+
+                {data.timeline_content.map((d, i) => {
+                    return (
+                        <TimelineItem
+                            currentTier={currentTier}
+                            setCurrentTier={setCurrentTier}
+                            data={d}
+                            itemKey={i}
+                            key={i}
+                        />
+                    );
+                })}
+            </div>
+        </div>
+    );
+}

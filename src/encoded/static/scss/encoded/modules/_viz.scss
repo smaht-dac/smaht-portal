@@ -14,6 +14,15 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     -moz-box-sizing: border-box;
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 // Timeline
 #timeline {
     position: relative;
@@ -22,6 +31,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     // margin: 30px 15px;
     padding: 0px;
     width: 100%;
+    animation: fadeIn 200ms ease-out;
     @include prefix(transition, all 0.4s ease);
 
     &:after {
@@ -32,12 +42,24 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     }
 
     .latest-release {
+        display: flex;
         font-size: 12px;
         margin-left: 35px;
         color: $homepage-subtitle-text-color;
 
         b {
             font-weight: 600;
+            margin-right: 5px;
+        }
+        .spinner {    
+            margin-left: 3px;
+            margin-top: -1px;
+
+            i {
+                font-size: 10px;
+                opacity: 0.5;
+                margin: auto;
+            }
         }
     }
 
@@ -64,11 +86,13 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 flex-direction: column;
                 align-items: flex-start;
                 font-size: 21px;
+                animation: fadeIn 200ms ease-in;
                 
                 i {
                     color: #5B7595;
                     font-size: 16px;
                     font-weight: 400;
+                    animation: fadeIn 200ms ease-in;
                 }
             }
         }
@@ -171,6 +195,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         i {
                             color: #74CFB2;
                         }
+
+                        span {
+                            animation: fadeIn 200ms ease-in;
+                        }
                     }
                     &-link {
                         position: absolute;
@@ -202,6 +230,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         flex-direction: row;
                         justify-content: center;
                         padding: 0px;
+                        min-height: 55px;
 
                         &:hover {
                             text-decoration: none;
@@ -209,10 +238,16 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         }
 
                         h4 {
+                            display: flex;
                             font-size: 28px;
                             font-weight: 600;
                             color: $homepage-card-text-color;
                             margin-right: 8px;
+                            i {
+                                font-size: 14px;
+                                opacity: 0.5;
+                                margin: auto 10px auto auto;
+                            }
                         }
                         div {
                             display: flex;
@@ -319,8 +354,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             }
         }
     }
-    @media screen and (min-width: 767px) {
-    }
     @media screen and (min-width: 992px) {
         padding-top: 55px;
         .timeline-item {
@@ -401,7 +434,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     }
 }
 
-
 // Homepage visualization
 .homepage-figure {
     display:flex;
@@ -455,6 +487,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 .card-list {
                     margin-bottom: 10px;
                     margin-right: 20px;
+                    animation: fadeIn 200ms ease-in;
 
                     h5 {
                         font-size: 12px;
@@ -537,7 +570,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     }
                 }
 
-                &.benchmarking {
+                &.tier-0 {
                     ul {
                         li {
                             div {
@@ -613,13 +646,13 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 border: 2px solid #A4ECD5;
                 top: 3px;
                 transition: left 200ms ease-out;
-                &.tier-benchmarking {
+                &.tier-0 {
                     left: 5px;
                 }
-                &.tier-expansion {
+                &.tier-1 {
                     left: 105px;
                 }
-                &.tier-production {
+                &.tier-2 {
                     left: 205px;
                 }
             }
@@ -637,6 +670,9 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         z-index: 2;
         width: fit-content;
         
+        img {
+            animation: fadeIn 200ms ease-in;
+        }
         & > div {
             margin: auto;
         }
@@ -675,7 +711,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     justify-content: flex-start;
 
                 }
-                &.assays.benchmarking {
+                &.assays.tier-0 {
 
                     .card-body {
                         padding: 10px 25px 5px 25px;
@@ -712,13 +748,13 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 .backdrop {
                     width: 180px;
     
-                    &.tier-benchmarking {
+                    &.tier-0 {
                         left: 5px;
                     }
-                    &.tier-expansion {
+                    &.tier-1 {
                         left: 185px;
                     }
-                    &.tier-production {
+                    &.tier-2 {
                         left: 365px;
                     }
                 }
@@ -771,7 +807,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         }
                     }
 
-                    &.benchmarking {
+                    &.tier-0 {
     
                         .card-body {
                             padding: 10px 0px 5px 0px;
@@ -798,25 +834,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         &-tier-selector {
             margin-top: 40px;
             margin-bottom: 0px;
-        //     margin-top: 50px;
-        //     .selector-buttons {
-        //         button {
-        //             font-size: 12px;
-        //             width: 110px;
-        //         }
-        //         .backdrop {
-        //             width: 110px;
-        //             &.tier-benchmarking {
-        //                 left: 5px;
-        //             }
-        //             &.tier-expansion {
-        //                 left: 115px;
-        //             }
-        //             &.tier-production {
-        //                 left: 225px;
-        //             }
-        //         }
-        //     }
         }
         
     }
