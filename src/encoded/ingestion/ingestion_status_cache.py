@@ -23,13 +23,13 @@ class IngestionStatusCache:
     """
     REDIS_RESOURCE_NAME = "redis.server"
     REDIS_KEY_EXPIRATION_SECONDS = 60 * 60 * 24 * 3
-    DEFAULT_REDIS_URI = "redis://localhost:6379"
+    FALLBACK_REDIS_URI = "redis://localhost:6379"
     RedisResource = Optional[Union[str, dict, Context, Registry, VirtualApp]]
 
     _singleton_instance = None
     _singleton_lock = threading.Lock()
 
-    def __init__(self, resource: RedisResource = DEFAULT_REDIS_URI) -> None:
+    def __init__(self, resource: RedisResource = FALLBACK_REDIS_URI) -> None:
         # Fail essentially silently so we work without Redis at all (but log).
         if not (redis_uri := IngestionStatusCache._get_redis_uri_from_resource(resource)):
             log.error(f"Cannot get Redis URI for ingestion-status cache: {resource}")
@@ -100,7 +100,7 @@ class IngestionStatusCache:
             return []
 
     @staticmethod
-    def connection(uuid: str, resource: RedisResource = DEFAULT_REDIS_URI) -> object:
+    def connection(uuid: str, resource: RedisResource = FALLBACK_REDIS_URI) -> object:
         """
         This is a higher level convenience function which takes the (submission)  uuid as
         an argument so the caller does not have to included it in subsequent calls on the
@@ -122,7 +122,7 @@ class IngestionStatusCache:
         return namedtuple("ingestion_status_cache", ["get", "update", "set", "keys"])(get, update, set, keys)
 
     @staticmethod
-    def instance(resource: RedisResource = DEFAULT_REDIS_URI) -> object:
+    def instance(resource: RedisResource = FALLBACK_REDIS_URI) -> object:
         # This gets a singleton of an IngestionStatusCache object; slightly odd
         # having a single created with an argument, but no matter where it is coming
         # from (portal or ingester) this will alwasys resolve to the same thing.
@@ -133,7 +133,7 @@ class IngestionStatusCache:
         return IngestionStatusCache._singleton_instance
 
     @staticmethod
-    def _get_redis_uri_from_resource(resource: RedisResource = DEFAULT_REDIS_URI,
+    def _get_redis_uri_from_resource(resource: RedisResource = FALLBACK_REDIS_URI,
                                      resource_name: str = REDIS_RESOURCE_NAME) -> Optional[str]:
         # The redis.server value is defined in the main app ini file (e.g. development.ini).
         # This deals with getting that value via a vapp, context, registry, or settings object;
