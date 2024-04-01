@@ -80,7 +80,7 @@ class PC:  # PortalConstants
 
 
 # dataset is required but comes in through input args for now
-REQUIRED_FILE_PROPS = []  # [PC.SEQUENCING_CENTER]
+REQUIRED_FILE_PROPS = [PC.SEQUENCING_CENTER]
 
 
 class FileRelease:
@@ -145,7 +145,6 @@ class FileRelease:
                 sample_sources = sample[PC.SAMPLE_SOURCES]
                 for sample_source in sample_sources:
                     self.release_sample_source(sample_source)
-                
 
         print("\nThe following metadata patches will be carried out in the next step:")
         for info in self.patch_infos:
@@ -204,11 +203,17 @@ class FileRelease:
         )
 
         if PC.CELL_CULTURE in sample_source[PC.TYPE]:
-            cell_line = self.get_metadata(sample_source[PC.CELL_LINE])
-            self.add_release_item_to_patchdict(
-                cell_line,
-                f"CellLine - {cell_line[PC.SUBMITTED_ID]}",
+            cell_lines = (
+                [sample_source[PC.CELL_LINE]]
+                if isinstance(sample_source[PC.CELL_LINE], str)
+                else sample_source[PC.CELL_LINE]
             )
+            for cl in cell_lines:
+                cell_line = self.get_metadata(cl)
+                self.add_release_item_to_patchdict(
+                    cell_line,
+                    f"CellLine - {cell_line[PC.SUBMITTED_ID]}",
+                )
         elif PC.TISSUE in sample_source[PC.TYPE] and PC.DONOR in sample_source:
             donor = self.get_metadata(sample_source[PC.DONOR])
             self.add_release_item_to_patchdict(
@@ -228,9 +233,9 @@ class FileRelease:
                     f"CellLine - {cell_line[PC.SUBMITTED_ID]}",
                 )
         else:
-            self.add_warning(f"Sample source type is unknown for {sample_source[PC.ACCESSION]}")
-
-
+            self.add_warning(
+                f"Sample source type is unknown for {sample_source[PC.ACCESSION]}"
+            )
 
     def add_release_item_to_patchdict(self, item: dict, item_desc: str) -> None:
         """Sets the status of the item to released and
@@ -280,7 +285,7 @@ class FileRelease:
             PC.FILE_SETS: [fileset[PC.UUID]],
             PC.DATASET: dataset,
             PC.ACCESS_STATUS: access_status,
-            PC.ANNOTATED_FILENAME: annotated_filename,
+            # PC.ANNOTATED_FILENAME: annotated_filename,
         }
         self.patch_infos.extend(
             [
@@ -295,6 +300,10 @@ class FileRelease:
         self.patch_dicts.append(patch_body)
 
     def get_annotated_filename(self, file: dict) -> None:
+        if "annotated_filename" not in file:
+            self.print_error_and_exit("No annotated filename")
+        else:
+            return file["annotated_filename"]
         return "TO BE IMPLEMENTED"
 
     def get_access_status(self, file: dict, dataset: str) -> str:
@@ -404,7 +413,7 @@ class FileRelease:
             and len(file[PC.FILE_SETS]) > 0
         ):
             self.add_warning(
-                f"File {accession} already has an associated file set. It will be overwritten."
+                f"File {accession} already has an associated file set. It will NOT be overwritten."
             )
 
         if not self.is_output_file(file) and (
@@ -463,9 +472,8 @@ class FileRelease:
     def get_fileset_from_file(self, file: dict) -> dict:
 
         # File already has a fileset for SubmittedFiles. We checked the existence earlier
-        if not self.is_output_file(file):
-            file_sets = file[PC.FILE_SETS]
-            file_set_uuid = file_sets[0]
+        if PC.FILE_SETS in file:
+            file_set_uuid = file[PC.FILE_SETS][0]
             return self.get_metadata(file_set_uuid)
 
         search_filter = f"/search/?type=MetaWorkflowRun&workflow_runs.output.file.uuid={file[PC.UUID]}"
@@ -547,7 +555,7 @@ def main() -> None:
         elif resp in ["p"]:
             file_release.show_patch_dicts()
             continue
-        if resp not in ["y", "yes"]:
+        else:
             print(f"{bcolors.FAIL}Aborted by user.{bcolors.ENDC}")
             exit()
 
