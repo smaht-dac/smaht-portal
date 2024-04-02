@@ -111,6 +111,7 @@
                     "Genome Region",
                     "Quality Control",
                     "Reference Genome",
+                    "RNA Expression",
                     "Sequencing Reads",
                     "Germline Variant Calls",
                     "Somatic Variant Calls"
@@ -126,11 +127,13 @@
                 "type": "string",
                 "enum": [
                     "Aligned Reads",
+                    "Gene Expression",
                     "Image",
                     "Index",
                     "Reference Sequence",
                     "Sequence Interval",
                     "Statistics",
+                    "Transcript Expression",
                     "Unaligned Reads",
                     "CNV",
                     "Indel",
