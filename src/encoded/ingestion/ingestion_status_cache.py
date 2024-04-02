@@ -6,7 +6,7 @@ import structlog
 import threading
 from typing import List, Optional, Union
 from dcicutils.redis_utils import create_redis_client, RedisBase
-from dcicutils.misc_utils import VirtualApp
+from dcicutils.misc_utils import get_error_message, VirtualApp
 from encoded.root import SMAHTRoot as Context
 
 log = structlog.getLogger(__name__)
@@ -24,6 +24,7 @@ class IngestionStatusCache:
     REDIS_RESOURCE_NAME = "redis.server"
     REDIS_KEY_EXPIRATION_SECONDS = 60 * 60 * 24 * 3
     FALLBACK_REDIS_URI = "redis://localhost:6379"
+    REDIS_USE_DCICUTILS_CREATE_CLIENT = False
     RedisResource = Optional[Union[str, dict, Context, Registry, VirtualApp]]
 
     _singleton_instance = None
@@ -36,10 +37,12 @@ class IngestionStatusCache:
             self._redis = None
             return
         try:
-            self._redis = RedisBase(create_redis_client(url=redis_uri))
+            self._redis = RedisBase(IngestionStatusCache._redis_create_client(redis_uri))
         except Exception as e:
-            log.error(f"Cannot create Redis object for ingestion-status cache: {str(e)}")
+            log.error(f"Cannot create Redis object for ingestion-status cache: {redis_uri}")
+            log.error(get_error_message(e, full=True))
             self._redis = None
+        log.error(f"Created Redis object for ingestion-status cache: {redis_uri}")  # sic: not error
 
     def get(self, key: str, sort: bool = False) -> dict:
         if not self._redis:
@@ -51,7 +54,9 @@ class IngestionStatusCache:
                 response = json.loads(value)
                 response["ttl"] = self._redis.ttl(key)
                 return dict(sorted(response.items(), key=lambda item: item[0])) if sort else response
-            except Exception:
+            except Exception as e:
+                log.error(f"Error getting Redis key for ingestion-status cache: {key}")
+                log.error(get_error_message(e, full=True))
                 pass
         return {}
 
@@ -87,7 +92,9 @@ class IngestionStatusCache:
             #
             self._redis.redis.expire(key, IngestionStatusCache.REDIS_KEY_EXPIRATION_SECONDS)
             return True
-        except Exception:
+        except Exception as e:
+            log.error(f"Error setting Redis key for ingestion-status cache: {key}")
+            log.error(get_error_message(e, full=True))
             return False
 
     def keys(self, sort: bool = False) -> List[str]:
@@ -96,7 +103,9 @@ class IngestionStatusCache:
             if sort:
                 keys = sorted(keys)
             return keys
-        except Exception:
+        except Exception as e:
+            log.error(f"Error getting Redis keys for ingestion-status cache.")
+            log.error(get_error_message(e, full=True))
             return []
 
     @staticmethod
@@ -156,8 +165,38 @@ class IngestionStatusCache:
                 return resource.app.registry.settings.get(resource_name)
             elif hasattr(resource, "registry") and isinstance(resource.registry, Registry):
                 return resource.registry.settings.get(resource_name)
-        except Exception:
+        except Exception as e:
+            log.error(f"Error getting Redis URL for ingestion-status cache: {resource}")
+            log.error(get_error_message(e, full=True))
             pass
+        return None
+
+    @staticmethod
+    def _redis_create_client(redis_url: str, ping: bool = False) -> object:
+        try:
+            if IngestionStatusCache.REDIS_USE_DCICUTILS_CREATE_CLIENT:
+                return create_redis_client(url=redis_url, ping=ping)
+            from redis import Redis
+            from ssl import CERT_NONE
+            from urllib.parse import urlparse
+            url = urlparse(redis_url)
+            host = url.hostname
+            port = url.port
+            ssl = url.scheme == "rediss"
+            redis_client = Redis(host=host, port=port, ssl=ssl, ssl_cert_reqs=CERT_NONE)
+            if ping:
+                redis_client.ping()
+            log.error(f"Created Redis client for ingestion-status cache: {redis_url}")  # sic: not error
+            try:
+                ping_result = redis_client.ping()
+                log.error(f"Redis client ping for ingestion-status cache: {ping_result}")  # sic: not error
+            except Exception as e:
+                log.error(f"Error pinging Redis client ingestion-status cache: {redis_url}")  # sic: not error
+                log.error(get_error_message(e, full=True))
+            return redis_client
+        except Exception as e:
+            log.error(f"Error creating Redis client for ingestion-status cache: {redis_url}")
+            log.error(get_error_message(e, full=True))
         return None
 
     @staticmethod
