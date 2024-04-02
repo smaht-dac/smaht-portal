@@ -2,14 +2,20 @@ from collections import namedtuple
 from datetime import datetime
 import json
 from pyramid.registry import Registry
-import structlog
+from redis import Redis
+from ssl import CERT_NONE as SSL_NO_CERTIFICATE
+from structlog import getLogger as get_logger
 import threading
-from typing import List, Optional, Union
-from dcicutils.redis_utils import create_redis_client, RedisBase
+import time
+from urllib.parse import urlparse
+from typing import Optional, Type, Union
 from dcicutils.misc_utils import get_error_message, VirtualApp
+from dcicutils.redis_utils import create_redis_client, RedisBase
 from encoded.root import SMAHTRoot as Context
 
-log = structlog.getLogger(__name__)
+
+# Forward reference for type hints.
+IngestionStatusCache = Type["IngestionStatusCache"]
 
 class IngestionStatusCache:
     """
@@ -19,46 +25,81 @@ class IngestionStatusCache:
     since this data is only and inherently transient data, we force all keys written to have a short
     expiration time, by default 3 days (way longer than we need but could be useful for troubleshooting).
     The connection info for this (i.e. e.g. redis://hostname:6379) comes from the main app ini file,
-    e.g. development.ini (see the _get_redis_uri_from_resource static function below).
+    e.g. development.ini (see the _get_redis_url_from_resource static function below).
     """
     REDIS_RESOURCE_NAME = "redis.server"
+    REDIS_URL = "redis://localhost:6379"
     REDIS_KEY_EXPIRATION_SECONDS = 60 * 60 * 24 * 3
-    FALLBACK_REDIS_URI = "redis://localhost:6379"
+    REDIS_UPDATE_INTERVAL_SECONDS = 3  # xyzzy 3
     REDIS_USE_DCICUTILS_CREATE_CLIENT = False
-    RedisResource = Optional[Union[str, dict, Context, Registry, VirtualApp]]
+    RedisResourceType = Optional[Union[str, dict, Context, Registry, VirtualApp]]
 
     _singleton_instance = None
     _singleton_lock = threading.Lock()
 
-    def __init__(self, resource: RedisResource = FALLBACK_REDIS_URI) -> None:
+    def __init__(self, resource: RedisResourceType = REDIS_URL,
+                 update_interval: int = REDIS_UPDATE_INTERVAL_SECONDS) -> None:
         # Fail essentially silently so we work without Redis at all (but log).
-        if not (redis_uri := IngestionStatusCache._get_redis_uri_from_resource(resource)):
-            log.error(f"Cannot get Redis URI for ingestion-status cache: {resource}")
+        if redis_url := IngestionStatusCache._get_redis_url_from_resource(resource):
+            self._redis = RedisBase(IngestionStatusCache._redis_create_client(redis_url))
+            self._redis_url = redis_url
+        else:
+            _log_warning(f"Cannot get Redis URL for ingestion-status cache: {resource}")
             self._redis = None
-            return
-        try:
-            self._redis = RedisBase(IngestionStatusCache._redis_create_client(redis_uri))
-        except Exception as e:
-            log.error(f"Cannot create Redis object for ingestion-status cache: {redis_uri}")
-            log.error(get_error_message(e, full=True))
-            self._redis = None
-        log.error(f"Created Redis object for ingestion-status cache: {redis_uri}")  # sic: not error
+            self._redis_url = None
+        self._update_interval = max(update_interval, 0) if isinstance(update_interval, int) else 0
+        if self._update_interval > 0:
+            self._update_cache = {}
+            self._flush_last = None
+            self._flush_thread = threading.Thread(target=self._flush_thread_function)
+            self._flush_thread.daemon = True
+            self._flush_thread.start()
+        else:
+            self._update_cache = None
+            self._flush_last = None
+            self._flush_thread = None
 
     def get(self, key: str, sort: bool = False) -> dict:
         if not self._redis:
             return {}
         if (not isinstance(key, str)) or (not key):
             return {}
-        if isinstance(value := self._redis.get(key), str):
-            try:
-                response = json.loads(value)
-                response["ttl"] = self._redis.ttl(key)
-                return dict(sorted(response.items(), key=lambda item: item[0])) if sort else response
-            except Exception as e:
-                log.error(f"Error getting Redis key for ingestion-status cache: {key}")
-                log.error(get_error_message(e, full=True))
-                pass
+        if self._update_cache is not None:
+            value = None
+            with IngestionStatusCache._singleton_lock:
+                value = self._update_cache.get(key, None)
+            if value is not None:
+                return value
+        if isinstance(value := self._redis_get(key), str):
+            value = json.loads(value)
+            value["ttl"] = self._redis_ttl(key)
+            return dict(sorted(value.items(), key=lambda item: item[0])) if sort else value
         return {}
+
+    def set(self, key: str, value: dict, _flush: bool = False) -> bool:
+        if not self._redis:
+            return False
+        if (not isinstance(key, str)) or (not key) or (not isinstance(value, dict)) or (not value):
+            return False
+        if not _flush and self._update_cache is not None:
+            with IngestionStatusCache._singleton_lock:
+                self._update_cache[key] = value
+            return True
+        result = self._redis_set(key, json.dumps(value, default=str))
+        #
+        # Need to reset the expiration time on each update/set; the expiration
+        # time is always relative to the time of the most recently updated value.
+        #
+        # And need to set this directly because the RedisBase.set_expiration function in
+        # dcicutils.redis_utils uses the Redis.expire gt=True argument which prevents the
+        # expiration from being set at all, for some reason; it seems like gt=True and lt=True
+        # functionality is backwards; if we set a key which then has a -1 ttl, and then call
+        # redis.expire on the key with a positive seconds integer and the gt=True flag,
+        # then that ttl does not take, but if we use lt=True instead then it does take.
+        # TODO: Check with Will on this dcicutils.redis_utils.RedisBase behavior.
+        #
+        self._redis_expire(key, IngestionStatusCache.REDIS_KEY_EXPIRATION_SECONDS)
+        return result
 
     def update(self, uuid: str, value: dict) -> bool:
         """
@@ -70,68 +111,73 @@ class IngestionStatusCache:
             return False
         if (not isinstance(uuid, str)) or (not uuid) or (not isinstance(value, dict)) or (not value):
             return False
-        value = {"uuid": uuid, **self.get(uuid), **value, "timestamp": IngestionStatusCache._now()}
-        return self.set(uuid, value)
+        return self.set(uuid, {"uuid": uuid, **self.get(uuid), **value, "timestamp": _now()})
 
-    def set(self, key: str, value: dict) -> bool:
+    def keys(self, sort: bool = False) -> dict:
         if not self._redis:
-            return False
-        try:
-            self._redis.set(key, json.dumps(value, default=str))
-            #
-            # Need to reset the expiration time on each update/set; the expiration
-            # time is always relative to the time of the most recently updated value.
-            #
-            # And need to set this directly because the RedisBase.set_expiration function in
-            # dcicutils.redis_utils uses the Redis.expire gt=True argument which prevents the
-            # expiration from being set at all, for some reason; it seems like gt=True and lt=True
-            # functionality is backwards; if we set a key which then has a -1 ttl, and then call
-            # redis.expire on the key with a positive seconds integer and the gt=True flag,
-            # then that ttl does not take, but if we use lt=True instead then it does take.
-            # TODO: Check with Will on this dcicutils.redis_utils.RedisBase behavior.
-            #
-            self._redis.redis.expire(key, IngestionStatusCache.REDIS_KEY_EXPIRATION_SECONDS)
-            return True
-        except Exception as e:
-            log.error(f"Error setting Redis key for ingestion-status cache: {key}")
-            log.error(get_error_message(e, full=True))
-            return False
+            return {}
+        keys = [key.decode("utf-8") for key in self._redis_keys("*")]
+        if sort:
+            keys = sorted(keys)
+        return {"keys": keys}
 
-    def keys(self, sort: bool = False) -> List[str]:
-        try:
-            keys = [key.decode("utf-8") for key in self._redis.redis.keys("*")]
-            if sort:
-                keys = sorted(keys)
-            return keys
-        except Exception as e:
-            log.error(f"Error getting Redis keys for ingestion-status cache.")
-            log.error(get_error_message(e, full=True))
-            return []
+    def flush(self) -> None:
+        if not self._redis or (self._update_cache is None):
+            return
+        with IngestionStatusCache._singleton_lock:
+            update_cache = self._update_cache
+            self._update_cache = {}
+        for key, value in update_cache.items():
+            self.set(key, value, _flush=True)
+
+    def info(self) -> dict:
+        if not self._redis:
+            return {}
+        return {
+            "redis_url": self._redis_url,
+            "redis_nkeys": self._redis_nkeys(),
+            "update_interval": self._update_interval,
+            "flush_thread": self._flush_thread.ident if self._flush_thread else None,
+            "flush_last": self._flush_last,
+            "timestamp": _now(),
+            "redis": self._redis_info()
+        }
 
     @staticmethod
-    def connection(uuid: str, resource: RedisResource = FALLBACK_REDIS_URI) -> object:
+    def connection(uuid: str, resource: RedisResourceType = REDIS_URL) -> object:
         """
-        This is a higher level convenience function which takes the (submission)  uuid as
+        This is a higher level convenience function which takes the (submission) uuid as
         an argument so the caller does not have to included it in subsequent calls on the
-        cache, and also returns suitable cache object whether or not Redis is running/enabled. 
+        cache, and also returns suitable cache object whether or not Redis is running/enabled.
         """
         cache = IngestionStatusCache.instance(resource)
         def get(sort: bool = False) -> Optional[dict]:  # noqa
             nonlocal uuid, cache
             return cache.get(uuid, sort=sort) if cache else None
-        def update(value: dict) -> bool:  # noqa
-            nonlocal uuid, cache
-            cache.update(uuid, value) if cache else False
         def set(value: dict) -> bool:  # noqa
             nonlocal uuid, cache
             cache.set(uuid, value) if cache else False
-        def keys(sort: bool = False) -> List[str]:  # noqa
+        def update(value: dict) -> bool:  # noqa
+            nonlocal uuid, cache
+            cache.update(uuid, value) if cache else False
+        def flush_all() -> None:  # noqa
             nonlocal cache
-            return cache.keys(sort=sort) if cache else []
-        return namedtuple("ingestion_status_cache", ["get", "update", "set", "keys"])(get, update, set, keys)
+            cache.flush() if cache else None
+        ingestion_status_connection_type = namedtuple("connection", ["get", "set", "update", "flush_all"])
+        return ingestion_status_connection_type(get, set, update, flush_all)
+
+    def _flush_thread_function(self) -> None:
+        _log_note(f"Starting ingestion-status cache flush thread.")
+        try:
+            while True:
+                time.sleep(self._update_interval)
+                self.flush()
+                self._flush_last = _now()
+        except Exception as e:
+            _log_error(f"Unexpected termination of ingestion-status cache flush thread.", e)
 
     @staticmethod
-    def instance(resource: RedisResource = FALLBACK_REDIS_URI) -> object:
+    def instance(resource: RedisResourceType = REDIS_URL) -> IngestionStatusCache:
         # This gets a singleton of an IngestionStatusCache object; slightly odd
         # having a single created with an argument, but no matter where it is coming
         # from (portal or ingester) this will alwasys resolve to the same thing.
@@ -142,7 +188,7 @@ class IngestionStatusCache:
         return IngestionStatusCache._singleton_instance
 
     @staticmethod
-    def _get_redis_uri_from_resource(resource: RedisResource = FALLBACK_REDIS_URI,
+    def _get_redis_url_from_resource(resource: RedisResourceType = REDIS_URL,
                                      resource_name: str = REDIS_RESOURCE_NAME) -> Optional[str]:
         # The redis.server value is defined in the main app ini file (e.g. development.ini).
         # This deals with getting that value via a vapp, context, registry, or settings object;
@@ -165,40 +211,107 @@ class IngestionStatusCache:
                 return resource.app.registry.settings.get(resource_name)
             elif hasattr(resource, "registry") and isinstance(resource.registry, Registry):
                 return resource.registry.settings.get(resource_name)
-        except Exception as e:
-            log.error(f"Error getting Redis URL for ingestion-status cache: {resource}")
-            log.error(get_error_message(e, full=True))
+        except Exception:
             pass
         return None
 
+    # All actual Redis interaction goes through these functions.
+
     @staticmethod
-    def _redis_create_client(redis_url: str, ping: bool = False) -> object:
+    def _redis_create_client(redis_url: str, ping: bool = True) -> object:
         try:
             if IngestionStatusCache.REDIS_USE_DCICUTILS_CREATE_CLIENT:
                 return create_redis_client(url=redis_url, ping=ping)
-            from redis import Redis
-            from ssl import CERT_NONE
-            from urllib.parse import urlparse
+            # We are (for our SMaHT/portal/submitr purposes) creating an SSL Redis client,
+            # i.e. using the "rediss" schema (rather than "redis"), but not using a SSL
+            # certificate, at least for now (2024-04-02), we got this error:
+            #
+            #  [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate
+            #
+            # So we is do NOT use the dcicutils.redis.redis_utilas.create_redis_client but
+            # rather create the Redis client here (FYI not able to use Redis.from_url,
+            # as is used by dcicutils, and specify no certificate).
             url = urlparse(redis_url)
             host = url.hostname
             port = url.port
             ssl = url.scheme == "rediss"
-            redis_client = Redis(host=host, port=port, ssl=ssl, ssl_cert_reqs=CERT_NONE)
+            redis_client = Redis(host=host, port=port, ssl=ssl, ssl_cert_reqs=SSL_NO_CERTIFICATE)
+            _log_note(f"Created Redis client for ingestion-status cache: {redis_url}")
             if ping:
-                redis_client.ping()
-            log.error(f"Created Redis client for ingestion-status cache: {redis_url}")  # sic: not error
-            try:
-                ping_result = redis_client.ping()
-                log.error(f"Redis client ping for ingestion-status cache: {ping_result}")  # sic: not error
-            except Exception as e:
-                log.error(f"Error pinging Redis client ingestion-status cache: {redis_url}")  # sic: not error
-                log.error(get_error_message(e, full=True))
+                try:
+                    _log_note(f"Redis client ping for ingestion-status cache OK: {redis_client.ping()}")
+                except Exception as e:
+                    _log_warning(f"Cannot ping Redis client ingestion-status cache: {redis_url}", e)
             return redis_client
         except Exception as e:
-            log.error(f"Error creating Redis client for ingestion-status cache: {redis_url}")
-            log.error(get_error_message(e, full=True))
-        return None
+            _log_warning(f"Cannot create Redis client for ingestion-status cache: {redis_url}", e)
+            return None
 
-    @staticmethod
-    def _now() -> str:
-        return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    def _redis_get(self, key):
+        try:
+            return self._redis.get(key)
+        except Exception as e:
+            _log_error(f"Cannot get Redis key from ingestion-status cache: {key}", e)
+            return None
+
+    def _redis_set(self, key, value):
+        try:
+            return self._redis.set(key, value)
+        except Exception as e:
+            _log_error(f"Cannot set Redis key to ingestion-status cache: {key}", e)
+
+    def _redis_expire(self, key, expiration):
+        try:
+            self._redis.redis.expire(key, expiration)
+        except Exception as e:
+            _log_error(f"Cannot set Redis key expiration to ingestion-status cache: {key}", e)
+
+    def _redis_ttl(self, key):
+        try:
+            return self._redis.ttl(key)
+        except Exception as e:
+            _log_error(f"Cannot get Redis key ttl from ingestion-status cache: {key}", e)
+            return None
+
+    def _redis_info(self):
+        try:
+            return self._redis.info()
+        except Exception as e:
+            _log_error(f"Cannot get Redis info from ingestion-status cache", e)
+            return None
+
+    def _redis_keys(self, pattern):
+        try:
+            return self._redis.redis.keys(pattern)
+        except Exception as e:
+            _log_error(f"Cannot get Redis keys for ingestion-status.", e)
+            return []
+
+    def _redis_nkeys(self):
+        try:
+            return self._redis.redis.dbsize()
+        except Exception as e:
+            _log_error(f"Cannot get Redis key count for ingestion-status.", e)
+            return []
+
+
+def _now() -> str:
+    return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+
+_log = get_logger(__name__)
+
+def _log_error(message: str, exception: Optional[Exception] = None) -> None:
+    _log.error(message)
+    if isinstance(exception, Exception):
+        _log.error(get_error_message(exception, full=True))
+
+
+def _log_warning(message: str, exception: Optional[Exception] = None) -> None:
+    _log.error(f"WARNING-ONLY: {message}")
+    if isinstance(exception, Exception):
+        _log.error(get_error_message(exception, full=True))
+
+
+def _log_note(message: str) -> None:
+    _log.error(f"NOTE-ONLY: {message}")
