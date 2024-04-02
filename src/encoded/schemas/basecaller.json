@@ -7,6 +7,7 @@
         "gpu",
         "model",
         "modification_tags",
+        "submission_centers",
         "submitted_id",
         "title",
         "version"
@@ -119,15 +120,20 @@
         "modification_tags": {
             "title": "Basecaller Modification Tags",
             "description": "Tags used to modify the basecaller software",
-            "type": "string",
-            "enum": [
-                "5mC",
-                "5mCG",
-                "5mC_5hmC",
-                "5mCG_5hmCG",
-                "6mA",
-                "m6A_DRACH"
-            ]
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "5mC",
+                    "5mCG",
+                    "5mC_5hmC",
+                    "5mCG_5hmCG",
+                    "6mA",
+                    "m6A_DRACH"
+                ]
+            }
         }
     }
 }

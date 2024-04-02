@@ -8,6 +8,7 @@
         "read_type": "Paired-end",
         "target_coverage": 500,
         "target_read_length": 150,
-        "sequencer": "illumina_novaseqx"
+        "sequencer": "illumina_novaseqx",
+        "basecaller": "TEST_BASECALLER_DORADO"
     }
 ]

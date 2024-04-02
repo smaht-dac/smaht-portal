@@ -5,9 +5,10 @@ from typing import Any, Dict, List, Optional, Union
 
 from dcicutils.misc_utils import to_camel_case, to_snake_case
 from dcicutils import schema_utils
+from jsonschema import validate, ValidationError
 from pyramid.registry import Registry
 from pyramid.router import Router
-from snovault import Collection, COLLECTIONS, TYPES
+from snovault import Collection, COLLECTIONS, TYPES, load_schema as snovault_load_schema
 from snovault.typeinfo import AbstractTypeInfo, TypeInfo
 from snovault.upgrader import UPGRADER, Upgrader
 from webtest.app import TestApp
@@ -570,3 +571,20 @@ def get_item_from_search(test_app: TestApp, collection: str) -> Dict[str, Any]:
     search_results = get_search(test_app, f"type={to_camel_case(collection)}")
     assert search_results, f"No {collection} found in search results"
     return search_results[0]
+
+
+def load_schema(item_type: str) -> Dict[str, Any]:
+    """Load schema for given item type."""
+    return snovault_load_schema(
+        f"encoded:schemas/{to_snake_case(item_type)}.json"
+    )
+
+
+def validate_schema(schema: Dict[str, Any], to_validate: Any) -> str:
+    """Validate value against schema."""
+    try:
+        validate(instance=to_validate, schema=schema)
+    except ValidationError as e:
+        return str(e)
+    else:
+        return ""
