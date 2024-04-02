@@ -931,20 +931,20 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "dcicsnovault"
-version = "11.13.0.1b22"
+version = "11.13.0.1b23"
 description = "Storage support for 4DN Data Portals."
 optional = false
 python-versions = "<3.12,>=3.8.1"
 files = [
-    {file = "dcicsnovault-11.13.0.1b22-py3-none-any.whl", hash = "sha256:29605f357a183c1969391c0a9fecb87a8b4df79b041f8063ec16c88cc2b6a89e"},
-    {file = "dcicsnovault-11.13.0.1b22.tar.gz", hash = "sha256:d6a9a4400901b996266f220215fce4bd7be97501d0702e75ef6555dbaac229b1"},
+    {file = "dcicsnovault-11.13.0.1b23-py3-none-any.whl", hash = "sha256:cb169169d13a5a6b4dfca94239d97a7b96fcffd07c366dbfc9014277d5e0837b"},
+    {file = "dcicsnovault-11.13.0.1b23.tar.gz", hash = "sha256:c5348765eb4c54d65cb22abb9e2bc2026d229be2d90962959ca6b6706ba9f124"},
 ]
 
 [package.dependencies]
 aws_requests_auth = ">=0.4.1,<0.5.0"
 boto3 = ">=1.28.62"
 botocore = ">=1.31.62"
-dcicutils = ">=8.8.1.1b26,<9.0.0.0"
+dcicutils = ">=8.8.1.1b29,<9.0.0.0"
 elasticsearch = "7.13.4"
 elasticsearch_dsl = ">=7.4.0,<8.0.0"
 future = ">=0.15.2,<1"
@@ -3489,4 +3489,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "8412e7baeffee789f63a67f92cf36075c92ed3fbe31f29a678bc70b2227039a1"
+content-hash = "865a5e2f315e7cc6b23ed9f7f3a5b5a4129e9ac750de1b3a867667bb6bb6dcb3"
