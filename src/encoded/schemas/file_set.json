@@ -68,6 +68,17 @@
                 "linkTo": "Library"
             }
         },
+        "samples": {
+            "title": "Samples",
+            "description": "Link to associated samples",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Sample"
+            }
+        },
         "sequencing": {
             "title": "Sequencing",
             "description": "Link to associated sequencing",

@@ -8,6 +8,9 @@
         "libraries": [
             "TEST_LIBRARY_LIVER"
         ],
-        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X",
+        "samples": [
+            "TEST_TISSUE-SAMPLE_LIVER"
+        ]
     }
 ]
