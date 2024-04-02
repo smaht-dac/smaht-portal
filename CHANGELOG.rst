@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.36.0
+======
+
+`PR 129: Categories for RNASeq pipelines <https://github.com/smaht-dac/smaht-portal/pull/129>`_
+
+* Add category enums for RNASeq pipelines to MWF, Workflow, Software, and File
+
+
 0.35.0
 ======
 
@@ -16,6 +24,7 @@ Change Log
 
 0.34.1
 ======
+
 * Add facets to HapMap and iPSC
 * Fix HapMap and iPSC links
 
