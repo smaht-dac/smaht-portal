@@ -146,6 +146,11 @@ class IngestionStatusCache:
     def info(self) -> dict:
         if not self._redis:
             return {}
+        # Remember for our use-case - smaht-portal AND smaht-ingester - we have
+        # TWO separate processes, so any in-memory info/stats or only per process;
+        # so in fact there is NO way to see any of this info here, which is NOT
+        # actually stored in Redis, in for the smaht-ingester process. We COULD
+        # actually write such stats/info themselves to Redis, but no great need.
         return {
             "redis_url": self._redis_url,
             "redis_expiration": IngestionStatusCache.REDIS_KEY_EXPIRATION_SECONDS,
