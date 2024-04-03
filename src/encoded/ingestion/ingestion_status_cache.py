@@ -15,7 +15,6 @@ from dcicutils.misc_utils import get_error_message, VirtualApp
 from dcicutils.redis_utils import create_redis_client, RedisBase
 from encoded.root import SMAHTRoot as Context
 
-xyzzy_last = {}
 
 class IngestionStatusCache:
     """
@@ -36,6 +35,7 @@ class IngestionStatusCache:
 
     _singleton_instance = None
     _singleton_lock = threading.Lock()
+    _update_cache_lock = threading.Lock()
     _redis_lock = threading.RLock()
 
     def __init__(self, resource: RedisResourceType = REDIS_URL, redis_client: Optional[Redis] = None) -> None:
@@ -77,7 +77,7 @@ class IngestionStatusCache:
             return {}
         value = None
         if self._update_cache is not None:
-            with IngestionStatusCache._singleton_lock:
+            with IngestionStatusCache._update_cache_lock:
                 value = self._update_cache.get(key, None)
             if value is not None:
                 # If we are getting from the update-cache we need to make
@@ -94,7 +94,6 @@ class IngestionStatusCache:
         return {}
 
     def set(self, key: str, value: dict, _flush: bool = False) -> bool:
-        global xyzzy_last
         if not self._redis:
             return False
         if (not isinstance(key, str)) or (not key) or (not isinstance(value, dict)) or (not value):
@@ -103,15 +102,9 @@ class IngestionStatusCache:
         if _flush is not True:
             value = {**value, "timestamp": _now()}
             if self._update_cache is not None:
-                with IngestionStatusCache._singleton_lock:
+                with IngestionStatusCache._update_cache_lock:
                     self._update_cache[key] = value
                 return True
-        if xyzzy_last.get(key) and (len(xyzzy_last[key]) > len(value)):
-            print(value)
-            print(xyzzy_last[key])
-            import pdb ; pdb.set_trace()
-            pass
-        xyzzy_last[key] = value
         set_succeeded = self._redis_set(key, json.dumps(value, default=str))
         #
         # Need to reset the expiration time on each update/set; the expiration
@@ -156,7 +149,7 @@ class IngestionStatusCache:
         keys = [key.decode("utf-8") for key in self._redis_keys("*")]
         keys_from_update_cache = None
         if self._update_cache is not None:
-            with IngestionStatusCache._singleton_lock:
+            with IngestionStatusCache._update_cache_lock:
                 keys_from_update_cache = deepcopy(self._update_cache)
         if keys_from_update_cache is not None:
             for key_from_update_cache in keys_from_update_cache:
@@ -171,7 +164,7 @@ class IngestionStatusCache:
             return
         update_single_value = None
         if self._update_cache is not None:
-            with IngestionStatusCache._singleton_lock:
+            with IngestionStatusCache._update_cache_lock:
                 if isinstance(key, str) and key:
                     if (update_single_value := self._update_cache.pop(key, None)) is None:
                         return
