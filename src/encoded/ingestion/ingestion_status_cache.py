@@ -328,8 +328,8 @@ def _log_error(message: str, exception: Optional[Exception] = None) -> None:
 def _log_warning(message: str, exception: Optional[Exception] = None) -> None:
     _log.error(f"WARNING-ONLY: {message}")
     if isinstance(exception, Exception):
-        _log.error(get_error_message(exception, full=True))
+        _log.error(get_error_message(exception, full=True))  # sic: warning not error
 
 
 def _log_note(message: str) -> None:
-    _log.error(f"NOTE-ONLY: {message}")
+    _log.error(f"NOTE-ONLY: {message}")  # sic: note/info not error
