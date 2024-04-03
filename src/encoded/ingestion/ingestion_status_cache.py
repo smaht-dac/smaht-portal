@@ -161,7 +161,8 @@ class IngestionStatusCache:
     def set_update_interval(self, seconds: Optional[int]) -> dict:
         # ONLY for troublehooting/testing.
         if seconds is not None:
-            self._update_interval = max(seconds, 0) if isinstance(seconds, int) else REDIS_UPDATE_INTERVAL_SECONDS
+            self._update_interval = (
+                max(seconds, 0) if isinstance(seconds, int) else IngestionStatusCache.REDIS_UPDATE_INTERVAL_SECONDS)
 
     @staticmethod
     def connection(uuid: str, resource: RedisResourceType = REDIS_URL) -> object:
