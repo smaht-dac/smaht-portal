@@ -30,7 +30,7 @@ class IngestionStatusCache:
     REDIS_RESOURCE_NAME = "redis.server"
     REDIS_URL = "redis://localhost:6379"
     REDIS_KEY_EXPIRATION_SECONDS = 60 * 60 * 24 * 3
-    REDIS_UPDATE_INTERVAL_SECONDS = 1
+    REDIS_UPDATE_INTERVAL_SECONDS = 5
     REDIS_USE_DCICUTILS_CREATE_CLIENT = False
     RedisResourceType = Optional[Union[str, dict, Context, Registry, VirtualApp]]
 
@@ -109,7 +109,7 @@ class IngestionStatusCache:
         if xyzzy_last.get(key) and (len(xyzzy_last[key]) > len(value)):
             print(value)
             print(xyzzy_last[key])
-            #import pdb ; pdb.set_trace()
+            import pdb ; pdb.set_trace()
             pass
         xyzzy_last[key] = value
         set_succeeded = self._redis_set(key, json.dumps(value, default=str))
@@ -140,10 +140,10 @@ class IngestionStatusCache:
         if (not isinstance(uuid, str)) or (not uuid) or (not isinstance(value, dict)) or (not value):
             return False
         with IngestionStatusCache._redis_lock:
-            if not (existing_value := self.get(uuid, _raw=True)):
-                return self.set(uuid, {"uuid": uuid, **value})
-            else:
+            if existing_value := self.get(uuid, _raw=True):
                 return self.set(uuid, {**existing_value, **value})
+            else:
+                return self.set(uuid, {"uuid": uuid, **value})
 
     def keys(self, sort: bool = False) -> dict:
         """
@@ -164,7 +164,7 @@ class IngestionStatusCache:
                     keys.append(key_from_update_cache)
         if sort:
             keys = sorted(keys)
-        return {"keys": keys}
+        return {"key_count": len(keys), "key_expiration": self._redis_key_expiration, "timestamp": _now(), "keys": keys}
 
     def flush(self, key: Optional[str] = None) -> None:
         if not self._redis or (self._update_cache is None):
@@ -198,6 +198,7 @@ class IngestionStatusCache:
             "redis_expiration": self._redis_key_expiration,
             "redis_update_interval": self._redis_update_interval,
             "redis_key_count": self._redis_dbsize(),
+            "update_cache_count": len(self._update_cache) if self._update_cache is not None else None,
             "flush_thread": self._flush_thread.ident if self._flush_thread else None,
             "flush_most_recent": self._flush_most_recent,
             "flush_count": self._flush_count,
