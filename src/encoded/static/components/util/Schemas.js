@@ -99,8 +99,11 @@ export const Term = {
         return name;
     },
 
-    genderCharacterToIcon(gender) {
+    genderToIcon(gender) {
         const m = {
+            Male: 'mars fas',
+            Female: 'venus fas',
+            Unknown: 'question fas',
             M: 'mars fas',
             F: 'venus fas',
             U: 'question fas',
@@ -195,14 +198,15 @@ const fieldToTransformationDict = memoize(function () {
         is_deceased: returnBoolean,
         sex: function (term, allowJSXOutput) {
             let txtName = null;
-            if (term === 'M') txtName = 'Male';
-            if (term === 'F') txtName = 'Female';
+            if (term === 'M' || term === 'Male') txtName = 'Male';
+            if (term === 'F' || term === 'Female') txtName = 'Female';
             if (term === 'U') txtName = 'Undetermined';
+            if (term === 'Unknown') txtName = term;
             if (allowJSXOutput) {
                 return (
                     <React.Fragment>
                         <i
-                            className={`mr-03 icon icon-fw icon-${Term.genderCharacterToIcon(
+                            className={`mr-03 icon icon-fw icon-${Term.genderToIcon(
                                 term
                             )}`}
                         />

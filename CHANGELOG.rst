@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.35.1
+======
+
+* Fix sex not appearing on donor (and other) detail pages
+
+
 0.35.0
 ======
 
