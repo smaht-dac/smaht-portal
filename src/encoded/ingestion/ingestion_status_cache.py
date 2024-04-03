@@ -28,7 +28,7 @@ class IngestionStatusCache:
     REDIS_RESOURCE_NAME = "redis.server"
     REDIS_URL = "redis://localhost:6379"
     REDIS_KEY_EXPIRATION_SECONDS = 60 * 60 * 24 * 3
-    REDIS_UPDATE_INTERVAL_SECONDS = 0
+    REDIS_UPDATE_INTERVAL_SECONDS = 1
     REDIS_USE_DCICUTILS_CREATE_CLIENT = False
     RedisResourceType = Optional[Union[str, dict, Context, Registry, VirtualApp]]
 
