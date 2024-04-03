@@ -15,6 +15,7 @@ from dcicutils.misc_utils import get_error_message, VirtualApp
 from dcicutils.redis_utils import create_redis_client, RedisBase
 from encoded.root import SMAHTRoot as Context
 
+xyzzy_last = {}
 
 class IngestionStatusCache:
     """
@@ -35,6 +36,7 @@ class IngestionStatusCache:
 
     _singleton_instance = None
     _singleton_lock = threading.Lock()
+    _redis_lock = threading.Lock()
 
     def __init__(self, resource: RedisResourceType = REDIS_URL, redis_client: Optional[Redis] = None) -> None:
         # Fail essentially silently so we work without Redis at all (but log).
@@ -74,7 +76,7 @@ class IngestionStatusCache:
         if (not isinstance(key, str)) or (not key):
             return {}
         value = None
-        if (self._update_cache is not None) and (self._redis_update_interval > 0):
+        if self._update_cache is not None:
             with IngestionStatusCache._singleton_lock:
                 value = self._update_cache.get(key, None)
             if value is not None:
@@ -84,25 +86,33 @@ class IngestionStatusCache:
         if value is None:
             if isinstance(value := self._redis_get(key), str):
                 value = json.loads(value)
-        if (value is not None) and (_raw is not True):
-            # Automatically add a "ttl" property on the way out.
-            value["ttl"] = self._redis_ttl(key)
+        if value is not None:
+            if _raw is not True:
+                # Automatically add a "ttl" property on the way out (unless we are updating).
+                value["ttl"] = self._redis_ttl(key)
             return dict(sorted(value.items(), key=lambda item: item[0])) if sort else value
         return {}
 
     def set(self, key: str, value: dict, _flush: bool = False) -> bool:
+        global xyzzy_last
         if not self._redis:
             return False
         if (not isinstance(key, str)) or (not key) or (not isinstance(value, dict)) or (not value):
             return False
-        # Automatically add a "timestamp" property on the way in.
-        value = {**value, "timestamp": _now()}
-        if (_flush is not True) and (self._update_cache is not None) and (self._redis_update_interval > 0):
-            with IngestionStatusCache._singleton_lock:
-                self._update_cache[key] = value
-            return True
-        value = json.dumps(value, default=str)
-        set_succeeded = self._redis_set(key, value)
+        # Automatically add a "timestamp" property on the way in (unless we are flushing).
+        if _flush is not True:
+            value = {**value, "timestamp": _now()}
+            if self._update_cache is not None:
+                with IngestionStatusCache._singleton_lock:
+                    self._update_cache[key] = value
+                return True
+        if xyzzy_last.get(key) and (len(xyzzy_last[key]) > len(value)):
+            print(value)
+            print(xyzzy_last[key])
+            import pdb ; pdb.set_trace()
+            pass
+        xyzzy_last[key] = value
+        set_succeeded = self._redis_set(key, json.dumps(value, default=str))
         #
         # Need to reset the expiration time on each update/set; the expiration
         # time is always relative to the time of the most recently updated value.
@@ -129,10 +139,11 @@ class IngestionStatusCache:
             return False
         if (not isinstance(uuid, str)) or (not uuid) or (not isinstance(value, dict)) or (not value):
             return False
-        if not (existing_value := self.get(uuid, _raw=True)):
-            return self.set(uuid, {"uuid": uuid, **value})
-        else:
-            return self.set(uuid, {**existing_value, **value})
+        with IngestionStatusCache._redis_lock:
+            if not (existing_value := self.get(uuid, _raw=True)):
+                return self.set(uuid, {"uuid": uuid, **value})
+            else:
+                return self.set(uuid, {**existing_value, **value})
 
     def keys(self, sort: bool = False) -> dict:
         """
