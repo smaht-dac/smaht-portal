@@ -1,21 +1,19 @@
+from __future__ import annotations
 from collections import namedtuple
 from datetime import datetime
 import json
 from pyramid.registry import Registry
-from redis import Redis
+from redis import StrictRedis
 from ssl import CERT_NONE as SSL_NO_CERTIFICATE
 from structlog import getLogger as get_logger
 import threading
 import time
 from urllib.parse import urlparse
-from typing import Optional, Type, Union
+from typing import Optional, Union
 from dcicutils.misc_utils import get_error_message, VirtualApp
 from dcicutils.redis_utils import create_redis_client, RedisBase
 from encoded.root import SMAHTRoot as Context
 
-
-# Forward reference for type hints.
-IngestionStatusCache = Type["IngestionStatusCache"]
 
 class IngestionStatusCache:
     """
@@ -30,7 +28,7 @@ class IngestionStatusCache:
     REDIS_RESOURCE_NAME = "redis.server"
     REDIS_URL = "redis://localhost:6379"
     REDIS_KEY_EXPIRATION_SECONDS = 60 * 60 * 24 * 3
-    REDIS_UPDATE_INTERVAL_SECONDS = 3  # xyzzy 3
+    REDIS_UPDATE_INTERVAL_SECONDS = 3
     REDIS_USE_DCICUTILS_CREATE_CLIENT = False
     RedisResourceType = Optional[Union[str, dict, Context, Registry, VirtualApp]]
 
@@ -50,13 +48,13 @@ class IngestionStatusCache:
         self._update_interval = max(update_interval, 0) if isinstance(update_interval, int) else 0
         if self._update_interval > 0:
             self._update_cache = {}
-            self._flush_last = None
+            self._flush_most_recent = None
             self._flush_thread = threading.Thread(target=self._flush_thread_function)
             self._flush_thread.daemon = True
             self._flush_thread.start()
         else:
             self._update_cache = None
-            self._flush_last = None
+            self._flush_most_recent = None
             self._flush_thread = None
 
     def get(self, key: str, sort: bool = False) -> dict:
@@ -129,6 +127,7 @@ class IngestionStatusCache:
             self._update_cache = {}
         for key, value in update_cache.items():
             self.set(key, value, _flush=True)
+        self._flush_most_recent = _now()
 
     def info(self) -> dict:
         if not self._redis:
@@ -138,10 +137,13 @@ class IngestionStatusCache:
             "redis_nkeys": self._redis_nkeys(),
             "update_interval": self._update_interval,
             "flush_thread": self._flush_thread.ident if self._flush_thread else None,
-            "flush_last": self._flush_last,
+            "flush_most_recent": self._flush_most_recent,
             "timestamp": _now(),
             "redis": self._redis_info()
         }
+
+    def set_update_interval(self, seconds: int) -> dict:
+        self._update_interval = max(seconds, 0) if isinstance(seconds, int) else REDIS_UPDATE_INTERVAL_SECONDS
 
     @staticmethod
     def connection(uuid: str, resource: RedisResourceType = REDIS_URL) -> object:
@@ -172,7 +174,6 @@ class IngestionStatusCache:
             while True:
                 time.sleep(self._update_interval)
                 self.flush()
-                self._flush_last = _now()
         except Exception as e:
             _log_error(f"Unexpected termination of ingestion-status cache flush thread.", e)
 
@@ -215,7 +216,7 @@ class IngestionStatusCache:
             pass
         return None
 
-    # All actual Redis interaction goes through these functions.
+    # All actual Redis interaction goes through these functions below.
 
     @staticmethod
     def _redis_create_client(redis_url: str, ping: bool = True) -> object:
@@ -235,7 +236,7 @@ class IngestionStatusCache:
             host = url.hostname
             port = url.port
             ssl = url.scheme == "rediss"
-            redis_client = Redis(host=host, port=port, ssl=ssl, ssl_cert_reqs=SSL_NO_CERTIFICATE)
+            redis_client = StrictRedis(host=host, port=port, ssl=ssl, ssl_cert_reqs=SSL_NO_CERTIFICATE)
             _log_note(f"Created Redis client for ingestion-status cache: {redis_url}")
             if ping:
                 try:
@@ -264,7 +265,7 @@ class IngestionStatusCache:
         try:
             self._redis.redis.expire(key, expiration)
         except Exception as e:
-            _log_error(f"Cannot set Redis key expiration to ingestion-status cache: {key}", e)
+            _log_error(f"Cannot set Redis key expiration to ingestion-status cache: {key} {expiration}", e)
 
     def _redis_ttl(self, key):
         try:

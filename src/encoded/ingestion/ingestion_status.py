@@ -20,6 +20,7 @@ def ingestion_status(context, request):
         sort = isinstance(sort := request.GET.get("sort"), str) and ((sort := sort.lower()) in ["true", "1"])
         if is_uuid(value):
             return IngestionStatusCache.connection(value, context).get(sort=sort)
+        # These are for troublshooting/testing only.
         elif (lvalue := value.lower()) == "info":
             return IngestionStatusCache.instance(context).info()
         elif lvalue == "keys":
@@ -27,4 +28,8 @@ def ingestion_status(context, request):
         elif lvalue == "flush":
             IngestionStatusCache.instance(context).flush()
             return {"flushed": True}
+        elif lvalue == "set_update_interval":
+            if isinstance(update_interval := request.GET.get("seconds"), str) and update_interval.isdigit():
+                IngestionStatusCache.instance(context).set_update_interval(int(update_interval))
+                return {"update_interval": update_interval}
         return {}
