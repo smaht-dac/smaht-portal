@@ -204,7 +204,7 @@ class File(Item, CoreFile):
             }
         }
     )
-    def file_status_tracking(self, request: Request) -> dict:
+    def file_status_tracking(self, request: Request) -> Optional[dict]:
         """ Uses the revision history to generate an object indicating dates the status
             of the file changed - from this we can determine several things:
                 1. When metadata for this file was submitted (status = uploading or in review)
@@ -217,6 +217,10 @@ class File(Item, CoreFile):
                 Uploading --> uploaded --> all others
             This way if status = uploading or uploaded, we don't need to request revision history
         """
+        # this is a very rare case you can't really trigger under normal conditions
+        # only seen in unit tests that force validation errors (test_real_validation_error)
+        if 'status' not in self.properties:
+            return None
         current_status = self.properties['status']
         if current_status in ['uploading', 'in review']:
             return {
