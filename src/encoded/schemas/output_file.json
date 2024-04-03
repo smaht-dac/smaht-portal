@@ -85,9 +85,6 @@
         "schema_version": {
             "default": "2"
         },
-        "extra_files": {
-            "$merge": "encoded_core:schemas/file.json#/properties/extra_files"
-        },
         "read_pair_number": {
             "$merge": "encoded:schemas/unaligned_reads.json#/properties/read_pair_number"
         },

@@ -113,6 +113,14 @@ def post_process_rst_html(raw_html):
     for section_div in section_divs:
         section_div.unwrap()
 
+    # Find all <tt> tags and convert to <code>
+    tt_tags = soup.find_all('tt')
+    for tt_tag in tt_tags:
+        code_tag = soup.new_tag('code')
+        if tt_tag.string:
+            code_tag.string = tt_tag.string
+        tt_tag.replace_with(code_tag)
+
     output = str(soup)
     
     # Find all <pre> tags with their attributes and content

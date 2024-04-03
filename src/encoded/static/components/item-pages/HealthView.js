@@ -314,20 +314,13 @@ function DetailListBody({
     let spcVersionUsed = null;
 
     if (packageLockJson) {
-        const {
-            dependencies: {
-                '@hms-dbmi-bgm/shared-portal-components': {
-                    version: spcVersion = null,
-                    from: spcFrom,
-                } = {},
-            },
-        } = packageLockJson || {};
-        if (spcFrom && spcFrom.indexOf('#') > -1) {
-            // e.g. github:4dn-dcic/shared-portal-components#0.0.2.70
-            [spcVersionUsed] = spcFrom.split('#').splice(-1);
-        } else {
-            spcVersionUsed = spcVersion || '-';
-        }
+        // since dependencies is depracated in npm v9, we extract the pkg versions from packages field
+        // see https://docs.npmjs.com/cli/v9/configuring-npm/package-lock-json#dependencies
+        const { packages: {
+            'node_modules/@hms-dbmi-bgm/shared-portal-components': { version: spcVersion } = {}
+        } } = packageLockJson;
+
+        spcVersionUsed = spcVersion || '-';
     } else {
         // Assume is still loading
         // TODO: Maybe allow ItemDetailList to handle JSX values so can throw in spinning indicator icon here.

@@ -139,10 +139,11 @@ kibana-stop:
 	scripts/kibana-stop
 
 kill:  # kills back-end processes associated with the application. Use with care.
-	pkill -f postgres
-	pkill -f opensearch
-	pkill -f moto_server
-	pkill -f nginx
+	-pkill -f postgres &
+	-pkill -f opensearch &
+	-pkill -f elasticsearch &
+	-pkill -f moto_server &
+	-pkill -f nginx &
 
 clean-python:
 	@echo -n "Are you sure? This will wipe all libraries installed on this virtualenv [y/N] " && read ans && [ $${ans:-N} = y ]
@@ -152,7 +153,8 @@ clean-python:
 test:
 	@git log -1 --decorate | head -1
 	@date
-	pytest -vv
+	pytest -vv -m "not workbook"
+	pytest -vv -m "workbook"
 	@git log -1 --decorate | head -1
 	@date
 
@@ -162,11 +164,11 @@ retest:
 test-any:
 	poetry run python -m pytest -xvv -r w --timeout=200
 
-test-npm:
-	poetry run python -m pytest -xvv -r w --durations=25 --timeout=600 -m "not manual and not integratedx and not performance and not broken and not sloppy and not indexing and not static"
+test-npm:  # npm tests refer to workbook tests
+	poetry run python -m pytest -xvv -r w --durations=25 --timeout=600 -m "workbook"
 
-test-unit:
-	poetry run python -m pytest -xvv -r w --durations=25 --timeout=200 -m "not manual and not integratedx and not performance and not broken and not sloppy and indexing and not static"
+test-unit:  # unit tests refer to non-workbook tests
+	poetry run python -m pytest -xvv -r w --durations=25 --timeout=200 -m "not workbook"
 
 test-performance:
 	poetry run python -m pytest -xvv -r w --timeout=200 -m "not manual and not integratedx and performance and not broken and not sloppy and not static"
@@ -179,13 +181,14 @@ test-static:
 	make lint
 
 remote-test:  # smaht-portal uses this make target for now as tests are not that burdensome
-	pytest -vv --aws-auth --durations=20 --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
+	pytest -vv -m "not workbook" --aws-auth --durations=20 --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
+	pytest -vv -m "workbook" --aws-auth --durations=20 --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
 
-remote-test-npm:  # Note this only does the 'not indexing' tests
-	poetry run python -m pytest -xvv -r w --instafail --force-flaky --max-runs=2 --timeout=600 -m "not manual and not integratedx and not performance and not broken and not broken_remotely and not sloppy and not indexing and not static" --aws-auth --durations=20 --cov src/encoded --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
+remote-test-npm:  # Note this only does the 'not workbook' tests
+	poetry run python -m pytest -xvv -r w --instafail --force-flaky --max-runs=2 --timeout=600 -m "not workbook" --aws-auth --durations=20 --cov src/encoded --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
 
-remote-test-unit:  # Note this does the 'indexing' tests
-	poetry run python -m pytest -xvv -r w --timeout=300 -m "not manual and not integratedx and not performance and not broken and not broken_remotely and not sloppy and indexing and not static" --aws-auth --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
+remote-test-unit:  # Note this does the 'workbook' tests
+	poetry run python -m pytest -xvv -r w --timeout=300 -m "workbook" --aws-auth --es search-opensearch-smaht-testing-ykavtw57jz4cx4f2gqewhu4b44.us-east-1.es.amazonaws.com:443
 
 update:  # updates dependencies
 	poetry update
