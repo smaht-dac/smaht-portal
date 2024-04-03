@@ -36,7 +36,7 @@ class IngestionStatusCache:
 
     _singleton_instance = None
     _singleton_lock = threading.Lock()
-    _redis_lock = threading.Lock()
+    _redis_lock = threading.RLock()
 
     def __init__(self, resource: RedisResourceType = REDIS_URL, redis_client: Optional[Redis] = None) -> None:
         # Fail essentially silently so we work without Redis at all (but log).
@@ -109,7 +109,7 @@ class IngestionStatusCache:
         if xyzzy_last.get(key) and (len(xyzzy_last[key]) > len(value)):
             print(value)
             print(xyzzy_last[key])
-            import pdb ; pdb.set_trace()
+            #import pdb ; pdb.set_trace()
             pass
         xyzzy_last[key] = value
         set_succeeded = self._redis_set(key, json.dumps(value, default=str))
@@ -314,14 +314,16 @@ class IngestionStatusCache:
 
     def _redis_get(self, key):
         try:
-            return self._redis.get(key)
+            with IngestionStatusCache._redis_lock:
+                return self._redis.get(key)
         except Exception as e:
             _log_error(f"Cannot get Redis key from ingestion-status cache: {key}", e)
             return None
 
     def _redis_set(self, key, value):
         try:
-            return self._redis.set(key, value)
+            with IngestionStatusCache._redis_lock:
+                return self._redis.set(key, value)
         except Exception as e:
             _log_error(f"Cannot set Redis key to ingestion-status cache: {key}", e)
 
