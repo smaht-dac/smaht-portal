@@ -3,7 +3,7 @@ from collections import namedtuple
 from datetime import datetime
 import json
 from pyramid.registry import Registry
-from redis import StrictRedis
+from redis import Redis, StrictRedis
 from ssl import CERT_NONE as SSL_NO_CERTIFICATE
 from structlog import getLogger as get_logger
 import threading
@@ -36,10 +36,14 @@ class IngestionStatusCache:
     _singleton_lock = threading.Lock()
 
     def __init__(self, resource: RedisResourceType = REDIS_URL,
-                 update_interval: int = REDIS_UPDATE_INTERVAL_SECONDS) -> None:
+                 update_interval: int = REDIS_UPDATE_INTERVAL_SECONDS,
+                 redis_client: Optional[Redis] = None) -> None:
         # Fail essentially silently so we work without Redis at all (but log).
         if redis_url := IngestionStatusCache._get_redis_url_from_resource(resource):
-            self._redis = RedisBase(IngestionStatusCache._redis_create_client(redis_url))
+            # Allow passing in a Redis client for testing (e.g. fakeredis.FakeRedis).
+            if not isinstance(redis_client, Redis):
+                redis_client = IngestionStatusCache._redis_create_client(redis_url)
+            self._redis = RedisBase(redis_client) if redis_client else None
             self._redis_url = redis_url
         else:
             _log_warning(f"Cannot get Redis URL for ingestion-status cache: {resource}")
@@ -238,10 +242,10 @@ class IngestionStatusCache:
             pass
         return None
 
-    # All actual Redis interaction goes through these functions below.
+    # All actual lower-level Redis interaction goes through these functions below.
 
     @staticmethod
-    def _redis_create_client(redis_url: str, ping: bool = True) -> object:
+    def _redis_create_client(redis_url: str, ping: bool = True) -> Redis:
         try:
             if IngestionStatusCache.REDIS_USE_DCICUTILS_CREATE_CLIENT:
                 return create_redis_client(url=redis_url, ping=ping)
@@ -325,7 +329,7 @@ def _now() -> str:
 _log = get_logger(__name__)
 
 def _log_error(message: str, exception: Optional[Exception] = None) -> None:
-    _log.error(message)
+    _log.error(f"ERROR: {message}")
     if isinstance(exception, Exception):
         _log.error(get_error_message(exception, full=True))
 
