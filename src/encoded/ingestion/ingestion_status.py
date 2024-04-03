@@ -29,16 +29,8 @@ def ingestion_status(context, request):
         elif lvalue == "flush":
             IngestionStatusCache.instance(context).flush()
             return {"flush": True}
-        elif lvalue == "set_update_interval":
-            if (update_interval := _get_arg_int("seconds", request)) is not None:
-                IngestionStatusCache.instance(context).set_update_interval(update_interval)
-                return {"set_update_interval": update_interval}
         return {}
 
 
 def _get_arg_bool(name: str, request: Request) -> bool:
     return isinstance(arg := request.GET.get(name), str) and ((arg := arg.lower()) in ["true", "1"])
-
-
-def _get_arg_int(name: str, request: Request) -> Optional[int]:
-    return int(arg) if isinstance(arg := request.GET.get(name), str) and arg.isdigit() else None

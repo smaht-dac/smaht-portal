@@ -49,7 +49,7 @@ class IngestionStatusCache:
         # which is wasteful since the client (smaht-submitr) is only polling maybe once per
         # second at most, if the update-interval is set (to greater than zero), then we
         # actually cache writes in-memory, and have an update/flush thread running which
-        # flushes this in in-memory cache to Redis only every N (up-date-interval) seconds.
+        # flushes this in in-memory cache to Redis only every N (update-interval) seconds.
         self._update_interval = max(update_interval, 0) if isinstance(update_interval, int) else 0
         if self._update_interval > 0:
             self._update_cache = {}
@@ -158,12 +158,6 @@ class IngestionStatusCache:
             "redis_info": self._redis_info()
         }
 
-    def set_update_interval(self, seconds: Optional[int]) -> dict:
-        # ONLY for troublehooting/testing.
-        if seconds is not None:
-            self._update_interval = (
-                max(seconds, 0) if isinstance(seconds, int) else IngestionStatusCache.REDIS_UPDATE_INTERVAL_SECONDS)
-
     @staticmethod
     def connection(uuid: str, resource: RedisResourceType = REDIS_URL) -> object:
         """
@@ -193,14 +187,10 @@ class IngestionStatusCache:
         _log_note(f"Starting ingestion-status cache flush thread.")
         try:
             while True:
-                # Special case (troublehooting only) if we have an update/flush thread but the
-                # update interval is zero then we act as if not update caching at all; this can
-                # normally only happen if set_update_interval is called with zero after up/running.
-                if self._update_interval > 0:
-                    time.sleep(self._update_interval)
-                    self.flush()
-                    self._flush_most_recent = _now()
-                    self._flush_count += 1
+                time.sleep(self._update_interval)
+                self.flush()
+                self._flush_most_recent = _now()
+                self._flush_count += 1
         except Exception as e:
             _log_error(f"Unexpected termination of ingestion-status cache flush thread.", e)
 
