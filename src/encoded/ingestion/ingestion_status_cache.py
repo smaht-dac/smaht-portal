@@ -256,7 +256,7 @@ class IngestionStatusCache:
             #
             #  [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate
             #
-            # So we is do NOT use the dcicutils.redis.redis_utilas.create_redis_client but
+            # So we do NOT use the dcicutils.redis.redis_utilas.create_redis_client but
             # rather create the Redis client here (FYI not able to use Redis.from_url,
             # as is used by dcicutils, and specify no certificate).
             url = urlparse(redis_url)
