@@ -224,7 +224,7 @@ class File(Item, CoreFile):
             }
         else:  # we need the revision history
             result = {}
-            revision_history = request.embed(f'/{self.uuid}/@@revision-history', as_user=True)
+            revision_history = request.embed(f'/{self.uuid}/@@revision-history', as_user='IMPORT')
             for revision in revision_history['revisions']:
                 status = revision.get('status')
                 if status and status not in result and status in self.STATUS_TO_CHECK_REVISIONS:
