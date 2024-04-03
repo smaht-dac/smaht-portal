@@ -31,7 +31,7 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
         ingestion_status.update({PROGRESS_INGESTER.CLEANUP: PROGRESS_INGESTER.NOW()})
     ingestion_status.update({PROGRESS_INGESTER.OUTCOME: submission.outcome})
     ingestion_status.update({PROGRESS_INGESTER.DONE: PROGRESS_INGESTER.NOW()})
-    ingestion_status.flush_all()
+    ingestion_status.flush()
 
 
 def _process_submission(submission: SmahtSubmissionFolio) -> None:

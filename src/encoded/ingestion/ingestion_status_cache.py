@@ -28,7 +28,7 @@ class IngestionStatusCache:
     REDIS_RESOURCE_NAME = "redis.server"
     REDIS_URL = "redis://localhost:6379"
     REDIS_KEY_EXPIRATION_SECONDS = 60 * 60 * 24 * 3
-    REDIS_UPDATE_INTERVAL_SECONDS = 3
+    REDIS_UPDATE_INTERVAL_SECONDS = 0
     REDIS_USE_DCICUTILS_CREATE_CLIENT = False
     RedisResourceType = Optional[Union[str, dict, Context, Registry, VirtualApp]]
 
@@ -119,27 +119,36 @@ class IngestionStatusCache:
             keys = sorted(keys)
         return {"keys": keys}
 
-    def flush(self) -> None:
+    def flush(self, key: Optional[str] = None) -> None:
         if not self._redis or (self._update_cache is None):
             return
+        update_value = None
         with IngestionStatusCache._singleton_lock:
-            update_cache = self._update_cache
-            self._update_cache = {}
-        for key, value in update_cache.items():
-            self.set(key, value, _flush=True)
-        self._flush_most_recent = _now()
+            if isinstance(key, str) and key:
+                if (update_value := self._update_cache.pop(key, None)) is None:
+                    return
+            else:
+                update_cache = self._update_cache
+                self._update_cache = {}
+        if update_value is not None:
+            self.set(key, update_value, _flush=True)
+        else:
+            for key, value in update_cache.items():
+                self.set(key, value, _flush=True)
+            self._flush_most_recent = _now()
 
     def info(self) -> dict:
         if not self._redis:
             return {}
         return {
             "redis_url": self._redis_url,
+            "redis_expiration": self._redis_nkeys(),
+            "redis_update_interval": self._update_interval,
             "redis_nkeys": self._redis_nkeys(),
-            "update_interval": self._update_interval,
             "flush_thread": self._flush_thread.ident if self._flush_thread else None,
             "flush_most_recent": self._flush_most_recent,
             "timestamp": _now(),
-            "redis": self._redis_info()
+            "redis_info": self._redis_info()
         }
 
     def set_update_interval(self, seconds: int) -> dict:
@@ -152,6 +161,8 @@ class IngestionStatusCache:
         an argument so the caller does not have to included it in subsequent calls on the
         cache, and also returns suitable cache object whether or not Redis is running/enabled.
         """
+        if not isinstance(uuid, str) or not uuid:
+            return None
         cache = IngestionStatusCache.instance(resource)
         def get(sort: bool = False) -> Optional[dict]:  # noqa
             nonlocal uuid, cache
@@ -162,11 +173,11 @@ class IngestionStatusCache:
         def update(value: dict) -> bool:  # noqa
             nonlocal uuid, cache
             cache.update(uuid, value) if cache else False
-        def flush_all() -> None:  # noqa
-            nonlocal cache
-            cache.flush() if cache else None
-        ingestion_status_connection_type = namedtuple("connection", ["get", "set", "update", "flush_all"])
-        return ingestion_status_connection_type(get, set, update, flush_all)
+        def flush() -> None:  # noqa
+            nonlocal uuid, cache
+            cache.flush(uuid) if cache else None
+        ingestion_status_connection_type = namedtuple("connection", ["get", "set", "update", "flush"])
+        return ingestion_status_connection_type(get, set, update, flush)
 
     def _flush_thread_function(self) -> None:
         _log_note(f"Starting ingestion-status cache flush thread.")
