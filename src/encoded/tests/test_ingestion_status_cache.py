@@ -6,27 +6,6 @@ from encoded.ingestion.ingestion_status_cache import IngestionStatusCache
 KEY = "some-key"
 VALUE = {"some-property": "some-value"}
 
-def test_ingestion_status_cache_long_update_interval():
-
-    # Make sure the single instance gets recreated per unit test.
-    IngestionStatusCache._singleton_instance = None
-    # Set update-interval to a long time for no update/flush thread.
-    IngestionStatusCache.REDIS_UPDATE_INTERVAL_SECONDS = 1000
-    fake_redis_client = fakeredis.FakeRedis()
-    ingestion_status = IngestionStatusCache.instance(redis_client=fake_redis_client)
-
-    ingestion_status.update(KEY, VALUE)
-
-    value = ingestion_status.get(KEY)
-    del value["timestamp"]
-    del value["ttl"]
-    assert value == {"uuid": KEY, **VALUE}
-
-    # Get directly from Redis via IngestionStatusCache._redis_get.
-    value = ingestion_status._redis_get(KEY)
-    # None because long update time and no update/flush thread nor explicit flush.
-    assert value is None
-
 
 def test_ingestion_status_cache_no_update_interval():
 
@@ -50,6 +29,28 @@ def test_ingestion_status_cache_no_update_interval():
     value = json.loads(value)
     del value["timestamp"]
     assert value == {"uuid": KEY, **VALUE}
+
+
+def test_ingestion_status_cache_long_update_interval():
+
+    # Make sure the single instance gets recreated per unit test.
+    IngestionStatusCache._singleton_instance = None
+    # Set update-interval to a long time for no update/flush thread.
+    IngestionStatusCache.REDIS_UPDATE_INTERVAL_SECONDS = 1000
+    fake_redis_client = fakeredis.FakeRedis()
+    ingestion_status = IngestionStatusCache.instance(redis_client=fake_redis_client)
+
+    ingestion_status.update(KEY, VALUE)
+
+    value = ingestion_status.get(KEY)
+    del value["timestamp"]
+    del value["ttl"]
+    assert value == {"uuid": KEY, **VALUE}
+
+    # Get directly from Redis via IngestionStatusCache._redis_get.
+    value = ingestion_status._redis_get(KEY)
+    # None because long update time and no update/flush thread nor explicit flush.
+    assert value is None
 
 
 def test_ingestion_status_cache_long_update_interval_with_flush():
