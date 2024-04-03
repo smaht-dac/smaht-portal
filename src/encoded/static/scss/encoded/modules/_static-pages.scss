@@ -1940,3 +1940,18 @@ body[data-pathname^="/data/benchmarking"] {
 		}
 	}
 }
+
+
+/***
+Unique styling of Submission Status page
+**/
+.ss-bg-success-light{
+	background-color: #cdf89cba !important;
+}
+.ss-bg-warning-light{
+	background-color: #fad465ba !important;
+}
+
+.line-height-140 {
+    line-height: 140%;
+}
