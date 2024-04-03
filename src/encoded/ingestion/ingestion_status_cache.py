@@ -35,9 +35,7 @@ class IngestionStatusCache:
     _singleton_instance = None
     _singleton_lock = threading.Lock()
 
-    def __init__(self, resource: RedisResourceType = REDIS_URL,
-                 update_interval: int = REDIS_UPDATE_INTERVAL_SECONDS,
-                 redis_client: Optional[Redis] = None) -> None:
+    def __init__(self, resource: RedisResourceType = REDIS_URL, redis_client: Optional[Redis] = None) -> None:
         # Fail essentially silently so we work without Redis at all (but log).
         if redis_url := IngestionStatusCache._get_redis_url_from_resource(resource):
             # Allow passing in a Redis client for testing (e.g. fakeredis.FakeRedis).
@@ -54,8 +52,9 @@ class IngestionStatusCache:
         # second at most, if the update-interval is set (to greater than zero), then we
         # actually cache writes in-memory, and have an update/flush thread running which
         # flushes this in in-memory cache to Redis only every N (update-interval) seconds.
-        self._update_interval = max(update_interval, 0) if isinstance(update_interval, int) else 0
-        if self._update_interval > 0:
+        self._redis_key_expiration = IngestionStatusCache.REDIS_KEY_EXPIRATION_SECONDS
+        self._redis_update_interval = IngestionStatusCache.REDIS_UPDATE_INTERVAL_SECONDS
+        if self._redis_update_interval > 0:
             self._update_cache = {}
             self._flush_most_recent = None
             self._flush_count = 0
@@ -73,11 +72,12 @@ class IngestionStatusCache:
             return {}
         if (not isinstance(key, str)) or (not key):
             return {}
-        if (self._update_cache is not None) and (self._update_interval > 0):
+        if (self._update_cache is not None) and (self._redis_update_interval > 0):
             value = None
             with IngestionStatusCache._singleton_lock:
                 value = self._update_cache.get(key, None)
             if value is not None:
+                value["ttl"] = None
                 return value
         if isinstance(value := self._redis_get(key), str):
             value = json.loads(value)
@@ -90,7 +90,7 @@ class IngestionStatusCache:
             return False
         if (not isinstance(key, str)) or (not key) or (not isinstance(value, dict)) or (not value):
             return False
-        if not _flush and (self._update_cache is not None) and (self._update_interval > 0):
+        if not _flush and (self._update_cache is not None) and (self._redis_update_interval > 0):
             with IngestionStatusCache._singleton_lock:
                 self._update_cache[key] = value
             return True
@@ -107,7 +107,7 @@ class IngestionStatusCache:
         # then that ttl does not take, but if we use lt=True instead then it does take.
         # TODO: Check with Will on this dcicutils.redis_utils.RedisBase behavior.
         #
-        self._redis_expire(key, IngestionStatusCache.REDIS_KEY_EXPIRATION_SECONDS)
+        self._redis_expire(key, self._redis_key_expiration)
         return result
 
     def update(self, uuid: str, value: dict) -> bool:
@@ -157,8 +157,8 @@ class IngestionStatusCache:
         # actually write such stats/info themselves to Redis, but no great need.
         return {
             "redis_url": self._redis_url,
-            "redis_expiration": IngestionStatusCache.REDIS_KEY_EXPIRATION_SECONDS,
-            "redis_update_interval": self._update_interval,
+            "redis_expiration": self._redis_key_expiration,
+            "redis_update_interval": self._redis_update_interval,
             "redis_key_count": self._redis_dbsize(),
             "flush_thread": self._flush_thread.ident if self._flush_thread else None,
             "flush_most_recent": self._flush_most_recent,
@@ -167,8 +167,19 @@ class IngestionStatusCache:
             "redis_info": self._redis_info()
         }
 
+    def _flush_thread_function(self) -> None:
+        _log_note(f"Starting ingestion-status cache flush thread.")
+        try:
+            while True:
+                time.sleep(self._redis_update_interval)
+                self.flush()
+                self._flush_most_recent = _now()
+                self._flush_count += 1
+        except Exception as e:
+            _log_error(f"Unexpected termination of ingestion-status cache flush thread.", e)
+
     @staticmethod
-    def connection(uuid: str, resource: RedisResourceType = REDIS_URL) -> object:
+    def connection(uuid: str, resource: RedisResourceType = REDIS_URL, redis_client: Optional[Redis] = None) -> object:
         """
         This is a higher level convenience function which takes the (submission) uuid as
         an argument so the caller does not have to included it in subsequent calls on the
@@ -176,7 +187,7 @@ class IngestionStatusCache:
         """
         if not isinstance(uuid, str) or not uuid:
             return None
-        cache = IngestionStatusCache.instance(resource)
+        cache = IngestionStatusCache.instance(resource, redis_client=redis_client)
         def get(sort: bool = False) -> Optional[dict]:  # noqa
             nonlocal uuid, cache
             return cache.get(uuid, sort=sort) if cache else None
@@ -192,26 +203,15 @@ class IngestionStatusCache:
         ingestion_status_connection_type = namedtuple("connection", ["get", "set", "update", "flush"])
         return ingestion_status_connection_type(get, set, update, flush)
 
-    def _flush_thread_function(self) -> None:
-        _log_note(f"Starting ingestion-status cache flush thread.")
-        try:
-            while True:
-                time.sleep(self._update_interval)
-                self.flush()
-                self._flush_most_recent = _now()
-                self._flush_count += 1
-        except Exception as e:
-            _log_error(f"Unexpected termination of ingestion-status cache flush thread.", e)
-
     @staticmethod
-    def instance(resource: RedisResourceType = REDIS_URL) -> IngestionStatusCache:
-        # This gets a singleton of an IngestionStatusCache object; slightly odd
-        # having a single created with an argument, but no matter where it is coming
-        # from (portal or ingester) this will alwasys resolve to the same thing.
+    def instance(resource: RedisResourceType = REDIS_URL, redis_client: Optional[Redis] = None) -> IngestionStatusCache:
+        # This gets a singleton of an IngestionStatusCache object; slightly odd having
+        # a single created with an argument, but we know that no matter where it is
+        # coming from (portal or ingester) this will always resolve to the same thing.
         if IngestionStatusCache._singleton_instance is None:
             with IngestionStatusCache._singleton_lock:
                 if IngestionStatusCache._singleton_instance is None:
-                    IngestionStatusCache._singleton_instance = IngestionStatusCache(resource)
+                    IngestionStatusCache._singleton_instance = IngestionStatusCache(resource, redis_client=redis_client)
         return IngestionStatusCache._singleton_instance
 
     @staticmethod
