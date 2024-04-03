@@ -86,10 +86,10 @@ def generate_admin_search_given_params(context, request, search_param):
     # VERY IMPORTANT - the below lines eliminate database calls, which is necessary
     # as making calls (as explained above) leaks connections - Will March 29 2024
     request.remote_user = 'IMPORT'
-    request.cookies = {}
     if 'HTTP_AUTHORIZATION' in request.environ:
         del request.environ['HTTP_AUTHORIZATION']
     subreq = make_search_subreq(request, f'/search?{urlencode(search_param, True)}')
+    subreq.cookies = {}
     return search(context, subreq)
 
 
