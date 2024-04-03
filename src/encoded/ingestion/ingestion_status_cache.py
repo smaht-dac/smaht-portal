@@ -1,5 +1,6 @@
 from __future__ import annotations
 from collections import namedtuple
+from copy import deepcopy
 from datetime import datetime
 import json
 from pyramid.registry import Registry
@@ -67,20 +68,24 @@ class IngestionStatusCache:
             self._flush_count = 0
             self._flush_thread = None
 
-    def get(self, key: str, sort: bool = False) -> dict:
+    def get(self, key: str, sort: bool = False, _raw: bool = False) -> dict:
         if not self._redis:
             return {}
         if (not isinstance(key, str)) or (not key):
             return {}
+        value = None
         if (self._update_cache is not None) and (self._redis_update_interval > 0):
-            value = None
             with IngestionStatusCache._singleton_lock:
                 value = self._update_cache.get(key, None)
             if value is not None:
-                value["ttl"] = None
-                return value
-        if isinstance(value := self._redis_get(key), str):
-            value = json.loads(value)
+                # If we are getting from the update-cache we need to make
+                # a copy to prevent the user from being able to change it.
+                value = deepcopy(value)
+        if value is None:
+            if isinstance(value := self._redis_get(key), str):
+                value = json.loads(value)
+        if (value is not None) and (_raw is not True):
+            # Automatically add a "ttl" property on the way out.
             value["ttl"] = self._redis_ttl(key)
             return dict(sorted(value.items(), key=lambda item: item[0])) if sort else value
         return {}
@@ -90,11 +95,14 @@ class IngestionStatusCache:
             return False
         if (not isinstance(key, str)) or (not key) or (not isinstance(value, dict)) or (not value):
             return False
-        if not _flush and (self._update_cache is not None) and (self._redis_update_interval > 0):
+        # Automatically add a "timestamp" property on the way in.
+        value = {**value, "timestamp": _now()}
+        if (_flush is not True) and (self._update_cache is not None) and (self._redis_update_interval > 0):
             with IngestionStatusCache._singleton_lock:
                 self._update_cache[key] = value
             return True
-        result = self._redis_set(key, json.dumps(value, default=str))
+        value = json.dumps(value, default=str)
+        set_succeeded = self._redis_set(key, value)
         #
         # Need to reset the expiration time on each update/set; the expiration
         # time is always relative to the time of the most recently updated value.
@@ -108,24 +116,41 @@ class IngestionStatusCache:
         # TODO: Check with Will on this dcicutils.redis_utils.RedisBase behavior.
         #
         self._redis_expire(key, self._redis_key_expiration)
-        return result
+        return set_succeeded
 
     def update(self, uuid: str, value: dict) -> bool:
         """
         This is a higher level function intended to be the main one used for our purposes;
-        it merges the given JSON into any already existing value for the key; and it
-        automatically takes the key to be the given (submission) uuid.
+        it merges the given JSON into any already existing value for the key, or creates
+        the key with the value if it does not yet exist; and it automatically takes the
+        key to be the given (submission) uuid.
         """
         if not self._redis:
             return False
         if (not isinstance(uuid, str)) or (not uuid) or (not isinstance(value, dict)) or (not value):
             return False
-        return self.set(uuid, {"uuid": uuid, **self.get(uuid), **value, "timestamp": _now()})
+        if not (existing_value := self.get(uuid, _raw=True)):
+            return self.set(uuid, {"uuid": uuid, **value})
+        else:
+            return self.set(uuid, {**existing_value, **value})
 
     def keys(self, sort: bool = False) -> dict:
+        """
+        Returns all keys defined (either in our update-cache or directly in Redis).
+        This is ONLY of troubleshooting/testing; no paging, could be large;
+        though probably not too much so give short-ish expiration enforced.
+        """
         if not self._redis:
             return {}
         keys = [key.decode("utf-8") for key in self._redis_keys("*")]
+        keys_from_update_cache = None
+        if self._update_cache is not None:
+            with IngestionStatusCache._singleton_lock:
+                keys_from_update_cache = deepcopy(self._update_cache)
+        if keys_from_update_cache is not None:
+            for key_from_update_cache in keys_from_update_cache:
+                if key_from_update_cache not in keys:
+                    keys.append(key_from_update_cache)
         if sort:
             keys = sorted(keys)
         return {"keys": keys}
@@ -133,16 +158,17 @@ class IngestionStatusCache:
     def flush(self, key: Optional[str] = None) -> None:
         if not self._redis or (self._update_cache is None):
             return
-        update_value = None
-        with IngestionStatusCache._singleton_lock:
-            if isinstance(key, str) and key:
-                if (update_value := self._update_cache.pop(key, None)) is None:
-                    return
-            else:
-                update_cache = self._update_cache
-                self._update_cache = {}
-        if update_value is not None:
-            self.set(key, update_value, _flush=True)
+        update_single_value = None
+        if self._update_cache is not None:
+            with IngestionStatusCache._singleton_lock:
+                if isinstance(key, str) and key:
+                    if (update_single_value := self._update_cache.pop(key, None)) is None:
+                        return
+                else:
+                    update_cache = self._update_cache
+                    self._update_cache = {}
+        if update_single_value is not None:
+            self.set(key, update_single_value, _flush=True)
         else:
             for key, value in update_cache.items():
                 self.set(key, value, _flush=True)
@@ -151,10 +177,11 @@ class IngestionStatusCache:
         if not self._redis:
             return {}
         # Remember for our use-case - smaht-portal AND smaht-ingester - we have
-        # TWO separate processes, so any in-memory info/stats or only per process;
-        # so in fact there is NO way to see any of this info here, which is NOT
+        # TWO separate processes, so any in-memory info/stats are only per process;
+        # so in fact there is NO way to see any of this info here which is NOT
         # actually stored in Redis, in for the smaht-ingester process. We COULD
-        # actually write such stats/info themselves to Redis, but no great need.
+        # actually write such stats/info themselves to Redis, but no great need;
+        # this is just for general troubleshooting/testing purposes.
         return {
             "redis_url": self._redis_url,
             "redis_expiration": self._redis_key_expiration,
