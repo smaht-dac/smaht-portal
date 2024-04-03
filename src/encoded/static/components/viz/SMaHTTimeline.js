@@ -222,7 +222,6 @@ const getDateString = (string) => {
     const date = new Date(string);
 
     const options = {
-        weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
