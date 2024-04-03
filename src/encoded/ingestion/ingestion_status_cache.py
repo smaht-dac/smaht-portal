@@ -145,9 +145,9 @@ class IngestionStatusCache:
             return {}
         return {
             "redis_url": self._redis_url,
-            "redis_expiration": self._redis_nkeys(),
+            "redis_expiration": IngestionStatusCache.REDIS_KEY_EXPIRATION_SECONDS,
             "redis_update_interval": self._update_interval,
-            "redis_nkeys": self._redis_nkeys(),
+            "redis_key_count": self._redis_dbsize(),
             "redis_get_count": self._redis_get_count,
             "redis_set_count": self._redis_set_count,
             "flush_thread": self._flush_thread.ident if self._flush_thread else None,
@@ -309,7 +309,7 @@ class IngestionStatusCache:
             _log_error(f"Cannot get Redis keys for ingestion-status.", e)
             return []
 
-    def _redis_nkeys(self):
+    def _redis_dbsize(self):
         try:
             return self._redis.redis.dbsize()
         except Exception as e:
