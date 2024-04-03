@@ -45,6 +45,11 @@ class IngestionStatusCache:
             _log_warning(f"Cannot get Redis URL for ingestion-status cache: {resource}")
             self._redis = None
             self._redis_url = None
+        # To limit the large number of Redis writes we would normally get (1000s per second),
+        # which is wasteful since the client (smaht-submitr) is only polling maybe once per
+        # second at most, if the update-interval is set (to greater than zero), then we
+        # actually cache writes in-memory, and have an update/flush thread running which
+        # flushes this in in-memory cache to Redis only every N (up-date-interval) seconds.
         self._update_interval = max(update_interval, 0) if isinstance(update_interval, int) else 0
         if self._update_interval > 0:
             self._update_cache = {}
@@ -58,15 +63,13 @@ class IngestionStatusCache:
             self._flush_most_recent = None
             self._flush_count = 0
             self._flush_thread = None
-        self._redis_get_count = 0
-        self._redis_set_count = 0
 
     def get(self, key: str, sort: bool = False) -> dict:
         if not self._redis:
             return {}
         if (not isinstance(key, str)) or (not key):
             return {}
-        if self._update_cache is not None:
+        if (self._update_cache is not None) and (self._update_interval > 0):
             value = None
             with IngestionStatusCache._singleton_lock:
                 value = self._update_cache.get(key, None)
@@ -83,7 +86,7 @@ class IngestionStatusCache:
             return False
         if (not isinstance(key, str)) or (not key) or (not isinstance(value, dict)) or (not value):
             return False
-        if not _flush and self._update_cache is not None:
+        if not _flush and (self._update_cache is not None) and (self._update_interval > 0):
             with IngestionStatusCache._singleton_lock:
                 self._update_cache[key] = value
             return True
@@ -148,8 +151,6 @@ class IngestionStatusCache:
             "redis_expiration": IngestionStatusCache.REDIS_KEY_EXPIRATION_SECONDS,
             "redis_update_interval": self._update_interval,
             "redis_key_count": self._redis_dbsize(),
-            "redis_get_count": self._redis_get_count,
-            "redis_set_count": self._redis_set_count,
             "flush_thread": self._flush_thread.ident if self._flush_thread else None,
             "flush_most_recent": self._flush_most_recent,
             "flush_count": self._flush_count,
@@ -157,8 +158,10 @@ class IngestionStatusCache:
             "redis_info": self._redis_info()
         }
 
-    def set_update_interval(self, seconds: int) -> dict:
-        self._update_interval = max(seconds, 0) if isinstance(seconds, int) else REDIS_UPDATE_INTERVAL_SECONDS
+    def set_update_interval(self, seconds: Optional[int]) -> dict:
+        # ONLY for troublehooting/testing.
+        if seconds is not None:
+            self._update_interval = max(seconds, 0) if isinstance(seconds, int) else REDIS_UPDATE_INTERVAL_SECONDS
 
     @staticmethod
     def connection(uuid: str, resource: RedisResourceType = REDIS_URL) -> object:
@@ -189,10 +192,14 @@ class IngestionStatusCache:
         _log_note(f"Starting ingestion-status cache flush thread.")
         try:
             while True:
-                time.sleep(self._update_interval)
-                self.flush()
-                self._flush_most_recent = _now()
-                self._flush_count += 1
+                # Special case (troublehooting only) if we have an update/flush thread but the
+                # update interval is zero then we act as if not update caching at all; this can
+                # normally only happen if set_update_interval is called with zero after up/running.
+                if self._update_interval > 0:
+                    time.sleep(self._update_interval)
+                    self.flush()
+                    self._flush_most_recent = _now()
+                    self._flush_count += 1
         except Exception as e:
             _log_error(f"Unexpected termination of ingestion-status cache flush thread.", e)
 
@@ -269,7 +276,6 @@ class IngestionStatusCache:
 
     def _redis_get(self, key):
         try:
-            self._redis_get_count += 1
             return self._redis.get(key)
         except Exception as e:
             _log_error(f"Cannot get Redis key from ingestion-status cache: {key}", e)
@@ -277,7 +283,6 @@ class IngestionStatusCache:
 
     def _redis_set(self, key, value):
         try:
-            self._redis_set_count += 1
             return self._redis.set(key, value)
         except Exception as e:
             _log_error(f"Cannot set Redis key to ingestion-status cache: {key}", e)

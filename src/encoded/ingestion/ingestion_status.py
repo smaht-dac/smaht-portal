@@ -1,4 +1,6 @@
+from pyramid.request import Request
 from pyramid.view import view_config
+from typing import Optional
 from dcicutils.misc_utils import is_uuid
 from snovault.util import debug_log
 from encoded.ingestion.ingestion_status_cache import IngestionStatusCache
@@ -17,19 +19,26 @@ def includeme(config):
 @debug_log
 def ingestion_status(context, request):
     if value := request.matchdict.get("submission_uuid"):
-        sort = isinstance(sort := request.GET.get("sort"), str) and ((sort := sort.lower()) in ["true", "1"])
         if is_uuid(value):
-            return IngestionStatusCache.connection(value, context).get(sort=sort)
-        # These are for troublshooting/testing only.
+            return IngestionStatusCache.connection(value, context).get(sort=_get_arg_bool("sort", request))
+        # These are only for troublshooting/testing.
         elif (lvalue := value.lower()) == "info":
             return IngestionStatusCache.instance(context).info()
         elif lvalue == "keys":
-            return IngestionStatusCache.instance(context).keys(sort=sort)
+            return IngestionStatusCache.instance(context).keys(sort=_get_arg_bool("sort", request))
         elif lvalue == "flush":
             IngestionStatusCache.instance(context).flush()
-            return {"flushed": True}
+            return {"flush": True}
         elif lvalue == "set_update_interval":
-            if isinstance(update_interval := request.GET.get("seconds"), str) and update_interval.isdigit():
-                IngestionStatusCache.instance(context).set_update_interval(int(update_interval))
-                return {"update_interval": update_interval}
+            if (update_interval := _get_arg_int("seconds", request)) is not None:
+                IngestionStatusCache.instance(context).set_update_interval(update_interval)
+                return {"set_update_interval": update_interval}
         return {}
+
+
+def _get_arg_bool(name: str, request: Request) -> bool:
+    return isinstance(arg := request.GET.get(name), str) and ((arg := arg.lower()) in ["true", "1"])
+
+
+def _get_arg_int(name: str, request: Request) -> Optional[int]:
+    return int(arg) if isinstance(arg := request.GET.get(name), str) and arg.isdigit() else None
