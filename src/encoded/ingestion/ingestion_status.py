@@ -1,6 +1,5 @@
 from pyramid.request import Request
 from pyramid.view import view_config
-from typing import Optional
 from dcicutils.misc_utils import is_uuid
 from snovault.util import debug_log
 from encoded.ingestion.ingestion_status_cache import IngestionStatusCache
