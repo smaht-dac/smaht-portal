@@ -204,13 +204,11 @@ const loadStateData = {
             title: 'Tier 1',
             subtitle: 'with core + additional technologies',
             categories: [{ title: 'Primary Tissues' }],
-            // figures: [{}],
         },
         {
             title: 'Tier 2',
             subtitle: 'with core technologies',
             categories: [{ title: 'Primary Tissues' }],
-            // figures: [{}],
         },
     ],
 };
