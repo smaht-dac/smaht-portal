@@ -20,7 +20,7 @@ def ingestion_status(context, request):
     if value := request.matchdict.get("submission_uuid"):
         if is_uuid(value):
             return IngestionStatusCache.connection(value, context).get(sort=_get_arg_bool("sort", request))
-        # These are only for troublshooting/testing.
+        # These are only for troubleshooting/testing.
         elif (lvalue := value.lower()) == "info":
             return IngestionStatusCache.instance(context).info()
         elif lvalue == "keys":
