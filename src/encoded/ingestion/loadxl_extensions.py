@@ -1,17 +1,24 @@
 import re
-from typing import Dict, List, Generator, Optional, Tuple, Union
+from typing import Callable, Dict, List, Generator, Optional, Tuple, Union
 from dcicutils.misc_utils import VirtualApp
+from dcicutils.submitr.progress_constants import PROGRESS_INGESTER, PROGRESS_LOADXL
 from dcicutils.structured_data import Portal
-from snovault.loadxl import load_all_gen as loadxl_load_data
-from .submission_folio import SmahtSubmissionFolio
+from snovault.loadxl import load_all_gen as loadxl
+from encoded.ingestion.submission_folio import SmahtSubmissionFolio
+from encoded.ingestion.ingestion_status_cache import IngestionStatusCache
 
 
-def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp,
+def load_data_into_database(submission_uuid: str,
+                            data: Dict[str, List[Dict]],
+                            portal_vapp: VirtualApp,
+                            nrows: Optional[int] = None,
                             post_only: bool = False,
                             patch_only: bool = False,
                             validate_only: bool = False,
-                            validate_first: bool = False,
                             resolved_refs: List[str] = None) -> Dict:
+
+    ingestion_status = IngestionStatusCache.connection(submission_uuid, portal_vapp)
+    ingestion_status.update({PROGRESS_INGESTER.LOADXL_INITIATE: PROGRESS_INGESTER.NOW()})
 
     def package_loadxl_response(loadxl_response: Generator[bytes, None, None]) -> Dict:
         nonlocal portal_vapp
@@ -36,10 +43,10 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
                 continue
             if (action := LOADXL_ACTION_NAME[match.group(1).upper()]) == "errors":
                 response_value = match.group(0)
-                # If we are in validate_only (or validate_first) mode, and if this is a reference (linkTo)
+                # If we are in validate_only mode, and if this is a reference (linkTo)
                 # error/exception, and if the given resolved_refs (from ingestion_processors/structured_data),
                 # contains the reference to which this error refers, then no error after all; this is because
-                # in validate_only (or validate_first) mode we may well get false reference errors, and/but
+                # in validate_only  mode we may well get false reference errors, and/but
                 # we already did referential integrity checking in the structured_data processing, so we
                 # can regard that as the source of truth for referential ingegrity.
                 if resolved_refs:
@@ -47,7 +54,7 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
                         _get_ref_error_info_from_exception_string(response_value))
                     if instance_type and instance_identifying_value and (ref_error_path in resolved_refs):
                         # Here we have a reference (linkTo) error/exception, but because we are in
-                        # validate_only (or validate_first) mode, and because the reference was
+                        # validate_only  mode, and because the reference was
                         # actually resolved via structured_data referential ingegrity checking 
                         # in ingestion_processors, then this is a false error; so ignore it;
                         # and/but include this object (which refers to the reference in
@@ -93,29 +100,93 @@ def load_data_into_database(data: Dict[str, List[Dict]], portal_vapp: VirtualApp
         )
         return response
 
-    def call_loadxl(validate_only: bool):
-        nonlocal portal_vapp, data, post_only, patch_only
-        return package_loadxl_response(
-                loadxl_load_data(
-                    testapp=portal_vapp,
-                    inserts=data,
-                    docsdir=None,
-                    overwrite=True,
-                    itype=None,
-                    from_json=True,
-                    continue_on_exception=True,
-                    verbose=True,
-                    post_only=post_only,
-                    patch_only=patch_only,
-                    validate_only=validate_only,
-                    skip_links=True))
+    def define_progress_tracker(submission_uuid: str, validation: bool, total: int,
+                                vapp: Optional[VirtualApp] = None) -> Optional[Callable]:
+        nonlocal ingestion_status
+        progress_status_datetime_values = [PROGRESS_LOADXL.START,
+                                           PROGRESS_LOADXL.START_SECOND_ROUND,
+                                           PROGRESS_LOADXL.DONE]
+        progress_status_string_values = [PROGRESS_LOADXL.MESSAGE,
+                                         PROGRESS_LOADXL.MESSAGE_VERBOSE,
+                                         PROGRESS_LOADXL.MESSAGE_DEBUG]
+        progress_status = {}
+        for progress_status_enum in PROGRESS_LOADXL.values():
+            if ((progress_status_enum in progress_status_datetime_values) or
+                (progress_status_enum in progress_status_string_values)):  # noqa
+                progress_status[progress_status_enum] = None
+            else:
+                progress_status[progress_status_enum] = 0
+        progress_status = {**progress_status,
+                           PROGRESS_LOADXL.TOTAL: total,
+                           PROGRESS_INGESTER.VALIDATION: validation}
+        def progress_tracker(progress: PROGRESS_LOADXL) -> None:  # noqa
+            nonlocal progress_status
+            def progress_message() -> None:  # noqa
+                # Just a convenience/courtesy so the consumer (smaht-submitr) doesn't have to cobble
+                # together a status message; but the data is still there of course if they want/need to.
+                nonlocal progress_status, total, validate_only
+                processed = progress_status[PROGRESS_LOADXL.ITEM]
+                gets = progress_status[PROGRESS_LOADXL.GET]
+                posts = progress_status[PROGRESS_LOADXL.POST]
+                patches = progress_status[PROGRESS_LOADXL.PATCH]
+                errors = progress_status[PROGRESS_LOADXL.ERROR]
+                started_second_round = progress_status[PROGRESS_LOADXL.START_SECOND_ROUND]
+                processed_second_round = progress_status[PROGRESS_LOADXL.ITEM_SECOND_ROUND]
+                done = progress_status[PROGRESS_LOADXL.DONE]
+                message = f"Items: {total}"
+                if started_second_round is not None:
+                    # We call the first round verified/preprocessed and the second validated/processed.
+                    if done is not None:
+                        message += (f" | {'Validated' if validate_only else 'Processed'}:"
+                                    f" {max(processed, processed_second_round)}")
+                    else:
+                        message += f" | {'Validated' if validate_only else 'Processed'}: {processed_second_round}"
+                elif processed > 0:
+                    message += f" | {'Verified' if validate_only else 'Preprocessed'}: {processed}"
+                message_verbose = message
+                if posts > 0:
+                    message_verbose += f" | {'Posts' if validate_only else 'Creates'}: {posts}"
+                if patches > 0:
+                    message_verbose += f" | {'Patches' if validate_only else 'Updates'}: {patches}"
+                if gets > 0:
+                    message_verbose += f" | Lookups: {gets}"
+                if errors > 0:
+                    message += (message_errors := f" | Errors: {errors}")
+                    message_verbose += message_errors
+                message_debug = message_verbose  # TODO
+                return message, message_verbose, message_debug
+            # Here is the actual count increment for the loadxl event.
+            if progress in progress_status_datetime_values:
+                progress_status[progress] = PROGRESS_LOADXL.NOW()
+            elif progress not in progress_status_string_values:
+                progress_status[progress] += 1
+            message, message_verbose, message_debug = progress_message()
+            ingestion_status.update({**progress_status,
+                                     PROGRESS_LOADXL.MESSAGE: message,
+                                     PROGRESS_LOADXL.MESSAGE_VERBOSE: message_verbose,
+                                     PROGRESS_LOADXL.MESSAGE_DEBUG: message_debug})
+        return progress_tracker
 
-    if validate_first and not validate_only:
-        response = call_loadxl(validate_only=True)
-        if response.get("errors", []):
-            return response
+    loadxl_response = loadxl(
+        testapp=portal_vapp,
+        inserts=data,
+        docsdir=None,
+        overwrite=True,
+        itype=None,
+        from_json=True,
+        continue_on_exception=True,
+        verbose=True,
+        post_only=post_only,
+        patch_only=patch_only,
+        validate_only=validate_only,
+        skip_links=True,
+        progress=define_progress_tracker(submission_uuid, validation=validate_only, total=nrows, vapp=portal_vapp))
 
-    return call_loadxl(validate_only=validate_only)
+    loadxl_response = package_loadxl_response(loadxl_response)
+
+    ingestion_status.update({PROGRESS_INGESTER.LOADXL_DONE: PROGRESS_INGESTER.NOW()})
+
+    return loadxl_response
 
 
 def summary_of_load_data_results(load_data_response: Optional[Dict],
