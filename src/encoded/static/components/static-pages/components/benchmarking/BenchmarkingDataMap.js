@@ -85,36 +85,6 @@ export const BenchmarkingDataMap = {
                 title: 'HapMap mixture',
                 searchHref: '/search/?type=File&dataset=hapmap',
             },
-            {
-                eventKey: '#hg002',
-                title: 'HG002',
-                searchHref: '/search/?type=File&dataset=hg002',
-            },
-            {
-                eventKey: '#hg00438',
-                title: 'HG00438',
-                searchHref: '/search/?type=File&dataset=hg00438',
-            },
-            {
-                eventKey: '#hg005',
-                title: 'HG005',
-                searchHref: '/search/?type=File&dataset=hg005',
-            },
-            {
-                eventKey: '#hg02257',
-                title: 'HG02257',
-                searchHref: '/search/?type=File&dataset=hg02257',
-            },
-            {
-                eventKey: '#hg02486',
-                title: 'HG02486',
-                searchHref: '/search/?type=File&dataset=hg02486',
-            },
-            {
-                eventKey: '#hg02622',
-                title: 'HG02622',
-                searchHref: '/search/?type=File&dataset=hg02622',
-            },
         ],
     },
     iPScFibroblasts: {
