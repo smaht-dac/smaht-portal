@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import { Tab, Tabs } from 'react-bootstrap';
@@ -9,6 +9,7 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { BenchmarkingTableController } from './BenchmarkingTable';
 import { navigate } from '../../../util';
 import { NotLoggedInAlert } from '../../../navigation/components';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 export const BenchmarkingLayout = ({
     schemas,
@@ -58,6 +59,58 @@ export const BenchmarkingLayout = ({
             {/* Display tabs (and initialize with proper hash) */}
             {schemas && children}
         </div>
+    );
+};
+
+// Fetches the total number of files for each tab and returns the title
+// Isolates the dataset parameter from a relative URL and returns it
+/**
+ * @param {props} props - Props from HashBasedTabController
+ * @param {string} props.title - Title text of the tab
+ * @param {string} props.searchHref - Search href for dataset
+ * associated with the tab
+ */
+const TabTitle = ({ title, searchHref = '' }) => {
+    const [fileCount, setFileCount] = useState(null);
+
+    useEffect(() => {
+        if (searchHref) {
+            // Extract the dataset parameter from the searchHref
+            const paramString = searchHref.split('?')[1];
+            const dataset = new URLSearchParams(paramString).get('dataset');
+
+            // Fetch the total number of files for the extracted dataset
+            ajax.promise(
+                '/search_total',
+                'POST',
+                {}, // headers
+                JSON.stringify({
+                    type: 'File',
+                    status: ['released', 'restricted', 'public'],
+                    dataset: [dataset],
+                })
+            )
+                .then((res) => {
+                    if (res.status === 'error') {
+                        throw new Error(
+                            'Total number of files was not retrieved. ' +
+                                res?.description
+                        );
+                    } else {
+                        setFileCount(res?.total ?? null);
+                    }
+                })
+                .catch((e) => console.error(e));
+        }
+    }, []);
+
+    return (
+        <span className="nav-link-title">
+            {title}
+            <span className="badge badge-secondary">
+                {fileCount === null ? '-' : fileCount}
+            </span>
+        </span>
     );
 };
 
@@ -116,7 +169,12 @@ export const HashBasedTabController = ({
             {tabMapArray.map((tabMap) => {
                 const { eventKey, title, searchHref } = tabMap;
                 return (
-                    <Tab key={eventKey} {...{ title, eventKey }}>
+                    <Tab
+                        key={eventKey}
+                        {...{
+                            title: <TabTitle {...{ title, searchHref }} />,
+                            eventKey,
+                        }}>
                         <div className="mt-1">
                             <BenchmarkingTableController
                                 {...{ searchHref }}
