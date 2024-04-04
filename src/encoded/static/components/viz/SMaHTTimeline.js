@@ -204,23 +204,41 @@ const loadStateData = {
             title: 'Tier 1',
             subtitle: 'with core + additional technologies',
             categories: [{ title: 'Primary Tissues' }],
-            // figures: [{}],
         },
         {
             title: 'Tier 2',
             subtitle: 'with core technologies',
             categories: [{ title: 'Primary Tissues' }],
-            // figures: [{}],
         },
     ],
+};
+
+// Pase date string to human readable format
+const getDateString = (string) => {
+    if (!string) return null;
+
+    const date = new Date(string);
+
+    const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/New_York',
+        timeZoneName: 'short',
+    };
+
+    return date.toLocaleString('en-US', options);
 };
 
 export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
     const [data, setData] = useState(loadStateData);
 
+    // Load latest data from server and update state
     useEffect(() => {
         ajax.load('/home', (res) => {
-            const release_date = res['date'];
+            const release_date = getDateString(res['date']);
             const data = {
                 release_date,
                 timeline_content: res['@graph'],

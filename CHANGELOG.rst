@@ -7,6 +7,19 @@ smaht-portal
 Change Log
 ----------
 
+0.35.2
+======
+
+`PR 139: feat: format latest release date string <https://github.com/smaht-dac/smaht-portal/pull/130>`_
+
+* Format latest release date
+
+0.35.1
+======
+
+* Fix sex not appearing on donor (and other) detail pages
+
+
 0.35.0
 ======
 
