@@ -94,6 +94,9 @@
             "description": "Link to the associated medical history",
             "type": "string",
             "linkTo": "MedicalHistory"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_MOLECULAR-TEST_[A-Z0-9-_.]{4,}$"
         }
     }
 }

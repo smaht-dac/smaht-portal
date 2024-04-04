@@ -1,6 +1,11 @@
 from snovault import collection, load_schema
 
-from .base import Item
+from .submitted_item import SubmittedItem
+
+
+def _build_library_embedded_list():
+    """Embeds for search on libraries."""
+    return []
 
 
 @collection(
@@ -11,7 +16,7 @@ from .base import Item
         "description": "Sequencing libraries",
     },
 )
-class Library(Item):
+class Library(SubmittedItem):
     item_type = "library"
     schema = load_schema("encoded:schemas/library.json")
-    embedded_list = []
+    embedded_list = _build_library_embedded_list()

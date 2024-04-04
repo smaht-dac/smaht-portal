@@ -256,15 +256,15 @@ function CustomStaticLinks({ pathName, href }) {
                                 </a>
                                 <a
                                     className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/HapMap#main"
+                                    href="/data/benchmarking/HapMap"
                                     id="menutree-linkto-hapmap_page">
                                     <span>HapMap</span>
                                 </a>
                                 <a
                                     className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/iPSC-fibroblasts#main"
+                                    href="/data/benchmarking/iPSC-fibroblasts"
                                     id="menutree-linkto-ipscfirbro_page">
-                                    <span>iPSc and Fibroblasts</span>
+                                    <span>iPSC and Fibroblasts</span>
                                 </a>
                             </div>
                         </div>

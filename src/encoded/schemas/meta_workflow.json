@@ -72,7 +72,7 @@
     ],
     "properties": {
         "schema_version": {
-            "default": "1"
+            "default": "2"
         },
         "accession": {
             "accessionType": "MW"
@@ -126,17 +126,29 @@
                             "comment": "ToDo: Make these properties sharable directly without needing to update here and in OutputFile schema",
                             "additional_properties": false,
                             "properties": {
-                                "description": {
-                                    "$merge": "encoded:schemas/output_file.json#/properties/description"
-                                },
-                                "variant_type": {
-                                    "$merge": "encoded:schemas/output_file.json#/properties/variant_type"
+                                "alignment_details": {
+                                    "$merge": "encoded:schemas/mixins.json#/alignment_details/alignment_details"
                                 },
                                 "data_category": {
                                     "$merge": "encoded:schemas/file.json#/properties/data_category"
                                 },
                                 "data_type": {
                                     "$merge": "encoded:schemas/file.json#/properties/data_type"
+                                },
+                                "description": {
+                                    "$merge": "encoded:schemas/mixins.json#/description/description"
+                                },
+                                "output_status": {
+                                    "$merge": "output_file.json#/properties/output_status"
+                                },
+                                "reference_genome": {
+                                    "$merge": "encoded:schemas/mixins.json#/reference_genome/reference_genome"
+                                },
+                                "s3_lifecycle_category": {
+                                    "$merge": "encoded:schemas/file.json#/properties/s3_lifecycle_category"
+                                },
+                                "software": {
+                                    "$merge": "encoded:schemas/mixins.json#/file_links/software"
                                 }
                             }
                         }
@@ -280,6 +292,28 @@
                     }
                 }
             }
+        }
+    },
+    "facets": {
+        "category": {
+            "title": "Category"
+        },
+        "name": {
+            "title": "Name"
+        },
+        "version": {
+            "title": "Version"
+        }
+    },
+    "columns": {
+        "category": {
+            "title": "Category"
+        },
+        "name": {
+            "title": "Name"
+        },
+        "version": {
+            "title": "Version"
         }
     }
 }

@@ -77,7 +77,7 @@ TSV_MAPPING = {
         'File Accession': TSVDescriptor(field_type=FILE,
                                         field_name=['accession']),
         'File Name': TSVDescriptor(field_type=FILE,
-                                   field_name=['annotated_filename']),
+                                   field_name=['annotated_filename', 'display_title', 'filename']),
         'Size (MB)': TSVDescriptor(field_type=FILE,
                                    field_name=['file_size']),
         'md5sum': TSVDescriptor(field_type=FILE,
@@ -94,22 +94,26 @@ def generate_file_download_header(download_file_name: str):
     """ Helper function that generates a suitable header for the File download """
     header1 = ['###', 'Metadata TSV Download', '', '', '', '', '']
     header2 = ['Suggested command to download: ', '', '',
-               'cut -f 1,3 ./{} | tail -n +3 | grep -v ^# | xargs -n 2 curl -O -L '
-               '--user <access_key_id>:<access_key_secret> $0 --output $1'.format(download_file_name), '', '', '']
+               "cut -f 1,3 ./{} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L "
+               "--user <access_key_id>:<access_key_secret> $0 --output $1'".format(download_file_name), '', '', '']
     header3 = list(TSV_MAPPING[FILE].keys())
     return header1, header2, header3
 
 
-def descend_field(request, prop, field_name):
+def descend_field(request, prop, field_names):
     """ Helper to grab field values if we reach a terminal field ie: not dict or list """
-    fields = field_name.split('.')
-    for field in fields:
-        prop = prop.get(field)
-    if isinstance(prop, dict) or isinstance(prop, list):  # we did not get a terminal field
-        return None
-    if field_name == 'href':  # customization to inject server info to download URL
-        prop = f'{request.scheme}://{request.host}{prop}'
-    return prop
+    for possible_field in field_names:
+        current_prop = prop  # store a reference to the original object
+        fields = possible_field.split('.')
+        for field in fields:
+            current_prop = current_prop.get(field)
+        if current_prop is None or isinstance(current_prop, dict) or isinstance(current_prop, list):
+            continue
+        elif possible_field == 'href':
+            return f'{request.scheme}://{request.host}{current_prop}'
+        else:
+            return current_prop
+    return None
 
 
 def generate_tsv(header: Tuple, data_lines: list):
@@ -225,7 +229,7 @@ def metadata_tsv(context, request):
     for file in search_iter:
         line = []
         for _, tsv_descriptor in args.tsv_mapping.items():
-            field = descend_field(request, file, tsv_descriptor.field_name()[0]) or ''
+            field = descend_field(request, file, tsv_descriptor.field_name()) or ''
             line.append(field)
         data_lines += [line]
         if args.include_extra_files and 'extra_files' in file:
@@ -233,8 +237,8 @@ def metadata_tsv(context, request):
             for ef in efs:
                 ef_line = []
                 for _, tsv_descriptor in args.tsv_mapping.items():
-                    field = descend_field(request, ef, tsv_descriptor.field_name()[0]) or ''
-                    line.append(field)
+                    field = descend_field(request, ef, tsv_descriptor.field_name()) or ''
+                    ef_line.append(field)
                 data_lines += [ef_line]
 
     return Response(

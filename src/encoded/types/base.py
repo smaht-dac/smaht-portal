@@ -1,13 +1,18 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-import snovault
+from dcicutils.misc_utils import PRINT
+from pyramid.request import Request
 from pyramid.view import view_config
-from snovault import abstract_collection, calculated_property
+from snovault import AbstractCollection, abstract_collection, calculated_property
+from snovault.crud_views import (
+    collection_add as sno_collection_add,
+    item_edit as sno_item_edit,
+)
 from snovault.types.base import (
     Collection,
     DELETED_ACL,
+    Item as SnovaultItem,
 )
-from snovault.types.base import Item as SnovaultItem
 from snovault.util import debug_log
 from snovault.validators import (
     validate_item_content_post,
@@ -18,15 +23,11 @@ from snovault.validators import (
     no_validate_item_content_put,
     no_validate_item_content_patch
 )
-from snovault.crud_views import (
-    collection_add as sno_collection_add,
-    item_edit as sno_item_edit,
-)
-from dcicutils.misc_utils import PRINT
+from snovault.server_defaults import add_last_modified
 
 from . import acl
-from ..local_roles import DEBUG_PERMISSIONS
 from .utils import get_item
+from ..local_roles import DEBUG_PERMISSIONS
 from ..utils import get_remote_user
 
 
@@ -53,7 +54,7 @@ def mixin_smaht_permission_types(schema: dict) -> dict:
     return schema
 
 
-class AbstractCollection(snovault.AbstractCollection):
+class AbstractCollection(AbstractCollection):
     """smth."""
 
     def __init__(self, *args, **kw):
@@ -144,6 +145,9 @@ class Item(SnovaultItem):
         'released': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         # Everyone can view - restricted to specific items via schemas.
         'public': acl.ALLOW_EVERYONE_VIEW_ACL,
+        # Intended to do additional computation to determine if download
+        # is allowed if it's a downloadable file, otherwise same as "released"
+        'restricted': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         # Intended to tag out-of-date data
         'obsolete': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'deleted': DELETED_ACL,
@@ -154,13 +158,24 @@ class Item(SnovaultItem):
         'in review': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'released': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'public': acl.ALLOW_EVERYONE_VIEW_ACL,
+        # Intended to do additional computation to determine if download
+        # is allowed if it's a downloadable file, otherwise same as "released"
+        'restricted': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'obsolete': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'deleted': DELETED_ACL
+    }
+    MINIMAL_STATUS_VIEW = {
+        'released': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'public': acl.ALLOW_EVERYONE_VIEW_ACL,
     }
 
     def __init__(self, registry, models):
         super().__init__(registry, models)
         self.STATUS_ACL = self.__class__.STATUS_ACL
+
+    def _update(self, properties, sheets=None):
+        add_last_modified(properties)
+        super(Item, self)._update(properties, sheets)
 
     def __acl__(self):
         """This sets the ACL for the item based on mapping of status to ACL.
@@ -182,8 +197,8 @@ class Item(SnovaultItem):
                 PRINT(f'DEBUG_PERMISSIONS: Using consortia ACLs status {status} for {self}')
             return self.CONSORTIUM_STATUS_ACL.get(status, acl.ONLY_ADMIN_VIEW_ACL)
         if DEBUG_PERMISSIONS:
-            PRINT(f'DEBUG_PERMISSIONS: Falling back to admin view for {self}')
-        return acl.ONLY_ADMIN_VIEW_ACL
+            PRINT(f'DEBUG_PERMISSIONS: Falling back to minimal status view for {self}')
+        return self.MINIMAL_STATUS_VIEW.get(status, acl.ONLY_ADMIN_VIEW_ACL)
 
     def __ac_local_roles__(self):
         """ Overrides the default permissioning to add some additional roles to the item based on
@@ -193,8 +208,12 @@ class Item(SnovaultItem):
         properties = self.upgrade_properties()
         if 'submission_centers' in properties:
             for submission_center in properties['submission_centers']:
+                # add standard rw role
                 center = f'{acl.SUBMISSION_CENTER_RW}.{submission_center}'
                 roles[center] = acl.SUBMISSION_CENTER_RW
+                # add create role
+                submitter = f'submits_for.{submission_center}'
+                roles[submitter] = acl.SUBMISSION_CENTER_SUBMITTER
         if 'consortia' in properties:
             for consortium in properties['consortia']:
                 consortium_identifier = f'{acl.CONSORTIUM_MEMBER_RW}.{consortium}'
@@ -202,6 +221,12 @@ class Item(SnovaultItem):
         if 'submitted_by' in properties:
             submitter = 'userid.%s' % properties['submitted_by']
             roles[submitter] = 'role.owner'
+        if self.type_info.name == 'Consortium':
+            consortium_identifier = f'{acl.CONSORTIUM_MEMBER_RW}.{str(self.uuid)}'
+            roles[consortium_identifier] = acl.CONSORTIUM_MEMBER_RW
+        if self.type_info.name == 'SubmissionCenter':
+            center = f'{acl.SUBMISSION_CENTER_RW}.{str(self.uuid)}'
+            roles[center] = acl.SUBMISSION_CENTER_RW
         if DEBUG_PERMISSIONS:
             PRINT(f'DEBUG_PERMISSIONS: Returning roles {roles} for {self}')
         return roles
@@ -217,6 +242,30 @@ class Item(SnovaultItem):
         if properties.get('status') != 'replaced' and 'accession' in properties:
             keys['accession'].append(properties['accession'])
         return keys
+
+    @calculated_property(schema={"title": "Display Title", "type": "string"})
+    def display_title(
+        self,
+        request: Request,
+        title: Optional[str] = None,
+        name: Optional[str] = None,
+        identifier: Optional[str] = None,
+        submitted_id: Optional[str] = None,
+        accession: Optional[str] = None,
+        uuid: Optional[str] = None,
+    ) -> Union[str, None]:
+        """Generate display title with sane defaults for SMaHT."""
+        if title:
+            return title
+        if name:
+            return name
+        if identifier:
+            return identifier
+        if submitted_id:
+            return submitted_id
+        if accession:
+            return accession
+        return self.uuid
 
 
 @calculated_property(context=Item.AbstractCollection, category='action')

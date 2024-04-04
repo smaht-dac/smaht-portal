@@ -52,7 +52,9 @@
 
 	.heading-with-bottom-border,
 	.homepage-section-title,
-	.section-title {
+	.section-title,
+	.rst-container h2:first-child,
+	.html-container h2:first-child {
 		margin-bottom: 20px;
 		margin-top: 20px;
 		padding-bottom: 15px;
@@ -130,6 +132,94 @@
 		display: none;
 	}
 
+	h5 {
+		margin-top: 20px;
+	}
+
+	table.docutils {
+		margin: 40px 0;
+	}
+
+	// since rst-to-html non-customizable,
+	// tweak some css rules to display h3/h4 like h4/h5 respectively
+	// use the same styles for raw HTML
+	.rst-container,
+	.html-container {
+		h3 {
+			font-size: 1.3rem;
+			margin-bottom: 0.5rem;
+		}
+
+		h4 {
+			font-size: 1rem;
+		}
+		
+		ul {
+			margin-top: 1rem;
+		}
+
+		pre {
+			margin-top: 1rem;
+			margin-bottom: 1rem;
+			padding: 10px;
+			border: 2px solid #f0f0f1;
+			border-radius: 5px;
+			background-color: #f8f8f8;
+			color: #212529;
+
+			i.icon-copy {
+				position: absolute;
+				font-size: 0.875rem;
+				color: #B1B1B1;
+				right: 6px;
+				top: 6px;
+
+				@include media-breakpoint-down(lg){
+					right: -20px;
+					top: 2px;
+				}
+
+				&:hover {
+					color: #212529;
+				}
+			}
+		}
+
+		.admonition.tip {
+			background-color: #F7F2F8;
+			padding: 12px;
+  			line-height: 24px;
+  			margin-top: 24px;
+
+			.admonition-title {
+				background-color: #9278AF;
+				font-weight: 700;
+  				display: block;
+  				color: #fff;
+				padding: 6px 12px;
+  				margin: -12px -12px 12px;
+				
+				&:before {
+					font-family: $fa-font-family;
+					content: "\f06a";
+					display: inline-block;
+  					font-style: normal;
+  					font-weight: 700;
+  					line-height: 1;
+  					text-decoration: inherit;
+					margin-right: 4px;
+				}
+			}
+		}
+
+		a.reference {
+			white-space: pre-wrap; /* CSS3 */    
+			white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+			white-space: -pre-wrap; /* Opera 4-6 */    
+			white-space: -o-pre-wrap; /* Opera 7 */    
+			word-wrap: break-word; /* Internet Explorer 5.5+ */
+		}
+	}
 }
 
 
@@ -307,7 +397,7 @@
 					//left: -40px;
 					top: 50%;
 					margin-top: -9px;
-					font-size: 0.85rem;
+					font-size: 0.6rem;
 					cursor: pointer;
 					width: 15px;
 					height: 15px;
@@ -730,11 +820,19 @@ body[data-path="/"]>#application>#layout {
 	position: relative;
 	nav {
 		font-weight: 400;
+		position: absolute;
+		right: 0;
+		
+		.nav-item {
+			&.active {
+				font-weight: 500;
+			}
+		}
 	}
 	text {
 		font-family: Inter;
 	}
-	use.map-marker-icon:hover {
+	.map-marker-icon:hover {
 		stroke: #636262ba;
 		stroke-width: 1px;
 		transition: stroke-width 150ms;
@@ -747,8 +845,35 @@ body[data-path="/"]>#application>#layout {
 		margin: none;
 	}
 
-	#map-marker-svg:hover {
+	.map-marker-icon:hover {
 		cursor: pointer;
+	}
+
+	&-container {
+		padding-top: 75px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+
+		svg {
+			margin: auto;
+		}
+	}
+
+	.interaction-notice {
+        color: gray;
+		font-size: .6rem;
+        font-style: italic;
+		margin: auto;
+		@include media-breakpoint-up(sm) {
+			font-size: .7rem;
+		}
+		@include media-breakpoint-up(md) {
+			font-size: .8rem;
+		}
+		@include media-breakpoint-up(lg) {
+			font-size: .9rem;
+		}
 	}
 
 	
@@ -756,6 +881,11 @@ body[data-path="/"]>#application>#layout {
 	.consortium-legend {
 		background-color: #e3e3e3;
 		position: absolute;
+
+		.map-marker-icon:hover {
+			cursor:default;
+		}
+	
 	}
 	.consortium-tooltip {
 		line-height: 20px;
@@ -964,6 +1094,7 @@ div#popover-consortium-map {
         overflow: visible;
 		max-width: 100%;
 		height: 100%;
+		width: 100%;
 
         .header {
             font-family: Inter;
@@ -980,6 +1111,7 @@ div#popover-consortium-map {
     
         &:hover {
             cursor: pointer;
+			filter: brightness(0.95);
             
             text {
                 fill: black;
@@ -1016,6 +1148,11 @@ div#popover-consortium-map {
 		margin-top: 40px;
 	}
 }
+
+
+$gcc-color: rgba(255, 128, 0, 0.6);
+$ttd-color: rgba(77, 175, 74, 0.8);
+
 .stackrow-table-container {
 	width: 100%;
 	height: auto;
@@ -1111,24 +1248,32 @@ div#popover-consortium-map {
 						border-left: 10px solid;
 						border-style: none none none solid;
 	
-						&[data-row-title="BCM"] {
-							border-color: hsla(185, 50%, 45%, 1);
+						&[data-row-title="BCM-GCC"] {
+							border-color: $gcc-color;
 							background-color: #F8F8F8;
 						}
 						&[data-row-title="Broad"] {
-							border-color: hsla(60, 70%, 44%, 1);
+							border-color: $gcc-color;
 							background-color: white;
 						}
 						&[data-row-title="NYGC"] {
-							border-color: rgb(98, 72, 72);
+							border-color: $gcc-color;
 							background-color: #F8F8F8;
 						}
 						&[data-row-title="UW"] {
-							border-color: hsla(13, 68%, 60%, 1);
+							border-color: $gcc-color;
 							background-color: white;
 						}
 						&[data-row-title="WashU"] {
-							border-color: hsla(10, 30%, 42%, 1);
+							border-color: $gcc-color;
+							background-color: #F8F8F8;
+						}
+						&[data-row-title="BCM-TTD"] {
+							border-color: $ttd-color;
+							background-color: white;
+						}
+						&[data-row-title="UMich"] {
+							border-color: $ttd-color;
 							background-color: #F8F8F8;
 						}
 
@@ -1226,14 +1371,16 @@ div#popover-consortium-map {
 		}
 	}
 
-	@media screen and (min-width: 768px) and (max-width: 992px) {
+	// >992px
+	@media screen and (min-width: 992px) and (max-width: 1200px) {
+
 		.stackrow {
 			&-table {
 				&-top-labels {
 					margin-top: 60px;
 					padding-right: 35px;
 					.label {
-						width: 40px;
+						width: 36px;
 						font-size: 0.8rem;
 					}
 				}
@@ -1241,15 +1388,23 @@ div#popover-consortium-map {
 					.stackrow {
 						&-row {
 							.stackrow-left-label {
-								height: 40px;
+								height: 36px;
+								width: 110px;
+
+								.label {
+									font-size: 0.8rem;
+								}
 							}
 							.stackrow-item {
-								width: 40px;
-								height: 40px;
+								width: 36px;
+								height: 36px;
 	
 								&-container {
-									height: 25px;
-									width: 25px;
+									height: 27px;
+									width: 27px;
+									margin: auto;
+									font-size: 0.8rem;
+									line-height: normal;
 								}
 							}
 						}
@@ -1277,7 +1432,67 @@ div#popover-consortium-map {
 			}
 		}
 	}
+
 	// 768px - 992px
+	@media screen and (min-width: 768px) and (max-width: 992px) {
+		.stackrow {
+			&-table {
+				&-top-labels {
+					margin-top: 60px;
+					padding-right: 35px;
+					.label {
+						width: 32px;
+						font-size: 0.7rem;
+					}
+				}
+				&-body {
+					.stackrow {
+						&-row {
+							.stackrow-left-label {
+								height: 32px;
+								width: 100px;
+
+								.label {
+									font-size: 0.7rem;
+								}
+							}
+							.stackrow-item {
+								width: 32px;
+								height: 32px;
+	
+								&-container {
+									height: 25px;
+									width: 25px;
+									margin: auto;
+									font-size: 0.8rem;
+									line-height: normal;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		.stackrow-table-footnote {
+			font-size: 0.8rem;
+			margin-top: 20px;
+		}
+		.stackrow-item-legend {
+			margin-top: 20px;
+
+			.stackrow-item {
+				&-container {
+					width: 25px;
+					height: 25px;
+					font-size: 0.7rem;
+				}
+			}
+			
+			.text {
+				font-size: 0.8rem;
+			}
+		}
+	}
 	@media screen and (min-width: 576px) and (max-width: 768px) {
 
 		.stackrow {
@@ -1286,8 +1501,8 @@ div#popover-consortium-map {
 					margin-top: 40px;
 					padding-right: 10px;
 					.label {
-						width: 25px;
-						font-size: 0.7rem;
+						width: 22px;
+						font-size: 0.5rem;
 
 						span {
 							transform: rotate(-60deg) translate(5px, 20px);
@@ -1299,7 +1514,7 @@ div#popover-consortium-map {
 					.stackrow {
 						&-row {
 							.stackrow-left-label {
-								height: 25px;
+								height: 22px;
 								width: 80px;
 								padding-left: 9px;
 								border-left: 6px solid;
@@ -1307,19 +1522,19 @@ div#popover-consortium-map {
 								
 								.label {
 									font-weight: 300;
-									font-size: 0.7rem;
+									font-size: 0.5rem;
 								}
 							}
 							.stackrow-item {
-								height: 25px;
-								width: 25px;
+								height: 22px;
+								width: 22px;
 								display: flex;
 								justify-content: center;
 								border-right: 1px solid rgba(238, 238, 238, 0.6);
 	
 								&-container {
-									height: 18px;
-									width: 18px;
+									height: 16px;
+									width: 16px;
 									margin: auto;
 									font-size: 0.6rem;
 									line-height: normal;
@@ -1359,8 +1574,8 @@ div#popover-consortium-map {
 					margin-top: 0;
 					padding-right: 15px;
 					.label {
-						width: 17px;
-						font-size: 0.4rem;
+						width: 14px;
+						font-size: 0.3rem;
 
 						> span {
 							transform: rotate(-60deg) translate(-5px, 10px);
@@ -1372,29 +1587,29 @@ div#popover-consortium-map {
 					.stackrow {
 						&-row {
 							.stackrow-left-label {
-								height: 15px;
-								width: 40px;
+								height: 14px;
+								width: 35px;
 								padding-left: 5px;
 								border-left: 3px solid;
 								border-style: none none none solid;
 								
 								.label {
 									font-weight: 300;
-									font-size: 0.5rem;
+									font-size: 0.3rem;
 								}
 							}
 							.stackrow-item {
-								height: 17px;
-								width: 17px;
+								height: 14px;
+								width: 14px;
 								display: flex;
 								justify-content: center;
 								border-right: 1px solid rgba(238, 238, 238, 0.6);
 	
 								&-container {
-									height: 11px;
-									width: 11px;
+									height: 9px;
+									width: 9px;
 									margin: auto;
-									font-size: 0.4rem;
+									font-size: 0.3rem;
 									line-height: normal;
 								}
 							}
@@ -1454,7 +1669,7 @@ div#popover-consortium-data-alluvial-table {
 				padding: 0;
 			}
 			.read-more {
-				display: inline;
+				display: block;
 				margin-top: 5px;	
 			}
 		}
@@ -1706,7 +1921,6 @@ body[data-pathname^="/data/benchmarking"] {
 					pre.curl-command {
 						border: 1px dashed #dedede;
 						padding: 5px;
-						text-overflow: ellipsis;
 					}
 					.curl-command-wrapper i.icon-copy {
 						margin-left: 5px;

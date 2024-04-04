@@ -70,12 +70,30 @@
     {
         "name": "STORM-Seq",
         "display_name": "STORM-Seq",
-        "description": "Single-cell TOtal RNA Miniaturized sequencing; a single-cell full-length ribo-reduced total RNA sequencing using short-read platforms.",
+        "description": "Single-cell Total RNA Miniaturized sequencing; a single-cell full-length ribo-reduced total RNA sequencing using short-read platforms.",
         "link": "https://www.biorxiv.org/content/10.1101/2022.03.14.484332v1"
     },
     {
         "name": "Tranquil-Seq",
         "display_name": "Tranquil-Seq",
         "description": "Single-cell full-length RNA-Seq using long-read platforms."
+    },
+    {
+        "name": "WGS CompDuplex-Seq",
+        "display_name": "CompDuplex-Seq",
+        "description": "Accurate detection of somatic mutations by duplex-seq with comprehensive genome coverage",
+        "link": "https://www.protocols.io/view/compduplex-accurate-detection-of-somatic-mutations-c7rkzm4w"
+    },
+    {
+        "name": "WGS scCompDuplex-Seq",
+        "display_name": "scCompDuplex-Seq",
+        "description": "Click below to learn more about the scCompDuplex-Seq protocol",
+        "link": "https://www.protocols.io/view/compduplex-accurate-detection-of-somatic-mutations-c7rkzm4w"
+    },
+    {
+        "name": "WGS MALBAC-amplifed",
+        "display_name": "MALBAC-amplifed WGS",
+        "description": "Click below to learn more about the MALBAC-amplifed WGS",
+        "link":"https://pubmed.ncbi.nlm.nih.gov/23258894/"
     }
 ]

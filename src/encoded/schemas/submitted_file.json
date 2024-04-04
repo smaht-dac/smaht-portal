@@ -41,6 +41,12 @@
             "$ref": "mixins.json#/description"
         },
         {
+            "$ref": "mixins.json#/file_links"
+        },
+        {
+            "$ref": "mixins.json#/file_release"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -76,38 +82,14 @@
         "schema_version": {
             "default": "1"
         },
-        "derived_from": {
-            "title": "Derived From",
-            "description": "Files used as input to create this file",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "SubmittedFile"
-            }
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_SUBMITTED-FILE_[A-Z0-9-_.]{4,}$"
         },
-        "file_sets": {
-            "title": "File Sets",
-            "description": "File collections associated with this file",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "FileSet"
-            }
-        },
-        "software": {
-            "title": "Software",
-            "description": "Software used to create this file",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "Software"
-            }
+        "submitted_md5sum": {
+            "title": "Submitted MD5",
+            "description": "Submitted MD5 checksum of the file",
+            "type": "string",
+            "format": "hex"
         }
     }
 }

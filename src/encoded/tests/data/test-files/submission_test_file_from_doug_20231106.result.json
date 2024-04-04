@@ -26,7 +26,7 @@
     ],
     "Software": [
       {
-        "submitted_id": "SMAHT_SOFTWARE_VEP",
+        "submitted_id": "SMAHT_SOFTWARE_VEPX",
         "name": "vep",
         "category": [ "Variant Annotation" ],
         "title": "VEP",
@@ -48,7 +48,7 @@
         "aliases": [ "smaht:workflow-basic" ],
         "name": "basic_workflow",
         "title": "A Basic Workflow",
-        "software": [ "SMAHT_SOFTWARE_VEP" ],
+        "software": [ "SMAHT_SOFTWARE_VEPX" ],
         "category": [ "Annotation" ],
         "language": "CWL",
         "tibanna_config": { "instance_type": [ "c5.4xlarge" ], "run_name": "vep" },
@@ -58,7 +58,7 @@
         "aliases": [ "smaht:workflow-complex" ],
         "name": "complex_workflow",
         "title": "A Complex Workflow",
-        "software": [ "SMAHT_SOFTWARE_VEP", "SMAHT_SOFTWARE_FASTQC" ],
+        "software": [ "SMAHT_SOFTWARE_VEPX", "SMAHT_SOFTWARE_FASTQC" ],
         "category": [ "Annotation", "Quality Control" ],
         "language": "WDL",
         "tibanna_config": { "instance_type": [ "c5.4xlarge" ], "run_name": "fastqc" },

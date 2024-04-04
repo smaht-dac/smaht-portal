@@ -601,6 +601,10 @@ export class AreaChart extends React.PureComponent {
         return stackGen(formattedDateData);
     }
 
+    static isTermUrl(term){
+        return term && typeof term === 'string' && term.length > 3 && term.charAt(0) === '/' && term[term.length - 1] === '/';
+    }
+
     static getDerivedStateFromProps(props, state){
         return {
             'colorScale' : props.colorScale || state.colorScale || d3.scaleOrdinal(d3.schemeCategory10)
@@ -957,7 +961,7 @@ export class AreaChart extends React.PureComponent {
                                     { _.map(termChildren, function(c, i){
                                         const handleOnClick = (e) => { e.stopPropagation(); tProps.removeTooltip(); };
                                         const term =
-                                            object.isValidAtIDFormat(c.term) ?
+                                            AreaChart.isTermUrl(c.term) ?
                                                 <a key={c.term} href={c.term} target="_blank" rel="noreferrer" onClick={handleOnClick}>{c.term}</a> : c.term;
                                         return (
                                             <tr key={c.term || i} className={currentTerm === c.term ? 'active' : null}>

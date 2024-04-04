@@ -62,6 +62,19 @@ export const parseSectionsContent = memoize(function (context) {
                         {children}
                     </MarkdownHeading>
                 );
+            } else if (domNode.type === 'tag' && domNode.name === 'pre') {
+                const children = _.pluck(domNode.children, 'data');
+                const className = domNode.attribs.class;
+                return (
+                    <div style={{ position: 'relative' }}>
+                        <object.CopyWrapper
+                            value={children}
+                            className={(className || '') + " mt-2"}
+                            wrapperElement="pre"
+                            whitespace={false}>
+                            {children}
+                        </object.CopyWrapper>
+                    </div>);
             }
         },
     };
@@ -178,6 +191,7 @@ const CustomWrapper = React.memo(function CustomWrapper(props) {
                             pageTitle={pageTitle}
                             fixedGridWidth={3}
                             maxHeaderDepth={toc['header-depth'] || 6}
+                            defaultExpanded={true}
                             {..._.pick(
                                 props,
                                 'navigate',

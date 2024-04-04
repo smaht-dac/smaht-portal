@@ -4,7 +4,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE_BAM",
+        "submitted_id": "TEST_ALIGNED-READS_SOME_BAM",
         "data_category": [
             "Sequencing Reads"
         ],
@@ -16,7 +16,14 @@
         "file_sets": [
             "TEST_FILE-SET_LIVER"
         ],
+        "software": [
+            "foo:software_vep"
+        ],
         "reference_genome": "GRCh38",
-        "file_size": 1000
+        "access_status": "Open",
+        "annotated_filename": "SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam",
+        "file_size": 1000,
+        "status": "released",
+        "dataset": "colo829t"
     }
 ]

@@ -37,6 +37,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/code"
+        },
+        {
             "$ref": "mixins.json#/description"
         },
         {
@@ -65,14 +68,23 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/version"
         }
     ],
     "properties": {
         "accession": {
             "accessionType": "RG"
         },
+        "code": {
+            "pattern": "^[A-Za-z0-9]{3,}$"
+        },
         "schema_version": {
             "default": "1"
+        },
+        "version": {
+            "pattern": "^[A-Za-z0-9_-.]{3,}$"
         },
         "files": {
             "title": "Files",
@@ -84,6 +96,14 @@
                 "type": "string",
                 "linkTo": "File"
             }
+        }
+    },
+    "columns": {
+        "identifier": {
+            "title": "Identifier"
+        },
+        "code": {
+            "title": "Code"
         }
     }
 }

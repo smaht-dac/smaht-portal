@@ -27,6 +27,50 @@
         "uuid"
     ],
     "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/alignment_details"
+        },
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/file_links"
+        },
+        {
+            "$ref": "mixins.json#/file_release"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/reference_genome"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "file.json#/properties"
+        }
+    ],
     "mixinFacets": [
         {
             "$ref": "file.json#/facets"
@@ -38,53 +82,19 @@
         }
     ],
     "properties": {
-        "$merge": "encoded:schemas/file.json#/properties",
-        "accession": {
-            "$merge": "encoded:schemas/mixins.json#/accession/accession",
-            "accessionType": "FI"
-        },
-        "aliases": {
-            "$merge": "encoded:schemas/mixins.json#/aliases/aliases"
-        },
-        "alternate_accessions": {
-            "$merge": "encoded:schemas/mixins.json#/accession/alternate_accessions"
-        },
-        "consortia": {
-            "$merge": "encoded:schemas/mixins.json#/attribution/consortia"
-        },
-        "date_created": {
-            "$merge": "encoded:schemas/mixins.json#/submitted/date_created"
-        },
-        "description": {
-            "$merge": "encoded:schemas/mixins.json#/description/description"
-        },
-        "extra_files": {
-            "$merge": "encoded_core:schemas/file.json#/properties/extra_files"
-        },
-        "last_modified": {
-            "$merge": "encoded:schemas/mixins.json#/modified/last_modified"
+        "schema_version": {
+            "default": "2"
         },
         "read_pair_number": {
             "$merge": "encoded:schemas/unaligned_reads.json#/properties/read_pair_number"
         },
-        "schema_version": {
-            "$merge": "encoded:schemas/mixins.json#/schema_version/schema_version",
-            "default": "1"
-        },
-        "submission_centers": {
-            "$merge": "encoded:schemas/mixins.json#/attribution/submission_centers"
-        },
-        "submitted_by": {
-            "$merge": "encoded:schemas/mixins.json#/submitted/submitted_by"
-        },
-        "tags": {
-            "$merge": "encoded:schemas/mixins.json#/tags/tags"
-        },
-        "uuid": {
-            "$merge": "encoded:schemas/mixins.json#/uuid/uuid"
-        },
-        "variant_type": {
-            "$merge": "encoded:schemas/mixins.json#/variant_type/variant_type"
+        "output_status": {
+            "title": "Output status",
+            "description": "Output status of this file within the MetaWorkflowRun",
+            "type": "string",
+            "enum": [
+                "Final Output"
+            ]
         }
     }
 }

@@ -4,7 +4,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE_FASTQ",
+        "submitted_id": "TEST_UNALIGNED-READS_FASTQ",
         "data_category": [
             "Sequencing Reads"
         ],
@@ -17,6 +17,52 @@
             "TEST_FILE-SET_LIVER"
         ],
         "read_pair_number": "R1",
-        "file_size": 10000
+        "file_size": 10000,
+        "status": "released",
+        "dataset": "colo829t"
+    },
+    {
+        "uuid": "621e0ea9-0365-4e65-9790-05aa43c52261",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_UNALIGNED-READS_FASTQ_R2",
+        "data_category": [
+            "Sequencing Reads"
+        ],
+        "data_type": [
+            "Unaligned Reads"
+        ],
+        "file_format": "FASTQ",
+        "filename": "some_fastq_R2.fastq.gz",
+        "file_sets": [
+            "TEST_FILE-SET_LIVER"
+        ],
+        "read_pair_number": "R2",
+        "file_size": 20000,
+        "paired_with": "TEST_UNALIGNED-READS_FASTQ",
+        "status": "released",
+        "dataset": "colo829t"
+    },
+    {
+        "uuid": "92e8371b-bcdf-44de-ad49-3a5f108e91eb",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_UNALIGNED-READS_FASTQ_NO_READ_PAIR_NUMBER",
+        "data_category": [
+            "Sequencing Reads"
+        ],
+        "data_type": [
+            "Unaligned Reads"
+        ],
+        "file_format": "FASTQ",
+        "filename": "some_fastq_unpaired.fastq.gz",
+        "file_sets": [
+            "TEST_FILE-SET_LIVER"
+        ],
+        "file_size": 30000,
+        "status": "released",
+        "dataset": "colo829t"
     }
 ]
