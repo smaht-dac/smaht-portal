@@ -27,10 +27,10 @@ class IngestionStatusCache:
     e.g. development.ini (see the _get_redis_url_from_resource static function below).
 
     Since Redis updates for this could easily be many 1000s per second, the vast majority being updates
-    to existing keys, and since the consumer of this (smaht-submitr) only polls fro this data every
-    second or so, we limit the writes to occur for the latest data at most once every N seconds,
-    where N is at first 1 second. To do this we actualy write updates to a local in-memory cache,
-    and have a separate update thread to flush that cache to Redis periodically (i.e. every 1 second).
+    to existing keys (i.e. the submission_uuid), and since the consumer of this (smaht-submitr) only polls
+    for this data every second or so, we limit the writes to occur for the latest data at most once every
+    N seconds, where N is one second for now. To do this we actualy write updates to a local in-memory cache,
+    and have a separate update thread to flush that cache to Redis periodically (i.e. every one second).
     """
     REDIS_RESOURCE_NAME = "redis.server"
     REDIS_URL = "redis://localhost:6379"
