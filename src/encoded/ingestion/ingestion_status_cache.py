@@ -36,7 +36,7 @@ class IngestionStatusCache:
     _singleton_instance = None
     _singleton_lock = threading.Lock()
     _update_cache_lock = threading.Lock()
-    _redis_lock = threading.RLock()
+    _redis_lock = threading.RLock()  # R is for reentrant
 
     def __init__(self, resource: RedisResourceType = REDIS_URL, redis_client: Optional[Redis] = None) -> None:
         # Fail essentially silently so we work without Redis at all (but log).
