@@ -93,7 +93,11 @@ class IngestionStatusCache:
                 value = deepcopy(value)
         if value is None:
             if isinstance(value := self._redis_get(key), str):
-                value = json.loads(value)
+                try:
+                    if not isinstance(value := json.loads(value), dict):
+                        return {}
+                except Exception:
+                    return {}
         if value is not None:
             if _raw is not True:
                 # Automatically add a "ttl" property on the way out (unless we are updating).
@@ -167,6 +171,24 @@ class IngestionStatusCache:
         if sort:
             keys = sorted(keys)
         return {"key_count": len(keys), "key_expiration": self._redis_key_expiration, "timestamp": _now(), "keys": keys}
+
+    def keys_sorted(self, sort_by: Optional[str] = None) -> dict:
+        if not self._redis:
+            return {}
+        keys_sorted = []
+        if isinstance(keys := self.keys().get("keys"), list):
+            for key in keys:
+                if (value := self.get(key)) and (timestamp := value.get("timestamp")):
+                    keys_sorted.append({"key": key,
+                                        "file": value.get("datafile"),
+                                        "user": value.get("user_email"),
+                                        "consortium": value.get("consortium"),
+                                        "submission_center": value.get("submission_center"),
+                                        "validation": value.get("ingester_validation"),
+                                        "outcome": value.get("ingester_outcome"),
+                                        "timestamp": value["timestamp"]})
+        keys_sorted = sorted(keys_sorted, key=lambda key: key.get("timestamp") or "", reverse=True)
+        return {"key_count": len(keys_sorted), "key_expiration": self._redis_key_expiration, "timestamp": _now(), "keys": keys_sorted}
 
     def flush(self, key: Optional[str] = None) -> None:
         if not self._redis or (self._update_cache is None):

@@ -26,7 +26,12 @@ def handle_metadata_bundle(submission: SubmissionFolio) -> None:
         ingestion_status.update({"file": submission.data_file_name,
                                  "file_size": submission.data_file_size,
                                  "file_checksum": submission.data_file_checksum,
-                                 "bucket": submission.s3_bucket})
+                                 "bucket": submission.s3_bucket,
+                                 "user": submission.user.get("name") if submission.user else None,
+                                 "user_email": submission.user.get("email") if submission.user else None,
+                                 "user_uuid": submission.user.get("uuid") if submission.user else None,
+                                 "consortium": submission.consortium,
+                                 "submission_center": submission.submission_center})
         _process_submission(submission)
         ingestion_status.update({PROGRESS_INGESTER.CLEANUP: PROGRESS_INGESTER.NOW()})
     ingestion_status.update({PROGRESS_INGESTER.OUTCOME: submission.outcome})

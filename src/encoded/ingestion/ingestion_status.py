@@ -25,6 +25,8 @@ def ingestion_status(context, request):
             return IngestionStatusCache.instance(context).info()
         elif lvalue == "keys":
             return IngestionStatusCache.instance(context).keys(sort=_get_arg_bool("sort", request))
+        elif lvalue == "keys_sorted":
+            return IngestionStatusCache.instance(context).keys_sorted()
         elif lvalue == "flush":
             IngestionStatusCache.instance(context).flush()
             return {"flush": True}
