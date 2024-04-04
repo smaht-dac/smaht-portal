@@ -76,7 +76,7 @@ class IngestionStatusCache:
             self._flush_count = 0
             self._flush_thread = None
 
-    def get(self, key: str, sort: bool = False, _raw: bool = False) -> dict:
+    def get(self, key: str, sort: bool = False, _updating: bool = False) -> dict:
         if not self._redis:
             return {}
         if (not isinstance(key, str)) or (not key):
@@ -97,19 +97,19 @@ class IngestionStatusCache:
                 except Exception:
                     return {}
         if value is not None:
-            if _raw is not True:
+            if _updating is not True:
                 # Automatically add a "ttl" property on the way out (unless we are updating).
                 value["ttl"] = self._redis_ttl(key)
             return dict(sorted(value.items(), key=lambda item: item[0])) if sort else value
         return {}
 
-    def set(self, key: str, value: dict, _flush: bool = False) -> bool:
+    def set(self, key: str, value: dict, _flushing: bool = False) -> bool:
         if not self._redis:
             return False
         if (not isinstance(key, str)) or (not key) or (not isinstance(value, dict)) or (not value):
             return False
         # Automatically add a "timestamp" property on the way in (unless we are flushing).
-        if _flush is not True:
+        if _flushing is not True:
             value = {**value, "timestamp": _now()}
             if self._update_cache is not None:
                 with IngestionStatusCache._update_cache_lock:
@@ -143,7 +143,7 @@ class IngestionStatusCache:
         if (not isinstance(uuid, str)) or (not uuid) or (not isinstance(value, dict)) or (not value):
             return False
         with IngestionStatusCache._redis_lock:
-            if existing_value := self.get(uuid, _raw=True):
+            if existing_value := self.get(uuid, _updating=True):
                 return self.set(uuid, {**existing_value, **value})
             else:
                 return self.set(uuid, {"uuid": uuid, **value})
@@ -184,7 +184,7 @@ class IngestionStatusCache:
                                         "submission_center": value.get("submission_center"),
                                         "validation": value.get("ingester_validation"),
                                         "outcome": value.get("ingester_outcome"),
-                                        "timestamp": value["timestamp"]})
+                                        "timestamp": timestamp})
         keys_sorted = sorted(keys_sorted, key=lambda key: key.get("timestamp") or "", reverse=True)
         return {"key_count": len(keys_sorted), "key_expiration": self._redis_key_expiration, "timestamp": _now(), "keys": keys_sorted}
 
@@ -201,10 +201,10 @@ class IngestionStatusCache:
                     update_cache = self._update_cache
                     self._update_cache = {}
         if update_single_value is not None:
-            self.set(key, update_single_value, _flush=True)
+            self.set(key, update_single_value, _flushing=True)
         else:
             for key, value in update_cache.items():
-                self.set(key, value, _flush=True)
+                self.set(key, value, _flushing=True)
 
     def info(self) -> dict:
         if not self._redis:
