@@ -180,7 +180,7 @@ class IngestionStatusCache:
             for key in keys:
                 if (value := self.get(key)) and (timestamp := value.get("timestamp")):
                     keys_sorted.append({"key": key,
-                                        "file": value.get("datafile"),
+                                        "file": value.get("file"),
                                         "user": value.get("user_email"),
                                         "consortium": value.get("consortium"),
                                         "submission_center": value.get("submission_center"),
