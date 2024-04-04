@@ -156,11 +156,12 @@ class IngestionStatusCache:
         keys_from_update_cache = None
         if self._update_cache is not None:
             with IngestionStatusCache._update_cache_lock:
-                keys_from_update_cache = deepcopy(self._update_cache)
+                keys_from_update_cache = list(self._update_cache.keys())
         if keys_from_update_cache is not None:
             for key_from_update_cache in keys_from_update_cache:
                 if key_from_update_cache not in keys:
                     keys.append(key_from_update_cache)
+        keys = list(set(keys))
         if sort:
             keys = sorted(keys)
         return {"key_count": len(keys), "key_expiration": self._redis_key_expiration, "timestamp": _now(), "keys": keys}
