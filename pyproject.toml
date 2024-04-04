@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.35.2.1b2"  # TODO: To become 0.36.0
+version = "0.36.0"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -44,8 +44,8 @@ certifi = ">=2021.5.30"
 chardet = "^5.0.0"
 codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
-dcicsnovault = "^11.13.0.1b23"
-dcicutils = "^8.8.1.1b29"
+dcicsnovault = "^11.14.0"
+dcicutils = "^8.8.2"
 encoded-core = "^0.8.3"
 elasticsearch = "7.13.4"
 execnet = "1.4.1"
