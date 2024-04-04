@@ -41,8 +41,6 @@ class IngestionStatusCache:
 
     _singleton_instance = None
     _singleton_lock = threading.Lock()
-    # TODO: Actually I think we need the Redis and update-cache
-    # operations need to be synchronized together with a single thread lock.
     _update_cache_lock = threading.Lock()
     _redis_lock = threading.RLock()  # R is for reentrant
 
