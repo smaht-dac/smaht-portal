@@ -11,7 +11,6 @@ from urllib.parse import urlencode
 import csv
 import json
 from datetime import datetime
-from copy import deepcopy
 
 import structlog
 
