@@ -66,9 +66,9 @@
             "type": "number",
             "minimum": 0
         },
-        "eligibility_authorization": {
-            "title": "Eligibility Authorization",
-            "description": "Authorization for eligibility of the donor",
+        "eligibility": {
+            "title": "Eligibility",
+            "description": "Whether donor was deemed eligible for the study",
             "type": "string",
             "enum": [
                 "Yes",
