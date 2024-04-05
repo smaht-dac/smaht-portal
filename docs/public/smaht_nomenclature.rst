@@ -16,6 +16,7 @@ codes for each metadata type that are included in sample and file
 names.
 
 
+
 Schema Documentation
 --------------------
 
@@ -45,23 +46,19 @@ Schema Documentation
     </table>
 
 
+
 Naming Schema
 -------------
 
+
+Part 1: Sample Schema and Protocol ID Table
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 |image1|
 
-
-Example Files with the SMaHT Nomenclature
------------------------------------------
-
-|image2|
-
-.. |image1| image:: /static/img/Schema_in_3_parts.png
-.. |image2| image:: /static/img/Example_File_Names.png
+.. |image1| image:: /static/img/Nomenclature_Part1.jpeg
 
 
-Selected Reference Tables
--------------------------
 
 Table 1. Protocol IDs for SMaHT benchmarking and production tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -344,6 +341,17 @@ Table 1. Protocol IDs for SMaHT benchmarking and production tissues.
         </tbody>
     </table>
 
+
+
+Part 2: Base Schema, Platform, and Assay Codes
+----------------------------------------------
+
+|image2|
+
+.. |image2| image:: /static/img/Nomenclature_Part2.jpeg
+
+
+
 Table 3A. Sequencing platform codes.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -395,6 +403,8 @@ Table 3A. Sequencing platform codes.
             </tr>
         </tbody>
     </table>
+
+
 
 Table 3B. Experimental Assay Codes.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -593,3 +603,22 @@ Table 3B. Experimental Assay Codes.
             </tr>
         </tbody>
     </table>
+
+
+
+Part 3: File Name breakdown
+---------------------------
+
+|image3|
+
+.. |image3| image:: /static/img/Nomenclature_Part3.jpeg
+
+
+
+Example Files with the SMaHT Nomenclature
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|image4|
+
+.. |image4| image:: /static/img/Nomenclature_ExampleFiles.jpeg
+
