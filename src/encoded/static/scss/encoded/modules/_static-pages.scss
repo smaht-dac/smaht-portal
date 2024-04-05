@@ -1731,7 +1731,6 @@ body.is-item-view[data-pathname^="/users/"] #page-title-container,
 Unique styling for benchmarking pages
 **/
 body[data-pathname^="/data/benchmarking"] {
-
 	#post-navbar-container>#content.container:not(.error-page) {
 		width: 100%;
 		max-width: calc(100% - 4em);
@@ -1916,9 +1915,7 @@ body[data-pathname^="/data/benchmarking"] {
 							margin: auto;
 						}
 					}
-	
 				}
-	
 			}
 			&.show-nav {
 				padding-left: 32px;
@@ -1971,6 +1968,7 @@ body[data-pathname^="/data/benchmarking"] {
 		}
 	}
 
+	// Prevents text-wrap in side nav section content during reveal
 	@keyframes widthSet {
 		0% {
 			width: 300px;
@@ -1979,9 +1977,6 @@ body[data-pathname^="/data/benchmarking"] {
 			width: 100%;
 		}
 	}
-
-	
-
 
 	.tbd-notice {
 		color: #343741;
