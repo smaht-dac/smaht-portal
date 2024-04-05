@@ -1833,9 +1833,9 @@ body[data-pathname^="/data/benchmarking"] {
 					width: 100%;
 					position: relative;
 					padding: 25px 0px 0px 0px;
-			
-					>.benchmarking-nav-section {
-						>.benchmarking-nav-section-title {
+
+					&-section {
+						&-title {
 							margin-bottom: 10px;
 						}
 					}
@@ -1926,10 +1926,21 @@ body[data-pathname^="/data/benchmarking"] {
 					width: 20%;
 					max-width: 300px;
 					border-right: 1px solid #dee2e6;
-					transition: width 200ms ease-in-out;
+					transition: width 100ms ease-in-out;
 					.benchmarking-nav {
 						width: 100%;
 						padding-right: 20px;
+
+						&-section {
+							overflow: hidden;
+							&-title {
+								animation: widthSet 100ms ease-in-out;
+								margin-bottom: 10px;
+							}
+							.accordion {
+								animation: widthSet 100ms ease-in-out;
+							}
+						}
 					}
 				}
 				.benchmarking-layout-container {
@@ -1957,6 +1968,15 @@ body[data-pathname^="/data/benchmarking"] {
 					width: calc(100% - 32px);
 				}
 			}
+		}
+	}
+
+	@keyframes widthSet {
+		0% {
+			width: 300px;
+		}
+		100% {
+			width: 100%;
 		}
 	}
 
