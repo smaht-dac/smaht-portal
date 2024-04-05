@@ -180,7 +180,7 @@ class SubmissionStatusComponent extends React.PureComponent {
         }
     }
 
-    setFileSetFilter = (selection) => {
+    setFileSetStatusFilter = (selection) => {
         const filter = this.state.filter;
         filter['fileset_status'] = selection;
         this.applyFilter(filter);
@@ -191,13 +191,41 @@ class SubmissionStatusComponent extends React.PureComponent {
             <React.Fragment>
                 <select
                     class="custom-select"
-                    onChange={(e) => this.setFileSetFilter(e.target.value)}>
+                    onChange={(e) => this.setFileSetStatusFilter(e.target.value)}>
                     <option value="all" selected>
                         All
                     </option>
                     <option value="in review">In Review</option>
                     <option value="released">Released</option>
                 </select>
+            </React.Fragment>
+        );
+    };
+
+    setFileSetCreatedFromFilter = (selection) => {
+        const filter = this.state.filter;
+        filter['fileset_created_from'] = selection;
+        this.applyFilter(filter);
+    };
+
+    getFilesetCreationFrom = () => {
+        return (
+            <React.Fragment>
+                <input type="date" className="form-control" onChange={(e) => this.setFileSetCreatedFromFilter(e.target.value)} />
+            </React.Fragment>
+        );
+    };
+
+    setFileSetCreatedToFilter = (selection) => {
+        const filter = this.state.filter;
+        filter['fileset_created_to'] = selection;
+        this.applyFilter(filter);
+    };
+
+    getFilesetCreationTo = () => {
+        return (
+            <React.Fragment>
+                <input type="date" className="form-control" onChange={(e) => this.setFileSetCreatedToFilter(e.target.value)} />
             </React.Fragment>
         );
     };
@@ -278,7 +306,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                     </li>
                 );
                 seq_lib_assay.push(
-                    <li className="line-height-140">Assay: {lib.assay}</li>
+                    <li className="line-height-140">Assay: {lib.assay_display_title}</li>
                 );
             });
             seq_lib_assay = (
@@ -324,7 +352,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                         {seq_lib_assay}
                     </td>
                     <td>{status}</td>
-                    <td className="">{formatDate(fs.submission_date)}</td>
+                    <td className="">{formatDate(fs.date_created)}</td>
                     <td
                         className={
                             fs.submitted_files.is_upload_complete
@@ -340,7 +368,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                         className={
                             fs.submitted_files.num_files_copied_to_o2 ==
                             fs.submitted_files.num_submitted_files
-                                ? 'ss-bg-success-light'
+                                ? ''
                                 : 'ss-bg-warning-light'
                         }>
                         {fs.submitted_files.num_files_copied_to_o2} /{' '}
@@ -380,6 +408,12 @@ class SubmissionStatusComponent extends React.PureComponent {
                     </div>
                     <div className="p-2">
                         FileSet Status: {this.getFilesetStatusSelect()}
+                    </div>
+                    <div className="p-2">
+                        Metadata submitted - From: {this.getFilesetCreationFrom()}
+                    </div>
+                    <div className="p-2">
+                        Metadata submitted - To: {this.getFilesetCreationTo()}
                     </div>
                     <div className="ml-auto p-2 h3">{loadingSpinner}</div>
                 </div>
