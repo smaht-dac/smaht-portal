@@ -7,6 +7,21 @@ smaht-portal
 Change Log
 ----------
 
+0.36.0
+======
+
+* 2024-03-25
+* Changes to support tracking ingestion progess for smaht-submitr (via Redis).
+* Minor documentation tweaks.
+
+
+0.35.2
+======
+
+`PR 139: feat: format latest release date string <https://github.com/smaht-dac/smaht-portal/pull/130>`_
+
+* Format latest release date
+
 0.35.1
 ======
 
