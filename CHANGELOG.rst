@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.37.0
+======
+
+`PR 131: feat: Benchmarking Page navigation toggle functionality <https://github.com/smaht-dac/smaht-portal/pull/131>`_
+
+* Enable toggle for benchmarking page navigation
+
+
 0.36.0
 ======
 
