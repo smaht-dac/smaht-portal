@@ -101,17 +101,15 @@ def get_submission_status(context, request):
 
 
 def add_search_filters(search_params, filter):
-    if filter and "fileset_status" in filter and filter["fileset_status"] != "all":
+    if not filter:
+        return
+    if "fileset_status" in filter and filter["fileset_status"] != "all":
         search_params["status"] = filter["fileset_status"]
-    if (
-        filter
-        and "submission_center" in filter
-        and filter["submission_center"] != "all"
-    ):
+    if "submission_center" in filter and filter["submission_center"] != "all":
         search_params["submission_centers.display_title"] = filter["submission_center"]
-    if filter and "fileset_created_from" in filter and filter["fileset_created_from"]:
+    if "fileset_created_from" in filter and filter["fileset_created_from"]:
         search_params["date_created.from"] = filter["fileset_created_from"]
-    if filter and "fileset_created_to" in filter and filter["fileset_created_to"]:
+    if "fileset_created_to" in filter and filter["fileset_created_to"]:
         search_params["date_created.to"] = filter["fileset_created_to"]
 
 
@@ -122,7 +120,7 @@ def process_files_metadata(files_metadata):
         filter(lambda f: "SubmittedFile" in f["@type"], files_metadata)
     )
     for file in submitted_files:
-        if file["status"] not in ["released", "uploaded", "public"]:
+        if file["status"] == "uploading":
             is_upload_complete = False
         if "o2_path" in file:
             num_files_copied_to_o2 += 1

@@ -6,6 +6,9 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 const PAGE_SIZE = 5;
 
 function formatDate(date_str) {
+    if (!date_str) {
+        return '';
+    }
     const date_options = {
         year: 'numeric',
         month: 'long',
@@ -20,6 +23,14 @@ function createBadge(type, description) {
     const cn = 'badge text-white badge-' + type;
     return <span className={cn}>{description}</span>;
 }
+
+const fallbackCallback = (errResp, xhr) => {
+    // Error callback
+    this.setState({
+        hasError: true,
+    });
+    console.warn(errResp);
+};
 
 class SubmissionStatusComponent extends React.PureComponent {
     constructor(props) {
@@ -36,22 +47,10 @@ class SubmissionStatusComponent extends React.PureComponent {
         };
     }
 
-    nextPage = () => {
+    changePage = (change) => {
         this.setState(
             (prevState) => ({
-                tablePage: prevState.tablePage + 1,
-                loading: true,
-            }),
-            function () {
-                this.getData();
-            }
-        );
-    };
-
-    previousPage = () => {
-        this.setState(
-            (prevState) => ({
-                tablePage: prevState.tablePage - 1,
+                tablePage: prevState.tablePage + change,
                 loading: true,
             }),
             function () {
@@ -74,14 +73,6 @@ class SubmissionStatusComponent extends React.PureComponent {
     }
 
     getSubmissionCenters() {
-        const fallbackCallback = (errResp, xhr) => {
-            // Error callback
-            this.setState({
-                hasError: true,
-            });
-            console.warn(errResp);
-        };
-
         ajax.load(
             '/search/?type=SubmissionCenter',
             (resp) => {
@@ -101,21 +92,11 @@ class SubmissionStatusComponent extends React.PureComponent {
     }
 
     getData() {
-        const fallbackCallback = (errResp, xhr) => {
-            // Error callback
-            this.setState({
-                hasError: true,
-            });
-            console.warn(errResp);
-        };
-
         const payload = {
             limit: PAGE_SIZE,
             from: this.state.tablePage * PAGE_SIZE,
             filter: this.state.filter,
         };
-        console.log(payload);
-        console.log(JSON.stringify(payload));
 
         ajax.load(
             '/get_submission_status/',
@@ -126,8 +107,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                     fileSets: resp.file_sets,
                     numTotalFileSets: resp.total_filesets,
                 });
-
-                console.log(resp.file_sets);
+                //console.log(resp.file_sets);
             },
             'POST',
             fallbackCallback,
@@ -140,9 +120,9 @@ class SubmissionStatusComponent extends React.PureComponent {
         this.getData();
     }
 
-    setSubmissionCenterFilter = (selection) => {
+    setFilter = (filterName, selection) => {
         const filter = this.state.filter;
-        filter['submission_center'] = selection;
+        filter[filterName] = selection;
         this.applyFilter(filter);
     };
 
@@ -150,28 +130,23 @@ class SubmissionStatusComponent extends React.PureComponent {
         if (this.state.submission_centers == 0) {
             return (
                 <React.Fragment>
-                    <select class="custom-select">
-                        <option value="all" selected>
-                            All
-                        </option>
+                    <select className="custom-select" defaultValue="all">
+                        <option value="all">All</option>
                     </select>
                 </React.Fragment>
             );
         } else {
-            const options = [
-                <option value="all" selected>
-                    All
-                </option>,
-            ];
+            const options = [<option value="all">All</option>];
             this.state.submission_centers.forEach((sc) => {
                 options.push(<option value={sc.title}>{sc.title}</option>);
             });
             return (
                 <React.Fragment>
                     <select
-                        class="custom-select"
+                        className="custom-select"
+                        defaultValue="all"
                         onChange={(e) =>
-                            this.setSubmissionCenterFilter(e.target.value)
+                            this.setFilter('submission_center', e.target.value)
                         }>
                         {options}
                     </select>
@@ -180,21 +155,16 @@ class SubmissionStatusComponent extends React.PureComponent {
         }
     }
 
-    setFileSetStatusFilter = (selection) => {
-        const filter = this.state.filter;
-        filter['fileset_status'] = selection;
-        this.applyFilter(filter);
-    };
-
     getFilesetStatusSelect = () => {
         return (
             <React.Fragment>
                 <select
-                    class="custom-select"
-                    onChange={(e) => this.setFileSetStatusFilter(e.target.value)}>
-                    <option value="all" selected>
-                        All
-                    </option>
+                    className="custom-select"
+                    defaultValue="all"
+                    onChange={(e) =>
+                        this.setFilter('fileset_status', e.target.value)
+                    }>
+                    <option value="all">All</option>
                     <option value="in review">In Review</option>
                     <option value="released">Released</option>
                 </select>
@@ -202,30 +172,30 @@ class SubmissionStatusComponent extends React.PureComponent {
         );
     };
 
-    setFileSetCreatedFromFilter = (selection) => {
-        const filter = this.state.filter;
-        filter['fileset_created_from'] = selection;
-        this.applyFilter(filter);
-    };
-
     getFilesetCreationFrom = () => {
         return (
             <React.Fragment>
-                <input type="date" className="form-control" onChange={(e) => this.setFileSetCreatedFromFilter(e.target.value)} />
+                <input
+                    type="date"
+                    className="form-control"
+                    onChange={(e) =>
+                        this.setFilter('fileset_created_from', e.target.value)
+                    }
+                />
             </React.Fragment>
         );
-    };
-
-    setFileSetCreatedToFilter = (selection) => {
-        const filter = this.state.filter;
-        filter['fileset_created_to'] = selection;
-        this.applyFilter(filter);
     };
 
     getFilesetCreationTo = () => {
         return (
             <React.Fragment>
-                <input type="date" className="form-control" onChange={(e) => this.setFileSetCreatedToFilter(e.target.value)} />
+                <input
+                    type="date"
+                    className="form-control"
+                    onChange={(e) =>
+                        this.setFilter('fileset_created_to', e.target.value)
+                    }
+                />
             </React.Fragment>
         );
     };
@@ -259,7 +229,7 @@ class SubmissionStatusComponent extends React.PureComponent {
             navButtons.push(
                 <button
                     className="btn btn-primary btn-sm"
-                    onClick={this.nextPage}>
+                    onClick={() => this.changePage(1)}>
                     Next
                 </button>
             );
@@ -269,7 +239,7 @@ class SubmissionStatusComponent extends React.PureComponent {
             navButtons.push(
                 <button
                     className="btn btn-primary btn-sm mx-2"
-                    onClick={this.previousPage}>
+                    onClick={() => this.changePage(-1)}>
                     Previous
                 </button>
             );
@@ -306,7 +276,9 @@ class SubmissionStatusComponent extends React.PureComponent {
                     </li>
                 );
                 seq_lib_assay.push(
-                    <li className="line-height-140">Assay: {lib.assay_display_title}</li>
+                    <li className="line-height-140">
+                        Assay: {lib.assay_display_title}
+                    </li>
                 );
             });
             seq_lib_assay = (
@@ -394,7 +366,7 @@ class SubmissionStatusComponent extends React.PureComponent {
         if (this.state.loading) {
             loadingSpinner = (
                 <span>
-                    <i className="icon icon-fw fas icon-spinner icon-spin mr-1"></i>
+                    <i className="icon icon-fw fas icon-spinner icon-spin mt-1 mr-1"></i>
                 </span>
             );
         }
@@ -410,7 +382,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                         FileSet Status: {this.getFilesetStatusSelect()}
                     </div>
                     <div className="p-2">
-                        Metadata submitted - From: {this.getFilesetCreationFrom()}
+                        Metadata submitted - From:{' '}
+                        {this.getFilesetCreationFrom()}
                     </div>
                     <div className="p-2">
                         Metadata submitted - To: {this.getFilesetCreationTo()}
