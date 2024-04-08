@@ -18,19 +18,30 @@ class SmahtSubmissionFolio:
         self.submission = submission
         self.id = submission.submission_id
         self.data_file_name = get_parameter(submission.parameters, "datafile")
+        self.data_file_size = get_parameter(submission.parameters, "datafile_size", default=0)
+        self.data_file_checksum = get_parameter(submission.parameters, "datafile_checksum", default=None)
+        self.s3_bucket = submission.bucket
         self.s3_data_file_location = f"s3://{submission.bucket}/{submission.object_name}"
         self.s3_details_location = f"s3://{submission.bucket}/{submission.submission_id}/submission.json"
         self.post_only = get_parameter(submission.parameters, "post_only", as_type=bool, default=False)
         self.patch_only = get_parameter(submission.parameters, "patch_only", as_type=bool, default=False)
         self.validate_only = get_parameter(submission.parameters, "validate_only", as_type=bool, default=False)
-        self.validate_first = get_parameter(submission.parameters, "validate_first", as_type=bool, default=False)
         self.ref_nocache = get_parameter(submission.parameters, "ref_nocache", as_type=bool, default=False)
         self.autoadd = get_parameter(submission.parameters, "autoadd", as_type=str, default=None)
+        self.consortium = get_parameter(submission.parameters, "consortium", as_type=str, default=None)
+        self.submission_center = get_parameter(submission.parameters, "submission_center", as_type=str, default=None)
+        self.user = get_parameter(submission.parameters, "user", as_type=str, default=None)
+        self.debug_sleep = get_parameter(submission.parameters, "debug_sleep", as_type=str, default=None)
         if self.autoadd:
             try:
                 self.autoadd = json.loads(self.autoadd)
             except Exception:
-                pass
+                self.autoadd = None
+        if self.user:
+            try:
+                self.user = json.loads(self.user)
+            except Exception:
+                self.user = None
         if not self.validate_only and self.data_file_name == "null":
             validation_uuid = get_parameter(submission.parameters, "validation_uuid", as_type=str, default=None)
             if (validation_uuid and
@@ -60,6 +71,10 @@ class SmahtSubmissionFolio:
         self.consortium = get_parameter(submission.parameters, "consortium")
         self.submission_center = get_parameter(submission.parameters, "submission_center")
         self.portal_vapp = submission.vapp
+
+    @property
+    def outcome(self) -> str:
+        return self.submission.outcome
 
     @contextmanager
     def s3_file(self) -> Generator[str, None, None]:

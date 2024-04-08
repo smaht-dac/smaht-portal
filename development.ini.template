@@ -23,6 +23,7 @@ pyramid.default_locale_name = en
 # this line determines which load function is used in load_data
 # most deployments use: "load_test_data = snovault.loadxl:load_test_data"
 # note for smaht for now we only load_prod_data, extension can be done later
+# load_test_data = snovault.loadxl:load_local_data
 load_test_data = snovault.loadxl:load_prod_data
 encoded_version = 100.200.300
 snovault_version = 200.300.400
@@ -30,6 +31,7 @@ utils_version = 300.400.500
 eb_app_version = app-v-development-simulation
 env.name = smaht-${USER}
 s3_encrypt_key_id = ${S3_ENCRYPT_KEY_ID}
+redis.server = redis://localhost:6379
 
 [pipeline:debug]
 pipeline =

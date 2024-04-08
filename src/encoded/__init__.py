@@ -45,7 +45,9 @@ def include_encoded(config):
     config.include('encoded.root')
     config.include('encoded.types')
     config.include('encoded.metadata')
+    config.include('encoded.homepage')
     config.include('encoded.upgrade')
+    config.include('encoded.ingestion.ingestion_status')
     # config.include('encoded.visualization')
     config.commit()
 
@@ -273,7 +275,7 @@ def main(global_config, **local_config):
     settings['snovault.jsonld.terms_prefix'] = 'encode'
     set_auth0_config(settings)
     # set google analytics keys
-    set_ga4_config(settings) 
+    set_ga4_config(settings)
 
     # enable invalidation scope, mirror settings
     settings[INVALIDATION_SCOPE_ENABLED] = True
