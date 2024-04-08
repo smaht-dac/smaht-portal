@@ -137,6 +137,16 @@
                 "Yes"
             ]
         },
+        "cancer_type": {
+            "title": "Cancer Type",
+            "description": "Type(s) of cancer with which the donor has been diagnosed",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string"
+            }
+        },
         "cmv_total_antibody": {
             "title": "CMV Total Antibody",
             "description": "Results of testing for CMV total antibody",
@@ -206,16 +216,6 @@
         "family_breast_cancer": {
             "title": "Family History Breast Cancer",
             "description": "Whether the donor had a family history of breast cancer",
-            "type": "string",
-            "enum": [
-                "No",
-                "Unknown",
-                "Yes"
-            ]
-        },
-        "family_cancer_syndrome": {
-            "title": "Family History Cancer Syndrome",
-            "description": "Whether the donor had a family history of a cancer syndrome",
             "type": "string",
             "enum": [
                 "No",
@@ -364,14 +364,6 @@
                 "No",
                 "Unknown",
                 "Yes"
-            ]
-        },
-        "primary_source_of_information": {
-            "title": "Primary Source Of Information",
-            "description": "Source of information for the medical history",
-            "type": "string",
-            "enum": [
-                "TBD"
             ]
         },
         "syphilis_rpr": {

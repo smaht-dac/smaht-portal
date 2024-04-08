@@ -83,6 +83,21 @@
                 "type": "string"
             }
         },
+        "international_military_base": {
+            "title": "International Military Base",
+            "description": "Whether the donor lived or work on an international U.S. military base",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "international_military_base_details": {
+            "title": "International Military Base Details",
+            "description": "Additional information about the donor's association with an international military base",
+            "type": "string"
+        },
         "military_association": {
             "title": "Military Association",
             "description": "Association of the donor with the military, either as a member, employee, or a dependent of a member of the military",
@@ -92,21 +107,6 @@
                 "Unknown",
                 "Yes"
             ]
-        },
-        "military_base": {
-            "title": "Military Base",
-            "description": "Whether the donor lived or work on an international U.S. military base",
-            "type": "string",
-            "enum": [
-                "No",
-                "Unknown",
-                "Yes"
-            ]
-        },
-        "military_base_details": {
-            "title": "Military Base Details",
-            "description": "Additional information about the donor's association with a military base",
-            "type": "string"
         },
         "race": {
             "title": "Race",
