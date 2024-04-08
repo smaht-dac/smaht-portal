@@ -31,4 +31,4 @@ def test_cell_line(es_testapp: TestApp, workbook: None) -> None:
         "TEST_CELL-CULTURE-MIXTURE_HELA-HEK293",
         collection="CellCulture",
     )
-    assert len(item.get("cell_line", [])) == 1
+    assert len(item.get("cell_line", [])) == 2
