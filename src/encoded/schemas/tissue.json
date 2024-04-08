@@ -23,6 +23,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/external_id"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
