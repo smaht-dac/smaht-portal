@@ -53,54 +53,17 @@
         "schema_version": {
             "default": "1"
         },
-        "blood_cultures_available": {
-            "title": "Blood Cultures Available",
-            "description": "Whether blood cultures were drawn during tissue collection",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No",
-                "Unknown"
-            ]
-        },
-        "chest_incision_datetime": {
-            "title": "Chest Incision Time",
-            "description": "Date and time of chest incision for tissue collection",
-            "type": "string",
-            "format": "date-time"
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_TISSUE-COLLECTION_[A-Z0-9-_.]{4,}$"
         },
         "collection_site": {
             "title": "Collection Site",
             "description": "Site of tissue collection",
-            "type": "string",
-            "enum": [
-                "TBD"
-            ]
-        },
-        "core_body_temperature": {
-            "title": "Core Body Temperature",
-            "description": "Body temperature of the donor during tissue collection in degrees Celsius",
-            "type": "number",
-            "minimum": 0
-        },
-        "core_body_temperature_location": {
-            "title": "Core Body Temperature Location",
-            "description": "Location of body temperature measurement for the donor during tissue collection",
-            "type": "string",
-            "enum": [
-                "Axilla",
-                "Anus"
-            ]
-        },
-        "cross_clamp_applied_datetime": {
-            "title": "Cross Clamp Applied Time",
-            "description": "Date and time when cross clamp was applied during tissue collection",
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "ischemic_time": {
             "title": "Ischemic Time",
-            "description": "Time interval in minutes of ischemia for tissue collection, from cross-clamp to asystole",
+            "description": "Time interval in minutes between death, presumed death, or cross-clamp application and beginning of tissue collection",
             "type": "number",
             "minimum": 0
         },
@@ -134,11 +97,6 @@
                 ]
             }
         },
-        "recovery_kit_id": {
-            "title": "Recovery Kit Id",
-            "description": "Identifier of the tissue recovery kit",
-            "type": "string"
-        },
         "refrigeration_prior_to_procurement": {
             "title": "Refrigeration Prior To Procurement",
             "description": "Whether the donor was refrigerated prior to tissue collection",
@@ -160,9 +118,6 @@
             "description": "Link to the associated donor",
             "type": "string",
             "linkTo": "Donor"
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_TISSUE-COLLECTION_[A-Z0-9-_.]{4,}$"
         }
     }
 }

@@ -50,15 +50,8 @@
         "schema_version": {
             "default": "1"
         },
-        "autopsy_by_official": {
-            "title": "Autopsy By Official",
-            "description": "Whether an autopsy was performed by a licensed official",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No",
-                "Unknown"
-            ]
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_DEATH-CIRCUMSTANCES_[A-Z0-9-_.]{4,}$"
         },
         "blood_transfusion": {
             "title": "Blood Transfusion",
@@ -85,18 +78,6 @@
                 ]
             }
         },
-        "brain_death_datetime": {
-            "title": "Brain Death Datetime",
-            "description": "Date and time when brain death was determined for the donor",
-            "type": "string",
-            "format": "date-time"
-        },
-        "cardiac_cessation_datetime": {
-            "title": "Cardiac Cessation Datetime",
-            "description": "Date and time when cardiac activity was determined to have ceased for the donor",
-            "type": "string",
-            "format": "date-time"
-        },
         "cause_of_death_immediate": {
             "title": "Cause Of Death Immediate",
             "description": "Immediate cause of death",
@@ -113,25 +94,9 @@
             "description": "Initial cause of death",
             "type": "string"
         },
-        "cause_of_death_initial_interval": {
-            "title": "Cause Of Death Initial Interval",
-            "description": "Interval of time from initial cause of death to death in minutes",
-            "type": "number",
-            "minimum": 0
-        },
         "cause_of_death_last_underlying": {
             "title": "Cause Of Death Last Underlying",
             "description": "Last underlying cause of death",
-            "type": "string"
-        },
-        "cause_of_death_last_underlying_interval": {
-            "title": "Cause Of Death Last Underlying Interval",
-            "description": "Interval of time from last underlying cause of death to death in minutes",
-            "type": "number"
-        },
-        "cause_of_death_official": {
-            "title": "Cause Of Death Official",
-            "description": "Official cause of death",
             "type": "string"
         },
         "circumstances_of_death": {
@@ -146,45 +111,11 @@
                 "Unreported"
             ]
         },
-        "city_of_death": {
-            "title": "City Of Death",
-            "description": "City of death of the donor",
-            "type": "string"
-        },
-        "country_of_death": {
-            "title": "Country Of Death",
-            "description": "Country of death of the donor",
-            "type": "string"
-        },
-        "death_certificate_available": {
-            "title": "Death Certificate Available",
-            "description": "Whether a death certificate is available for the donor",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No",
-                "Unknown"
-            ]
-        },
-        "death_pronounced_datetime": {
-            "title": "Death Pronounced Datetime",
-            "description": "Date and time when death of the donor was pronounced",
-            "type": "string",
-            "format": "date-time"
-        },
         "death_pronounced_interval": {
             "title": "Death Pronounced Interval",
-            "description": "Interval of time from death until death was pronounced in minutes",
+            "description": "Interval of time between death pronouncement and witness of death, in minutes",
             "type": "number",
             "minimum": 0
-        },
-        "determiner_of_death": {
-            "title": "Determiner Of Death",
-            "description": "If death occurred outside hospital, role of person who determined death of the donor",
-            "type": "string",
-            "enum": [
-                "TBD"
-            ]
         },
         "donor_stream": {
             "title": "Donor Stream",
@@ -203,37 +134,6 @@
             "minimum": 1,
             "maximum": 4
         },
-        "icd_10_category": {
-            "title": "Icd 10 Category",
-            "description": "Category of death based on ICD-10 coding",
-            "type": "string"
-        },
-        "icd_10_cause": {
-            "title": "Icd 10 Cause",
-            "description": "Specific cause of death based on ICD-10 coding ",
-            "type": "string"
-        },
-        "icd_10_classification": {
-            "title": "Icd 10 Classification",
-            "description": "Classification of death based on ICD-10 coding ",
-            "type": "string"
-        },
-        "icd_10_code": {
-            "title": "Icd 10 Code",
-            "description": "ICD-10 Code for cause of death",
-            "type": "string"
-        },
-        "last_seen_alive_datetime": {
-            "title": "Last Seen Alive Datetime",
-            "description": "Date and time when the donor was last known to be alive",
-            "type": "string",
-            "format": "date-time"
-        },
-        "mechanism_of_death": {
-            "title": "Mechanism Of Death",
-            "description": "Mechanism of death of the donor",
-            "type": "string"
-        },
         "place_of_death": {
             "title": "Place Of Death",
             "description": "Place of death of the donor",
@@ -243,12 +143,6 @@
                 "Hospital",
                 "Other"
             ]
-        },
-        "presumed_cardiac_cessation_datetime": {
-            "title": "Presumed Cardiac Cessation Datetime",
-            "description": "Date and time when cardiac activity was presumed to have ceased for the donor",
-            "type": "string",
-            "format": "date-time"
         },
         "region_of_death": {
             "title": "Region Of Death",
@@ -303,24 +197,11 @@
             "type": "number",
             "minimum": 0
         },
-        "witnessed_death": {
-            "title": "Witnessed Death",
-            "description": "Whether the death of the donor was witnessed directly",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No",
-                "Unknown"
-            ]
-        },
         "donor": {
             "title": "Donor",
             "description": "Link to the associated donor",
             "type": "string",
             "linkTo": "Donor"
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_DEATH-CIRCUMSTANCES_[A-Z0-9-_.]{4,}$"
         }
     }
 }
