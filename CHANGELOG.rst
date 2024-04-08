@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.37.0
+======
+
+`PR 127: File Overview Calcprops + Item Utils <https://github.com/smaht-dac/smaht-portal/pull/127>`_
+
+* Add calcprops for file overview page
+* Add calcprops for associated items on files
+* Add item_utils module for common item functions
+
+
 0.36.0
 ======
 
