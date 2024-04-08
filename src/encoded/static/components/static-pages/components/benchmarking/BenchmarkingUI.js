@@ -62,9 +62,10 @@ export const BenchmarkingLayout = ({
     );
 };
 
-// Fetches the total number of files for each tab and returns the title
-// Isolates the dataset parameter from a relative URL and returns it
 /**
+ * Renders title [props.title] along with a number badge showing total
+ * number of files, fetched using the relative search url
+ * [props.searchHref] provided, or "-" otherwise.
  * @param {props} props - Props from HashBasedTabController
  * @param {string} props.title - Title text of the tab
  * @param {string} props.searchHref - Search href for dataset
