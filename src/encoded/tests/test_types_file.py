@@ -508,8 +508,8 @@ def assert_items_match(
     first: List[Dict[str, Any]], second: List[Dict[str, Any]]
 ) -> None:
     """Ensure two lists of items match, per UUIDs."""
-    first_uuids = list(set(item_utils.get_uuid(item) for item in first))
-    second_uuids = list(set(item_utils.get_uuid(item) for item in second))
+    first_uuids = sorted(list(set(item_utils.get_uuid(item) for item in first)))
+    second_uuids = sorted(list(set(item_utils.get_uuid(item) for item in second)))
     assert first_uuids == second_uuids
 
 
