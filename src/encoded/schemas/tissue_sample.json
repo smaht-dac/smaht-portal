@@ -66,12 +66,6 @@
         "accession": {
             "accessionType": "TS"
         },
-        "sample_sources": {
-            "items": {
-                "type": "string",
-                "linkTo": "Tissue"
-            }
-        },
         "schema_version": {
             "default": "1"
         },
