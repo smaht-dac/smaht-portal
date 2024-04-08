@@ -82,11 +82,6 @@
             "type": "number",
             "minimum": 0
         },
-        "id": {
-            "title": "Identifier",
-            "description": "Identifier for the donor",
-            "type": "string"
-        },
         "sex": {
             "title": "Sex",
             "description": "Sex of the donor",
