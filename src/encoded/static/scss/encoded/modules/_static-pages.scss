@@ -1902,7 +1902,7 @@ body[data-pathname^="/data/benchmarking"] {
 						display: flex;
 						justify-content: center;
 						border-radius: 50%;
-						border: 1px solid #E7F0F3;
+						border: 1px solid #DEE2E6;
 						width: 26px;
 						height: 26px;
 						right: -13px;
@@ -1948,7 +1948,7 @@ body[data-pathname^="/data/benchmarking"] {
 				flex-wrap: nowrap;
 				.benchmarking-nav-container{
 					width: 32px;
-					border-right: none;
+					border-right: 1px solid #E7F0F3;
 					background-color: #FBFBFC;
 
 					.benchmarking-nav {
