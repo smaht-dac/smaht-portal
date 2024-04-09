@@ -72,13 +72,6 @@
         "accession": {
             "accessionType": "CU"
         },
-        "sample_sources": {
-            "maxItems": 1,
-            "items": {
-                "type": "string",
-                "linkTo": "CellCulture"
-            }
-        },
         "schema_version": {
             "default": "1"
         },

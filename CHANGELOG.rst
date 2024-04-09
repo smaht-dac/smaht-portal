@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.37.1
+======
+
+`PR 132: Fix file embeds <https://github.com/smaht-dac/smaht-portal/pull/132>`_
+
+* Fix file embeds by removing sub-type LinkTos from Samples to SampleSources and deletion of unused embed
+
+
 0.37.0
 ======
 

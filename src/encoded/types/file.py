@@ -1,4 +1,3 @@
-import functools
 from typing import Any, Dict, List, Optional, Union
 
 from pyramid.view import view_config
@@ -50,7 +49,6 @@ from ..item_utils import (
     analyte as analyte_utils,
     file as file_utils,
     item as item_utils,
-    sample as sample_utils,
     software as software_utils,
 )
 from ..item_utils.utils import (
@@ -325,7 +323,6 @@ def _build_file_embedded_list() -> List[str]:
 
         # Sample summary + Link calcprops
         "file_sets.libraries.analyte.molecule",
-        "file_sets.libraries.analyte.samples.sample_sources.category",
         "file_sets.libraries.analyte.samples.sample_sources.code",
         "file_sets.libraries.analyte.samples.sample_sources.description",
         "file_sets.libraries.analyte.samples.sample_sources.donor",
