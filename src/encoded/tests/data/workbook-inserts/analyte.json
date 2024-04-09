@@ -34,7 +34,8 @@
         "concentration": 6.2,
         "concentration_unit": "ng/uL",
         "samples": [
-            "TEST_CELL-CULTURE-SAMPLE_HELA"
+            "TEST_CELL-CULTURE-SAMPLE_HELA",
+            "TEST_CELL-CULTURE-SAMPLE_HELA-HEK293"
         ]
     }
 ]

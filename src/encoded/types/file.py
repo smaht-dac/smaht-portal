@@ -1,4 +1,3 @@
-import functools
 from typing import Any, Dict, List, Optional, Union
 
 from pyramid.view import view_config
@@ -50,7 +49,6 @@ from ..item_utils import (
     analyte as analyte_utils,
     file as file_utils,
     item as item_utils,
-    sample as sample_utils,
     software as software_utils,
 )
 from ..item_utils.utils import (
@@ -325,7 +323,6 @@ def _build_file_embedded_list() -> List[str]:
 
         # Sample summary + Link calcprops
         "file_sets.libraries.analyte.molecule",
-        "file_sets.libraries.analyte.samples.sample_sources.category",
         "file_sets.libraries.analyte.samples.sample_sources.code",
         "file_sets.libraries.analyte.samples.sample_sources.description",
         "file_sets.libraries.analyte.samples.sample_sources.donor",
@@ -736,32 +733,17 @@ class File(Item, CoreFile):
     ) -> Dict[str, Any]:
         """Get sample summary for display on file overview page."""
         constants = CalcPropConstants
+        # TODO: Implement sample summary fields once TPC updates are available
         to_include = {
-            constants.SAMPLE_SUMMARY_DONOR_IDS: [],  # TODO: Implement once donor ID added with TPC updates
-            constants.SAMPLE_SUMMARY_TISSUES: [],  # TODO: Implement once tissue name added with TPC updates
-            constants.SAMPLE_SUMMARY_SAMPLE_NAMES: get_property_values_from_identifiers(
-                request_handler,
-                file_utils.get_samples(file_properties, request_handler),
-                functools.partial(sample_utils.get_sample_names, request_handler),
-            ),
+            constants.SAMPLE_SUMMARY_DONOR_IDS: [],
+            constants.SAMPLE_SUMMARY_TISSUES: [],
+            constants.SAMPLE_SUMMARY_SAMPLE_NAMES: [],
+            constants.SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS: [],
+            constants.SAMPLE_SUMMARY_STUDIES: [],
             constants.SAMPLE_SUMMARY_ANALYTES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_analytes(file_properties, request_handler),
                 analyte_utils.get_molecule,
-            ),
-            constants.SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS: (
-                get_property_values_from_identifiers(
-                    request_handler,
-                    file_utils.get_samples(file_properties, request_handler),
-                    functools.partial(
-                        sample_utils.get_sample_descriptions, request_handler
-                    ),
-                )
-            ),
-            constants.SAMPLE_SUMMARY_STUDIES: get_property_values_from_identifiers(
-                request_handler,
-                file_utils.get_samples(file_properties, request_handler),
-                functools.partial(sample_utils.get_studies, request_handler),
             ),
         }
         return {key: value for key, value in to_include.items() if value}

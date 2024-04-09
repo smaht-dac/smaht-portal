@@ -7,6 +7,58 @@ smaht-portal
 Change Log
 ----------
 
+0.37.1
+======
+
+`PR 132: Fix file embeds <https://github.com/smaht-dac/smaht-portal/pull/132>`_
+
+* Fix file embeds by removing sub-type LinkTos from Samples to SampleSources and deletion of unused embed
+
+
+0.37.0
+======
+
+`PR 127: File Overview Calcprops + Item Utils <https://github.com/smaht-dac/smaht-portal/pull/127>`_
+
+* Add calcprops for file overview page
+* Add calcprops for associated items on files
+* Add item_utils module for common item functions
+
+
+0.36.0
+======
+
+* 2024-03-25
+* Changes to support tracking ingestion progess for smaht-submitr (via Redis).
+* Minor documentation tweaks.
+
+
+0.35.2
+======
+
+`PR 139: feat: format latest release date string <https://github.com/smaht-dac/smaht-portal/pull/130>`_
+
+* Format latest release date
+
+0.35.1
+======
+
+* Fix sex not appearing on donor (and other) detail pages
+
+
+0.35.0
+======
+
+* Dynamic homepage count support
+* Isolate workbook and non-workbook tests
+
+
+0.34.1
+======
+* Add facets to HapMap and iPSC
+* Fix HapMap and iPSC links
+
+
 0.34.0
 ======
 
@@ -96,7 +148,7 @@ Change Log
 ======
 
 * Removed master-inserts/file_format.json.
-* Changes for new skip_links (snovault.loadxl) mode for smaht-submitr. 
+* Changes for new skip_links (snovault.loadxl) mode for smaht-submitr.
 * Added submits_for to master-inserts/users.json.
 * Documentation related to smaht-submitr updates.
 * FYI: For the record some merging complications (2024-03-09 ~ 15:35) ...
@@ -110,7 +162,7 @@ Change Log
 0.31.0
 ======
 
-* Updates nginx version to latest as of 03/13/2024 to resolve security alerts 
+* Updates nginx version to latest as of 03/13/2024 to resolve security alerts
 
 
 0.30.2
