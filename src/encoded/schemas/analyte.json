@@ -162,6 +162,8 @@
             "type": "string",
             "enum": [
                 "Agilent Bioanalyzer",
+                "Agilent 4200 TapeStation",
+                "Agilent 5300 Fragment Analyzer",
                 "Caliper Life Sciences LabChip GX"
             ]
         },
@@ -179,6 +181,7 @@
                 "cells",
                 "uL",
                 "mL",
+                "ng",
                 "ug",
                 "mg",
                 "g"
