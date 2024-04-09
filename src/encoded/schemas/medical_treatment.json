@@ -4,9 +4,11 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
+        "category",
         "medical_history",
         "submission_centers",
-        "submitted_id"
+        "submitted_id",
+        "title"
     ],
     "identifyingProperties": [
         "accession",
@@ -62,12 +64,17 @@
         "category": {
             "title": "Treatment Category",
             "description": "Type of treatment",
-            "type": "string",
-            "enum": [
-                "Chemotherapy",
-                "Radiation",
-                "Surgery"
-            ]
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Chemotherapy",
+                    "Radiation",
+                    "Surgery"
+                ]
+            }
         },
         "comments": {
             "title": "Comments",

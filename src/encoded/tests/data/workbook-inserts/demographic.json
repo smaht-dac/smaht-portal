@@ -6,8 +6,11 @@
             "smaht"
         ],
         "donor": "TEST_DONOR_FEMALE",
-        "city_of_birth": "Oxford",
-        "ethnicity": "Not Reported",
-        "race": "Asian"
+        "ethnicity_or_race": [
+            "Asian",
+            "Hispanic, Latino, or Spanish Origin",
+            "Other",
+            "White"
+        ]
     }
 ]
