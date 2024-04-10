@@ -8,6 +8,7 @@
         "sample_sources": [
             "TEST_TISSUE_LIVER"
         ],
+        "category": "Core",
         "weight": 800
     }
 ]
