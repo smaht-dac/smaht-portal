@@ -87,7 +87,8 @@
                 "Aliquot",
                 "Cells",
                 "Core",
-                "Homogenate"
+                "Homogenate",
+                "Section"
             ]
         },
         "processing_date": {

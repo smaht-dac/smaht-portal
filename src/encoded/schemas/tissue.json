@@ -57,11 +57,19 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_TISSUE_[A-Z0-9-_.]{4,}$"
+        },
         "ischemic_time": {
             "title": "Ischemic Time",
-            "description": "Time interval of ischemia in minutes",
-            "type": "integer",
+            "description": "Time interval of ischemia in hours",
+            "type": "number",
             "minimum": 0
+        },
+        "location": {
+            "title": "Location",
+            "description": "Anatomic location of the tissue in the donor",
+            "type": "string"
         },
         "pathology_notes": {
             "title": "Pathology Notes",
@@ -74,12 +82,6 @@
             "type": "number",
             "minimum": 0,
             "maximum": 14
-        },
-        "preservation_time_interval": {
-            "title": "Preservation Time Interval",
-            "description": "Time interval from beginning of tissue recovery until placed in preservation media in minutes",
-            "type": "integer",
-            "minimum": 0
         },
         "prosector_notes": {
             "title": "Prosector Notes",
@@ -102,6 +104,12 @@
         "recovery_interval": {
             "title": "Recovery Interval",
             "description": "Total time interval of tissue recovery in minutes",
+            "type": "integer",
+            "minimum": 0
+        },
+        "sample_count": {
+            "title": "Sample Count",
+            "description": "Number of samples taken from the tissue",
             "type": "integer",
             "minimum": 0
         },
@@ -134,9 +142,6 @@
             "description": "Link to the associated donor",
             "type": "string",
             "linkTo": "Donor"
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_TISSUE_[A-Z0-9-_.]{4,}$"
         }
     }
 }
