@@ -34,7 +34,6 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
             'medical_history',
             'diagnosis',
             'exposure',
-            'therapeutic',
             'family_history',
             'medical_treatment',
             'death_circumstances',
