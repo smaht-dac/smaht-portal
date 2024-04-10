@@ -108,25 +108,6 @@
                 "Yes"
             ]
         },
-        "race": {
-            "title": "Race",
-            "description": "The race of the donor",
-            "type": "array",
-            "uniqueItems": true,
-            "minItems": 1,
-            "items": {
-                "type": "string",
-                "enum": [
-                    "American Indian or Alaska Native",
-                    "Asian",
-                    "Black or African American",
-                    "Hispanic or Latino",
-                    "Native Hawaiian or other Pacific Islander",
-                    "White",
-                    "Not Reported"
-                ]
-            }
-        },
         "donor": {
             "title": "Donor",
             "description": "Link to the associated donor",

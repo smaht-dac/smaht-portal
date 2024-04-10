@@ -4,7 +4,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-	    "category",
+        "category",
         "medical_history",
         "submission_centers",
         "submitted_id",
