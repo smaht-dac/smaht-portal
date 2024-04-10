@@ -7,10 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.38.0
+0.37.3
 ======
 
-* New version of dcicutils with minor fix in structured_data for smaht-submitr progress monitoring..
+* New version of dcicutils with minor fix in structured_data for smaht-submitr progress monitoring.
+
+
+0.37.2
+======
+
+`PR 131: feat: Benchmarking Page navigation toggle functionality <https://github.com/smaht-dac/smaht-portal/pull/131>`_
+
+* Enable toggle for benchmarking page navigation
 
 
 0.37.1
