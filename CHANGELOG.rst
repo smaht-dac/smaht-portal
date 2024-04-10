@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.38.0
+======
+
+* New version of dcicutils with minor fix in structured_data for smaht-submitr progress monitoring..
+
+
 0.37.1
 ======
 
