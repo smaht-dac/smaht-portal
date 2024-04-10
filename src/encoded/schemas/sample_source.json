@@ -52,14 +52,14 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_SAMPLE-SOURCE_[A-Z0-9-_.]{4,}$"
+        },
         "sample_count": {
             "title": "Sample Count",
             "description": "Number of samples produced for this source",
             "type": "integer",
             "minimum": 1
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_SAMPLE-SOURCE_[A-Z0-9-_.]{4,}$"
         }
     }
 }
