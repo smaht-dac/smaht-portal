@@ -574,7 +574,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                     <div className="ml-auto p-2">{this.getPageination()}</div>
                 </div>
                 <table className="table table-hover table-striped table-bordered table-sm">
-                    <thead>
+                    <thead className='sticky-top ss-top-40'>
                         <tr>
                             <th className="text-left">File Set</th>
                             <th className="text-left">Status</th>
