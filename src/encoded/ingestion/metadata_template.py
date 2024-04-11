@@ -51,8 +51,10 @@ def submitr_metadata_template(context, request):
         if version := response.get("values", [])[0][0]:
             metadata_template_version = _parse_metadata_template_version(version)
             return {
-                "version": metadata_template_version,
-                "url": metadata_template_url
+                "url": metadata_template_url,
+                "version_sheet": METADATA_TEMPLATE_VERSION_SHEET,
+                "version_cell": METADATA_TEMPLATE_VERSION_CELL,
+                "version": metadata_template_version
             }
     except Exception as e:
         _log_error(f"Cannot get metadata template version\n{get_error_message(e)} from: {metadata_template_url}")
