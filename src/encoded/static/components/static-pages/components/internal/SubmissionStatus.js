@@ -20,18 +20,26 @@ function formatDate(date_str) {
     return date.toLocaleDateString('en-US', date_options);
 }
 
-function getLink(identifier, title){
+function getLink(identifier, title) {
     const href = '/' + identifier;
     return (
         <a href={href} target="_blank">
             {title}
         </a>
     );
-};
+}
 
 function createBadge(type, description) {
     const cn = 'badge text-white badge-' + type;
     return <span className={cn}>{description}</span>;
+}
+
+function createWarningIcon() {
+    return (
+        <span className="p-1 text-large text-warning">
+            <i className="icon fas icon-exclamation-triangle icon-fw"></i>
+        </span>
+    );
 }
 
 const fallbackCallback = (errResp, xhr) => {
@@ -88,6 +96,11 @@ class SubmissionStatusComponent extends React.PureComponent {
                 this.forceUpdate();
             }
         );
+    };
+
+    handleToggleCommentInputField = (e, fs_uuid) => {
+        e.preventDefault();
+        this.toggleCommentInputField(fs_uuid);
     };
 
     getSubmissionCenters() {
@@ -276,7 +289,9 @@ class SubmissionStatusComponent extends React.PureComponent {
                 Comments:{' '}
                 <a
                     href="#"
-                    onClick={() => this.toggleCommentInputField(fs.uuid)}>
+                    onClick={(e) =>
+                        this.handleToggleCommentInputField(e, fs.uuid)
+                    }>
                     <i className="icon fas icon-plus-circle icon-fw"></i>
                     Add
                 </a>
@@ -463,8 +478,13 @@ class SubmissionStatusComponent extends React.PureComponent {
                     </li>
                 );
             });
-            const mwfr_bg = mwfrs.length == 0 ? 'ss-bg-warning-light' : '';
-            mwfrs = <ul>{mwfrs}</ul>;
+
+            mwfrs =
+                mwfrs.length == 0 ? (
+                    <div>{createWarningIcon()} No workflows have been run</div>
+                ) : (
+                    <ul>{mwfrs}</ul>
+                );
             const status_badge_type =
                 fs.status == 'released' ? 'success' : 'warning';
             const status = createBadge(status_badge_type, fs.status);
@@ -484,32 +504,25 @@ class SubmissionStatusComponent extends React.PureComponent {
                         {fs_details}
                     </td>
                     <td>{status}</td>
-                    <td className="">{formatDate(fs.date_created)}</td>
-                    <td
-                        className={
-                            fs.submitted_files.is_upload_complete
-                                ? ''
-                                : 'ss-bg-warning-light'
-                        }>
+                    <td>{formatDate(fs.date_created)}</td>
+                    <td>
                         {fs.submitted_files.is_upload_complete
                             ? formatDate(fs.submitted_files.date_uploaded)
-                            : 'In Progress'}
-                        <br />
-                        {fs.submitted_files.num_submitted_files} files
-                        <br />
-                        {fs.submitted_files.file_formats}
+                            : createBadge('warning', 'in progress')}
+                        <div className="mt-1">
+                            {fs.submitted_files.num_submitted_files} files
+                        </div>
+                        <small>{fs.submitted_files.file_formats}</small>
                     </td>
-                    <td
-                        className={
-                            fs.submitted_files.num_files_copied_to_o2 ==
-                            fs.submitted_files.num_submitted_files
-                                ? ''
-                                : 'ss-bg-warning-light'
-                        }>
+                    <td>
+                        {fs.submitted_files.num_files_copied_to_o2 ==
+                        fs.submitted_files.num_submitted_files
+                            ? ''
+                            : createWarningIcon()}
                         {fs.submitted_files.num_files_copied_to_o2} /{' '}
                         {fs.submitted_files.num_submitted_files} files
                     </td>
-                    <td className={mwfr_bg}>{mwfrs}</td>
+                    <td >{mwfrs}</td>
                 </tr>
             );
         });
