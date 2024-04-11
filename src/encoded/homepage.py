@@ -88,8 +88,8 @@ def generate_admin_search_given_params(context, request, search_param):
     request.remote_user = 'IMPORT'
     if 'HTTP_AUTHORIZATION' in request.environ:
         del request.environ['HTTP_AUTHORIZATION']
-
     subreq = make_search_subreq(request, f'/search?{urlencode(search_param, True)}')
+    subreq.cookies = {}
     return search(context, subreq)
 
 

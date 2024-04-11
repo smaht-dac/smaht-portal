@@ -9,5 +9,16 @@
             "TEST_CELL-CULTURE_HELA"
         ],
         "preservation_type": "Frozen"
+    },
+    {
+        "uuid": "b6974482-6026-4daf-ac7d-46e96312fe5d",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_CELL-CULTURE-SAMPLE_HELA-HEK293",
+        "sample_sources": [
+            "TEST_CELL-CULTURE-MIXTURE_HELA-HEK293"
+        ],
+        "preservation_type": "Frozen"
     }
 ]

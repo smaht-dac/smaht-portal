@@ -4,6 +4,9 @@ Links to Existing Data
 
 References to existing data are frequently required to submit new data. The links below will display all options available for referencing data already in the database.
 
+.. TIP::
+   You need to be logged in to the SMaHT data portal in order to actually see the data at the links below.
+
 
 DAC-Controlled Data
 --------------------
