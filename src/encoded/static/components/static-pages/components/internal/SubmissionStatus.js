@@ -4,7 +4,7 @@ import React from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 30;
 
 function formatDate(date_str) {
     if (!date_str) {
