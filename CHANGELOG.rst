@@ -10,6 +10,7 @@ Change Log
 0.37.3
 ======
 
+* Added expiration for access-keys on user profile page.
 * New version of dcicutils with minor fix in structured_data for smaht-submitr progress monitoring.
 
 

@@ -387,6 +387,7 @@ const AccessKeyTable = React.memo(function AccessKeyTable({
                 <tr>
                     <th>Access Key ID</th>
                     <th>Created</th>
+                    <th>Expires</th>
                     <th>Description</th>
                     <th></th>
                 </tr>
@@ -415,6 +416,7 @@ const AccessKeyTableRow = React.memo(function AccessKeyTableRow({
         '@id': atId,
         access_key_id: id,
         date_created,
+        expiration_date,
         description,
         uuid,
     } = accessKey;
@@ -433,6 +435,17 @@ const AccessKeyTableRow = React.memo(function AccessKeyTableRow({
                 {date_created ? (
                     <LocalizedTime
                         timestamp={date_created}
+                        formatType="date-time-md"
+                        dateTimeSeparator=" - "
+                    />
+                ) : (
+                    'N/A'
+                )}
+            </td>
+            <td>
+                {expiration_date ? (
+                    <LocalizedTime
+                        timestamp={expiration_date}
                         formatType="date-time-md"
                         dateTimeSeparator=" - "
                     />
