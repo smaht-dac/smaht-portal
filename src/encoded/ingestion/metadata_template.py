@@ -18,7 +18,7 @@ from encoded.utils import get_configuration_value
 # to get this and we would rather not expose the required associated Google API key,
 # even though it (the key) is only useful for accessing public documents.
 
-METADATA_TEMPLATE_ID = "1sEXIA3JvCd35_PFHLj2BC-ZyImin4T-TtoruUe6dKT4"
+METADATA_TEMPLATE_SHEET_ID = "1sEXIA3JvCd35_PFHLj2BC-ZyImin4T-TtoruUe6dKT4"
 GOOGLE_API_KEY = None  # Defined in application .ini file (via AWS Secrets Manager)
 GOOGLE_SHEETS_BASE_URL = f"https://docs.google.com/spreadsheets/d"
 # These are hardcoded for now; probably fine/wont-change; dont want to create too much config clutter.
@@ -41,17 +41,18 @@ def submitr_metadata_template(context, request):
     if not (google_api_key := get_configuration_value("google_api_key", context, GOOGLE_API_KEY)):
         _log_warning("No Google Sheets API key found; for getting submitr metadata template version.")
         return {}
-    metadata_template_id = get_configuration_value("submitr_metadata_template_id", context, METADATA_TEMPLATE_ID)
-    metadata_template_url = f"{GOOGLE_SHEETS_BASE_URL}/{METADATA_TEMPLATE_ID}"
+    metadata_template_sheet_id = get_configuration_value("submitr_metadata_template_id", context, METADATA_TEMPLATE_SHEET_ID)
+    metadata_template_url = f"{GOOGLE_SHEETS_BASE_URL}/{METADATA_TEMPLATE_SHEET_ID}"
     try:
         service = google_sheets_build("sheets", "v4", developerKey=google_api_key)
-        command = service.spreadsheets().values().get(spreadsheetId=metadata_template_id,
+        command = service.spreadsheets().values().get(spreadsheetId=metadata_template_sheet_id,
                                                       range=METADATA_TEMPLATE_VERSION_LOCATION)
         response = command.execute()
         if version := response.get("values", [])[0][0]:
             metadata_template_version = _parse_metadata_template_version(version)
             return {
                 "url": metadata_template_url,
+                "sheet_id": metadata_template_sheet_id,
                 "version_sheet": METADATA_TEMPLATE_VERSION_SHEET,
                 "version_cell": METADATA_TEMPLATE_VERSION_CELL,
                 "version": metadata_template_version
