@@ -12,6 +12,9 @@ Change Log
 
 * Added expiration for access-keys on user profile page.
 * New version of dcicutils with minor fix in structured_data for smaht-submitr progress monitoring.
+* Added support to get the version of the latest smaht-submitr Google Sheets metadata template;
+  added endpoint /submitr_metadata_template_info (defined ingestion.metadata_template); added
+  GOOGLE_API_KEY in development.ini.template, smaht_any_alpha.ini, and dcicutils.deployment_utils.
 
 
 0.37.2

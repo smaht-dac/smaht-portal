@@ -48,6 +48,7 @@ def include_encoded(config):
     config.include('encoded.homepage')
     config.include('encoded.upgrade')
     config.include('encoded.ingestion.ingestion_status')
+    config.include('encoded.ingestion.metadata_template')
     # config.include('encoded.visualization')
     config.commit()
 
