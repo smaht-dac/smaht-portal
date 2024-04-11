@@ -32,35 +32,37 @@ def includeme(config):
 @debug_log
 def get_submission_status(context, request):
 
-    post_params = request.json_body
-    filter = post_params.get("filter")
-    # Generate search total
-    search_params = {}
-    search_params["type"] = FILESET
-    add_search_filters(search_params, filter)
-    num_total_filesets = search_total(context, request, search_params)
+    try: 
+        post_params = request.json_body
+        filter = post_params.get("filter")
+        # Generate search total
+        search_params = {}
+        search_params["type"] = FILESET
+        add_search_filters(search_params, filter)
+        num_total_filesets = search_total(context, request, search_params)
 
-    # Generate search
-    search_params = {}
-    search_params["type"] = FILESET
-    search_params["limit"] = min(post_params["limit"], 50)
-    search_params["from"] = post_params["from"]
-    search_params["sort"] = f"-date_created"
-    add_search_filters(search_params, filter)
-    subreq = make_search_subreq(
-        request, f"/search?{urlencode(search_params, True)}", inherit_user=True
-    )
-    search_res = search(context, subreq)["@graph"]
-
-    file_sets = []
-    for res in search_res:
-        file_set = res
-        file_set["submitted_files"] = process_files_metadata(res.get("files", []))
-        file_sets.append(file_set)
+        # Generate search
+        search_params = {}
+        search_params["type"] = FILESET
+        search_params["limit"] = min(post_params["limit"], 50)
+        search_params["from"] = post_params["from"]
+        search_params["sort"] = f"-date_created"
+        add_search_filters(search_params, filter)
+        subreq = make_search_subreq(
+            request, f"/search?{urlencode(search_params, True)}", inherit_user=True
+        )
+        search_res = search(context, subreq)["@graph"]
+        file_sets = []
+        for res in search_res:
+            file_set = res
+            file_set["submitted_files"] = process_files_metadata(res.get("files", []))
+            file_sets.append(file_set)
+    except Exception as e:
+         return {
+            "error": f'Error when trying to get submission status: {e}',
+        }
 
     return {
-        "success": True,
-        "errors": "",
         "file_sets": file_sets,
         "total_filesets": num_total_filesets,
     }

@@ -132,13 +132,16 @@ class SubmissionStatusComponent extends React.PureComponent {
         ajax.load(
             '/get_submission_status/',
             (resp) => {
+                if(resp.error){
+                    console.error(resp.error);
+                    return;
+                }
                 this.setState({
                     initialLoading: false,
                     loading: false,
                     fileSets: resp.file_sets,
                     numTotalFileSets: resp.total_filesets,
                 });
-                //console.log(resp.file_sets);
             },
             'POST',
             fallbackCallback,
