@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.38.0
+======
+
+* Add Submission Status page
+* Add various embeddings to FileSet
+* Add ``file_status_tracking`` calc prop to File
+
+
 0.37.2
 ======
 
