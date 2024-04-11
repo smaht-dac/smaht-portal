@@ -1152,13 +1152,65 @@ File Overview Styles
 .item-page-container.type-File {
 	.file-view {
 		font-family: 'Inter';
+
+		&-title {
+			background: url('/static/img/polygon-bg-header.svg'), linear-gradient(303deg, rgb(229, 241, 254) 0.52%, #f7fdff 99.55%);
+			background-size: cover;
+			border: 1px solid #E7F0F3;
+			padding-top: 30px;
+			padding-bottom: 20px;
+
+			&-navigation {
+				display: flex;
+				flex-direction: row;
+
+				.breadcrumb-list {
+					list-style-type: none;
+					display: flex;
+					justify-content: center;
+					padding: 0px;
+
+					&-item {
+						font-size: .875rem;
+						&-link {
+							color: #428bca;
+
+							&.no-link {
+								color: #5b698b;
+
+								&:hover {
+									text-decoration: none;
+								}
+							}
+
+							&:hover {
+								color: #2a6496;
+							}
+						}
+					}
+					.icon {
+						color: #9BA5B7;
+						margin: auto;
+					}
+				}
+			}
+
+			&-text {
+				font-size: 1.25rem;
+				font-weight: 500;
+				color: #343741;
+				margin: 5px 0px 0px 0px;
+			}
+		}
+
+		
 	
 		&-content {
-			padding: 30px 32px 0px;
+			padding: 40px 32px 0px;
 			.data-group {
 				.datum {
 					display: flex;
-					font-size: 14px;
+					font-size: 0.875rem;
 					color: $gray-70;
 		
 					&-title {
@@ -1182,14 +1234,14 @@ File Overview Styles
 						padding-top: 0px;
 						.header-text {
 							color: #343741;
-							font-size: 28px;
+							font-size: 1.75rem;
 							font-weight: 400;
 							margin: 0px;
 						}
 		
 						.btn {
 							height: 31px;
-							font-size: 14px;
+							font-size: 0.875rem;
 							font-weight: 500;
 							padding: 0px 20px;
 		
@@ -1201,7 +1253,7 @@ File Overview Styles
 			
 					.right-group {
 						display: flex;
-						font-size: 14px;
+						font-size: 0.875rem;
 						
 						.status-group {
 							.status {
@@ -1396,7 +1448,7 @@ File Overview Styles
 	
 	}
 
-	@include media-breakpoint-up(lg) {
+	@include media-breakpoint-up(md) {
 		.tabs-bar-outer {
 			.tabs-bar {
 				background-color: #F5F9FB;
@@ -1459,6 +1511,53 @@ File Overview Styles
 					.data-card {
 						width: 100%;
 						flex: auto;
+					}
+				}
+			}
+		}
+	}
+
+	@include media-breakpoint-down(sm){
+		.file-view {
+			&-title {
+				word-break: break-all;
+			}
+			&-content {
+				.data-cards-container {
+					.data-card {
+						width: 100%;
+						min-width: 296px;
+						flex: auto;
+					}
+				}
+				.data-group {
+					&.data-row {
+						flex-direction: row;
+
+						&.header {
+							flex-direction: column;
+
+							.download-file-button {
+								margin-top: 10px;
+							}
+						}
+
+						.datum {
+							flex-direction: column;
+							justify-content: space-between;
+
+							.status-group {
+								align-self: end;
+
+								svg {
+									vertical-align: baseline;
+								}
+							}
+						}
+
+						.vertical-divider {
+							display: none;
+						}
 					}
 				}
 			}
