@@ -1,15 +1,26 @@
 from pyramid.view import view_config
-from pyramid.response import Response
 from snovault.util import debug_log
 from dcicutils.misc_utils import ignored
-from snovault.search.search import get_iterable_search_results, search
+from snovault.search.search import search
 from snovault.search.search_utils import make_search_subreq
 from urllib.parse import urlencode
-from typing import Tuple, NamedTuple, List
-import csv
-import json
-from datetime import datetime
 import pprint
+
+# Portal constants
+FILESET = "FileSet"
+UPLOADED = "uploaded"
+UPLOADING = "uploading"
+STATUS = "status"
+O2_PATH = "o2_path"
+SUBMITTED_FILE = "SubmittedFile"
+FILE_FORMAT = "file_format"
+DISPLAY_TITLE = "display_title"
+
+WASHU_GCC = "WASHU GCC"
+BCM_GCC = "BCM GCC"
+NYGC_GCC = "NYGC GCC"
+BROAD_GCC = "BROAD GCC"
+UWSC_GCC = "UWSC GCC"
 
 
 def includeme(config):
@@ -25,71 +36,26 @@ def get_submission_status(context, request):
     filter = post_params.get("filter")
     # Generate search total
     search_params = {}
-    search_params["type"] = "FileSet"
+    search_params["type"] = FILESET
     add_search_filters(search_params, filter)
     num_total_filesets = search_total(context, request, search_params)
 
     # Generate search
     search_params = {}
-    search_params["type"] = "FileSet"
+    search_params["type"] = FILESET
     search_params["limit"] = min(post_params["limit"], 50)
     search_params["from"] = post_params["from"]
     search_params["sort"] = f"-date_created"
     add_search_filters(search_params, filter)
-
     subreq = make_search_subreq(
         request, f"/search?{urlencode(search_params, True)}", inherit_user=True
     )
     search_res = search(context, subreq)["@graph"]
-    # pprint.pprint(search_res)
-
-    # pprint.pprint(search_result)
 
     file_sets = []
-
     for res in search_res:
-        file_set = {}
-        file_set["accession"] = res["accession"]
-        file_set["status"] = res["status"]
-        file_set["display_title"] = res["display_title"]
-        file_set["date_created"] = res["date_created"]
-        sequencing = res["sequencing"]
-        file_set["sequencing"] = {
-            "display_title": sequencing.get("display_title", ""),
-            "uuid": sequencing["uuid"],
-            "sequencer": sequencing["sequencer"]["display_title"],
-        }
-
-        file_set["submission_centers"] = [
-            s["display_title"] for s in res["submission_centers"]
-        ]
-
-        file_set["libraries"] = [
-            {
-                "display_title": lib["display_title"],
-                "uuid": lib["uuid"],
-                "assay_display_title": lib["assay"]["display_title"],
-            }
-            for lib in res.get("libraries", [])
-        ]
-        # pprint.pprint(res)
+        file_set = res
         file_set["submitted_files"] = process_files_metadata(res.get("files", []))
-
-        # Search for associated MWFRs
-        file_set["meta_workflow_runs"] = []
-        for mwfr in res.get("meta_workflow_runs", []):
-            file_set["meta_workflow_runs"].append(
-                {
-                    "accession": mwfr["accession"],
-                    "final_status": mwfr["final_status"],
-                    "date_created": mwfr["date_created"],
-                    "meta_workflow_display_title": mwfr["meta_workflow"][
-                        "display_title"
-                    ],
-                }
-            )
-
-        # pprint.pprint(res)
         file_sets.append(file_set)
 
     return {
@@ -104,9 +70,20 @@ def add_search_filters(search_params, filter):
     if not filter:
         return
     if "fileset_status" in filter and filter["fileset_status"] != "all":
-        search_params["status"] = filter["fileset_status"]
-    if "submission_center" in filter and filter["submission_center"] != "all":
-        search_params["submission_centers.display_title"] = filter["submission_center"]
+        search_params[STATUS] = filter["fileset_status"]
+    if "submission_center" in filter:
+        if filter["submission_center"] == "all_gcc":
+            search_params["submission_centers.display_title"] = [
+                WASHU_GCC,
+                BCM_GCC,
+                NYGC_GCC,
+                BROAD_GCC,
+                UWSC_GCC,
+            ]
+        elif filter["submission_center"] != "all":
+            search_params["submission_centers.display_title"] = filter[
+                "submission_center"
+            ]
     if "fileset_created_from" in filter and filter["fileset_created_from"]:
         search_params["date_created.from"] = filter["fileset_created_from"]
     if "fileset_created_to" in filter and filter["fileset_created_to"]:
@@ -116,21 +93,26 @@ def add_search_filters(search_params, filter):
 def process_files_metadata(files_metadata):
     is_upload_complete = True
     num_files_copied_to_o2 = 0
+    file_formats = []
     submitted_files = list(
-        filter(lambda f: "SubmittedFile" in f["@type"], files_metadata)
+        filter(lambda f: SUBMITTED_FILE in f["@type"], files_metadata)
     )
     for file in submitted_files:
-        if file["status"] == "uploading":
+        if file[STATUS] == UPLOADING:
             is_upload_complete = False
-        if "o2_path" in file:
+        if O2_PATH in file:
             num_files_copied_to_o2 += 1
+        file_formats.append(file.get(FILE_FORMAT, {}).get(DISPLAY_TITLE))
+
+    # Make it unqique
+    file_formats = list(set(file_formats))
 
     date_uploaded = None
     if is_upload_complete and len(submitted_files) > 0:
         for file in submitted_files:
             file_status_tracking = file.get("file_status_tracking")
-            if file_status_tracking and "uploaded" in file_status_tracking:
-                date_uploaded_current = file_status_tracking["uploaded"]
+            if file_status_tracking and UPLOADED in file_status_tracking:
+                date_uploaded_current = file_status_tracking[UPLOADED]
                 if not date_uploaded:
                     date_uploaded = date_uploaded_current
                     continue
@@ -144,6 +126,7 @@ def process_files_metadata(files_metadata):
         "is_upload_complete": is_upload_complete,
         "num_submitted_files": len(submitted_files),
         "date_uploaded": date_uploaded,
+        "file_formats": ", ".join(file_formats),
         "num_files_copied_to_o2": num_files_copied_to_o2,
     }
 

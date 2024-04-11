@@ -10,9 +10,11 @@ def _build_file_set_embedded_list():
     """Embeds for search on file sets."""
     return [
         "libraries.assay",
+        "libraries.analyte.samples.display_title",
         "sequencing.sequencer.display_title",
         "files.o2_path",
         "files.upload_key",
+        "files.file_format.display_title",
         "files.file_status_tracking",
         "meta_workflow_runs.meta_workflow.display_title",
         "meta_workflow_runs.accession",

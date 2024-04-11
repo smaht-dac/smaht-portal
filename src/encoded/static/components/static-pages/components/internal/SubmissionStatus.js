@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 const PAGE_SIZE = 5;
 
@@ -19,6 +20,15 @@ function formatDate(date_str) {
     return date.toLocaleDateString('en-US', date_options);
 }
 
+function getLink(identifier, title){
+    const href = '/' + identifier;
+    return (
+        <a href={href} target="_blank">
+            {title}
+        </a>
+    );
+};
+
 function createBadge(type, description) {
     const cn = 'badge text-white badge-' + type;
     return <span className={cn}>{description}</span>;
@@ -26,10 +36,7 @@ function createBadge(type, description) {
 
 const fallbackCallback = (errResp, xhr) => {
     // Error callback
-    this.setState({
-        hasError: true,
-    });
-    console.warn(errResp);
+    console.error(errResp);
 };
 
 class SubmissionStatusComponent extends React.PureComponent {
@@ -41,9 +48,15 @@ class SubmissionStatusComponent extends React.PureComponent {
             fileSets: [],
             hasError: false,
             tablePage: 0,
-            filter: {},
+            filter: {
+                submission_center: 'all_gcc',
+                fileset_status: 'in review',
+            },
             numTotalFileSets: 0,
             submission_centers: [],
+            visibleCommentInputs: [],
+            comments: {},
+            newComments: {},
         };
     }
 
@@ -59,18 +72,23 @@ class SubmissionStatusComponent extends React.PureComponent {
         );
     };
 
-    applyFilter(filter) {
+    toggleCommentInputField = (fs_uuid) => {
+        let newVisibleInputs = this.state.visibleCommentInputs;
+        if (newVisibleInputs.includes(fs_uuid)) {
+            const i = newVisibleInputs.indexOf(fs_uuid);
+            newVisibleInputs.splice(i, 1);
+        } else {
+            newVisibleInputs.push(fs_uuid);
+        }
         this.setState(
             (prevState) => ({
-                filter: filter,
-                tablePage: 0,
-                loading: true,
+                visibleCommentInputs: newVisibleInputs,
             }),
             function () {
-                this.getData();
+                this.forceUpdate();
             }
         );
-    }
+    };
 
     getSubmissionCenters() {
         ajax.load(
@@ -126,6 +144,19 @@ class SubmissionStatusComponent extends React.PureComponent {
         this.applyFilter(filter);
     };
 
+    applyFilter(filter) {
+        this.setState(
+            (prevState) => ({
+                filter: filter,
+                tablePage: 0,
+                loading: true,
+            }),
+            function () {
+                this.getData();
+            }
+        );
+    }
+
     getSubmissionCenterSelect() {
         if (this.state.submission_centers == 0) {
             return (
@@ -136,7 +167,10 @@ class SubmissionStatusComponent extends React.PureComponent {
                 </React.Fragment>
             );
         } else {
-            const options = [<option value="all">All</option>];
+            const options = [
+                <option value="all">All</option>,
+                <option value="all_gcc">All GCCs</option>,
+            ];
             this.state.submission_centers.forEach((sc) => {
                 options.push(<option value={sc.title}>{sc.title}</option>);
             });
@@ -144,7 +178,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 <React.Fragment>
                     <select
                         className="custom-select"
-                        defaultValue="all"
+                        defaultValue="all_gcc"
                         onChange={(e) =>
                             this.setFilter('submission_center', e.target.value)
                         }>
@@ -160,7 +194,7 @@ class SubmissionStatusComponent extends React.PureComponent {
             <React.Fragment>
                 <select
                     className="custom-select"
-                    defaultValue="all"
+                    defaultValue="in review"
                     onChange={(e) =>
                         this.setFilter('fileset_status', e.target.value)
                     }>
@@ -172,40 +206,17 @@ class SubmissionStatusComponent extends React.PureComponent {
         );
     };
 
-    getFilesetCreationFrom = () => {
+    getFilesetCreationInput = (filter_name) => {
         return (
             <React.Fragment>
                 <input
                     type="date"
                     className="form-control"
                     onChange={(e) =>
-                        this.setFilter('fileset_created_from', e.target.value)
+                        this.setFilter(filter_name, e.target.value)
                     }
                 />
             </React.Fragment>
-        );
-    };
-
-    getFilesetCreationTo = () => {
-        return (
-            <React.Fragment>
-                <input
-                    type="date"
-                    className="form-control"
-                    onChange={(e) =>
-                        this.setFilter('fileset_created_to', e.target.value)
-                    }
-                />
-            </React.Fragment>
-        );
-    };
-
-    getLink = (identifier, title) => {
-        const href = '/' + identifier;
-        return (
-            <a href={href} target="_blank">
-                {title}
-            </a>
         );
     };
 
@@ -253,42 +264,183 @@ class SubmissionStatusComponent extends React.PureComponent {
         );
     };
 
+    getCommentInputField = (fs) => {
+        const commentInputClass = this.state.visibleCommentInputs.includes(
+            fs.uuid
+        )
+            ? 'input-group input-group-sm mb-1'
+            : 'collapse';
+
+        return (
+            <li className="ss-line-height-140">
+                Comments:{' '}
+                <a
+                    href="#"
+                    onClick={() => this.toggleCommentInputField(fs.uuid)}>
+                    <i className="icon fas icon-plus-circle icon-fw"></i>
+                    Add
+                </a>
+                <div className={commentInputClass}>
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Your comment"
+                        onChange={(e) =>
+                            this.handleCommentInput(fs, e.target.value)
+                        }
+                    />
+                    <div className="input-group-append">
+                        <div className="input-group-text">
+                            <i
+                                className="fas icon icon-save clickable"
+                                onClick={() => this.addComment(fs)}></i>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        );
+    };
+
+    handleCommentInput = (fs, comment) => {
+        const newComments = JSON.parse(JSON.stringify(this.state.newComments));
+        newComments[fs.uuid] = comment;
+        this.setState((prevState) => ({
+            newComments: newComments,
+        }));
+    };
+
+    removeComment = (fs, comment) => {
+        this.setState((prevState) => ({
+            loading: true,
+        }));
+        const filesets = JSON.parse(JSON.stringify(this.state.fileSets));
+        let newCommentsForRelevantFileset = [];
+        filesets.forEach((fileset) => {
+            if (fileset.uuid === fs.uuid) {
+                newCommentsForRelevantFileset = fileset.comments ?? [];
+                newCommentsForRelevantFileset =
+                    newCommentsForRelevantFileset.filter(function (e) {
+                        return e !== comment;
+                    });
+                fileset['comments'] = newCommentsForRelevantFileset;
+            }
+        });
+        this.patchComment(fs.uuid, filesets, newCommentsForRelevantFileset);
+    };
+
+    addComment = (fs) => {
+        this.setState((prevState) => ({
+            loading: true,
+        }));
+        const comment = this.state.newComments[fs.uuid];
+        if (!comment) {
+            return;
+        }
+        this.toggleCommentInputField(fs.uuid);
+        const filesets = JSON.parse(JSON.stringify(this.state.fileSets));
+        let newCommentsForRelevantFileset = [];
+
+        filesets.forEach((fileset) => {
+            if (fileset.uuid === fs.uuid) {
+                newCommentsForRelevantFileset = fileset.comments ?? [];
+                newCommentsForRelevantFileset.unshift(comment);
+                fileset['comments'] = newCommentsForRelevantFileset;
+            }
+        });
+        this.patchComment(fs.uuid, filesets, newCommentsForRelevantFileset);
+    };
+
+    patchComment = (fs_uuid, filesets, comments) => {
+        const payload = {
+            comments: comments,
+        };
+
+        ajax.load(
+            fs_uuid,
+            (resp) => {
+                if (resp.status !== 'success') {
+                    console.error(resp);
+                    return;
+                } else {
+                    this.setState(
+                        (prevState) => ({
+                            fileSets: filesets,
+                            loading: false,
+                        }),
+                        function () {
+                            this.forceUpdate();
+                        }
+                    );
+                }
+            },
+            'PATCH',
+            fallbackCallback,
+            JSON.stringify(payload)
+        );
+    };
+
+    getComments = (fs) => {
+        const fs_comments = fs.comments;
+        if (!fs_comments) {
+            return;
+        }
+        const comments = [];
+        fs_comments.forEach((c) => {
+            comments.push(
+                <li className="ss-line-height-140">
+                    <strong>{c}</strong>
+                    <span
+                        className="far icon icon-fw icon-trash-alt text-muted pl-1 clickable"
+                        onClick={() => this.removeComment(fs, c)}></span>
+                </li>
+            );
+        });
+
+        return <ul>{comments}</ul>;
+    };
+
     getSubmissionTableBody = () => {
         const tbody = this.state.fileSets.map((fs) => {
-            const submission_centers = fs.submission_centers.map((sc) => {
-                return <div>{sc}</div>;
-            });
-
-            let seq_lib_assay = [
-                <li className="line-height-140">
-                    Sequencing:{' '}
-                    {this.getLink(
-                        fs.sequencing.uuid,
-                        fs.sequencing.display_title
-                    )}
+            const sequencer = fs.sequencing?.sequencer;
+            let fs_details = [
+                <li className="ss-line-height-140">
+                    Sequencer:{' '}
+                    {getLink(sequencer?.uuid, sequencer?.display_title)}
                 </li>,
             ];
 
-            fs.libraries.forEach((lib) => {
-                seq_lib_assay.push(
-                    <li className="line-height-140">
-                        Library: {this.getLink(lib.uuid, lib.display_title)}
+            fs.libraries?.forEach((lib) => {
+                fs_details.push(
+                    <li className="ss-line-height-140">
+                        Library: {getLink(lib.uuid, lib.display_title)}
                     </li>
                 );
-                seq_lib_assay.push(
-                    <li className="line-height-140">
-                        Assay: {lib.assay_display_title}
+                lib.analyte?.samples?.forEach((sample) => {
+                    fs_details.push(
+                        <li className="ss-line-height-140">
+                            Sample: {getLink(sample.uuid, sample.display_title)}
+                        </li>
+                    );
+                });
+                fs_details.push(
+                    <li className="ss-line-height-140">
+                        Assay: {lib.assay?.display_title}
                     </li>
                 );
             });
-            seq_lib_assay = (
+
+            fs_details = (
                 <small>
-                    <ul>{seq_lib_assay}</ul>
+                    <ul>
+                        {fs_details}
+                        {this.getCommentInputField(fs)}
+                        {this.getComments(fs)}
+                    </ul>
                 </small>
             );
 
             let mwfrs = [];
-            fs.meta_workflow_runs.forEach((mwfr) => {
+            fs.meta_workflow_runs?.forEach((mwfr) => {
                 let badgeType = 'warning';
                 if (mwfr.final_status == 'completed') {
                     badgeType = 'success';
@@ -299,12 +451,12 @@ class SubmissionStatusComponent extends React.PureComponent {
 
                 mwfrs.push(
                     <li className="text-left">
-                        {this.getLink(
+                        {getLink(
                             mwfr.accession,
-                            mwfr.meta_workflow_display_title
+                            mwfr.meta_workflow?.display_title
                         )}
                         <br />
-                        <small className="line-height-140">
+                        <small className="ss-line-height-140">
                             Created: {formatDate(mwfr.date_created)}. Status:{' '}
                             {mwfr_badge}
                         </small>
@@ -320,8 +472,16 @@ class SubmissionStatusComponent extends React.PureComponent {
             return (
                 <tr key={fs.accession}>
                     <td className="text-left">
-                        {this.getLink(fs.accession, fs.display_title)}
-                        {seq_lib_assay}
+                        {getLink(fs.accession, fs.display_title)}
+                        <object.CopyWrapper
+                            value={fs.accession}
+                            className=""
+                            data-tip={'Click to copy accession'}
+                            wrapperElement="span"
+                            iconProps={{
+                                style: { fontSize: '0.875rem', marginLeft: 3 },
+                            }}></object.CopyWrapper>
+                        {fs_details}
                     </td>
                     <td>{status}</td>
                     <td className="">{formatDate(fs.date_created)}</td>
@@ -334,7 +494,10 @@ class SubmissionStatusComponent extends React.PureComponent {
                         {fs.submitted_files.is_upload_complete
                             ? formatDate(fs.submitted_files.date_uploaded)
                             : 'In Progress'}
-                        <br />({fs.submitted_files.num_submitted_files} files)
+                        <br />
+                        {fs.submitted_files.num_submitted_files} files
+                        <br />
+                        {fs.submitted_files.file_formats}
                     </td>
                     <td
                         className={
@@ -383,10 +546,11 @@ class SubmissionStatusComponent extends React.PureComponent {
                     </div>
                     <div className="p-2">
                         Metadata submitted - From:{' '}
-                        {this.getFilesetCreationFrom()}
+                        {this.getFilesetCreationInput('fileset_created_from')}
                     </div>
                     <div className="p-2">
-                        Metadata submitted - To: {this.getFilesetCreationTo()}
+                        Metadata submitted - To:{' '}
+                        {this.getFilesetCreationInput('fileset_created_to')}
                     </div>
                     <div className="ml-auto p-2 h3">{loadingSpinner}</div>
                 </div>
