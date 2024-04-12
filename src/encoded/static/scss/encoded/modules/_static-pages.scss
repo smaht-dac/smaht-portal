@@ -1765,7 +1765,7 @@ body[data-pathname^="/data/benchmarking"] {
 			width: 100%;
 			.benchmarking-layout{
 				>nav.nav-tabs {
-					a.nav-link {
+					.nav-link {
 						color: #5D5E63;
 						font-family: Inter;
 						font-size: 16px;
@@ -1775,9 +1775,26 @@ body[data-pathname^="/data/benchmarking"] {
 							color: #343741;
 							font-weight: 600; 
 							border-top: 4px solid #E99415;
+
+							.badge {
+								color: #343741;
+							}
 						}
 						&.disabled {
 							color: #9BA5B7;
+						}
+
+						&-title {
+							display: flex;
+							justify-content: center;
+		
+							.badge {
+								background-color: #F2F2F2;
+								color: #5D5E63;
+								margin: auto;
+								margin-left: 5px;
+								font-weight: 600;
+							}
 						}
 					}
 				}
