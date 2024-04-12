@@ -64,7 +64,7 @@ Table 1. Protocol IDs for SMaHT benchmarking and production tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
-    <table class="table table-striped table-sm">
+    <table class="table table-striped table-sm text-left">
         <thead class="thead-smaht table-borderless">
             <tr>
                 <th>Protocol ID</th>
@@ -78,55 +78,55 @@ Table 1. Protocol IDs for SMaHT benchmarking and production tissues.
                 <td>1A</td>
                 <td>Liver</td>
                 <td>Frozen; homogenized</td>
-                <td class="text-left">Benchmarking tissue</td>
+                <td >Benchmarking tissue</td>
             </tr>
             <tr>
                 <td>1C</td>
                 <td>Liver</td>
                 <td>Fixed</td>
-                <td class="text-left">Benchmarking tissue</td>
+                <td >Benchmarking tissue</td>
             </tr>
             <tr>
                 <td>1D</td>
                 <td>Lung</td>
                 <td>Frozen; homogenized</td>
-                <td class="text-left">Benchmarking tissue</td>
+                <td >Benchmarking tissue</td>
             </tr>
             <tr>
                 <td>1F</td>
                 <td>Lung</td>
                 <td>Fixed</td>
-                <td class="text-left">Benchmarking tissue</td>
+                <td >Benchmarking tissue</td>
             </tr>
             <tr>
                 <td>1G</td>
                 <td>Colon</td>
                 <td>Frozen; homogenized</td>
-                <td class="text-left">Benchmarking tissue</td>
+                <td >Benchmarking tissue</td>
             </tr>
             <tr>
                 <td>1I</td>
                 <td>Colon</td>
                 <td>Fixed</td>
-                <td class="text-left">Benchmarking tissue</td>
+                <td >Benchmarking tissue</td>
             </tr>
             <tr>
                 <td>1J</td>
                 <td>Skin</td>
                 <td>Frozen; homogenized</td>
-                <td class="text-left">Benchmarking tissue; Collected but not utilized for study</td>
+                <td >Benchmarking tissue; Collected but not utilized for study</td>
             </tr>
             <tr>
                 <td>1L</td>
                 <td>Skin</td>
                 <td>Fixed</td>
-                <td class="text-left">Benchmarking tissue; Collected but not utilized for study</td>
+                <td >Benchmarking tissue; Collected but not utilized for study</td>
             </tr>
             <tr>
                 <td>3A</td>
                 <td>Blood, Whole</td>
                 <td>Frozen</td>
-                <td class="text-left">Production tissues from here below</td>
+                <td >Production tissues from here below</td>
             </tr>
             <tr>
                 <td>3B</td>
@@ -294,7 +294,7 @@ Table 1. Protocol IDs for SMaHT benchmarking and production tissues.
                 <td>3AC</td>
                 <td>Skin, Calf</td>
                 <td>Fresh</td>
-                <td class="text-left">Will be used to isolate fibroblasts. Could potentially still use "3AC" protocol for fibroblasts, but will need discussion.</td>
+                <td >Will be used to isolate fibroblasts. Could potentially still use "3AC" protocol for fibroblasts, but will need discussion.</td>
             </tr>
             <tr>
                 <td>3AD</td>
@@ -336,7 +336,7 @@ Table 1. Protocol IDs for SMaHT benchmarking and production tissues.
                 <td>3AJ</td>
                 <td>Brain</td>
                 <td>Fresh</td>
-                <td class="text-left">Will be frozen and subsectioned by NBB-Maryland. Will need subsection IDs from NBB-Maryland</td>
+                <td >Will be frozen and subsectioned by NBB-Maryland. Will need subsection IDs from NBB-Maryland</td>
             </tr>
         </tbody>
     </table>
@@ -357,49 +357,49 @@ Table 3A. Sequencing platform codes.
 
 .. raw:: html
 
-    <table class="table table-striped table-sm">
+    <table class="table table-striped table-sm text-left">
         <thead class="thead-smaht table-borderless">
             <tr>
-                <th class="text-left">SMaHT code</th>
-                <th class="text-left">Sequencing platform</th>
+                <th >SMaHT code</th>
+                <th >Sequencing platform</th>
             </tr>
         </thead>
         <tbody class="table-border-inner">
             <tr>
                 <td>A</td>
-                <td class="text-left">Illumina NovaSeq X</td>
+                <td >Illumina NovaSeq X</td>
             </tr>
             <tr>
                 <td>B</td>
-                <td class="text-left">PacBio Revio HiFi</td>
+                <td >PacBio Revio HiFi</td>
             </tr>
             <tr>
                 <td>C</td>
-                <td class="text-left">Illumina NovaSeq 6000</td>
+                <td >Illumina NovaSeq 6000</td>
             </tr>
             <tr>
                 <td>D</td>
-                <td class="text-left">ONT PromethION 24</td>
+                <td >ONT PromethION 24</td>
             </tr>
             <tr>
                 <td>E</td>
-                <td class="text-left">ONT PromethION 2 Solo</td>
+                <td >ONT PromethION 2 Solo</td>
             </tr>
             <tr>
                 <td>F</td>
-                <td class="text-left">ONT MinION Mk1B</td>
+                <td >ONT MinION Mk1B</td>
             </tr>
             <tr>
                 <td>G</td>
-                <td class="text-left">Illumina HiSeq X</td>
+                <td >Illumina HiSeq X</td>
             </tr>
             <tr>
                 <td>H</td>
-                <td class="text-left">Illumina NovaSeq X Plus</td>
+                <td >Illumina NovaSeq X Plus</td>
             </tr>
             <tr>
                 <td class="cell-small-text text-left">(set the codes as data are generated on different sequencing platforms and submitted to DAC)</td>
-                <td class="text-left">ONT MinION, Ultima Genomics, PacBio Onso, Element Aviti, PacBio Sequel</td>
+                <td >ONT MinION, Ultima Genomics, PacBio Onso, Element Aviti, PacBio Sequel</td>
             </tr>
         </tbody>
     </table>
