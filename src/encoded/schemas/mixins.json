@@ -242,7 +242,7 @@
     "external_id": {
         "external_id": {
             "title": "External ID",
-            "description": "External ID for the item",
+            "description": "External ID for the item provided by submitter",
             "type": "string",
             "pattern": "^[A-Za-z0-9-_]{3,}$"
         }

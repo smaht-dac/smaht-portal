@@ -24,9 +24,6 @@
             "$ref": "mixins.json#/attribution"
         },
         {
-            "$ref": "mixins.json#/category"
-        },
-        {
             "$ref": "mixins.json#/description"
         },
         {
@@ -81,6 +78,7 @@
             "pattern": "^[A-Z0-9]{3,}_TISSUE-SAMPLE_[A-Z0-9-_.]{4,}$"
         },
         "category": {
+            "title": "Category",
             "description": "Type of tissue sample",
             "type": "string",
             "enum": [
