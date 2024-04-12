@@ -105,7 +105,7 @@ class SubmissionStatusComponent extends React.PureComponent {
 
     getSubmissionCenters() {
         ajax.load(
-            '/search/?type=SubmissionCenter',
+            '/search/?type=SubmissionCenter&limit=50',
             (resp) => {
                 const res = resp['@graph'];
                 const submission_centers = res.map((sc) => {
