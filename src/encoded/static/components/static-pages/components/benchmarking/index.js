@@ -10,15 +10,22 @@ import { BenchmarkingUINav } from './BenchmarkingNav';
  */
 
 export const BenchmarkingUI = (props) => {
+    const [showNav, setShowNav] = useState(true);
     const { children, href } = props;
 
     // Note: each child needs to be passed schemas, session, facets, href, and context
     return (
-        <div className="row">
-            <div className="d-none d-lg-flex col-lg-2 border-right">
-                <BenchmarkingUINav {...{ href }} />
+        <div
+            className={
+                'benchmarking-ui-container row' +
+                (showNav ? ' show-nav' : ' collapse-nav')
+            }>
+            <div className="benchmarking-nav-container">
+                <BenchmarkingUINav {...{ showNav, setShowNav, href }} />
             </div>
-            <div className="col-12 col-lg-10 pl-2">{children}</div>
+            <div className="benchmarking-layout-container col-12 col-lg-auto">
+                {children}
+            </div>
         </div>
     );
 };

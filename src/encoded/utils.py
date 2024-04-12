@@ -1,9 +1,10 @@
 from typing import Any, Dict, Optional, Union
-
-from dcicutils.misc_utils import to_camel_case
+from pyramid.registry import Registry
 from pyramid.request import Request
-from snovault.types.base import get_item_or_none
 from webtest import TestApp
+from dcicutils.misc_utils import get_error_message, to_camel_case, VirtualApp
+from snovault.types.base import get_item_or_none
+from encoded.root import SMAHTRoot as Context
 
 
 def get_remote_user(item_with_environ: Union[Request, TestApp]) -> str:
@@ -37,3 +38,34 @@ def get_item(
     if result is not None:
         return result
     return {}
+
+
+def get_configuration_value(property_name: str,
+                            context: Optional[Union[dict, Context, Registry, VirtualApp]],
+                            fallback: Optional[str] = None,
+                            raise_exception: bool = False) -> Optional[str]:
+    """
+    Returns the application configuration value identified by the given property name,
+    and from the given context; returns None if not found or error (if raise_exeption is
+    True this raises exception on error). The configuration properties are defined in the
+    main application ini file (e.g. development.ini); this function deals with getting the
+    property value from various "contexts": via a vapp, context, registry, or settings object.
+    """
+    if context and isinstance(property_name, str) and property_name:
+        try:
+            value = None
+            if isinstance(context, dict):
+                value = context.get(property_name)
+            elif isinstance(context, Context):
+                value = context.registry.settings.get(property_name)
+            elif isinstance(context, Registry):
+                value = context.settings.get(property_name)
+            elif isinstance(context, VirtualApp):
+                value = context.app.registry.settings.get(property_name)
+            elif hasattr(context, "registry") and isinstance(context.registry, Registry):
+                value = context.registry.settings.get(property_name)
+            return value if value is not None else fallback
+        except Exception as e:
+            if raise_exception is True:
+                raise Exception(f"Cannot get configuration value for: {property_name}\n{get_error_message(e)}")
+    return fallback
