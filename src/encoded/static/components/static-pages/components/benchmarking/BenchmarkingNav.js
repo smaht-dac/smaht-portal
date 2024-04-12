@@ -195,9 +195,6 @@ const BenchmarkingUINavWrapper = (props) => {
 const BenchmarkingUINavDrop = (props) => {
     const { path, currPath, title, eventKey, children } = props;
 
-    console.log('BenchmarkingUINavDrop path', path);
-    console.log('BenchmarkingUINavDrop currPath', currPath);
-
     const isActive = currPath.includes(path);
     return (
         <li>
