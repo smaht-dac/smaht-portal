@@ -32,6 +32,8 @@ eb_app_version = app-v-development-simulation
 env.name = smaht-${USER}
 s3_encrypt_key_id = ${S3_ENCRYPT_KEY_ID}
 redis.server = redis://localhost:6379
+google_api_key = ${GOOGLE_API_KEY}
+submitr_metadata_template_sheet_id = ${SUBMITR_METADATA_TEMPLATE_SHEET_ID}
 
 [pipeline:debug]
 pipeline =
