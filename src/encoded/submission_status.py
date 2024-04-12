@@ -9,7 +9,10 @@ import pprint
 # Portal constants
 FILESET = "FileSet"
 UPLOADED = "uploaded"
+RELEASED = "released"
+PUBLIC = "public"
 UPLOADING = "uploading"
+RESTRICTED = "restricted"
 STATUS = "status"
 O2_PATH = "o2_path"
 SUBMITTED_FILE = "SubmittedFile"
@@ -32,22 +35,22 @@ def includeme(config):
 @debug_log
 def get_submission_status(context, request):
 
-    try: 
+    try:
         post_params = request.json_body
         filter = post_params.get("filter")
         # Generate search total
         search_params = {}
         search_params["type"] = FILESET
-        add_search_filters(search_params, filter)
+        add_submission_status_search_filters(search_params, filter)
         num_total_filesets = search_total(context, request, search_params)
 
         # Generate search
         search_params = {}
         search_params["type"] = FILESET
-        search_params["limit"] = min(post_params["limit"], 50)
+        search_params["limit"] = min(post_params.get("limit", 30), 30)
         search_params["from"] = post_params["from"]
         search_params["sort"] = f"-date_created"
-        add_search_filters(search_params, filter)
+        add_submission_status_search_filters(search_params, filter)
         subreq = make_search_subreq(
             request, f"/search?{urlencode(search_params, True)}", inherit_user=True
         )
@@ -58,8 +61,8 @@ def get_submission_status(context, request):
             file_set["submitted_files"] = process_files_metadata(res.get("files", []))
             file_sets.append(file_set)
     except Exception as e:
-         return {
-            "error": f'Error when trying to get submission status: {e}',
+        return {
+            "error": f"Error when trying to get submission status: {e}",
         }
 
     return {
@@ -68,11 +71,14 @@ def get_submission_status(context, request):
     }
 
 
-def add_search_filters(search_params, filter):
+def add_submission_status_search_filters(search_params, filter):
     if not filter:
         return
-    if "fileset_status" in filter and filter["fileset_status"] != "all":
-        search_params[STATUS] = filter["fileset_status"]
+    if "fileset_status" in filter:
+        if filter["fileset_status"] == "released":
+            search_params[STATUS] = [RESTRICTED, RELEASED, PUBLIC]
+        elif filter["fileset_status"] != "all":
+            search_params[STATUS] = filter["fileset_status"]
     if "submission_center" in filter:
         if filter["submission_center"] == "all_gcc":
             search_params["submission_centers.display_title"] = [
@@ -136,11 +142,7 @@ def process_files_metadata(files_metadata):
 def search_total(context, request, search_params):
     """Reads search params and executes a search total"""
     ignored(context)
-
-    # Ensure this is always the case to prevent unintended slowness
-    if "limit" not in search_params:
-        search_params["limit"] = 0
-
+    search_params["limit"] = 0
     # This one we want consistent with what the user can see
     subreq = make_search_subreq(
         request, f"/search?{urlencode(search_params, True)}", inherit_user=True

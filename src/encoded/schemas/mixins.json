@@ -202,7 +202,7 @@
     "comments": {
         "comments": {
             "title": "Comments",
-            "comment": "Intended for general comments concerning an item.",
+            "comment": "General comments concerning an item. For internal use only.",
             "permission": "restricted_fields",
             "type": "array",
             "items": {

@@ -216,7 +216,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                     }>
                     <option value="all">All</option>
                     <option value="in review">In Review</option>
-                    <option value="released">Released</option>
+                    <option value="released">Released, Restricted, Public</option>
                 </select>
             </React.Fragment>
         );
