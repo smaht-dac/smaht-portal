@@ -7,8 +7,21 @@ smaht-portal
 Change Log
 ----------
 
+0.38.0
+======
+
+`PR 134: Updates for TPC metadata <https://github.com/smaht-dac/smaht-portal/pull/134>`_
+
+* Reorganize donor-related items and fields following discussions/feedback from the TPC
+  * Add new item types: FamilyHistory and MedicalTreatment
+  * Delete unused item types: Therapeutic and MolecularTest
+  * Removal, addition, and renaming of many properties
+* Add `external_id` mixin to multiple SubmittedItem types for tracking identifiers from submitters
+
+
 0.37.4
 ======
+
 * Dumb typo/mistake in ingestion.loadxl_extensions (portal.is_file_schema -> is_schema_file_type)
 
 
