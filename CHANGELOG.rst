@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.38.0
+======
+
+* Add Submission Status page
+* Add various embeddings to FileSet
+* Add ``file_status_tracking`` calc prop to File
+
+
 0.37.4
 ======
 * Dumb typo/mistake in ingestion.loadxl_extensions (portal.is_file_schema -> is_schema_file_type)
