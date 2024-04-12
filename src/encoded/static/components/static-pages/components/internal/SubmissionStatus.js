@@ -553,18 +553,18 @@ class SubmissionStatusComponent extends React.PureComponent {
         return (
             <React.Fragment>
                 <small className="text-muted text-uppercase">Filter</small>
-                <div className="d-flex bg-light p-1">
-                    <div className="p-2">
+                <div className="d-flex flex-wrap bg-light p-1">
+                    <div className="p-2 ss-max-width-250">
                         Submission Center: {this.getSubmissionCenterSelect()}
                     </div>
-                    <div className="p-2">
+                    <div className="p-2 ss-max-width-250">
                         FileSet Status: {this.getFilesetStatusSelect()}
                     </div>
-                    <div className="p-2">
+                    <div className="p-2 ss-max-width-250">
                         Metadata submitted - From:{' '}
                         {this.getFilesetCreationInput('fileset_created_from')}
                     </div>
-                    <div className="p-2">
+                    <div className="p-2 ss-max-width-250">
                         Metadata submitted - To:{' '}
                         {this.getFilesetCreationInput('fileset_created_to')}
                     </div>
