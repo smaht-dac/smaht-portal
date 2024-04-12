@@ -7,6 +7,47 @@ smaht-portal
 Change Log
 ----------
 
+0.37.4
+======
+* Dumb typo/mistake in ingestion.loadxl_extensions (portal.is_file_schema -> is_schema_file_type)
+
+
+0.37.3
+======
+
+* Added expiration for access-keys on user profile page.
+* New version of dcicutils with minor fix in structured_data for smaht-submitr progress monitoring.
+* Added support to get the version of the latest smaht-submitr Google Sheets metadata template;
+  added endpoint /submitr_metadata_template_info (defined ingestion.metadata_template); added
+  GOOGLE_API_KEY in development.ini.template, smaht_any_alpha.ini, and dcicutils.deployment_utils.
+
+
+0.37.2
+======
+
+`PR 131: feat: Benchmarking Page navigation toggle functionality <https://github.com/smaht-dac/smaht-portal/pull/131>`_
+
+* Enable toggle for benchmarking page navigation
+
+
+0.37.1
+======
+
+`PR 132: Fix file embeds <https://github.com/smaht-dac/smaht-portal/pull/132>`_
+
+* Fix file embeds by removing sub-type LinkTos from Samples to SampleSources and deletion of unused embed
+
+
+0.37.0
+======
+
+`PR 127: File Overview Calcprops + Item Utils <https://github.com/smaht-dac/smaht-portal/pull/127>`_
+
+* Add calcprops for file overview page
+* Add calcprops for associated items on files
+* Add item_utils module for common item functions
+
+
 0.36.0
 ======
 

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {
@@ -62,7 +62,16 @@ export const BenchmarkingUINav = (props) => {
     });
 
     return (
-        <div className="w-100 benchmarking-nav">
+        <div className="benchmarking-nav">
+            <button
+                className="toggle-button"
+                onClick={() => props.setShowNav(!props.showNav)}>
+                {props.showNav ? (
+                    <i className="icon icon-arrow-left fas"></i>
+                ) : (
+                    <i className="icon icon-arrow-right fas"></i>
+                )}
+            </button>
             <div className="benchmarking-nav-section">
                 <div className="benchmarking-nav-section-title text-small text-600">
                     Cell Line Data
