@@ -1000,13 +1000,13 @@ xlrd = ">=1.0.0,<2.0.0"
 
 [[package]]
 name = "dcicutils"
-version = "8.8.2.1b9"
+version = "8.8.3"
 description = "Utility package for interacting with the 4DN Data Portal and other 4DN resources"
 optional = false
 python-versions = "<3.12,>=3.8"
 files = [
-    {file = "dcicutils-8.8.2.1b9-py3-none-any.whl", hash = "sha256:6ff5f1228f976090b421044ac276fd8c02d35268f7492d923b02b2ecf86a35ff"},
-    {file = "dcicutils-8.8.2.1b9.tar.gz", hash = "sha256:4843339c3a33de0ccf32c6297a6abcce6657160065e34da19cc2240b0002907a"},
+    {file = "dcicutils-8.8.3-py3-none-any.whl", hash = "sha256:47692fdd468640dd6136c8a25ab6a38235e3009eb98fd873acd09fbac46c1890"},
+    {file = "dcicutils-8.8.3.tar.gz", hash = "sha256:531d78dd42dc2092273b718a0b35621d73ba5675428aba340d8b8ecb4afe5dc7"},
 ]
 
 [package.dependencies]
