@@ -5,6 +5,7 @@
     "type": "object",
     "required": [
         "donor",
+        "external_id",
         "submission_centers",
         "submitted_id",
         "uberon_id"
