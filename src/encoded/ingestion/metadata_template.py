@@ -23,7 +23,7 @@ SUBMITR_METADATA_TEMPLATE_SHEET_ID = "1sEXIA3JvCd35_PFHLj2BC-ZyImin4T-TtoruUe6dK
 GOOGLE_API_KEY = None
 # These are hardcoded for now; probably fine/wont-change; dont want to create too much config clutter.
 METADATA_TEMPLATE_VERSION_SHEET = "(Overview/Guidelines)"
-METADATA_TEMPLATE_VERSION_CELL = "B1:B1"
+METADATA_TEMPLATE_VERSION_CELL = "B1"
 METADATA_TEMPLATE_VERSION_LOCATION = f"{METADATA_TEMPLATE_VERSION_SHEET}!{METADATA_TEMPLATE_VERSION_CELL}"
 GOOGLE_SHEETS_BASE_URL = f"https://docs.google.com/spreadsheets/d"
 
