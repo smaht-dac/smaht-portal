@@ -54,9 +54,9 @@ Naming Schema
 Part 1: Sample Schema and Protocol ID Table
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|image1|
-
-.. |image1| image:: /static/img/Nomenclature_Part1.jpeg
+.. raw:: html
+    
+    <img class="grey-border" src="/static/img/Nomenclature_Part1.jpeg" alt="Nomenclature Part 1"/>
 
 
 
@@ -346,9 +346,9 @@ Table 1. Protocol IDs for SMaHT benchmarking and production tissues.
 Part 2: Base Schema, Platform, and Assay Codes
 ----------------------------------------------
 
-|image2|
-
-.. |image2| image:: /static/img/Nomenclature_Part2.jpeg
+.. raw:: html
+    
+    <img class="grey-border" src="/static/img/Nomenclature_Part2.jpeg" alt="Nomenclature Part 2"/>
 
 
 
@@ -609,16 +609,16 @@ Table 3B. Experimental Assay Codes.
 Part 3: File Name breakdown
 ---------------------------
 
-|image3|
+.. raw:: html
 
-.. |image3| image:: /static/img/Nomenclature_Part3.jpeg
+    <img class="grey-border" src="/static/img/Nomenclature_Part3.jpeg" alt="Nomenclature Part 3"/>
 
 
 
 Example Files with the SMaHT Nomenclature
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|image4|
+.. raw:: html
 
-.. |image4| image:: /static/img/Nomenclature_ExampleFiles.jpeg
+    <img class="grey-border" src="/static/img/Nomenclature_ExampleFiles.jpeg" alt="Nomenclature_ExampleFiles"/>
 
