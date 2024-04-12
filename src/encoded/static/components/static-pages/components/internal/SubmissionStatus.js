@@ -468,13 +468,12 @@ class SubmissionStatusComponent extends React.PureComponent {
                 const mwfr_badge = createBadge(badgeType, mwfr.final_status);
 
                 mwfrs.push(
-                    <li className="text-left">
+                    <li className="text-left pt-1">
                         {getLink(
                             mwfr.accession,
                             mwfr.meta_workflow?.display_title
                         )}
-                        <br />
-                        <small className="ss-line-height-140">
+                        <small className="d-block ss-line-height-140">
                             Created: {formatDate(mwfr.date_created)}. Status:{' '}
                             {mwfr_badge}
                         </small>
