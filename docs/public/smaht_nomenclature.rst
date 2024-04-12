@@ -333,49 +333,49 @@ Table 3A. Sequencing platform codes.
 
 .. raw:: html
 
-    <table class="table table-striped table-sm text-left">
+    <table class="table table-striped table-sm">
         <thead class="thead-smaht table-borderless">
             <tr>
-                <th >SMaHT code</th>
-                <th >Sequencing platform</th>
+                <th class="text-center">SMaHT code</th>
+                <th>Sequencing platform</th>
             </tr>
         </thead>
         <tbody class="table-border-inner">
             <tr>
-                <td>A</td>
-                <td >Illumina NovaSeq X</td>
+                <td class="text-center">A</td>
+                <td>Illumina NovaSeq X</td>
             </tr>
             <tr>
-                <td>B</td>
-                <td >PacBio Revio HiFi</td>
+                <td class="text-center">B</td>
+                <td>PacBio Revio HiFi</td>
             </tr>
             <tr>
-                <td>C</td>
-                <td >Illumina NovaSeq 6000</td>
+                <td class="text-center">C</td>
+                <td>Illumina NovaSeq 6000</td>
             </tr>
             <tr>
-                <td>D</td>
-                <td >ONT PromethION 24</td>
+                <td class="text-center">D</td>
+                <td>ONT PromethION 24</td>
             </tr>
             <tr>
-                <td>E</td>
-                <td >ONT PromethION 2 Solo</td>
+                <td class="text-center">E</td>
+                <td>ONT PromethION 2 Solo</td>
             </tr>
             <tr>
-                <td>F</td>
-                <td >ONT MinION Mk1B</td>
+                <td class="text-center">F</td>
+                <td>ONT MinION Mk1B</td>
             </tr>
             <tr>
-                <td>G</td>
-                <td >Illumina HiSeq X</td>
+                <td class="text-center">G</td>
+                <td>Illumina HiSeq X</td>
             </tr>
             <tr>
-                <td>H</td>
-                <td >Illumina NovaSeq X Plus</td>
+                <td class="text-center">H</td>
+                <td>Illumina NovaSeq X Plus</td>
             </tr>
             <tr>
                 <td class="cell-small-text text-left">(set the codes as data are generated on different sequencing platforms and submitted to DAC)</td>
-                <td >ONT MinION, Ultima Genomics, PacBio Onso, Element Aviti, PacBio Sequel</td>
+                <td>ONT MinION, Ultima Genomics, PacBio Onso, Element Aviti, PacBio Sequel</td>
             </tr>
         </tbody>
     </table>
