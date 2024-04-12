@@ -49,7 +49,7 @@ def get_configuration_value(property_name: str,
     and from the given context; returns None if not found or error (if raise_exeption is
     True this raises exception on error). The configuration properties are defined in the
     main application ini file (e.g. development.ini); this function deals with getting the
-    property value from variaous "contexts": via a vapp, context, registry, or settings object.
+    property value from various "contexts": via a vapp, context, registry, or settings object.
     """
     if context and isinstance(property_name, str) and property_name:
         try:
