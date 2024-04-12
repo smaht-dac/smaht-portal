@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.37.5
+======
+
+`PR 138: feat: total file counts for benchmarking page tabs <https://github.com/smaht-dac/smaht-portal/pull/138>`_
+
+* Fetch total number of files and render as a badge on benchmarking tabs (next to the title)
+
+
 0.37.4
 ======
 * Dumb typo/mistake in ingestion.loadxl_extensions (portal.is_file_schema -> is_schema_file_type)
