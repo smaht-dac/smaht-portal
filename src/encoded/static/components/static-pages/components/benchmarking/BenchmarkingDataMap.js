@@ -28,22 +28,25 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#main',
                 title: 'COLO829T',
-                searchHref: '/search/?type=File&dataset=colo829t',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829t',
             },
             {
                 eventKey: '#BL',
                 title: 'COLO829BL',
-                searchHref: '/search/?type=File&dataset=colo829bl',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829bl',
             },
             {
                 eventKey: '#150',
                 title: 'COLO829BLT50',
-                searchHref: '/search/?type=File&dataset=colo829blt_50to1',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829blt_50to1',
             },
             // {
             //     eventKey: '#silico',
             //     title: 'In Silico Mix',
-            //     // searchHref: '/search/?type=SubmittedFile&dataset=colo829blt_200to1',
+            //     // searchHref: '/search/?type=SubmittedFile&status=released&status=restricted&status=public&dataset=colo829blt_200to1',
             // },
         ],
     },
@@ -83,7 +86,8 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#hapmap-mixture',
                 title: 'HapMap mixture',
-                searchHref: '/search/?type=File&dataset=hapmap',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=hapmap',
             },
         ],
     },
@@ -112,32 +116,38 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#lb-fibroblast',
                 title: 'LB-LA2',
-                searchHref: '/search/?type=File&dataset=lb_fibroblast',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_fibroblast',
             },
             {
                 eventKey: '#lb_ipsc_1',
                 title: 'LB-LA2 iPSC 1',
-                searchHref: '/search/?type=File&dataset=lb_ipsc_1',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_1',
             },
             {
                 eventKey: '#lb_ipsc_2',
                 title: 'LB-LA2 iPSC 2',
-                searchHref: '/search/?type=File&dataset=lb_ipsc_2',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_2',
             },
             {
                 eventKey: '#lb_ipsc_4',
                 title: 'LB-LA2 iPSC 4',
-                searchHref: '/search/?type=File&dataset=lb_ipsc_4',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_4',
             },
             {
                 eventKey: '#lb_ipsc_52',
                 title: 'LB-LA2 iPSC 52',
-                searchHref: '/search/?type=File&dataset=lb_ipsc_52',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_52',
             },
             {
                 eventKey: '#lb_ipsc_60',
                 title: 'LB-LA2 iPSC 60',
-                searchHref: '/search/?type=File&dataset=lb_ipsc_60',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_60',
             },
         ],
     },
@@ -151,12 +161,12 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#donor-1',
                 title: 'Donor 1',
-                // searchHref: '/search/?type=File',
+                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
             },
             {
                 eventKey: '#donor-2',
                 title: 'Donor 2',
-                // searchHref: '/search/?type=File',
+                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
             },
         ],
     },
@@ -170,12 +180,12 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#donor-1',
                 title: 'Donor 1',
-                // searchHref: '/search/?type=File',
+                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
             },
             {
                 eventKey: '#donor-2',
                 title: 'Donor 2',
-                // searchHref: '/search/?type=File',
+                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
             },
         ],
     },
@@ -189,12 +199,12 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#donor-1',
                 title: 'Donor 1',
-                // searchHref: '/search/?type=File',
+                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
             },
             {
                 eventKey: '#donor-2',
                 title: 'Donor 2',
-                // searchHref: '/search/?type=File',
+                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
             },
         ],
     },
@@ -208,7 +218,7 @@ export const BenchmarkingDataMap = {
     //         {
     //             eventKey: '#main',
     //             title: 'Data',
-    //             // searchHref: '/search/?type=ReferenceFile',
+    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
     //         },
     //     ],
     // },
@@ -222,27 +232,27 @@ export const BenchmarkingDataMap = {
     //         {
     //             eventKey: '#frontal-lobe',
     //             title: 'Frontal Lobe',
-    //             // searchHref: '/search/?type=ReferenceFile',
+    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
     //         },
     //         {
     //             eventKey: '#cerebellum',
     //             title: 'Cerebellum',
-    //             // searchHref: '/search/?type=ReferenceFile',
+    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
     //         },
     //         {
     //             eventKey: '#hippocampus',
     //             title: 'Hippocampus',
-    //             // searchHref: '/search/?type=ReferenceFile',
+    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
     //         },
     //         {
     //             eventKey: '#temporal-lobe',
     //             title: 'Temporal Lobe',
-    //             // searchHref: '/search/?type=ReferenceFile',
+    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
     //         },
     //         {
     //             eventKey: '#dendate-gyrus',
     //             title: 'Dendate Gyrus',
-    //             // searchHref: '/search/?type=ReferenceFile',
+    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
     //         },
     //     ],
     // },
@@ -256,12 +266,12 @@ export const BenchmarkingDataMap = {
     //         {
     //             eventKey: '#sun-exposed',
     //             title: 'Sun Exposed',
-    //             // searchHref: '/search/?type=ReferenceFile',
+    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
     //         },
     //         {
     //             eventKey: '#non-sun-exposed',
     //             title: 'Non Sun Exposed',
-    //             // searchHref: '/search/?type=ReferenceFile',
+    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
     //         },
     //     ],
     // },
