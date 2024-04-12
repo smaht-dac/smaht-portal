@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.37.4
+======
+* Dumb typo/mistake in ingestion.loadxl_extensions (portal.is_file_schema -> is_schema_file_type)
+
+
 0.37.3
 ======
 
