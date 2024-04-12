@@ -60,8 +60,8 @@ Part 1: Sample Schema and Protocol ID Table
 
 
 
-Table 1. Protocol IDs for SMaHT benchmarking and production tissues.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Table 1A. Protocol IDs for SMaHT benchmarking tissues.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
     <table class="table table-striped table-sm text-left">
@@ -70,7 +70,6 @@ Table 1. Protocol IDs for SMaHT benchmarking and production tissues.
                 <th>Protocol ID</th>
                 <th>Tissue Name for Container</th>
                 <th>Preservation</th>
-                <th>Notes</th>
             </tr>
         </thead>
         <tbody class="table-border-inner">
@@ -78,269 +77,246 @@ Table 1. Protocol IDs for SMaHT benchmarking and production tissues.
                 <td>1A</td>
                 <td>Liver</td>
                 <td>Frozen; homogenized</td>
-                <td >Benchmarking tissue</td>
             </tr>
             <tr>
                 <td>1C</td>
                 <td>Liver</td>
                 <td>Fixed</td>
-                <td >Benchmarking tissue</td>
             </tr>
             <tr>
                 <td>1D</td>
                 <td>Lung</td>
                 <td>Frozen; homogenized</td>
-                <td >Benchmarking tissue</td>
             </tr>
             <tr>
                 <td>1F</td>
                 <td>Lung</td>
                 <td>Fixed</td>
-                <td >Benchmarking tissue</td>
             </tr>
             <tr>
                 <td>1G</td>
                 <td>Colon</td>
                 <td>Frozen; homogenized</td>
-                <td >Benchmarking tissue</td>
             </tr>
             <tr>
                 <td>1I</td>
                 <td>Colon</td>
                 <td>Fixed</td>
-                <td >Benchmarking tissue</td>
             </tr>
             <tr>
-                <td>1J</td>
+                <td>1J*</td>
                 <td>Skin</td>
                 <td>Frozen; homogenized</td>
-                <td >Benchmarking tissue; Collected but not utilized for study</td>
             </tr>
             <tr>
-                <td>1L</td>
+                <td>1L*</td>
                 <td>Skin</td>
                 <td>Fixed</td>
-                <td >Benchmarking tissue; Collected but not utilized for study</td>
             </tr>
+        </tbody>
+    </table>
+
+*1J and 1L tissues are collected, but not utilized for study
+
+
+Table 1B. Protocol IDs for SMaHT production tissues.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. raw:: html
+
+    <table class="table table-striped table-sm text-left">
+        <thead class="thead-smaht table-borderless">
             <tr>
+                <th>Protocol ID</th>
+                <th>Tissue Name for Container</th>
+                <th>Preservation</th>
+            </tr>
+        </thead>
+        <tbody class="table-border-inner">
+        <tr>
                 <td>3A</td>
                 <td>Blood, Whole</td>
                 <td>Frozen</td>
-                <td >Production tissues from here below</td>
             </tr>
             <tr>
                 <td>3B</td>
                 <td>Buccal Swab</td>
                 <td>Fresh</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3C</td>
                 <td>Esophagus</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3D</td>
                 <td>Esophagus</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3E</td>
                 <td>Colon, Ascending</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3F</td>
                 <td>Colon, Ascending</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3G</td>
                 <td>Colon, Descending</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3H</td>
                 <td>Colon, Descending</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3I</td>
                 <td>Liver Sample</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3J</td>
                 <td>Liver Sample</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3K</td>
                 <td>Adrenal Gland, Left</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3L</td>
                 <td>Adrenal Gland, Left</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3M</td>
                 <td>Adrenal Gland, Right</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3N</td>
                 <td>Adrenal Gland, Right</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3O</td>
                 <td>Aorta, Abdominal</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3P</td>
                 <td>Aorta, Abdominal</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3Q</td>
                 <td>Lung</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3R</td>
                 <td>Lung</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3S</td>
                 <td>Heart, LV</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3T</td>
                 <td>Heart, LV</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3U</td>
                 <td>Testis, Left</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3V</td>
                 <td>Testis, Left</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3W</td>
                 <td>Testis, Right</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3X</td>
                 <td>Testis, Right</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3Y</td>
                 <td>Ovary, Left</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3Z</td>
                 <td>Ovary, Left</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3AA</td>
                 <td>Ovary, Right</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3AB</td>
                 <td>Ovary, Right</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
-                <td>3AC</td>
+                <td>3AC*</td>
                 <td>Skin, Calf</td>
                 <td>Fresh</td>
-                <td >Will be used to isolate fibroblasts. Could potentially still use "3AC" protocol for fibroblasts, but will need discussion.</td>
             </tr>
             <tr>
                 <td>3AD</td>
                 <td>Skin, Calf</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3AE</td>
                 <td>Skin, Calf</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3AF</td>
                 <td>Skin, Abdomen</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3AG</td>
                 <td>Skin, Abdomen</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3AH</td>
                 <td>Muscle</td>
                 <td>Frozen</td>
-                <td></td>
             </tr>
             <tr>
                 <td>3AI</td>
                 <td>Muscle</td>
                 <td>Fixed</td>
-                <td></td>
             </tr>
             <tr>
-                <td>3AJ</td>
+                <td>3AJ**</td>
                 <td>Brain</td>
                 <td>Fresh</td>
-                <td >Will be frozen and subsectioned by NBB-Maryland. Will need subsection IDs from NBB-Maryland</td>
             </tr>
         </tbody>
     </table>
 
+* 3AC will be used to isolate fibroblasts. Could potentially still use "3AC" protocol for fibroblasts, but will need discussion.
+** 3AJ Will be frozen and subsectioned by NBB-Maryland. Will need subsection IDs from NBB-Maryland.
 
 
 Part 2: Base Schema, Platform, and Assay Codes
