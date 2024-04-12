@@ -72,7 +72,7 @@ def load_data_into_database(submission_uuid: str,
                     try:
                         if not portal:
                             portal = Portal(portal_vapp)
-                        if portal.is_file_schema(item_type):
+                        if portal.is_schema_file_type(item_type):
                             existing_item = [item for item in upload_info
                                              if item["uuid"] == identifying_value and item["filename"] == file]
                             if not existing_item:
