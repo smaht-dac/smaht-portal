@@ -468,7 +468,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 const mwfr_badge = createBadge(badgeType, mwfr.final_status);
 
                 mwfrs.push(
-                    <li className="text-left pt-1">
+                    <li className="text-left pb-1">
                         {getLink(
                             mwfr.accession,
                             mwfr.meta_workflow?.display_title
@@ -485,7 +485,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 mwfrs.length == 0 ? (
                     <div>{createWarningIcon()} No workflows have been run</div>
                 ) : (
-                    <ul>{mwfrs}</ul>
+                    <ul className='list-unstyled'>{mwfrs}</ul>
                 );
             const status_badge_type =
                 fs.status == 'released' ? 'success' : 'warning';
@@ -493,7 +493,7 @@ class SubmissionStatusComponent extends React.PureComponent {
 
             return (
                 <tr key={fs.accession}>
-                    <td className="text-left">
+                    <td className="text-left ss-fileset-column">
                         {getLink(fs.accession, fs.display_title)}
                         <object.CopyWrapper
                             value={fs.accession}
@@ -524,7 +524,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                         {fs.submitted_files.num_files_copied_to_o2} /{' '}
                         {fs.submitted_files.num_submitted_files} files
                     </td>
-                    <td >{mwfrs}</td>
+                    <td ><div className='p-1'>{mwfrs}</div></td>
                 </tr>
             );
         });
@@ -575,7 +575,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 <table className="table table-hover table-striped table-bordered table-sm">
                     <thead className='sticky-top ss-top-40'>
                         <tr>
-                            <th className="text-left">File Set</th>
+                            <th className="text-left ss-fileset-column">File Set</th>
                             <th className="text-left">Status</th>
                             <th className="text-left">
                                 Metatdata
