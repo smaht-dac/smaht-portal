@@ -2072,3 +2072,27 @@ body[data-pathname^="/data/benchmarking"] {
 		}
 	}
 }
+
+
+/***
+Unique styling of Submission Status page
+**/
+.ss-font-size-10{
+	font-size: 10px !important;
+}
+.ss-line-height-140 {
+    line-height: 140%;
+}
+.ss-line-height-120 {
+    line-height: 120%;
+}
+.ss-top-40 {
+    top: 40px;
+}
+.ss-max-width-250 {
+	max-width: 250px;
+}
+.ss-fileset-column {
+	word-wrap: break-word;
+	max-width: 400px;
+}
