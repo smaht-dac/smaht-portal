@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.38.0
+0.39.0
 ======
 
 `PR 134: Updates for TPC metadata <https://github.com/smaht-dac/smaht-portal/pull/134>`_
