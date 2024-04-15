@@ -763,6 +763,7 @@ def test_link_to_another_submission_center_item(
         "submission_centers": [test_submission_center["uuid"]],
         "donor": donor["uuid"],
         "submitted_id": "TEST_TISSUE_WXYZ",
+        "external_id": "ST-WXYZ",
         "uberon_id": "UBERON:0001111",
     }
     post_item(submission_center_user_app, tissue_properties, "Tissue", status=201)
