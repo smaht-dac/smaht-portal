@@ -2,8 +2,11 @@ from typing import Any, Dict, Optional, Union
 from pyramid.registry import Registry
 from pyramid.request import Request
 from webtest import TestApp
+from urllib.parse import urlencode
 from dcicutils.misc_utils import get_error_message, to_camel_case, VirtualApp
 from snovault.types.base import get_item_or_none
+from snovault.search.search_utils import make_search_subreq
+from snovault.search.search import search
 from encoded.root import SMAHTRoot as Context
 
 
