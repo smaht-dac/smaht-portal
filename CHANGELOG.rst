@@ -45,7 +45,6 @@ Change Log
 * Add Submission Status page
 * Add various embeddings to FileSet
 * Add ``file_status_tracking`` calc prop to File
->>>>>>> main
 
 
 0.37.4
