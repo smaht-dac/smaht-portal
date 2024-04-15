@@ -199,6 +199,17 @@
             "uniqueKey": true
         }
     },
+    "comments": {
+        "comments": {
+            "title": "Comments",
+            "comment": "General comments concerning an item. For internal use only.",
+            "permission": "restricted_fields",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        }
+    },
     "dbxrefs": {
         "dbxrefs": {
             "@type": "@id",

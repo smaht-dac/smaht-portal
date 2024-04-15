@@ -19,6 +19,20 @@ Change Log
 * Add `external_id` mixin to multiple SubmittedItem types for tracking identifiers from submitters
 
 
+0.38.1
+======
+
+* Improve Submission Status page styling
+
+
+0.38.0
+======
+
+* Add Submission Status page
+* Add various embeddings to FileSet
+* Add ``file_status_tracking`` calc prop to File
+
+
 0.37.4
 ======
 
