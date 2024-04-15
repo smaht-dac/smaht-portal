@@ -1,0 +1,117 @@
+{
+    "title": "Medical Treatment",
+    "$id": "/profiles/medical_treatment.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "category",
+        "medical_history",
+        "submission_centers",
+        "submitted_id",
+        "title"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/title"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "MX"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_MEDICAL-TREATMENT_[A-Z0-9-_.]{4,}$"
+        },
+        "title": {
+            "description": "Name of the treatment"
+        },
+        "category": {
+            "title": "Treatment Category",
+            "description": "Type of treatment",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Chemotherapy",
+                    "Radiation",
+                    "Surgery"
+                ]
+            }
+        },
+        "comments": {
+            "title": "Comments",
+            "description": "Additional information on the treatment",
+            "type": "string"
+        },
+        "counts": {
+            "title": "Counts",
+            "description": "Number of times the treatment was performed",
+            "type": "integer",
+            "minimum": 1
+        },
+        "year_end": {
+            "title": "Year Ended",
+            "description": "Year in which the treatment was last administered",
+            "type": "integer",
+            "minimum": 1900,
+            "maximum": 2100
+        },
+        "year_start": {
+            "title": "Year Started",
+            "description": "Year in which the treatment was first administered",
+            "type": "integer",
+            "minimum": 1900,
+            "maximum": 2100
+        },
+        "diagnosis": {
+            "title": "Diagnosis",
+            "description": "Link to the associated diagnosis",
+            "type": "string",
+            "linkTo": "Diagnosis"
+        },
+        "medical_history": {
+            "title": "Medical History",
+            "description": "Link to the associated medical history",
+            "type": "string",
+            "linkTo": "MedicalHistory"
+        }
+    }
+}
