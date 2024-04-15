@@ -47,12 +47,13 @@ Schema Documentation
 
 
 
+Part 1: Sample Schema and Protocol ID Tables
+--------------------------------------------
+
+
+
 Naming Schema
--------------
-
-
-Part 1: Sample Schema and Protocol ID Table
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 .. raw:: html
     
@@ -116,7 +117,7 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
         </tbody>
     </table>
 
-*1J and 1L tissues are collected, but not utilized for study
+\*1J and 1L tissues are collected, but not utilized for study
 
 
 Table 1B. Protocol IDs for SMaHT production tissues.
@@ -315,8 +316,8 @@ Table 1B. Protocol IDs for SMaHT production tissues.
         </tbody>
     </table>
 
-* 3AC will be used to isolate fibroblasts. Could potentially still use "3AC" protocol for fibroblasts, but will need discussion.
-** 3AJ Will be frozen and subsectioned by NBB-Maryland. Will need subsection IDs from NBB-Maryland.
+| \* 3AC will be used to isolate fibroblasts. Could potentially still use "3AC" protocol for fibroblasts, but will need discussion.
+| \*\* 3AJ Will be frozen and subsectioned by NBB-Maryland. Will need subsection IDs from NBB-Maryland.
 
 
 Part 2: Base Schema, Platform, and Assay Codes
@@ -336,46 +337,46 @@ Table 3A. Sequencing platform codes.
     <table class="table table-striped table-sm">
         <thead class="thead-smaht table-borderless">
             <tr>
-                <th class="text-center">SMaHT code</th>
-                <th>Sequencing platform</th>
+                <th class="text-center" width="25%">SMaHT code</th>
+                <th class="text-left">Sequencing platform</th>
             </tr>
         </thead>
         <tbody class="table-border-inner">
             <tr>
                 <td class="text-center">A</td>
-                <td>Illumina NovaSeq X</td>
+                <td class="text-left">Illumina NovaSeq X</td>
             </tr>
             <tr>
                 <td class="text-center">B</td>
-                <td>PacBio Revio HiFi</td>
+                <td class="text-left">PacBio Revio HiFi</td>
             </tr>
             <tr>
                 <td class="text-center">C</td>
-                <td>Illumina NovaSeq 6000</td>
+                <td class="text-left">Illumina NovaSeq 6000</td>
             </tr>
             <tr>
                 <td class="text-center">D</td>
-                <td>ONT PromethION 24</td>
+                <td class="text-left">ONT PromethION 24</td>
             </tr>
             <tr>
                 <td class="text-center">E</td>
-                <td>ONT PromethION 2 Solo</td>
+                <td class="text-left">ONT PromethION 2 Solo</td>
             </tr>
             <tr>
                 <td class="text-center">F</td>
-                <td>ONT MinION Mk1B</td>
+                <td class="text-left">ONT MinION Mk1B</td>
             </tr>
             <tr>
                 <td class="text-center">G</td>
-                <td>Illumina HiSeq X</td>
+                <td class="text-left">Illumina HiSeq X</td>
             </tr>
             <tr>
                 <td class="text-center">H</td>
-                <td>Illumina NovaSeq X Plus</td>
+                <td class="text-left">Illumina NovaSeq X Plus</td>
             </tr>
             <tr>
                 <td class="cell-small-text text-left">(set the codes as data are generated on different sequencing platforms and submitted to DAC)</td>
-                <td>ONT MinION, Ultima Genomics, PacBio Onso, Element Aviti, PacBio Sequel</td>
+                <td class="text-left">ONT MinION, Ultima Genomics, PacBio Onso, Element Aviti, PacBio Sequel</td>
             </tr>
         </tbody>
     </table>
