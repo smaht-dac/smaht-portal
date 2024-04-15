@@ -17,7 +17,7 @@ from .utils import load_schema, validate_schema
 )
 def test_version_pattern(version: str, error_expected: bool):
     """Test version pattern validation."""
-    schema = load_schema("basecaller")
+    schema = load_schema("basecalling")
     version_property = get_property(schema, "version")
     validation_error = validate_schema(version_property, version)
     if error_expected:
