@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.39.1
+======
+
+* Improve Submission Status page styling
+
+
 0.39.0
 ======
 
