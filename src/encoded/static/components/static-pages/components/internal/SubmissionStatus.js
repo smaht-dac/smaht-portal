@@ -463,7 +463,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 if (mwfr.final_status == 'completed') {
                     badgeType = 'success';
                 } else if (mwfr.final_status == 'failed') {
-                    badgeType = 'error';
+                    badgeType = 'danger';
                 }
                 const mwfr_badge = createBadge(badgeType, mwfr.final_status);
 
