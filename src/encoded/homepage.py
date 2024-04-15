@@ -75,26 +75,6 @@ def extract_desired_facet_from_search(facets, desired_facet_name):
     return None
 
 
-def generate_admin_search_given_params(context, request, search_param):
-    """ Helper function for below that generates/executes a search given params AS ADMIN
-        BE EXTREMELY CAREFUL WITH THIS - do NOT use to return results directly
-    """
-    # VERY IMPORTANT - the below lines eliminate database calls, which is necessary
-    # as making calls (as explained above) leaks connections - Will March 29 2024
-    request.remote_user = 'IMPORT'
-    if 'HTTP_AUTHORIZATION' in request.environ:
-        del request.environ['HTTP_AUTHORIZATION']
-    subreq = make_search_subreq(request, f'/search?{urlencode(search_param, True)}')
-    subreq.cookies = {}
-    return search(context, subreq)
-
-
-def generate_search_total(context, request, search_param):
-    """ Helper function that executes a search and extracts the total """
-    search_param['limit'] = 0  # we do not care about search results, just total
-    return generate_admin_search_given_params(context, request, search_param)['total']
-
-
 def generate_unique_facet_count(context, request, search_param, desired_fact):
     """ Helper function that extracts the number of unique facet terms """
     search_param['limit'] = 0  # we do not care about search results, just facet counts

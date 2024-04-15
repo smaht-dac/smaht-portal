@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.39.1
+0.39.2
 ======
 
 `PR 138: feat: total file counts for benchmarking page tabs <https://github.com/smaht-dac/smaht-portal/pull/138>`_
