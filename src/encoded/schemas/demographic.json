@@ -50,43 +50,62 @@
         "schema_version": {
             "default": "1"
         },
-        "city_of_birth": {
-            "title": "City Of Birth",
-            "description": "The birth city of the donor",
-            "type": "string"
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_DEMOGRAPHIC_[A-Z0-9-_.]{4,}$"
         },
-        "country_of_birth": {
-            "title": "Country Of Birth",
-            "description": "The birth country of the donor",
-            "type": "string"
+        "ethnicity_or_race": {
+            "title": "Ethnicity/Race",
+            "description": "The ethnicity or race of the donor",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "American Indian or Alaska Native",
+                    "Asian",
+                    "Black or African American",
+                    "Hispanic, Latino, or Spanish Origin",
+                    "Middle Eastern or North African",
+                    "Native Hawaiian or Other Pacific Islander",
+                    "Other",
+                    "White"
+                ]
+            }
         },
-        "ethnicity": {
-            "title": "Ethnicity",
-            "description": "The ethnicity of the donor",
+        "ethnicity_or_race_details": {
+            "title": "Ethnicity/Race Details",
+            "description": "Additional information about the ethnicity or race of the donor",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string"
+            }
+        },
+        "international_military_base": {
+            "title": "International Military Base",
+            "description": "Whether the donor lived or work on an international U.S. military base",
             "type": "string",
             "enum": [
-                "Hispanic or Latino",
-                "Not Hispanic or Latino",
-                "Not Reported"
+                "No",
+                "Unknown",
+                "Yes"
             ]
         },
-        "occupation": {
-            "title": "Occupation",
-            "description": "The primary occupation of the donor",
+        "international_military_base_details": {
+            "title": "International Military Base Details",
+            "description": "Additional information about the donor's association with an international military base",
             "type": "string"
         },
-        "race": {
-            "title": "Race",
-            "description": "The race of the donor",
+        "military_association": {
+            "title": "Military Association",
+            "description": "Association of the donor with the military, either as a member, employee, or a dependent of a member of the military",
             "type": "string",
             "enum": [
-                "American Indian or Alaska Native",
-                "Asian",
-                "Black or African American",
-                "Hispanic or Latino",
-                "Native Hawaiian or other Pacific Islander",
-                "White",
-                "Not Reported"
+                "No",
+                "Unknown",
+                "Yes"
             ]
         },
         "donor": {
@@ -94,9 +113,6 @@
             "description": "Link to the associated donor",
             "type": "string",
             "linkTo": "Donor"
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_DEMOGRAPHIC_[A-Z0-9-_.]{4,}$"
         }
     }
 }
