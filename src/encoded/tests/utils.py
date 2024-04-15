@@ -187,6 +187,7 @@ def pluralize_collection(collection: str) -> str:
     # deal with a few special cases explicitly
     specials = [
         "aligned-reads",
+        "basecalling",
         "death-circumstances",
         "sequencing",
         "software",
