@@ -3,13 +3,9 @@ from datetime import datetime
 from pytz import timezone
 from pyramid.view import view_config
 from snovault.util import debug_log
-from snovault.search.search import (
-    search
-)
-from snovault.search.search_utils import make_search_subreq
-from urllib.parse import urlencode
 from concurrent.futures import ThreadPoolExecutor
 from structlog import getLogger
+from .utils import generate_admin_search_given_params, generate_search_total
 
 
 log = getLogger(__name__)
@@ -77,26 +73,6 @@ def extract_desired_facet_from_search(facets, desired_facet_name):
             return d
     log.error(f'Did not locate specified facet on homepage: {desired_facet_name}')
     return None
-
-
-def generate_admin_search_given_params(context, request, search_param):
-    """ Helper function for below that generates/executes a search given params AS ADMIN
-        BE EXTREMELY CAREFUL WITH THIS - do NOT use to return results directly
-    """
-    # VERY IMPORTANT - the below lines eliminate database calls, which is necessary
-    # as making calls (as explained above) leaks connections - Will March 29 2024
-    request.remote_user = 'IMPORT'
-    if 'HTTP_AUTHORIZATION' in request.environ:
-        del request.environ['HTTP_AUTHORIZATION']
-    subreq = make_search_subreq(request, f'/search?{urlencode(search_param, True)}')
-    subreq.cookies = {}
-    return search(context, subreq)
-
-
-def generate_search_total(context, request, search_param):
-    """ Helper function that executes a search and extracts the total """
-    search_param['limit'] = 0  # we do not care about search results, just total
-    return generate_admin_search_given_params(context, request, search_param)['total']
 
 
 def generate_unique_facet_count(context, request, search_param, desired_fact):
