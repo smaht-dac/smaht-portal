@@ -111,7 +111,7 @@
                     "Genome Region",
                     "Quality Control",
                     "Reference Genome",
-                    "RNA Expression",
+                    "RNA Quantification",
                     "Sequencing Reads",
                     "Germline Variant Calls",
                     "Somatic Variant Calls"
