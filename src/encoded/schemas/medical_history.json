@@ -49,16 +49,394 @@
         "schema_version": {
             "default": "1"
         },
-        "primary_source_of_information": {
-            "title": "Primary Source Of Information",
-            "description": "Source of information for the medical history",
-            "type": "string",
-            "enum": [
-                "TBD"
-            ]
-        },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_MEDICAL-HISTORY_[A-Z0-9-_.]{4,}$"
+        },
+        "alcohol_use": {
+            "title": "Alcohol Use",
+            "description": "Whether the donor had a history of alcohol use",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "allergens": {
+            "title": "Allergens",
+            "description": "Substances to which the donor is allergic",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string"
+            }
+        },
+        "allergies": {
+            "title": "Allergies",
+            "description": "Whether the donor had any allergies",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "autograft_transplantation": {
+            "title": "Autograft Transplantation",
+            "description": "Whether the donor had an autograft transplantation",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "autograft_transplantation_details": {
+            "title": "Autograft Transplantation Details",
+            "description": "Details of the autograft transplantation",
+            "type": "string"
+        },
+        "cancer_chemotherapy": {
+            "title": "Cancer Chemotherapy",
+            "description": "Whether the donor had a history of cancer chemotherapy",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "cancer_current": {
+            "title": "Cancer Current",
+            "description": "Whether the donor had a current diagnosis of cancer",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "cancer_history": {
+            "title": "Cancer History",
+            "description": "Whether the donor had a history of cancer",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "cancer_radiation_therapy": {
+            "title": "Cancer Radiation Therapy",
+            "description": "Whether the donor had a history of cancer radiation therapy",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "cancer_type": {
+            "title": "Cancer Type",
+            "description": "Type(s) of cancer with which the donor has been diagnosed",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string"
+            }
+        },
+        "cmv_total_antibody": {
+            "title": "CMV Total Antibody",
+            "description": "Results of testing for CMV total antibody",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "cmv_igg_antibody": {
+            "title": "CMV IgG Antibody",
+            "description": "Results of testing for CMV IgG antibody",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "cmv_igm_antibody": {
+            "title": "CMV IgM Antibody",
+            "description": "Results of testing for CMV IgM antibody",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "covid_19_pcr": {
+            "title": "COVID-19 PCR",
+            "description": "Results of testing for COVID-19 by PCR",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "ebv_igg_antibody": {
+            "title": "EBV IgG Antibody",
+            "description": "Results of testing for EBV IgG antibody",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "ebv_igm_antibody": {
+            "title": "EBV IgM Antibody",
+            "description": "Results of testing for EBV IgM antibody",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "family_breast_cancer": {
+            "title": "Family History Breast Cancer",
+            "description": "Whether the donor had a family history of breast cancer",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "family_cancer_under_50": {
+            "title": "Family History Cancer Under 50",
+            "description": "Whether the donor had a family history of cancer under the age of 50",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "family_diabetes": {
+            "title": "Family History Diabetes",
+            "description": "Whether the donor had a family history of diabetes",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "family_heart_disease": {
+            "title": "Family History Heart Disease",
+            "description": "Whether the donor had a family history of heart disease",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "family_ovarian_pancreatic_prostate_cancer": {
+            "title": "Family History Ovarian, Pancreatic, or Prostate Cancer",
+            "description": "Whether the donor had a family history of ovarian, pancreatic, or prostate cancer",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "hepatitis_b_core_antibody": {
+            "title": "Hepatitis B Core Antibody",
+            "description": "Results of testing for hepatitis B core antibody",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "hepatitis_b_surface_antibody": {
+            "title": "Hepatitis B Surface Antibody",
+            "description": "Results of testing for hepatitis B surface antibody",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "hepatitis_b_surface_antigen": {
+            "title": "Hepatitis B Surface Antigen",
+            "description": "Results of testing for hepatitis B surface antigen",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "hepatitis_c_antibody": {
+            "title": "Hepatitis C Antibody",
+            "description": "Results of testing for hepatitis C antibody",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "hepatitis_c_nat": {
+            "title": "Hepatitis C NAT",
+            "description": "Results of testing for hepatitis C via NAT (nucleic acid testing)",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "hiv_1_2_antibody": {
+            "title": "HIV 1/2 Antibody",
+            "description": "Results of testing for HIV 1/2 antibodies",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "hiv_nat": {
+            "title": "HIV NAT",
+            "description": "Results of testing for HIV via NAT (nucleic acid testing)",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "illicit_drug_use": {
+            "title": "Illicit Drug Use",
+            "description": "Whether the donor had a history of illicit drug use",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "pregnancy_count": {
+            "title": "Pregnancy Count",
+            "description": "Number of pregnancies",
+            "type": "integer",
+            "minimum": 0
+        },
+        "pregnancy_male_fetus": {
+            "title": "Pregnancy Male Fetus",
+            "description": "Whether the donor was ever pregnant with a male fetus",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "syphilis_rpr": {
+            "title": "Syphilis RPR",
+            "description": "Results of testing for syphilis RPR (rapid plasma reagin)",
+            "type": "string",
+            "enum": [
+                "Indeterminate",
+                "Non-reactive",
+                "Not done",
+                "Reactive"
+            ]
+        },
+        "tobacco_use": {
+            "title": "Tobacco Use",
+            "description": "Whether the donor had a history of tobacco use",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "toxic_exposure": {
+            "title": "Toxic Exposure",
+            "description": "Whether the donor had a history of toxic exposure",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "twin_or_multiple_birth": {
+            "title": "Twin or Multiple Birth",
+            "description": "Whether the donor was part of a twin or multiple birth",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "twin_or_multiple_birth_details": {
+            "title": "Twin or Multiple Birth Details",
+            "description": "Details of the twin or multiple birth",
+            "type": "string",
+            "enum": [
+                "Triplet, Fraternal",
+                "Triplet, Identical",
+                "Triplet, Unknown",
+                "Twin, Fraternal",
+                "Twin, Identical",
+                "Twin, Unknown",
+                ">3, Fraternal",
+                ">3, Identical",
+                ">3, Unknown"
+            ]
+        },
+        "xenograft_transplantation": {
+            "title": "Xenograft Transplantation",
+            "description": "Whether the donor had a xenograft transplantation",
+            "type": "string",
+            "enum": [
+                "No",
+                "Unknown",
+                "Yes"
+            ]
+        },
+        "xenograft_transplantation_details": {
+            "title": "Xenograft Transplantation Details",
+            "description": "Details of the xenograft transplantation",
+            "type": "string"
         }
     }
 }

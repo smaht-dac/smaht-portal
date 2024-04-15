@@ -6,11 +6,9 @@
             "smaht"
         ],
         "donor": "TEST_DONOR_FEMALE",
-        "autopsy_by_official": "Yes",
         "blood_transfusion_products": [
             "Platelets"
         ],
-        "hardy_scale": 3,
-        "witnessed_death": "Unknown"
+        "hardy_scale": 3
     }
 ]

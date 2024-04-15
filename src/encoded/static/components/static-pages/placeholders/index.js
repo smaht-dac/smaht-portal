@@ -3,6 +3,7 @@
 import React from 'react';
 import JsxParser from 'react-jsx-parser';
 import { ConsortiumMap } from '../../viz/AboutPageVisualizations/ConsortiumMap/ConsortiumMap';
+import { SubmissionStatus } from '../components/internal/SubmissionStatus';
 import { Alluvial } from '../../viz/AboutPageVisualizations/Alluvial/Alluvial';
 import { StackRowTable } from '../../viz/AboutPageVisualizations/Alluvial/StackRowTable';
 import memoize from 'memoize-one';
@@ -36,6 +37,7 @@ const placeholders = {
     YoutubeVideoEmbed,
     ConsortiumMap,
     Alluvial,
+    SubmissionStatus,
     StackRowTable,
     BenchmarkingUI,
     COLO829Data,
