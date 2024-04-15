@@ -29,6 +29,9 @@
             "$ref": "mixins.json#/description"
         },
         {
+            "$ref": "mixins.json#/external_id"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
