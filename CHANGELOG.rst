@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.39.3
+======
+
+`PR 128: Bm nomenclature page2 <https://github.com/smaht-dac/smaht-portal/pull/128>`_
+
+* Improvements to SMaHT Nomenclature Page
+
+
 0.39.2
 ======
 
