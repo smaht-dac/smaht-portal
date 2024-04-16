@@ -1765,7 +1765,7 @@ body[data-pathname^="/data/benchmarking"] {
 			width: 100%;
 			.benchmarking-layout{
 				>nav.nav-tabs {
-					a.nav-link {
+					.nav-link {
 						color: #5D5E63;
 						font-family: Inter;
 						font-size: 16px;
@@ -1775,9 +1775,26 @@ body[data-pathname^="/data/benchmarking"] {
 							color: #343741;
 							font-weight: 600; 
 							border-top: 4px solid #E99415;
+
+							.badge {
+								color: #343741;
+							}
 						}
 						&.disabled {
 							color: #9BA5B7;
+						}
+
+						&-title {
+							display: flex;
+							justify-content: center;
+		
+							.badge {
+								background-color: #F2F2F2;
+								color: #5D5E63;
+								margin: auto;
+								margin-left: 5px;
+								font-weight: 600;
+							}
 						}
 					}
 				}
@@ -1796,6 +1813,19 @@ body[data-pathname^="/data/benchmarking"] {
 						font-family: Inter;
 						font-size: 14px;
 						line-height: 20px;
+					}
+				}
+
+				&-title {
+					display: flex;
+					justify-content: center;
+
+					.badge {
+						background-color: #F2F2F2;
+						color: #5D5E63;
+						margin: auto;
+						margin-left: 5px;
+						font-weight: 600;
 					}
 				}
 			}
@@ -2125,4 +2155,27 @@ tbody.table-border-inner {
 
 .grey-border {
 	border: 1px solid #F7F8FA;
+}
+
+/***
+Unique styling of Submission Status page
+**/
+.ss-font-size-10{
+	font-size: 10px !important;
+}
+.ss-line-height-140 {
+    line-height: 140%;
+}
+.ss-line-height-120 {
+    line-height: 120%;
+}
+.ss-top-40 {
+    top: 40px;
+}
+.ss-max-width-250 {
+	max-width: 250px;
+}
+.ss-fileset-column {
+	word-wrap: break-word;
+	max-width: 400px;
 }

@@ -89,3 +89,15 @@ def test_collection_actions_filtered_by_permission(workbook, es_testapp, anon_es
     # users not visible
     res = anon_es_testapp.get('/user/', status=404)
     assert len(res.json['@graph']) == 0
+
+
+def test_search_total(workbook, es_testapp, anon_es_testapp):
+    """ Test that we can extract some search totals """
+    search = {
+        'type': 'File',
+        'status': ['released', 'restricted', 'public'],
+    }
+    res = es_testapp.post_json('/search_total', search).json['total']
+    assert res == 7
+    anon_res = anon_es_testapp.post_json('/search_total', search).json['total']
+    assert anon_res == 1
