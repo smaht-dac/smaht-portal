@@ -23,6 +23,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/external_id"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -51,6 +54,9 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_DONOR_[A-Z0-9-_.]{4,}$"
+        },
         "age": {
             "title": "Age",
             "description": "Age of the donor in years",
@@ -62,6 +68,16 @@
             "description": "Body mass index of the donor (m/kg^2)",
             "type": "number",
             "minimum": 0
+        },
+        "eligibility": {
+            "title": "Eligibility",
+            "description": "Whether donor was deemed eligible for the study",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No",
+                "Unknown"
+            ]
         },
         "height": {
             "title": "Height",
@@ -84,9 +100,6 @@
             "description": "Weight of the donor in kilograms",
             "type": "number",
             "minimum": 0
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_DONOR_[A-Z0-9-_.]{4,}$"
         }
     }
 }
