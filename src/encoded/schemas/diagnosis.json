@@ -51,15 +51,18 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_DIAGNOSIS_[A-Z0-9-_.]{4,}$"
+        },
         "age_at_diagnosis": {
             "title": "Age At Diagnosis",
-            "description": "Age when the disease was diagnosed",
+            "description": "Age in years when the disease was diagnosed",
             "type": "integer",
             "minimum": 0
         },
         "age_at_resolution": {
             "title": "Age At Resolution",
-            "description": "Age when the disease was determined to have resolved",
+            "description": "Age in years when the disease was determined to have resolved",
             "type": "integer",
             "minimum": 0
         },
@@ -71,28 +74,13 @@
         "disease": {
             "title": "Disease",
             "description": "Link to associated disease ontology term",
-            "type": "string",
-            "linkTo": "OntologyTerm"
+            "type": "string"
         },
         "medical_history": {
             "title": "Medical History",
             "description": "Link to the associated medical history",
             "type": "string",
             "linkTo": "MedicalHistory"
-        },
-        "therapeutics": {
-            "title": "Therapeutics",
-            "description": "Links to associated therapeutics for the disease",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "Therapeutic"
-            }
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_DIAGNOSIS_[A-Z0-9-_.]{4,}$"
         }
     }
 }

@@ -1,0 +1,95 @@
+{
+    "title": "Family History",
+    "$id": "/profiles/family_history.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "disease",
+        "donor",
+        "relatives",
+        "submission_centers",
+        "submitted_id"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "FX"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_FAMILY-HISTORY_[A-Z0-9-_.]{4,}$"
+        },
+        "disease": {
+            "title": "Disease",
+            "description": "The disease or condition that is being reported",
+            "type": "string"
+        },
+        "relatives": {
+            "title": "Relatives",
+            "description": "The relatives affected by the disease",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Aunt",
+                    "Brother",
+                    "Cousin",
+                    "Daughter",
+                    "Father",
+                    "Grandfather",
+                    "Grandmother",
+                    "Mother",
+                    "Nephew",
+                    "Niece",
+                    "Son",
+                    "Sister",
+                    "Uncle"
+                ]
+            }
+        },
+        "donor": {
+            "title": "Donor",
+            "description": "The donor of the family history",
+            "type": "string",
+            "linkTo": "Donor"
+        }
+    }
+}

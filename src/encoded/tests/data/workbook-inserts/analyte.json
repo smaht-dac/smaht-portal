@@ -17,5 +17,25 @@
         "samples": [
             "TEST_TISSUE-SAMPLE_LIVER"
         ]
+    },
+    {
+        "uuid": "ecff361b-a0ce-4805-9201-301e42c868bf",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ANALYTE_HELA",
+        "molecule_detail": [
+            "mRNA"
+        ],
+        "molecule": [
+            "RNA"
+        ],
+        "a260_a280_ratio": 3.2,
+        "concentration": 6.2,
+        "concentration_unit": "ng/uL",
+        "samples": [
+            "TEST_CELL-CULTURE-SAMPLE_HELA",
+            "TEST_CELL-CULTURE-SAMPLE_HELA-HEK293"
+        ]
     }
 ]

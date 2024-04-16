@@ -5,6 +5,7 @@
             "smaht"
         ],
         "submitted_id": "TEST_TISSUE_LIVER",
+        "external_id": "SMHT-001A",
         "donor": "TEST_DONOR_FEMALE",
         "uberon_id": "UBERON:0002107",
         "ischemic_time": 50,
