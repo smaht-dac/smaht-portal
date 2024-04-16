@@ -22,28 +22,30 @@ Schema Documentation
 
 .. raw:: html
 
-    <table class="table table-borderless table-sm text-center">
-        <thead class="thead-smaht">
-            <tr>
-                <th>Download</th>
-                <th>Version</th>
-                <th>Release date</th>
-                <th>Filename</th>
-            </tr>
-        </thead>
-        <tbody class="table-border-inner">
-            <tr>
-                <td>
-                    <a href="/static/files/SMaHT Sample and File Nomenclature.pdf" download>
-                        <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
-                    </a>
-                </td>
-                <td>1.0</td>
-                <td>03/01/2024</td>
-                <td><a href="/static/files/SMaHT Sample and File Nomenclature.pdf" download>SMaHT Sample and File Nomenclature.pdf</a></td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="table-responsive"> 
+        <table class="table table-borderless table-sm text-center">
+            <thead class="thead-smaht">
+                <tr>
+                    <th>Download</th>
+                    <th>Version</th>
+                    <th>Release date</th>
+                    <th>Filename</th>
+                </tr>
+            </thead>
+            <tbody class="table-border-inner">
+                <tr>
+                    <td>
+                        <a href="/static/files/SMaHT Sample and File Nomenclature.pdf" download>
+                            <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
+                        </a>
+                    </td>
+                    <td>1.0</td>
+                    <td>03/01/2024</td>
+                    <td><a href="/static/files/SMaHT Sample and File Nomenclature.pdf" download>SMaHT Sample and File Nomenclature.pdf</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
 
 
@@ -65,57 +67,59 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
-    <table class="table table-striped table-sm text-left table-equal-columns">
-        <thead class="thead-smaht table-borderless">
-            <tr>
-                <th>Protocol ID</th>
-                <th>Tissue Name for Container</th>
-                <th>Preservation</th>
-            </tr>
-        </thead>
-        <tbody class="table-border-inner">
-            <tr>
-                <td>1A</td>
-                <td>Liver</td>
-                <td>Frozen; homogenized</td>
-            </tr>
-            <tr>
-                <td>1C</td>
-                <td>Liver</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>1D</td>
-                <td>Lung</td>
-                <td>Frozen; homogenized</td>
-            </tr>
-            <tr>
-                <td>1F</td>
-                <td>Lung</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>1G</td>
-                <td>Colon</td>
-                <td>Frozen; homogenized</td>
-            </tr>
-            <tr>
-                <td>1I</td>
-                <td>Colon</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>1J*</td>
-                <td>Skin</td>
-                <td>Frozen; homogenized</td>
-            </tr>
-            <tr>
-                <td>1L*</td>
-                <td>Skin</td>
-                <td>Fixed</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-striped table-sm text-left">
+            <thead class="thead-smaht table-borderless">
+                <tr>
+                    <th style="min-width:95px">Protocol ID</th>
+                    <th style="min-width:200px">Tissue Name for Container</th>
+                    <th style="min-width:200px">Preservation</th>
+                </tr>
+            </thead>
+            <tbody class="table-border-inner">
+                <tr>
+                    <td>1A</td>
+                    <td>Liver</td>
+                    <td>Frozen; homogenized</td>
+                </tr>
+                <tr>
+                    <td>1C</td>
+                    <td>Liver</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>1D</td>
+                    <td>Lung</td>
+                    <td>Frozen; homogenized</td>
+                </tr>
+                <tr>
+                    <td>1F</td>
+                    <td>Lung</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>1G</td>
+                    <td>Colon</td>
+                    <td>Frozen; homogenized</td>
+                </tr>
+                <tr>
+                    <td>1I</td>
+                    <td>Colon</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>1J*</td>
+                    <td>Skin</td>
+                    <td>Frozen; homogenized</td>
+                </tr>
+                <tr>
+                    <td>1L*</td>
+                    <td>Skin</td>
+                    <td>Fixed</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
 \*1J and 1L tissues are collected, but not utilized for study
 
@@ -124,197 +128,199 @@ Table 1B. Protocol IDs for SMaHT production tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
-    <table class="table table-striped table-sm text-left table-equal-columns">
-        <thead class="thead-smaht table-borderless">
+    <div class="table-responsive">
+        <table class="table table-striped table-sm text-left">
+            <thead class="thead-smaht table-borderless">
+                <tr>
+                    <th style="min-width:95px">Protocol ID</th>
+                    <th style="min-width:200px">Tissue Name for Container</th>
+                    <th style="min-width:200px">Preservation</th>
+                </tr>
+            </thead>
+            <tbody class="table-border-inner">
             <tr>
-                <th>Protocol ID</th>
-                <th>Tissue Name for Container</th>
-                <th>Preservation</th>
-            </tr>
-        </thead>
-        <tbody class="table-border-inner">
-        <tr>
-                <td>3A</td>
-                <td>Blood, Whole</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3B</td>
-                <td>Buccal Swab</td>
-                <td>Fresh</td>
-            </tr>
-            <tr>
-                <td>3C</td>
-                <td>Esophagus</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3D</td>
-                <td>Esophagus</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3E</td>
-                <td>Colon, Ascending</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3F</td>
-                <td>Colon, Ascending</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3G</td>
-                <td>Colon, Descending</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3H</td>
-                <td>Colon, Descending</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3I</td>
-                <td>Liver Sample</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3J</td>
-                <td>Liver Sample</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3K</td>
-                <td>Adrenal Gland, Left</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3L</td>
-                <td>Adrenal Gland, Left</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3M</td>
-                <td>Adrenal Gland, Right</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3N</td>
-                <td>Adrenal Gland, Right</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3O</td>
-                <td>Aorta, Abdominal</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3P</td>
-                <td>Aorta, Abdominal</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3Q</td>
-                <td>Lung</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3R</td>
-                <td>Lung</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3S</td>
-                <td>Heart, LV</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3T</td>
-                <td>Heart, LV</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3U</td>
-                <td>Testis, Left</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3V</td>
-                <td>Testis, Left</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3W</td>
-                <td>Testis, Right</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3X</td>
-                <td>Testis, Right</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3Y</td>
-                <td>Ovary, Left</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3Z</td>
-                <td>Ovary, Left</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3AA</td>
-                <td>Ovary, Right</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3AB</td>
-                <td>Ovary, Right</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3AC*</td>
-                <td>Skin, Calf</td>
-                <td>Fresh</td>
-            </tr>
-            <tr>
-                <td>3AD</td>
-                <td>Skin, Calf</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3AE</td>
-                <td>Skin, Calf</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3AF</td>
-                <td>Skin, Abdomen</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3AG</td>
-                <td>Skin, Abdomen</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3AH</td>
-                <td>Muscle</td>
-                <td>Frozen</td>
-            </tr>
-            <tr>
-                <td>3AI</td>
-                <td>Muscle</td>
-                <td>Fixed</td>
-            </tr>
-            <tr>
-                <td>3AJ**</td>
-                <td>Brain</td>
-                <td>Fresh</td>
-            </tr>
-        </tbody>
-    </table>
+                    <td>3A</td>
+                    <td>Blood, Whole</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3B</td>
+                    <td>Buccal Swab</td>
+                    <td>Fresh</td>
+                </tr>
+                <tr>
+                    <td>3C</td>
+                    <td>Esophagus</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3D</td>
+                    <td>Esophagus</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3E</td>
+                    <td>Colon, Ascending</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3F</td>
+                    <td>Colon, Ascending</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3G</td>
+                    <td>Colon, Descending</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3H</td>
+                    <td>Colon, Descending</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3I</td>
+                    <td>Liver Sample</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3J</td>
+                    <td>Liver Sample</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3K</td>
+                    <td>Adrenal Gland, Left</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3L</td>
+                    <td>Adrenal Gland, Left</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3M</td>
+                    <td>Adrenal Gland, Right</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3N</td>
+                    <td>Adrenal Gland, Right</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3O</td>
+                    <td>Aorta, Abdominal</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3P</td>
+                    <td>Aorta, Abdominal</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3Q</td>
+                    <td>Lung</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3R</td>
+                    <td>Lung</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3S</td>
+                    <td>Heart, LV</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3T</td>
+                    <td>Heart, LV</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3U</td>
+                    <td>Testis, Left</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3V</td>
+                    <td>Testis, Left</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3W</td>
+                    <td>Testis, Right</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3X</td>
+                    <td>Testis, Right</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3Y</td>
+                    <td>Ovary, Left</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3Z</td>
+                    <td>Ovary, Left</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3AA</td>
+                    <td>Ovary, Right</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3AB</td>
+                    <td>Ovary, Right</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3AC*</td>
+                    <td>Skin, Calf</td>
+                    <td>Fresh</td>
+                </tr>
+                <tr>
+                    <td>3AD</td>
+                    <td>Skin, Calf</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3AE</td>
+                    <td>Skin, Calf</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3AF</td>
+                    <td>Skin, Abdomen</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3AG</td>
+                    <td>Skin, Abdomen</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3AH</td>
+                    <td>Muscle</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3AI</td>
+                    <td>Muscle</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3AJ**</td>
+                    <td>Brain</td>
+                    <td>Fresh</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
 | \* 3AC will be used to isolate fibroblasts. Could potentially still use "3AC" protocol for fibroblasts, but will need discussion.
 | \*\* 3AJ Will be frozen and subsectioned by NBB-Maryland. Will need subsection IDs from NBB-Maryland.
@@ -334,52 +340,54 @@ Table 3A. Sequencing platform codes.
 
 .. raw:: html
 
-    <table class="table table-striped table-sm">
-        <thead class="thead-smaht table-borderless">
-            <tr>
-                <th class="text-center" width="25%">SMaHT code</th>
-                <th class="text-left">Sequencing platform</th>
-            </tr>
-        </thead>
-        <tbody class="table-border-inner">
-            <tr>
-                <td class="text-center">A</td>
-                <td class="text-left">Illumina NovaSeq X</td>
-            </tr>
-            <tr>
-                <td class="text-center">B</td>
-                <td class="text-left">PacBio Revio HiFi</td>
-            </tr>
-            <tr>
-                <td class="text-center">C</td>
-                <td class="text-left">Illumina NovaSeq 6000</td>
-            </tr>
-            <tr>
-                <td class="text-center">D</td>
-                <td class="text-left">ONT PromethION 24</td>
-            </tr>
-            <tr>
-                <td class="text-center">E</td>
-                <td class="text-left">ONT PromethION 2 Solo</td>
-            </tr>
-            <tr>
-                <td class="text-center">F</td>
-                <td class="text-left">ONT MinION Mk1B</td>
-            </tr>
-            <tr>
-                <td class="text-center">G</td>
-                <td class="text-left">Illumina HiSeq X</td>
-            </tr>
-            <tr>
-                <td class="text-center">H</td>
-                <td class="text-left">Illumina NovaSeq X Plus</td>
-            </tr>
-            <tr>
-                <td class="cell-small-text text-left">(set the codes as data are generated on different sequencing platforms and submitted to DAC)</td>
-                <td class="text-left">ONT MinION, Ultima Genomics, PacBio Onso, Element Aviti, PacBio Sequel</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-striped table-sm">
+            <thead class="thead-smaht table-borderless">
+                <tr>
+                    <th class="text-center" width="25%">SMaHT code</th>
+                    <th class="text-left">Sequencing platform</th>
+                </tr>
+            </thead>
+            <tbody class="table-border-inner">
+                <tr>
+                    <td class="text-center">A</td>
+                    <td class="text-left">Illumina NovaSeq X</td>
+                </tr>
+                <tr>
+                    <td class="text-center">B</td>
+                    <td class="text-left">PacBio Revio HiFi</td>
+                </tr>
+                <tr>
+                    <td class="text-center">C</td>
+                    <td class="text-left">Illumina NovaSeq 6000</td>
+                </tr>
+                <tr>
+                    <td class="text-center">D</td>
+                    <td class="text-left">ONT PromethION 24</td>
+                </tr>
+                <tr>
+                    <td class="text-center">E</td>
+                    <td class="text-left">ONT PromethION 2 Solo</td>
+                </tr>
+                <tr>
+                    <td class="text-center">F</td>
+                    <td class="text-left">ONT MinION Mk1B</td>
+                </tr>
+                <tr>
+                    <td class="text-center">G</td>
+                    <td class="text-left">Illumina HiSeq X</td>
+                </tr>
+                <tr>
+                    <td class="text-center">H</td>
+                    <td class="text-left">Illumina NovaSeq X Plus</td>
+                </tr>
+                <tr>
+                    <td class="cell-small-text text-left">(set the codes as data are generated on different sequencing platforms and submitted to DAC)</td>
+                    <td class="text-left">ONT MinION, Ultima Genomics, PacBio Onso, Element Aviti, PacBio Sequel</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
 
 
@@ -388,198 +396,200 @@ Table 3B. Experimental Assay Codes.
 
 .. raw:: html
 
-    <table class="table table-sm text-left">
-        <thead class="thead-smaht table-borderless">
-            <tr>
-                <th>Code</th>
-                <th>DNA/RNA/Others</th>
-                <th>Assay Level</th>
-                <th>Assay Type</th>
-            </tr>
-        </thead>
-        <tbody class="table-border-inner">
-            <tr>
-                <td>000</td>
-                <td>Null or N/A</td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr class="table-stripe-secondary text-600">
-                <td></td>
-                <td>DNA below</td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>001</td>
-                <td>DNA, PCR-free</td>
-                <td>Bulk</td>
-                <td>Whole genome sequencing (WGS)</td>
-            </tr>
-            <tr>
-                <td>002</td>
-                <td>DNA</td>
-                <td>Bulk</td>
-                <td>WGS</td>
-            </tr>
-            <tr>
-                <td>003</td>
-                <td>DNA</td>
-                <td>Bulk</td>
-                <td>Ultra-Long HMW WGS</td>
-            </tr>
-            <tr>
-                <td>004</td>
-                <td>DNA</td>
-                <td>Bulk</td>
-                <td>Fiber-seq</td>
-            </tr>
-            <tr>
-                <td>005</td>
-                <td>DNA</td>
-                <td>Bulk</td>
-                <td>Hi-C</td>
-            </tr>
-            <tr>
-                <td>006</td>
-                <td>DNA</td>
-                <td>Bulk</td>
-                <td>NTSeq</td>
-            </tr>
-            <tr>
-                <td>007</td>
-                <td>DNA</td>
-                <td>Single-molecule</td>
-                <td>CODEC</td>
-            </tr>
-            <tr>
-                <td>008</td>
-                <td>DNA</td>
-                <td>Single-molecule</td>
-                <td>Duplex sequencing</td>
-            </tr>
-            <tr>
-                <td>009</td>
-                <td>DNA</td>
-                <td>Single-molecule</td>
-                <td>NanoSeq</td>
-            </tr>
-            <tr>
-                <td>010</td>
-                <td>DNA</td>
-                <td>Single-molecule, single-cell</td>
-                <td>scNanoSeq</td>
-            </tr>
-            <tr>
-                <td>011</td>
-                <td>DNA</td>
-                <td>Single-cell</td>
-                <td>DLP+</td>
-            </tr>
-            <tr>
-                <td>012</td>
-                <td>DNA</td>
-                <td>Single-cell</td>
-                <td>MALBAC-amplified WGS</td>
-            </tr>
-            <tr>
-                <td>013</td>
-                <td>DNA</td>
-                <td>Single-cell</td>
-                <td>PTA-amplified WGS</td>
-            </tr>
-            <tr>
-                <td>014</td>
-                <td>DNA</td>
-                <td>Single-cell</td>
-                <td>scDip-C</td>
-            </tr>
-            <tr>
-                <td>015</td>
-                <td>DNA</td>
-                <td>Single-molecule</td>
-                <td>CompDuplex-seq</td>
-            </tr>
-            <tr>
-                <td>016</td>
-                <td>DNA</td>
-                <td>Single-molecule, single-cell</td>
-                <td>scCompDuplex-seq</td>
-            </tr>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td class="cell-small-text pt-1 pb-1">(include additional DNA assays)</td>
-            </tr>
-            <tr class="table-stripe-secondary text-600">
-                <td></td>
-                <td>RNA below</td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>101</td>
-                <td>RNA</td>
-                <td>Bulk</td>
-                <td>RNA-seq</td>
-            </tr>
-            <tr>
-                <td>102</td>
-                <td>RNA</td>
-                <td>Bulk</td>
-                <td>MAS-ISO-Seq</td>
-            </tr>
-            <tr>
-                <td>103</td>
-                <td>RNA</td>
-                <td>Single-cell/nucleus</td>
-                <td>snRNA-Seq</td>
-            </tr>
-            <tr>
-                <td>104</td>
-                <td>RNA</td>
-                <td>Single-cell/nucleus</td>
-                <td>STORM-Seq</td>
-            </tr>
-            <tr>
-                <td>105</td>
-                <td>RNA</td>
-                <td>Single-cell/nucleus</td>
-                <td>Tranquil-Seq</td>
-            </tr>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td class="cell-small-text pt-1 pb-1">(include additional RNA assays)</td>
-            </tr>
-            <tr class="table-stripe-secondary text-600">
-                <td></td>
-                <td>Epigenetics below</td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>201</td>
-                <td></td>
-                <td></td>
-                <td class="cell-small-text pt-1 pb-1">(include additional epigenetic assays)</td>
-            </tr>
-            <tr class="table-stripe-secondary text-600">
-                <td></td>
-                <td>Others below</td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>301</td>
-                <td></td>
-                <td></td>
-                <td class="cell-small-text ">(include additional assays)</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-sm text-left">
+            <thead class="thead-smaht table-borderless">
+                <tr>
+                    <th>Code</th>
+                    <th>DNA/RNA/Others</th>
+                    <th>Assay Level</th>
+                    <th>Assay Type</th>
+                </tr>
+            </thead>
+            <tbody class="table-border-inner">
+                <tr>
+                    <td>000</td>
+                    <td>Null or N/A</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr class="table-stripe-secondary text-600">
+                    <td></td>
+                    <td>DNA below</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>001</td>
+                    <td>DNA, PCR-free</td>
+                    <td>Bulk</td>
+                    <td>Whole genome sequencing (WGS)</td>
+                </tr>
+                <tr>
+                    <td>002</td>
+                    <td>DNA</td>
+                    <td>Bulk</td>
+                    <td>WGS</td>
+                </tr>
+                <tr>
+                    <td>003</td>
+                    <td>DNA</td>
+                    <td>Bulk</td>
+                    <td>Ultra-Long HMW WGS</td>
+                </tr>
+                <tr>
+                    <td>004</td>
+                    <td>DNA</td>
+                    <td>Bulk</td>
+                    <td>Fiber-seq</td>
+                </tr>
+                <tr>
+                    <td>005</td>
+                    <td>DNA</td>
+                    <td>Bulk</td>
+                    <td>Hi-C</td>
+                </tr>
+                <tr>
+                    <td>006</td>
+                    <td>DNA</td>
+                    <td>Bulk</td>
+                    <td>NTSeq</td>
+                </tr>
+                <tr>
+                    <td>007</td>
+                    <td>DNA</td>
+                    <td>Single-molecule</td>
+                    <td>CODEC</td>
+                </tr>
+                <tr>
+                    <td>008</td>
+                    <td>DNA</td>
+                    <td>Single-molecule</td>
+                    <td>Duplex sequencing</td>
+                </tr>
+                <tr>
+                    <td>009</td>
+                    <td>DNA</td>
+                    <td>Single-molecule</td>
+                    <td>NanoSeq</td>
+                </tr>
+                <tr>
+                    <td>010</td>
+                    <td>DNA</td>
+                    <td>Single-molecule, single-cell</td>
+                    <td>scNanoSeq</td>
+                </tr>
+                <tr>
+                    <td>011</td>
+                    <td>DNA</td>
+                    <td>Single-cell</td>
+                    <td>DLP+</td>
+                </tr>
+                <tr>
+                    <td>012</td>
+                    <td>DNA</td>
+                    <td>Single-cell</td>
+                    <td>MALBAC-amplified WGS</td>
+                </tr>
+                <tr>
+                    <td>013</td>
+                    <td>DNA</td>
+                    <td>Single-cell</td>
+                    <td>PTA-amplified WGS</td>
+                </tr>
+                <tr>
+                    <td>014</td>
+                    <td>DNA</td>
+                    <td>Single-cell</td>
+                    <td>scDip-C</td>
+                </tr>
+                <tr>
+                    <td>015</td>
+                    <td>DNA</td>
+                    <td>Single-molecule</td>
+                    <td>CompDuplex-seq</td>
+                </tr>
+                <tr>
+                    <td>016</td>
+                    <td>DNA</td>
+                    <td>Single-molecule, single-cell</td>
+                    <td>scCompDuplex-seq</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="cell-small-text pt-1 pb-1">(include additional DNA assays)</td>
+                </tr>
+                <tr class="table-stripe-secondary text-600">
+                    <td></td>
+                    <td>RNA below</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>101</td>
+                    <td>RNA</td>
+                    <td>Bulk</td>
+                    <td>RNA-seq</td>
+                </tr>
+                <tr>
+                    <td>102</td>
+                    <td>RNA</td>
+                    <td>Bulk</td>
+                    <td>MAS-ISO-Seq</td>
+                </tr>
+                <tr>
+                    <td>103</td>
+                    <td>RNA</td>
+                    <td>Single-cell/nucleus</td>
+                    <td>snRNA-Seq</td>
+                </tr>
+                <tr>
+                    <td>104</td>
+                    <td>RNA</td>
+                    <td>Single-cell/nucleus</td>
+                    <td>STORM-Seq</td>
+                </tr>
+                <tr>
+                    <td>105</td>
+                    <td>RNA</td>
+                    <td>Single-cell/nucleus</td>
+                    <td>Tranquil-Seq</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="cell-small-text pt-1 pb-1">(include additional RNA assays)</td>
+                </tr>
+                <tr class="table-stripe-secondary text-600">
+                    <td></td>
+                    <td>Epigenetics below</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>201</td>
+                    <td></td>
+                    <td></td>
+                    <td class="cell-small-text pt-1 pb-1">(include additional epigenetic assays)</td>
+                </tr>
+                <tr class="table-stripe-secondary text-600">
+                    <td></td>
+                    <td>Others below</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>301</td>
+                    <td></td>
+                    <td></td>
+                    <td class="cell-small-text ">(include additional assays)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
 
 
