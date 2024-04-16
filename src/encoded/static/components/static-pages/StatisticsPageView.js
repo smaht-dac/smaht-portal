@@ -104,15 +104,15 @@ export default class StatisticsPageView extends React.PureComponent {
         // GroupByController is on outside here because SubmissionStatsViewController detects if props.currentGroupBy has changed in orded to re-fetch aggs.
         const { browseBaseState } = this.props;
 
-        const groupByOptions = { 'award.project' : <span><i className="icon icon-fw fas icon-university mr-1"/>Project</span> };
+        const groupByOptions = { 'sequencing_center.display_title' : <span><i className="icon icon-fw fas icon-university mr-1"/>Submission Center</span> };
 
-        let initialGroupBy = 'award.project';
+        let initialGroupBy = 'sequencing_center.display_title';
 
         if (browseBaseState !== 'all'){
             _.extend(groupByOptions, {
-                'sequencing_center.display_title'                   : <span><i className="icon icon-fw fas icon-university mr-1"/>Sequencing Center</span>,
-                'lab.display_title'                                 : <span><i className="icon icon-fw fas icon-users mr-1"/>Lab</span>,
-                'experiments_in_set.experiment_type.display_title'  : <span><i className="icon icon-fw fas icon-chart-bar mr-1"/>Experiment Type</span>
+                'lab.display_title'                                 : <span><i className="icon icon-fw fas icon-users mr-1"/>Data Type</span>,
+                'experiments_in_set.experiment_type.display_title'  : <span><i className="icon icon-fw fas icon-chart-bar mr-1"/>Assay Type</span>,
+                'experiments_in_set.experiment_type.display_title2' : <span><i className="icon icon-fw fas icon-chart-bar mr-1"/>Sample Type</span>
             });
             initialGroupBy = 'sequencing_center.display_title';
         }

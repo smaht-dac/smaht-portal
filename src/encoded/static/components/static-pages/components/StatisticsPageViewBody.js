@@ -364,6 +364,54 @@ const aggregationsToChartData = {
             return combinedAggList;
         }
     },
+    'files_submitted' : {
+        'requires'  : 'ExperimentSetReplicate',
+        'function'  : function(resp, props){
+            if (!resp || !resp.aggregations) return null;
+            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
+            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
+
+            return commonParsingFxn.countsToTotals(
+                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap)
+            );
+        }
+    },
+    'file_volume_submitted' : {
+        'requires'  : 'ExperimentSetReplicate',
+        'function'  : function(resp, props){
+            if (!resp || !resp.aggregations) return null;
+            var weeklyIntervalBuckets = resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
+            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
+
+            return commonParsingFxn.countsToTotals(
+                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap)
+            );
+        }
+    },
+    'files_pipelined' : {
+        'requires'  : 'ExperimentSetReplicate',
+        'function'  : function(resp, props){
+            if (!resp || !resp.aggregations) return null;
+            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
+            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
+
+            return commonParsingFxn.countsToTotals(
+                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap)
+            );
+        }
+    },
+    'file_volume_pipelined' : {
+        'requires'  : 'ExperimentSetReplicate',
+        'function'  : function(resp, props){
+            if (!resp || !resp.aggregations) return null;
+            var weeklyIntervalBuckets = resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
+            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
+
+            return commonParsingFxn.countsToTotals(
+                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap)
+            );
+        }
+    },
     'files_released' : {
         'requires'  : 'ExperimentSetReplicate',
         'function'  : function(resp, props){
@@ -480,7 +528,9 @@ const aggregationsToChartData = {
 // I forgot what purpose of all this was, kept because no time to refactor all now.
 export const submissionsAggsToChartData = _.pick(aggregationsToChartData,
     /*'expsets_released', 'expsets_released_internal',
-    'expsets_released_vs_internal', */'files_released',
+    'expsets_released_vs_internal', */'files_submitted',
+    'file_volume_submitted', 'files_pipelined',
+    'file_volume_pipelined', 'files_released',
     'file_volume_released'
 );
 
@@ -880,7 +930,8 @@ export function SubmissionsStatsView(props) {
     const {
         loadingStatus, mounted, session, currentGroupBy, groupByOptions, handleGroupByChange, windowWidth,
         // Passed in from StatsChartViewAggregator:
-        /*expsets_released, expsets_released_internal, */files_released, file_volume_released,
+        /*expsets_released, expsets_released_internal, */files_submitted, file_volume_submitted,  files_pipelined, file_volume_pipelined, 
+        files_released, file_volume_released,
         /*expsets_released_vs_internal,*/ chartToggles, smoothEdges, width, onChartToggle, onSmoothEdgeToggle
     } = props;
 
@@ -920,9 +971,12 @@ export function SubmissionsStatsView(props) {
 
             <ColorScaleProvider width={width} resetScalesWhenChange={files_released}>
 
-                {/* <GroupByDropdown {...{ currentGroupBy, groupByOptions, handleGroupByChange, loadingStatus }} title="Group Charts Below By">
+                <GroupByDropdown {...{ currentGroupBy, groupByOptions, handleGroupByChange, loadingStatus }} title="Group Charts Below By">
                     <div className="d-inline-block ml-15">
                         <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
+                    </div>
+                    <div className="d-inline-block ml-15">
+                        <Checkbox checked={true} disabled={true} onChange={onSmoothEdgeToggle}>Show as cumulative sum</Checkbox>
                     </div>
                 </GroupByDropdown>
 
@@ -930,7 +984,7 @@ export function SubmissionsStatsView(props) {
 
                 <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
-                <AreaChartContainer {...commonContainerProps} id="expsets_released" title={
+                {/* <AreaChartContainer {...commonContainerProps} id="expsets_released" title={
                     <h4 className="text-300 mt-0">
                         <span className="text-500">Experiment Sets</span> - { session ? 'publicly released' : 'released' }
                     </h4>
@@ -948,9 +1002,41 @@ export function SubmissionsStatsView(props) {
                     </AreaChartContainer>
                     : null }
 
+                 <AreaChartContainer {...commonContainerProps} id="files_submitted" title={
+                    <h4 className="text-300 mt-0">
+                        <span className="text-500">Files</span> - { 'submitted' }
+                    </h4>
+                }>
+                    <AreaChart {...commonChartProps} data={files_submitted} />
+                </AreaChartContainer>
+
+                <AreaChartContainer {...commonContainerProps} id="file_volume_submitted" title={
+                    <h4 className="text-300 mt-0">
+                        <span className="text-500">Total File Size</span> - { 'submitted' }
+                    </h4>
+                }>
+                    <AreaChart {...commonChartProps} data={file_volume_submitted} yAxisLabel="GB" />
+                </AreaChartContainer>
+
+                <AreaChartContainer {...commonContainerProps} id="files_pipelined" title={
+                    <h4 className="text-300 mt-0">
+                        <span className="text-500">Files</span> - { 'began analysis (pipeline)' }
+                    </h4>
+                }>
+                    <AreaChart {...commonChartProps} data={files_pipelined} />
+                </AreaChartContainer>
+
+                <AreaChartContainer {...commonContainerProps} id="file_volume_pipelined" title={
+                    <h4 className="text-300 mt-0">
+                        <span className="text-500">Total File Size</span> - { 'began analysis (pipeline)' }
+                    </h4>
+                }>
+                    <AreaChart {...commonChartProps} data={file_volume_pipelined} yAxisLabel="GB" />
+                </AreaChartContainer>                   
+
                 <AreaChartContainer {...commonContainerProps} id="files_released" title={
                     <h4 className="text-300 mt-0">
-                        <span className="text-500">Files</span> - { session ? 'publicly released' : 'released' }
+                        <span className="text-500">Files</span> - { 'released' }
                     </h4>
                 }>
                     <AreaChart {...commonChartProps} data={files_released} />
@@ -958,7 +1044,7 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_released" title={
                     <h4 className="text-300 mt-0">
-                        <span className="text-500">Total File Size</span> - { session ? 'publicly released' : 'released' }
+                        <span className="text-500">Total File Size</span> - { 'released' }
                     </h4>
                 }>
                     <AreaChart {...commonChartProps} data={file_volume_released} yAxisLabel="GB" />
