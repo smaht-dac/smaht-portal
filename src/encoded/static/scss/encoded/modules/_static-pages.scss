@@ -2086,6 +2086,10 @@ tbody.table-border-inner {
 	}
 }
 
+.table-equal-columns {
+	table-layout: fixed;
+}
+
 .table-border-inner {
 	border-collapse: collapse;
 	

@@ -65,7 +65,7 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
-    <table class="table table-striped table-sm text-left">
+    <table class="table table-striped table-sm text-left table-equal-columns">
         <thead class="thead-smaht table-borderless">
             <tr>
                 <th>Protocol ID</th>
@@ -124,7 +124,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
-    <table class="table table-striped table-sm text-left">
+    <table class="table table-striped table-sm text-left table-equal-columns">
         <thead class="thead-smaht table-borderless">
             <tr>
                 <th>Protocol ID</th>
