@@ -620,7 +620,7 @@ export class AreaChart extends React.PureComponent {
         'yAxisLabel'            : 'Count',
         'yAxisScale'            : 'Linear', // Must be one of 'Linear', 'Log', 'Pow'
         'yAxisPower'            : null,
-        'xDomain'               : [ new Date('2017-03-01'), null ],
+        'xDomain'               : [ new Date('2024-01-01'), null ],
         'yDomain'               : [ 0, null ],
         'curveFxn'              : d3.curveStepAfter,
         'transitionDuration'    : 1500,
