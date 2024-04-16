@@ -19,7 +19,7 @@ export default class StatisticsPageView extends React.PureComponent {
 
     static viewOptions = {
         'submissions' : {
-            'title' : "Submissions Statistics",
+            'title' : "Data Submissions Statistics",
             'icon' : 'upload fas',
             'tip' : "View statistics related to submission and release of Experiment Set",
             // Now set upon load:
@@ -30,7 +30,7 @@ export default class StatisticsPageView extends React.PureComponent {
             // )
         },
         'usage' : {
-            'title' : "Usage Statistics",
+            'title' : "Portal Usage Statistics",
             'icon' : 'users fas',
             'tip' : "View statistics related to usage of the SMaHT Data Portal",
             // Now set upon load:
