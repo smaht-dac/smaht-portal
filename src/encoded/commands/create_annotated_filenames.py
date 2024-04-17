@@ -457,13 +457,22 @@ def get_file_sets_from_file(
 
     # If file sets are not present on the item, try to get it from the MWFR (only works for output files)
     if not to_get:
-        search_query = f"/search/?type=MetaWorkflowRun&workflow_runs.output.file.uuid={file_item[PortalConstants.UUID]}"
-        mwfrs = ff_utils.search_metadata(search_query, key=auth_key)
-        if mwfrs:
-            mwfr = mwfrs[0] # We are expecting at most one result
-            to_get = mwfr[PortalConstants.FILE_SETS]
+        hashable_key = get_hashable_key(auth_key)
+        to_get = search_file_sets_from_output_file(file_item[PortalConstants.UUID], hashable_key)
 
     return [get_item(item, auth_key) for item in to_get]
+
+
+@lru_cache
+def search_file_sets_from_output_file(file_uuid: str, hashable_key: Tuple[str, str]) -> List[Dict[str, Any]]:
+    key = unhash_key(hashable_key)
+    search_query = f"/search/?type=MetaWorkflowRun&workflow_runs.output.file.uuid={file_uuid}"
+    mwfrs = ff_utils.search_metadata(search_query, key=key)
+    to_get = []
+    if mwfrs:
+        mwfr = mwfrs[0] # We are expecting at most one result
+        to_get = mwfr[PortalConstants.FILE_SETS]
+    return to_get
 
 
 def get_items_from_property(
