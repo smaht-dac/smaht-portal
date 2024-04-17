@@ -102,7 +102,7 @@
         }
     },
     "columns": {
-        "sample_source.display_title": {
+        "sample_sources.display_title": {
             "title": "Sample Source"
         },
         "submission_centers.display_title": {
