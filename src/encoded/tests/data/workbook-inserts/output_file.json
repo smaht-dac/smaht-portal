@@ -25,7 +25,14 @@
         "consortia": [
             "smaht"
         ],
-        "file_size": 5000
+        "submission_centers": [
+            "smaht"
+        ],
+        "file_sets": [
+            "TEST_FILE-SET_LIVER"
+        ],
+        "file_size": 5000,
+        "md5sum": "211e09ebf240c7256747d10e24cb99fd"
     },
     {
         "uuid": "cca15caa-bc11-4a6a-8998-ea0c69df8b9e",
@@ -47,6 +54,17 @@
         "consortia": [
             "smaht"
         ],
-        "file_size": 10000
+        "sequencing_center": "smaht",
+        "file_size": 10000,
+        "file_sets": [
+            "TEST_FILE-SET_HELA"
+        ],
+        "software": [
+            "TEST_SOFTWARE_BWA-MEM",
+            "foo:software_vep"
+        ],
+        "reference_genome": "GRCh38",
+        "status": "released",
+        "dataset": "colo829t"
     }
 ]

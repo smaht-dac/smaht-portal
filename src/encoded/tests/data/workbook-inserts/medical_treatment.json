@@ -1,0 +1,16 @@
+[
+    {
+        "uuid": "c639fc08-6fb5-435a-a448-d6391e00e0e5",
+        "submitted_id": "TEST_MEDICAL-TREATMENT_CHEMOTHERAPY",
+        "submission_centers": [
+            "smaht"
+        ],
+        "category": [
+            "Chemotherapy"
+        ],
+        "title": "R-CHOP",
+        "year_start": 2002,
+        "year_end": 2004,
+        "medical_history": "TEST_MEDICAL-HISTORY_FEMALE"
+    }
+]

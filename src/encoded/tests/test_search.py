@@ -1,22 +1,8 @@
-import json
 import pytest
-import webtest
-
-from datetime import datetime, timedelta
-from dcicutils.misc_utils import Retry, ignored, local_attrs
 from dcicutils.qa_utils import notice_pytest_fixtures
-from pyramid.httpexceptions import HTTPBadRequest
-from snovault import TYPES, COLLECTIONS
-from snovault.elasticsearch import create_mapping
-from snovault.elasticsearch.indexer_utils import get_namespaced_index
-from snovault.schema_utils import load_schema
-from snovault.util import add_default_embeds
-from webtest import AppError
-from snovault.search.lucene_builder import LuceneBuilder
-from snovault.search.search_utils import find_nested_path
 
 
-pytestmark = [pytest.mark.indexing]
+pytestmark = [pytest.mark.indexing, pytest.mark.workbook]
 
 
 class MockedRequest(object):
@@ -103,3 +89,15 @@ def test_collection_actions_filtered_by_permission(workbook, es_testapp, anon_es
     # users not visible
     res = anon_es_testapp.get('/user/', status=404)
     assert len(res.json['@graph']) == 0
+
+
+def test_search_total(workbook, es_testapp, anon_es_testapp):
+    """ Test that we can extract some search totals """
+    search = {
+        'type': 'File',
+        'status': ['released', 'restricted', 'public'],
+    }
+    res = es_testapp.post_json('/search_total', search).json['total']
+    assert res == 7
+    anon_res = anon_es_testapp.post_json('/search_total', search).json['total']
+    assert anon_res == 1

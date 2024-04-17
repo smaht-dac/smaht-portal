@@ -18,6 +18,8 @@
             "TEST_FILE-SET_LIVER"
         ],
         "reference_genome": "GRCh38",
-        "file_size": 100000
+        "file_size": 100000,
+        "status": "public",
+        "dataset": "colo829t"
     }
 ]

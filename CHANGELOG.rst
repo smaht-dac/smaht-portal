@@ -7,6 +7,161 @@ smaht-portal
 Change Log
 ----------
 
+0.39.2
+======
+
+`PR 138: feat: total file counts for benchmarking page tabs <https://github.com/smaht-dac/smaht-portal/pull/138>`_
+
+* Fetch total number of files and render as a badge on benchmarking tabs (next to the title)
+
+
+0.39.1
+======
+
+* Improve Submission Status page styling
+
+
+0.39.0
+======
+
+`PR 134: Updates for TPC metadata <https://github.com/smaht-dac/smaht-portal/pull/134>`_
+
+* Reorganize donor-related items and fields following discussions/feedback from the TPC
+  * Add new item types: FamilyHistory and MedicalTreatment
+  * Delete unused item types: Therapeutic and MolecularTest
+  * Removal, addition, and renaming of many properties
+* Add `external_id` mixin to multiple SubmittedItem types for tracking identifiers from submitters
+
+
+0.38.1
+======
+
+* Improve Submission Status page styling
+
+
+0.38.0
+======
+
+* Add Submission Status page
+* Add various embeddings to FileSet
+* Add ``file_status_tracking`` calc prop to File
+
+
+0.37.4
+======
+
+* Dumb typo/mistake in ingestion.loadxl_extensions (portal.is_file_schema -> is_schema_file_type)
+
+
+0.37.3
+======
+
+* Added expiration for access-keys on user profile page.
+* New version of dcicutils with minor fix in structured_data for smaht-submitr progress monitoring.
+* Added support to get the version of the latest smaht-submitr Google Sheets metadata template;
+  added endpoint /submitr_metadata_template_info (defined ingestion.metadata_template); added
+  GOOGLE_API_KEY in development.ini.template, smaht_any_alpha.ini, and dcicutils.deployment_utils.
+
+
+0.37.2
+======
+
+`PR 131: feat: Benchmarking Page navigation toggle functionality <https://github.com/smaht-dac/smaht-portal/pull/131>`_
+
+* Enable toggle for benchmarking page navigation
+
+
+0.37.1
+======
+
+`PR 132: Fix file embeds <https://github.com/smaht-dac/smaht-portal/pull/132>`_
+
+* Fix file embeds by removing sub-type LinkTos from Samples to SampleSources and deletion of unused embed
+
+
+0.37.0
+======
+
+`PR 127: File Overview Calcprops + Item Utils <https://github.com/smaht-dac/smaht-portal/pull/127>`_
+
+* Add calcprops for file overview page
+* Add calcprops for associated items on files
+* Add item_utils module for common item functions
+
+
+0.36.0
+======
+
+* 2024-03-25
+* Changes to support tracking ingestion progess for smaht-submitr (via Redis).
+* Minor documentation tweaks.
+
+
+0.35.2
+======
+
+`PR 139: feat: format latest release date string <https://github.com/smaht-dac/smaht-portal/pull/130>`_
+
+* Format latest release date
+
+0.35.1
+======
+
+* Fix sex not appearing on donor (and other) detail pages
+
+
+0.35.0
+======
+
+* Dynamic homepage count support
+* Isolate workbook and non-workbook tests
+
+
+0.34.1
+======
+* Add facets to HapMap and iPSC
+* Fix HapMap and iPSC links
+
+
+0.34.0
+======
+
+* 2024-03-14: This is a temporary branch (extra_files_plus_main_20240314)
+  which is Will's extra_files branch with main merged in (2024-03-14), and
+  also Utku's utk_es_max_hit branch (PR-114) with documentation changes merge in.
+  FYI: Branch utk_es_max_hit was merged into main 2024-03-19.
+* Added missing import of calculated_property from snovault to types/submitted_file.py.
+* Documentation changes.
+
+* Changes to support "resuming" smaht-submitr submission after a server
+  validation "submission" timed out while waiting (via submit-metadata-bundle).
+
+  In this (server validation timeout) case the user can then run check-submission with
+  the UUID for the validation submission, and if/when it is complete and successful,
+  the user will be allowed to continue on to do the actual submission. Slightly tricky
+  because the metadata file was uploaded (to S3) as a part of the validation submission,
+  and/but when check-submission is run we don't want the user to have to specify this
+  file again, partly because it is an odd user experience, but mostly because when we
+  do the actual submission we want to make sure we use the EXACT file that was validated;
+  and so to do this we grab the file from where it was uploaded as part of the validation
+  submission (i.e. under an S3 key with the validation UUID) and copy it over to where
+  it would normally be (i.e. under an S3 key with the submission UUID); and from there
+  things continue as normal. Note also that both of the IngestionSubmission objects have
+  a pointer to the other; i.e. the validation submission object has "submission_uuid"
+  and the actual submission object has a "validation_uuid" (in the "parameters");
+  this hookup is done by the smaht-submitr code.
+
+  The "resuming" scare-quotes are because this is not really resuming a submission but
+  rather resuming the process the submit-metadata-bundle was doing, i.e. where it does
+  a server validation then then, if successful and okay with the user, it continues on
+  to do the actual submission. The "submission" scare-quotes for the server validation
+  is because this is a submission in the sense that an IngestionSubmission object is
+  created, but not an actual submission because it is a validate_only submission.
+
+* Added display_title calculated property to IngestionSubmission to display either
+  Validation or Submission depending on validate_only (followed by colon and uuid).
+
+
 0.33.3
 ======
 
@@ -57,7 +212,7 @@ Change Log
 ======
 
 * Removed master-inserts/file_format.json.
-* Changes for new skip_links (snovault.loadxl) mode for smaht-submitr. 
+* Changes for new skip_links (snovault.loadxl) mode for smaht-submitr.
 * Added submits_for to master-inserts/users.json.
 * Documentation related to smaht-submitr updates.
 * FYI: For the record some merging complications (2024-03-09 ~ 15:35) ...
@@ -71,7 +226,7 @@ Change Log
 0.31.0
 ======
 
-* Updates nginx version to latest as of 03/13/2024 to resolve security alerts 
+* Updates nginx version to latest as of 03/13/2024 to resolve security alerts
 
 
 0.30.2
