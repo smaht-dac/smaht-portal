@@ -144,5 +144,18 @@
             "type": "string",
             "linkTo": "Donor"
         }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
+    },
+    "columns": {
+        "donor.display_title": {
+            "title": "Donor"
+        },
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
     }
 }

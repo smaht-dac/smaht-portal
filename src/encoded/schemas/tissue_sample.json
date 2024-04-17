@@ -86,7 +86,7 @@
                 "Cells",
                 "Core",
                 "Homogenate",
-                "Speciment"
+                "Specimen"
             ]
         },
         "processing_date": {
@@ -105,6 +105,28 @@
             "description": "Weight of the sample (mg)",
             "type": "number",
             "minimum": 0
+        }
+    },
+    "facets": {
+        "category": {
+            "title": "Sample Type"
+        },
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
+    },
+    "columns": {
+        "category": {
+            "title": "Sample Type"
+        },
+        "sample_sources.display_title": {
+            "title": "Tissue"
+        },
+        "sample_sources.donor.display_title": {
+            "title": "Donor"
+        },
+        "submission_centers.display_title": {
+            "title": "Submitted By"
         }
     }
 }
