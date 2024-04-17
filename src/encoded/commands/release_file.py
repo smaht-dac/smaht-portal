@@ -1,6 +1,8 @@
 import argparse
-from typing import Dict, List
+from typing import Dict, List, Any
+import create_annotated_filenames as caf
 import pprint
+from dataclasses import dataclass
 
 pp = pprint.PrettyPrinter(indent=2)
 
@@ -77,6 +79,12 @@ class PC:  # PortalConstants
     UUID = "uuid"
     VARIANT_TYPE = "variant_type"
     VERSION = "version"
+
+
+@dataclass(frozen=True)
+class AnnotatedFilenameInfo:
+    filename: str
+    patch_dict: Dict[str, Any]
 
 
 # dataset is required but comes in through input args for now
@@ -277,7 +285,8 @@ class FileRelease:
     def add_file_patchdict(self, file: dict, fileset: dict, dataset: str) -> None:
 
         access_status = self.get_access_status(file, dataset)
-        annotated_filename = self.get_annotated_filename(file)
+        annotated_filename_info = self.get_annotated_filename_info(file)
+
         # Add file to file set and set status to released
         patch_body = {
             PC.UUID: file[PC.UUID],
@@ -285,8 +294,16 @@ class FileRelease:
             PC.FILE_SETS: [fileset[PC.UUID]],
             PC.DATASET: dataset,
             PC.ACCESS_STATUS: access_status,
-            # PC.ANNOTATED_FILENAME: annotated_filename,
+            PC.ANNOTATED_FILENAME: annotated_filename_info.filename,
         }
+
+        # Take the extra files from the annotated filename object if available.
+        # They will have the correct filenames
+        if annotated_filename_info.patch_dict:
+            extra_files = annotated_filename_info.patch_dict.get(PC.EXTRA_FILES)
+            if extra_files:
+                patch_body[PC.EXTRA_FILES] = extra_files
+
         self.patch_infos.extend(
             [
                 f"\nFile ({file[PC.ACCESSION]}):",
@@ -294,17 +311,35 @@ class FileRelease:
                 f"  - {bcolors.OKBLUE}{PC.DATASET}           {bcolors.ENDC} is set to {bcolors.OKBLUE}{dataset}{bcolors.ENDC}",
                 f"  - {bcolors.OKBLUE}{PC.FILE_SET}          {bcolors.ENDC} is set to {bcolors.OKBLUE}[{fileset[PC.ACCESSION]}]{bcolors.ENDC}",
                 f"  - {bcolors.OKBLUE}{PC.ACCESS_STATUS}     {bcolors.ENDC} is set to {bcolors.OKBLUE}{access_status}{bcolors.ENDC}",
-                f"  - {bcolors.OKBLUE}{PC.ANNOTATED_FILENAME}{bcolors.ENDC} is set to {bcolors.OKBLUE}{annotated_filename}{bcolors.ENDC}",
+                f"  - {bcolors.OKBLUE}{PC.ANNOTATED_FILENAME}{bcolors.ENDC} is set to {bcolors.OKBLUE}{annotated_filename_info.filename}{bcolors.ENDC}",
             ]
         )
+
         self.patch_dicts.append(patch_body)
 
-    def get_annotated_filename(self, file: dict) -> None:
-        if "annotated_filename" not in file:
-            self.print_error_and_exit("No annotated filename")
-        else:
-            return file["annotated_filename"]
-        return "TO BE IMPLEMENTED"
+    def get_annotated_filename_info(self, file: dict) -> AnnotatedFilenameInfo:
+        if "annotated_filename" in file:
+            return AnnotatedFilenameInfo(file["annotated_filename"], None)
+
+        # Use function from create_annotated_filenames.py to get relevant information
+        file_items = caf.get_file_items(
+            search=None, identifiers=[file[PC.UUID]], auth_key=self.key
+        )
+        filenames_data = caf.get_filename_data(file_items, self.key)
+        if len(filenames_data) != 1:
+            self.print_error_and_exit(
+                "Expected to get exactly one annotated file name object"
+            )
+
+        annotated_filename = caf.create_annotated_filename(filenames_data[0])
+        if caf.has_errors(annotated_filename):
+            errors = "; ".join(annotated_filename.errors)
+            self.print_error_and_exit(
+                f"Could not get annotated filename for {annotated_filename.uuid}: {errors}"
+            )
+        patch_body = caf.get_patch_body(annotated_filename, self.key)
+
+        return AnnotatedFilenameInfo(annotated_filename.filename, patch_body)
 
     def get_access_status(self, file: dict, dataset: str) -> str:
         """
