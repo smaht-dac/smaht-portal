@@ -54,7 +54,7 @@ class FileSet(SubmittedItem):
         if result:
             return result
         return
-    
+
     @calculated_property(
         schema={
             "title": "MetaWorkflowRuns",
@@ -70,4 +70,3 @@ class FileSet(SubmittedItem):
         if result:
             return result
         return
-
