@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.40.0
+======
+
+`PR 144: Add parent samples to TissueSample <https://github.com/smaht-dac/smaht-portal/pull/144>`_
+
+* Add `parent_samples` to TissueSample to track related samples
+
+
 0.39.3
 ======
 
