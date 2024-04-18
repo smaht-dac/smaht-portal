@@ -15,6 +15,7 @@ from webtest.app import TestApp
 from ..utils import (
     get_formatted_resource_path,
     get_item_from_testapp as get_item,
+    pluralize_collection,
 )
 from ..types.submitted_item import SubmittedItem
 from ..types.submitted_file import SubmittedFile
@@ -478,3 +479,4 @@ def get_item_from_search(test_app: TestApp, collection: str) -> Dict[str, Any]:
 
 
 exported(get_item)
+exported(pluralize_collection)

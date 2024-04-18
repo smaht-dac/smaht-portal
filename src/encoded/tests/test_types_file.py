@@ -677,18 +677,26 @@ def assert_samples_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'samples' calcprop matches file_sets.libraries.analyte.samples."""
     samples_from_calcprop = file_utils.get_samples(file)
     file_sets = file_utils.get_file_sets(file)
-    libraries = [
-        library
-        for file_set in file_sets
-        for library in file_set_utils.get_libraries(file_set)
-    ]
-    analytes = [library_utils.get_analyte(library) for library in libraries]
     samples = [
         sample
-        for analyte in analytes
-        for sample in analyte_utils.get_samples(analyte)
+        for file_set in file_sets
+        for sample in file_set_utils.get_samples(file_set)
     ]
-    assert_items_match(samples_from_calcprop, samples)
+    if samples:
+        assert_items_match(samples_from_calcprop, samples)
+    else:
+        libraries = [
+            library
+            for file_set in file_sets
+            for library in file_set_utils.get_libraries(file_set)
+        ]
+        analytes = [library_utils.get_analyte(library) for library in libraries]
+        samples = [
+            sample
+            for analyte in analytes
+            for sample in analyte_utils.get_samples(analyte)
+        ]
+        assert_items_match(samples_from_calcprop, samples)
 
 
 @pytest.mark.workbook
