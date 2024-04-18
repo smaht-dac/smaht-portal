@@ -59,3 +59,8 @@ def get_consortia(properties: Dict[str, Any]) -> List[Union[Dict[str, Any], str]
 def get_code(properties: Dict[str, Any]) -> str:
     """Get code from properties."""
     return properties.get("code", "")
+
+
+def get_external_id(properties: Dict[str, Any]) -> str:
+    """Get external ID from properties."""
+    return properties.get("external_id", "")
