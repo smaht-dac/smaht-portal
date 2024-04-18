@@ -194,3 +194,4 @@ def pluralize_collection(collection: str) -> str:
         return name[:-2] + "a"
     if name.endswith("s"):
         return name + "es"
+    return name + "s"
