@@ -10,7 +10,7 @@
         ],
         "sequencing": "TEST_SEQUENCING_NOVASEQ-500X",
         "samples": [
-            "TEST_TISSUE-SAMPLE_LIVER"
+            "TEST_CELL-SAMPLE_LIVER-CELL"
         ]
     },
     {
