@@ -289,6 +289,12 @@ def smaht_protected_gcc_user(testapp, test_submission_center, test_consortium, t
 
 
 @pytest.fixture
+def smaht_admin_app(testapp, smaht_admin):
+    """ App associated with a consortia member who is a submitter """
+    return remote_user_testapp(testapp.app, smaht_admin['uuid'])
+
+
+@pytest.fixture
 def submission_center_user_app(testapp, test_submission_center, smaht_gcc_user):
     """ App associated with a consortia member who is a submitter """
     return remote_user_testapp(testapp.app, smaht_gcc_user['uuid'])

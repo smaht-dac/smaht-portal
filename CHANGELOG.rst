@@ -7,6 +7,22 @@ smaht-portal
 Change Log
 ----------
 
+0.39.3
+======
+
+`PR 124: File release <https://github.com/smaht-dac/smaht-portal/pull/124>`_
+
+* Add scripts to release files and create annotated filenames
+
+
+0.39.2
+======
+
+`PR 138: feat: total file counts for benchmarking page tabs <https://github.com/smaht-dac/smaht-portal/pull/138>`_
+
+* Fetch total number of files and render as a badge on benchmarking tabs (next to the title)
+
+
 0.39.1
 ======
 
