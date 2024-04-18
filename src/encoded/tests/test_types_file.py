@@ -92,6 +92,28 @@ def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any
     assert output_file.get("href") == expected
 
 
+def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_file: Dict[str, Any],
+                                              file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """ Tests that as we make changes to the output file, the calc prop for changing status
+        Note that for this to work, changes need to be tied to a real (not virtual) user
+        so that last_modified is present
+    """
+    res = output_file['file_status_tracking']
+    assert 'in review' in res
+    assert 'released' not in res
+    assert 'public' not in res
+    res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
+                                     {'status': 'released'}).json['@graph'][0]['file_status_tracking']
+    assert 'in review' in res
+    assert 'released' in res
+    assert 'public' not in res
+    res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
+                                     {'status': 'public'}).json['@graph'][0]['file_status_tracking']
+    assert 'in review' in res
+    assert 'released' in res
+    assert 'public' in res
+
+
 @pytest.mark.parametrize(
     "status,expected",
     [
@@ -341,7 +363,6 @@ def assert_file_format_validated_on_post(
     assert_file_format_invalid(response, file_type_data)
 
 
-
 def assert_file_format_invalid(
     response: Dict[str, Any], file_type_data: FileTypeTestData
 ) -> None:
@@ -359,7 +380,6 @@ def assert_file_format_invalid(
             invalid_file_format_for_type_error_found = True
             break
     assert invalid_file_format_for_type_error_found
-
 
 
 def generate_file_insert_for_type(

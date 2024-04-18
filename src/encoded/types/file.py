@@ -444,7 +444,7 @@ class File(Item, CoreFile):
         elif status == 'restricted':
             return self.PROTECTED
         return None
-    
+
     @calculated_property(
         schema={
             "title": "File Status Tracking",
