@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.40.1
+======
+
+* Add tagging and direct fileset search to Submission Status page
+
+
 0.40.0
 ======
 
