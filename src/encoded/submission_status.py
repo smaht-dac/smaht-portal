@@ -4,7 +4,6 @@ from dcicutils.misc_utils import ignored
 from snovault.search.search import search
 from snovault.search.search_utils import make_search_subreq
 from urllib.parse import urlencode
-import pprint
 
 # Portal constants
 FILESET = "FileSet"
@@ -38,10 +37,11 @@ def get_submission_status(context, request):
     try:
         post_params = request.json_body
         filter = post_params.get("filter")
+        fileSetSearchId = post_params.get("fileSetSearchId")
         # Generate search total
         search_params = {}
         search_params["type"] = FILESET
-        add_submission_status_search_filters(search_params, filter)
+        add_submission_status_search_filters(search_params, filter, fileSetSearchId)
         num_total_filesets = search_total(context, request, search_params)
 
         # Generate search
@@ -50,7 +50,7 @@ def get_submission_status(context, request):
         search_params["limit"] = min(post_params.get("limit", 30), 30)
         search_params["from"] = post_params["from"]
         search_params["sort"] = f"-date_created"
-        add_submission_status_search_filters(search_params, filter)
+        add_submission_status_search_filters(search_params, filter, fileSetSearchId)
         subreq = make_search_subreq(
             request, f"/search?{urlencode(search_params, True)}", inherit_user=True
         )
@@ -71,7 +71,13 @@ def get_submission_status(context, request):
     }
 
 
-def add_submission_status_search_filters(search_params, filter):
+def add_submission_status_search_filters(search_params, filter, fileSetSearchId):
+    # Direct search by submitted_id takes precendence
+    if fileSetSearchId:
+        targeted_prop = "accession" if is_accession(fileSetSearchId) else "submitted_id"
+        search_params[targeted_prop] = fileSetSearchId
+        return
+
     if not filter:
         return
     if "fileset_status" in filter:
@@ -92,6 +98,10 @@ def add_submission_status_search_filters(search_params, filter):
             search_params["submission_centers.display_title"] = filter[
                 "submission_center"
             ]
+    if "include_tags" in filter and len(filter["include_tags"]) > 0:
+        search_params["tags"] = filter["include_tags"]
+    if "exclude_tags" in filter and len(filter["exclude_tags"]) > 0:
+        search_params["tags!"] = filter["exclude_tags"]
     if "fileset_created_from" in filter and filter["fileset_created_from"]:
         search_params["date_created.from"] = filter["fileset_created_from"]
     if "fileset_created_to" in filter and filter["fileset_created_to"]:
@@ -108,9 +118,11 @@ def process_files_metadata(files_metadata):
     for file in submitted_files:
         if file[STATUS] == UPLOADING:
             is_upload_complete = False
+        file_formats.append(file.get(FILE_FORMAT, {}).get(DISPLAY_TITLE))
+
+    for file in files_metadata:
         if O2_PATH in file:
             num_files_copied_to_o2 += 1
-        file_formats.append(file.get(FILE_FORMAT, {}).get(DISPLAY_TITLE))
 
     # Make it unqique
     file_formats = list(set(file_formats))
@@ -133,10 +145,15 @@ def process_files_metadata(files_metadata):
     return {
         "is_upload_complete": is_upload_complete,
         "num_submitted_files": len(submitted_files),
+        "num_fileset_files": len(files_metadata),
         "date_uploaded": date_uploaded,
         "file_formats": ", ".join(file_formats),
         "num_files_copied_to_o2": num_files_copied_to_o2,
     }
+
+
+def is_accession(s: str) -> bool:
+    return len(s) == 12 and s.startswith("SMA")
 
 
 def search_total(context, request, search_params):

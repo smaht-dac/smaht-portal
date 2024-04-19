@@ -6,6 +6,20 @@ import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/uti
 
 const PAGE_SIZE = 30;
 
+// Status tags
+const REVIEWED = 'reviewed';
+const STATUS_TAGS = [REVIEWED];
+
+// O2 tags
+const DOWNLOAD_SUBMITTED_FILES_COMPLETE = 'submitted_files_copied';
+const DOWNLOAD_OUTPUT_FILES_COMPLETE = 'output_files_copied';
+const O2_TAGS = [
+    DOWNLOAD_SUBMITTED_FILES_COMPLETE,
+    DOWNLOAD_OUTPUT_FILES_COMPLETE,
+];
+
+const SUBMISSION_STATUS_TAGS = STATUS_TAGS.concat(O2_TAGS);
+
 function formatDate(date_str) {
     if (!date_str) {
         return '';
@@ -59,7 +73,10 @@ class SubmissionStatusComponent extends React.PureComponent {
             filter: {
                 submission_center: 'all_gcc',
                 fileset_status: 'in review',
+                include_tags: [],
+                exclude_tags: [],
             },
+            fileSetIdSearch: "",
             numTotalFileSets: 0,
             submission_centers: [],
             visibleCommentInputs: [],
@@ -103,7 +120,7 @@ class SubmissionStatusComponent extends React.PureComponent {
         this.toggleCommentInputField(fs_uuid);
     };
 
-    getSubmissionCenters() {
+    getSubmissionCenters = () => {
         ajax.load(
             '/search/?type=SubmissionCenter&limit=50',
             (resp) => {
@@ -122,17 +139,18 @@ class SubmissionStatusComponent extends React.PureComponent {
         );
     }
 
-    getData() {
+    getData = () => {
         const payload = {
             limit: PAGE_SIZE,
             from: this.state.tablePage * PAGE_SIZE,
             filter: this.state.filter,
+            fileSetSearchId: this.state.fileSetIdSearch
         };
 
         ajax.load(
             '/get_submission_status/',
             (resp) => {
-                if(resp.error){
+                if (resp.error) {
                     console.error(resp.error);
                     return;
                 }
@@ -164,7 +182,32 @@ class SubmissionStatusComponent extends React.PureComponent {
         this.setState(
             (prevState) => ({
                 filter: filter,
+                fileSetIdSearch: "",
                 tablePage: 0,
+                loading: true,
+            }),
+            function () {
+                this.getData();
+            }
+        );
+    }
+
+    handleSearchByFilesetId(id) {
+        this.setState(
+            (prevState) => ({
+                fileSetIdSearch: id,
+                tablePage: 0,
+                loading: true,
+            }),
+            function () {
+                this.getData();
+            }
+        );
+    }
+
+    refresh() {
+        this.setState(
+            (prevState) => ({
                 loading: true,
             }),
             function () {
@@ -216,7 +259,9 @@ class SubmissionStatusComponent extends React.PureComponent {
                     }>
                     <option value="all">All</option>
                     <option value="in review">In Review</option>
-                    <option value="released">Released, Restricted, Public</option>
+                    <option value="released">
+                        Released, Restricted, Public
+                    </option>
                 </select>
             </React.Fragment>
         );
@@ -272,10 +317,19 @@ class SubmissionStatusComponent extends React.PureComponent {
             );
         }
 
+        const syncIconClass = this.state.loading
+            ? 'icon fas icon-spinner icon-spin'
+            : 'icon fas icon-sync-alt clickable';
+
         return (
             <div className="d-flex flex-row-reverse">
+                <div className="ml-1 ss-padding-top-3">
+                    <i
+                        className={syncIconClass}
+                        onClick={() => this.refresh()}></i>
+                </div>
                 {navButtons}
-                <div className="pt-1 mx-2 ">{message}</div>
+                <div className="mx-2 ss-padding-top-3">{message}</div>
             </div>
         );
     };
@@ -368,11 +422,7 @@ class SubmissionStatusComponent extends React.PureComponent {
         this.patchComment(fs.uuid, filesets, newCommentsForRelevantFileset);
     };
 
-    patchComment = (fs_uuid, filesets, comments) => {
-        const payload = {
-            comments: comments,
-        };
-
+    patchFileset = (fs_uuid, filesets, payload) => {
         ajax.load(
             fs_uuid,
             (resp) => {
@@ -397,6 +447,35 @@ class SubmissionStatusComponent extends React.PureComponent {
         );
     };
 
+    toggleTag = (fileset, tag) => {
+        this.setState(
+            (prevState) => ({
+                loading: true,
+            }),
+            function () {
+                if (!fileset.tags) {
+                    fileset.tags = [tag];
+                } else if (fileset.tags.includes(tag)) {
+                    const index = fileset.tags.indexOf(tag);
+                    fileset.tags.splice(index, 1);
+                } else {
+                    fileset.tags.push(tag);
+                }
+                const payload = {
+                    tags: fileset.tags ?? null,
+                };
+                this.patchFileset(fileset.uuid, this.state.fileSets, payload);
+            }
+        );
+    };
+
+    patchComment = (fs_uuid, filesets, comments) => {
+        const payload = {
+            comments: comments,
+        };
+        this.patchFileset(fs_uuid, filesets, payload);
+    };
+
     getComments = (fs) => {
         const fs_comments = fs.comments;
         if (!fs_comments) {
@@ -417,13 +496,53 @@ class SubmissionStatusComponent extends React.PureComponent {
         return <ul>{comments}</ul>;
     };
 
+    toggleTagFilter = (type, tag) => {
+        this.setState(
+            (prevState) => ({
+                loading: true,
+            }),
+            function () {
+                const tags = this.state.filter[type];
+                if (tags.includes(tag)) {
+                    const index = tags.indexOf(tag);
+                    tags.splice(index, 1);
+                } else {
+                    tags.push(tag);
+                }
+                this.setFilter(type, tags);
+            }
+        );
+    };
+
+    getTagFilter = (type) => {
+        return SUBMISSION_STATUS_TAGS.map((tag) => {
+            const badgeType = this.state.filter[type].includes(tag)
+                ? 'info'
+                : 'lighter';
+            const cn = 'badge clickable mr-1 badge-' + badgeType;
+            return (
+                <div
+                    className={cn}
+                    onClick={() => this.toggleTagFilter(type, tag)}>
+                    {tag}
+                </div>
+            );
+        });
+    };
+
     getSubmissionTableBody = () => {
         const tbody = this.state.fileSets.map((fs) => {
             const sequencer = fs.sequencing?.sequencer;
+            const targeCoverage = fs.sequencing?.target_coverage || 'NA';
+            const status_badge_type =
+                fs.status == 'released' ? 'success' : 'warning';
+            const status = createBadge(status_badge_type, fs.status);
             let fs_details = [
+                <li className="ss-line-height-140">Status: {status}</li>,
                 <li className="ss-line-height-140">
                     Sequencer:{' '}
-                    {getLink(sequencer?.uuid, sequencer?.display_title)}
+                    {getLink(sequencer?.uuid, sequencer?.display_title)} (Target
+                    coverage: {targeCoverage}x)
                 </li>,
             ];
 
@@ -459,6 +578,9 @@ class SubmissionStatusComponent extends React.PureComponent {
 
             let mwfrs = [];
             fs.meta_workflow_runs?.forEach((mwfr) => {
+                if (mwfr.status === 'deleted') {
+                    return;
+                }
                 let badgeType = 'warning';
                 if (mwfr.final_status == 'completed') {
                     badgeType = 'success';
@@ -485,11 +607,24 @@ class SubmissionStatusComponent extends React.PureComponent {
                 mwfrs.length == 0 ? (
                     <div>{createWarningIcon()} No workflows have been run</div>
                 ) : (
-                    <ul className='list-unstyled'>{mwfrs}</ul>
+                    <ul className="list-unstyled">{mwfrs}</ul>
                 );
-            const status_badge_type =
-                fs.status == 'released' ? 'success' : 'warning';
-            const status = createBadge(status_badge_type, fs.status);
+
+            const filesetStatusTags = SUBMISSION_STATUS_TAGS.map((tag) => {
+                const badgeType =
+                    fs.tags && fs.tags.includes(tag) ? 'info' : 'lighter';
+                const cn = 'badge clickable badge-' + badgeType;
+                return (
+                    <React.Fragment>
+                        <div
+                            className={cn}
+                            onClick={() => this.toggleTag(fs, tag)}>
+                            {tag}
+                        </div>
+                        <br />
+                    </React.Fragment>
+                );
+            });
 
             return (
                 <tr key={fs.accession}>
@@ -505,26 +640,42 @@ class SubmissionStatusComponent extends React.PureComponent {
                             }}></object.CopyWrapper>
                         {fs_details}
                     </td>
-                    <td>{status}</td>
-                    <td>{formatDate(fs.date_created)}</td>
                     <td>
+                        <div className="ss-font-size-10 text-secondary ss-line-height-140">
+                            Metadata submission
+                        </div>
+                        <div>{formatDate(fs.date_created)}</div>
+                        <div className="ss-font-size-10 text-secondary ss-line-height-140 mt-1">
+                            Data submission
+                        </div>
                         {fs.submitted_files.is_upload_complete
                             ? formatDate(fs.submitted_files.date_uploaded)
                             : createBadge('warning', 'in progress')}
-                        <div className="mt-1">
+                        <small className="d-block ss-line-height-140">
                             {fs.submitted_files.num_submitted_files} files
-                        </div>
-                        <small>{fs.submitted_files.file_formats}</small>
+                        </small>
+                        <small className="d-block ss-line-height-140">
+                            {fs.submitted_files.file_formats}
+                        </small>
                     </td>
                     <td>
-                        {fs.submitted_files.num_files_copied_to_o2 ==
-                        fs.submitted_files.num_submitted_files
-                            ? ''
-                            : createWarningIcon()}
-                        {fs.submitted_files.num_files_copied_to_o2} /{' '}
-                        {fs.submitted_files.num_submitted_files} files
+                        <div className="ss-line-height-140">
+                            {fs.submitted_files.num_files_copied_to_o2 ==
+                            fs.submitted_files.num_fileset_files
+                                ? ''
+                                : createWarningIcon()}
+                            {fs.submitted_files.num_files_copied_to_o2} /{' '}
+                            {fs.submitted_files.num_fileset_files} files
+                        </div>
+
+                        <div className="ss-line-height-140 small">
+                            have O2 path set
+                        </div>
                     </td>
-                    <td ><div className='p-1'>{mwfrs}</div></td>
+                    <td>
+                        <div className="p-1">{mwfrs}</div>
+                    </td>
+                    <td>{filesetStatusTags}</td>
                 </tr>
             );
         });
@@ -543,9 +694,10 @@ class SubmissionStatusComponent extends React.PureComponent {
         let loadingSpinner = '';
         if (this.state.loading) {
             loadingSpinner = (
-                <span>
-                    <i className="icon icon-fw fas icon-spinner icon-spin mt-1 mr-1"></i>
-                </span>
+                <div className="py-2">
+                    <i className="icon icon-spin icon-spinner fas mr-1"></i>
+                    Loading
+                </div>
             );
         }
 
@@ -567,28 +719,51 @@ class SubmissionStatusComponent extends React.PureComponent {
                         Metadata submitted - To:{' '}
                         {this.getFilesetCreationInput('fileset_created_to')}
                     </div>
-                    <div className="ml-auto p-2 h3">{loadingSpinner}</div>
+                    <div className="p-2">
+                        <div>Inlcudes Tags:</div>
+                        {this.getTagFilter('include_tags')}
+                    </div>
+                    <div className="p-2">
+                        <div>Excludes Tags:</div>
+                        {this.getTagFilter('exclude_tags')}
+                    </div>
                 </div>
-                <div className="d-flex">
-                    <div className="ml-auto p-2">{this.getPageination()}</div>
-                </div>
+
                 <table className="table table-hover table-striped table-bordered table-sm">
-                    <thead className='sticky-top ss-top-40'>
+                    <thead className="sticky-top ss-top-40">
                         <tr>
-                            <th className="text-left ss-fileset-column">File Set</th>
-                            <th className="text-left">Status</th>
-                            <th className="text-left">
-                                Metatdata
-                                <br />
-                                Submission
+                            <td
+                                colSpan={6}
+                                className="bg-white border border-white border-bottom-0">
+                                <div className="d-flex">
+                                    {loadingSpinner}
+                                    <div className="ml-auto p-2">
+                                        {this.getPageination()}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th className="text-left ss-fileset-column">
+                                <div className="d-flex flex-row flex-wrap justify-content-between">
+                                    <div className='flex-fill'>File Set</div>
+                                    <div className='flex-fill'>
+                                        <input
+                                            type="text"
+                                            onChange={(e) =>
+                                                this.handleSearchByFilesetId(e.target.value)
+                                            }
+                                            value={this.state.fileSetIdSearch}
+                                            class="form-control form-control-sm"
+                                            placeholder="Search by FileSet ID or Accession"
+                                        />
+                                    </div>
+                                </div>
                             </th>
-                            <th className="text-left">
-                                Data
-                                <br />
-                                Submission
-                            </th>
-                            <th className="text-left">Copied to O2</th>
+                            <th className="text-left">Submission</th>
+                            <th className="text-left">O2 status</th>
                             <th className="text-left">MetaWorkflowRuns</th>
+                            <th className="text-left">Tags</th>
                         </tr>
                     </thead>
                     <tbody>{this.getSubmissionTableBody()}</tbody>
