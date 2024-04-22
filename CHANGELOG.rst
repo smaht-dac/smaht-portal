@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.41.0
+======
+
+`PR 145: ReferenceGenome build info <https://github.com/smaht-dac/smaht-portal/blob/main/src/encoded/schemas/file.json#L182-L184>`_
+
+* Add properties to capture build information for ReferenceGenome
+* Add URL property to ReferenceFile to track source of files
+
+
 0.40.0
 ======
 
