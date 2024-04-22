@@ -2,6 +2,7 @@
     {
         "uuid": "078256f2-e8b4-48eb-8a53-9bd2b01cda72",
         "submitted_id": "TEST_DONOR_FEMALE",
+        "external_id": "SMHT001",
         "submission_centers": [
             "smaht"
         ],

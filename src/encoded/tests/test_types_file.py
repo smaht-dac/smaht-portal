@@ -2,11 +2,25 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 import pytest
+from dcicutils import schema_utils
 from webtest.app import TestApp
 
 from .utils import (
     get_item, get_search, patch_item, post_item, post_item_and_return_location
 )
+from ..item_utils import (
+    analyte as analyte_utils,
+    file as file_utils,
+    file_set as file_set_utils,
+    item as item_utils,
+    library as library_utils,
+    sample as sample_utils,
+    sequencing as sequencing_utils,
+    software as software_utils,
+    tissue as tissue_utils,
+)
+from ..item_utils.utils import get_unique_values
+from ..types.file import CalcPropConstants
 
 
 OUTPUT_FILE_FORMAT = "FASTQ"
@@ -76,6 +90,28 @@ def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any
         f".{file_formats.get(OUTPUT_FILE_FORMAT, {}).get('standard_file_extension', '')}"
     )
     assert output_file.get("href") == expected
+
+
+def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_file: Dict[str, Any],
+                                              file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """ Tests that as we make changes to the output file, the calc prop for changing status
+        Note that for this to work, changes need to be tied to a real (not virtual) user
+        so that last_modified is present
+    """
+    res = output_file['file_status_tracking']
+    assert 'in review' in res
+    assert 'released' not in res
+    assert 'public' not in res
+    res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
+                                     {'status': 'released'}).json['@graph'][0]['file_status_tracking']
+    assert 'in review' in res
+    assert 'released' in res
+    assert 'public' not in res
+    res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
+                                     {'status': 'public'}).json['@graph'][0]['file_status_tracking']
+    assert 'in review' in res
+    assert 'released' in res
+    assert 'public' in res
 
 
 @pytest.mark.parametrize(
@@ -327,7 +363,6 @@ def assert_file_format_validated_on_post(
     assert_file_format_invalid(response, file_type_data)
 
 
-
 def assert_file_format_invalid(
     response: Dict[str, Any], file_type_data: FileTypeTestData
 ) -> None:
@@ -345,7 +380,6 @@ def assert_file_format_invalid(
             invalid_file_format_for_type_error_found = True
             break
     assert invalid_file_format_for_type_error_found
-
 
 
 def generate_file_insert_for_type(
@@ -433,3 +467,650 @@ def test_meta_workflow_run_outputs_rev_link(
         es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid=No+value"
     )
     assert file_without_outputs_search
+
+
+def search_type_for_key(
+    testapp: TestApp, item_type: str, key: str, exists: Optional[bool] = True
+) -> List[Dict[str, Any]]:
+    """Search for items of a given type for given key."""
+    query = f"?type={item_type}&{key}"
+    if exists:
+        query += "!=No+value"
+    else:
+        query += "=No+value"
+    return get_search(testapp, query)
+
+
+@pytest.mark.workbook
+def test_libraries(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'libraries' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
+    """
+    search_key = "file_sets.libraries.uuid"
+    file_without_libraries_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_libraries_search
+    for file in file_without_libraries_search:
+        assert not file_utils.get_libraries(file)
+
+    submitted_file_with_libraries_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
+    )
+    assert submitted_file_with_libraries_search
+    for submitted_file in submitted_file_with_libraries_search:
+        assert_libraries_calcprop_matches_embeds(submitted_file)
+
+    output_file_with_libraries_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
+    )
+    assert output_file_with_libraries_search
+    for output_file in output_file_with_libraries_search:
+        assert_libraries_calcprop_matches_embeds(output_file)
+
+
+def assert_libraries_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'libraries' calcprop matches file_sets.libraries."""
+    libraries_from_calcprop = file_utils.get_libraries(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries_from_file_set = [
+        library
+        for file_set in file_sets
+        for library in file_set_utils.get_libraries(file_set)
+    ]
+    assert_items_match(libraries_from_calcprop, libraries_from_file_set)
+
+
+def assert_items_match(
+    first: List[Dict[str, Any]], second: List[Dict[str, Any]]
+) -> None:
+    """Ensure two lists of items match, per UUIDs."""
+    first_uuids = sorted(list(set(item_utils.get_uuid(item) for item in first)))
+    second_uuids = sorted(list(set(item_utils.get_uuid(item) for item in second)))
+    assert first_uuids == second_uuids
+
+
+@pytest.mark.workbook
+def test_sequencing(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'sequencing' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
+    """
+    search_key = "file_sets.sequencing.uuid"
+    file_without_sequencing_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_sequencing_search
+    for file in file_without_sequencing_search:
+        assert not file_utils.get_sequencings(file)
+
+    submitted_file_with_sequencing_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
+    )
+    assert submitted_file_with_sequencing_search
+    for submitted_file in submitted_file_with_sequencing_search:
+        assert_sequencing_calcprop_matches_embeds(submitted_file)
+
+    output_file_with_sequencing_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
+    )
+    assert output_file_with_sequencing_search
+    for output_file in output_file_with_sequencing_search:
+        assert_sequencing_calcprop_matches_embeds(output_file)
+
+
+def assert_sequencing_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'sequencing' calcprop matches file_sets.sequencing."""
+    sequencing_from_calcprop = file_utils.get_sequencings(file)
+    file_sets = file_utils.get_file_sets(file)
+    sequencing_from_file_set = [
+        file_set_utils.get_sequencing(file_set) for file_set in file_sets
+    ]
+    assert_items_match(sequencing_from_calcprop, sequencing_from_file_set)
+
+
+@pytest.mark.workbook
+def test_assays(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'assays' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
+    """
+    search_key = "file_sets.libraries.assay.uuid"
+    file_without_assays_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_assays_search
+    for file in file_without_assays_search:
+        assert not file_utils.get_assays(file)
+
+    submitted_file_with_assays_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
+    )
+    assert submitted_file_with_assays_search
+    for submitted_file in submitted_file_with_assays_search:
+        assert_assays_calcprop_matches_embeds(submitted_file)
+
+    output_file_with_assays_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
+    )
+    assert output_file_with_assays_search
+    for output_file in output_file_with_assays_search:
+        assert_assays_calcprop_matches_embeds(output_file)
+
+
+def assert_assays_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'assays' calcprop matches file_sets.assay."""
+    assays_from_calcprop = file_utils.get_assays(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries = [
+        library
+        for file_set in file_sets
+        for library in file_set_utils.get_libraries(file_set)
+    ]
+    assays = [library_utils.get_assay(library) for library in libraries]
+    assert_items_match(assays_from_calcprop, assays)
+
+
+@pytest.mark.workbook
+def test_analytes(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'analytes' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
+    """
+    search_key = "file_sets.libraries.analyte.uuid"
+    file_without_analytes_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_analytes_search
+    for file in file_without_analytes_search:
+        assert not file_utils.get_analytes(file)
+
+    submitted_file_with_analytes_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
+    )
+    assert submitted_file_with_analytes_search
+    for submitted_file in submitted_file_with_analytes_search:
+        assert_analytes_calcprop_matches_embeds(submitted_file)
+
+    output_file_with_analytes_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
+    )
+    assert output_file_with_analytes_search
+    for output_file in output_file_with_analytes_search:
+        assert_analytes_calcprop_matches_embeds(output_file)
+
+
+def assert_analytes_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'analytes' calcprop matches file_sets.libraries.analyte."""
+    analytes_from_calcprop = file_utils.get_analytes(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries = [
+        library
+        for file_set in file_sets
+        for library in file_set_utils.get_libraries(file_set)
+    ]
+    analytes = [library_utils.get_analyte(library) for library in libraries]
+    assert_items_match(analytes_from_calcprop, analytes)
+
+
+@pytest.mark.workbook
+def test_samples(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'samples' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
+    """
+    search_key = "file_sets.libraries.analyte.samples.uuid"
+    file_without_samples_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_samples_search
+    for file in file_without_samples_search:
+        assert not file_utils.get_samples(file)
+
+    submitted_file_with_samples_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
+    )
+    assert submitted_file_with_samples_search
+    for submitted_file in submitted_file_with_samples_search:
+        assert_samples_calcprop_matches_embeds(submitted_file)
+
+    output_file_with_samples_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
+    )
+    assert output_file_with_samples_search
+    for output_file in output_file_with_samples_search:
+        assert_samples_calcprop_matches_embeds(output_file)
+
+
+def assert_samples_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'samples' calcprop matches file_sets.libraries.analyte.samples."""
+    samples_from_calcprop = file_utils.get_samples(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries = [
+        library
+        for file_set in file_sets
+        for library in file_set_utils.get_libraries(file_set)
+    ]
+    analytes = [library_utils.get_analyte(library) for library in libraries]
+    samples = [
+        sample
+        for analyte in analytes
+        for sample in analyte_utils.get_samples(analyte)
+    ]
+    assert_items_match(samples_from_calcprop, samples)
+
+
+@pytest.mark.workbook
+def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'sample_sources' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
+    """
+    search_key = "file_sets.libraries.analyte.samples.sample_sources.uuid"
+    file_without_sample_sources_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_sample_sources_search
+    for file in file_without_sample_sources_search:
+        assert not file_utils.get_sample_sources(file)
+
+    submitted_file_with_sample_sources_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
+    )
+    assert submitted_file_with_sample_sources_search
+    for submitted_file in submitted_file_with_sample_sources_search:
+        assert_sample_sources_calcprop_matches_embeds(submitted_file)
+
+    output_file_with_sample_sources_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
+    )
+    assert output_file_with_sample_sources_search
+    for output_file in output_file_with_sample_sources_search:
+        assert_sample_sources_calcprop_matches_embeds(output_file)
+
+
+def assert_sample_sources_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'sample_sources' calcprop matches upstream sample sources."""
+    sample_sources_from_calcprop = file_utils.get_sample_sources(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries = [
+        library
+        for file_set in file_sets
+        for library in file_set_utils.get_libraries(file_set)
+    ]
+    analytes = [library_utils.get_analyte(library) for library in libraries]
+    samples = [
+        sample
+        for analyte in analytes
+        for sample in analyte_utils.get_samples(analyte)
+    ]
+    sample_sources = [
+        sample_source
+        for sample in samples
+        for sample_source in sample_utils.get_sample_sources(sample)
+    ]
+    assert_items_match(sample_sources_from_calcprop, sample_sources)
+
+
+@pytest.mark.workbook
+def test_donors(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'donors' calcprop is correct.
+
+    Search on the embed and compare to the calcprop to ensure they match.
+
+    Calcprop expected on SubmittedFile and OutputFile.
+    """
+    search_key = "file_sets.libraries.analyte.samples.sample_sources.donor.uuid"
+    file_without_donors_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_donors_search
+    for file in file_without_donors_search:
+        assert not file_utils.get_donors(file)
+
+    submitted_file_with_donors_search = search_type_for_key(
+        es_testapp, "SubmittedFile", search_key
+    )
+    assert submitted_file_with_donors_search
+    for submitted_file in submitted_file_with_donors_search:
+        assert_donors_calcprop_matches_embeds(submitted_file)
+
+    output_file_with_donors_search = search_type_for_key(
+        es_testapp, "OutputFile", search_key
+    )
+    assert output_file_with_donors_search
+    for output_file in output_file_with_donors_search:
+        assert_donors_calcprop_matches_embeds(output_file)
+
+
+def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'donors' calcprop matches upstream donors."""
+    donors_from_calcprop = file_utils.get_donors(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries = [
+        library
+        for file_set in file_sets
+        for library in file_set_utils.get_libraries(file_set)
+    ]
+    analytes = [library_utils.get_analyte(library) for library in libraries]
+    samples = [
+        sample
+        for analyte in analytes
+        for sample in analyte_utils.get_samples(analyte)
+    ]
+    sample_sources = [
+        sample_source
+        for sample in samples
+        for sample_source in sample_utils.get_sample_sources(sample)
+    ]
+    donors = [
+        tissue_utils.get_donor(sample_source) for sample_source in sample_sources
+    ]
+    assert_items_match(donors_from_calcprop, donors)
+
+
+@pytest.mark.workbook
+def test_file_summary(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'file_summary' calcprop fields correct for inserts.
+
+    Checks fields present on inserts and as expected by parsing
+    properties/embeds, and all ensures all fields present on at least
+    one item.
+    """
+    search_key = "file_summary.uuid"  # should always be present if file_summary present
+    file_with_summary_search = search_type_for_key(
+        es_testapp, "File", search_key
+    )
+    for file in file_with_summary_search:
+        assert_file_summary_matches_expected(file, es_testapp)
+    all_fields = schema_utils.get_properties(
+        CalcPropConstants.FILE_SUMMARY_SCHEMA
+    ).keys()
+    assert_all_summary_fields_present_in_items(
+        file_with_summary_search, all_fields, "file_summary"
+    )
+
+
+def assert_file_summary_matches_expected(
+    file: Dict[str, Any], es_testapp: TestApp
+) -> None:
+    """Compare 'file_summary' calcprop to expected values.
+
+    Expected values determined here by parsing file properties/embeds.
+    """
+    file_summary = file_utils.get_file_summary(file)
+    expected_annotated_name = file_utils.get_annotated_filename(file)
+    expected_access_status = file_utils.get_access_status(file)
+    expected_file_format = item_utils.get_display_title(
+        get_item(es_testapp, item_utils.get_uuid(file_utils.get_file_format(file)))
+    )
+    expected_file_size = file_utils.get_file_size(file)
+    expected_md5sum = file_utils.get_md5sum(file)
+    expected_consortia = [
+        item_utils.get_display_title(
+            get_item(es_testapp, item_utils.get_uuid(consortium))
+        )
+        for consortium in item_utils.get_consortia(file)
+    ]
+    expected_uuid = item_utils.get_uuid(file)
+    assert_values_match_if_present(
+        file_summary, "annotated_name", expected_annotated_name
+    )
+    assert_values_match_if_present(
+        file_summary, "access_status", expected_access_status
+    )
+    assert_values_match_if_present(file_summary, "file_format", expected_file_format)
+    assert_values_match_if_present(file_summary, "file_size", expected_file_size)
+    assert_values_match_if_present(file_summary, "md5sum", expected_md5sum)
+    assert_values_match_if_present(file_summary, "consortia", expected_consortia)
+    assert_values_match_if_present(file_summary, "uuid", expected_uuid)
+
+
+def assert_values_match_if_present(
+    summary_values: Dict[str, Any], key: str, expected_value: Any
+) -> None:
+    """Ensure key-value pair matches expected value.
+
+    If key present, value must match expected value. If key not present,
+    expected value must be falsy.
+    """
+    value = summary_values.get(key)
+    if value:
+        if isinstance(expected_value, list) and isinstance(value, list):
+            assert len(value) == len(expected_value)
+            assert set(value) == set(expected_value)
+        else:
+            assert value == expected_value
+    else:
+        assert not expected_value
+
+
+def assert_all_summary_fields_present_in_items(
+    items: List[Dict[str, Any]], fields: List[str], summary_key: str
+) -> None:
+    """Ensure all summary fields have value for at least one item."""
+    fields_exist = [
+        any(item.get(summary_key, {}).get(field) for item in items)
+        for field in fields
+    ]
+    missing_fields = [
+        field for field, exists in zip(fields, fields_exist) if not exists
+    ]
+    assert all(fields_exist), f"Missing fields: {missing_fields}"
+
+
+@pytest.mark.workbook
+def test_data_generation_summary(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'data_generation_summary' calcprop fields correct for inserts.
+
+    Checks fields present on inserts and as expected by parsing
+    properties/embeds, and all ensures all fields present on at least
+    one item.
+    """
+    search_key = "data_generation_summary.data_type"
+    files_with_summary_search = search_type_for_key(
+        es_testapp, "File", search_key
+    )
+    for file in files_with_summary_search:
+        assert_data_generation_summary_matches_expected(file, es_testapp)
+    all_fields = schema_utils.get_properties(
+        CalcPropConstants.DATA_GENERATION_SCHEMA
+    ).keys()
+    assert_all_summary_fields_present_in_items(
+        files_with_summary_search, all_fields, "data_generation_summary"
+    )
+
+
+def assert_data_generation_summary_matches_expected(
+    file: Dict[str, Any], es_testapp: TestApp
+) -> None:
+    """Compare 'data_generation_summary' calcprop to expected values.
+
+    Expected values determined here by parsing file properties/embeds.
+    """
+    data_generation_summary = file_utils.get_data_generation_summary(file)
+    expected_data_category = file_utils.get_data_category(file)
+    expected_data_type = file_utils.get_data_type(file)
+    sequencing_center = file_utils.get_sequencing_center(file)
+    expected_sequencing_center = item_utils.get_display_title(
+        get_item(
+            es_testapp,
+            item_utils.get_uuid(sequencing_center),
+        )
+    ) if sequencing_center else ""
+    expected_submission_centers = [
+        item_utils.get_display_title(
+            get_item(es_testapp, item_utils.get_uuid(submission_center))
+        )
+        for submission_center in item_utils.get_submission_centers(file)
+    ]
+    assays = file_utils.get_assays(file)
+    expected_assays = [
+        item_utils.get_display_title(
+            get_item(es_testapp, item_utils.get_uuid(assay))
+        )
+        for assay in assays
+    ] if assays else []
+    sequencings = [
+        file_set_utils.get_sequencing(file_set)
+        for file_set in file_utils.get_file_sets(file)
+    ]
+    expected_platforms = [
+        item_utils.get_display_title(
+            get_item(
+                es_testapp,
+                item_utils.get_uuid(sequencing_utils.get_sequencer(sequencing)),
+            )
+        )
+        for sequencing in sequencings
+    ] if sequencings else []
+    assert_values_match_if_present(
+        data_generation_summary, "data_category", expected_data_category
+    )
+    assert_values_match_if_present(
+        data_generation_summary, "data_type", expected_data_type
+    )
+    assert_values_match_if_present(
+        data_generation_summary, "sequencing_center", expected_sequencing_center
+    )
+    assert_values_match_if_present(
+        data_generation_summary, "submission_centers", expected_submission_centers
+    )
+    assert_values_match_if_present(data_generation_summary, "assays", expected_assays)
+    assert_values_match_if_present(
+        data_generation_summary, "sequencing_platforms", expected_platforms
+    )
+
+
+@pytest.mark.workbook
+def test_sample_summary(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'sample_summary' calcprop fields correct for inserts.
+
+    Checks fields present on inserts and as expected by parsing
+    properties/embeds, and all ensures all fields present on at least
+    one item.
+    """
+    search_key = "sample_summary.analytes"
+    file_without_summary_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_summary_search  # Not expected for Reference Files
+
+    files_with_summary_search = search_type_for_key(
+        es_testapp, "File", search_key
+    )
+    for file in files_with_summary_search:
+        assert_sample_summary_matches_expected(file, es_testapp)
+
+# TODO: Uncomment once all fields implemented
+#    all_fields = schema_utils.get_properties(
+#        CalcPropConstants.SAMPLE_SUMMARY_SCHEMA
+#    ).keys()
+#    assert_all_summary_fields_present_in_items(
+#        files_with_summary_search, all_fields, "sample_summary"
+#    )
+
+
+def assert_sample_summary_matches_expected(
+    file: Dict[str, Any], es_testapp: TestApp
+) -> None:
+    """Compare 'sample_summary' calcprop to expected values.
+
+    Expected values determined here by parsing file properties/embeds.
+    """
+    sample_summary = file_utils.get_sample_summary(file)
+    analytes = file_utils.get_analytes(file)
+    expected_analytes = get_unique_values(
+        [get_item(es_testapp, item_utils.get_uuid(analyte)) for analyte in analytes],
+        analyte_utils.get_molecule,
+    )
+    # TODO: Implement expected values below once data model updates in
+    expected_sample_names = []
+    expected_tissues = []
+    expected_donor_ids = []
+    expected_sample_descriptions = []
+    epected_studies = []
+    assert_values_match_if_present(
+        sample_summary, "analytes", expected_analytes
+    )
+    assert_values_match_if_present(
+        sample_summary, "sample_names", expected_sample_names
+    )
+    assert_values_match_if_present(
+        sample_summary, "tissues", expected_tissues
+    )
+    assert_values_match_if_present(
+        sample_summary, "donor_ids", expected_donor_ids
+    )
+    assert_values_match_if_present(
+        sample_summary, "sample_descriptions", expected_sample_descriptions
+    )
+    assert_values_match_if_present(
+        sample_summary, "studies", epected_studies
+    )
+
+
+@pytest.mark.workbook
+def test_analysis_summary(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'analysis_summary' calcprop fields correct for inserts.
+
+    Checks fields present on inserts and as expected by parsing
+    properties/embeds, and all ensures all fields present on at least
+    one item.
+    """
+    search_key = "analysis_summary.software"
+    file_without_summary_search = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_summary_search  # Not expected for Reference Files
+
+    files_with_summary_search = search_type_for_key(
+        es_testapp, "File", search_key
+    )
+    for file in files_with_summary_search:
+        assert_analysis_summary_matches_expected(file, es_testapp)
+    all_fields = schema_utils.get_properties(
+        CalcPropConstants.ANALYSIS_SUMMARY_SCHEMA
+    ).keys()
+    assert_all_summary_fields_present_in_items(
+        files_with_summary_search, all_fields, "analysis_summary"
+    )
+
+
+def assert_analysis_summary_matches_expected(
+    file: Dict[str, Any], es_testapp: TestApp
+) -> None:
+    """Compare 'analysis_summary' calcprop to expected values.
+
+    Expected values determined here by parsing file properties/embeds.
+    """
+    analysis_summary = file_utils.get_analysis_summary(file)
+    software = [
+        get_item(es_testapp, item_utils.get_uuid(item))
+        for item in file_utils.get_software(file)
+    ]
+    reference_genome = file_utils.get_reference_genome(file)
+    expected_software = [
+        software_utils.get_title_with_version(item)
+        for item in software
+    ]
+    expected_reference_genome = item_utils.get_display_title(reference_genome)
+    assert_values_match_if_present(
+        analysis_summary, "software", expected_software
+    )
+    assert_values_match_if_present(
+        analysis_summary, "reference_genome", expected_reference_genome
+    )

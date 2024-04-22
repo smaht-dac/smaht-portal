@@ -4,6 +4,8 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
+        "category",
+        "external_id",
         "sample_sources",
         "submission_centers",
         "submitted_id"
@@ -25,7 +27,13 @@
             "$ref": "mixins.json#/description"
         },
         {
+            "$ref": "mixins.json#/external_id"
+        },
+        {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/parent_samples"
         },
         {
             "$ref": "mixins.json#/protocols"
@@ -66,31 +74,40 @@
         "accession": {
             "accessionType": "TS"
         },
-        "sample_sources": {
-            "items": {
-                "type": "string",
-                "linkTo": "Tissue"
-            }
-        },
         "schema_version": {
             "default": "1"
         },
-        "tissue_location": {
-            "title": "Tissue Location",
-            "description": "Original location of sample within source tissue",
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_TISSUE-SAMPLE_[A-Z0-9-_.]{4,}$"
+        },
+        "category": {
+            "title": "Category",
+            "description": "Type of tissue sample",
             "type": "string",
             "enum": [
-                "TBD"
+                "Aliquot",
+                "Cells",
+                "Core",
+                "Homogenate",
+                "Specimen"
             ]
+        },
+        "processing_date": {
+            "title": "Processing Date",
+            "description": "Date the sample was processed",
+            "type": "string",
+            "format": "date"
+        },
+        "processing_notes": {
+            "title": "Processing Notes",
+            "description": "Notes on the processing of the sample",
+            "type": "string"
         },
         "weight": {
             "title": "Weight",
             "description": "Weight of the sample (mg)",
             "type": "number",
             "minimum": 0
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_TISSUE-SAMPLE_[A-Z0-9-_.]{4,}$"
         }
     }
 }

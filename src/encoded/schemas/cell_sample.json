@@ -29,7 +29,13 @@
             "$ref": "mixins.json#/description"
         },
         {
+            "$ref": "mixins.json#/external_id"
+        },
+        {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/parent_samples"
         },
         {
             "$ref": "mixins.json#/protocols"
@@ -73,25 +79,14 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_CELL-SAMPLE_[A-Z0-9-_.]{4,}$"
+        },
         "cell_ontology_id": {
             "title": "Cell Ontology ID",
             "description": "Cell Ontology identifier for the cell sample",
             "type": "string",
             "pattern": "^CL:[0-9]{7}$"
-        },
-        "parent_samples": {
-            "title": "Parent Samples",
-            "desscription": "Samples from which the cells were isolated",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "Sample"
-            }
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_CELL-SAMPLE_[A-Z0-9-_.]{4,}$"
         }
     }
 }
