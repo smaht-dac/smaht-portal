@@ -95,7 +95,7 @@ class FileSet(SubmittedItem):
         if coverage:  # if coverage value use that or read count as terminal field
             return f'{sequencer}-{read_type_part}-{target_read_length}-{flow_cell}-{coverage}'
         else:
-            return f'{sequencer}-{read_type_part}-{target_read_length}-{read_count}'
+            return f'{sequencer}-{read_type_part}-{target_read_length}-{flow_cell}-{read_count}'
 
     @staticmethod
     def generate_assay_part(request, library):
