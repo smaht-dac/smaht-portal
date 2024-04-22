@@ -3,6 +3,7 @@ from snovault.util import debug_log
 from dcicutils.misc_utils import ignored
 from snovault.search.search import search
 from snovault.search.search_utils import make_search_subreq
+from .schema_formats import is_accession_for_server
 from urllib.parse import urlencode
 
 # Portal constants
@@ -71,10 +72,21 @@ def get_submission_status(context, request):
     }
 
 
-def add_submission_status_search_filters(search_params, filter, fileSetSearchId):
+def add_submission_status_search_filters(
+    search_params: dict, filter: dict, fileSetSearchId: str
+):
+    """Applies user specified filters to the fileset search
+
+    Args:
+        search_params (dict): search parameters that will be passed to make_search_subreq. The dict is passed in by reference and updated in this function
+        filter (dict): Contains keys (and values) to use as filter. Currently supported keys are fileset_status, submission_center, include_tags, exlucde_tags, fileset_created_from, fileset_created_to
+        fileSetSearchId (str): Either submitted_id or accession or a fileset.
+    """
     # Direct search by submitted_id takes precendence
     if fileSetSearchId:
-        targeted_prop = "accession" if is_accession(fileSetSearchId) else "submitted_id"
+        targeted_prop = (
+            "accession" if is_accession_for_server(fileSetSearchId) else "submitted_id"
+        )
         search_params[targeted_prop] = fileSetSearchId
         return
 
@@ -98,13 +110,13 @@ def add_submission_status_search_filters(search_params, filter, fileSetSearchId)
             search_params["submission_centers.display_title"] = filter[
                 "submission_center"
             ]
-    if "include_tags" in filter and len(filter["include_tags"]) > 0:
+    if filter.get("include_tags"):
         search_params["tags"] = filter["include_tags"]
-    if "exclude_tags" in filter and len(filter["exclude_tags"]) > 0:
+    if filter.get("exclude_tags"):
         search_params["tags!"] = filter["exclude_tags"]
-    if "fileset_created_from" in filter and filter["fileset_created_from"]:
+    if filter.get("fileset_created_from"):
         search_params["date_created.from"] = filter["fileset_created_from"]
-    if "fileset_created_to" in filter and filter["fileset_created_to"]:
+    if filter.get("fileset_created_to"):
         search_params["date_created.to"] = filter["fileset_created_to"]
 
 
@@ -150,10 +162,6 @@ def process_files_metadata(files_metadata):
         "file_formats": ", ".join(file_formats),
         "num_files_copied_to_o2": num_files_copied_to_o2,
     }
-
-
-def is_accession(s: str) -> bool:
-    return len(s) == 12 and s.startswith("SMA")
 
 
 def search_total(context, request, search_params):

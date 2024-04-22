@@ -720,11 +720,11 @@ class SubmissionStatusComponent extends React.PureComponent {
                         {this.getFilesetCreationInput('fileset_created_to')}
                     </div>
                     <div className="p-2">
-                        <div>Inlcudes Tags:</div>
+                        <div>FileSet inlcudes Tags:</div>
                         {this.getTagFilter('include_tags')}
                     </div>
                     <div className="p-2">
-                        <div>Excludes Tags:</div>
+                        <div>FileSet excludes Tags:</div>
                         {this.getTagFilter('exclude_tags')}
                     </div>
                 </div>
