@@ -147,7 +147,6 @@ Change Log
 ======
 
 * Fix sex not appearing on donor (and other) detail pages
->>>>>>> main
 
 
 0.35.0
