@@ -1,14 +1,19 @@
 import functools
 from typing import Any, Dict, List
 
-from . import cell_culture, cell_culture_mixture, item, tissue, tissue_sample
-from .utils import get_unique_values, get_property_value_from_identifier, RequestHandler
-
-
-BENCHMARKING_PREFIX = "ST"
-PRODUCTION_PREFIX = "SMHT"
-BENCHMARKING_STUDY = "Benchmarking"
-PRODUCTION_STUDY = "Production"
+from . import (
+    cell_culture,
+    cell_culture_mixture,
+    constants,
+    item,
+    tissue,
+    tissue_sample,
+)
+from .utils import (
+    get_property_value_from_identifier,
+    get_property_values_from_identifiers,
+    RequestHandler,
+)
 
 
 def get_tissues(
@@ -26,11 +31,6 @@ def get_tissues(
 def get_sample_sources(properties: Dict[str, Any]) -> List[str]:
     """Get sample sources associated with sample."""
     return properties.get("sample_sources", [])
-
-
-def get_id(properties: Dict[str, Any]) -> str:
-    """Get id from properties."""
-    return properties.get("id", "")
 
 
 def is_tissue_sample(properties: Dict[str, Any]) -> bool:
@@ -62,8 +62,9 @@ def get_sample_names(
     Otherwise, check sample sources for appropriate names, which are
     codes on CellLines or CellCultureMixtures.
     """
-    if sample_id := get_id(properties):
-        return [sample_id]
+    if is_tissue_sample(properties):
+        if sample_id := item.get_external_id(properties):
+            return [sample_id]
     if not is_tissue_sample(properties):
         return get_sample_names_from_sources(request_handler, properties)
     return []
@@ -73,10 +74,16 @@ def get_sample_names_from_sources(
     request_handler: RequestHandler, properties: Dict[str, Any]
 ) -> List[str]:
     """Attempt to get an official sample name from its sources."""
-    sample_sources = request_handler.get_items(get_sample_sources(properties))
-    return get_unique_values(
-        sample_sources, functools.partial(get_sample_source_code, request_handler)
+    names = get_property_values_from_identifiers(
+        request_handler,
+        get_sample_sources(properties),
+        functools.partial(get_sample_source_code, request_handler),
     )
+    return [f"{constants.PRODUCTION_PREFIX}{name}" for name in names]
+#    sample_sources = request_handler.get_items(get_sample_sources(properties))
+#    return get_unique_values(
+#        sample_sources, functools.partial(get_sample_source_code, request_handler)
+#    )
 
 
 def get_sample_source_code(
@@ -105,40 +112,52 @@ def get_sample_descriptions(
     Similar to the name, this depends on the sample type and/or its
     sources.
     """
-    if category := tissue_sample.get_category(properties):
-        return [category]
-    if not is_tissue_sample(properties):
-        return get_sample_descriptions_from_sources(properties, request_handler)
-    return []
+    result = []
+    if is_tissue_sample(properties):
+        if category := tissue_sample.get_category(properties):
+            result = [category]
+    else:
+        result = get_sample_descriptions_from_sources(properties, request_handler)
+    return result
 
 
 def get_sample_descriptions_from_sources(
     properties: Dict[str, Any], request_handler: RequestHandler
 ) -> List[str]:
     """Attempt to get an official sample description from its sources."""
-    sample_sources = request_handler.get_items(get_sample_sources(properties))
-    return get_unique_values(
-        sample_sources,
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_sample_sources(properties),
         functools.partial(get_sample_source_description, request_handler),
     )
+#    sample_sources = request_handler.get_items(get_sample_sources(properties))
+#    return get_unique_values(
+#        sample_sources,
+#        functools.partial(get_sample_source_description, request_handler),
+#    )
 
 
 def get_sample_source_description(
     request_handler: RequestHandler, sample_source: Dict[str, Any]
-) -> str:
+) -> List[str]:
     """Get description for a given sample source.
 
     Currently only used for CellLines and CellCultureMixtures.
     """
+    result = []
     if cell_culture_mixture.is_cell_culture_mixture(sample_source):
-        return item.get_description(sample_source)
-    if cell_culture.is_cell_culture(sample_source):
-        return get_property_value_from_identifier(
-            request_handler,
-            cell_culture.get_cell_line(sample_source),
-            item.get_description,
+        result = cell_culture_mixture.get_cell_line_codes(
+            request_handler, sample_source
         )
-    return ""
+    if cell_culture.is_cell_culture(sample_source):
+        result = [
+            get_property_value_from_identifier(
+                request_handler,
+                cell_culture.get_cell_line(sample_source),
+                item.get_code,
+            )
+        ]
+    return result
 
 
 def get_studies(
@@ -153,7 +172,7 @@ def get_studies(
     - If has ID, check for benchmarking vs production based on TPC prefix
     - If no ID, check sample sources for codes
     """
-    if sample_id := get_id(properties):
+    if sample_id := item.get_external_id(properties):
         study = get_study_from_id(sample_id)
         if study:
             return [study]
@@ -163,10 +182,10 @@ def get_studies(
 
 def get_study_from_id(sample_id: str) -> str:
     """Get study from sample id."""
-    if sample_id.startswith(BENCHMARKING_PREFIX):
-        return BENCHMARKING_STUDY
-    if sample_id.startswith(PRODUCTION_PREFIX):
-        return PRODUCTION_STUDY
+    if sample_id.startswith(constants.BENCHMARKING_PREFIX):
+        return constants.BENCHMARKING_STUDY
+    if sample_id.startswith(constants.PRODUCTION_PREFIX):
+        return constants.PRODUCTION_STUDY
     return ""
 
 
@@ -174,10 +193,15 @@ def get_studies_from_sources(
     request_handler: RequestHandler, properties: Dict[str, Any]
 ) -> List[str]:
     """Attempt to get an official study from its sources."""
-    sample_sources = request_handler.get_items(get_sample_sources(properties))
-    return get_unique_values(
-        sample_sources, functools.partial(get_sample_source_study, request_handler)
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_sample_sources(properties),
+        functools.partial(get_sample_source_study, request_handler),
     )
+#    sample_sources = request_handler.get_items(get_sample_sources(properties))
+#    return get_unique_values(
+#        sample_sources, functools.partial(get_sample_source_study, request_handler)
+#    )
 
 
 def get_sample_source_study(
@@ -185,9 +209,16 @@ def get_sample_source_study(
 ) -> str:
     """Get study for a given sample source.
 
-    Currently only used for CellLines and CellCultureMixtures.
+    Tissue study information identifiable by its external ID, while
+    cell culture (mixture) study information identified by presence of
+    code (and only indicative of benchmarking). TTD data, on the other
+    hand, is not associated with any study, and assumption is such data
+    will not match any of the criteria here.
     """
-    code = get_sample_source_code(request_handler, sample_source)
-    if code:
-        return BENCHMARKING_STUDY
+    if tissue.is_tissue(sample_source):
+        return tissue.get_study(sample_source)
+    else:
+        code = get_sample_source_code(request_handler, sample_source)
+        if code:
+            return constants.BENCHMARKING_STUDY
     return ""
