@@ -108,12 +108,14 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Genome Annotation",
                     "Genome Region",
+                    "Germline Variant Calls",
                     "Quality Control",
                     "Reference Genome",
+                    "Reference Transcriptome",
                     "RNA Quantification",
                     "Sequencing Reads",
-                    "Germline Variant Calls",
                     "Somatic Variant Calls"
                 ]
             }
@@ -128,6 +130,7 @@
                 "enum": [
                     "Aligned Reads",
                     "Gene Expression",
+                    "Gene Model",
                     "Image",
                     "Index",
                     "Reference Sequence",
