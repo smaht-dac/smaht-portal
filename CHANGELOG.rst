@@ -15,6 +15,12 @@ Change Log
 * Add properties to capture flow cell lane data on UnalignedReads and AlignedReads
 
 
+0.41.1
+======
+
+* Add tagging and direct fileset search to Submission Status page
+
+
 0.41.0
 ======
 
