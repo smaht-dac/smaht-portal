@@ -7,11 +7,26 @@ smaht-portal
 Change Log
 ----------
 
+0.41.0
+======
+* Add calcprop `file_merge_group` as a tag on file sets to help determine which file sets contain files that are candidates for merging
+* Adjust access key expiration down to 30 days
+
+
 0.40.0
 ======
 
-* Add calcprop `file_merge_group` as a tag on file sets to help determine which file sets contain files that are candidates for merging
-* Adjust access key expiration down to 30 days
+`PR 144: Add parent samples to TissueSample <https://github.com/smaht-dac/smaht-portal/pull/144>`_
+
+* Add `parent_samples` to TissueSample to track related samples
+
+
+0.39.3
+======
+
+`PR 124: File release <https://github.com/smaht-dac/smaht-portal/pull/124>`_
+
+* Add scripts to release files and create annotated filenames
 
 
 0.39.2
