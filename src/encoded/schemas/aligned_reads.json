@@ -37,6 +37,9 @@
             "$ref": "mixins.json#/file_release"
         },
         {
+            "$ref": "mixins.json#/flow_cell_details"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
