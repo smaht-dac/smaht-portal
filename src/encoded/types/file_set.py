@@ -89,13 +89,8 @@ class FileSet(SubmittedItem):
         read_type_part = sequencing.get('read_type')
         sequencer = get_item_or_none(request, sequencing.get('sequencer')).get('identifier')
         target_read_length = sequencing.get('target_read_length')
-        coverage = sequencing.get('target_coverage')
-        read_count = sequencing.get('target_read_count')
         flow_cell = sequencing.get('flow_cell', 'no-flow-cell')
-        if coverage:  # if coverage value use that or read count as terminal field
-            return f'{sequencer}-{read_type_part}-{target_read_length}-{flow_cell}-{coverage}'
-        else:
-            return f'{sequencer}-{read_type_part}-{target_read_length}-{flow_cell}-{read_count}'
+        return f'{sequencer}-{read_type_part}-{target_read_length}-{flow_cell}'
 
     @staticmethod
     def generate_assay_part(request, library):
