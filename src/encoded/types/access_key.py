@@ -28,7 +28,7 @@ from .base import Item
 )
 class AccessKey(Item, SnovaultAccessKey):
     """AccessKey class."""
-    ACCESS_KEY_EXPIRATION_TIME = 90  # days
+    ACCESS_KEY_EXPIRATION_TIME = 30  # days
     item_type = "access_key"
     schema = load_schema("encoded:schemas/access_key.json")
     embedded_list = []
