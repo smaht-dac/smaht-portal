@@ -92,7 +92,7 @@ def date_histogram_aggregations(context, request):
 
     # Defaults - may be overriden in URI params
     date_histogram_fields    = ['date_created']
-    group_by_fields          = ['sequencing_center.display_title']
+    group_by_fields          = ['assays.display_title', 'sequencing_center.display_title', 'data_type', 'dataset']
     date_histogram_intervals = ['weekly']
 
     # Mapping of 'date_histogram_interval' options we accept to ElasticSearch interval vocab term.
@@ -201,7 +201,6 @@ def date_histogram_aggregations(context, request):
     subreq          = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)) )
     search_result   = perform_search_request(None, subreq, custom_aggregations=outer_date_histogram_agg)
 
-    # import pdb;pdb.set_trace()
     for field_to_delete in ['@context', '@id', '@type', '@graph', 'title', 'filters', 'facets', 'sort', 'clear_filters', 'actions', 'columns']:
         if search_result.get(field_to_delete) is None:
             continue
