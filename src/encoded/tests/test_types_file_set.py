@@ -18,4 +18,8 @@ def test_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
 def test_file_set_merge_group(es_testapp: TestApp, workbook: None) -> None:
     """ Ensure we generate a reasonable looking group when file set data is present """
     res = es_testapp.get('/file-sets/b98f9849-3b7f-4f2f-a58f-81100954e00d/').json
-    assert res['file_merge_group'] == 'smaht-test_tissue_liver-illumina_novaseqx-paired-end-150-r9-bulk_wgs'
+    file_merge_group = res['file_merge_group']
+    assert file_merge_group['submission_center'] == 'smaht'
+    assert file_merge_group['sample_source'] == 'TEST_TISSUE_LIVER'
+    assert file_merge_group['sequencing'] == 'illumina_novaseqx-Paired-end-150-R9'
+    assert file_merge_group['assay'] == 'bulk_wgs'

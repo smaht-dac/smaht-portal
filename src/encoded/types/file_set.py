@@ -84,7 +84,7 @@ class FileSet(SubmittedItem):
     @staticmethod
     def generate_sequencing_part(request, sequencing):
         """ The sequencing part of the file_merge_group consists of the name of the sequencer,
-            the read type and the target read length - all required properties
+            the read type, the target read length and flow cell
         """
         read_type_part = sequencing.get('read_type')
         sequencer = get_item_or_none(request, sequencing.get('sequencer')).get('identifier')
@@ -100,9 +100,8 @@ class FileSet(SubmittedItem):
         """
         assay = get_item_or_none(request, library.get('assay'))
         assay_code = assay.get('code')
-        if assay_code in SINGLE_CELL_ASSAY_CODES:
-            return None
-        return assay.get('identifier')
+        if assay_code not in SINGLE_CELL_ASSAY_CODES:
+            return assay.get('identifier')
 
     @staticmethod
     def generate_sample_source_part(request, library):
@@ -125,7 +124,21 @@ class FileSet(SubmittedItem):
     @calculated_property(
         schema={
             "title": "File Merging Group",
-            "type": "string"
+            "type": "object",
+            "properties": {
+                "submission_center": {
+                    "type": "string"
+                },
+                "sample_source": {
+                    "type": "string"
+                },
+                "sequencing": {
+                    "type": "string"
+                },
+                "assay": {
+                    "type": "string"
+                }
+            }
         }
     )
     def file_merge_group(self, request):
@@ -135,14 +148,14 @@ class FileSet(SubmittedItem):
             of them across file sets. Further heuristics are needed to determine specifically
             which files are mergeable, but this ID will tell you what the candidates are.
 
-            The group is constructed by combining several pieces of information that
-            determine the "mergeability" of the files, being on order of appearance in the
-            tag (lowercased):
+            The group is constructed by combining several pieces of information into an object that
+            determines the "mergeability" of the files, being on order of appearance in the
+            object:
                 * The submission center who submitted this file set
                 * The sample source identifier, whether it be a tissue or cell sample
                 * Various information on the sequencer: name, read type, target read length
-                  and either coverage or read count
-                * Assay code
+                  and flow cell
+                * Assay identifier
         """
         # NOTE: we assume the first library is representative if there are multiple
         # We also assume this will always be present, and if not we do not produce this property
@@ -170,4 +183,9 @@ class FileSet(SubmittedItem):
         sc = get_item_or_none(request, self.properties.get('submission_centers')[0])
         sc_part = sc.get('identifier')
 
-        return f'{sc_part}-{sample_source_part}-{sequencing_part}-{assay_part}'.lower()
+        return {
+            'submission_center': sc_part,
+            'sample_source': sample_source_part,
+            'sequencing': sequencing_part,
+            'assay': assay_part
+        }
