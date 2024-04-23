@@ -708,7 +708,7 @@
     {
         "identifier": "statistics",
         "uuid": "f0f0f0f0-0000-0000-0000-ffffff040000",
-        "title": "Portal Statistics (BETA)",
+        "title": "Portal Statistics",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
