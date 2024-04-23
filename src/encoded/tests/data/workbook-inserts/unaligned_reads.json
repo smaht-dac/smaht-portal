@@ -19,7 +19,9 @@
         "read_pair_number": "R1",
         "file_size": 10000,
         "status": "released",
-        "dataset": "colo829t"
+        "dataset": "colo829t",
+        "flow_cell_barcode": "HAWT3ADXX",
+        "flow_cell_lane": 1
     },
     {
         "uuid": "621e0ea9-0365-4e65-9790-05aa43c52261",

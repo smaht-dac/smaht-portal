@@ -7,13 +7,36 @@ smaht-portal
 Change Log
 ----------
 
-0.40.1
+0.42.1
 ======
 
 `PR 128: Bm nomenclature page2 <https://github.com/smaht-dac/smaht-portal/pull/128>`_
 
 * Improvements to SMaHT Nomenclature Page
 * Update SMaHT Nomenclature PDF document
+
+
+0.42.0
+======
+
+`PR 143: Flow cell lane data <https://github.com/smaht-dac/smaht-portal/pull/143>`_
+
+* Add properties to capture flow cell lane data on UnalignedReads and AlignedReads
+
+
+0.41.1
+======
+
+* Add tagging and direct fileset search to Submission Status page
+
+
+0.41.0
+======
+
+`PR 145: ReferenceGenome build info <https://github.com/smaht-dac/smaht-portal/blob/main/src/encoded/schemas/file.json#L182-L184>`_
+
+* Add properties to capture build information for ReferenceGenome
+* Add URL property to ReferenceFile to track source of files
 
 
 0.40.0
