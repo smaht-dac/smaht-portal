@@ -99,9 +99,9 @@ export default class StatisticsPageView extends React.PureComponent {
         // GroupByController is on outside here because SubmissionStatsViewController detects if props.currentGroupBy has changed in orded to re-fetch aggs.
         const groupByOptions = {
                 'sequencing_center.display_title'   : <span><i className="icon icon-fw fas icon-university mr-1"/>Submission Center</span>,
-                'data_type'                         : <span><i className="icon icon-fw fas icon-users mr-1"/>Data Type</span>,
-                'assays.display_title'              : <span><i className="icon icon-fw fas icon-chart-bar mr-1"/>Assay Type</span>,
-                'dataset'                           : <span><i className="icon icon-fw fas icon-chart-bar mr-1"/>Sample Type</span>
+                'data_type'                         : <span><i className="icon icon-fw fas icon-cubes mr-1"/>Data Type</span>,
+                'assays.display_title'              : <span><i className="icon icon-fw fas icon-vial mr-1"/>Assay Type</span>,
+                'dataset'                           : <span><i className="icon icon-fw fas icon-clipboard-list mr-1"/>Sample Type</span>
         };
         const initialGroupBy = 'sequencing_center.display_title';
 
