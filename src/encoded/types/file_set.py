@@ -18,11 +18,24 @@ def _build_file_set_embedded_list():
     """Embeds for search on file sets."""
     return [
         "submission_centers.name",
-        "libraries.assay",
+        "submission_centers.identifier",
+
+        # Assay LinkTo - used in file_merge_group
+        "libraries.assay.code",
+        "libraries.assay.identifier",
+
+        # Sample/SampleSource LinkTo - used in file_merge_group
         "libraries.analyte.samples.display_title",
-        "sequencing.sequencer.display_title",
+        "libraries.analyte.samples.sample_sources.submitted_id",
+
+        # Sequencing/Sequencer LinkTo - used in file_merge_group
         "sequencing.submitted_id",
         "sequencing.target_coverage",
+        "sequencing.read_type",
+        "sequencing.target_read_length",
+        "sequencing.flow_cell",
+        "sequencing.sequencer.identifier",
+
         "files.o2_path",
         "files.upload_key",
         "files.file_format.display_title",
@@ -128,15 +141,19 @@ class FileSet(SubmittedItem):
             "type": "object",
             "properties": {
                 "submission_center": {
+                    "title": "Submitted By Tag",
                     "type": "string"
                 },
                 "sample_source": {
+                    "title": "Sample Source Tag",
                     "type": "string"
                 },
                 "sequencing": {
+                    "title": "Sequencing Tag",
                     "type": "string"
                 },
                 "assay": {
+                    "title": "Assay Tag",
                     "type": "string"
                 }
             }
