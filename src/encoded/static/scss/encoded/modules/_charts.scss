@@ -1096,16 +1096,16 @@ $workflow-node-color-type-global-context: #ffb3b3;
                 padding-bottom: 15px;
                 display: block;
                 transition: border-color .25s ease-in-out, background-color .25s ease-in-out, color .25s ease-in-out;
-                background-color: $primary-dark;
-                color: #fff;
+                background-color: transparent;
+                color: #333;
                 border-radius: 3px;
                 line-height: 1.35rem;
                 font-size: 1.125rem;
                 &.active {
                     border-color: #888;
-                    color: #333;
-                    background-color: transparent;
+                    color: #fff;
                     pointer-events: none;
+                    background-color: $primary-dark;
                     cursor: default;
                     border-left-color: transparent;
                     border-right-color: transparent;
@@ -1118,6 +1118,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
                 &:not(.active):hover {
                     //color: #000;
                     background-color: $primary;
+                    color: #fff;
                     text-shadow: 0 0 0;
                 }
                 > i.icon {
