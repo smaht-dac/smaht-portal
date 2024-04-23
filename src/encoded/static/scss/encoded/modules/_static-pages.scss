@@ -2103,6 +2103,59 @@ body[data-pathname^="/data/benchmarking"] {
 	}
 }
 
+/** Utilities for static page tables **/
+thead.thead-smaht tr>th {
+	background-color: $baby-20;
+}
+
+tbody.table-border-inner {
+	border-left-width:0 !important;
+	
+	tr:first-child {
+		border-left-width:0 !important;
+	}
+}
+
+.table-equal-columns {
+	table-layout: fixed;
+}
+
+.table-border-inner {
+	border-collapse: collapse;
+	
+	th,
+	td {
+		border: 1px solid rgba(0,0,0,.05);;
+	}
+	
+	th:first-child,
+	td:first-child {
+		border-left: none;
+	}
+	
+	th:last-child,
+	td:last-child {
+		border-right: none;
+	}
+	
+	tr:first-child th {
+		border-top: none;
+	}
+}
+
+.table-stripe-secondary > td {
+	background-color: #f0f1f5 !important;
+}
+
+.cell-small-text {
+	font-size: 11px;
+	line-height: 1.3;
+	width: 250px;
+}
+
+.grey-border {
+	border: 1px solid #F7F8FA;
+}
 
 /***
 Unique styling of Submission Status page
