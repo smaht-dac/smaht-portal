@@ -21,24 +21,18 @@ export default class StatisticsPageView extends React.PureComponent {
         'submissions' : {
             'title' : "Data Submissions Statistics",
             'icon' : 'upload fas',
-            'tip' : "View statistics related to submission and release of Experiment Set",
-            // Now set upon load:
-            // 'aggregationsToChartData' : _.pick(aggregationsToChartData,
-            //     'expsets_released', 'expsets_released_internal',
-            //     'expsets_released_vs_internal', 'files_released',
-            //     'file_volume_released'
-            // )
+            'tip' : "View statistics related to submission and release of Files",
+            'shouldReaggregate' : function(pastProps, nextProps, pastState, nextState){
+                if(!pastState || !nextState) return false;
+                // Compare object references
+                if (pastState.cumulativeSum !== nextState.cumulativeSum) return true;
+            }
         },
         'usage' : {
             'title' : "Portal Usage Statistics",
             'icon' : 'users fas',
             'tip' : "View statistics related to usage of the SMaHT Data Portal",
-            // Now set upon load:
-            // 'aggregationsToChartData' : _.pick(aggregationsToChartData,
-            //     'sessions_by_country', 'fields_faceted', /* 'browse_search_queries', 'other_search_queries', */
-            //     'experiment_set_views', 'file_downloads'
-            // ),
-            'shouldReaggregate' : function(pastProps, nextProps){
+            'shouldReaggregate' : function(pastProps, nextProps, pastState, nextState){
                 // Compare object references
                 if (pastProps.countBy !== nextProps.countBy) return true;
             }
@@ -101,25 +95,20 @@ export default class StatisticsPageView extends React.PureComponent {
     }
 
     renderSubmissionsSection(){
+        const { shouldReaggregate } = StatisticsPageView.viewOptions.submissions;
         // GroupByController is on outside here because SubmissionStatsViewController detects if props.currentGroupBy has changed in orded to re-fetch aggs.
-        const { browseBaseState } = this.props;
+        const groupByOptions = {
+                'sequencing_center.display_title'   : <span><i className="icon icon-fw fas icon-university mr-1"/>Submission Center</span>,
+                'data_type'                         : <span><i className="icon icon-fw fas icon-users mr-1"/>Data Type</span>,
+                'assays.display_title'              : <span><i className="icon icon-fw fas icon-chart-bar mr-1"/>Assay Type</span>,
+                'dataset'                           : <span><i className="icon icon-fw fas icon-chart-bar mr-1"/>Sample Type</span>
+        };
+        const initialGroupBy = 'sequencing_center.display_title';
 
-        const groupByOptions = { 'sequencing_center.display_title' : <span><i className="icon icon-fw fas icon-university mr-1"/>Submission Center</span> };
-
-        let initialGroupBy = 'sequencing_center.display_title';
-
-        if (browseBaseState !== 'all'){
-            _.extend(groupByOptions, {
-                'lab.display_title'                                 : <span><i className="icon icon-fw fas icon-users mr-1"/>Data Type</span>,
-                'experiments_in_set.experiment_type.display_title'  : <span><i className="icon icon-fw fas icon-chart-bar mr-1"/>Assay Type</span>,
-                'experiments_in_set.experiment_type.display_title2' : <span><i className="icon icon-fw fas icon-chart-bar mr-1"/>Sample Type</span>
-            });
-            initialGroupBy = 'sequencing_center.display_title';
-        }
         return (
             <dynamicImports.GroupByController {...{ groupByOptions, initialGroupBy }}>
-                <dynamicImports.SubmissionStatsViewController {..._.pick(this.props, 'session', 'browseBaseState', 'windowWidth')}>
-                    <dynamicImports.StatsChartViewAggregator aggregationsToChartData={dynamicImports.submissionsAggsToChartData}>
+                <dynamicImports.SubmissionStatsViewController {..._.pick(this.props, 'session', 'windowWidth')}>
+                    <dynamicImports.StatsChartViewAggregator {...{ shouldReaggregate }} aggregationsToChartData={dynamicImports.submissionsAggsToChartData}>
                         <dynamicImports.SubmissionsStatsView />
                     </dynamicImports.StatsChartViewAggregator>
                 </dynamicImports.SubmissionStatsViewController>

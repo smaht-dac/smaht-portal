@@ -33,7 +33,7 @@ export const commonParsingFxn = {
     /**
      * MODIFIES OBJECTS IN PLACE
      */
-    'countsToTotals' : function(parsedBuckets, excludeChildren = false){
+    'countsToTotals' : function(parsedBuckets, cumulativeSum = true, excludeChildren = false){
         let total = 0;
         const subTotals = {};
 
@@ -43,7 +43,11 @@ export const commonParsingFxn = {
             if (excludeChildren || !Array.isArray(bkt.children)) return;
 
             bkt.children.forEach(function(c){
-                c.total = subTotals[c.term] = (subTotals[c.term] || 0) + (c.count || 0);
+                if (cumulativeSum) {
+                    c.total = subTotals[c.term] = (subTotals[c.term] || 0) + (c.count || 0);
+                } else {
+                    c.total = subTotals[c.term] = (c.count || 0);
+                }
             });
         });
 
@@ -282,157 +286,81 @@ export const commonParsingFxn = {
 };
 
 const aggregationsToChartData = {
-    'expsets_released' : {
-        'requires'  : 'ExperimentSetReplicate',
-        'function'  : function(resp, props){
-            if (!resp || !resp.aggregations) return null;
-            const { aggregations : {
-                weekly_interval_public_release : { buckets: publicBuckets = [] } = {}
-            } } = resp;
-
-            if (publicBuckets.length < 2) return null;
-
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketDocCounts(publicBuckets, props.currentGroupBy, props.externalTermMap)
-            );
-        }
-    },
-    'expsets_released_internal' : {
-        'requires'  : 'ExperimentSetReplicate',
-        'function'  : function(resp, props){
-            if (!resp || !resp.aggregations) return null;
-            const { aggregations : {
-                weekly_interval_project_release : { buckets: internalBuckets = [] } = {}
-            } } = resp;
-
-            if (internalBuckets.length < 2) return null;
-
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketDocCounts(internalBuckets, props.currentGroupBy, props.externalTermMap)
-            );
-        }
-    },
-    'expsets_released_vs_internal' : {
-        'requires' : 'ExperimentSetReplicate',
-        'function'  : function(resp, props){
-            if (!resp || !resp.aggregations) return null;
-
-            const { aggregations : {
-                weekly_interval_project_release : { buckets: internalBuckets = [] } = {},
-                weekly_interval_public_release : { buckets: publicBuckets = [] } = {}
-            } } = resp;
-
-            if (internalBuckets.length < 2) return null;
-            if (publicBuckets.length < 2) return null;
-
-            function makeDatePairFxn(bkt){ return [ bkt.date, bkt ]; }
-
-            const internalList        = commonParsingFxn.bucketDocCounts(internalBuckets, props.externalTermMap, true);
-            const publicList          = commonParsingFxn.bucketDocCounts(publicBuckets,   props.externalTermMap, true);
-            const allDates            = _.uniq(_.pluck(internalList, 'date').concat(_.pluck(publicList, 'date'))).sort(); // Used as keys to zip up the non-index-aligned lists.
-            const internalKeyedByDate = _.object(internalList.map(makeDatePairFxn));
-            const publicKeyedByDate   = _.object(publicList.map(makeDatePairFxn));
-            const combinedAggList     = allDates.map(function(dateString){
-                const internalBucket = internalKeyedByDate[dateString] || null;
-                const publicBucket = publicKeyedByDate[dateString] || null;
-                const comboBucket = {
-                    'date' : dateString,
-                    'count' : 0,
-                    'children' : [
-                        { 'term' : 'Internally Released', 'count' : 0 }, // We'll fill these counts up shortly
-                        { 'term' : 'Publicly Released', 'count' : 0 }
-                    ]
-                };
-
-                if (internalBucket){
-                    comboBucket.children[0].count = comboBucket.count = internalBucket.count; // Use as outer bucket count/bound, also
-                }
-                if (publicBucket){
-                    comboBucket.children[1].count = publicBucket.count;
-                }
-                return comboBucket;
-            });
-
-            commonParsingFxn.countsToTotals(combinedAggList);
-            combinedAggList.forEach(function(comboBucket){ // Calculate diff from totals-to-date.
-                if (comboBucket.total < comboBucket.children[1].total){
-                    // TODO: Trigger an e-mail alert to wranglers from Sentry UI if below exception occurs.
-                    logger.error("StatisticsPage: Public release total is higher than project release total at date " + comboBucket.date, comboBucket);
-                }
-                comboBucket.children[0].total -= comboBucket.children[1].total;
-            });
-            return combinedAggList;
-        }
-    },
     'files_submitted' : {
-        'requires'  : 'ExperimentSetReplicate',
+        'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
             if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
 
             return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap)
+                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
+                props.cumulativeSum
             );
         }
     },
     'file_volume_submitted' : {
-        'requires'  : 'ExperimentSetReplicate',
+        'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             var weeklyIntervalBuckets = resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
             if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
 
             return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap)
+                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
+                props.cumulativeSum
             );
         }
     },
     'files_pipelined' : {
-        'requires'  : 'ExperimentSetReplicate',
+        'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
             if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
 
             return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap)
+                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
+                props.cumulativeSum
             );
         }
     },
     'file_volume_pipelined' : {
-        'requires'  : 'ExperimentSetReplicate',
+        'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             var weeklyIntervalBuckets = resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
             if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
 
             return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap)
+                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
+                props.cumulativeSum
             );
         }
     },
     'files_released' : {
-        'requires'  : 'ExperimentSetReplicate',
+        'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
             if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
 
             return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap)
+                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
+                props.cumulativeSum
             );
         }
     },
     'file_volume_released' : {
-        'requires'  : 'ExperimentSetReplicate',
+        'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             var weeklyIntervalBuckets = resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
             if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
 
             return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap)
+                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
+                props.cumulativeSum
             );
         }
     },
@@ -527,11 +455,9 @@ const aggregationsToChartData = {
 
 // I forgot what purpose of all this was, kept because no time to refactor all now.
 export const submissionsAggsToChartData = _.pick(aggregationsToChartData,
-    /*'expsets_released', 'expsets_released_internal',
-    'expsets_released_vs_internal', */'files_submitted',
-    'file_volume_submitted', 'files_pipelined',
-    'file_volume_pipelined', 'files_released',
-    'file_volume_released'
+    'files_submitted', 'file_volume_submitted',
+    'files_pipelined', 'file_volume_pipelined',
+    'files_released', 'file_volume_released'
 );
 
 export const usageAggsToChartData = _.pick(aggregationsToChartData,
@@ -648,12 +574,11 @@ export class SubmissionStatsViewController extends React.PureComponent {
 
     static defaultProps = {
         'searchURIs' : {
-            'ExperimentSetReplicate' : function(props) {
-                const params = {'type': 'File'};//navigate.getBrowseBaseParams(props.browseBaseState || null);
+            'File' : function(props) {
+                const params = {'type': 'File'};
                 if (props.currentGroupBy){
-                    params.group_by = props.currentGroupBy;
+                    // params.group_by = props.currentGroupBy;
                 }
-                //if (props.browseBaseState === 'all') params['group_by'] = ['award.project'];
                 const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
 
                 // For local dev/debugging; don't forget to comment out if using.
@@ -930,9 +855,8 @@ export function SubmissionsStatsView(props) {
     const {
         loadingStatus, mounted, session, currentGroupBy, groupByOptions, handleGroupByChange, windowWidth,
         // Passed in from StatsChartViewAggregator:
-        /*expsets_released, expsets_released_internal, */files_submitted, file_volume_submitted,  files_pipelined, file_volume_pipelined, 
-        files_released, file_volume_released,
-        /*expsets_released_vs_internal,*/ chartToggles, smoothEdges, width, onChartToggle, onSmoothEdgeToggle
+        files_submitted, file_volume_submitted,  files_pipelined, file_volume_pipelined, files_released, file_volume_released,
+        chartToggles, smoothEdges, width, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
     } = props;
 
     if (!mounted || (!files_released)){
@@ -948,26 +872,10 @@ export function SubmissionsStatsView(props) {
         'onToggle' : onChartToggle, chartToggles, windowWidth,
         'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250
     };
-    const showInternalReleaseCharts = false; //session && expsets_released_internal && expsets_released_vs_internal;
-    const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter };
+    const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum: cumulativeSum };
 
     return (
         <div className="stats-charts-container" key="charts" id="submissions">
-
-            { showInternalReleaseCharts ?
-
-                <ColorScaleProvider width={width} colorScale={SubmissionsStatsView.colorScaleForPublicVsInternal}>
-
-                    <AreaChartContainer {...commonContainerProps} id="expsets_released_vs_internal"
-                        title={<h4 className="text-300 mt-0"><span className="text-500">Experiment Sets</span> - internal vs public release</h4>}>
-                        <AreaChart {...commonChartProps} data={expsets_released_vs_internal} />
-                    </AreaChartContainer>
-
-                    <hr/>
-
-                </ColorScaleProvider>
-
-                : null }
 
             <ColorScaleProvider width={width} resetScalesWhenChange={files_released}>
 
@@ -976,7 +884,7 @@ export function SubmissionsStatsView(props) {
                         <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                     </div>
                     <div className="d-inline-block ml-15">
-                        <Checkbox checked={true} disabled={true} onChange={onSmoothEdgeToggle}>Show as cumulative sum</Checkbox>
+                        <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Show as cumulative sum</Checkbox>
                     </div>
                 </GroupByDropdown>
 
@@ -984,27 +892,10 @@ export function SubmissionsStatsView(props) {
 
                 <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
-                {/* <AreaChartContainer {...commonContainerProps} id="expsets_released" title={
-                    <h4 className="text-300 mt-0">
-                        <span className="text-500">Experiment Sets</span> - { session ? 'publicly released' : 'released' }
-                    </h4>
-                }>
-                    <AreaChart {...commonChartProps} data={expsets_released} />
-                </AreaChartContainer> */}
 
-                { showInternalReleaseCharts ?
-                    <AreaChartContainer {...commonContainerProps} id="expsets_released_internal" title={
-                        <h4 className="text-300 mt-0">
-                            <span className="text-500">Experiment Sets</span> - released (public or within 4DN)
-                        </h4>
-                    }>
-                        <AreaChart {...commonChartProps} data={expsets_released_internal} />
-                    </AreaChartContainer>
-                    : null }
-
-                 <AreaChartContainer {...commonContainerProps} id="files_submitted" title={
+                <AreaChartContainer {...commonContainerProps} id="files_submitted" title={
                     <h4 className="text-300 mt-0">
-                        <span className="text-500">Files</span> - { 'submitted' }
+                        <span className="text-500">Files</span> - {'submitted'}
                     </h4>
                 }>
                     <AreaChart {...commonChartProps} data={files_submitted} />
@@ -1017,6 +908,8 @@ export function SubmissionsStatsView(props) {
                 }>
                     <AreaChart {...commonChartProps} data={file_volume_submitted} yAxisLabel="GB" />
                 </AreaChartContainer>
+
+                <hr />
 
                 <AreaChartContainer {...commonContainerProps} id="files_pipelined" title={
                     <h4 className="text-300 mt-0">
@@ -1033,6 +926,8 @@ export function SubmissionsStatsView(props) {
                 }>
                     <AreaChart {...commonChartProps} data={file_volume_pipelined} yAxisLabel="GB" />
                 </AreaChartContainer>                   
+
+                <hr />
 
                 <AreaChartContainer {...commonContainerProps} id="files_released" title={
                     <h4 className="text-300 mt-0">
@@ -1076,29 +971,30 @@ SubmissionsStatsView.colorScaleForPublicVsInternal = function(term){
 
 function groupExternalChildren(children, externalTermMap){
 
-    if (!externalTermMap){
-        return children;
-    }
+    return children;
+    // if (!externalTermMap){
+    //     return children;
+    // }
 
-    const filteredOut = [];
-    const newChildren = children.filter(function(c){
-        if (externalTermMap[c.term]) {
-            filteredOut.push(c);
-            return false;
-        }
-        return true;
-    });
-    if (filteredOut.length > 0){
-        const externalChild = {
-            'term' : 'External',
-            'count': 0,
-            'total': 0
-        };
-        filteredOut.forEach(function(c){
-            externalChild.total += c.total;
-            externalChild.count += c.count;
-        });
-        newChildren.push(externalChild);
-    }
-    return newChildren;
+    // const filteredOut = [];
+    // const newChildren = children.filter(function(c){
+    //     if (externalTermMap[c.term]) {
+    //         filteredOut.push(c);
+    //         return false;
+    //     }
+    //     return true;
+    // });
+    // if (filteredOut.length > 0){
+    //     const externalChild = {
+    //         'term' : 'External',
+    //         'count': 0,
+    //         'total': 0
+    //     };
+    //     filteredOut.forEach(function(c){
+    //         externalChild.total += c.total;
+    //         externalChild.count += c.count;
+    //     });
+    //     newChildren.push(externalChild);
+    // }
+    // return newChildren;
 }

@@ -137,16 +137,18 @@ export class StatsChartViewAggregator extends React.PureComponent {
         this.getRefWidth = this.getRefWidth.bind(this);
         this.handleToggle = this.handleToggle.bind(this);
         this.handleToggleSmoothEdges = this.handleToggleSmoothEdges.bind(this);
+        this.handleToggleCumulativeSum = this.handleToggleCumulativeSum.bind(this);
         this.generateAggsToState = this.generateAggsToState.bind(this);
         this.state = _.extend(this.generateAggsToState(props, {}), {
             'chartToggles' : {},
-            'smoothEdges' : false
+            'smoothEdges' : false,
+            'cumulativeSum': true
         });
 
         this.elemRef = React.createRef();
     }
 
-    componentDidUpdate(pastProps){
+    componentDidUpdate(prevProps, prevState){
         const { shouldReaggregate } = this.props;
         var updateState = false,
             keys        = _.keys(this.props),
@@ -155,7 +157,7 @@ export class StatsChartViewAggregator extends React.PureComponent {
         for (i = 0; i < keys.length; i++){
             k = keys[i];
             // eslint-disable-next-line react/destructuring-assignment
-            if (pastProps[k] !== this.props[k]){
+            if (prevProps[k] !== this.props[k]){
                 if (k !== 'aggregationsToChartData' && k !== 'externalTermMap'){
                     var k4 = k.slice(0,4);
                     if (k4 !== 'resp'){
@@ -171,7 +173,7 @@ export class StatsChartViewAggregator extends React.PureComponent {
         }
 
         if (typeof shouldReaggregate === 'function' && !updateState){
-            updateState = shouldReaggregate(pastProps, this.props);
+            updateState = shouldReaggregate(prevProps, this.props, prevState, this.state);
         }
 
         if (updateState){
@@ -205,6 +207,20 @@ export class StatsChartViewAggregator extends React.PureComponent {
         });
     }
 
+    handleToggleCumulativeSum(cumulativeSum, cb){
+        this.setState(function(currState){
+            if (typeof cumulativeSum === 'boolean'){
+                if (cumulativeSum === currState.cumulativeSum){
+                    return null;
+                }
+                return { cumulativeSum };
+            } else {
+                cumulativeSum = !currState.cumulativeSum;
+                return { cumulativeSum };
+            }
+        });
+    }
+
     generateAggsToState(props, state){
         return _.object(_.map(_.keys(props.aggregationsToChartData), (key) =>
             [
@@ -221,7 +237,12 @@ export class StatsChartViewAggregator extends React.PureComponent {
         const { children } = this.props;
         const width = this.getRefWidth() || null;
         const childProps = _.extend(
-            { width, 'onChartToggle' : this.handleToggle, 'onSmoothEdgeToggle' : this.handleToggleSmoothEdges },
+            {
+                width,
+                'onChartToggle': this.handleToggle,
+                'onSmoothEdgeToggle': this.handleToggleSmoothEdges,
+                'onCumulativeSumToggle': this.handleToggleCumulativeSum
+            },
             this.props, this.state
         );
         let extendedChildren;
