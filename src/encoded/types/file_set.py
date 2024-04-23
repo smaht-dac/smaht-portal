@@ -22,6 +22,7 @@ def _build_file_set_embedded_list():
         "libraries.analyte.samples.display_title",
         "sequencing.sequencer.display_title",
         "sequencing.submitted_id",
+        "sequencing.target_coverage",
         "files.o2_path",
         "files.upload_key",
         "files.file_format.display_title",
