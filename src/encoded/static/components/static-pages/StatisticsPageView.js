@@ -98,12 +98,15 @@ export default class StatisticsPageView extends React.PureComponent {
         const { shouldReaggregate } = StatisticsPageView.viewOptions.submissions;
         // GroupByController is on outside here because SubmissionStatsViewController detects if props.currentGroupBy has changed in orded to re-fetch aggs.
         const groupByOptions = {
-                'submission_centers.display_title'  : <span><i className="icon icon-fw fas icon-university mr-1"/>Submission Center</span>,
-                'data_type'                         : <span><i className="icon icon-fw fas icon-cubes mr-1"/>Data Type</span>,
-                'assays.display_title'              : <span><i className="icon icon-fw fas icon-vial mr-1"/>Assay Type</span>,
-                'dataset'                           : <span><i className="icon icon-fw fas icon-clipboard-list mr-1"/>Sample Type</span>
+                'data_generation_summary.submission_centers'    : <span><i className="icon icon-fw fas icon-university mr-1"/>Submission Center</span>,
+                'data_generation_summary.sequencing_center'     : <span><i className="icon icon-fw fas icon-dna mr-1"/>Sequencing Center</span>,
+                'data_generation_summary.data_type'             : <span><i className="icon icon-fw fas icon-cubes mr-1"/>Data Type</span>,
+                'data_generation_summary.data_category'         : <span><i className="icon icon-fw fas icon-sitemap mr-1"/>Data Category</span>,
+                'data_generation_summary.assays'                : <span><i className="icon icon-fw fas icon-vial mr-1"/>Assay</span>,
+                'data_generation_summary.sequencing_platforms'  : <span><i className="icon icon-fw fas icon-clipboard-list mr-1"/>Sequencing Platform</span>
+                // 'dataset'                           : <span><i className="icon icon-fw fas icon-clipboard-list mr-1"/>Sample Type</span>
         };
-        const initialGroupBy = 'submission_centers.display_title';
+        const initialGroupBy = 'data_generation_summary.submission_centers';
 
         return (
             <dynamicImports.GroupByController {...{ groupByOptions, initialGroupBy }}>

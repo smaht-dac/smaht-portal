@@ -92,7 +92,7 @@ def date_histogram_aggregations(context, request):
 
     # Defaults - may be overriden in URI params
     date_histogram_fields    = ['date_created']
-    group_by_fields          = ['assays.display_title', 'submission_centers.display_title', 'data_type', 'dataset']
+    group_by_fields          = ['data_generation_summary.submission_centers', 'data_generation_summary.sequencing_center', 'data_generation_summary.data_type', 'data_generation_summary.data_category', 'data_generation_summary.assays', 'data_generation_summary.sequencing_platforms']
     date_histogram_intervals = ['weekly']
 
     # Mapping of 'date_histogram_interval' options we accept to ElasticSearch interval vocab term.
