@@ -1029,9 +1029,7 @@ def assert_sample_summary_matches_expected(
     Expected values determined here by parsing file properties/embeds
     or calling functions on correct items. The latter is similar to how
     the calcprop is implemented, so not a great test of the calcprop,
-    but these are too complex to test in a more direct way. Ensure
-    some expected values for the workbook inserts are present as
-    expected for these fields.
+    but these are too complex to test in a more direct way.
     """
     sample_summary = file_utils.get_sample_summary(file)
     analytes = file_utils.get_analytes(file)
