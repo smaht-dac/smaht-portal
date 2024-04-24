@@ -14,6 +14,15 @@ Change Log
 * Adjust access key expiration down to 30 days
 
 
+0.42.1
+======
+
+`PR 128: Bm nomenclature page2 <https://github.com/smaht-dac/smaht-portal/pull/128>`_
+
+* Improvements to SMaHT Nomenclature Page
+* Update SMaHT Nomenclature PDF document
+
+
 0.42.0
 ======
 
