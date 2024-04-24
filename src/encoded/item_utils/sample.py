@@ -1,5 +1,5 @@
 import functools
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from . import (
     cell_culture,
@@ -49,7 +49,7 @@ def is_cell_sample(properties: Dict[str, Any]) -> bool:
 
 
 def get_sample_names(
-    request_handler: RequestHandler, properties: Dict[str, Any]
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[str]:
     """Get official name(s) for the sample.
 
@@ -65,7 +65,7 @@ def get_sample_names(
     if is_tissue_sample(properties):
         if sample_id := item.get_external_id(properties):
             return [sample_id]
-    if not is_tissue_sample(properties):
+    if not is_tissue_sample(properties) and request_handler:
         return get_sample_names_from_sources(request_handler, properties)
     return []
 
@@ -105,7 +105,7 @@ def get_sample_source_code(
 
 
 def get_sample_descriptions(
-    request_handler: RequestHandler, properties: Dict[str, Any]
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[str]:
     """Get description for sample.
 
@@ -116,7 +116,7 @@ def get_sample_descriptions(
     if is_tissue_sample(properties):
         if category := tissue_sample.get_category(properties):
             result = [category]
-    else:
+    elif request_handler:
         result = get_sample_descriptions_from_sources(properties, request_handler)
     return result
 
@@ -128,7 +128,9 @@ def get_sample_descriptions_from_sources(
     return get_property_values_from_identifiers(
         request_handler,
         get_sample_sources(properties),
-        functools.partial(get_sample_source_description, request_handler),
+        functools.partial(
+            get_sample_source_description, request_handler=request_handler
+        ),
     )
 #    sample_sources = request_handler.get_items(get_sample_sources(properties))
 #    return get_unique_values(
@@ -138,7 +140,7 @@ def get_sample_descriptions_from_sources(
 
 
 def get_sample_source_description(
-    request_handler: RequestHandler, sample_source: Dict[str, Any]
+    sample_source: Dict[str, Any], request_handler: RequestHandler
 ) -> List[str]:
     """Get description for a given sample source.
 
@@ -161,7 +163,7 @@ def get_sample_source_description(
 
 
 def get_studies(
-    request_handler: RequestHandler, properties: Dict[str, Any]
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler]
 ) -> List[str]:
     """Get 'studies' associated with sample.
 
@@ -176,8 +178,9 @@ def get_studies(
         study = get_study_from_id(sample_id)
         if study:
             return [study]
-        return []
-    return get_studies_from_sources(request_handler, properties)
+    elif request_handler:
+        return get_studies_from_sources(request_handler, properties)
+    return []
 
 
 def get_study_from_id(sample_id: str) -> str:

@@ -11,7 +11,7 @@ from .utils import (
 
 def get_components(properties: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get components from cell culture mixture."""
-    return item.get_property(properties, "components", [])
+    return properties.get("components", [])
 
 
 def get_cell_culture(component: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
@@ -30,7 +30,7 @@ def get_cell_line_codes(
     """Get cell line codes from cell culture mixture."""
     return get_property_values_from_identifiers(
         request_handler,
-        get_cell_lines(properties),
+        get_cell_lines(request_handler, properties),
         item.get_code,
     )
 
@@ -43,11 +43,11 @@ def get_cell_lines(
     return get_property_values_from_identifiers(
         request_handler,
         cell_cultures,
-        functools.partial(cell_culture.get_cell_line, request_handler),
+        functools.partial(cell_culture.get_cell_line),
     )
 
 
 def get_cell_cultures(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
     """Get cell cultures from components."""
     components = get_components(properties)
-    return get_unique_values(components, get_cell_culture)
+    return [get_cell_culture(component) for component in components]

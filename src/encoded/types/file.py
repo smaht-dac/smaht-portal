@@ -826,21 +826,25 @@ class File(Item, CoreFile):
             constants.SAMPLE_SUMMARY_SAMPLE_NAMES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_samples(file_properties, request_handler),
-                functools.partial(sample_utils.get_sample_names, request_handler),
+                functools.partial(
+                    sample_utils.get_sample_names, request_handler=request_handler
+                ),
             ),
-            constants.SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS: (
+            constants.SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS:
                 get_property_values_from_identifiers(
                     request_handler,
                     file_utils.get_samples(file_properties, request_handler),
                     functools.partial(
-                        sample_utils.get_sample_descriptions, request_handler
+                        sample_utils.get_sample_descriptions,
+                        request_handler=request_handler,
                     ),
                 ),
-            ),
             constants.SAMPLE_SUMMARY_STUDIES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_samples(file_properties, request_handler),
-                functools.partial(sample_utils.get_study, request_handler),
+                functools.partial(
+                    sample_utils.get_studies, request_handler=request_handler
+                ),
             ),
             constants.SAMPLE_SUMMARY_ANALYTES: get_property_values_from_identifiers(
                 request_handler,

@@ -141,14 +141,18 @@ def get_tissues(
     properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get tissues associated with file."""
+    sample_sources = get_sample_sources(properties, request_handler=request_handler)
     if request_handler:
-        sample_sources = get_sample_sources(properties, request_handler)
         return [
             sample_source
             for sample_source in sample_sources
             if tissue.is_tissue(request_handler.get_item(sample_source))
         ]
-    return properties.get("tissues", [])
+    return [
+        sample_source
+        for sample_source in sample_sources
+        if isinstance(sample_source, dict) and tissue.is_tissue(sample_source)
+    ]
 
 
 def get_donors(
