@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.43.0
+======
+
+* Add calcprop `file_merge_group` as a tag on file sets to help determine which file sets contain files that are candidates for merging
+* Adjust access key expiration down to 30 days
+
+
 0.42.1
 ======
 
