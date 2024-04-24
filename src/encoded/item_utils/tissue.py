@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 from . import item
 from .utils import get_study_from_external_id
@@ -9,7 +9,7 @@ def is_tissue(properties: Dict[str, Any]) -> bool:
     return item.get_type(properties) == "Tissue"
 
 
-def get_donor(properties: Dict[str, Any]) -> str:
+def get_donor(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
     """Get donor associated with tissue."""
     return properties.get("donor", "")
 
