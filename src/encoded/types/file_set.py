@@ -1,5 +1,5 @@
 from typing import List, Union
-
+from ..utils import load_extended_descriptions_in_schemas
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
 from snovault.util import get_item_or_none
@@ -17,7 +17,6 @@ SINGLE_CELL_ASSAY_CODES = [
 def _build_file_set_embedded_list():
     """Embeds for search on file sets."""
     return [
-        "submission_centers.name",
         "submission_centers.identifier",
 
         # Assay LinkTo - used in file_merge_group
@@ -56,7 +55,7 @@ def _build_file_set_embedded_list():
     })
 class FileSet(SubmittedItem):
     item_type = "file_set"
-    schema = load_schema("encoded:schemas/file_set.json")
+    schema = load_extended_descriptions_in_schemas(load_schema("encoded:schemas/file_set.json"))
     embedded_list = _build_file_set_embedded_list()
     rev = {
         "files": ("File", "file_sets"),
