@@ -2,11 +2,7 @@ import functools
 from typing import Any, Dict, List, Union
 
 from . import cell_culture, item
-from .utils import (
-    RequestHandler,
-    get_property_values_from_identifiers,
-    get_unique_values,
-)
+from .utils import RequestHandler, get_property_values_from_identifiers
 
 
 def get_components(properties: Dict[str, Any]) -> List[Dict[str, Any]]:
