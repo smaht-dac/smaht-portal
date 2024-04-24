@@ -196,13 +196,14 @@ class FileSet(SubmittedItem):
         if not sequencing_part:
             return None
 
+        # When it was a unified tag we needed this but now we just rely on the
+        # submission_center property, can be added back though - Will 24 April 2024
         # this is the last thing we do since we could have exited above and the submission
         # center will always be present
-        sc = get_item_or_none(request, self.properties.get('submission_centers')[0])
-        sc_part = sc.get('identifier')
+        # sc = get_item_or_none(request, self.properties.get('submission_centers')[0])
+        # sc_part = sc.get('identifier')
 
         return {
-            'submission_center': sc_part,
             'sample_source': sample_source_part,
             'sequencing': sequencing_part,
             'assay': assay_part
