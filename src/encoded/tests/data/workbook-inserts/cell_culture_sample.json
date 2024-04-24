@@ -8,7 +8,15 @@
         "sample_sources": [
             "TEST_CELL-CULTURE_HELA"
         ],
-        "preservation_type": "Frozen"
+        "preservation_type": "Frozen",
+        "tags": [
+            "test_sample_names",
+            "sample_names-SMHTHELA",
+            "test_sample_descriptions",
+            "sample_descriptions-HELA",
+            "test-sample_studies",
+            "sample_studies-Benchmarking"
+        ]
     },
     {
         "uuid": "b6974482-6026-4daf-ac7d-46e96312fe5d",
@@ -19,6 +27,14 @@
         "sample_sources": [
             "TEST_CELL-CULTURE-MIXTURE_HELA-HEK293"
         ],
-        "preservation_type": "Frozen"
+        "preservation_type": "Frozen",
+        "tags": [
+            "test_sample_names",
+            "sample_names-SMHTHELAHEK293",
+            "test_sample_descriptions",
+            "sample_descriptions-HELA|HEK293",
+            "test-sample_studies",
+            "sample_studies-Benchmarking"
+        ]
     }
 ]

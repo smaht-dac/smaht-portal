@@ -64,3 +64,8 @@ def get_code(properties: Dict[str, Any]) -> str:
 def get_external_id(properties: Dict[str, Any]) -> str:
     """Get external ID from properties."""
     return properties.get("external_id", "")
+
+
+def get_tags(properties: Dict[str, Any]) -> List[str]:
+    """Get tags from properties."""
+    return properties.get("tags", [])

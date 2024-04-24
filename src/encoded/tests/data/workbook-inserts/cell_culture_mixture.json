@@ -5,6 +5,7 @@
             "smaht"
         ],
         "submitted_id": "TEST_CELL-CULTURE-MIXTURE_HELA-HEK293",
+        "code": "HELAHEK293",
         "components": [
             {
                 "cell_culture": "TEST_CELL-CULTURE_HELA",

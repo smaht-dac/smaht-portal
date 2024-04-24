@@ -1,5 +1,5 @@
 import functools
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from . import (
     cell_culture,
@@ -29,7 +29,7 @@ def get_tissues(
     ]
 
 
-def get_sample_sources(properties: Dict[str, Any]) -> List[str]:
+def get_sample_sources(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
     """Get sample sources associated with sample."""
     return properties.get("sample_sources", [])
 
@@ -63,10 +63,9 @@ def get_sample_names(
     Otherwise, check sample sources for appropriate names, which are
     codes on CellLines or CellCultureMixtures.
     """
-    if is_tissue_sample(properties):
-        if sample_id := item.get_external_id(properties):
-            return [sample_id]
-    if not is_tissue_sample(properties) and request_handler:
+    if sample_id := item.get_external_id(properties):
+        return [sample_id]
+    if is_cell_culture_sample(properties) and request_handler:
         return get_sample_names_from_sources(request_handler, properties)
     return []
 
@@ -81,10 +80,6 @@ def get_sample_names_from_sources(
         functools.partial(get_sample_source_code, request_handler),
     )
     return [f"{constants.PRODUCTION_PREFIX}{name}" for name in names]
-#    sample_sources = request_handler.get_items(get_sample_sources(properties))
-#    return get_unique_values(
-#        sample_sources, functools.partial(get_sample_source_code, request_handler)
-#    )
 
 
 def get_sample_source_code(
@@ -117,7 +112,7 @@ def get_sample_descriptions(
     if is_tissue_sample(properties):
         if category := tissue_sample.get_category(properties):
             result = [category]
-    elif request_handler:
+    elif is_cell_culture_sample(properties) and request_handler:
         result = get_sample_descriptions_from_sources(properties, request_handler)
     return result
 
@@ -133,11 +128,6 @@ def get_sample_descriptions_from_sources(
             get_sample_source_description, request_handler=request_handler
         ),
     )
-#    sample_sources = request_handler.get_items(get_sample_sources(properties))
-#    return get_unique_values(
-#        sample_sources,
-#        functools.partial(get_sample_source_description, request_handler),
-#    )
 
 
 def get_sample_source_description(
@@ -193,10 +183,6 @@ def get_studies_from_sources(
         get_sample_sources(properties),
         functools.partial(get_sample_source_study, request_handler),
     )
-#    sample_sources = request_handler.get_items(get_sample_sources(properties))
-#    return get_unique_values(
-#        sample_sources, functools.partial(get_sample_source_study, request_handler)
-#    )
 
 
 def get_sample_source_study(
