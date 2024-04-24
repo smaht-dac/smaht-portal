@@ -7,12 +7,22 @@ smaht-portal
 Change Log
 ----------
 
+0.42.1
+======
+
+`PR 128: Bm nomenclature page2 <https://github.com/smaht-dac/smaht-portal/pull/128>`_
+
+* Improvements to SMaHT Nomenclature Page
+* Update SMaHT Nomenclature PDF document
+
+
 0.42.0
 ======
 
-`PR 129: Categories for RNASeq pipelines <https://github.com/smaht-dac/smaht-portal/pull/129>`_
+`PR 143: Flow cell lane data <https://github.com/smaht-dac/smaht-portal/pull/143>`_
 
-* Add category enums for RNASeq pipelines to MWF, Workflow, Software, and File
+* Add properties to capture flow cell lane data on UnalignedReads and AlignedReads
+>>>>>>> main
 
 
 0.41.1
