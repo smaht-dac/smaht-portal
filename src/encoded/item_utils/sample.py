@@ -12,6 +12,7 @@ from . import (
 from .utils import (
     get_property_value_from_identifier,
     get_property_values_from_identifiers,
+    get_study_from_external_id,
     RequestHandler,
 )
 
@@ -175,21 +176,12 @@ def get_studies(
     - If no ID, check sample sources for codes
     """
     if sample_id := item.get_external_id(properties):
-        study = get_study_from_id(sample_id)
+        study = get_study_from_external_id(sample_id)
         if study:
             return [study]
     elif request_handler:
         return get_studies_from_sources(request_handler, properties)
     return []
-
-
-def get_study_from_id(sample_id: str) -> str:
-    """Get study from sample id."""
-    if sample_id.startswith(constants.BENCHMARKING_PREFIX):
-        return constants.BENCHMARKING_STUDY
-    if sample_id.startswith(constants.PRODUCTION_PREFIX):
-        return constants.PRODUCTION_STUDY
-    return ""
 
 
 def get_studies_from_sources(

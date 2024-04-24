@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
-from . import constants
 from . import item
+from .utils import get_study_from_external_id
 
 
 def is_tissue(properties: Dict[str, Any]) -> bool:
@@ -28,8 +28,4 @@ def get_study(properties: Dict[str, Any]) -> str:
     check submission centers or more detailed regex on TPC nomenclature.
     """
     external_id = item.get_external_id(properties)
-    if external_id.startswith(constants.BENCHMARKING_PREFIX):
-        return constants.BENCHMARKING_STUDY
-    if external_id.startswith(constants.PRODUCTION_PREFIX):
-        return constants.PRODUCTION_STUDY
-    return ""
+    return get_study_from_external_id(external_id)
