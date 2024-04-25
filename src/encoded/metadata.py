@@ -30,6 +30,10 @@ def includeme(config):
 FILE = 0
 
 
+# This field is special because it is a transformation applied from other fields
+FILE_MERGE_GROUP = 'File Merge Group'
+
+
 class MetadataArgs(NamedTuple):
     """ NamedTuple that holds all the args passed to the /metadata and /peek-metadata endpoints """
     accessions: List[str]
@@ -43,22 +47,35 @@ class MetadataArgs(NamedTuple):
 
 class TSVDescriptor:
     """ Dataclass that holds the structure """
-    def __init__(self, *, field_type, field_name, deduplicate=True):
+    def __init__(self, *, field_type: int, field_name: List[str],
+                 deduplicate: bool = True, use_base_metadata: bool = False):
+        """ field_type is str, int or float, field_name is a list of possible
+            paths when searched can retrieve the field value, deduplicate is unused,
+            use_base_metadata means to rely on top level object instead of sub object
+            (only used for extra files)
+        """
         self._field_type = field_type
         self._field_name = field_name
         self._deduplicate = deduplicate
+        self._use_base_metadata = use_base_metadata
 
-    def field_type(self):
+    def field_type(self) -> int:
+        """ Note this is an int enum """
         return self._field_type
 
-    def field_name(self):
+    def field_name(self) -> List[str]:
+        """ Field name in this case is a list of possible paths to search """
         return self._field_name
 
-    def deduplicate(self):
+    def deduplicate(self) -> bool:
         return self._deduplicate
+
+    def use_base_metadata(self) -> bool:
+        return self._use_base_metadata
 
 
 class DummyFileInterfaceImplementation(object):
+    """ This is used to simulate a file interface for streaming the TSV output """
     def __init__(self):
         self._line = None
     def write(self, line):
@@ -86,16 +103,23 @@ TSV_MAPPING = {
                                    field_name=['file_type']),
         'File Format': TSVDescriptor(field_type=FILE,
                                      field_name=['file_format.display_title']),
+        'Sample Source': TSVDescriptor(field_type=FILE,
+                                       field_name=['file_sets.libraries.analyte.samples.sample_sources.code'],
+                                       use_base_metadata=True),  # do not traverse extra_files for this
+        FILE_MERGE_GROUP: TSVDescriptor(field_type=FILE,
+                                        field_name=['file_sets.file_merge_group'],
+                                        use_base_metadata=True)   # do not traverse extra_files for this
     }
 }
 
 
 def generate_file_download_header(download_file_name: str):
     """ Helper function that generates a suitable header for the File download """
-    header1 = ['###', 'Metadata TSV Download', '', '', '', '', '']
-    header2 = ['Suggested command to download: ', '', '',
+    header1 = ['###', 'Metadata TSV Download', '', '', '', '', '', '', '']  # length 9
+    header2 = ['Suggested command to download: ', '', '',  # length 9
                "cut -f 1,3 ./{} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L "
-               "--user <access_key_id>:<access_key_secret> $0 --output $1'".format(download_file_name), '', '', '']
+               "--user <access_key_id>:<access_key_secret> $0 --output $1'".format(download_file_name), '', '', '',
+               '', '']  # length 9
     header3 = list(TSV_MAPPING[FILE].keys())
     return header1, header2, header3
 
@@ -107,13 +131,29 @@ def descend_field(request, prop, field_names):
         fields = possible_field.split('.')
         for field in fields:
             current_prop = current_prop.get(field)
-        if current_prop is None or isinstance(current_prop, dict) or isinstance(current_prop, list):
+            # IMPORTANT - very key assumption here, since we are generating flat structure
+            # we assume we always want the first element
+            if isinstance(current_prop, list):
+                current_prop = current_prop[0]
+            elif not current_prop:
+                break
+        if current_prop is None or isinstance(current_prop, dict):
             continue
         elif possible_field == 'href':
             return f'{request.scheme}://{request.host}{current_prop}'
         else:
             return current_prop
     return None
+
+
+def handle_file_merge_group(field: dict) -> str:
+    """ Transforms the file_merge_group into a single string """
+    if field:
+        sample_source_part = field['sample_source']
+        sequencing_part = field['sequencing']
+        assay_part = field['assay']
+        return f'{sample_source_part}-{sequencing_part}-{assay_part}'
+    return ''
 
 
 def generate_tsv(header: Tuple, data_lines: list):
@@ -228,16 +268,33 @@ def metadata_tsv(context, request):
     data_lines = []
     for file in search_iter:
         line = []
-        for _, tsv_descriptor in args.tsv_mapping.items():
-            field = descend_field(request, file, tsv_descriptor.field_name()) or ''
+        for field_name, tsv_descriptor in args.tsv_mapping.items():
+            traversal_path = tsv_descriptor.field_name()
+            if field_name == FILE_MERGE_GROUP:
+                field = descend_field(request, file, traversal_path) or {}
+                if field:  # requires special care
+                    field = handle_file_merge_group(field)
+            else:
+                field = descend_field(request, file, traversal_path) or ''
             line.append(field)
         data_lines += [line]
+
+        # Repeat the above process for extra files
+        # This requires extra care - most fields we take from extra_files directly,
+        # but some must be taken from the parent metadata, such as anything related to library/assay/sample
+        # or the file merge group
         if args.include_extra_files and 'extra_files' in file:
             efs = file.get('extra_files')
             for ef in efs:
                 ef_line = []
-                for _, tsv_descriptor in args.tsv_mapping.items():
-                    field = descend_field(request, ef, tsv_descriptor.field_name()) or ''
+                for field_name, tsv_descriptor in args.tsv_mapping.items():
+                    traversal_path = tsv_descriptor.field_name()
+                    if tsv_descriptor.use_base_metadata():
+                        field = descend_field(request, file, traversal_path) or {}
+                        if field_name == FILE_MERGE_GROUP:  # requires special care
+                            field = handle_file_merge_group(field)
+                    else:
+                        field = descend_field(request, ef, traversal_path) or ''
                     ef_line.append(field)
                 data_lines += [ef_line]
 

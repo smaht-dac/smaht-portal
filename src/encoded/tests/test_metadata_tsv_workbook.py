@@ -6,7 +6,7 @@ from ..metadata import descend_field
 
 class TestMetadataTSVHelper:
 
-    TSV_WIDTH = 7
+    TSV_WIDTH = 9
 
     @staticmethod
     def read_tsv_from_bytestream(bytestream):
@@ -74,7 +74,7 @@ class TestMetadataTSVWorkbook:
              'simple': {
                  'simple2': ['array']
              }
-         }, ['simple.simple2'], None)
+         }, ['simple.simple2'], 'array')
     ])
     def test_descend_field(field_dict, list_of_names, expected):
         """ Helper that tests that we can retrieve fields in various expected scenarios """
