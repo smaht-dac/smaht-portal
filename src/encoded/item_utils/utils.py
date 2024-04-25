@@ -101,9 +101,7 @@ class RequestHandler:
         self, identifier: str, collection: Optional[str] = None
     ) -> Dict[str, Any]:
         """Get item from test app"""
-        return get_item_with_testapp(
-            self.test_app, identifier, collection=collection
-        )
+        return get_item_with_testapp(self.test_app, identifier, collection=collection)
 
 
 def get_unique_values(

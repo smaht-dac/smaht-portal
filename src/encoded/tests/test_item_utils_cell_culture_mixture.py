@@ -18,4 +18,3 @@ def test_get_cell_line_codes(es_testapp: TestApp, workbook: None) -> None:
     expected = ["HELA", "HEK293"]
     assert len(result) == len(expected)
     assert set(result) == set(expected)
-

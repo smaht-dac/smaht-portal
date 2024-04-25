@@ -79,9 +79,7 @@ def get_expected_sample_descriptions(sample: Dict[str, Any]) -> List[str]:
     expected_sample_description_tag_start = "sample_descriptions-"
     tags = item.get_tags(sample)
     expected_sample_description_tags = [
-        tag
-        for tag in tags
-        if tag.startswith(expected_sample_description_tag_start)
+        tag for tag in tags if tag.startswith(expected_sample_description_tag_start)
     ]
     return [
         value
