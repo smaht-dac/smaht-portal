@@ -88,8 +88,9 @@ def get_libraries(
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get libraries associated with file."""
     if request_handler:
-        file_sets = request_handler.get_items(get_file_sets(properties))
-        return get_unique_values(file_sets, file_set.get_libraries)
+        return get_property_values_from_identifiers(
+            request_handler, get_file_sets(properties), file_set.get_libraries
+        )
     return properties.get("libraries", [])
 
 
@@ -110,10 +111,9 @@ def get_analytes(
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get analytes associated with file."""
     if request_handler:
-        libraries = request_handler.get_items(
-            get_libraries(properties, request_handler)
+        return get_property_values_from_identifiers(
+            request_handler, get_file_sets(properties), file_set.get_analytes
         )
-        return get_unique_values(libraries, library.get_analyte)
     return properties.get("analytes", [])
 
 
@@ -122,8 +122,11 @@ def get_samples(
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get samples associated with file."""
     if request_handler:
-        analytes = request_handler.get_items(get_analytes(properties, request_handler))
-        return get_unique_values(analytes, analyte.get_samples)
+        return get_property_values_from_identifiers(
+            request_handler,
+            get_analytes(properties, request_handler),
+            analyte.get_samples,
+        )
     return properties.get("samples", [])
 
 
@@ -132,8 +135,11 @@ def get_sample_sources(
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get sample sources associated with file."""
     if request_handler:
-        samples = request_handler.get_items(get_samples(properties, request_handler))
-        return get_unique_values(samples, sample.get_sample_sources)
+        return get_property_values_from_identifiers(
+            request_handler,
+            get_samples(properties, request_handler),
+            sample.get_sources,
+        )
     return properties.get("sample_sources", [])
 
 
@@ -160,8 +166,9 @@ def get_donors(
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get donors associated with file."""
     if request_handler:
-        tissues = request_handler.get_items(get_tissues(properties, request_handler))
-        return get_unique_values(tissues, tissue.get_donor)
+        return get_property_values_from_identifiers(
+            request_handler, get_tissues(properties, request_handler), tissue.get_donor
+        )
     return properties.get("donors", [])
 
 
