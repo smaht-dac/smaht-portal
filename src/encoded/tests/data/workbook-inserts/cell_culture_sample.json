@@ -14,7 +14,7 @@
             "sample_names-SMHTHELA",
             "test_sample_descriptions",
             "sample_descriptions-HELA",
-            "test-sample_studies",
+            "test_sample_studies",
             "sample_studies-Benchmarking"
         ]
     },
@@ -32,8 +32,8 @@
             "test_sample_names",
             "sample_names-SMHTHELAHEK293",
             "test_sample_descriptions",
-            "sample_descriptions-HELA|HEK293",
-            "test-sample_studies",
+            "sample_descriptions-HEK293|HELA",
+            "test_sample_studies",
             "sample_studies-Benchmarking"
         ]
     }

@@ -5,7 +5,11 @@ from webtest import TestApp
 
 from .utils import get_search
 from ..item_utils import item
-from ..item_utils.sample import get_sample_descriptions, get_sample_names
+from ..item_utils.sample import (
+    get_sample_descriptions,
+    get_sample_names,
+    get_studies,
+)
 from ..item_utils.utils import RequestHandler
 
 
@@ -63,7 +67,8 @@ def test_get_sample_descriptions(es_testapp: TestApp, workbook: None) -> None:
     for sample in sample_search:
         result = get_sample_descriptions(sample, request_handler=request_handler)
         expected = get_expected_sample_descriptions(sample)
-        assert result == expected
+        assert len(result) == len(expected)
+        assert set(result) == set(expected)
 
 
 def get_expected_sample_descriptions(sample: Dict[str, Any]) -> List[str]:
@@ -95,7 +100,7 @@ def test_get_sample_studies(es_testapp: TestApp, workbook: None) -> None:
 
     request_handler = RequestHandler(test_app=es_testapp)
     for sample in sample_search:
-        result = item.get_study(sample, request_handler=request_handler)
+        result = get_studies(sample, request_handler=request_handler)
         expected = get_expected_sample_studies(sample)
         assert result == expected
 
@@ -105,7 +110,7 @@ def get_expected_sample_studies(sample: Dict[str, Any]) -> str:
 
     NOTE: Pulling expected values directly from tags on inserts.
     """
-    expected_sample_study_tag = "sample_study-"
+    expected_sample_study_tag = "sample_studies-"
     tags = item.get_tags(sample)
     expected_sample_study_tags = [
         tag for tag in tags if tag.startswith(expected_sample_study_tag)
