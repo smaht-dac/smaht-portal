@@ -112,7 +112,9 @@ def get_analytes(
     """Get analytes associated with file."""
     if request_handler:
         return get_property_values_from_identifiers(
-            request_handler, get_file_sets(properties), file_set.get_analytes
+            request_handler,
+            get_libraries(properties, request_handler),
+            library.get_analyte,
         )
     return properties.get("analytes", [])
 
@@ -138,7 +140,7 @@ def get_sample_sources(
         return get_property_values_from_identifiers(
             request_handler,
             get_samples(properties, request_handler),
-            sample.get_sources,
+            sample.get_sample_sources,
         )
     return properties.get("sample_sources", [])
 

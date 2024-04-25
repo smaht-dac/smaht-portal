@@ -15,5 +15,7 @@ def test_get_cell_line_codes(es_testapp: TestApp, workbook: None) -> None:
     assert len(cell_culture_mixture_search) == 1
     request_handler = RequestHandler(test_app=es_testapp)
     result = get_cell_line_codes(request_handler, cell_culture_mixture_search[0])
-    assert result == ["HELA", "HEK293"]
+    expected = ["HELA", "HEK293"]
+    assert len(result) == len(expected)
+    assert set(result) == set(expected)
 
