@@ -79,8 +79,16 @@ def add_submission_status_search_filters(
 
     Args:
         search_params (dict): search parameters that will be passed to make_search_subreq. The dict is passed in by reference and updated in this function
-        filter (dict): Contains keys (and values) to use as filter. Currently supported keys are fileset_status, submission_center, include_tags, exlucde_tags, fileset_created_from, fileset_created_to
-        fileSetSearchId (str): Either submitted_id or accession or a fileset.
+        filter (dict): Contains keys (and values) to use as filter. Currently supported keys are:
+        - fileset_status
+        - submission_center
+        - assay
+        - sequencer
+        - include_tags
+        - exlucde_tags, 
+        - fileset_created_from, 
+        - fileset_created_to
+        - fileSetSearchId (str): Either submitted_id or accession or a fileset.
     """
     # Direct search by submitted_id takes precendence
     if fileSetSearchId:
@@ -110,6 +118,10 @@ def add_submission_status_search_filters(
             search_params["submission_centers.display_title"] = filter[
                 "submission_center"
             ]
+    if "assay" in filter and filter["assay"] != "all":
+        search_params["libraries.assay.display_title"] = filter["assay"]
+    if "sequencer" in filter and filter["sequencer"] != "all":
+        search_params["sequencing.sequencer.display_title"] = filter["sequencer"]
     if filter.get("include_tags"):
         search_params["tags"] = filter["include_tags"]
     if filter.get("exclude_tags"):
