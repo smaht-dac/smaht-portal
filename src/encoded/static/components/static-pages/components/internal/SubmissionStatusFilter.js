@@ -246,7 +246,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
                         </div>
                         <div className="col-md-6">
                             <div className="p-2">
-                                <div>FileSet inlcudes Tags:</div>
+                                <div>FileSet includes Tags:</div>
                                 {this.getTagFilter('include_tags')}
                             </div>
                         </div>
