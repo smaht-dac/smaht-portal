@@ -157,7 +157,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
                         className="custom-select"
                         defaultValue="all"
                         onChange={(e) =>
-                            this.setFilter('sequencers', e.target.value)
+                            this.setFilter('sequencer', e.target.value)
                         }>
                         {options}
                     </select>
