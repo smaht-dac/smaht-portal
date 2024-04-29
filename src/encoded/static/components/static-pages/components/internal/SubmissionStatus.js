@@ -15,7 +15,7 @@ import {
     PAGE_SIZE,
     SUBMISSION_STATUS_TAGS,
     DEFAULT_FILTER,
-} from './submissionStatusConstants';
+} from './submissionStatusConfig';
 
 import { SubmissionStatusFilter } from './SubmissionStatusFilter';
 
@@ -574,7 +574,14 @@ class SubmissionStatusComponent extends React.PureComponent {
                             <th className="text-left">Submission</th>
                             <th className="text-left">O2 status</th>
                             <th className="text-left">MetaWorkflowRuns</th>
-                            <th className="text-left">Tags</th>
+                            <th className="text-left">
+                                Tags{' '}
+                                <i
+                                    className="icon icon-fw fas icon-info-circle"
+                                    data-tip={
+                                        '"reviewed": Alignment worklfows have been run and results are technically ok. "ready_to_release": Output files can be released to the portal.'
+                                    }></i>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>{this.getSubmissionTableBody()}</tbody>

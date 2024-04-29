@@ -9,7 +9,7 @@ import { fallbackCallback } from './submissionStatusUtils';
 import {
     SUBMISSION_STATUS_TAGS,
     DEFAULT_FILTER,
-} from './submissionStatusConstants';
+} from './submissionStatusConfig';
 
 class SubmissionStatusFilterComponent extends React.PureComponent {
     constructor(props) {
@@ -244,11 +244,13 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
                                 )}
                             </div>
                         </div>
-                        <div className="col-lg-3">
+                        <div className="col-md-6">
                             <div className="p-2">
                                 <div>FileSet inlcudes Tags:</div>
                                 {this.getTagFilter('include_tags')}
                             </div>
+                        </div>
+                        <div className="col-md-6">
                             <div className="p-2">
                                 <div>FileSet excludes Tags:</div>
                                 {this.getTagFilter('exclude_tags')}
