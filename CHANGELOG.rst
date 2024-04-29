@@ -10,6 +10,12 @@ Change Log
 0.42.1
 ======
 
+* Improvements to Status Submission page (refactoring + new filters)
+
+
+0.42.1
+======
+
 `PR 128: Bm nomenclature page2 <https://github.com/smaht-dac/smaht-portal/pull/128>`_
 
 * Improvements to SMaHT Nomenclature Page
