@@ -539,7 +539,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 <SubmissionStatusFilter setFilter={this.setFilter} />
 
                 <table className="table table-hover table-striped table-bordered table-sm">
-                    <thead className="sticky-top ss-top-40">
+                    <thead className="sticky-top ss-fixed-thead">
                         <tr>
                             <td
                                 colSpan={6}
