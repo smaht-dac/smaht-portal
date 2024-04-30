@@ -91,7 +91,7 @@ def date_histogram_aggregations(context, request):
     '''PREDEFINED aggregations which run against type=ExperimentSet'''
 
     # Defaults - may be overriden in URI params
-    date_histogram_fields    = ['date_created']
+    date_histogram_fields    = ['file_status_tracking.uploading', 'file_status_tracking.uploaded', 'file_status_tracking.released']
     group_by_fields          = ['data_generation_summary.submission_centers', 'data_generation_summary.sequencing_center', 'data_generation_summary.data_type', 'data_generation_summary.data_category', 'data_generation_summary.assays', 'data_generation_summary.sequencing_platforms']
     date_histogram_intervals = ['weekly']
 

@@ -290,8 +290,8 @@ const aggregationsToChartData = {
         'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
-            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
+            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations["weekly_interval_file_status_tracking.uploading"] && resp.aggregations["weekly_interval_file_status_tracking.uploading"].buckets;
+            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 1) return null;
 
             return commonParsingFxn.countsToTotals(
                 commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
@@ -303,8 +303,8 @@ const aggregationsToChartData = {
         'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
-            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
+            var weeklyIntervalBuckets = resp && resp.aggregations["weekly_interval_file_status_tracking.uploading"] && resp.aggregations["weekly_interval_file_status_tracking.uploading"].buckets;
+            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 1) return null;
 
             return commonParsingFxn.countsToTotals(
                 commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
@@ -316,8 +316,8 @@ const aggregationsToChartData = {
         'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
-            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
+            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations["weekly_interval_file_status_tracking.uploaded"] && resp.aggregations["weekly_interval_file_status_tracking.uploaded"].buckets;
+            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 1) return null;
 
             return commonParsingFxn.countsToTotals(
                 commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
@@ -329,8 +329,8 @@ const aggregationsToChartData = {
         'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
-            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
+            var weeklyIntervalBuckets = resp && resp.aggregations["weekly_interval_file_status_tracking.uploaded"] && resp.aggregations["weekly_interval_file_status_tracking.uploaded"].buckets;
+            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 1) return null;
 
             return commonParsingFxn.countsToTotals(
                 commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
@@ -342,8 +342,8 @@ const aggregationsToChartData = {
         'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
-            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
+            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations["weekly_interval_file_status_tracking.released"] && resp.aggregations["weekly_interval_file_status_tracking.released"].buckets;
+            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 1) return null;
 
             return commonParsingFxn.countsToTotals(
                 commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
@@ -355,8 +355,8 @@ const aggregationsToChartData = {
         'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp.aggregations.weekly_interval_date_created && resp.aggregations.weekly_interval_date_created.buckets;
-            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 2) return null;
+            var weeklyIntervalBuckets = resp && resp.aggregations["weekly_interval_file_status_tracking.released"] && resp.aggregations["weekly_interval_file_status_tracking.released"].buckets;
+            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 1) return null;
 
             return commonParsingFxn.countsToTotals(
                 commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
@@ -913,7 +913,7 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="files_pipelined" title={
                     <h4 className="text-300 mt-0">
-                        <span className="text-500">Files</span> - { 'began analysis (pipeline)' }
+                        <span className="text-500">Files</span> - { 'uploaded' }
                     </h4>
                 }>
                     <AreaChart {...commonChartProps} data={files_pipelined} />
@@ -921,7 +921,7 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_pipelined" title={
                     <h4 className="text-300 mt-0">
-                        <span className="text-500">Total File Size</span> - { 'began analysis (pipeline)' }
+                        <span className="text-500">Total File Size</span> - { 'uploaded' }
                     </h4>
                 }>
                     <AreaChart {...commonChartProps} data={file_volume_pipelined} yAxisLabel="GB" />
