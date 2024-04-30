@@ -286,12 +286,12 @@ export const commonParsingFxn = {
 };
 
 const aggregationsToChartData = {
-    'files_submitted' : {
+    'files_uploading' : {
         'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations["weekly_interval_file_status_tracking.uploading"] && resp.aggregations["weekly_interval_file_status_tracking.uploading"].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 1) return null;
+            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
 
             return commonParsingFxn.countsToTotals(
                 commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
@@ -299,12 +299,12 @@ const aggregationsToChartData = {
             );
         }
     },
-    'file_volume_submitted' : {
+    'file_volume_uploading' : {
         'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             var weeklyIntervalBuckets = resp && resp.aggregations["weekly_interval_file_status_tracking.uploading"] && resp.aggregations["weekly_interval_file_status_tracking.uploading"].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 1) return null;
+            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
 
             return commonParsingFxn.countsToTotals(
                 commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
@@ -312,12 +312,12 @@ const aggregationsToChartData = {
             );
         }
     },
-    'files_pipelined' : {
+    'files_uploaded' : {
         'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations["weekly_interval_file_status_tracking.uploaded"] && resp.aggregations["weekly_interval_file_status_tracking.uploaded"].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 1) return null;
+            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
 
             return commonParsingFxn.countsToTotals(
                 commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
@@ -325,12 +325,12 @@ const aggregationsToChartData = {
             );
         }
     },
-    'file_volume_pipelined' : {
+    'file_volume_uploaded' : {
         'requires'  : 'File',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             var weeklyIntervalBuckets = resp && resp.aggregations["weekly_interval_file_status_tracking.uploaded"] && resp.aggregations["weekly_interval_file_status_tracking.uploaded"].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 1) return null;
+            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
 
             return commonParsingFxn.countsToTotals(
                 commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
@@ -343,7 +343,7 @@ const aggregationsToChartData = {
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations["weekly_interval_file_status_tracking.released"] && resp.aggregations["weekly_interval_file_status_tracking.released"].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 1) return null;
+            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
 
             return commonParsingFxn.countsToTotals(
                 commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
@@ -356,7 +356,7 @@ const aggregationsToChartData = {
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             var weeklyIntervalBuckets = resp && resp.aggregations["weekly_interval_file_status_tracking.released"] && resp.aggregations["weekly_interval_file_status_tracking.released"].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets) || weeklyIntervalBuckets.length < 1) return null;
+            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
 
             return commonParsingFxn.countsToTotals(
                 commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
@@ -455,8 +455,8 @@ const aggregationsToChartData = {
 
 // I forgot what purpose of all this was, kept because no time to refactor all now.
 export const submissionsAggsToChartData = _.pick(aggregationsToChartData,
-    'files_submitted', 'file_volume_submitted',
-    'files_pipelined', 'file_volume_pipelined',
+    'files_uploading', 'file_volume_uploading',
+    'files_uploaded', 'file_volume_uploaded',
     'files_released', 'file_volume_released'
 );
 
@@ -855,7 +855,7 @@ export function SubmissionsStatsView(props) {
     const {
         loadingStatus, mounted, session, currentGroupBy, groupByOptions, handleGroupByChange, windowWidth,
         // Passed in from StatsChartViewAggregator:
-        files_submitted, file_volume_submitted,  files_pipelined, file_volume_pipelined, files_released, file_volume_released,
+        files_uploading, file_volume_uploading,  files_uploaded, file_volume_uploaded, files_released, file_volume_released,
         chartToggles, smoothEdges, width, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
     } = props;
 
@@ -893,38 +893,38 @@ export function SubmissionsStatsView(props) {
                 <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
 
-                <AreaChartContainer {...commonContainerProps} id="files_submitted" title={
+                <AreaChartContainer {...commonContainerProps} id="files_uploading" title={
                     <h4 className="text-300 mt-0">
                         <span className="text-500">Files</span> - {'submitted'}
                     </h4>
                 }>
-                    <AreaChart {...commonChartProps} data={files_submitted} />
+                    <AreaChart {...commonChartProps} data={files_uploading} />
                 </AreaChartContainer>
 
-                <AreaChartContainer {...commonContainerProps} id="file_volume_submitted" title={
+                <AreaChartContainer {...commonContainerProps} id="file_volume_uploading" title={
                     <h4 className="text-300 mt-0">
                         <span className="text-500">Total File Size</span> - { 'submitted' }
                     </h4>
                 }>
-                    <AreaChart {...commonChartProps} data={file_volume_submitted} yAxisLabel="GB" />
+                    <AreaChart {...commonChartProps} data={file_volume_uploading} yAxisLabel="GB" />
                 </AreaChartContainer>
 
                 <hr />
 
-                <AreaChartContainer {...commonContainerProps} id="files_pipelined" title={
+                <AreaChartContainer {...commonContainerProps} id="files_uploaded" title={
                     <h4 className="text-300 mt-0">
                         <span className="text-500">Files</span> - { 'uploaded' }
                     </h4>
                 }>
-                    <AreaChart {...commonChartProps} data={files_pipelined} />
+                    <AreaChart {...commonChartProps} data={files_uploaded} />
                 </AreaChartContainer>
 
-                <AreaChartContainer {...commonContainerProps} id="file_volume_pipelined" title={
+                <AreaChartContainer {...commonContainerProps} id="file_volume_uploaded" title={
                     <h4 className="text-300 mt-0">
                         <span className="text-500">Total File Size</span> - { 'uploaded' }
                     </h4>
                 }>
-                    <AreaChart {...commonChartProps} data={file_volume_pipelined} yAxisLabel="GB" />
+                    <AreaChart {...commonChartProps} data={file_volume_uploaded} yAxisLabel="GB" />
                 </AreaChartContainer>                   
 
                 <hr />
