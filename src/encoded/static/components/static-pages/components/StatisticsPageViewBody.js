@@ -38,7 +38,11 @@ export const commonParsingFxn = {
         const subTotals = {};
 
         parsedBuckets.forEach(function(bkt, index){
-            total += bkt.count;
+            if (cumulativeSum) { 
+                total += bkt.count; 
+            } else { 
+                total = bkt.count; 
+            }
             bkt.total = total;
             if (excludeChildren || !Array.isArray(bkt.children)) return;
 
