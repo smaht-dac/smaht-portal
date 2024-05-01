@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.43.0
+======
+
+`PR 149: File overview sample summary <https://github.com/smaht-dac/smaht-portal/pull/149>`_
+
+* Complete sample summary calcprop for file overview page
+* Refactor `utils` modules to enable test app integration
+* Fix bugs + type hints and add more functionality to `item_utils` modules
+
+
 0.42.2
 ======
 
