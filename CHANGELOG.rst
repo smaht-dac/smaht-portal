@@ -14,6 +14,12 @@ Change Log
 * Adjust access key expiration down to 30 days
 
 
+0.42.2
+======
+
+* Improvements to Status Submission page (refactoring + new filters)
+
+
 0.42.1
 ======
 
