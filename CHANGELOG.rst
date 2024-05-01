@@ -7,6 +7,84 @@ smaht-portal
 Change Log
 ----------
 
+0.43.0
+======
+
+`PR 149: File overview sample summary <https://github.com/smaht-dac/smaht-portal/pull/149>`_
+
+* Complete sample summary calcprop for file overview page
+* Refactor `utils` modules to enable test app integration
+* Fix bugs + type hints and add more functionality to `item_utils` modules
+
+
+0.42.2
+======
+
+* Improvements to Status Submission page (refactoring + new filters)
+
+
+0.42.1
+======
+
+`PR 128: Bm nomenclature page2 <https://github.com/smaht-dac/smaht-portal/pull/128>`_
+
+* Improvements to SMaHT Nomenclature Page
+* Update SMaHT Nomenclature PDF document
+
+
+0.42.0
+======
+
+`PR 143: Flow cell lane data <https://github.com/smaht-dac/smaht-portal/pull/143>`_
+
+* Add properties to capture flow cell lane data on UnalignedReads and AlignedReads
+
+
+0.41.1
+======
+
+* Add tagging and direct fileset search to Submission Status page
+
+
+0.41.0
+======
+
+`PR 145: ReferenceGenome build info <https://github.com/smaht-dac/smaht-portal/blob/main/src/encoded/schemas/file.json#L182-L184>`_
+
+* Add properties to capture build information for ReferenceGenome
+* Add URL property to ReferenceFile to track source of files
+
+
+0.40.0
+======
+
+`PR 144: Add parent samples to TissueSample <https://github.com/smaht-dac/smaht-portal/pull/144>`_
+
+* Add `parent_samples` to TissueSample to track related samples
+
+
+0.39.3
+======
+
+`PR 124: File release <https://github.com/smaht-dac/smaht-portal/pull/124>`_
+
+* Add scripts to release files and create annotated filenames
+
+
+0.39.2
+======
+
+`PR 138: feat: total file counts for benchmarking page tabs <https://github.com/smaht-dac/smaht-portal/pull/138>`_
+
+* Fetch total number of files and render as a badge on benchmarking tabs (next to the title)
+
+
+0.39.1
+======
+
+* Improve Submission Status page styling
+
+
 0.39.0
 ======
 

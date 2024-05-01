@@ -346,6 +346,19 @@
             ]
         }
     },
+    "flow_cell_details": {
+        "flow_cell_barcode": {
+            "title": "Flow Cell Barcode",
+            "description": "Flow cell barcode for sequencing that generated this file",
+            "type": "string"
+        },
+        "flow_cell_lane": {
+            "title": "Flow Cell Lane",
+            "description": "Flow cell lane for sequencing that generated this file",
+            "type": "integer",
+            "minimum": 1
+        }
+    },
     "identifier": {
         "identifier": {
             "title": "Identifier",
@@ -675,6 +688,19 @@
             "linkTo": "OntologyTerm"
         }
     },
+    "parent_samples": {
+        "parent_samples": {
+            "title": "Parent Samples",
+            "description": "Link to associated parent samples",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Sample"
+            }
+        }
+    },
     "protocols": {
         "protocols": {
             "title": "Protocols",
@@ -911,7 +937,7 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 50,
-                "pattern": "^[a-zA-Z0-9_-]+$"
+                "pattern": "^[a-zA-Z0-9|_-]+$"
             }
         }
     },
