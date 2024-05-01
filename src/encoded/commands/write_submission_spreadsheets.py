@@ -20,15 +20,20 @@ SUBMISSION_SCHEMAS_ENDPOINT = "/submission-schemas/"
 
 
 def write_all_spreadsheets(
-    output: Path, request_handler: RequestHandler, workbook: bool = False
+    output: Path,
+    request_handler: RequestHandler,
+    workbook: bool = False,
+    separate_comments: bool = False,
 ) -> None:
     """Write all submission spreadsheets"""
     submission_schemas = get_all_submission_schemas(request_handler)
     log.info(f"Writing submission spreadsheets to: {output}")
     if workbook:
-        write_workbook(output, submission_schemas)
+        write_workbook(output, submission_schemas, separate_comments=separate_comments)
     else:
-        write_spreadsheets(output, submission_schemas)
+        write_spreadsheets(
+            output, submission_schemas, separate_comments=separate_comments
+        )
 
 
 def get_all_submission_schemas(
@@ -43,14 +48,17 @@ def write_item_spreadsheets(
     items: List[str],
     request_handler: RequestHandler,
     workbook: bool = False,
+    separate_comments: bool = False,
 ) -> None:
     """Write submission spreadsheets for specified items"""
     submission_schemas = get_submission_schemas(items, request_handler)
     log.info(f"Writing submission spreadsheets to: {output}")
     if workbook:
-        write_workbook(output, submission_schemas)
+        write_workbook(output, submission_schemas, separate_comments=separate_comments)
     else:
-        write_spreadsheets(output, submission_schemas)
+        write_spreadsheets(
+            output, submission_schemas, separate_comments=separate_comments
+        )
 
 
 def get_submission_schemas(
@@ -70,7 +78,9 @@ def get_submission_schema_endpoint(item: str) -> Dict[str, Any]:
     return f"{SUBMISSION_SCHEMAS_ENDPOINT}{to_snake_case(item)}.json"
 
 
-def write_workbook(output: Path, submission_schemas: Dict[str, Any]) -> None:
+def write_workbook(
+    output: Path, submission_schemas: Dict[str, Any], separate_comments: bool = False
+) -> None:
     """Write a single workbook containing all submission spreadsheets."""
     workbook = openpyxl.Workbook()
     for index, (item, submission_schema) in enumerate(submission_schemas.items()):
@@ -78,20 +88,26 @@ def write_workbook(output: Path, submission_schemas: Dict[str, Any]) -> None:
         if index == 0:
             worksheet = workbook.active
             set_sheet_name(worksheet, spreadsheet)
-            write_properties(worksheet, spreadsheet.properties)
+            write_properties(
+                worksheet, spreadsheet.properties, separate_comments
+            )
         else:
             worksheet = workbook.create_sheet(title=spreadsheet.item)
-            write_properties(worksheet, spreadsheet.properties)
+            write_properties(
+                worksheet, spreadsheet.properties, separate_comments
+            )
     file_path = Path(output, "submission_workbook.xlsx")
     save_workbook(workbook, file_path)
     log.info(f"Workbook written to: {file_path}")
 
 
-def write_spreadsheets(output: Path, submission_schemas: Dict[str, Any]) -> None:
+def write_spreadsheets(
+    output: Path, submission_schemas: Dict[str, Any], separate_comments: bool = False
+) -> None:
     """Write submission spreadsheets."""
     for item, submission_schema in submission_schemas.items():
         spreadsheet = get_spreadsheet(item, submission_schema)
-        write_spreadsheet(output, spreadsheet)
+        write_spreadsheet(output, spreadsheet, separate_comments)
 
 
 @dataclass(frozen=True)
@@ -189,10 +205,12 @@ def get_array_subtype(property_schema: Dict[str, Any]) -> str:
     return schema_utils.get_schema_type(schema_utils.get_items(property_schema))
 
 
-def write_spreadsheet(output: Path, spreadsheet: Spreadsheet) -> None:
+def write_spreadsheet(
+    output: Path, spreadsheet: Spreadsheet, separate_comments: bool = False
+) -> None:
     """Write spreadsheet to file"""
     file_path = get_output_file_path(output, spreadsheet)
-    workbook = generate_workbook(spreadsheet)
+    workbook = generate_workbook(spreadsheet, separate_comments=separate_comments)
     save_workbook(workbook, file_path)
     log.info(f"Spreadsheet written to: {file_path}")
 
@@ -202,12 +220,16 @@ def get_output_file_path(output: Path, spreadsheet: Spreadsheet) -> Path:
     return Path(output, f"{spreadsheet.item}_submission.xlsx")
 
 
-def generate_workbook(spreadsheet: Spreadsheet) -> openpyxl.Workbook:
+def generate_workbook(
+    spreadsheet: Spreadsheet, separate_comments: bool = False
+) -> openpyxl.Workbook:
     """Generate the workbook"""
     workbook = openpyxl.Workbook()
     worksheet = workbook.active
     set_sheet_name(worksheet, spreadsheet)
-    write_properties(worksheet, spreadsheet.properties)
+    write_properties(
+        worksheet, spreadsheet.properties, separate_comments=separate_comments
+    )
     return workbook
 
 
@@ -219,12 +241,18 @@ def set_sheet_name(
 
 
 def write_properties(
-    worksheet: openpyxl.worksheet.worksheet.Worksheet, properties: List[Property]
+    worksheet: openpyxl.worksheet.worksheet.Worksheet,
+    properties: List[Property],
+    separate_comments: bool = False,
 ) -> None:
     """Write properties to the worksheet"""
     ordered_properties = get_ordered_properties(properties)
     for index, property_ in enumerate(ordered_properties, start=1):  # cells 1-indexed
-        write_property(worksheet, index, property_)
+        if separate_comments:
+            write_property(worksheet, index, property_, comments=False)
+            write_comment_cells(worksheet, index, property_)
+        else:
+            write_property(worksheet, index, property_)
 
 
 def get_ordered_properties(properties: List[Property]) -> List[Property]:
@@ -307,19 +335,52 @@ def is_submitted_id(property_: Property) -> bool:
 
 
 def write_property(
-    worksheet: openpyxl.worksheet.worksheet.Worksheet, index: int, property_: Property
+    worksheet: openpyxl.worksheet.worksheet.Worksheet,
+    index: int,
+    property_: Property,
+    comments: bool = True,
 ) -> None:
     """Write property to the worksheet"""
     row = 1  # cells 1-indexed
-    font = get_font(property_)
-    comment = get_comment(property_)
     cell = worksheet.cell(row=row, column=index, value=property_.name)
+    set_cell_font(cell, property_)
+    set_cell_width(worksheet, index, property_)
+    if comments:
+        write_comment(worksheet, index, property_)
+
+
+def set_cell_font(cell: openpyxl.cell.cell.Cell, property_: Property) -> None:
+    """Set the font for the cell."""
+    font = get_font(property_)
     cell.font = font
+
+
+def set_cell_width(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet, index: int, property_: Property
+) -> None:
+    """Set the width of the cell."""
+    width = len(property_.name) + 2
+    worksheet.column_dimensions[openpyxl.utils.get_column_letter(index)].width = width
+
+
+def write_comment(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet, index: int, property_: Property
+) -> None:
+    """Write comment to the worksheet."""
+    row = 1
+    comment = get_comment(property_)
     if comment:
-        cell.comment = comment
-    worksheet.column_dimensions[openpyxl.utils.get_column_letter(index)].width = len(
-        property_.name
-    ) + 2
+        worksheet.cell(row=row, column=index).comment = comment
+
+
+def write_comment_cells(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet, index: int, property_: Property
+) -> None:
+    """Write comment to separate cells under properties."""
+    row = 2
+    comment = get_comment_text(property_)
+    if comment:
+        worksheet.cell(row=row, column=index, value=comment)
 
 
 def get_font(property_: Property) -> openpyxl.styles.Font:
@@ -334,6 +395,16 @@ def get_font(property_: Property) -> openpyxl.styles.Font:
 
 def get_comment(property_: Property) -> Union[openpyxl.comments.Comment, None]:
     """Get comment for the property."""
+    comment_text = get_comment_text(property_)
+    if comment_text:
+        height = get_comment_height(comment_text)
+        width = get_comment_width(comment_text)
+        return openpyxl.comments.Comment(comment_text, "", height=height, width=width)
+    return None
+
+
+def get_comment_text(property_: Property) -> str:
+    """Get comment text for the property."""
     comment_lines = []
     indent = "    "
     if property_.description:
@@ -347,32 +418,29 @@ def get_comment(property_: Property) -> Union[openpyxl.comments.Comment, None]:
     else:
         comment_lines.append(f"Required:\n{indent}No")
     if comment_lines:
-        comment_text = "\n".join(comment_lines)
-        height = get_comment_height(comment_lines)
-        width = get_comment_width(comment_lines)
-        return openpyxl.comments.Comment(comment_text, "", height=height, width=width)
-    return None
+        return "\n".join(comment_lines)
+    return ""
 
 
-def get_comment_height(comment_lines: List[str]) -> int:
+
+def get_comment_height(comment_text: str) -> int:
     """Get comment height based on number of lines.
 
     Note: Pixels per line chosen based on trial and error.
     """
-    lines = [
-        line for comment_line in comment_lines for line in comment_line.split("\n")
-    ]
+    lines = [line for line in comment_text.split("\n")]
     pixels_per_line = 20
     return len(lines) * pixels_per_line
 
 
-def get_comment_width(comment_lines: List[str]) -> int:
+def get_comment_width(comment_text: str) -> int:
     """Get comment width based on longest line.
 
     Note: Pixels per character chosen based on trial and error.
     """
+    lines = [line for line in comment_text.split("\n")]
     pixels_per_char = 6
-    return max(len(line) for line in comment_lines) * pixels_per_char
+    return max(len(line) for line in lines) * pixels_per_char
 
 
 def save_workbook(workbook: openpyxl.Workbook, file_path: Path) -> None:
@@ -391,17 +459,29 @@ def main():
         help="Bundle all items into a single workbook",
         action="store_true",
     )
+    parser.add_argument(
+        "--separate", help="Add comments as separate cells", action="store_true"
+    )
     args = parser.parse_args()
 
     keys = SMaHTKeyManager().get_keydict_for_env(args.env)
     request_handler = RequestHandler(auth_key=keys)
     if args.all:
         log.info("Writing all submission spreadsheets")
-        write_all_spreadsheets(args.output, request_handler, workbook=args.workbook)
+        write_all_spreadsheets(
+            args.output,
+            request_handler,
+            workbook=args.workbook,
+            separate_comments=args.separate,
+        )
     elif args.item:
         log.info(f"Writing submission spreadsheets for item(s): {args.item}")
         write_item_spreadsheets(
-            args.output, args.item, request_handler, workbook=args.workbook
+            args.output,
+            args.item,
+            request_handler,
+            workbook=args.workbook,
+            separate_comments=args.separate,
         )
     else:
         parser.error("No item specified")
