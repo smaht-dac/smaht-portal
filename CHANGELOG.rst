@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.44.0
+======
+
+`PR 140: Basecalling details <https://github.com/smaht-dac/smaht-portal/pull/140>`_
+
+* Create new item (Basecalling) to track basecalling details
+* Add link from Sequencing to Basecalling
+
+
 0.43.0
 ======
 
