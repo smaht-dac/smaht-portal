@@ -3,8 +3,9 @@ import pkg_resources
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from dcicutils.misc_utils import to_camel_case, to_snake_case
+
 from dcicutils import schema_utils
+from dcicutils.misc_utils import exported, to_camel_case
 from pyramid.registry import Registry
 from pyramid.router import Router
 from snovault import Collection, COLLECTIONS, TYPES
@@ -12,6 +13,11 @@ from snovault.typeinfo import AbstractTypeInfo, TypeInfo
 from snovault.upgrader import UPGRADER, Upgrader
 from webtest.app import TestApp
 
+from ..utils import (
+    get_formatted_resource_path,
+    get_item_with_testapp as get_item,
+    pluralize_collection,
+)
 from ..types.submitted_item import SubmittedItem
 from ..types.submitted_file import SubmittedFile
 
@@ -66,24 +72,6 @@ def set_status_deleted(testapp: TestApp, identifier: str) -> Dict[str, Any]:
     return patch_item(testapp, {"status": "deleted"}, resource_path)
 
 
-def get_item(
-    testapp: TestApp,
-    identifier: str,
-    collection: Optional[str] = None,
-    frame: Optional[str] = None,
-    status: Optional[Union[int, List[int]]] = None,
-) -> Dict[str, Any]:
-    """Get item view with given frame, following redirects."""
-    add_on = get_frame_add_on(frame)
-    resource_path = get_formatted_resource_path(
-        identifier, collection=collection, add_on=add_on
-    )
-    response = testapp.get(resource_path, status=status)
-    if response.status_int == 301:
-        return response.follow().json
-    return response.json
-
-
 def get_search(
     testapp: TestApp,
     query: str,
@@ -122,87 +110,6 @@ def get_inserts_for_item_type(testapp: TestApp, item_type: str) -> List[Dict[str
     """Get inserts for given item type."""
     search_query = format_search_query(f"type={to_camel_case(item_type)}")
     return get_search(testapp, search_query)
-
-
-def get_frame_add_on(frame: Union[str, None]) -> str:
-    """Format frame parameter, if provided."""
-    if frame:
-        return f"frame={frame}"
-    return ""
-
-
-def get_formatted_resource_path(
-    identifier: str, collection: Optional[str] = None, add_on: Optional[str] = None
-) -> str:
-    """Format resource path for URL expectations."""
-    resource_path_with_add_on = get_resource_path_with_add_on(
-        identifier, collection, add_on
-    )
-    if not resource_path_with_add_on.startswith("/"):
-        return f"/{resource_path_with_add_on}"
-    return resource_path_with_add_on
-
-
-def get_resource_path_with_add_on(
-    identifier: str, collection: Optional[str] = None, add_on: Optional[str] = None
-) -> str:
-    """Get resource path with optional URL parameters, if provided."""
-    resource_path = get_resource_path(identifier, collection)
-    if add_on:
-        return f"{resource_path}?{add_on}"
-    return resource_path
-
-
-def get_resource_path(identifier: str, collection: Optional[str] = None) -> str:
-    """Get resource path with collection, if provided."""
-    if collection:
-        return get_formatted_collection_resource_path(identifier, collection)
-    return identifier
-
-
-def get_formatted_collection_resource_path(identifier: str, collection: str) -> str:
-    """Format to '{collection}/{identifier}/'.
-
-    Collection can be snake- or camel-cased.
-    """
-    dashed_collection = get_kebab_formatted_collection(collection)
-    return f"/{pluralize_collection(dashed_collection)}/{identifier}/"
-
-
-def get_kebab_formatted_collection(collection: str) -> str:
-    """Format collection to  kebab case.
-
-    Intended for collection to come in camel- or snake-case.
-    """
-    return to_snake_case(collection).replace("_", "-")
-
-
-def pluralize_collection(collection: str) -> str:
-    """Pluralize item collection name.
-
-    Pluralized names must match those defined by item type definitions.
-    """
-    name = collection.replace("_", "-")
-    # deal with a few special cases explicitly
-    specials = [
-        "aligned-reads",
-        "death-circumstances",
-        "sequencing",
-        "software",
-        "unaligned-reads",
-        "variant-calls",
-    ]
-    if name in specials:
-        return name
-    if name.endswith("ry") or name.endswith("gy"):
-        return name[:-1] + "ies"
-    if name.endswith("sis"):
-        return name[:-2] + "es"
-    if name.endswith("ium"):
-        return name[:-2] + "a"
-    if name.endswith("s"):
-        return name + "es"
-    return name + "s"
 
 
 def assert_keys_conflict(response: Dict[str, Any]) -> None:
@@ -570,3 +477,7 @@ def get_item_from_search(test_app: TestApp, collection: str) -> Dict[str, Any]:
     search_results = get_search(test_app, f"type={to_camel_case(collection)}")
     assert search_results, f"No {collection} found in search results"
     return search_results[0]
+
+
+exported(get_item)
+exported(pluralize_collection)
