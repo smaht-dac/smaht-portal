@@ -33,7 +33,7 @@ export const commonParsingFxn = {
     /**
      * MODIFIES OBJECTS IN PLACE
      */
-    'countsToTotals' : function(parsedBuckets, cumulativeSum = true, excludeChildren = false){
+    'countsToTotals' : function(parsedBuckets, cumulativeSum = false, excludeChildren = false){
         let total = 0;
         const subTotals = {};
 
@@ -896,55 +896,56 @@ export function SubmissionsStatsView(props) {
 
                 <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
+                <h3 className="charts-group-title">Files - submitted</h3>
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploading" title={
-                    <h4 className="text-300 mt-0">
-                        <span className="text-500">Files</span> - {'submitted'}
-                    </h4>
+                    <h5 className="text-400 mt-0">
+                        Total Count
+                    </h5>
                 }>
                     <AreaChart {...commonChartProps} data={files_uploading} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_uploading" title={
-                    <h4 className="text-300 mt-0">
-                        <span className="text-500">Total File Size</span> - { 'submitted' }
-                    </h4>
+                    <h5 className="text-400 mt-0">
+                        Total Size (GB)
+                    </h5>
                 }>
                     <AreaChart {...commonChartProps} data={file_volume_uploading} yAxisLabel="GB" />
                 </AreaChartContainer>
 
-                <hr />
+                <h3 className="charts-group-title">Files - uploaded</h3>
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploaded" title={
-                    <h4 className="text-300 mt-0">
-                        <span className="text-500">Files</span> - { 'uploaded' }
-                    </h4>
+                    <h5 className="text-400 mt-0">
+                        Total Count
+                    </h5>
                 }>
                     <AreaChart {...commonChartProps} data={files_uploaded} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_uploaded" title={
-                    <h4 className="text-300 mt-0">
-                        <span className="text-500">Total File Size</span> - { 'uploaded' }
-                    </h4>
+                    <h5 className="text-400 mt-0">
+                        Total Size (GB)
+                    </h5>
                 }>
                     <AreaChart {...commonChartProps} data={file_volume_uploaded} yAxisLabel="GB" />
                 </AreaChartContainer>                   
 
-                <hr />
+                <h3 className="charts-group-title">Files - released</h3>
 
                 <AreaChartContainer {...commonContainerProps} id="files_released" title={
-                    <h4 className="text-300 mt-0">
-                        <span className="text-500">Files</span> - { 'released' }
-                    </h4>
+                    <h5 className="text-400 mt-0">
+                        Total Count
+                    </h5>
                 }>
                     <AreaChart {...commonChartProps} data={files_released} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_released" title={
-                    <h4 className="text-300 mt-0">
-                        <span className="text-500">Total File Size</span> - { 'released' }
-                    </h4>
+                    <h5 className="text-400 mt-0">
+                        Total Size (GB)
+                    </h5>
                 }>
                     <AreaChart {...commonChartProps} data={file_volume_released} yAxisLabel="GB" />
                 </AreaChartContainer>

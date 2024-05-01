@@ -142,7 +142,7 @@ export class StatsChartViewAggregator extends React.PureComponent {
         this.state = _.extend(this.generateAggsToState(props, {}), {
             'chartToggles' : {},
             'smoothEdges' : false,
-            'cumulativeSum': true
+            'cumulativeSum': false
         });
 
         this.elemRef = React.createRef();
