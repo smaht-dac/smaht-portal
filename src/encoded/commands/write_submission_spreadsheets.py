@@ -19,11 +19,16 @@ log = structlog.getLogger(__name__)
 SUBMISSION_SCHEMAS_ENDPOINT = "/submission-schemas/"
 
 
-def write_all_spreadsheets(output: Path, request_handler: RequestHandler) -> None:
+def write_all_spreadsheets(
+    output: Path, request_handler: RequestHandler, workbook: bool = False
+) -> None:
     """Write all submission spreadsheets"""
     submission_schemas = get_all_submission_schemas(request_handler)
     log.info(f"Writing submission spreadsheets to: {output}")
-    write_spreadsheets(output, submission_schemas)
+    if workbook:
+        write_workbook(output, submission_schemas)
+    else:
+        write_spreadsheets(output, submission_schemas)
 
 
 def get_all_submission_schemas(
@@ -34,12 +39,18 @@ def get_all_submission_schemas(
 
 
 def write_item_spreadsheets(
-    output: Path, items: List[str], request_handler: RequestHandler
+    output: Path,
+    items: List[str],
+    request_handler: RequestHandler,
+    workbook: bool = False,
 ) -> None:
     """Write submission spreadsheets for specified items"""
     submission_schemas = get_submission_schemas(items, request_handler)
     log.info(f"Writing submission spreadsheets to: {output}")
-    write_spreadsheets(output, submission_schemas)
+    if workbook:
+        write_workbook(output, submission_schemas)
+    else:
+        write_spreadsheets(output, submission_schemas)
 
 
 def get_submission_schemas(
@@ -59,8 +70,25 @@ def get_submission_schema_endpoint(item: str) -> Dict[str, Any]:
     return f"{SUBMISSION_SCHEMAS_ENDPOINT}{to_snake_case(item)}.json"
 
 
+def write_workbook(output: Path, submission_schemas: Dict[str, Any]) -> None:
+    """Write a single workbook containing all submission spreadsheets."""
+    workbook = openpyxl.Workbook()
+    for index, (item, submission_schema) in enumerate(submission_schemas.items()):
+        spreadsheet = get_spreadsheet(item, submission_schema)
+        if index == 0:
+            worksheet = workbook.active
+            set_sheet_name(worksheet, spreadsheet)
+            write_properties(worksheet, spreadsheet.properties)
+        else:
+            worksheet = workbook.create_sheet(title=spreadsheet.item)
+            write_properties(worksheet, spreadsheet.properties)
+    file_path = Path(output, "submission_workbook.xlsx")
+    save_workbook(workbook, file_path)
+    log.info(f"Workbook written to: {file_path}")
+
+
 def write_spreadsheets(output: Path, submission_schemas: Dict[str, Any]) -> None:
-    """Write submission spreadsheets"""
+    """Write submission spreadsheets."""
     for item, submission_schema in submission_schemas.items():
         spreadsheet = get_spreadsheet(item, submission_schema)
         write_spreadsheet(output, spreadsheet)
@@ -358,16 +386,23 @@ def main():
     parser.add_argument("--env", help="Environment", default="data")
     parser.add_argument("--item", help="Item name", nargs="+")
     parser.add_argument("--all", help="All items", action="store_true")
+    parser.add_argument(
+        "--workbook",
+        help="Bundle all items into a single workbook",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     keys = SMaHTKeyManager().get_keydict_for_env(args.env)
     request_handler = RequestHandler(auth_key=keys)
     if args.all:
         log.info("Writing all submission spreadsheets")
-        write_all_spreadsheets(args.output, request_handler)
+        write_all_spreadsheets(args.output, request_handler, workbook=args.workbook)
     elif args.item:
         log.info(f"Writing submission spreadsheets for item(s): {args.item}")
-        write_item_spreadsheets(args.output, args.item, request_handler)
+        write_item_spreadsheets(
+            args.output, args.item, request_handler, workbook=args.workbook
+        )
     else:
         parser.error("No item specified")
 
