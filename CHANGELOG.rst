@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.42.2
+======
+
+* Improvements to Status Submission page (refactoring + new filters)
+
+
 0.42.1
 ======
 
