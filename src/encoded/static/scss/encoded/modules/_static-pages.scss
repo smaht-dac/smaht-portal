@@ -2166,14 +2166,9 @@ Unique styling of Submission Status page
 .ss-line-height-140 {
     line-height: 140%;
 }
-.ss-line-height-120 {
-    line-height: 120%;
-}
-.ss-top-40 {
+.ss-fixed-thead {
     top: 40px;
-}
-.ss-max-width-250 {
-	max-width: 250px;
+	z-index: 200 !important;
 }
 .ss-fileset-column {
 	word-wrap: break-word;
