@@ -106,6 +106,12 @@ TSV_MAPPING = {
         'Sample Source': TSVDescriptor(field_type=FILE,
                                        field_name=['file_sets.libraries.analyte.samples.sample_sources.code'],
                                        use_base_metadata=True),  # do not traverse extra_files for this
+        'Sequencing': TSVDescriptor(field_type=FILE,
+                                    field_name=['sequencing.display_title'],
+                                    use_base_metadata=True),
+        'Assay': TSVDescriptor(field_type=FILE,
+                               field_name=['assays.display_title'],
+                               use_base_metadata=True),
         FILE_MERGE_GROUP: TSVDescriptor(field_type=FILE,
                                         field_name=['file_sets.file_merge_group'],
                                         use_base_metadata=True)   # do not traverse extra_files for this
@@ -267,6 +273,7 @@ def metadata_tsv(context, request):
     # Process search iter
     data_lines = []
     for file in search_iter:
+        #import pdb; pdb.set_trace()
         line = []
         for field_name, tsv_descriptor in args.tsv_mapping.items():
             traversal_path = tsv_descriptor.field_name()

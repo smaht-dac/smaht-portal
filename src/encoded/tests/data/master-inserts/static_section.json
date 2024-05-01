@@ -455,5 +455,22 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier": "data_release_status",
+        "uuid": "794304f1-3c36-4528-bce8-0f6d6b165fc5",
+        "file": "/docs/source/data_release_status.rst",
+        "section_type": "Page Section",
+        "status": "public",
+        "options": {
+            "filetype": "rst",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
