@@ -581,7 +581,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
             'File' : function(props) {
                 const params = {'type': 'File'};
                 if (props.currentGroupBy){
-                    // params.group_by = props.currentGroupBy;
+                    params.group_by = props.currentGroupBy;
                 }
                 const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
 

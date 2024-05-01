@@ -88,7 +88,7 @@ def includeme(config):
 @view_config(route_name='date_histogram_aggregations', request_method=['GET', 'POST'])
 @debug_log
 def date_histogram_aggregations(context, request):
-    '''PREDEFINED aggregations which run against type=ExperimentSet'''
+    '''PREDEFINED aggregations which run against type=File'''
 
     # Defaults - may be overriden in URI params
     date_histogram_fields    = ['file_status_tracking.uploading', 'file_status_tracking.uploaded', 'file_status_tracking.released']
