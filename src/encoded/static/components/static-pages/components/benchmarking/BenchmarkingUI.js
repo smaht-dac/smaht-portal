@@ -38,8 +38,8 @@ export const BenchmarkingLayout = ({
                     )}
                 </div>
                 {/* TODO: Re-add documentation button once we have it available */}
-                <div className="col-auto mb-2 mb-lg-0 col-lg-3">
-                    {showBamQCLink && (
+                {showBamQCLink && (
+                    <div className="col-auto mb-2 mb-lg-0 col-lg-3">
                         <a
                             className="btn btn-outline-secondary btn-sm float-right"
                             href={'/bam-qc-overview' + bamQCHash}
@@ -47,8 +47,8 @@ export const BenchmarkingLayout = ({
                             target="_blank">
                             BAM QC Results
                         </a>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
             {/* Schemas are loading, so hash won't be available yet; can't pick correct tab */}
             {!schemas && (
