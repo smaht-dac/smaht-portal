@@ -1,16 +1,14 @@
 from typing import Any, Dict, Optional
 
 import pytest
-from jsonschema import validate, ValidationError
-from snovault import load_schema
 from webtest import TestApp
 
-from .utils import get_search, patch_item
+from .utils import get_search, load_schema, patch_item, validate_schema
 
 
 def get_mixins_schema() -> Dict[str, Any]:
     """Load mixins from file."""
-    return load_schema("encoded:schemas/mixins.json")
+    return load_schema("mixins")
 
 
 def get_mixins_field(key: str, nested_key: Optional[str] = None) -> Dict[str, Any]:
@@ -24,16 +22,6 @@ def get_mixins_field(key: str, nested_key: Optional[str] = None) -> Dict[str, An
     if nested_key:
         return primary_key_field.get(nested_key, {})
     return primary_key_field.get(key, {})
-
-
-def validate_schema(schema: Dict[str, Any], to_validate: Any) -> str:
-    """Validate value against schema."""
-    try:
-        validate(instance=to_validate, schema=schema)
-    except ValidationError as e:
-        return str(e)
-    else:
-        return ""
 
 
 @pytest.mark.parametrize(

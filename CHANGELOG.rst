@@ -7,12 +7,55 @@ smaht-portal
 Change Log
 ----------
 
-0.42.0
+0.45.0
 ======
 
 `PR 129: Categories for RNASeq pipelines <https://github.com/smaht-dac/smaht-portal/pull/129>`_
 
 * Add category enums for RNASeq pipelines to MWF, Workflow, Software, and File
+
+
+0.44.0
+======
+
+`PR 140: Basecalling details <https://github.com/smaht-dac/smaht-portal/pull/140>`_
+
+* Create new item (Basecalling) to track basecalling details
+* Add link from Sequencing to Basecalling
+
+
+0.43.0
+======
+
+`PR 149: File overview sample summary <https://github.com/smaht-dac/smaht-portal/pull/149>`_
+
+* Complete sample summary calcprop for file overview page
+* Refactor `utils` modules to enable test app integration
+* Fix bugs + type hints and add more functionality to `item_utils` modules
+
+
+0.42.2
+======
+
+* Improvements to Status Submission page (refactoring + new filters)
+
+
+0.42.1
+======
+
+`PR 128: Bm nomenclature page2 <https://github.com/smaht-dac/smaht-portal/pull/128>`_
+
+* Improvements to SMaHT Nomenclature Page
+* Update SMaHT Nomenclature PDF document
+
+
+0.42.0
+======
+
+`PR 143: Flow cell lane data <https://github.com/smaht-dac/smaht-portal/pull/143>`_
+
+* Add properties to capture flow cell lane data on UnalignedReads and AlignedReads
+>>>>>>> main
 
 
 0.41.1
