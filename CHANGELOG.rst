@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.44.1
+0.45.1
 ======
 
 `PR 151: fix: HapMap description formatting fix <https://github.com/smaht-dac/smaht-portal/pull/151>`_
@@ -15,6 +15,14 @@ Change Log
 * Fixes formatting issue with HapMap description. Wraps p elements in a div, 
   previously nested p elements caused issue in React's hydration.
 * Removes empty div when BamQCLink not provided
+
+
+0.45.0
+======
+
+`PR 129: Categories for RNASeq pipelines <https://github.com/smaht-dac/smaht-portal/pull/129>`_
+
+* Add category enums for RNASeq pipelines to MWF, Workflow, Software, and File
 
 
 0.44.0
@@ -202,6 +210,7 @@ Change Log
 
 0.34.1
 ======
+
 * Add facets to HapMap and iPSC
 * Fix HapMap and iPSC links
 
