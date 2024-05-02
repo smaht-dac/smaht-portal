@@ -70,6 +70,12 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_SEQUENCING_[A-Z0-9-_.]{4,}$"
         },
+        "basecalling": {
+            "title": "Basecalling",
+            "description": "Details of pipeline used to call bases from raw sequencing data",
+            "type": "string",
+            "linkTo": "Basecalling"
+        },
         "flow_cell": {
             "title": "Flow Cell",
             "description": "Flow cell used for sequencing",

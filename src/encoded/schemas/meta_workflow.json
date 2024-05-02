@@ -86,8 +86,10 @@
                 "enum": [
                     "Alignment",
                     "Format Conversion",
+                    "Gene Quantification",
                     "Read Manipulation",
                     "Quality Control",
+                    "Transcript Quantification",
                     "Variant Calling",
                     "Variant Manipulation"
                 ]

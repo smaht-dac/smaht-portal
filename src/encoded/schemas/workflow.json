@@ -82,9 +82,11 @@
                     "Alignment Manipulation",
                     "Annotation",
                     "Format Conversion",
+                    "Gene Quantification",
                     "Quality Control",
                     "Read Manipulation",
                     "Testing",
+                    "Transcript Quantification",
                     "Variant Calling",
                     "Variant Manipulation"
                 ]
