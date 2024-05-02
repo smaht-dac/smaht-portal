@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.46.0
+======
+
+`PR 153: New dataset for in silico Colo829 mixes <https://github.com/smaht-dac/smaht-portal/pull/153>`_
+
+* Add new option for in silico Colo829 mixtures to File `dataset` enum
+
+
 0.45.0
 ======
 
