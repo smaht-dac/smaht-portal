@@ -26,16 +26,16 @@ export const BenchmarkingLayout = ({
             <div className="row">
                 <div className="col-auto col-lg-9">
                     <h2>{title}</h2>
-                    <p className={cls}>{description}</p>
-                    {description ? (
-                        <p className="readable disclaimer mb-2">
+                    <div className={cls}>{description}</div>
+                    {description && (
+                        <p className={cls + ' disclaimer'}>
                             <span className="">Note:</span> The unaligned BAM
                             and FASTQ files, and data from unofficial
                             benchmarking samples will be available upon request
                             &#40;through Globus&#41; or at the next release of
                             the portal.
                         </p>
-                    ) : null}
+                    )}
                 </div>
                 {/* TODO: Re-add documentation button once we have it available */}
                 <div className="col-auto mb-2 mb-lg-0 col-lg-3">
