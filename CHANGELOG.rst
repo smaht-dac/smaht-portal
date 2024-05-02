@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.45.1
+======
+
+`PR 152: Bm small fixes <https://github.com/smaht-dac/smaht-portal/pull/152>`_
+
+* Fix for front page links and update to tab titles for iPSC
+
+
 0.45.0
 ======
 
