@@ -6,7 +6,7 @@ from ..metadata import descend_field
 
 class TestMetadataTSVHelper:
 
-    TSV_WIDTH = 9
+    TSV_WIDTH = 18
 
     @staticmethod
     def read_tsv_from_bytestream(bytestream):
@@ -92,6 +92,8 @@ class TestMetadataTSVWorkbook:
         # parse and ensure structurally sound
         parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
         header1, header2, header3 = parsed[0], parsed[1], parsed[2]
+        for row in parsed:  # check all rows got populated
+            assert len(row) == TestMetadataTSVHelper.TSV_WIDTH
         TestMetadataTSVHelper.check_key_and_length(header1, 'Metadata TSV Download')
         TestMetadataTSVHelper.check_key_and_length(header2, 'Suggested command to download: ')
         TestMetadataTSVHelper.check_key_and_length(header3, 'File Download URL')

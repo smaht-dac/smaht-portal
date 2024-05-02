@@ -22,3 +22,4 @@ def test_file_set_merge_group(es_testapp: TestApp, workbook: None) -> None:
     assert file_merge_group['sample_source'] == 'TEST_TISSUE_LIVER'
     assert file_merge_group['sequencing'] == 'illumina_novaseqx-Paired-end-150-R9'
     assert file_merge_group['assay'] == 'bulk_wgs'
+    import pdb; pdb.set_trace()

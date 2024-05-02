@@ -1,14 +1,21 @@
 import os
 import io
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
+from urllib.parse import urlencode
+
+from dcicutils.misc_utils import (
+    get_error_message,
+    to_camel_case,
+    to_snake_case,
+    VirtualApp,
+)
 from pyramid.registry import Registry
 from pyramid.request import Request
-from webtest import TestApp
-from urllib.parse import urlencode
-from dcicutils.misc_utils import get_error_message, to_camel_case, VirtualApp
-from snovault.types.base import get_item_or_none
 from snovault.search.search_utils import make_search_subreq
 from snovault.search.search import search
+from snovault.types.base import get_item_or_none
+from webtest import TestApp
+
 from encoded.root import SMAHTRoot as Context
 
 
@@ -143,3 +150,102 @@ def load_extended_descriptions_in_schemas(schema_object, depth=0):
                     and "properties" in field_schema["items"]):
                 load_extended_descriptions_in_schemas(field_schema["items"]["properties"], depth + 1)
                 continue
+
+
+def get_item_with_testapp(
+    testapp: TestApp,
+    identifier: str,
+    collection: Optional[str] = None,
+    frame: Optional[str] = None,
+    status: Optional[Union[int, List[int]]] = None,
+) -> Dict[str, Any]:
+    """Get item from test app."""
+    add_on = get_frame_add_on(frame)
+    resource_path = get_formatted_resource_path(
+        identifier, collection=collection, add_on=add_on
+    )
+    response = testapp.get(resource_path, status=status)
+    if response.status_int == 301:
+        return response.follow().json
+    return response.json
+
+
+def get_frame_add_on(frame: Union[str, None]) -> str:
+    """Format frame parameter, if provided."""
+    if frame:
+        return f"frame={frame}"
+    return ""
+
+
+def get_formatted_resource_path(
+    identifier: str, collection: Optional[str] = None, add_on: Optional[str] = None
+) -> str:
+    """Format resource path for URL expectations."""
+    resource_path_with_add_on = get_resource_path_with_add_on(
+        identifier, collection, add_on
+    )
+    if not resource_path_with_add_on.startswith("/"):
+        return f"/{resource_path_with_add_on}"
+    return resource_path_with_add_on
+
+
+def get_resource_path_with_add_on(
+    identifier: str, collection: Optional[str] = None, add_on: Optional[str] = None
+) -> str:
+    """Get resource path with optional URL parameters, if provided."""
+    resource_path = get_resource_path(identifier, collection)
+    if add_on:
+        return f"{resource_path}?{add_on}"
+    return resource_path
+
+
+def get_resource_path(identifier: str, collection: Optional[str] = None) -> str:
+    """Get resource path with collection, if provided."""
+    if collection:
+        return get_formatted_collection_resource_path(identifier, collection)
+    return identifier
+
+
+def get_formatted_collection_resource_path(identifier: str, collection: str) -> str:
+    """Format to '{collection}/{identifier}/'.
+
+    Collection can be snake- or camel-cased.
+    """
+    dashed_collection = get_kebab_formatted_collection(collection)
+    return f"/{pluralize_collection(dashed_collection)}/{identifier}/"
+
+
+def get_kebab_formatted_collection(collection: str) -> str:
+    """Format collection to  kebab case.
+
+    Intended for collection to come in camel- or snake-case.
+    """
+    return to_snake_case(collection).replace("_", "-")
+
+
+def pluralize_collection(collection: str) -> str:
+    """Pluralize item collection name.
+
+    Pluralized names must match those defined by item type definitions.
+    """
+    name = collection.replace("_", "-")
+    # deal with a few special cases explicitly
+    specials = [
+        "aligned-reads",
+        "death-circumstances",
+        "sequencing",
+        "software",
+        "unaligned-reads",
+        "variant-calls",
+    ]
+    if name in specials:
+        return name
+    if name.endswith("ry") or name.endswith("gy"):
+        return name[:-1] + "ies"
+    if name.endswith("sis"):
+        return name[:-2] + "es"
+    if name.endswith("ium"):
+        return name[:-2] + "a"
+    if name.endswith("s"):
+        return name + "es"
+    return name + "s"

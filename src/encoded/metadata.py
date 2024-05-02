@@ -103,15 +103,36 @@ TSV_MAPPING = {
                                    field_name=['file_type']),
         'File Format': TSVDescriptor(field_type=FILE,
                                      field_name=['file_format.display_title']),
+        'Sample Name': TSVDescriptor(field_type=FILE,
+                                     field_name=['sample_summary.sample_names'],
+                                     use_base_metadata=True),
+        'Sample Studies': TSVDescriptor(field_type=FILE,
+                                        field_name=['sample_summary.studies'],
+                                        use_base_metadata=True),
+        'Sample Tissues': TSVDescriptor(field_type=FILE,
+                                        field_name=['sample_summary.tissues'],
+                                        use_base_metadata=True),
+        'Sample Donors': TSVDescriptor(field_type=FILE,
+                                       field_name=['sample_summary.donor_ids'],
+                                       use_base_metadata=True),
         'Sample Source': TSVDescriptor(field_type=FILE,
                                        field_name=['file_sets.libraries.analyte.samples.sample_sources.code'],
                                        use_base_metadata=True),  # do not traverse extra_files for this
+        'Analytes': TSVDescriptor(field_type=FILE,
+                                  field_name=['sample_summary.analytes'],
+                                  use_base_metadata=True),
         'Sequencing': TSVDescriptor(field_type=FILE,
                                     field_name=['sequencing.display_title'],
                                     use_base_metadata=True),
         'Assay': TSVDescriptor(field_type=FILE,
                                field_name=['assays.display_title'],
                                use_base_metadata=True),
+        'Software Name/Version': TSVDescriptor(field_type=FILE,
+                                               field_name=['analysis_summary.software'],
+                                               use_base_metadata=True),
+        'Reference Genome': TSVDescriptor(field_type=FILE,
+                                          field_name=['analysis_summary.reference_genome'],
+                                          use_base_metadata=True),
         FILE_MERGE_GROUP: TSVDescriptor(field_type=FILE,
                                         field_name=['file_sets.file_merge_group'],
                                         use_base_metadata=True)   # do not traverse extra_files for this
@@ -120,12 +141,11 @@ TSV_MAPPING = {
 
 
 def generate_file_download_header(download_file_name: str):
-    """ Helper function that generates a suitable header for the File download """
-    header1 = ['###', 'Metadata TSV Download', '', '', '', '', '', '', '']  # length 9
-    header2 = ['Suggested command to download: ', '', '',  # length 9
+    """ Helper function that generates a suitable header for the File download, generating 18 columns"""
+    header1 = ['###', 'Metadata TSV Download', ] + ([''] * 16)  # length 18
+    header2 = ['Suggested command to download: ', '', '',
                "cut -f 1,3 ./{} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L "
-               "--user <access_key_id>:<access_key_secret> $0 --output $1'".format(download_file_name), '', '', '',
-               '', '']  # length 9
+               "--user <access_key_id>:<access_key_secret> $0 --output $1'".format(download_file_name)] + ([''] * 14)
     header3 = list(TSV_MAPPING[FILE].keys())
     return header1, header2, header3
 
@@ -143,7 +163,11 @@ def descend_field(request, prop, field_names):
                 current_prop = current_prop[0]
             elif not current_prop:
                 break
-        if current_prop is None or isinstance(current_prop, dict):
+        # this hard code is necessary because in this select case we are processing an object field,
+        # and we want all other object fields to be ignored - Will 1 May 2024
+        if isinstance(current_prop, dict) and possible_field == 'file_sets.file_merge_group':
+            return current_prop
+        elif current_prop is None or isinstance(current_prop, dict):
             continue
         elif possible_field == 'href':
             return f'{request.scheme}://{request.host}{current_prop}'
@@ -273,12 +297,11 @@ def metadata_tsv(context, request):
     # Process search iter
     data_lines = []
     for file in search_iter:
-        #import pdb; pdb.set_trace()
         line = []
         for field_name, tsv_descriptor in args.tsv_mapping.items():
             traversal_path = tsv_descriptor.field_name()
             if field_name == FILE_MERGE_GROUP:
-                field = descend_field(request, file, traversal_path) or {}
+                field = descend_field(request, file, traversal_path) or ''
                 if field:  # requires special care
                     field = handle_file_merge_group(field)
             else:
@@ -297,7 +320,7 @@ def metadata_tsv(context, request):
                 for field_name, tsv_descriptor in args.tsv_mapping.items():
                     traversal_path = tsv_descriptor.field_name()
                     if tsv_descriptor.use_base_metadata():
-                        field = descend_field(request, file, traversal_path) or {}
+                        field = descend_field(request, file, traversal_path) or ''
                         if field_name == FILE_MERGE_GROUP:  # requires special care
                             field = handle_file_merge_group(field)
                     else:
