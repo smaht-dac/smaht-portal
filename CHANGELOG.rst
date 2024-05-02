@@ -10,11 +10,11 @@ Change Log
 0.45.1
 ======
 
-`PR 151: fix: HapMap description formatting fix <https://github.com/smaht-dac/smaht-portal/pull/151>`_
+`PR 151: fix: HapMap description formatting / Access key button text update <https://github.com/smaht-dac/smaht-portal/pull/151>`_
 
-* Fixes formatting issue with HapMap description. Wraps p elements in a div, 
-  previously nested p elements caused issue in React's hydration.
-* Removes empty div when BamQCLink not provided
+* Fixes formatting issue with HapMap description
+* Removes empty di element when BamQCLink not provided
+* Updates the access key button text
 
 
 0.45.0
