@@ -180,10 +180,11 @@ def descend_field(request, prop, field_names):
 def handle_file_merge_group(field: dict) -> str:
     """ Transforms the file_merge_group into a single string """
     if field:
+        sc_part = field['submission_center']
         sample_source_part = field['sample_source']
         sequencing_part = field['sequencing']
         assay_part = field['assay']
-        return f'{sample_source_part}-{sequencing_part}-{assay_part}'
+        return f'{sc_part}-{sample_source_part}-{sequencing_part}-{assay_part}'
     return ''
 
 
