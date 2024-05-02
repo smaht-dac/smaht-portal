@@ -6,12 +6,13 @@ from typing import Any, Dict, List, Union
 import openpyxl
 import structlog
 from dcicutils.creds_utils import SMaHTKeyManager
-from dcicutils.misc_utils import to_snake_case
+from dcicutils.misc_utils import to_camel_case, to_snake_case
 from dcicutils import schema_utils
 from snovault.schema_views import SubmissionSchemaConstants
 
 from encoded.item_utils import constants as item_constants
 from encoded.item_utils.utils import RequestHandler
+from encoded.project.loadxl import ITEM_INDEX_ORDER
 
 
 log = structlog.getLogger(__name__)
@@ -83,7 +84,10 @@ def write_workbook(
 ) -> None:
     """Write a single workbook containing all submission spreadsheets."""
     workbook = openpyxl.Workbook()
-    for index, (item, submission_schema) in enumerate(submission_schemas.items()):
+    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas)
+    for index, (item, submission_schema) in enumerate(
+        ordered_submission_schemas.items()
+    ):
         spreadsheet = get_spreadsheet(item, submission_schema)
         if index == 0:
             worksheet = workbook.active
@@ -99,6 +103,18 @@ def write_workbook(
     file_path = Path(output, "submission_workbook.xlsx")
     save_workbook(workbook, file_path)
     log.info(f"Workbook written to: {file_path}")
+
+
+def get_ordered_submission_schemas(
+    submission_schemas: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Order submission schemas."""
+    result = {}
+    for item in ITEM_INDEX_ORDER:
+        camel_case_item = to_camel_case(item)
+        if camel_case_item in submission_schemas:
+            result[camel_case_item] = submission_schemas[camel_case_item]
+    return result
 
 
 def write_spreadsheets(
@@ -406,19 +422,19 @@ def get_comment(property_: Property) -> Union[openpyxl.comments.Comment, None]:
 def get_comment_text(property_: Property) -> str:
     """Get comment text for the property."""
     comment_lines = []
-    indent = "    "
+    indent = "  "
     if property_.description:
-        comment_lines.append(f"Description:\n{indent}{property_.description}")
+        comment_lines.append(f"Description:{indent}{property_.description}")
     if property_.value_type:
-        comment_lines.append(f"Type:\n{indent}{property_.value_type}")
+        comment_lines.append(f"Type:{indent}{property_.value_type}")
     if property_.enum:
-        comment_lines.append(f"Options:\n{indent}{' | '.join(property_.enum)}")
+        comment_lines.append(f"Options:{indent}{' | '.join(property_.enum)}")
     if property_.is_required():
-        comment_lines.append(f"Required:\n{indent}Yes")
+        comment_lines.append(f"Required:{indent}Yes")
     else:
-        comment_lines.append(f"Required:\n{indent}No")
+        comment_lines.append(f"Required:{indent}No")
     if comment_lines:
-        return "\n".join(comment_lines)
+        return "\n\n".join(comment_lines)
     return ""
 
 
