@@ -10,6 +10,14 @@
         ],
         "external_id": "SMHT-0001",
         "category": "Core",
-        "weight": 800
+        "weight": 800,
+        "tags": [
+            "test_sample_names",
+            "sample_names-SMHT-0001",
+            "test_sample_descriptions",
+            "sample_descriptions-Core",
+            "test_sample_studies",
+            "sample_studies-Production"
+        ]
     }
 ]
