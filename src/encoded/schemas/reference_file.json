@@ -53,6 +53,9 @@
             "$ref": "mixins.json#/tags"
         },
         {
+            "$ref": "mixins.json#/url"
+        },
+        {
             "$ref": "mixins.json#/uuid"
         },
         {
