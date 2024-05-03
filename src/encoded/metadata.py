@@ -101,12 +101,12 @@ TSV_MAPPING = {
         'File Name': TSVDescriptor(field_type=FILE,
                                    field_name=['annotated_filename', 'display_title', 'filename']),
         'Size (B)': TSVDescriptor(field_type=FILE,
-                                   field_name=['file_size']),
+                                  field_name=['file_size']),
         'md5sum': TSVDescriptor(field_type=FILE,
                                 field_name=['md5sum']),
-        'Data Category': TSVDescriptor(field_type=FILE,
-                                       field_name=['data_type'],
-                                       use_base_metadata=True),  # do not traverse extra_files for this
+        'Data Type': TSVDescriptor(field_type=FILE,
+                                   field_name=['data_type'],
+                                   use_base_metadata=True),  # do not traverse extra_files for this
         'File Format': TSVDescriptor(field_type=FILE,
                                      field_name=['file_format.display_title']),
         'Sample Name': TSVDescriptor(field_type=FILE,
@@ -161,11 +161,11 @@ def extract_array(array: list, i: int, fields: list) -> str:
     if isinstance(array[0], dict):
         if isinstance(array[0][fields[i]], dict):  # go one level deeper
             field1, field2 = fields[i], fields[i+1]
-            return '|'.join([ele[field1][field2] for ele in array])
+            return '|'.join(sorted([ele[field1][field2] for ele in array]))
         else:
-            return '|'.join(ele[fields[i]] for ele in array)
+            return '|'.join(sorted(ele[fields[i]] for ele in array))
     else:
-        return '|'.join(array)
+        return '|'.join(sorted(array))
 
 
 def descend_field(request, prop, field_names):

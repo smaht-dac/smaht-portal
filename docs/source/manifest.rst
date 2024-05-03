@@ -12,7 +12,7 @@ Below are the columns listed in the ``manifest`` files as of the May 2024 data r
 
 #. **File Download URL** - this URL, when navigated to while passing portal access credentials, will redirect to a pre-signed URL for downloading the associated file provided the user who made the request has access to the file.
 
-#. **File Accession** - this value is a server generated value specific to the SMaHT data portal, generally speaking it is unique with the exception that any associated extra files associated with the root file will have the same accession but different file extension. While you can reference files in data portal by this value, when communicating with others it is best to use the following field **File Name**.
+#. **File Accession** - this value is a server generated value specific to the SMaHT data portal, generally speaking it is unique with the exception that any associated extra files associated with the root file will have the same accession but different file extension. For example, a .bam file will typically have a corresponding index file in .bam.bai format, which would be an extra file under the same accession. While you can reference files in data portal by this value, when communicating with others it is best to use the following field **File Name**.
 
 #. **File Name** - this value is the consortia-approved identifier for files, and is guaranteed to be a unique identifier encoding details about the file into the name. When downloading files, this will be the name of the file.
 
@@ -20,7 +20,7 @@ Below are the columns listed in the ``manifest`` files as of the May 2024 data r
 
 #. **md5sum** - md5 of the file content.
 
-#. **Data Category** - this value tells you the file type, for example: Aligned Reads, Unaligned Reads or Variant Calls.
+#. **Data Type** - this value tells you the file type, for example: ``Aligned Reads``, ``Unaligned Reads`` or ``Variant Calls``.
 
 #. **File Format** - the format of the file (bam, fastq.gz etc).
 
@@ -34,7 +34,7 @@ Below are the columns listed in the ``manifest`` files as of the May 2024 data r
 
 #. **Sample Source** - Submitter provided sample IDs identifying the sample source. If the file is a result of a mixture, there may be multiple sample sources.
 
-#. **Analytes** - Analytes used for analysis, typically one of RNA or DNA.
+#. **Analytes** - Analytes used for analysis, typically one of ``RNA`` or ``DNA``.
 
 #. **Sequencer** - name of the sequencer used to generate this file upstream, for example ``PacBio Revio``.
 
