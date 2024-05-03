@@ -714,6 +714,17 @@ const SelectedItemsDownloadModal = function (props) {
                             &lt;access_key_id&gt;:&lt;access_key_secret&gt;,
                             below.
                         </li>
+                        <li>
+                            For additional information on the manifest file,
+                            please refer to documentation
+                            <a
+                                href="https://data.smaht.org/docs/user-guide/manifest"
+                                target="_blank"
+                                rel="noreferrer noopener">
+                                here
+                            </a>
+                            .
+                        </li>
                     </ul>
                 </div>
                 <div className="col-auto mb-4">
