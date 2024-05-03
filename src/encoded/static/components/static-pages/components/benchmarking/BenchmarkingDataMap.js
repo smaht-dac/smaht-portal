@@ -121,31 +121,31 @@ export const BenchmarkingDataMap = {
             },
             {
                 eventKey: '#lb_ipsc_1',
-                title: 'LB-LA2 iPSC 1',
+                title: 'LB-LA2 iPSC-1',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_1',
             },
             {
                 eventKey: '#lb_ipsc_2',
-                title: 'LB-LA2 iPSC 2',
+                title: 'LB-LA2 iPSC-2',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_2',
             },
             {
                 eventKey: '#lb_ipsc_4',
-                title: 'LB-LA2 iPSC 4',
+                title: 'LB-LA2 iPSC-4',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_4',
             },
             {
                 eventKey: '#lb_ipsc_52',
-                title: 'LB-LA2 iPSC 52',
+                title: 'LB-LA2 iPSC-52',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_52',
             },
             {
                 eventKey: '#lb_ipsc_60',
-                title: 'LB-LA2 iPSC 60',
+                title: 'LB-LA2 iPSC-60',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_60',
             },
