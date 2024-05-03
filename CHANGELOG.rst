@@ -7,9 +7,9 @@ smaht-portal
 Change Log
 ----------
 
-
 0.47.0
 ======
+
 * Add calcprop `file_merge_group` as a tag on file sets to help determine which file sets contain files that are candidates for merging
 * Add additional fields to manifest files
 * Documentation on manifest files
@@ -17,8 +17,17 @@ Change Log
 * Adjust access key expiration down to 30 days
 
 
+0.46.1
+======
+
+`PR 152: Bm small fixes <https://github.com/smaht-dac/smaht-portal/pull/152>`_
+
+* Fix for front page links and update to tab titles for iPSC
+
+
 0.46.0
 ======
+
 `PR 153: New dataset for in silico Colo829 mixes <https://github.com/smaht-dac/smaht-portal/pull/153>`_
 
 * Add new option for in silico Colo829 mixtures to File `dataset` enum
