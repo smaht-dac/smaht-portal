@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.45.1
+0.46.2
 ======
 
 `PR 151: fix: HapMap description formatting / Access key button text update <https://github.com/smaht-dac/smaht-portal/pull/151>`_
