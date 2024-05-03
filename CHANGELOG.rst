@@ -11,6 +11,9 @@ Change Log
 0.47.0
 ======
 * Add calcprop `file_merge_group` as a tag on file sets to help determine which file sets contain files that are candidates for merging
+* Add additional fields to manifest files
+* Documentation on manifest files
+* Documentation on data release via status
 * Adjust access key expiration down to 30 days
 
 
@@ -46,7 +49,6 @@ Change Log
 * Complete sample summary calcprop for file overview page
 * Refactor `utils` modules to enable test app integration
 * Fix bugs + type hints and add more functionality to `item_utils` modules
->>>>>>> main
 
 
 0.42.2
