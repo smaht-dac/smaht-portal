@@ -156,7 +156,7 @@ def home(context, request):
                 "categories": [
                     {
                         "title": "COLO829 Cell Line",
-                        "link": "/data/benchmarking/COLO829#main",
+                        "link": "/data/benchmarking/COLO829",
                         "figures": [
                             { "value": 2, "unit": "Cell Lines" },
                             { "value": search_results[0],
@@ -168,7 +168,7 @@ def home(context, request):
                     },
                     {
                         "title": "HapMap Cell Line",
-                        "link": "/data/benchmarking/HapMap#main",
+                        "link": "/data/benchmarking/HapMap",
                         "figures": [
                             { "value": 6, "unit": "Cell Lines" },
                             { "value": search_results[2], "unit": "Assays" },
@@ -178,7 +178,7 @@ def home(context, request):
                     },
                     {
                         "title": "iPSC & Fibroblasts",
-                        "link": "/data/benchmarking/iPSC-fibroblasts#main",
+                        "link": "/data/benchmarking/iPSC-fibroblasts",
                         "figures": [
                             { "value": 5, "unit": "Cell Lines" },
                             { "value": search_results[4], "unit": "Assays" },
@@ -188,7 +188,7 @@ def home(context, request):
                     },
                     {
                         "title": "Benchmarking Tissues",
-                        "link": "/data/benchmarking/lung#main",
+                        "link": "/data/benchmarking/lung",
                         "figures": [
                             { "value": 0, "unit": "Donors" },
                             { "value": 0, "unit": "Tissue Types" },

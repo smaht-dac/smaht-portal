@@ -32,8 +32,7 @@ export const BenchmarkingLayout = ({
                             <span className="">Note:</span> The unaligned BAM
                             and FASTQ files, and data from unofficial
                             benchmarking samples will be available upon request
-                            &#40;through Globus&#41; or at the next release of
-                            the portal.
+                            &#40;through Globus&#41;.
                         </p>
                     )}
                 </div>

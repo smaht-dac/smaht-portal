@@ -12,9 +12,17 @@ Change Log
 
 `PR 151: fix: HapMap description formatting / Access key button text update <https://github.com/smaht-dac/smaht-portal/pull/151>`_
 
-* Fixes formatting issue with HapMap description
-* Removes empty di element when BamQCLink not provided
-* Updates the access key button text
+* Fix formatting issue with HapMap description
+* Remove empty div element when BamQCLink not provided
+* Update the access key button text
+
+
+0.46.1
+======
+
+`PR 152: Bm small fixes <https://github.com/smaht-dac/smaht-portal/pull/152>`_
+
+* Fix for front page links and update to tab titles for iPSC
 
 
 0.46.0
