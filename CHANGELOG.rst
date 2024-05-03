@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.46.2
+======
+
+* Extend release script to handle obsolete files
+
+
 0.46.1
 ======
 
