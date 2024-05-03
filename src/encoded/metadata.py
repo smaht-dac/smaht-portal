@@ -141,7 +141,7 @@ TSV_MAPPING = {
                                           use_base_metadata=True),
         FILE_MERGE_GROUP: TSVDescriptor(field_type=FILE,
                                         field_name=['file_sets.file_merge_group'],
-                                        use_base_metadata=True)   # do not traverse extra_files for this
+                                        use_base_metadata=False)   # omit this field on extra files
     }
 }
 
