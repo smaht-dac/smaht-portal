@@ -896,11 +896,11 @@ export function SubmissionsStatsView(props) {
 
                 <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
-                <h3 className="charts-group-title">Files - submitted</h3>
+                <h3 className="charts-group-title">Metadata submitted</h3>
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploading" title={
                     <h5 className="text-400 mt-0">
-                        Total Count
+                        Total File Count
                     </h5>
                 }>
                     <AreaChart {...commonChartProps} data={files_uploading} />
@@ -908,17 +908,17 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_uploading" title={
                     <h5 className="text-400 mt-0">
-                        Total Size (GB)
+                        Total File Size (GB)
                     </h5>
                 }>
                     <AreaChart {...commonChartProps} data={file_volume_uploading} yAxisLabel="GB" />
                 </AreaChartContainer>
 
-                <h3 className="charts-group-title">Files - uploaded</h3>
+                <h3 className="charts-group-title">Data submitted</h3>
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploaded" title={
                     <h5 className="text-400 mt-0">
-                        Total Count
+                        Total File Count
                     </h5>
                 }>
                     <AreaChart {...commonChartProps} data={files_uploaded} />
@@ -926,17 +926,17 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_uploaded" title={
                     <h5 className="text-400 mt-0">
-                        Total Size (GB)
+                        Total File Size (GB)
                     </h5>
                 }>
                     <AreaChart {...commonChartProps} data={file_volume_uploaded} yAxisLabel="GB" />
                 </AreaChartContainer>                   
 
-                <h3 className="charts-group-title">Files - released</h3>
+                <h3 className="charts-group-title">Data released to the portal</h3>
 
                 <AreaChartContainer {...commonContainerProps} id="files_released" title={
                     <h5 className="text-400 mt-0">
-                        Total Count
+                        Total File Count
                     </h5>
                 }>
                     <AreaChart {...commonChartProps} data={files_released} />
@@ -944,7 +944,7 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_released" title={
                     <h5 className="text-400 mt-0">
-                        Total Size (GB)
+                        Total File Size (GB)
                     </h5>
                 }>
                     <AreaChart {...commonChartProps} data={file_volume_released} yAxisLabel="GB" />
