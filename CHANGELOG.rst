@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.46.2
+======
+
+`PR 151: fix: HapMap description formatting / Access key button text update <https://github.com/smaht-dac/smaht-portal/pull/151>`_
+
+* Fix formatting issue with HapMap description
+* Remove empty div element when BamQCLink not provided
+* Update the access key button text
+
+
 0.46.1
 ======
 
