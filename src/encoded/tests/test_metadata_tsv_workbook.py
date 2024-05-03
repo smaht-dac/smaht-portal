@@ -74,7 +74,29 @@ class TestMetadataTSVWorkbook:
              'simple': {
                  'simple2': ['array']
              }
-         }, ['simple.simple2'], 'array')
+         }, ['simple.simple2'], 'array'),
+        ({
+             'simple': {
+                 'simple2': ['array1', 'array2']
+             }
+         }, ['simple.simple2'], 'array1|array2'),
+        ({
+             'simple': {
+                 'simple2': [{'key': 'val1'}]
+             }
+         }, ['simple.simple2.key'], 'val1'),
+        ({
+             'simple': {
+                 'simple2': [{'key': 'val1'}, {'key': 'val2'}]
+             }
+         }, ['simple.simple2.key'], 'val1|val2'),
+        ({
+             'simple': {
+                 'simple2': {
+                     'simple3': [{'key': 'val1'}, {'key': 'val2'}]
+                 }
+             }
+         }, ['simple.simple2.simple3.key'], 'val1|val2'),
     ])
     def test_descend_field(field_dict, list_of_names, expected):
         """ Helper that tests that we can retrieve fields in various expected scenarios """
@@ -109,6 +131,25 @@ class TestMetadataTSVWorkbook:
         parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
         last_extra_file_name = parsed[-1][2]  # filename in 3rd position in tsv
         assert last_extra_file_name == 'a_second_bam_bai.bai'
+        # check an entire row that is mostly representative
+        for row in parsed:
+            if '303985cf-f1db-4dea-9782-2e68092d603d' in row[0]:  # this is the row
+                assert row[2] == 'SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam'
+                assert row[3] == '1000'  # size
+                assert row[5] == 'Aligned Reads'  # category
+                assert row[6] == 'BAM'  # format
+                assert row[7] == 'SMHT-0001'  # sample
+                assert row[8] == 'Production'  # data set
+                assert row[9] == 'Liver: Left Lobe'  # tissue type
+                assert row[10] == 'SMHT001'  # sample
+                assert row[11] == 'Core'
+                assert row[12] == 'DNA'
+                assert row[13] == 'Illumina NovaSeq X'  # sequencing
+                assert row[14] == 'Bulk WGS'  # assay
+                assert row[15] == 'VEP (3.1.1)'  # software
+                assert row[16] == 'GRCh38'  # reference genome
+                assert row[17] == 'smaht-TEST_TISSUE_LIVER-illumina_novaseqx-Paired-end-150-R9-bulk_wgs'  # merge grp
+                break
 
     @pytest.mark.workbook
     def test_peak_metadata_workbook(self, workbook, es_testapp):

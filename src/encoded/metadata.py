@@ -86,6 +86,11 @@ class DummyFileInterfaceImplementation(object):
 
 # This dictionary is a key --> 3-tuple mapping that encodes options for the /metadata/ endpoint
 # given a field description. This also describes the order that fields show up in the TSV.
+# VERY IMPORTANT NOTE WHEN ADDING FIELDS - right now support for arrays generally is limited.
+# The limitations are: array of terminal values are fine, but arrays of dictionaries will only
+# traverse one additional level of depth ie:
+# item contains dictionary d1, where d1 has property that is array of object
+#   --> d1.arr --> d1.array.dict --> d1.array.dict.value
 # TODO: move to another file or write in JSON
 TSV_MAPPING = {
     FILE: {
@@ -122,9 +127,9 @@ TSV_MAPPING = {
         'Analytes': TSVDescriptor(field_type=FILE,
                                   field_name=['sample_summary.analytes'],
                                   use_base_metadata=True),
-        'Sequencing': TSVDescriptor(field_type=FILE,
-                                    field_name=['sequencing.display_title'],
-                                    use_base_metadata=True),
+        'Sequencer': TSVDescriptor(field_type=FILE,
+                                   field_name=['sequencing.sequencer.display_title'],
+                                   use_base_metadata=True),
         'Assay': TSVDescriptor(field_type=FILE,
                                field_name=['assays.display_title'],
                                use_base_metadata=True),
@@ -151,17 +156,29 @@ def generate_file_download_header(download_file_name: str):
     return header1, header2, header3
 
 
+def extract_array(array: list, i: int, fields: list) -> str:
+    """ Extracts field_name values from array of dicts, or the value itself if a terminal field """
+    if isinstance(array[0], dict):
+        if isinstance(array[0][fields[i]], dict):  # go one level deeper
+            field1, field2 = fields[i], fields[i+1]
+            return '|'.join([ele[field1][field2] for ele in array])
+        else:
+            return '|'.join(ele[fields[i]] for ele in array)
+    else:
+        return '|'.join(array)
+
+
 def descend_field(request, prop, field_names):
     """ Helper to grab field values if we reach a terminal field ie: not dict or list """
     for possible_field in field_names:
         current_prop = prop  # store a reference to the original object
         fields = possible_field.split('.')
-        for field in fields:
+        for i, field in enumerate(fields):
             current_prop = current_prop.get(field)
-            # IMPORTANT - very key assumption here, since we are generating flat structure
-            # we assume we always want the first element
-            if isinstance(current_prop, list):
-                current_prop = current_prop[0]
+            if isinstance(current_prop, list) and possible_field != 'file_sets.file_merge_group':
+                return extract_array(current_prop, i+1, fields)
+            elif current_prop and possible_field == 'file_sets.file_merge_group':
+                return current_prop[0].get('file_merge_group')
             elif not current_prop:
                 break
         # this hard code is necessary because in this select case we are processing an object field,

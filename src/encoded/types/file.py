@@ -332,6 +332,9 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.libraries.analyte.samples.sample_sources.cell_line.code",
         "file_sets.libraries.analyte.samples.sample_sources.components.cell_culture.cell_line.code",
 
+        # For manifest
+        "sequencing.sequencer.display_title",
+
         # Include merge groups
         "file_sets.file_merge_group.*",
 
