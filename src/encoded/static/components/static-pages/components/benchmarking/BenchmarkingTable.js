@@ -715,10 +715,10 @@ const SelectedItemsDownloadModal = function (props) {
                             below.
                         </li>
                         <li>
-                            For additional information on the manifest file,
-                            please refer to documentation 
+                            Important information about the manifest file can be
+                            found{' '}
                             <a
-                                href="https://data.smaht.org/docs/user-guide/manifest"
+                                href="/docs/user-guide/manifest"
                                 target="_blank"
                                 rel="noreferrer noopener">
                                 here
