@@ -716,7 +716,7 @@ const SelectedItemsDownloadModal = function (props) {
                         </li>
                         <li>
                             For additional information on the manifest file,
-                            please refer to documentation
+                            please refer to documentation 
                             <a
                                 href="https://data.smaht.org/docs/user-guide/manifest"
                                 target="_blank"
