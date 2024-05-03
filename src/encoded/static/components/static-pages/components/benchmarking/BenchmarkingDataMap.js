@@ -43,11 +43,12 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829blt_50to1',
             },
-            // {
-            //     eventKey: '#silico',
-            //     title: 'In Silico Mix',
-            //     // searchHref: '/search/?type=SubmittedFile&status=released&status=restricted&status=public&dataset=colo829blt_200to1',
-            // },
+            {
+                eventKey: '#silico',
+                title: 'In Silico Mix',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829blt_in_silico',
+            },
         ],
     },
     HapMap: {
