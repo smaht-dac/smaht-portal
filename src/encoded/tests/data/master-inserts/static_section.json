@@ -472,5 +472,22 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier": "manifest",
+        "uuid": "f525c58f-e6b8-499f-98df-6c24c1af9f26",
+        "file": "/docs/source/manifest.rst",
+        "section_type": "Page Section",
+        "status": "public",
+        "options": {
+            "filetype": "rst",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
