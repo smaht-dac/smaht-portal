@@ -21,22 +21,6 @@
             ]
         }
     ],
-    "allOf": [
-        {
-            "properties": {
-                "read_pair_number": {
-                    "not": {
-                        "const": "R2"
-                    }
-                }
-            },
-            "not": {
-                "required": [
-                    "paired_with"
-                ]
-            }
-        }
-    ],
     "identifyingProperties": [
         "accession",
         "aliases",
