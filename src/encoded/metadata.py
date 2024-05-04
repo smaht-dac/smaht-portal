@@ -31,7 +31,7 @@ FILE = 0
 
 
 # This field is special because it is a transformation applied from other fields
-FILE_MERGE_GROUP = 'File Merge Group'
+FILE_MERGE_GROUP = 'FileMergeGroup'
 
 
 class MetadataArgs(NamedTuple):
@@ -94,36 +94,36 @@ class DummyFileInterfaceImplementation(object):
 # TODO: move to another file or write in JSON
 TSV_MAPPING = {
     FILE: {
-        'File Download URL': TSVDescriptor(field_type=FILE,
-                                           field_name=['href']),
-        'File Accession': TSVDescriptor(field_type=FILE,
-                                        field_name=['accession']),
-        'File Name': TSVDescriptor(field_type=FILE,
-                                   field_name=['annotated_filename', 'display_title', 'filename']),
-        'Size (B)': TSVDescriptor(field_type=FILE,
-                                  field_name=['file_size']),
+        'FileDownloadURL': TSVDescriptor(field_type=FILE,
+                                         field_name=['href']),
+        'FileAccession': TSVDescriptor(field_type=FILE,
+                                       field_name=['accession']),
+        'FileName': TSVDescriptor(field_type=FILE,
+                                  field_name=['annotated_filename', 'display_title', 'filename']),
+        'Size(B)': TSVDescriptor(field_type=FILE,
+                                 field_name=['file_size']),
         'md5sum': TSVDescriptor(field_type=FILE,
                                 field_name=['md5sum']),
-        'Data Type': TSVDescriptor(field_type=FILE,
-                                   field_name=['data_type'],
-                                   use_base_metadata=True),  # do not traverse extra_files for this
-        'File Format': TSVDescriptor(field_type=FILE,
-                                     field_name=['file_format.display_title']),
-        'Sample Name': TSVDescriptor(field_type=FILE,
-                                     field_name=['sample_summary.sample_names'],
-                                     use_base_metadata=True),  # do not traverse extra_files for this
-        'Sample Studies': TSVDescriptor(field_type=FILE,
-                                        field_name=['sample_summary.studies'],
-                                        use_base_metadata=True),  # do not traverse extra_files for this
-        'Sample Tissues': TSVDescriptor(field_type=FILE,
-                                        field_name=['sample_summary.tissues'],
-                                        use_base_metadata=True),  # do not traverse extra_files for this
-        'Sample Donors': TSVDescriptor(field_type=FILE,
-                                       field_name=['sample_summary.donor_ids'],
+        'DataType': TSVDescriptor(field_type=FILE,
+                                  field_name=['data_type'],
+                                  use_base_metadata=True),  # do not traverse extra_files for this
+        'FileFormat': TSVDescriptor(field_type=FILE,
+                                    field_name=['file_format.display_title']),
+        'SampleName': TSVDescriptor(field_type=FILE,
+                                    field_name=['sample_summary.sample_names'],
+                                    use_base_metadata=True),  # do not traverse extra_files for this
+        'SampleStudies': TSVDescriptor(field_type=FILE,
+                                       field_name=['sample_summary.studies'],
                                        use_base_metadata=True),  # do not traverse extra_files for this
-        'Sample Source': TSVDescriptor(field_type=FILE,
-                                       field_name=['sample_summary.sample_descriptions'],
+        'SampleTissues': TSVDescriptor(field_type=FILE,
+                                       field_name=['sample_summary.tissues'],
                                        use_base_metadata=True),  # do not traverse extra_files for this
+        'SampleDonors': TSVDescriptor(field_type=FILE,
+                                      field_name=['sample_summary.donor_ids'],
+                                      use_base_metadata=True),  # do not traverse extra_files for this
+        'SampleSource': TSVDescriptor(field_type=FILE,
+                                      field_name=['sample_summary.sample_descriptions'],
+                                      use_base_metadata=True),  # do not traverse extra_files for this
         'Analytes': TSVDescriptor(field_type=FILE,
                                   field_name=['sample_summary.analytes'],
                                   use_base_metadata=True),
@@ -133,12 +133,12 @@ TSV_MAPPING = {
         'Assay': TSVDescriptor(field_type=FILE,
                                field_name=['assays.display_title'],
                                use_base_metadata=True),
-        'Software Name/Version': TSVDescriptor(field_type=FILE,
-                                               field_name=['analysis_summary.software'],
-                                               use_base_metadata=True),
-        'Reference Genome': TSVDescriptor(field_type=FILE,
-                                          field_name=['analysis_summary.reference_genome'],
-                                          use_base_metadata=True),
+        'SoftwareName/Version': TSVDescriptor(field_type=FILE,
+                                              field_name=['analysis_summary.software'],
+                                              use_base_metadata=True),
+        'ReferenceGenome': TSVDescriptor(field_type=FILE,
+                                         field_name=['analysis_summary.reference_genome'],
+                                         use_base_metadata=True),
         FILE_MERGE_GROUP: TSVDescriptor(field_type=FILE,
                                         field_name=['file_sets.file_merge_group'],
                                         use_base_metadata=False)   # omit this field on extra files
@@ -148,7 +148,7 @@ TSV_MAPPING = {
 
 def generate_file_download_header(download_file_name: str):
     """ Helper function that generates a suitable header for the File download, generating 18 columns"""
-    header1 = ['###', 'Metadata TSV Download', ] + ([''] * 16)  # length 18
+    header1 = ['###', 'Metadata TSV Download', 'Column Count', '18'] + ([''] * 14)  # length 18
     header2 = ['Suggested command to download: ', '', '',
                "cut -f 1,3 ./{} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L "
                "--user <access_key_id>:<access_key_secret> $0 --output $1'".format(download_file_name)] + ([''] * 14)
