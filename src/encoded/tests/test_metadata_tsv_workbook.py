@@ -118,7 +118,7 @@ class TestMetadataTSVWorkbook:
             assert len(row) == TestMetadataTSVHelper.TSV_WIDTH
         TestMetadataTSVHelper.check_key_and_length(header1, 'Metadata TSV Download')
         TestMetadataTSVHelper.check_key_and_length(header2, 'Suggested command to download: ')
-        TestMetadataTSVHelper.check_key_and_length(header3, 'File Download URL')
+        TestMetadataTSVHelper.check_key_and_length(header3, 'FileDownloadURL')
         assert len(parsed[3:]) == 12  # there are 12 entries in the workbook right now, including extra files
         # test for various types
         TestMetadataTSVHelper.check_type_length(es_testapp, 'AlignedReads', 1)
