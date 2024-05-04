@@ -91,8 +91,15 @@ const BenchmarkingTable = (props) => {
         // Select all button
         '@type': {
             colTitle: (
+                // I think below context arg is the issue... - Will 3 May 2024
                 // Context now passed in from HeadersRowColumn (for file count)
-                <SelectAllFilesButton {...selectedFileProps} type="checkbox" />
+                // <SelectAllFilesButton {...selectedFileProps} type="checkbox" />
+                // This input box fixes it I believe
+                <input
+                    type="checkbox"
+                    disabled={true}
+                    checked={false}
+                />
             ),
             hideTooltip: true,
             noSort: true,
@@ -290,11 +297,12 @@ const BenchmarkingAboveTableComponent = React.memo(
                     Results
                 </div>
                 <div className="ml-auto col-auto mr-0 pr-0">
-                    <SelectAllFilesButton
-                        {...selectedFileProps}
-                        {...{ context }}
-                        totalFilesCount={totalResultCount}
-                    />
+                    {/* XXX: temporarily commented out while working out bug - Will 3 May 2024 */}
+                    {/*<SelectAllFilesButton*/}
+                    {/*    {...selectedFileProps}*/}
+                    {/*    {...{ context }}*/}
+                    {/*    totalFilesCount={totalResultCount}*/}
+                    {/*/>*/}
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
