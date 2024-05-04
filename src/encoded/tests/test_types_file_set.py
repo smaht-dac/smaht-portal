@@ -15,7 +15,7 @@ def test_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
 
 
 @pytest.mark.workbook
-def test_file_set_merge_group(es_testapp: TestApp, workbook: None) -> None:
+def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
     """ Ensure we generate a reasonable looking group when file set data is present """
     res = es_testapp.get('/file-sets/b98f9849-3b7f-4f2f-a58f-81100954e00d/').json
     file_merge_group = res['file_merge_group']

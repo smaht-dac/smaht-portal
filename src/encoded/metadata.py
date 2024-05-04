@@ -31,7 +31,7 @@ FILE = 0
 
 
 # This field is special because it is a transformation applied from other fields
-FILE_MERGE_GROUP = 'FileMergeGroup'
+FILE_GROUP = 'FileGroup'
 
 
 class MetadataArgs(NamedTuple):
@@ -139,9 +139,9 @@ TSV_MAPPING = {
         'ReferenceGenome': TSVDescriptor(field_type=FILE,
                                          field_name=['analysis_summary.reference_genome'],
                                          use_base_metadata=True),
-        FILE_MERGE_GROUP: TSVDescriptor(field_type=FILE,
-                                        field_name=['file_sets.file_merge_group'],
-                                        use_base_metadata=False)   # omit this field on extra files
+        FILE_GROUP: TSVDescriptor(field_type=FILE,
+                                  field_name=['file_sets.file_group'],
+                                  use_base_metadata=False)   # omit this field on extra files
     }
 }
 
@@ -175,15 +175,15 @@ def descend_field(request, prop, field_names):
         fields = possible_field.split('.')
         for i, field in enumerate(fields):
             current_prop = current_prop.get(field)
-            if isinstance(current_prop, list) and possible_field != 'file_sets.file_merge_group':
+            if isinstance(current_prop, list) and possible_field != 'file_sets.file_group':
                 return extract_array(current_prop, i+1, fields)
-            elif current_prop and possible_field == 'file_sets.file_merge_group':
-                return current_prop[0].get('file_merge_group')
+            elif current_prop and possible_field == 'file_sets.file_group':
+                return current_prop[0].get('file_group')
             elif not current_prop:
                 break
         # this hard code is necessary because in this select case we are processing an object field,
         # and we want all other object fields to be ignored - Will 1 May 2024
-        if isinstance(current_prop, dict) and possible_field == 'file_sets.file_merge_group':
+        if isinstance(current_prop, dict) and possible_field == 'file_sets.file_group':
             return current_prop
         elif current_prop is None or isinstance(current_prop, dict):
             continue
@@ -194,8 +194,8 @@ def descend_field(request, prop, field_names):
     return None
 
 
-def handle_file_merge_group(field: dict) -> str:
-    """ Transforms the file_merge_group into a single string """
+def handle_file_group(field: dict) -> str:
+    """ Transforms the file_group into a single string """
     if field:
         sc_part = field['submission_center']
         sample_source_part = field['sample_source']
@@ -319,10 +319,10 @@ def metadata_tsv(context, request):
         line = []
         for field_name, tsv_descriptor in args.tsv_mapping.items():
             traversal_path = tsv_descriptor.field_name()
-            if field_name == FILE_MERGE_GROUP:
+            if field_name == FILE_GROUP:
                 field = descend_field(request, file, traversal_path) or ''
                 if field:  # requires special care
-                    field = handle_file_merge_group(field)
+                    field = handle_file_group(field)
             else:
                 field = descend_field(request, file, traversal_path) or ''
             line.append(field)
@@ -340,8 +340,8 @@ def metadata_tsv(context, request):
                     traversal_path = tsv_descriptor.field_name()
                     if tsv_descriptor.use_base_metadata():
                         field = descend_field(request, file, traversal_path) or ''
-                        if field_name == FILE_MERGE_GROUP:  # requires special care
-                            field = handle_file_merge_group(field)
+                        if field_name == FILE_GROUP:  # requires special care
+                            field = handle_file_group(field)
                     else:
                         field = descend_field(request, ef, traversal_path) or ''
                     ef_line.append(field)

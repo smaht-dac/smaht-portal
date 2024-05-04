@@ -136,7 +136,8 @@ class FileSet(SubmittedItem):
 
     @calculated_property(
         schema={
-            "title": "File Merging Group",
+            "title": "File Group",
+            "description": "Object tag for files that are candidates for merging",
             "type": "object",
             "properties": {
                 "submission_center": {
@@ -158,7 +159,7 @@ class FileSet(SubmittedItem):
             }
         }
     )
-    def file_merge_group(self, request):
+    def file_group(self, request):
         """ The File Merge Group as it's called determines which file sets contain files
             that are candidates for merging. Note that this NOT a hard and fast rule - just
             because the group matches does NOT mean that ALL files can be merged, or even most

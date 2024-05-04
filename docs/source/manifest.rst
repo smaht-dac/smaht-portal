@@ -44,16 +44,16 @@ Below are the columns listed in the ``manifest`` files as of the May 2024 data r
 
 #. **Reference Genome** - Reference Genome version used for the analysis, e.g. ``GRCh38 [GCA_000001405.15]``.
 
-#. **File Merge Group** - This field indicates a group of BAM files that can be merged. BAM files with the identical file merge group value can be merged. Please see the dedicated section below for more information.
+#. **File Group** - This field indicates a group of BAM files that can be merged. BAM files with the identical file group value can be merged. Please see the dedicated section below for more information.
 
 
 ----------------
 File Merge Group
 ----------------
 
-The ``File Merge Group`` field is a special field that indicates which BAM files can be merged. To efficiently process and store large BAMs with high sequencing coverage, the alignment pipeline at DAC produces BAMs per library. To identify BAMs to merge, obtain the files where the file format is BAM and the File Merge Group values are identical.
+The ``File Group`` field is a special field that indicates which BAM files can be merged. To efficiently process and store large BAMs with high sequencing coverage, the alignment pipeline at DAC produces BAMs per library. To identify BAMs to merge, obtain the files where the file format is BAM and the File Group values are identical.
 
-Specifically, the ``File Merge Group`` combines several pieces of information, including:
+Specifically, the ``File Group`` combines several pieces of information, including:
 
 * The center that submitted the raw sequencing data
 * Aggregated sample source information

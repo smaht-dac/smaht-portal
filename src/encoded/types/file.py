@@ -335,8 +335,8 @@ def _build_file_embedded_list() -> List[str]:
         # For manifest
         "sequencing.sequencer.display_title",
 
-        # Include merge groups
-        "file_sets.file_merge_group.*",
+        # Include file groups tags
+        "file_sets.file_group.*",
 
         # Analysis summary
         "software.code",
