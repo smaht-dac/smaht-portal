@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.47.0
+======
+
+* Add calcprop `file_merge_group` as a tag on file sets to help determine which file sets contain files that are candidates for merging
+* Add additional fields to manifest files
+* Documentation on manifest files
+* Documentation on data release via status
+* Adjust access key expiration down to 30 days
+
+
 0.46.2
 ======
 
