@@ -96,7 +96,8 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Aligned Reads"
+                    "Aligned Reads",
+                    "In Silico Generated"
                 ]
             },
             "default": [
