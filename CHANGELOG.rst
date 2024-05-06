@@ -7,6 +7,26 @@ smaht-portal
 Change Log
 ----------
 
+0.47.0
+======
+
+* Add calcprop `file_merge_group` as a tag on file sets to help determine which file sets contain files that are candidates for merging
+* Add additional fields to manifest files
+* Documentation on manifest files
+* Documentation on data release via status
+* Adjust access key expiration down to 30 days
+
+
+0.46.2
+======
+
+`PR 151: fix: HapMap description formatting / Access key button text update <https://github.com/smaht-dac/smaht-portal/pull/151>`_
+
+* Fix formatting issue with HapMap description
+* Remove empty div element when BamQCLink not provided
+* Update the access key button text
+
+
 0.46.1
 ======
 
