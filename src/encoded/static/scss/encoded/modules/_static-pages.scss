@@ -1799,38 +1799,37 @@ body[data-pathname^="/data/benchmarking"] {
 					}
 				}
 		
-				>.row>div {
-					font-family: Inter;
-					color: #5D5E63;
-					>h2 {
+				>.row {
+					.title {
 						color: #343741;
 						font-family: Inter;
 						font-size: 24px;
 						font-weight: 600;
 						margin-top: 5px;
 					}
+					.description {
+						font-family: Inter;
+						font-size: 0.875rem;
+						color: #5D5E63;
+						line-height: 20px;
 
-					.readable {
-						color: #5D5E63;
-						font-family: Inter;
-						font-size: 0.875rem;
-						line-height: 20px;
-					}
-					.disclaimer {
-						color: #5D5E63;
-						font-family: Inter;
-						font-size: 0.875rem;
-						line-height: 20px;
-						span {
-							font-weight: 500;
+						.disclaimer {
+							color: #5D5E63;
+							font-family: Inter;
+							font-size: 0.875rem;
+							line-height: 20px;
+							margin-top: 10px;
+							span {
+								font-weight: 500;
+							}
 						}
 					}
 					.callout {
-						margin-top: 10px;
+						margin-top: 24px;
 						border-radius: 7px;
-						max-width: 1000px;
+						max-width: 980px;
 						border-top-left-radius: 0.25rem;
-    					border-bottom-left-radius: 0.25rem;
+						border-bottom-left-radius: 0.25rem;
 						
 						&-text {
 							font-family: Inter;
@@ -1838,7 +1837,7 @@ body[data-pathname^="/data/benchmarking"] {
 							font-size: 0.875rem;
 							padding: 8px;
 							line-height: 20px;
-	
+
 							.flag {
 								font-weight: 600;
 							}
@@ -1850,7 +1849,7 @@ body[data-pathname^="/data/benchmarking"] {
 							background-color: #FFF9F9;
 							border: 1px solid #F6D6D6;
 							border-left: 4px solid #BB3F3F;
-	
+
 							.flag {
 								font-weight: 600;
 								color: #BB3F3F;
