@@ -1,3 +1,5 @@
+import os
+import io
 from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
 
@@ -99,6 +101,55 @@ def get_configuration_value(property_name: str,
             if raise_exception is True:
                 raise Exception(f"Cannot get configuration value for: {property_name}\n{get_error_message(e)}")
     return fallback
+
+
+def load_extended_descriptions_in_schemas(schema_object, depth=0):
+    """
+    Taken from CGAP - this is not written super well and is NOT path safe generally
+
+    MODIFIES SCHEMA_OBJECT **IN PLACE** RECURSIVELY
+    :param schema_object: A dictionary of any type that might have 'extended_description', 'properties',
+        or 'items.properties'. Should be an Item schema initially.
+    :param depth: Don't supply this. Used to check/optimize at depth=0 where schema_object is root of schema.
+
+    TODO: Refactor to make path safe, perhaps move into snovault since this is duplicated
+    """
+
+    if depth == 0:
+        # Root of Item schema, no extended_description here, but maybe facets or columns
+        # have own extended_description to load also.
+        if "properties" in schema_object:
+            load_extended_descriptions_in_schemas(schema_object["properties"], depth + 1)
+        if "facets" in schema_object:
+            load_extended_descriptions_in_schemas(schema_object["facets"], depth + 1)
+        if "columns" in schema_object:
+            load_extended_descriptions_in_schemas(schema_object["columns"], depth + 1)
+
+        return schema_object
+
+    for field_name, field_schema in schema_object.items():
+        if "extended_description" in field_schema:
+            if field_schema["extended_description"][-5:] == ".html":
+                html_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                                              # This offset is meaningful - it means you can write paths
+                                              # in the type definitions from "top level" ie: src/encoded/docs/.....
+                                              "../..",
+                                              field_schema["extended_description"])
+                with io.open(html_file_path) as open_file:
+                    field_schema["extended_description"] = "".join([line.strip() for line in open_file.readlines()])
+
+        # Applicable only to "properties" of Item schema, not columns or facets:
+        if "type" in field_schema:
+            if field_schema["type"] == "object" and "properties" in field_schema:
+                load_extended_descriptions_in_schemas(field_schema["properties"], depth + 1)
+                continue
+
+            if (field_schema["type"] == "array"
+                    and "items" in field_schema
+                    and field_schema["items"]["type"] == "object"
+                    and "properties" in field_schema["items"]):
+                load_extended_descriptions_in_schemas(field_schema["items"]["properties"], depth + 1)
+                continue
 
 
 def get_item_with_testapp(

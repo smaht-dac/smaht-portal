@@ -7,6 +7,24 @@ smaht-portal
 Change Log
 ----------
 
+0.47.1
+======
+
+`PR 155: BM In Silico Mix <https://github.com/smaht-dac/smaht-portal/pull/155>`_
+
+* Add in silico mix tab to COLO829 benchmarking
+
+
+0.47.0
+======
+
+* Add calcprop `file_merge_group` as a tag on file sets to help determine which file sets contain files that are candidates for merging
+* Add additional fields to manifest files
+* Documentation on manifest files
+* Documentation on data release via status
+* Adjust access key expiration down to 30 days
+
+
 0.46.2
 ======
 
