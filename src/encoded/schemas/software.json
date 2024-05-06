@@ -113,8 +113,10 @@
                     "Data Compression",
                     "Feature Annotation",
                     "Format Conversion",
+                    "Gene Quantification",
                     "Quality Control",
                     "Read Manipulation",
+                    "Transcript Quantification",
                     "Variant Annotation",
                     "Variant Calling",
                     "Variant Manipulation"

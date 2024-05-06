@@ -330,6 +330,7 @@
                 "colo829bl",
                 "colo829t",
                 "colo829blt_50to1",
+                "colo829blt_in_silico",
                 "hapmap",
                 "hg002",
                 "hg00438",
@@ -937,7 +938,7 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 50,
-                "pattern": "^[a-zA-Z0-9_-]+$"
+                "pattern": "^[a-zA-Z0-9|_-]+$"
             }
         }
     },

@@ -7,10 +7,67 @@ smaht-portal
 Change Log
 ----------
 
+0.47.0
+======
+
+* Add calcprop `file_merge_group` as a tag on file sets to help determine which file sets contain files that are candidates for merging
+* Add additional fields to manifest files
+* Documentation on manifest files
+* Documentation on data release via status
+* Adjust access key expiration down to 30 days
+
+
+0.46.2
+======
+
+`PR 151: fix: HapMap description formatting / Access key button text update <https://github.com/smaht-dac/smaht-portal/pull/151>`_
+
+* Fix formatting issue with HapMap description
+* Remove empty div element when BamQCLink not provided
+* Update the access key button text
+
+
+0.46.1
+======
+
+`PR 152: Bm small fixes <https://github.com/smaht-dac/smaht-portal/pull/152>`_
+
+* Fix for front page links and update to tab titles for iPSC
+
+
+0.46.0
+======
+
+`PR 153: New dataset for in silico Colo829 mixes <https://github.com/smaht-dac/smaht-portal/pull/153>`_
+
+* Add new option for in silico Colo829 mixtures to File `dataset` enum
+
+
+0.45.0
+======
+
+`PR 129: Categories for RNASeq pipelines <https://github.com/smaht-dac/smaht-portal/pull/129>`_
+
+* Add category enums for RNASeq pipelines to MWF, Workflow, Software, and File
+
+
+0.44.0
+======
+
+`PR 140: Basecalling details <https://github.com/smaht-dac/smaht-portal/pull/140>`_
+
+* Create new item (Basecalling) to track basecalling details
+* Add link from Sequencing to Basecalling
+
+
 0.43.0
 ======
 
-* Submission statistics charts for submitted, uploaded and released files with various group by options
+`PR 149: File overview sample summary <https://github.com/smaht-dac/smaht-portal/pull/149>`_
+
+* Complete sample summary calcprop for file overview page
+* Refactor `utils` modules to enable test app integration
+* Fix bugs + type hints and add more functionality to `item_utils` modules
 
 
 0.42.2
@@ -179,6 +236,7 @@ Change Log
 
 0.34.1
 ======
+
 * Add facets to HapMap and iPSC
 * Fix HapMap and iPSC links
 
