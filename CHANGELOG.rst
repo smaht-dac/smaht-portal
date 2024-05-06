@@ -13,6 +13,14 @@ Change Log
 * Submission statistics charts for submitted, uploaded and released files with various group by options
 
 
+0.47.1
+======
+
+`PR 155: BM In Silico Mix <https://github.com/smaht-dac/smaht-portal/pull/155>`_
+
+* Add in silico mix tab to COLO829 benchmarking
+
+
 0.47.0
 ======
 
