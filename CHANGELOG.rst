@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.48.0
+======
+
+* Submission statistics charts for submitted, uploaded and released files with various group by options
+
+
 0.47.0
 ======
 
