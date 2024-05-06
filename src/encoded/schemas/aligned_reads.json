@@ -43,6 +43,9 @@
             "$ref": "mixins.json#/modified"
         },
         {
+            "$ref": "mixins.json#/n50"
+        },
+        {
             "$ref": "mixins.json#/reference_genome"
         },
         {
