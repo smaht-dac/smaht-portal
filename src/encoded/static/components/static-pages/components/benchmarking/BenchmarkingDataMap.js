@@ -49,6 +49,20 @@ export const BenchmarkingDataMap = {
             //     // searchHref: '/search/?type=SubmittedFile&status=released&status=restricted&status=public&dataset=colo829blt_200to1',
             // },
         ],
+        callout: (
+            <div className="callout warning">
+                <p className="callout-text">
+                    <span className="flag">Attention: </span>
+                    <span className="headline">
+                        Illumina WGS BAMs from COLO829-BL, COLO829-T, and
+                        COLO829-BLT50 from UW have been reprocessed{' '}
+                    </span>
+                    to include the local realignment step. If you downloaded
+                    these datasets <u>before May 6</u>, please download them
+                    again for your benchmarking analyses.
+                </p>
+            </div>
+        ),
     },
     HapMap: {
         navBarTitle: 'HapMap',
