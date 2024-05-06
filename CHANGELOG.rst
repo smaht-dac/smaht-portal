@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.47.2
+======
+
+* Add `paired_with` property to OutputFiles
+
+
 0.47.1
 ======
 
