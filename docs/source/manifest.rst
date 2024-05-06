@@ -62,7 +62,7 @@ Specifically, the ``File Group`` combines several pieces of information, includi
 
 For example:
 
-File Merge Group = ``bcm_gcc-WASHU_CELL-CULTURE-MIXTURE_SMAHT_CORIELL_POOL1-pacbio_revio_hifi-Single-end-17500-no-flow-cell-bulk_wgs_pcr_free``
+File Group = ``bcm_gcc-WASHU_CELL-CULTURE-MIXTURE_SMAHT_CORIELL_POOL1-pacbio_revio_hifi-Single-end-17500-no-flow-cell-bulk_wgs_pcr_free``
 
 * ``bcm_gcc`` = Submission center which indicates that ``BCM-GCC`` submitted the sequencing data.
 * ``WASHU_CELL-CULTURE-MIXTURE_SMAHT_CORIELL_POOL1`` = Sample Source which indicates this file was generated from SMAHT CORIELL POOL1 sample source, a name designated by the data submitter at BCM.
