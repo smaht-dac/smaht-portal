@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.48.0
+======
+
+`PR 159: feat: colo829 benchmarking page banner <https://github.com/smaht-dac/smaht-portal/pull/159>`_
+
+* Add callout banner for colo829 dataset benchmarking pages
+
+
 0.47.2
 ======
 
