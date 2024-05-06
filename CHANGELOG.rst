@@ -15,6 +15,14 @@ Change Log
 * Add callout banner for colo829 dataset benchmarking pages
 
 
+0.47.1
+======
+
+`PR 155: BM In Silico Mix <https://github.com/smaht-dac/smaht-portal/pull/155>`_
+
+* Add in silico mix tab to COLO829 benchmarking
+
+
 0.47.0
 ======
 
