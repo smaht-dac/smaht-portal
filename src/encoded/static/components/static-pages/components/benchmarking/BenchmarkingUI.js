@@ -20,7 +20,7 @@ export const BenchmarkingLayout = ({
     children,
     callout = null,
 }) => {
-    const cls = `description readable ${!schemas ? 'mb-5' : 'mb-2'}`;
+    const cls = `description readable ${!schemas ? 'mb-5' : ''}`;
 
     return (
         <div className="benchmarking-layout">
