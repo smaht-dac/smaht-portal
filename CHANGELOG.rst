@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.49.0
+======
+
+`PR 161: feat: file download doc page <https://github.com/smaht-dac/smaht-portal/pull/161>`_
+
+* Add file download doc page
+
+
 0.48.0
 ======
 
