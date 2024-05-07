@@ -41,7 +41,9 @@ OR through the navigation bar:
 
 |
 
-2. You can select any files you wish from each data table in the portal. In this example we used the facets on the left to search for and select 12 BAM files to download from the COLO829BLT50 table. To download, click the blue download button.
+2. You can select any files you wish from each data table in the portal. In this example, we used the facets on the left to search for and select 12 BAM files to download from the COLO829BLT50 table. To download, click the blue download button.
+
+**Please note that the indexed BAM file (.bai) associated with the selected BAM file will be automatically included for download.**
 
 |
 
