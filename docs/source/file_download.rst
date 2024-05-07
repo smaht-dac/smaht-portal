@@ -10,10 +10,10 @@ You need to be able to log into the portal to access the data. To obtain portal 
 
 **AND**
 
-2. Get added to the portal user base at DAC. Contact (`DAC <mailto:smhelp@hms-dbmi.atlassian.net>`_) to obtain portal access.
+2. Get added to the portal user base at DAC. Contact `DAC <mailto:smhelp@hms-dbmi.atlassian.net>`_ to obtain portal access.
 
 .. TIP::
-   To run the download command and gain access to SMaHT data, all users need to create a secret access key on the portal. If you have not yet created an access key, please see the `Credentials </docs/user-guide/credentials>` page for detailed instruction.
+   To run the download command and gain access to SMaHT data, all users need to **create a secret access key** on the portal. If you have not yet created an access key, please see the `Credentials </docs/user-guide/credentials>`_ page for detailed instruction.
 
 |
 
