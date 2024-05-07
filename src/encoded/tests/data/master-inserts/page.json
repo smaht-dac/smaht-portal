@@ -153,27 +153,6 @@
         ]
     },
     {
-        "identifier": "docs/how-to-download",
-        "title": "How to Download Data",
-        "status": "public",
-        "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
-        ],
-        "table-of-contents": {
-            "enabled": true,
-            "skip-depth": 3,
-            "header-depth": 6,
-            "include-top-link": false
-        },
-        "uuid": "859b2c48-0bda-406c-b49b-07d68bd236d4",
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
-    },
-    {
         "identifier": "docs/how-to-register",
         "title": "How to Create Account",
         "status": "public",
