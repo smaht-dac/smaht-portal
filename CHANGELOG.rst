@@ -7,6 +7,72 @@ smaht-portal
 Change Log
 ----------
 
+0.49.0
+======
+
+`PR 161: feat: file download doc page <https://github.com/smaht-dac/smaht-portal/pull/161>`_
+
+* Add file download doc page
+
+
+0.48.0
+======
+
+`PR 159: feat: colo829 benchmarking page banner <https://github.com/smaht-dac/smaht-portal/pull/159>`_
+
+* Add callout banner for colo829 dataset benchmarking pages
+
+
+0.47.2
+======
+
+* Add `paired_with` property to OutputFiles
+
+
+0.47.1
+======
+
+`PR 155: BM In Silico Mix <https://github.com/smaht-dac/smaht-portal/pull/155>`_
+
+* Add in silico mix tab to COLO829 benchmarking
+
+
+0.47.0
+======
+
+* Add calcprop `file_merge_group` as a tag on file sets to help determine which file sets contain files that are candidates for merging
+* Add additional fields to manifest files
+* Documentation on manifest files
+* Documentation on data release via status
+* Adjust access key expiration down to 30 days
+
+
+0.46.2
+======
+
+`PR 151: fix: HapMap description formatting / Access key button text update <https://github.com/smaht-dac/smaht-portal/pull/151>`_
+
+* Fix formatting issue with HapMap description
+* Remove empty div element when BamQCLink not provided
+* Update the access key button text
+
+
+0.46.1
+======
+
+`PR 152: Bm small fixes <https://github.com/smaht-dac/smaht-portal/pull/152>`_
+
+* Fix for front page links and update to tab titles for iPSC
+
+
+0.46.0
+======
+
+`PR 153: New dataset for in silico Colo829 mixes <https://github.com/smaht-dac/smaht-portal/pull/153>`_
+
+* Add new option for in silico Colo829 mixtures to File `dataset` enum
+
+
 0.45.0
 ======
 

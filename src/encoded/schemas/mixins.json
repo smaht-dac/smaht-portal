@@ -330,6 +330,7 @@
                 "colo829bl",
                 "colo829t",
                 "colo829blt_50to1",
+                "colo829blt_in_silico",
                 "hapmap",
                 "hg002",
                 "hg00438",
@@ -686,6 +687,13 @@
             "title": "Ontology Term",
             "type": "string",
             "linkTo": "OntologyTerm"
+        }
+    },
+    "paired_with": {
+        "paired_with": {
+            "description": "Link to associated paired-end file, if applicable",
+            "type": "string",
+            "linkTo": "File"
         }
     },
     "parent_samples": {
