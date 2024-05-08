@@ -4,7 +4,6 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "assay_name",
         "submission_centers",
         "submitted_id"
     ],
@@ -82,29 +81,6 @@
                 ]
             }
         },
-        "assay_name": {
-            "title": "Assay Name",
-            "description": "Name of experimental approach",
-            "type": "array",
-            "uniqueItems": true,
-            "minItems": 1,
-            "items": {
-                "type": "string",
-                "enum": [
-                    "WGS",
-                    "RNA-Seq",
-                    "NanoSeq",
-                    "CODEC",
-                    "Duplex Sequencing",
-                    "FiberSeq",
-                    "ATAC-Seq",
-                    "ScRNA-Seq",
-                    "DLP+",
-                    "MAS-Seq",
-                    "STORM-Seq"
-                ]
-            }
-        },
         "fragmentation_method": {
             "title": "Fragmentation Method",
             "description": "Method used for nucleotide fragmentation",
@@ -164,16 +140,6 @@
                 "Second Stranded",
                 "Not Applicable"
             ]
-        },
-        "target_fragment_length": {
-            "title": "Target Fragment Length",
-            "description": "Desired fragment length for the library",
-            "type": "integer"
-        },
-        "target_insert_length": {
-            "title": "Target Insert Length",
-            "description": "Desired insert length for the library",
-            "type": "integer"
         },
         "trim_adapter_sequence": {
             "title": "Trim Adapter Sequence",
