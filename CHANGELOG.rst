@@ -10,8 +10,12 @@ Change Log
 0.50.1
 ======
 
-* 2024-05-08/dmichaels/PR-??
+* 2024-05-08/dmichaels/PR-163
 * Added option to ingester to skip validation on submit.
+  With smaht-submitr/submit-metadata-bundle --validate-remote-skip flag;
+  this flag previously only prevented server-side validation from being
+  kickeded off by submitr, but on actual submit server-side validation
+  was still being done before loadxl; this flag now prevents that as well.
 
 
 0.50.0
