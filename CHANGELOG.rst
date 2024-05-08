@@ -7,13 +7,6 @@ smaht-portal
 Change Log
 ----------
 
-0.50.1
-======
-
-* 2024-05-08/dmichaels/PR-??
-* Added option to ingester to skip validation on submit.
-
-
 0.50.0
 ======
 

@@ -26,7 +26,6 @@ class SmahtSubmissionFolio:
         self.post_only = get_parameter(submission.parameters, "post_only", as_type=bool, default=False)
         self.patch_only = get_parameter(submission.parameters, "patch_only", as_type=bool, default=False)
         self.validate_only = get_parameter(submission.parameters, "validate_only", as_type=bool, default=False)
-        self.validate_skip = get_parameter(submission.parameters, "validate_skip", as_type=bool, default=False)
         self.ref_nocache = get_parameter(submission.parameters, "ref_nocache", as_type=bool, default=False)
         self.autoadd = get_parameter(submission.parameters, "autoadd", as_type=str, default=None)
         self.consortium = get_parameter(submission.parameters, "consortium", as_type=str, default=None)

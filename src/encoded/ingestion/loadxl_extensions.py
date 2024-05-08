@@ -27,8 +27,6 @@ def load_data_into_database(submission_uuid: str,
         LOADXL_RESPONSE_PATTERN = re.compile(r"^([A-Z]+):\s*([a-zA-Z\/\d_-]+)\s*(\S+)\s*(\S+)?\s*(.*)$")
         LOADXL_ACTION_NAME = {"POST": "created", "PATCH": "updated", "SKIP": "skipped", "CHECK": "validated", "ERROR": "errors"}
         response = {value: [] for value in LOADXL_ACTION_NAME.values()}
-        import pdb ; pdb.set_trace()  # noqa
-        pass
         for item in loadxl_response:
             # ASSUME each item in the loadxl response looks something like one of (string or bytes):
             # POST: beefcafe-01ce-4e61-be5d-cd04401dff29 FileFormat
