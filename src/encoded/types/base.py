@@ -28,6 +28,7 @@ from snovault.server_defaults import add_last_modified
 from . import acl
 from .utils import get_item
 from ..local_roles import DEBUG_PERMISSIONS
+from ..schema_formats import is_accession
 from ..utils import get_remote_user
 
 
@@ -78,6 +79,12 @@ class AbstractCollection(AbstractCollection):
         resource = super(AbstractCollection, self).get(name, None)
         if resource is not None:
             return resource
+        if is_accession(name):
+            resource = self.connection.get_by_unique_key('accession', name)
+            if resource is not None:
+                if not self._allow_contained(resource):
+                    return default
+                return resource
         if ':' in name:
             resource = self.connection.get_by_unique_key('alias', name)
             if resource is not None:
