@@ -69,3 +69,8 @@ def get_external_id(properties: Dict[str, Any]) -> str:
 def get_tags(properties: Dict[str, Any]) -> List[str]:
     """Get tags from properties."""
     return properties.get("tags", [])
+
+
+def get_submitted_id(properties: Dict[str, Any]) -> str:
+    """Get submitted ID from properties."""
+    return properties.get("submitted_id", "")

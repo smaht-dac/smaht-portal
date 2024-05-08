@@ -347,7 +347,7 @@ def _build_file_embedded_list() -> List[str]:
 
 @abstract_collection(
     name="files",
-    unique_key='accession',
+    unique_key="submitted_id",  # To permit lookup on submission
     properties={
         "title": "Files",
         "description": "Listing of Files",
