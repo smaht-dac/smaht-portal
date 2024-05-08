@@ -40,6 +40,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "preparation.json#/properties"
         }
     ],
     "properties": {
@@ -148,28 +151,6 @@
             "title": "Trim Adapter Sequence",
             "description": "Whether trimming adapter sequence is recommended",
             "type": "boolean"
-        },
-        "preparation_kits": {
-            "title": "Preparation Kits",
-            "description": "Links to associated preparation kits",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "PreparationKit"
-            }
-        },
-        "treatments": {
-            "title": "Treatments",
-            "description": "Link to associated treatments performed during library preparation",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "Treatment"
-            }
         }
     }
 }
