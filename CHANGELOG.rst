@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.51.0
+======
+
+`PR 164: Add Tissue code for table search <https://github.com/smaht-dac/smaht-portal/pull/164>`_
+
+* Add `code` property to Tissue to be used in benchmarking table search
+
+
 0.50.0
 ======
 
