@@ -7,13 +7,35 @@ smaht-portal
 Change Log
 ----------
 
-0.48.0
+0.50.0
 ======
 
 `PR 160: Add N50 prop + in silico data type <https://github.com/smaht-dac/smaht-portal/pull/160>`_
 
 * Add N50 property to UnalignedReads and AlignedReads
 * Add in silico enum to File `data_type`
+
+
+0.49.0
+======
+
+`PR 161: feat: file download doc page <https://github.com/smaht-dac/smaht-portal/pull/161>`_
+
+* Add file download doc page
+
+
+0.48.0
+======
+
+`PR 159: feat: colo829 benchmarking page banner <https://github.com/smaht-dac/smaht-portal/pull/159>`_
+
+* Add callout banner for colo829 dataset benchmarking pages
+
+
+0.47.2
+======
+
+* Add `paired_with` property to OutputFiles
 
 
 0.47.1

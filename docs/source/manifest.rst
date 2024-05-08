@@ -24,7 +24,7 @@ Below are the columns listed in the ``manifest`` files as of the May 2024 data r
 
 #. **File Format** - Format of the file (e.g. bam, fastq.gz).
 
-#. **Sample Name** - Sample identifier in SMaHT nomenclature. Please refer to the file nomenclature schema is described `here <https://data.smaht.org/docs/additional-resources/sample-file-nomenclature>`_.
+#. **Sample Name** - Sample identifier in SMaHT nomenclature. Please refer to the file nomenclature schema described `here <https://data.smaht.org/docs/additional-resources/sample-file-nomenclature>`_.
 
 #. **Sample Studies** - Studies associated with this file; Benchmarking or Production.
 

@@ -697,6 +697,13 @@
             "linkTo": "OntologyTerm"
         }
     },
+    "paired_with": {
+        "paired_with": {
+            "description": "Link to associated paired-end file, if applicable",
+            "type": "string",
+            "linkTo": "File"
+        }
+    },
     "parent_samples": {
         "parent_samples": {
             "title": "Parent Samples",
