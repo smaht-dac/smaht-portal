@@ -43,6 +43,9 @@
             "$ref": "mixins.json#/modified"
         },
         {
+            "$ref": "mixins.json#/n50"
+        },
+        {
             "$ref": "mixins.json#/reference_genome"
         },
         {
@@ -96,7 +99,8 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Aligned Reads"
+                    "Aligned Reads",
+                    "In Silico Generated"
                 ]
             },
             "default": [

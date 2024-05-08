@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.50.0
+======
+
+`PR 160: Add N50 prop + in silico data type <https://github.com/smaht-dac/smaht-portal/pull/160>`_
+
+* Add N50 property to UnalignedReads and AlignedReads
+* Add in silico enum to File `data_type`
+
+
 0.49.0
 ======
 
