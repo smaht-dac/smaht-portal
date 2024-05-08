@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.52.0
+======
+
+`PR 165: Update preparation items <https://github.com/smaht-dac/smaht-portal/pull/165>`_
+
+* Move common preparation links to parent item and share props with all children
+* Remove stale properties from preparation items
+* Update workbook inserts to reflect changes
+
+
 0.51.0
 ======
 
