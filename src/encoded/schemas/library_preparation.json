@@ -49,6 +49,9 @@
         "schema_version": {
             "default": "1"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_LIBRARY-PREPARATION_[A-Z0-9-_.]{4,}$"
+        },
         "adapter_inclusion_method": {
             "title": "Adapter Inclusion Method",
             "description": "Method of library preparation from an analyte",
@@ -167,9 +170,6 @@
                 "type": "string",
                 "linkTo": "Treatment"
             }
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_LIBRARY-PREPARATION_[A-Z0-9-_.]{4,}$"
         }
     }
 }
