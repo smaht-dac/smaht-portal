@@ -1140,6 +1140,12 @@ $workflow-node-color-type-global-context: #ffb3b3;
         align-items: center;
     }
 
+    .dropdown-container.sticky-top {
+        top: 40px;
+        background-color: #ffffff;
+        border-bottom: 1px solid #f4f4f4;
+    }
+
     .area-chart-inner-container {
         position: relative;
 
