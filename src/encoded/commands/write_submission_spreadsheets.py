@@ -426,7 +426,13 @@ def get_comment_text(property_: Property) -> str:
     if property_.description:
         comment_lines.append(f"Description:{indent}{property_.description}")
     if property_.value_type:
-        comment_lines.append(f"Type:{indent}{property_.value_type}")
+        if property_.array_subtype:
+            comment_lines.append(
+                f"Type:{indent}{property_.array_subtype}"
+                f"{indent}(Multiple values allowed)"
+            )
+        else:
+            comment_lines.append(f"Type:{indent}{property_.value_type}")
     if property_.enum:
         comment_lines.append(f"Options:{indent}{' | '.join(property_.enum)}")
     if property_.is_required():
