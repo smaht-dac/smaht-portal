@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Union
 
+import googleapiclient
 import openpyxl
 import structlog
 from dcicutils.creds_utils import SMaHTKeyManager
@@ -31,17 +32,179 @@ GOOGLE_TOKEN_PATH = Path.expanduser(Path("~/google_sheets_token.json"))
 SUBMISSION_SCHEMAS_ENDPOINT = "/submission-schemas/"
 
 
-def update_google_sheets(request_handler: RequestHandler) -> None:
+def update_google_sheets(
+    sheets_client: googleapiclient.discovery.Resource, request_handler: RequestHandler
+) -> None:
     """Update Google Sheets with the latest submission schemas."""
+    spreadsheets = get_spreadsheets(request_handler)
+    delete_existing_sheets(sheets_client)
+    update_or_add_spreadsheets(sheets_client, spreadsheets)
+    write_values_to_sheets(sheets_client, spreadsheets)
+    format_column_widths(sheets_client, spreadsheets)
+
+
+def get_spreadsheets(request_handler: RequestHandler) -> List[Spreadsheet]:
     submission_schemas = get_all_submission_schemas(request_handler)
-    for item, submission_schema in submission_schemas.items():
-        spreadsheet = get_spreadsheet(item, submission_schema)
-        update_google_sheet(spreadsheet)
+    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas)
+    return [
+        get_spreadsheet(item, submission_schema)
+        for item, submission_schema in ordered_submission_schemas.items()
+    ]
 
 
-def update_google_sheet(spreadsheet: Spreadsheet) -> None:
-    """Update Google Sheet with the latest submission schema."""
-    log.info(f"Updating Google Sheet for {spreadsheet.item}")
+def delete_existing_sheets(sheets_client: googleapiclient.discovery.Resource) -> None:
+    """Delete existing sheets from Google Sheets."""
+    sheet = sheets_client.get(spreadsheetId=GOOGLE_SHEET_ID).execute()
+    requests = []
+    for sheet in sheet["sheets"]:
+        sheet_id = sheet["properties"]["sheetId"]
+        if sheet_id == 0:
+            requests.append(
+                {
+                    "deleteRange": {
+                        "range": {"sheetId": sheet_id}, "shiftDimension": "ROWS"
+                    }
+                }
+            )
+        else:
+            requests.append({"deleteSheet": {"sheetId": sheet_id}})
+    if requests:
+        sheets_client.batchUpdate(
+            spreadsheetId=GOOGLE_SHEET_ID,
+            body={"requests": requests},
+        ).execute()
+
+
+def update_or_add_spreadsheets(
+    sheets_client: googleapiclient.discovery.Resource, spreadsheets: List[Spreadsheet]
+) -> None:
+    """Update or add spreadsheets to Google Sheets."""
+    requests = []
+    for idx, spreadsheet in enumerate(spreadsheets):
+        if idx == 0:
+            requests.append(
+                {
+                    "updateSheetProperties": {
+                        "properties": {
+                            "sheetId": idx,
+                            "title": spreadsheet.item,
+                            "gridProperties": {
+                                "columnCount": get_max_column_count(spreadsheet.properties)
+                            },
+                        },
+                        "fields": "title",
+                    }
+                }
+            )
+        else:
+            requests.append(
+                {
+                    "addSheet": {
+                        "properties": {
+                            "title": spreadsheet.item,
+                            "sheetId": idx,
+                            "gridProperties": {
+                                "columnCount": get_max_column_count(spreadsheet.properties)
+                            },
+                        },
+                    }
+                }
+            )
+    if requests:
+        sheets_client.batchUpdate(
+            spreadsheetId=GOOGLE_SHEET_ID,
+            body={"requests": requests},
+        ).execute()
+
+
+def get_max_column_count(properties: List[Property]) -> int:
+    """Get the maximum column count."""
+    return len(properties) if len(properties) > 15 else 15
+
+
+def write_values_to_sheets(
+    sheets_client: googleapiclient.discovery.Resource, spreadsheets: List[Spreadsheet]
+) -> None:
+    """Write values to the Google Sheets."""
+    requests = []
+    for idx, spreadsheet in enumerate(spreadsheets):
+        values = get_values(spreadsheet)
+        requests.append(
+            {
+                "updateCells": {
+                    "rows": values,
+                    "fields": "*",
+                    "start": {"sheetId": idx, "rowIndex": 0, "columnIndex": 0},
+                }
+            }
+        )
+    if requests:
+        sheets_client.batchUpdate(
+            spreadsheetId=GOOGLE_SHEET_ID,
+            body={"requests": requests},
+        ).execute()
+
+
+def get_values(spreadsheet: Spreadsheet) -> List[Dict[str, Any]]:
+    """Get values for the spreadsheet."""
+    return [
+        {"values": [
+            get_cell_value(property_)
+            for property_ in spreadsheet.properties
+        ]}
+    ]
+
+
+def get_cell_value(property_: Property) -> Dict[str, Any]:
+    """Get the cell value."""
+    return {
+        "userEnteredValue": {"stringValue": property_.name},
+        "userEnteredFormat": {
+            "textFormat": get_text_format(property_),
+        },
+        "note": get_comment_text(property_),
+    }
+
+
+def get_text_format(property_: Property) -> Dict[str, Any]:
+    """Get the text format."""
+    text_format = {"fontFamily": "Arial", "fontSize": 10}
+    if property_.is_required():
+        text_format["bold"] = True
+    if property_.is_link():
+        text_format["italic"] = True
+    return text_format
+
+
+def format_column_widths(
+    sheets_client: googleapiclient.discovery.Resource, spreadsheets: List[Spreadsheet]
+) -> None:
+    """Format column widths in the Google Sheets."""
+    requests = []
+    for idx, spreadsheet in enumerate(spreadsheets):
+        for index, property_ in enumerate(spreadsheet.properties):
+            width = len(property_.name) * 7
+            requests.append(
+                {
+                    "updateDimensionProperties": {
+                        "range": {
+                            "sheetId": idx,
+                            "dimension": "COLUMNS",
+                            "startIndex": index,
+                            "endIndex": index + 1,
+                        },
+                        "properties": {
+                            "pixelSize": width if width > 120 else 120,
+                        },
+                        "fields": "pixelSize",
+                    }
+                }
+            )
+    if requests:
+        sheets_client.batchUpdate(
+            spreadsheetId=GOOGLE_SHEET_ID,
+            body={"requests": requests},
+        ).execute()
 
 
 def write_all_spreadsheets(
@@ -523,8 +686,8 @@ def main():
     if args.google:
         log.info(f"Google Sheet ID: {GOOGLE_SHEET_ID}")
         log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-        google_sheet = get_google_sheet()
-        update_google_sheets(request_handler)
+        spreadsheet_client = get_google_sheet_client()
+        update_google_sheets(spreadsheet_client, request_handler)
     if args.all:
         log.info("Writing all submission spreadsheets")
         write_all_spreadsheets(
@@ -555,13 +718,11 @@ def dir_path(path: str) -> Path:
     raise NotADirectoryError(path)
 
 
-def get_google_sheet() -> Any:
+def get_google_sheet_client() -> googleapiclient.discovery.Resource:
     """Get Google Sheet to write/update."""
     credentials = get_google_credentials()
     service = build("sheets", "v4", credentials=credentials)
-    spreadsheets = service.spreadsheets()
-    import pdb; pdb.set_trace()
-    return result
+    return service.spreadsheets()
 
 
 def get_google_credentials() -> Dict[str, Any]:
