@@ -4,6 +4,8 @@ from contextlib import contextmanager
 import json
 import os
 from typing import Generator
+from dcicutils.misc_utils import VirtualApp
+from dcicutils.portal_utils import Portal
 from snovault.ingestion.common import get_parameter
 from snovault.types.ingestion import SubmissionFolio
 from snovault.util import s3_local_file
@@ -72,6 +74,17 @@ class SmahtSubmissionFolio:
         self.consortium = get_parameter(submission.parameters, "consortium")
         self.submission_center = get_parameter(submission.parameters, "submission_center")
         self.portal_vapp = submission.vapp
+        # Prevent non-admin things; currently just no validation skipping allowed.
+        if not self.is_admin_user(self.user, self.portal_vapp):
+            self.validate_skip = False
+
+    @staticmethod
+    def is_admin_user(user: dict, portal_vapp: VirtualApp) -> bool:
+        try:
+            user_record = Portal(portal_vapp).get_metadata(user["uuid"])
+            return "admin" in user_record.get("groups", [])
+        except Exception:
+            return False
 
     @property
     def outcome(self) -> str:
