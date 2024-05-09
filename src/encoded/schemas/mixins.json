@@ -650,6 +650,14 @@
             }
         }
     },
+    "n50": {
+        "n50": {
+            "title": "N50",
+            "description": "The sequence length of the shortest read at 50% of the total sequencing dataset sorted by read length",
+            "type": "number",
+            "minimum": 0
+        }
+    },
     "name": {
         "name": {
             "title": "Name",
@@ -687,6 +695,13 @@
             "title": "Ontology Term",
             "type": "string",
             "linkTo": "OntologyTerm"
+        }
+    },
+    "paired_with": {
+        "paired_with": {
+            "description": "Link to associated paired-end file, if applicable",
+            "type": "string",
+            "linkTo": "File"
         }
     },
     "parent_samples": {
