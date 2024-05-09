@@ -281,19 +281,20 @@ export class GroupByController extends React.PureComponent {
 
     static defaultProps = {
         'groupByOptions' : {
-            'award.center_title'                 : <span><i className="icon icon-fw fas icon-university"/>&nbsp; Center</span>,
-            'award.project'                      : <span><i className="icon icon-fw fas icon-university"/>&nbsp; Project</span>,
-            'lab.display_title'                  : <span><i className="icon icon-fw fas icon-users"/>&nbsp; Lab</span>,
-            //'status'                             : <span><i className="icon icon-fw icon-circle"/>&nbsp; <span className="text-600">Current</span> Status</span>,
-            'experiments_in_set.experiment_type.display_title' : <span><i className="icon fas icon-fw icon-chart-bar"/>&nbsp; Experiment Type</span>
+            'data_generation_summary.submission_centers'    : <span><i className="icon icon-fw fas icon-university mr-1"/>Submission Center</span>,
+            'dataset'                                       : <span><i className="icon icon-fw fas icon-database mr-1"/>Sample</span>,
         },
-        'initialGroupBy' : 'award.center_title'
+        'initialGroupBy' : 'data_generation_summary.submission_centers'
     };
 
     constructor(props){
         super(props);
         this.handleGroupByChange = this.handleGroupByChange.bind(this);
-        this.state = { 'currentGroupBy' : props.initialGroupBy };
+        this.handleDateIntervalChange = this.handleDateIntervalChange.bind(this);
+        this.state = { 
+            'currentGroupBy' : props.initialGroupBy,
+            'currentDateInterval': props.initialDateInterval
+         };
     }
 
     handleGroupByChange(field){
@@ -305,10 +306,26 @@ export class GroupByController extends React.PureComponent {
         });
     }
 
+    handleDateIntervalChange(field){
+        this.setState(function(currState){
+            if (currState.currentDateInterval === field){
+                return null;
+            }
+            return { 'currentDateInterval' : field };
+        });
+    }
+
     render(){
-        var { children } = this.props,
-            { currentGroupBy } = this.state,
-            childProps = _.extend(_.omit(this.props, 'children', 'initialGroupBy'),{ currentGroupBy, 'handleGroupByChange' : this.handleGroupByChange });
+        const { children } = this.props;
+        const { currentGroupBy, currentDateInterval } = this.state;
+        const childProps = _.extend(
+            _.omit(this.props, 'children', 'initialGroupBy', 'initialDateInterval'),
+            {
+                currentGroupBy,
+                'handleGroupByChange': this.handleGroupByChange,
+                currentDateInterval,
+                'handleDateIntervalChange': this.handleDateIntervalChange
+            });
 
         if (Array.isArray(children)){
             return <div>{ React.Children.map(children, (c) =>  React.cloneElement(c, childProps) ) }</div>;
@@ -322,21 +339,24 @@ export class GroupByController extends React.PureComponent {
 export class GroupByDropdown extends React.PureComponent {
 
     static defaultProps = {
-        'title' : "Group By",
+        'groupByTitle' : "Group By",
+        'dateIntervalTitle' : "Date",
         'buttonStyle' : {
             'marginLeft' : 12,
             'textAlign' : 'left'
         },
         'outerClassName' : "dropdown-container mb-15",
-        'id' : "select_primary_charts_group_by"
+        'groupById' : "select_primary_charts_group_by",
+        'dateIntervalId' : "select_primary_charts_date_interval"
     };
 
     constructor(props){
         super(props);
-        this.onSelect = _.throttle(this.onSelect.bind(this), 1000);
+        this.onGroupBySelect = _.throttle(this.onGroupBySelect.bind(this), 1000);
+        this.onDateIntervalSelect = _.throttle(this.onDateIntervalSelect.bind(this), 1000);
     }
 
-    onSelect(eventKey, evt){
+    onGroupBySelect(eventKey, evt){
         const { handleGroupByChange } = this.props;
         if (typeof handleGroupByChange !== 'function'){
             throw new Error("No handleGroupByChange function passed to GroupByDropdown.");
@@ -344,20 +364,45 @@ export class GroupByDropdown extends React.PureComponent {
         handleGroupByChange(eventKey);
     }
 
+    onDateIntervalSelect(eventKey, evt){
+        const { handleDateIntervalChange } = this.props;
+        if (typeof handleDateIntervalChange !== 'function'){
+            throw new Error("No handleDateIntervalChange function passed to DateIntervalDropdown.");
+        }
+        handleDateIntervalChange(eventKey);
+    }
+
     render(){
-        const { groupByOptions, currentGroupBy, title, loadingStatus, buttonStyle, outerClassName, children, id } = this.props;
-        const optionItems = _.map(_.pairs(groupByOptions), ([field, title]) =>
+        const {
+            groupByOptions, currentGroupBy, groupByTitle,
+            dateIntervalOptions, currentDateInterval, dateIntervalTitle,
+            loadingStatus, buttonStyle, outerClassName, children,
+            groupById, dateIntervalId } = this.props;
+        // group by
+        const groupByOptionItems = _.map(_.pairs(groupByOptions), ([field, title]) =>
             <DropdownItem eventKey={field} key={field} active={field === currentGroupBy}>{ title }</DropdownItem>
         );
-        const selectedValueTitle = loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch"/> : groupByOptions[currentGroupBy];
-
+        const selectedGroupByValueTitle = loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch"/> : groupByOptions[currentGroupBy];
+        // date interval
+        const dateIntervalOptionItems = dateIntervalOptions && _.map(_.pairs(dateIntervalOptions), ([field, title]) =>
+            <DropdownItem eventKey={field} key={field} active={field === currentDateInterval}>{title}</DropdownItem>
+        );
+        const selectedDateIntervalValueTitle = dateIntervalOptions && (loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch" /> : dateIntervalOptions[currentDateInterval]);
+        console.log('xxx dateIntervalOptions: ', dateIntervalOptions);
         return (
             <div className={outerClassName}>
-                <span className="text-500">{ title }</span>
-                <DropdownButton id={id} title={selectedValueTitle} onSelect={this.onSelect} style={buttonStyle} disabled={optionItems.length < 2}>
-                    { optionItems }
+                <span className="text-500">{ groupByTitle }</span>
+                <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2}>
+                    { groupByOptionItems }
                 </DropdownButton>
-                { children }
+                {dateIntervalOptions &&
+                    <>
+                        <span className="text-500 ml-25">{ dateIntervalTitle }</span>
+                        <DropdownButton id={dateIntervalId} title={ selectedDateIntervalValueTitle } onSelect={this.onDateIntervalSelect} style={buttonStyle}>
+                            { dateIntervalOptionItems }
+                        </DropdownButton>
+                    </>}
+                {children}
             </div>
         );
     }

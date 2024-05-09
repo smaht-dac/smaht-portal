@@ -110,8 +110,19 @@ export default class StatisticsPageView extends React.PureComponent {
         };
         const initialGroupBy = 'data_generation_summary.submission_centers';
 
+        const dateIntervalOptions = {
+                'all'           : <span>All</span>,
+                'thisMonth'     : <span>This Month</span>,
+                'last3Months'   : <span>Last 3 Months</span>,
+                'last6Months'   : <span>Last 6 Months</span>,
+                'last12Months'  : <span>Last 12 Months</span>,
+                'thisYear'      : <span>This Year</span>,
+                // 'lastYear'      : <span>Last Year</span>,
+        };
+        const initialDateInterval = 'thisYear';
+
         return (
-            <dynamicImports.GroupByController {...{ groupByOptions, initialGroupBy }}>
+            <dynamicImports.GroupByController {...{ groupByOptions, initialGroupBy, dateIntervalOptions, initialDateInterval }}>
                 <dynamicImports.SubmissionStatsViewController {..._.pick(this.props, 'session', 'windowWidth')}>
                     <dynamicImports.StatsChartViewAggregator {...{ shouldReaggregate }} aggregationsToChartData={dynamicImports.submissionsAggsToChartData}>
                         <dynamicImports.SubmissionsStatsView />

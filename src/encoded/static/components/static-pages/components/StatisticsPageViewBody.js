@@ -583,6 +583,9 @@ export class SubmissionStatsViewController extends React.PureComponent {
                 if (props.currentGroupBy){
                     params.group_by = props.currentGroupBy;
                 }
+                if (props.currentDateInterval){
+                    params.date_interval = props.currentDateInterval;
+                }
                 const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
 
                 // For local dev/debugging; don't forget to comment out if using.
@@ -592,8 +595,8 @@ export class SubmissionStatsViewController extends React.PureComponent {
         },
         'shouldRefetchAggs' : function(pastProps, nextProps){
             return StatsViewController.defaultProps.shouldRefetchAggs(pastProps, nextProps) || (
-                pastProps.browseBaseState !== nextProps.browseBaseState ||
-                pastProps.currentGroupBy  !== nextProps.currentGroupBy
+                pastProps.currentGroupBy !== nextProps.currentGroupBy ||
+                pastProps.currentDateInterval !== nextProps.currentDateInterval
             );
         }
     };
@@ -857,7 +860,9 @@ export function UsageStatsView(props){
 
 export function SubmissionsStatsView(props) {
     const {
-        loadingStatus, mounted, session, currentGroupBy, groupByOptions, handleGroupByChange, windowWidth,
+        loadingStatus, mounted, session, windowWidth,
+        currentGroupBy, groupByOptions, handleGroupByChange,
+        currentDateInterval, dateIntervalOptions, handleDateIntervalChange,
         // Passed in from StatsChartViewAggregator:
         files_uploading, file_volume_uploading,  files_uploaded, file_volume_uploaded, files_released, file_volume_released,
         chartToggles, smoothEdges, width, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
@@ -876,27 +881,40 @@ export function SubmissionsStatsView(props) {
         'onToggle' : onChartToggle, chartToggles, windowWidth,
         'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250
     };
-    const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum: cumulativeSum };
+    let xDomain = [ new Date('2023-11-01'), null ];
+    
+    if (currentDateInterval === 'thisMonth')
+        xDomain = [new Date('2024-04-01'), null];
+    else if (currentDateInterval === 'last3Months')
+        xDomain = [new Date('2024-02-21'), null];
+    else if (currentDateInterval === 'last6Months')
+        xDomain = [new Date('2023-11-21'), null];
+    else if (currentDateInterval === 'last12Months')
+        xDomain = [new Date('2023-05-21'), null];
+    else if (currentDateInterval === 'thisYear')
+        xDomain = [new Date('2023-12-21'), null];
+    else if (currentDateInterval === 'lastYear')
+        xDomain = [new Date('2022-12-21'), new Date('2023-12-31')];
+    const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum: cumulativeSum, xDomain };
+    const groupByProps = { currentGroupBy, groupByOptions, handleGroupByChange, currentDateInterval, dateIntervalOptions, handleDateIntervalChange, loadingStatus } 
 
     return (
         <div className="stats-charts-container" key="charts" id="submissions">
 
-            <ColorScaleProvider width={width} resetScalesWhenChange={files_released}>
+            <GroupByDropdown {...groupByProps} groupByTitle="Group Charts Below By" dateIntervalTitle="Date" outerClassName="dropdown-container mb-15 sticky-top">
+                <div className="d-inline-block ml-15">
+                    <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
+                </div>
+                <div className="d-inline-block ml-15">
+                    <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Show as cumulative sum</Checkbox>
+                </div>
+            </GroupByDropdown>
 
-                <GroupByDropdown {...{ currentGroupBy, groupByOptions, handleGroupByChange, loadingStatus }} title="Group Charts Below By">
-                    <div className="d-inline-block ml-15">
-                        <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
-                    </div>
-                    <div className="d-inline-block ml-15">
-                        <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Show as cumulative sum</Checkbox>
-                    </div>
-                </GroupByDropdown>
-
-                <hr/>
-
-                <HorizontalD3ScaleLegend {...{ loadingStatus }} />
+            <ColorScaleProvider width={width} resetScalesWhenChange={files_uploading}>
 
                 <h3 className="charts-group-title">Metadata submitted</h3>
+
+                <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploading" title={
                     <h5 className="text-400 mt-0">
@@ -914,7 +932,13 @@ export function SubmissionsStatsView(props) {
                     <AreaChart {...commonChartProps} data={file_volume_uploading} yAxisLabel="GB" />
                 </AreaChartContainer>
 
+            </ColorScaleProvider>
+
+            <ColorScaleProvider width={width} resetScalesWhenChange={files_uploaded}>
+
                 <h3 className="charts-group-title">Data submitted</h3>
+
+                <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploaded" title={
                     <h5 className="text-400 mt-0">
@@ -930,9 +954,16 @@ export function SubmissionsStatsView(props) {
                     </h5>
                 }>
                     <AreaChart {...commonChartProps} data={file_volume_uploaded} yAxisLabel="GB" />
-                </AreaChartContainer>                   
+                </AreaChartContainer>
+
+            </ColorScaleProvider>
+
+
+            <ColorScaleProvider width={width} resetScalesWhenChange={files_released}>
 
                 <h3 className="charts-group-title">Data released to the portal</h3>
+
+                <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
                 <AreaChartContainer {...commonContainerProps} id="files_released" title={
                     <h5 className="text-400 mt-0">

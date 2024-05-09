@@ -2,6 +2,7 @@
 #
 # from botocore.exceptions import ClientError
 from copy import copy, deepcopy
+from datetime import datetime, timedelta
 # from dcicutils.misc_utils import print_error_message
 # from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.view import view_config
@@ -127,6 +128,25 @@ def date_histogram_aggregations(context, request):
                 if interval not in interval_to_es_interval.keys():
                     raise IndexError('"{}" is not one of daily, weekly, monthly, or yearly.'.format(interval))
             del search_param_lists['date_histogram_interval'] # We don't wanna use it as search filter.
+        if 'date_interval' in search_param_lists and len(search_param_lists['date_interval']) > 0:
+            date_interval = search_param_lists['date_interval'][0]
+            today = datetime.today()
+            from_field = 'file_status_tracking.uploading.from' #'date_created.from'
+            if date_interval == 'thisMonth':
+                search_param_lists[from_field] = '2024-05-01'
+            elif date_interval == 'last3Months':
+                search_param_lists[from_field] = '2024-03-01'#(today - timedelta(days=50)).strftime("%Y-%m-%d")
+            elif date_interval == 'last6Months':
+                search_param_lists[from_field] = '2023-12-01'
+            elif date_interval == 'last12Months':
+                search_param_lists[from_field] = '2023-06-01'
+            elif date_interval == 'thisYear':
+                search_param_lists[from_field] = '2024-01-01'
+            elif date_interval == 'lastYear':
+                search_param_lists[from_field] = '2023-01-01'
+                # search_param_lists['date_created.to'] = '2023-12-31'
+
+            del search_param_lists['date_interval']
         if not search_param_lists:
             search_param_lists = {}
 
