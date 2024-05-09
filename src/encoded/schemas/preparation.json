@@ -60,6 +60,28 @@
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_PREPARATION_[A-Z0-9-_.]{4,}$"
+        },
+        "preparation_kits": {
+            "title": "Preparation Kits",
+            "description": "Links to associated preparation kits",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "PreparationKit"
+            }
+        },
+        "treatments": {
+            "title": "Treatments",
+            "description": "Link to associated treatments performed during library preparation",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Treatment"
+            }
         }
     }
 }
