@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 from dataclasses import dataclass
 from pathlib import Path
@@ -8,6 +10,10 @@ import structlog
 from dcicutils.creds_utils import SMaHTKeyManager
 from dcicutils.misc_utils import to_camel_case, to_snake_case
 from dcicutils import schema_utils
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
 from snovault.schema_views import SubmissionSchemaConstants
 
 from encoded.item_utils import constants as item_constants
@@ -17,7 +23,25 @@ from encoded.project.loadxl import ITEM_INDEX_ORDER
 
 log = structlog.getLogger(__name__)
 
+GOOGLE_SHEET_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+GOOGLE_SHEET_ID = "12jMDCOaKJyvR1CZ8oR-47xoXJPM0XqkCwANbAoJJHPE"
+GOOGLE_CREDENTIALS_PATH = Path.expanduser(Path("~/google_sheets_creds.json"))
+GOOGLE_TOKEN_PATH = Path.expanduser(Path("~/google_sheets_token.json"))
+
 SUBMISSION_SCHEMAS_ENDPOINT = "/submission-schemas/"
+
+
+def update_google_sheets(request_handler: RequestHandler) -> None:
+    """Update Google Sheets with the latest submission schemas."""
+    submission_schemas = get_all_submission_schemas(request_handler)
+    for item, submission_schema in submission_schemas.items():
+        spreadsheet = get_spreadsheet(item, submission_schema)
+        update_google_sheet(spreadsheet)
+
+
+def update_google_sheet(spreadsheet: Spreadsheet) -> None:
+    """Update Google Sheet with the latest submission schema."""
+    log.info(f"Updating Google Sheet for {spreadsheet.item}")
 
 
 def write_all_spreadsheets(
@@ -473,7 +497,7 @@ def save_workbook(workbook: openpyxl.Workbook, file_path: Path) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="Write submission spreadsheets")
-    parser.add_argument("output", help="Output file directory", type=dir_path)
+    parser.add_argument("--output", help="Output file directory", type=dir_path)
     parser.add_argument("--env", help="Environment", default="data")
     parser.add_argument("--item", help="Item name", nargs="+")
     parser.add_argument("--all", help="All items", action="store_true")
@@ -485,10 +509,22 @@ def main():
     parser.add_argument(
         "--separate", help="Add comments as separate cells", action="store_true"
     )
+    parser.add_argument(
+        "--google", help="Write to/update Google Sheets", action="store_true"
+    )
     args = parser.parse_args()
 
     keys = SMaHTKeyManager().get_keydict_for_env(args.env)
     request_handler = RequestHandler(auth_key=keys)
+    if not args.output and not args.google:
+        parser.error("No output specified")
+    if args.all and args.item:
+        parser.error("Cannot specify both all and item")
+    if args.google:
+        log.info(f"Google Sheet ID: {GOOGLE_SHEET_ID}")
+        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+        google_sheet = get_google_sheet()
+        update_google_sheets(request_handler)
     if args.all:
         log.info("Writing all submission spreadsheets")
         write_all_spreadsheets(
@@ -496,6 +532,7 @@ def main():
             request_handler,
             workbook=args.workbook,
             separate_comments=args.separate,
+            google=args.google,
         )
     elif args.item:
         log.info(f"Writing submission spreadsheets for item(s): {args.item}")
@@ -505,9 +542,10 @@ def main():
             request_handler,
             workbook=args.workbook,
             separate_comments=args.separate,
+            google=args.google,
         )
-    else:
-        parser.error("No item specified")
+    elif not args.google:
+        parser.error("No items specified to write or update spreadsheets for")
 
 
 def dir_path(path: str) -> Path:
@@ -515,6 +553,51 @@ def dir_path(path: str) -> Path:
     if Path(path).is_dir():
         return Path(path)
     raise NotADirectoryError(path)
+
+
+def get_google_sheet() -> Any:
+    """Get Google Sheet to write/update."""
+    credentials = get_google_credentials()
+    service = build("sheets", "v4", credentials=credentials)
+    spreadsheets = service.spreadsheets()
+    import pdb; pdb.set_trace()
+    return result
+
+
+def get_google_credentials() -> Dict[str, Any]:
+    """Get Google creds from secrets file."""
+    creds = get_google_creds_from_token()
+    if not creds:
+        creds = get_google_creds_from_flow()
+        write_google_token(creds)
+    return creds
+
+
+def get_google_creds_from_token() -> Union[Credentials, None]:
+    """Get Google creds from token file."""
+    if GOOGLE_TOKEN_PATH.exists():
+        credentials = Credentials.from_authorized_user_file(
+            GOOGLE_TOKEN_PATH, GOOGLE_SHEET_SCOPES
+        )
+        if not credentials.valid:
+            credentials.refresh(Request())
+            write_google_token(credentials)
+        return credentials
+    return None
+
+
+def get_google_creds_from_flow() -> Credentials:
+    """Get Google creds from flow via credentials file."""
+    flow = InstalledAppFlow.from_client_secrets_file(
+        GOOGLE_CREDENTIALS_PATH, GOOGLE_SHEET_SCOPES
+    )
+    return flow.run_local_server(port=0)
+
+
+def write_google_token(creds: Credentials) -> None:
+    """Write Google token to file."""
+    with open(GOOGLE_TOKEN_PATH, "w") as file:
+        file.write(creds.to_json())
 
 
 if __name__ == "__main__":
