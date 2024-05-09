@@ -38,7 +38,7 @@ def write_all_spreadsheets(
 
 
 def get_all_submission_schemas(
-    request_handler: RequestHandler
+    request_handler: RequestHandler,
 ) -> Dict[str, Dict[str, Any]]:
     """Get all submission schemas"""
     return request_handler.get_item(SUBMISSION_SCHEMAS_ENDPOINT)
@@ -92,14 +92,10 @@ def write_workbook(
         if index == 0:
             worksheet = workbook.active
             set_sheet_name(worksheet, spreadsheet)
-            write_properties(
-                worksheet, spreadsheet.properties, separate_comments
-            )
+            write_properties(worksheet, spreadsheet.properties, separate_comments)
         else:
             worksheet = workbook.create_sheet(title=spreadsheet.item)
-            write_properties(
-                worksheet, spreadsheet.properties, separate_comments
-            )
+            write_properties(worksheet, spreadsheet.properties, separate_comments)
     file_path = Path(output, "submission_workbook.xlsx")
     save_workbook(workbook, file_path)
     log.info(f"Workbook written to: {file_path}")
@@ -143,6 +139,7 @@ class Property:
     link: bool
     enum: List[str]
     array_subtype: str
+    pattern: str
 
     def is_required(self) -> bool:
         """Check if property is required"""
@@ -172,9 +169,7 @@ def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet
 def get_properties(submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
     properties = schema_utils.get_properties(submission_schema)
-    return [
-        get_property_info(key, value) for key, value in properties.items()
-    ]
+    return [get_property_info(key, value) for key, value in properties.items()]
 
 
 def get_property_info(key: str, value: Dict[str, Any]) -> Property:
@@ -187,6 +182,7 @@ def get_property_info(key: str, value: Dict[str, Any]) -> Property:
         link=is_link(value),
         enum=get_enum(value),
         array_subtype=get_array_subtype(value),
+        pattern=schema_utils.get_pattern(value),
     )
 
 
@@ -207,9 +203,8 @@ def is_array_of_links(property_schema: Dict[str, Any]) -> bool:
 
 def get_enum(property_schema: Dict[str, Any]) -> List[str]:
     """Get the enum values"""
-    return schema_utils.get_enum(property_schema) or get_nested_enum(
-        property_schema
-    )
+    return schema_utils.get_enum(property_schema) or get_nested_enum(property_schema)
+
 
 def get_nested_enum(property_schema: Dict[str, Any]) -> List[str]:
     """Get the enum values from a nested schema"""
@@ -300,7 +295,8 @@ def get_required_non_links(properties: List[Property]) -> List[Property]:
     the rest alphabetically.
     """
     required_non_links = [
-        property_ for property_ in properties
+        property_
+        for property_ in properties
         if property_.is_required() and not property_.is_link()
     ]
     submitted_id = [
@@ -308,7 +304,8 @@ def get_required_non_links(properties: List[Property]) -> List[Property]:
     ]
     non_submitted_id = sort_properties_alphabetically(
         [
-            property_ for property_ in required_non_links
+            property_
+            for property_ in required_non_links
             if not is_submitted_id(property_)
         ]
     )
@@ -319,7 +316,8 @@ def get_non_required_non_links(properties: List[Property]) -> List[Property]:
     """Get non-required non-link properties."""
     return sort_properties_alphabetically(
         [
-            property_ for property_ in properties
+            property_
+            for property_ in properties
             if not property_.is_required() and not property_.is_link()
         ]
     )
@@ -329,7 +327,8 @@ def get_required_links(properties: List[Property]) -> List[Property]:
     """Get required link properties."""
     return sort_properties_alphabetically(
         [
-            property_ for property_ in properties
+            property_
+            for property_ in properties
             if property_.is_required() and property_.is_link()
         ]
     )
@@ -339,7 +338,8 @@ def get_non_required_links(properties: List[Property]) -> List[Property]:
     """Get non-required link properties."""
     return sort_properties_alphabetically(
         [
-            property_ for property_ in properties
+            property_
+            for property_ in properties
             if not property_.is_required() and property_.is_link()
         ]
     )
@@ -433,10 +433,11 @@ def get_comment_text(property_: Property) -> str:
         comment_lines.append(f"Required:{indent}Yes")
     else:
         comment_lines.append(f"Required:{indent}No")
+    if property_.pattern:
+        comment_lines.append(f"Pattern:{indent}{property_.pattern}")
     if comment_lines:
         return "\n\n".join(comment_lines)
     return ""
-
 
 
 def get_comment_height(comment_text: str) -> int:
@@ -501,7 +502,6 @@ def main():
         )
     else:
         parser.error("No item specified")
-
 
 
 def dir_path(path: str) -> Path:
