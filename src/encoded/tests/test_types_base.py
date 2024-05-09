@@ -15,8 +15,10 @@ def test_get(es_testapp: TestApp, workbook: None) -> None:
     Using files from workbooks for tests here, but could be any
     collection.
     """
-    files_with_accessions = get_search(es_testapp, "?type=File&accession!=No+value")
-    file_with_accession = get_item_with_smaht_accession(files_with_accessions)
+    submitted_files_with_accessions = get_search(
+        es_testapp, "?type=SubmittedFile&accession!=No+value"
+    )  # Unique key should not be accession
+    file_with_accession = get_item_with_smaht_accession(submitted_files_with_accessions)
     assert file_with_accession, "No file with SMaHT-style accession found in workbook."
 
     files_with_aliases = get_search(es_testapp, "?type=File&aliases!=No+value")
