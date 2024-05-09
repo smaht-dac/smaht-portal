@@ -129,7 +129,6 @@ def date_histogram_aggregations(context, request):
             del search_param_lists['date_histogram_interval'] # We don't wanna use it as search filter.
         if not search_param_lists:
             search_param_lists = {}
-            del search_param_lists['award.project']
 
     if 'File' in search_param_lists['type']:
         # Add predefined sub-aggs to collect Exp and File counts from ExpSet items, in addition to getting own doc_count.
