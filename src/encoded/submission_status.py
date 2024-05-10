@@ -242,9 +242,12 @@ def generate_html_colors(num_colors):
         hex_color = rgb_to_hex(rgb_color)
         colors.append(hex_color)
     # We permute the color list here to get better contrast in the final table
-    lst_1 = colors[0::2]
-    lst_2 = colors[1::2]
+    # ["a", "b", "c", "d", "e", "f"] -> ['a', 'd', 'b', 'e', 'c', 'f']
+    lst_1 = colors[0::3]
+    lst_2 = colors[1::3]
+    lst_3 = colors[2::3]
     lst_1.extend(lst_2)
+    lst_1.extend(lst_3)
     return lst_1
 
 def rgb_to_hex(rgb):
