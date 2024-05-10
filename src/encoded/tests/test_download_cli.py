@@ -19,7 +19,7 @@ def test_extract_bucket_and_key(url, expected):
     assert key == expected[1]
 
 
-def test_uri_get(es_testapp, uri):
+def _test_uri_get(es_testapp, uri):
     """ Helper functions that tests that we can get back download creds via GET """
     res = es_testapp.get(f'/download_cli/?item={uri}').json['upload_credentials']
     assert 'AccessKeyId' in res
@@ -28,7 +28,7 @@ def test_uri_get(es_testapp, uri):
     assert 'SessionToken' in res
 
 
-def test_uri_post(es_testapp, uri):
+def _test_uri_post(es_testapp, uri):
     """ Helper functions that tests that we can get back download creds via POST """
     res = es_testapp.post_json('/download_cli/', {
         'item': f'{uri}'
@@ -50,23 +50,23 @@ def test_download_cli_workbook_post(workbook, es_testapp):
     }, status=400)
     es_testapp.post_json('/download_cli/', {}, status=400)
     # test with @@download
-    test_uri_post(es_testapp, f'{atid}@@download')
-    test_uri_post(es_testapp, f'/{uuid}/@@download')
-    test_uri_post(es_testapp, f'/{accession}/@@download')
+    _test_uri_post(es_testapp, f'{atid}@@download')
+    _test_uri_post(es_testapp, f'/{uuid}/@@download')
+    _test_uri_post(es_testapp, f'/{accession}/@@download')
     # test without @@download
-    test_uri_post(es_testapp, f'{atid}')
-    test_uri_post(es_testapp, f'/{uuid}')
-    test_uri_post(es_testapp, f'/{accession}')
+    _test_uri_post(es_testapp, f'{atid}')
+    _test_uri_post(es_testapp, f'/{uuid}')
+    _test_uri_post(es_testapp, f'/{accession}')
     # test extra file 1 with @@download
     # NOTE: dummy data that doesn't use the accession as the file name
     # does NOT work to download!
-    test_uri_post(es_testapp, f'{atid}@@download/TSTFI2115172.bai')
-    test_uri_post(es_testapp, f'/{uuid}/@@download/TSTFI2115172.bai')
-    test_uri_post(es_testapp, f'/{accession}/@@download/TSTFI2115172.bai')
+    _test_uri_post(es_testapp, f'{atid}@@download/TSTFI2115172.bai')
+    _test_uri_post(es_testapp, f'/{uuid}/@@download/TSTFI2115172.bai')
+    _test_uri_post(es_testapp, f'/{accession}/@@download/TSTFI2115172.bai')
     # test extra file 2 with @@download
-    test_uri_post(es_testapp, f'{atid}@@download/TSTFI2115172.vcf')
-    test_uri_post(es_testapp, f'/{uuid}/@@download/TSTFI2115172.vcf')
-    test_uri_post(es_testapp, f'/{accession}/@@download/TSTFI2115172.vcf')
+    _test_uri_post(es_testapp, f'{atid}@@download/TSTFI2115172.vcf')
+    _test_uri_post(es_testapp, f'/{uuid}/@@download/TSTFI2115172.vcf')
+    _test_uri_post(es_testapp, f'/{accession}/@@download/TSTFI2115172.vcf')
 
 
 @pytest.mark.workbook
@@ -78,20 +78,20 @@ def test_download_cli_workbook_get(workbook, es_testapp):
     es_testapp.get(f'/download_cli/?not_item=blah', status=400)
     es_testapp.get(f'/download_cli/', status=400)
     # test with @@download
-    test_uri_get(es_testapp, f'{atid}@@download')
-    test_uri_get(es_testapp, f'/{uuid}/@@download')
-    test_uri_get(es_testapp, f'/{accession}/@@download')
+    _test_uri_get(es_testapp, f'{atid}@@download')
+    _test_uri_get(es_testapp, f'/{uuid}/@@download')
+    _test_uri_get(es_testapp, f'/{accession}/@@download')
     # test without @@download
-    test_uri_get(es_testapp, f'{atid}')
-    test_uri_get(es_testapp, f'/{uuid}')
-    test_uri_get(es_testapp, f'/{accession}')
+    _test_uri_get(es_testapp, f'{atid}')
+    _test_uri_get(es_testapp, f'/{uuid}')
+    _test_uri_get(es_testapp, f'/{accession}')
     # test extra file 1 with @@download
     # NOTE: dummy data that doesn't use the accession as the file name
     # does NOT work to download!
-    test_uri_get(es_testapp, f'{atid}@@download/TSTFI2115172.bai')
-    test_uri_get(es_testapp, f'/{uuid}/@@download/TSTFI2115172.bai')
-    test_uri_get(es_testapp, f'/{accession}/@@download/TSTFI2115172.bai')
+    _test_uri_get(es_testapp, f'{atid}@@download/TSTFI2115172.bai')
+    _test_uri_get(es_testapp, f'/{uuid}/@@download/TSTFI2115172.bai')
+    _test_uri_get(es_testapp, f'/{accession}/@@download/TSTFI2115172.bai')
     # test extra file 2 with @@download
-    test_uri_get(es_testapp, f'{atid}@@download/TSTFI2115172.vcf')
-    test_uri_get(es_testapp, f'/{uuid}/@@download/TSTFI2115172.vcf')
-    test_uri_get(es_testapp, f'/{accession}/@@download/TSTFI2115172.vcf')
+    _test_uri_get(es_testapp, f'{atid}@@download/TSTFI2115172.vcf')
+    _test_uri_get(es_testapp, f'/{uuid}/@@download/TSTFI2115172.vcf')
+    _test_uri_get(es_testapp, f'/{accession}/@@download/TSTFI2115172.vcf')
