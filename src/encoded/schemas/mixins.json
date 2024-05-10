@@ -275,7 +275,7 @@
             "uniqueItems": true,
             "items": {
                 "type": "string",
-                "linkTo": "SubmittedFile"
+                "linkTo": "File"
             }
         },
         "file_sets": {
