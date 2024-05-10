@@ -241,28 +241,11 @@ def generate_html_colors(num_colors):
         rgb_color = tuple(i * 255 for i in rgb_color)  # scaling to usual color space
         hex_color = rgb_to_hex(rgb_color)
         colors.append(hex_color)
-    return permute_list(
-        colors
-    )  # We permuate the list here to get better contrast in the final table
-
-
-def permute_list(lst):
-    """Return a permutation of the list where elements alternate between first and last."""
-    result = []
-    left = 0
-    right = len(lst) - 1
-
-    while left <= right:
-        if left == right:
-            result.append(lst[left])
-        else:
-            result.append(lst[left])
-            result.append(lst[right])
-        left += 1
-        right -= 1
-
-    return result
-
+    # We permute the color list here to get better contrast in the final table
+    lst_1 = colors[0::2]
+    lst_2 = colors[1::2]
+    lst_1.extend(lst_2)
+    return lst_1
 
 def rgb_to_hex(rgb):
     # Convert RGB tuple to hexadecimal color string
