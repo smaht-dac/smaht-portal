@@ -1,10 +1,7 @@
 'use strict';
 
-import React, { useEffect, useState } from 'react';
-import {
-    console,
-    layout,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import React, { useEffect } from 'react';
+import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import DefaultItemView from './DefaultItemView';
 import { PageTitleContainer, OnlyTitle } from '../PageTitleSection';
@@ -12,6 +9,8 @@ import {
     DotRouter,
     DotRouterTab,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
+
+import { bytesToLargerUnit } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
 /**
  * Page containing the details of Items of type File
@@ -64,7 +63,8 @@ const FileViewDataCards = ({ context = {} }) => {
         },
         {
             title: 'Size',
-            getProp: (context = {}) => context?.file_summary?.file_size,
+            getProp: (context = {}) =>
+                bytesToLargerUnit(context?.file_summary?.file_size),
         },
         {
             title: 'MD5 Checksum',
@@ -256,56 +256,72 @@ const FileViewHeader = ({ context }) => {
     );
 };
 
+const DataTable = ({ title = '', data = [] }) => {
+    return (
+        <div className="associated-files-table">
+            <h1 className="header">{title}</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Pipeline</th>
+                        <th>Version</th>
+                        <th>Status</th>
+                        <th>Release Date</th>
+                        <th className="size-header">
+                            <span>Size</span>
+                        </th>
+                        <th className="download-header">
+                            <span>Download</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <a>
+                                SMHTCOLO829BL-X-X-M45-A001-uwsc-SMAPCVIUEIL1sentieon_b..
+                            </a>
+                        </td>
+                        <td>Sentieon BWA-MEM</td>
+                        <td>202308.01</td>
+                        <td>Obsolete</td>
+                        <td>March 20, 2024</td>
+                        <td className="size">575.24 GB</td>
+                        <td className="download">
+                            <button className="download-button">
+                                <i class="icon icon-download fas"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            SMHTCOLO829BL-X-X-M45-A001-uwsc-SMACGHMUIL1
+                            sentieon_..
+                        </td>
+                        <td>Sentieon BWA-MEM</td>
+                        <td>202307.01</td>
+                        <td>Obsolete</td>
+                        <td>March 20, 2024</td>
+                        <td className="size">575.24 GB</td>
+                        <td className="download">
+                            <button className="download-button">
+                                <i class="icon icon-download fas"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
 const AssociatedDataTab = ({ context }) => {
     return (
         <div className="content">
-            <h1 className="header">Analysis Overview</h1>
-            <div className="body">
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">Analysis ID</span>
-                        <span className="datum-value text-gray">
-                            Coming Soon
-                        </span>
-                    </div>
-                </div>
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">
-                            Workflow Description / Analysis Method
-                        </span>
-                        <span className="datum-value text-gray">
-                            Coming Soon
-                        </span>
-                    </div>
-                </div>
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">
-                            Reference Genome Build
-                        </span>
-                        <span className="datum-value">GCA_000001405.15</span>
-                    </div>
-                </div>
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">
-                            Reference Genome Name
-                        </span>
-                        <span className="datum-value">GRCh38</span>
-                    </div>
-                </div>
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">
-                            Read Group Name / Sample Name
-                        </span>
-                        <span className="datum-value text-gray">
-                            Coming Soon
-                        </span>
-                    </div>
-                </div>
-            </div>
+            <h1 className="header">Associated Files</h1>
+            <DataTable title="DAC Generated Files" />
+            <DataTable title="Externally Generated Files" />
         </div>
     );
 };
@@ -450,25 +466,23 @@ const FileViewTabs = ({ context, href }) => {
                 isActive={true}
                 prependDotPath="file-overview">
                 <DotRouterTab
-                    dotPath=".analysis-information"
-                    tabTitle="Analysis Information"
+                    dotPath=".associated-data"
+                    tabTitle="Associated Data"
                     arrowTabs={false}
                     default>
+                    <AssociatedDataTab />
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".analysis-information"
+                    tabTitle="Analysis Information"
+                    arrowTabs={false}>
                     <AnalysisInformationTab />
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".qc-overview"
                     tabTitle="QC Overview"
-                    active={true}
                     arrowTabs={false}>
                     <QCOverviewTab />
-                </DotRouterTab>
-                <DotRouterTab
-                    dotPath=".associated-data"
-                    tabTitle="Associated Data"
-                    arrowTabs={false}
-                    active={true}>
-                    <AssociatedDataTab />
                 </DotRouterTab>
             </DotRouter>
         </div>
@@ -493,21 +507,19 @@ const FileViewTitle = (props) => {
                 <ul className="breadcrumb-list">
                     {breadcrumbs.map(({ display_title, href }, i, arr) => {
                         return (
-                            <>
-                                <li className="breadcrumb-list-item">
-                                    <a
-                                        className={
-                                            'breadcrumb-list-item-link' +
-                                            (href ? '' : ' no-link')
-                                        }
-                                        href={href}>
-                                        {display_title}
-                                    </a>
-                                </li>
+                            <li className="breadcrumb-list-item" key={i}>
+                                <a
+                                    className={
+                                        'breadcrumb-list-item-link' +
+                                        (href ? '' : ' no-link')
+                                    }
+                                    href={href}>
+                                    {display_title}
+                                </a>
                                 {i < arr.length - 1 ? (
                                     <i className="icon icon-fw icon-angle-right fas"></i>
                                 ) : null}
-                            </>
+                            </li>
                         );
                     })}
                 </ul>

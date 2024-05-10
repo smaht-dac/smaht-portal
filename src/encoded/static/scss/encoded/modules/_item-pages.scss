@@ -1179,6 +1179,7 @@ File Overview Styles
 								color: #5b698b;
 
 								&:hover {
+									color: #5b698b;
 									text-decoration: none;
 								}
 							}
@@ -1187,10 +1188,10 @@ File Overview Styles
 								color: #2a6496;
 							}
 						}
-					}
-					.icon {
-						color: #9BA5B7;
-						margin: auto;
+						.icon {
+							color: #9BA5B7;
+							margin: auto;
+						}
 					}
 				}
 			}
@@ -1434,6 +1435,80 @@ File Overview Styles
 							display: flex;
 						}
 					}
+
+					.associated-files-table {
+						margin-top: 8px;
+
+						.header {
+							color: #343741;
+							font-weight: 500;
+							font-size: .9375rem;
+						}
+						table {
+							margin-top: 16px;
+							width: 100%;
+							font-family: Inter;
+							font-size: .875rem;
+
+							th {
+								background-color: #F1F9FF;
+								color: #343741;
+								text-align: left;
+								padding-left: 12px;
+								height: 45px;
+								border-bottom: 1px solid #9BA5B7;
+								font-weight: 500;
+							}
+
+							tr {
+								background-color: white;
+								height: 30px;
+
+								td {
+									text-align: left;
+									padding-left: 12px;
+									border-right: 1px solid #F3F3F3;
+								}
+								.size {
+									text-align: right;
+									padding-right: 12px;
+									
+									&-header {
+										text-align: right;
+										padding-right: 12px;
+									}
+								}
+
+								.download {
+									display: flex;
+									text-align: center;
+									
+									&-header {
+										padding: 0px 12px;
+										display: flex;
+										span {
+											margin: auto;
+										}
+									}
+
+									&-button {
+										background-color: transparent;
+										border: none;
+										margin: auto;
+
+										i {
+											color: #9BA5B7;
+										}
+									}
+
+								}
+								
+								&:nth-child(even) {
+									background-color: #F8F8F8;
+								}
+							}
+						}
+					}
 				}
 			}
 		
@@ -1497,10 +1572,6 @@ File Overview Styles
 					}
 				}
 			}
-		}
-
-		&-content {
-
 		}
 	}
 
