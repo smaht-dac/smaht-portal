@@ -11,6 +11,10 @@ import {
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
 
 import { bytesToLargerUnit } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
+import {
+    LocalizedTime,
+    display as dateTimeDisplay,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 
 /**
  * Page containing the details of Items of type File
@@ -77,7 +81,15 @@ const FileViewDataCards = ({ context = {} }) => {
         },
         {
             title: 'Public Release Date',
-            getProp: (context = {}) => context?.public_release_date,
+            getProp: (context = {}) => {
+                return (
+                    <LocalizedTime
+                        timestamp={context?.file_status_tracking.released}
+                        formatType="date-md"
+                        dateTimeSeparator=" "
+                    />
+                );
+            },
         },
     ];
 
@@ -179,17 +191,7 @@ const FileViewHeader = ({ context }) => {
             <div className="data-group data-row header">
                 <h1 className="header-text">File Overview</h1>
                 <button className="btn btn-primary download-file-button">
-                    <svg
-                        width="13"
-                        height="15"
-                        viewBox="0 0 13 15"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            d="M5.48438 -9.53674e-07H7.51562C7.85332 -9.53674e-07 8.125 0.303413 8.125 0.680555V5.44444H10.3518C10.8037 5.44444 11.0297 6.05411 10.7098 6.4114L6.84785 10.7273C6.65742 10.9399 6.34512 10.9399 6.15469 10.7273L2.2877 6.4114C1.96777 6.05411 2.19375 5.44444 2.6457 5.44444H4.875V0.680555C4.875 0.303413 5.14668 -9.53674e-07 5.48438 -9.53674e-07ZM13 10.662V13.838C13 14.2151 12.7283 14.5185 12.3906 14.5185H0.609375C0.27168 14.5185 0 14.2151 0 13.838V10.662C0 10.2849 0.27168 9.98148 0.609375 9.98148H4.33418L5.57832 11.3709C6.08867 11.9409 6.91133 11.9409 7.42168 11.3709L8.66582 9.98148H12.3906C12.7283 9.98148 13 10.2849 13 10.662ZM9.85156 13.1574C9.85156 12.8455 9.62305 12.5903 9.34375 12.5903C9.06445 12.5903 8.83594 12.8455 8.83594 13.1574C8.83594 13.4693 9.06445 13.7245 9.34375 13.7245C9.62305 13.7245 9.85156 13.4693 9.85156 13.1574ZM11.4766 13.1574C11.4766 12.8455 11.248 12.5903 10.9688 12.5903C10.6895 12.5903 10.4609 12.8455 10.4609 13.1574C10.4609 13.4693 10.6895 13.7245 10.9688 13.7245C11.248 13.7245 11.4766 13.4693 11.4766 13.1574Z"
-                            fill="white"
-                        />
-                    </svg>
+                    <i class="icon icon-download fas"></i>
                     <span>Download File</span>
                 </button>
             </div>
@@ -498,8 +500,6 @@ const FileViewTitle = (props) => {
         { display_title: 'Bechmarking Data' },
         { display_title: context.dataset },
     ];
-
-    console.log('FileViewTitle PROPS', props);
 
     return (
         <div className="file-view-title container-wide">
