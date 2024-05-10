@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.52.1
+0.52.2
 ======
 
 * 2024-05-08/dmichaels/PR-163
@@ -18,6 +18,16 @@ Change Log
   was still being done before loadxl; this flag now prevents that as well.
   This is hooked on a (submission folio) validate_skip flag; and this is
   ONLY allowed for admin users; if non-admin validate_skip forced to False.
+
+
+0.52.1
+======
+
+`PR 162: Broaden derived_from link <https://github.com/smaht-dac/smaht-portal/pull/162>`_
+
+* Update `derived_from` linkTo from SubmittedFile to File
+* Change File `unique_key` to `submitted_id` to allow finding SubmittedFiles by `submitted_id`
+* Add `accession` to default lookup field for all collections, i.e. `/<collection>/<accession>/` will work for all collections with accessions
 
 
 0.52.0

@@ -1141,3 +1141,16 @@ def assert_analysis_summary_matches_expected(
     assert_values_match_if_present(
         analysis_summary, "reference_genome", expected_reference_genome
     )
+
+
+@pytest.mark.workbook
+def test_unique_key(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure `submitted_id` is valid unique key for File."""
+    search_key = "submitted_id"
+    files_with_submitted_id_search = search_type_for_key(
+        es_testapp, "File", search_key
+    )
+    file_with_submitted_id = files_with_submitted_id_search[0]
+    get_item(
+        es_testapp, f"/files/{item_utils.get_submitted_id(file_with_submitted_id)}"
+    )
