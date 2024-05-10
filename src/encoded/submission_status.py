@@ -5,6 +5,7 @@ from snovault.search.search import search
 from snovault.search.search_utils import make_search_subreq
 from .schema_formats import is_accession_for_server
 from urllib.parse import urlencode
+import colorsys
 
 # Portal constants
 FILESET = "FileSet"
@@ -57,10 +58,30 @@ def get_submission_status(context, request):
         )
         search_res = search(context, subreq)["@graph"]
         file_sets = []
+        file_group_color_map = {}
         for res in search_res:
             file_set = res
             file_set["submitted_files"] = process_files_metadata(res.get("files", []))
+            
+            if "file_group" in file_set:
+                fg = file_set["file_group"]
+                fg_str = f"{fg['submission_center']}_{fg['sample_source']}_{fg['sequencing']}_{fg['assay']}"
+                file_set["file_group"] = fg_str
+                file_group_color_map[fg_str] = None # Place holder that will be replaced in the next step
+            else:
+                file_set["file_group"] = "No file group assigned"
+                file_set["file_group_color"] = "#eeeeee"
             file_sets.append(file_set)
+            
+        #Generate colors and assign them to each file group
+        num_distinct_file_groups = len(file_group_color_map.keys())
+        fg_colors = generate_html_colors(num_distinct_file_groups)
+        for i, fg in enumerate(file_group_color_map.keys()):
+            file_group_color_map[fg] = fg_colors[i]
+        for fs in file_sets:
+            if "file_group_color" not in fs:
+                fs["file_group_color"] = file_group_color_map[fs["file_group"]]
+        
     except Exception as e:
         return {
             "error": f"Error when trying to get submission status: {e}",
@@ -85,8 +106,10 @@ def add_submission_status_search_filters(
         - assay
         - sequencer
         - include_tags
-        - exlucde_tags, 
-        - fileset_created_from, 
+        - exlucde_tags,
+        - cell_culture_mixture,
+        - cell_line,
+        - fileset_created_from,
         - fileset_created_to
         - fileSetSearchId (str): Either submitted_id or accession or a fileset.
     """
@@ -122,6 +145,17 @@ def add_submission_status_search_filters(
         search_params["libraries.assay.display_title"] = filter["assay"]
     if "sequencer" in filter and filter["sequencer"] != "all":
         search_params["sequencing.sequencer.display_title"] = filter["sequencer"]
+    if "cell_line" in filter and filter["cell_line"] != "all":
+        search_params["libraries.analyte.samples.sample_sources.cell_line.code"] = (
+            filter["cell_line"]
+        )
+        search_params["libraries.analyte.samples.sample_sources.code"] = (
+            "No+value"  # Exlude mixtures from results
+        )
+    if "cell_culture_mixture" in filter and filter["cell_culture_mixture"] != "all":
+        search_params["libraries.analyte.samples.sample_sources.code"] = filter[
+            "cell_culture_mixture"
+        ]
     if filter.get("include_tags"):
         search_params["tags"] = filter["include_tags"]
     if filter.get("exclude_tags"):
@@ -185,3 +219,33 @@ def search_total(context, request, search_params):
         request, f"/search?{urlencode(search_params, True)}", inherit_user=True
     )
     return search(context, subreq)["total"]
+
+
+def generate_html_colors(num_colors):
+    if num_colors < 1:
+        return []
+    if num_colors == 1:
+        return ["#30b052"]
+    #import pdb; pdb.set_trace()
+    # Start and end colors in HSL format (Hue, Saturation, Lightness)
+    start_hue = 0  # Red
+    end_hue = 0.8  # Purple. Note that 1.0 is red again
+    # Calculate the hue step
+    hue_step = (end_hue - start_hue) / (num_colors - 1)
+    colors = []
+    for i in range(num_colors):
+        # Calculate hue for this step
+        hue = start_hue + i * hue_step
+        rgb_color = colorsys.hls_to_rgb(hue, 0.5, 1.0)
+        rgb_color = tuple(i * 255 for i in rgb_color) # scaling to usual color space
+        hex_color = rgb_to_hex(rgb_color)
+        colors.append(hex_color)
+    return colors
+
+def rgb_to_hex(rgb):
+    # Convert RGB tuple to hexadecimal color string
+    return '#{:02x}{:02x}{:02x}'.format(int(rgb[0]), int(rgb[1]), int(rgb[2]))
+
+
+
+
