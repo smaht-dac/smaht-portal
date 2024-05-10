@@ -168,7 +168,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
 
         const options = [<option value="all">All</option>];
         this.state.cell_culture_mixtures.forEach((sc) => {
-            options.push(<option value={sc.code}>{sc.title}</option>);
+            options.push(<option value={sc.code}>{sc.code}</option>);
         });
         const defaultValue = 'all';
         const filterName = 'cell_culture_mixture';
@@ -182,7 +182,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
 
         const options = [<option value="all">All</option>];
         this.state.cell_lines.forEach((sc) => {
-            options.push(<option value={sc.code}>{sc.title}</option>);
+            options.push(<option value={sc.code}>{sc.code}</option>);
         });
         const defaultValue = 'all';
         const filterName = 'cell_line';

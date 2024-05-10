@@ -62,18 +62,19 @@ def get_submission_status(context, request):
         for res in search_res:
             file_set = res
             file_set["submitted_files"] = process_files_metadata(res.get("files", []))
-            
+
             if "file_group" in file_set:
                 fg = file_set["file_group"]
                 fg_str = f"{fg['submission_center']}_{fg['sample_source']}_{fg['sequencing']}_{fg['assay']}"
                 file_set["file_group"] = fg_str
-                file_group_color_map[fg_str] = None # Place holder that will be replaced in the next step
+                # Place holder that will be replaced in the next step
+                file_group_color_map[fg_str] = None
             else:
                 file_set["file_group"] = "No file group assigned"
                 file_set["file_group_color"] = "#eeeeee"
             file_sets.append(file_set)
-            
-        #Generate colors and assign them to each file group
+
+        # Generate colors and assign them to each file group
         num_distinct_file_groups = len(file_group_color_map.keys())
         fg_colors = generate_html_colors(num_distinct_file_groups)
         for i, fg in enumerate(file_group_color_map.keys()):
@@ -81,7 +82,7 @@ def get_submission_status(context, request):
         for fs in file_sets:
             if "file_group_color" not in fs:
                 fs["file_group_color"] = file_group_color_map[fs["file_group"]]
-        
+
     except Exception as e:
         return {
             "error": f"Error when trying to get submission status: {e}",
@@ -226,7 +227,7 @@ def generate_html_colors(num_colors):
         return []
     if num_colors == 1:
         return ["#30b052"]
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     # Start and end colors in HSL format (Hue, Saturation, Lightness)
     start_hue = 0  # Red
     end_hue = 0.8  # Purple. Note that 1.0 is red again
@@ -237,15 +238,32 @@ def generate_html_colors(num_colors):
         # Calculate hue for this step
         hue = start_hue + i * hue_step
         rgb_color = colorsys.hls_to_rgb(hue, 0.5, 1.0)
-        rgb_color = tuple(i * 255 for i in rgb_color) # scaling to usual color space
+        rgb_color = tuple(i * 255 for i in rgb_color)  # scaling to usual color space
         hex_color = rgb_to_hex(rgb_color)
         colors.append(hex_color)
-    return colors
+    return permute_list(
+        colors
+    )  # We permuate the list here to get better contrast in the final table
+
+
+def permute_list(lst):
+    """Return a permutation of the list where elements alternate between first and last."""
+    result = []
+    left = 0
+    right = len(lst) - 1
+
+    while left <= right:
+        if left == right:
+            result.append(lst[left])
+        else:
+            result.append(lst[left])
+            result.append(lst[right])
+        left += 1
+        right -= 1
+
+    return result
+
 
 def rgb_to_hex(rgb):
     # Convert RGB tuple to hexadecimal color string
-    return '#{:02x}{:02x}{:02x}'.format(int(rgb[0]), int(rgb[1]), int(rgb[2]))
-
-
-
-
+    return "#{:02x}{:02x}{:02x}".format(int(rgb[0]), int(rgb[1]), int(rgb[2]))
