@@ -44,6 +44,11 @@ def test_download_cli_workbook_post(workbook, es_testapp):
     """ Tests that we can retrieve federation tokens for regular and extra files """
     item = es_testapp.get('/output-files/cca15caa-bc11-4a6a-8998-ea0c69df8b9d/').json
     atid, uuid, accession = item['@id'], item['uuid'], item['accession']
+    # test failure cases
+    es_testapp.post_json('/download_cli/', {
+        'not_item': 'doesnt matter'
+    }, status=400)
+    es_testapp.post_json('/download_cli/', {}, status=400)
     # test with @@download
     test_uri_post(es_testapp, f'{atid}@@download')
     test_uri_post(es_testapp, f'/{uuid}/@@download')
@@ -69,6 +74,9 @@ def test_download_cli_workbook_get(workbook, es_testapp):
     """ Runs the above tests using the GET version of the API """
     item = es_testapp.get('/output-files/cca15caa-bc11-4a6a-8998-ea0c69df8b9d/').json
     atid, uuid, accession = item['@id'], item['uuid'], item['accession']
+    # test failure cases
+    es_testapp.get(f'/download_cli/?not_item=blah', status=400)
+    es_testapp.get(f'/download_cli/', status=400)
     # test with @@download
     test_uri_get(es_testapp, f'{atid}@@download')
     test_uri_get(es_testapp, f'/{uuid}/@@download')

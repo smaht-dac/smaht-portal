@@ -48,7 +48,9 @@ def get_download_federation_token(context, request):
         except (JSONDecodeError, KeyError):
             return Response('Invalid JSON format or no item key present', status=400)
     else:
-        atid = request.GET.get('item')  # would have failed further up if not present
+        atid = request.GET.get('item')
+        if not atid:
+            return Response('No item query parameter present', status=400)
 
     # Direct to @@download to track via GA and run perm check
     if '@@download' in atid:  # allow direct pass
