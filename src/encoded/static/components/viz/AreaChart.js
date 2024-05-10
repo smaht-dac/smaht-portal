@@ -290,10 +290,10 @@ export class GroupByController extends React.PureComponent {
     constructor(props){
         super(props);
         this.handleGroupByChange = this.handleGroupByChange.bind(this);
-        this.handleDateIntervalChange = this.handleDateIntervalChange.bind(this);
+        this.handleDateRangeChange = this.handleDateRangeChange.bind(this);
         this.state = { 
             'currentGroupBy' : props.initialGroupBy,
-            'currentDateInterval': props.initialDateInterval
+            'currentDateRange': props.initialDateRange
          };
     }
 
@@ -306,25 +306,25 @@ export class GroupByController extends React.PureComponent {
         });
     }
 
-    handleDateIntervalChange(field){
+    handleDateRangeChange(field){
         this.setState(function(currState){
-            if (currState.currentDateInterval === field){
+            if (currState.currentDateRange === field){
                 return null;
             }
-            return { 'currentDateInterval' : field };
+            return { 'currentDateRange' : field };
         });
     }
 
     render(){
         const { children } = this.props;
-        const { currentGroupBy, currentDateInterval } = this.state;
+        const { currentGroupBy, currentDateRange } = this.state;
         const childProps = _.extend(
-            _.omit(this.props, 'children', 'initialGroupBy', 'initialDateInterval'),
+            _.omit(this.props, 'children', 'initialGroupBy', 'initialDateRange'),
             {
                 currentGroupBy,
                 'handleGroupByChange': this.handleGroupByChange,
-                currentDateInterval,
-                'handleDateIntervalChange': this.handleDateIntervalChange
+                currentDateRange,
+                'handleDateRangeChange': this.handleDateRangeChange
             });
 
         if (Array.isArray(children)){
@@ -340,20 +340,20 @@ export class GroupByDropdown extends React.PureComponent {
 
     static defaultProps = {
         'groupByTitle' : "Group By",
-        'dateIntervalTitle' : "Date",
+        'dateRangeTitle' : "Date",
         'buttonStyle' : {
             'marginLeft' : 12,
             'textAlign' : 'left'
         },
         'outerClassName' : "dropdown-container mb-15",
         'groupById' : "select_primary_charts_group_by",
-        'dateIntervalId' : "select_primary_charts_date_interval"
+        'dateRangeId' : "select_primary_charts_date_range"
     };
 
     constructor(props){
         super(props);
         this.onGroupBySelect = _.throttle(this.onGroupBySelect.bind(this), 1000);
-        this.onDateIntervalSelect = _.throttle(this.onDateIntervalSelect.bind(this), 1000);
+        this.onDateRangeSelect = _.throttle(this.onDateRangeSelect.bind(this), 1000);
     }
 
     onGroupBySelect(eventKey, evt){
@@ -364,42 +364,41 @@ export class GroupByDropdown extends React.PureComponent {
         handleGroupByChange(eventKey);
     }
 
-    onDateIntervalSelect(eventKey, evt){
-        const { handleDateIntervalChange } = this.props;
-        if (typeof handleDateIntervalChange !== 'function'){
-            throw new Error("No handleDateIntervalChange function passed to DateIntervalDropdown.");
+    onDateRangeSelect(eventKey, evt){
+        const { handleDateRangeChange } = this.props;
+        if (typeof handleDateRangeChange !== 'function'){
+            throw new Error("No handleDateRangeChange function passed to DateRangeDropdown.");
         }
-        handleDateIntervalChange(eventKey);
+        handleDateRangeChange(eventKey);
     }
 
     render(){
         const {
             groupByOptions, currentGroupBy, groupByTitle,
-            dateIntervalOptions, currentDateInterval, dateIntervalTitle,
+            dateRangeOptions, currentDateRange, dateRangeTitle,
             loadingStatus, buttonStyle, outerClassName, children,
-            groupById, dateIntervalId } = this.props;
+            groupById, dateRangeId } = this.props;
         // group by
         const groupByOptionItems = _.map(_.pairs(groupByOptions), ([field, title]) =>
             <DropdownItem eventKey={field} key={field} active={field === currentGroupBy}>{ title }</DropdownItem>
         );
         const selectedGroupByValueTitle = loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch"/> : groupByOptions[currentGroupBy];
         // date interval
-        const dateIntervalOptionItems = dateIntervalOptions && _.map(_.pairs(dateIntervalOptions), ([field, title]) =>
-            <DropdownItem eventKey={field} key={field} active={field === currentDateInterval}>{title}</DropdownItem>
+        const dateRangeOptionItems = dateRangeOptions && _.map(_.pairs(dateRangeOptions), ([field, title]) =>
+            <DropdownItem eventKey={field} key={field} active={field === currentDateRange}>{title}</DropdownItem>
         );
-        const selectedDateIntervalValueTitle = dateIntervalOptions && (loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch" /> : dateIntervalOptions[currentDateInterval]);
-        console.log('xxx dateIntervalOptions: ', dateIntervalOptions);
+        const selectedDateRangeValueTitle = dateRangeOptions && (loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch" /> : dateRangeOptions[currentDateRange]);
         return (
             <div className={outerClassName}>
                 <span className="text-500">{ groupByTitle }</span>
                 <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2}>
                     { groupByOptionItems }
                 </DropdownButton>
-                {dateIntervalOptions &&
+                {dateRangeOptions &&
                     <>
-                        <span className="text-500 ml-25">{ dateIntervalTitle }</span>
-                        <DropdownButton id={dateIntervalId} title={ selectedDateIntervalValueTitle } onSelect={this.onDateIntervalSelect} style={buttonStyle}>
-                            { dateIntervalOptionItems }
+                        <span className="text-500 ml-25">{ dateRangeTitle }</span>
+                        <DropdownButton id={dateRangeId} title={ selectedDateRangeValueTitle } onSelect={this.onDateRangeSelect} style={buttonStyle}>
+                            { dateRangeOptionItems }
                         </DropdownButton>
                     </>}
                 {children}

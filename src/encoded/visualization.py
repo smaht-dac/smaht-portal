@@ -2,7 +2,8 @@
 #
 # from botocore.exceptions import ClientError
 from copy import copy, deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 # from dcicutils.misc_utils import print_error_message
 # from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.view import view_config
@@ -27,45 +28,10 @@ from urllib.parse import urlencode
 #
 TERM_NAME_FOR_NO_VALUE  = "No value"
 
-# Common definition for aggregating all files, exps, and set **counts**.
+# Common definition for aggregating all files **counts**.
 # This works four our ElasticSearch mapping though has some non-ideal-ities.
 # For example, we use "cardinality" instead of "value_count" agg (which would (more correctly) count duplicate files, etc.)
-# because without a more complex "type" : "nested" it will uniq file accessions within a hit (ExpSetReplicate).
-SUM_FILES_EXPS_AGGREGATION_DEFINITION = {
-    # Returns count of _unique_ raw file accessions encountered along the search.
-    # "total_exp_raw_files" : {
-    #     "cardinality" : {
-    #         "field" : "embedded.experiments_in_set.files.accession.raw",
-    #         "precision_threshold" : 10000
-    #     }
-    # },
-    # "total_exp_processed_files" : {
-    #     "cardinality" : {
-    #         "field" : "embedded.experiments_in_set.processed_files.accession.raw",
-    #         "precision_threshold" : 10000
-    #     }
-    # },
-    # "total_expset_processed_files" : {
-    #     "cardinality" : {
-    #         "field" : "embedded.processed_files.accession.raw",
-    #         "precision_threshold" : 10000
-    #     }
-    # },
-    # "total_files" : {
-    #     "bucket_script" : {
-    #         "buckets_path": {
-    #             "expSetProcessedFiles": "total_expset_processed_files",
-    #             "expProcessedFiles": "total_exp_processed_files",
-    #             "expRawFiles": "total_exp_raw_files"
-    #         },
-    #         "script" : "params.expSetProcessedFiles + params.expProcessedFiles + params.expRawFiles"
-    #     }
-    # },
-    # "total_experiments" : {
-    #     "value_count" : {
-    #         "field" : "embedded.experiments_in_set.accession.raw"
-    #     }
-    # },
+SUM_FILES_AGGREGATION_DEFINITION = {
     "total_files" : {
         "cardinality" : {
             "field" : "embedded.accession.raw",
@@ -108,6 +74,7 @@ def date_histogram_aggregations(context, request):
         'monthly'   : 'month',
         'yearly'    : 'year'
     }
+    date_range_presets = []
 
     try:
         json_body = request.json_body
@@ -128,32 +95,20 @@ def date_histogram_aggregations(context, request):
                 if interval not in interval_to_es_interval.keys():
                     raise IndexError('"{}" is not one of daily, weekly, monthly, or yearly.'.format(interval))
             del search_param_lists['date_histogram_interval'] # We don't wanna use it as search filter.
-        if 'date_interval' in search_param_lists and len(search_param_lists['date_interval']) > 0:
-            date_interval = search_param_lists['date_interval'][0]
-            today = datetime.today()
+        if 'date_range' in search_param_lists and len(search_param_lists['date_range']) > 0:
+            date_range = search_param_lists['date_range'][0]
+            date_from, date_to = convert_date_range(date_range)
             from_field = 'file_status_tracking.uploading.from' #'date_created.from'
-            if date_interval == 'thisMonth':
-                search_param_lists[from_field] = '2024-05-01'
-            elif date_interval == 'last3Months':
-                search_param_lists[from_field] = '2024-03-01'#(today - timedelta(days=50)).strftime("%Y-%m-%d")
-            elif date_interval == 'last6Months':
-                search_param_lists[from_field] = '2023-12-01'
-            elif date_interval == 'last12Months':
-                search_param_lists[from_field] = '2023-06-01'
-            elif date_interval == 'thisYear':
-                search_param_lists[from_field] = '2024-01-01'
-            elif date_interval == 'lastYear':
-                search_param_lists[from_field] = '2023-01-01'
-                # search_param_lists['date_created.to'] = '2023-12-31'
-
-            del search_param_lists['date_interval']
+            if date_from is not None:
+                search_param_lists[from_field] = date_from.strftime("%Y-%m-%d")
+            del search_param_lists['date_range']
         if not search_param_lists:
             search_param_lists = {}
 
     if 'File' in search_param_lists['type']:
         # Add predefined sub-aggs to collect Exp and File counts from ExpSet items, in addition to getting own doc_count.
 
-        common_sub_agg = deepcopy(SUM_FILES_EXPS_AGGREGATION_DEFINITION)
+        common_sub_agg = deepcopy(SUM_FILES_AGGREGATION_DEFINITION)
 
         # Add on file_size_volume
         for key_name in ['total_files']:
@@ -162,16 +117,6 @@ def date_histogram_aggregations(context, request):
                     "field" : common_sub_agg[key_name]["cardinality"]["field"].replace('.accession.raw', '.file_size')
                 }
             }
-        # common_sub_agg["total_files_volume"] = {
-        #     "bucket_script" : {
-        #         "buckets_path": {
-        #             "expSetProcessedFilesVol": "total_expset_processed_files_volume",
-        #             "expProcessedFilesVol": "total_exp_processed_files_volume",
-        #             "expRawFilesVol": "total_exp_raw_files_volume"
-        #         },
-        #         "script" : "params.expSetProcessedFilesVol + params.expProcessedFilesVol + params.expRawFilesVol"
-        #     }
-        # }
 
         if group_by_fields is not None:
             group_by_agg_dict = {
@@ -230,6 +175,32 @@ def date_histogram_aggregations(context, request):
         del search_result[field_to_delete]
 
     return search_result
+
+
+def convert_date_range(date_range_str):
+    today = datetime.today()
+    first_day_this_month = today.replace(day=1)
+    date_from, date_to = None, None
+
+    if date_range_str == 'thismonth':
+        date_from = first_day_this_month
+    elif date_range_str == 'lastmonth':
+        date_from = first_day_this_month - relativedelta(months=1)
+        date_to = first_day_this_month - relativedelta(days=1)
+    elif date_range_str == 'last3months':
+        date_from = first_day_this_month - relativedelta(months=2)
+    elif date_range_str == 'last6months':
+        date_from = first_day_this_month - relativedelta(months=5)
+    elif date_range_str == 'last12months':
+        date_from = first_day_this_month - relativedelta(months=11)
+    elif date_range_str == 'thisyear':
+        date_from = datetime(today.year, 1, 1)
+    elif date_range_str == 'lastyear':
+        date_from = datetime(today.year - 1, 1, 1)
+        date_to = datetime(today.year - 1, 12, 31)
+    
+    return [date_from, date_to]
+
 #
 #
 # # TODO: figure out how to make one of those cool /file/ACCESSION/@@download/-like URLs for this.

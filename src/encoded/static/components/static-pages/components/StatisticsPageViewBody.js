@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import memoize from 'memoize-one';
 import queryString from 'query-string';
 import * as d3 from 'd3';
 import { sub, add, startOfMonth, startOfDay, endOfMonth, endOfDay, toDate, format as formatDate } from 'date-fns';
@@ -136,7 +137,7 @@ export const commonParsingFxn = {
                 return {
                     'date' : key_as_string.split('T')[0], // Sometimes we get a time back with date when 0 doc_count; correct it to date only.
                     'count' : doc_count,
-                    'children' : groupExternalChildren(children, externalTermMap)
+                    'children' : children
                 };
             }
         });
@@ -183,7 +184,7 @@ export const commonParsingFxn = {
             return {
                 'date' : key_as_string.split('T')[0], // Sometimes we get a time back with date when 0 doc_count; correct it to date only.
                 'count' : totalFiles,
-                'children' : groupExternalChildren(children, externalTermMap)
+                'children' : children
             };
         });
 
@@ -218,7 +219,7 @@ export const commonParsingFxn = {
             return {
                 'date'     : key_as_string.split('T')[0], // Sometimes we get a time back with date when 0 doc_count; correct it to date only.
                 'count'    : fileSizeVol,
-                'children' : groupExternalChildren(children, externalTermMap)
+                'children' : children
             };
         });
 
@@ -583,8 +584,8 @@ export class SubmissionStatsViewController extends React.PureComponent {
                 if (props.currentGroupBy){
                     params.group_by = props.currentGroupBy;
                 }
-                if (props.currentDateInterval){
-                    params.date_interval = props.currentDateInterval;
+                if (props.currentDateRange){
+                    params.date_range = props.currentDateRange;
                 }
                 const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
 
@@ -596,7 +597,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
         'shouldRefetchAggs' : function(pastProps, nextProps){
             return StatsViewController.defaultProps.shouldRefetchAggs(pastProps, nextProps) || (
                 pastProps.currentGroupBy !== nextProps.currentGroupBy ||
-                pastProps.currentDateInterval !== nextProps.currentDateInterval
+                pastProps.currentDateRange !== nextProps.currentDateRange
             );
         }
     };
@@ -862,7 +863,7 @@ export function SubmissionsStatsView(props) {
     const {
         loadingStatus, mounted, session, windowWidth,
         currentGroupBy, groupByOptions, handleGroupByChange,
-        currentDateInterval, dateIntervalOptions, handleDateIntervalChange,
+        currentDateRange, dateRangeOptions, handleDateRangeChange,
         // Passed in from StatsChartViewAggregator:
         files_uploading, file_volume_uploading,  files_uploaded, file_volume_uploaded, files_released, file_volume_released,
         chartToggles, smoothEdges, width, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
@@ -881,27 +882,16 @@ export function SubmissionsStatsView(props) {
         'onToggle' : onChartToggle, chartToggles, windowWidth,
         'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250
     };
-    let xDomain = [ new Date('2023-11-01'), null ];
-    
-    if (currentDateInterval === 'thisMonth')
-        xDomain = [new Date('2024-04-01'), null];
-    else if (currentDateInterval === 'last3Months')
-        xDomain = [new Date('2024-02-21'), null];
-    else if (currentDateInterval === 'last6Months')
-        xDomain = [new Date('2023-11-21'), null];
-    else if (currentDateInterval === 'last12Months')
-        xDomain = [new Date('2023-05-21'), null];
-    else if (currentDateInterval === 'thisYear')
-        xDomain = [new Date('2023-12-21'), null];
-    else if (currentDateInterval === 'lastYear')
-        xDomain = [new Date('2022-12-21'), new Date('2023-12-31')];
+    const xDomain = convertDataRangeToXDomain(currentDateRange);
     const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum: cumulativeSum, xDomain };
-    const groupByProps = { currentGroupBy, groupByOptions, handleGroupByChange, currentDateInterval, dateIntervalOptions, handleDateIntervalChange, loadingStatus } 
+    const groupByProps = { 
+        currentGroupBy, groupByOptions, handleGroupByChange, 
+        currentDateRange, dateRangeOptions, handleDateRangeChange, loadingStatus } 
 
     return (
         <div className="stats-charts-container" key="charts" id="submissions">
 
-            <GroupByDropdown {...groupByProps} groupByTitle="Group Charts Below By" dateIntervalTitle="Date" outerClassName="dropdown-container mb-15 sticky-top">
+            <GroupByDropdown {...groupByProps} groupByTitle="Group Charts Below By" dateRangeTitle="Date" outerClassName="dropdown-container mb-15 sticky-top">
                 <div className="d-inline-block ml-15">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                 </div>
@@ -1005,32 +995,44 @@ SubmissionsStatsView.colorScaleForPublicVsInternal = function(term){
     }
 };
 
-function groupExternalChildren(children, externalTermMap){
+const convertDataRangeToXDomain = memoize(function (range = 'all') {
+    const rangeLower = (range || '').toLowerCase();
+    
+    const today = new Date();
+    const month = today.getMonth();
+    let from = new Date(today.getFullYear(), month, 1);
 
-    return children;
-    // if (!externalTermMap){
-    //     return children;
-    // }
+    switch (rangeLower) {
+        case 'thismonth':
+            //do nothing
+            break;
+        case 'lastmonth':
+            from.setMonth(month - 1);
+            break;
+        case 'last3months':
+            from.setMonth(month - 2);
+            break;
+        case 'last6months':
+            from.setMonth(month - 5);
+            break;
+        case 'last12months':
+            from.setMonth(month - 11);
+            break;
+        case 'thisyear':
+            from = new Date(today.getFullYear(), 0, 1);
+            break;
+        case 'lastyear':
+            from = new Date(today.getFullYear() - 1, 0, 1);
+            break;
+        case 'all':
+        default:
+            from = new Date('2023-11-08');
+            break;
+    }
+    // get first day of date's week
+    const dayOfWeek = from.getDay(); // Sunday: 0, Monday: 1, ..., Saturday: 6
+    const daysDifference = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust for Monday being 1
+    const firstWeekdayFrom = new Date(from.getTime() - daysDifference * 24 * 60 * 60 * 1000);;
 
-    // const filteredOut = [];
-    // const newChildren = children.filter(function(c){
-    //     if (externalTermMap[c.term]) {
-    //         filteredOut.push(c);
-    //         return false;
-    //     }
-    //     return true;
-    // });
-    // if (filteredOut.length > 0){
-    //     const externalChild = {
-    //         'term' : 'External',
-    //         'count': 0,
-    //         'total': 0
-    //     };
-    //     filteredOut.forEach(function(c){
-    //         externalChild.total += c.total;
-    //         externalChild.count += c.count;
-    //     });
-    //     newChildren.push(externalChild);
-    // }
-    // return newChildren;
-}
+    return [firstWeekdayFrom, null];
+});
