@@ -113,8 +113,10 @@
                     "Data Compression",
                     "Feature Annotation",
                     "Format Conversion",
+                    "Gene Quantification",
                     "Quality Control",
                     "Read Manipulation",
+                    "Transcript Quantification",
                     "Variant Annotation",
                     "Variant Calling",
                     "Variant Manipulation"
@@ -124,9 +126,11 @@
         "code": {
             "pattern": "^[A-Za-z0-9_]{2,}$"
         },
+        "title": {
+            "description": "The name of the software"
+        },
         "version": {
-            "pattern": ".+",
-            "comment": "TODO: Replace with a proper version pattern"
+            "description": "The version of the software"
         },
         "binary_url": {
             "$merge": "encoded_core:schemas/software.json#/properties/binary_url"

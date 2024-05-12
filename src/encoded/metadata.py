@@ -30,6 +30,10 @@ def includeme(config):
 FILE = 0
 
 
+# This field is special because it is a transformation applied from other fields
+FILE_GROUP = 'FileGroup'
+
+
 class MetadataArgs(NamedTuple):
     """ NamedTuple that holds all the args passed to the /metadata and /peek-metadata endpoints """
     accessions: List[str]
@@ -43,22 +47,35 @@ class MetadataArgs(NamedTuple):
 
 class TSVDescriptor:
     """ Dataclass that holds the structure """
-    def __init__(self, *, field_type, field_name, deduplicate=True):
+    def __init__(self, *, field_type: int, field_name: List[str],
+                 deduplicate: bool = True, use_base_metadata: bool = False):
+        """ field_type is str, int or float, field_name is a list of possible
+            paths when searched can retrieve the field value, deduplicate is unused,
+            use_base_metadata means to rely on top level object instead of sub object
+            (only used for extra files)
+        """
         self._field_type = field_type
         self._field_name = field_name
         self._deduplicate = deduplicate
+        self._use_base_metadata = use_base_metadata
 
-    def field_type(self):
+    def field_type(self) -> int:
+        """ Note this is an int enum """
         return self._field_type
 
-    def field_name(self):
+    def field_name(self) -> List[str]:
+        """ Field name in this case is a list of possible paths to search """
         return self._field_name
 
-    def deduplicate(self):
+    def deduplicate(self) -> bool:
         return self._deduplicate
+
+    def use_base_metadata(self) -> bool:
+        return self._use_base_metadata
 
 
 class DummyFileInterfaceImplementation(object):
+    """ This is used to simulate a file interface for streaming the TSV output """
     def __init__(self):
         self._line = None
     def write(self, line):
@@ -69,35 +86,86 @@ class DummyFileInterfaceImplementation(object):
 
 # This dictionary is a key --> 3-tuple mapping that encodes options for the /metadata/ endpoint
 # given a field description. This also describes the order that fields show up in the TSV.
+# VERY IMPORTANT NOTE WHEN ADDING FIELDS - right now support for arrays generally is limited.
+# The limitations are: array of terminal values are fine, but arrays of dictionaries will only
+# traverse one additional level of depth ie:
+# item contains dictionary d1, where d1 has property that is array of object
+#   --> d1.arr --> d1.array.dict --> d1.array.dict.value
 # TODO: move to another file or write in JSON
 TSV_MAPPING = {
     FILE: {
-        'File Download URL': TSVDescriptor(field_type=FILE,
-                                           field_name=['href']),
-        'File Accession': TSVDescriptor(field_type=FILE,
-                                        field_name=['accession']),
-        'File Name': TSVDescriptor(field_type=FILE,
-                                   field_name=['annotated_filename', 'display_title', 'filename']),
-        'Size (MB)': TSVDescriptor(field_type=FILE,
-                                   field_name=['file_size']),
+        'FileDownloadURL': TSVDescriptor(field_type=FILE,
+                                         field_name=['href']),
+        'FileAccession': TSVDescriptor(field_type=FILE,
+                                       field_name=['accession']),
+        'FileName': TSVDescriptor(field_type=FILE,
+                                  field_name=['annotated_filename', 'display_title', 'filename']),
+        'Size(B)': TSVDescriptor(field_type=FILE,
+                                 field_name=['file_size']),
         'md5sum': TSVDescriptor(field_type=FILE,
                                 field_name=['md5sum']),
-        'File Type': TSVDescriptor(field_type=FILE,
-                                   field_name=['file_type']),
-        'File Format': TSVDescriptor(field_type=FILE,
-                                     field_name=['file_format.display_title']),
+        'DataType': TSVDescriptor(field_type=FILE,
+                                  field_name=['data_type'],
+                                  use_base_metadata=True),  # do not traverse extra_files for this
+        'FileFormat': TSVDescriptor(field_type=FILE,
+                                    field_name=['file_format.display_title']),
+        'SampleName': TSVDescriptor(field_type=FILE,
+                                    field_name=['sample_summary.sample_names'],
+                                    use_base_metadata=True),  # do not traverse extra_files for this
+        'SampleStudies': TSVDescriptor(field_type=FILE,
+                                       field_name=['sample_summary.studies'],
+                                       use_base_metadata=True),  # do not traverse extra_files for this
+        'SampleTissues': TSVDescriptor(field_type=FILE,
+                                       field_name=['sample_summary.tissues'],
+                                       use_base_metadata=True),  # do not traverse extra_files for this
+        'SampleDonors': TSVDescriptor(field_type=FILE,
+                                      field_name=['sample_summary.donor_ids'],
+                                      use_base_metadata=True),  # do not traverse extra_files for this
+        'SampleSource': TSVDescriptor(field_type=FILE,
+                                      field_name=['sample_summary.sample_descriptions'],
+                                      use_base_metadata=True),  # do not traverse extra_files for this
+        'Analytes': TSVDescriptor(field_type=FILE,
+                                  field_name=['sample_summary.analytes'],
+                                  use_base_metadata=True),
+        'Sequencer': TSVDescriptor(field_type=FILE,
+                                   field_name=['sequencing.sequencer.display_title'],
+                                   use_base_metadata=True),
+        'Assay': TSVDescriptor(field_type=FILE,
+                               field_name=['assays.display_title'],
+                               use_base_metadata=True),
+        'SoftwareName/Version': TSVDescriptor(field_type=FILE,
+                                              field_name=['analysis_summary.software'],
+                                              use_base_metadata=True),
+        'ReferenceGenome': TSVDescriptor(field_type=FILE,
+                                         field_name=['analysis_summary.reference_genome'],
+                                         use_base_metadata=True),
+        FILE_GROUP: TSVDescriptor(field_type=FILE,
+                                  field_name=['file_sets.file_group'],
+                                  use_base_metadata=False)   # omit this field on extra files
     }
 }
 
 
 def generate_file_download_header(download_file_name: str):
-    """ Helper function that generates a suitable header for the File download """
-    header1 = ['###', 'Metadata TSV Download', '', '', '', '', '']
+    """ Helper function that generates a suitable header for the File download, generating 18 columns"""
+    header1 = ['###', 'Metadata TSV Download', 'Column Count', '18'] + ([''] * 14)  # length 18
     header2 = ['Suggested command to download: ', '', '',
                "cut -f 1,3 ./{} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L "
-               "--user <access_key_id>:<access_key_secret> $0 --output $1'".format(download_file_name), '', '', '']
+               "--user <access_key_id>:<access_key_secret> $0 --output $1'".format(download_file_name)] + ([''] * 14)
     header3 = list(TSV_MAPPING[FILE].keys())
     return header1, header2, header3
+
+
+def extract_array(array: list, i: int, fields: list) -> str:
+    """ Extracts field_name values from array of dicts, or the value itself if a terminal field """
+    if isinstance(array[0], dict):
+        if isinstance(array[0][fields[i]], dict):  # go one level deeper
+            field1, field2 = fields[i], fields[i+1]
+            return '|'.join(sorted([ele[field1][field2] for ele in array]))
+        else:
+            return '|'.join(sorted(ele[fields[i]] for ele in array))
+    else:
+        return '|'.join(sorted(array))
 
 
 def descend_field(request, prop, field_names):
@@ -105,15 +173,36 @@ def descend_field(request, prop, field_names):
     for possible_field in field_names:
         current_prop = prop  # store a reference to the original object
         fields = possible_field.split('.')
-        for field in fields:
+        for i, field in enumerate(fields):
             current_prop = current_prop.get(field)
-        if current_prop is None or isinstance(current_prop, dict) or isinstance(current_prop, list):
+            if isinstance(current_prop, list) and possible_field != 'file_sets.file_group':
+                return extract_array(current_prop, i+1, fields)
+            elif current_prop and possible_field == 'file_sets.file_group':
+                return current_prop[0].get('file_group')
+            elif not current_prop:
+                break
+        # this hard code is necessary because in this select case we are processing an object field,
+        # and we want all other object fields to be ignored - Will 1 May 2024
+        if isinstance(current_prop, dict) and possible_field == 'file_sets.file_group':
+            return current_prop
+        elif current_prop is None or isinstance(current_prop, dict):
             continue
         elif possible_field == 'href':
             return f'{request.scheme}://{request.host}{current_prop}'
         else:
             return current_prop
     return None
+
+
+def handle_file_group(field: dict) -> str:
+    """ Transforms the file_group into a single string """
+    if field:
+        sc_part = field['submission_center']
+        sample_source_part = field['sample_source']
+        sequencing_part = field['sequencing']
+        assay_part = field['assay']
+        return f'{sc_part}-{sample_source_part}-{sequencing_part}-{assay_part}'
+    return ''
 
 
 def generate_tsv(header: Tuple, data_lines: list):
@@ -228,16 +317,33 @@ def metadata_tsv(context, request):
     data_lines = []
     for file in search_iter:
         line = []
-        for _, tsv_descriptor in args.tsv_mapping.items():
-            field = descend_field(request, file, tsv_descriptor.field_name()) or ''
+        for field_name, tsv_descriptor in args.tsv_mapping.items():
+            traversal_path = tsv_descriptor.field_name()
+            if field_name == FILE_GROUP:
+                field = descend_field(request, file, traversal_path) or ''
+                if field:  # requires special care
+                    field = handle_file_group(field)
+            else:
+                field = descend_field(request, file, traversal_path) or ''
             line.append(field)
         data_lines += [line]
+
+        # Repeat the above process for extra files
+        # This requires extra care - most fields we take from extra_files directly,
+        # but some must be taken from the parent metadata, such as anything related to library/assay/sample
+        # or the file merge group
         if args.include_extra_files and 'extra_files' in file:
             efs = file.get('extra_files')
             for ef in efs:
                 ef_line = []
-                for _, tsv_descriptor in args.tsv_mapping.items():
-                    field = descend_field(request, ef, tsv_descriptor.field_name()) or ''
+                for field_name, tsv_descriptor in args.tsv_mapping.items():
+                    traversal_path = tsv_descriptor.field_name()
+                    if tsv_descriptor.use_base_metadata():
+                        field = descend_field(request, file, traversal_path) or ''
+                        if field_name == FILE_GROUP:  # requires special care
+                            field = handle_file_group(field)
+                    else:
+                        field = descend_field(request, ef, traversal_path) or ''
                     ef_line.append(field)
                 data_lines += [ef_line]
 

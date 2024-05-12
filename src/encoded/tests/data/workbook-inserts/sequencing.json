@@ -6,6 +6,7 @@
         ],
         "submitted_id": "TEST_SEQUENCING_NOVASEQ-500X",
         "read_type": "Paired-end",
+        "flow_cell": "R9",
         "target_coverage": 500,
         "target_read_length": 150,
         "sequencer": "illumina_novaseqx",

@@ -20,8 +20,23 @@ export const BenchmarkingDataMap = {
     COLO829: {
         navBarTitle: 'COLO829',
         title: 'COLO829 Cell Line Data',
-        description:
-            'COLO829 (COLO829T) is a metastatic melanoma cancer cell line, which has a matched normal lymphoblast cell line, COLO892BL, derived from the same individual. For benchmarking analysis, COLO829T cells were mixed with COLO829BL cells at a mixture ratio of 1:50 (COLO829BLT50).',
+        description: (
+            <div>
+                <p>
+                    COLO829 (COLO829T) is a metastatic melanoma cancer cell
+                    line, which has a matched normal lymphoblast cell line,
+                    COLO892BL, derived from the same individual. For
+                    benchmarking analysis, COLO829T cells were mixed with
+                    COLO829BL cells at a mixture ratio of 1:50 (COLO829BLT50).
+                </p>
+                <p>
+                    <span className="font-italic">In silico</span> COLO829BLT50
+                    BAM files were created by sampling and merging COLO829T and
+                    COLO829BL Illumina WGS data at a mixture ratio of 1:50 at
+                    varying sequencing depths (100 - 500X).
+                </p>
+            </div>
+        ),
         type: 'Cell Line Data',
         path: '/data/benchmarking/COLO829',
         tabMapArray: [
@@ -43,12 +58,27 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829blt_50to1',
             },
-            // {
-            //     eventKey: '#silico',
-            //     title: 'In Silico Mix',
-            //     // searchHref: '/search/?type=SubmittedFile&status=released&status=restricted&status=public&dataset=colo829blt_200to1',
-            // },
+            {
+                eventKey: '#silico',
+                title: 'In silico BLT50',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829blt_in_silico',
+            },
         ],
+        callout: (
+            <div className="callout warning">
+                <p className="callout-text">
+                    <span className="flag">Attention: </span>
+                    <span className="headline">
+                        Illumina WGS BAMs from COLO829-BL, COLO829-T, and
+                        COLO829-BLT50 from UW have been reprocessed{' '}
+                    </span>
+                    to include the local realignment step. If you downloaded
+                    these datasets <u>before May 6</u>, please download them
+                    again for your benchmarking analyses.
+                </p>
+            </div>
+        ),
     },
     HapMap: {
         navBarTitle: 'HapMap',
@@ -121,31 +151,31 @@ export const BenchmarkingDataMap = {
             },
             {
                 eventKey: '#lb_ipsc_1',
-                title: 'LB-LA2 iPSC 1',
+                title: 'LB-LA2 iPSC-1',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_1',
             },
             {
                 eventKey: '#lb_ipsc_2',
-                title: 'LB-LA2 iPSC 2',
+                title: 'LB-LA2 iPSC-2',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_2',
             },
             {
                 eventKey: '#lb_ipsc_4',
-                title: 'LB-LA2 iPSC 4',
+                title: 'LB-LA2 iPSC-4',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_4',
             },
             {
                 eventKey: '#lb_ipsc_52',
-                title: 'LB-LA2 iPSC 52',
+                title: 'LB-LA2 iPSC-52',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_52',
             },
             {
                 eventKey: '#lb_ipsc_60',
-                title: 'LB-LA2 iPSC 60',
+                title: 'LB-LA2 iPSC-60',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_60',
             },

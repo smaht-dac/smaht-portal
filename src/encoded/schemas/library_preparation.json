@@ -4,7 +4,6 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "assay_name",
         "submission_centers",
         "submitted_id"
     ],
@@ -20,6 +19,9 @@
         },
         {
             "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -41,6 +43,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "preparation.json#/properties"
         }
     ],
     "properties": {
@@ -49,6 +54,9 @@
         },
         "schema_version": {
             "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_LIBRARY-PREPARATION_[A-Z0-9-_.]{4,}$"
         },
         "adapter_inclusion_method": {
             "title": "Adapter Inclusion Method",
@@ -79,29 +87,6 @@
                     "PTA",
                     "MDA",
                     "Not Applicable"
-                ]
-            }
-        },
-        "assay_name": {
-            "title": "Assay Name",
-            "description": "Name of experimental approach",
-            "type": "array",
-            "uniqueItems": true,
-            "minItems": 1,
-            "items": {
-                "type": "string",
-                "enum": [
-                    "WGS",
-                    "RNA-Seq",
-                    "NanoSeq",
-                    "CODEC",
-                    "Duplex Sequencing",
-                    "FiberSeq",
-                    "ATAC-Seq",
-                    "ScRNA-Seq",
-                    "DLP+",
-                    "MAS-Seq",
-                    "STORM-Seq"
                 ]
             }
         },
@@ -165,45 +150,10 @@
                 "Not Applicable"
             ]
         },
-        "target_fragment_length": {
-            "title": "Target Fragment Length",
-            "description": "Desired fragment length for the library",
-            "type": "integer"
-        },
-        "target_insert_length": {
-            "title": "Target Insert Length",
-            "description": "Desired insert length for the library",
-            "type": "integer"
-        },
         "trim_adapter_sequence": {
             "title": "Trim Adapter Sequence",
             "description": "Whether trimming adapter sequence is recommended",
             "type": "boolean"
-        },
-        "preparation_kits": {
-            "title": "Preparation Kits",
-            "description": "Links to associated preparation kits",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "PreparationKit"
-            }
-        },
-        "treatments": {
-            "title": "Treatments",
-            "description": "Link to associated treatments performed during library preparation",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "Treatment"
-            }
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_LIBRARY-PREPARATION_[A-Z0-9-_.]{4,}$"
         }
     }
 }
