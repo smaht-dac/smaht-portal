@@ -113,7 +113,7 @@
         },
         "sample_count": {
             "title": "Sample Count",
-            "description": "Number of samples taken from the tissue",
+            "description": "Number of samples produced from the tissue",
             "type": "integer",
             "minimum": 0
         },
@@ -125,9 +125,10 @@
         },
         "uberon_id": {
             "title": "Uberon Id",
-            "description": "Uberon identifier for the tissue",
+            "description": "Uberon Ontology identifier for the tissue.",
             "type": "string",
-            "pattern": "^UBERON:[0-9]{7}$"
+            "pattern": "^UBERON:[0-9]{7}$",
+            "url": "https://www.ebi.ac.uk/ols4/ontologies/uberon"
         },
         "volume": {
             "title": "Volume",

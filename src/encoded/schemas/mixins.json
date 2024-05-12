@@ -185,7 +185,7 @@
     "cell_count": {
         "cell_count": {
             "title": "Cell Count",
-            "description": "The number of cells in the sample",
+            "description": "The number of cells in the sample to be analyzed",
             "type": "integer",
             "minimum": 1
         }
@@ -707,7 +707,7 @@
     "parent_samples": {
         "parent_samples": {
             "title": "Parent Samples",
-            "description": "Link to associated parent samples",
+            "description": "Link to associated parent samples from which this sample was derived",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
@@ -885,8 +885,8 @@
     },
     "submitted_id": {
         "submitted_id": {
-            "title": "Submitter ID",
-            "description": "Identifier on submission",
+            "title": "Submitted ID",
+            "description": "Unique identifier for the item assigned by the submitter",
             "type": "string",
             "uniqueKey": "submitted_id"
         }
