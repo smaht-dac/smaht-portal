@@ -163,6 +163,7 @@ export const HashBasedTabController = ({
     return (
         <Tabs
             {...{ defaultActiveKey }}
+            mountOnEnter={true} // Don't load other tabs until switch to them (faster initial load + easier debugging)
             id={controllerId}
             activeKey={hash || defaultActiveKey}
             onSelect={selectNewTab}>
