@@ -238,10 +238,14 @@ const BenchmarkingTable = (props) => {
                 schemas,
                 session,
                 facets,
+                selectedItems,
+                onSelectItem,
+                onResetSelectedItems,
             }}
             columnExtensionMap={benchmarkingColExtMap}
             hideFacets={['dataset']}
             hideColumns={['display_title']}
+            clearSelectedItemsOnFilter
         />
     );
 };
