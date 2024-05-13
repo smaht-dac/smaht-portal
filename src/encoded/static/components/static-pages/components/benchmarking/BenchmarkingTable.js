@@ -77,8 +77,6 @@ const BenchmarkingTable = (props) => {
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
-        href,
-        searchHref,
     };
 
     /**
@@ -276,10 +274,7 @@ const BenchmarkingAboveTableComponent = React.memo(
             selectedItems, // From SelectedItemsController
             onSelectItem, // From SelectedItemsController
             onResetSelectedItems, // From SelectedItemsController
-            href,
-            searchHref,
         };
-        // console.log('abovetablecomponent props', props);
 
         return (
             <div className="d-flex w-100 mb-05">
@@ -293,7 +288,6 @@ const BenchmarkingAboveTableComponent = React.memo(
                     <SelectAllFilesButton
                         {...selectedFileProps}
                         {...{ context }}
-                        totalFilesCount={totalResultCount}
                     />
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
@@ -334,30 +328,32 @@ class SelectAllFilesButton extends React.PureComponent {
     }
 
     isEnabled() {
-        const { totalFilesCount, context } = this.props;
-        const { total: totalFromPropContext = 0 } = context || {};
-        if (!totalFilesCount && !totalFromPropContext) return true;
-        if (totalFilesCount > SELECT_ALL_LIMIT) return false;
+        const { context } = this.props;
+        const { total } = context || {};
+
+        if (!total) return true;
+        if (total > SELECT_ALL_LIMIT) return false;
         return true;
     }
 
     isAllSelected() {
-        const { totalFilesCount, selectedItems, context } = this.props;
-        const { total: totalFromPropContext = 0 } = context || {};
+        const { selectedItems, context } = this.props;
+        const { total } = context || {};
 
-        if (!totalFilesCount && !totalFromPropContext) return false;
-        // totalFilesCount as returned from bar plot aggs at moment is unique.
-        if (
-            totalFilesCount === selectedItems.size ||
-            totalFromPropContext === selectedItems.size
-        ) {
+        if (!total) return false;
+        if (total === selectedItems.size) {
             return true;
         }
         return false;
     }
 
     handleSelectAll(evt) {
-        const { searchHref, onSelectItem, onResetSelectedItems } = this.props;
+        const {
+            context: { '@id': searchHref } = {},
+            onSelectItem,
+            onResetSelectedItems,
+        } = this.props;
+
         if (
             typeof onSelectItem !== 'function' ||
             typeof onResetSelectedItems !== 'function'
@@ -376,6 +372,8 @@ class SelectAllFilesButton extends React.PureComponent {
                 const currentHrefQuery = _.extend({}, currentHrefParts.query);
                 currentHrefQuery.field = SelectAllFilesButton.fieldsToRequest;
                 currentHrefQuery.limit = 'all';
+                // TODO: might need to make additional tweak here since using 'context.@id' as searchHref:
+                // This would entail setting 'from' to be 0 in all cases, as limit is above
                 const reqHref =
                     currentHrefParts.pathname +
                     '?' +
