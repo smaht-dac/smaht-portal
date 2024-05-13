@@ -29,8 +29,6 @@ GOOGLE_SHEET_ID = "12jMDCOaKJyvR1CZ8oR-47xoXJPM0XqkCwANbAoJJHPE"
 GOOGLE_CREDENTIALS_PATH = Path.expanduser(Path("~/google_sheets_creds.json"))
 GOOGLE_TOKEN_PATH = Path.expanduser(Path("~/google_sheets_token.json"))
 
-SUBMISSION_SCHEMAS_ENDPOINT = "/submission-schemas/"
-
 
 def update_google_sheets(
     sheets_client: googleapiclient.discovery.Resource, request_handler: RequestHandler
@@ -228,7 +226,7 @@ def get_all_submission_schemas(
     request_handler: RequestHandler,
 ) -> Dict[str, Dict[str, Any]]:
     """Get all submission schemas"""
-    return request_handler.get_item(SUBMISSION_SCHEMAS_ENDPOINT)
+    return request_handler.get_item(SubmissionSchemaConstants.ENDPOINT)
 
 
 def write_item_spreadsheets(
@@ -263,7 +261,7 @@ def get_submission_schemas(
 
 def get_submission_schema_endpoint(item: str) -> Dict[str, Any]:
     """Get the submission schema for the item"""
-    return f"{SUBMISSION_SCHEMAS_ENDPOINT}{to_snake_case(item)}.json"
+    return f"{SubmissionSchemaConstants.ENDPOINT}{to_snake_case(item)}.json"
 
 
 def write_workbook(
