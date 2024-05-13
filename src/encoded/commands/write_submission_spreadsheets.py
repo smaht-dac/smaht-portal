@@ -52,25 +52,50 @@ def get_spreadsheets(request_handler: RequestHandler) -> List[Spreadsheet]:
 
 def delete_existing_sheets(sheets_client: googleapiclient.discovery.Resource) -> None:
     """Delete existing sheets from Google Sheets."""
-    sheet = sheets_client.get(spreadsheetId=GOOGLE_SHEET_ID).execute()
     requests = []
-    for sheet in sheet["sheets"]:
-        sheet_id = sheet["properties"]["sheetId"]
+    for sheet in get_worksheets(sheets_client):
+        sheet_id = get_worksheet_id(sheet)
         if sheet_id == 0:
-            requests.append(
-                {
-                    "deleteRange": {
-                        "range": {"sheetId": sheet_id}, "shiftDimension": "ROWS"
-                    }
-                }
-            )
+            requests.append(get_clear_values_request(sheet_id))
         else:
-            requests.append({"deleteSheet": {"sheetId": sheet_id}})
+            requests.append(get_delete_sheet_request(sheet_id))
     if requests:
-        sheets_client.batchUpdate(
-            spreadsheetId=GOOGLE_SHEET_ID,
-            body={"requests": requests},
-        ).execute()
+        submit_requests(sheets_client, requests)
+
+
+def get_worksheets(
+    sheets_client: googleapiclient.discovery.Resource,
+) -> List[Dict[str, Any]]:
+    """Get the worksheets from Google Sheets."""
+    sheet = sheets_client.get(spreadsheetId=GOOGLE_SHEET_ID).execute()
+    return sheet["sheets"]
+
+
+def get_worksheet_id(sheet: Dict[str, Any]) -> int:
+    """Get the worksheet ID."""
+    return sheet["properties"]["sheetId"]
+
+
+def get_clear_values_request(sheet_id: int) -> Dict[str, Any]:
+    """Get request to clear values from the sheet."""
+    return {
+        "deleteRange": {"range": {"sheetId": sheet_id}, "shiftDimension": "ROWS"}
+    }
+
+
+def get_delete_sheet_request(sheet_id: int) -> Dict[str, Any]:
+    """Get request to delete the sheet."""
+    return {"deleteSheet": {"sheetId": sheet_id}}
+
+
+def submit_requests(
+    sheets_client: googleapiclient.discovery.Resource, requests: List[Dict[str, Any]]
+) -> None:
+    """Submit requests to Google Sheets."""
+    sheets_client.batchUpdate(
+        spreadsheetId=GOOGLE_SHEET_ID,
+        body={"requests": requests},
+    ).execute()
 
 
 def update_or_add_spreadsheets(
@@ -80,44 +105,49 @@ def update_or_add_spreadsheets(
     requests = []
     for idx, spreadsheet in enumerate(spreadsheets):
         if idx == 0:
-            requests.append(
-                {
-                    "updateSheetProperties": {
-                        "properties": {
-                            "sheetId": idx,
-                            "title": spreadsheet.item,
-                            "gridProperties": {
-                                "columnCount": get_max_column_count(spreadsheet.properties)
-                            },
-                        },
-                        "fields": "title",
-                    }
-                }
-            )
+            requests.append(get_update_sheet_title_request(spreadsheet, idx))
         else:
-            requests.append(
-                {
-                    "addSheet": {
-                        "properties": {
-                            "title": spreadsheet.item,
-                            "sheetId": idx,
-                            "gridProperties": {
-                                "columnCount": get_max_column_count(spreadsheet.properties)
-                            },
-                        },
-                    }
-                }
-            )
+            requests.append(get_add_sheet_request(spreadsheet, idx))
     if requests:
-        sheets_client.batchUpdate(
-            spreadsheetId=GOOGLE_SHEET_ID,
-            body={"requests": requests},
-        ).execute()
+        submit_requests(sheets_client, requests)
+
+
+def get_update_sheet_title_request(
+    spreadsheet: Spreadsheet, sheet_id: int
+) -> Dict[str, Any]:
+    """Get request to update the sheet title."""
+    return {
+        "updateSheetProperties": {
+            "properties": {
+                "sheetId": sheet_id,
+                "title": spreadsheet.item,
+                "gridProperties": {
+                    "columnCount": get_max_column_count(spreadsheet.properties)
+                },
+            },
+            "fields": "title",
+        }
+    }
 
 
 def get_max_column_count(properties: List[Property]) -> int:
     """Get the maximum column count."""
     return len(properties) if len(properties) > 15 else 15
+
+
+def get_add_sheet_request(spreadsheet: Spreadsheet, sheet_id: int) -> Dict[str, Any]:
+    """Get request to add a new sheet."""
+    return {
+        "addSheet": {
+            "properties": {
+                "title": spreadsheet.item,
+                "sheetId": sheet_id,
+                "gridProperties": {
+                    "columnCount": get_max_column_count(spreadsheet.properties)
+                },
+            },
+        }
+    }
 
 
 def write_values_to_sheets(
