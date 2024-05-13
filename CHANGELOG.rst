@@ -7,6 +7,83 @@ smaht-portal
 Change Log
 ----------
 
+0.52.1
+======
+
+`PR 162: Broaden derived_from link <https://github.com/smaht-dac/smaht-portal/pull/162>`_
+
+* Update `derived_from` linkTo from SubmittedFile to File
+* Change File `unique_key` to `submitted_id` to allow finding SubmittedFiles by `submitted_id`
+* Add `accession` to default lookup field for all collections, i.e. `/<collection>/<accession>/` will work for all collections with accessions
+
+
+0.52.0
+======
+
+`PR 165: Update preparation items <https://github.com/smaht-dac/smaht-portal/pull/165>`_
+
+* Move common preparation links to parent item and share props with all children
+* Remove stale properties from preparation items
+* Update workbook inserts to reflect changes
+
+
+0.51.0
+======
+
+`PR 164: Add Tissue code for table search <https://github.com/smaht-dac/smaht-portal/pull/164>`_
+
+* Add `code` property to Tissue to be used in benchmarking table search
+
+
+0.50.0
+======
+
+`PR 160: Add N50 prop + in silico data type <https://github.com/smaht-dac/smaht-portal/pull/160>`_
+
+* Add N50 property to UnalignedReads and AlignedReads
+* Add in silico enum to File `data_type`
+
+
+0.49.0
+======
+
+`PR 161: feat: file download doc page <https://github.com/smaht-dac/smaht-portal/pull/161>`_
+
+* Add file download doc page
+
+
+0.48.0
+======
+
+`PR 159: feat: colo829 benchmarking page banner <https://github.com/smaht-dac/smaht-portal/pull/159>`_
+
+* Add callout banner for colo829 dataset benchmarking pages
+
+
+0.47.2
+======
+
+* Add `paired_with` property to OutputFiles
+
+
+0.47.1
+======
+
+`PR 155: BM In Silico Mix <https://github.com/smaht-dac/smaht-portal/pull/155>`_
+
+* Add in silico mix tab to COLO829 benchmarking
+
+
+0.47.0
+======
+
+* Add calcprop `file_merge_group` as a tag on file sets to help determine which file sets contain files that are candidates for merging
+* Add additional fields to manifest files
+* Documentation on manifest files
+* Documentation on data release via status
+* Adjust access key expiration down to 30 days
+
+
 0.46.2
 ======
 

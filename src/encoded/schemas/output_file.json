@@ -56,6 +56,9 @@
             "$ref": "mixins.json#/reference_genome"
         },
         {
+            "$ref": "mixins.json#/paired_with"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -87,6 +90,9 @@
         },
         "read_pair_number": {
             "$merge": "encoded:schemas/unaligned_reads.json#/properties/read_pair_number"
+        },
+        "paired_with": {
+            "linkTo": "OutputFile"
         },
         "output_status": {
             "title": "Output status",

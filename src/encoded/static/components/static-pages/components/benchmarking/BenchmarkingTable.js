@@ -706,11 +706,22 @@ const SelectedItemsDownloadModal = function (props) {
                             </span>{' '}
                             for bulk downloads.
                         </li>
-                        <li>
+                        <li className="mb-1">
                             You can configure the access key in your profile,
                             then use it in place of
                             &lt;access_key_id&gt;:&lt;access_key_secret&gt;,
                             below.
+                        </li>
+                        <li className="mb-1">
+                            Important information about the manifest file can be
+                            found{' '}
+                            <a
+                                href="/docs/user-guide/manifest"
+                                target="_blank"
+                                rel="noreferrer noopener">
+                                here
+                            </a>
+                            .
                         </li>
                     </ul>
                 </div>

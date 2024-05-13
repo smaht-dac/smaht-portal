@@ -18,23 +18,25 @@ export const BenchmarkingLayout = ({
     showBamQCLink = false,
     bamQCHash = '', // TODO: Other datasets will have qcs on same page accessible by anchor hash
     children,
+    callout = null,
 }) => {
-    const cls = `readable ${!schemas ? 'mb-5' : 'mb-2'}`;
+    const cls = `description readable ${!schemas ? 'mb-5' : ''}`;
 
     return (
         <div className="benchmarking-layout">
             <div className="row">
-                <div className="col-auto col-lg-9">
-                    <h2>{title}</h2>
-                    <div className={cls}>{description}</div>
-                    {description && (
-                        <p className={cls + ' disclaimer'}>
+                <div className="col-auto col-lg-9 mb-2">
+                    <h2 className="title">{title}</h2>
+                    <div className={cls}>
+                        {description}
+                        <p className="disclaimer">
                             <span className="">Note:</span> The unaligned BAM
                             and FASTQ files, and data from unofficial
                             benchmarking samples will be available upon request
                             &#40;through Globus&#41;.
                         </p>
-                    )}
+                    </div>
+                    {callout}
                 </div>
                 {/* TODO: Re-add documentation button once we have it available */}
                 {showBamQCLink && (
