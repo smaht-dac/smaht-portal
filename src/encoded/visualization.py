@@ -98,7 +98,8 @@ def date_histogram_aggregations(context, request):
         if 'date_range' in search_param_lists and len(search_param_lists['date_range']) > 0:
             date_range = search_param_lists['date_range'][0]
             date_from, date_to = convert_date_range(date_range)
-            from_field = 'file_status_tracking.uploading.from' #'date_created.from'
+            from_field = 'date_created.from'
+            #from_field = 'file_status_tracking.uploading.from'
             if date_from is not None:
                 search_param_lists[from_field] = date_from.strftime("%Y-%m-%d")
             del search_param_lists['date_range']
