@@ -35,10 +35,15 @@ def update_google_sheets(
 ) -> None:
     """Update Google Sheets with the latest submission schemas."""
     spreadsheets = get_spreadsheets(request_handler)
+    log.info("Clearing existing Google sheets.")
     delete_existing_sheets(sheets_client)
+    log.info("Updating Google sheets with tabs.")
     update_or_add_spreadsheets(sheets_client, spreadsheets)
+    log.info("Writing properties to Google sheets.")
     write_values_to_sheets(sheets_client, spreadsheets)
+    log.info("Formatting columns in Google sheets.")
     format_column_widths(sheets_client, spreadsheets)
+    log.info("Google sheets updated.")
 
 
 def get_spreadsheets(request_handler: RequestHandler) -> List[Spreadsheet]:
@@ -156,6 +161,7 @@ def write_values_to_sheets(
     """Write values to the Google Sheets."""
     requests = []
     for idx, spreadsheet in enumerate(spreadsheets):
+        requests.append(get_update_cells_request(spreadsheet, idx))
         values = get_values(spreadsheet)
         requests.append(
             {
@@ -167,19 +173,25 @@ def write_values_to_sheets(
             }
         )
     if requests:
-        sheets_client.batchUpdate(
-            spreadsheetId=GOOGLE_SHEET_ID,
-            body={"requests": requests},
-        ).execute()
+        submit_requests(sheets_client, requests)
+
+
+def get_update_cells_request(spreadsheet: Spreadsheet, sheet_id: int) -> Dict[str, Any]:
+    """Get request to update cells with properties."""
+    values = get_values(spreadsheet)
+    return {
+        "updateCells": {
+            "rows": values,
+            "fields": "*",
+            "start": {"sheetId": sheet_id, "rowIndex": 0, "columnIndex": 0},
+        }
+    }
 
 
 def get_values(spreadsheet: Spreadsheet) -> List[Dict[str, Any]]:
     """Get values for the spreadsheet."""
     return [
-        {"values": [
-            get_cell_value(property_)
-            for property_ in spreadsheet.properties
-        ]}
+        {"values": [get_cell_value(property_) for property_ in spreadsheet.properties]}
     ]
 
 
@@ -212,27 +224,29 @@ def format_column_widths(
     for idx, spreadsheet in enumerate(spreadsheets):
         for index, property_ in enumerate(spreadsheet.properties):
             width = len(property_.name) * 7
-            requests.append(
-                {
-                    "updateDimensionProperties": {
-                        "range": {
-                            "sheetId": idx,
-                            "dimension": "COLUMNS",
-                            "startIndex": index,
-                            "endIndex": index + 1,
-                        },
-                        "properties": {
-                            "pixelSize": width if width > 120 else 120,
-                        },
-                        "fields": "pixelSize",
-                    }
-                }
-            )
+            requests.append(get_format_column_request(idx, index, width))
     if requests:
-        sheets_client.batchUpdate(
-            spreadsheetId=GOOGLE_SHEET_ID,
-            body={"requests": requests},
-        ).execute()
+        submit_requests(sheets_client, requests)
+
+
+def get_format_column_request(
+    sheet_id: int, column_index: int, width: int
+) -> Dict[str, Any]:
+    """Get request to format an individual column."""
+    return {
+        "updateDimensionProperties": {
+            "range": {
+                "sheetId": sheet_id,
+                "dimension": "COLUMNS",
+                "startIndex": column_index,
+                "endIndex": column_index + 1,
+            },
+            "properties": {
+                "pixelSize": width if width > 120 else 120,
+            },
+            "fields": "pixelSize",
+        }
+    }
 
 
 def write_all_spreadsheets(
@@ -706,6 +720,7 @@ def main():
     args = parser.parse_args()
 
     keys = SMaHTKeyManager().get_keydict_for_env(args.env)
+    log.info(f"Found keys for {args.env}")
     request_handler = RequestHandler(auth_key=keys)
     if not args.output and not args.google:
         parser.error("No output specified")
