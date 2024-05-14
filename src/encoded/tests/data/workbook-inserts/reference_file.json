@@ -1,6 +1,9 @@
 [
     {
         "uuid": "49690fb8-7680-4034-ae3b-4f28222d5db8",
+        "aliases": [
+            "smaht:reference_genome"
+        ],
         "data_category": [
             "Reference Genome"
         ],

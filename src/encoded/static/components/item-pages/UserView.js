@@ -345,7 +345,7 @@ class SyncedAccessKeyTable extends React.PureComponent {
                         id="add-access-key"
                         className="btn btn-success"
                         onClick={this.handleCreate}>
-                        Add Access Key
+                        Generate Access Key
                     </button>
                 </div>
                 {modal}

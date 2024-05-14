@@ -11,9 +11,6 @@
         "amplification_method": [
             "MALBAC"
         ],
-        "assay_name": [
-            "FiberSeq"
-        ],
         "fragmentation_method": [
             "Sonication"
         ],
