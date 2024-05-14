@@ -292,10 +292,11 @@ export const commonParsingFxn = {
 
 const aggregationsToChartData = {
     'files_uploading' : {
-        'requires'  : 'File',
+        'requires'  : 'FileUploading',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations["weekly_interval_file_status_tracking.uploading"] && resp.aggregations["weekly_interval_file_status_tracking.uploading"].buckets;
+            const agg = "weekly_interval_date_created"/*"weekly_interval_file_status_tracking.uploading"*/;
+            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
 
             return commonParsingFxn.countsToTotals(
@@ -305,10 +306,11 @@ const aggregationsToChartData = {
         }
     },
     'file_volume_uploading' : {
-        'requires'  : 'File',
+        'requires'  : 'FileUploading',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp && resp.aggregations["weekly_interval_file_status_tracking.uploading"] && resp.aggregations["weekly_interval_file_status_tracking.uploading"].buckets;
+            const agg = "weekly_interval_date_created"/*"weekly_interval_file_status_tracking.uploading"*/;
+            var weeklyIntervalBuckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
 
             return commonParsingFxn.countsToTotals(
@@ -318,10 +320,11 @@ const aggregationsToChartData = {
         }
     },
     'files_uploaded' : {
-        'requires'  : 'File',
+        'requires'  : 'FileUploaded',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations["weekly_interval_file_status_tracking.uploaded"] && resp.aggregations["weekly_interval_file_status_tracking.uploaded"].buckets;
+            const agg = "weekly_interval_file_status_tracking.uploaded";
+            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
 
             return commonParsingFxn.countsToTotals(
@@ -331,10 +334,11 @@ const aggregationsToChartData = {
         }
     },
     'file_volume_uploaded' : {
-        'requires'  : 'File',
+        'requires'  : 'FileUploaded',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp && resp.aggregations["weekly_interval_file_status_tracking.uploaded"] && resp.aggregations["weekly_interval_file_status_tracking.uploaded"].buckets;
+            const agg = "weekly_interval_file_status_tracking.uploaded";
+            var weeklyIntervalBuckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
 
             return commonParsingFxn.countsToTotals(
@@ -344,10 +348,11 @@ const aggregationsToChartData = {
         }
     },
     'files_released' : {
-        'requires'  : 'File',
+        'requires'  : 'FileReleased',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations["weekly_interval_file_status_tracking.released"] && resp.aggregations["weekly_interval_file_status_tracking.released"].buckets;
+            const agg = "weekly_interval_file_status_tracking.released";
+            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
 
             return commonParsingFxn.countsToTotals(
@@ -357,10 +362,11 @@ const aggregationsToChartData = {
         }
     },
     'file_volume_released' : {
-        'requires'  : 'File',
+        'requires'  : 'FileReleased',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            var weeklyIntervalBuckets = resp && resp.aggregations["weekly_interval_file_status_tracking.released"] && resp.aggregations["weekly_interval_file_status_tracking.released"].buckets;
+            const agg = "weekly_interval_file_status_tracking.released";
+            var weeklyIntervalBuckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
 
             return commonParsingFxn.countsToTotals(
@@ -579,20 +585,39 @@ export class SubmissionStatsViewController extends React.PureComponent {
 
     static defaultProps = {
         'searchURIs' : {
-            'File' : function(props) {
+            'FileUploading' : function(props) {
                 const params = {'type': 'File'};
-                if (props.currentGroupBy){
-                    params.group_by = props.currentGroupBy;
-                }
-                if (props.currentDateRange){
-                    params.date_range = props.currentDateRange;
-                }
+                if (props.currentGroupBy){ params.group_by = props.currentGroupBy; }
+                if (props.currentDateRange){ params.date_range = props.currentDateRange; }
+                params.date_histogram = ['date_created'/*'file_status_tracking.uploading'*/];
                 const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
 
                 // For local dev/debugging; don't forget to comment out if using.
                 //uri = 'https://data.smaht.org' + uri;
                 return uri;
-            }
+            },
+            'FileUploaded' : function(props) {
+                const params = {'type': 'File'};
+                if (props.currentGroupBy){ params.group_by = props.currentGroupBy; }
+                if (props.currentDateRange){ params.date_range = props.currentDateRange; }
+                params.date_histogram = ['file_status_tracking.uploaded'];
+                const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
+
+                // For local dev/debugging; don't forget to comment out if using.
+                //uri = 'https://data.smaht.org' + uri;
+                return uri;
+            },
+            'FileReleased' : function(props) {
+                const params = {'type': 'File'};
+                if (props.currentGroupBy){ params.group_by = props.currentGroupBy; }
+                if (props.currentDateRange){ params.date_range = props.currentDateRange; }
+                params.date_histogram = ['file_status_tracking.released'];
+                const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
+
+                // For local dev/debugging; don't forget to comment out if using.
+                //uri = 'https://data.smaht.org' + uri;
+                return uri;
+            },
         },
         'shouldRefetchAggs' : function(pastProps, nextProps){
             return StatsViewController.defaultProps.shouldRefetchAggs(pastProps, nextProps) || (
@@ -1001,13 +1026,16 @@ const convertDataRangeToXDomain = memoize(function (range = 'all') {
     const today = new Date();
     const month = today.getMonth();
     let from = new Date(today.getFullYear(), month, 1);
+    let to = null;
 
     switch (rangeLower) {
         case 'thismonth':
             //do nothing
             break;
-        case 'lastmonth':
+        case 'previousmonth':
+            //override
             from.setMonth(month - 1);
+            to = new Date(today.getFullYear(), month, 1);
             break;
         case 'last3months':
             from.setMonth(month - 2);
@@ -1021,8 +1049,10 @@ const convertDataRangeToXDomain = memoize(function (range = 'all') {
         case 'thisyear':
             from = new Date(today.getFullYear(), 0, 1);
             break;
-        case 'lastyear':
+        case 'previousyear':
+            //override
             from = new Date(today.getFullYear() - 1, 0, 1);
+            to = new Date(today.getFullYear(), 1, 1);
             break;
         case 'all':
         default:
@@ -1032,7 +1062,7 @@ const convertDataRangeToXDomain = memoize(function (range = 'all') {
     // get first day of date's week
     const dayOfWeek = from.getDay(); // Sunday: 0, Monday: 1, ..., Saturday: 6
     const daysDifference = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust for Monday being 1
-    const firstWeekdayFrom = new Date(from.getTime() - daysDifference * 24 * 60 * 60 * 1000);;
+    const firstWeekdayFrom = new Date(from.getTime() - daysDifference * 24 * 60 * 60 * 1000);
 
-    return [firstWeekdayFrom, null];
+    return [firstWeekdayFrom, to];
 });
