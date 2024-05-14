@@ -102,7 +102,7 @@ class FileRelease:
         self.file_accession = ""
 
     def prepare(
-        self, file_identifier: str, obsolete_file_identifier: str, dataset: str
+        self, file_identifier: str, dataset: str, **kwargs
     ) -> None:
 
         file = self.get_metadata_object(file_identifier)
@@ -157,8 +157,8 @@ class FileRelease:
                 for sample_source in sample_sources:
                     self.release_sample_source(sample_source)
 
-        if obsolete_file_identifier:
-            obsolete_file = self.get_metadata_object(obsolete_file_identifier)
+        if "obsolete_file_identifier" in kwargs and kwargs["obsolete_file_identifier"]:
+            obsolete_file = self.get_metadata_object(kwargs["obsolete_file_identifier"])
             self.add_obsolete_file_patchdict(obsolete_file, fileset)
 
         print("\nThe following metadata patches will be carried out in the next step:")
@@ -610,7 +610,7 @@ def main() -> None:
     auth_key = get_auth_key(args.env)
 
     file_release = FileRelease(auth_key=auth_key)
-    file_release.prepare(args.file, args.replace, args.dataset)
+    file_release.prepare(file_identifier=args.file, dataset=args.dataset,  obsolete_file_identifier=args.replace)
 
     while True:
         resp = input(
