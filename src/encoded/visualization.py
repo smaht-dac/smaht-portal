@@ -61,7 +61,8 @@ def date_histogram_aggregations(context, request):
     date_histogram_fields    = ['file_status_tracking.uploading', 'file_status_tracking.uploaded', 'file_status_tracking.released']
     group_by_fields          = [
         'data_generation_summary.submission_centers', 'data_generation_summary.sequencing_center', 
-        'data_generation_summary.data_type', 'data_generation_summary.data_category', 'data_generation_summary.assays', 
+        'data_generation_summary.data_type', 'data_generation_summary.data_category', 'file_format.display_title',
+        'data_generation_summary.assays', 
         'data_generation_summary.sequencing_platforms', 'dataset', 'software.display_title'
         ]
     date_histogram_intervals = ['weekly']
@@ -185,6 +186,7 @@ def date_histogram_aggregations(context, request):
         # value is not found
         return None
 
+    # in practice, moves search_result['aggregations']['weekly_interval_date_created'] to search_result['aggregations']['weekly_interval_file_status_tracking.uploading']
     for interval in date_histogram_intervals:
         for dh_field in date_histogram_fields:
             dh_old_key = '{}_interval_{}'.format(interval, dh_field)
@@ -194,6 +196,7 @@ def date_histogram_aggregations(context, request):
                 search_result['aggregations'][dh_new_key] = search_result['aggregations'][dh_old_key] 
                 del search_result['aggregations'][dh_old_key]
 
+    # remove unnecessary fields from result
     for field_to_delete in ['@context', '@id', '@type', '@graph', 'title', 'filters', 'facets', 'sort', 'clear_filters', 'actions', 'columns']:
         if search_result.get(field_to_delete) is None:
             continue

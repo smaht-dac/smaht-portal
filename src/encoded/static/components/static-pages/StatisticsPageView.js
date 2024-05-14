@@ -113,7 +113,7 @@ export default class StatisticsPageView extends React.PureComponent {
         const dateRangeOptions = {
                 'all'           : <span>All</span>,
                 'thismonth'     : <span>This Month</span>,
-                'lastmonth'     : <span>Last Month</span>,
+                // 'lastmonth'     : <span>Last Month</span>,
                 'last3months'   : <span>Last 3 Months</span>,
                 'last6months'   : <span>Last 6 Months</span>,
                 'last12months'  : <span>Last 12 Months</span>,
