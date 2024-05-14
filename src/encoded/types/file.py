@@ -1,3 +1,4 @@
+import functools
 from typing import Any, Dict, List, Optional, Union
 
 from pyramid.view import view_config
@@ -49,7 +50,9 @@ from ..item_utils import (
     analyte as analyte_utils,
     file as file_utils,
     item as item_utils,
+    sample as sample_utils,
     software as software_utils,
+    tissue as tissue_utils,
 )
 from ..item_utils.utils import (
     get_property_value_from_identifier,
@@ -332,6 +335,12 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.samples.sample_sources.description",
         "file_sets.samples.sample_sources.donor",
 
+        # For manifest
+        "sequencing.sequencer.display_title",
+
+        # Include file groups tags
+        "file_sets.file_group.*",
+
         # Analysis summary
         "software.code",
         "software.title",
@@ -341,7 +350,7 @@ def _build_file_embedded_list() -> List[str]:
 
 @abstract_collection(
     name="files",
-    unique_key='accession',
+    unique_key="submitted_id",  # To permit lookup on submission
     properties={
         "title": "Files",
         "description": "Listing of Files",
@@ -812,13 +821,40 @@ class File(Item, CoreFile):
     ) -> Dict[str, Any]:
         """Get sample summary for display on file overview page."""
         constants = CalcPropConstants
-        # TODO: Implement sample summary fields once TPC updates are available
         to_include = {
-            constants.SAMPLE_SUMMARY_DONOR_IDS: [],
-            constants.SAMPLE_SUMMARY_TISSUES: [],
-            constants.SAMPLE_SUMMARY_SAMPLE_NAMES: [],
-            constants.SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS: [],
-            constants.SAMPLE_SUMMARY_STUDIES: [],
+            constants.SAMPLE_SUMMARY_DONOR_IDS: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_donors(file_properties, request_handler),
+                item_utils.get_external_id,
+            ),
+            constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_tissues(file_properties, request_handler),
+                tissue_utils.get_location,
+            ),
+            constants.SAMPLE_SUMMARY_SAMPLE_NAMES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_samples(file_properties, request_handler),
+                functools.partial(
+                    sample_utils.get_sample_names, request_handler=request_handler
+                ),
+            ),
+            constants.SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS:
+                get_property_values_from_identifiers(
+                    request_handler,
+                    file_utils.get_samples(file_properties, request_handler),
+                    functools.partial(
+                        sample_utils.get_sample_descriptions,
+                        request_handler=request_handler,
+                    ),
+                ),
+            constants.SAMPLE_SUMMARY_STUDIES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_samples(file_properties, request_handler),
+                functools.partial(
+                    sample_utils.get_studies, request_handler=request_handler
+                ),
+            ),
             constants.SAMPLE_SUMMARY_ANALYTES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_analytes(file_properties, request_handler),

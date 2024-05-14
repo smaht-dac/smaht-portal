@@ -94,7 +94,21 @@
     },
     "facets": {
         "submission_centers.display_title": {
-            "title": "Submitted By"
+            "title": "Submitted By",
+            "grouping": "Mergeable Files",
+            "extended_description": "src/encoded/docs/extended_description_FileSet_MergeableFiles.html"
+        },
+        "file_merge_group.sample_source": {
+            "title": "Sample Source Tag",
+            "grouping": "Mergeable Files"
+        },
+        "file_merge_group.sequencing": {
+            "title": "Sequencing Tag",
+            "grouping": "Mergeable Files"
+        },
+        "file_merge_group.assay": {
+            "title": "Assay Tag",
+            "grouping": "Mergeable Files"
         },
         "libraries.assay.display_title": {
             "title": "Assay"

@@ -275,7 +275,7 @@
             "uniqueItems": true,
             "items": {
                 "type": "string",
-                "linkTo": "SubmittedFile"
+                "linkTo": "File"
             }
         },
         "file_sets": {
@@ -330,6 +330,7 @@
                 "colo829bl",
                 "colo829t",
                 "colo829blt_50to1",
+                "colo829blt_in_silico",
                 "hapmap",
                 "hg002",
                 "hg00438",
@@ -344,6 +345,19 @@
                 "lb_ipsc_52",
                 "lb_ipsc_60"
             ]
+        }
+    },
+    "flow_cell_details": {
+        "flow_cell_barcode": {
+            "title": "Flow Cell Barcode",
+            "description": "Flow cell barcode for sequencing that generated this file",
+            "type": "string"
+        },
+        "flow_cell_lane": {
+            "title": "Flow Cell Lane",
+            "description": "Flow cell lane for sequencing that generated this file",
+            "type": "integer",
+            "minimum": 1
         }
     },
     "identifier": {
@@ -636,6 +650,14 @@
             }
         }
     },
+    "n50": {
+        "n50": {
+            "title": "N50",
+            "description": "The sequence length of the shortest read at 50% of the total sequencing dataset sorted by read length",
+            "type": "number",
+            "minimum": 0
+        }
+    },
     "name": {
         "name": {
             "title": "Name",
@@ -673,6 +695,13 @@
             "title": "Ontology Term",
             "type": "string",
             "linkTo": "OntologyTerm"
+        }
+    },
+    "paired_with": {
+        "paired_with": {
+            "description": "Link to associated paired-end file, if applicable",
+            "type": "string",
+            "linkTo": "File"
         }
     },
     "parent_samples": {
@@ -924,7 +953,7 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 50,
-                "pattern": "^[a-zA-Z0-9_-]+$"
+                "pattern": "^[a-zA-Z0-9|_-]+$"
             }
         }
     },

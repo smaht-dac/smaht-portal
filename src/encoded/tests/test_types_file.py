@@ -1,3 +1,4 @@
+import functools
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
@@ -19,7 +20,7 @@ from ..item_utils import (
     software as software_utils,
     tissue as tissue_utils,
 )
-from ..item_utils.utils import get_unique_values
+from ..item_utils.utils import get_unique_values, RequestHandler
 from ..types.file import CalcPropConstants
 
 
@@ -954,10 +955,7 @@ def assert_data_generation_summary_matches_expected(
     expected_data_type = file_utils.get_data_type(file)
     sequencing_center = file_utils.get_sequencing_center(file)
     expected_sequencing_center = item_utils.get_display_title(
-        get_item(
-            es_testapp,
-            item_utils.get_uuid(sequencing_center),
-        )
+        get_item(es_testapp, item_utils.get_uuid(sequencing_center))
     ) if sequencing_center else ""
     expected_submission_centers = [
         item_utils.get_display_title(
@@ -1023,13 +1021,12 @@ def test_sample_summary(es_testapp: TestApp, workbook: None) -> None:
     for file in files_with_summary_search:
         assert_sample_summary_matches_expected(file, es_testapp)
 
-# TODO: Uncomment once all fields implemented
-#    all_fields = schema_utils.get_properties(
-#        CalcPropConstants.SAMPLE_SUMMARY_SCHEMA
-#    ).keys()
-#    assert_all_summary_fields_present_in_items(
-#        files_with_summary_search, all_fields, "sample_summary"
-#    )
+    all_fields = schema_utils.get_properties(
+        CalcPropConstants.SAMPLE_SUMMARY_SCHEMA
+    ).keys()
+    assert_all_summary_fields_present_in_items(
+        files_with_summary_search, all_fields, "sample_summary"
+    )
 
 
 def assert_sample_summary_matches_expected(
@@ -1037,20 +1034,50 @@ def assert_sample_summary_matches_expected(
 ) -> None:
     """Compare 'sample_summary' calcprop to expected values.
 
-    Expected values determined here by parsing file properties/embeds.
+    Expected values determined here by parsing file properties/embeds
+    or calling functions on correct items. The latter is similar to how
+    the calcprop is implemented, so not a great test of the calcprop,
+    but these are too complex to test in a more direct way.
     """
     sample_summary = file_utils.get_sample_summary(file)
     analytes = file_utils.get_analytes(file)
+    samples = [
+        get_item(es_testapp, item_utils.get_uuid(sample))
+        for sample in file_utils.get_samples(file)
+    ]
+    tissues = file_utils.get_tissues(file)
+    donors = file_utils.get_donors(file)
+    request_handler = RequestHandler(test_app=es_testapp)
     expected_analytes = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(analyte)) for analyte in analytes],
         analyte_utils.get_molecule,
     )
-    # TODO: Implement expected values below once data model updates in
-    expected_sample_names = []
-    expected_tissues = []
-    expected_donor_ids = []
-    expected_sample_descriptions = []
-    epected_studies = []
+    expected_tissues = get_unique_values(
+        [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
+        tissue_utils.get_location,
+    )
+    expected_donor_ids = get_unique_values(
+        [get_item(es_testapp, item_utils.get_uuid(donor)) for donor in donors],
+        item_utils.get_external_id,
+    )
+    expected_sample_names = get_unique_values(
+        samples,
+        functools.partial(
+            sample_utils.get_sample_names, request_handler=request_handler
+        ),
+    )
+    expected_sample_descriptions = get_unique_values(
+        samples,
+        functools.partial(
+            sample_utils.get_sample_descriptions, request_handler=request_handler
+        ),
+    )
+    expected_studies = get_unique_values(
+        samples,
+        functools.partial(
+            sample_utils.get_studies, request_handler=request_handler
+        ),
+    )
     assert_values_match_if_present(
         sample_summary, "analytes", expected_analytes
     )
@@ -1067,7 +1094,7 @@ def assert_sample_summary_matches_expected(
         sample_summary, "sample_descriptions", expected_sample_descriptions
     )
     assert_values_match_if_present(
-        sample_summary, "studies", epected_studies
+        sample_summary, "studies", expected_studies
     )
 
 
@@ -1121,4 +1148,17 @@ def assert_analysis_summary_matches_expected(
     )
     assert_values_match_if_present(
         analysis_summary, "reference_genome", expected_reference_genome
+    )
+
+
+@pytest.mark.workbook
+def test_unique_key(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure `submitted_id` is valid unique key for File."""
+    search_key = "submitted_id"
+    files_with_submitted_id_search = search_type_for_key(
+        es_testapp, "File", search_key
+    )
+    file_with_submitted_id = files_with_submitted_id_search[0]
+    get_item(
+        es_testapp, f"/files/{item_utils.get_submitted_id(file_with_submitted_id)}"
     )

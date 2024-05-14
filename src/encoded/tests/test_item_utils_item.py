@@ -11,7 +11,7 @@ from ..item_utils.item import get_type
         ({}, ""),
         ({"@type": ["Item", "Foo"]}, "Item"),
         ({"@type": ["Foo", "Item"]}, "Foo"),
-    ]
+    ],
 )
 def test_get_type(properties: Dict[str, Any], expected: str) -> None:
     assert get_type(properties) == expected

@@ -4,9 +4,6 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_SAMPLE-PREPARATION_LIVER",
-        "preservation_method": [
-            "Fresh"
-        ]
+        "submitted_id": "TEST_SAMPLE-PREPARATION_LIVER"
     }
 ]

@@ -5,12 +5,12 @@ from . import library as library_utils
 from .utils import RequestHandler, get_property_values_from_identifiers
 
 
-def get_sequencing(properties: Dict[str, Any]) -> Union[Dict[str, Any], str]:
+def get_sequencing(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
     """Get sequencing connected to file set."""
     return properties.get("sequencing", "")
 
 
-def get_libraries(file_set: Dict[str, Any]) -> List[Union[Dict[str, Any], str]]:
+def get_libraries(file_set: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
     """Get libraries connected to file set."""
     return file_set.get("libraries", [])
 

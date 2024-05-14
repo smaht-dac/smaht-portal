@@ -1799,20 +1799,62 @@ body[data-pathname^="/data/benchmarking"] {
 					}
 				}
 		
-				>.row>div {
-					>h2 {
+				>.row {
+					.title {
 						color: #343741;
 						font-family: Inter;
 						font-size: 24px;
 						font-weight: 600;
 						margin-top: 5px;
 					}
-		
-					>p {
-						color: #5D5E63;
+					.description {
 						font-family: Inter;
-						font-size: 14px;
+						font-size: 0.875rem;
+						color: #5D5E63;
 						line-height: 20px;
+
+						.disclaimer {
+							color: #5D5E63;
+							font-family: Inter;
+							font-size: 0.875rem;
+							line-height: 20px;
+							margin-top: 10px;
+							span {
+								font-weight: 500;
+							}
+						}
+					}
+					.callout {
+						margin-top: 24px;
+						border-radius: 7px;
+						max-width: 980px;
+						border-top-left-radius: 0.25rem;
+						border-bottom-left-radius: 0.25rem;
+						
+						&-text {
+							font-family: Inter;
+							color: #5D5E63;
+							font-size: 0.875rem;
+							padding: 8px;
+							line-height: 20px;
+
+							.flag {
+								font-weight: 600;
+							}
+							.headline {
+								font-weight: 600;
+							}
+						}
+						&.warning {
+							background-color: #FFF9F9;
+							border: 1px solid #F6D6D6;
+							border-left: 4px solid #BB3F3F;
+
+							.flag {
+								font-weight: 600;
+								color: #BB3F3F;
+							}
+						}
 					}
 				}
 
@@ -2103,6 +2145,59 @@ body[data-pathname^="/data/benchmarking"] {
 	}
 }
 
+/** Utilities for static page tables **/
+thead.thead-smaht tr>th {
+	background-color: $baby-20;
+}
+
+tbody.table-border-inner {
+	border-left-width:0 !important;
+	
+	tr:first-child {
+		border-left-width:0 !important;
+	}
+}
+
+.table-equal-columns {
+	table-layout: fixed;
+}
+
+.table-border-inner {
+	border-collapse: collapse;
+	
+	th,
+	td {
+		border: 1px solid rgba(0,0,0,.05);;
+	}
+	
+	th:first-child,
+	td:first-child {
+		border-left: none;
+	}
+	
+	th:last-child,
+	td:last-child {
+		border-right: none;
+	}
+	
+	tr:first-child th {
+		border-top: none;
+	}
+}
+
+.table-stripe-secondary > td {
+	background-color: #f0f1f5 !important;
+}
+
+.cell-small-text {
+	font-size: 11px;
+	line-height: 1.3;
+	width: 250px;
+}
+
+.grey-border {
+	border: 1px solid #F7F8FA;
+}
 
 /***
 Unique styling of Submission Status page
@@ -2113,16 +2208,18 @@ Unique styling of Submission Status page
 .ss-line-height-140 {
     line-height: 140%;
 }
-.ss-line-height-120 {
-    line-height: 120%;
-}
-.ss-top-40 {
+.ss-fixed-thead {
     top: 40px;
-}
-.ss-max-width-250 {
-	max-width: 250px;
+	z-index: 200 !important;
 }
 .ss-fileset-column {
 	word-wrap: break-word;
 	max-width: 400px;
+}
+.ss-padding-top-3 {
+	padding-top: 3px;
+}
+.badge-lighter {
+    color: #fff;
+    background-color: #c1c1c1;
 }

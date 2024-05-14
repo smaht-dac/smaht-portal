@@ -1,6 +1,7 @@
 from dcicutils.project_utils import C4ProjectRegistry
 from snovault.project_defs import SnovaultProject
 from .project_env import APPLICATION_NAME, APPLICATION_PYPROJECT_NAME
+from .project.access_key import SMAHTProjectAccessKey
 from .project.authentication import SMAHTProjectAuthentication
 from .project.authorization import SMaHTProjectAuthorization
 from .project.ingestion import SMaHTProjectIngestion
@@ -9,7 +10,8 @@ from .project.schema_views import SMaHTProjectSchemaViews
 
 
 @C4ProjectRegistry.register(APPLICATION_PYPROJECT_NAME)
-class SMaHTProject(SMAHTProjectAuthentication,
+class SMaHTProject(SMAHTProjectAccessKey,
+                   SMAHTProjectAuthentication,
                    SMaHTProjectAuthorization,
                    SMaHTProjectIngestion,
                    SMaHTProjectLoadxl,

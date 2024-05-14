@@ -1,7 +1,6 @@
-from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
-from . import file_set, library, sample, sequencing, tissue
+from . import analyte, file_set, library, sample, sequencing, tissue
 from .utils import (
     RequestHandler,
     get_property_values_from_identifiers,
@@ -90,9 +89,7 @@ def get_libraries(
     """Get libraries associated with file."""
     if request_handler:
         return get_property_values_from_identifiers(
-            request_handler,
-            get_file_sets(properties),
-            file_set.get_libraries,
+            request_handler, get_file_sets(properties), file_set.get_libraries
         )
     return properties.get("libraries", [])
 
@@ -130,8 +127,8 @@ def get_samples(
     if request_handler:
         return get_property_values_from_identifiers(
             request_handler,
-            get_file_sets(properties),
-            partial(file_set.get_samples, request_handler=request_handler),
+            get_analytes(properties, request_handler),
+            analyte.get_samples,
         )
     return properties.get("samples", [])
 
@@ -153,14 +150,18 @@ def get_tissues(
     properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get tissues associated with file."""
+    sample_sources = get_sample_sources(properties, request_handler=request_handler)
     if request_handler:
-        sample_sources = get_sample_sources(properties, request_handler)
         return [
             sample_source
             for sample_source in sample_sources
             if tissue.is_tissue(request_handler.get_item(sample_source))
         ]
-    return properties.get("tissues", [])
+    return [
+        sample_source
+        for sample_source in sample_sources
+        if isinstance(sample_source, dict) and tissue.is_tissue(sample_source)
+    ]
 
 
 def get_donors(

@@ -4,17 +4,18 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from dcicutils import schema_utils
-from dcicutils.misc_utils import exported, to_camel_case
+from dcicutils.misc_utils import exported, to_camel_case, to_snake_case
+from jsonschema import validate, ValidationError
 from pyramid.registry import Registry
 from pyramid.router import Router
-from snovault import Collection, COLLECTIONS, TYPES
+from snovault import Collection, COLLECTIONS, TYPES, load_schema as snovault_load_schema
 from snovault.typeinfo import AbstractTypeInfo, TypeInfo
 from snovault.upgrader import UPGRADER, Upgrader
 from webtest.app import TestApp
 
 from ..utils import (
     get_formatted_resource_path,
-    get_item_from_testapp as get_item,
+    get_item_with_testapp as get_item,
     pluralize_collection,
 )
 from ..types.submitted_item import SubmittedItem
@@ -24,7 +25,10 @@ from ..types.submitted_file import SubmittedFile
 def post_item_and_return_location(
     testapp: TestApp, item: dict, collection: str
 ) -> dict:
-    """Posts item metadata to resource_path using testapp and return a dict response containing the location"""
+    """Posts item metadata to resource path using testapp.
+
+    Return a dict response containing the location.
+    """
     resource_path = get_formatted_resource_path(collection)
     res = testapp.post_json(resource_path, item)
     return testapp.get(res.location).json
@@ -476,6 +480,23 @@ def get_item_from_search(test_app: TestApp, collection: str) -> Dict[str, Any]:
     search_results = get_search(test_app, f"type={to_camel_case(collection)}")
     assert search_results, f"No {collection} found in search results"
     return search_results[0]
+
+
+def load_schema(item_type: str) -> Dict[str, Any]:
+    """Load schema for given item type."""
+    return snovault_load_schema(
+        f"encoded:schemas/{to_snake_case(item_type)}.json"
+    )
+
+
+def validate_schema(schema: Dict[str, Any], to_validate: Any) -> str:
+    """Validate value against schema."""
+    try:
+        validate(instance=to_validate, schema=schema)
+    except ValidationError as e:
+        return str(e)
+    else:
+        return ""
 
 
 exported(get_item)

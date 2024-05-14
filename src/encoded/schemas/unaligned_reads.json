@@ -60,7 +60,16 @@
             "$ref": "mixins.json#/file_release"
         },
         {
+            "$ref": "mixins.json#/flow_cell_details"
+        },
+        {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/n50"
+        },
+        {
+            "$ref": "mixins.json#/paired_with"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -137,8 +146,6 @@
             ]
         },
         "paired_with": {
-            "description": "Link to associated paired-end file, if applicable",
-            "type": "string",
             "linkTo": "UnalignedReads"
         }
     }
