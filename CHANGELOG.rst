@@ -7,6 +7,25 @@ smaht-portal
 Change Log
 ----------
 
+0.52.3
+======
+
+* Extend release script to handle obsolete files
+
+
+0.52.2
+======
+
+* 2024-05-08/dmichaels/PR-163
+* Added option to ingester to skip validation on submit.
+  With smaht-submitr/submit-metadata-bundle --validate-remote-skip flag;
+  this flag previously only prevented server-side validation from being
+  kicked off by submitr, but on actual submit server-side validation
+  was still being done before loadxl; this flag now prevents that as well.
+  This is hooked on a (submission folio) validate_skip flag; and this is
+  ONLY allowed for admin users; if non-admin validate_skip forced to False.
+
+
 0.52.1
 ======
 
