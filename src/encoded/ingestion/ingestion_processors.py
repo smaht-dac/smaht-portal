@@ -43,7 +43,8 @@ def _process_submission(submission: SmahtSubmissionFolio) -> None:
     with submission.s3_file() as file:
         structured_data = parse_structured_data(file, portal=submission.portal_vapp,
                                                 submission=submission,
-                                                ref_nocache=submission.ref_nocache)
+                                                ref_nocache=submission.ref_nocache,
+                                                novalidate=submission.validate_skip)
         if (errors := structured_data.errors):
             submission.record_results(errors, _summarize_errors(structured_data, submission))
             # If there are data validation errors then trigger an exception so that a traceback.txt
