@@ -74,7 +74,11 @@ def date_histogram_aggregations(context, request):
         'monthly'   : 'month',
         'yearly'    : 'year'
     }
-    date_range_presets = []
+    # temp. mapping until all file_status_tracking.uploading entirely indexed
+    date_histogram_field_mapping = {
+        'file_status_tracking.uploading': 'date_created'
+    }
+    date_range_presets = ['all', 'thismonth', 'lastmonth', 'last3months', 'last6months', 'last12months', 'thisyear', 'lastyear']
 
     try:
         json_body = request.json_body
@@ -97,6 +101,8 @@ def date_histogram_aggregations(context, request):
             del search_param_lists['date_histogram_interval'] # We don't wanna use it as search filter.
         if 'date_range' in search_param_lists and len(search_param_lists['date_range']) > 0:
             date_range = search_param_lists['date_range'][0]
+            if date_range not in date_range_presets:
+                raise IndexError('"{}" is not one of {}.'.format(date_range, ', '.join(date_range_presets)))
             date_from, date_to = convert_date_range(date_range)
             from_field = 'date_created.from'
             #from_field = 'file_status_tracking.uploading.from'
@@ -105,6 +111,8 @@ def date_histogram_aggregations(context, request):
             del search_param_lists['date_range']
         if not search_param_lists:
             search_param_lists = {}
+
+    date_histogram_fields = [date_histogram_field_mapping[dhf] if dhf in date_histogram_field_mapping else dhf for dhf in date_histogram_fields]
 
     if 'File' in search_param_lists['type']:
         # Add predefined sub-aggs to collect Exp and File counts from ExpSet items, in addition to getting own doc_count.
@@ -169,6 +177,22 @@ def date_histogram_aggregations(context, request):
     search_param_lists['limit'] = search_param_lists['from'] = [0]
     subreq          = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)) )
     search_result   = perform_search_request(None, subreq, custom_aggregations=outer_date_histogram_agg)
+    
+    def get_key_by_value(dictionary, value):
+        for key, val in dictionary.items():
+            if val == value:
+                return key
+        # value is not found
+        return None
+
+    for interval in date_histogram_intervals:
+        for dh_field in date_histogram_fields:
+            dh_old_key = '{}_interval_{}'.format(interval, dh_field)
+            dh_new_key = get_key_by_value(date_histogram_field_mapping, dh_field)
+            if dh_new_key:
+                dh_new_key = '{}_interval_{}'.format(interval, dh_new_key)
+                search_result['aggregations'][dh_new_key] = search_result['aggregations'][dh_old_key] 
+                del search_result['aggregations'][dh_old_key]
 
     for field_to_delete in ['@context', '@id', '@type', '@graph', 'title', 'filters', 'facets', 'sort', 'clear_filters', 'actions', 'columns']:
         if search_result.get(field_to_delete) is None:
