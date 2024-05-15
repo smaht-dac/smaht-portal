@@ -1261,10 +1261,15 @@ File Overview Styles
 								margin-left: 5px;
 							}
 						}
+
+						.icon-circle {
+							color: #299902;
+						}
 						
 						.view-json {
-							svg {
+							i {
 								margin-right: 5px;
+								color: #343741;
 							}
 							span {
 								color: #0E74D2;

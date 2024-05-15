@@ -191,7 +191,7 @@ const FileViewHeader = ({ context }) => {
             <div className="data-group data-row header">
                 <h1 className="header-text">File Overview</h1>
                 <button className="btn btn-primary download-file-button">
-                    <i class="icon icon-download fas"></i>
+                    <i className="icon icon-download fas"></i>
                     <span>Download File</span>
                 </button>
             </div>
@@ -205,14 +205,7 @@ const FileViewHeader = ({ context }) => {
                 </div>
                 <div className="datum right-group">
                     <div className="status-group">
-                        <svg
-                            width="10"
-                            height="10"
-                            viewBox="0 0 10 10"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="5" cy="5" r="5" fill="#299902" />
-                        </svg>
+                        <i className="icon icon-circle fas"></i>
                         <span className="status">
                             {status.charAt(0).toUpperCase() +
                                 status.substring(1)}
@@ -220,24 +213,7 @@ const FileViewHeader = ({ context }) => {
                     </div>
                     <span className="vertical-divider">|</span>
                     <a className="view-json">
-                        <svg
-                            width="10"
-                            height="13"
-                            viewBox="0 0 10 13"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <g clip-path="url(#clip0_246_465)">
-                                <path
-                                    d="M3.90365 8.86358L3.89844 8.8585L3.04427 8.12471L3.89844 7.39092C3.99219 7.30967 4.0026 7.16749 3.91927 7.07608L3.91406 7.071L3.46094 6.59874C3.3724 6.50733 3.22656 6.50479 3.13802 6.58858L1.63542 7.96221C1.53906 8.05108 1.53906 8.20088 1.63542 8.28721L3.13802 9.66085C3.17969 9.69893 3.23698 9.72178 3.29427 9.72178C3.35677 9.72178 3.41927 9.69639 3.46094 9.65069L3.91406 9.17842C4 9.08956 3.99479 8.94737 3.90365 8.86358ZM9.63281 2.48545L7.44792 0.355181C7.21354 0.126666 6.89583 -0.00282669 6.5651 -0.00282669H1.25C0.559896 -0.000287628 0 0.545611 0 1.21846V11.781C0 12.4538 0.559896 12.9997 1.25 12.9997H8.75C9.4401 12.9997 10 12.4538 10 11.781V3.34874C10 3.02627 9.86719 2.71397 9.63281 2.48545ZM6.66667 1.31749L8.64844 3.24971H6.66667V1.31749ZM8.75 11.781H1.25V1.21846H5.41667V3.85909C5.41667 4.19678 5.69531 4.46846 6.04167 4.46846H8.75V11.781ZM5.45833 5.43331C5.33594 5.39776 5.21094 5.46631 5.17448 5.58565L3.75 10.3616C3.71354 10.481 3.78385 10.6054 3.90625 10.6384L4.54167 10.8187C4.66406 10.8542 4.79167 10.7831 4.82552 10.6663L6.25 5.8878C6.28646 5.76846 6.21615 5.64405 6.09375 5.61104L5.45833 5.43331ZM6.09635 7.38585L6.10156 7.39092L6.95573 8.12471L6.10156 8.8585C6.00781 8.93975 5.9974 9.08194 6.08073 9.17334L6.08594 9.17842L6.53906 9.65069C6.625 9.73956 6.77083 9.74463 6.86198 9.66085L8.36458 8.28721C8.46094 8.19835 8.46094 8.04854 8.36458 7.96221L6.86198 6.58858C6.77083 6.50479 6.625 6.50733 6.53906 6.59874L6.08594 7.071C6 7.15987 6.00521 7.30206 6.09635 7.38585Z"
-                                    fill="#343741"
-                                />
-                            </g>
-                            <defs>
-                                <clipPath id="clip0_246_465">
-                                    <rect width="10" height="13" fill="white" />
-                                </clipPath>
-                            </defs>
-                        </svg>
+                        <i className="icon icon-file-code far"></i>
                         <span>View JSON</span>
                     </a>
                 </div>
@@ -292,7 +268,7 @@ const DataTable = ({ title = '', data = [] }) => {
                         <td className="size">575.24 GB</td>
                         <td className="download">
                             <button className="download-button">
-                                <i class="icon icon-download fas"></i>
+                                <i className="icon icon-download fas"></i>
                             </button>
                         </td>
                     </tr>
@@ -308,7 +284,7 @@ const DataTable = ({ title = '', data = [] }) => {
                         <td className="size">575.24 GB</td>
                         <td className="download">
                             <button className="download-button">
-                                <i class="icon icon-download fas"></i>
+                                <i className="icon icon-download fas"></i>
                             </button>
                         </td>
                     </tr>
