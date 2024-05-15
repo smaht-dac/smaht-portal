@@ -11,10 +11,8 @@ import {
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
 
 import { bytesToLargerUnit } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
-import {
-    LocalizedTime,
-    display as dateTimeDisplay,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
+import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
+import { FileOverviewTable } from './components/file-overview/FileOverviewTable';
 
 /**
  * Page containing the details of Items of type File
@@ -294,12 +292,10 @@ const DataTable = ({ title = '', data = [] }) => {
     );
 };
 
-const AssociatedDataTab = ({ context }) => {
+const AssociatedDataTab = (props) => {
     return (
         <div className="content">
-            <h1 className="header">Associated Files</h1>
-            <DataTable title="DAC Generated Files" />
-            <DataTable title="Externally Generated Files" />
+            <FileOverviewTable {...props} />
         </div>
     );
 };
@@ -433,7 +429,9 @@ const AnalysisInformationTab = ({ context }) => {
     );
 };
 
-const FileViewTabs = ({ context, href }) => {
+const FileViewTabs = (props) => {
+    const { context, schemas, href } = props;
+
     useEffect(() => {}, [href]);
 
     return (
@@ -448,7 +446,7 @@ const FileViewTabs = ({ context, href }) => {
                     tabTitle="Associated Data"
                     arrowTabs={false}
                     default>
-                    <AssociatedDataTab />
+                    <AssociatedDataTab {...props} />
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".analysis-information"
@@ -505,12 +503,12 @@ const FileViewTitle = (props) => {
     );
 };
 
-const FileViewUI = ({ context, session, href }) => {
+const FileViewUI = (props) => {
     return (
         <div className="file-view-content">
             <FileViewHeader context={context} />
             <FileViewDataCards context={context} />
-            <FileViewTabs context={context} href={href} />
+            <FileViewTabs {...props} />
         </div>
     );
 };
@@ -520,7 +518,7 @@ const FileView = React.memo(function FileView(props) {
     return (
         <div className="file-view">
             <FileViewTitle context={context} session={session} href={href} />
-            <FileViewUI context={context} session={session} href={href} />
+            <FileViewUI {...props} />
         </div>
     );
 });
