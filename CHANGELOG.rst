@@ -7,6 +7,21 @@ smaht-portal
 Change Log
 ----------
 
+0.52.4
+======
+
+`PR 167: Bm select all fix <https://github.com/smaht-dac/smaht-portal/pull/167>`_
+
+* Load search tables on tab open (instead of all at once on initial page load)
+* Cleanup of context and fix for select all button and checkbox bugs
+* Enable SPC fix of selected items clearing on filter by passing props to EmbeddedSearchView (spc v0.1.82b1)
+
+0.52.3
+======
+
+* Extend release script to handle obsolete files
+
+
 0.52.2
 ======
 
