@@ -162,16 +162,6 @@ def write_values_to_sheets(
     requests = []
     for idx, spreadsheet in enumerate(spreadsheets):
         requests.append(get_update_cells_request(spreadsheet, idx))
-        values = get_values(spreadsheet)
-        requests.append(
-            {
-                "updateCells": {
-                    "rows": values,
-                    "fields": "*",
-                    "start": {"sheetId": idx, "rowIndex": 0, "columnIndex": 0},
-                }
-            }
-        )
     if requests:
         submit_requests(sheets_client, requests)
 
