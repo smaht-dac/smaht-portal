@@ -583,46 +583,41 @@ export class UsageStatsViewController extends React.PureComponent {
 
 export class SubmissionStatsViewController extends React.PureComponent {
 
+    static createFileSearchUri(props, date_histogram) {
+        const params = { 'type': 'File' };
+        if (props.currentGroupBy) { params.group_by = props.currentGroupBy; }
+        if (props.currentDateRangePreset) {
+            if (props.currentDateRangePreset !== 'custom')
+                params.date_range = props.currentDateRangePreset;
+            else
+                params.date_range = `custom|${props.currentDateRangeFrom || ''}|${props.currentDateRangeTo || ''}`;
+        }
+        params.date_histogram = [date_histogram];
+        const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
+
+        // For local dev/debugging; don't forget to comment out if using.
+        //uri = 'https://data.smaht.org' + uri;
+        return uri;
+    }
+
     static defaultProps = {
         'searchURIs' : {
             'FileUploading' : function(props) {
-                const params = {'type': 'File'};
-                if (props.currentGroupBy){ params.group_by = props.currentGroupBy; }
-                if (props.currentDateRange){ params.date_range = props.currentDateRange; }
-                params.date_histogram = ['date_created'/*'file_status_tracking.uploading'*/];
-                const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
-
-                // For local dev/debugging; don't forget to comment out if using.
-                //uri = 'https://data.smaht.org' + uri;
-                return uri;
+                return SubmissionStatsViewController.createFileSearchUri(props, 'date_created'/*'file_status_tracking.uploading'*/);
             },
             'FileUploaded' : function(props) {
-                const params = {'type': 'File'};
-                if (props.currentGroupBy){ params.group_by = props.currentGroupBy; }
-                if (props.currentDateRange){ params.date_range = props.currentDateRange; }
-                params.date_histogram = ['file_status_tracking.uploaded'];
-                const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
-
-                // For local dev/debugging; don't forget to comment out if using.
-                //uri = 'https://data.smaht.org' + uri;
-                return uri;
+                return SubmissionStatsViewController.createFileSearchUri(props, 'file_status_tracking.uploaded');
             },
             'FileReleased' : function(props) {
-                const params = {'type': 'File'};
-                if (props.currentGroupBy){ params.group_by = props.currentGroupBy; }
-                if (props.currentDateRange){ params.date_range = props.currentDateRange; }
-                params.date_histogram = ['file_status_tracking.released'];
-                const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
-
-                // For local dev/debugging; don't forget to comment out if using.
-                //uri = 'https://data.smaht.org' + uri;
-                return uri;
+                return SubmissionStatsViewController.createFileSearchUri(props, 'file_status_tracking.released');
             },
         },
         'shouldRefetchAggs' : function(pastProps, nextProps){
             return StatsViewController.defaultProps.shouldRefetchAggs(pastProps, nextProps) || (
                 pastProps.currentGroupBy !== nextProps.currentGroupBy ||
-                pastProps.currentDateRange !== nextProps.currentDateRange
+                pastProps.currentDateRangePreset !== nextProps.currentDateRangePreset ||
+                pastProps.currentDateRangeFrom !== nextProps.currentDateRangeFrom ||
+                pastProps.currentDateRangeTo !== nextProps.currentDateRangeTo
             );
         }
     };
@@ -888,7 +883,7 @@ export function SubmissionsStatsView(props) {
     const {
         loadingStatus, mounted, session, windowWidth,
         currentGroupBy, groupByOptions, handleGroupByChange,
-        currentDateRange, dateRangeOptions, handleDateRangeChange,
+        currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange,
         // Passed in from StatsChartViewAggregator:
         files_uploading, file_volume_uploading,  files_uploaded, file_volume_uploaded, files_released, file_volume_released,
         chartToggles, smoothEdges, width, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
@@ -907,17 +902,18 @@ export function SubmissionsStatsView(props) {
         'onToggle' : onChartToggle, chartToggles, windowWidth,
         'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250
     };
-    const xDomain = convertDataRangeToXDomain(currentDateRange);
+    const xDomain = convertDataRangeToXDomain(currentDateRangePreset);
     const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum: cumulativeSum, xDomain };
-    const groupByProps = { 
-        currentGroupBy, groupByOptions, handleGroupByChange, 
-        currentDateRange, dateRangeOptions, handleDateRangeChange, loadingStatus } 
+    const groupByProps = {
+        currentGroupBy, groupByOptions, handleGroupByChange,
+        currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange, loadingStatus
+    };
 
     return (
         <div className="stats-charts-container" key="charts" id="submissions">
 
             <GroupByDropdown {...groupByProps} groupByTitle="Group Charts Below By" dateRangeTitle="Date" outerClassName="dropdown-container mb-15 sticky-top">
-                <div className="d-inline-block ml-15">
+                <div className="d-inline-block">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                 </div>
                 <div className="d-inline-block ml-15">
@@ -1053,6 +1049,11 @@ const convertDataRangeToXDomain = memoize(function (range = 'all') {
             //override
             from = new Date(today.getFullYear() - 1, 0, 1);
             to = new Date(today.getFullYear(), 1, 1);
+            break;
+        case 'custom':
+            ///TODO: replace with actual range dates from 'From' and 'To' data pickers 
+            from = new Date('2023-11-08');
+            to = null;
             break;
         case 'all':
         default:

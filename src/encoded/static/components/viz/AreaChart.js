@@ -293,7 +293,9 @@ export class GroupByController extends React.PureComponent {
         this.handleDateRangeChange = this.handleDateRangeChange.bind(this);
         this.state = { 
             'currentGroupBy' : props.initialGroupBy,
-            'currentDateRange': props.initialDateRange
+            'currentDateRangePreset': props.initialDateRangePreset,
+            'currentDateRangeFrom': props.initialDateRangeFrom || null,
+            'currentDateRangeTo': props.initialDateRangeTo || null
          };
     }
 
@@ -306,24 +308,30 @@ export class GroupByController extends React.PureComponent {
         });
     }
 
-    handleDateRangeChange(field){
+    handleDateRangeChange(field, from, to){
         this.setState(function(currState){
-            if (currState.currentDateRange === field){
+            if (currState.currentDateRangePreset === field &&
+                currState.currentDateRangeFrom === from && currState.currentDateRangeTo === to) {
                 return null;
             }
-            return { 'currentDateRange' : field };
+
+            return { 
+                'currentDateRangePreset' : field,
+                'currentDateRangeFrom': field !== 'custom' ? null : from,
+                'currentDateRangeTo': field !== 'custom' ? null : to
+             };
         });
     }
 
     render(){
         const { children } = this.props;
-        const { currentGroupBy, currentDateRange } = this.state;
+        const { currentGroupBy, currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo } = this.state;
         const childProps = _.extend(
-            _.omit(this.props, 'children', 'initialGroupBy', 'initialDateRange'),
+            _.omit(this.props, 'children', 'initialGroupBy', 'initialDateRangePreset', 'initialDateRangeFrom', 'initialDateRangeTo'),
             {
                 currentGroupBy,
                 'handleGroupByChange': this.handleGroupByChange,
-                currentDateRange,
+                currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo,
                 'handleDateRangeChange': this.handleDateRangeChange
             });
 
@@ -364,18 +372,18 @@ export class GroupByDropdown extends React.PureComponent {
         handleGroupByChange(eventKey);
     }
 
-    onDateRangeSelect(eventKey, evt){
+    onDateRangeSelect(presetField, from, to){
         const { handleDateRangeChange } = this.props;
         if (typeof handleDateRangeChange !== 'function'){
             throw new Error("No handleDateRangeChange function passed to DateRangeDropdown.");
         }
-        handleDateRangeChange(eventKey);
+        handleDateRangeChange(presetField, from, to);
     }
 
     render(){
         const {
             groupByOptions, currentGroupBy, groupByTitle,
-            dateRangeOptions, currentDateRange, dateRangeTitle,
+            dateRangeOptions, currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeTitle,
             loadingStatus, buttonStyle, outerClassName, children,
             groupById, dateRangeId } = this.props;
         // group by
@@ -383,27 +391,49 @@ export class GroupByDropdown extends React.PureComponent {
             <DropdownItem eventKey={field} key={field} active={field === currentGroupBy}>{ title }</DropdownItem>
         );
         const selectedGroupByValueTitle = loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch"/> : groupByOptions[currentGroupBy];
-        // date interval
-        const dateRangeOptionItems = dateRangeOptions && _.map(_.pairs(dateRangeOptions), ([field, title]) =>
-            <DropdownItem eventKey={field} key={field} active={field === currentDateRange}>{title}</DropdownItem>
-        );
-        const selectedDateRangeValueTitle = dateRangeOptions && (loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch" /> : dateRangeOptions[currentDateRange]);
-        return (
-            <div className={outerClassName}>
-                <span className="text-500">{ groupByTitle }</span>
-                <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2}>
-                    { groupByOptionItems }
-                </DropdownButton>
-                {dateRangeOptions &&
-                    <>
-                        <span className="text-500 ml-25">{ dateRangeTitle }</span>
-                        <DropdownButton id={dateRangeId} title={ selectedDateRangeValueTitle } onSelect={this.onDateRangeSelect} style={buttonStyle}>
-                            { dateRangeOptionItems }
+        
+        if (dateRangeOptions) {
+            const dateRangeOptionItems = _.map(_.pairs(_.pick(dateRangeOptions, (value, key) => key !== 'custom')), ([field, title]) =>
+                <DropdownItem eventKey={field} key={field} active={field === currentDateRangePreset}>{title}</DropdownItem>
+            );
+            const selectedDateRangeValueTitle = (loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch" /> : dateRangeOptions[currentDateRangePreset]);
+            const buttonStyleOverriden = buttonStyle && _.extend({}, buttonStyle, { 'marginLeft': 0 });
+            const dateInputStyle = { width: '150px', fontSize: '0.9rem' };
+            return (
+                <div className={outerClassName}>
+                    <div className="col-3">
+                        <div className="text-500 d-block mb-1">{groupByTitle}</div>
+                        <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyleOverriden} disabled={groupByOptionItems.length < 2}>
+                            {groupByOptionItems}
                         </DropdownButton>
-                    </>}
+                    </div>
+                    <div className="col-5">
+                        <div className="text-500 d-block mb-1">{dateRangeTitle}</div>
+                        <div className="d-flex">
+                            <span className="text-300 pt-05">Presets</span>
+                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={e => this.onDateRangeSelect(e, null, null)} style={buttonStyle}>
+                                {dateRangeOptionItems}
+                            </DropdownButton>
+                            <span className="text-300 ml-25 pt-05">Custom</span>
+                            <input id="submission_data_range_from" type="date" className="form-control ml-05" style={dateInputStyle} onChange={e => this.onDateRangeSelect('custom', e.target.value, currentDateRangeTo)} value={currentDateRangeFrom || ''} />
+                            <input id="submission_data_range_to" type="date" className="form-control ml-05" style={dateInputStyle} onChange={e => this.onDateRangeSelect('custom', currentDateRangeFrom, e.target.value)} value={currentDateRangeTo || ''} />
+                        </div>
+                    </div>
+                    <div className="col-4">
+                        <div className="text-500 d-block mb-1">Settings</div>
+                        {children}
+                    </div>
+                </div>
+            );
+        } else {
+            <div className={outerClassName}>
+                <span className="text-500">{groupByTitle}</span>
+                <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2}>
+                    {groupByOptionItems}
+                </DropdownButton>
                 {children}
             </div>
-        );
+        }
     }
 }
 

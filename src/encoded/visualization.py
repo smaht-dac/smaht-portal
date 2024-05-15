@@ -40,6 +40,8 @@ SUM_FILES_AGGREGATION_DEFINITION = {
     }
 }
 
+DATE_RANGE_PRESETS = ['all', 'custom', 'thismonth', 'previousmonth', 'last3months', 'last6months', 'last12months', 'thisyear', 'previousyear']
+
 def includeme(config):
     # config.add_route(
     #     'trace_workflow_runs',
@@ -75,7 +77,6 @@ def date_histogram_aggregations(context, request):
         'monthly'   : 'month',
         'yearly'    : 'year'
     }
-    date_range_presets = ['all', 'thismonth', 'previousmonth', 'last3months', 'last6months', 'last12months', 'thisyear', 'previousyear']
 
     try:
         json_body = request.json_body
@@ -98,8 +99,6 @@ def date_histogram_aggregations(context, request):
             del search_param_lists['date_histogram_interval'] # We don't wanna use it as search filter.
         if 'date_range' in search_param_lists and len(search_param_lists['date_range']) > 0:
             date_range = search_param_lists['date_range'][0]
-            if date_range not in date_range_presets:
-                raise IndexError('"{}" is not one of {}.'.format(date_range, ', '.join(date_range_presets)))
             date_from, date_to = convert_date_range(date_range)
             if date_from is not None:
                 search_param_lists['{}.from'.format(date_histogram_fields[0])] = date_from.strftime("%Y-%m-%d")
@@ -183,26 +182,37 @@ def date_histogram_aggregations(context, request):
 
 
 def convert_date_range(date_range_str):
+    
+    data_range_split = date_range_str.split('|')
+    preset = data_range_split[0]
+    if preset not in DATE_RANGE_PRESETS:
+        raise IndexError('"{}" is not one of {}.'.format(preset, ', '.join(DATE_RANGE_PRESETS)))
+    
     today = datetime.today()
     first_day_this_month = today.replace(day=1)
     date_from, date_to = None, None
 
-    if date_range_str == 'thismonth':
+    if preset == 'thismonth':
         date_from = first_day_this_month
-    elif date_range_str == 'previousmonth':
+    elif preset == 'previousmonth':
         date_from = first_day_this_month - relativedelta(months=1)
         date_to = first_day_this_month - relativedelta(days=1)
-    elif date_range_str == 'last3months':
+    elif preset == 'last3months':
         date_from = first_day_this_month - relativedelta(months=2)
-    elif date_range_str == 'last6months':
+    elif preset == 'last6months':
         date_from = first_day_this_month - relativedelta(months=5)
-    elif date_range_str == 'last12months':
+    elif preset == 'last12months':
         date_from = first_day_this_month - relativedelta(months=11)
-    elif date_range_str == 'thisyear':
+    elif preset == 'thisyear':
         date_from = datetime(today.year, 1, 1)
-    elif date_range_str == 'previousyear':
+    elif preset == 'previousyear':
         date_from = datetime(today.year - 1, 1, 1)
         date_to = datetime(today.year - 1, 12, 31)
+    elif preset == 'custom':
+        if len(data_range_split) > 1 and data_range_split[1] and len(data_range_split[1]) == 10:
+            date_from = datetime.strptime(data_range_split[1], '%Y-%m-%d')
+        if len(data_range_split) > 2 and data_range_split[2] and len(data_range_split[2]) == 10:
+            date_to = datetime.strptime(data_range_split[2], '%Y-%m-%d')
     
     return [date_from, date_to]
 

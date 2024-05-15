@@ -119,11 +119,12 @@ export default class StatisticsPageView extends React.PureComponent {
                 'last12months'  : <span>Last 12 Months</span>,
                 'thisyear'      : <span>This Year</span>,
                 'previousyear'  : <span>Previous Year</span>,
+                'custom'        : <span>Custom</span>
         };
-        const initialDateRange = 'thisyear';
+        const initialDateRangePreset = 'thisyear';
 
         return (
-            <dynamicImports.GroupByController {...{ groupByOptions, initialGroupBy, dateRangeOptions, initialDateRange }}>
+            <dynamicImports.GroupByController {...{ groupByOptions, initialGroupBy, dateRangeOptions, initialDateRangePreset }}>
                 <dynamicImports.SubmissionStatsViewController {..._.pick(this.props, 'session', 'windowWidth')}>
                     <dynamicImports.StatsChartViewAggregator {...{ shouldReaggregate }} aggregationsToChartData={dynamicImports.submissionsAggsToChartData}>
                         <dynamicImports.SubmissionsStatsView />
