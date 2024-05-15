@@ -902,7 +902,7 @@ export function SubmissionsStatsView(props) {
         'onToggle' : onChartToggle, chartToggles, windowWidth,
         'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250
     };
-    const xDomain = convertDataRangeToXDomain(currentDateRangePreset);
+    const xDomain = convertDataRangeToXDomain(currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo);
     const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum: cumulativeSum, xDomain };
     const groupByProps = {
         currentGroupBy, groupByOptions, handleGroupByChange,
@@ -1016,9 +1016,10 @@ SubmissionsStatsView.colorScaleForPublicVsInternal = function(term){
     }
 };
 
-const convertDataRangeToXDomain = memoize(function (range = 'all') {
-    const rangeLower = (range || '').toLowerCase();
+const convertDataRangeToXDomain = memoize(function (rangePreset = 'all', rangeFrom, rangeTo) {
+    const rangeLower = (rangePreset || '').toLowerCase();
     
+    const fallbackFromDate = '2023-11-08';
     const today = new Date();
     const month = today.getMonth();
     let from = new Date(today.getFullYear(), month, 1);
@@ -1051,13 +1052,16 @@ const convertDataRangeToXDomain = memoize(function (range = 'all') {
             to = new Date(today.getFullYear(), 1, 1);
             break;
         case 'custom':
-            ///TODO: replace with actual range dates from 'From' and 'To' data pickers 
-            from = new Date('2023-11-08');
-            to = null;
+            from = new Date(rangeFrom || fallbackFromDate);
+            to = rangeTo ? new Date(rangeTo) : null;
+            if (from && to && (from > to)) {
+                from = new Date(fallbackFromDate);
+                to = null;
+            }
             break;
         case 'all':
         default:
-            from = new Date('2023-11-08');
+            from = new Date(fallbackFromDate);
             break;
     }
     // get first day of date's week
