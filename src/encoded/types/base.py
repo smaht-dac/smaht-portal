@@ -252,6 +252,7 @@ class Item(SnovaultItem):
         request: Request,
         title: Optional[str] = None,
         name: Optional[str] = None,
+        external_id: Optional[str] = None,
         identifier: Optional[str] = None,
         submitted_id: Optional[str] = None,
         accession: Optional[str] = None,
@@ -262,6 +263,8 @@ class Item(SnovaultItem):
             return title
         if name:
             return name
+        if external_id:
+            return external_id
         if identifier:
             return identifier
         if submitted_id:
