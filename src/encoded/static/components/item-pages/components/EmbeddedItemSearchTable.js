@@ -44,6 +44,10 @@ export function EmbeddedItemSearchTable(props) {
         // Used for FacetList / ExtendedDescriptionPopover:
         addToBodyClassList,
         removeFromBodyClassList,
+        clearSelectedItemsOnFilter,
+        selectedItems,
+        onSelectItem,
+        onResetSelectedItems,
     } = props;
 
     const schemas = propSchemas || getSchemas() || null; // We might not have this e.g. in placeholders in StaticSections
@@ -94,6 +98,12 @@ export function EmbeddedItemSearchTable(props) {
         separateSingleTermFacets: false,
         allowPostRequest: true,
         defaultColAlignment: ' ',
+        // Will only be present if wrapped in SelectedItemsController and passed in
+        selectedItems,
+        onSelectItem,
+        onResetSelectedItems,
+        // Should only be used if wrapped in SelectedItemsController
+        clearSelectedItemsOnFilter,
     };
 
     return (
