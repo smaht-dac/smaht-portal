@@ -101,5 +101,28 @@
             "type": "number",
             "minimum": 0
         }
+    },
+    "facets": {
+        "sex": {
+            "title": "Sex"
+        },
+        "age": {
+            "title": "Age",
+            "aggregation_type": "stats"
+        },
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
+    },
+    "columns": {
+        "sex": {
+            "title": "Sex"
+        },
+        "age": {
+            "title": "Age"
+        },
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
     }
 }
