@@ -137,7 +137,8 @@
         "title": "Documentation",
         "status": "public",
         "children": [
-            "cdb6ad75-303b-4629-acdc-4fc533fc5aca",
+            "39cbfcb1-ba80-4968-85e0-b668b4b04f9f",
+            "6523af8e-34e5-40eb-9e09-710a41b824a4",
             "1ada4fca-af4b-4304-947d-59e2918ab728"
         ],
         "table-of-contents": {
@@ -153,11 +154,32 @@
         ]
     },
     {
-        "identifier": "docs/how-to-register",
-        "title": "How to Create Account",
+        "identifier": "docs/access",
+        "title": "Access",
+        "status": "public",
+        "children": [
+            "faabe1c0-3d8a-4651-bc86-072fb49ad016",
+            "9132c670-83ef-4e35-b4df-ec4a8f9b8692",
+            "d5fcb57f-f405-4991-87f3-549f9cafcc95"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "uuid": "39cbfcb1-ba80-4968-85e0-b668b4b04f9f",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/access/creating-an-account",
+        "title": "Creating an Account",
         "status": "public",
         "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+            "442c8aa0-dc6c-43d7-814a-854af460b014"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -174,8 +196,217 @@
         ]
     },
     {
+        "identifier": "docs/access/how-to-download-files",
+        "uuid": "9132c670-83ef-4e35-b4df-ec4a8f9b8692",
+        "title": "How to Download Files",
+        "content": [
+            "1b656dca-547b-4c2a-b61b-57d4903b4599"
+        ],
+        "table-of-contents": {
+            "enabled": true
+        },
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/access/interpreting-manifest-files",
+        "uuid": "d5fcb57f-f405-4991-87f3-549f9cafcc95",
+        "title": "Interpreting Manifest Files",
+        "content": [
+            "f525c58f-e6b8-499f-98df-6c24c1af9f26"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/submission",
+        "title": "Submission",
+        "status": "public",
+        "children": [
+            "ee5c214c-9a1c-4bd6-bfa9-d4326f213757",
+            "dad6eb69-bdd0-4409-898a-6e95ba420bc0",
+            "1a2da742-acc2-44e2-b5d9-249fe3e837e1",
+            "2a3b8679-16a7-44be-8676-e4c290bef36e"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "uuid": "6523af8e-34e5-40eb-9e09-710a41b824a4",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/submission/credentials-for-submission",
+        "uuid": "ee5c214c-9a1c-4bd6-bfa9-d4326f213757",
+        "title": "Credentials for Submission",
+        "content": [
+            "442c8aa0-dc6c-43d7-814a-854af460b016"
+        ],
+        "table-of-contents": {
+            "enabled": true
+        },
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/submission/getting-started-with-submissions",
+        "uuid": "dad6eb69-bdd0-4409-898a-6e95ba420bc0",
+        "title": "Getting Started with Submissions",
+        "content": [
+            "442c8aa0-dc6c-43d7-814a-854af460b015"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/submission/links-to-existing-data",
+        "uuid": "1a2da742-acc2-44e2-b5d9-249fe3e837e1",
+        "title": "Links to Existing Data",
+        "content": [
+            "6206008f-9288-4156-b55d-52a75f5332e8"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/submission/uploading-files",
+        "uuid": "2a3b8679-16a7-44be-8676-e4c290bef36e",
+        "title": "Uploading Files",
+        "content": [
+            "1a2fdcbf-eead-4441-a028-76c5a3e2ac16"
+        ],
+        "table-of-contents": {
+            "enabled": true
+        },
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources",
+        "uuid": "1ada4fca-af4b-4304-947d-59e2918ab728",
+        "title": "Additional Resources",
+        "status": "public",
+        "children": [
+            "27d149b5-164a-4351-9095-7be11d6371f7",
+            "389b52ce-5161-4f08-b49b-b1b3b18f09e2",
+            "56bcafc1-55f1-4a45-ac49-d729cb1e667d"
+        ],
+        "table-of-contents": {
+            "enabled": true
+        },
+         "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/sample-file-nomenclature",
+        "uuid": "27d149b5-164a-4351-9095-7be11d6371f7",
+        "title": "Sample and File Nomenclature",
+        "content": [
+            "e88a8a3d-cee8-430e-bfed-5c056bc384ea"
+        ],
+        "status": "public",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/data-release-status",
+        "uuid": "389b52ce-5161-4f08-b49b-b1b3b18f09e2",
+        "title": "Data Release Status",
+        "content": [
+            "794304f1-3c36-4528-bce8-0f6d6b165fc5"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/troubleshooting",
+        "uuid": "56bcafc1-55f1-4a45-ac49-d729cb1e667d",
+        "title": "Troubleshooting",
+        "content": [
+            "a74b4355-3721-4a27-a444-e99a55a1407b"
+        ],
+        "table-of-contents": {
+            "enabled": true
+        },
+        "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "docs/pipeline-protocols",
-        "title": "Pipeline Protocols",
+        "title": "Pipeline Protocols (incomplete)",
         "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
@@ -196,7 +427,7 @@
     },
     {
         "identifier": "docs/summary-of-data",
-        "title": "Summary of Data Generated",
+        "title": "Summary of Data Generated (incomplete)",
         "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
@@ -217,7 +448,7 @@
     },
     {
         "identifier": "docs/how-to-upload",
-        "title": "How to Upload Data",
+        "title": "How to Upload Data (incomplete)",
         "status": "public",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
@@ -240,7 +471,7 @@
         "identifier": "docs/user-guide",
         "uuid": "cdb6ad75-303b-4629-acdc-4fc533fc5aca",
         "title": "User Guide",
-        "status": "public",
+        "status": "deleted",
         "children": [
             "5153c902-a0d2-4246-9b41-cea7a1c91f52",
             "9410a992-c9b2-4be8-81e8-cc9559c0e488",
@@ -265,11 +496,10 @@
     {
         "identifier": "docs/user-guide/account-creation",
         "uuid": "5153c902-a0d2-4246-9b41-cea7a1c91f52",
-        "title": "Creating an Account",
-        "content": [
-            "442c8aa0-dc6c-43d7-814a-854af460b014"
-        ],
-        "table-of-contents": {
+        "title": "Creating an Account (deprecated - redirect)",
+        "redirect": {
+            "code": 301,
+            "target": "docs/access/creating-an-account",
             "enabled": true
         },
         "status": "public",
@@ -283,13 +513,11 @@
     {
         "identifier": "docs/user-guide/getting-started",
         "uuid": "6292facf-9eb4-451e-8d05-2e56e1bd7cbe",
-        "title": "Getting Started with Submissions",
-        "content": [
-            "442c8aa0-dc6c-43d7-814a-854af460b015"
-        ],
-        "table-of-contents": {
-            "enabled": true,
-            "header-depth": 4
+        "title": "Getting Started with Submissions (deprecated - redirect)",
+        "redirect": {
+            "code": 301,
+            "target": "docs/submission/getting-started-with-submissions",
+            "enabled": true
         },
         "status": "public",
         "consortia": [
@@ -302,11 +530,10 @@
     {
         "identifier": "docs/user-guide/credentials",
         "uuid": "9410a992-c9b2-4be8-81e8-cc9559c0e488",
-        "title": "Credentials for Submission",
-        "content": [
-            "442c8aa0-dc6c-43d7-814a-854af460b016"
-        ],
-        "table-of-contents": {
+        "title": "Credentials for Submission (deprecated - redirect)",
+        "redirect": {
+            "code": 301,
+            "target": "docs/submission/credentials-for-submission",
             "enabled": true
         },
         "status": "public",
@@ -320,11 +547,10 @@
     {
         "identifier": "docs/user-guide/uploading-files",
         "uuid": "ae1498e9-6ebd-4683-9390-e171c54a9811",
-        "title": "Uploading Files",
-        "content": [
-            "1a2fdcbf-eead-4441-a028-76c5a3e2ac16"
-        ],
-        "table-of-contents": {
+        "title": "Uploading Files (deprecated - redirect)",
+        "redirect": {
+            "code": 301,
+            "target": "docs/submission/uploading-files",
             "enabled": true
         },
         "status": "public",
@@ -338,11 +564,10 @@
     {
         "identifier": "docs/user-guide/troubleshooting",
         "uuid": "fd1bdbc7-2783-4ccf-9d38-c241d9d1de40",
-        "title": "Troubleshooting ",
-        "content": [
-            "a74b4355-3721-4a27-a444-e99a55a1407b"
-        ],
-        "table-of-contents": {
+        "title": "Troubleshooting (deprecated - redirect)",
+        "redirect": {
+            "code": 301,
+            "target": "docs/additional-resources/troubleshooting",
             "enabled": true
         },
         "status": "public",
@@ -356,11 +581,10 @@
     {
         "identifier": "docs/user-guide/downloading-files",
         "uuid": "3783757d-cc48-49a0-a76e-fc26ed462a24",
-        "title": "How to Download Files",
-        "content": [
-            "1b656dca-547b-4c2a-b61b-57d4903b4599"
-        ],
-        "table-of-contents": {
+        "title": "How to Download Files (deprecated - redirect)",
+        "redirect": {
+            "code": 301,
+            "target": "docs/access/how-to-download-files",
             "enabled": true
         },
         "status": "public",
@@ -374,13 +598,11 @@
     {
         "identifier": "docs/user-guide/referencing-data",
         "uuid": "0382a63b-9639-403d-9cfb-1d461ab7087c",
-        "title": "Links to Existing Data",
-        "content": [
-            "6206008f-9288-4156-b55d-52a75f5332e8"
-        ],
-        "table-of-contents": {
-            "enabled": true,
-            "header-depth": 4
+        "title": "Links to Existing Data (deprecated - redirect)",
+        "redirect": {
+            "code": 301,
+            "target": "docs/submission/links-to-existing-data",
+            "enabled": true
         },
         "status": "public",
         "consortia": [
@@ -393,13 +615,11 @@
     {
         "identifier": "docs/user-guide/data-release-status",
         "uuid": "1124d063-fc72-4115-b022-7a9bd2f0979f",
-        "title": "Data Release Status",
-        "content": [
-            "794304f1-3c36-4528-bce8-0f6d6b165fc5"
-        ],
-        "table-of-contents": {
-            "enabled": true,
-            "header-depth": 4
+        "title": "Data Release Status (deprecated - redirect)",
+        "redirect": {
+            "code": 301,
+            "target": "docs/additional-resources/data-release-status",
+            "enabled": true
         },
         "status": "public",
         "consortia": [
@@ -412,52 +632,13 @@
     {
         "identifier": "docs/user-guide/manifest",
         "uuid": "14617e49-3c60-44ca-9430-943802ddcb17",
-        "title": "Interpreting Manifest Files",
-        "content": [
-            "f525c58f-e6b8-499f-98df-6c24c1af9f26"
-        ],
-        "table-of-contents": {
-            "enabled": true,
-            "header-depth": 4
-        },
-        "status": "public",
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
-    },
-    {
-        "identifier": "docs/additional-resources",
-        "uuid": "1ada4fca-af4b-4304-947d-59e2918ab728",
-        "title": "Additional Resources",
-        "status": "public",
-        "children": [
-            "27d149b5-164a-4351-9095-7be11d6371f7"
-        ],
-        "table-of-contents": {
+        "title": "Interpreting Manifest Files (deprecated - redirect)",
+        "redirect": {
+            "code": 301,
+            "target": "docs/access/interpreting-manifest-files",
             "enabled": true
         },
-         "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
-    },
-    {
-        "identifier": "docs/additional-resources/sample-file-nomenclature",
-        "uuid": "27d149b5-164a-4351-9095-7be11d6371f7",
-        "title": "Sample and File Nomenclature",
-        "content": [
-            "e88a8a3d-cee8-430e-bfed-5c056bc384ea"
-        ],
         "status": "public",
-        "table-of-contents": {
-            "enabled": true,
-            "header-depth": 4
-        },
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
