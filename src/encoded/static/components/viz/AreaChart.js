@@ -266,17 +266,28 @@ export class StatsChartViewAggregator extends React.PureComponent {
 export class GroupByController extends React.PureComponent {
 
     static getDerivedStateFromProps(props, state){
-        const { groupByOptions, initialGroupBy } = props;
-        const { currentGroupBy } = state;
-        if (typeof groupByOptions[currentGroupBy] === 'undefined'){
-            if (typeof groupByOptions[initialGroupBy] === 'undefined'){
+        const { groupByOptions, initialGroupBy, dateRangeOptions, initialDateRangePreset } = props;
+        const { currentGroupBy, currentDateRangePreset } = state;
+
+        const stateObj = {};
+        if (typeof groupByOptions[currentGroupBy] === 'undefined') {
+            if (typeof groupByOptions[initialGroupBy] === 'undefined') {
                 logger.error('Changed props.groupByOptions but state.currentGroupBy and props.initialGroupBy are now both invalid.');
                 throw new Error('Changed props.groupByOptions but state.currentGroupBy and props.initialGroupBy are now both invalid.');
             } else {
-                return { 'currentGroupBy' : initialGroupBy };
+                _.extend(stateObj, { 'currentGroupBy': initialGroupBy });
             }
         }
-        return null;
+        if (dateRangeOptions && typeof dateRangeOptions[currentDateRangePreset] === 'undefined') {
+            if (typeof dateRangeOptions[initialDateRangePreset] === 'undefined') {
+                logger.error('Changed props.dateRangeOptions but state.currentDateRangePreset and props.initialDateRangePreset are now both invalid.');
+                throw new Error('Changed props.dateRangeOptions but state.currentDateRangePreset and props.initialDateRangePreset are now both invalid.');
+            } else {
+                _.extend(stateObj, { 'currentDateRangePreset': initialDateRangePreset });
+            }
+        }
+
+        return _.isEmpty(stateObj) ? null : stateObj;
     }
 
     static defaultProps = {
@@ -426,7 +437,7 @@ export class GroupByDropdown extends React.PureComponent {
                 </div>
             );
         }
-        
+
         return (
             <div className={outerClassName}>
                 <span className="text-500">{groupByTitle}</span>
