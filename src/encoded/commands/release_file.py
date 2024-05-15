@@ -58,6 +58,7 @@ class PC:  # PortalConstants
     OUTPUT_STATUS = "output_status"
     OUTPUT_FILE = "OutputFile"
     OPEN = "Open"
+    OBSOLETE = "obsolete"
     PROTECTED = "Protected"
     QUALITY_METRICS = "quality_metrics"
     QUALITY_METRIC = "quality_metric"
@@ -100,7 +101,9 @@ class FileRelease:
         self.warnings = []
         self.file_accession = ""
 
-    def prepare(self, file_identifier: str, dataset: str) -> None:
+    def prepare(
+        self, file_identifier: str, dataset: str, **kwargs
+    ) -> None:
 
         file = self.get_metadata_object(file_identifier)
         self.file_accession = file[PC.ACCESSION]
@@ -153,6 +156,10 @@ class FileRelease:
                 sample_sources = sample[PC.SAMPLE_SOURCES]
                 for sample_source in sample_sources:
                     self.release_sample_source(sample_source)
+
+        if "obsolete_file_identifier" in kwargs and kwargs["obsolete_file_identifier"]:
+            obsolete_file = self.get_metadata_object(kwargs["obsolete_file_identifier"])
+            self.add_obsolete_file_patchdict(obsolete_file, fileset)
 
         print("\nThe following metadata patches will be carried out in the next step:")
         for info in self.patch_infos:
@@ -468,6 +475,32 @@ class FileRelease:
                 f"File {accession} has status `{file.get(PC.STATUS)}`. Expected `{PC.UPLOADED}`."
             )
 
+    def add_obsolete_file_patchdict(self, obsolete_file: dict, fileset: dict) -> None:
+
+        if obsolete_file[PC.STATUS] != PC.RELEASED:
+            self.add_warning(
+                f"File {obsolete_file[PC.ACCESSION]} has status `{obsolete_file[PC.STATUS]}`. Expected `{PC.RELEASED}`."
+            )
+            return
+
+        obsolete_file_fileset = self.get_fileset_from_file(obsolete_file)
+        if obsolete_file_fileset[PC.UUID] != fileset[PC.UUID]:
+            self.print_error_and_exit(
+                "The obsolete file has a different FileSet than the new file."
+            )
+
+        self.patch_infos.extend(
+            [
+                f"\nPreviously released file {obsolete_file.get(PC.ANNOTATED_FILENAME)} ({obsolete_file[PC.ACCESSION]}):",
+                f"  - {bcolors.OKBLUE}{PC.STATUS}{bcolors.ENDC} is set to {bcolors.OKBLUE}{PC.OBSOLETE}{bcolors.ENDC}",
+            ]
+        )
+        patch_body = {
+            PC.UUID: obsolete_file[PC.UUID],
+            PC.STATUS: PC.OBSOLETE,
+        }
+        self.patch_dicts.append(patch_body)
+
     def print_error_and_exit(self, msg: str) -> None:
         print(f"{bcolors.FAIL}ERROR: {msg} Exiting.{bcolors.ENDC}")
         exit()
@@ -565,13 +598,19 @@ def main() -> None:
     )
     parser.add_argument("--dataset", "-d", help="Associated dataset", required=True)
     parser.add_argument("--env", "-e", help="Environment from keys file", required=True)
+    parser.add_argument(
+        "--replace",
+        "-r",
+        help="Identifier of the file to replace (set to obsolete)",
+        required=False,
+    )
 
     args = parser.parse_args()
 
     auth_key = get_auth_key(args.env)
 
     file_release = FileRelease(auth_key=auth_key)
-    file_release.prepare(args.file, args.dataset)
+    file_release.prepare(file_identifier=args.file, dataset=args.dataset,  obsolete_file_identifier=args.replace)
 
     while True:
         resp = input(
