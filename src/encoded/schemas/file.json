@@ -203,6 +203,10 @@
         },
         "software.display_title": {
             "title": "Analysis Method"
+        },
+        "file_status_tracking.released_date": {
+            "title": "Release Date",
+            "aggregation_type": "stats"
         }
     },
     "columns": {
