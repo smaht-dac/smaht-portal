@@ -7,9 +7,16 @@ smaht-portal
 Change Log
 ----------
 
-0.53.0
+0.54.0
 ======
 
+`PR 170: Added SN User <https://github.com/smaht-dac/smaht-portal/pull/170>`_
+
+* Added Sarah Nicholson to user.json master-inserts
+
+
+0.53.0
+=======
 `PR 168: Update columns/facets <https://github.com/smaht-dac/smaht-portal/pull/168>`_
 
 * Update file columns and facets for benchmarking tables
