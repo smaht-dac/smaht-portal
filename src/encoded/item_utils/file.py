@@ -1,6 +1,7 @@
+from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
-from . import analyte, file_set, library, sample, sequencing, tissue
+from . import file_set, library, sample, sequencing, tissue
 from .utils import (
     RequestHandler,
     get_property_values_from_identifiers,
@@ -127,8 +128,8 @@ def get_samples(
     if request_handler:
         return get_property_values_from_identifiers(
             request_handler,
-            get_analytes(properties, request_handler),
-            analyte.get_samples,
+            get_file_sets(properties),
+            partial(file_set.get_samples, request_handler=request_handler),
         )
     return properties.get("samples", [])
 
