@@ -7,6 +7,39 @@ smaht-portal
 Change Log
 ----------
 
+0.54.0
+======
+
+`PR 170: Added SN User <https://github.com/smaht-dac/smaht-portal/pull/170>`_
+
+* Added Sarah Nicholson to user.json master-inserts
+
+
+0.53.0
+=======
+`PR 168: Update columns/facets <https://github.com/smaht-dac/smaht-portal/pull/168>`_
+
+* Update file columns and facets for benchmarking tables
+* Add `released_date` to file calcprop for display in benchmarking tables
+* Update Donor, Tissue, and TissueSample columns and facets for searches
+* Add Donor and Tissue links from doc page
+
+
+0.52.4
+======
+
+`PR 167: Bm select all fix <https://github.com/smaht-dac/smaht-portal/pull/167>`_
+
+* Load search tables on tab open (instead of all at once on initial page load)
+* Cleanup of context and fix for select all button and checkbox bugs
+* Enable SPC fix of selected items clearing on filter by passing props to EmbeddedSearchView (spc v0.1.82b1)
+
+0.52.3
+======
+
+* Extend release script to handle obsolete files
+
+
 0.52.2
 ======
 

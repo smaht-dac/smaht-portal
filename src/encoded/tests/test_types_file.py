@@ -102,16 +102,19 @@ def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_f
     res = output_file['file_status_tracking']
     assert 'in review' in res
     assert 'released' not in res
+    assert 'released_date' not in res
     assert 'public' not in res
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
                                      {'status': 'released'}).json['@graph'][0]['file_status_tracking']
     assert 'in review' in res
     assert 'released' in res
+    assert 'released_date' in res
     assert 'public' not in res
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
                                      {'status': 'public'}).json['@graph'][0]['file_status_tracking']
     assert 'in review' in res
     assert 'released' in res
+    assert 'released_date' in res
     assert 'public' in res
 
 
