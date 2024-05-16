@@ -30,6 +30,6 @@ def get_samples(
         result = get_property_values_from_identifiers(
             request_handler,
             get_libraries(file_set),
-            partial(library_utils.get_samples, request_handler),
+            partial(library_utils.get_samples, request_handler=request_handler),
         )
     return result

@@ -69,8 +69,9 @@ def get_sequencings(
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get sequencings associated with file."""
     if request_handler:
-        file_sets = request_handler.get_items(get_file_sets(properties))
-        return get_unique_values(file_sets, file_set.get_sequencing)
+        return get_property_values_from_identifiers(
+            request_handler, get_file_sets(properties), file_set.get_sequencing
+        )
     return properties.get("sequencing", [])
 
 
