@@ -11,7 +11,7 @@ def test_get_samples(es_testapp: TestApp, workbook: None) -> None:
     """Ensure sample(s) associated with file sets properly found."""
     request_handler = RequestHandler(test_app=es_testapp)
     file_sets_with_samples = get_search(
-        es_testapp, "?type=FileSet&samples!=No+value&frame=object"
+        es_testapp, "?type=FileSet&samples.uuid!=No+value&frame=object"
     )
     assert file_sets_with_samples
     for file_set in file_sets_with_samples:
@@ -21,7 +21,7 @@ def test_get_samples(es_testapp: TestApp, workbook: None) -> None:
             file_set, request_handler=request_handler
         )
     file_sets_without_samples = get_search(
-        es_testapp, "?type=FileSet&samples=No+value&frame=object"
+        es_testapp, "?type=FileSet&samples.uuid=No+value&frame=object"
     )
     assert file_sets_without_samples
     for file_set in file_sets_without_samples:

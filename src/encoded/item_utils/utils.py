@@ -31,34 +31,10 @@ class RequestHandler:
         collection: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Get items from request or auth_key"""
-        unique_identifiers = self._get_unique_identifiers(identifiers)
-        if self.request:
-            return [
-                self._get_item_from_request(identifier, collection=collection)
-                for identifier in unique_identifiers
-            ]
-        if self.auth_key:
-            return [
-                self._get_item_from_auth_key(identifier)
-                for identifier in unique_identifiers
-            ]
-        if self.test_app:
-            return [
-                self._get_item_from_test_app(identifier, collection=collection)
-                for identifier in unique_identifiers
-            ]
-        return []
-
-    def _get_unique_identifiers(
-        self, identifiers: List[Union[str, Dict[str, Any]]]
-    ) -> List[str]:
-        """Get unique identifiers.
-
-        If identifiers are dictionaries (e.g. via embedded view),
-        extract UUIDs.
-        """
-        identifiers = [self._get_identifier(identifier) for identifier in identifiers]
-        return list(set(identifiers))
+        return [
+            self.get_item(identifier, collection=collection)
+            for identifier in identifiers
+        ]
 
     def _get_identifier(self, identifier: Union[str, Dict[str, Any]]) -> str:
         """Get identifier from input.
@@ -101,7 +77,9 @@ class RequestHandler:
         self, identifier: str, collection: Optional[str] = None
     ) -> Dict[str, Any]:
         """Get item from test app"""
-        return get_item_with_testapp(self.test_app, identifier, collection=collection)
+        return get_item_with_testapp(
+            self.test_app, identifier, collection=collection, frame="object"
+        )
 
 
 def get_unique_values(
