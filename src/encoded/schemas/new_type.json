@@ -58,6 +58,32 @@
             "exclusiveMaximum": false,
             "exclusiveMinimum": true
         },
+        "object_with_add_properties": {
+            "title": "Object With Additional Properties",
+            "description": "An objects that allows additional properties",
+            "properties": {
+                "key1": {
+                    "type": "number"
+                },
+                "key2": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true
+        },
+        "object_without_add_properties": {
+            "title": "Object Without Additional Properties",
+            "description": "An objects that does not allow additional properties",
+            "properties": {
+                "key1": {
+                    "type": "number"
+                },
+                "key2": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
         "number_string": {
             "title": "Number String",
             "description": "regex pattern that only accepts number strings",
@@ -73,32 +99,6 @@
             "type": "array",
             "maxItems": 3,
             "uniqueItems": true
-        },
-        "object_with_properties": {
-            "title": "Object With Properties",
-            "description": "An objects that allows additional properties",
-            "properties": {
-                "key1": {
-                    "type": "number"
-                },
-                "key2": {
-                    "type": "string"
-                }
-            },
-            "additionalProperties": true
-        },
-        "object_without_properties": {
-            "title": "Object Without Properties",
-            "description": "An objects that does not allow additional properties",
-            "properties": {
-                "key1": {
-                    "type": "number"
-                },
-                "key2": {
-                    "type": "string"
-                }
-            },
-            "additionalProperties": false
         },
         "url": {
             "$merge": "encoded_core:schemas/document.json#"
