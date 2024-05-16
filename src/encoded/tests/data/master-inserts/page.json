@@ -499,7 +499,7 @@
         "title": "Creating an Account (deprecated - redirect)",
         "redirect": {
             "code": 301,
-            "target": "docs/access/creating-an-account",
+            "target": "/docs/access/creating-an-account",
             "enabled": true
         },
         "status": "public",
@@ -516,7 +516,7 @@
         "title": "Getting Started with Submissions (deprecated - redirect)",
         "redirect": {
             "code": 301,
-            "target": "docs/submission/getting-started-with-submissions",
+            "target": "/docs/submission/getting-started-with-submissions",
             "enabled": true
         },
         "status": "public",
@@ -533,7 +533,7 @@
         "title": "Credentials for Submission (deprecated - redirect)",
         "redirect": {
             "code": 301,
-            "target": "docs/submission/credentials-for-submission",
+            "target": "/docs/submission/credentials-for-submission",
             "enabled": true
         },
         "status": "public",
@@ -550,7 +550,7 @@
         "title": "Uploading Files (deprecated - redirect)",
         "redirect": {
             "code": 301,
-            "target": "docs/submission/uploading-files",
+            "target": "/docs/submission/uploading-files",
             "enabled": true
         },
         "status": "public",
@@ -567,7 +567,7 @@
         "title": "Troubleshooting (deprecated - redirect)",
         "redirect": {
             "code": 301,
-            "target": "docs/additional-resources/troubleshooting",
+            "target": "/docs/additional-resources/troubleshooting",
             "enabled": true
         },
         "status": "public",
@@ -584,7 +584,7 @@
         "title": "How to Download Files (deprecated - redirect)",
         "redirect": {
             "code": 301,
-            "target": "docs/access/how-to-download-files",
+            "target": "/docs/access/how-to-download-files",
             "enabled": true
         },
         "status": "public",
@@ -601,7 +601,7 @@
         "title": "Links to Existing Data (deprecated - redirect)",
         "redirect": {
             "code": 301,
-            "target": "docs/submission/links-to-existing-data",
+            "target": "/docs/submission/links-to-existing-data",
             "enabled": true
         },
         "status": "public",
@@ -618,7 +618,7 @@
         "title": "Data Release Status (deprecated - redirect)",
         "redirect": {
             "code": 301,
-            "target": "docs/additional-resources/data-release-status",
+            "target": "/docs/additional-resources/data-release-status",
             "enabled": true
         },
         "status": "public",
@@ -635,7 +635,7 @@
         "title": "Interpreting Manifest Files (deprecated - redirect)",
         "redirect": {
             "code": 301,
-            "target": "docs/access/interpreting-manifest-files",
+            "target": "/docs/access/interpreting-manifest-files",
             "enabled": true
         },
         "status": "public",
