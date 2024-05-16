@@ -3,7 +3,6 @@ import pkg_resources
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-
 from dcicutils import schema_utils
 from dcicutils.misc_utils import exported, to_camel_case, to_snake_case
 from jsonschema import validate, ValidationError

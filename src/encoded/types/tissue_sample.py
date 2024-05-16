@@ -1,6 +1,16 @@
+from typing import List
+
 from snovault import collection, load_schema
 
 from .sample import Sample
+
+
+def _build_tissue_sample_embedded_list() -> List[str]:
+    return [
+        # Columns/facets for search
+        "sample_sources.external_id",
+        "sample_sources.donor.external_id",
+    ]
 
 
 @collection(

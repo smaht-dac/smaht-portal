@@ -77,8 +77,6 @@ const BenchmarkingTable = (props) => {
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
-        href,
-        searchHref,
     };
 
     /**
@@ -91,15 +89,8 @@ const BenchmarkingTable = (props) => {
         // Select all button
         '@type': {
             colTitle: (
-                // I think below context arg is the issue... - Will 3 May 2024
                 // Context now passed in from HeadersRowColumn (for file count)
-                // <SelectAllFilesButton {...selectedFileProps} type="checkbox" />
-                // This input box fixes it I believe
-                <input
-                    type="checkbox"
-                    disabled={true}
-                    checked={false}
-                />
+                <SelectAllFilesButton {...selectedFileProps} type="checkbox" />
             ),
             hideTooltip: true,
             noSort: true,
@@ -247,10 +238,14 @@ const BenchmarkingTable = (props) => {
                 schemas,
                 session,
                 facets,
+                selectedItems,
+                onSelectItem,
+                onResetSelectedItems,
             }}
             columnExtensionMap={benchmarkingColExtMap}
             hideFacets={['dataset']}
             hideColumns={['display_title']}
+            clearSelectedItemsOnFilter
         />
     );
 };
@@ -283,10 +278,7 @@ const BenchmarkingAboveTableComponent = React.memo(
             selectedItems, // From SelectedItemsController
             onSelectItem, // From SelectedItemsController
             onResetSelectedItems, // From SelectedItemsController
-            href,
-            searchHref,
         };
-        // console.log('abovetablecomponent props', props);
 
         return (
             <div className="d-flex w-100 mb-05">
@@ -297,12 +289,10 @@ const BenchmarkingAboveTableComponent = React.memo(
                     Results
                 </div>
                 <div className="ml-auto col-auto mr-0 pr-0">
-                    {/* XXX: temporarily commented out while working out bug - Will 3 May 2024 */}
-                    {/*<SelectAllFilesButton*/}
-                    {/*    {...selectedFileProps}*/}
-                    {/*    {...{ context }}*/}
-                    {/*    totalFilesCount={totalResultCount}*/}
-                    {/*/>*/}
+                    <SelectAllFilesButton
+                        {...selectedFileProps}
+                        {...{ context }}
+                    />
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
@@ -342,30 +332,32 @@ class SelectAllFilesButton extends React.PureComponent {
     }
 
     isEnabled() {
-        const { totalFilesCount, context } = this.props;
-        const { total: totalFromPropContext = 0 } = context || {};
-        if (!totalFilesCount && !totalFromPropContext) return true;
-        if (totalFilesCount > SELECT_ALL_LIMIT) return false;
+        const { context } = this.props;
+        const { total } = context || {};
+
+        if (!total) return true;
+        if (total > SELECT_ALL_LIMIT) return false;
         return true;
     }
 
     isAllSelected() {
-        const { totalFilesCount, selectedItems, context } = this.props;
-        const { total: totalFromPropContext = 0 } = context || {};
+        const { selectedItems, context } = this.props;
+        const { total } = context || {};
 
-        if (!totalFilesCount && !totalFromPropContext) return false;
-        // totalFilesCount as returned from bar plot aggs at moment is unique.
-        if (
-            totalFilesCount === selectedItems.size ||
-            totalFromPropContext === selectedItems.size
-        ) {
+        if (!total) return false;
+        if (total === selectedItems.size) {
             return true;
         }
         return false;
     }
 
     handleSelectAll(evt) {
-        const { searchHref, onSelectItem, onResetSelectedItems } = this.props;
+        const {
+            context: { '@id': searchHref } = {},
+            onSelectItem,
+            onResetSelectedItems,
+        } = this.props;
+
         if (
             typeof onSelectItem !== 'function' ||
             typeof onResetSelectedItems !== 'function'
@@ -384,6 +376,8 @@ class SelectAllFilesButton extends React.PureComponent {
                 const currentHrefQuery = _.extend({}, currentHrefParts.query);
                 currentHrefQuery.field = SelectAllFilesButton.fieldsToRequest;
                 currentHrefQuery.limit = 'all';
+                // TODO: might need to make additional tweak here since using 'context.@id' as searchHref:
+                // This would entail setting 'from' to be 0 in all cases, as limit is above
                 const reqHref =
                     currentHrefParts.pathname +
                     '?' +
