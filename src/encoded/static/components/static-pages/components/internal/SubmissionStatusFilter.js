@@ -106,10 +106,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
     };
 
     getSubmissionCenterSelect = () => {
-        if (this.state.submission_centers == 0) {
-            return DEFAULT_SELECT;
-        }
-
+        
         const options = [
             <option value="all">All</option>,
             <option value="all_gcc">All GCCs</option>,
