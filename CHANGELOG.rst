@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.55.0
+=======
+
+`PR 141: Link FileSets to Samples <https://github.com/smaht-dac/smaht-portal/pull/141>`_
+
+* Add `samples` linkTo to FileSet to track related samples for single-cell data
+* Update `item_utils` to handle new linkTo (+ misc. cleanup)
+
+
 0.54.0
 ======
 

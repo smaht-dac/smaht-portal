@@ -332,6 +332,9 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.libraries.analyte.samples.sample_sources.donor",
         "file_sets.libraries.analyte.samples.sample_sources.cell_line.code",
         "file_sets.libraries.analyte.samples.sample_sources.components.cell_culture.cell_line.code",
+        "file_sets.samples.sample_sources.code",
+        "file_sets.samples.sample_sources.description",
+        "file_sets.samples.sample_sources.donor",
 
         # For manifest
         "sequencing.sequencer.display_title",
