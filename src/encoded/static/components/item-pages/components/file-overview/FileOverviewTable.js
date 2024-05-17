@@ -46,7 +46,7 @@ export const FileOverviewTable = (props) => {
 
         // Pipeline
         'software.display_title': {
-            widthMap: { lg: 180, md: 150, sm: 130 },
+            widthMap: { lg: 200, md: 150, sm: 130 },
             colTitle: 'Pipeline',
             render: function (result) {
                 const value = result?.software;
@@ -62,11 +62,10 @@ export const FileOverviewTable = (props) => {
         },
         // Version
         'software.version': {
-            widthMap: { lg: 150, md: 150, sm: 130 },
+            widthMap: { lg: 130, md: 120, sm: 130 },
             colTitle: 'Version',
             render: function (result) {
-                const value = result?.software?.version;
-                return value ? (
+                return result?.software.length > 0 ? (
                     <span className="value">
                         {result.software.map((s) => s.version).join(', ')}
                     </span>
@@ -78,7 +77,7 @@ export const FileOverviewTable = (props) => {
         },
         // Status
         status: {
-            widthMap: { lg: 100, md: 100, sm: 100 },
+            widthMap: { lg: 120, md: 120, sm: 100 },
             colTitle: 'Status',
             render: function (result, parentProps) {
                 const value = result?.status;
@@ -95,13 +94,14 @@ export const FileOverviewTable = (props) => {
         release_date: {
             widthMap: { lg: 180, md: 160, sm: 140 },
             colTitle: 'Release Date',
-            render: function (result, parentProps) {
+            render: function (result) {
                 const value = result?.file_status_tracking?.released;
-                if (!value) return null;
-                return (
+                return value ? (
                     <span className="value">
                         <LocalizedTime timestamp={value} formatType="date-md" />
                     </span>
+                ) : (
+                    <small className="value">-</small>
                 );
             },
             noSort: true,
@@ -127,8 +127,7 @@ export const FileOverviewTable = (props) => {
             colTitle: <span>Download</span>,
             render: function (result, parentProps) {
                 const value = result?.href;
-                if (!value) return null;
-                return (
+                return value ? (
                     <a
                         href={value}
                         className="download-button"
@@ -137,6 +136,8 @@ export const FileOverviewTable = (props) => {
                         download>
                         <i className="icon icon-download fas"></i>
                     </a>
+                ) : (
+                    <small className="value">-</small>
                 );
             },
             noSort: true,

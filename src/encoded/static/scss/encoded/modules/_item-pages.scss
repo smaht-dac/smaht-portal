@@ -1257,14 +1257,65 @@ File Overview Styles
 						font-size: 0.875rem;
 						
 						.status-group {
+							.icon-circle {
+								color: transparent;
+							}
 							.status {
 								margin-left: 5px;
 							}
+
+							&[data-status="to be uploaded by workflow"] {
+								.icon-circle {
+									color: gray;
+								}
+							}
+							&[data-status="archived"] {
+								.icon-circle {
+									color: gray;
+								}
+							}
+							&[data-status="released"] {
+								.icon-circle {
+									color: #299902;
+								}
+							}
+							&[data-status="public"] {
+								.icon-circle {
+									color: #299902;
+								}
+							}
+							&[data-status="uploading"] {
+								.icon-circle {
+									color: #FFC107;
+								}
+							}
+							&[data-status="uploaded"] {
+								.icon-circle {
+									color: #FFC107;;
+								}
+							}
+							&[data-status="in review"] {
+								.icon-circle {
+									color: #FFC107;;
+								}
+							}
+							&[data-status="upload failed"] {
+								.icon-circle {
+									color: red;
+								}
+							}
+							&[data-status="obsolete"] {
+								.icon-circle {
+									color: red;
+								}
+							}
+							&[data-status="deleted"] {
+								.icon-circle {
+									color: red;
+								}
+							}
 						}
 
-						.icon-circle {
-							color: #299902;
-						}
 						
 						.view-json {
 							i {
@@ -1542,7 +1593,7 @@ File Overview Styles
 									.inner {
 										height: 45px;
 										padding: 0px;
-										padding-left: 16px;
+										padding-left: 20px;
 										
 										.column-title {
 											font-size: .875rem;
@@ -1551,8 +1602,11 @@ File Overview Styles
 										
 									}
 									&[data-field="file_size"] {
-										.column-title {
-											text-align: center;
+										.inner {
+											padding: 0px;
+											.column-title {
+												text-align: center;
+											}
 										}
 									}
 								}
@@ -1560,7 +1614,7 @@ File Overview Styles
 							.search-result-row {
 								.search-result-column-block {
 									.inner {
-										padding: 0px 16px;
+										padding: 0px 20px;
 										text-align: left;
 			
 										.value {
@@ -1584,7 +1638,9 @@ File Overview Styles
 										}
 									}
 									&[data-field="href"] {
-										text-align: center;
+										.value {
+											text-align: center;
+										}
 										.icon {
 											color: #9BA5B7;
 										}

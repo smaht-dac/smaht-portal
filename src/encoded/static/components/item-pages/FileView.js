@@ -202,7 +202,7 @@ const FileViewHeader = ({ context }) => {
                     </span>
                 </div>
                 <div className="datum right-group">
-                    <div className="status-group">
+                    <div className="status-group" data-status={status}>
                         <i className="icon icon-circle fas"></i>
                         <span className="status">
                             {status.charAt(0).toUpperCase() +
@@ -228,66 +228,6 @@ const FileViewHeader = ({ context }) => {
                     </span>
                 </div>
             </div>
-        </div>
-    );
-};
-
-const DataTable = ({ title = '', data = [] }) => {
-    return (
-        <div className="associated-files-table">
-            <h1 className="header">{title}</h1>
-            <table>
-                <thead>
-                    <tr>
-                        <th>File Name</th>
-                        <th>Pipeline</th>
-                        <th>Version</th>
-                        <th>Status</th>
-                        <th>Release Date</th>
-                        <th className="size-header">
-                            <span>Size</span>
-                        </th>
-                        <th className="download-header">
-                            <span>Download</span>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <a>
-                                SMHTCOLO829BL-X-X-M45-A001-uwsc-SMAPCVIUEIL1sentieon_b..
-                            </a>
-                        </td>
-                        <td>Sentieon BWA-MEM</td>
-                        <td>202308.01</td>
-                        <td>Obsolete</td>
-                        <td>March 20, 2024</td>
-                        <td className="size">575.24 GB</td>
-                        <td className="download">
-                            <button className="download-button">
-                                <i className="icon icon-download fas"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            SMHTCOLO829BL-X-X-M45-A001-uwsc-SMACGHMUIL1
-                            sentieon_..
-                        </td>
-                        <td>Sentieon BWA-MEM</td>
-                        <td>202307.01</td>
-                        <td>Obsolete</td>
-                        <td>March 20, 2024</td>
-                        <td className="size">575.24 GB</td>
-                        <td className="download">
-                            <button className="download-button">
-                                <i className="icon icon-download fas"></i>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
         </div>
     );
 };
