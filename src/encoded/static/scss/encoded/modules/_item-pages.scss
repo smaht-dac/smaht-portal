@@ -1513,6 +1513,86 @@ File Overview Styles
 								}
 							}
 						}
+
+					}
+					
+					.associated-files {
+						&-header {
+							font-size: 1.5rem;
+							font-weight: 400;
+							color: #343741;
+						}
+
+					}
+
+					// Overrides styles for search results table in File Overview
+					.embedded-search-view-outer-container {
+						.embedded-search-container {
+							h1.header {
+								font-size: 1rem;
+								font-weight: 500;
+							}
+						}
+						
+						.search-results-container {
+							margin-top: 10px;
+							.search-headers-row {
+								.search-headers-column-block {
+									padding: 0px;
+									.inner {
+										height: 45px;
+										padding: 0px;
+										padding-left: 16px;
+										
+										.column-title {
+											font-size: .875rem;
+											text-align: left;
+										}
+										
+									}
+									&[data-field="file_size"] {
+										.column-title {
+											text-align: center;
+										}
+									}
+								}
+							}
+							.search-result-row {
+								.search-result-column-block {
+									.inner {
+										padding: 0px 16px;
+										text-align: left;
+			
+										.value {
+											text-align: left;
+										}
+									}
+			
+									&[data-first-visible-column]{
+										padding-left: 0;
+									}
+									&[data-field="software.version"] {
+										text-align: left;
+									}
+									&[data-field="release_date"] {
+										text-align: left;
+									}
+									&[data-field="file_size"] {
+										padding: 0px 10px;
+										.value {
+											text-align: right;
+										}
+									}
+									&[data-field="href"] {
+										text-align: center;
+										.icon {
+											color: #9BA5B7;
+										}
+									}
+			
+								}
+							}
+						}
 					}
 				}
 			}

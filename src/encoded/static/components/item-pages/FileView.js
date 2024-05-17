@@ -292,9 +292,11 @@ const DataTable = ({ title = '', data = [] }) => {
     );
 };
 
-const AssociatedDataTab = (props) => {
+const AssociatedFilesTab = (props) => {
     return (
-        <div className="content">
+        <div className="content associated-files">
+            <h1 className="associated-files-header">Associated Files</h1>
+            <hr />
             <FileOverviewTable {...props} />
         </div>
     );
@@ -378,7 +380,7 @@ const QCOverviewTab = ({ context }) => {
 const AnalysisInformationTab = ({ context }) => {
     return (
         <div className="content">
-            <h1 className="header">Associated Data</h1>
+            <h1 className="header">Analysis Information</h1>
             <div className="body">
                 <div className="data-group text-card">
                     <div className="datum">
@@ -442,11 +444,11 @@ const FileViewTabs = (props) => {
                 isActive={true}
                 prependDotPath="file-overview">
                 <DotRouterTab
-                    dotPath=".associated-data"
-                    tabTitle="Associated Data"
+                    dotPath=".associated-files"
+                    tabTitle="Associated Files"
                     arrowTabs={false}
                     default>
-                    <AssociatedDataTab {...props} />
+                    <AssociatedFilesTab {...props} />
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".analysis-information"
@@ -504,6 +506,7 @@ const FileViewTitle = (props) => {
 };
 
 const FileViewUI = (props) => {
+    const { context } = props;
     return (
         <div className="file-view-content">
             <FileViewHeader context={context} />
