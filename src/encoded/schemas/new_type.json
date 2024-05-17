@@ -6,7 +6,9 @@
     "required": [
         "submission_centers",
         "consortia",
-        "last_modified"
+        "last_modified",
+        "foo_or_bar",
+        "unique_array"
     ],
     "identifyingProperties": [
         "uuid"
@@ -26,6 +28,14 @@
     "properties": {
         "schema_version": {
             "default": "1"
+        },
+        "array_of_objects":{
+            "title": "Array of Objects",
+            "description": "array property of objects",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
         },
         "date": {
             "title": "Date",
@@ -106,5 +116,9 @@
         "urls": {
             "$merge": "encoded_core:schemas/document.json#/properties/urls"
         }
+    },
+    "dependentRequired": {
+        "number_string": ["integer_4_to_50"],
+        "integer_4_to_50": ["number_string"]
     }
 }
