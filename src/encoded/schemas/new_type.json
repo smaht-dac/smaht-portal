@@ -2,7 +2,7 @@
     "title": "New Type",
     "$id": "/profiles/new_type.json",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-"type": "object",
+    "type": "object",
     "required": [
         "submission_centers",
         "consortia",
@@ -53,14 +53,13 @@
             "title": "Integer -4 to 50",
             "description": "integer property limited to greater than -4 and le 50",
             "type": "integer",
-            "minimum": -4,
             "maximum": 50,
-            "exclusiveMaximum": false,
-            "exclusiveMinimum": true
+            "exclusiveMinimum": -4
         },
         "object_with_add_properties": {
             "title": "Object With Additional Properties",
             "description": "An objects that allows additional properties",
+            "type": "object",
             "properties": {
                 "key1": {
                     "type": "number"
@@ -74,6 +73,7 @@
         "object_without_add_properties": {
             "title": "Object Without Additional Properties",
             "description": "An objects that does not allow additional properties",
+            "type": "object",
             "properties": {
                 "key1": {
                     "type": "number"
@@ -98,10 +98,13 @@
             "description": "array property of no more than 3 unique entries",
             "type": "array",
             "maxItems": 3,
-            "uniqueItems": true
+            "uniqueItems": true,
+            "items": {
+                "type": "string"
+            }
         },
-        "url": {
-            "$merge": "encoded_core:schemas/document.json#"
+        "urls": {
+            "$merge": "encoded_core:schemas/document.json#/properties/urls"
         }
     }
 }
