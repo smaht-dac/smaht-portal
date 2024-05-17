@@ -77,6 +77,22 @@ To link to data submitted by other consortium members, you can use values for an
 * `accession`
 
 
+|Donors|
+^^^^^^^^
+
+.. |Donors| raw:: html
+
+   <a href="/search/?type=Donor", target="_blank">Donors</a>
+
+
+|Tissues|
+^^^^^^^^^
+
+.. |Tissues| raw:: html
+
+   <a href="/search/?type=Tissue", target="_blank">Tissues</a>
+
+
 |CellCultures|
 ^^^^^^^^^^^^^^
 

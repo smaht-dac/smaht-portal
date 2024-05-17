@@ -1,4 +1,5 @@
 import functools
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
 from pyramid.view import view_config
@@ -331,6 +332,9 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.libraries.analyte.samples.sample_sources.donor",
         "file_sets.libraries.analyte.samples.sample_sources.cell_line.code",
         "file_sets.libraries.analyte.samples.sample_sources.components.cell_culture.cell_line.code",
+        "file_sets.samples.sample_sources.code",
+        "file_sets.samples.sample_sources.description",
+        "file_sets.samples.sample_sources.donor",
 
         # For manifest
         "sequencing.sequencer.display_title",
@@ -472,6 +476,10 @@ class File(Item, CoreFile):
                     "type": "string",
                     "format": "date-time"
                 },
+                "released_date": {
+                    "type": "string",
+                    "format": "date",
+                },
                 "public": {
                     "type": "string",
                     "format": "date-time"
@@ -517,7 +525,16 @@ class File(Item, CoreFile):
                         last_modified = revision.get('last_modified')
                         if last_modified:
                             result[status] = last_modified['date_modified']
+            if "released" in result:
+                result["released_date"] = self.get_date_from_datetime(
+                    result["released"]
+                )
             return result
+
+
+    @staticmethod
+    def get_date_from_datetime(datetime_str: str) -> str:
+        return datetime.fromisoformat(datetime_str).date().isoformat()
 
     @calculated_property(
         schema={

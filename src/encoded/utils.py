@@ -1,5 +1,5 @@
-import os
 import io
+import os
 from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
 
@@ -159,7 +159,7 @@ def get_item_with_testapp(
     frame: Optional[str] = None,
     status: Optional[Union[int, List[int]]] = None,
 ) -> Dict[str, Any]:
-    """Get item from test app."""
+    """Get item view with given frame, following redirects."""
     add_on = get_frame_add_on(frame)
     resource_path = get_formatted_resource_path(
         identifier, collection=collection, add_on=add_on
