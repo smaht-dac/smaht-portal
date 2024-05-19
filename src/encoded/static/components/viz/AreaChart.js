@@ -425,7 +425,7 @@ export class GroupByDropdown extends React.PureComponent {
                             <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={e => this.onDateRangeSelect(e, null, null)} style={buttonStyleOverriden}>
                                 {dateRangeOptionItems}
                             </DropdownButton>
-                            <span className="text-300 ml-25 pt-05">Custom</span>
+                            <span className="text-300 ml-25 pt-05">Custom:</span>
                             <input id="submission_data_range_from" type="date" className="form-control ml-05" style={dateInputStyle} onChange={e => this.onDateRangeSelect('custom', e.target.value, currentDateRangeTo)} value={currentDateRangeFrom || ''} />
                             <input id="submission_data_range_to" type="date" className="form-control ml-05" style={dateInputStyle} onChange={e => this.onDateRangeSelect('custom', currentDateRangeFrom, e.target.value)} value={currentDateRangeTo || ''} />
                         </div>
