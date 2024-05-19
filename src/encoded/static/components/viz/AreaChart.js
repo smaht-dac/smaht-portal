@@ -421,8 +421,8 @@ export class GroupByDropdown extends React.PureComponent {
                     <div className="col-5">
                         <div className="text-500 d-block mb-1">{dateRangeTitle}</div>
                         <div className="d-flex">
-                            <span className="text-300 pt-05">Presets</span>
-                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={e => this.onDateRangeSelect(e, null, null)} style={buttonStyle}>
+                            {/* <span className="text-300 pt-05">Presets</span> */}
+                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={e => this.onDateRangeSelect(e, null, null)} style={buttonStyleOverriden}>
                                 {dateRangeOptionItems}
                             </DropdownButton>
                             <span className="text-300 ml-25 pt-05">Custom</span>
