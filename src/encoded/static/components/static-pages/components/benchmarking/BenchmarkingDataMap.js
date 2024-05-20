@@ -186,7 +186,7 @@ export const BenchmarkingDataMap = {
         title: 'Donor 1',
         description: primaryTissuePageDescription,
         type: '<TYPE>',
-        path: '/data/benchmarking/donor1/',
+        path: '/data/benchmarking/donor1',
         tabMapArray: [
             {
                 eventKey: '#lung',
@@ -213,7 +213,7 @@ export const BenchmarkingDataMap = {
         title: 'Donor 2',
         description: primaryTissuePageDescription,
         type: '<TYPE>',
-        path: '/data/benchmarking/donor2/',
+        path: '/data/benchmarking/donor2',
         tabMapArray: [
             {
                 eventKey: '#lung',

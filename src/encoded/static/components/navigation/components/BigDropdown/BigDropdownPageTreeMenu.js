@@ -275,42 +275,18 @@ function CustomStaticLinks({ pathName, href }) {
                                 </div>
                             </div>
                             <div className="level-3">
-                                {/* <a
-                                    className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/brain"
-                                    id="menutree-linkto-brain_page">
-                                    <span>Brain</span>
-                                </a>
                                 <a
                                     className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/skin"
-                                    id="menutree-linkto-skin_page">
-                                    <span>Skin</span>
-                                </a> */}
-                                <a
-                                    className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/lung"
+                                    href="/data/benchmarking/donor1"
                                     id="menutree-linkto-lung_page">
-                                    <span>Lung</span>
+                                    <span>Donor 1</span>
                                 </a>
                                 <a
                                     className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/liver"
+                                    href="/data/benchmarking/donor2"
                                     id="menutree-linkto-liver_page">
-                                    <span>Liver</span>
+                                    <span>Donor 2</span>
                                 </a>
-                                <a
-                                    className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/colon"
-                                    id="menutree-linkto-colon_page">
-                                    <span>Colon</span>
-                                </a>
-                                {/* <a
-                                    className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/heart"
-                                    id="menutree-linkto-heart_page">
-                                    <span>Heart</span>
-                                </a> */}
                             </div>
                         </div>
                     </div>
