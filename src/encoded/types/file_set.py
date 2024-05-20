@@ -24,8 +24,8 @@ def _build_file_set_embedded_list():
         "libraries.assay.identifier",
 
         # Sample/SampleSource LinkTo - used in file_merge_group
-        "libraries.analyte.samples.display_title",
-        "libraries.analyte.samples.sample_sources.submitted_id",
+        "libraries.analytes.samples.display_title",
+        "libraries.analytes.samples.sample_sources.submitted_id",
 
         # Sequencing/Sequencer LinkTo - used in file_merge_group
         "sequencing.submitted_id",
