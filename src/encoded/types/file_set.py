@@ -2,10 +2,14 @@ from typing import Any, Dict, List, Union
 
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
-from snovault.util import get_item_or_none
 
 from .submitted_item import SubmittedItem
-from ..item_utils import file_set_utils, item_utils, library_utils, sequencing_utils
+from ..item_utils import (
+    file_set as file_set_utils,
+    item as item_utils,
+    library as library_utils,
+    sequencing as sequencing_utils,
+)
 from ..item_utils.utils import RequestHandler, get_property_value_from_identifier
 from ..utils import load_extended_descriptions_in_schemas
 
