@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional, Union
 
-from . import analyte as analyte_utils
+from . import analyte as analyte_utils, sample as sample_utils
 from .utils import RequestHandler, get_property_values_from_identifiers
 
 
@@ -21,5 +21,18 @@ def get_samples(
     if request_handler:
         return get_property_values_from_identifiers(
             request_handler, get_analytes(library), analyte_utils.get_samples
+        )
+    return []
+
+
+def get_sample_sources(
+    library: Dict[str, Any], request_handler: Optional[RequestHandler] = None
+) -> List[str]:
+    """Get sample sources connected to library."""
+    if request_handler:
+        return get_property_values_from_identifiers(
+            request_handler,
+            get_samples(library, request_handler=request_handler),
+            sample_utils.get_sample_sources,
         )
     return []
