@@ -94,6 +94,10 @@
             },
             "additionalProperties": false
         },
+        "only_bar": {
+            "title": "Only Bar",
+            "description": "If foo_or_bar is Bar, property is allowed"
+        },
         "number_string": {
             "title": "Number String",
             "description": "regex pattern that only accepts number strings",
@@ -102,6 +106,16 @@
         },
         "submission_centers": {
             "description" : "Foo bar"
+        },
+        "tissue_sample_link": {
+            "title": "Item Link",
+            "description": "Link to another item.",
+            "type": "array",
+            "items": {
+                "description": "A Tissue Sample",
+                "type": "string",
+                "linkTo": "TissueSample"
+            }
         },
         "unique_array": {
             "title": "Unique Array",
@@ -120,5 +134,30 @@
     "dependentRequired": {
         "number_string": ["integer_4_to_50"],
         "integer_4_to_50": ["number_string"]
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "consortia.display_title": {
+            "title": "Consortium"
+        },
+        "foo_or_bar": {
+            "title": "Foo or Bar"
+        },
+        "object_with_add_properties.key1": {
+            "title": "Object Property 1"
+        }
+    },
+    "columns": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "integer_4_to_50": {
+            "title": "Integer Value"
+        },
+        "object_with_add_properties.key1": {
+            "title": "Object Property 1"
+        }
     }
 }

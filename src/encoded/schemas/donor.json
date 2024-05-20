@@ -79,6 +79,12 @@
                 "Unknown"
             ]
         },
+        "has_new_type": {
+            "title": "New Type",
+            "description": "Associated New Type property",
+            "type": "string",
+            "linkTo": "NewType"
+        },
         "height": {
             "title": "Height",
             "description": "Height of the donor in meters",
