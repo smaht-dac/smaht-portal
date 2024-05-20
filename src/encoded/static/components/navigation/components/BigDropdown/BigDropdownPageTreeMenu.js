@@ -277,13 +277,13 @@ function CustomStaticLinks({ pathName, href }) {
                             <div className="level-3">
                                 <a
                                     className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/donor1"
+                                    href="/data/benchmarking/donor-1"
                                     id="menutree-linkto-lung_page">
                                     <span>Donor 1</span>
                                 </a>
                                 <a
                                     className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/donor2"
+                                    href="/data/benchmarking/donor-2"
                                     id="menutree-linkto-liver_page">
                                     <span>Donor 2</span>
                                 </a>
