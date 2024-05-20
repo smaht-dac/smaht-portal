@@ -233,11 +233,32 @@ const FileViewHeader = ({ context }) => {
 };
 
 const AssociatedFilesTab = (props) => {
+    const fileSetUuids = props.context.file_sets
+        .map((fs) => fs.uuid)
+        .join('&file_sets.uuid=');
+    const associatedFilesSearchHref = `/search/?type=File&uuid!=${props.context.uuid}&file_sets.uuid=${fileSetUuids}`;
+
+    const DACGeneratedFiles =
+        associatedFilesSearchHref + '&submission_centers.display_title=HMS DAC';
+
+    const ExternallyGeneratedFiles =
+        associatedFilesSearchHref +
+        '&submission_centers.display_title!=HMS DAC';
+
     return (
         <div className="content associated-files">
             <h1 className="associated-files-header">Associated Files</h1>
             <hr />
-            <FileOverviewTable {...props} />
+            <FileOverviewTable
+                {...props}
+                embeddedTableHeader="DAC Generated Files"
+                associatedFilesSearchHref={DACGeneratedFiles}
+            />
+            <FileOverviewTable
+                {...props}
+                embeddedTableHeader="Externally Generated Files"
+                associatedFilesSearchHref={ExternallyGeneratedFiles}
+            />
         </div>
     );
 };
@@ -414,7 +435,7 @@ const FileViewTitle = (props) => {
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
         { display_title: 'Bechmarking Data' },
-        { display_title: context.dataset },
+        { display_title: context?.dataset?.toUpperCase() || '' },
     ];
 
     return (

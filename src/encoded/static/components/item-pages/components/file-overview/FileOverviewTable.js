@@ -6,17 +6,16 @@ import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/compo
 export const FileOverviewTable = (props) => {
     console.log('file overview table PROPS:', props);
 
-    const fileSetUuids = props.context.file_sets
-        .map((fs) => fs.uuid)
-        .join('&file_sets.uuid=');
-    const associatedFilesSearchHref = `/search/?type=File&file_sets.uuid=${fileSetUuids}`;
-
-    const { schemas, session } = props;
+    const {
+        schemas,
+        session,
+        associatedFilesSearchHref = '',
+        embeddedTableHeader = '',
+    } = props;
 
     // Some fields overriden in BenchmarkingTable component
     const originalColExtMap =
         EmbeddedItemSearchTable.defaultProps.columnExtensionMap;
-    console.log('originalColExtMap:', originalColExtMap);
 
     const FileOverviewcolExtMap = {
         // File Name
@@ -65,7 +64,7 @@ export const FileOverviewTable = (props) => {
             widthMap: { lg: 130, md: 120, sm: 130 },
             colTitle: 'Version',
             render: function (result) {
-                return result?.software.length > 0 ? (
+                return result?.software?.length > 0 ? (
                     <span className="value">
                         {result.software.map((s) => s.version).join(', ')}
                     </span>
@@ -148,7 +147,7 @@ export const FileOverviewTable = (props) => {
         <EmbeddedItemSearchTable
             key={session}
             embeddedTableHeader={
-                <h1 className="header">DAC Generated Files</h1>
+                <h1 className="header">{embeddedTableHeader}</h1>
             }
             rowHeight={31}
             // maxHeight={200}
