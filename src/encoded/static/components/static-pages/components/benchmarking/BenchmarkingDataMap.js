@@ -181,130 +181,60 @@ export const BenchmarkingDataMap = {
             },
         ],
     },
-    Lung: {
-        navBarTitle: 'Lung',
-        title: 'Lung Primary Tissue Data',
+    Donor1: {
+        navBarTitle: 'Donor 1',
+        title: 'Donor 1',
         description: primaryTissuePageDescription,
-        type: 'Primary Tissue Data',
-        path: '/data/benchmarking/lung',
+        type: '<TYPE>',
+        path: '/data/benchmarking/donor1/',
         tabMapArray: [
             {
-                eventKey: '#donor-1',
-                title: 'Donor 1',
-                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
+                eventKey: '#lung',
+                title: 'Lung (Frozen; homogenized)',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1D',
             },
             {
-                eventKey: '#donor-2',
-                title: 'Donor 2',
-                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
+                eventKey: '#liver',
+                title: 'Liver (Frozen; homogenized)',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1A',
+            },
+            {
+                eventKey: '#colon',
+                title: 'Colon (Frozen; homogenized)',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST002-1G',
             },
         ],
     },
-    Liver: {
-        navBarTitle: 'Liver',
-        title: 'Liver Primary Tissue Data',
+    Donor2: {
+        navBarTitle: 'Donor 2',
+        title: 'Donor 2',
         description: primaryTissuePageDescription,
-        type: 'Primary Tissue Data',
-        path: '/data/benchmarking/liver',
+        type: '<TYPE>',
+        path: '/data/benchmarking/donor2/',
         tabMapArray: [
             {
-                eventKey: '#donor-1',
-                title: 'Donor 1',
-                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
+                eventKey: '#lung',
+                title: 'Lung (Frozen; homogenized)',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1D',
             },
             {
-                eventKey: '#donor-2',
-                title: 'Donor 2',
-                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
+                eventKey: '#liver',
+                title: 'Liver (Frozen; homogenized)',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1A',
+            },
+            {
+                eventKey: '#colon',
+                title: 'Colon (Frozen; homogenized)',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST002-1G',
             },
         ],
     },
-    Colon: {
-        navBarTitle: 'Colon',
-        title: 'Colon Primary Tissue Data',
-        description: primaryTissuePageDescription,
-        type: 'Primary Tissue Data',
-        path: '/data/benchmarking/colon',
-        tabMapArray: [
-            {
-                eventKey: '#donor-1',
-                title: 'Donor 1',
-                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
-            },
-            {
-                eventKey: '#donor-2',
-                title: 'Donor 2',
-                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
-            },
-        ],
-    },
-    // Heart: {
-    //     navBarTitle: 'Heart',
-    //     title: "Heart Primary Tissue Data",
-    //     description: "",
-    //     type: 'Primary Tissue Data',
-    //     path: '/data/benchmarking/heart',
-    //     tabMapArray: [
-    //         {
-    //             eventKey: '#main',
-    //             title: 'Data',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //     ],
-    // },
-    // Brain: {
-    //     navBarTitle: 'Brain',
-    //     title: "Brain Primary Tissue Data",
-    //     description: "",
-    //     type: 'Primary Tissue Data',
-    //     path: '/data/benchmarking/brain',
-    //     tabMapArray: [
-    //         {
-    //             eventKey: '#frontal-lobe',
-    //             title: 'Frontal Lobe',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //         {
-    //             eventKey: '#cerebellum',
-    //             title: 'Cerebellum',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //         {
-    //             eventKey: '#hippocampus',
-    //             title: 'Hippocampus',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //         {
-    //             eventKey: '#temporal-lobe',
-    //             title: 'Temporal Lobe',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //         {
-    //             eventKey: '#dendate-gyrus',
-    //             title: 'Dendate Gyrus',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //     ],
-    // },
-    // Skin: {
-    //     navBarTitle: 'Skin',
-    //     title: "Skin Primary Tissue Data",
-    //     description: "",
-    //     type: 'Primary Tissue Data',
-    //     path: '/data/benchmarking/skin',
-    //     tabMapArray: [
-    //         {
-    //             eventKey: '#sun-exposed',
-    //             title: 'Sun Exposed',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //         {
-    //             eventKey: '#non-sun-exposed',
-    //             title: 'Non Sun Exposed',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //     ],
-    // },
 };
 
 export const BenchmarkingDataKeys = Object.keys(BenchmarkingDataMap);

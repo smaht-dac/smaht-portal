@@ -89,106 +89,35 @@ export const IPSCFibroblastData = ({
     );
 };
 
-// TODO: Not in use currently
-export const BrainData = ({ schemas, session, facets, href, context }) => {
-    const brainTabMapArray = BenchmarkingDataMap.Brain?.tabMapArray;
+export const Donor1Data = ({ schemas, session, facets, href, context }) => {
+    const donor1TabMapArray = BenchmarkingDataMap.Donor1?.tabMapArray;
 
     return (
         <BenchmarkingLayout
             {...{ schemas }}
-            title={BenchmarkingDataMap.Brain?.title}
-            description={BenchmarkingDataMap.Brain?.description}>
+            title={BenchmarkingDataMap.Donor1?.title}
+            description={BenchmarkingDataMap.Donor1?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
-                controllerId="Brain-Tab-Renderer"
-                tabMapArray={brainTabMapArray}
+                controllerId="Donor1-Tab-Renderer"
+                tabMapArray={donor1TabMapArray}
             />
         </BenchmarkingLayout>
     );
 };
 
-// TODO: Not in use currently
-export const SkinData = ({ schemas, session, facets, href, context }) => {
-    const skinTabMapArray = BenchmarkingDataMap.Skin?.tabMapArray;
+export const Donor2Data = ({ schemas, session, facets, href, context }) => {
+    const donor2TabMapArray = BenchmarkingDataMap.Donor2?.tabMapArray;
 
     return (
         <BenchmarkingLayout
             {...{ schemas }}
-            title={BenchmarkingDataMap.Skin?.title}
-            description={BenchmarkingDataMap.Skin?.description}>
+            title={BenchmarkingDataMap.Donor2?.title}
+            description={BenchmarkingDataMap.Donor2?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
-                controllerId="Skin-Tab-Renderer"
-                tabMapArray={skinTabMapArray}
-            />
-        </BenchmarkingLayout>
-    );
-};
-
-export const LiverData = ({ schemas, session, facets, href, context }) => {
-    const liverTabMapArray = BenchmarkingDataMap.Liver?.tabMapArray;
-
-    return (
-        <BenchmarkingLayout
-            {...{ schemas }}
-            title={BenchmarkingDataMap.Liver?.title}
-            description={BenchmarkingDataMap.Liver?.description}>
-            <HashBasedTabController
-                {...{ schemas, session, facets, href, context }}
-                controllerId="Liver-Tab-Renderer"
-                tabMapArray={liverTabMapArray}
-            />
-        </BenchmarkingLayout>
-    );
-};
-
-export const LungData = ({ schemas, session, facets, href, context }) => {
-    const lungTabMapArray = BenchmarkingDataMap.Lung?.tabMapArray;
-
-    return (
-        <BenchmarkingLayout
-            {...{ schemas }}
-            title={BenchmarkingDataMap.Lung?.title}
-            description={BenchmarkingDataMap.Lung?.description}>
-            <HashBasedTabController
-                {...{ schemas, session, facets, href, context }}
-                controllerId="Lung-Tab-Renderer"
-                tabMapArray={lungTabMapArray}
-            />
-        </BenchmarkingLayout>
-    );
-};
-
-export const ColonData = ({ schemas, session, facets, href, context }) => {
-    const HapMapTabMapArray = BenchmarkingDataMap.Colon?.tabMapArray;
-
-    return (
-        <BenchmarkingLayout
-            {...{ schemas }}
-            title={BenchmarkingDataMap.Colon?.title}
-            description={BenchmarkingDataMap.Colon?.description}>
-            <HashBasedTabController
-                {...{ schemas, session, facets, href, context }}
-                controllerId="Colon-Tab-Renderer"
-                tabMapArray={HapMapTabMapArray}
-            />
-        </BenchmarkingLayout>
-    );
-};
-
-// TODO: Not in use currently
-export const HeartData = ({ schemas, session, facets, href, context }) => {
-    const heartTabMapArray = BenchmarkingDataMap.Heart?.tabMapArray;
-
-    return (
-        <BenchmarkingLayout
-            {...{ schemas }}
-            title={BenchmarkingDataMap.Heart?.title}
-            description={BenchmarkingDataMap.Heart?.description}>
-            <HashBasedTabController
-                {...{ schemas, session, facets, href, context }}
-                controllerId="Heart-Tab-Renderer"
-                tabMapArray={heartTabMapArray}
+                controllerId="Donor2-Tab-Renderer"
+                tabMapArray={donor2TabMapArray}
             />
         </BenchmarkingLayout>
     );
