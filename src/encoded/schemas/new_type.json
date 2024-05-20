@@ -52,12 +52,10 @@
         },
         "foo_or_bar": {
             "title": "Foo or Bar",
-            "description": "string property that only accepts Foo or Bar",
+            "description": "Object property that only accepts Foo or Bar",
             "type": "string",
-            "enum": [
-                "Foo",
-                "Bar"
-            ]
+            "enum": ["Foo", "Bar"]
+
         },
         "integer_4_to_50": {
             "title": "Integer -4 to 50",
@@ -93,10 +91,6 @@
                 }
             },
             "additionalProperties": false
-        },
-        "only_bar": {
-            "title": "Only Bar",
-            "description": "If foo_or_bar is Bar, property is allowed"
         },
         "number_string": {
             "title": "Number String",
