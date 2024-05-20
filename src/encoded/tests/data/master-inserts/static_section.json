@@ -154,7 +154,7 @@
     {
         "identifier": "benchmarking.donor1",
         "title": "Donor1",
-        "file": "/docs/public/benchmarking_tissue_Donor1.jsx",
+        "file": "/docs/public/benchmarking_tissues_Donor1.jsx",
         "status": "in review",
         "options": {
             "filetype": "jsx",
@@ -162,7 +162,7 @@
             "default_open": true
         },
         "section_type": "Page Section",
-        "uuid": "09abdc2d-bbb5-4814-9dec-c39e58ee7d4f",
+        "uuid": "a2cdba5c-9e0e-4064-9ad0-353ade82f62e",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
