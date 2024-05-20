@@ -183,26 +183,26 @@ export const BenchmarkingDataMap = {
     },
     Donor1: {
         navBarTitle: 'Donor 1',
-        title: 'Donor 1',
+        title: 'Donor 1 : Primary Tissue Data',
         description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
         path: '/data/benchmarking/donor-1',
         tabMapArray: [
             {
                 eventKey: '#lung',
-                title: 'Lung (Frozen; homogenized)',
+                title: 'Lung',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1D',
             },
             {
                 eventKey: '#liver',
-                title: 'Liver (Frozen; homogenized)',
+                title: 'Liver',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1A',
             },
             {
                 eventKey: '#colon',
-                title: 'Colon (Frozen; homogenized)',
+                title: 'Colon',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST002-1G',
             },
@@ -210,26 +210,26 @@ export const BenchmarkingDataMap = {
     },
     Donor2: {
         navBarTitle: 'Donor 2',
-        title: 'Donor 2',
+        title: 'Donor 2 : Primary Tissue Data',
         description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
         path: '/data/benchmarking/donor-2',
         tabMapArray: [
             {
                 eventKey: '#lung',
-                title: 'Lung (Frozen; homogenized)',
+                title: 'Lung',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1D',
             },
             {
                 eventKey: '#liver',
-                title: 'Liver (Frozen; homogenized)',
+                title: 'Liver',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1A',
             },
             {
                 eventKey: '#colon',
-                title: 'Colon (Frozen; homogenized)',
+                title: 'Colon',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST002-1G',
             },
