@@ -1296,8 +1296,20 @@ $workflow-node-color-type-global-context: #ffb3b3;
         border-bottom: 2px solid #f4f4f4;
         background-color: #F1F9FF;
     }
-}
+    &#usage {
+        @include media-breakpoint-down(sm) {
+            h4 {
+                font-size: 1rem;
+            }
+            .dropdown .btn {
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }        
+    }
 
+}
 
 
 /**** Cursor Component(s) ****/
