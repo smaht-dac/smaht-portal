@@ -789,7 +789,7 @@ export function UsageStatsView(props){
                             fileDownloadClickToTooltip ? <h4 className="font-weight-normal text-secondary">Click bar to view details</h4> : null
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_downloads" />}
-                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>>
+                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
                         <AreaChart {...commonChartProps} data={file_downloads} showTooltipOnHover={!fileDownloadClickToTooltip} />
                     </AreaChartContainer>
 

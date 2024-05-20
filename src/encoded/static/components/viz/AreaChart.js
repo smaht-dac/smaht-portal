@@ -1329,9 +1329,12 @@ export class AreaChartContainer extends React.Component {
 
         let legendToShow;
         if (legend) {
-            legendToShow = React.cloneElement(legend, _.pick(this.props, 
-                'chartMargin', 'className', 'colorScale', 'colorScaleStore', 'resetScaleLegendWhenChange', 
-                'resetScalesWhenChange', 'updateColorStore'));
+            const childProps = {
+                ..._.pick(this.props,
+                    'chartMargin', 'className', 'colorScale', 'colorScaleStore', 'resetScaleLegendWhenChange',
+                    'resetScalesWhenChange', 'updateColorStore'), width: useWidth
+            };
+            legendToShow = React.cloneElement(legend, childProps);
         }
 
         return (
