@@ -23,6 +23,9 @@
         },
         {
             "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
         }
     ],
     "properties": {
