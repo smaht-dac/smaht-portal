@@ -1241,7 +1241,8 @@ export class AreaChartContainer extends React.Component {
 
     static defaultProps = {
         'colorScale' : null,
-        'extraButtons' : []
+        'extraButtons' : [],
+        'legend': null
     };
 
     constructor(props){
@@ -1305,7 +1306,7 @@ export class AreaChartContainer extends React.Component {
     }
 
     render(){
-        const { title, subTitle, children, width, defaultHeight, colorScale, chartMargin, updateColorStore } = this.props;
+        const { title, subTitle, children, width, defaultHeight, colorScale, chartMargin, updateColorStore, legend } = this.props;
 
         const expanded = AreaChartContainer.isExpanded(this.props);
         const useWidth = width || this.getRefWidth();
@@ -1326,6 +1327,13 @@ export class AreaChartContainer extends React.Component {
             visualToShow = <LoadingIcon>Initializing...</LoadingIcon>;
         }
 
+        let legendToShow;
+        if (legend) {
+            legendToShow = React.cloneElement(legend, _.pick(this.props, 
+                'chartMargin', 'className', 'colorScale', 'colorScaleStore', 'resetScaleLegendWhenChange', 
+                'resetScalesWhenChange', 'updateColorStore'));
+        }
+
         return (
             <div className="mt-2">
                 <div className="text-300 clearfix">
@@ -1333,6 +1341,7 @@ export class AreaChartContainer extends React.Component {
                     { title }
                 </div>
                 {subTitle ? <div className="text-center">{subTitle}</div> : null}
+                { legendToShow }
                 <div ref={this.elemRef} style={{ 'overflowX' : expanded ? 'scroll' : 'auto', 'overflowY' : 'hidden' }}>
                     { visualToShow }
                 </div>

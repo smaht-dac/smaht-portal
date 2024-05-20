@@ -785,16 +785,13 @@ export function UsageStatsView(props){
                                 </h4>
                             </div>
                         }
-                        extraButtons={
-                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_downloads" />
-                        }
                         subTitle={
                             fileDownloadClickToTooltip ? <h4 className="font-weight-normal text-secondary">Click bar to view details</h4> : null
-                        }>
+                        }
+                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_downloads" />}
+                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>>
                         <AreaChart {...commonChartProps} data={file_downloads} showTooltipOnHover={!fileDownloadClickToTooltip} />
                     </AreaChartContainer>
-
-                    <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
                 </ColorScaleProvider>
 
@@ -817,13 +814,10 @@ export function UsageStatsView(props){
                                 </h4>
                             </div>
                         }
-                        extraButtons={
-                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" />
-                        }>
+                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" />}
+                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
                         <AreaChart {...commonChartProps} data={file_views} />
                     </AreaChartContainer>
-
-                    <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
                 </ColorScaleProvider>
 
@@ -842,11 +836,10 @@ export function UsageStatsView(props){
                                 {countBy.sessions_by_country !== 'device_category' ? ' - by country' : ' - by device categoory'}
                             </h4>
                         }
-                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" />}>
+                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" />}
+                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
                         <AreaChart {...commonChartProps} data={sessions_by_country} />
                     </AreaChartContainer>
-
-                    <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
                 </ColorScaleProvider>
 
@@ -865,11 +858,11 @@ export function UsageStatsView(props){
                                 <span className="text-500">Top Fields Faceted</span> { countBy.fields_faceted === 'sessions' ? '- by user session' : '- by search result instance' }
                             </h4>
                         }
-                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="fields_faceted" />}>
+                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="fields_faceted" />}
+                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
                         <AreaChart {...commonChartProps} data={fields_faceted} />
                     </AreaChartContainer>
 
-                    <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
                 </ColorScaleProvider>
 
