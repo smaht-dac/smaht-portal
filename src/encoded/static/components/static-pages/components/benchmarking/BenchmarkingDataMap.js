@@ -185,7 +185,7 @@ export const BenchmarkingDataMap = {
         navBarTitle: 'Donor 1',
         title: 'Donor 1',
         description: primaryTissuePageDescription,
-        type: '<TYPE>',
+        type: 'Primary Tissue Data',
         path: '/data/benchmarking/donor-1',
         tabMapArray: [
             {
@@ -212,7 +212,7 @@ export const BenchmarkingDataMap = {
         navBarTitle: 'Donor 2',
         title: 'Donor 2',
         description: primaryTissuePageDescription,
-        type: '<TYPE>',
+        type: 'Primary Tissue Data',
         path: '/data/benchmarking/donor-2',
         tabMapArray: [
             {
