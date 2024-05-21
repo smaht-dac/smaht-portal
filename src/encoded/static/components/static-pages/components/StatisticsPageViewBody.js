@@ -906,10 +906,10 @@ export function SubmissionsStatsView(props) {
         <div className="stats-charts-container" key="charts" id="submissions">
 
             <GroupByDropdown {...groupByProps} groupByTitle="Group Charts Below By" dateRangeTitle="Date" outerClassName="dropdown-container mb-15 sticky-top">
-                <div className="d-inline-block">
+                <div className="d-inline-block mr-15">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                 </div>
-                <div className="d-inline-block ml-15">
+                <div className="d-inline-block">
                     <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Show as cumulative sum</Checkbox>
                 </div>
             </GroupByDropdown>

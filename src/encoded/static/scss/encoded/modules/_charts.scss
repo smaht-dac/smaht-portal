@@ -1134,19 +1134,69 @@ $workflow-node-color-type-global-context: #ffb3b3;
     min-height: 1400px;
 
     .dropdown-container {
-        display: flex;
+        display: block;
         align-items: center;
         padding-bottom: 10px;
+        position: static;
 
         &.sticky-top {
-            top: 40px;
-            background-color: #ffffff;
-            border-bottom: 1px solid #f4f4f4;
-            z-index: 200 !important;
+            position: inherit;
+        }
+
+        @include media-breakpoint-up(lg) {
+            display: flex;        
+            &.sticky-top {
+                position: sticky;
+                top: 40px;
+                background-color: #ffffff;
+                border-bottom: 1px solid #f4f4f4;
+                z-index: 200 !important;
+            }
+        }
+
+        .dropdown-container-col {
+            @include media-breakpoint-down(lg) {
+                margin-bottom: 20px;
+
+                button.btn {
+                    width: 100%;
+                }
+            }
         }
 
         .btn-primary {
             border: 1px solid #0B62BA;
+        }
+
+        input[type="date"] {
+            width: 150px; 
+            font-size: 0.9rem;
+        }
+
+        .date-range {
+            display: flex !important;
+
+            .custom-date-range {
+                margin-left: 40px;
+
+                .form-control {
+                    margin-right: 25px;
+                }
+            }
+
+            @include media-breakpoint-down(lg) {
+                display: block !important;
+
+                .custom-date-range {
+                    margin-top: 20px;
+                    margin-left: 0px;
+
+                    .form-control {
+                        font-size: 1rem;
+                        width: inherit !important;
+                    }
+                }
+            }
         }
     }
 
@@ -1297,6 +1347,9 @@ $workflow-node-color-type-global-context: #ffb3b3;
         background-color: #F1F9FF;
     }
     &#usage {
+        .dropdown-container {
+            display: flex !important;
+        }
         @include media-breakpoint-down(sm) {
             h4 {
                 font-size: 1rem;

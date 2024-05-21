@@ -409,28 +409,29 @@ export class GroupByDropdown extends React.PureComponent {
             );
             const selectedDateRangeValueTitle = (loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch" /> : dateRangeOptions[currentDateRangePreset]);
             const buttonStyleOverriden = buttonStyle && _.extend({}, buttonStyle, { 'marginLeft': 0 });
-            const dateInputStyle = { width: '150px', fontSize: '0.9rem' };
             return (
                 <div className={outerClassName}>
-                    <div className="col-3">
+                    <div className="dropdown-container-col col-12 col-lg-3">
                         <div className="text-500 d-block mb-1">{groupByTitle}</div>
                         <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyleOverriden} disabled={groupByOptionItems.length < 2}>
                             {groupByOptionItems}
                         </DropdownButton>
                     </div>
-                    <div className="col-5">
+                    <div className="dropdown-container-col col-12 col-lg-5">
                         <div className="text-500 d-block mb-1">{dateRangeTitle}</div>
-                        <div className="d-flex">
+                        <div className="date-range">
                             {/* <span className="text-300 pt-05">Presets</span> */}
                             <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={e => this.onDateRangeSelect(e, null, null)} style={buttonStyleOverriden}>
                                 {dateRangeOptionItems}
                             </DropdownButton>
-                            <span className="text-300 ml-25 pt-05">Custom:</span>
-                            <input id="submission_data_range_from" type="date" className="form-control ml-05" style={dateInputStyle} onChange={e => this.onDateRangeSelect('custom', e.target.value, currentDateRangeTo)} value={currentDateRangeFrom || ''} />
-                            <input id="submission_data_range_to" type="date" className="form-control ml-05" style={dateInputStyle} onChange={e => this.onDateRangeSelect('custom', currentDateRangeFrom, e.target.value)} value={currentDateRangeTo || ''} />
+                            <div className="d-flex custom-date-range">
+                                <span className="text-300 pt-05 d-none d-lg-inline-block mr-05">Custom:</span>
+                                <input id="submission_data_range_from" type="date" className="form-control" onChange={e => this.onDateRangeSelect('custom', e.target.value, currentDateRangeTo)} value={currentDateRangeFrom || ''} />
+                                <input id="submission_data_range_to" type="date" className="form-control" onChange={e => this.onDateRangeSelect('custom', currentDateRangeFrom, e.target.value)} value={currentDateRangeTo || ''} />
+                            </div>
                         </div>
                     </div>
-                    <div className="col-4">
+                    <div className="dropdown-container-col col-12 col-lg-4">
                         <div className="text-500 d-block mb-1">Settings</div>
                         {children}
                     </div>
