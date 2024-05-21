@@ -102,16 +102,19 @@ def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_f
     res = output_file['file_status_tracking']
     assert 'in review' in res
     assert 'released' not in res
+    assert 'released_date' not in res
     assert 'public' not in res
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
                                      {'status': 'released'}).json['@graph'][0]['file_status_tracking']
     assert 'in review' in res
     assert 'released' in res
+    assert 'released_date' in res
     assert 'public' not in res
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
                                      {'status': 'public'}).json['@graph'][0]['file_status_tracking']
     assert 'in review' in res
     assert 'released' in res
+    assert 'released_date' in res
     assert 'public' in res
 
 
@@ -698,18 +701,26 @@ def assert_samples_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'samples' calcprop matches file_sets.libraries.analyte.samples."""
     samples_from_calcprop = file_utils.get_samples(file)
     file_sets = file_utils.get_file_sets(file)
-    libraries = [
-        library
-        for file_set in file_sets
-        for library in file_set_utils.get_libraries(file_set)
-    ]
-    analytes = [library_utils.get_analyte(library) for library in libraries]
     samples = [
         sample
-        for analyte in analytes
-        for sample in analyte_utils.get_samples(analyte)
+        for file_set in file_sets
+        for sample in file_set_utils.get_samples(file_set)
     ]
-    assert_items_match(samples_from_calcprop, samples)
+    if samples:
+        assert_items_match(samples_from_calcprop, samples)
+    else:
+        libraries = [
+            library
+            for file_set in file_sets
+            for library in file_set_utils.get_libraries(file_set)
+        ]
+        analytes = [library_utils.get_analyte(library) for library in libraries]
+        samples = [
+            sample
+            for analyte in analytes
+            for sample in analyte_utils.get_samples(analyte)
+        ]
+        assert_items_match(samples_from_calcprop, samples)
 
 
 @pytest.mark.workbook
@@ -1140,4 +1151,17 @@ def assert_analysis_summary_matches_expected(
     )
     assert_values_match_if_present(
         analysis_summary, "reference_genome", expected_reference_genome
+    )
+
+
+@pytest.mark.workbook
+def test_unique_key(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure `submitted_id` is valid unique key for File."""
+    search_key = "submitted_id"
+    files_with_submitted_id_search = search_type_for_key(
+        es_testapp, "File", search_key
+    )
+    file_with_submitted_id = files_with_submitted_id_search[0]
+    get_item(
+        es_testapp, f"/files/{item_utils.get_submitted_id(file_with_submitted_id)}"
     )

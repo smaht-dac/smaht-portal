@@ -365,5 +365,24 @@
         "time_zone": "US/Eastern",
         "first_name": "Serkan Utku",
         "last_name": "\u00d6zt\u00fcrk"
+    },
+    {
+        "email": "sarah_nicholson@hms.harvard.edu",
+        "uuid": "5519933a-7772-4188-a318-afc84c1302cd",
+        "groups": [
+            "admin"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submits_for": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "time_zone": "US/Eastern",
+        "first_name": "Sarah",
+        "last_name": "Nicholson"
     }
 ]

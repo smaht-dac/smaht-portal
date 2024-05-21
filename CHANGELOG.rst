@@ -7,6 +7,98 @@ smaht-portal
 Change Log
 ----------
 
+0.55.0
+=======
+
+`PR 141: Link FileSets to Samples <https://github.com/smaht-dac/smaht-portal/pull/141>`_
+
+* Add `samples` linkTo to FileSet to track related samples for single-cell data
+* Update `item_utils` to handle new linkTo (+ misc. cleanup)
+
+
+0.54.0
+======
+
+`PR 170: Added SN User <https://github.com/smaht-dac/smaht-portal/pull/170>`_
+
+* Added Sarah Nicholson to user.json master-inserts
+
+
+0.53.0
+=======
+`PR 168: Update columns/facets <https://github.com/smaht-dac/smaht-portal/pull/168>`_
+
+* Update file columns and facets for benchmarking tables
+* Add `released_date` to file calcprop for display in benchmarking tables
+* Update Donor, Tissue, and TissueSample columns and facets for searches
+* Add Donor and Tissue links from doc page
+
+
+0.52.4
+======
+
+`PR 167: Bm select all fix <https://github.com/smaht-dac/smaht-portal/pull/167>`_
+
+* Load search tables on tab open (instead of all at once on initial page load)
+* Cleanup of context and fix for select all button and checkbox bugs
+* Enable SPC fix of selected items clearing on filter by passing props to EmbeddedSearchView (spc v0.1.82b1)
+
+0.52.3
+======
+
+* Extend release script to handle obsolete files
+
+
+0.52.2
+======
+
+* 2024-05-08/dmichaels/PR-163
+* Added option to ingester to skip validation on submit.
+  With smaht-submitr/submit-metadata-bundle --validate-remote-skip flag;
+  this flag previously only prevented server-side validation from being
+  kicked off by submitr, but on actual submit server-side validation
+  was still being done before loadxl; this flag now prevents that as well.
+  This is hooked on a (submission folio) validate_skip flag; and this is
+  ONLY allowed for admin users; if non-admin validate_skip forced to False.
+
+
+0.52.1
+======
+
+`PR 162: Broaden derived_from link <https://github.com/smaht-dac/smaht-portal/pull/162>`_
+
+* Update `derived_from` linkTo from SubmittedFile to File
+* Change File `unique_key` to `submitted_id` to allow finding SubmittedFiles by `submitted_id`
+* Add `accession` to default lookup field for all collections, i.e. `/<collection>/<accession>/` will work for all collections with accessions
+
+
+0.52.0
+======
+
+`PR 165: Update preparation items <https://github.com/smaht-dac/smaht-portal/pull/165>`_
+
+* Move common preparation links to parent item and share props with all children
+* Remove stale properties from preparation items
+* Update workbook inserts to reflect changes
+
+
+0.51.0
+======
+
+`PR 164: Add Tissue code for table search <https://github.com/smaht-dac/smaht-portal/pull/164>`_
+
+* Add `code` property to Tissue to be used in benchmarking table search
+
+
+0.50.0
+======
+
+`PR 160: Add N50 prop + in silico data type <https://github.com/smaht-dac/smaht-portal/pull/160>`_
+
+* Add N50 property to UnalignedReads and AlignedReads
+* Add in silico enum to File `data_type`
+
+
 0.49.0
 ======
 
