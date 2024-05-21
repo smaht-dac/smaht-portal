@@ -9,12 +9,7 @@ def _build_new_type_embedded_list():
     return [
         # Facets
         "submission_centers.display_title",
-        "consortia.display_title",
-        "foo_or_bar",
-        "object_with_add_properties.key1",
-
-        # Columns
-        "integer_4_to_50",
+        "consortia.display_title",        
         # Consortia linkTo
         'consortia.identifier',
 

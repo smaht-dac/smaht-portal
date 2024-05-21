@@ -16,7 +16,6 @@ def new_type(
         "consortia": [test_consortium["uuid"]],
         "submission_centers": [test_submission_center["uuid"]],
         "identifier": "NT2",
-        "status": "restricted",
         "last_modified": {
             "date_modified": "2018-11-13T20:20:39+00:00"
         },
@@ -33,7 +32,7 @@ def new_type(
         },
         "number_string": "1234",
         "unique_array": ["a","b","c"],
-        "urls": "https://github.com/smaht-dac/smaht-portal",
+        "urls": ["https://github.com/smaht-dac/smaht-portal"],
     }
     return post_item(testapp, item, "New Type")
 
