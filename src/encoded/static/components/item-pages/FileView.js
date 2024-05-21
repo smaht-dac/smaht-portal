@@ -74,11 +74,6 @@ const FileViewDataCards = ({ context = {} }) => {
                 context?.content_md5sum || context?.md5sum,
         },
         {
-            title: 'Project',
-            getProp: (context = {}) =>
-                context?.file_summary?.consortia?.join(', '),
-        },
-        {
             title: 'Public Release Date',
             getProp: (context = {}) => {
                 return (
