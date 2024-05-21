@@ -25,6 +25,7 @@ def _build_new_type_embedded_list():
 
 @collection(
     name="new-types",
+    unique_key="new_type:identifier",
     acl=ONLY_ADMIN_VIEW_ACL,
     properties={
         "title": "SMaHT New Types",
