@@ -16,7 +16,8 @@ from encoded_core.file_views import (
     drs as CoreDRS,
     download as CoreDownload,
     post_upload as CorePostUpload,
-    get_upload as CoreGetUpload
+    get_upload as CoreGetUpload,
+    download_cli as CoreDownloadCli,
 )
 from snovault import (
     calculated_property,
@@ -915,6 +916,12 @@ def get_upload(context, request):
 @debug_log
 def post_upload(context, request):
     return CorePostUpload(context, request)
+
+
+@view_config(name='download_cli', context=File, permission='view', request_method=['GET'])
+@debug_log
+def download_cli(context, request):
+    return CoreDownloadCli(context, request)
 
 
 def validate_user_has_protected_access(request):

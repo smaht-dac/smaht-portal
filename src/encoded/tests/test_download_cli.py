@@ -1,5 +1,5 @@
 import pytest
-from ..download_cli import extract_bucket_and_key
+from encoded_core.file_views import extract_bucket_and_key
 
 
 @pytest.mark.parametrize('url, expected', [
