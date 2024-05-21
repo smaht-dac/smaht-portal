@@ -110,7 +110,9 @@ class FileSet(SubmittedItem):
             the read type, the target read length and flow cell
         """
         sequencer = get_property_value_from_identifier(
-            request_handler, sequencing_utils.get_sequencer, item_utils.get_identifier
+            request_handler,
+            sequencing_utils.get_sequencer(sequencing),
+            item_utils.get_identifier
         )
         read_type_part = sequencing_utils.get_read_type(sequencing)
         target_read_length = sequencing_utils.get_target_read_length(sequencing)
@@ -143,7 +145,7 @@ class FileSet(SubmittedItem):
         else:
             sample_source = sample_sources[0]
         return get_property_value_from_identifier(
-            request_handler, sample_source, item_utils.get_identifier
+            request_handler, sample_source, item_utils.get_submitted_id
         )
 
     @calculated_property(
@@ -204,7 +206,9 @@ class FileSet(SubmittedItem):
             return None
 
         # If we've reached this part, the library/assay is compatible
-        sequencing = request_handler.get_item(file_set_utils.get_sequencing(self.properties))
+        sequencing = request_handler.get_item(
+            file_set_utils.get_sequencing(self.properties)
+        )
         sequencing_part = self.generate_sequencing_part(request_handler, sequencing)
         if not sequencing_part:
             return None
@@ -212,10 +216,11 @@ class FileSet(SubmittedItem):
         # We need this because sequencing and sample submission centers could be different
         # this is the last thing we do since we could have exited above and the submission
         # center will always be present
-        sc = request_handler.get_item(
-            item_utils.get_submission_centers(self.properties)[0]
+        sc_part = get_property_value_from_identifier(
+            request_handler,
+            item_utils.get_submission_centers(self.properties)[0],
+            item_utils.get_identifier,
         )
-        sc_part = item_utils.get_identifier(sc)
 
         return {
             'submission_center': sc_part,
