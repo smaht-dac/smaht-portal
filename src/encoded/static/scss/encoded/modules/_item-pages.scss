@@ -1240,11 +1240,13 @@ File Overview Styles
 							margin: 0px;
 						}
 		
-						.btn {
+						.download-file-button {
 							height: 31px;
 							font-size: 0.875rem;
 							font-weight: 500;
 							padding: 0px 20px;
+							display: flex;
+							align-items: center;
 		
 							i {
 								margin-right: 10px;
@@ -1491,97 +1493,32 @@ File Overview Styles
 							display: flex;
 						}
 					}
-
-					.associated-files-table {
-						margin-top: 8px;
-
-						.header {
-							color: #343741;
-							font-weight: 500;
-							font-size: .9375rem;
-						}
-						table {
-							margin-top: 16px;
-							width: 100%;
-							font-family: Inter;
-							font-size: .875rem;
-
-							th {
-								background-color: #F1F9FF;
-								color: #343741;
-								text-align: left;
-								padding-left: 12px;
-								height: 45px;
-								border-bottom: 1px solid #9BA5B7;
-								font-weight: 500;
-							}
-
-							tr {
-								background-color: white;
-								height: 30px;
-
-								td {
-									text-align: left;
-									padding-left: 12px;
-									border-right: 1px solid #F3F3F3;
-								}
-								.size {
-									text-align: right;
-									padding-right: 12px;
-									
-									&-header {
-										text-align: right;
-										padding-right: 12px;
-									}
-								}
-
-								.download {
-									display: flex;
-									text-align: center;
-									
-									&-header {
-										padding: 0px 12px;
-										display: flex;
-										span {
-											margin: auto;
-										}
-									}
-
-									&-button {
-										background-color: transparent;
-										border: none;
-										margin: auto;
-
-										i {
-											color: #9BA5B7;
-										}
-									}
-
-								}
-								
-								&:nth-child(even) {
-									background-color: #F8F8F8;
-								}
-							}
-						}
-
-					}
 					
 					.associated-files {
 						&-header {
-							font-size: 1.5rem;
+							font-size: 1.25rem;
 							font-weight: 400;
 							color: #343741;
+						}
+						hr {
+							margin: 10px 0px;
 						}
 
 					}
 
 					// Overrides styles for search results table in File Overview
 					.embedded-search-view-outer-container {
+						margin-bottom: 40px;
+
+						&:last-of-type {
+							margin-bottom: 0px;
+						}
+
 						.embedded-search-container {
 							h1.header {
 								font-size: 1rem;
 								font-weight: 500;
+								padding: 0px 0px 10px 0px;
 							}
 						}
 						
@@ -1646,6 +1583,9 @@ File Overview Styles
 										}
 									}
 			
+								}
+								&.fin {
+									display: none;
 								}
 							}
 						}

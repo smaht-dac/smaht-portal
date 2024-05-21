@@ -184,14 +184,20 @@ const FileViewDataCards = ({ context = {} }) => {
 
 const FileViewHeader = ({ context }) => {
     const { accession, status, description } = context;
+    console.log('context:', context);
     return (
         <div className="file-view-header">
             <div className="data-group data-row header">
                 <h1 className="header-text">File Overview</h1>
-                <button className="btn btn-primary download-file-button">
+                <a
+                    className="btn btn-primary download-file-button"
+                    href={context.href}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    download>
                     <i className="icon icon-download fas"></i>
                     <span>Download File</span>
-                </button>
+                </a>
             </div>
             <div className="data-group data-row">
                 <div className="datum">
