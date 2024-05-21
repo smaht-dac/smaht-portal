@@ -777,13 +777,11 @@ export function UsageStatsView(props){
 
                     <AreaChartContainer {...commonContainerProps} id="file_downloads" defaultHeight={fileDownloadClickToTooltip ? 350 : commonContainerProps.defaultHeight}
                         title={
-                            <div>
-                                <h4 className="text-300 mt-0 mb-0">
-                                    <span className="text-500">File Downloads</span>
-                                    {countBy.file_downloads === 'assay_type' ? '- by assay type' :
-                                        (countBy.file_downloads === 'filetype' ? '- by file type' : '- top 10 files')}
-                                </h4>
-                            </div>
+                            <h3 className="text-300 mt-0 mb-0 charts-group-title">
+                                <span className="text-500">File Downloads</span>
+                                {countBy.file_downloads === 'assay_type' ? '- by assay type' :
+                                    (countBy.file_downloads === 'filetype' ? '- by file type' : '- top 10 files')}
+                            </h3>
                         }
                         subTitle={
                             fileDownloadClickToTooltip ? <h4 className="font-weight-normal text-secondary">Click bar to view details</h4> : null
@@ -805,14 +803,12 @@ export function UsageStatsView(props){
 
                     <AreaChartContainer {...commonContainerProps} id="file_views"
                         title={
-                            <div>
-                                <h4 className="text-300 mt-0 mb-0">
-                                    <span className="text-500">File Views</span>
-                                    {countBy.file_views === 'metadata_tsv_by_country' ? '- metadata.tsv files count by country' :
-                                        (countBy.file_views === 'file_list_views' ? '- appearances in search results' :
-                                            countBy.file_views === 'file_clicks' ? '- clicks from search results' : '- file detail views')}
-                                </h4>
-                            </div>
+                            <h3 className="text-300 mt-0 mb-0 charts-group-title">
+                                <span className="text-500">File Views</span>
+                                {countBy.file_views === 'metadata_tsv_by_country' ? '- metadata.tsv files count by country' :
+                                    (countBy.file_views === 'file_list_views' ? '- appearances in search results' :
+                                        countBy.file_views === 'file_clicks' ? '- clicks from search results' : '- file detail views')}
+                            </h3>
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" />}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
@@ -831,10 +827,10 @@ export function UsageStatsView(props){
 
                     <AreaChartContainer {...commonContainerProps} id="sessions_by_country"
                         title={
-                            <h4 className="text-300 mt-0">
+                            <h3 className="text-300 mt-0 charts-group-title">
                                 <span className="text-500">{countBy.sessions_by_country === 'sessions' ? 'User Sessions' : 'Page Views'}</span>
                                 {countBy.sessions_by_country !== 'device_category' ? ' - by country' : ' - by device categoory'}
-                            </h4>
+                            </h3>
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" />}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
@@ -854,9 +850,9 @@ export function UsageStatsView(props){
 
                     <AreaChartContainer {...commonContainerProps} id="fields_faceted"
                         title={
-                            <h4 className="text-300 mt-0">
+                            <h3 className="text-300 mt-0 charts-group-title">
                                 <span className="text-500">Top Fields Faceted</span> { countBy.fields_faceted === 'sessions' ? '- by user session' : '- by search result instance' }
-                            </h4>
+                            </h3>
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="fields_faceted" />}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>

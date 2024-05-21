@@ -425,7 +425,7 @@ export class GroupByDropdown extends React.PureComponent {
                                 {dateRangeOptionItems}
                             </DropdownButton>
                             <div className="d-flex custom-date-range">
-                                <span className="text-300 pt-05 d-none d-lg-inline-block mr-05">Custom:</span>
+                                <span className="text-300 pt-05 d-none d-md-inline-block mr-05">Custom:</span>
                                 <input id="submission_data_range_from" type="date" className="form-control" onChange={e => this.onDateRangeSelect('custom', e.target.value, currentDateRangeTo)} value={currentDateRangeFrom || ''} />
                                 <input id="submission_data_range_to" type="date" className="form-control" onChange={e => this.onDateRangeSelect('custom', currentDateRangeFrom, e.target.value)} value={currentDateRangeTo || ''} />
                             </div>
@@ -1299,7 +1299,7 @@ export class AreaChartContainer extends React.Component {
     buttonSection(){
         const { extraButtons } = this.props;
         return (
-            <div className="pull-right">
+            <div className="pull-right mt-05">
                 { extraButtons }
                 { this.expandButton() }
             </div>
