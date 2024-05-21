@@ -126,10 +126,6 @@ const FileViewDataCards = ({ context = {} }) => {
 
     const sample_information = [
         {
-            title: 'ID by TPC',
-            getProp: (context = {}) => context?.sample_summary?.id_by_tcp,
-        },
-        {
             title: 'Description',
             getProp: (context = {}) =>
                 context?.sample_summary?.sample_descriptions?.join(', '),
