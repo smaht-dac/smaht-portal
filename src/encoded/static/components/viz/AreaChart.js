@@ -583,7 +583,7 @@ export class HorizontalD3ScaleLegend extends React.Component {
         if(pairs.length > 100) { return null; }
 
         return (
-            <div className="legend mb-27">
+            <div className="legend mb-27 mt-10">
                 <div className="row">{ _.map(_.sortBy(pairs, function([term, color]){ return term.toLowerCase(); }), this.renderColorItem) }</div>
             </div>
         );

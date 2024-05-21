@@ -1350,7 +1350,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
         .dropdown-container {
             display: flex !important;
         }
-        @include media-breakpoint-down(sm) {
+        @include media-breakpoint-down(md) {
             h3 {
                 font-size: 1rem;
             }
