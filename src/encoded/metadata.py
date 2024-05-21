@@ -43,6 +43,7 @@ class MetadataArgs(NamedTuple):
     download_file_name: str
     header: Tuple[List[str], List[str], List[str]]
     tsv_mapping: dict
+    cli: bool
 
 
 class TSVDescriptor:
@@ -168,7 +169,7 @@ def extract_array(array: list, i: int, fields: list) -> str:
         return '|'.join(sorted(array))
 
 
-def descend_field(request, prop, field_names):
+def descend_field(request, prop, field_names, cli=False):
     """ Helper to grab field values if we reach a terminal field ie: not dict or list """
     for possible_field in field_names:
         current_prop = prop  # store a reference to the original object
@@ -188,7 +189,10 @@ def descend_field(request, prop, field_names):
         elif current_prop is None or isinstance(current_prop, dict):
             continue
         elif possible_field == 'href':
-            return f'{request.scheme}://{request.host}{current_prop}'
+            if not cli:
+                return f'{request.scheme}://{request.host}{current_prop}'
+            else:  # we requested cli based URLs
+                return f'{request.scheme}://{request.host}/download_cli?item={current_prop}'
         else:
             return current_prop
     return None
@@ -232,6 +236,7 @@ def handle_metadata_arguments(context, request):
             accessions = post_params.get('accessions', [])
             type_param = post_params.get('type')
             sort_param = post_params.get('sort')
+            cli = post_params.get('cli', False)
             download_file_name = post_params.get('download_file_name')
             include_extra_files = post_params.get('include_extra_files', False)
         except json.JSONDecodeError:
@@ -241,6 +246,7 @@ def handle_metadata_arguments(context, request):
         accessions = json.loads(post_params.get('accessions', ''))
         type_param = post_params.get('type')
         sort_param = post_params.get('sort')
+        cli = post_params.get('cli', False)
         download_file_name = post_params.get('download_file_name')
         include_extra_files = post_params.get('include_extra_files', False)
     else:
@@ -257,7 +263,8 @@ def handle_metadata_arguments(context, request):
     # Note that this will become more complex as we add additional header types
     header = generate_file_download_header(download_file_name)
     tsv_mapping = TSV_MAPPING[FILE]
-    return MetadataArgs(accessions, sort_param, type_param, include_extra_files, download_file_name, header, tsv_mapping)
+    return MetadataArgs(accessions, sort_param, type_param, include_extra_files, download_file_name, header,
+                        tsv_mapping, cli)
 
 
 @view_config(route_name='peek_metadata', request_method=['GET', 'POST'])
