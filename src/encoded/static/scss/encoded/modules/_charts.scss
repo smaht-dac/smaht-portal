@@ -1144,7 +1144,8 @@ $workflow-node-color-type-global-context: #ffb3b3;
         }
 
         @include media-breakpoint-up(lg) {
-            display: flex;        
+            display: flex;
+            align-items: flex-start;       
             &.sticky-top {
                 position: sticky;
                 top: 40px;
@@ -1342,6 +1343,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
         font-size: 1.2rem;
         color: #343741;
         margin-top: 40px;
+        margin-bottom: 20px;
         padding: 10px 10px;
         border-bottom: 2px solid #f4f4f4;
         background-color: #F1F9FF;

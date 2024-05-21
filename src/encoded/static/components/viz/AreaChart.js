@@ -411,13 +411,13 @@ export class GroupByDropdown extends React.PureComponent {
             const buttonStyleOverriden = buttonStyle && _.extend({}, buttonStyle, { 'marginLeft': 0 });
             return (
                 <div className={outerClassName}>
-                    <div className="dropdown-container-col col-12 col-lg-3">
+                    <div className="dropdown-container-col col-12 col-lg-3 align-top">
                         <div className="text-500 d-block mb-1">{groupByTitle}</div>
                         <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyleOverriden} disabled={groupByOptionItems.length < 2}>
                             {groupByOptionItems}
                         </DropdownButton>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-5">
+                    <div className="dropdown-container-col col-12 col-lg-6 col-xl-5 align-top">
                         <div className="text-500 d-block mb-1">{dateRangeTitle}</div>
                         <div className="date-range">
                             {/* <span className="text-300 pt-05">Presets</span> */}
@@ -431,7 +431,7 @@ export class GroupByDropdown extends React.PureComponent {
                             </div>
                         </div>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-4">
+                    <div className="dropdown-container-col col-12 col-lg-3 col-xl-4 align-top">
                         <div className="text-500 d-block mb-1">Settings</div>
                         {children}
                     </div>
@@ -583,7 +583,7 @@ export class HorizontalD3ScaleLegend extends React.Component {
         if(pairs.length > 100) { return null; }
 
         return (
-            <div className="legend mb-27 mt-10">
+            <div className="legend mb-27">
                 <div className="row">{ _.map(_.sortBy(pairs, function([term, color]){ return term.toLowerCase(); }), this.renderColorItem) }</div>
             </div>
         );
