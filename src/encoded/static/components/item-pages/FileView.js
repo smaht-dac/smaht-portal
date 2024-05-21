@@ -70,7 +70,8 @@ const FileViewDataCards = ({ context = {} }) => {
         },
         {
             title: 'MD5 Checksum',
-            getProp: (context = {}) => context?.content_md5sum,
+            getProp: (context = {}) =>
+                context?.content_md5sum || context?.md5sum,
         },
         {
             title: 'Project',
