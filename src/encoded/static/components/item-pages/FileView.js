@@ -41,7 +41,7 @@ const DataCard = ({ header = '', data = [] }) => {
                                     'datum-value' +
                                     (value === null ? ' coming-soon' : '')
                                 }>
-                                {value ?? 'Coming Soon'}
+                                {value ?? 'N/A'}
                             </span>
                         </div>
                     );
@@ -272,125 +272,127 @@ const QCOverviewTab = ({ context }) => {
         { name: 'BAMQC3', link: '/' },
     ];
     return (
-        <div className="content">
-            <h1 className="header">QC Overview</h1>
-            <div className="body">
-                <div className="data-group data-row">
-                    <div className="datum">
-                        <span className="datum-title">
-                            Full Quality Metrics{' '}
-                        </span>
-                        {bamLinks.map((bamLink, i) => {
-                            return (
-                                <div className="bamqc-link-group" key={i}>
-                                    <span className="vertical-divider">|</span>
-                                    <a href={bamLink.link}>{bamLink.name}</a>
-                                </div>
-                            );
-                        })}
-                        <span></span>
-                    </div>
-                </div>
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">Value 1</span>
-                        <span className="datum-value">Value</span>
-                        <span className="datum-value text-gray">
-                            &#91;Low Range - High Range &#93;
-                        </span>
-                    </div>
-                </div>
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">Value 2</span>
-                        <span className="datum-value">Value</span>
-                        <span className="datum-value text-gray">
-                            &#91;Low Range - High Range &#93;
-                        </span>
-                    </div>
-                </div>
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">Value 3</span>
-                        <span className="datum-value">Value</span>
-                        <span className="datum-value text-gray">
-                            &#91;Low Range - High Range &#93;
-                        </span>
-                    </div>
-                </div>
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">Value 4</span>
-                        <span className="datum-value">Value</span>
-                        <span className="datum-value text-gray">
-                            &#91;Low Range - High Range &#93;
-                        </span>
-                    </div>
-                </div>
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">Value 5</span>
-                        <span className="datum-value text-gray">
-                            Coming Soon
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        // <div className="content">
+        //     <h1 className="header">QC Overview</h1>
+        //     <div className="body">
+        //         <div className="data-group data-row">
+        //             <div className="datum">
+        //                 <span className="datum-title">
+        //                     Full Quality Metrics{' '}
+        //                 </span>
+        //                 {bamLinks.map((bamLink, i) => {
+        //                     return (
+        //                         <div className="bamqc-link-group" key={i}>
+        //                             <span className="vertical-divider">|</span>
+        //                             <a href={bamLink.link}>{bamLink.name}</a>
+        //                         </div>
+        //                     );
+        //                 })}
+        //                 <span></span>
+        //             </div>
+        //         </div>
+        //         <div className="data-group text-card">
+        //             <div className="datum">
+        //                 <span className="datum-title">Value 1</span>
+        //                 <span className="datum-value">Value</span>
+        //                 <span className="datum-value text-gray">
+        //                     &#91;Low Range - High Range &#93;
+        //                 </span>
+        //             </div>
+        //         </div>
+        //         <div className="data-group text-card">
+        //             <div className="datum">
+        //                 <span className="datum-title">Value 2</span>
+        //                 <span className="datum-value">Value</span>
+        //                 <span className="datum-value text-gray">
+        //                     &#91;Low Range - High Range &#93;
+        //                 </span>
+        //             </div>
+        //         </div>
+        //         <div className="data-group text-card">
+        //             <div className="datum">
+        //                 <span className="datum-title">Value 3</span>
+        //                 <span className="datum-value">Value</span>
+        //                 <span className="datum-value text-gray">
+        //                     &#91;Low Range - High Range &#93;
+        //                 </span>
+        //             </div>
+        //         </div>
+        //         <div className="data-group text-card">
+        //             <div className="datum">
+        //                 <span className="datum-title">Value 4</span>
+        //                 <span className="datum-value">Value</span>
+        //                 <span className="datum-value text-gray">
+        //                     &#91;Low Range - High Range &#93;
+        //                 </span>
+        //             </div>
+        //         </div>
+        //         <div className="data-group text-card">
+        //             <div className="datum">
+        //                 <span className="datum-title">Value 5</span>
+        //                 <span className="datum-value text-gray">
+        //                     Coming Soon
+        //                 </span>
+        //             </div>
+        //         </div>
+        //     </div>
+        // </div>
+        <h2 className="tab-coming-soon">Coming soon</h2>
     );
 };
 
 const AnalysisInformationTab = ({ context }) => {
     return (
-        <div className="content">
-            <h1 className="header">Analysis Information</h1>
-            <div className="body">
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">Analysis ID</span>
-                        <span className="datum-value text-gray">
-                            Coming Soon
-                        </span>
-                    </div>
-                </div>
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">
-                            Workflow Description / Analysis Method
-                        </span>
-                        <span className="datum-value text-gray">
-                            Coming Soon
-                        </span>
-                    </div>
-                </div>
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">
-                            Reference Genome Build
-                        </span>
-                        <span className="datum-value">GCA_000001405.15</span>
-                    </div>
-                </div>
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">
-                            Reference Genome Name
-                        </span>
-                        <span className="datum-value">GRCh38</span>
-                    </div>
-                </div>
-                <div className="data-group text-card">
-                    <div className="datum">
-                        <span className="datum-title">
-                            Read Group Name / Sample Name
-                        </span>
-                        <span className="datum-value text-gray">
-                            Coming Soon
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        // <div className="content">
+        //     <h1 className="header">Analysis Information</h1>
+        //     <div className="body">
+        //         <div className="data-group text-card">
+        //             <div className="datum">
+        //                 <span className="datum-title">Analysis ID</span>
+        //                 <span className="datum-value text-gray">
+        //                     Coming Soon
+        //                 </span>
+        //             </div>
+        //         </div>
+        //         <div className="data-group text-card">
+        //             <div className="datum">
+        //                 <span className="datum-title">
+        //                     Workflow Description / Analysis Method
+        //                 </span>
+        //                 <span className="datum-value text-gray">
+        //                     Coming Soon
+        //                 </span>
+        //             </div>
+        //         </div>
+        //         <div className="data-group text-card">
+        //             <div className="datum">
+        //                 <span className="datum-title">
+        //                     Reference Genome Build
+        //                 </span>
+        //                 <span className="datum-value">GCA_000001405.15</span>
+        //             </div>
+        //         </div>
+        //         <div className="data-group text-card">
+        //             <div className="datum">
+        //                 <span className="datum-title">
+        //                     Reference Genome Name
+        //                 </span>
+        //                 <span className="datum-value">GRCh38</span>
+        //             </div>
+        //         </div>
+        //         <div className="data-group text-card">
+        //             <div className="datum">
+        //                 <span className="datum-title">
+        //                     Read Group Name / Sample Name
+        //                 </span>
+        //                 <span className="datum-value text-gray">
+        //                     Coming Soon
+        //                 </span>
+        //             </div>
+        //         </div>
+        //     </div>
+        // </div>
+        <h2 className="tab-coming-soon">Coming soon</h2>
     );
 };
 
