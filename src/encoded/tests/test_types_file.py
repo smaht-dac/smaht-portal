@@ -630,7 +630,7 @@ def test_analytes(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    search_key = "file_sets.libraries.analyte.uuid"
+    search_key = "file_sets.libraries.analytes.uuid"
     file_without_analytes_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
@@ -654,7 +654,7 @@ def test_analytes(es_testapp: TestApp, workbook: None) -> None:
 
 
 def assert_analytes_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
-    """Ensure 'analytes' calcprop matches file_sets.libraries.analyte."""
+    """Ensure 'analytes' calcprop matches file_sets.libraries.analytes."""
     analytes_from_calcprop = file_utils.get_analytes(file)
     file_sets = file_utils.get_file_sets(file)
     libraries = [
@@ -674,7 +674,7 @@ def test_samples(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    search_key = "file_sets.libraries.analyte.samples.uuid"
+    search_key = "file_sets.libraries.analytes.samples.uuid"
     file_without_samples_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
@@ -698,7 +698,7 @@ def test_samples(es_testapp: TestApp, workbook: None) -> None:
 
 
 def assert_samples_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
-    """Ensure 'samples' calcprop matches file_sets.libraries.analyte.samples."""
+    """Ensure 'samples' calcprop matches file_sets.libraries.analytes.samples."""
     samples_from_calcprop = file_utils.get_samples(file)
     file_sets = file_utils.get_file_sets(file)
     samples = [
@@ -731,7 +731,7 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    search_key = "file_sets.libraries.analyte.samples.sample_sources.uuid"
+    search_key = "file_sets.libraries.analytes.samples.sample_sources.uuid"
     file_without_sample_sources_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
@@ -785,7 +785,7 @@ def test_donors(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    search_key = "file_sets.libraries.analyte.samples.sample_sources.donor.uuid"
+    search_key = "file_sets.libraries.analytes.samples.sample_sources.donor.uuid"
     file_without_donors_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
