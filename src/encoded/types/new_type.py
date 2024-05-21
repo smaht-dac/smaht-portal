@@ -1,8 +1,10 @@
-from typing import Optional, Union
-from snovault import calculated_property, collection, load_schema
+from typing import Optional, Union, Any, List
+from snovault import calculated_property, collection, load_schema, display_title_schema
 from .acl import ONLY_ADMIN_VIEW_ACL
+from pyramid.request import Request
+
+from .submission_center import SubmissionCenter
 from .base import Item
-#from pyramid.request import Request
 
 def _build_new_type_embedded_list():
     """Embeds for search on new types."""
@@ -31,12 +33,20 @@ class NewType(Item):
     item_type = "new_type"
     schema = load_schema("encoded:schemas/new_type.json")
     embedded_list = _build_new_type_embedded_list()
-    # @calculated_property(schema={"title": "Foobar Value", "type": "string"})
-    # def string_and_number(self, foo_or_bar: Optional[str], integer_4_to_50: Optional[int]) -> Union[str, None]:
-    #     """return string of foo_or_bar and integer_4_to_50"""
-    #     if foo_or_bar and integer_4_to_50:
-    #         new_string=u'{} {}'.format(foo_or_bar, str(integer_4_to_50))
-    #         return new_string
+    @calculated_property(schema=display_title_schema)
+    def submission_center_display_title(
+        self, request: Request, submission_centers: Optional[List[str, Any]] = None) -> Union[List[str],None]:
+        """Submission Centers for the new type."""
+    result = None
+    if submission_centers:
+        pass
+
+    @calculated_property(schema={"title": "Foobar Value", "type": "string"})
+    def string_and_number(self, foo_or_bar: Optional[str], integer_4_to_50: Optional[int]) -> Union[str, None]:
+        """return string of foo_or_bar and integer_4_to_50"""
+        if foo_or_bar and integer_4_to_50:
+            new_string=u'{} {}'.format(foo_or_bar, str(integer_4_to_50))
+            return new_string
     # @calculated_property(
     #     schema={
     #         "title": "Tissue Sample",
@@ -44,7 +54,4 @@ class NewType(Item):
     #         "linkTo": "TissueSample",
     #     },
     # )
-    # def tissue_sample(self, request: Request):
-    #     #result = self.
-    #     pass
     
