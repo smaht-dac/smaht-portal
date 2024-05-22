@@ -4,18 +4,12 @@ import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/compone
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 export const FileOverviewTable = (props) => {
-    console.log('file overview table PROPS:', props);
-
     const {
         schemas,
         session,
         associatedFilesSearchHref = '',
         embeddedTableHeader = '',
     } = props;
-
-    // Some fields overriden in BenchmarkingTable component
-    const originalColExtMap =
-        EmbeddedItemSearchTable.defaultProps.columnExtensionMap;
 
     const FileOverviewcolExtMap = {
         // File Name
@@ -153,7 +147,6 @@ export const FileOverviewTable = (props) => {
                 <h1 className="header">{embeddedTableHeader}</h1>
             }
             rowHeight={31}
-            // maxHeight={200}
             {...{
                 searchHref: associatedFilesSearchHref,
                 schemas,
@@ -183,11 +176,4 @@ export const FileOverviewTable = (props) => {
             }}
         />
     );
-};
-
-const BenchmarkingTable = (props) => {
-    /**
-     * A column extension map speifically for benchmarking tables.
-     * Some of these things may be worth moving to the global colextmap eventually.
-     */
 };
