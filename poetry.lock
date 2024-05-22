@@ -970,62 +970,60 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "dcicsnovault"
-version = "11.14.0"
+version = "11.14.2.0b0"
 description = "Storage support for 4DN Data Portals."
 category = "main"
 optional = false
-python-versions = ">=3.8.1,<3.12"
-files = []
-develop = true
+python-versions = "<3.12,>=3.8.1"
+files = [
+    {file = "dcicsnovault-11.14.2.0b0-py3-none-any.whl", hash = "sha256:407dea7975e1312caa61cb4e4af7866dcc20f04228354166dddec24a740b562a"},
+    {file = "dcicsnovault-11.14.2.0b0.tar.gz", hash = "sha256:67f2b58b201a54b51357cf1854ee3e7f4541aadc8b865d23ce7ad98bcf8bc22b"},
+]
 
 [package.dependencies]
-aws_requests_auth = "^0.4.1"
+aws_requests_auth = ">=0.4.1,<0.5.0"
 boto3 = ">=1.28.62"
 botocore = ">=1.31.62"
-dcicutils = "^8.8.5"
+dcicutils = ">=8.8.5,<9.0.0"
 elasticsearch = "7.13.4"
-elasticsearch_dsl = "^7.4.0"
+elasticsearch_dsl = ">=7.4.0,<8.0.0"
 future = ">=0.15.2,<1"
 html5lib = ">=1.1"
-humanfriendly = "^1.44.9"
-jsonschema = {version = "^4.19.0", extras = ["format-nongpl"]}
+humanfriendly = ">=1.44.9,<2.0.0"
+jsonschema = {version = ">=4.19.0,<5.0.0", extras = ["format-nongpl"]}
 netaddr = ">=0.8.0,<1"
-passlib = "^1.7.4"
-pillow = "^9.5.0"
-psutil = "^5.9.0"
-psycopg2-binary = "^2.9.1"
+passlib = ">=1.7.4,<2.0.0"
+pillow = ">=9.5.0,<10.0.0"
+psutil = ">=5.9.0,<6.0.0"
+psycopg2-binary = ">=2.9.1,<3.0.0"
 PyBrowserID = ">=0.10.0,<1"
-pyjwt = "^2.6.0"
+pyjwt = ">=2.6.0,<3.0.0"
 pyramid = "1.10.4"
 pyramid-multiauth = ">=0.9.0,<1"
-pyramid-retry = "^1.0"
-pyramid-tm = "^2.5"
-pyramid-translogger = "^0.1"
-python-dateutil = "^2.8.2"
+pyramid-retry = ">=1.0,<2.0"
+pyramid-tm = ">=2.5,<3.0"
+pyramid-translogger = ">=0.1,<0.2"
+python-dateutil = ">=2.8.2,<3.0.0"
 python_magic = ">=0.4.27"
 pytz = ">=2021.3"
-rdflib = "^4.2.2"
+rdflib = ">=4.2.2,<5.0.0"
 rdflib-jsonld = ">=0.5.0,<1.0.0"
-redis = "^4.5.1"
+redis = ">=4.5.1,<5.0.0"
 rutter = ">=0.3,<1"
-simplejson = "^3.17.6"
-SPARQLWrapper = "^1.8.5"
-SQLAlchemy = "^1.4.41"
+simplejson = ">=3.17.6,<4.0.0"
+SPARQLWrapper = ">=1.8.5,<2.0.0"
+SQLAlchemy = ">=1.4.41,<2.0.0"
 structlog = ">=19.2.0,<20"
 subprocess_middleware = ">=0.3,<1"
-transaction = "^3.0.1"
-venusian = "^1.2.0"
-WebOb = "^1.8.7"
-WebTest = "^2.0.35"
+transaction = ">=3.0.1,<4.0.0"
+venusian = ">=1.2.0,<2.0.0"
+WebOb = ">=1.8.7,<2.0.0"
+WebTest = ">=2.0.35,<3.0.0"
 WSGIProxy2 = "0.4.2"
-xlrd = "^1.0.0"
-"zope.deprecation" = "^4.4.0"
+xlrd = ">=1.0.0,<2.0.0"
+"zope.deprecation" = ">=4.4.0,<5.0.0"
 "zope.interface" = ">=4.7.2,<6"
 "zope.sqlalchemy" = "1.6"
-
-[package.source]
-type = "directory"
-url = "../snovault"
 
 [[package]]
 name = "dcicutils"
@@ -4019,4 +4017,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "1f508cf6ed50c320070028bf2aae64fa0c0448781820a70a3bd38053ba40dcfb"
+content-hash = "03ca8e741b4235193c05612bdbbf9ddc538e06633ceb4849988b7d8167585eb8"
