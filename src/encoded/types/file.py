@@ -938,6 +938,7 @@ def post_upload(context, request):
 @view_config(name='download_cli', context=File, permission='view', request_method=['GET'])
 @debug_log
 def download_cli(context, request):
+    """ Creates download credentials for files intended for use with awscli/rclone """
     return CoreDownloadCli(context, request)
 
 
