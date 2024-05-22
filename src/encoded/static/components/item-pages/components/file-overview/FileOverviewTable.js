@@ -97,7 +97,10 @@ export const FileOverviewTable = (props) => {
                 const value = result?.file_status_tracking?.released;
                 return value ? (
                     <span className="value">
-                        <LocalizedTime timestamp={value} formatType="date-md" />
+                        <LocalizedTime
+                            timestamp={value}
+                            formatType="date-file"
+                        />
                     </span>
                 ) : (
                     <small className="value">-</small>

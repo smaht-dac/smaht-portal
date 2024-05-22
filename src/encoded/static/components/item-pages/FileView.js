@@ -13,6 +13,7 @@ import {
 import { bytesToLargerUnit } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { FileOverviewTable } from './components/file-overview/FileOverviewTable';
+import { SelectedItemsDownloadButton } from '../static-pages/components/benchmarking/BenchmarkingTable';
 
 /**
  * Page containing the details of Items of type File
@@ -174,22 +175,24 @@ const FileViewDataCards = ({ context = {} }) => {
     );
 };
 
-const FileViewHeader = ({ context }) => {
+const FileViewHeader = ({ context, session }) => {
     const { accession, status, description } = context;
-    console.log('context:', context);
+    const selectedFile = new Map([[context['@id'], context]]);
+    console.log('selected File:', selectedFile);
     return (
         <div className="file-view-header">
             <div className="data-group data-row header">
                 <h1 className="header-text">File Overview</h1>
-                <a
-                    className="btn btn-primary download-file-button"
-                    href={context.href}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    download>
-                    <i className="icon icon-download fas"></i>
-                    <span>Download File</span>
-                </a>
+                <SelectedItemsDownloadButton
+                    id="download_tsv_multiselect"
+                    className="btn btn-primary btn-sm mr-05 align-items-center download-file-button"
+                    session={session}
+                    selectedItems={selectedFile}
+                    disabled={false}
+                    analyticsAddItemsToCart>
+                    <i className="icon icon-download fas mr-03" />
+                    Download File
+                </SelectedItemsDownloadButton>
             </div>
             <div className="data-group data-row">
                 <div className="datum">
@@ -467,10 +470,10 @@ const FileViewTitle = (props) => {
 };
 
 const FileViewUI = (props) => {
-    const { context } = props;
+    const { context, session } = props;
     return (
         <div className="file-view-content">
-            <FileViewHeader context={context} />
+            <FileViewHeader context={context} session={session} />
             <FileViewDataCards context={context} />
             <FileViewTabs {...props} />
         </div>

@@ -1749,4 +1749,82 @@ File Overview Styles
 			}
 		}
 	}
+
+
+}
+// May need to move this to search if we end up using this functionality elsewhere
+.batch-files-download-modal {
+	> .modal-dialog {
+		min-width: 75%;
+
+		>.modal-content {
+			border-radius: 11px;
+
+			>.modal-header>.modal-title {
+				color: #343741;
+				font-size: 24px;
+				font-weight: 600;
+			}
+			>.modal-body {
+				h2 {
+					color: #343741;
+					font-size: 18px;
+					font-weight: 600;
+				}
+		
+				li {
+					font-size: 14px;
+				}
+
+				.tsv-metadata-overview {
+					border-radius: 7px;
+					border: 1px solid #CAE5FE;
+					background: #F1F9FF;
+					box-shadow: none;
+					gap: 30px;
+					
+					@include media-breakpoint-between(md, lg){
+						gap: 50px;
+					}
+
+					@include media-breakpoint-between(lg, xl){
+						gap: 70px;
+					}
+
+					@include media-breakpoint-up(xl){
+						gap: 90px;
+					}
+		
+					.tsv-metadata-stat-title {
+						color: #387FC1;
+					}
+		
+					.tsv-metadata-stat {
+						color: #343741;
+						font-size: 24px;
+						font-weight: 600;
+					}
+				}
+
+				/*** metadata.tsv modal ***/
+				pre.curl-command {
+					border: 1px dashed #dedede;
+					padding: 5px;
+				}
+				.curl-command-wrapper i.icon-copy {
+					margin-left: 5px;
+
+					&:after {
+						content : "Copy";
+						font-family: $font-family-base;
+						font-weight: 600;
+						padding-left: 6px;
+					}
+				}
+			}
+			>.modal-footer {
+				background-color: #F8F8F8;
+			}
+		}
+	}
 }
