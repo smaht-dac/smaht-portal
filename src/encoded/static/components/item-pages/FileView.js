@@ -141,7 +141,7 @@ const FileViewDataCards = ({ context = {} }) => {
             getProp: (context = {}) => context?.sample_summary?.donor_id,
         },
         {
-            title: 'Tissue',
+            title: 'Tissue Type',
             getProp: (context = {}) => context?.sample_summary?.tissue,
         },
         {
