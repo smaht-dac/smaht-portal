@@ -235,6 +235,60 @@ export const BenchmarkingDataMap = {
             },
         ],
     },
+    Donor3: {
+        navBarTitle: 'Donor 3',
+        title: 'Donor 3 : Primary Tissue Data',
+        description: primaryTissuePageDescription,
+        type: 'Primary Tissue Data',
+        path: '/data/benchmarking/donor-3',
+        tabMapArray: [
+            {
+                eventKey: '#lung',
+                title: 'Lung',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST003-1D',
+            },
+            {
+                eventKey: '#liver',
+                title: 'Liver',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST003-1A',
+            },
+            {
+                eventKey: '#colon',
+                title: 'Colon',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST003-1G',
+            },
+        ],
+    },
+    Donor4: {
+        navBarTitle: 'Donor 4',
+        title: 'Donor 4 : Primary Tissue Data',
+        description: primaryTissuePageDescription,
+        type: 'Primary Tissue Data',
+        path: '/data/benchmarking/donor-4',
+        tabMapArray: [
+            {
+                eventKey: '#lung',
+                title: 'Lung',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST004-1D',
+            },
+            {
+                eventKey: '#liver',
+                title: 'Liver',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST004-1A',
+            },
+            {
+                eventKey: '#colon',
+                title: 'Colon',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST004-1G',
+            },
+        ],
+    },
 };
 
 export const BenchmarkingDataKeys = Object.keys(BenchmarkingDataMap);

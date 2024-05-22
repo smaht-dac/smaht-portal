@@ -287,6 +287,18 @@ function CustomStaticLinks({ pathName, href }) {
                                     id="menutree-linkto-liver_page">
                                     <span>Donor 2</span>
                                 </a>
+                                <a
+                                    className="level-3-title text-small d-block"
+                                    href="/data/benchmarking/donor-3"
+                                    id="menutree-linkto-liver_page">
+                                    <span>Donor 3</span>
+                                </a>
+                                <a
+                                    className="level-3-title text-small d-block"
+                                    href="/data/benchmarking/donor-4"
+                                    id="menutree-linkto-liver_page">
+                                    <span>Donor 4</span>
+                                </a>
                             </div>
                         </div>
                     </div>

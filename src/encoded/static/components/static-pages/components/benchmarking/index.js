@@ -122,3 +122,37 @@ export const Donor2Data = ({ schemas, session, facets, href, context }) => {
         </BenchmarkingLayout>
     );
 };
+
+export const Donor3Data = ({ schemas, session, facets, href, context }) => {
+    const donor3TabMapArray = BenchmarkingDataMap.Donor3?.tabMapArray;
+
+    return (
+        <BenchmarkingLayout
+            {...{ schemas }}
+            title={BenchmarkingDataMap.Donor3?.title}
+            description={BenchmarkingDataMap.Donor3?.description}>
+            <HashBasedTabController
+                {...{ schemas, session, facets, href, context }}
+                controllerId="Donor3-Tab-Renderer"
+                tabMapArray={donor3TabMapArray}
+            />
+        </BenchmarkingLayout>
+    );
+};
+
+export const Donor4Data = ({ schemas, session, facets, href, context }) => {
+    const donor4TabMapArray = BenchmarkingDataMap.Donor4?.tabMapArray;
+
+    return (
+        <BenchmarkingLayout
+            {...{ schemas }}
+            title={BenchmarkingDataMap.Donor4?.title}
+            description={BenchmarkingDataMap.Donor4?.description}>
+            <HashBasedTabController
+                {...{ schemas, session, facets, href, context }}
+                controllerId="Donor4-Tab-Renderer"
+                tabMapArray={donor4TabMapArray}
+            />
+        </BenchmarkingLayout>
+    );
+};

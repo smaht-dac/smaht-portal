@@ -21,6 +21,8 @@ import {
     IPSCFibroblastData,
     Donor1Data,
     Donor2Data,
+    Donor3Data,
+    Donor4Data,
 } from '../components/benchmarking';
 
 /**
@@ -41,6 +43,8 @@ const placeholders = {
     IPSCFibroblastData,
     Donor1Data,
     Donor2Data,
+    Donor3Data,
+    Donor4Data,
 };
 
 export const replaceString = memoize(

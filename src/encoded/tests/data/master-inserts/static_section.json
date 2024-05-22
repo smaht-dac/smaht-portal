@@ -190,6 +190,44 @@
         ]
     },
     {
+        "identifier": "benchmarking.donor3",
+        "title": "Donor 3",
+        "file": "/docs/public/benchmarking_tissues_Donor3.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "fd724bbc-415c-46c6-b1b0-366da2dc990c",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.donor4",
+        "title": "Donor 4",
+        "file": "/docs/public/benchmarking_tissues_Donor4.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "185c76c9-fcdc-4ac5-be06-5b3b83c09b90",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "account_creation",
         "uuid": "442c8aa0-dc6c-43d7-814a-854af460b014",
         "file": "/docs/source/account_creation.rst",
