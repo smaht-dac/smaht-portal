@@ -78,8 +78,8 @@ def main():
     parser.add_argument("--item-type", help="Type to check (snake case)", default='all')
     # TODO: Maybe do this? However, tricky because we're not always sure what
     # the right fix is, and it could assume wrong. - Will 22 May 24
-    # parser.add_argument("--fix", action='store_true', default=False,
-    #                     help="Whether to fix the inserts")
+    parser.add_argument("--fix", action='store_true', default=False,
+                        help="Whether to fix the inserts")
     args = parser.parse_args()
     checker = InsertConsistencyChecker(args.env, args.item_type, args.fix)
     result = checker.check()
