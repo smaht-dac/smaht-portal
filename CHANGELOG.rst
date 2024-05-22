@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.56.0
+======
+
+`PR 171: Bm docs nav update <https://github.com/smaht-dac/smaht-portal/pull/171>`_
+
+* Add a bunch of new inserts to serve as the new links to these various pages
+* Rework the old inserts into redirect-only pages, so that people who have bookmarked old links don't lose their place
+* Permission and order tweaks for sanity's sake
+
 0.55.0
 =======
 
