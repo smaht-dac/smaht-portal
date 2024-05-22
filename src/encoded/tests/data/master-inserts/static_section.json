@@ -152,10 +152,10 @@
         ]
     },
     {
-        "identifier": "benchmarking.donor1",
-        "title": "Donor1",
+        "identifier": "benchmarking.donorst001",
+        "title": "Donor ST001",
         "file": "/docs/public/benchmarking_tissues_Donor1.jsx",
-        "status": "in review",
+        "status": "public",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -171,9 +171,28 @@
         ]
     },
     {
-        "identifier": "benchmarking.donor2",
-        "title": "Donor 2",
+        "identifier": "benchmarking.donorst002",
+        "title": "Donor ST002",
         "file": "/docs/public/benchmarking_tissues_Donor2.jsx",
+        "status": "public",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "f5829bad-3604-4bd8-9b40-685bb2f925f5",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "benchmarking.donorst003",
+        "title": "Donor ST003",
+        "file": "/docs/public/benchmarking_tissues_Donor3.jsx",
         "status": "public",
         "options": {
             "filetype": "jsx",
@@ -190,27 +209,8 @@
         ]
     },
     {
-        "identifier": "benchmarking.donor3",
-        "title": "Donor 3",
-        "file": "/docs/public/benchmarking_tissues_Donor3.jsx",
-        "status": "public",
-        "options": {
-            "filetype": "jsx",
-            "collapsible": false,
-            "default_open": true
-        },
-        "section_type": "Page Section",
-        "uuid": "fd724bbc-415c-46c6-b1b0-366da2dc990c",
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
-    },
-    {
-        "identifier": "benchmarking.donor4",
-        "title": "Donor 4",
+        "identifier": "benchmarking.donorst004",
+        "title": "Donor ST004",
         "file": "/docs/public/benchmarking_tissues_Donor4.jsx",
         "status": "public",
         "options": {

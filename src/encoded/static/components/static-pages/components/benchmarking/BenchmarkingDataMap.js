@@ -186,14 +186,8 @@ export const BenchmarkingDataMap = {
         title: 'Donor ST001 : Primary Tissue Data',
         description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
-        path: '/data/benchmarking/donor-1',
+        path: '/data/benchmarking/donor-st001',
         tabMapArray: [
-            {
-                eventKey: '#lung',
-                title: 'Lung',
-                searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1D',
-            },
             {
                 eventKey: '#liver',
                 title: 'Liver',
@@ -201,10 +195,10 @@ export const BenchmarkingDataMap = {
                     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1A',
             },
             {
-                eventKey: '#colon',
-                title: 'Colon',
+                eventKey: '#lung',
+                title: 'Lung',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST002-1G',
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1D',
             },
         ],
     },
@@ -213,25 +207,19 @@ export const BenchmarkingDataMap = {
         title: 'Donor ST002 : Primary Tissue Data',
         description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
-        path: '/data/benchmarking/donor-2',
+        path: '/data/benchmarking/donor-st002',
         tabMapArray: [
-            {
-                eventKey: '#lung',
-                title: 'Lung',
-                searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1D',
-            },
-            {
-                eventKey: '#liver',
-                title: 'Liver',
-                searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1A',
-            },
             {
                 eventKey: '#colon',
                 title: 'Colon',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST002-1G',
+            },
+            {
+                eventKey: '#lung',
+                title: 'Lung',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST001-1D',
             },
         ],
     },
@@ -240,25 +228,11 @@ export const BenchmarkingDataMap = {
         title: 'Donor ST003 : Primary Tissue Data',
         description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
-        path: '/data/benchmarking/donor-3',
+        path: '/data/benchmarking/donor-st003',
         tabMapArray: [
             {
-                eventKey: '#lung',
-                title: 'Lung',
-                searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST003-1D',
-            },
-            {
-                eventKey: '#liver',
-                title: 'Liver',
-                searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST003-1A',
-            },
-            {
-                eventKey: '#colon',
-                title: 'Colon',
-                searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST003-1G',
+                eventKey: '#brain',
+                title: 'Brain',
             },
         ],
     },
@@ -267,25 +241,11 @@ export const BenchmarkingDataMap = {
         title: 'Donor ST004 : Primary Tissue Data',
         description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
-        path: '/data/benchmarking/donor-4',
+        path: '/data/benchmarking/donor-st004',
         tabMapArray: [
             {
-                eventKey: '#lung',
-                title: 'Lung',
-                searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST004-1D',
-            },
-            {
-                eventKey: '#liver',
-                title: 'Liver',
-                searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST004-1A',
-            },
-            {
-                eventKey: '#colon',
-                title: 'Colon',
-                searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analyte.samples.sample_sources.code=ST004-1G',
+                eventKey: '#brain',
+                title: 'Brain',
             },
         ],
     },
