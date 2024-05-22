@@ -42,7 +42,21 @@ class InsertConsistencyChecker:
                     uuid = v.get('uuid')
                     identifier = v.get('identifier')
                     accession = v.get('accession')
-                    meta = ff_utils.get_metadata(f'{uuid}', key=self.key)
+                    try:
+                        meta = ff_utils.get_metadata(f'{uuid}', key=self.key)
+                    except Exception as e:
+                        msg = str(e)
+                        if 'HTTPUnauthorized' in msg:
+                            PRINT(f'Authorization error - exiting: {msg}')
+                            return {}
+                        elif 'HTTPNotFound' in msg:
+                            PRINT(f'Found new uuid on local not present on {self.key["server"]}')
+                            if uuid not in result[k]:
+                                result[k] += [uuid]
+                            continue
+                        else:
+                            PRINT(f'Other error encountered  - exiting: {msg}')
+                            return {}
                     if identifier:
                         if meta.get('identifier') != identifier:
                             PRINT(f'Found mismatch for identifier with uuid {uuid}\n'
