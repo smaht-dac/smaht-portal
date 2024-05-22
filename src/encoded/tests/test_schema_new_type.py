@@ -11,6 +11,7 @@ def new_type(
     testapp: TestApp,
     test_consortium: Dict[str, Any],
     test_submission_center: Dict[str, Any],
+    test_tissue_sample: Dict[str, Any],
 ) -> Dict[str, Any]:
     item = {
         "consortia": [test_consortium["uuid"]],
@@ -22,6 +23,7 @@ def new_type(
         "date": "2024-05-17",
         "foo_or_bar": "Bar",
         "integer_4_to_50": 31,
+        "tissue_samples_link": [test_tissue_sample["uuid"]],
         "object_with_add_properties": {
             "key1" : 1,
             "key2" : "2"

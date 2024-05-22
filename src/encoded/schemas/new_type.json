@@ -114,9 +114,9 @@
         "submission_centers": {
             "description" : "Foo bar"
         },
-        "tissue_sample_link": {
-            "title": "Item Link",
-            "description": "Link to another item.",
+        "tissue_samples": {
+            "title": "Tissue Sample",
+            "description": "Link to tissue sample items.",
             "type": "array",
             "items": {
                 "description": "A Tissue Sample",
