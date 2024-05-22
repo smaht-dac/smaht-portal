@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.56.0
+=======
+
+* Added src/encoded/tests/data/demo_inserts with (well) demo inserts for objects needed
+  by the demo metadata spreadsheet (for annual meeting 2024): bcm_formatted_hapmapmix.xlsx ...
+  https://docs.google.com/spreadsheets/d/1qCm0bY-vG4a9uiaOvmKHZ12MvhmMKKRfEpgAm-7Hsh4/edit#gid=1472887809
+  FYI: To cause these to be loaded at startup when running locally, edit development.ini and
+  set load_test_data = snovault.loadxl:load_local_data (rather than the default load_prod_data).
+
+
 0.55.0
 =======
 

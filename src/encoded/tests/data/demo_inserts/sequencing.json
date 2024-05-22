@@ -1,0 +1,62 @@
+[
+    {
+        "status": "in review",
+        "accession": "SMASQKSI47Q1",
+        "flow_cell": "25B",
+        "read_type": "Paired-end",
+        "sequencer": "adf1e7bd-f89e-4d3d-af41-1712fce9e720",
+        "date_created": "2024-04-11T16:52:04.416766+00:00",
+        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
+        "submitted_id": "BCM_SEQUENCING_NOVASEQX-400X",
+        "last_modified": {
+            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
+            "date_modified": "2024-04-11T16:57:53.163180+00:00"
+        },
+        "target_coverage": 400.0,
+        "submission_centers": [
+            "f5446853-630e-474c-ba51-35b7e992269b"
+        ],
+        "target_read_length": 150,
+        "uuid": "9030feb4-2192-4d36-9797-81fd9ef9d058"
+    },
+    {
+        "status": "in review",
+        "accession": "SMASQUFJVZS1",
+        "flow_cell": "R10.4.1",
+        "read_type": "Single-end",
+        "sequencer": "36ed5823-9207-4514-8cc6-e9712deafb0a",
+        "date_created": "2024-04-11T16:52:04.309697+00:00",
+        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
+        "submitted_id": "BCM_SEQUENCING_ONT-100X",
+        "last_modified": {
+            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
+            "date_modified": "2024-04-11T16:57:52.665828+00:00"
+        },
+        "target_coverage": 100.0,
+        "submission_centers": [
+            "f5446853-630e-474c-ba51-35b7e992269b"
+        ],
+        "target_read_length": 27500,
+        "uuid": "234bd8a4-b3dc-4c9d-a81a-600237a1d0e3"
+    },
+    {
+        "status": "in review",
+        "accession": "SMASQVQ3CK7N",
+        "read_type": "Single-end",
+        "sequencer": "b88debe3-b07a-46c7-a1a1-78d2b0a0396b",
+        "date_created": "2024-04-11T16:52:04.363079+00:00",
+        "movie_length": 30,
+        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
+        "submitted_id": "BCM_SEQUENCING_PACBIO-100X",
+        "last_modified": {
+            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
+            "date_modified": "2024-04-11T16:57:52.713645+00:00"
+        },
+        "target_coverage": 100.0,
+        "submission_centers": [
+            "f5446853-630e-474c-ba51-35b7e992269b"
+        ],
+        "target_read_length": 17500,
+        "uuid": "17385694-04d2-4aac-ae7c-e570f56ea3fb"
+    }
+]

@@ -1,0 +1,19 @@
+[
+    {
+        "code": "bcm",
+        "title": "BCM GCC",
+        "status": "released",
+        "aliases": [
+            "bcm_gcc:bcm_gcc"
+        ],
+        "identifier": "bcm_gcc",
+        "description": "Baylor College of Medicine",
+        "date_created": "2024-04-11T16:47:22.792029+00:00",
+        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
+        "last_modified": {
+            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
+            "date_modified": "2024-04-11T16:47:22.794574+00:00"
+        },
+        "uuid": "f5446853-630e-474c-ba51-35b7e992269b"
+    }
+]
