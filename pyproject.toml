@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.55.0"
+version = "0.56.0"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -163,6 +163,7 @@ add-date-created = "encoded.commands.add_date_created:main"
 check-rendering = "encoded.commands.check_rendering:main"
 clear-db-es-contents = "snovault.commands.clear_db_es_contents:main"
 configure-kibana-index = "encoded.commands.configure_kibana_index:main"
+check-insert-consistency = "encoded.commands.check_insert_consistency:main"
 create-mapping-on-deploy = "snovault.commands.create_mapping_on_deploy:main"
 dev-servers = "snovault.dev_servers:main"
 dis2pheno = "encoded.commands.parse_hpoa:main"

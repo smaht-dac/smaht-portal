@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.56.0
+======
+
+* Add new command ``check-insert-consistency`` to quickly detect errors on live environments related to inconsistencies with ``master-inserts``
+
+
 0.55.0
 =======
 
