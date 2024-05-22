@@ -192,7 +192,8 @@ def descend_field(request, prop, field_names, cli=False):
             if not cli:
                 return f'{request.scheme}://{request.host}{current_prop}'
             else:  # we requested cli based URLs
-                return f'{request.scheme}://{request.host}/download_cli?item={current_prop}'
+                current_prop = current_prop.replace('@@download', '@@download_cli')  # noqa: at this point terminal
+                return f'{request.scheme}://{request.host}{current_prop}'
         else:
             return current_prop
     return None
@@ -318,6 +319,7 @@ def metadata_tsv(context, request):
         search_param['accession'] = args.accessions
     if args.sort_param:
         search_param['sort'] = args.sort_param
+    cli = args.cli
     search_iter = get_iterable_search_results(request, param_lists=search_param)
 
     # Process search iter
@@ -327,11 +329,11 @@ def metadata_tsv(context, request):
         for field_name, tsv_descriptor in args.tsv_mapping.items():
             traversal_path = tsv_descriptor.field_name()
             if field_name == FILE_GROUP:
-                field = descend_field(request, file, traversal_path) or ''
+                field = descend_field(request, file, traversal_path, cli=cli) or ''
                 if field:  # requires special care
                     field = handle_file_group(field)
             else:
-                field = descend_field(request, file, traversal_path) or ''
+                field = descend_field(request, file, traversal_path, cli=cli) or ''
             line.append(field)
         data_lines += [line]
 
