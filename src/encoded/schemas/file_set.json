@@ -71,6 +71,17 @@
                 "linkTo": "Library"
             }
         },
+        "samples": {
+            "title": "Samples",
+            "description": "Link to associated samples. Only to be used for single-cell data sets when many samples are associated with a single library.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "CellSample"
+            }
+        },
         "sequencing": {
             "title": "Sequencing",
             "description": "Link to associated sequencing",
