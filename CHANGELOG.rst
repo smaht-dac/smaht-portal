@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.57.0
+======
+
+{ To be written }
+
+
 0.56.0
 ======
 
