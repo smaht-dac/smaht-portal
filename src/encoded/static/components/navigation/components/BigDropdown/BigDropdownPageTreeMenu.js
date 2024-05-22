@@ -277,27 +277,27 @@ function CustomStaticLinks({ pathName, href }) {
                             <div className="level-3">
                                 <a
                                     className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/donor-1"
+                                    href="/data/benchmarking/donor-st001"
                                     id="menutree-linkto-lung_page">
-                                    <span>Donor 1</span>
+                                    <span>Donor ST001</span>
                                 </a>
                                 <a
                                     className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/donor-2"
+                                    href="/data/benchmarking/donor-st002"
                                     id="menutree-linkto-liver_page">
-                                    <span>Donor 2</span>
+                                    <span>Donor ST002</span>
                                 </a>
                                 <a
                                     className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/donor-3"
+                                    href="/data/benchmarking/donor-st003"
                                     id="menutree-linkto-liver_page">
-                                    <span>Donor 3</span>
+                                    <span>Donor ST003</span>
                                 </a>
                                 <a
                                     className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/donor-4"
+                                    href="/data/benchmarking/donor-st004"
                                     id="menutree-linkto-liver_page">
-                                    <span>Donor 4</span>
+                                    <span>Donor ST004</span>
                                 </a>
                             </div>
                         </div>

@@ -576,8 +576,8 @@
         ]
     },
     {
-        "identifier": "data/benchmarking/donor-1",
-        "title": "Donor 1",
+        "identifier": "data/benchmarking/donor-st001",
+        "title": "Donor ST001",
         "status": "public",
         "content": [
             "a2cdba5c-9e0e-4064-9ad0-353ade82f62e"
@@ -597,8 +597,8 @@
         ]
     },
     {
-        "identifier": "data/benchmarking/donor-2",
-        "title": "Donor 2",
+        "identifier": "data/benchmarking/donor-st002",
+        "title": "Donor ST002",
         "status": "public",
         "content": [
             "d093f2ec-4c72-4597-aa73-0ba501fb533a"
@@ -618,8 +618,8 @@
         ]
     },
     {
-        "identifier": "data/benchmarking/donor-3",
-        "title": "Donor 3",
+        "identifier": "data/benchmarking/donor-st003",
+        "title": "Donor ST003",
         "status": "public",
         "content": [
             "d093f2ec-4c72-4597-aa73-0ba501fb533a"
@@ -639,8 +639,8 @@
         ]
     },
     {
-        "identifier": "data/benchmarking/donor-4",
-        "title": "Donor 4",
+        "identifier": "data/benchmarking/donor-st004",
+        "title": "Donor ST004",
         "status": "public",
         "content": [
             "185c76c9-fcdc-4ac5-be06-5b3b83c09b90"
