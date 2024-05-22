@@ -183,7 +183,7 @@ export const BenchmarkingDataMap = {
     },
     Donor1: {
         navBarTitle: 'Donor ST001',
-        title: 'Donor ST001 : Primary Tissue Data',
+        title: 'Donor ST001 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
         path: '/data/benchmarking/donor-st001',
@@ -204,7 +204,7 @@ export const BenchmarkingDataMap = {
     },
     Donor2: {
         navBarTitle: 'Donor ST002',
-        title: 'Donor ST002 : Primary Tissue Data',
+        title: 'Donor ST002 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
         path: '/data/benchmarking/donor-st002',
@@ -225,7 +225,7 @@ export const BenchmarkingDataMap = {
     },
     Donor3: {
         navBarTitle: 'Donor ST003',
-        title: 'Donor ST003 : Primary Tissue Data',
+        title: 'Donor ST003 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
         path: '/data/benchmarking/donor-st003',
@@ -238,7 +238,7 @@ export const BenchmarkingDataMap = {
     },
     Donor4: {
         navBarTitle: 'Donor ST004',
-        title: 'Donor ST004 : Primary Tissue Data',
+        title: 'Donor ST004 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
         path: '/data/benchmarking/donor-st004',
