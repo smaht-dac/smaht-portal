@@ -119,7 +119,7 @@
             "description": "Link to tissue sample items.",
             "type": "array",
             "items": {
-                "description": "A Tissue Sample",
+                "description": "Tissue Sample",
                 "type": "string",
                 "linkTo": "TissueSample"
             }

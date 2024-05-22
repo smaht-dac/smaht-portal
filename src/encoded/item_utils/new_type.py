@@ -1,7 +1,6 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, List
 
-from . import tissue_sample as tissue_sample_utils
-from .utils import RequestHandler, get_property_value_from_identifier
+from .utils import RequestHandler
 
 
 def get_tissue_samples(
@@ -9,6 +8,13 @@ def get_tissue_samples(
     ) -> List[str]:
     """Get tissue samples connected to new type."""
     return new_type.get("tissue_samples", [])
+
+
+# def get_tissue_sample(
+#         properties: Dict[str, Any]
+#     ) -> str:
+#     """Get tissue sample from properties."""
+#     return properties.get("tissue_sample", [])
 
 
 
