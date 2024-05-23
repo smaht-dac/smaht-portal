@@ -15,5 +15,22 @@
             "date_modified": "2024-04-11T16:47:22.794574+00:00"
         },
         "uuid": "f5446853-630e-474c-ba51-35b7e992269b"
+    },
+    {
+        "code": "washu",
+        "title": "WASHU GCC",
+        "status": "public",
+        "aliases": [
+            "washu_gcc:washu_gcc"
+        ],
+        "identifier": "washu_gcc",
+        "description": "Washington University in St. Louis GCC",
+        "date_created": "2024-04-11T16:32:27.166043+00:00",
+        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
+        "last_modified": {
+            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
+            "date_modified": "2024-04-11T16:32:27.168880+00:00"
+        },
+        "uuid": "6030743e-631e-48e5-876d-df336066fa6e"
     }
 ]
