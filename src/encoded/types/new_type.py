@@ -5,13 +5,11 @@ from pyramid.request import Request
 
 from ..item_utils import (
     new_type as new_type_utils,
-    item as item_utils,
 )
+from .utils import get_item
 from ..item_utils.utils import (
     RequestHandler,
-    get_property_values_from_identifiers,
 )
-from .submission_center import SubmissionCenter
 from .base import Item
 
 def _build_new_type_embedded_list() -> List[str]:
@@ -91,18 +89,33 @@ class NewType(Item):
         self, request: Request, tissue_samples: Optional[List[str]] = None
     ) -> Union[List[str], None]:
         """Get Tissue Samples associated with the new type."""
-        return self._get_tissue_samples(request,tissue_samples=tissue_samples)
-    
+        result = None
+        if tissue_samples:
+            tissue_sample_items = [
+                get_item(request, tissue_sample, collection="TissueSample")
+                for tissue_sample in tissue_samples
+            ]
+            tissue_sample_display_titles = [
+                tissue_sample.get("display_title") for tissue_sample in tissue_sample_items
+                if tissue_sample.get("display_title")
+            ]
+            if tissue_sample_display_titles:
+                result = sorted(list(tissue_sample_display_titles))
+        return result
 
     def _get_tissue_samples(
             self, request: Request,tissue_samples: Optional[List[str]] = None,
         ) -> List[str]:
         """Get the  tissue samples associated with the new type."""
+        result = None
         if tissue_samples:
             request_handler = RequestHandler(request=request)
+            # result = get_property_values_from_identifiers(
+            #     request_handler,
+            #     new_type_utils.get_tissue_samples(self.properties, request_handler),
+            #     item_utils.get_display_title)
             result=new_type_utils.get_tissue_samples(self.properties, request_handler)
-            #item_utils.get_display_title,
-        return result or None
+        return result
     
     # @calculated_property(
     #     schema={}

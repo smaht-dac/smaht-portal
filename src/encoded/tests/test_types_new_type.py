@@ -46,7 +46,8 @@ def test_tissue_samples(es_testapp: TestApp, workbook: None) -> None:
     Expected values determined here by parsing file properties/embeds
     """
     expected=["TEST_TISSUE-SAMPLE_LIVER"]
-    import pdb; pdb.set_trace()
+    # Might be 'SMHT-0001'
+    #import pdb; pdb.set_trace()
     item = get_item(
         es_testapp,
         "NT1",
