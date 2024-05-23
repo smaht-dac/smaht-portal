@@ -7,8 +7,8 @@ smaht-portal
 Change Log
 ----------
 
-0.56.0
-=======
+0.57.0
+======
 
 * Added src/encoded/tests/data/demo_inserts with (well) demo inserts for objects needed
   by the demo metadata spreadsheet (for annual meeting 2024): bcm_formatted_hapmapmix.xlsx ...
@@ -17,8 +17,18 @@ Change Log
   set load_test_data = snovault.loadxl:load_local_data (rather than the default load_prod_data).
 
 
+0.56.0
+======
+
+`PR 171: Bm docs nav update <https://github.com/smaht-dac/smaht-portal/pull/171>`_
+
+* Add a bunch of new inserts to serve as the new links to these various pages
+* Rework the old inserts into redirect-only pages, so that people who have bookmarked old links don't lose their place
+* Permission and order tweaks for sanity's sake
+
+
 0.55.0
-=======
+======
 
 `PR 141: Link FileSets to Samples <https://github.com/smaht-dac/smaht-portal/pull/141>`_
 
