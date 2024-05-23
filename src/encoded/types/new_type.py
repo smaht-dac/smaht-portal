@@ -1,4 +1,4 @@
-from typing import List, Optional, Union, Any
+from typing import List, Dict, Optional, Union, Any
 from snovault import calculated_property, collection, load_schema, display_title_schema
 from .acl import ONLY_ADMIN_VIEW_ACL
 from pyramid.request import Request
@@ -46,16 +46,26 @@ class NewType(Item):
     schema = load_schema("encoded:schemas/new_type.json")
     embedded_list = _build_new_type_embedded_list()
 
-    # @calculated_property(schema={
-    #     "title": "Submission Centers",
-    #     "type": "array",
-    #     "linkTo": "SubmissionCenter"
-    # })
+    # @calculated_property(
+    #     schema={
+    #         "title": "Submission Centers",
+    #         "type": "array",
+    #         "items": {
+    #             "type": "string",
+    #             "linkTo": "SubmissionCenter"
+    #         }
+    #     }
+    # )
     # def submission_centers(
-    #     self, request: Request, submission_centers: Optional[List[str, Any]] = None
+    #     self, request_handler: RequestHandler,new_type_properties: Dict[str, Any], uuid: str,
     #     ) -> Union[List[str],None]:
     #     """Submission Centers for the new type."""
-    #     result = self.get("submission_centers.display_title",[])
+    #     #result = self.get("submission_centers.display_title",[])
+    #     result=get_property_values_from_identifiers(
+    #             request_handler,
+    #             item_utils.get_submission_centers(new_type_properties),
+    #             item_utils.get_display_title,
+    #         )
     #     return result
 
     @calculated_property(schema={"title": "Foobar Value", "type": "string"})
@@ -68,58 +78,31 @@ class NewType(Item):
             return new_string
         return foo_or_bar
     
-
-    TISSUE_SAMPLES_SCHEMA={
-            "title": "Tissue Samples",
-            "type": "array",
-            "description": "Tissue Samples associatd with the new type",
-            "items": {
-                "type": "string",
-                "linkTo": "TissueSample",
-            },
+    @calculated_property(schema={
+        "title": "Tissue Samples",
+        "type": "array",
+        "description": "Tissue Samples associated with the new type",
+        "items": {
+            "type": "string",
+            "linkTo": "TissueSample",
         },
-    @calculated_property(schema=TISSUE_SAMPLES_SCHEMA)
-    def tissue_samples(
+    })
+    def tissue_samples_display_title(
         self, request: Request, tissue_samples: Optional[List[str]] = None
     ) -> Union[List[str], None]:
         """Get Tissue Samples associated with the new type."""
         return self._get_tissue_samples(request,tissue_samples=tissue_samples)
     
+
     def _get_tissue_samples(
-            self, request: Request, tissue_samples: Optional[List[str]] = None
+            self, request: Request,tissue_samples: Optional[List[str]] = None,
         ) -> List[str]:
         """Get the  tissue samples associated with the new type."""
-        result = None
         if tissue_samples:
             request_handler = RequestHandler(request=request)
-            result = new_type_utils.get_tissue_samples(self.properties, request_handler)
+            result=new_type_utils.get_tissue_samples(self.properties, request_handler)
+            #item_utils.get_display_title,
         return result or None
-    
-
-    def _get_new_type_summary(
-        self, request_handler: RequestHandler,new_type_properties: Dict[str, Any], uuid: str,
-        ) -> Dict[str, Any]:
-        """Get new type properties for display on file overview page"""
-        to_include = {
-            "Submission Centers": get_property_values_from_identifiers(
-                request_handler,
-                item_utils.get_submission_centers(new_type_properties),
-                item_utils.get_display_title,
-            ),
-            "Consortia": get_property_values_from_identifiers(
-                request_handler,
-                item_utils.get_consortia(new_type_properties),
-                item_utils.get_display_title,
-            ),
-            # "Tissue Samples": get_property_values_from_identifiers(
-            #     request_handler,
-            #     _new_type_properties),
-            #     item_utils.get_display_title,
-        }
-        return {
-            key: value for key, value in to_include.items() if value
-        }
-       
     
     # @calculated_property(
     #     schema={}

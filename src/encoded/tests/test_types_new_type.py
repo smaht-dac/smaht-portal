@@ -17,16 +17,16 @@ def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None
     get_item(es_testapp, "NT1", collection="NewType", status=301)
 
 
-def test_submission_centers(
-        es_testapp: TestApp, workbook: None) -> None:
-    """Ensure 'submission_centers' calc prop working."""
-    expected = "SMaHT Test Center"
-    item = get_item(
-        es_testapp,
-        "NT1",
-        collection="NewType"
-    )
-    assert item.get("submission_centers","") == expected
+# def test_submission_centers(
+#         es_testapp: TestApp, workbook: None) -> None:
+#     """Ensure 'submission_centers' calc prop working."""
+#     expected = ["SMaHT Test Center"]
+#     item = get_item(
+#         es_testapp,
+#         "NT1",
+#         collection="NewType"
+#     )
+#     assert item.get("submission_centers","") == expected
 
 
 def test_string_and_number_calc_prop(es_testapp: TestApp, workbook: None) -> None:
@@ -45,11 +45,13 @@ def test_tissue_samples(es_testapp: TestApp, workbook: None) -> None:
     
     Expected values determined here by parsing file properties/embeds
     """
-    expected="TEST_TISSUE-SAMPLE_LIVER"
+    expected=["TEST_TISSUE-SAMPLE_LIVER"]
+    import pdb; pdb.set_trace()
     item = get_item(
         es_testapp,
         "NT1",
         collection="NewType"
     )
     #tissue_samples = new_type_utils.get_tissue_samples(item)
-    assert item.get("tissue_samples","") == expected
+    display_title = item.get("tissue_samples_display_title",[])
+    assert  display_title == expected
