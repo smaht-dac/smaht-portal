@@ -81,18 +81,18 @@ requests = ">=0.14.0"
 
 [[package]]
 name = "awscli"
-version = "1.32.111"
+version = "1.32.112"
 description = "Universal Command Line Environment for AWS."
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "awscli-1.32.111-py3-none-any.whl", hash = "sha256:1d6ae18f586778bd545ca4a5fdec0e8bcb3fe63317dbedaaeedca3f022c27ed8"},
-    {file = "awscli-1.32.111.tar.gz", hash = "sha256:7007853af5bdef4ef3a6d368c604eaf87c974c2e1f0180bea5d7746662e53067"},
+    {file = "awscli-1.32.112-py3-none-any.whl", hash = "sha256:8dd2f4cedc94a94cb165a7fb8655dd1dee612626b9b101acf5c9b4c40b10205b"},
+    {file = "awscli-1.32.112.tar.gz", hash = "sha256:0eb1a49b643b4718bd8ec9aa56b1332fa0948ed8a1e1ef187742b1cb1b9d292f"},
 ]
 
 [package.dependencies]
-botocore = "1.34.111"
+botocore = "1.34.112"
 colorama = ">=0.2.5,<0.4.7"
 docutils = ">=0.10,<0.17"
 PyYAML = ">=3.10,<6.1"
@@ -123,18 +123,18 @@ lxml = ["lxml"]
 
 [[package]]
 name = "boto3"
-version = "1.34.111"
+version = "1.34.112"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-1.34.111-py3-none-any.whl", hash = "sha256:d6a8e77db316c6e1d9a25f77c795ed1e0a8bc621f863ce26d04b2225d30f2dce"},
-    {file = "boto3-1.34.111.tar.gz", hash = "sha256:8f18d212b9199dbbd9d596dd5929685b583ac938c60cceeac2e045c0c5d10323"},
+    {file = "boto3-1.34.112-py3-none-any.whl", hash = "sha256:4cf28ce2c19a4e4963f1cb1f9b659a548f840f88af3e2da727b35ceb104f9223"},
+    {file = "boto3-1.34.112.tar.gz", hash = "sha256:1092ac6c68acdd33051ed0d2b7cb6f5a4527c5d1535a48cda53f7012accde206"},
 ]
 
 [package.dependencies]
-botocore = ">=1.34.111,<1.35.0"
+botocore = ">=1.34.112,<1.35.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -143,14 +143,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "boto3-stubs"
-version = "1.34.111"
-description = "Type annotations for boto3 1.34.111 generated with mypy-boto3-builder 7.24.0"
+version = "1.34.112"
+description = "Type annotations for boto3 1.34.112 generated with mypy-boto3-builder 7.24.0"
 category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3_stubs-1.34.111-py3-none-any.whl", hash = "sha256:209802a0b44d5953b8b21f7abfba695b1398544e83853111882d11977bad1049"},
-    {file = "boto3_stubs-1.34.111.tar.gz", hash = "sha256:eae268a5d70d2b880b807a1539602f2c89d4090de6ddb02e3fec144660bc1fd1"},
+    {file = "boto3_stubs-1.34.112-py3-none-any.whl", hash = "sha256:cead3a67515bbfec484a90bfa1ce92c3a1d7d02a2afc0f4f044764b9b53527e5"},
+    {file = "boto3_stubs-1.34.112.tar.gz", hash = "sha256:ef4515b53dcce4d85168fa185dc803537c4c882d5b0dab3e5c34893c83c8dbaa"},
 ]
 
 [package.dependencies]
@@ -201,7 +201,7 @@ bedrock-agent = ["mypy-boto3-bedrock-agent (>=1.34.0,<1.35.0)"]
 bedrock-agent-runtime = ["mypy-boto3-bedrock-agent-runtime (>=1.34.0,<1.35.0)"]
 bedrock-runtime = ["mypy-boto3-bedrock-runtime (>=1.34.0,<1.35.0)"]
 billingconductor = ["mypy-boto3-billingconductor (>=1.34.0,<1.35.0)"]
-boto3 = ["boto3 (==1.34.111)", "botocore (==1.34.111)"]
+boto3 = ["boto3 (==1.34.112)", "botocore (==1.34.112)"]
 braket = ["mypy-boto3-braket (>=1.34.0,<1.35.0)"]
 budgets = ["mypy-boto3-budgets (>=1.34.0,<1.35.0)"]
 ce = ["mypy-boto3-ce (>=1.34.0,<1.35.0)"]
@@ -549,14 +549,14 @@ xray = ["mypy-boto3-xray (>=1.34.0,<1.35.0)"]
 
 [[package]]
 name = "botocore"
-version = "1.34.111"
+version = "1.34.112"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "botocore-1.34.111-py3-none-any.whl", hash = "sha256:e10affb7f372d50da957260adf2753a3f153bf90abe6910e11f09d1e443b5515"},
-    {file = "botocore-1.34.111.tar.gz", hash = "sha256:0e0fb9b605c46393d5c7c69bd516b36058334bdc8f389e680c6efcf0727f25db"},
+    {file = "botocore-1.34.112-py3-none-any.whl", hash = "sha256:637f568a6c3322fb7e5ee55e0c5367324a15a331e87a497783ac6209253dde30"},
+    {file = "botocore-1.34.112.tar.gz", hash = "sha256:053495953910bcf95d336ab1adb13efb70edc5462932eff180560737ad069319"},
 ]
 
 [package.dependencies]
@@ -970,14 +970,14 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "dcicsnovault"
-version = "11.14.2.0b0"
+version = "11.14.2.1b0"
 description = "Storage support for 4DN Data Portals."
 category = "main"
 optional = false
 python-versions = "<3.12,>=3.8.1"
 files = [
-    {file = "dcicsnovault-11.14.2.0b0-py3-none-any.whl", hash = "sha256:407dea7975e1312caa61cb4e4af7866dcc20f04228354166dddec24a740b562a"},
-    {file = "dcicsnovault-11.14.2.0b0.tar.gz", hash = "sha256:67f2b58b201a54b51357cf1854ee3e7f4541aadc8b865d23ce7ad98bcf8bc22b"},
+    {file = "dcicsnovault-11.14.2.1b0-py3-none-any.whl", hash = "sha256:19cac416377eb769ab25ef3331bfb5d3e945ada1877b95979a5e0b3f021013c0"},
+    {file = "dcicsnovault-11.14.2.1b0.tar.gz", hash = "sha256:64ce39968bc5ed31a3dd1a153a8a4441fcd458fc115ca1530cc05ef744ac72c9"},
 ]
 
 [package.dependencies]
@@ -1394,14 +1394,14 @@ grpcio-gcp = ["grpcio-gcp (>=0.2.2,<1.0.dev0)"]
 
 [[package]]
 name = "google-api-python-client"
-version = "2.129.0"
+version = "2.130.0"
 description = "Google API Client Library for Python"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-api-python-client-2.129.0.tar.gz", hash = "sha256:984cc8cc8eb4923468b1926d2b8effc5b459a4dda3c845896eb87c153b28ef84"},
-    {file = "google_api_python_client-2.129.0-py2.py3-none-any.whl", hash = "sha256:d50f7e2dfdbb7fc2732f6a0cba1c54d7bb676390679526c6bb628c901e43ec86"},
+    {file = "google-api-python-client-2.130.0.tar.gz", hash = "sha256:2bba3122b82a649c677b8a694b8e2bbf2a5fbf3420265caf3343bb88e2e9f0ae"},
+    {file = "google_api_python_client-2.130.0-py2.py3-none-any.whl", hash = "sha256:7d45a28d738628715944a9c9d73e8696e7e03ac50b7de87f5e3035cefa94ed3a"},
 ]
 
 [package.dependencies]
@@ -4017,4 +4017,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "03ca8e741b4235193c05612bdbbf9ddc538e06633ceb4849988b7d8167585eb8"
+content-hash = "a0d510b17132fc3766ae5b57f04641736af673a67372cc683a752df9fd195d56"
