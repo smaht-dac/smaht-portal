@@ -1,6 +1,6 @@
 import netaddr
 
-import encoded.project_defs  # VERY Important - loads application specific behavior
+import encoded.project_defs  # noqa - VERY Important - loads application specific behavior
 
 import logging
 import json
@@ -25,7 +25,7 @@ from snovault.app import session, json_from_path, configure_dbsession, changelog
 from snovault.elasticsearch import APP_FACTORY
 from snovault.elasticsearch.interfaces import INVALIDATION_SCOPE_ENABLED
 from .appdefs import APP_VERSION_REGISTRY_KEY
-from .schema_formats import format_checker
+from .schema_formats import format_checker  # noqa
 
 
 # snovault.app.STATIC_MAX_AGE (8 seconds) is WAY too low for /static and /profiles - Will March 15 2022
