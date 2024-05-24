@@ -16,6 +16,7 @@ Change Log
   FYI: To cause these to be loaded at startup when running locally, edit development.ini and
   set load_test_data = snovault.loadxl:load_local_data (rather than the default load_prod_data).
 * Updated dcicutils to 8.8.6.
+* Changed workbook-inserts/assay.json bulk_wgs item to code 002 (to match data/staging/wolf).
 * Some make lint fixups.
 
 
