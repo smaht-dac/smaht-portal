@@ -15,7 +15,7 @@ Change Log
   https://docs.google.com/spreadsheets/d/1qCm0bY-vG4a9uiaOvmKHZ12MvhmMKKRfEpgAm-7Hsh4/edit#gid=1472887809
   FYI: To cause these to be loaded at startup when running locally, edit development.ini and
   set load_test_data = snovault.loadxl:load_local_data (rather than the default load_prod_data).
-* Updated dcicutils to 8.8.5.
+* Updated dcicutils to 8.8.6.
 
 
 0.56.0
