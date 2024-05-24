@@ -70,6 +70,32 @@
             "enum": ["Foo", "Bar"]
 
         },
+        "if": {
+            "properties": {
+                "foo_or_bar": {"const": "Bar"}
+            }
+        },
+        "then": {
+            "properties": {
+                "how_bar": {
+                    "title": "Check How Bar",
+                    "description": "Object property finds out how bar if Bar is value",
+                    "type": "string",
+                    "enum": ["very","not that much"]
+                }
+            }
+        },
+        "else": {
+            "properties": {
+                "how_bar": {
+                    "title": "Check How Bar",
+                    "description": "Object property finds out how bar if Bar is value",
+                    "type": "string",
+                    "enum": [""]
+                }
+            }
+            
+        },
         "integer_4_to_50": {
             "title": "Integer -4 to 50",
             "description": "integer property limited to greater than -4 and le 50",

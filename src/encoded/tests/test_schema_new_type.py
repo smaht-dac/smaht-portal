@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 import pytest
 from webtest import TestApp
-from dcicutils.schema_utils import get_property
+from dcicutils.schema_utils import get_properties, get_property
 from .utils import load_schema, validate_schema, post_item
 
 
@@ -101,22 +101,61 @@ def test_object_without_add_properties(object_properties: dict, error_expected: 
         assert not validation_error
 
 
-# @pytest.mark.parametrize(
-#     "foobar_value,error_expected",
-#     [
-#         ({"is_it_bar": "Bar", "how_bar": "very"}, False),
-#         ({"is_it_bar": "Foo", "how_bar": "very"}, True),
-#     ]
-# )
-# def test_foo_or_bar_conditional(foobar_value: dict, error_expected: bool):
-#     """Tests foo_or_bar conditional property how_bar only accepted with Bar"""
-#     schema = load_schema("new_type")
-#     foo_or_bar_property = get_property(schema, "foo_or_bar")
-#     validation_error = validate_schema(foo_or_bar_property, foobar_value)
-#     if error_expected:
-#         assert validation_error
-#     else:
-#         assert not validation_error
+@pytest.mark.parametrize(
+    "foobar_instance,error_expected",
+    [
+        ({"consortia": ["smaht"],
+        "submission_centers": ["smaht"],
+        "identifier": "NT2",
+        "last_modified": {
+            "date_modified": "2018-11-13T20:20:39+00:00"
+        },
+        "unique_array": ["a","b","c"],
+        "foo_or_bar": "Bar",
+        "how_bar": 'very',
+        "integer_4_to_50": 31}, False),
+        ({"consortia": ["smaht"],
+        "submission_centers": ["smaht"],
+        "identifier": "NT2",
+        "last_modified": {
+            "date_modified": "2018-11-13T20:20:39+00:00"
+        },
+        "unique_array": ["a","b","c"],
+        "foo_or_bar": "Foo",
+        "integer_4_to_50": 31}, False),
+        ({"consortia": ["smaht"],
+        "submission_centers": ["smaht"],
+        "identifier": "NT2",
+        "last_modified": {
+            "date_modified": "2018-11-13T20:20:39+00:00"
+        },
+        "unique_array": ["a","b","c"],
+        "foo_or_bar": "Bar",
+        "integer_4_to_50": 31}, False),
+        ({"consortia": ["smaht"],
+        "submission_centers": ["smaht"],
+        "identifier": "NT2",
+        "last_modified": {
+            "date_modified": "2018-11-13T20:20:39+00:00"
+        },
+        "unique_array": ["a","b","c"],
+        "foo_or_bar": "Foo",
+        "how_bar": 'very',
+        "integer_4_to_50": 31}, True)
+    ]
+)
+def test_foo_or_bar_conditional(foobar_instance: dict, error_expected: bool):
+    """Tests foo_or_bar conditional property how_bar only accepted with Bar"""
+    schema = load_schema("new_type")
+    foo_or_bar_property = get_properties(schema)
+    validation_error = validate_schema(foo_or_bar_property, foobar_instance)
+    #import pdb; pdb.set_trace()
+    if error_expected:
+        assert validation_error
+    else:
+        assert not validation_error
+
+
 
 # For new_type.json
         # "how_bar_null": {
