@@ -2,38 +2,6 @@
     {
         "status": "released",
         "aliases": [
-            "smaht:FileFormat-bam"
-        ],
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "identifier": "bam",
-        "description": "Binary version of a SAM file. Format used to represent aligned sequences",
-        "date_created": "2023-11-02T19:31:20.265325+00:00",
-        "submitted_by": "b5f738b6-455a-42e5-bc1c-77fbfd9b15d2",
-        "last_modified": {
-            "modified_by": "f9524d43-01b5-4b71-94c6-32d2d09c2222",
-            "date_modified": "2024-04-29T15:09:56.647099+00:00"
-        },
-        "valid_item_types": [
-            "OutputFile",
-            "ReferenceFile",
-            "AlignedReads",
-            "UnalignedReads"
-        ],
-        "extra_file_formats": [
-            "d13d06c1-218e-4f61-aaf0-91f226248b3c",
-            "9941b00d-fffe-482b-b585-52e0b303e289"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ],
-        "standard_file_extension": "bam",
-        "uuid": "d13d06cf-218e-4f61-aaf0-91f226248b3c"
-    },
-    {
-        "status": "released",
-        "aliases": [
             "smaht:FileFormat-bam_bai"
         ],
         "consortia": [
@@ -109,5 +77,37 @@
         ],
         "standard_file_extension": "fastq.gz",
         "uuid": "c13d06cf-218e-4f61-aaf0-91f226248b2c"
+    },
+    {
+        "status": "released",
+        "aliases": [
+            "smaht:FileFormat-bam"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "bam",
+        "description": "Binary version of a SAM file. Format used to represent aligned sequences",
+        "date_created": "2023-11-02T19:31:20.265325+00:00",
+        "submitted_by": "b5f738b6-455a-42e5-bc1c-77fbfd9b15d2",
+        "last_modified": {
+            "modified_by": "f9524d43-01b5-4b71-94c6-32d2d09c2222",
+            "date_modified": "2024-04-29T15:09:56.647099+00:00"
+        },
+        "valid_item_types": [
+            "OutputFile",
+            "ReferenceFile",
+            "AlignedReads",
+            "UnalignedReads"
+        ],
+        "extra_file_formats": [
+            "d13d06c1-218e-4f61-aaf0-91f226248b3c",
+            "9941b00d-fffe-482b-b585-52e0b303e289"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "standard_file_extension": "bam",
+        "uuid": "d13d06cf-218e-4f61-aaf0-91f226248b3c"
     }
 ]
