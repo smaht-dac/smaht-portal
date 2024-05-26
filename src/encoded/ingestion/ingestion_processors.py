@@ -88,6 +88,7 @@ def parse_structured_data(file: str,
                                              ref_lookup_strategy=ref_lookup_strategy,
                                              ref_lookup_nocache=ref_nocache,
                                              order=ITEM_INDEX_ORDER, prune=prune,
+                                             merge=submission.merge,
                                              progress=structured_data_set_progress,
                                              debug_sleep=submission.debug_sleep if submission else None)
 
