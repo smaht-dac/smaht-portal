@@ -4,12 +4,12 @@
         "submission_centers": [
             "smaht"
         ],
-        "identifier": "illumina_novaseq_x",
+        "identifier": "illumina_novaseqx",
         "platform": "Illumina",
         "model": "NovaSeq X",
         "read_length_category": [
             "Short-read"
         ],
-        "code": "A"
+        "code": "X"
     }
 ]
