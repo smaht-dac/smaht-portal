@@ -17,6 +17,7 @@ Change Log
   set load_test_data = snovault.loadxl:load_local_data (rather than the default load_prod_data).
 * Updated dcicutils to 8.8.6.
 * Changed workbook-inserts/assay.json bulk_wgs item to code 002 (to match data/staging/wolf).
+* Changed workbook-inserts/{sequencer,sequencing}.json illumina_novaseqx to illumina_novaseq_x.
 * Support merge in ingester for partial object updates from metedata.
   -  Removed ref_lookup_strategy references for structured_data; refactored/internalized in dcicutils.
 * Some make lint fixups.
