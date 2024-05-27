@@ -1,7 +1,6 @@
 import re
 from typing import Optional
 from dcicutils.submitr.progress_constants import PROGRESS_INGESTER
-from dcicutils.submitr.ref_lookup_strategy import ref_lookup_strategy
 from dcicutils.structured_data import Portal, StructuredDataSet
 from snovault.ingestion.ingestion_processors import ingestion_processor
 from snovault.types.ingestion import SubmissionFolio
@@ -85,7 +84,6 @@ def parse_structured_data(file: str,
     structured_data = StructuredDataSet.load(file=file,
                                              portal=submission.portal_vapp,
                                              autoadd=submission.autoadd,
-                                             ref_lookup_strategy=ref_lookup_strategy,
                                              ref_lookup_nocache=ref_nocache,
                                              order=ITEM_INDEX_ORDER, prune=prune,
                                              merge=submission.merge,
