@@ -17,8 +17,6 @@ from encoded.project.loadxl import ITEM_INDEX_ORDER
 
 log = structlog.getLogger(__name__)
 
-SUBMISSION_SCHEMAS_ENDPOINT = "/submission-schemas/"
-
 
 def write_all_spreadsheets(
     output: Path,
@@ -41,7 +39,7 @@ def get_all_submission_schemas(
     request_handler: RequestHandler
 ) -> Dict[str, Dict[str, Any]]:
     """Get all submission schemas"""
-    return request_handler.get_item(SUBMISSION_SCHEMAS_ENDPOINT)
+    return request_handler.get_item(SubmissionSchemaConstants.ENDPOINT)
 
 
 def write_item_spreadsheets(
@@ -76,7 +74,7 @@ def get_submission_schemas(
 
 def get_submission_schema_endpoint(item: str) -> Dict[str, Any]:
     """Get the submission schema for the item"""
-    return f"{SUBMISSION_SCHEMAS_ENDPOINT}{to_snake_case(item)}.json"
+    return f"{SubmissionSchemaConstants.ENDPOINT}{to_snake_case(item)}.json"
 
 
 def write_workbook(
