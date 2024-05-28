@@ -73,7 +73,8 @@
                 "type": "string",
                 "enum": [
                     "Cryoprecipitate",
-                    "Fresh Frozen PlasmaPacked Red Blood Cells",
+                    "Fresh Frozen Plasma",
+                    "Packed Red Blood Cells",
                     "Platelets"
                 ]
             }
