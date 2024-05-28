@@ -142,7 +142,7 @@ class FileRelease:
             assay = self.get_metadata(library[PC.ASSAY])
             self.add_release_item_to_patchdict(assay, f"Assay - {assay[PC.IDENTIFIER]}")
 
-            analyte_ids = library[PC.ANALYTES]
+            analyte_ids = library[PC.ANALYTE]
             for analyte_id in analyte_ids:
                 analyte = self.get_metadata(analyte_id)
                 self.add_release_item_to_patchdict(
