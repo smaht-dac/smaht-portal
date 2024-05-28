@@ -79,3 +79,8 @@ def get_submitted_id(properties: Dict[str, Any]) -> str:
 def get_aliases(properties: Dict[str, Any]) -> List[str]:
     """Get aliases from properties."""
     return properties.get("aliases", [])
+
+
+def get_identifier(properties: Dict[str, Any]) -> str:
+    """Get identifier from properties."""
+    return properties.get("identifier", "")
