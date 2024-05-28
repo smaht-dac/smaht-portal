@@ -9,11 +9,26 @@ import React from 'react';
  */
 
 const primaryTissuePageDescription = (
-    <span>
-        The SMaHT benchmarking tissues were obtained from two <i>post mortem</i>{' '}
-        donors. From each donor, three tissue types, i.e., lung, liver, and
-        colon, were obtained, homogenized and subjected to sequencing.
-    </span>
+    <>
+        <p>
+            The SMaHT benchmarking tissues were obtained from two{' '}
+            <i>post mortem</i> donors. From each donor, three tissue types,
+            i.e., lung, liver, and colon, were obtained, homogenized and
+            subjected to sequencing.
+        </p>
+
+        <p>
+            For the SMaHT benchmarking study, TPC provided homogenized tissue
+            samples that were profiled across four tissue types from post mortem
+            donors as follows:
+        </p>
+        <ul>
+            <li>Donor ST001: Liver and lung</li>
+            <li>Donor ST002: Colon and lung</li>
+            <li>Donor ST003: Brain</li>
+            <li>Donor ST004: Brain</li>
+        </ul>
+    </>
 );
 
 export const BenchmarkingDataMap = {
