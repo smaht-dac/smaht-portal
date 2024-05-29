@@ -11,16 +11,17 @@ import React from 'react';
 const primaryTissuePageDescription = (
     <>
         <p>
-            The SMaHT benchmarking tissues were obtained from two{' '}
-            <i>post mortem</i> donors. From each donor, three tissue types,
-            i.e., lung, liver, and colon, were obtained, homogenized and
-            subjected to sequencing.
+            The SMaHT benchmarking tissues were obtained from four{' '}
+            <i>post mortem</i> donors. From the donors, four tissue types were
+            obtained, in total, i.e., lung, liver, colon, and the brain. The
+            benchmarking tissues were homogenized (unless otherwise noted) to
+            ensure the cellular homogeneity in sample distribution.
         </p>
 
         <p>
-            For the SMaHT benchmarking study, TPC provided homogenized tissue
-            samples that were profiled across four tissue types from post mortem
-            donors as follows:
+            For the SMaHT benchmarking study, the Tissue Procurement Center
+            (TPC) provided the homogenized tissue samples from the following
+            benchmarking donors:
         </p>
         <ul>
             <li>Donor ST001: Liver and lung</li>
