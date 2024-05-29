@@ -24,16 +24,33 @@ from encoded.project.loadxl import ITEM_INDEX_ORDER
 
 log = structlog.getLogger(__name__)
 
-<<<<<<< HEAD
-=======
 GOOGLE_SHEET_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-GOOGLE_SHEET_ID = "12jMDCOaKJyvR1CZ8oR-47xoXJPM0XqkCwANbAoJJHPE"
 GOOGLE_CREDENTIALS_PATH = Path.expanduser(Path("~/google_sheets_creds.json"))
 GOOGLE_TOKEN_PATH = Path.expanduser(Path("~/google_sheets_token.json"))
 
 
+@dataclass(frozen=True)
+class SheetsClient:
+
+    client: googleapiclient.discovery.Resource
+    sheet_id: str
+
+    def get_worksheets(self) -> List[Dict[str, Any]]:
+        """Get the worksheets from Google Sheets."""
+        sheet = self.client.get(spreadsheetId=self.sheet_id).execute()
+        return sheet["sheets"]
+
+    def submit_requests(self, requests: List[Dict[str, Any]]) -> None:
+        """Submit requests to Google Sheets."""
+        self.client.batchUpdate(
+            spreadsheetId=self.sheet_id,
+            body={"requests": requests},
+        ).execute()
+
+
 def update_google_sheets(
-    sheets_client: googleapiclient.discovery.Resource, request_handler: RequestHandler
+    sheets_client: SheetsClient,
+    request_handler: RequestHandler,
 ) -> None:
     """Update Google Sheets with the latest submission schemas."""
     spreadsheets = get_spreadsheets(request_handler)
@@ -57,25 +74,17 @@ def get_spreadsheets(request_handler: RequestHandler) -> List[Spreadsheet]:
     ]
 
 
-def delete_existing_sheets(sheets_client: googleapiclient.discovery.Resource) -> None:
+def delete_existing_sheets(sheets_client: SheetsClient) -> None:
     """Delete existing sheets from Google Sheets."""
     requests = []
-    for sheet in get_worksheets(sheets_client):
+    for sheet in sheets_client.get_worksheets():
         sheet_id = get_worksheet_id(sheet)
         if sheet_id == 0:
             requests.append(get_clear_values_request(sheet_id))
         else:
             requests.append(get_delete_sheet_request(sheet_id))
     if requests:
-        submit_requests(sheets_client, requests)
-
-
-def get_worksheets(
-    sheets_client: googleapiclient.discovery.Resource,
-) -> List[Dict[str, Any]]:
-    """Get the worksheets from Google Sheets."""
-    sheet = sheets_client.get(spreadsheetId=GOOGLE_SHEET_ID).execute()
-    return sheet["sheets"]
+        sheets_client.submit_requests(requests)
 
 
 def get_worksheet_id(sheet: Dict[str, Any]) -> int:
@@ -95,18 +104,8 @@ def get_delete_sheet_request(sheet_id: int) -> Dict[str, Any]:
     return {"deleteSheet": {"sheetId": sheet_id}}
 
 
-def submit_requests(
-    sheets_client: googleapiclient.discovery.Resource, requests: List[Dict[str, Any]]
-) -> None:
-    """Submit requests to Google Sheets."""
-    sheets_client.batchUpdate(
-        spreadsheetId=GOOGLE_SHEET_ID,
-        body={"requests": requests},
-    ).execute()
-
-
 def update_or_add_spreadsheets(
-    sheets_client: googleapiclient.discovery.Resource, spreadsheets: List[Spreadsheet]
+    sheets_client: SheetsClient, spreadsheets: List[Spreadsheet]
 ) -> None:
     """Update or add spreadsheets to Google Sheets."""
     requests = []
@@ -116,7 +115,7 @@ def update_or_add_spreadsheets(
         else:
             requests.append(get_add_sheet_request(spreadsheet, idx))
     if requests:
-        submit_requests(sheets_client, requests)
+        sheets_client.submit_requests(requests)
 
 
 def get_update_sheet_title_request(
@@ -158,14 +157,14 @@ def get_add_sheet_request(spreadsheet: Spreadsheet, sheet_id: int) -> Dict[str, 
 
 
 def write_values_to_sheets(
-    sheets_client: googleapiclient.discovery.Resource, spreadsheets: List[Spreadsheet]
+    sheets_client: SheetsClient, spreadsheets: List[Spreadsheet]
 ) -> None:
     """Write values to the Google Sheets."""
     requests = []
     for idx, spreadsheet in enumerate(spreadsheets):
         requests.append(get_update_cells_request(spreadsheet, idx))
     if requests:
-        submit_requests(sheets_client, requests)
+        sheets_client.submit_requests(requests)
 
 
 def get_update_cells_request(spreadsheet: Spreadsheet, sheet_id: int) -> Dict[str, Any]:
@@ -209,7 +208,7 @@ def get_text_format(property_: Property) -> Dict[str, Any]:
 
 
 def format_column_widths(
-    sheets_client: googleapiclient.discovery.Resource, spreadsheets: List[Spreadsheet]
+    sheets_client: SheetsClient, spreadsheets: List[Spreadsheet]
 ) -> None:
     """Format column widths in the Google Sheets."""
     requests = []
@@ -218,7 +217,7 @@ def format_column_widths(
             width = len(property_.name) * 7
             requests.append(get_format_column_request(idx, index, width))
     if requests:
-        submit_requests(sheets_client, requests)
+        sheets_client.submit_requests(requests)
 
 
 def get_format_column_request(
@@ -240,7 +239,6 @@ def get_format_column_request(
         }
     }
 
->>>>>>> cdae75e9a973cfd0f9dab1fd2609b0d94b64c205
 
 def write_all_spreadsheets(
     output: Path,
@@ -707,9 +705,7 @@ def main():
     parser.add_argument(
         "--separate", help="Add comments as separate cells", action="store_true"
     )
-    parser.add_argument(
-        "--google", help="Write to/update Google Sheets", action="store_true"
-    )
+    parser.add_argument("--google", help="Google Sheets ID to write")
     args = parser.parse_args()
 
     keys = SMaHTKeyManager().get_keydict_for_env(args.env)
@@ -720,9 +716,9 @@ def main():
     if args.all and args.item:
         parser.error("Cannot specify both all and item")
     if args.google:
-        log.info(f"Google Sheet ID: {GOOGLE_SHEET_ID}")
+        log.info(f"Google Sheet ID: {args.google}")
         log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-        spreadsheet_client = get_google_sheet_client()
+        spreadsheet_client = get_google_sheet_client(args.google)
         update_google_sheets(spreadsheet_client, request_handler)
     if args.all:
         log.info("Writing all submission spreadsheets")
@@ -754,11 +750,11 @@ def dir_path(path: str) -> Path:
     raise NotADirectoryError(path)
 
 
-def get_google_sheet_client() -> googleapiclient.discovery.Resource:
+def get_google_sheet_client(sheet_id: str) -> SheetsClient:
     """Get Google Sheet to write/update."""
     credentials = get_google_credentials()
     service = build("sheets", "v4", credentials=credentials)
-    return service.spreadsheets()
+    return SheetsClient(service.spreadsheets(), sheet_id)
 
 
 def get_google_credentials() -> Dict[str, Any]:
