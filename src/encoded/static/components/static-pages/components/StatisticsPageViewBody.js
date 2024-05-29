@@ -778,9 +778,9 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="file_downloads" defaultHeight={fileDownloadClickToTooltip ? 350 : commonContainerProps.defaultHeight}
                         title={
                             <h3 className="text-300 mt-0 mb-0 charts-group-title">
-                                <span className="text-500">File Downloads</span>
-                                {countBy.file_downloads === 'assay_type' ? '- by assay type' :
-                                    (countBy.file_downloads === 'filetype' ? '- by file type' : '- top 10 files')}
+                                <span className="text-500 d-block d-sm-inline">File Downloads</span><span className="d-none d-sm-inline"> - </span>
+                                {countBy.file_downloads === 'assay_type' ? 'by assay type' :
+                                    (countBy.file_downloads === 'filetype' ? 'by file type' : 'top 10 files')}
                             </h3>
                         }
                         subTitle={
@@ -804,10 +804,10 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="file_views"
                         title={
                             <h3 className="text-300 mt-0 mb-0 charts-group-title">
-                                <span className="text-500">File Views</span>
-                                {countBy.file_views === 'metadata_tsv_by_country' ? '- metadata.tsv files count by country' :
-                                    (countBy.file_views === 'file_list_views' ? '- appearances in search results' :
-                                        countBy.file_views === 'file_clicks' ? '- clicks from search results' : '- file detail views')}
+                                <span className="text-500 d-block d-sm-inline">File Views</span><span className="d-none d-sm-inline"> - </span>
+                                {countBy.file_views === 'metadata_tsv_by_country' ? 'metadata.tsv files' :
+                                    (countBy.file_views === 'file_list_views' ? 'appearances in results' :
+                                        countBy.file_views === 'file_clicks' ? 'clicks from results' : 'file detail views')}
                             </h3>
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" />}
@@ -828,8 +828,9 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="sessions_by_country"
                         title={
                             <h3 className="text-300 mt-0 charts-group-title">
-                                <span className="text-500">{countBy.sessions_by_country === 'sessions' ? 'User Sessions' : 'Page Views'}</span>
-                                {countBy.sessions_by_country !== 'device_category' ? ' - by country' : ' - by device categoory'}
+                                <span className="text-500 d-block d-sm-inline">{countBy.sessions_by_country === 'sessions' ? 'User Sessions' : 'Page Views'}</span>
+                                <span className="d-none d-sm-inline"> - </span>
+                                {countBy.sessions_by_country !== 'device_category' ? 'by country' : 'by device categoory'}
                             </h3>
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" />}
@@ -851,7 +852,9 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="fields_faceted"
                         title={
                             <h3 className="text-300 mt-0 charts-group-title">
-                                <span className="text-500">Top Fields Faceted</span> { countBy.fields_faceted === 'sessions' ? '- by user session' : '- by search result instance' }
+                                <span className="text-500 d-block d-sm-inline">Top Fields Faceted</span>
+                                <span className="d-none d-sm-inline"> - </span>
+                                { countBy.fields_faceted === 'sessions' ? 'by user session' : 'by search result instance' }
                             </h3>
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="fields_faceted" />}

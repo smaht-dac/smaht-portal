@@ -1162,6 +1162,9 @@ $workflow-node-color-type-global-context: #ffb3b3;
                 button.btn {
                     width: 100%;
                 }
+                &.pl-2 { 
+                    padding-left: 1rem !important;
+                }
             }
         }
 
@@ -1178,10 +1181,10 @@ $workflow-node-color-type-global-context: #ffb3b3;
             display: flex !important;
 
             .custom-date-range {
-                margin-left: 40px;
+                margin-left: 15px;
 
                 .form-control {
-                    margin-right: 25px;
+                    margin-right: 12px;
                 }
             }
 
@@ -1198,6 +1201,17 @@ $workflow-node-color-type-global-context: #ffb3b3;
                     }
                 }
             }
+
+            @include media-breakpoint-up(xxl) {
+                .custom-date-range {
+                    margin-left: 45px;
+
+                    .form-control {
+                        margin-right: 20px;
+                    }
+                }
+            }
+
         }
     }
 
@@ -1357,11 +1371,16 @@ $workflow-node-color-type-global-context: #ffb3b3;
                 font-size: 1rem;
             }
             .dropdown .btn {
-                max-width: 120px;
+                max-width: 160px;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
-        }        
+        }
+        @include media-breakpoint-down(xs) {
+            .dropdown .btn {
+                margin-top: 10px;
+            }
+        }       
     }
 
 }

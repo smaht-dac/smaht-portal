@@ -417,7 +417,7 @@ export class GroupByDropdown extends React.PureComponent {
                             {groupByOptionItems}
                         </DropdownButton>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-6 col-xl-5 align-top">
+                    <div className="dropdown-container-col col-12 col-lg-6 align-top">
                         <div className="text-500 d-block mb-1">{dateRangeTitle}</div>
                         <div className="date-range">
                             {/* <span className="text-300 pt-05">Presets</span> */}
@@ -431,7 +431,7 @@ export class GroupByDropdown extends React.PureComponent {
                             </div>
                         </div>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-3 col-xl-4 align-top">
+                    <div className="dropdown-container-col col-12 col-lg-3 align-top pl-2">
                         <div className="text-500 d-block mb-1">Settings</div>
                         {children}
                     </div>
