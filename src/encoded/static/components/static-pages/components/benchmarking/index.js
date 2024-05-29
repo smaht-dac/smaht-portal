@@ -38,7 +38,8 @@ export const COLO829Data = ({ schemas, session, facets, href, context }) => {
             {...{ schemas }}
             showBamQCLink={true}
             title={BenchmarkingDataMap.COLO829?.title}
-            description={BenchmarkingDataMap.COLO829?.description}>
+            description={BenchmarkingDataMap.COLO829?.description}
+            callout={BenchmarkingDataMap.COLO829?.callout}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="COLO829-Tab-Renderer"

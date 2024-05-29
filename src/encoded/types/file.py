@@ -332,6 +332,12 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.libraries.analyte.samples.sample_sources.cell_line.code",
         "file_sets.libraries.analyte.samples.sample_sources.components.cell_culture.cell_line.code",
 
+        # For manifest
+        "sequencing.sequencer.display_title",
+
+        # Include file groups tags
+        "file_sets.file_group.*",
+
         # Analysis summary
         "software.code",
         "software.title",
@@ -341,7 +347,7 @@ def _build_file_embedded_list() -> List[str]:
 
 @abstract_collection(
     name="files",
-    unique_key='accession',
+    unique_key="submitted_id",  # To permit lookup on submission
     properties={
         "title": "Files",
         "description": "Listing of Files",

@@ -1,13 +1,20 @@
+from __future__ import annotations
+
 import argparse
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Union
 
+import googleapiclient
 import openpyxl
 import structlog
 from dcicutils.creds_utils import SMaHTKeyManager
 from dcicutils.misc_utils import to_camel_case, to_snake_case
 from dcicutils import schema_utils
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
 from snovault.schema_views import SubmissionSchemaConstants
 
 from encoded.item_utils import constants as item_constants
@@ -17,6 +24,223 @@ from encoded.project.loadxl import ITEM_INDEX_ORDER
 
 log = structlog.getLogger(__name__)
 
+<<<<<<< HEAD
+=======
+GOOGLE_SHEET_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+GOOGLE_SHEET_ID = "12jMDCOaKJyvR1CZ8oR-47xoXJPM0XqkCwANbAoJJHPE"
+GOOGLE_CREDENTIALS_PATH = Path.expanduser(Path("~/google_sheets_creds.json"))
+GOOGLE_TOKEN_PATH = Path.expanduser(Path("~/google_sheets_token.json"))
+
+
+def update_google_sheets(
+    sheets_client: googleapiclient.discovery.Resource, request_handler: RequestHandler
+) -> None:
+    """Update Google Sheets with the latest submission schemas."""
+    spreadsheets = get_spreadsheets(request_handler)
+    log.info("Clearing existing Google sheets.")
+    delete_existing_sheets(sheets_client)
+    log.info("Updating Google sheets with tabs.")
+    update_or_add_spreadsheets(sheets_client, spreadsheets)
+    log.info("Writing properties to Google sheets.")
+    write_values_to_sheets(sheets_client, spreadsheets)
+    log.info("Formatting columns in Google sheets.")
+    format_column_widths(sheets_client, spreadsheets)
+    log.info("Google sheets updated.")
+
+
+def get_spreadsheets(request_handler: RequestHandler) -> List[Spreadsheet]:
+    submission_schemas = get_all_submission_schemas(request_handler)
+    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas)
+    return [
+        get_spreadsheet(item, submission_schema)
+        for item, submission_schema in ordered_submission_schemas.items()
+    ]
+
+
+def delete_existing_sheets(sheets_client: googleapiclient.discovery.Resource) -> None:
+    """Delete existing sheets from Google Sheets."""
+    requests = []
+    for sheet in get_worksheets(sheets_client):
+        sheet_id = get_worksheet_id(sheet)
+        if sheet_id == 0:
+            requests.append(get_clear_values_request(sheet_id))
+        else:
+            requests.append(get_delete_sheet_request(sheet_id))
+    if requests:
+        submit_requests(sheets_client, requests)
+
+
+def get_worksheets(
+    sheets_client: googleapiclient.discovery.Resource,
+) -> List[Dict[str, Any]]:
+    """Get the worksheets from Google Sheets."""
+    sheet = sheets_client.get(spreadsheetId=GOOGLE_SHEET_ID).execute()
+    return sheet["sheets"]
+
+
+def get_worksheet_id(sheet: Dict[str, Any]) -> int:
+    """Get the worksheet ID."""
+    return sheet["properties"]["sheetId"]
+
+
+def get_clear_values_request(sheet_id: int) -> Dict[str, Any]:
+    """Get request to clear values from the sheet."""
+    return {
+        "deleteRange": {"range": {"sheetId": sheet_id}, "shiftDimension": "ROWS"}
+    }
+
+
+def get_delete_sheet_request(sheet_id: int) -> Dict[str, Any]:
+    """Get request to delete the sheet."""
+    return {"deleteSheet": {"sheetId": sheet_id}}
+
+
+def submit_requests(
+    sheets_client: googleapiclient.discovery.Resource, requests: List[Dict[str, Any]]
+) -> None:
+    """Submit requests to Google Sheets."""
+    sheets_client.batchUpdate(
+        spreadsheetId=GOOGLE_SHEET_ID,
+        body={"requests": requests},
+    ).execute()
+
+
+def update_or_add_spreadsheets(
+    sheets_client: googleapiclient.discovery.Resource, spreadsheets: List[Spreadsheet]
+) -> None:
+    """Update or add spreadsheets to Google Sheets."""
+    requests = []
+    for idx, spreadsheet in enumerate(spreadsheets):
+        if idx == 0:
+            requests.append(get_update_sheet_title_request(spreadsheet, idx))
+        else:
+            requests.append(get_add_sheet_request(spreadsheet, idx))
+    if requests:
+        submit_requests(sheets_client, requests)
+
+
+def get_update_sheet_title_request(
+    spreadsheet: Spreadsheet, sheet_id: int
+) -> Dict[str, Any]:
+    """Get request to update the sheet title."""
+    return {
+        "updateSheetProperties": {
+            "properties": {
+                "sheetId": sheet_id,
+                "title": spreadsheet.item,
+                "gridProperties": {
+                    "columnCount": get_max_column_count(spreadsheet.properties)
+                },
+            },
+            "fields": "title",
+        }
+    }
+
+
+def get_max_column_count(properties: List[Property]) -> int:
+    """Get the maximum column count."""
+    return len(properties) if len(properties) > 15 else 15
+
+
+def get_add_sheet_request(spreadsheet: Spreadsheet, sheet_id: int) -> Dict[str, Any]:
+    """Get request to add a new sheet."""
+    return {
+        "addSheet": {
+            "properties": {
+                "title": spreadsheet.item,
+                "sheetId": sheet_id,
+                "gridProperties": {
+                    "columnCount": get_max_column_count(spreadsheet.properties)
+                },
+            },
+        }
+    }
+
+
+def write_values_to_sheets(
+    sheets_client: googleapiclient.discovery.Resource, spreadsheets: List[Spreadsheet]
+) -> None:
+    """Write values to the Google Sheets."""
+    requests = []
+    for idx, spreadsheet in enumerate(spreadsheets):
+        requests.append(get_update_cells_request(spreadsheet, idx))
+    if requests:
+        submit_requests(sheets_client, requests)
+
+
+def get_update_cells_request(spreadsheet: Spreadsheet, sheet_id: int) -> Dict[str, Any]:
+    """Get request to update cells with properties."""
+    values = get_values(spreadsheet)
+    return {
+        "updateCells": {
+            "rows": values,
+            "fields": "*",
+            "start": {"sheetId": sheet_id, "rowIndex": 0, "columnIndex": 0},
+        }
+    }
+
+
+def get_values(spreadsheet: Spreadsheet) -> List[Dict[str, Any]]:
+    """Get values for the spreadsheet."""
+    return [
+        {"values": [get_cell_value(property_) for property_ in spreadsheet.properties]}
+    ]
+
+
+def get_cell_value(property_: Property) -> Dict[str, Any]:
+    """Get the cell value."""
+    return {
+        "userEnteredValue": {"stringValue": property_.name},
+        "userEnteredFormat": {
+            "textFormat": get_text_format(property_),
+        },
+        "note": get_comment_text(property_),
+    }
+
+
+def get_text_format(property_: Property) -> Dict[str, Any]:
+    """Get the text format."""
+    text_format = {"fontFamily": "Arial", "fontSize": 10}
+    if property_.is_required():
+        text_format["bold"] = True
+    if property_.is_link():
+        text_format["italic"] = True
+    return text_format
+
+
+def format_column_widths(
+    sheets_client: googleapiclient.discovery.Resource, spreadsheets: List[Spreadsheet]
+) -> None:
+    """Format column widths in the Google Sheets."""
+    requests = []
+    for idx, spreadsheet in enumerate(spreadsheets):
+        for index, property_ in enumerate(spreadsheet.properties):
+            width = len(property_.name) * 7
+            requests.append(get_format_column_request(idx, index, width))
+    if requests:
+        submit_requests(sheets_client, requests)
+
+
+def get_format_column_request(
+    sheet_id: int, column_index: int, width: int
+) -> Dict[str, Any]:
+    """Get request to format an individual column."""
+    return {
+        "updateDimensionProperties": {
+            "range": {
+                "sheetId": sheet_id,
+                "dimension": "COLUMNS",
+                "startIndex": column_index,
+                "endIndex": column_index + 1,
+            },
+            "properties": {
+                "pixelSize": width if width > 120 else 120,
+            },
+            "fields": "pixelSize",
+        }
+    }
+
+>>>>>>> cdae75e9a973cfd0f9dab1fd2609b0d94b64c205
 
 def write_all_spreadsheets(
     output: Path,
@@ -36,7 +260,7 @@ def write_all_spreadsheets(
 
 
 def get_all_submission_schemas(
-    request_handler: RequestHandler
+    request_handler: RequestHandler,
 ) -> Dict[str, Dict[str, Any]]:
     """Get all submission schemas"""
     return request_handler.get_item(SubmissionSchemaConstants.ENDPOINT)
@@ -90,14 +314,10 @@ def write_workbook(
         if index == 0:
             worksheet = workbook.active
             set_sheet_name(worksheet, spreadsheet)
-            write_properties(
-                worksheet, spreadsheet.properties, separate_comments
-            )
+            write_properties(worksheet, spreadsheet.properties, separate_comments)
         else:
             worksheet = workbook.create_sheet(title=spreadsheet.item)
-            write_properties(
-                worksheet, spreadsheet.properties, separate_comments
-            )
+            write_properties(worksheet, spreadsheet.properties, separate_comments)
     file_path = Path(output, "submission_workbook.xlsx")
     save_workbook(workbook, file_path)
     log.info(f"Workbook written to: {file_path}")
@@ -141,6 +361,7 @@ class Property:
     link: bool
     enum: List[str]
     array_subtype: str
+    pattern: str
 
     def is_required(self) -> bool:
         """Check if property is required"""
@@ -170,9 +391,7 @@ def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet
 def get_properties(submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
     properties = schema_utils.get_properties(submission_schema)
-    return [
-        get_property_info(key, value) for key, value in properties.items()
-    ]
+    return [get_property_info(key, value) for key, value in properties.items()]
 
 
 def get_property_info(key: str, value: Dict[str, Any]) -> Property:
@@ -185,6 +404,7 @@ def get_property_info(key: str, value: Dict[str, Any]) -> Property:
         link=is_link(value),
         enum=get_enum(value),
         array_subtype=get_array_subtype(value),
+        pattern=schema_utils.get_pattern(value),
     )
 
 
@@ -205,9 +425,8 @@ def is_array_of_links(property_schema: Dict[str, Any]) -> bool:
 
 def get_enum(property_schema: Dict[str, Any]) -> List[str]:
     """Get the enum values"""
-    return schema_utils.get_enum(property_schema) or get_nested_enum(
-        property_schema
-    )
+    return schema_utils.get_enum(property_schema) or get_nested_enum(property_schema)
+
 
 def get_nested_enum(property_schema: Dict[str, Any]) -> List[str]:
     """Get the enum values from a nested schema"""
@@ -298,7 +517,8 @@ def get_required_non_links(properties: List[Property]) -> List[Property]:
     the rest alphabetically.
     """
     required_non_links = [
-        property_ for property_ in properties
+        property_
+        for property_ in properties
         if property_.is_required() and not property_.is_link()
     ]
     submitted_id = [
@@ -306,7 +526,8 @@ def get_required_non_links(properties: List[Property]) -> List[Property]:
     ]
     non_submitted_id = sort_properties_alphabetically(
         [
-            property_ for property_ in required_non_links
+            property_
+            for property_ in required_non_links
             if not is_submitted_id(property_)
         ]
     )
@@ -317,7 +538,8 @@ def get_non_required_non_links(properties: List[Property]) -> List[Property]:
     """Get non-required non-link properties."""
     return sort_properties_alphabetically(
         [
-            property_ for property_ in properties
+            property_
+            for property_ in properties
             if not property_.is_required() and not property_.is_link()
         ]
     )
@@ -327,7 +549,8 @@ def get_required_links(properties: List[Property]) -> List[Property]:
     """Get required link properties."""
     return sort_properties_alphabetically(
         [
-            property_ for property_ in properties
+            property_
+            for property_ in properties
             if property_.is_required() and property_.is_link()
         ]
     )
@@ -337,7 +560,8 @@ def get_non_required_links(properties: List[Property]) -> List[Property]:
     """Get non-required link properties."""
     return sort_properties_alphabetically(
         [
-            property_ for property_ in properties
+            property_
+            for property_ in properties
             if not property_.is_required() and property_.is_link()
         ]
     )
@@ -424,17 +648,24 @@ def get_comment_text(property_: Property) -> str:
     if property_.description:
         comment_lines.append(f"Description:{indent}{property_.description}")
     if property_.value_type:
-        comment_lines.append(f"Type:{indent}{property_.value_type}")
+        if property_.array_subtype:
+            comment_lines.append(
+                f"Type:{indent}{property_.array_subtype}"
+                f"{indent}(Multiple values allowed)"
+            )
+        else:
+            comment_lines.append(f"Type:{indent}{property_.value_type}")
     if property_.enum:
         comment_lines.append(f"Options:{indent}{' | '.join(property_.enum)}")
     if property_.is_required():
         comment_lines.append(f"Required:{indent}Yes")
     else:
         comment_lines.append(f"Required:{indent}No")
+    if property_.pattern:
+        comment_lines.append(f"Pattern:{indent}{property_.pattern}")
     if comment_lines:
         return "\n\n".join(comment_lines)
     return ""
-
 
 
 def get_comment_height(comment_text: str) -> int:
@@ -464,7 +695,7 @@ def save_workbook(workbook: openpyxl.Workbook, file_path: Path) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="Write submission spreadsheets")
-    parser.add_argument("output", help="Output file directory", type=dir_path)
+    parser.add_argument("--output", help="Output file directory", type=dir_path)
     parser.add_argument("--env", help="Environment", default="data")
     parser.add_argument("--item", help="Item name", nargs="+")
     parser.add_argument("--all", help="All items", action="store_true")
@@ -476,10 +707,23 @@ def main():
     parser.add_argument(
         "--separate", help="Add comments as separate cells", action="store_true"
     )
+    parser.add_argument(
+        "--google", help="Write to/update Google Sheets", action="store_true"
+    )
     args = parser.parse_args()
 
     keys = SMaHTKeyManager().get_keydict_for_env(args.env)
+    log.info(f"Found keys for {args.env}")
     request_handler = RequestHandler(auth_key=keys)
+    if not args.output and not args.google:
+        parser.error("No output specified")
+    if args.all and args.item:
+        parser.error("Cannot specify both all and item")
+    if args.google:
+        log.info(f"Google Sheet ID: {GOOGLE_SHEET_ID}")
+        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+        spreadsheet_client = get_google_sheet_client()
+        update_google_sheets(spreadsheet_client, request_handler)
     if args.all:
         log.info("Writing all submission spreadsheets")
         write_all_spreadsheets(
@@ -487,6 +731,7 @@ def main():
             request_handler,
             workbook=args.workbook,
             separate_comments=args.separate,
+            google=args.google,
         )
     elif args.item:
         log.info(f"Writing submission spreadsheets for item(s): {args.item}")
@@ -496,10 +741,10 @@ def main():
             request_handler,
             workbook=args.workbook,
             separate_comments=args.separate,
+            google=args.google,
         )
-    else:
-        parser.error("No item specified")
-
+    elif not args.google:
+        parser.error("No items specified to write or update spreadsheets for")
 
 
 def dir_path(path: str) -> Path:
@@ -507,6 +752,49 @@ def dir_path(path: str) -> Path:
     if Path(path).is_dir():
         return Path(path)
     raise NotADirectoryError(path)
+
+
+def get_google_sheet_client() -> googleapiclient.discovery.Resource:
+    """Get Google Sheet to write/update."""
+    credentials = get_google_credentials()
+    service = build("sheets", "v4", credentials=credentials)
+    return service.spreadsheets()
+
+
+def get_google_credentials() -> Dict[str, Any]:
+    """Get Google creds from secrets file."""
+    creds = get_google_creds_from_token()
+    if not creds:
+        creds = get_google_creds_from_flow()
+        write_google_token(creds)
+    return creds
+
+
+def get_google_creds_from_token() -> Union[Credentials, None]:
+    """Get Google creds from token file."""
+    if GOOGLE_TOKEN_PATH.exists():
+        credentials = Credentials.from_authorized_user_file(
+            GOOGLE_TOKEN_PATH, GOOGLE_SHEET_SCOPES
+        )
+        if not credentials.valid:
+            credentials.refresh(Request())
+            write_google_token(credentials)
+        return credentials
+    return None
+
+
+def get_google_creds_from_flow() -> Credentials:
+    """Get Google creds from flow via credentials file."""
+    flow = InstalledAppFlow.from_client_secrets_file(
+        GOOGLE_CREDENTIALS_PATH, GOOGLE_SHEET_SCOPES
+    )
+    return flow.run_local_server(port=0)
+
+
+def write_google_token(creds: Credentials) -> None:
+    """Write Google token to file."""
+    with open(GOOGLE_TOKEN_PATH, "w") as file:
+        file.write(creds.to_json())
 
 
 if __name__ == "__main__":

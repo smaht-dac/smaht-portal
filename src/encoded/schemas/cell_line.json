@@ -66,6 +66,9 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_CELL-LINE_[A-Z0-9-_.]{4,}$"
         },
+        "title": {
+            "description": "Name of the cell line"
+        },
         "source": {
             "title": "Source",
             "description": "Source of the cells (vendor or institution)",
