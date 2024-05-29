@@ -7,9 +7,8 @@ smaht-portal
 Change Log
 ----------
 
-0.57.0
+0.60.0
 ======
-
 * Added src/encoded/tests/data/demo_inserts with (well) demo inserts for objects needed
   by the demo metadata spreadsheet (for annual meeting 2024): bcm_formatted_hapmapmix.xlsx ...
   https://docs.google.com/spreadsheets/d/1qCm0bY-vG4a9uiaOvmKHZ12MvhmMKKRfEpgAm-7Hsh4/edit#gid=1472887809
@@ -21,6 +20,32 @@ Change Log
 * Support merge in ingester for partial object updates from metedata.
   -  Removed ref_lookup_strategy references for structured_data; refactored/internalized in dcicutils.
 * Some make lint fixups.
+
+
+0.59.0
+======
+
+`PR 148: Submission statistics <https://github.com/smaht-dac/smaht-portal/pull/148>`_
+
+* Submission statistics charts for metadata submitted, data submitted and data released files with various group by options
+
+
+0.58.0
+======
+
+`PR 176: Bm benchmarking v3 <https://github.com/smaht-dac/smaht-portal/pull/176>`_
+
+* Add benchmarking tables for primary tissue data, organized by Donor, then Tissue type
+* Update navbar and navbar links
+
+
+0.57.0
+======
+
+`PR 173: Multiple analytes per library <https://github.com/smaht-dac/smaht-portal/pull/173>`_
+
+* **Breaking change**: Remove `analyte` from Library and replace with `analytes` array of linkTos
+* Includes corresponding changes to `item_utils`, commands, calcprops, embeds, front-end, and tests
 
 
 0.56.0

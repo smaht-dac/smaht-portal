@@ -41,7 +41,7 @@ class PortalConstants:
     AGE = "age"
     ALIGNED_READS = "Aligned Reads"
     ALIGNMENT_DETAILS = "alignment_details"
-    ANALYTE = "analyte"
+    ANALYTE = "analytes"
     ANNOTATED_FILENAME = "annotated_filename"
     ASSAY = "assay"
     CELL_CULTURE = "cell_culture"
@@ -498,14 +498,18 @@ def get_analytes_from_libraries(
 ) -> List[Dict[str, Any]]:
     """Get analytes for libraries."""
     analytes = deduplicate_items_by_uuid(
-        [get_analyte(library) for library in libraries]
+        [
+            analyte
+            for library in libraries
+            for analyte in get_analytes(library)
+        ]
     )
     return [get_item(get_uuid(analyte), auth_key) for analyte in analytes]
 
 
-def get_analyte(item: Dict[str, Any]) -> Dict[str, Any]:
+def get_analytes(item: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get analyte property from item."""
-    return item.get(PortalConstants.ANALYTE, {})
+    return item.get(PortalConstants.ANALYTE, [])
 
 
 def get_samples_from_analytes(

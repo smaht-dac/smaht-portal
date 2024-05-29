@@ -116,7 +116,7 @@ def get_analytes(
         return get_property_values_from_identifiers(
             request_handler,
             get_libraries(properties, request_handler),
-            library.get_analyte,
+            library.get_analytes,
         )
     return properties.get("analytes", [])
 

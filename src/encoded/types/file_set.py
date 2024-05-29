@@ -1,9 +1,17 @@
-from typing import List, Union
-from ..utils import load_extended_descriptions_in_schemas
+from typing import Any, Dict, List, Union
+
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
-from snovault.util import get_item_or_none
+
 from .submitted_item import SubmittedItem
+from ..item_utils import (
+    file_set as file_set_utils,
+    item as item_utils,
+    library as library_utils,
+    sequencing as sequencing_utils,
+)
+from ..item_utils.utils import RequestHandler, get_property_value_from_identifier
+from ..utils import load_extended_descriptions_in_schemas
 
 
 # These codes are used to generate the mergeable bam grouping calc prop
@@ -24,8 +32,8 @@ def _build_file_set_embedded_list():
         "libraries.assay.identifier",
 
         # Sample/SampleSource LinkTo - used in file_merge_group
-        "libraries.analyte.samples.display_title",
-        "libraries.analyte.samples.sample_sources.submitted_id",
+        "libraries.analytes.samples.display_title",
+        "libraries.analytes.samples.sample_sources.submitted_id",
 
         # Sequencing/Sequencer LinkTo - used in file_merge_group
         "sequencing.submitted_id",
@@ -95,44 +103,50 @@ class FileSet(SubmittedItem):
         return
 
     @staticmethod
-    def generate_sequencing_part(request, sequencing):
+    def generate_sequencing_part(
+        request_handler: RequestHandler, sequencing: Dict[str, Any]
+    ) -> str:
         """ The sequencing part of the file_merge_group consists of the name of the sequencer,
             the read type, the target read length and flow cell
         """
-        read_type_part = sequencing.get('read_type')
-        sequencer = get_item_or_none(request, sequencing.get('sequencer')).get('identifier')
-        target_read_length = sequencing.get('target_read_length')
-        flow_cell = sequencing.get('flow_cell', 'no-flow-cell')
+        sequencer = get_property_value_from_identifier(
+            request_handler,
+            sequencing_utils.get_sequencer(sequencing),
+            item_utils.get_identifier
+        )
+        read_type_part = sequencing_utils.get_read_type(sequencing)
+        target_read_length = sequencing_utils.get_target_read_length(sequencing)
+        flow_cell = sequencing_utils.get_flow_cell(sequencing) or "no-flow-cell"
         return f'{sequencer}-{read_type_part}-{target_read_length}-{flow_cell}'
 
     @staticmethod
-    def generate_assay_part(request, library):
+    def generate_assay_part(
+        request_handler: RequestHandler, library: Dict[str, Any]
+    ) -> Union[str, None]:
         """ The library of the merge_file_group contains information on the assay
             This basically just checks the assay code isn't a single cell type and if
             it isn't return the identifier
         """
-        assay = get_item_or_none(request, library.get('assay'))
-        assay_code = assay.get('code')
+        assay = request_handler.get_item(library_utils.get_assay(library))
+        assay_code = item_utils.get_code(assay)
         if assay_code not in SINGLE_CELL_ASSAY_CODES:
-            return assay.get('identifier')
+            return item_utils.get_identifier(assay)
 
     @staticmethod
-    def generate_sample_source_part(request, library):
+    def generate_sample_source_part(
+        request_handler: RequestHandler, library: Dict[str, Any]
+    ) -> Union[str, None]:
         """ Note this is also derived from the library """
-        analyte = get_item_or_none(request, library.get('analyte'))
-        samples = analyte.get('samples')
-        if len(samples) > 1:
-            return None  # there is too much complexity
-        else:
-            sample = samples[0]
-        sample = get_item_or_none(request, sample)
-        sample_sources = sample.get('sample_sources')
+        sample_sources = library_utils.get_sample_sources(
+            library, request_handler=request_handler
+        )
         if len(sample_sources) > 1:
             return None  # there is too much complexity
         else:
             sample_source = sample_sources[0]
-        sample_source = get_item_or_none(request, sample_source)
-        return sample_source.get('submitted_id')
+        return get_property_value_from_identifier(
+            request_handler, sample_source, item_utils.get_submitted_id
+        )
 
     @calculated_property(
         schema={
@@ -178,29 +192,35 @@ class FileSet(SubmittedItem):
         # NOTE: we assume the first library is representative if there are multiple
         # We also assume this will always be present, and if not we do not produce this property
         # This assumption may not hold true forever, we should monitor this closely - Will 17 April 24
-        library = self.properties.get('libraries')
+        request_handler = RequestHandler(request=request)
+        library = file_set_utils.get_libraries(self.properties)
         if not library:
             return None
-        library = get_item_or_none(request, library[0])
-        assay_part = self.generate_assay_part(request, library)
+        library = request_handler.get_item(library[0])
+        assay_part = self.generate_assay_part(request_handler, library)
         if not assay_part:  # we return none if this is a single cell assay to omit this prop
             return None
 
-        sample_source_part = self.generate_sample_source_part(request, library)
+        sample_source_part = self.generate_sample_source_part(request_handler, library)
         if not sample_source_part:
             return None
 
         # If we've reached this part, the library/assay is compatible
-        sequencing = get_item_or_none(request, self.properties.get('sequencing'))
-        sequencing_part = self.generate_sequencing_part(request, sequencing)
+        sequencing = request_handler.get_item(
+            file_set_utils.get_sequencing(self.properties)
+        )
+        sequencing_part = self.generate_sequencing_part(request_handler, sequencing)
         if not sequencing_part:
             return None
 
         # We need this because sequencing and sample submission centers could be different
         # this is the last thing we do since we could have exited above and the submission
         # center will always be present
-        sc = get_item_or_none(request, self.properties.get('submission_centers')[0])
-        sc_part = sc.get('identifier')
+        sc_part = get_property_value_from_identifier(
+            request_handler,
+            item_utils.get_submission_centers(self.properties)[0],
+            item_utils.get_identifier,
+        )
 
         return {
             'submission_center': sc_part,
