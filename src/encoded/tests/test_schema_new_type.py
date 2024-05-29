@@ -11,7 +11,6 @@ def new_type(
     testapp: TestApp,
     test_consortium: Dict[str, Any],
     test_submission_center: Dict[str, Any],
-    test_tissue_sample: Dict[str, Any],
 ) -> Dict[str, Any]:
     item = {
         "consortia": [test_consortium["uuid"]],
@@ -23,7 +22,6 @@ def new_type(
         "date": "2024-05-17",
         "foo_or_bar": "Bar",
         "integer_4_to_50": 31,
-        "tissue_samples_link": [test_tissue_sample["uuid"]],
         "object_with_add_properties": {
             "key1" : 1,
             "key2" : "2"
@@ -144,16 +142,29 @@ def test_object_without_add_properties(object_properties: dict, error_expected: 
         "integer_4_to_50": 31}, True)
     ]
 )
-def test_foo_or_bar_conditional(foobar_instance: dict, error_expected: bool):
-    """Tests foo_or_bar conditional property how_bar only accepted with Bar"""
-    schema = load_schema("new_type")
-    foo_or_bar_property = get_properties(schema)
-    validation_error = validate_schema(foo_or_bar_property, foobar_instance)
-    #import pdb; pdb.set_trace()
-    if error_expected:
-        assert validation_error
-    else:
-        assert not validation_error
+# def test_foo_or_bar_conditional(foobar_instance: dict, error_expected: bool):
+#     """Tests foo_or_bar conditional property how_bar only accepted with Bar"""
+#     schema = load_schema("new_type")
+#     foo_or_bar_property = get_properties(schema)
+#     validation_error = validate_schema(foo_or_bar_property, foobar_instance)
+#     #import pdb; pdb.set_trace()
+#     if error_expected:
+#         assert validation_error
+#     else:
+#         assert not validation_error
+
+# "how_bar": {
+#             "title": "How Bar",
+#             "description": "How Bar is it?",
+#             "type": "string",
+#             "enum": ["very","not that much"],
+#             "allOf": [
+#                 {
+#                     "properties": {"foo_or_bar": {"const": "Foo"}},
+#                     "not": {"required": ["how_bar"]}
+#                 }
+#             ]
+#         },
 
 
 

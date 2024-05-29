@@ -23,7 +23,13 @@ def _build_new_type_embedded_list() -> List[str]:
 
         # Submission Center linkTo
         "submission_centers.identifier",
+        
+        # # User linkTo
+        # "associated_file_sets.submitted_id",
+        # "associated_file_sets.file_group",
 
+        #Rev linkTo donor
+        #"donor.submitted_id",
         # Tissue Sample linkTo
         #"tissue_samples.submitted_id",
         #"tissue_samples.display_title"
@@ -44,9 +50,9 @@ class NewType(Item):
     schema = load_schema("encoded:schemas/new_type.json")
     embedded_list = _build_new_type_embedded_list()
 
-    rev = {
-        "donor": ("Donor", "has_new_type"),
-    }
+    # rev = {
+    #     "unaligned_reads": ("UnalignedReads", "has_new_type"),
+    # }
 
     @calculated_property(schema={"title": "Foobar Value", "type": "string"})
     def string_and_number(
@@ -88,48 +94,49 @@ class NewType(Item):
         return result
 
 
-    @calculated_property(
-        schema={
-            "title": "Donor",
-            "type": "array",
-            "items": {
-                "type": "string",
-                "linkTo": "Tissue",
-            },
-        },
-    )
-    def donor(self, request: Request) -> Union[str, None]:
-        result = self.rev_link_atids(request, "donor")
-        if result:
-            return result
-        return
-    
-    # @calculated_property(schema={
-    #     "title": "Tissue Samples",
-    #     "type": "array",
-    #     "description": "Tissue Samples associated with the new type",
-    #     "items": {
+    # @calculated_property(
+    #     schema={
+    #         "title": "Unaligned Reads",
     #         "type": "string",
-    #         "linkTo": "TissueSample",
+    #         "linkTo": "NewType",
     #     },
-    # })
-    # def tissue_samples_display_title(
-    #     self, request: Request, tissue_samples: Optional[List[str]] = None
-    # ) -> Union[List[str], None]:
-    #     """Get Tissue Samples associated with the new type."""
-    #     result = None
-    #     if tissue_samples:
-    #         tissue_sample_items = [
-    #             get_item(request, tissue_sample, collection="TissueSample")
-    #             for tissue_sample in tissue_samples
-    #         ]
-    #         tissue_sample_display_titles = [
-    #             tissue_sample.get("display_title") for tissue_sample in tissue_sample_items
-    #             if tissue_sample.get("display_title")
-    #         ]
-    #         if tissue_sample_display_titles:
-    #             result = sorted(list(tissue_sample_display_titles))
-    #     return result
+    # )
+    # def unaligned_reads(self, request: Request) -> Union[str, None]:
+    #     result = self.rev_link_atids(request, "unaligned_reads")
+    #     if result:
+    #         return result
+    #     return
+    
+#new_type.json insert
+        #     "associated_file_sets": [
+        #     "TEST_FILE-SET_LIVER"
+        # ],
 
+# new_type.json schema
 
-
+# "if": {
+#             "properties": {
+#                 "foo_or_bar": {"const": "Bar"}
+#             }
+#         },
+#         "then": {
+#             "properties": {
+#                 "how_bar": {
+#                     "title": "Check How Bar",
+#                     "description": "Object property finds out how bar if Bar is value",
+#                     "type": "string",
+#                     "enum": ["very","not that much"]
+#                 }
+#             }
+#         },
+#         "else": {
+#             "properties": {
+#                 "how_bar": {
+#                     "title": "Check How Bar",
+#                     "description": "Object property finds out how bar if Bar is value",
+#                     "type": "string",
+#                     "enum": [""]
+#                 }
+#             }
+            
+#         },

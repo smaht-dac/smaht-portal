@@ -54,7 +54,7 @@
             "title": "Date",
             "description": "string property that must be formatted as a date or datetime",
             "type": "string",
-            "anyOf": [
+            "oneOf": [
                 {
                     "format": "date-time"
                 },
@@ -68,33 +68,18 @@
             "description": "Object property that only accepts Foo or Bar",
             "type": "string",
             "enum": ["Foo", "Bar"]
-
         },
-        "if": {
-            "properties": {
-                "foo_or_bar": {"const": "Bar"}
-            }
-        },
-        "then": {
-            "properties": {
-                "how_bar": {
-                    "title": "Check How Bar",
-                    "description": "Object property finds out how bar if Bar is value",
-                    "type": "string",
-                    "enum": ["very","not that much"]
+        "how_bar": {
+            "title": "How Bar",
+            "description": "How Bar is it?",
+            "type": "string",
+            "enum": ["very","not that much"],
+            "allOf": [
+                {
+                    "properties": {"foo_or_bar": {"const": "Foo"}},
+                    "not": {"required": ["how_bar"]}
                 }
-            }
-        },
-        "else": {
-            "properties": {
-                "how_bar": {
-                    "title": "Check How Bar",
-                    "description": "Object property finds out how bar if Bar is value",
-                    "type": "string",
-                    "enum": [""]
-                }
-            }
-            
+            ]
         },
         "integer_4_to_50": {
             "title": "Integer -4 to 50",
@@ -139,16 +124,6 @@
         },
         "submission_centers": {
             "description" : "Foo bar"
-        },
-        "tissue_samples": {
-            "title": "Tissue Sample",
-            "description": "Link to tissue sample items.",
-            "type": "array",
-            "items": {
-                "description": "Tissue Sample",
-                "type": "string",
-                "linkTo": "TissueSample"
-            }
         },
         "unique_array": {
             "title": "Unique Array",
