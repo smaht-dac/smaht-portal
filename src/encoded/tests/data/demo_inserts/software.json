@@ -9,13 +9,7 @@
         "accession": "SMASWEYJ8TBH",
         "source_url": "https://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html",
         "description": "Demultiplexes Illumina short-read sequences and converts BCL basecall files to FASTQ sequence files",
-        "date_created": "2024-04-11T16:52:03.112532+00:00",
-        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
         "submitted_id": "BCM_SOFTWARE_BCL2FASTQ2",
-        "last_modified": {
-            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
-            "date_modified": "2024-04-11T16:52:25.263984+00:00"
-        },
         "submission_centers": [
             "f5446853-630e-474c-ba51-35b7e992269b"
         ],
@@ -32,13 +26,7 @@
         "accession": "SMASW5NCYJZR",
         "source_url": "https://github.com/nanoporetech/dorado",
         "description": "ONT basecalling software, also known as guppy version 7.1.4",
-        "date_created": "2024-04-11T16:52:02.830127+00:00",
-        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
         "submitted_id": "BCM_SOFTWARE_DORADO",
-        "last_modified": {
-            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
-            "date_modified": "2024-04-11T16:52:25.015254+00:00"
-        },
         "submission_centers": [
             "f5446853-630e-474c-ba51-35b7e992269b"
         ],
@@ -54,13 +42,7 @@
         "accession": "SMASWY6UHHD1",
         "source_url": "https://github.com/pacificbiosciences/barcoding/",
         "description": "PacBio's demultiplexing software",
-        "date_created": "2024-04-11T16:52:03.044938+00:00",
-        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
         "submitted_id": "BCM_SOFTWARE_LIMA",
-        "last_modified": {
-            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
-            "date_modified": "2024-04-11T16:52:25.219771+00:00"
-        },
         "submission_centers": [
             "f5446853-630e-474c-ba51-35b7e992269b"
         ],
@@ -77,13 +59,7 @@
         "accession": "SMASWZRV1Y3J",
         "source_url": "https://community.nanoporetech.com/docs/prepare/library_prep_protocols/experiment-companion-minknow/v/mke_1013_v1_revda_11apr2016/installing-minknow-on-linu",
         "description": "core software that controls the ONT sequencer, which does on-instrument sequencing and basecalling",
-        "date_created": "2024-04-11T16:52:02.775784+00:00",
-        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
         "submitted_id": "BCM_SOFTWARE_MINKNOW",
-        "last_modified": {
-            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
-            "date_modified": "2024-04-11T16:52:24.968955+00:00"
-        },
         "submission_centers": [
             "f5446853-630e-474c-ba51-35b7e992269b"
         ],
@@ -100,13 +76,7 @@
         "accession": "SMASWJXSYTVM",
         "source_url": "https://www.pacb.com/wp-content/uploads/SMRT-Link-Release-Notes-v13.0.pdf",
         "description": "PacBio Revio's instrument control software that controls the on-instrument basecalling and hifi reads generation",
-        "date_created": "2024-04-11T16:52:02.937946+00:00",
-        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
         "submitted_id": "BCM_SOFTWARE_REVIO-ICS",
-        "last_modified": {
-            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
-            "date_modified": "2024-04-11T16:52:25.104843+00:00"
-        },
         "submission_centers": [
             "f5446853-630e-474c-ba51-35b7e992269b"
         ],
@@ -122,13 +92,7 @@
         "accession": "SMASWXO5VNLX",
         "source_url": "https://github.com/samtools/samtools",
         "description": "used to concatenate 1000+ unaligned bams into single bam or fastq",
-        "date_created": "2024-04-11T16:52:02.883718+00:00",
-        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
         "submitted_id": "BCM_SOFTWARE_SAMTOOLS",
-        "last_modified": {
-            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
-            "date_modified": "2024-04-11T16:52:25.059727+00:00"
-        },
         "submission_centers": [
             "f5446853-630e-474c-ba51-35b7e992269b"
         ],
@@ -144,13 +108,7 @@
         "accession": "SMASW4462RBK",
         "source_url": "https://www.pacb.com/wp-content/uploads/SMRT-Link-Release-Notes-v13.0.pdf",
         "description": "PacBio's suite of software tools for various data analyses",
-        "date_created": "2024-04-11T16:52:02.991500+00:00",
-        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
         "submitted_id": "BCM_SOFTWARE_SMRTLINK",
-        "last_modified": {
-            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
-            "date_modified": "2024-04-11T16:52:25.177740+00:00"
-        },
         "submission_centers": [
             "f5446853-630e-474c-ba51-35b7e992269b"
         ],

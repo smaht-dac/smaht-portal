@@ -9,12 +9,6 @@
         ],
         "identifier": "bam_bai",
         "description": "Companion format to BAM. Format used to represent the index of a BAM file",
-        "date_created": "2023-11-02T19:31:20.002098+00:00",
-        "submitted_by": "b5f738b6-455a-42e5-bc1c-77fbfd9b15d2",
-        "last_modified": {
-            "modified_by": "f9524d43-01b5-4b71-94c6-32d2d09c2222",
-            "date_modified": "2024-04-29T15:09:56.236253+00:00"
-        },
         "valid_item_types": [
             "ReferenceFile",
             "OutputFile"
@@ -35,12 +29,6 @@
         ],
         "identifier": "bam_pbi",
         "description": "Companion format to BAM. Format used to represent the index of a BAM file. This format is specific to PacBio",
-        "date_created": "2024-04-04T20:15:49.620954+00:00",
-        "submitted_by": "f9524d43-01b5-4b71-94c6-32d2d09c2222",
-        "last_modified": {
-            "modified_by": "f9524d43-01b5-4b71-94c6-32d2d09c2222",
-            "date_modified": "2024-04-29T15:09:56.446233+00:00"
-        },
         "valid_item_types": [
             "ReferenceFile",
             "OutputFile"
@@ -61,12 +49,6 @@
         ],
         "identifier": "fastq_gz",
         "description": "Format used to represent short read sequence data, compressed",
-        "date_created": "2023-11-02T19:31:19.616303+00:00",
-        "submitted_by": "b5f738b6-455a-42e5-bc1c-77fbfd9b15d2",
-        "last_modified": {
-            "modified_by": "f9524d43-01b5-4b71-94c6-32d2d09c2222",
-            "date_modified": "2024-04-29T15:09:55.858170+00:00"
-        },
         "valid_item_types": [
             "OutputFile",
             "ReferenceFile",
@@ -88,12 +70,6 @@
         ],
         "identifier": "bam",
         "description": "Binary version of a SAM file. Format used to represent aligned sequences",
-        "date_created": "2023-11-02T19:31:20.265325+00:00",
-        "submitted_by": "b5f738b6-455a-42e5-bc1c-77fbfd9b15d2",
-        "last_modified": {
-            "modified_by": "f9524d43-01b5-4b71-94c6-32d2d09c2222",
-            "date_modified": "2024-04-29T15:09:56.647099+00:00"
-        },
         "valid_item_types": [
             "OutputFile",
             "ReferenceFile",

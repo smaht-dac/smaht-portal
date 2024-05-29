@@ -8,12 +8,6 @@
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "identifier": "bulk_rna_seq",
-        "date_created": "2024-03-21T19:03:22.176917+00:00",
-        "submitted_by": "e34b090e-aa4e-494c-9bb3-79d0dbce0301",
-        "last_modified": {
-            "modified_by": "e34b090e-aa4e-494c-9bb3-79d0dbce0301",
-            "date_modified": "2024-03-21T19:03:22.194932+00:00"
-        },
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],
@@ -28,12 +22,6 @@
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "identifier": "bulk_wgs_pcr_free",
-        "date_created": "2024-03-21T19:03:28.125645+00:00",
-        "submitted_by": "e34b090e-aa4e-494c-9bb3-79d0dbce0301",
-        "last_modified": {
-            "modified_by": "e34b090e-aa4e-494c-9bb3-79d0dbce0301",
-            "date_modified": "2024-03-21T19:03:28.142714+00:00"
-        },
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],

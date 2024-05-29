@@ -8,12 +8,7 @@
         ],
         "identifier": "bcm_gcc",
         "description": "Baylor College of Medicine",
-        "date_created": "2024-04-11T16:47:22.792029+00:00",
         "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
-        "last_modified": {
-            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
-            "date_modified": "2024-04-11T16:47:22.794574+00:00"
-        },
         "uuid": "f5446853-630e-474c-ba51-35b7e992269b"
     },
     {
@@ -25,12 +20,6 @@
         ],
         "identifier": "washu_gcc",
         "description": "Washington University in St. Louis GCC",
-        "date_created": "2024-04-11T16:32:27.166043+00:00",
-        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
-        "last_modified": {
-            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
-            "date_modified": "2024-04-11T16:32:27.168880+00:00"
-        },
         "uuid": "6030743e-631e-48e5-876d-df336066fa6e"
     },
     {
@@ -42,12 +31,6 @@
         ],
         "identifier": "mayo_ttd",
         "description": "Mayo Clinic Abyzov TTD",
-        "date_created": "2024-04-11T16:34:10.823898+00:00",
-        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
-        "last_modified": {
-            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
-            "date_modified": "2024-04-11T16:34:10.826711+00:00"
-        },
         "uuid": "7a7021f8-2f90-4aac-80c8-72d5e03c5bd1"
     },
     {
@@ -59,12 +42,6 @@
         ],
         "identifier": "uwsc_gcc",
         "description": "University of Washington & Seattle Children\u2019s Hospital GCC",
-        "date_created": "2024-04-11T16:34:56.432148+00:00",
-        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
-        "last_modified": {
-            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
-            "date_modified": "2024-04-11T16:34:56.434678+00:00"
-        },
         "uuid": "3cd5a0a8-96e0-4eb1-862d-526509efb9b3"
     }
 ]

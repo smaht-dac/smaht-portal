@@ -9,12 +9,6 @@
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "identifier": "illumina_novaseq_6000",
-        "date_created": "2024-03-21T19:03:17.564769+00:00",
-        "submitted_by": "e34b090e-aa4e-494c-9bb3-79d0dbce0301",
-        "last_modified": {
-            "modified_by": "e34b090e-aa4e-494c-9bb3-79d0dbce0301",
-            "date_modified": "2024-03-21T19:03:17.582591+00:00"
-        },
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],
@@ -30,12 +24,6 @@
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "identifier": "illumina_novaseq_x",
-        "date_created": "2024-03-21T19:03:18.569612+00:00",
-        "submitted_by": "e34b090e-aa4e-494c-9bb3-79d0dbce0301",
-        "last_modified": {
-            "modified_by": "e34b090e-aa4e-494c-9bb3-79d0dbce0301",
-            "date_modified": "2024-03-21T19:03:18.616632+00:00"
-        },
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],
@@ -51,12 +39,6 @@
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "identifier": "ont_promethion_24",
-        "date_created": "2024-03-21T19:03:17.070471+00:00",
-        "submitted_by": "e34b090e-aa4e-494c-9bb3-79d0dbce0301",
-        "last_modified": {
-            "modified_by": "e34b090e-aa4e-494c-9bb3-79d0dbce0301",
-            "date_modified": "2024-03-21T19:03:17.085614+00:00"
-        },
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],
@@ -75,12 +57,6 @@
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "identifier": "pacbio_revio_hifi",
-        "date_created": "2024-03-21T19:03:18.060776+00:00",
-        "submitted_by": "e34b090e-aa4e-494c-9bb3-79d0dbce0301",
-        "last_modified": {
-            "modified_by": "e34b090e-aa4e-494c-9bb3-79d0dbce0301",
-            "date_modified": "2024-03-21T19:03:18.076751+00:00"
-        },
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],
