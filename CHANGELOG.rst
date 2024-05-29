@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.58.0
+======
+
+`PR 176: Bm benchmarking v3 <https://github.com/smaht-dac/smaht-portal/pull/176>`_
+
+* Add benchmarking tables for primary tissue data, organized by Donor, then Tissue type
+* Update navbar and navbar links
+
+
 0.57.0
 ======
 
