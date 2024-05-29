@@ -720,7 +720,7 @@ def main():
         log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
         spreadsheet_client = get_google_sheet_client(args.google)
         update_google_sheets(spreadsheet_client, request_handler)
-    if args.all:
+    elif args.all:
         log.info("Writing all submission spreadsheets")
         write_all_spreadsheets(
             args.output,
@@ -737,9 +737,8 @@ def main():
             request_handler,
             workbook=args.workbook,
             separate_comments=args.separate,
-            google=args.google,
         )
-    elif not args.google:
+    else:
         parser.error("No items specified to write or update spreadsheets for")
 
 
