@@ -327,12 +327,12 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.sequencing.sequencer",
 
         # Sample summary + Link calcprops
-        "file_sets.libraries.analyte.molecule",
-        "file_sets.libraries.analyte.samples.sample_sources.code",
-        "file_sets.libraries.analyte.samples.sample_sources.description",
-        "file_sets.libraries.analyte.samples.sample_sources.donor",
-        "file_sets.libraries.analyte.samples.sample_sources.cell_line.code",
-        "file_sets.libraries.analyte.samples.sample_sources.components.cell_culture.cell_line.code",
+        "file_sets.libraries.analytes.molecule",
+        "file_sets.libraries.analytes.samples.sample_sources.code",
+        "file_sets.libraries.analytes.samples.sample_sources.description",
+        "file_sets.libraries.analytes.samples.sample_sources.donor",
+        "file_sets.libraries.analytes.samples.sample_sources.cell_line.code",
+        "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.cell_line.code",
         "file_sets.samples.sample_sources.code",
         "file_sets.samples.sample_sources.description",
         "file_sets.samples.sample_sources.donor",
