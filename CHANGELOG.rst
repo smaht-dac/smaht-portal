@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.59.0
+======
+
+`PR 148: Submission statistics <https://github.com/smaht-dac/smaht-portal/pull/148>`_
+
+* Submission statistics charts for metadata submitted, data submitted and data released files with various group by options
+
+
 0.58.0
 ======
 
