@@ -2,16 +2,88 @@ import React from 'react';
 import { EmbeddedItemSearchTable } from '../EmbeddedItemSearchTable';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import {
+    SelectedItemsDownloadButton,
+    SelectAllFilesButton,
+} from '../../../static-pages/components/benchmarking/BenchmarkingTable';
+import {
+    SelectedItemsController,
+    SelectionItemCheckbox,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
+
+export const FileOverviewTableController = (props) => {
+    const {
+        embeddedTableHeaderText,
+        associatedFilesSearchHref,
+        schemas,
+        session,
+        href,
+        context,
+    } = props;
+
+    const originalColExtMap =
+        EmbeddedItemSearchTable.defaultProps.columnExtensionMap;
+
+    return (
+        <SelectedItemsController
+            {...{ context, href }}
+            currentAction={'multiselect'}>
+            <FileOverviewTable
+                associatedFilesSearchHref={associatedFilesSearchHref}
+                columnExtensionMap={originalColExtMap}
+                {...{
+                    context,
+                    session,
+                    schemas,
+                    href,
+                    searchHref: associatedFilesSearchHref,
+                    embeddedTableHeaderText,
+                }}
+            />
+        </SelectedItemsController>
+    );
+};
 
 export const FileOverviewTable = (props) => {
     const {
+        context,
+        href,
+        searchHref,
         schemas,
         session,
         associatedFilesSearchHref = '',
-        embeddedTableHeader = '',
+        embeddedTableHeaderText = '',
+        selectedItems, // From SelectedItemsController
+        onSelectItem, // From SelectedItemsController
+        onResetSelectedItems, // From SelectedItemsController
+        originalColExtMap,
     } = props;
 
-    const FileOverviewcolExtMap = {
+    const selectedFileProps = {
+        selectedItems, // From SelectedItemsController
+        onSelectItem, // From SelectedItemsController
+        onResetSelectedItems, // From SelectedItemsController
+    };
+
+    const FileOverviewColExtMap = {
+        ...originalColExtMap,
+        // Select all button
+        '@type': {
+            colTitle: (
+                <SelectAllFilesButton {...selectedFileProps} type="checkbox" />
+            ),
+            hideTooltip: true,
+            noSort: true,
+            widthMap: { lg: 50, md: 50, sm: 50 },
+            render: (result, parentProps) => {
+                return (
+                    <SelectionItemCheckbox
+                        {...{ selectedItems, onSelectItem, result }}
+                        isMultiSelect={true}
+                    />
+                );
+            },
+        },
         // File Name
         annotated_filename: {
             widthMap: { lg: 500, md: 400, sm: 300 },
@@ -117,63 +189,108 @@ export const FileOverviewTable = (props) => {
             },
             noSort: true,
         },
-        // Download Button
-        href: {
-            widthMap: { lg: 100, md: 100, sm: 100 },
-            colTitle: <span>Download</span>,
-            render: function (result, parentProps) {
-                const value = result?.href;
-                return value ? (
-                    <a
-                        href={value}
-                        className="download-button"
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        download>
-                        <i className="icon icon-download fas"></i>
-                    </a>
-                ) : (
-                    <small className="value">-</small>
-                );
-            },
-            noSort: true,
-        },
     };
 
     return (
-        <EmbeddedItemSearchTable
-            key={session}
-            embeddedTableHeader={
-                <h1 className="header">{embeddedTableHeader}</h1>
-            }
-            rowHeight={31}
-            {...{
-                searchHref: associatedFilesSearchHref,
-                schemas,
-                session,
-            }}
-            facets={null}
-            columnExtensionMap={FileOverviewcolExtMap}
-            hideColumns={[
-                'display_title',
-                '@type',
-                'access_status',
-                'data_type',
-                'file_sets.sequencing.sequencer.display_title',
-                'file_format.display_title',
-                'submission_centers.display_title',
-                'file_sets.libraries.assay.display_title',
-                'sequencing_center.display_title',
-            ]}
-            columns={{
-                annotated_filename: {},
-                'software.display_title': {},
-                'software.version': {},
-                status: {},
-                release_date: {},
-                file_size: {},
-                href: {},
-            }}
-        />
+        <>
+            <h1 className="header">{embeddedTableHeaderText}</h1>
+            <EmbeddedItemSearchTable
+                key={session}
+                embeddedTableHeader={
+                    <FileOverviewAboveTableComponent
+                        {...{
+                            session,
+                            selectedItems,
+                            onSelectItem,
+                            onResetSelectedItems,
+                            href,
+                            searchHref,
+                        }}
+                    />
+                }
+                rowHeight={31}
+                {...{
+                    searchHref: associatedFilesSearchHref,
+                    schemas,
+                    session,
+                }}
+                facets={null}
+                columnExtensionMap={FileOverviewColExtMap}
+                hideColumns={[
+                    'display_title',
+                    'access_status',
+                    'data_type',
+                    'file_sets.sequencing.sequencer.display_title',
+                    'file_format.display_title',
+                    'submission_centers.display_title',
+                    'file_sets.libraries.assay.display_title',
+                    'sequencing_center.display_title',
+                ]}
+                columns={{
+                    '@type': {},
+                    annotated_filename: {},
+                    'software.display_title': {},
+                    'software.version': {},
+                    status: {},
+                    release_date: {},
+                    file_size: {},
+                }}
+            />
+        </>
+    );
+};
+
+const FileOverviewAboveTableComponent = (props) => {
+    const {
+        href,
+        searchHref,
+        context,
+        onFilter,
+        schemas,
+        isContextLoading = false, // Present only on embedded search views,
+        navigate,
+        sortBy,
+        sortColumns,
+        hiddenColumns,
+        addHiddenColumn,
+        removeHiddenColumn,
+        columnDefinitions,
+        session,
+        selectedItems, // From SelectedItemsController
+        onSelectItem, // From SelectedItemsController
+        onResetSelectedItems, // From SelectedItemsController
+    } = props;
+    const totalResultCount = context?.total ?? 0;
+
+    const selectedFileProps = {
+        selectedItems, // From SelectedItemsController
+        onSelectItem, // From SelectedItemsController
+        onResetSelectedItems, // From SelectedItemsController
+    };
+
+    return (
+        <div className="d-flex w-100 mb-05">
+            <div className="col-auto ml-0 pl-0">
+                <span className="text-400" id="results-count">
+                    {totalResultCount}
+                </span>{' '}
+                Results
+            </div>
+            <div className="ml-auto col-auto mr-0 pr-0">
+                <SelectAllFilesButton
+                    {...selectedFileProps}
+                    context={context}
+                />
+                <SelectedItemsDownloadButton
+                    id="download_tsv_multiselect"
+                    disabled={selectedItems.size === 0}
+                    className="btn btn-primary btn-sm mr-05 align-items-center"
+                    {...{ selectedItems, session }}
+                    analyticsAddItemsToCart>
+                    <i className="icon icon-download fas mr-03" />
+                    Download {selectedItems.size} Selected Files
+                </SelectedItemsDownloadButton>
+            </div>
+        </div>
     );
 };

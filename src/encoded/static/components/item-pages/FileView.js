@@ -1,6 +1,9 @@
 'use strict';
 
 import React, { useEffect } from 'react';
+import url from 'url';
+import _ from 'underscore';
+import queryString from 'query-string';
 
 import DefaultItemView from './DefaultItemView';
 import {
@@ -10,8 +13,12 @@ import {
 
 import { bytesToLargerUnit } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
-import { FileOverviewTable } from './components/file-overview/FileOverviewTable';
+import {
+    FileOverviewTableController,
+    FileOverviewTable,
+} from './components/file-overview/FileOverviewTable';
 import { SelectedItemsDownloadButton } from '../static-pages/components/benchmarking/BenchmarkingTable';
+import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 /**
  * Page containing the details of Items of type File
@@ -173,9 +180,30 @@ const FileViewDataCards = ({ context = {} }) => {
     );
 };
 
-const FileViewHeader = ({ context, session }) => {
+function ViewJSONAction({ href, children }) {
+    const urlParts = _.clone(memoizedUrlParse(href));
+    urlParts.search =
+        '?' +
+        queryString.stringify(_.extend({}, urlParts.query, { format: 'json' }));
+    const viewUrl = url.format(urlParts);
+    const onClick = (e) => {
+        if (window && window.open) {
+            e.preventDefault();
+            window.open(
+                viewUrl,
+                'window',
+                'toolbar=no, menubar=no, resizable=yes, status=no, top=10, width=400'
+            );
+        }
+    };
+    return React.cloneElement(children, { onClick });
+}
+
+const FileViewHeader = (props) => {
+    const { context, session } = props;
     const { accession, status, description } = context;
     const selectedFile = new Map([[context['@id'], context]]);
+
     return (
         <div className="file-view-header">
             <div className="data-group data-row header">
@@ -208,10 +236,12 @@ const FileViewHeader = ({ context, session }) => {
                         </span>
                     </div>
                     <span className="vertical-divider">|</span>
-                    <a className="view-json">
-                        <i className="icon icon-file-code far"></i>
-                        <span>View JSON</span>
-                    </a>
+                    <ViewJSONAction href={context['@id']}>
+                        <a className="view-json">
+                            <i className="icon icon-file-code far"></i>
+                            <span>View JSON</span>
+                        </a>
+                    </ViewJSONAction>
                 </div>
             </div>
             <div className="data-group data-row">
@@ -247,14 +277,14 @@ const AssociatedFilesTab = (props) => {
         <div className="content associated-files">
             <h1 className="associated-files-header">Associated Files</h1>
             <hr />
-            <FileOverviewTable
+            <FileOverviewTableController
                 {...props}
-                embeddedTableHeader="DAC Generated Files"
+                embeddedTableHeaderText="DAC Generated Files"
                 associatedFilesSearchHref={DACGeneratedFiles}
             />
-            <FileOverviewTable
+            <FileOverviewTableController
                 {...props}
-                embeddedTableHeader="Externally Generated Files"
+                embeddedTableHeaderText="Externally Generated Files"
                 associatedFilesSearchHref={ExternallyGeneratedFiles}
             />
         </div>
