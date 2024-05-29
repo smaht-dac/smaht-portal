@@ -673,12 +673,10 @@
             "63dde5c8-75b7-4335-9fc7-04a25c494148",
             "086fd04b-0098-4138-aa15-0f4affd649a3",
             "b32b1d8c-52d4-4bb2-a4a0-ec18d4fe6872",
-            "ad073f5b-40d9-47b4-a0b5-ac209b73dca3",
-            "35dbba20-3df6-48e9-8e6a-47051d2289f5",
-            "253d3f85-b471-4802-b29c-6d979f7233a5",
-            "13386ef6-696b-47bd-955c-bee2384739c9",
-            "66053267-3ffc-499e-989d-da8163d4cafe",
-            "74e2fa93-bc3e-4186-aeab-aead6720cc5a"
+            "2aae05f6-595d-4b13-a1be-07294c5d48af",
+            "411bb4f5-d465-45c1-80b5-1e29e8190e5b",
+            "fd724bbc-415c-46c6-b1b0-366da2dc990c",
+            "458bae26-17ba-4af9-adc5-9c7c4a13cbfd"
         ],
         "content": [
             "56a7ca2a-e9aa-4c19-960d-2cd0ca2d9686"
@@ -761,32 +759,11 @@
         ]
     },
     {
-        "identifier": "data/benchmarking/brain",
-        "title": "Brain",
-        "status": "in review",
-        "content": [
-            "9104db8e-9a11-4430-bc86-87a43a0fc857"
-        ],
-        "table-of-contents": {
-            "enabled": false,
-            "skip-depth": 1,
-            "header-depth": 4,
-            "include-top-link": false
-        },
-        "uuid": "ad073f5b-40d9-47b4-a0b5-ac209b73dca3",
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
-    },
-    {
-        "identifier": "data/benchmarking/lung",
-        "title": "Lung",
+        "identifier": "data/benchmarking/donor-st001",
+        "title": "Donor ST001",
         "status": "public",
         "content": [
-            "cdcd25cd-cc37-4a35-8494-8573e92dac12"
+            "a2cdba5c-9e0e-4064-9ad0-353ade82f62e"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -794,7 +771,7 @@
             "header-depth": 4,
             "include-top-link": false
         },
-        "uuid": "35dbba20-3df6-48e9-8e6a-47051d2289f5",
+        "uuid": "2aae05f6-595d-4b13-a1be-07294c5d48af",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -803,11 +780,11 @@
         ]
     },
     {
-        "identifier": "data/benchmarking/liver",
-        "title": "Liver",
+        "identifier": "data/benchmarking/donor-st002",
+        "title": "Donor ST002",
         "status": "public",
         "content": [
-            "c789600c-4104-4246-a238-af9cc89d74f1"
+            "f5829bad-3604-4bd8-9b40-685bb2f925f5"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -815,7 +792,7 @@
             "header-depth": 4,
             "include-top-link": false
         },
-        "uuid": "74e2fa93-bc3e-4186-aeab-aead6720cc5a",
+        "uuid": "411bb4f5-d465-45c1-80b5-1e29e8190e5b",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -824,32 +801,11 @@
         ]
     },
     {
-        "identifier": "data/benchmarking/heart",
-        "title": "Heart",
-        "status": "in review",
-        "content": [
-            "09abdc2d-bbb5-4814-9dec-c39e58ee7d4f"
-        ],
-        "table-of-contents": {
-            "enabled": false,
-            "skip-depth": 1,
-            "header-depth": 4,
-            "include-top-link": false
-        },
-        "uuid": "253d3f85-b471-4802-b29c-6d979f7233a5",
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
-    },
-    {
-        "identifier": "data/benchmarking/colon",
-        "title": "Colon",
+        "identifier": "data/benchmarking/donor-st003",
+        "title": "Donor ST003",
         "status": "public",
         "content": [
-            "3a097f93-4478-4487-a7ac-fb805774fcad"
+            "d093f2ec-4c72-4597-aa73-0ba501fb533a"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -857,7 +813,7 @@
             "header-depth": 4,
             "include-top-link": false
         },
-        "uuid": "13386ef6-696b-47bd-955c-bee2384739c9",
+        "uuid": "fd724bbc-415c-46c6-b1b0-366da2dc990c",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -866,11 +822,11 @@
         ]
     },
     {
-        "identifier": "data/benchmarking/skin",
-        "title": "Skin",
-        "status": "in review",
+        "identifier": "data/benchmarking/donor-st004",
+        "title": "Donor ST004",
+        "status": "public",
         "content": [
-            "91f38a47-a6d8-402f-9c84-08358309efbc"
+            "185c76c9-fcdc-4ac5-be06-5b3b83c09b90"
         ],
         "table-of-contents": {
             "enabled": false,
@@ -878,7 +834,7 @@
             "header-depth": 4,
             "include-top-link": false
         },
-        "uuid": "66053267-3ffc-499e-989d-da8163d4cafe",
+        "uuid": "458bae26-17ba-4af9-adc5-9c7c4a13cbfd",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
