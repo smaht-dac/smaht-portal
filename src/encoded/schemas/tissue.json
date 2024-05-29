@@ -70,9 +70,9 @@
             "type": "number",
             "minimum": 0
         },
-        "location": {
-            "title": "Location",
-            "description": "Anatomic location of the tissue in the donor",
+        "anatomical_location": {
+            "title": "Anatomical Location",
+            "description": "Anatomical location of the tissue in the donor",
             "type": "string"
         },
         "pathology_notes": {

@@ -85,7 +85,7 @@
         },
         "international_military_base": {
             "title": "International Military Base",
-            "description": "Whether the donor lived or work on an international U.S. military base",
+            "description": "Whether the donor lived or worked on an international U.S. military base",
             "type": "string",
             "enum": [
                 "No",
