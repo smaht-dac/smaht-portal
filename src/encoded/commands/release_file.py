@@ -36,7 +36,7 @@ class PC:  # PortalConstants
     AGE = "age"
     ALIGNED_READS = "Aligned Reads"
     ALIGNMENT_DETAILS = "alignment_details"
-    ANALYTE = "analyte"
+    ANALYTE = "analytes"
     ANNOTATED_FILENAME = "annotated_filename"
     ASSAY = "assay"
     CONSORTIA = "consortia"
@@ -142,20 +142,22 @@ class FileRelease:
             assay = self.get_metadata(library[PC.ASSAY])
             self.add_release_item_to_patchdict(assay, f"Assay - {assay[PC.IDENTIFIER]}")
 
-            analyte = self.get_metadata(library[PC.ANALYTE])
-            self.add_release_item_to_patchdict(
-                analyte, f"Analyte - {analyte[PC.SUBMITTED_ID]}"
-            )
-
-            for sample_uuid in analyte[PC.SAMPLES]:
-                sample = self.get_metadata(sample_uuid)
+            analyte_ids = library[PC.ANALYTE]
+            for analyte_id in analyte_ids:
+                analyte = self.get_metadata(analyte_id)
                 self.add_release_item_to_patchdict(
-                    sample, f"Sample - {sample[PC.SUBMITTED_ID]}"
+                    analyte, f"Analyte - {analyte[PC.SUBMITTED_ID]}"
                 )
 
-                sample_sources = sample[PC.SAMPLE_SOURCES]
-                for sample_source in sample_sources:
-                    self.release_sample_source(sample_source)
+                for sample_uuid in analyte[PC.SAMPLES]:
+                    sample = self.get_metadata(sample_uuid)
+                    self.add_release_item_to_patchdict(
+                        sample, f"Sample - {sample[PC.SUBMITTED_ID]}"
+                    )
+
+                    sample_sources = sample[PC.SAMPLE_SOURCES]
+                    for sample_source in sample_sources:
+                        self.release_sample_source(sample_source)
 
         if "obsolete_file_identifier" in kwargs and kwargs["obsolete_file_identifier"]:
             obsolete_file = self.get_metadata_object(kwargs["obsolete_file_identifier"])
