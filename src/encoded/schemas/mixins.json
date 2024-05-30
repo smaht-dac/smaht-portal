@@ -888,7 +888,8 @@
             "title": "Submitted ID",
             "description": "Unique identifier for the item assigned by the submitter",
             "type": "string",
-            "uniqueKey": "submitted_id"
+            "uniqueKey": "submitted_id",
+            "submissionComment": "Starting characters must be the code of the submitter's submission center."
         }
     },
     "supplementary_files": {

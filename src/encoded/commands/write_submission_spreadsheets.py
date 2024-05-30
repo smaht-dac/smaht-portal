@@ -360,6 +360,7 @@ class Property:
     enum: List[str]
     array_subtype: str
     pattern: str
+    comment: str
 
     def is_required(self) -> bool:
         """Check if property is required"""
@@ -403,6 +404,7 @@ def get_property_info(key: str, value: Dict[str, Any]) -> Property:
         enum=get_enum(value),
         array_subtype=get_array_subtype(value),
         pattern=schema_utils.get_pattern(value),
+        comment=schema_utils.get_submission_comment(value),
     )
 
 
@@ -661,6 +663,8 @@ def get_comment_text(property_: Property) -> str:
         comment_lines.append(f"Required:{indent}No")
     if property_.pattern:
         comment_lines.append(f"Pattern:{indent}{property_.pattern}")
+    if property_.comment:
+        comment_lines.append(f"Note:{indent}{property_.comment}")
     if comment_lines:
         return "\n\n".join(comment_lines)
     return ""
