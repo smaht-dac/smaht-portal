@@ -61,7 +61,8 @@ const FileViewDataCards = ({ context = {} }) => {
     const file_properties = [
         {
             title: 'Annotated Name',
-            getProp: (context = {}) => context?.annotated_filename,
+            getProp: (context = {}) =>
+                context?.annotated_filename ?? context?.filename,
         },
         { title: 'Access', getProp: (context = {}) => context?.access_status },
         { title: 'UUID', getProp: (context = {}) => context?.uuid },
@@ -143,11 +144,13 @@ const FileViewDataCards = ({ context = {} }) => {
         },
         {
             title: 'Donor ID',
-            getProp: (context = {}) => context?.sample_summary?.donor_id,
+            getProp: (context = {}) =>
+                context?.sample_summary?.donor_ids?.join(', '),
         },
         {
             title: 'Tissue Type',
-            getProp: (context = {}) => context?.sample_summary?.tissue,
+            getProp: (context = {}) =>
+                context?.sample_summary?.tissues?.join(', '),
         },
         {
             title: 'Analyte',
