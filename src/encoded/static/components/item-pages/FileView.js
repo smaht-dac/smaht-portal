@@ -261,10 +261,11 @@ const FileViewHeader = (props) => {
 };
 
 const AssociatedFilesTab = (props) => {
+    // Create a search href for file associated
     const fileSetUuids = props.context.file_sets
         .map((fs) => fs.uuid)
         .join('&file_sets.uuid=');
-    const associatedFilesSearchHref = `/search/?type=File&uuid!=${props.context.uuid}&file_sets.uuid=${fileSetUuids}`;
+    const associatedFilesSearchHref = `/search/?type=AlignedReads&uuid!=${props.context.uuid}&file_sets.uuid=${fileSetUuids}`;
 
     const DACGeneratedFiles =
         associatedFilesSearchHref + '&submission_centers.display_title=HMS DAC';

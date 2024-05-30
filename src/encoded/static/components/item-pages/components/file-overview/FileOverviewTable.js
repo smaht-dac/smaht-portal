@@ -11,6 +11,11 @@ import {
     SelectionItemCheckbox,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 
+/**
+ * Wraps the File Overview Table in a SelectedItemsController component, which
+ * tracks information about a user's selection and passes them as props to the
+ * File Overview Table.
+ */
 export const FileOverviewTableController = (props) => {
     const {
         embeddedTableHeaderText,
@@ -44,6 +49,9 @@ export const FileOverviewTableController = (props) => {
     );
 };
 
+/**
+ * Renders the Embedded Search Table with custom data columns
+ */
 export const FileOverviewTable = (props) => {
     const {
         context,
@@ -213,6 +221,9 @@ export const FileOverviewTable = (props) => {
                     searchHref: associatedFilesSearchHref,
                     schemas,
                     session,
+                    selectedItems,
+                    onSelectItem,
+                    onResetSelectedItems,
                 }}
                 facets={null}
                 columnExtensionMap={FileOverviewColExtMap}
@@ -240,6 +251,10 @@ export const FileOverviewTable = (props) => {
     );
 };
 
+/**
+ * Header section of the File Overview Table. Passed as a child to
+ * EmbeddedSearchView (SPC), and recieves props from SelectedItemsController
+ */
 const FileOverviewAboveTableComponent = (props) => {
     const {
         href,
