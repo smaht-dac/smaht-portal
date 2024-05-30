@@ -359,7 +359,7 @@ class Property:
     pattern: str
     comment: str
     examples: List[str]
-    format_: str = ""
+    format_: str
     requires: Union[List[str], None]
     exclusive_requirements: Union[List[str], None]
 
@@ -390,7 +390,9 @@ def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet
 def get_properties(submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
     properties = schema_utils.get_properties(submission_schema)
-    return [get_property_info(key, value) for key, value in properties.items()]
+    return get_ordered_properties(
+        [get_property_info(key, value) for key, value in properties.items()]
+    )
 
 
 def get_property_info(key: str, value: Dict[str, Any]) -> Property:
@@ -444,7 +446,7 @@ def get_array_subtype(property_schema: Dict[str, Any]) -> str:
 
 def get_examples(property_schema: Dict[str, Any]) -> List[str]:
     """Get examples for property values."""
-    return schema_utils.get_examples(
+    return schema_utils.get_submission_examples(
         property_schema
     ) or schema_utils.get_suggested_enum(property_schema)
 
