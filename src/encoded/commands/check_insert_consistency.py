@@ -34,10 +34,14 @@ class InsertConsistencyChecker:
 
             Consistent --> identifier/accession all map to the same uuid
         """
-        result = {}
+        result = {
+            'new': {},
+            'mismatched_identifier': {},
+            'mismatched_accession': {}
+        }
         for k, items in self.inserts.items():
             if self.item_type == k or self.item_type == 'all':
-                result[k] = []
+                result['new'][k], result['mismatched_identifier'][k], result['mismatched_accession'][k] = [], [], []
                 for v in items:
                     uuid = v.get('uuid')
                     identifier = v.get('identifier')
@@ -47,12 +51,12 @@ class InsertConsistencyChecker:
                     except Exception as e:
                         msg = str(e)
                         if 'HTTPUnauthorized' in msg:
-                            PRINT(f'Authorization error - exiting: {msg}')
-                            return {}
+                            PRINT(f'Authorization error - exiting with partial result: {msg}')
+                            return result
                         elif 'HTTPNotFound' in msg:
                             PRINT(f'Found new uuid on local not present on {self.key["server"]}')
-                            if uuid not in result[k]:
-                                result[k] += [uuid]
+                            if uuid not in result['new'][k]:
+                                result['new'][k] += [uuid]
                             continue
                         else:
                             PRINT(f'Other error encountered  - exiting: {msg}')
@@ -62,28 +66,34 @@ class InsertConsistencyChecker:
                             PRINT(f'Found mismatch for identifier with uuid {uuid}\n'
                                   f'    Expected (from inserts): {identifier}\n'
                                   f'    Found (on {self.key["server"]}): {meta.get("identifier")}')
-                            if uuid not in result[k]:
-                                result[k] += [uuid]
+                            if uuid not in result['mismatched_identifier'][k]:
+                                result['mismatched_identifier'][k] += [uuid]
                     if accession:
                         if meta.get('accession') != accession:
                             PRINT(f'Found mismatch for accession with uuid {uuid}\n'
                                   f'    Expected (from inserts): {accession}\n'
                                   f'    Found (on {self.key["server"]}): {meta.get("accession")}')
-                            if uuid not in result[k]:
-                                result[k] += [uuid]
+                            if uuid not in result['mismatched_accession'][k]:
+                                result['mismatched_accession'][k] += [uuid]
         return result
 
     @staticmethod
     def summary(result):
         """ Formats entries from the check function reasonably for interpretation """
-        for k, v in result.items():
-            if v:
-                PRINT(f'Item Type: {k}')
-                PRINT(f'    The following uuids require further investigation:')
-                for i, _v in enumerate(v):
-                    PRINT(f'        {i+1}. {_v}')
-            else:
-                PRINT(f'Item Type: {k} cleared')
+
+        def print_summary(data, message):
+            for k, v in data.items():
+                if v:
+                    PRINT(f'Item Type: {k}')
+                    PRINT(f'    The following {message}:')
+                    for i, _v in enumerate(v):
+                        PRINT(f'        {i + 1}. {_v}')
+                else:
+                    PRINT(f'Item Type: {k} had no {message}')
+
+        print_summary(result['new'], f'new uuids added')
+        print_summary(result['mismatched_identifier'], f'uuids with mismatched identifiers')
+        print_summary(result['mismatched_accession'], f'uuids with mismatched accessions')
 
 
 def main():
