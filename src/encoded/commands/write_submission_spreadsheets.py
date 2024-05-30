@@ -31,7 +31,6 @@ GOOGLE_TOKEN_PATH = Path.expanduser(Path("~/google_sheets_token.json"))
 
 @dataclass(frozen=True)
 class SheetsClient:
-
     client: googleapiclient.discovery.Resource
     sheet_id: str
 
@@ -94,9 +93,7 @@ def get_worksheet_id(sheet: Dict[str, Any]) -> int:
 
 def get_clear_values_request(sheet_id: int) -> Dict[str, Any]:
     """Get request to clear values from the sheet."""
-    return {
-        "deleteRange": {"range": {"sheetId": sheet_id}, "shiftDimension": "ROWS"}
-    }
+    return {"deleteRange": {"range": {"sheetId": sheet_id}, "shiftDimension": "ROWS"}}
 
 
 def get_delete_sheet_request(sheet_id: int) -> Dict[str, Any]:
@@ -361,6 +358,10 @@ class Property:
     array_subtype: str
     pattern: str
     comment: str
+    examples: List[str]
+    format_: str = ""
+    requires: Union[List[str], None]
+    exclusive_requirements: Union[List[str], None]
 
     def is_required(self) -> bool:
         """Check if property is required"""
@@ -373,7 +374,6 @@ class Property:
 
 @dataclass(frozen=True)
 class Spreadsheet:
-
     item: str
     properties: List[Property]
 
@@ -405,6 +405,10 @@ def get_property_info(key: str, value: Dict[str, Any]) -> Property:
         array_subtype=get_array_subtype(value),
         pattern=schema_utils.get_pattern(value),
         comment=schema_utils.get_submission_comment(value),
+        examples=get_examples(value),
+        format_=schema_utils.get_format(value),
+        requires=get_corequirements(value),
+        exclusive_requirements=get_exclusive_requirements(value),
     )
 
 
@@ -436,6 +440,25 @@ def get_nested_enum(property_schema: Dict[str, Any]) -> List[str]:
 def get_array_subtype(property_schema: Dict[str, Any]) -> str:
     """Get the array subtype"""
     return schema_utils.get_schema_type(schema_utils.get_items(property_schema))
+
+
+def get_examples(property_schema: Dict[str, Any]) -> List[str]:
+    """Get examples for property values."""
+    return schema_utils.get_examples(
+        property_schema
+    ) or schema_utils.get_suggested_enum(property_schema)
+
+
+def get_corequirements(property_schema: Dict[str, Any]) -> Union[List[str], None]:
+    """Get the corequirements for the property."""
+    return property_schema.get(SubmissionSchemaConstants.ALSO_REQUIRES)
+
+
+def get_exclusive_requirements(
+    property_schema: Dict[str, Any]
+) -> Union[List[str], None]:
+    """Get the exclusive requirements for the property."""
+    return property_schema.get(SubmissionSchemaConstants.REQUIRED_IF_NOT_ONE_OF)
 
 
 def write_spreadsheet(
@@ -657,17 +680,36 @@ def get_comment_text(property_: Property) -> str:
             comment_lines.append(f"Type:{indent}{property_.value_type}")
     if property_.enum:
         comment_lines.append(f"Options:{indent}{' | '.join(property_.enum)}")
+    if property_.examples:
+        comment_lines.append(f"Examples:{indent}{' | '.join(property_.examples)}")
+    if property_.link:
+        comment_lines.append(f"Link:{indent}Yes")
     if property_.is_required():
         comment_lines.append(f"Required:{indent}Yes")
+    elif property_.exclusive_requirements:
+        comment_lines.append(
+            f"Required:{indent}Possibly"
+            f"{indent}Not required if present:{indent}"
+            f"{' | '.join(property_.exclusive_requirements)}"
+        )
     else:
         comment_lines.append(f"Required:{indent}No")
+    if property_.requires:
+        comment_lines.append(f"Requires:{indent}{' | '.join(property_.requires)}")
     if property_.pattern:
         comment_lines.append(f"Pattern:{indent}{property_.pattern}")
+    elif is_date_format(property_.format_):
+        comment_lines.append(f"Format:{indent}YYYY-MM-DD")
     if property_.comment:
         comment_lines.append(f"Note:{indent}{property_.comment}")
     if comment_lines:
         return "\n\n".join(comment_lines)
     return ""
+
+
+def is_date_format(format_: str) -> bool:
+    """Check if the format is a date format."""
+    return format_ == "date"
 
 
 def get_comment_height(comment_text: str) -> int:

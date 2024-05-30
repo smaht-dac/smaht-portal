@@ -58,6 +58,12 @@
         "accession": {
             "accessionType": "TI"
         },
+        "external_id": {
+            "submissionExamples": [
+                "ST001-1A",
+                "PS0235"
+            ]
+        },
         "schema_version": {
             "default": "1"
         },

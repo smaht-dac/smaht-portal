@@ -51,6 +51,9 @@
         "accession": {
             "accessionType": "DO"
         },
+        "external_id": {
+            "submissionComment": "For donors from the TPC, this should be the TPC donor ID. Otherwise, the submitter's internal identifier can be used."
+        },
         "schema_version": {
             "default": "1"
         },
