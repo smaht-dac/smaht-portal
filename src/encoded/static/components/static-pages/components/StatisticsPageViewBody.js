@@ -1011,7 +1011,7 @@ SubmissionsStatsView.colorScaleForPublicVsInternal = function(term){
 const convertDataRangeToXDomain = memoize(function (rangePreset = 'all', rangeFrom, rangeTo) {
     const rangeLower = (rangePreset || '').toLowerCase();
     
-    const fallbackFromDate = '2023-11-08';
+    const defaultFromDate = '2023-11-08';
     const today = new Date();
     const month = today.getMonth();
     let from = new Date(today.getFullYear(), month, 1);
@@ -1044,16 +1044,16 @@ const convertDataRangeToXDomain = memoize(function (rangePreset = 'all', rangeFr
             to = new Date(today.getFullYear(), 1, 1);
             break;
         case 'custom':
-            from = new Date(rangeFrom || fallbackFromDate);
+            from = new Date(rangeFrom || defaultFromDate);
             to = rangeTo ? new Date(rangeTo) : null;
             if (from && to && (from > to)) {
-                from = new Date(fallbackFromDate);
+                from = new Date(defaultFromDate);
                 to = null;
             }
             break;
         case 'all':
         default:
-            from = new Date(fallbackFromDate);
+            from = new Date(defaultFromDate);
             break;
     }
     // get first day of date's week
