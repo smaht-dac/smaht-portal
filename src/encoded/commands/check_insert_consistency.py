@@ -19,10 +19,10 @@ class InsertConsistencyChecker:
     @staticmethod
     def get_master_inserts() -> Dict[str, Dict[str, Any]]:
         """ Load all master inserts. """
-        workbook_schemas_path = pkg_resources.resource_filename(
+        master_inserts_schemas_path = pkg_resources.resource_filename(
             "encoded", "tests/data/master-inserts/"
         )
-        workbook_schemas = Path(workbook_schemas_path).glob("*.json")
+        workbook_schemas = Path(master_inserts_schemas_path).glob("*.json")
         return {
             get_item_type(item_insert_file): load_inserts(item_insert_file)
             for item_insert_file in workbook_schemas
