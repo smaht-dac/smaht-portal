@@ -5,14 +5,15 @@ import url from 'url';
 import _ from 'underscore';
 import queryString from 'query-string';
 
-import DefaultItemView from './DefaultItemView';
+import DefaultItemView, { propsForDetailList } from './DefaultItemView';
 import {
     DotRouter,
     DotRouterTab,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
-
+import { ItemDetailList } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/ItemDetailList';
 import { bytesToLargerUnit } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
+
 import {
     FileOverviewTableController,
     FileOverviewTable,
@@ -20,14 +21,46 @@ import {
 import { SelectedItemsDownloadButton } from '../static-pages/components/benchmarking/BenchmarkingTable';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
+/** Overwrite the DetailsTabView in order to control JSONTree UI rendering */
+const DetailsTabView = React.memo(function DetailsTabView(props) {
+    return (
+        <div className="container-wide">
+            <h3 className="tab-section-title">
+                <span>Details</span>
+            </h3>
+            <hr className="tab-section-title-horiz-divider mb-05" />
+            <ItemDetailList
+                {...propsForDetailList}
+                {..._.pick(props, 'context', 'schemas', 'href', 'showJSON')}
+                showJSON={true}
+            />
+        </div>
+    );
+});
+
+DetailsTabView.getTabObject = function (props) {
+    return {
+        tab: (
+            <React.Fragment>
+                <i className="icon fas icon-list icon-fw" />
+                <span>Details</span>
+            </React.Fragment>
+        ),
+        key: 'details',
+        content: <DetailsTabView {...props} />,
+        cache: false,
+    };
+};
+
 /**
  * Page containing the details of Items of type File
  */
 export default class FileOverview extends DefaultItemView {
     getTabViewContents() {
-        const initTabs = [];
-        initTabs.push(FileView.getTabObject(this.props));
-        return initTabs.concat(this.getCommonTabs()); // Add remainder of common tabs (Details, Attribution)
+        return [
+            FileView.getTabObject(this.props),
+            DetailsTabView.getTabObject(this.props),
+        ];
     }
 }
 
@@ -183,25 +216,6 @@ const FileViewDataCards = ({ context = {} }) => {
     );
 };
 
-function ViewJSONAction({ href, children }) {
-    const urlParts = _.clone(memoizedUrlParse(href));
-    urlParts.search =
-        '?' +
-        queryString.stringify(_.extend({}, urlParts.query, { format: 'json' }));
-    const viewUrl = url.format(urlParts);
-    const onClick = (e) => {
-        if (window && window.open) {
-            e.preventDefault();
-            window.open(
-                viewUrl,
-                'window',
-                'toolbar=no, menubar=no, resizable=yes, status=no, top=10, width=400'
-            );
-        }
-    };
-    return React.cloneElement(children, { onClick });
-}
-
 const FileViewHeader = (props) => {
     const { context, session } = props;
     const { accession, status, description } = context;
@@ -239,12 +253,11 @@ const FileViewHeader = (props) => {
                         </span>
                     </div>
                     <span className="vertical-divider">|</span>
-                    <ViewJSONAction href={context['@id']}>
-                        <a className="view-json">
-                            <i className="icon icon-file-code far"></i>
-                            <span>View JSON</span>
-                        </a>
-                    </ViewJSONAction>
+                    <a href="#details" className="view-json">
+                        {' '}
+                        <i className="icon icon-file-code far"></i>
+                        <span>View JSON</span>
+                    </a>
                 </div>
             </div>
             <div className="data-group data-row">
