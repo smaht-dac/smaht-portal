@@ -8,7 +8,7 @@
         "sample_sources": [
             "TEST_TISSUE_LIVER"
         ],
-        "external_id": "SMHT-0001",
+        "external_id": "SMHT-0001-A1",
         "category": "Core",
         "weight": 800,
         "tags": [
@@ -16,6 +16,48 @@
             "sample_names-SMHT-0001",
             "test_sample_descriptions",
             "sample_descriptions-Core",
+            "test_sample_studies",
+            "sample_studies-Production"
+        ]
+    },
+    {
+        "uuid": "0ba2e5f8-7461-4536-9162-35970477f5bd",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE-SAMPLE_LIVER_02",
+        "sample_sources": [
+            "TEST_TISSUE_LIVER"
+        ],
+        "external_id": "SMHT-0001-S3",
+        "category": "Specimen",
+        "weight": 800,
+        "tags": [
+            "test_sample_names",
+            "sample_names-SMHT-0002",
+            "test_sample_descriptions",
+            "sample_descriptions-Specimen",
+            "test_sample_studies",
+            "sample_studies-Production"
+        ]
+    },
+    {
+        "uuid": "9da7f4fd-0ac2-4561-ae30-4766138c578",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE-SAMPLE_LIVER_03",
+        "sample_sources": [
+            "TEST_TISSUE_LIVER"
+        ],
+        "external_id": "SMHT-0001-X",
+        "category": "Homogenate",
+        "weight": 800,
+        "tags": [
+            "test_sample_names",
+            "sample_names-SMHT-0003",
+            "test_sample_descriptions",
+            "sample_descriptions-Homogenate",
             "test_sample_studies",
             "sample_studies-Production"
         ]
