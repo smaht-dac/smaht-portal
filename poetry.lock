@@ -93,18 +93,17 @@ requests = ">=0.14.0"
 
 [[package]]
 name = "awscli"
-version = "1.32.115"
+version = "1.32.116"
 description = "Universal Command Line Environment for AWS."
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "awscli-1.32.115-py3-none-any.whl", hash = "sha256:866563260bf222fa33fb5db020426b75eb2b4df0b6d263d20b5aaeb95c943f85"},
-    {file = "awscli-1.32.115.tar.gz", hash = "sha256:a0c2d233b878250043eac97520a84f06a107e115b67c95016a72caddd473e3c0"},
+    {file = "awscli-1.32.116-py3-none-any.whl", hash = "sha256:b50b0931eb32a5756d511ac347ad58cc23c5967eb2f8b56c9e6334b9a1f8a491"},
 ]
 
 [package.dependencies]
-botocore = "1.34.115"
+botocore = "1.34.116"
 colorama = ">=0.2.5,<0.4.7"
 docutils = ">=0.10,<0.17"
 PyYAML = ">=3.10,<6.1"
@@ -135,18 +134,17 @@ lxml = ["lxml"]
 
 [[package]]
 name = "boto3"
-version = "1.34.115"
+version = "1.34.116"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-1.34.115-py3-none-any.whl", hash = "sha256:0a580de3d25364da5db26ecc7dde9438ee1be1e529a7c04cc96972b6e2258378"},
-    {file = "boto3-1.34.115.tar.gz", hash = "sha256:67f5a6d6e6eff9c15711c265173b53eb4ad8d05b756b76ef33ac792cea7958f6"},
+    {file = "boto3-1.34.116-py3-none-any.whl", hash = "sha256:e7f5ab2d1f1b90971a2b9369760c2c6bae49dae98c084a5c3f5c78e3968ace15"},
 ]
 
 [package.dependencies]
-botocore = ">=1.34.115,<1.35.0"
+botocore = ">=1.34.116,<1.35.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -155,14 +153,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "boto3-stubs"
-version = "1.34.115"
-description = "Type annotations for boto3 1.34.115 generated with mypy-boto3-builder 7.24.0"
+version = "1.34.116"
+description = "Type annotations for boto3 1.34.116 generated with mypy-boto3-builder 7.24.0"
 category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3_stubs-1.34.115-py3-none-any.whl", hash = "sha256:fd06dc6cfb2503fcd4314e63d52eae4889f84e06ff4f92dca4a1f6cae68bfb00"},
-    {file = "boto3_stubs-1.34.115.tar.gz", hash = "sha256:1d58dde687903e9b8cd01b2680219ace3981aab72f82165b58bb0a56cff2ce3f"},
+    {file = "boto3_stubs-1.34.116-py3-none-any.whl", hash = "sha256:0cd1844a0607043b3b012af388150ba45c5b960631ff52ffa20d856a635adec6"},
+    {file = "boto3_stubs-1.34.116.tar.gz", hash = "sha256:fe843a8a33accdf6ec2748b8a857046311be0bc849c3d56e3157d6a464cd0c8f"},
 ]
 
 [package.dependencies]
@@ -213,7 +211,7 @@ bedrock-agent = ["mypy-boto3-bedrock-agent (>=1.34.0,<1.35.0)"]
 bedrock-agent-runtime = ["mypy-boto3-bedrock-agent-runtime (>=1.34.0,<1.35.0)"]
 bedrock-runtime = ["mypy-boto3-bedrock-runtime (>=1.34.0,<1.35.0)"]
 billingconductor = ["mypy-boto3-billingconductor (>=1.34.0,<1.35.0)"]
-boto3 = ["boto3 (==1.34.115)", "botocore (==1.34.115)"]
+boto3 = ["boto3 (==1.34.116)", "botocore (==1.34.116)"]
 braket = ["mypy-boto3-braket (>=1.34.0,<1.35.0)"]
 budgets = ["mypy-boto3-budgets (>=1.34.0,<1.35.0)"]
 ce = ["mypy-boto3-ce (>=1.34.0,<1.35.0)"]
@@ -561,14 +559,14 @@ xray = ["mypy-boto3-xray (>=1.34.0,<1.35.0)"]
 
 [[package]]
 name = "botocore"
-version = "1.34.115"
+version = "1.34.116"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "botocore-1.34.115-py3-none-any.whl", hash = "sha256:15b8ad1ee0e9cd57884fb0bcaf3a9551d2552e44a02c2ffb55ec583eebdb888e"},
-    {file = "botocore-1.34.115.tar.gz", hash = "sha256:a5d5e28b9c847b17a1ecb7660b46b83d9512b125f671e03e93d14bf6f0b274c2"},
+    {file = "botocore-1.34.116-py3-none-any.whl", hash = "sha256:ec4d42c816e9b2d87a2439ad277e7dda16a4a614ef6839cf66f4c1a58afa547c"},
+    {file = "botocore-1.34.116.tar.gz", hash = "sha256:269cae7ba99081519a9f87d7298e238d9e68ba94eb4f8ddfa906224c34cb8b6c"},
 ]
 
 [package.dependencies]
@@ -982,62 +980,59 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "dcicsnovault"
-version = "11.14.1"
+version = "11.15.0.0b0"
 description = "Storage support for 4DN Data Portals."
 category = "main"
 optional = false
-python-versions = ">=3.8.1,<3.12"
-files = []
-develop = true
+python-versions = "<3.12,>=3.8.1"
+files = [
+    {file = "dcicsnovault-11.15.0.0b0-py3-none-any.whl", hash = "sha256:500c6bcb6cc237dae91967fbae33878786e0f74b07567c1545345a8feb11983f"},
+]
 
 [package.dependencies]
-aws_requests_auth = "^0.4.1"
+aws_requests_auth = ">=0.4.1,<0.5.0"
 boto3 = ">=1.28.62"
 botocore = ">=1.31.62"
-dcicutils = {path = "../utils", develop = true}
+dcicutils = "8.10.0.0b0"
 elasticsearch = "7.13.4"
-elasticsearch_dsl = "^7.4.0"
+elasticsearch_dsl = ">=7.4.0,<8.0.0"
 future = ">=0.15.2,<1"
 html5lib = ">=1.1"
-humanfriendly = "^1.44.9"
-jsonschema = {version = "^4.19.0", extras = ["format-nongpl"]}
+humanfriendly = ">=1.44.9,<2.0.0"
+jsonschema = {version = ">=4.19.0,<5.0.0", extras = ["format-nongpl"]}
 netaddr = ">=0.8.0,<1"
-passlib = "^1.7.4"
-pillow = "^9.5.0"
-psutil = "^5.9.0"
-psycopg2-binary = "^2.9.1"
+passlib = ">=1.7.4,<2.0.0"
+pillow = ">=9.5.0,<10.0.0"
+psutil = ">=5.9.0,<6.0.0"
+psycopg2-binary = ">=2.9.1,<3.0.0"
 PyBrowserID = ">=0.10.0,<1"
-pyjwt = "^2.6.0"
+pyjwt = ">=2.6.0,<3.0.0"
 pyramid = "1.10.4"
 pyramid-multiauth = ">=0.9.0,<1"
-pyramid-retry = "^1.0"
-pyramid-tm = "^2.5"
-pyramid-translogger = "^0.1"
-python-dateutil = "^2.8.2"
+pyramid-retry = ">=1.0,<2.0"
+pyramid-tm = ">=2.5,<3.0"
+pyramid-translogger = ">=0.1,<0.2"
+python-dateutil = ">=2.8.2,<3.0.0"
 python_magic = ">=0.4.27"
 pytz = ">=2021.3"
-rdflib = "^4.2.2"
+rdflib = ">=4.2.2,<5.0.0"
 rdflib-jsonld = ">=0.5.0,<1.0.0"
-redis = "^4.5.1"
+redis = ">=4.5.1,<5.0.0"
 rutter = ">=0.3,<1"
-simplejson = "^3.17.6"
-SPARQLWrapper = "^1.8.5"
-SQLAlchemy = "^1.4.41"
+simplejson = ">=3.17.6,<4.0.0"
+SPARQLWrapper = ">=1.8.5,<2.0.0"
+SQLAlchemy = ">=1.4.41,<2.0.0"
 structlog = ">=19.2.0,<20"
 subprocess_middleware = ">=0.3,<1"
-transaction = "^3.0.1"
-venusian = "^1.2.0"
-WebOb = "^1.8.7"
-WebTest = "^2.0.35"
+transaction = ">=3.0.1,<4.0.0"
+venusian = ">=1.2.0,<2.0.0"
+WebOb = ">=1.8.7,<2.0.0"
+WebTest = ">=2.0.35,<3.0.0"
 WSGIProxy2 = "0.4.2"
-xlrd = "^1.0.0"
-"zope.deprecation" = "^4.4.0"
+xlrd = ">=1.0.0,<2.0.0"
+"zope.deprecation" = ">=4.4.0,<5.0.0"
 "zope.interface" = ">=4.7.2,<6"
 "zope.sqlalchemy" = "1.6"
-
-[package.source]
-type = "directory"
-url = "../snovault"
 
 [[package]]
 name = "dcicutils"
@@ -1045,43 +1040,41 @@ version = "8.10.0.0b0"
 description = "Utility package for interacting with the 4DN Data Portal and other 4DN resources"
 category = "main"
 optional = false
-python-versions = ">=3.8,<3.13"
-files = []
-develop = true
+python-versions = "<3.13,>=3.8"
+files = [
+    {file = "dcicutils-8.10.0.0b0-py3-none-any.whl", hash = "sha256:37fd8d680a84ef0e57b81d04cab677ffa50c4e5543d6cfafd4ec612a565f768a"},
+    {file = "dcicutils-8.10.0.0b0.tar.gz", hash = "sha256:af2a3003ea8c92fb73fef2d380eb49168793155d6a2a6c925080a19bf32b19dc"},
+]
 
 [package.dependencies]
-appdirs = "^1.4.4"
+appdirs = ">=1.4.4,<2.0.0"
 aws-requests-auth = ">=0.4.2,<1"
-boto3 = "^1.34.93"
-botocore = "^1.34.93"
-chardet = "^5.2.0"
-docker = "^4.4.4"
+boto3 = ">=1.34.93,<2.0.0"
+botocore = ">=1.34.93,<2.0.0"
+chardet = ">=5.2.0,<6.0.0"
+docker = ">=4.4.4,<5.0.0"
 elasticsearch = "7.13.4"
-gitpython = "^3.1.2"
-jsonc-parser = "^1.1.5"
-jsonschema = "^4.19.0"
-openpyxl = "^3.1.2"
-opensearch-py = "^2.0.1"
-PyJWT = "^2.6.0"
-pyOpenSSL = "^23.1.1"
-pyperclip = "^1.8.2"
+gitpython = ">=3.1.2,<4.0.0"
+jsonc-parser = ">=1.1.5,<2.0.0"
+jsonschema = ">=4.19.0,<5.0.0"
+openpyxl = ">=3.1.2,<4.0.0"
+opensearch-py = ">=2.0.1,<3.0.0"
+PyJWT = ">=2.6.0,<3.0.0"
+pyOpenSSL = ">=23.1.1,<24.0.0"
+pyperclip = ">=1.8.2,<2.0.0"
 pyramid = "1.10.4"
 pytz = ">=2020.4"
-PyYAML = "^6.0.1"
-redis = "^4.5.1"
-requests = "^2.21.0"
-rfc3986 = "^1.4.0"
-shortuuid = "^1.0.13"
-structlog = "^19.2.0"
+PyYAML = ">=6.0.1,<7.0.0"
+redis = ">=4.5.1,<5.0.0"
+requests = ">=2.21.0,<3.0.0"
+rfc3986 = ">=1.4.0,<2.0.0"
+shortuuid = ">=1.0.13,<2.0.0"
+structlog = ">=19.2.0,<20.0.0"
 toml = ">=0.10.1,<1"
-tqdm = "^4.66.2"
+tqdm = ">=4.66.2,<5.0.0"
 typing-extensions = ">=3.8"
-urllib3 = "^1.26.6"
-webtest = "^2.0.34"
-
-[package.source]
-type = "directory"
-url = "../utils"
+urllib3 = ">=1.26.6,<2.0.0"
+webtest = ">=2.0.34,<3.0.0"
 
 [[package]]
 name = "docker"
@@ -4062,4 +4055,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "6ebcee7940ad17f91ce8f08b22d509f507c8813b6df8bf2a7aba7ee331854054"
+content-hash = "017f4b9fc3baf2bde2c9bd2652e81c1a54215a43a8f1a653d9d3b3c3ef5ab33c"

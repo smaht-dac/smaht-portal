@@ -72,7 +72,7 @@
         },
         "ischemic_time": {
             "title": "Ischemic Time",
-            "description": "Time interval of ischemia in hours",
+            "description": "Time interval of ischemia (hours)",
             "type": "number",
             "minimum": 0
         },
