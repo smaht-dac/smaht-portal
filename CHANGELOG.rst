@@ -19,6 +19,7 @@ Change Log
 * Changed workbook-inserts/sequencer.json code from A to X (interfering with demo testing).
 * Support merge in ingester for partial object updates from metedata.
   -  Removed ref_lookup_strategy references for structured_data; refactored/internalized in dcicutils.
+* Added rclone (Google-to-AWS) related documentation.
 * Some make lint fixups.
 
 
