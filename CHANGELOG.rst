@@ -14,9 +14,9 @@ Change Log
   https://docs.google.com/spreadsheets/d/1qCm0bY-vG4a9uiaOvmKHZ12MvhmMKKRfEpgAm-7Hsh4/edit#gid=1472887809
   FYI: To cause these to be loaded at startup when running locally, edit development.ini and
   set load_test_data = snovault.loadxl:load_local_data (rather than the default load_prod_data).
-* Updated dcicutils to 8.8.6.
+* Updated dcicutils to 8.10.0 (mostly merge support in structured_data).
 * Changed workbook-inserts/assay.json bulk_wgs item to code 002 (to match data/staging/wolf).
-* Changed workbook-inserts/sequencer.json code from A to X (interring with demo testing).
+* Changed workbook-inserts/sequencer.json code from A to X (interfering with demo testing).
 * Support merge in ingester for partial object updates from metedata.
   -  Removed ref_lookup_strategy references for structured_data; refactored/internalized in dcicutils.
 * Some make lint fixups.
