@@ -1494,18 +1494,6 @@ File Overview Styles
 						}
 					}
 					
-					.associated-files {
-						&-header {
-							font-size: 1.25rem;
-							font-weight: 400;
-							color: #343741;
-						}
-						hr {
-							margin: 10px 0px;
-						}
-
-					}
-					
 					.tab-coming-soon {
 						font-size: 1.25rem;
 						color: #343741;
@@ -1738,6 +1726,19 @@ File Overview Styles
 					.tab-router-contents {
 						margin-top: 20px;
 					}
+				}
+			}
+		}
+	}
+
+	@media screen and (max-width: 500px) {
+		.embedded-search-container {
+			div.d-flex:first-of-type {
+				flex-direction: column;
+
+				& > div.ml-auto:last-of-type {
+					margin-top: 10px;
+					padding-left: 0px;
 				}
 			}
 		}

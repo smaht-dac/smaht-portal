@@ -277,8 +277,6 @@ const AssociatedFilesTab = (props) => {
 
     return (
         <div className="content associated-files">
-            <h1 className="associated-files-header">Associated Files</h1>
-            <hr />
             <FileOverviewTableController
                 {...props}
                 embeddedTableHeaderText="DAC Generated Files"
