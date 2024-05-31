@@ -201,7 +201,7 @@ export const FileOverviewTable = (props) => {
 
     return (
         <>
-            <h1 className="header">{embeddedTableHeaderText}</h1>
+            <h2 className="header">{embeddedTableHeaderText}</h2>
             <EmbeddedItemSearchTable
                 key={session}
                 embeddedTableHeader={
@@ -302,7 +302,7 @@ const FileOverviewAboveTableComponent = (props) => {
                     className="btn btn-primary btn-sm mr-05 align-items-center"
                     {...{ selectedItems, session }}
                     analyticsAddItemsToCart>
-                    <i className="icon icon-download fas mr-03" />
+                    <i className="icon icon-download fas mr-07" />
                     Download {selectedItems.size} Selected Files
                 </SelectedItemsDownloadButton>
             </div>

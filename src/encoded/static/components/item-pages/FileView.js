@@ -13,10 +13,7 @@ import {
 
 import { bytesToLargerUnit } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
-import {
-    FileOverviewTableController,
-    FileOverviewTable,
-} from './components/file-overview/FileOverviewTable';
+import { FileOverviewTableController } from './components/file-overview/FileOverviewTable';
 import { SelectedItemsDownloadButton } from '../static-pages/components/benchmarking/BenchmarkingTable';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
@@ -218,7 +215,7 @@ const FileViewHeader = (props) => {
                     selectedItems={selectedFile}
                     disabled={false}
                     analyticsAddItemsToCart>
-                    <i className="icon icon-download fas mr-03" />
+                    <i className="icon icon-download fas mr-07" />
                     Download File
                 </SelectedItemsDownloadButton>
             </div>
