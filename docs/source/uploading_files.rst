@@ -78,7 +78,9 @@ To take advantage of this you merely need to specificy a couple of command-line 
         --rclone-google-credentials your-gcp-service-account-file
 
 The ``resume-uploads`` command support these same options. The value specified for the ``--rclone-google-source`` may be either just a GCS bucket name or
-a bucket name and a sub-folder name within that buckup (e.g. ``your-gcs-bucket/your-gcs-sub-folder``).
+a bucket name and a sub-folder name within that buckup, e.g. ``your-gcs-bucket/your-gcs-sub-folder``.
+
+To obtain the credentials file you need, via the Google Cloud console (in your browser), navigate to the ``IAM & Admin`` section, select ``Service Accounts``, click on your desired listed service account, and from there click the ``KEYS`` tab at the top, and then the ``ADD KEY`` and ``Create new key`` from the dropdown, and select ``JSON`` for the ``Key type``. This will save the JSON file with your exported credentials to your download folder; and this is the file to specify with the ``--rclone-google-credentials`` option. (Note that for security, you should `chmod 600`` on this file).
 
 .. TIP::
     If you happen to be running smaht-submitr on a Google Compute Engine (GCE) instance there is no need to specify the ``--rclone-google-credentials`` option as the credentials for the associated Google Cloud account are automatically and implicitly available and in force.
