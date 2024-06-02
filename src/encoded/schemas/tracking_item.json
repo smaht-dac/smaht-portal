@@ -381,10 +381,10 @@
                         },
 
                         "file_downloads_by_country" : {
-                            "type" : "array",
-                            "title" : "File Downloads by Country",
-                           "description": "File Downloads segmented by country",
-                           "items" : {
+                            "type": "array",
+                            "title": "File Downloads by Country",
+                            "description": "File Downloads segmented by country",
+                            "items": {
                                 "type" : "object",
                                 "properties": {
                                     "ga:country" : {
@@ -465,15 +465,57 @@
                         },
 
                         "file_downloads_by_assay_type" : {
-                            "type" : "array",
-                            "title" : "File Downloads by Assay Type",
-                           "description": "File Downloads segmented by country",
-                           "items" : {
+                            "type": "array",
+                            "title": "File Downloads by Assay Type",
+                            "description": "File Downloads segmented by assay type",
+                            "items": {
                                 "type" : "object",
                                 "properties": {
                                     "ga:dimension5" : {
                                         "type" : "string",
                                         "title" : "Assay Type"
+                                    },
+                                    "ga:productVariant" : {
+                                        "type" : "integer",
+                                        "title" : "Detail Views",
+                                        "description": "Number of times this File has been viewed via its Item page."
+                                    },
+                                    "ga:productListClicks" : {
+                                        "type" : "integer",
+                                        "title" : "Clicks from Browse",
+                                        "description": "Number of times this File has been clicked on from the Browse page."
+                                    },
+                                    "ga:productListViews" : {
+                                        "type" : "integer",
+                                        "title" : "List Views",
+                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
+                                    },
+                                    "ga:metric2" : {
+                                        "type" : "integer",
+                                        "title" : "Downloads"
+                                    },
+                                    "ga:metric1" : {
+                                        "type" : "integer",
+                                        "title" : "Cumalative Filesize"
+                                    },
+                                    "ga:calcMetric_PercentRangeQueries" : {
+                                        "type" : "integer",
+                                        "title" : "Range Query Count"
+                                    }
+                                }
+                            }
+                        },
+
+                        "file_downloads_by_dataset": {
+                            "type": "array",
+                            "title": "File Downloads by Dataset",
+                            "description": "File Downloads segmented by dataset",
+                            "items": {
+                                "type" : "object",
+                                "properties": {
+                                    "ga:dimension6" : {
+                                        "type" : "string",
+                                        "title" : "Dataset"
                                     },
                                     "ga:productVariant" : {
                                         "type" : "integer",
