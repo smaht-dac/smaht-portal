@@ -80,13 +80,13 @@ const FileViewDataCards = ({ context = {} }) => {
         {
             title: 'Public Release Date',
             getProp: (context = {}) => {
-                return (
+                return context?.file_status_tracking?.released ? (
                     <LocalizedTime
                         timestamp={context?.file_status_tracking.released}
                         formatType="date-md"
                         dateTimeSeparator=" "
                     />
-                );
+                ) : null;
             },
         },
     ];
