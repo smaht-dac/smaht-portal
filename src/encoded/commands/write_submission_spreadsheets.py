@@ -197,9 +197,9 @@ def get_cell_value(property_: Property) -> Dict[str, Any]:
 def get_text_format(property_: Property) -> Dict[str, Any]:
     """Get the text format."""
     text_format = {"fontFamily": "Arial", "fontSize": 10}
-    if property_.is_required():
+    if property_.required:
         text_format["bold"] = True
-    if property_.is_link():
+    if property_.link:
         text_format["italic"] = True
     return text_format
 
@@ -362,14 +362,6 @@ class Property:
     format_: str
     requires: Union[List[str], None]
     exclusive_requirements: Union[List[str], None]
-
-    def is_required(self) -> bool:
-        """Check if property is required"""
-        return self.required
-
-    def is_link(self) -> bool:
-        """Check if property is a link"""
-        return self.link
 
 
 @dataclass(frozen=True)
@@ -544,7 +536,7 @@ def get_required_non_links(properties: List[Property]) -> List[Property]:
     required_non_links = [
         property_
         for property_ in properties
-        if property_.is_required() and not property_.is_link()
+        if property_.required and not property_.link
     ]
     submitted_id = [
         property_ for property_ in required_non_links if is_submitted_id(property_)
@@ -565,7 +557,7 @@ def get_non_required_non_links(properties: List[Property]) -> List[Property]:
         [
             property_
             for property_ in properties
-            if not property_.is_required() and not property_.is_link()
+            if not property_.required and not property_.link
         ]
     )
 
@@ -576,7 +568,7 @@ def get_required_links(properties: List[Property]) -> List[Property]:
         [
             property_
             for property_ in properties
-            if property_.is_required() and property_.is_link()
+            if property_.required and property_.link
         ]
     )
 
@@ -587,7 +579,7 @@ def get_non_required_links(properties: List[Property]) -> List[Property]:
         [
             property_
             for property_ in properties
-            if not property_.is_required() and property_.is_link()
+            if not property_.required and property_.link
         ]
     )
 
@@ -649,9 +641,9 @@ def write_comment_cells(
 def get_font(property_: Property) -> openpyxl.styles.Font:
     """Get font for the property."""
     font = openpyxl.styles.Font(name="Arial", size=10)
-    if property_.is_required():
+    if property_.required:
         font.bold = True
-    if property_.is_link():
+    if property_.link:
         font.italic = True
     return font
 
@@ -686,7 +678,7 @@ def get_comment_text(property_: Property) -> str:
         comment_lines.append(f"Examples:{indent}{' | '.join(property_.examples)}")
     if property_.link:
         comment_lines.append(f"Link:{indent}Yes")
-    if property_.is_required():
+    if property_.required:
         comment_lines.append(f"Required:{indent}Yes")
     elif property_.exclusive_requirements:
         comment_lines.append(
