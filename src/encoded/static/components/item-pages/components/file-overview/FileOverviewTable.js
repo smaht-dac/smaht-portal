@@ -14,7 +14,7 @@ import {
 /**
  * Wraps the File Overview Table in a SelectedItemsController component, which
  * tracks information about a user's selection and passes them as props to the
- * File Overview Table.
+ * FileOverviewTable component.
  */
 export const FileOverviewTableController = (props) => {
     const {
@@ -50,7 +50,7 @@ export const FileOverviewTableController = (props) => {
 };
 
 /**
- * Renders the Embedded Search Table with custom data columns
+ * Renders the Embedded Search Table with custom data columns.
  */
 export const FileOverviewTable = (props) => {
     const {
