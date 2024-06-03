@@ -426,6 +426,9 @@ const aggregationsToChartData = {
             if (countBy === 'assay_type'){
                 useReport = 'file_downloads_by_assay_type';
                 groupingKey = 'ga:dimension5'; // Assay Type
+            } else if (countBy === 'dataset'){
+                useReport = 'file_downloads_by_dataset';
+                groupingKey = 'ga:dimension6'; // Dataset
             } else if (countBy === 'top_files'){
                 useReport = 'top_files_downloaded';
                 groupingKey = 'ga:productSku'; // File
@@ -506,6 +509,7 @@ export class UsageStatsViewController extends React.PureComponent {
                     "sessions_by_country",
                     "sessions_by_device_category",
                     "file_downloads_by_assay_type",
+                    "file_downloads_by_dataset",
                     "file_downloads_by_filetype",
                     "file_downloads_by_country",
                     "top_files_downloaded",
@@ -680,8 +684,9 @@ class UsageChartsCountByDropdown extends React.PureComponent {
         const menuOptions = new Map();
 
         if (chartID === 'file_downloads'){
-            menuOptions.set('filetype',         <React.Fragment><i className="icon far icon-fw icon-file-alt mr-1"/>File Type</React.Fragment>);
-            menuOptions.set('assay_type',       <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Assay Type</React.Fragment>);
+            menuOptions.set('filetype',         <React.Fragment><i className="icon fas icon-fw icon-file-alt mr-1"/>File Type</React.Fragment>);
+            menuOptions.set('assay_type',       <React.Fragment><i className="icon fas icon-fw icon-vial mr-1"/>Assay Type</React.Fragment>);
+            menuOptions.set('dataset',          <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Dataset</React.Fragment>);
             menuOptions.set('top_files',        <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Top 10 Files</React.Fragment>);
             // menuOptions.set('geo_country',     <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Country</React.Fragment>);
         } else if (chartID === 'file_views'){
@@ -779,8 +784,11 @@ export function UsageStatsView(props){
                         title={
                             <h3 className="charts-group-title">
                                 <span className="d-block d-sm-inline">File Downloads</span><span className="text-300 d-none d-sm-inline"> - </span>
-                                <span className="text-300">{countBy.file_downloads === 'assay_type' ? 'by assay type' :
-                                    (countBy.file_downloads === 'filetype' ? 'by file type' : 'top 10 files')}</span>
+                                <span className="text-300">{
+                                    countBy.file_downloads === 'assay_type' ? 'by assay type' :
+                                        (countBy.file_downloads === 'filetype' ? 'by file type' :
+                                            (countBy.file_downloads === 'dataset' ? 'by dataset' : 'top 10 files'))
+                                }</span>
                             </h3>
                         }
                         subTitle={
