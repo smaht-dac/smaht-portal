@@ -1,0 +1,174 @@
+{
+    "title": "New Type",
+    "$id": "/profiles/new_type.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "identifier",
+        "submission_centers",
+        "last_modified",
+        "foo_or_bar",
+        "unique_array"
+    ],
+    "identifyingProperties": [
+        "uuid",
+        "identifier"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "schema_version": {
+            "default": "1"
+        },
+        "array_of_objects":{
+            "title": "Array of Objects",
+            "description": "array property of objects",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "date": {
+            "title": "Date",
+            "description": "string property that must be formatted as a date or datetime",
+            "type": "string",
+            "oneOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
+        "foo_or_bar": {
+            "title": "Foo or Bar",
+            "description": "Object property that only accepts Foo or Bar",
+            "type": "string",
+            "enum": ["Foo", "Bar"]
+        },
+        "how_bar": {
+            "title": "How Bar",
+            "description": "How Bar is it?",
+            "type": "string",
+            "enum": ["very","not that much"],
+            "allOf": [
+                {
+                    "properties": {"foo_or_bar": {"const": "Foo"}},
+                    "not": {"required": ["how_bar"]}
+                }
+            ]
+        },
+        "integer_4_to_50": {
+            "title": "Integer -4 to 50",
+            "description": "integer property limited to greater than -4 and le 50",
+            "type": "integer",
+            "maximum": 50,
+            "exclusiveMinimum": -4
+        },
+        "object_with_add_properties": {
+            "title": "Object With Additional Properties",
+            "description": "An objects that allows additional properties",
+            "type": "object",
+            "properties": {
+                "key1": {
+                    "type": "number"
+                },
+                "key2": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true
+        },
+        "object_without_add_properties": {
+            "title": "Object Without Additional Properties",
+            "description": "An objects that does not allow additional properties",
+            "type": "object",
+            "properties": {
+                "key1": {
+                    "type": "number"
+                },
+                "key2": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "number_string": {
+            "title": "Number String",
+            "description": "regex pattern that only accepts number strings",
+            "type": "string",
+            "pattern": "^[0-9]+$"
+        },
+        "submission_centers": {
+            "description" : "Foo bar"
+        },
+        "unique_array": {
+            "title": "Unique Array",
+            "description": "array property of no more than 3 unique entries",
+            "type": "array",
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": {
+                "type": "string"
+            }
+        },
+        "urls": {
+            "$merge": "encoded_core:schemas/document.json#/properties/urls"
+        }
+    },
+    "dependentRequired": {
+        "number_string": ["integer_4_to_50"],
+        "integer_4_to_50": ["number_string"]
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "consortia.display_title": {
+            "title": "Consortium"
+        },
+        "foo_or_bar": {
+            "title": "Foo or Bar"
+        },
+        "object_with_add_properties.key1": {
+            "title": "Object Property 1"
+        }
+    },
+    "columns": {
+        "identifier": {
+            "title": "Identifier"
+        },
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "integer_4_to_50": {
+            "title": "Integer Value"
+        },
+        "object_with_add_properties.key1": {
+            "title": "Object Property 1"
+        }
+    }
+}

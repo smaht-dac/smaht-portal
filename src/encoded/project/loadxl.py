@@ -46,6 +46,7 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
             'preparation_kit',
             'treatment',
             'sample_preparation',
+            'new_type',
             'tissue_sample',
             'cell_culture_sample',
             'cell_sample',
@@ -60,7 +61,7 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
             'file_set',
             'unaligned_reads',
             'aligned_reads',
-            'variant_calls',
+            'variant_calls'
     ]
 
     def loadxl_order(self):
