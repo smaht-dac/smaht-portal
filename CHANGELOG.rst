@@ -7,6 +7,42 @@ smaht-portal
 Change Log
 ----------
 
+0.59.0
+======
+
+`PR 148: Submission statistics <https://github.com/smaht-dac/smaht-portal/pull/148>`_
+
+* Submission statistics charts for metadata submitted, data submitted and data released files with various group by options
+
+
+0.58.0
+======
+
+`PR 176: Bm benchmarking v3 <https://github.com/smaht-dac/smaht-portal/pull/176>`_
+
+* Add benchmarking tables for primary tissue data, organized by Donor, then Tissue type
+* Update navbar and navbar links
+
+
+0.57.0
+======
+
+`PR 173: Multiple analytes per library <https://github.com/smaht-dac/smaht-portal/pull/173>`_
+
+* **Breaking change**: Remove `analyte` from Library and replace with `analytes` array of linkTos
+* Includes corresponding changes to `item_utils`, commands, calcprops, embeds, front-end, and tests
+
+
+0.56.0
+======
+
+`PR 171: Bm docs nav update <https://github.com/smaht-dac/smaht-portal/pull/171>`_
+
+* Add a bunch of new inserts to serve as the new links to these various pages
+* Rework the old inserts into redirect-only pages, so that people who have bookmarked old links don't lose their place
+* Permission and order tweaks for sanity's sake
+
+
 0.55.0
 =======
 
