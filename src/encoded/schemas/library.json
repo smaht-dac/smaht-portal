@@ -103,25 +103,25 @@
         },
         "fragment_maximum_length": {
             "title": "Fragment Maximum Length",
-            "description": "Maximum length of the sequenced fragments (e.g., as predicted by Agilent Bioanalyzer)",
+            "description": "Maximum length of the sequenced fragments, e.g. as predicted by Agilent Bioanalyzer (bp)",
             "type": "integer",
             "minimum": 0
         },
         "fragment_mean_length": {
             "title": "Fragment Mean Length",
-            "description": "Mean length of the sequenced fragments (e.g., as predicted by Agilent Bioanalyzer)",
+            "description": "Mean length of the sequenced fragments, e.g. as predicted by Agilent Bioanalyzer (bp)",
             "type": "number",
             "minimum": 0
         },
         "fragment_minimum_length": {
             "title": "Fragment Minimum Length",
-            "description": "Minimum length of the sequenced fragments (e.g., as predicted by Agilent Bioanalyzer)",
+            "description": "Minimum length of the sequenced fragments, e.g. as predicted by Agilent Bioanalyzer (bp)",
             "type": "integer",
             "minimum": 0
         },
         "fragment_standard_deviation_length": {
             "title": "Fragment Standard Deviation Length",
-            "description": "Standard deviation of length of the sequenced fragments (e.g., as predicted by Agilent Bioanalyzer)",
+            "description": "Standard deviation of length of the sequenced fragments, e.g. as predicted by Agilent Bioanalyzer (bp)",
             "type": "number",
             "minimum": 0
         },
@@ -133,25 +133,25 @@
         },
         "insert_maximum_length": {
             "title": "Insert Maximum Length",
-            "description": "Maximum length of the sample molecule in the fragments to be sequenced",
+            "description": "Maximum length of the sample molecule in the fragments to be sequenced (bp)",
             "type": "integer",
             "minimum": 0
         },
         "insert_mean_length": {
             "title": "Insert Mean Length",
-            "description": "Mean length of the sample molecule in the fragments to be sequenced",
+            "description": "Mean length of the sample molecule in the fragments to be sequenced (bp)",
             "type": "number",
             "minimum": 0
         },
         "insert_minimum_length": {
             "title": "Insert Minimum Length",
-            "description": "Minimum length of the sample molecule in the fragments to be sequenced",
+            "description": "Minimum length of the sample molecule in the fragments to be sequenced (bp)",
             "type": "integer",
             "minimum": 0
         },
         "insert_standard_deviation_length": {
             "title": "Insert Standard Deviation Length",
-            "description": "Standard deviation of the length of the sample molecule in the fragments to be sequenced",
+            "description": "Standard deviation of the length of the sample molecule in the fragments to be sequenced (bp)",
             "type": "number",
             "minimum": 0
         },
