@@ -1,1 +1,28 @@
-../temp-local-inserts/new_type.json
+[
+    {
+        "uuid": "3c9cd88d-ffbe-426c-a80f-6cfc359d4e84",
+        "identifier": "NT1",
+        "last_modified": {
+            "date_modified": "2024-05-21"
+        },
+        "submission_centers": [
+            "smaht"
+        ],
+        "date": "2024-05-17",
+        "foo_or_bar": "Bar",
+        "integer_4_to_50": 31,
+        "object_with_add_properties": {
+            "key1": 1,
+            "key2": "2"
+        },
+        "object_without_add_properties": {
+            "key1": 1,
+            "key2": "2"
+        },
+        "number_string": "1234",
+        "unique_array": ["a","b","c"],
+        "urls": [
+            "https://github.com/smaht-dac/smaht-portal"
+        ]
+    }
+]

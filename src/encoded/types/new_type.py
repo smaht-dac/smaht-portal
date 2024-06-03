@@ -69,13 +69,12 @@ class NewType(Item):
             "title": "Submission Centers",
             "type": "array",
             "items": {
-                "type": "string",
-                "linkTo": "SubmissionCenter"
+                "type": "string"
             }
         }
     )
     def submission_centers_display_title(
-        self, request: Request,submission_centers: List[str],
+        self, request: Request,submission_centers: List[str] = None,
         ) -> Union[List[str],None]:
         """Submission Centers for the new type."""
         #result = self.get("submission_centers.display_title",[])
@@ -114,21 +113,6 @@ class NewType(Item):
 
 # new_type.json schema
 
-# "if": {
-#             "properties": {
-#                 "foo_or_bar": {"const": "Bar"}
-#             }
-#         },
-#         "then": {
-#             "properties": {
-#                 "how_bar": {
-#                     "title": "Check How Bar",
-#                     "description": "Object property finds out how bar if Bar is value",
-#                     "type": "string",
-#                     "enum": ["very","not that much"]
-#                 }
-#             }
-#         },
 #         "else": {
 #             "properties": {
 #                 "how_bar": {
@@ -140,3 +124,16 @@ class NewType(Item):
 #             }
             
 #         },
+
+        # "how_bar": {
+        #     "title": "How Bar",
+        #     "description": "How Bar is it?",
+        #     "type": "string",
+        #     "enum": ["very","not that much"],
+        #     "allOf": [
+        #         {
+        #             "properties": {"foo_or_bar": {"const": "Foo"}},
+        #             "not": {"required": ["how_bar"]}
+        #         }
+        #     ]
+        # },
