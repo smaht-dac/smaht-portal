@@ -7,6 +7,105 @@ smaht-portal
 Change Log
 ----------
 
+0.59.1
+======
+
+`PR 175: Fix command to load inserts <https://github.com/smaht-dac/smaht-portal/pull/175>`_
+
+* Update snovault and use its updated command to load inserts
+
+
+0.59.0
+======
+
+`PR 148: Submission statistics <https://github.com/smaht-dac/smaht-portal/pull/148>`_
+
+* Submission statistics charts for metadata submitted, data submitted and data released files with various group by options
+
+
+0.58.0
+======
+
+`PR 176: Bm benchmarking v3 <https://github.com/smaht-dac/smaht-portal/pull/176>`_
+
+* Add benchmarking tables for primary tissue data, organized by Donor, then Tissue type
+* Update navbar and navbar links
+
+
+0.57.0
+======
+
+`PR 173: Multiple analytes per library <https://github.com/smaht-dac/smaht-portal/pull/173>`_
+
+* **Breaking change**: Remove `analyte` from Library and replace with `analytes` array of linkTos
+* Includes corresponding changes to `item_utils`, commands, calcprops, embeds, front-end, and tests
+
+
+0.56.0
+======
+
+`PR 171: Bm docs nav update <https://github.com/smaht-dac/smaht-portal/pull/171>`_
+
+* Add a bunch of new inserts to serve as the new links to these various pages
+* Rework the old inserts into redirect-only pages, so that people who have bookmarked old links don't lose their place
+* Permission and order tweaks for sanity's sake
+
+
+0.55.0
+=======
+
+`PR 141: Link FileSets to Samples <https://github.com/smaht-dac/smaht-portal/pull/141>`_
+
+* Add `samples` linkTo to FileSet to track related samples for single-cell data
+* Update `item_utils` to handle new linkTo (+ misc. cleanup)
+
+
+0.54.0
+======
+
+`PR 170: Added SN User <https://github.com/smaht-dac/smaht-portal/pull/170>`_
+
+* Added Sarah Nicholson to user.json master-inserts
+
+
+0.53.0
+=======
+`PR 168: Update columns/facets <https://github.com/smaht-dac/smaht-portal/pull/168>`_
+
+* Update file columns and facets for benchmarking tables
+* Add `released_date` to file calcprop for display in benchmarking tables
+* Update Donor, Tissue, and TissueSample columns and facets for searches
+* Add Donor and Tissue links from doc page
+
+
+0.52.4
+======
+
+`PR 167: Bm select all fix <https://github.com/smaht-dac/smaht-portal/pull/167>`_
+
+* Load search tables on tab open (instead of all at once on initial page load)
+* Cleanup of context and fix for select all button and checkbox bugs
+* Enable SPC fix of selected items clearing on filter by passing props to EmbeddedSearchView (spc v0.1.82b1)
+
+0.52.3
+======
+
+* Extend release script to handle obsolete files
+
+
+0.52.2
+======
+
+* 2024-05-08/dmichaels/PR-163
+* Added option to ingester to skip validation on submit.
+  With smaht-submitr/submit-metadata-bundle --validate-remote-skip flag;
+  this flag previously only prevented server-side validation from being
+  kicked off by submitr, but on actual submit server-side validation
+  was still being done before loadxl; this flag now prevents that as well.
+  This is hooked on a (submission folio) validate_skip flag; and this is
+  ONLY allowed for admin users; if non-admin validate_skip forced to False.
+
+
 0.52.1
 ======
 

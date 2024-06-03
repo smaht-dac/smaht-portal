@@ -8,7 +8,10 @@
         "libraries": [
             "TEST_LIBRARY_LIVER"
         ],
-        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X",
+        "samples": [
+            "TEST_CELL-SAMPLE_LIVER-CELL"
+        ]
     },
     {
         "uuid": "6b6531f3-7512-4ed4-8d88-b0807579f883",

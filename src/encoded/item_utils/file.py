@@ -1,10 +1,10 @@
+from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
-from . import analyte, file_set, library, sample, sequencing, tissue
+from . import file_set, library, sample, sequencing, tissue
 from .utils import (
     RequestHandler,
     get_property_values_from_identifiers,
-    get_unique_values,
 )
 
 
@@ -68,8 +68,9 @@ def get_sequencings(
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get sequencings associated with file."""
     if request_handler:
-        file_sets = request_handler.get_items(get_file_sets(properties))
-        return get_unique_values(file_sets, file_set.get_sequencing)
+        return get_property_values_from_identifiers(
+            request_handler, get_file_sets(properties), file_set.get_sequencing
+        )
     return properties.get("sequencing", [])
 
 
@@ -99,10 +100,11 @@ def get_assays(
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get assays associated with file."""
     if request_handler:
-        libraries = request_handler.get_items(
-            get_libraries(properties, request_handler)
+        return get_property_values_from_identifiers(
+            request_handler,
+            get_libraries(properties, request_handler),
+            library.get_assay,
         )
-        return get_unique_values(libraries, library.get_assay)
     return properties.get("assays", [])
 
 
@@ -114,7 +116,7 @@ def get_analytes(
         return get_property_values_from_identifiers(
             request_handler,
             get_libraries(properties, request_handler),
-            library.get_analyte,
+            library.get_analytes,
         )
     return properties.get("analytes", [])
 
@@ -126,8 +128,8 @@ def get_samples(
     if request_handler:
         return get_property_values_from_identifiers(
             request_handler,
-            get_analytes(properties, request_handler),
-            analyte.get_samples,
+            get_file_sets(properties),
+            partial(file_set.get_samples, request_handler=request_handler),
         )
     return properties.get("samples", [])
 

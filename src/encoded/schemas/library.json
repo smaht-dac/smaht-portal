@@ -4,7 +4,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "analyte",
+        "analytes",
         "assay",
         "submission_centers",
         "submitted_id"
@@ -58,7 +58,7 @@
             "accessionType": "LI"
         },
         "schema_version": {
-            "default": "1"
+            "default": "2"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_LIBRARY_[A-Z0-9-_.]{4,}$"
@@ -179,11 +179,16 @@
             "type": "integer",
             "minimum": 0
         },
-        "analyte": {
-            "title": "Analyte",
-            "description": "Link to associated analyte",
-            "type": "string",
-            "linkTo": "Analyte"
+        "analytes": {
+            "title": "Analytes",
+            "description": "Links to associated analytes",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "linkTo": "Analyte"
+            }
         },
         "assay": {
             "title": "Assay",

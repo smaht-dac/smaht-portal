@@ -19,12 +19,10 @@ import {
     COLO829Data,
     HapMapData,
     IPSCFibroblastData,
-    BrainData,
-    SkinData,
-    LiverData,
-    ColonData,
-    HeartData,
-    LungData,
+    Donor1Data,
+    Donor2Data,
+    Donor3Data,
+    Donor4Data,
 } from '../components/benchmarking';
 
 /**
@@ -43,12 +41,10 @@ const placeholders = {
     COLO829Data,
     HapMapData,
     IPSCFibroblastData,
-    BrainData,
-    SkinData,
-    LiverData,
-    ColonData,
-    HeartData,
-    LungData,
+    Donor1Data,
+    Donor2Data,
+    Donor3Data,
+    Donor4Data,
 };
 
 export const replaceString = memoize(

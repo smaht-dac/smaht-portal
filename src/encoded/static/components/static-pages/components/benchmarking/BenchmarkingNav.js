@@ -64,6 +64,7 @@ export const BenchmarkingUINav = (props) => {
     return (
         <div className="benchmarking-nav">
             <button
+                type="button"
                 className="toggle-button"
                 onClick={() => props.setShowNav(!props.showNav)}>
                 {props.showNav ? (

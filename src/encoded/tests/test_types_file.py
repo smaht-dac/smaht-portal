@@ -102,16 +102,19 @@ def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_f
     res = output_file['file_status_tracking']
     assert 'in review' in res
     assert 'released' not in res
+    assert 'released_date' not in res
     assert 'public' not in res
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
                                      {'status': 'released'}).json['@graph'][0]['file_status_tracking']
     assert 'in review' in res
     assert 'released' in res
+    assert 'released_date' in res
     assert 'public' not in res
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
                                      {'status': 'public'}).json['@graph'][0]['file_status_tracking']
     assert 'in review' in res
     assert 'released' in res
+    assert 'released_date' in res
     assert 'public' in res
 
 
@@ -517,11 +520,7 @@ def assert_libraries_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'libraries' calcprop matches file_sets.libraries."""
     libraries_from_calcprop = file_utils.get_libraries(file)
     file_sets = file_utils.get_file_sets(file)
-    libraries_from_file_set = [
-        library
-        for file_set in file_sets
-        for library in file_set_utils.get_libraries(file_set)
-    ]
+    libraries_from_file_set = get_unique_values(file_sets, file_set_utils.get_libraries)
     assert_items_match(libraries_from_calcprop, libraries_from_file_set)
 
 
@@ -569,9 +568,9 @@ def assert_sequencing_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'sequencing' calcprop matches file_sets.sequencing."""
     sequencing_from_calcprop = file_utils.get_sequencings(file)
     file_sets = file_utils.get_file_sets(file)
-    sequencing_from_file_set = [
-        file_set_utils.get_sequencing(file_set) for file_set in file_sets
-    ]
+    sequencing_from_file_set = get_unique_values(
+        file_sets, file_set_utils.get_sequencing
+    )
     assert_items_match(sequencing_from_calcprop, sequencing_from_file_set)
 
 
@@ -610,12 +609,8 @@ def assert_assays_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'assays' calcprop matches file_sets.assay."""
     assays_from_calcprop = file_utils.get_assays(file)
     file_sets = file_utils.get_file_sets(file)
-    libraries = [
-        library
-        for file_set in file_sets
-        for library in file_set_utils.get_libraries(file_set)
-    ]
-    assays = [library_utils.get_assay(library) for library in libraries]
+    libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
+    assays = get_unique_values(libraries, library_utils.get_assay)
     assert_items_match(assays_from_calcprop, assays)
 
 
@@ -627,7 +622,7 @@ def test_analytes(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    search_key = "file_sets.libraries.analyte.uuid"
+    search_key = "file_sets.libraries.analytes.uuid"
     file_without_analytes_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
@@ -651,15 +646,11 @@ def test_analytes(es_testapp: TestApp, workbook: None) -> None:
 
 
 def assert_analytes_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
-    """Ensure 'analytes' calcprop matches file_sets.libraries.analyte."""
+    """Ensure 'analytes' calcprop matches file_sets.libraries.analytes."""
     analytes_from_calcprop = file_utils.get_analytes(file)
     file_sets = file_utils.get_file_sets(file)
-    libraries = [
-        library
-        for file_set in file_sets
-        for library in file_set_utils.get_libraries(file_set)
-    ]
-    analytes = [library_utils.get_analyte(library) for library in libraries]
+    libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
+    analytes = get_unique_values(libraries, library_utils.get_analytes)
     assert_items_match(analytes_from_calcprop, analytes)
 
 
@@ -671,7 +662,7 @@ def test_samples(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    search_key = "file_sets.libraries.analyte.samples.uuid"
+    search_key = "file_sets.libraries.analytes.samples.uuid"
     file_without_samples_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
@@ -695,21 +686,17 @@ def test_samples(es_testapp: TestApp, workbook: None) -> None:
 
 
 def assert_samples_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
-    """Ensure 'samples' calcprop matches file_sets.libraries.analyte.samples."""
+    """Ensure 'samples' calcprop matches file_sets.libraries.analytes.samples."""
     samples_from_calcprop = file_utils.get_samples(file)
     file_sets = file_utils.get_file_sets(file)
-    libraries = [
-        library
-        for file_set in file_sets
-        for library in file_set_utils.get_libraries(file_set)
-    ]
-    analytes = [library_utils.get_analyte(library) for library in libraries]
-    samples = [
-        sample
-        for analyte in analytes
-        for sample in analyte_utils.get_samples(analyte)
-    ]
-    assert_items_match(samples_from_calcprop, samples)
+    samples = get_unique_values(file_sets, file_set_utils.get_samples)
+    if samples:
+        assert_items_match(samples_from_calcprop, samples)
+    else:
+        libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
+        analytes = get_unique_values(libraries, library_utils.get_analytes)
+        samples = get_unique_values(analytes, analyte_utils.get_samples)
+        assert_items_match(samples_from_calcprop, samples)
 
 
 @pytest.mark.workbook
@@ -720,7 +707,7 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    search_key = "file_sets.libraries.analyte.samples.sample_sources.uuid"
+    search_key = "file_sets.libraries.analytes.samples.sample_sources.uuid"
     file_without_sample_sources_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
@@ -747,22 +734,10 @@ def assert_sample_sources_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'sample_sources' calcprop matches upstream sample sources."""
     sample_sources_from_calcprop = file_utils.get_sample_sources(file)
     file_sets = file_utils.get_file_sets(file)
-    libraries = [
-        library
-        for file_set in file_sets
-        for library in file_set_utils.get_libraries(file_set)
-    ]
-    analytes = [library_utils.get_analyte(library) for library in libraries]
-    samples = [
-        sample
-        for analyte in analytes
-        for sample in analyte_utils.get_samples(analyte)
-    ]
-    sample_sources = [
-        sample_source
-        for sample in samples
-        for sample_source in sample_utils.get_sample_sources(sample)
-    ]
+    libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
+    analytes = get_unique_values(libraries, library_utils.get_analytes)
+    samples = get_unique_values(analytes, analyte_utils.get_samples)
+    sample_sources = get_unique_values(samples, sample_utils.get_sample_sources)
     assert_items_match(sample_sources_from_calcprop, sample_sources)
 
 
@@ -774,7 +749,7 @@ def test_donors(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    search_key = "file_sets.libraries.analyte.samples.sample_sources.donor.uuid"
+    search_key = "file_sets.libraries.analytes.samples.sample_sources.donor.uuid"
     file_without_donors_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
@@ -801,25 +776,11 @@ def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'donors' calcprop matches upstream donors."""
     donors_from_calcprop = file_utils.get_donors(file)
     file_sets = file_utils.get_file_sets(file)
-    libraries = [
-        library
-        for file_set in file_sets
-        for library in file_set_utils.get_libraries(file_set)
-    ]
-    analytes = [library_utils.get_analyte(library) for library in libraries]
-    samples = [
-        sample
-        for analyte in analytes
-        for sample in analyte_utils.get_samples(analyte)
-    ]
-    sample_sources = [
-        sample_source
-        for sample in samples
-        for sample_source in sample_utils.get_sample_sources(sample)
-    ]
-    donors = [
-        tissue_utils.get_donor(sample_source) for sample_source in sample_sources
-    ]
+    libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
+    analytes = get_unique_values(libraries, library_utils.get_analytes)
+    samples = get_unique_values(analytes, analyte_utils.get_samples)
+    sample_sources = get_unique_values(samples, sample_utils.get_sample_sources)
+    donors = get_unique_values(sample_sources, tissue_utils.get_donor)
     assert_items_match(donors_from_calcprop, donors)
 
 

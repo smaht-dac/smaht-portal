@@ -9,11 +9,27 @@ import React from 'react';
  */
 
 const primaryTissuePageDescription = (
-    <span>
-        The SMaHT benchmarking tissues were obtained from two <i>post mortem</i>{' '}
-        donors. From each donor, three tissue types, i.e., lung, liver, and
-        colon, were obtained, homogenized and subjected to sequencing.
-    </span>
+    <>
+        <p>
+            The SMaHT benchmarking tissues were obtained from four{' '}
+            <i>post mortem</i> donors. From the donors, four tissue types were
+            obtained, in total, i.e., lung, liver, colon, and the brain. The
+            benchmarking tissues were homogenized (unless otherwise noted) to
+            ensure the cellular homogeneity in sample distribution.
+        </p>
+
+        <p>
+            For the SMaHT benchmarking study, the Tissue Procurement Center
+            (TPC) provided the homogenized tissue samples from the following
+            benchmarking donors:
+        </p>
+        <ul>
+            <li>Donor ST001: Liver and lung</li>
+            <li>Donor ST002: Colon and lung</li>
+            <li>Donor ST003: Brain</li>
+            <li>Donor ST004: Brain</li>
+        </ul>
+    </>
 );
 
 export const BenchmarkingDataMap = {
@@ -181,130 +197,74 @@ export const BenchmarkingDataMap = {
             },
         ],
     },
-    Lung: {
-        navBarTitle: 'Lung',
-        title: 'Lung Primary Tissue Data',
+    Donor1: {
+        navBarTitle: 'Donor ST001',
+        title: 'Donor ST001 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
-        path: '/data/benchmarking/lung',
+        path: '/data/benchmarking/donor-st001',
         tabMapArray: [
             {
-                eventKey: '#donor-1',
-                title: 'Donor 1',
-                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
+                eventKey: '#liver',
+                title: 'Liver',
+                // searchHref:
+                //    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A',
             },
             {
-                eventKey: '#donor-2',
-                title: 'Donor 2',
-                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
+                eventKey: '#lung',
+                title: 'Lung',
+                // searchHref:
+                //     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D',
             },
         ],
     },
-    Liver: {
-        navBarTitle: 'Liver',
-        title: 'Liver Primary Tissue Data',
+    Donor2: {
+        navBarTitle: 'Donor ST002',
+        title: 'Donor ST002 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
-        path: '/data/benchmarking/liver',
+        path: '/data/benchmarking/donor-st002',
         tabMapArray: [
             {
-                eventKey: '#donor-1',
-                title: 'Donor 1',
-                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
+                eventKey: '#colon',
+                title: 'Colon',
+                // searchHref:
+                //     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G',
             },
             {
-                eventKey: '#donor-2',
-                title: 'Donor 2',
-                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
+                eventKey: '#lung',
+                title: 'Lung',
+                // searchHref:
+                //     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D',
             },
         ],
     },
-    Colon: {
-        navBarTitle: 'Colon',
-        title: 'Colon Primary Tissue Data',
+    Donor3: {
+        navBarTitle: 'Donor ST003',
+        title: 'Donor ST003 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
         type: 'Primary Tissue Data',
-        path: '/data/benchmarking/colon',
+        path: '/data/benchmarking/donor-st003',
         tabMapArray: [
             {
-                eventKey: '#donor-1',
-                title: 'Donor 1',
-                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
-            },
-            {
-                eventKey: '#donor-2',
-                title: 'Donor 2',
-                // searchHref: '/search/?type=File&status=released&status=restricted&status=public',
+                eventKey: '#brain',
+                title: 'Brain',
             },
         ],
     },
-    // Heart: {
-    //     navBarTitle: 'Heart',
-    //     title: "Heart Primary Tissue Data",
-    //     description: "",
-    //     type: 'Primary Tissue Data',
-    //     path: '/data/benchmarking/heart',
-    //     tabMapArray: [
-    //         {
-    //             eventKey: '#main',
-    //             title: 'Data',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //     ],
-    // },
-    // Brain: {
-    //     navBarTitle: 'Brain',
-    //     title: "Brain Primary Tissue Data",
-    //     description: "",
-    //     type: 'Primary Tissue Data',
-    //     path: '/data/benchmarking/brain',
-    //     tabMapArray: [
-    //         {
-    //             eventKey: '#frontal-lobe',
-    //             title: 'Frontal Lobe',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //         {
-    //             eventKey: '#cerebellum',
-    //             title: 'Cerebellum',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //         {
-    //             eventKey: '#hippocampus',
-    //             title: 'Hippocampus',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //         {
-    //             eventKey: '#temporal-lobe',
-    //             title: 'Temporal Lobe',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //         {
-    //             eventKey: '#dendate-gyrus',
-    //             title: 'Dendate Gyrus',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //     ],
-    // },
-    // Skin: {
-    //     navBarTitle: 'Skin',
-    //     title: "Skin Primary Tissue Data",
-    //     description: "",
-    //     type: 'Primary Tissue Data',
-    //     path: '/data/benchmarking/skin',
-    //     tabMapArray: [
-    //         {
-    //             eventKey: '#sun-exposed',
-    //             title: 'Sun Exposed',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //         {
-    //             eventKey: '#non-sun-exposed',
-    //             title: 'Non Sun Exposed',
-    //             // searchHref: '/search/?type=ReferenceFile&status=released&status=restricted&status=public',
-    //         },
-    //     ],
-    // },
+    Donor4: {
+        navBarTitle: 'Donor ST004',
+        title: 'Donor ST004 : Benchmarking Tissue Data',
+        description: primaryTissuePageDescription,
+        type: 'Primary Tissue Data',
+        path: '/data/benchmarking/donor-st004',
+        tabMapArray: [
+            {
+                eventKey: '#brain',
+                title: 'Brain',
+            },
+        ],
+    },
 };
 
 export const BenchmarkingDataKeys = Object.keys(BenchmarkingDataMap);
