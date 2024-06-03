@@ -113,7 +113,7 @@
         },
         "recovery_interval": {
             "title": "Recovery Interval",
-            "description": "Total time interval of tissue recovery in minutes",
+            "description": "Total time interval of tissue recovery (minutes)",
             "type": "integer",
             "minimum": 0
         },
@@ -125,7 +125,7 @@
         },
         "size": {
             "title": "Size",
-            "description": "Size of the tissue in cubic centimeters",
+            "description": "Size of the tissue (cm^3)",
             "type": "number",
             "minimum": 0
         },
@@ -138,13 +138,13 @@
         },
         "volume": {
             "title": "Volume",
-            "description": "Volume of the tissue in milliliters",
+            "description": "Volume of the tissue (mL)",
             "type": "number",
             "minimum": 0
         },
         "weight": {
             "title": "Weight",
-            "description": "Weight of the tissue in grams",
+            "description": "Weight of the tissue (g)",
             "type": "number",
             "minimum": 0
         },

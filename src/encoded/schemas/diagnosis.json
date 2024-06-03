@@ -56,13 +56,13 @@
         },
         "age_at_diagnosis": {
             "title": "Age At Diagnosis",
-            "description": "Age in years when the disease was diagnosed",
+            "description": "Age when the disease was diagnosed (years)",
             "type": "integer",
             "minimum": 0
         },
         "age_at_resolution": {
             "title": "Age At Resolution",
-            "description": "Age in years when the disease was determined to have resolved",
+            "description": "Age when the disease was determined to have resolved (years)",
             "type": "integer",
             "minimum": 0
         },

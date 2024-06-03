@@ -653,7 +653,7 @@
     "n50": {
         "n50": {
             "title": "N50",
-            "description": "The sequence length of the shortest read at 50% of the total sequencing dataset sorted by read length",
+            "description": "The sequence length of the shortest read at 50% of the total sequencing dataset sorted by read length (bp)",
             "type": "number",
             "minimum": 0
         }
