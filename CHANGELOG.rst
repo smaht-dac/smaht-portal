@@ -23,6 +23,14 @@ Change Log
 * Some make lint fixups.
 
 
+0.59.1
+======
+
+`PR 175: Fix command to load inserts <https://github.com/smaht-dac/smaht-portal/pull/175>`_
+
+* Update snovault and use its updated command to load inserts
+
+
 0.59.0
 ======
 
