@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+0.59.2
+======
+
+`PR 178: Clean up poetry commands <https://github.com/smaht-dac/smaht-portal/pull/178>`_
+
+* Clean up commands in `pyproject.toml`
+  * Remove commands not present in repo
+  * Use snovault commands where possible
+  * Reorganize commands by source repo
+
+
 0.59.1
 ======
 
