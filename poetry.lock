@@ -92,6 +92,26 @@ files = [
 requests = ">=0.14.0"
 
 [[package]]
+name = "awscli"
+version = "1.33.0"
+description = "Universal Command Line Environment for AWS."
+category = "main"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "awscli-1.33.0-py3-none-any.whl", hash = "sha256:19ebb24b093bb621a93457f05ccfbfe61c83e9788130db1a969a665568165394"},
+    {file = "awscli-1.33.0.tar.gz", hash = "sha256:602b04c616bc90d894ea4469a2c741282b1ef510f7d6378a46c30c660a9b1a3c"},
+]
+
+[package.dependencies]
+botocore = "1.34.118"
+colorama = ">=0.2.5,<0.4.7"
+docutils = ">=0.10,<0.17"
+PyYAML = ">=3.10,<6.1"
+rsa = ">=3.1.2,<4.8"
+s3transfer = ">=0.10.0,<0.11.0"
+
+[[package]]
 name = "beautifulsoup4"
 version = "4.12.3"
 description = "Screen-scraping library"
@@ -1096,7 +1116,7 @@ files = [
 name = "docutils"
 version = "0.16"
 description = "Docutils -- Python Documentation Utilities"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 files = [
@@ -1148,17 +1168,52 @@ develop = ["coverage (<5.0.0)", "mock", "pytest (>=3.0.0)", "pytest-cov", "pytes
 
 [[package]]
 name = "encoded-core"
-version = "0.9.3.1b1"
+version = "0.8.3"
 description = "Core data models for Park Lab ENCODE based projects"
 category = "main"
 optional = false
-python-versions = "*"
-files = []
-develop = true
+python-versions = "<3.12,>=3.8.1"
+files = [
+    {file = "encoded_core-0.8.3-py3-none-any.whl", hash = "sha256:2b3026b0c341567a583a74b419164291a14c44ec0b79edb89fe84e8eb9bc6ad3"},
+    {file = "encoded_core-0.8.3.tar.gz", hash = "sha256:d30a70ed62f5464c3290c2cdbce5e5c6525438cc569ac49be598d1fb66152743"},
+]
 
-[package.source]
-type = "directory"
-url = "../encoded-core"
+[package.dependencies]
+awscli = ">=1.29.62"
+boto3 = ">=1.28.62,<2.0.0"
+botocore = ">=1.31.62,<2.0.0"
+dcicsnovault = ">=11.10.0,<12.0.0"
+dcicutils = ">=8.7.2,<9.0.0"
+elasticsearch = "7.13.4"
+plaster-pastedeploy = "0.6"
+psycopg2-binary = ">=2.9.3,<3.0.0"
+PyJWT = ">=2.6.0,<3.0.0"
+pyramid = "1.10.4"
+pyramid_localroles = ">=0.1,<1"
+pyramid-multiauth = ">=0.9.0,<1"
+pyramid-retry = ">=1.0,<2.0"
+pyramid-tm = ">=2.4,<3.0"
+pyramid_translogger = ">=0.1,<0.2"
+PyYAML = ">=6.0.1,<7.0.0"
+requests = ">=2.23.0,<3.0.0"
+SPARQLWrapper = ">=1.8.5,<2.0.0"
+SQLAlchemy = "1.4.41"
+structlog = ">=19.2.0,<20"
+subprocess-middleware = ">=0.3.0,<0.4.0"
+supervisor = ">=4.2.4,<5.0.0"
+toml = ">=0.10.1,<1"
+transaction = ">=3.0.0,<4.0.0"
+translationstring = "1.3"
+uptime = ">=3.0.1,<4"
+urllib3 = ">=1.26.4,<2.0.0"
+venusian = ">=1.2.0,<2.0.0"
+waitress = ">=2.1.1,<3.0.0"
+WebOb = ">=1.8.7,<2.0.0"
+WebTest = ">=2.0.35,<3.0.0"
+WSGIProxy2 = "0.4.2"
+"zope.deprecation" = ">=4.4.0,<5.0.0"
+"zope.interface" = ">=4.7.2,<5.0.0"
+"zope.sqlalchemy" = "1.6"
 
 [[package]]
 name = "et-xmlfile"
@@ -3970,4 +4025,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "e5964f54db59ca87a2e7b80f2014f5c50727bd5cd744c89e17207913ba9f1024"
+content-hash = "b5f2c3831725e9d228b64e91422089da49f7dcb76babfc5c894a1b4d3cbb9160"
