@@ -34,7 +34,7 @@ export default class StatisticsPageView extends React.PureComponent {
             'tip' : "View statistics related to usage of the SMaHT Data Portal",
             'shouldReaggregate' : function(pastProps, nextProps, pastState, nextState){
                 // Compare object references
-                if (pastProps.countBy !== nextProps.countBy) return true;
+                if ((pastProps.countBy !== nextProps.countBy) || (pastState.cumulativeSum !== nextState.cumulativeSum)) return true;
             }
         }
     };
