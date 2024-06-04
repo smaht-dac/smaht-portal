@@ -92,26 +92,6 @@ files = [
 requests = ">=0.14.0"
 
 [[package]]
-name = "awscli"
-version = "1.33.0"
-description = "Universal Command Line Environment for AWS."
-category = "main"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "awscli-1.33.0-py3-none-any.whl", hash = "sha256:19ebb24b093bb621a93457f05ccfbfe61c83e9788130db1a969a665568165394"},
-    {file = "awscli-1.33.0.tar.gz", hash = "sha256:602b04c616bc90d894ea4469a2c741282b1ef510f7d6378a46c30c660a9b1a3c"},
-]
-
-[package.dependencies]
-botocore = "1.34.118"
-colorama = ">=0.2.5,<0.4.7"
-docutils = ">=0.10,<0.17"
-PyYAML = ">=3.10,<6.1"
-rsa = ">=3.1.2,<4.8"
-s3transfer = ">=0.10.0,<0.11.0"
-
-[[package]]
 name = "beautifulsoup4"
 version = "4.12.3"
 description = "Screen-scraping library"
@@ -1116,7 +1096,7 @@ files = [
 name = "docutils"
 version = "0.16"
 description = "Docutils -- Python Documentation Utilities"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 files = [
@@ -1168,18 +1148,17 @@ develop = ["coverage (<5.0.0)", "mock", "pytest (>=3.0.0)", "pytest-cov", "pytes
 
 [[package]]
 name = "encoded-core"
-version = "0.8.3"
+version = "0.9.3"
 description = "Core data models for Park Lab ENCODE based projects"
 category = "main"
 optional = false
 python-versions = "<3.12,>=3.8.1"
 files = [
-    {file = "encoded_core-0.8.3-py3-none-any.whl", hash = "sha256:2b3026b0c341567a583a74b419164291a14c44ec0b79edb89fe84e8eb9bc6ad3"},
-    {file = "encoded_core-0.8.3.tar.gz", hash = "sha256:d30a70ed62f5464c3290c2cdbce5e5c6525438cc569ac49be598d1fb66152743"},
+    {file = "encoded_core-0.9.3-py3-none-any.whl", hash = "sha256:db13abf99332f5864c28aa9f324bd94aa03dd59ea005c11aa435e5395736a8d4"},
+    {file = "encoded_core-0.9.3.tar.gz", hash = "sha256:7583e1655fa8299209351d26ec59548ffe92a45ca0663712ecf902fa9a265c84"},
 ]
 
 [package.dependencies]
-awscli = ">=1.29.62"
 boto3 = ">=1.28.62,<2.0.0"
 botocore = ">=1.31.62,<2.0.0"
 dcicsnovault = ">=11.10.0,<12.0.0"
@@ -4025,4 +4004,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "b5f2c3831725e9d228b64e91422089da49f7dcb76babfc5c894a1b4d3cbb9160"
+content-hash = "23989c1f818ea265faf3fed010fd703761ed2ad1c32ffd719dcaf46c164539c1"
