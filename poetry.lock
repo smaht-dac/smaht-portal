@@ -92,29 +92,6 @@ files = [
 requests = ">=0.14.0"
 
 [[package]]
-<<<<<<< HEAD
-=======
-name = "awscli"
-version = "1.33.0"
-description = "Universal Command Line Environment for AWS."
-category = "main"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "awscli-1.33.0-py3-none-any.whl", hash = "sha256:19ebb24b093bb621a93457f05ccfbfe61c83e9788130db1a969a665568165394"},
-    {file = "awscli-1.33.0.tar.gz", hash = "sha256:602b04c616bc90d894ea4469a2c741282b1ef510f7d6378a46c30c660a9b1a3c"},
-]
-
-[package.dependencies]
-botocore = "1.34.118"
-colorama = ">=0.2.5,<0.4.7"
-docutils = ">=0.10,<0.17"
-PyYAML = ">=3.10,<6.1"
-rsa = ">=3.1.2,<4.8"
-s3transfer = ">=0.10.0,<0.11.0"
-
-[[package]]
->>>>>>> main
 name = "beautifulsoup4"
 version = "4.12.3"
 description = "Screen-scraping library"
@@ -138,31 +115,18 @@ lxml = ["lxml"]
 
 [[package]]
 name = "boto3"
-<<<<<<< HEAD
-version = "1.34.111"
-=======
 version = "1.34.118"
->>>>>>> main
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-<<<<<<< HEAD
-    {file = "boto3-1.34.111-py3-none-any.whl", hash = "sha256:d6a8e77db316c6e1d9a25f77c795ed1e0a8bc621f863ce26d04b2225d30f2dce"},
-    {file = "boto3-1.34.111.tar.gz", hash = "sha256:8f18d212b9199dbbd9d596dd5929685b583ac938c60cceeac2e045c0c5d10323"},
-]
-
-[package.dependencies]
-botocore = ">=1.34.111,<1.35.0"
-=======
     {file = "boto3-1.34.118-py3-none-any.whl", hash = "sha256:e9edaf979fbe59737e158f2f0f3f0861ff1d61233f18f6be8ebb483905f24587"},
     {file = "boto3-1.34.118.tar.gz", hash = "sha256:4eb8019421cb664a6fcbbee6152aa95a28ce8bbc1c4ee263871c09cdd58bf8ee"},
 ]
 
 [package.dependencies]
 botocore = ">=1.34.118,<1.35.0"
->>>>>>> main
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -577,23 +541,14 @@ xray = ["mypy-boto3-xray (>=1.34.0,<1.35.0)"]
 
 [[package]]
 name = "botocore"
-<<<<<<< HEAD
-version = "1.34.111"
-=======
 version = "1.34.118"
->>>>>>> main
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-<<<<<<< HEAD
-    {file = "botocore-1.34.111-py3-none-any.whl", hash = "sha256:e10affb7f372d50da957260adf2753a3f153bf90abe6910e11f09d1e443b5515"},
-    {file = "botocore-1.34.111.tar.gz", hash = "sha256:0e0fb9b605c46393d5c7c69bd516b36058334bdc8f389e680c6efcf0727f25db"},
-=======
     {file = "botocore-1.34.118-py3-none-any.whl", hash = "sha256:e3f6c5636a4394768e81e33a16f5c6ae7f364f512415d423f9b9dc67fc638df4"},
     {file = "botocore-1.34.118.tar.gz", hash = "sha256:0a3d1ec0186f8b516deb39474de3d226d531f77f92a0f56ad79b80219db3ae9e"},
->>>>>>> main
 ]
 
 [package.dependencies]
@@ -1064,23 +1019,14 @@ xlrd = ">=1.0.0,<2.0.0"
 
 [[package]]
 name = "dcicutils"
-<<<<<<< HEAD
 version = "8.9.0.1b6"
-=======
-version = "8.9.0"
->>>>>>> main
 description = "Utility package for interacting with the 4DN Data Portal and other 4DN resources"
 category = "main"
 optional = false
 python-versions = "<3.13,>=3.8"
 files = [
-<<<<<<< HEAD
     {file = "dcicutils-8.9.0.1b6-py3-none-any.whl", hash = "sha256:d22ca11b2e028bca5b4e7c24ab76d08bbbb1588a217aa6518e8957aaa65c84d2"},
     {file = "dcicutils-8.9.0.1b6.tar.gz", hash = "sha256:924076ef12b7dc23b778809bc6ddec42023652e82c7bd76b40090aaead32ab55"},
-=======
-    {file = "dcicutils-8.9.0-py3-none-any.whl", hash = "sha256:6fb0a76d1f11b70f1b518d7b7f1f05d3d8aa3f762b99d5aaa4ce22b5eddba6e7"},
-    {file = "dcicutils-8.9.0.tar.gz", hash = "sha256:9a78fad1137d7827d6155a7fd5982c25f482313f8f6cfbec577f69d61de63e09"},
->>>>>>> main
 ]
 
 [package.dependencies]
@@ -1148,14 +1094,14 @@ files = [
 
 [[package]]
 name = "docutils"
-version = "0.16"
+version = "0.21.2"
 description = "Docutils -- Python Documentation Utilities"
 category = "dev"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+python-versions = ">=3.9"
 files = [
-    {file = "docutils-0.16-py2.py3-none-any.whl", hash = "sha256:0c5b78adfbf7762415433f5515cd5c9e762339e23369dbe8000d84a4bf4ab3af"},
-    {file = "docutils-0.16.tar.gz", hash = "sha256:c2de3a60e9e7d07be26b7f2b00ca0309c207e06c100f9cc2a94931fc75a478fc"},
+    {file = "docutils-0.21.2-py3-none-any.whl", hash = "sha256:dafca5b9e384f0e419294eb4d2ff9fa826435bf15f15b7bd45723e8ad76811b2"},
+    {file = "docutils-0.21.2.tar.gz", hash = "sha256:3a6b18732edf182daa3cd12775bbb338cf5691468f91eeeb109deff6ebfa986f"},
 ]
 
 [[package]]
@@ -3266,18 +3212,6 @@ files = [
 ]
 
 [[package]]
-name = "shortuuid"
-version = "1.0.13"
-description = "A generator library for concise, unambiguous and URL-safe UUIDs."
-category = "main"
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "shortuuid-1.0.13-py3-none-any.whl", hash = "sha256:a482a497300b49b4953e15108a7913244e1bb0d41f9d332f5e9925dba33a3c5a"},
-    {file = "shortuuid-1.0.13.tar.gz", hash = "sha256:3bb9cf07f606260584b1df46399c0b87dd84773e7b25912b7e391e30797c5e72"},
-]
-
-[[package]]
 name = "simplejson"
 version = "3.19.2"
 description = "Simple, fast, extensible JSON encoder/decoder for Python"
@@ -4036,8 +3970,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-<<<<<<< HEAD
-content-hash = "da41801ff13931f91ef4630e55d5f8e27e50a08278b4ac68e68d01b359856c94"
-=======
-content-hash = "35cd54cec1d8f2f2e695011d3798c02b02117a7fe8f9bee7837c92544025b231"
->>>>>>> main
+content-hash = "e5964f54db59ca87a2e7b80f2014f5c50727bd5cd744c89e17207913ba9f1024"
