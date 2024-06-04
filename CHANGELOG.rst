@@ -11,6 +11,16 @@ Change Log
 ======
 
 * Add new command ``check-insert-consistency`` to quickly detect errors on live environments related to inconsistencies with ``master-inserts``
+* Add new command ``load-data-from-local`` to allow interactive updates from ``master-inserts``
+
+
+0.59.1
+======
+
+`PR 175: Fix command to load inserts <https://github.com/smaht-dac/smaht-portal/pull/175>`_
+
+* Update snovault and use its updated command to load inserts
+
 
 0.59.0
 ======
