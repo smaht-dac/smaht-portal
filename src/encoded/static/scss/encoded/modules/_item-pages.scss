@@ -1215,7 +1215,7 @@ File Overview Styles
 					color: $gray-70;
 		
 					&-title {
-						color: #5D5E63;
+						color: $carbon-gray;
 					}
 					&-value {
 						&.coming-soon {
@@ -1395,7 +1395,7 @@ File Overview Styles
 							justify-content: space-between;
 
 							&-title {
-								color: #5D5E63;
+								color: $carbon-gray;
 								width: 120px;
 							}
 							&-value {
@@ -1439,7 +1439,7 @@ File Overview Styles
 						margin-bottom: -1px;
 						button {
 							height: 100%;
-							color: #5D5E63;
+							color: $carbon-gray;
 							font-family: Inter;
 							font-size: 16px;
 							font-weight: 400;
@@ -1508,7 +1508,7 @@ File Overview Styles
 							.icon {
 								font-size: 40px;
 								margin-bottom: 16px;
-								color: #5D5E63;
+								color: $carbon-gray;
 							}
 							.header {
 								font-size: 1rem;
@@ -1519,7 +1519,7 @@ File Overview Styles
 							}
 							.subheader {
 								font-size: 0.875rem;
-								color: #5D5E63;
+								color: $carbon-gray;
 								margin-top: 2px;
 							}
 						}

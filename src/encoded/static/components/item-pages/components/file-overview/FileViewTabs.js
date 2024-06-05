@@ -54,9 +54,6 @@ const AssociatedFilesTab = (props) => {
                     <div className="no-results-content">
                         <i class="icon icon-folder-open fas"></i>
                         <h3 className="header">No Associated Files Found</h3>
-                        <span className="subheader">
-                            No files associated with this file were found
-                        </span>
                     </div>
                 </div>
             )}
