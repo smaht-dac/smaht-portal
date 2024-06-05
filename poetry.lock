@@ -92,6 +92,26 @@ files = [
 requests = ">=0.14.0"
 
 [[package]]
+name = "awscli"
+version = "1.33.1"
+description = "Universal Command Line Environment for AWS."
+category = "main"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "awscli-1.33.1-py3-none-any.whl", hash = "sha256:d446a99e6d2a05a2456f4d3a12240b8d7c0b7cdc42485b4444bbfb3659039cde"},
+    {file = "awscli-1.33.1.tar.gz", hash = "sha256:1a5b5d7e438c0f53ede9142b9e92f25ba955e587f559ddaccba3ceab2568fcb8"},
+]
+
+[package.dependencies]
+botocore = "1.34.119"
+colorama = ">=0.2.5,<0.4.7"
+docutils = ">=0.10,<0.17"
+PyYAML = ">=3.10,<6.1"
+rsa = ">=3.1.2,<4.8"
+s3transfer = ">=0.10.0,<0.11.0"
+
+[[package]]
 name = "beautifulsoup4"
 version = "4.12.3"
 description = "Screen-scraping library"
@@ -963,14 +983,14 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "dcicsnovault"
-version = "11.14.2"
+version = "11.14.3"
 description = "Storage support for 4DN Data Portals."
 category = "main"
 optional = false
 python-versions = "<3.12,>=3.8.1"
 files = [
-    {file = "dcicsnovault-11.14.2-py3-none-any.whl", hash = "sha256:0c39b6f3f1b28ecb6c5d5842d6b846f8f36acd013b8521da6d584164b154ade1"},
-    {file = "dcicsnovault-11.14.2.tar.gz", hash = "sha256:42ced6e02400541bbf659b2e9fbffb5d986bd18f1b4473449ed3672347fa1cad"},
+    {file = "dcicsnovault-11.14.3-py3-none-any.whl", hash = "sha256:de48c89577872f6e4e7c4a2ee8dde7c435ac7998573b0804be2efc81ea6fcba6"},
+    {file = "dcicsnovault-11.14.3.tar.gz", hash = "sha256:2b8720052f1ea617d4df554c4e30df0e6b211376a62311e6461d566df54beafc"},
 ]
 
 [package.dependencies]
@@ -4019,4 +4039,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "76fd2d652d2d6a3d7ccbd0d75ae2d78669f465b7c7d9221dec0d8c8ff5b4671f"
+content-hash = "485aa3e1cce627a26d7dbd756af901f4de590512f1f5f158d6e48d51142c3868"
