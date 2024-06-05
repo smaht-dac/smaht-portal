@@ -16,6 +16,14 @@ Change Log
 * Upgrade SPC to v0.1.85
 
 
+0.59.3
+======
+
+`PR 179: Bring in inserts command fix <https://github.com/smaht-dac/smaht-portal/pull/179>`_
+
+* Bring in snovault with fix for help strings for command to update inserts
+
+
 0.59.2
 ======
 
