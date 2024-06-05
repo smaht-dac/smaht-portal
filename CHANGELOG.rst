@@ -14,6 +14,25 @@ Change Log
 * Add new command ``load-data-from-local`` to allow interactive updates from ``master-inserts``
 
 
+0.59.3
+======
+
+`PR 179: Bring in inserts command fix <https://github.com/smaht-dac/smaht-portal/pull/179>`_
+
+* Bring in snovault with fix for help strings for command to update inserts
+
+
+0.59.2
+======
+
+`PR 178: Clean up poetry commands <https://github.com/smaht-dac/smaht-portal/pull/178>`_
+
+* Clean up commands in `pyproject.toml`
+  * Remove commands not present in repo
+  * Use snovault commands where possible
+  * Reorganize commands by source repo
+
+
 0.59.1
 ======
 
