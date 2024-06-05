@@ -831,8 +831,6 @@ export function UsageStatsView(props){
 
                 <ColorScaleProvider resetScalesWhenChange={file_downloads}>
 
-                    <hr/>
-
                     <AreaChartContainer {...commonContainerProps} id="file_downloads" defaultHeight={fileDownloadClickToTooltip ? 350 : commonContainerProps.defaultHeight}
                         title={
                             <h3 className="charts-group-title">
@@ -860,8 +858,6 @@ export function UsageStatsView(props){
 
                 <ColorScaleProvider resetScalesWhenChange={file_views}>
 
-                    <hr />
-
                     <AreaChartContainer {...commonContainerProps} id="file_views"
                         title={
                             <h3 className="charts-group-title">
@@ -883,8 +879,6 @@ export function UsageStatsView(props){
             { sessions_by_country ?
 
                 <ColorScaleProvider resetScaleLegendWhenChange={sessions_by_country}>
-
-                    <hr/>
 
                     <AreaChartContainer {...commonContainerProps} id="sessions_by_country"
                         title={
@@ -909,8 +903,6 @@ export function UsageStatsView(props){
             { session && fields_faceted ?
 
                 <ColorScaleProvider resetScaleLegendWhenChange={fields_faceted}>
-
-                    <hr className="mt-3"/>
 
                     <AreaChartContainer {...commonContainerProps} id="fields_faceted"
                         title={
