@@ -148,7 +148,7 @@
 
                         "sessions_by_page": {
                             "type" : "array",
-                            "title" : "User Sessions by Page Views",
+                            "title" : "Page Views by Page",
                             "items" : {
                                 "type" : "object",
                                 "properties" : {

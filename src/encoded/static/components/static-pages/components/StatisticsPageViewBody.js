@@ -426,14 +426,25 @@ const aggregationsToChartData = {
         'function' : function(resp, props){
             if (!resp || !resp['@graph']) return null;
 
-            let useReport = 'sessions_by_device_category';
-            let termBucketField = 'ga:deviceCategory';
-            let countKey = 'ga:pageviews';
+            let useReport = null, termBucketField = null, countKey = null;
 
-            if (props.countBy.sessions_by_country !== 'device_category') {
-                useReport = 'sessions_by_country';
-                termBucketField = 'ga:country';
-                countKey = (props.countBy.sessions_by_country === 'sessions') ? 'ga:sessions' : 'ga:pageviews';
+            switch (props.countBy.sessions_by_country) {
+                case 'page_title':
+                case 'page_url':
+                    useReport = 'sessions_by_page';
+                    termBucketField = props.countBy.sessions_by_country === 'page_title' ? 'ga:pageTitle' : 'ga:pageUrl';
+                    countKey = 'ga:pageviews';
+                    break;
+                case 'device_category':
+                    useReport = 'sessions_by_device_category';
+                    termBucketField = 'ga:deviceCategory';
+                    countKey = 'ga:pageviews';
+                    break;
+                default:
+                    useReport = 'sessions_by_country';
+                    termBucketField = 'ga:country';
+                    countKey = (props.countBy.sessions_by_country === 'sessions') ? 'ga:sessions' : 'ga:pageviews';
+                    break;
             }
 
             return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum);
@@ -539,6 +550,7 @@ export class UsageStatsViewController extends React.PureComponent {
                     "fields_faceted",
                     "sessions_by_country",
                     "sessions_by_device_category",
+                    "sessions_by_page",
                     "file_downloads_by_assay_type",
                     "file_downloads_by_dataset",
                     "file_downloads_by_filetype",
@@ -730,6 +742,8 @@ class UsageChartsCountByDropdown extends React.PureComponent {
             menuOptions.set('sessions',         <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>User Session</React.Fragment>);
             if(chartID === 'sessions_by_country') {
                 menuOptions.set('device_category',  <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Device Category</React.Fragment>);
+                menuOptions.set('page_title',  <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Page Title</React.Fragment>);
+                menuOptions.set('page_url',  <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Page Url</React.Fragment>);
             }
         }
 
@@ -813,7 +827,7 @@ export function UsageStatsView(props){
                 </div>
             </GroupByDropdown>
 
-            { session && file_downloads ?
+            { file_downloads ?
 
                 <ColorScaleProvider resetScalesWhenChange={file_downloads}>
 
@@ -842,7 +856,7 @@ export function UsageStatsView(props){
 
                 : null }
 
-            {session && file_views ?
+            { file_views ?
 
                 <ColorScaleProvider resetScalesWhenChange={file_views}>
 
@@ -877,7 +891,9 @@ export function UsageStatsView(props){
                             <h3 className="charts-group-title">
                                 <span className="d-block d-sm-inline">{countBy.sessions_by_country === 'sessions' ? 'User Sessions' : 'Page Views'}</span>
                                 <span className="text-300 d-none d-sm-inline"> - </span>
-                                <span className="text-300">{countBy.sessions_by_country !== 'device_category' ? 'by country' : 'by device categoory'}</span>
+                                <span className="text-300">{countBy.sessions_by_country === 'device_category' ? 'by device categoory' :
+                                    (countBy.sessions_by_country === 'page_title' ? 'by page title' :
+                                    (countBy.sessions_by_country === 'page_url' ? 'by page url' : 'by country'))}</span>
                             </h3>
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" />}
