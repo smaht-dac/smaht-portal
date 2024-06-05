@@ -25,7 +25,7 @@ export default class FileOverview extends DefaultItemView {
  * @param {string} href the href of the file item being viewed
  * @returns {JSX.Element}
  */
-function ViewJSONAction({ href, children }) {
+function ViewJSONAction({ href = '', children }) {
     const urlParts = _.clone(memoizedUrlParse(href));
     urlParts.search =
         '?' +
@@ -78,14 +78,14 @@ const FileViewTitle = (props) => {
                     })}
                 </ul>
             </nav>
-            <h1 className="file-view-title-text">{context.display_title}</h1>
+            <h1 className="file-view-title-text">{context?.display_title}</h1>
         </div>
     );
 };
 
 // Header component containing high-level information for the file item
 const FileViewHeader = (props) => {
-    const { context, session } = props;
+    const { context = {}, session } = props;
     const { accession, status, description } = context;
     const selectedFile = new Map([[context['@id'], context]]);
 
@@ -116,13 +116,16 @@ const FileViewHeader = (props) => {
                     <div className="status-group" data-status={status}>
                         <i className="icon icon-circle fas"></i>
                         <span className="status">
-                            {status.charAt(0).toUpperCase() +
-                                status.substring(1)}
+                            {status?.charAt(0)?.toUpperCase() +
+                                status?.substring(1)}
                         </span>
                     </div>
                     <span className="vertical-divider">|</span>
                     <ViewJSONAction href={context['@id']}>
-                        <a className="view-json">
+                        <a
+                            className="view-json"
+                            aria-label="Open JSON code in new tab"
+                            tabIndex="0">
                             <i className="icon icon-file-code far"></i>
                             <span>View JSON</span>
                         </a>

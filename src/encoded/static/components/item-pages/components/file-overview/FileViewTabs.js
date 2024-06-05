@@ -13,7 +13,8 @@ import { FileOverviewTableController } from './FileOverviewTable';
  * generated externally.
  */
 const AssociatedFilesTab = (props) => {
-    const { context } = props;
+    const { context = {} } = props;
+
     // Create a search href for file associated
     const fileSetUuids = context?.file_sets
         ?.map((fs) => fs.uuid)
@@ -54,8 +55,6 @@ const AnalysisInformationTab = ({ context }) => {
 };
 
 export const FileViewTabs = (props) => {
-    useEffect(() => {}, [props.href]);
-
     return (
         <div className="tabs-container">
             <DotRouter

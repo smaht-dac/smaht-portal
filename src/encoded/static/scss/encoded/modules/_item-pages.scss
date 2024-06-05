@@ -925,7 +925,7 @@ div.user-profile-page {
 				h3 {
 					font-size: 24px;
 					font-weight: 400;
-					color:#343741;
+					color:$gray-70;
 				}
 			}
 		}
@@ -948,7 +948,7 @@ div.user-profile-page {
 
 			.user-title {
 				font-size: 32px;
-				color: #343741;
+				color: $gray-70;
 				font-weight: 600;
 
 				.editable-field-entry {
@@ -1093,7 +1093,7 @@ div.user-profile-page {
 							&.reset {
 								background-color: transparent;
 								border: none;
-								color: #343741;
+								color: $gray-70;
 
 								&:hover {
 									background-color: #eee;
@@ -1156,7 +1156,7 @@ File Overview Styles
 		&-title {
 			background: url('/static/img/polygon-bg-header.svg'), linear-gradient(303deg, rgb(229, 241, 254) 0.52%, #f7fdff 99.55%);
 			background-size: cover;
-			border: 1px solid #E7F0F3;
+			border: 1px solid $porcelain;
 			padding-top: 30px;
 			padding-bottom: 20px;
 
@@ -1189,7 +1189,7 @@ File Overview Styles
 							}
 						}
 						.icon {
-							color: #9BA5B7;
+							color: $gray-30;
 							margin: auto;
 						}
 					}
@@ -1199,7 +1199,7 @@ File Overview Styles
 			&-text {
 				font-size: 1.25rem;
 				font-weight: 500;
-				color: #343741;
+				color: $gray-70;
 				margin: 5px 0px 0px 0px;
 			}
 		}
@@ -1229,12 +1229,12 @@ File Overview Styles
 					justify-content: space-between;
 					width: 100%;
 					padding: 12px 0px;
-					border-bottom: 1px solid #E5E5E5;
+					border-bottom: 1px solid $mercury;
 			
 					&.header {
 						padding-top: 0px;
 						.header-text {
-							color: #343741;
+							color: $gray-70;
 							font-size: 1.75rem;
 							font-weight: 400;
 							margin: 0px;
@@ -1322,7 +1322,7 @@ File Overview Styles
 						.view-json {
 							i {
 								margin-right: 5px;
-								color: #343741;
+								color: $gray-70;
 							}
 							span {
 								color: #0E74D2;
@@ -1385,8 +1385,8 @@ File Overview Styles
 					.body {
 						flex: 1;
 						padding: 10px 12px;
-						border: 1px solid #E5E5E5;
-						border-top: 1px solid #9BA5B7;
+						border: 1px solid $mercury;
+						border-top: 1px solid $gray-30;
 		
 						.datum {
 							display: flex;
@@ -1401,7 +1401,7 @@ File Overview Styles
 							&-value {
 								flex: 1;
 								color: #212529;
-								border-bottom: 1px solid #E5E5E5;
+								border-bottom: 1px solid $mercury;
 								padding-bottom: 5px;
 								padding-right: 5px;
 								margin-left: 20px;
@@ -1432,7 +1432,7 @@ File Overview Styles
 				margin: 30px auto 40px auto;
 		
 				.dot-tab-nav {
-					border-bottom: 1px solid #E7F0F3;
+					border-bottom: 1px solid $porcelain;
 		
 					&-list {
 						height: 39px;
@@ -1452,15 +1452,15 @@ File Overview Styles
 			
 							&.active {
 								border-top-color: #E99415;
-								border-right-color: #E7F0F3;
-								border-left-color: #E7F0F3;
-								color: #343741;
+								border-right-color: $porcelain;
+								border-left-color: $porcelain;
+								color: $gray-70;
 								font-weight: 600; 
 								border-bottom: none;
 								background-color: white;
 							}
 							&.disabled {
-								color: #9BA5B7;
+								color: $gray-30;
 							}
 						}
 					}
@@ -1468,16 +1468,16 @@ File Overview Styles
 				
 				.tab-router-contents {
 					padding: 15px;
-					border-left: 1px solid #E7F0F3;
-					border-right: 1px solid #E7F0F3;
-					border-bottom: 1px solid #E7F0F3;
+					border-left: 1px solid $porcelain;
+					border-right: 1px solid $porcelain;
+					border-bottom: 1px solid $porcelain;
 		
 					.content {
 						.header {
 							color: $gray-70;
 							margin: 0;
 							padding: 10px 0px;
-							border-bottom: 1px solid #E7F0F3;
+							border-bottom: 1px solid $porcelain;
 							font-size: 1rem;
 							font-weight: 500;
 						}
@@ -1496,7 +1496,7 @@ File Overview Styles
 					
 					.tab-coming-soon {
 						font-size: 1.25rem;
-						color: #343741;
+						color: $gray-70;
 						font-weight: 400;
 						margin: 20px 0px;
 					}
@@ -1582,7 +1582,7 @@ File Overview Styles
 			}
 		
 			.vertical-divider {
-				color: #E5E5E5;
+				color: $mercury;
 				margin-left: 6px;
 				margin-right: 6px;
 			}
@@ -1597,7 +1597,7 @@ File Overview Styles
 			.tabs-bar {
 				background-color: #F5F9FB;
 				padding-left: 36px;
-				border-top: 1px solid #E7F0F3;
+				border-top: 1px solid $porcelain;
 				height: 39px;
 				border-bottom: 1px solid #BBC5D8;
 				overflow: visible;
@@ -1606,13 +1606,13 @@ File Overview Styles
 					&-item {
 						background-color: transparent;
 						min-width: 170px;
-						border-right: 1px solid #E7F0F3;
+						border-right: 1px solid $porcelain;
 						border-top: none;
 						justify-content: center;
 						border-bottom: none;
 
 						&:not(:first-child) {
-							border-right: 1px solid #E7F0F3;
+							border-right: 1px solid $porcelain;
 							border-left: none;
 						}
 						
@@ -1709,9 +1709,9 @@ File Overview Styles
 
 							button {
 								height: 50px;
-								border-bottom: 1px solid #E7F0F3;
-								border-left: 1px solid #E7F0F3;
-								border-right: 1px solid #E7F0F3;
+								border-bottom: 1px solid $porcelain;
+								border-left: 1px solid $porcelain;
+								border-right: 1px solid $porcelain;
 
 								.btn-title {
 									text-align: left;
@@ -1725,26 +1725,22 @@ File Overview Styles
 					}
 					.tab-router-contents {
 						margin-top: 20px;
+
+						.embedded-search-container {
+							div.d-flex:first-of-type {
+								flex-wrap: wrap;
+				
+								& > div.ml-auto:last-of-type {
+									margin-top: 10px;
+									padding-left: 0px;
+								}
+							}
+						}
 					}
 				}
 			}
 		}
 	}
-
-	@media screen and (max-width: 500px) {
-		.embedded-search-container {
-			div.d-flex:first-of-type {
-				flex-direction: column;
-
-				& > div.ml-auto:last-of-type {
-					margin-top: 10px;
-					padding-left: 0px;
-				}
-			}
-		}
-	}
-
-
 }
 // May need to move this to search if we end up using this functionality elsewhere
 .batch-files-download-modal {
@@ -1755,13 +1751,13 @@ File Overview Styles
 			border-radius: 11px;
 
 			>.modal-header>.modal-title {
-				color: #343741;
+				color: $gray-70;
 				font-size: 24px;
 				font-weight: 600;
 			}
 			>.modal-body {
 				h2 {
-					color: #343741;
+					color: $gray-70;
 					font-size: 18px;
 					font-weight: 600;
 				}
@@ -1794,7 +1790,7 @@ File Overview Styles
 					}
 		
 					.tsv-metadata-stat {
-						color: #343741;
+						color: $gray-70;
 						font-size: 24px;
 						font-weight: 600;
 					}

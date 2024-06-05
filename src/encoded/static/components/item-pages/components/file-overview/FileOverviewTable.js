@@ -298,12 +298,12 @@ const FileOverviewAboveTableComponent = (props) => {
                 />
                 <SelectedItemsDownloadButton
                     id="download_tsv_multiselect"
-                    disabled={selectedItems.size === 0}
+                    disabled={selectedItems?.size === 0}
                     className="btn btn-primary btn-sm mr-05 align-items-center"
                     {...{ selectedItems, session }}
                     analyticsAddItemsToCart>
                     <i className="icon icon-download fas mr-07" />
-                    Download {selectedItems.size} Selected Files
+                    Download {selectedItems?.size} Selected Files
                 </SelectedItemsDownloadButton>
             </div>
         </div>
