@@ -40,25 +40,29 @@ class FooBarViews:
 
     @view_config(route_name="foo_bar2", request_method=['POST'])
     @debug_log
-    def foo_bar_post(self,post_item):
+    def foo_bar_post(self):
         """Accepts a POST body containing the keys “foo” and “bar”,
         both of whose values must be integers, and returns their
         sum if positive and otherwise returns an invalid response"""
-        post_body = post_item
+        post_body = self.request.params['body']
         foo = post_body['foo']
         bar = post_body['bar']
         # Check if integers
-        try:
-            if isinstance(foo, int) and isinstance(bar,int):
-                foobar_sum = foo + bar
+        if isinstance(foo, int) and isinstance(bar,int):
+            foobar_sum = foo + bar
                 # Check if positive
-                try:
-                    if foobar_sum > 0:
-                        return Response(
-                            content_type='text/plain',
-                            body=foobar_sum
-                        )
-                except:
-                    return "Invalid Response: Sum of foo and bar is negative."
-        except TypeError:
-            return "Invalid Response: Values must be integers"
+            if foobar_sum > 0:
+                return Response(
+                    content_type='text/plain',
+                    body=str(foobar_sum)
+                )
+            else:
+                return Response(
+                    content_type='text/plain',
+                    body="Invalid Response: Sum of values is negative"
+                )
+        else:
+                return Response(
+                    content_type='text/plain',
+                    body="Invalid Response: Values are not integers"
+                )
