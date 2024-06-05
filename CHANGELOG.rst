@@ -16,6 +16,25 @@ Change Log
 * Upgrade SPC to v0.1.85
 
 
+0.59.2
+======
+
+`PR 178: Clean up poetry commands <https://github.com/smaht-dac/smaht-portal/pull/178>`_
+
+* Clean up commands in `pyproject.toml`
+  * Remove commands not present in repo
+  * Use snovault commands where possible
+  * Reorganize commands by source repo
+
+
+0.59.1
+======
+
+`PR 175: Fix command to load inserts <https://github.com/smaht-dac/smaht-portal/pull/175>`_
+
+* Update snovault and use its updated command to load inserts
+
+
 0.59.0
 ======
 
