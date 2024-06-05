@@ -1493,12 +1493,36 @@ File Overview Styles
 							display: flex;
 						}
 					}
-					
-					.tab-coming-soon {
-						font-size: 1.25rem;
-						color: $gray-70;
-						font-weight: 400;
-						margin: 20px 0px;
+
+					.no-results {
+						display: flex;
+						justify-content: center;
+						margin: 20px auto;
+						
+						&-content {
+							display: flex;
+							flex-direction: column;
+							justify-content: center;
+							align-items: center;
+
+							.icon {
+								font-size: 40px;
+								margin-bottom: 16px;
+								color: #5D5E63;
+							}
+							.header {
+								font-size: 1rem;
+								border: none;
+								margin: 0px;
+								padding: 0px;
+								font-weight: 500;
+							}
+							.subheader {
+								font-size: 0.875rem;
+								color: #5D5E63;
+								margin-top: 2px;
+							}
+						}
 					}
 
 					// Overrides styles for search results table in File Overview

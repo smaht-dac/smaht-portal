@@ -14,44 +14,86 @@ import { FileOverviewTableController } from './FileOverviewTable';
  */
 const AssociatedFilesTab = (props) => {
     const { context = {} } = props;
+    const fileSets = context?.file_sets || [];
 
-    // Create a search href for file associated
-    const fileSetUuids = context?.file_sets
-        ?.map((fs) => fs.uuid)
-        ?.join('&file_sets.uuid=');
-    const associatedFilesSearchHref = `/search/?type=File&file_format.display_title=bam&uuid!=${props.context.uuid}&file_sets.uuid=${fileSetUuids}`;
+    // Create a search href for retrieving BAM files in the same file set
+    let DACGeneratedFilesHref, ExternallyGeneratedFilesHref;
 
-    const DACGeneratedFiles =
-        associatedFilesSearchHref + '&submission_centers.display_title=HMS DAC';
+    if (fileSets.length > 0) {
+        const fileSetUuids = context?.file_sets
+            ?.map((fs) => fs.uuid)
+            ?.join('&file_sets.uuid=');
+        const associatedFilesSearchHref = `/search/?type=File&file_format.display_title=bam&uuid!=${props.context.uuid}&file_sets.uuid=${fileSetUuids}`;
 
-    const ExternallyGeneratedFiles =
-        associatedFilesSearchHref +
-        '&submission_centers.display_title!=HMS DAC';
+        DACGeneratedFilesHref =
+            associatedFilesSearchHref +
+            '&submission_centers.display_title=HMS DAC';
+
+        ExternallyGeneratedFilesHref =
+            associatedFilesSearchHref +
+            '&submission_centers.display_title!=HMS DAC';
+    }
 
     return (
         <div className="content associated-files">
-            <FileOverviewTableController
-                {...props}
-                embeddedTableHeaderText="DAC Generated Files"
-                associatedFilesSearchHref={DACGeneratedFiles}
-            />
-            <FileOverviewTableController
-                {...props}
-                embeddedTableHeaderText="Externally Generated Files"
-                associatedFilesSearchHref={ExternallyGeneratedFiles}
-            />
+            {fileSets.length > 0 ? (
+                <>
+                    <FileOverviewTableController
+                        {...props}
+                        embeddedTableHeaderText="DAC Generated Files"
+                        associatedFilesSearchHref={DACGeneratedFilesHref}
+                    />
+                    <FileOverviewTableController
+                        {...props}
+                        embeddedTableHeaderText="Externally Generated Files"
+                        associatedFilesSearchHref={ExternallyGeneratedFilesHref}
+                    />
+                </>
+            ) : (
+                <div className="no-results">
+                    <div className="no-results-content">
+                        <i class="icon icon-folder-open fas"></i>
+                        <h3 className="header">No Associated Files Found</h3>
+                        <span className="subheader">
+                            No files associated with this file were found
+                        </span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
 // DotRouterTab content for displaying QC information for the current file.
 const QCOverviewTab = ({ context }) => {
-    return <h2 className="tab-coming-soon">Coming soon</h2>;
+    return (
+        <div className="no-results">
+            <div className="no-results-content">
+                <i class="icon icon-folder-open fas"></i>
+                <h3 className="header">QC Overview Coming Soon</h3>
+                <span className="subheader">
+                    Check back for updates on QC Overview development with
+                    future portal releases
+                </span>
+            </div>
+        </div>
+    );
 };
 
 // DotRouterTab content for displaying Analysis information for the current file.
 const AnalysisInformationTab = ({ context }) => {
-    return <h2 className="tab-coming-soon">Coming soon</h2>;
+    return (
+        <div className="no-results">
+            <div className="no-results-content">
+                <i class="icon icon-folder-open fas"></i>
+                <h3 className="header">Analysis Information Coming Soon</h3>
+                <span className="subheader">
+                    Check back for updates on Analysis Overview development with
+                    future portal releases
+                </span>
+            </div>
+        </div>
+    );
 };
 
 export const FileViewTabs = (props) => {
