@@ -228,63 +228,94 @@ export const commonParsingFxn = {
 
         return aggsList;
     },
-    'analytics_to_buckets' : function(resp, reportName, termBucketField, countKey, topCount = 0){
-        const subBucketKeysToDate = new Set();
+    'analytics_to_buckets' : function(resp, reportName, termBucketField, countKey, cumulativeSum, topCount = 0){
+        const termsInAllItems = new Set();
 
         // De-dupe -- not particularly necessary as D3 handles this, however nice to have well-formatted data.
         const trackingItems = _.uniq(resp['@graph'], true, function(trackingItem){
             return trackingItem.google_analytics.for_date;
-        });
+        }).reverse(); // We get these in decrementing order from back-end
+
+        let totalSessionsToDate = 0;
+        const termTotals = {}; // e.g. { 'USA': { count: 5, total: 5 }, 'China': { count: 2, total: 2 } }
 
         // Notably, we do NOT sum up total here.
-        const aggsList = trackingItems.map(function(trackingItem, index, allTrackingItems){
+        const aggsList = trackingItems.map(function(trackingItem){
             const { google_analytics : {
                 reports : {
                     [reportName] : currentReport = []
-                }, // `currentReport` => List of JSON objects (report entries, 1 per unique dimension value)
+                }, // `currentReport` => List of JSON objects (report entries, 1 per unique dimension value) - Note: 1 per unique dimension may not be valid for post processing report items in smaht-foursight 
                 for_date
             } } = trackingItem;
 
-            const totalSessions = _.reduce(currentReport, function(sum, trackingItemItem){
-                return sum + trackingItemItem[countKey];
-            }, 0);
-
-            const currItem = {
-                'date'      : trackingItem.google_analytics.for_date,
-                'count'     : totalSessions,
-                'total'     : totalSessions,
-                'children'  : currentReport.map(function(reportEntry){
-                    const term = typeof termBucketField === 'function' ? termBucketField(reportEntry) : reportEntry[termBucketField];
-                    subBucketKeysToDate.add(term);
-                    return {
-                        'term'      : term,
-                        'count'     : reportEntry[countKey],
-                        'total'     : reportEntry[countKey],
-                        'date'      : for_date
+            const termsInCurrenItem = new Set();
+            
+            // Unique-fy
+            // group terms by term since terms are repeated while ga4 to tracking-item conversion done
+            // (note that aggregated values won't work if the aggregated field is already an avg, min, max may field)
+            const { groupedTermsObj, totalSessions } = _.reduce(currentReport, function ({ groupedTermsObj, totalSessions }, trackingItemItem) {
+                const term = typeof termBucketField === 'function' ? termBucketField(trackingItemItem) : trackingItemItem[termBucketField];
+                if (groupedTermsObj[term]) {
+                    groupedTermsObj[term].count += trackingItemItem[countKey];
+                    groupedTermsObj[term].total += trackingItemItem[countKey];
+                } else {
+                    groupedTermsObj[term] = {
+                        'term': term,
+                        'count': trackingItemItem[countKey],
+                        'total': trackingItemItem[countKey],
+                        'date': for_date
                     };
+                    termsInAllItems.add(term);
+                    termsInCurrenItem.add(term);
+                }
+                totalSessions += trackingItemItem[countKey]
+                return { groupedTermsObj, totalSessions };
+            }, { groupedTermsObj: {}, totalSessions: 0 });
+            
+            totalSessionsToDate += totalSessions;
+
+            const currentItem = {
+                'date'      : for_date,
+                'count'     : cumulativeSum ? totalSessionsToDate : totalSessions,
+                'total'     : cumulativeSum ? totalSessionsToDate : totalSessions,
+                'children': _.values(groupedTermsObj).map(function (termItem) {
+                    const cloned = { ...termItem };
+                    if (cumulativeSum) {
+                        let { count = 0, total = 0 } = termTotals[termItem.term] || {};
+                        total += (termItem.total || 0);
+                        count += (termItem.count || 0);
+                        termTotals[termItem.term] = { total, count };
+
+                        cloned.count = count;
+                        cloned.total = total;
+                    }
+                    return cloned;
                 })
             };
 
-            // Unique-fy
-            currItem.children = _.values(_.reduce(currItem.children || [], function(memo, child){
-                if (memo[child.term]) {
-                    memo[child.term].count += child.count;
-                    memo[child.term].total += child.total;
-                } else {
-                    memo[child.term] = child;
-                }
-                return memo;
-            }, {}));
-
-            if (typeof topCount === 'number' && topCount > 0) {
-                currItem.children = _.sortBy(currItem.children, (item) => -1 * item.total).slice(0, topCount);
+            // add missing children for cumulative view
+            if (cumulativeSum) {
+                termsInAllItems.forEach(term => {
+                    if (!termsInCurrenItem.has(term)) {
+                        currentItem.children.push({
+                            'term': term,
+                            'count': termTotals[term].count,
+                            'total': termTotals[term].total,
+                            'date': for_date
+                        });
+                    }
+                });
             }
 
-            return currItem;
+            if (typeof topCount === 'number' && topCount > 0) {
+                currentItem.children = _.sortBy(currentItem.children, (item) => -1 * item.total).slice(0, topCount);
+            }
 
-        }).reverse(); // We get these in decrementing order from back-end
+            return currentItem;
 
-        commonParsingFxn.fillMissingChildBuckets(aggsList, Array.from(subBucketKeysToDate));
+        }); // We get these in decrementing order from back-end
+
+        commonParsingFxn.fillMissingChildBuckets(aggsList, Array.from(termsInAllItems));
 
         return aggsList;
     }
@@ -387,7 +418,7 @@ const aggregationsToChartData = {
             if (props.fields_faceted_group_by === 'term') groupingKey = 'ga:dimension4';
             if (props.fields_faceted_group_by === 'field+term') groupingKey = 'ga:eventLabel';
 
-            return commonParsingFxn.analytics_to_buckets(resp, 'fields_faceted', groupingKey, countKey);
+            return commonParsingFxn.analytics_to_buckets(resp, 'fields_faceted', groupingKey, countKey, props.cumulativeSum);
         }
     },
     'sessions_by_country' : {
@@ -405,7 +436,7 @@ const aggregationsToChartData = {
                 countKey = (props.countBy.sessions_by_country === 'sessions') ? 'ga:sessions' : 'ga:pageviews';
             }
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum);
         }
     },
     /**
@@ -440,7 +471,7 @@ const aggregationsToChartData = {
 
             console.log("AGGR", resp, props, countBy, groupingKey, useReport);
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, topCount);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, topCount);
         }
     },
     'file_views' : {
@@ -462,7 +493,7 @@ const aggregationsToChartData = {
                 else if (countBy === 'file_clicks') countKey = 'ga:productListClicks';
             }
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum);
         }
     },
 };
@@ -724,7 +755,7 @@ export function UsageStatsView(props){
         changeCountByForChart, countBy,
         // Passed in from StatsChartViewAggregator:
         sessions_by_country, chartToggles, fields_faceted,
-        file_downloads, file_views, smoothEdges, onChartToggle, onSmoothEdgeToggle
+        file_downloads, file_views, smoothEdges, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
     } = props;
 
     if (loadingStatus === 'failed'){
@@ -760,7 +791,12 @@ export function UsageStatsView(props){
     }, [ currentGroupBy, anyExpandedCharts ]);
 
     const commonContainerProps = { 'onToggle' : onChartToggle, chartToggles, windowWidth, 'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250 };
-    const commonChartProps = { dateRoundInterval, 'xDomain' : commonXDomain, 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter };
+    const commonChartProps = {
+        dateRoundInterval,
+        'xDomain': commonXDomain,
+        'curveFxn': smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter,
+        cumulativeSum: cumulativeSum
+    };
     const countByDropdownProps = { countBy, changeCountByForChart };
     const fileDownloadClickToTooltip = (countBy.file_downloads === 'top_files');
 
@@ -769,8 +805,11 @@ export function UsageStatsView(props){
 
             <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
                 title="Show" outerClassName="dropdown-container mb-0">
-                <div className="d-inline-block ml-15">
+                <div className="d-inline-block ml-15 mr-15">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
+                </div>
+                <div className="d-inline-block">
+                    <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Show as cumulative sum</Checkbox>
                 </div>
             </GroupByDropdown>
 
