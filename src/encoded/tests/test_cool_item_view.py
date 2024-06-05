@@ -7,9 +7,6 @@ from .utils import (
 )
 
 
-# def unit_test_cool_uuid():
-#     pass
-
 @pytest.mark.workbook
 def test_cool_uuid(es_testapp: TestApp,
                    workbook: None,
@@ -19,6 +16,6 @@ def test_cool_uuid(es_testapp: TestApp,
     uuid = get_insert_identifier_for_item_type(es_testapp,item_type)
     url = f"/user/{uuid}/@@cool"
     response = es_testapp.get(url, status=200)
-    validation = b"Cool-"+uuid == response.body
+    validation = b"Cool-"+uuid == response['@graph']['body']
     assert validation
 

@@ -5,25 +5,34 @@ from structlog import getLogger
 from encoded.types.base import (
     Item
 )
-from encoded_core.file_views import build_drs_object_from_props
+import structlog
 
 log = getLogger(__name__)
 
 
 def includeme(config):
-    config.add_route('cool', '/{type}/{uuid}/@@cool')
+    config.add_route('cool', '/{type_name}/{uuid}/@@cool')
     config.scan(__name__)
 
 
 @view_config(route_name="cool", context=Item, request_method=['GET'],
-             permission='view', subpath_segments=[0,1])
+             permission='view')
 @debug_log
 def cool(context,request):
     """all items accessed via “@@cool” (e.g. “/file/<uuid>/@@cool”)
     that returns the string “Cool-<uuid>” where <uuid> is the items UUID"""
-    #at_id =  request.matchdict['@id']
+    #rendered_object = request.embed(str(context.uuid), '@@cool', as_user=True)
+    # type_name = request.matchdict['type_name']
+    # uuid = request.matchdict['uuid']
+    # atid = request.resource_path(context)
     uuid = context.properties.get('uuid')
     body='Cool-'+uuid
+    # return {
+    #     '@graph' : [{
+    #         '@id': atid,
+    #         'body': resbody
+    #     }]
+    # }
     return Response(
         content_type='text/plain',
         body=body
