@@ -1508,7 +1508,7 @@ File Overview Styles
 							.icon {
 								font-size: 40px;
 								margin-bottom: 16px;
-								color: $carbon-gray;
+								color: $gray-30;
 							}
 							.header {
 								font-size: 1rem;
@@ -1522,6 +1522,7 @@ File Overview Styles
 								font-size: 0.875rem;
 								color: $carbon-gray;
 								margin-top: 2px;
+								text-align: center;
 							}
 						}
 					}
@@ -1704,6 +1705,7 @@ File Overview Styles
 
 							.download-file-button {
 								margin-top: 10px;
+								justify-content: center;
 							}
 						}
 

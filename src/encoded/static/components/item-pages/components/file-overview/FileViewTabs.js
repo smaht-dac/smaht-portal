@@ -73,8 +73,8 @@ const AnalysisInformationTab = ({ context }) => {
                 <i class="icon icon-network-wired fas"></i>
                 <h3 className="header">Analysis Information Coming Soon</h3>
                 <span className="subheader">
-                    Check back for updates on Analysis Overview development with
-                    future portal releases
+                    Check back for updates on Analysis Information development
+                    with future portal releases
                 </span>
             </div>
         </div>
