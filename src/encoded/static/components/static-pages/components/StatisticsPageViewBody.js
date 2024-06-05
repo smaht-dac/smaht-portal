@@ -485,6 +485,37 @@ const aggregationsToChartData = {
             return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, topCount);
         }
     },
+    'file_downloads_volume' : {
+        'requires'  : "TrackingItem",
+        'function'  : function(resp, props){
+            if (!resp || !resp['@graph']) return null;
+            const { countBy : { file_downloads_volume : countBy } } = props;
+
+            let useReport = 'file_downloads_by_filetype';
+            let groupingKey = "ga:productVariant"; // File Type
+            const countKey = 'ga:metric1'; // Download Size
+            let topCount = 0; //all
+
+            if (countBy === 'assay_type'){
+                useReport = 'file_downloads_by_assay_type';
+                groupingKey = 'ga:dimension5'; // Assay Type
+            } else if (countBy === 'dataset'){
+                useReport = 'file_downloads_by_dataset';
+                groupingKey = 'ga:dimension6'; // Dataset
+            } else if (countBy === 'top_files'){
+                useReport = 'top_files_downloaded';
+                groupingKey = 'ga:productSku'; // File
+                topCount = 10;
+            } else if (countBy === 'geo_country'){
+                useReport = 'file_downloads_by_country';
+                groupingKey = 'ga:country';
+            }
+
+            console.log("AGGR", resp, props, countBy, groupingKey, useReport);
+
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, topCount);
+        }
+    },
     'file_views' : {
         'requires' : 'TrackingItem',
         'function' : function(resp, props){
@@ -517,7 +548,8 @@ export const submissionsAggsToChartData = _.pick(aggregationsToChartData,
 );
 
 export const usageAggsToChartData = _.pick(aggregationsToChartData,
-    'sessions_by_country', 'fields_faceted', 'file_downloads', 'file_views'
+    'file_downloads',  'file_downloads_volume',
+    'sessions_by_country', 'fields_faceted','file_views'
 );
 
 
@@ -596,7 +628,7 @@ export class UsageStatsViewController extends React.PureComponent {
         const countBy = {};
 
         Object.keys(usageAggsToChartData).forEach(function(k){
-            if (k === 'file_downloads'){
+            if (k === 'file_downloads' || k === 'file_downloads_volume'){
                 countBy[k] = 'filetype'; // For file_downloads, countBy is treated as 'groupBy'.
                 // Not high enough priority to spend much time improving this file, albeit much straightforward room for it exists.
             } else if (k === 'file_views'){
@@ -718,6 +750,9 @@ class UsageChartsCountByDropdown extends React.PureComponent {
     handleSelection(evtKey, evt){
         const { changeCountByForChart, chartID } = this.props;
         changeCountByForChart(chartID, evtKey);
+        if (chartID == 'file_downloads') {
+            changeCountByForChart('file_downloads_volume', evtKey);
+        }
     }
 
     render(){
@@ -726,7 +761,7 @@ class UsageChartsCountByDropdown extends React.PureComponent {
 
         const menuOptions = new Map();
 
-        if (chartID === 'file_downloads'){
+        if (chartID === 'file_downloads' ){
             menuOptions.set('filetype',         <React.Fragment><i className="icon fas icon-fw icon-file-alt mr-1"/>File Type</React.Fragment>);
             menuOptions.set('assay_type',       <React.Fragment><i className="icon fas icon-fw icon-vial mr-1"/>Assay Type</React.Fragment>);
             menuOptions.set('dataset',          <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Dataset</React.Fragment>);
@@ -769,7 +804,8 @@ export function UsageStatsView(props){
         changeCountByForChart, countBy,
         // Passed in from StatsChartViewAggregator:
         sessions_by_country, chartToggles, fields_faceted,
-        file_downloads, file_views, smoothEdges, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
+        file_downloads, file_downloads_volume, file_views,
+        smoothEdges, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
     } = props;
 
     if (loadingStatus === 'failed'){
@@ -830,24 +866,37 @@ export function UsageStatsView(props){
             { file_downloads ?
 
                 <ColorScaleProvider resetScalesWhenChange={file_downloads}>
+                
+                    <div className="clearfix">
+                        <div className="pull-right mt-05">
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_downloads" />
+                        </div>
+                        <h3 className="charts-group-title">
+                            <span className="d-block d-sm-inline">File Downloads</span><span className="text-300 d-none d-sm-inline"> - </span>
+                            <span className="text-300">{
+                                countBy.file_downloads === 'assay_type' ? 'by assay type' :
+                                    (countBy.file_downloads === 'filetype' ? 'by file type' :
+                                        (countBy.file_downloads === 'dataset' ? 'by dataset' : 'top 10 files'))
+                            }</span>
+                        </h3>
+                    </div>
+
+                    <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
                     <AreaChartContainer {...commonContainerProps} id="file_downloads" defaultHeight={fileDownloadClickToTooltip ? 350 : commonContainerProps.defaultHeight}
-                        title={
-                            <h3 className="charts-group-title">
-                                <span className="d-block d-sm-inline">File Downloads</span><span className="text-300 d-none d-sm-inline"> - </span>
-                                <span className="text-300">{
-                                    countBy.file_downloads === 'assay_type' ? 'by assay type' :
-                                        (countBy.file_downloads === 'filetype' ? 'by file type' :
-                                            (countBy.file_downloads === 'dataset' ? 'by dataset' : 'top 10 files'))
-                                }</span>
-                            </h3>
-                        }
+                        title={<h5 className="text-400 mt-0">Total File Count</h5>}
                         subTitle={
                             fileDownloadClickToTooltip ? <h4 className="font-weight-normal text-secondary">Click bar to view details</h4> : null
-                        }
-                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_downloads" />}
-                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
+                        }>
                         <AreaChart {...commonChartProps} data={file_downloads} showTooltipOnHover={!fileDownloadClickToTooltip} />
+                    </AreaChartContainer>
+
+                    <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" defaultHeight={fileDownloadClickToTooltip ? 350 : commonContainerProps.defaultHeight}
+                        title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
+                        subTitle={
+                            fileDownloadClickToTooltip ? <h4 className="font-weight-normal text-secondary">Click bar to view details</h4> : null
+                        }>
+                        <AreaChart {...commonChartProps} data={file_downloads_volume} showTooltipOnHover={!fileDownloadClickToTooltip} yAxisLabel="GB" />
                     </AreaChartContainer>
 
                 </ColorScaleProvider>
