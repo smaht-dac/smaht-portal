@@ -310,7 +310,7 @@ const BenchmarkingAboveTableComponent = React.memo(
 
 const SELECT_ALL_LIMIT = 8000;
 
-class SelectAllFilesButton extends React.PureComponent {
+export class SelectAllFilesButton extends React.PureComponent {
     /** These are fields included when "Select All" button is clicked to AJAX all files in */
     static fieldsToRequest = [
         'accession',
