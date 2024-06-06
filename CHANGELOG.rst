@@ -7,8 +7,9 @@ smaht-portal
 Change Log
 ----------
 
-0.60.0
+0.61.0
 ======
+
 * Added src/encoded/tests/data/demo_inserts with (well) demo inserts for objects needed
   by the demo metadata spreadsheet (for annual meeting 2024): bcm_formatted_hapmapmix.xlsx ...
   https://docs.google.com/spreadsheets/d/1qCm0bY-vG4a9uiaOvmKHZ12MvhmMKKRfEpgAm-7Hsh4/edit#gid=1472887809
@@ -21,6 +22,15 @@ Change Log
   -  Removed ref_lookup_strategy references for structured_data; refactored/internalized in dcicutils.
 * Added rclone (Google-to-AWS) related documentation.
 * Some make lint fixups.
+
+
+0.60.0
+======
+
+`PR 123: File Overview Page <https://github.com/smaht-dac/smaht-portal/pull/123>`_
+
+* Add File Overview Page for improved view of additional details for File items
+* Upgrade SPC to v0.1.85
 
 
 0.59.3
