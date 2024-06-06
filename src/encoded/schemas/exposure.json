@@ -129,10 +129,11 @@
             "description": "Route of the exposure",
             "type": "string",
             "enum": [
-                "Dermal",
+                "Intranasal",
+                "Transdermal",
                 "Inhalation",
                 "Ingestion",
-                "Injection",
+                "IV",
                 "Unknown"
             ]
         },

@@ -63,7 +63,7 @@
         },
         "ischemic_time": {
             "title": "Ischemic Time",
-            "description": "Time interval in minutes between death, presumed death, or cross-clamp application and beginning of tissue collection",
+            "description": "Time interval between death, presumed death, or cross-clamp application and beginning of tissue collection (hours)",
             "type": "number",
             "minimum": 0
         },
