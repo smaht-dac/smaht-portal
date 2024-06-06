@@ -24,9 +24,16 @@ Change Log
 * Some make lint fixups.
 
 
-0.60.0
+0.60.1
 ======
 
+* Add new command ``check-insert-consistency`` to quickly detect errors on live environments related to inconsistencies with ``master-inserts``
+* Add new command ``load-data-from-local`` to allow interactive updates from ``master-inserts``
+
+
+0.60.0
+======  
+  
 `PR 123: File Overview Page <https://github.com/smaht-dac/smaht-portal/pull/123>`_
 
 * Add File Overview Page for improved view of additional details for File items
