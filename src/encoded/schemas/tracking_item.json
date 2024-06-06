@@ -197,6 +197,10 @@
                             "items" : {
                                 "type" : "object",
                                 "properties": {
+                                    "ga:productVariant" : {
+                                        "type" : "string",
+                                        "title" : "File Type"
+                                    },
                                     "ga:productName" : {
                                         "type" : "string",
                                         "title" : "File Title"

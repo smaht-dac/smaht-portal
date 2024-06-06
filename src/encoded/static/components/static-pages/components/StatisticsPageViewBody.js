@@ -541,7 +541,7 @@ const aggregationsToChartData = {
 
             if (countBy !== 'metadata_tsv_by_country') {
                 useReport = 'views_by_file';
-                termBucketField = 'ga:productBrand';
+                termBucketField = 'ga:productVariant';
                 countKey = 'ga:productDetailViews';
 
                 if (countBy === 'file_list_views') countKey = 'ga:productListViews';
@@ -926,7 +926,7 @@ export function UsageStatsView(props){
                                 <span className="d-block d-sm-inline">File Views</span><span className="text-300 d-none d-sm-inline"> - </span>
                                 <span className="text-300">{countBy.file_views === 'metadata_tsv_by_country' ? 'metadata.tsv files' :
                                     (countBy.file_views === 'file_list_views' ? 'appearances in results' :
-                                        countBy.file_views === 'file_clicks' ? 'clicks from results' : 'file detail views')}</span>
+                                        countBy.file_views === 'file_clicks' ? 'clicks from results' : 'detail views')}</span>
                             </h3>
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" />}
