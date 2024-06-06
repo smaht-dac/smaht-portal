@@ -1731,24 +1731,51 @@ body.is-item-view[data-pathname^="/users/"] #page-title-container,
 Unique styling for benchmarking pages
 **/
 body[data-pathname^="/data/benchmarking"] {
-	#post-navbar-container>#content.container:not(.error-page) {
-		width: 100%;
-		max-width: calc(100% - 4em);
-		margin: 0 2em;
-
-		@include media-breakpoint-up(lg) {
-			margin: 0;
+	#post-navbar-container {
+		#content.container:not(.error-page) {
 			width: 100%;
-			padding: 0;
-			max-width: none;
-		
-			.static-page {
-				margin: 0px;
-				.static-section-entry {
-					margin: 0px;
+			max-width: calc(100% - 4em);
+			margin: 0 2em;
 
-					&>.section-title { 
-						display: none;
+		}
+		@include media-breakpoint-up(lg) {
+			display: flex;
+			flex-direction: column;
+
+
+			#content.container:not(.error-page) {
+				display: flex;
+				flex-direction: column;
+				flex: 1;
+				margin: 0;
+				width: 100%;
+				padding: 0;
+				max-width: none;
+			
+				.static-page {
+					display: flex;
+					flex-direction: column;
+					margin: 0px;
+					flex: 1;
+					> div {
+						display: flex;
+						flex-direction: column;
+						flex: 1;
+					}
+					.static-section-entry {
+						display: flex;
+						flex-direction: column;
+						flex: 1;
+						margin: 0px;
+	
+						&>.section-title { 
+							display: none;
+						}
+						&>.section-content {
+							display: flex;
+							flex-direction: column;
+							flex: 1;
+						}
 					}
 				}
 			}
@@ -1763,6 +1790,7 @@ body[data-pathname^="/data/benchmarking"] {
 		// Header and description text
 		.benchmarking-layout-container {
 			width: 100%;
+			max-height: calc(100% - 200px);
 			.benchmarking-layout{
 				>nav.nav-tabs {
 					.nav-link {
@@ -1880,6 +1908,7 @@ body[data-pathname^="/data/benchmarking"] {
 
 		@include media-breakpoint-up(lg) {
 			display: flex;
+			flex: 1;
 			padding: 0px;
 
 			// Header and description text
