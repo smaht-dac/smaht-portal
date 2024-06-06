@@ -129,6 +129,12 @@
                 "Unaligned Reads"
             ]
         },
+        "has_new_type": {
+            "title": "Has New Type",
+            "description": "Associated new type",
+            "type": "string",
+            "linkTo": "NewType"
+        },
         "schema_version": {
             "default": "1"
         },

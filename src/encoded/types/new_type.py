@@ -25,8 +25,7 @@ def _build_new_type_embedded_list() -> List[str]:
         "submission_centers.identifier",
         
         # # User linkTo
-        # "associated_file_sets.submitted_id",
-        # "associated_file_sets.file_group",
+        "associated_file_set.file_group.*",
 
         #Rev linkTo donor
         #"donor.submitted_id",
@@ -50,9 +49,9 @@ class NewType(Item):
     schema = load_schema("encoded:schemas/new_type.json")
     embedded_list = _build_new_type_embedded_list()
 
-    # rev = {
-    #     "unaligned_reads": ("UnalignedReads", "has_new_type"),
-    # }
+    rev = {
+        "unaligned_reads": ("UnalignedReads", "has_new_type"),
+    }
 
     @calculated_property(schema={"title": "Foobar Value", "type": "string"})
     def string_and_number(
@@ -69,13 +68,12 @@ class NewType(Item):
             "title": "Submission Centers",
             "type": "array",
             "items": {
-                "type": "string",
-                "linkTo": "SubmissionCenter"
+                "type": "string"
             }
         }
     )
     def submission_centers_display_title(
-        self, request: Request,submission_centers: List[str],
+        self, request: Request,submission_centers: List[str] = None,
         ) -> Union[List[str],None]:
         """Submission Centers for the new type."""
         #result = self.get("submission_centers.display_title",[])
@@ -93,50 +91,16 @@ class NewType(Item):
                 result = sorted(list(submission_center_display_titles))
         return result
 
-
-    # @calculated_property(
-    #     schema={
-    #         "title": "Unaligned Reads",
-    #         "type": "string",
-    #         "linkTo": "NewType",
-    #     },
-    # )
-    # def unaligned_reads(self, request: Request) -> Union[str, None]:
-    #     result = self.rev_link_atids(request, "unaligned_reads")
-    #     if result:
-    #         return result
-    #     return
+    @calculated_property(
+        schema={
+            "title": "Unaligned Reads",
+            "type": "string",
+            "linkTo": "NewType",
+        },
+    )
+    def unaligned_reads(self, request: Request) -> Union[str, None]:
+        result = self.rev_link_atids(request, "unaligned_reads")
+        if result:
+            return result
+        return
     
-#new_type.json insert
-        #     "associated_file_sets": [
-        #     "TEST_FILE-SET_LIVER"
-        # ],
-
-# new_type.json schema
-
-# "if": {
-#             "properties": {
-#                 "foo_or_bar": {"const": "Bar"}
-#             }
-#         },
-#         "then": {
-#             "properties": {
-#                 "how_bar": {
-#                     "title": "Check How Bar",
-#                     "description": "Object property finds out how bar if Bar is value",
-#                     "type": "string",
-#                     "enum": ["very","not that much"]
-#                 }
-#             }
-#         },
-#         "else": {
-#             "properties": {
-#                 "how_bar": {
-#                     "title": "Check How Bar",
-#                     "description": "Object property finds out how bar if Bar is value",
-#                     "type": "string",
-#                     "enum": [""]
-#                 }
-#             }
-            
-#         },

@@ -50,6 +50,12 @@
                 "type": "object"
             }
         },
+        "associated_file_set": {
+            "title": "Associated File Set",
+            "description": "file set associated with new type",
+            "type": "string",
+            "linkTo": "FileSet"
+        },
         "date": {
             "title": "Date",
             "description": "string property that must be formatted as a date or datetime",

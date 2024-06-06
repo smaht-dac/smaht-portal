@@ -68,14 +68,21 @@ def test_submission_centers(
 #     #tissue_samples = new_type_utils.get_tissue_samples(item)
 #     display_title = item.get("tissue_samples_display_title",[])
 #     assert  display_title == expected
-
-
-# def test_unaligned_read_rev_link(
-#     testapp: TestApp,
-#     new_type: Dict[str, Any],
-#     test_unaligned_read: Dict[str, Any]) -> None:
-#     """Ensure 'unaligned reads' rev link calc prop working."""
-#     expected = test_unaligned_read.get("submission_id","")
-#     unaligned_read_rev_link = new_type.get("unaligned_reads","")
-
-#     assert unaligned_read_rev_link == expected
+@pytest.mark.workbook
+def test_unaligned_read_rev_link(
+    es_testapp: TestApp,
+    workbook: None) -> None:
+    """Ensure 'unaligned reads' rev link calc prop working."""
+    ur_item= get_item(
+        es_testapp,
+        "TEST_UNALIGNED-READS_FASTQ",
+        collection="UnalignedReads",
+    )
+    expected = ur_item.get("display_title","")
+    new_type = get_item(
+        es_testapp,
+        "NT1",
+        collection="NewType"
+    )
+    unaligned_read_rev_link = new_type.get("unaligned_reads","")[0].get("display_title","")
+    assert unaligned_read_rev_link == expected
