@@ -511,9 +511,22 @@ const aggregationsToChartData = {
                 groupingKey = 'ga:country';
             }
 
-            console.log("AGGR", resp, props, countBy, groupingKey, useReport);
-
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, topCount);
+            //convert volume to GB
+            const gigabyte = 1024 * 1024 * 1024;
+            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, topCount);
+            if (result && Array.isArray(result) && result.length > 0) {
+                _.forEach(result, (r) => {
+                    r.total = r.total / gigabyte;
+                    r.count = r.count / gigabyte;
+                    if (r.children && Array.isArray(r.children) && r.children.length > 0) {
+                        _.forEach(r.children, (c) => {
+                            c.total = c.total / gigabyte;
+                            c.count = c.count / gigabyte;
+                        });
+                    }
+                });
+            }
+            return result;
         }
     },
     'file_views' : {
