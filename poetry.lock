@@ -92,26 +92,6 @@ files = [
 requests = ">=0.14.0"
 
 [[package]]
-name = "awscli"
-version = "1.33.1"
-description = "Universal Command Line Environment for AWS."
-category = "main"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "awscli-1.33.1-py3-none-any.whl", hash = "sha256:d446a99e6d2a05a2456f4d3a12240b8d7c0b7cdc42485b4444bbfb3659039cde"},
-    {file = "awscli-1.33.1.tar.gz", hash = "sha256:1a5b5d7e438c0f53ede9142b9e92f25ba955e587f559ddaccba3ceab2568fcb8"},
-]
-
-[package.dependencies]
-botocore = "1.34.119"
-colorama = ">=0.2.5,<0.4.7"
-docutils = ">=0.10,<0.17"
-PyYAML = ">=3.10,<6.1"
-rsa = ">=3.1.2,<4.8"
-s3transfer = ">=0.10.0,<0.11.0"
-
-[[package]]
 name = "beautifulsoup4"
 version = "4.12.3"
 description = "Screen-scraping library"
@@ -135,18 +115,18 @@ lxml = ["lxml"]
 
 [[package]]
 name = "boto3"
-version = "1.34.119"
+version = "1.34.120"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-1.34.119-py3-none-any.whl", hash = "sha256:8f9c43c54b3dfaa36c4a0d7b42c417227a515bc7a2e163e62802780000a5a3e2"},
-    {file = "boto3-1.34.119.tar.gz", hash = "sha256:cea2365a25b2b83a97e77f24ac6f922ef62e20636b42f9f6ee9f97188f9c1c03"},
+    {file = "boto3-1.34.120-py3-none-any.whl", hash = "sha256:3c42bc309246a761413f6e152f307f009e80e7c9fd03dd9e6c0dc8ab8b3a8fc1"},
+    {file = "boto3-1.34.120.tar.gz", hash = "sha256:38893db8269d25b72cc6fbab97633bfc863eefde5456847169d06149a16aa6e0"},
 ]
 
 [package.dependencies]
-botocore = ">=1.34.119,<1.35.0"
+botocore = ">=1.34.120,<1.35.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -155,14 +135,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "boto3-stubs"
-version = "1.34.119"
-description = "Type annotations for boto3 1.34.119 generated with mypy-boto3-builder 7.24.0"
+version = "1.34.120"
+description = "Type annotations for boto3 1.34.120 generated with mypy-boto3-builder 7.24.0"
 category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3_stubs-1.34.119-py3-none-any.whl", hash = "sha256:40377cf27051ac765fff511d87044ee96c8a083eded3040d430472c60603241b"},
-    {file = "boto3_stubs-1.34.119.tar.gz", hash = "sha256:6f993b6c495a9cc403caa2ea6f061f3388aa5a9018a35bbe7eb6e943b34c56a0"},
+    {file = "boto3_stubs-1.34.120-py3-none-any.whl", hash = "sha256:3f3ebfb90e4497d988add08d5d5b1250dc6ac14913a380573934394af6be9ab0"},
+    {file = "boto3_stubs-1.34.120.tar.gz", hash = "sha256:1979013858f25e1aed8bb5e69fad3179d56707516c7f0f52af93980d00888567"},
 ]
 
 [package.dependencies]
@@ -213,7 +193,7 @@ bedrock-agent = ["mypy-boto3-bedrock-agent (>=1.34.0,<1.35.0)"]
 bedrock-agent-runtime = ["mypy-boto3-bedrock-agent-runtime (>=1.34.0,<1.35.0)"]
 bedrock-runtime = ["mypy-boto3-bedrock-runtime (>=1.34.0,<1.35.0)"]
 billingconductor = ["mypy-boto3-billingconductor (>=1.34.0,<1.35.0)"]
-boto3 = ["boto3 (==1.34.119)", "botocore (==1.34.119)"]
+boto3 = ["boto3 (==1.34.120)", "botocore (==1.34.120)"]
 braket = ["mypy-boto3-braket (>=1.34.0,<1.35.0)"]
 budgets = ["mypy-boto3-budgets (>=1.34.0,<1.35.0)"]
 ce = ["mypy-boto3-ce (>=1.34.0,<1.35.0)"]
@@ -562,14 +542,14 @@ xray = ["mypy-boto3-xray (>=1.34.0,<1.35.0)"]
 
 [[package]]
 name = "botocore"
-version = "1.34.119"
+version = "1.34.120"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "botocore-1.34.119-py3-none-any.whl", hash = "sha256:4bdf7926a1290b2650d62899ceba65073dd2693e61c35f5cdeb3a286a0aaa27b"},
-    {file = "botocore-1.34.119.tar.gz", hash = "sha256:b253f15b24b87b070e176af48e8ef146516090429d30a7d8b136a4c079b28008"},
+    {file = "botocore-1.34.120-py3-none-any.whl", hash = "sha256:92bd739938078c7a0b110689a3eee21ecb3954d90653da013d9f98ef1165d6f7"},
+    {file = "botocore-1.34.120.tar.gz", hash = "sha256:5cc0fca43cb2aad54917a394a001ac9ba774d21ad6a08828002d54b601776f78"},
 ]
 
 [package.dependencies]
@@ -585,14 +565,14 @@ crt = ["awscrt (==0.20.9)"]
 
 [[package]]
 name = "botocore-stubs"
-version = "1.34.94"
+version = "1.34.120"
 description = "Type annotations and code completion for botocore"
 category = "dev"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "botocore_stubs-1.34.94-py3-none-any.whl", hash = "sha256:b0345f55babd8b901c53804fc5c326a4a0bd2e23e3b71f9ea5d9f7663466e6ba"},
-    {file = "botocore_stubs-1.34.94.tar.gz", hash = "sha256:64d80a3467e3b19939e9c2750af33328b3087f8f524998dbdf7ed168227f507d"},
+    {file = "botocore_stubs-1.34.120-py3-none-any.whl", hash = "sha256:89634ec5d704fd8fde3e9947a8563ab49a594ac0e17a017ece4b0a3e1af1702e"},
+    {file = "botocore_stubs-1.34.120.tar.gz", hash = "sha256:a1e49200012c6fbff47b22ba71444ef9f4353fe12b11af1b063087b0811ee74f"},
 ]
 
 [package.dependencies]
@@ -1115,14 +1095,14 @@ files = [
 
 [[package]]
 name = "docutils"
-version = "0.16"
+version = "0.21.2"
 description = "Docutils -- Python Documentation Utilities"
-category = "main"
+category = "dev"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+python-versions = ">=3.9"
 files = [
-    {file = "docutils-0.16-py2.py3-none-any.whl", hash = "sha256:0c5b78adfbf7762415433f5515cd5c9e762339e23369dbe8000d84a4bf4ab3af"},
-    {file = "docutils-0.16.tar.gz", hash = "sha256:c2de3a60e9e7d07be26b7f2b00ca0309c207e06c100f9cc2a94931fc75a478fc"},
+    {file = "docutils-0.21.2-py3-none-any.whl", hash = "sha256:dafca5b9e384f0e419294eb4d2ff9fa826435bf15f15b7bd45723e8ad76811b2"},
+    {file = "docutils-0.21.2.tar.gz", hash = "sha256:3a6b18732edf182daa3cd12775bbb338cf5691468f91eeeb109deff6ebfa986f"},
 ]
 
 [[package]]
@@ -1169,18 +1149,17 @@ develop = ["coverage (<5.0.0)", "mock", "pytest (>=3.0.0)", "pytest-cov", "pytes
 
 [[package]]
 name = "encoded-core"
-version = "0.8.3"
+version = "0.9.4"
 description = "Core data models for Park Lab ENCODE based projects"
 category = "main"
 optional = false
 python-versions = "<3.12,>=3.8.1"
 files = [
-    {file = "encoded_core-0.8.3-py3-none-any.whl", hash = "sha256:2b3026b0c341567a583a74b419164291a14c44ec0b79edb89fe84e8eb9bc6ad3"},
-    {file = "encoded_core-0.8.3.tar.gz", hash = "sha256:d30a70ed62f5464c3290c2cdbce5e5c6525438cc569ac49be598d1fb66152743"},
+    {file = "encoded_core-0.9.4-py3-none-any.whl", hash = "sha256:8c11cfd085a2572762da49178b835155f9bc9e274cfd09ab1ec7c434bba94770"},
+    {file = "encoded_core-0.9.4.tar.gz", hash = "sha256:46cf2347810f9c99b11fccd650a5f257fc58f731f7bd03061e880c952c26e7f7"},
 ]
 
 [package.dependencies]
-awscli = ">=1.29.62"
 boto3 = ">=1.28.62,<2.0.0"
 botocore = ">=1.31.62,<2.0.0"
 dcicsnovault = ">=11.10.0,<12.0.0"
@@ -3666,14 +3645,14 @@ files = [
 
 [[package]]
 name = "types-awscrt"
-version = "0.20.9"
+version = "0.20.11"
 description = "Type annotations and code completion for awscrt"
 category = "dev"
 optional = false
 python-versions = "<4.0,>=3.7"
 files = [
-    {file = "types_awscrt-0.20.9-py3-none-any.whl", hash = "sha256:3ae374b553e7228ba41a528cf42bd0b2ad7303d806c73eff4aaaac1515e3ea4e"},
-    {file = "types_awscrt-0.20.9.tar.gz", hash = "sha256:64898a2f4a2468f66233cb8c29c5f66de907cf80ba1ef5bb1359aef2f81bb521"},
+    {file = "types_awscrt-0.20.11-py3-none-any.whl", hash = "sha256:3236ba5097176080189135345acfcfeae18bac88869043daf55883649ce6e2ff"},
+    {file = "types_awscrt-0.20.11.tar.gz", hash = "sha256:ad5ce9fb511414430326f19a513e23d3bc7143c10cdbe1cdaeb2222ad567698f"},
 ]
 
 [[package]]
@@ -3801,19 +3780,19 @@ testing = ["coverage (>=5.0)", "pytest", "pytest-cover"]
 
 [[package]]
 name = "webcolors"
-version = "1.13"
+version = "24.6.0"
 description = "A library for working with the color formats defined by HTML and CSS."
 category = "main"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "webcolors-1.13-py3-none-any.whl", hash = "sha256:29bc7e8752c0a1bd4a1f03c14d6e6a72e93d82193738fa860cbff59d0fcc11bf"},
-    {file = "webcolors-1.13.tar.gz", hash = "sha256:c225b674c83fa923be93d235330ce0300373d02885cef23238813b0d5668304a"},
+    {file = "webcolors-24.6.0-py3-none-any.whl", hash = "sha256:8cf5bc7e28defd1d48b9e83d5fc30741328305a8195c29a8e668fa45586568a1"},
+    {file = "webcolors-24.6.0.tar.gz", hash = "sha256:1d160d1de46b3e81e58d0a280d0c78b467dc80f47294b91b1ad8029d2cedb55b"},
 ]
 
 [package.extras]
 docs = ["furo", "sphinx", "sphinx-copybutton", "sphinx-inline-tabs", "sphinx-notfound-page", "sphinxext-opengraph"]
-tests = ["pytest", "pytest-cov"]
+tests = ["coverage[toml]"]
 
 [[package]]
 name = "webencodings"
@@ -4040,4 +4019,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "485aa3e1cce627a26d7dbd756af901f4de590512f1f5f158d6e48d51142c3868"
+content-hash = "ff5f203bc19d3101a9e6194449da64d390dfe5d0cf63b3ace51a68bf7ec20b2a"
