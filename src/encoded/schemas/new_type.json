@@ -77,15 +77,8 @@
         },
         "how_bar": {
             "title": "How Bar",
-            "description": "How Bar is it?",
             "type": "string",
-            "enum": ["very","not that much"],
-            "allOf": [
-                {
-                    "properties": {"foo_or_bar": {"const": "Foo"}},
-                    "not": {"required": ["how_bar"]}
-                }
-            ]
+            "enum": ["not that much","very"]
         },
         "integer_4_to_50": {
             "title": "Integer -4 to 50",
@@ -143,6 +136,20 @@
         },
         "urls": {
             "$merge": "encoded_core:schemas/document.json#/properties/urls"
+        }
+    },
+    "if": {
+        "properties": {
+            "foo_or_bar": {
+                "not": {
+                    "const": "Bar"
+                }
+            }
+        }
+    },
+    "then": {
+        "not": {
+            "required": ["how_bar"]
         }
     },
     "dependentRequired": {
