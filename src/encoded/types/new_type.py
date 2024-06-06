@@ -1,16 +1,21 @@
 from typing import List, Dict, Optional, Union, Any
-from snovault import calculated_property, collection, load_schema, display_title_schema
+from snovault import (
+    calculated_property,
+    collection,
+    load_schema,
+)
+from snovault.util import debug_log
+
 from .acl import ONLY_ADMIN_VIEW_ACL
 from pyramid.request import Request
+from pyramid.view import view_config
 
-# from ..item_utils import (
-#     new_type as new_type_utils,
-# )
 from .utils import get_item
-from ..item_utils.utils import (
-    RequestHandler,
+from .base import (
+    Item,
+    item_edit,
+    collection_add,
 )
-from .base import Item
 
 def _build_new_type_embedded_list() -> List[str]:
     """Embeds for search on new types."""
@@ -25,13 +30,8 @@ def _build_new_type_embedded_list() -> List[str]:
         "submission_centers.identifier",
         
         # # User linkTo
+        "associated_file_set.submitted_id",
         "associated_file_set.file_group.*",
-
-        #Rev linkTo donor
-        #"donor.submitted_id",
-        # Tissue Sample linkTo
-        #"tissue_samples.submitted_id",
-        #"tissue_samples.display_title"
     ]
 
 
@@ -53,15 +53,22 @@ class NewType(Item):
         "unaligned_reads": ("UnalignedReads", "has_new_type"),
     }
 
-    @calculated_property(schema={"title": "Foobar Value", "type": "string"})
+    @calculated_property(
+        schema={
+            "title": "Foobar Value",
+            "type": "string"
+        }
+    )
     def string_and_number(
-        self, foo_or_bar: Optional[str], integer_4_to_50: Optional[int] = None
-        ) -> str:
+        self,
+        foo_or_bar: Optional[str] = None,
+        integer_4_to_50: Optional[int] = None
+        ) -> Union[str, None]:
         """return string of foo_or_bar and integer_4_to_50"""
         if foo_or_bar and integer_4_to_50:
             new_string=u'{} {}'.format(foo_or_bar, str(integer_4_to_50))
             return new_string
-        return foo_or_bar
+        return
 
     @calculated_property(
         schema={
@@ -73,7 +80,8 @@ class NewType(Item):
         }
     )
     def submission_centers_display_title(
-        self, request: Request,submission_centers: List[str] = None,
+        self, request: Request,
+        submission_centers: List[str] = None,
         ) -> Union[List[str],None]:
         """Submission Centers for the new type."""
         #result = self.get("submission_centers.display_title",[])
@@ -98,9 +106,66 @@ class NewType(Item):
             "linkTo": "NewType",
         },
     )
-    def unaligned_reads(self, request: Request) -> Union[str, None]:
+    def unaligned_reads(
+        self,
+        request: Request
+        ) -> Union[str, None]:
         result = self.rev_link_atids(request, "unaligned_reads")
         if result:
             return result
         return
     
+
+
+# def validate_integer_less_than_twenty(
+#         context,
+#         request):
+#     """Check that fails a POST and a PATCH if the integer
+#       property between -4 and 50 is less than 20"""
+#     # Skip validator if property is empty
+#     if context.type_info != "new_type":
+#         return
+#     data = request.json
+#     if 'integer_4_to_50' not in data:
+#         return
+#     integer = data["integer_4_to_50"]
+#     threshold = 20
+#     new_type_ok = True
+#     if context.properties.get("integer_4_to_50","") == integer:
+#         return
+#     if integer < threshold:
+#         new_type_ok = False
+#     if new_type_ok:
+#         request.validated.update({})
+#     else:
+#         msg = f'Property value {str(integer)} for integer_4_to_50 must be greater than or equal to {str(threshold)}'
+#         request.errors.add('body','New Type: Invalid property value',msg)
+
+
+# NEW_TYPE_POST_VALIDATORS = [
+#     validate_integer_less_than_twenty,
+# ]
+
+# NEW_TYPE_PATCH_VALIDATORS = [
+#     validate_integer_less_than_twenty,
+# ]
+    
+# @view_config(
+#     context=NewType,
+#     permission='add',
+#     request_method='POST',
+#     validators=NEW_TYPE_POST_VALIDATORS,
+# )
+# @debug_log
+# def new_type_add(context, request, render=None):
+#     return collection_add(context, request, render)
+
+# @view_config(
+#     context=NewType,
+#     permission='edit',
+#     request_method='PATCH',
+#     validators=NEW_TYPE_PATCH_VALIDATORS,
+# )
+# @debug_log
+# def new_type_edit(context, request, render=None):
+#     return item_edit(context, request, render)

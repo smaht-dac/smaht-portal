@@ -5,10 +5,9 @@
     "type": "object",
     "required": [
         "identifier",
-        "submission_centers",
-        "last_modified",
-        "foo_or_bar",
-        "unique_array"
+        "number_string",
+        "integer_4_to_50",
+        "foo_or_bar"
     ],
     "identifyingProperties": [
         "uuid",

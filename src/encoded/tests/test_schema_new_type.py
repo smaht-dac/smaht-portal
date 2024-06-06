@@ -8,38 +8,8 @@ from .utils import (
     validate_schema,
     patch_item,
     get_item,
+    post_item,
 )
-
-
-# @pytest.fixture
-# def new_type(
-#     testapp: TestApp,
-#     test_consortium: Dict[str, Any],
-#     test_submission_center: Dict[str, Any],
-# ) -> Dict[str, Any]:
-#     item = {
-#         "consortia": [test_consortium["uuid"]],
-#         "submission_centers": [test_submission_center["uuid"]],
-#         "identifier": "NT2",
-#         "last_modified": {
-#             "date_modified": "2018-11-13T20:20:39+00:00"
-#         },
-#         "date": "2024-05-17",
-#         "foo_or_bar": "Bar",
-#         "integer_4_to_50": 31,
-#         "object_with_add_properties": {
-#             "key1" : 1,
-#             "key2" : "2"
-#         },
-#         "object_without_add_properties": {
-#             "key1" : 1,
-#             "key2" : "2"
-#         },
-#         "number_string": "1234",
-#         "unique_array": ["a","b","c"],
-#         "urls": ["https://github.com/smaht-dac/smaht-portal"],
-#     }
-#     return post_item(testapp, item, "New Type")
 
 
 @pytest.mark.parametrize(
@@ -147,4 +117,4 @@ def test_foo_or_bar_conditional(
     patch_item(es_testapp,
                foobar_instance,
                item_uuid,status=expected_status)
-    
+
