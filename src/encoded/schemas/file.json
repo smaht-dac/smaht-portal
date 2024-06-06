@@ -78,7 +78,8 @@
                 "archived",
                 "deleted",
                 "public",
-                "restricted"
+                "restricted",
+                "kinda restricted"
             ]
         },
         "file_format": {

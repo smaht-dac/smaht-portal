@@ -360,6 +360,7 @@ def _build_file_embedded_list() -> List[str]:
 class File(Item, CoreFile):
     OPEN = 'Open'
     PROTECTED = 'Protected'
+    KINDA_PROTECTED = "Kinda Protected"
     item_type = "file"
     schema = load_schema("encoded:schemas/file.json")
     embedded_list = _build_file_embedded_list()
@@ -381,7 +382,8 @@ class File(Item, CoreFile):
         'uploading': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'upload failed': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'to be uploaded by workflow': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
-        'archived': acl.ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL
+        'archived': acl.ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
+        'kinda protected': acl.ALLOW_OWNER_EDIT_ACL
     })
     # These are all view only in case we find ourselves in this situation
     Item.CONSORTIUM_STATUS_ACL.update({
@@ -389,7 +391,8 @@ class File(Item, CoreFile):
         'uploading': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'upload failed': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'to be uploaded by workflow': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'archived': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL
+        'archived': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'kinda protected': acl.ALLOW_OWNER_EDIT_ACL
     })
 
     SHOW_UPLOAD_CREDENTIALS_STATUSES = ("in review", "uploading")
@@ -445,7 +448,8 @@ class File(Item, CoreFile):
         "type": "string",
         "enum": [
             "Open",
-            "Protected"
+            "Protected",
+            "Kinda Protected"
         ]
     })
     def file_access_status(self, status: str = 'in review') -> Optional[str]:
@@ -453,6 +457,8 @@ class File(Item, CoreFile):
             return self.OPEN
         elif status == 'restricted':
             return self.PROTECTED
+        # elif status == 'kinda restricted':
+        #     return self.KINDA_PROTECTED
         return None
 
     @calculated_property(
