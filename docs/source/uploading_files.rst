@@ -71,19 +71,19 @@ third-party open source software called `rclone <https://rclone.org>`_.
 
 The advantage of this is that you do not need to download the entire data file to your local machine, which may well not have enough disk space. The rclone facility transfers the data file from GCS to AWS S3 by way of your machine, i.e. by using it as an intermediary, so that only a small portion of the data ever actually travels through your machine at a time.
 
-To take advantage of this you merely need to specificy a couple of command-line options, specifially ``--rclone-google-source`` and ``--rclone-google-credentials``, for example::
+To take advantage of this you merely need to specificy a couple of command-line options, specifially ``--cloud-source`` and ``--cloud-credentials``, for example::
 
     submit-metadata-bundle your-metadata.xlsx --submit \
-        --rclone-google-source your-gcs-bucket-or-bucket-and-folder \
-        --rclone-google-credentials your-gcp-service-account-file
+        --cloud-source your-gcs-bucket-or-bucket-and-folder \
+        --cloud-credentials your-gcp-service-account-file
 
-The ``resume-uploads`` command support these same options. The value specified for the ``--rclone-google-source`` may be either just a GCS bucket name or
+The ``resume-uploads`` command support these same options. The value specified for the ``--cloud-source`` may be either just a GCS bucket name or
 a bucket name and a sub-folder name within that buckup, e.g. ``your-gcs-bucket/your-gcs-sub-folder``.
 
-To obtain the credentials file you need, via the Google Cloud console (in your browser), navigate to the ``IAM & Admin`` section, select ``Service Accounts``, click on your desired listed service account, and from there click the ``KEYS`` tab at the top, and then the ``ADD KEY`` and ``Create new key`` from the dropdown, and select ``JSON`` for the ``Key type`` and click the ``CREATE`` button. This will save a JSON file with your exported credentials to your download folder; and this is the file to specify with the ``--rclone-google-credentials`` option. (Note that for security, you should ``chmod 600`` on this file).
+To obtain the credentials file you need, via the Google Cloud console (in your browser), navigate to the ``IAM & Admin`` section, select ``Service Accounts``, click on your desired listed service account, and from there click the ``KEYS`` tab at the top, and then the ``ADD KEY`` and ``Create new key`` from the dropdown, and select ``JSON`` for the ``Key type`` and click the ``CREATE`` button. This will save a JSON file with your exported credentials to your download folder; and this is the file to specify with the ``--cloud-credentials`` option. (Note that for security, you should ``chmod 600`` on this file).
 
 .. TIP::
-    If you happen to be running ``smaht-submitr`` on a Google Compute Engine (GCE) instance there is no need to specify the ``--rclone-google-credentials`` option as the credentials for the associated Google Cloud account are automatically and implicitly available and in force.
+    If you happen to be running ``smaht-submitr`` on a Google Compute Engine (GCE) instance there is no need to specify the ``--cloud-credentials`` option as the credentials for the associated Google Cloud account are automatically and implicitly available and in force.
 
 |
 
