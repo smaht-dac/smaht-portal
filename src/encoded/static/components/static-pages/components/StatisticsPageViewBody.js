@@ -775,24 +775,25 @@ class UsageChartsCountByDropdown extends React.PureComponent {
         const menuOptions = new Map();
 
         if (chartID === 'file_downloads' ){
-            menuOptions.set('filetype',         <React.Fragment><i className="icon fas icon-fw icon-file-alt mr-1"/>File Type</React.Fragment>);
-            menuOptions.set('assay_type',       <React.Fragment><i className="icon fas icon-fw icon-vial mr-1"/>Assay Type</React.Fragment>);
-            menuOptions.set('dataset',          <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Dataset</React.Fragment>);
-            menuOptions.set('top_files',        <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Top 10 Files</React.Fragment>);
-            // menuOptions.set('geo_country',     <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Country</React.Fragment>);
+            menuOptions.set('filetype',                 <React.Fragment><i className="icon fas icon-fw icon-file-alt mr-1"/>File Type</React.Fragment>);
+            menuOptions.set('assay_type',               <React.Fragment><i className="icon fas icon-fw icon-vial mr-1"/>Assay Type</React.Fragment>);
+            menuOptions.set('dataset',                  <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Dataset</React.Fragment>);
+            menuOptions.set('top_files',                <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Top 10 Files</React.Fragment>);
+            // menuOptions.set('geo_country',           <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Country</React.Fragment>);
         } else if (chartID === 'file_views'){
             menuOptions.set('file_detail_views',        <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Detail View</React.Fragment>);
             menuOptions.set('file_list_views',          <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Appearance in Search Results</React.Fragment>);
             menuOptions.set('file_clicks',              <React.Fragment><i className="icon far icon-fw icon-hand-point-up mr-1"/>Search Result Click</React.Fragment>);
             menuOptions.set('metadata_tsv_by_country',  <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Metadata.tsv Files Count by Country</React.Fragment>);
+        } else if (chartID === 'sessions_by_country') {
+            menuOptions.set('views',                    <React.Fragment><i className="icon icon-fw fas icon-eye mr-1" />Views by Country</React.Fragment>);
+            menuOptions.set('sessions',                 <React.Fragment><i className="icon icon-fw fas icon-user mr-1" />Sessions by Country</React.Fragment>);
+            menuOptions.set('device_category',          <React.Fragment><i className="icon icon-fw fas icon-laptop mr-1" />Views by Device</React.Fragment>);
+            menuOptions.set('page_title',               <React.Fragment><i className="icon icon-fw fas icon-font mr-1" />Views by Page Title</React.Fragment>);
+            menuOptions.set('page_url',                 <React.Fragment><i className="icon icon-fw fas icon-link mr-1" />Views by Page Url</React.Fragment>);
         } else {
-            menuOptions.set('views',            <React.Fragment><i className="icon icon-fw fas icon-eye mr-1"/>View</React.Fragment>);
-            menuOptions.set('sessions',         <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>User Session</React.Fragment>);
-            if(chartID === 'sessions_by_country') {
-                menuOptions.set('device_category',  <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Device Category</React.Fragment>);
-                menuOptions.set('page_title',  <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Page Title</React.Fragment>);
-                menuOptions.set('page_url',  <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Page Url</React.Fragment>);
-            }
+            menuOptions.set('views',                    <React.Fragment><i className="icon icon-fw fas icon-eye mr-1"/>Views</React.Fragment>);
+            menuOptions.set('sessions',                 <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Sessions</React.Fragment>);
         }
 
         const dropdownTitle = menuOptions.get(currCountBy);
@@ -861,7 +862,11 @@ export function UsageStatsView(props){
         cumulativeSum: cumulativeSum
     };
     const countByDropdownProps = { countBy, changeCountByForChart };
-    const fileDownloadClickToTooltip = (countBy.file_downloads === 'top_files');
+
+    const fileDownloadsChartHeight = enableFileDownloadsChartTooltipItemClick ? 350 : commonContainerProps.defaultHeight;
+    const enableFileDownloadsChartTooltipItemClick = (countBy.file_downloads === 'top_files');
+    const sessionsByCountryChartHeight = ['page_title', 'page_url'].indexOf(countBy.sessions_by_country) > -1 ? 500 : commonContainerProps.defaultHeight;
+    const enableSessionByCountryChartTooltipItemClick = (countBy.sessions_by_country === 'page_url');
 
     return (
         <div className="stats-charts-container" key="charts" id="usage">
@@ -896,20 +901,16 @@ export function UsageStatsView(props){
 
                     <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
-                    <AreaChartContainer {...commonContainerProps} id="file_downloads" defaultHeight={fileDownloadClickToTooltip ? 350 : commonContainerProps.defaultHeight}
+                    <AreaChartContainer {...commonContainerProps} id="file_downloads" defaultHeight={fileDownloadsChartHeight}
                         title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                        subTitle={
-                            fileDownloadClickToTooltip ? <h4 className="font-weight-normal text-secondary">Click bar to view details</h4> : null
-                        }>
-                        <AreaChart {...commonChartProps} data={file_downloads} showTooltipOnHover={!fileDownloadClickToTooltip} />
+                        subTitle={enableFileDownloadsChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
+                        <AreaChart {...commonChartProps} data={file_downloads} showTooltipOnHover={!enableFileDownloadsChartTooltipItemClick} />
                     </AreaChartContainer>
 
-                    <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" defaultHeight={fileDownloadClickToTooltip ? 350 : commonContainerProps.defaultHeight}
+                    <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" defaultHeight={fileDownloadsChartHeight}
                         title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                        subTitle={
-                            fileDownloadClickToTooltip ? <h4 className="font-weight-normal text-secondary">Click bar to view details</h4> : null
-                        }>
-                        <AreaChart {...commonChartProps} data={file_downloads_volume} showTooltipOnHover={!fileDownloadClickToTooltip} yAxisLabel="GB" />
+                        subTitle={enableFileDownloadsChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
+                        <AreaChart {...commonChartProps} data={file_downloads_volume} showTooltipOnHover={!enableFileDownloadsChartTooltipItemClick} yAxisLabel="GB" />
                     </AreaChartContainer>
 
                 </ColorScaleProvider>
@@ -947,14 +948,16 @@ export function UsageStatsView(props){
                             <h3 className="charts-group-title">
                                 <span className="d-block d-sm-inline">{countBy.sessions_by_country === 'sessions' ? 'User Sessions' : 'Page Views'}</span>
                                 <span className="text-300 d-none d-sm-inline"> - </span>
-                                <span className="text-300">{countBy.sessions_by_country === 'device_category' ? 'by device categoory' :
+                                <span className="text-300">{countBy.sessions_by_country === 'device_category' ? 'by device category' :
                                     (countBy.sessions_by_country === 'page_title' ? 'by page title' :
-                                    (countBy.sessions_by_country === 'page_url' ? 'by page url' : 'by country'))}</span>
+                                        (countBy.sessions_by_country === 'page_url' ? 'by page url' : 'by country'))}</span>
                             </h3>
                         }
+                        subTitle={enableSessionByCountryChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" />}
-                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
-                        <AreaChart {...commonChartProps} data={sessions_by_country} />
+                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}
+                        defaultHeight={sessionsByCountryChartHeight}>
+                        <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} />
                     </AreaChartContainer>
 
                 </ColorScaleProvider>
@@ -962,7 +965,7 @@ export function UsageStatsView(props){
                 : null }
 
 
-            { session && fields_faceted ?
+            { fields_faceted ?
 
                 <ColorScaleProvider resetScaleLegendWhenChange={fields_faceted}>
 

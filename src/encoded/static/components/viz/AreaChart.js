@@ -710,7 +710,8 @@ export class AreaChart extends React.PureComponent {
     }
 
     static isTermUrl(term){
-        return term && typeof term === 'string' && term.length > 3 && term.charAt(0) === '/' && term[term.length - 1] === '/';
+        // return term && typeof term === 'string' && term.length > 3 && term.charAt(0) === '/' && term[term.length - 1] === '/';
+        return term && typeof term === 'string' && term.length >= 1 && term.charAt(0) === '/';
     }
 
     static getDerivedStateFromProps(props, state){
