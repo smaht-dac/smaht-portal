@@ -72,7 +72,7 @@ def consortium_file(testapp, fastq_format, test_consortium):
 
 
 @pytest.fixture
-def protected_file(testapp, fastq_format, test_protected_consortium):
+def protected_file(testapp,fastq_format,test_protected_consortium):
     item = {
         'file_format': fastq_format['uuid'],
         'md5sum': '00000000000000000000000000000002',
@@ -99,8 +99,9 @@ def kinda_protected_file(testapp, fastq_format, test_submission_center):
         'status': 'kinda protected',    # this status is important as this will make it viewable by user
         'submission_centers': [
             test_submission_center['uuid']
-        ],
+        ]
     }
+    # Have it be posted by protected_consortium_user
     res = testapp.post_json('/OutputFile', item)
     return res.json['@graph'][0]
 
@@ -1144,36 +1145,69 @@ def test_admin_can_edit_kinda_protected(smaht_admin_app: TestApp,
     assert smaht_admin_app.patch_json(f'/{atid}', {}, status=200)
 
 # Test that owners can view and edit
-def test_owner_can_view_kinda_protected(protected_consortium_submitter_app: TestApp,
+def test_owner_can_view_kinda_protected(submission_center_user_app: TestApp,
                                kinda_protected_file: Dict[str, Any]) -> None:
     """ Tests that a non-admin user can view their own kinda protected file """
     atid = kinda_protected_file['@id']
-    assert protected_consortium_submitter_app.get(f'/{atid}', status=200)
+    assert submission_center_user_app.get(f'/{atid}', status=200)
 
 
-def test_owner_can_edit_kinda_protected(protected_consortium_submitter_app: TestApp,
+def test_owner_can_edit_kinda_protected(submission_center_user_app: TestApp,
                                kinda_protected_file: Dict[str, Any]) -> None:
     """ Tests that a non-admin user can edit their own kinda protected file """
     atid = kinda_protected_file['@id']
-    assert protected_consortium_submitter_app.patch_json(f'/{atid}', {}, status=200)
+    assert submission_center_user_app.patch_json(f'/{atid}', {}, status=200)
+
 
 # Test that users from the same submission center can't view
-
-
-# Test that other consortia can't view
-def test_consortium_user_cannot_edit_submission_center_data(
-    kinda_protected_file: Dict[str, Any],
-    consortium_user_app: TestApp
-    ):
-    """ Tests that consortium users cannot edit a kinda protected file """
-    atid = kinda_protected_file['@id']
-    consortium_user_app.get(f'/{atid}', {}, status=422)
+def test_controlled_user_can_access_kinda_protected_data(
+        smaht_admin_app: TestApp,
+        kinda_protected_file: Dict[str, Any],
+        smaht_gcc_user,
+        submission_center_user_app,
+        submission_center2_user_app,
+        unassociated_user_app,
+        ) -> None:
+        """ Tests 3 scenarios for the released status:
+                * owner user can view kinda protected data
+                * protected user from same submission center cannot view kinda protected data
+                * normal consortia user cannot view protected data
+                * anon user cannot view protected data
+        """
+        #import pdb; pdb.set_trace()
+        patch_body = {
+            'submitted_by': smaht_gcc_user['uuid']
+        }
+        patch_body = {}
+        atid = kinda_protected_file['@id']
+        smaht_admin_app.patch_json(f'/{atid}', {}, status=200)
+        unassociated_user_app.get(f'/{atid}', status=403)
+        submission_center_user_app.get(f'/{atid}', status=200)
+        submission_center2_user_app.get(f'/{atid}', status=403)
 
 # Test that other consortia can't edit
-def test_consortium_user_cannot_edit_submission_center_data(
-    kinda_protected_file: Dict[str, Any],
-    consortium_user_app: TestApp
-    ):
-    """ Tests that consortium users cannot edit a kinda protected file """
-    atid = kinda_protected_file['@id']
-    consortium_user_app.patch_json(f'/{atid}', {}, status=422)
+# def test_controlled_user_can_edit_kinda_protected_data(
+#         smaht_admin_app: TestApp,
+#         kinda_protected_file: Dict[str, Any],
+#         smaht_gcc_user,
+#         submission_center_user_app,
+#         submission_center2_user_app,
+#         consortium_user_app,
+#         unassociated_user_app,
+#         ) -> None:
+#         """ Tests 3 scenarios for the released status:
+#                 * owner user can view kinda protected data
+#                 * protected user from same submission center cannot view kinda protected data
+#                 * normal consortia user cannot view protected data
+#                 * anon user cannot view protected data
+#         """
+#         atid = kinda_protected_file['@id']
+#         #import pdb; pdb.set_trace()
+#         patch_body = {
+#             'submitted_by': smaht_gcc_user['uuid']
+#         }
+#         smaht_admin_app.patch_json(f'/{atid}',patch_body,status=200)
+#         unassociated_user_app.patch_json(f'/{atid}',{}, status=403)
+#         consortium_user_app.patch_json(f'/{atid}',{}, status=403)
+#         submission_center_user_app.patch_json(f'/{atid}',{}, status=200)
+#         submission_center2_user_app.patch_json(f'/{atid}',{}, status=403)

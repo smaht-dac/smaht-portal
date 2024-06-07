@@ -360,7 +360,7 @@ def _build_file_embedded_list() -> List[str]:
 class File(Item, CoreFile):
     OPEN = 'Open'
     PROTECTED = 'Protected'
-    KINDA_PROTECTED = "Kinda Protected"
+    #KINDA_PROTECTED = "Kinda Protected"
     item_type = "file"
     schema = load_schema("encoded:schemas/file.json")
     embedded_list = _build_file_embedded_list()
@@ -449,7 +449,7 @@ class File(Item, CoreFile):
         "enum": [
             "Open",
             "Protected",
-            "Kinda Protected"
+            #"Kinda Protected"
         ]
     })
     def file_access_status(self, status: str = 'in review') -> Optional[str]:
