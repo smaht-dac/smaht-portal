@@ -300,7 +300,6 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
         'uploaded',
         'upload failed',
         'to be uploaded by workflow',
-        'in review'
     ])
     def test_submission_center_can_edit_file(test_submission_center, submission_center_user_app, released_file,
                                              testapp, new_status):
@@ -316,7 +315,8 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
         'archived',
         'deleted',
         'public',
-        'restricted'
+        'restricted',
+        'in review'
     ])
     def test_submission_center_cannot_edit_file(test_submission_center, submission_center_user_app, released_file,
                                                 testapp, new_status):
@@ -378,7 +378,6 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
         'uploaded',
         'upload failed',
         'to be uploaded by workflow',
-        'in review'
     ])
     def test_mixed_submission_center_no_edit_overlap(test_submission_center, test_second_submission_center,
                                                      submission_center_user_app, submission_center2_user_app,

@@ -144,7 +144,7 @@ class Item(SnovaultItem):
         # Only creator can view - restricted to specific items via schemas.
         'draft': acl.ALLOW_OWNER_EDIT_ACL,
         # Generally the default
-        'in review': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
+        'in review': acl.ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
         'released': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         # Everyone can view - restricted to specific items via schemas.
         'public': acl.ALLOW_EVERYONE_VIEW_ACL,
