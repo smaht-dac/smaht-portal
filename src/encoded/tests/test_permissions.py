@@ -89,6 +89,23 @@ def protected_file(testapp, fastq_format, test_protected_consortium):
 
 
 @pytest.fixture
+def kinda_protected_file(testapp, fastq_format, test_submission_center):
+    item = {
+        'file_format': fastq_format['uuid'],
+        'md5sum': '00000000000000000000000000000002',
+        'filename': 'my.fastq.gz',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
+        'status': 'kinda protected',    # this status is important as this will make it viewable by user
+        'submission_centers': [
+            test_submission_center['uuid']
+        ],
+    }
+    res = testapp.post_json('/OutputFile', item)
+    return res.json['@graph'][0]
+
+
+@pytest.fixture
 def restricted_file(testapp, fastq_format, test_protected_consortium):
     item = {
         'file_format': fastq_format['uuid'],
@@ -1105,3 +1122,58 @@ def test_authenticated_user_can_delete_access_key(
         assert access_key["status"] == "current"
         patch_body = {"status": "deleted"}
         patch_item(user_app, patch_body, access_key["uuid"], status=403)
+
+
+
+
+
+
+#### Testing the kinda protected status
+# Test that admins can view kinda protected
+def test_admin_can_view_kinda_protected(smaht_admin_app: TestApp,
+                               kinda_protected_file: Dict[str, Any]) -> None:
+    """ Tests that a non-admin user can view their own kinda protected file """
+    atid = kinda_protected_file['@id']
+    assert smaht_admin_app.get(f'/{atid}', status=200)
+
+
+def test_admin_can_edit_kinda_protected(smaht_admin_app: TestApp,
+                               kinda_protected_file: Dict[str, Any]) -> None:
+    """ Tests that a non-admin user can edit their own kinda protected file """
+    atid = kinda_protected_file['@id']
+    assert smaht_admin_app.patch_json(f'/{atid}', {}, status=200)
+
+# Test that owners can view and edit
+def test_owner_can_view_kinda_protected(protected_consortium_submitter_app: TestApp,
+                               kinda_protected_file: Dict[str, Any]) -> None:
+    """ Tests that a non-admin user can view their own kinda protected file """
+    atid = kinda_protected_file['@id']
+    assert protected_consortium_submitter_app.get(f'/{atid}', status=200)
+
+
+def test_owner_can_edit_kinda_protected(protected_consortium_submitter_app: TestApp,
+                               kinda_protected_file: Dict[str, Any]) -> None:
+    """ Tests that a non-admin user can edit their own kinda protected file """
+    atid = kinda_protected_file['@id']
+    assert protected_consortium_submitter_app.patch_json(f'/{atid}', {}, status=200)
+
+# Test that users from the same submission center can't view
+
+
+# Test that other consortia can't view
+def test_consortium_user_cannot_edit_submission_center_data(
+    kinda_protected_file: Dict[str, Any],
+    consortium_user_app: TestApp
+    ):
+    """ Tests that consortium users cannot edit a kinda protected file """
+    atid = kinda_protected_file['@id']
+    consortium_user_app.get(f'/{atid}', {}, status=422)
+
+# Test that other consortia can't edit
+def test_consortium_user_cannot_edit_submission_center_data(
+    kinda_protected_file: Dict[str, Any],
+    consortium_user_app: TestApp
+    ):
+    """ Tests that consortium users cannot edit a kinda protected file """
+    atid = kinda_protected_file['@id']
+    consortium_user_app.patch_json(f'/{atid}', {}, status=422)
