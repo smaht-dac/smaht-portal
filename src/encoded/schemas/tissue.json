@@ -119,18 +119,9 @@
         },
         "size": {
             "title": "Size",
-            "description": "Size of the tissue",
+            "description": "Size of the tissue (cm^3)",
             "type": "number",
             "minimum": 0
-        },
-        "size_unit": {
-            "title": "Size Unit",
-            "description": "Unit of measure for size of the tissue",
-            "type": "string",
-            "enum": [
-                "cm^3",
-                "cm^2"
-            ]
         },
         "uberon_id": {
             "title": "Uberon Id",
