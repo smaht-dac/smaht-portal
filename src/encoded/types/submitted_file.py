@@ -4,7 +4,10 @@ from snovault import abstract_collection, calculated_property, load_schema
 from snovault.util import debug_log
 
 
-from .acl import SUBMISSION_CENTER_MEMBER_CREATE_ACL
+from .acl import (
+    SUBMISSION_CENTER_MEMBER_CREATE_ACL,
+      CONSORTIUM_MEMBER_CREATE_ACL,
+)
 from .base import collection_add, Item, item_edit
 from .file import (
     FILE_ADD_UNVALIDATED_VALIDATORS,
@@ -48,7 +51,7 @@ class SubmittedFileCollection(Item.Collection):
 @abstract_collection(
     name="submitted-files",
     unique_key="submitted_id",
-    acl=SUBMISSION_CENTER_MEMBER_CREATE_ACL,
+    acl=SUBMISSION_CENTER_MEMBER_CREATE_ACL + CONSORTIUM_MEMBER_CREATE_ACL,
     properties={
         "title": "SMaHT Submitted Files",
         "description": "Listing of SMaHT Submitted Files",

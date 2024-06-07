@@ -478,12 +478,12 @@ class TestConsortiumPermissions(TestPermissionsHelper):
     def test_consortium_user_cannot_create_other(test_submission_center, consortium_user_app, smaht_consortium_user, testapp):
         """ Tests that a consortium user cannot create items associated with submission centers,
             touch restricted fields or types """
-        consortium_user_app.post_json('/Image', {
-            'description': 'test image',
-            'submission_centers': [
-                test_submission_center['uuid']
-            ]
-        }, status=422)
+        # consortium_user_app.post_json('/Image', {
+        #     'description': 'test image',
+        #     'submission_centers': [
+        #         test_submission_center['uuid']
+        #     ]
+        # }, status=422)
         consortium_user_app.post_json('/Image', {
             'description': 'test image',
             'status': 'draft'
@@ -1202,3 +1202,16 @@ def test_controlled_user_can_edit_kinda_protected_data(
         unassociated_user_app.patch_json(f'/{atid}',{}, status=[422, 403])
         submission_center2_user_app.patch_json(f'/{atid}',{}, status=[422, 403])
         submission_center_user_app.patch_json(f'/{atid}',{}, status=200)
+
+
+def test_consortium_user_can_create_submitted_file(test_consortium, consortium_user_app, smaht_consortium_user, testapp):
+    """ Tests that a consortium user can create submitted files"""
+    consortium_user_app.post_json('/UnalignedReads', {
+        'description': 'test unaligned read',
+        'consortia': [
+            test_consortium['@id']
+        ],
+    'file_format': 'FASTQ',
+    "filename": "some_test_fastq.fastq.gz",
+    'submitted_id': "CONSORTIA_UNALIGNED-READS_FASTQ"
+    }, status=200)

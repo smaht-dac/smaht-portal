@@ -34,6 +34,7 @@ SUBMITTED_ID_PATTERN_FORMAT = re.compile(
     rf"{re.escape(SUBMITTED_ID_IDENTIFIER_PATTERN)}$"
 )
 
+WORKBOOK_CONSORTIUM_CODE = "test"
 WORKBOOK_SUBMISSION_CENTER_CODE = "test"
 DUMMY_SUBMITTED_ID_CODE = "FOOBAR"
 
@@ -159,6 +160,7 @@ def test_submitted_id_validated_on_post_and_patch(testapp: TestApp) -> None:
     Use workbook inserts indirectly for properties.
     """
     submission_center = get_test_submission_center_from_inserts(testapp)
+    consortia = get_test_consortia_from_inserts(testapp)
     item_properties_to_test = get_item_properties_from_workbook_inserts(
         submission_center
     )
@@ -184,6 +186,15 @@ def get_test_submission_center_from_inserts(testapp: TestApp) -> Dict[str, Any]:
     )
 
 
+def get_test_consortia_from_inserts(testapp: TestApp) -> Dict[str, Any]:
+    """Get Consortium from workbook used for submitted IDs."""
+    consortia_inserts = get_workbook_inserts_for_collection("consortium")
+    consortium_to_use = get_test_consortium(consortia_inserts)
+    return post_identifying_insert(
+        testapp, consortium_to_use, "consortium"
+    )
+
+
 def get_test_submission_center(
     submission_center_inserts: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
@@ -199,15 +210,35 @@ def get_test_submission_center(
     return matching_centers[0]
 
 
+def get_test_consortium(
+    consortium_inserts: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """Get Consortium to use for submitted IDs."""
+    matching_consortia = [
+        insert for insert in consortium_inserts
+        if insert.get("code") == WORKBOOK_CONSORTIUM_CODE
+    ]
+    assert len(matching_consortia) == 1, (
+        f"Expected one Consortium with code {WORKBOOK_CONSORTIUM_CODE}"
+        f" but found {len(matching_consortia)}"
+    )
+    return matching_consortia[0]
+
+
 def assert_dummy_submitted_id_code_valid(
     item_properties_to_test: Dict[str, Dict]
 ) -> None:
     """Ensure no conflicts between dummy code and existing ones."""
     submission_center_inserts = item_properties_to_test["submission_center"]
+    consortium_inserts = item_properties_to_test["consortium"]
+
     existing_submitted_id_codes = [
         insert.get("code") for insert in submission_center_inserts
     ]
-    assert DUMMY_SUBMITTED_ID_CODE not in existing_submitted_id_codes, (
+    existing_consortia_codes = [
+        insert.get("code") for insert in consortium_inserts
+    ]
+    assert DUMMY_SUBMITTED_ID_CODE not in existing_submitted_id_codes and DUMMY_SUBMITTED_ID_CODE not in existing_consortia_codes, (
         f"Dummy code {DUMMY_SUBMITTED_ID_CODE} exists in inserts and should"
         f" be changed."
     )

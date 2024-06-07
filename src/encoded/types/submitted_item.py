@@ -135,8 +135,9 @@ def validate_submitted_id_on_add(
     submitted_id = get_submitted_id(properties)
     if submitted_id:
         submission_centers = get_submission_centers(properties)
+        consortia = get_consortia(properties)
         validation_error = validate_submitted_id(
-            request, submitted_id, submission_centers
+            request, submitted_id, submission_centers, consortia
         )
         if validation_error:
             raise validation_error
@@ -150,6 +151,9 @@ def get_submission_centers(properties: Dict[str, Any]) -> List[str]:
     return properties.get("submission_centers", [])
 
 
+def get_consortia(properties: Dict[str, Any]) -> List[str]:
+    return properties.get("consortia", [])
+
 def get_submitted_id_code(properties: Dict[str, Any]) -> str:
     """Get submission center code from properties.
 
@@ -160,14 +164,17 @@ def get_submitted_id_code(properties: Dict[str, Any]) -> str:
 
 
 def validate_submitted_id(
-    request: Request, submitted_id: str, submission_centers: List[str]
+    request: Request, submitted_id: str, submission_centers: List[str],
+    consortia: List[str] = None,
 ) -> Union[ValidationFailure, None]:
     """Validate submitted_id for given submission centers."""
     submitted_id_data = parse_submitted_id(submitted_id)
     submission_center_codes = get_submission_center_codes(request, submission_centers)
+    consortia_codes = get_consortia_codes(request, consortia)
+    import pdb; pdb.set_trace()
     if (
         submitted_id_data
-        and submitted_id_data.center_code not in submission_center_codes
+        and submitted_id_data.center_code not in submission_center_codes and submitted_id_data.center_code not in consortia_codes
     ):
         return get_submitted_id_validation_error(
             submitted_id_data, submission_center_codes
@@ -184,7 +191,7 @@ def get_submitted_id_validation_error(
         description=(
             f"Submitted ID {submitted_id.to_string()} start"
             f" ({submitted_id.center_code})"
-            f" does not match options for given submission centers:"
+            f" does not match options for given submission centers or consortia:"
             f" {code_options}."
         ),
     )
@@ -201,6 +208,19 @@ def get_submission_center_codes(
         for submission_center in submission_centers
     ]
     return [code for code in submission_center_codes if code]
+
+
+def get_consortia_codes(
+    request: Request, consortia: List[str]
+) -> List[str]:
+    """Get consortia codes for given consortia."""
+    consortia_codes = [
+        get_submitted_id_code(
+            get_item(request, consortium, collection="Consortium")
+        )
+        for consortium in consortia
+    ]
+    return [code for code in consortia_codes if code]
 
 
 def validate_submitted_id_on_edit(
