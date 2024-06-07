@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.60.2
+======
+
+* Ensure ``docutils`` is a true dependency
+
+
 0.60.1
 ======
 
@@ -16,8 +22,8 @@ Change Log
 
 
 0.60.0
-======  
-  
+======
+
 `PR 123: File Overview Page <https://github.com/smaht-dac/smaht-portal/pull/123>`_
 
 * Add File Overview Page for improved view of additional details for File items
