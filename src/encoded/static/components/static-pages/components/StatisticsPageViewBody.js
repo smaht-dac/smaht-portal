@@ -872,7 +872,7 @@ export function UsageStatsView(props){
         <div className="stats-charts-container" key="charts" id="usage">
 
             <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
-                title="Show" outerClassName="dropdown-container mb-0">
+                title="Show" outerClassName="dropdown-container mb-0 sticky-top">
                 <div className="d-inline-block ml-15 mr-15">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                 </div>
