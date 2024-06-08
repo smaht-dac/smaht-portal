@@ -9,7 +9,6 @@ Change Log
 
 0.61.0
 ======
-
 * Added src/encoded/tests/data/demo_inserts with (well) demo inserts for objects needed
   by the demo metadata spreadsheet (for annual meeting 2024): bcm_formatted_hapmapmix.xlsx ...
   https://docs.google.com/spreadsheets/d/1qCm0bY-vG4a9uiaOvmKHZ12MvhmMKKRfEpgAm-7Hsh4/edit#gid=1472887809
@@ -24,6 +23,12 @@ Change Log
 * Some make lint fixups.
 
 
+0.60.2
+======
+
+* Ensure ``docutils`` is a true dependency
+
+
 0.60.1
 ======
 
@@ -32,8 +37,8 @@ Change Log
 
 
 0.60.0
-======  
-  
+======
+
 `PR 123: File Overview Page <https://github.com/smaht-dac/smaht-portal/pull/123>`_
 
 * Add File Overview Page for improved view of additional details for File items
