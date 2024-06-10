@@ -147,15 +147,18 @@ def add_submission_status_search_filters(
     if "sequencer" in filter and filter["sequencer"] != "all":
         search_params["sequencing.sequencer.display_title"] = filter["sequencer"]
     if "cell_line" in filter and filter["cell_line"] != "all":
-        search_params["libraries.analyte.samples.sample_sources.cell_line.code"] = (
+        search_params["libraries.analytes.samples.sample_sources.cell_line.code"] = (
             filter["cell_line"]
         )
-        search_params["libraries.analyte.samples.sample_sources.code"] = (
+        search_params["libraries.analytes.samples.sample_sources.code"] = (
             "No+value"  # Exlude mixtures from results
         )
-    if "cell_culture_mixture" in filter and filter["cell_culture_mixture"] != "all":
-        search_params["libraries.analyte.samples.sample_sources.code"] = filter[
-            "cell_culture_mixture"
+    elif (
+        "cell_culture_mixtures_and_tissues" in filter
+        and filter["cell_culture_mixtures_and_tissues"] != "all"
+    ):
+        search_params["libraries.analytes.samples.sample_sources.code"] = filter[
+            "cell_culture_mixtures_and_tissues"
         ]
     if filter.get("include_tags"):
         search_params["tags"] = filter["include_tags"]
@@ -249,6 +252,7 @@ def generate_html_colors(num_colors):
     lst_1.extend(lst_2)
     lst_1.extend(lst_3)
     return lst_1
+
 
 def rgb_to_hex(rgb):
     # Convert RGB tuple to hexadecimal color string

@@ -28,7 +28,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             filter: DEFAULT_FILTER,
             assays: [],
             sequencers: [],
-            cell_culture_mixtures: [],
+            cell_culture_mixtures_and_tissues: [],
             cell_lines: [],
         };
     }
@@ -77,7 +77,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         this.getItemsFromPortal('SubmissionCenter', 'submission_centers');
         this.getItemsFromPortal('Assay', 'assays');
         this.getItemsFromPortal('Sequencer', 'sequencers');
-        this.getSampleSourceCodes('CellCultureMixture', 'cell_culture_mixtures');
+        this.getSampleSourceCodes('SampleSource', 'cell_culture_mixtures_and_tissues');
         this.getSampleSourceCodes('CellLine', 'cell_lines');
     }
 
@@ -158,17 +158,17 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         return this.getSelect(options, defaultValue, filterName);
     }
 
-    getCellCultureMixtureSelect() {
-        if (this.state.cell_culture_mixtures == 0) {
+    getCellCultureMixtureAndTissueSelect() {
+        if (this.state.cell_culture_mixtures_and_tissues == 0) {
             return DEFAULT_SELECT;
         }
 
         const options = [<option value="all">All</option>];
-        this.state.cell_culture_mixtures.forEach((sc) => {
+        this.state.cell_culture_mixtures_and_tissues.forEach((sc) => {
             options.push(<option value={sc.code}>{sc.code}</option>);
         });
         const defaultValue = 'all';
-        const filterName = 'cell_culture_mixture';
+        const filterName = 'cell_culture_mixtures_and_tissues';
         return this.getSelect(options, defaultValue, filterName);
     }
 
@@ -255,7 +255,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
                                 Cell Line: {this.getCellLineSelect()}
                             </div>
                             <div className="p-2">
-                                Cell Culture Mixture:{this.getCellCultureMixtureSelect()}
+                                Cell Culture Mixture / Tissue:{this.getCellCultureMixtureAndTissueSelect()}
                             </div>
                         </div>
                         <div className="col-lg-3">
