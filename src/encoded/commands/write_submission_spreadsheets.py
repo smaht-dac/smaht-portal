@@ -211,9 +211,7 @@ def get_update_cells_request(spreadsheet: Spreadsheet, sheet_id: int) -> Dict[st
 def get_values(spreadsheet: Spreadsheet) -> List[Dict[str, Any]]:
     """Get values for the spreadsheet."""
     ordered_properties = get_ordered_properties(spreadsheet.properties)
-    return [
-        {"values": [get_cell_value(property_) for property_ in ordered_properties]}
-    ]
+    return [{"values": [get_cell_value(property_) for property_ in ordered_properties]}]
 
 
 def get_cell_value(property_: Property) -> Dict[str, Any]:
@@ -505,9 +503,7 @@ def get_corequirements(property_schema: Dict[str, Any]) -> List[str]:
     return property_schema.get(SubmissionSchemaConstants.ALSO_REQUIRES) or []
 
 
-def get_exclusive_requirements(
-    property_schema: Dict[str, Any]
-) -> List[str]:
+def get_exclusive_requirements(property_schema: Dict[str, Any]) -> List[str]:
     """Get the exclusive requirements for the property."""
     return property_schema.get(SubmissionSchemaConstants.REQUIRED_IF_NOT_ONE_OF) or []
 

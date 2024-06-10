@@ -97,9 +97,7 @@ def get_item_index_order(submission_schemas: Dict[str, Dict[str, Any]]) -> List[
 
 
 @contextmanager
-def patch_item_index_order(
-    submission_schemas: Dict[str, Dict[str, Any]]
-) -> mock.Mock:
+def patch_item_index_order(submission_schemas: Dict[str, Dict[str, Any]]) -> mock.Mock:
     new_item_index_order = get_item_index_order(submission_schemas)
     with mock.patch(
         "encoded.commands.write_submission_spreadsheets.ITEM_INDEX_ORDER",
@@ -154,7 +152,7 @@ def test_write_all_spreadsheets(
         (["Foo"], True, True, ["Foo"]),
         (["Foo", "Qux"], False, False, ["Foo", "Qux"]),
         (["Foo", "Fu"], False, False, ["Foo"]),
-    ]
+    ],
 )
 def test_write_item_spreadsheets(
     items: List[str],
@@ -191,7 +189,6 @@ def test_write_item_spreadsheets(
                 )
 
 
-
 def assert_workbook_written(
     tempdir: str,
     submission_schemas: Dict[str, Dict[str, Any]],
@@ -217,7 +214,8 @@ def get_expected_schemas(
     if items is None:
         return submission_schemas
     return {
-        item_type: submission_schemas.get(item_type) for item_type in items
+        item_type: submission_schemas.get(item_type)
+        for item_type in items
         if item_type in submission_schemas
     }
 
@@ -312,7 +310,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 format_="",
                 requires=[],
                 exclusive_requirements=[],
-            )
+            ),
         ),
         (  # More complicated case with most attributes
             "baz",
@@ -395,7 +393,7 @@ def test_get_enum(property_schema: Dict[str, Any], expected: List[str]) -> None:
         (  # Even though not handling arrays of objects currently -DRR 2024-06-10
             {
                 "type": "array",
-                "items": {"type": "object", "properties": {"foo": {"type": "string"}}}
+                "items": {"type": "object", "properties": {"foo": {"type": "string"}}},
             },
             "object",
         ),
