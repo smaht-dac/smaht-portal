@@ -25,8 +25,34 @@ from encoded.project.loadxl import ITEM_INDEX_ORDER
 log = structlog.getLogger(__name__)
 
 GOOGLE_SHEET_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-GOOGLE_CREDENTIALS_PATH = Path.expanduser(Path("~/google_sheets_creds.json"))
+GOOGLE_CREDENTIALS_LOCATION = "~/google_sheets_creds.json"
+GOOGLE_CREDENTIALS_PATH = Path.expanduser(Path(GOOGLE_CREDENTIALS_LOCATION))
 GOOGLE_TOKEN_PATH = Path.expanduser(Path("~/google_sheets_token.json"))
+
+"""
+Google Information as of 2024-06-10
+===================================
+
+Google Sheets API Reference:
+    * https://developers.google.com/sheets/api/reference/rest/v4
+
+To generate credentials for Google Sheets API, see instructions under
+the Web Application section here:
+    * https://developers.google.com/workspace/guides/create-credentials
+
+Overview:
+1. Go to Google Cloud Console: https://console.cloud.google.com/
+2. Create a new project
+3. Enable Google Sheets API
+4. Create credentials for the project
+5. Download the credentials as JSON
+6. Save the credentials as `google_sheets_creds.json` in the home directory
+7. Run the script to generate the token
+8. Token will be saved as `google_sheets_token.json` in the home directory
+
+If token expires, delete the token file and run the script again to generate
+a new token.
+"""
 
 
 @dataclass(frozen=True)
@@ -745,7 +771,15 @@ def main():
     parser.add_argument(
         "--separate", help="Add comments as separate cells", action="store_true"
     )
-    parser.add_argument("--google", help="Google Sheets ID to write")
+    parser.add_argument(
+        "--google",
+        help=(
+            f"Google Sheets ID to write."
+            f" Expects credentials in {GOOGLE_CREDENTIALS_PATH}."
+            f" Token will be saved to {GOOGLE_TOKEN_PATH}."
+            f" For more information, see docstring within the script."
+        ),
+    )
     args = parser.parse_args()
 
     keys = SMaHTKeyManager().get_keydict_for_env(args.env)
