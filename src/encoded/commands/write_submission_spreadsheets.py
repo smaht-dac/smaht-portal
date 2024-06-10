@@ -524,7 +524,7 @@ def write_spreadsheet(
 
 def get_output_file_path(output: Path, spreadsheet: Spreadsheet) -> Path:
     """Get the output file path"""
-    return Path(output, f"{spreadsheet.item}{ITEM_SPREADSHEET_SUFFIX}")
+    return Path(output, f"{to_snake_case(spreadsheet.item)}{ITEM_SPREADSHEET_SUFFIX}")
 
 
 def generate_workbook(
@@ -667,7 +667,9 @@ def set_cell_width(
     worksheet: openpyxl.worksheet.worksheet.Worksheet, index: int, property_: Property
 ) -> None:
     """Set the width of the cell."""
-    width = len(property_.name) + 2
+    min_width = 13  # Default width from openpyxl; looks reasonable
+    calculated_width = len(property_.name) + 2
+    width = calculated_width if calculated_width > min_width else min_width
     worksheet.column_dimensions[openpyxl.utils.get_column_letter(index)].width = width
 
 
@@ -929,10 +931,8 @@ def get_google_creds_from_token() -> Union[Credentials, None]:
         credentials = Credentials.from_authorized_user_file(
             GOOGLE_TOKEN_PATH, GOOGLE_SHEET_SCOPES
         )
-        if not credentials.valid:
-            credentials.refresh(Request())
-            write_google_token(credentials)
-        return credentials
+        if credentials.valid:
+            return credentials
     return None
 
 
