@@ -107,16 +107,25 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Frozen; homogenized</td>
                 </tr>
                 <tr>
+                    <td>1K**</td>
+                    <td>Skin</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
                     <td>1L*</td>
                     <td>Skin</td>
                     <td>Fixed</td>
                 </tr>
+                <tr>
+                    <td>1Q</td>
+                    <td>Brain, Frontal Lobe</td>
+                    <td>Frozen; homogenate and non-homogenate samples</td>
             </tbody>
         </table>
     </div>
 
 \*1J and 1L tissues are collected, but not utilized for study
-
+\*\*Cores made (intact tissue)
 
 Table 1B. Protocol IDs for SMaHT production tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
