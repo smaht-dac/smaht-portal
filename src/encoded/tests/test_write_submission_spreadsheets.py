@@ -268,7 +268,7 @@ def assert_spreadsheets_written(
     expected_schemas = get_expected_schemas(submission_schemas, items)
     for item_type, schema in expected_schemas.items():
         spreadsheet_path = Path(tempdir).joinpath(
-            f"{item_type}{ITEM_SPREADSHEET_SUFFIX}"
+            f"{to_snake_case(item_type)}{ITEM_SPREADSHEET_SUFFIX}"
         )
         assert spreadsheet_path.exists()
         workbook = openpyxl.load_workbook(spreadsheet_path)
