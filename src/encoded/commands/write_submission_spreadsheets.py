@@ -767,7 +767,6 @@ def main():
             request_handler,
             workbook=args.workbook,
             separate_comments=args.separate,
-            google=args.google,
         )
     elif args.item:
         log.info(f"Writing submission spreadsheets for item(s): {args.item}")
