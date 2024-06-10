@@ -385,12 +385,14 @@ class SubmissionStatusComponent extends React.PureComponent {
                         Library: {getLink(lib.uuid, lib.display_title)}
                     </li>
                 );
-                lib.analyte?.samples?.forEach((sample) => {
-                    fs_details.push(
-                        <li className="ss-line-height-140">
-                            Sample: {getLink(sample.uuid, sample.display_title)}
-                        </li>
-                    );
+                lib.analytes?.forEach((analyte) => {
+                    analyte.samples?.forEach((sample) => {
+                        fs_details.push(
+                            <li className="ss-line-height-140">
+                                Sample: {getLink(sample.uuid, sample.display_title)}
+                            </li>
+                        );
+                    });
                 });
                 fs_details.push(
                     <li className="ss-line-height-140">

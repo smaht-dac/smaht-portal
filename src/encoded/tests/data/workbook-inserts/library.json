@@ -5,7 +5,9 @@
             "smaht"
         ],
         "submitted_id": "TEST_LIBRARY_LIVER",
-        "analyte": "TEST_ANALYTE_LIVER",
+        "analytes": [
+            "TEST_ANALYTE_LIVER"
+        ],
         "a260_a280_ratio": 3.2,
         "amplification_cycles": 10,
         "analyte_weight": 5.4,
@@ -20,7 +22,9 @@
             "smaht"
         ],
         "submitted_id": "TEST_LIBRARY_HELA",
-        "analyte": "TEST_ANALYTE_HELA",
+        "analytes": [
+            "TEST_ANALYTE_HELA"
+        ],
         "a260_a280_ratio": 3.2,
         "fragment_mean_length": 150.7,
         "insert_mean_length": 150.2,

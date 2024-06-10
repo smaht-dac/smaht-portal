@@ -166,8 +166,8 @@ const TimelineCardContent = ({ values }) => {
                             )}
                         </h4>
                         <div>
-                            {unit.split(' ').map((line) => {
-                                return <span>{line}</span>;
+                            {unit.split(' ').map((line, j) => {
+                                return <span key={j}>{line}</span>;
                             })}
                         </div>
                     </div>

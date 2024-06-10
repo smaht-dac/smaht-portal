@@ -7,13 +7,100 @@ smaht-portal
 Change Log
 ----------
 
-0.55.1
-=======
+
+0.61.0
+======
 
 Submission Status page updates:
 * Add filters for CellLine and CellCultureMixture
 * Some refactoring of the React component
 * Color filesets by file group
+
+
+0.60.2
+======
+
+* Ensure ``docutils`` is a true dependency
+
+
+0.60.1
+======
+
+
+* Add new command ``check-insert-consistency`` to quickly detect errors on live environments related to inconsistencies with ``master-inserts``
+* Add new command ``load-data-from-local`` to allow interactive updates from ``master-inserts``
+
+
+0.60.0
+======
+
+`PR 123: File Overview Page <https://github.com/smaht-dac/smaht-portal/pull/123>`_
+
+* Add File Overview Page for improved view of additional details for File items
+* Upgrade SPC to v0.1.85
+
+
+0.59.3
+======
+
+`PR 179: Bring in inserts command fix <https://github.com/smaht-dac/smaht-portal/pull/179>`_
+
+* Bring in snovault with fix for help strings for command to update inserts
+
+
+0.59.2
+======
+
+`PR 178: Clean up poetry commands <https://github.com/smaht-dac/smaht-portal/pull/178>`_
+
+* Clean up commands in `pyproject.toml`
+  * Remove commands not present in repo
+  * Use snovault commands where possible
+  * Reorganize commands by source repo
+
+
+0.59.1
+======
+
+`PR 175: Fix command to load inserts <https://github.com/smaht-dac/smaht-portal/pull/175>`_
+
+* Update snovault and use its updated command to load inserts
+
+
+0.59.0
+======
+
+`PR 148: Submission statistics <https://github.com/smaht-dac/smaht-portal/pull/148>`_
+
+* Submission statistics charts for metadata submitted, data submitted and data released files with various group by options
+
+
+0.58.0
+======
+
+`PR 176: Bm benchmarking v3 <https://github.com/smaht-dac/smaht-portal/pull/176>`_
+
+* Add benchmarking tables for primary tissue data, organized by Donor, then Tissue type
+* Update navbar and navbar links
+
+
+0.57.0
+======
+
+`PR 173: Multiple analytes per library <https://github.com/smaht-dac/smaht-portal/pull/173>`_
+
+* **Breaking change**: Remove `analyte` from Library and replace with `analytes` array of linkTos
+* Includes corresponding changes to `item_utils`, commands, calcprops, embeds, front-end, and tests
+
+
+0.56.0
+======
+
+`PR 171: Bm docs nav update <https://github.com/smaht-dac/smaht-portal/pull/171>`_
+
+* Add a bunch of new inserts to serve as the new links to these various pages
+* Rework the old inserts into redirect-only pages, so that people who have bookmarked old links don't lose their place
+* Permission and order tweaks for sanity's sake
 
 
 0.55.0
