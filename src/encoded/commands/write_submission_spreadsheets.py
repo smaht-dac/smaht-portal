@@ -591,11 +591,7 @@ def get_non_required_non_links(properties: List[Property]) -> List[Property]:
 def get_required_links(properties: List[Property]) -> List[Property]:
     """Get required link properties."""
     return sort_properties_alphabetically(
-        [
-            property_
-            for property_ in properties
-            if property_.required and property_.link
-        ]
+        [property_ for property_ in properties if property_.required and property_.link]
     )
 
 
