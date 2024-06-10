@@ -230,7 +230,6 @@ def generate_html_colors(num_colors):
         return []
     if num_colors == 1:
         return ["#30b052"]
-    # import pdb; pdb.set_trace()
     # Start and end colors in HSL format (Hue, Saturation, Lightness)
     start_hue = 0  # Red
     end_hue = 0.8  # Purple. Note that 1.0 is red again
