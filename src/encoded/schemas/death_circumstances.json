@@ -86,7 +86,7 @@
         },
         "cause_of_death_immediate_interval": {
             "title": "Cause Of Death Immediate Interval",
-            "description": "Interval of time from immediate cause of death to death (minutes)",
+            "description": "Interval of time from immediate cause of death to death (hours)",
             "type": "number",
             "minimum": 0
         },
@@ -114,7 +114,7 @@
         },
         "death_pronounced_interval": {
             "title": "Death Pronounced Interval",
-            "description": "Interval of time between death pronouncement and witness of death (minutes)",
+            "description": "Interval of time between death pronouncement and witness of death (hours)",
             "type": "number",
             "minimum": 0
         },
@@ -195,7 +195,7 @@
         },
         "ventilator_time": {
             "title": "Ventilator Time",
-            "description": "Time the donor was on a ventilator prior to death (minutes)",
+            "description": "Time the donor was on a ventilator prior to death (hours)",
             "type": "number",
             "minimum": 0
         },
