@@ -5,6 +5,9 @@
         "submission_centers": [
             "smaht"
         ],
+        "consortia": [
+            "smaht"
+        ],
         "submitted_id": "TEST_ALIGNED-READS_SOME_BAM",
         "data_category": [
             "Sequencing Reads"

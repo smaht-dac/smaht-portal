@@ -4,6 +4,9 @@
         "submission_centers": [
             "smaht"
         ],
+        "consortia": [
+            "smaht"
+        ],
         "submitted_id": "TEST_VARIANT-CALLS_SOME_VCF",
         "data_category": [
             "Germline Variant Calls"

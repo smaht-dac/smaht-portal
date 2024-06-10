@@ -1,4 +1,5 @@
 import json
+import re
 import pkg_resources
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -253,6 +254,18 @@ def get_collection_for_type(type_info: AbstractTypeInfo) -> Collection:
     return result
 
 
+def get_submittable_file_types(
+        testapp: TestApp
+    ) -> Collection:
+    """Get all item types that are SubmittableFile.
+
+    Item names are snake_cased.
+    """
+    functional_item_types = get_functional_item_types(testapp)
+    return [ result for result, item_type_info in functional_item_types.items() if re.search("submitted_file",str(get_collection_for_type(item_type_info)))]
+
+
+
 def get_registry(item_with_registry: Union[Registry, TestApp, TypeInfo]) -> Registry:
     """Get registry from given input."""
     if isinstance(item_with_registry, Registry):
@@ -321,7 +334,8 @@ def get_upgrader(app: Router) -> Upgrader:
 
 
 def get_item_properties_from_workbook_inserts(
-    submission_center: Dict[str, Any]
+    submission_center: Dict[str, Any],
+    consortium: Dict[str,Any] = None
 ) -> Dict[str, Dict[str, Any]]:
     """Get representative item types from workbook inserts.
 
@@ -329,11 +343,12 @@ def get_item_properties_from_workbook_inserts(
     with only provided submission center.
     """
     inserts = get_workbook_inserts()
-    return clean_workbook_inserts(inserts, submission_center)
+    return clean_workbook_inserts(inserts, submission_center, consortium)
 
 
 def clean_workbook_inserts(
-    workbook_inserts: Dict[str, Dict[str, Any]], submission_center: Dict[str, Any]
+    workbook_inserts: Dict[str, Dict[str, Any]], submission_center: Dict[str, Any],
+    consortium: Dict[str,Any] = None
 ) -> Dict[str, Dict[str, Any]]:
     """Clean workbook inserts to only include submission center.
 
@@ -341,29 +356,29 @@ def clean_workbook_inserts(
     with only provided submission center.
     """
     return {
-        item_type: replace_inserts_affiliations(item_inserts, submission_center)
+        item_type: replace_inserts_affiliations(item_inserts, submission_center, consortium)
         for item_type, item_inserts in workbook_inserts.items()
     }
 
 
 def replace_inserts_affiliations(
-    item_inserts: List[Dict[str, Any]], submission_center: Dict[str, Any]
+    item_inserts: List[Dict[str, Any]], submission_center: Dict[str, Any], consortium: Dict[str,Any] = None
 ) -> Dict[str, Any]:
     """Replace affiliations in item inserts with provided submission center."""
     return [
-        replace_insert_affiliations(item_insert, submission_center)
+        replace_insert_affiliations(item_insert, submission_center, consortium)
         for item_insert in item_inserts
     ]
 
 
 def replace_insert_affiliations(
-    item_insert: Dict[str, Any], submission_center: Dict[str, Any]
+    item_insert: Dict[str, Any], submission_center: Dict[str, Any], consortium: Dict[str,Any] = None
 ) -> Dict[str, Any]:
     """If needed, replace affiliations in item insert with provided
     submission center.
     """
     if has_affiliations(item_insert):
-        return replace_affiliations(item_insert, submission_center)
+        return replace_affiliations(item_insert, submission_center,consortium)
     return item_insert
 
 
@@ -378,7 +393,7 @@ def has_affiliations(item_insert: Dict[str, Any]) -> bool:
 
 
 def replace_affiliations(
-    item_insert: Dict[str, Any], submission_center: Dict[str, Any]
+    item_insert: Dict[str, Any], submission_center: Dict[str, Any], consortium: Dict[str,Any] = None
 ) -> Dict[str, Any]:
     """Replace affiliations in item insert with provided submission center.
 
@@ -389,6 +404,12 @@ def replace_affiliations(
         key: value
         for key, value in item_insert.items()
         if key not in ["submission_centers", "consortia"]
+    }
+    if consortium:
+        return {
+        **insert_without_affiliation,
+        "submission_centers": [submission_center["uuid"]],
+        "consortia": [consortium["uuid"]]
     }
     return {
         **insert_without_affiliation,

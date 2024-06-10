@@ -14,7 +14,8 @@ from .utils import (
     get_schema,
     has_affiliations,
     patch_item,
-    post_item
+    post_item,
+    get_submittable_file_types,
 )
 from ..project.loadxl import ITEM_INDEX_ORDER as loadxl_order
 from ..utils import get_remote_user as get_app_remote_user
@@ -809,11 +810,13 @@ def test_item_create_permissions(
     consortium_user_app: TestApp,
     testapp: TestApp,
     test_submission_center: Dict[str, Any],
+    test_consortium: Dict[str,Any]
 ) -> None:
     """Test create permissions for all item types.
-
+    If schema is a submitted_file, it can be created by submission center and consortium users and admin users only;
     If schema has 'submitted_id' property, assume it can be created
-    by submission center user and admin user only; if lacking the
+    by submission center user and admin user only; 
+    If lacking the
     property, assume admin only. Exceptions to the above handled
     explicitly.
 
@@ -828,13 +831,22 @@ def test_item_create_permissions(
         submission_center_user_app,
         consortium_user_app,
         testapp,
+    ) or assert_consortium_affiliations( # Must be as expected
+        test_consortium,
+        anontestapp,
+        unassociated_user_app,
+        submission_center_user_app,
+        consortium_user_app,
+        testapp,
     )
+    
     special_item_types = [ # snake_cased names
         "access_key",
         "filter_set",
         "ingestion_submission",
     ]
     assumed_submittable_item_types = get_items_with_submitted_id(testapp)
+    assumed_submittable_file_types = get_submittable_file_types(testapp)
     assumed_admin_item_types = get_items_without_submitted_id(testapp)
     item_properties_to_test = get_item_properties_from_workbook_inserts(
         test_submission_center
@@ -844,6 +856,16 @@ def test_item_create_permissions(
         assert test_properties, f"Missing workbook properties for {item_type}"
         if item_type in special_item_types:
             assert_expected_special_permissions(
+                test_properties,
+                item_type,
+                anontestapp,
+                unassociated_user_app,
+                submission_center_user_app,
+                consortium_user_app,
+                testapp,
+            )
+        elif item_type in assumed_submittable_file_types:
+            assert_submittable_file_permissions(
                 test_properties,
                 item_type,
                 anontestapp,
@@ -900,6 +922,29 @@ def assert_submission_center_affiliations(
     )
 
 
+def assert_consortium_affiliations(
+    consortium: Dict[str, Any],
+    anontestapp: TestApp,
+    unassociated_user_app: TestApp,
+    submission_center_user_app: TestApp,
+    consortium_user_app: TestApp,
+    admin_app: TestApp,
+) -> None:
+    """Confirm expected affiliations for create permissions test."""
+    assert_not_affiliated_with_consortium(
+        admin_app, anontestapp, consortium
+    )
+    assert_not_affiliated_with_consortium(
+        admin_app, unassociated_user_app, consortium
+    )
+    assert_affiliated_with_consortium(
+        admin_app, consortium_user_app, consortium
+    )
+    assert_affiliated_with_consortium(
+        admin_app, submission_center_user_app, consortium
+    )
+
+
 def assert_not_affiliated_with_submission_center(
     admin_app: TestApp,
     app_to_test: TestApp,
@@ -909,6 +954,18 @@ def assert_not_affiliated_with_submission_center(
     if remote_user:
         assert not is_user_affiliated_with_submission_center(
             admin_app, remote_user, submission_center
+        )
+
+
+def assert_not_affiliated_with_consortium(
+    admin_app: TestApp,
+    app_to_test: TestApp,
+    consortium: Dict[str, Any],
+) -> None:
+    remote_user = get_app_remote_user(app_to_test)
+    if remote_user:
+        assert not is_user_affiliated_with_consortium(
+            admin_app, remote_user, consortium
         )
 
 
@@ -924,6 +981,18 @@ def assert_affiliated_with_submission_center(
     )
 
 
+def assert_affiliated_with_consortium(
+    admin_app: TestApp,
+    app_to_test: TestApp,
+    consortium: Dict[str, Any],
+) -> None:
+    remote_user = get_app_remote_user(app_to_test)
+    assert remote_user
+    assert is_user_affiliated_with_consortium(
+        admin_app, remote_user, consortium
+    )
+
+
 def is_user_affiliated_with_submission_center(
     admin_app: TestApp,
     user_identifier: str,
@@ -936,6 +1005,18 @@ def is_user_affiliated_with_submission_center(
     return submission_center["uuid"] in user.get("submission_centers", [])
 
 
+def is_user_affiliated_with_consortium(
+    admin_app: TestApp,
+    user_identifier: str,
+    consortium: Dict[str, Any],
+) -> bool:
+    """Check if user affiliated with consortium."""
+    user = get_item(
+        admin_app, user_identifier, collection="User", status=[200, 301], frame="raw"
+    )
+    return consortium["uuid"] in user.get("consortia", [])
+
+
 def get_limited_insert(
     test_app: TestApp, insert: Dict[str, Any], item_type: str
 ) -> Dict[str, Any]:
@@ -946,7 +1027,7 @@ def get_limited_insert(
     schema = get_schema(test_app, item_type)
     required_properties = schema_utils.get_conditional_required(schema)
     if has_affiliations(insert):
-        properties_to_keep = required_properties + ["submission_centers"]
+        properties_to_keep = required_properties + ["submission_centers"] + ["consortia"]
     else:
         properties_to_keep = required_properties
     return {key: value for key, value in insert.items() if key in properties_to_keep}
@@ -1082,6 +1163,29 @@ def assert_submittable_permissions(
         post_item(testapp, identifying_insert, item_type, status=201)
 
 
+def assert_submittable_file_permissions(
+    inserts: List[Dict[str, Any]],
+    item_type: str,
+    anontestapp: TestApp,
+    unassociated_user_app: TestApp,
+    submission_center_user_app: TestApp,
+    consortium_user_app: TestApp,
+    testapp: TestApp,
+) -> None:
+    """Ensure expected permissions for creation of submittable items."""
+    for idx, insert in enumerate(inserts):
+        limited_insert = get_limited_insert(testapp, insert, item_type)
+        identifying_insert = get_identifying_insert(testapp, insert, item_type)
+        if idx == 0:
+            post_item_to_fail(anontestapp, item_type, limited_insert)
+            post_item_to_fail(unassociated_user_app, item_type, limited_insert)
+            post_item_then_delete(
+                testapp, submission_center_user_app, item_type, limited_insert
+            )
+            post_item_then_delete(testapp,consortium_user_app, item_type, limited_insert)
+        post_item(testapp, identifying_insert, item_type, status=201)
+
+
 def assert_admin_permissions(
     inserts: List[Dict[str, Any]],
     item_type: str,
@@ -1204,14 +1308,15 @@ def test_controlled_user_can_edit_kinda_protected_data(
         submission_center_user_app.patch_json(f'/{atid}',{}, status=200)
 
 
-def test_consortium_user_can_create_submitted_file(test_consortium, consortium_user_app, smaht_consortium_user, testapp):
-    """ Tests that a consortium user can create submitted files"""
-    consortium_user_app.post_json('/UnalignedReads', {
-        'description': 'test unaligned read',
-        'consortia': [
-            test_consortium['@id']
-        ],
-    'file_format': 'FASTQ',
-    "filename": "some_test_fastq.fastq.gz",
-    'submitted_id': "CONSORTIA_UNALIGNED-READS_FASTQ"
-    }, status=200)
+# def test_consortium_user_can_create_submitted_file(test_consortium, consortium_user_app, smaht_consortium_user, testapp):
+#     """ Tests that a consortium user can create submitted files"""
+#     consortium_user_app.post_json('/UnalignedReads', {
+#         'description': 'test unaligned read',
+#         'consortia': [
+#             test_consortium['@id']
+#         ],
+#     'file_format': 'FASTQ',
+#     "filename": "some_test_fastq.fastq.gz",
+#     "file_sets": "TEST_FILE-SET_HELA",
+#     'submitted_id': "TEST_UNALIGNED-READS_FASTQ"
+#     }, status=200)

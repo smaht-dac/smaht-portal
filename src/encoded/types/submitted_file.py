@@ -7,6 +7,7 @@ from snovault.util import debug_log
 from .acl import (
     SUBMISSION_CENTER_MEMBER_CREATE_ACL,
       CONSORTIUM_MEMBER_CREATE_ACL,
+      ALLOW_CONSORTIUM_CREATE_ACL
 )
 from .base import collection_add, Item, item_edit
 from .file import (
@@ -51,7 +52,7 @@ class SubmittedFileCollection(Item.Collection):
 @abstract_collection(
     name="submitted-files",
     unique_key="submitted_id",
-    acl=SUBMISSION_CENTER_MEMBER_CREATE_ACL + CONSORTIUM_MEMBER_CREATE_ACL,
+    acl=ALLOW_CONSORTIUM_CREATE_ACL,
     properties={
         "title": "SMaHT Submitted Files",
         "description": "Listing of SMaHT Submitted Files",

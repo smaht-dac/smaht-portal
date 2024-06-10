@@ -171,7 +171,6 @@ def validate_submitted_id(
     submitted_id_data = parse_submitted_id(submitted_id)
     submission_center_codes = get_submission_center_codes(request, submission_centers)
     consortia_codes = get_consortia_codes(request, consortia)
-    import pdb; pdb.set_trace()
     if (
         submitted_id_data
         and submitted_id_data.center_code not in submission_center_codes and submitted_id_data.center_code not in consortia_codes
@@ -211,7 +210,7 @@ def get_submission_center_codes(
 
 
 def get_consortia_codes(
-    request: Request, consortia: List[str]
+    request: Request, consortia: List[str] = None
 ) -> List[str]:
     """Get consortia codes for given consortia."""
     consortia_codes = [

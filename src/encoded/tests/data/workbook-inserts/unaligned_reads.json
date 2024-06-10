@@ -4,6 +4,9 @@
         "submission_centers": [
             "smaht"
         ],
+        "consortia": [
+            "smaht"
+        ],
         "submitted_id": "TEST_UNALIGNED-READS_FASTQ",
         "data_category": [
             "Sequencing Reads"
@@ -29,6 +32,9 @@
         "submission_centers": [
             "smaht"
         ],
+        "consortia": [
+            "smaht"
+        ],
         "submitted_id": "TEST_UNALIGNED-READS_FASTQ_R2",
         "data_category": [
             "Sequencing Reads"
@@ -50,6 +56,9 @@
     {
         "uuid": "92e8371b-bcdf-44de-ad49-3a5f108e91eb",
         "submission_centers": [
+            "smaht"
+        ],
+        "consortia": [
             "smaht"
         ],
         "submitted_id": "TEST_UNALIGNED-READS_FASTQ_NO_READ_PAIR_NUMBER",
