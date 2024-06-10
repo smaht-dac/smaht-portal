@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 import googleapiclient
 import openpyxl
@@ -53,6 +53,12 @@ Overview:
 If token expires, delete the token file and run the script again to generate
 a new token.
 """
+
+ITEM_SPREADSHEET_SUFFIX = "_submission.xlsx"
+WORKBOOK_FILENAME = "submission_workbook.xlsx"
+
+FONT = "Arial"
+FONT_SIZE = 10
 
 
 @dataclass(frozen=True)
@@ -204,8 +210,9 @@ def get_update_cells_request(spreadsheet: Spreadsheet, sheet_id: int) -> Dict[st
 
 def get_values(spreadsheet: Spreadsheet) -> List[Dict[str, Any]]:
     """Get values for the spreadsheet."""
+    ordered_properties = get_ordered_properties(spreadsheet.properties)
     return [
-        {"values": [get_cell_value(property_) for property_ in spreadsheet.properties]}
+        {"values": [get_cell_value(property_) for property_ in ordered_properties]}
     ]
 
 
@@ -222,7 +229,7 @@ def get_cell_value(property_: Property) -> Dict[str, Any]:
 
 def get_text_format(property_: Property) -> Dict[str, Any]:
     """Get the text format."""
-    text_format = {"fontFamily": "Arial", "fontSize": 10}
+    text_format = {"fontFamily": FONT, "fontSize": FONT_SIZE}
     if property_.required:
         text_format["bold"] = True
     if property_.link:
@@ -235,9 +242,10 @@ def format_column_widths(
 ) -> None:
     """Format column widths in the Google Sheets."""
     requests = []
+    column_width_multiplier = 7  # 7 pixels per character seemed to work well
     for idx, spreadsheet in enumerate(spreadsheets):
         for index, property_ in enumerate(spreadsheet.properties):
-            width = len(property_.name) * 7
+            width = len(property_.name) * column_width_multiplier
             requests.append(get_format_column_request(idx, index, width))
     if requests:
         sheets_client.submit_requests(requests)
@@ -247,6 +255,8 @@ def get_format_column_request(
     sheet_id: int, column_index: int, width: int
 ) -> Dict[str, Any]:
     """Get request to format an individual column."""
+    minimum_width = 120  # Keep a minimum width of 120 pixels for the columns
+    width = width if width > minimum_width else minimum_width
     return {
         "updateDimensionProperties": {
             "range": {
@@ -256,7 +266,7 @@ def get_format_column_request(
                 "endIndex": column_index + 1,
             },
             "properties": {
-                "pixelSize": width if width > 120 else 120,
+                "pixelSize": width,
             },
             "fields": "pixelSize",
         }
@@ -296,7 +306,13 @@ def write_item_spreadsheets(
 ) -> None:
     """Write submission spreadsheets for specified items"""
     submission_schemas = get_submission_schemas(items, request_handler)
-    log.info(f"Writing submission spreadsheets to: {output}")
+    if not submission_schemas:
+        log.error("No submission schemas found for given items. Exiting...")
+        return
+    log.info(
+        f"Writing submission spreadsheets to {output} for items:"
+        f" {submission_schemas.keys()}"
+    )
     if workbook:
         write_workbook(output, submission_schemas, separate_comments=separate_comments)
     else:
@@ -309,12 +325,20 @@ def get_submission_schemas(
     items: List[str], request_handler: RequestHandler
 ) -> Dict[str, Dict[str, Any]]:
     """Get submission schemas for items."""
-    return {
-        to_snake_case(item): request_handler.get_item(
-            get_submission_schema_endpoint(item)
-        )
+    submission_schemas = {
+        to_camel_case(item): get_submission_schema(item, request_handler)
         for item in items
     }
+    return {key: value for key, value in submission_schemas.items() if value}
+
+
+def get_submission_schema(item: str, request_handler: RequestHandler) -> Dict[str, Any]:
+    """Get the submission schema for the item."""
+    try:
+        return request_handler.get_item(get_submission_schema_endpoint(item))
+    except Exception as e:
+        log.error(f"Error getting submission schema for {item}: {e}")
+        return {}
 
 
 def get_submission_schema_endpoint(item: str) -> Dict[str, Any]:
@@ -328,9 +352,33 @@ def write_workbook(
     """Write a single workbook containing all submission spreadsheets."""
     workbook = openpyxl.Workbook()
     ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas)
-    for index, (item, submission_schema) in enumerate(
-        ordered_submission_schemas.items()
-    ):
+    write_workbook_sheets(
+        workbook, ordered_submission_schemas, separate_comments=separate_comments
+    )
+    file_path = Path(output, WORKBOOK_FILENAME)
+    save_workbook(workbook, file_path)
+    log.info(f"Workbook written to: {file_path}")
+
+
+def get_ordered_submission_schemas(
+    submission_schemas: Dict[str, Any]
+) -> Dict[str, Dict[str, Any]]:
+    """Order submission schemas."""
+    result = {}
+    for item in ITEM_INDEX_ORDER:
+        camel_case_item = to_camel_case(item)
+        if camel_case_item in submission_schemas:
+            result[camel_case_item] = submission_schemas[camel_case_item]
+    return result
+
+
+def write_workbook_sheets(
+    workbook: openpyxl.Workbook,
+    submission_schemas: Dict[str, Dict[str, Any]],
+    separate_comments: bool = False,
+) -> None:
+    """Write workbook sheets for given schemas."""
+    for index, (item, submission_schema) in enumerate(submission_schemas.items()):
         spreadsheet = get_spreadsheet(item, submission_schema)
         if index == 0:
             worksheet = workbook.active
@@ -339,21 +387,6 @@ def write_workbook(
         else:
             worksheet = workbook.create_sheet(title=spreadsheet.item)
             write_properties(worksheet, spreadsheet.properties, separate_comments)
-    file_path = Path(output, "submission_workbook.xlsx")
-    save_workbook(workbook, file_path)
-    log.info(f"Workbook written to: {file_path}")
-
-
-def get_ordered_submission_schemas(
-    submission_schemas: Dict[str, Any]
-) -> Dict[str, Any]:
-    """Order submission schemas."""
-    result = {}
-    for item in ITEM_INDEX_ORDER:
-        camel_case_item = to_camel_case(item)
-        if camel_case_item in submission_schemas:
-            result[camel_case_item] = submission_schemas[camel_case_item]
-    return result
 
 
 def write_spreadsheets(
@@ -376,18 +409,18 @@ class Property:
     """
 
     name: str
-    description: str
-    value_type: str
-    required: bool
-    link: bool
-    enum: List[str]
-    array_subtype: str
-    pattern: str
-    comment: str
-    examples: List[str]
-    format_: str
-    requires: Union[List[str], None]
-    exclusive_requirements: Union[List[str], None]
+    description: str = ""
+    value_type: str = ""
+    required: bool = False
+    link: bool = False
+    enum: Optional[List[str]] = None
+    array_subtype: str = ""
+    pattern: str = ""
+    comment: str = ""
+    examples: Optional[List[str]] = None
+    format_: str = ""
+    requires: Optional[List[str]] = None
+    exclusive_requirements: Optional[List[str]] = None
 
 
 @dataclass(frozen=True)
@@ -408,27 +441,25 @@ def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet
 def get_properties(submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
     properties = schema_utils.get_properties(submission_schema)
-    return get_ordered_properties(
-        [get_property_info(key, value) for key, value in properties.items()]
-    )
+    return [get_property(key, value) for key, value in properties.items()]
 
 
-def get_property_info(key: str, value: Dict[str, Any]) -> Property:
+def get_property(property_name: str, property_schema: Dict[str, Any]) -> Property:
     """Get property information"""
     return Property(
-        name=key,
-        description=schema_utils.get_description(value),
-        value_type=schema_utils.get_schema_type(value),
-        required=is_required(value),
-        link=is_link(value),
-        enum=get_enum(value),
-        array_subtype=get_array_subtype(value),
-        pattern=schema_utils.get_pattern(value),
-        comment=schema_utils.get_submission_comment(value),
-        examples=get_examples(value),
-        format_=schema_utils.get_format(value),
-        requires=get_corequirements(value),
-        exclusive_requirements=get_exclusive_requirements(value),
+        name=property_name,
+        description=schema_utils.get_description(property_schema),
+        value_type=schema_utils.get_schema_type(property_schema),
+        required=is_required(property_schema),
+        link=is_link(property_schema),
+        enum=get_enum(property_schema),
+        array_subtype=get_array_subtype(property_schema),
+        pattern=schema_utils.get_pattern(property_schema),
+        comment=schema_utils.get_submission_comment(property_schema),
+        examples=get_examples(property_schema),
+        format_=schema_utils.get_format(property_schema),
+        requires=get_corequirements(property_schema),
+        exclusive_requirements=get_exclusive_requirements(property_schema),
     )
 
 
@@ -469,16 +500,16 @@ def get_examples(property_schema: Dict[str, Any]) -> List[str]:
     ) or schema_utils.get_suggested_enum(property_schema)
 
 
-def get_corequirements(property_schema: Dict[str, Any]) -> Union[List[str], None]:
+def get_corequirements(property_schema: Dict[str, Any]) -> List[str]:
     """Get the corequirements for the property."""
-    return property_schema.get(SubmissionSchemaConstants.ALSO_REQUIRES)
+    return property_schema.get(SubmissionSchemaConstants.ALSO_REQUIRES) or []
 
 
 def get_exclusive_requirements(
     property_schema: Dict[str, Any]
-) -> Union[List[str], None]:
+) -> List[str]:
     """Get the exclusive requirements for the property."""
-    return property_schema.get(SubmissionSchemaConstants.REQUIRED_IF_NOT_ONE_OF)
+    return property_schema.get(SubmissionSchemaConstants.REQUIRED_IF_NOT_ONE_OF) or []
 
 
 def write_spreadsheet(
@@ -493,7 +524,7 @@ def write_spreadsheet(
 
 def get_output_file_path(output: Path, spreadsheet: Spreadsheet) -> Path:
     """Get the output file path"""
-    return Path(output, f"{spreadsheet.item}_submission.xlsx")
+    return Path(output, f"{spreadsheet.item}{ITEM_SPREADSHEET_SUFFIX}")
 
 
 def generate_workbook(
@@ -513,7 +544,7 @@ def set_sheet_name(
     worksheet: openpyxl.worksheet.worksheet.Worksheet, spreadsheet: Spreadsheet
 ) -> None:
     """Set the sheet name"""
-    worksheet.title = spreadsheet.item
+    worksheet.title = to_camel_case(spreadsheet.item)
 
 
 def write_properties(
@@ -662,7 +693,7 @@ def write_comment_cells(
 
 def get_font(property_: Property) -> openpyxl.styles.Font:
     """Get font for the property."""
-    font = openpyxl.styles.Font(name="Arial", size=10)
+    font = openpyxl.styles.Font(name=FONT, size=FONT_SIZE)
     if property_.required:
         font.bold = True
     if property_.link:
@@ -681,46 +712,94 @@ def get_comment(property_: Property) -> Union[openpyxl.comments.Comment, None]:
 
 
 def get_comment_text(property_: Property) -> str:
-    """Get comment text for the property."""
+    """Get comment text for the property.
+
+    Order of lines as defined here will be the order in the comment.
+    """
     comment_lines = []
     indent = "  "
+    comment_lines += get_comment_description(property_, indent)
+    comment_lines += get_comment_value_type(property_, indent)
+    comment_lines += get_comment_enum(property_, indent)
+    comment_lines += get_comment_examples(property_, indent)
+    comment_lines += get_comment_link(property_, indent)
+    comment_lines += get_comment_required(property_, indent)
+    comment_lines += get_comment_requires(property_, indent)
+    comment_lines += get_comment_pattern(property_, indent)
+    comment_lines += get_comment_note(property_, indent)
+    return "\n".join(comment_lines)
+
+
+def get_comment_description(property_: Property, indent: str) -> List[str]:
     if property_.description:
-        comment_lines.append(f"Description:{indent}{property_.description}")
+        return [f"Description:{indent}{property_.description}"]
+    return []
+
+
+def get_comment_value_type(property_: Property, indent: str) -> List[str]:
     if property_.value_type:
         if property_.array_subtype:
-            comment_lines.append(
-                f"Type:{indent}{property_.array_subtype}"
-                f"{indent}(Multiple values allowed)"
-            )
+            return [
+                (
+                    f"Type:{indent}{property_.array_subtype}"
+                    f"{indent}(Multiple values allowed)"
+                )
+            ]
         else:
-            comment_lines.append(f"Type:{indent}{property_.value_type}")
+            return [f"Type:{indent}{property_.value_type}"]
+    return []
+
+
+def get_comment_enum(property_: Property, indent: str) -> List[str]:
     if property_.enum:
-        comment_lines.append(f"Options:{indent}{' | '.join(property_.enum)}")
+        return [f"Options:{indent}{' | '.join(property_.enum)}"]
+    return []
+
+
+def get_comment_examples(property_: Property, indent: str) -> List[str]:
     if property_.examples:
-        comment_lines.append(f"Examples:{indent}{' | '.join(property_.examples)}")
+        return [f"Examples:{indent}{' | '.join(property_.examples)}"]
+    return []
+
+
+def get_comment_link(property_: Property, indent: str) -> List[str]:
     if property_.link:
-        comment_lines.append(f"Link:{indent}Yes")
+        return [f"Link:{indent}Yes"]
+    return []
+
+
+def get_comment_required(property_: Property, indent: str) -> List[str]:
     if property_.required:
-        comment_lines.append(f"Required:{indent}Yes")
-    elif property_.exclusive_requirements:
-        comment_lines.append(
-            f"Required:{indent}Possibly"
-            f"{indent}Not required if present:{indent}"
-            f"{' | '.join(property_.exclusive_requirements)}"
-        )
-    else:
-        comment_lines.append(f"Required:{indent}No")
+        return [f"Required:{indent}Yes"]
+    if property_.exclusive_requirements:
+        return [
+            (
+                f"Required:{indent}Possibly\n"
+                f"{indent}Not required if present:{indent}"
+                f"{' | '.join(property_.exclusive_requirements)}"
+            )
+        ]
+    return [f"Required:{indent}No"]
+
+
+def get_comment_requires(property_: Property, indent: str) -> List[str]:
     if property_.requires:
-        comment_lines.append(f"Requires:{indent}{' | '.join(property_.requires)}")
+        return [f"Requires:{indent}{' | '.join(property_.requires)}"]
+    return []
+
+
+def get_comment_pattern(property_: Property, indent: str) -> List[str]:
     if property_.pattern:
-        comment_lines.append(f"Pattern:{indent}{property_.pattern}")
-    elif is_date_format(property_.format_):
-        comment_lines.append(f"Format:{indent}YYYY-MM-DD")
+        return [f"Pattern:{indent}{property_.pattern}"]
+    if is_date_format(property_.format_):
+        return [f"Format:{indent}YYYY-MM-DD"]
+    return []
+
+
+def get_comment_note(property_: Property, indent: str) -> List[str]:
     if property_.comment:
-        comment_lines.append(f"Note:{indent}{property_.comment}")
-    if comment_lines:
-        return "\n\n".join(comment_lines)
-    return ""
+        return [f"Note:{indent}{property_.comment}"]
+    return []
 
 
 def is_date_format(format_: str) -> bool:
@@ -729,12 +808,9 @@ def is_date_format(format_: str) -> bool:
 
 
 def get_comment_height(comment_text: str) -> int:
-    """Get comment height based on number of lines.
-
-    Note: Pixels per line chosen based on trial and error.
-    """
+    """Get comment height based on number of lines."""
+    pixels_per_line = 20  # Looks reasonable for the font size
     lines = [line for line in comment_text.split("\n")]
-    pixels_per_line = 20
     return len(lines) * pixels_per_line
 
 
@@ -755,13 +831,26 @@ def save_workbook(workbook: openpyxl.Workbook, file_path: Path) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="Write submission spreadsheets")
-    parser.add_argument("--output", help="Output file directory", type=dir_path)
+    parser.add_argument(
+        "--output",
+        help=(
+            f"Output file directory. If not creating a workbook, separate files"
+            f" will be created for each item with the filename"
+            f" <item>{ITEM_SPREADSHEET_SUFFIX}."
+            f" If creating a workbook, the workbook will be saved as"
+            f" {WORKBOOK_FILENAME}."
+        ),
+        type=dir_path,
+    )
     parser.add_argument("--env", help="Environment", default="data")
     parser.add_argument("--item", help="Item name", nargs="+")
     parser.add_argument("--all", help="All items", action="store_true")
     parser.add_argument(
         "--workbook",
-        help="Bundle all items into a single workbook",
+        help=(
+            f"Bundle all items into a single workbook."
+            f" Workbook will be saved as {WORKBOOK_FILENAME}."
+        ),
         action="store_true",
     )
     parser.add_argument(
