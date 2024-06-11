@@ -42,6 +42,7 @@ def include_encoded(config):
         For detailed explanation see: https://docs.pylonsproject.org/projects/pyramid/en/latest/api/config.html
     """
     config.include('encoded.authentication')
+    config.include('encoded.bar_plot_chart')
     config.include('encoded.root')
     config.include('encoded.types')
     config.include('encoded.metadata')

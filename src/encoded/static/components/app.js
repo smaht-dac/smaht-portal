@@ -20,6 +20,7 @@ import { NavigationBar } from './navigation/NavigationBar';
 import { NotLoggedInAlert } from './navigation/components/LoginNavItem';
 import { Footer } from './Footer';
 import { store } from './../store';
+import { FacetCharts } from './browse/components/FacetCharts';
 
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 import {
@@ -32,6 +33,7 @@ import {
     analytics,
     memoizedUrlParse,
     WindowEventDelegator,
+    isSelectAction,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Schemas, SEO, typedefs, navigate } from './util';
 import { responsiveGridState, DeferMount } from './util/layout';
@@ -1660,6 +1662,7 @@ const ContentRenderer = React.memo(function ContentRenderer(props) {
         'updateAppSessionState',
         'context',
         'currentAction',
+        'browseBaseState',
         // Props from BodyElement:
         'windowWidth',
         'windowHeight',
@@ -2182,7 +2185,7 @@ class BodyElement extends React.PureComponent {
     }
 
     bodyClassName() {
-        const { isLoading, context } = this.props;
+        const { isLoading, context, currentAction } = this.props;
         const {
             scrolledPast80,
             scrolledPast160,
@@ -2194,7 +2197,7 @@ class BodyElement extends React.PureComponent {
             testWarningPresent,
         } = this.state;
         const bodyClassList = (classList && classList.slice(0)) || [];
-
+        const isSelectPage = isSelectAction(currentAction) && this.memoized.isSearchPage(href);
         // Common UI
         if (isLoading) bodyClassList.push('loading-request');
         if (scrolledPastTop) bodyClassList.push('scrolled-past-top');
@@ -2263,6 +2266,9 @@ class BodyElement extends React.PureComponent {
         } = this;
         const overlaysContainer = this.overlaysContainerRef.current;
         const innerOverlaysContainer = this.innerOverlaysContainerRef.current;
+        const appClass = slowLoad ? 'communicating' : 'done';
+        const isSelectPage = isSelectAction(currentAction) && this.memoized.isSearchPage(href);
+        const isSelectPopupWindow = typeof window !== 'undefined' && window.opener && window.opener !== window && window.name === 'selection-search';
 
         if (hasError) return this.renderErrorState();
 
@@ -2308,6 +2314,11 @@ class BodyElement extends React.PureComponent {
             innerOverlaysContainer,
             alerts,
         };
+
+        const initialFields = [
+            'submission_centers.display_title',
+            'sequencing.sequencer.identifier',
+        ];
 
         return (
             // We skip setting `props.dangerouslySetInnerHTML` if mounted, since this data is only used for initializing over server-side-rendered HTML.
@@ -2363,7 +2374,7 @@ class BodyElement extends React.PureComponent {
 
                         <NavigationBar {...navbarProps} />
 
-                        <div
+                        {/* <div
                             id="post-navbar-container"
                             style={{ minHeight: innerContainerMinHeight }}>
                             <PageTitleSection
@@ -2379,9 +2390,13 @@ class BodyElement extends React.PureComponent {
                                 id="inner-overlays-container"
                                 ref={this.innerOverlaysContainerRef}
                             />
+                        </div> */}
+                        <div id="facet-charts-container" className="container">
+                                <FacetCharts {..._.pick(this.props, 'context', 'href', 'session', 'schemas', 'browseBaseState')}
+                                    {...{ windowWidth, windowHeight, navigate, isFullscreen, initialFields }} />
                         </div>
                     </div>
-                    <Footer version={context.app_version} />
+                    {/* <Footer version={context.app_version} /> */}
                 </div>
 
                 <div id="overlays-container" ref={this.overlaysContainerRef} />

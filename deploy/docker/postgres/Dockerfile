@@ -1,4 +1,4 @@
-FROM postgres:14.5
+FROM postgres:16.3
 
 MAINTAINER William Ronchetti "william_ronchetti@hms.harvard.edu"
 
