@@ -146,6 +146,18 @@ def get_samples(
     return properties.get("samples", [])
 
 
+def get_tissue_samples(
+    properties: Dict[str, Any], request_handler: RequestHandler = None
+) -> List[str]:
+    """Get tissue samples associated with file."""
+    samples = get_samples(properties, request_handler=request_handler)
+    return [
+        sample
+        for sample in samples
+        if sample.is_tissue_sample(request_handler.get_item(sample))
+    ]
+
+
 def get_sample_sources(
     properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[Union[str, Dict[str, Any]]]:

@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import logging
 from dataclasses import dataclass
-from functools import partial
 from typing import Any, Dict, List, Optional, Tuple
 
 from dcicutils import ff_utils
@@ -11,7 +10,6 @@ from dcicutils.creds_utils import SMaHTKeyManager
 
 from encoded.item_utils import (
     constants,
-    cell_culture_mixture as cell_culture_mixture_utils,
     donor as donor_utils,
     file as file_utils,
     file_format as file_format_utils,
@@ -395,15 +393,35 @@ def get_aliquot_id(
 def get_aliquot_id_from_samples(
     file: Dict[str, Any], request_handler: RequestHandler
 ) -> FilenamePart:
-    """Get aliquot ID from sample items."""
-    aliquot_ids = get_property_values_from_identifiers(
-        request_handler,
-        file_utils.get_samples(file, request_handler=request_handler),
-        sample_utils.get_aliquot_id,
-    )
+    """Get aliquot ID from sample items.
+
+    Some special handling required to transform aliquot ID from
+    metadata to that of the filename.
+    """
+    tissue_samples = file_utils.get_tissue_samples(file, request_handler)
+    aliquot_ids = [
+        get_aliquot_id_from_tissue_sample(sample, request_handler)
+        for sample in tissue_samples
+    ]
+    values = list(set([aliquot_id for aliquot_id in aliquot_ids if aliquot_id]))
     return get_filename_part_for_values(
-        aliquot_ids, "tissue aliquot ID", source_name="sample"
+        values, "tissue aliquot ID", source_name="sample"
     )
+
+
+def get_aliquot_id_from_tissue_sample(
+    sample_id: str, request_handler: RequestHandler
+) -> str:
+    """Get aliquot ID from tissue sample item.
+
+    If TissueSample is homogenate, provide default absent field.
+
+    Otherwise, return the aliquot ID from the metadata.
+    """
+    item = request_handler.get_item(sample_id)
+    if tissue_utils.is_homogenate(item):
+        return DEFAULT_ABSENT_FIELD
+    return sample_utils.get_aliquot_id(item)
 
 
 def get_donor_sex_and_age(
