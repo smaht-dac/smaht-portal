@@ -108,7 +108,7 @@
                 "Homicide",
                 "Natural",
                 "Suicide",
-                "Unknown",
+                "Undetermined",
                 "Unreported"
             ]
         },
@@ -123,7 +123,7 @@
             "description": "Status of donor when enrolled in the study",
             "type": "string",
             "enum": [
-                "Brain dead",
+                "Brain Dead",
                 "Donation after circulatory death",
                 "Postmortem"
             ]
