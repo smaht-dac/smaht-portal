@@ -55,7 +55,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
     // Does not includes tissues for now
     getSampleSourceCodes = (type, state_variable) => {
         ajax.load(
-            `/search/?code%21=No+value&type=${type}`,
+            `/search/?code%21=No+value&type=${type}&limit=100`,
             (resp) => {
                 const res = resp['@graph'];
                 const items = res.map((item) => {
