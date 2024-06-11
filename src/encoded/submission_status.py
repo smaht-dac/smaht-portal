@@ -74,7 +74,8 @@ def get_submission_status(context, request):
                 file_set["file_group_color"] = "#eeeeee"
             file_sets.append(file_set)
 
-        # Generate colors and assign them to each file group
+        # Generate colors and assign them to each file group. We are generating
+        # colors on the fly, so that they are as distinct as possible.
         num_distinct_file_groups = len(file_group_color_map.keys())
         fg_colors = generate_html_colors(num_distinct_file_groups)
         for i, fg in enumerate(file_group_color_map.keys()):
@@ -151,7 +152,7 @@ def add_submission_status_search_filters(
             filter["cell_line"]
         )
         search_params["libraries.analytes.samples.sample_sources.code"] = (
-            "No+value"  # Exlude mixtures from results
+            "No+value"  # Exclude mixtures from results
         )
     elif (
         "cell_culture_mixtures_and_tissues" in filter
