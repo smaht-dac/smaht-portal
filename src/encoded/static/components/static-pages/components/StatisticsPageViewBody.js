@@ -930,7 +930,7 @@ export function UsageStatsView(props){
                             <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_downloads" />
                         </div>
                         <h3 className="charts-group-title">
-                            <span className="d-block d-sm-inline">File Downloads</span><span className="text-300 d-none d-sm-inline"> - </span>
+                            <span className="d-block d-sm-inline">File Downloads<sup>*</sup></span><span className="text-300 d-none d-sm-inline"> - </span>
                             <span className="text-300">{UsageStatsView.titleExtensions['file_downloads'][countBy.file_downloads]}</span>
                         </h3>
                     </div>
@@ -948,6 +948,8 @@ export function UsageStatsView(props){
                         subTitle={enableFileDownloadsChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
                         <AreaChart {...commonChartProps} data={file_downloads_volume} showTooltipOnHover={!enableFileDownloadsChartTooltipItemClick} yAxisLabel="GB" />
                     </AreaChartContainer>
+
+                    <p className='font-italic mt-2'>* File downloads before June 15th, 2024, only include browser-based downloads and may not be accurate.</p>
 
                 </ColorScaleProvider>
 
