@@ -298,7 +298,13 @@ def get_project_id_from_tissue(
 def get_sample_source_id(
     file: Dict[str, Any], request_handler: RequestHandler
 ) -> FilenamePart:
-    """Get sample source ID for file."""
+    """Get sample source ID for file.
+
+    If only cell culture mixture-derived, use mixture code, and don't
+    attempt to get cell line IDs (which likely exist).
+    """
+    if file_utils.is_only_cell_culture_mixture_derived(file, request_handler):
+        return get_cell_culture_mixture_code(file, request_handler)
     parts = []
     if file_utils.is_cell_culture_mixture_derived(file, request_handler):
         parts.append(get_cell_culture_mixture_code(file, request_handler))
@@ -316,7 +322,7 @@ def get_cell_culture_mixture_code(
     codes = get_property_values_from_identifiers(
         request_handler,
         file_utils.get_cell_culture_mixtures(file, request_handler=request_handler),
-        file_utils.get_code,
+        item_utils.get_code,
     )
     return get_filename_part_for_values(
         codes, "sample source ID", source_name="cell culture mixture"
@@ -413,10 +419,12 @@ def get_donor_sex_and_age(
     """Get donor sex and age for file.
 
     Special handling for cell culture mixture-derived files, as these
-    may have multiple donors.
+    may have multiple donors or none.
     """
     donors = file_utils.get_donors(file, request_handler=request_handler)
     if not donors:
+        if file_utils.is_only_cell_culture_mixture_derived(file, request_handler):
+            return get_filename_part(value=get_null_sex_and_age())
         return get_filename_part(errors=["No donors found"])
     sex_and_age_parts = get_sex_and_age_parts(donors, request_handler)
     if (
