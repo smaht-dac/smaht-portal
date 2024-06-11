@@ -84,3 +84,8 @@ def get_aliases(properties: Dict[str, Any]) -> List[str]:
 def get_identifier(properties: Dict[str, Any]) -> str:
     """Get identifier from properties."""
     return properties.get("identifier", "")
+
+
+def get_version(properties: Dict[str, Any]) -> str:
+    """Get version from properties."""
+    return properties.get("version", "")

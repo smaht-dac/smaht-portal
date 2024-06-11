@@ -1,4 +1,5 @@
 import functools
+import re
 from typing import Any, Dict, List, Optional, Union
 
 from . import (
@@ -6,13 +7,13 @@ from . import (
     cell_culture_mixture,
     constants,
     item,
+    sample_source,
     tissue,
     tissue_sample,
 )
 from .utils import (
     get_property_value_from_identifier,
     get_property_values_from_identifiers,
-    get_study_from_external_id,
     RequestHandler,
 )
 
@@ -83,27 +84,9 @@ def get_sample_names_from_sources(
     names = get_property_values_from_identifiers(
         request_handler,
         get_sample_sources(properties),
-        functools.partial(get_sample_source_code, request_handler),
+        functools.partial(sample_source.get_code, request_handler),
     )
     return [f"{constants.PRODUCTION_PREFIX}{name}" for name in names]
-
-
-def get_sample_source_code(
-    request_handler: RequestHandler, sample_source: Dict[str, Any]
-) -> str:
-    """Get the code for a given sample source.
-
-    Currently only used for CellLines and CellCultureMixtures.
-    """
-    if cell_culture_mixture.is_cell_culture_mixture(sample_source):
-        return item.get_code(sample_source)
-    if cell_culture.is_cell_culture(sample_source):
-        return get_property_value_from_identifier(
-            request_handler,
-            cell_culture.get_cell_line(sample_source),
-            item.get_code,
-        )
-    return ""
 
 
 def get_sample_descriptions(
@@ -171,13 +154,30 @@ def get_studies(
     - If has ID, check for benchmarking vs production based on TPC prefix
     - If no ID, check sample sources for codes
     """
-    if sample_id := item.get_external_id(properties):
-        study = get_study_from_external_id(sample_id)
-        if study:
-            return [study]
-    elif request_handler:
+    if study := get_study(properties):
+        return [study]
+    if request_handler:
         return get_studies_from_sources(request_handler, properties)
     return []
+
+
+TPC_ID_COMMON_PATTERN = rf"{tissue.TPC_ID_COMMON_PATTERN}-[A-Z0-9]+$"
+BENCHMARKING_ID_REGEX = re.compile(
+    rf"{constants.BENCHMARKING_PREFIX}{TPC_ID_COMMON_PATTERN}"
+)
+PRODUCTION_ID_REGEX = re.compile(
+    rf"{constants.PRODUCTION_PREFIX}{TPC_ID_COMMON_PATTERN}"
+)
+
+
+def get_study(properties: Dict[str, Any]) -> str:
+    """Get study from external ID."""
+    external_id = item.get_external_id(properties)
+    if BENCHMARKING_ID_REGEX.match(external_id):
+        return constants.BENCHMARKING_STUDY
+    if PRODUCTION_ID_REGEX.match(external_id):
+        return constants.PRODUCTION_STUDY
+    return ""
 
 
 def get_studies_from_sources(
@@ -187,25 +187,16 @@ def get_studies_from_sources(
     return get_property_values_from_identifiers(
         request_handler,
         get_sample_sources(properties),
-        functools.partial(get_sample_source_study, request_handler),
+        functools.partial(sample_source.get_study, request_handler),
     )
 
 
-def get_sample_source_study(
-    request_handler: RequestHandler, sample_source: Dict[str, Any]
-) -> str:
-    """Get study for a given sample source.
-
-    Tissue study information identifiable by its external ID, while
-    cell culture (mixture) study information identified by presence of
-    code (and only indicative of benchmarking). TTD data, on the other
-    hand, is not associated with any study, and assumption is such data
-    will not match any of the criteria here.
-    """
-    if tissue.is_tissue(sample_source):
-        return tissue.get_study(sample_source)
-    else:
-        code = get_sample_source_code(request_handler, sample_source)
-        if code:
-            return constants.BENCHMARKING_STUDY
+def get_aliquot_id(properties: Dict[str, Any]) -> str:
+    """Get aliquot ID associated with sample."""
+    external_id = item.get_external_id(properties)
+    if (
+        BENCHMARKING_ID_REGEX.match(external_id)
+        or PRODUCTION_ID_REGEX.match(external_id)
+    ):
+        return external_id.split("-")[2]
     return ""

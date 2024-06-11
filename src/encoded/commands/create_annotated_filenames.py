@@ -3,29 +3,43 @@ from __future__ import annotations
 import argparse
 import logging
 from dataclasses import dataclass
-from functools import lru_cache
-from typing import Any, Dict, List, Union, Tuple
+from functools import partial
+from typing import Any, Dict, List, Optional, Tuple
 
 from dcicutils import ff_utils
 from dcicutils.creds_utils import SMaHTKeyManager
 
+from encoded.item_utils import (
+    constants,
+    cell_culture_mixture as cell_culture_mixture_utils,
+    donor as donor_utils,
+    file as file_utils,
+    file_format as file_format_utils,
+    item as item_utils,
+    sample as sample_utils,
+    tissue as tissue_utils,
+)
+from encoded.item_utils.constants import file as file_constants
+from encoded.item_utils.utils import (
+    RequestHandler,
+    get_property_values_from_identifiers,
+    get_property_value_from_identifier,
+)
+
 
 logger = logging.getLogger(__name__)
 
-
-DEFAULT_PROJECT_ID = "SMHT"
-DEFAULT_ABSENT_FIELD = "X"
-ABSENT_AGE = "N"
-ABSENT_SEX = ABSENT_AGE
 FILENAME_SEPARATOR = "-"
 ANALYSIS_INFO_SEPARATOR = "_"
 
+DEFAULT_PROJECT_ID = constants.PRODUCTION_PREFIX
+DEFAULT_ABSENT_FIELD = "X"
+ABSENT_AGE = "N"
+ABSENT_SEX = ABSENT_AGE
+
 ALIGNED_READS_EXTENSION = "aligned"
-BAM_EXTENSION = "bam"
-FASTQ_EXTENSION = "fastq.gz"
 PHASED_EXTENSION = "phased"
 SORTED_EXTENSION = "sorted"
-VCF_EXTENSION = "vcf.gz"
 
 CNV_VARIANT_TYPE = "cnv"
 MEI_VARIANT_TYPE = "mei"
@@ -36,130 +50,31 @@ MALE_SEX_ABBREVIATION = "M"
 FEMALE_SEX_ABBREVIATION = "F"
 
 
-class PortalConstants:
-    ACCESSION = "accession"
-    AGE = "age"
-    ALIGNED_READS = "Aligned Reads"
-    ALIGNMENT_DETAILS = "alignment_details"
-    ANALYTE = "analytes"
-    ANNOTATED_FILENAME = "annotated_filename"
-    ASSAY = "assay"
-    CELL_CULTURE = "cell_culture"
-    CELL_CULTURE_MIXTURE_TYPE = "CellCultureMixture"
-    CELL_CULTURE_TYPE = "CellCulture"
-    CELL_LINE = "cell_line"
-    CODE = "code"
-    COMPONENTS = "components"
-    CONSORTIA = "consortia"
-    COPY_NUMBER_VARIANT = "Copy Number Variant"
-    DATA_TYPE = "data_type"
-    DONOR = "donor"
-    EXTRA_FILES = "extra_files"
-    FEMALE_SEX = "Female"
-    FILE_FORMAT = "file_format"
-    FILE_SETS = "file_sets"
-    FILENAME = "filename"
-    LIBRARIES = "libraries"
-    HAPMAP6 = "HAPMAP6"
-    MALE_SEX = "Male"
-    MOBILE_ELEMENT_INSERTION = "Mobile Element Insertion"
-    PHASED = "Phased"
-    REFERENCE_GENOME = "reference_genome"
-    SAMPLE_SOURCES = "sample_sources"
-    SAMPLES = "samples"
-    SEQUENCER = "sequencer"
-    SEQUENCING = "sequencing"
-    SEQUENCING_CENTER = "sequencing_center"
-    SEX = "sex"
-    SINGLE_NUCLEOTIDE_VARIANT = "Single Nucleotide Variant"
-    SOFTWARE = "software"
-    SORTED = "Sorted"
-    STANDARD_FILE_EXTENSION = "standard_file_extension"
-    STRUCTURAL_VARIANT = "Structural Variant"
-    SUBMISSION_CENTERS = "submission_centers"
-    TISSUE_TYPE = "Tissue"
-    TYPE = "@type"
-    UUID = "uuid"
-    VARIANT_TYPE = "variant_type"
-    VERSION = "version"
-
-
-@dataclass(frozen=True)
-class InvalidData:
-    pass
-
-
-@dataclass(frozen=True)
-class SampleSourceData:
-    pass
-
-
-@dataclass(frozen=True)
-class TissueData(SampleSourceData):
-    project_id: str = ""
-    kit_id: str = ""
-    protocol_id: str = ""
-    aliquot_id: str = ""
-    core_id: str = ""
-
-
-@dataclass(frozen=True)
-class CellLineData(SampleSourceData):
-    project_id: str = DEFAULT_PROJECT_ID
-    cell_line_id: str = ""
-
-
-@dataclass(frozen=True)
-class DonorData:
-    sex: str = ""
-    age: str = ""
-
-
-@dataclass(frozen=True)
-class SampleData:
-    sample_source_data: Union[InvalidData, SampleSourceData]
-    donor_data: Union[InvalidData, DonorData]
-
-
-@dataclass(frozen=True)
-class ExperimentData:
-    sequencing_code: str = ""
-    assay_code: str = ""
-
-
-@dataclass(frozen=True)
-class FileData:
-    center_code: str = ""
-    accession: str = ""
-    software: str = ""
-    software_version: str = ""
-    genome: str = ""
-    variant_type: str = ""
-    data_type: str = ""
-    alignment_details: str = ""
-    file_extension: str = ""
-
-
-@dataclass(frozen=True)
-class FilenameData:
-    file: Dict[str, Any]
-    sample_data: SampleData
-    experiment_data: ExperimentData
-    file_data: FileData
-
-
 @dataclass(frozen=True)
 class FilenamePart:
     value: str
-    errors: List[str]
+    errors: Tuple[str]  # Hashable so class can be used in set
 
 
 @dataclass(frozen=True)
 class AnnotatedFilename:
-    uuid: str
-    filename: str
-    file: Dict[str, Any]
+    project_id: str
+    sample_source_id: str
+    protocol_id: str
+    tissue_aliquot_id: str
+    donor_age: int
+    donor_sex: str
+    sequencing_and_assay_codes: str
+    sequencing_center_code: str
+    accession: str
+    analysis_info: str
+    file_extension: str
     errors: List[str]
+
+
+def get_identifier(annotated_filename: AnnotatedFilename) -> str:
+    """Get identifier for annotated filename."""
+    return annotated_filename.accession
 
 
 def create_annotated_filenames(
@@ -175,788 +90,708 @@ def create_annotated_filenames(
     filename. Will almost certainly need updates as different types of
     data included and whenever relevant data model changes are made.
     """
-    file_items = get_file_items(search, identifiers, auth_key)
-    filename_data = get_filename_data(file_items, auth_key)
-    patch_annotated_filenames(filename_data, auth_key, dry_run=dry_run)
+    request_handler = RequestHandler(auth_key=auth_key)
+    files = get_files(search, identifiers, request_handler)
+    logger.info(f"Found {len(files)} files to process")
+    annotated_filenames = get_annotated_filenames(files, request_handler)
+    logger.info(f"Generated {len(annotated_filenames)} annotated filenames")
+    log_annotated_filenames(annotated_filenames)
+    if dry_run:
+        logger.info("Dry run: not patching filenames")
+    else:
+        patch_report = patch_annotated_filenames(annotated_filenames, auth_key)
+        log_patch_report(patch_report)
 
 
-def get_file_items(
+def get_files(
     search: str,
     identifiers: List[str],
-    auth_key: Dict[str, str],
+    request_handler: RequestHandler,
 ) -> List[Dict[str, Any]]:
     """Get file items from given search query and idenitfiers."""
-    return get_file_items_from_search(
-        search, auth_key
-    ) + get_file_items_from_identifiers(identifiers, auth_key)
+    return get_files_from_search(
+        search, request_handler.auth_key
+    ) + get_files_from_identifiers(identifiers, request_handler)
 
 
-def get_file_items_from_search(
+def get_files_from_search(
     search_query: str, auth_key: Dict[str, str]
 ) -> List[str]:
     """Get file items from given search query."""
     if search_query:
-        return get_file_items_from_search_query(search_query, auth_key)
+        return get_files_from_search_query(search_query, auth_key)
     return []
 
 
-def get_file_items_from_search_query(
+def get_files_from_search_query(
     search_query: str, auth_key: Dict[str, str]
 ) -> List[str]:
     """Get file items from given search query."""
     try:
-        result = ff_utils.search_metadata(search_query, key=auth_key)
-        logger.info(f"Found {len(result)} files from search query")
+        search_result = ff_utils.search_metadata(search_query, key=auth_key)
+        result = filter_files(search_result)
     except Exception as e:
         logger.error(f"Error searching for files: {e}")
         result = []
     return result
 
 
-def get_file_items_from_identifiers(
-    identifiers: List[str], auth_key: Dict[str, str]
+def filter_files(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Get files from given items."""
+    return [item for item in items if file_utils.is_file(item)]
+
+
+def get_files_from_identifiers(
+    identifiers: List[str], request_handler: RequestHandler
 ) -> List[str]:
     """Get file items from given identifiers."""
-    result = []
-    if identifiers:
-        for identifier in identifiers:
-            item = get_item_from_identifier(identifier, auth_key)
-            if item:
-                result.append(item)
-    return result
+    items = request_handler.get_items(identifiers)
+    return filter_files(items)
 
 
-def get_item(
-    item: Union[str, Dict[str, Any]], auth_key: Dict[str, str], add_on: str = ""
-) -> Dict[str, Any]:
-    """GET item from given input (identifier or embedded item)."""
-    if isinstance(item, str):
-        return get_item_from_identifier(item, auth_key, add_on=add_on)
-    if isinstance(item, dict):
-        if identifier := get_uuid(item):
-            return get_item_from_identifier(identifier, auth_key, add_on=add_on)
-        return {}
-    raise ValueError(f"Invalid input: {item}")
+def get_annotated_filenames(
+    files: List[Dict[str, Any]], request_handler: RequestHandler
+) -> List[AnnotatedFilename]:
+    """Get annotated filenames for given files."""
+    return [
+        get_annotated_filename(file_item, request_handler)
+        for file_item in files
+    ]
 
 
-def get_uuid(item: Dict[str, Any]) -> str:
-    """Get UUID from item."""
-    return item.get(PortalConstants.UUID, "")
+def get_annotated_filename(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> AnnotatedFilename:
+    """Get annotated filename for given file.
 
 
-def get_item_from_identifier(
-    identifier: str, auth_key: Dict[str, str], add_on: str = ""
-) -> Dict[str, Any]:
-    """Get item metadata from given identifier.
-
-    Handle and log error if item not found.
+    Collect all filename parts, recording either the value or any errors
+    encountered in the process to be logged later.
     """
-    result = {}
-    hashable_key = get_hashable_key(auth_key)
-    try:
-        result = get_item_from_identifier_cache(identifier, hashable_key, add_on=add_on)
-    except Exception as e:
-        logger.error(f"Error getting item {identifier}: {e}")
-    return result
-
-
-def get_hashable_key(
-    auth_key: Dict[str, str]
-) -> Tuple[Tuple[str, str], Tuple[str, str], Tuple[str, str]]:
-    """Get hashable key from auth key."""
-    return tuple(auth_key.items())
-
-
-@lru_cache
-def get_item_from_identifier_cache(
-    identifier: str, hashable_key: Tuple[str, str], add_on: str = ""
-) -> Dict[str, Any]:
-    key = unhash_key(hashable_key)
-    return ff_utils.get_metadata(identifier, add_on=add_on, key=key)
-
-
-def unhash_key(hashable_key: Tuple[str, str]) -> Dict[str, str]:
-    """Unhash key."""
-    return dict(hashable_key)
-
-
-def is_default_absent_field(value: Any) -> bool:
-    """Check if value is the default absent field."""
-    return value == DEFAULT_ABSENT_FIELD
-
-
-def get_filename_data(
-    file_items: List[Dict[str, Any]], auth_key: Dict[str, str]
-) -> List[FilenameData]:
-    """Collect all filename data for given file items."""
-    return [get_filename_data_for_file(file_item, auth_key) for file_item in file_items]
-
-
-def get_filename_data_for_file(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> FilenameData:
-    """Get filename data for given file item."""
-    return FilenameData(
-        file_item,
-        sample_data=get_sample_data(file_item, auth_key),
-        experiment_data=get_experiment_data(file_item, auth_key),
-        file_data=get_file_data(file_item, auth_key),
+    project_id = get_project_id(file, request_handler)
+    sample_source_id = get_sample_source_id(file, request_handler)
+    protocol_id = get_protocol_id(file, request_handler)
+    aliquot_id = get_aliquot_id(file, request_handler)
+    donor_age = get_donor_age(file, request_handler)
+    donor_sex = get_donor_sex(file, request_handler)
+    sequencing_and_assay_codes = get_sequencing_and_assay_codes(
+        file, request_handler
+    )
+    sequencing_center_code = get_sequencing_center_code(file, request_handler)
+    accession = get_accession(file)
+    analysis_info = get_analysis(file, request_handler)
+    file_extension = get_file_extension(file, request_handler)
+    errors = collect_errors(
+        project_id,
+        sample_source_id,
+        protocol_id,
+        aliquot_id,
+        donor_age,
+        donor_sex,
+        sequencing_and_assay_codes,
+        sequencing_center_code,
+        accession,
+        analysis_info,
+        file_extension,
+    )
+    return AnnotatedFilename(
+        project_id=project_id.value,
+        sample_source_id=sample_source_id.value,
+        protocol_id=protocol_id.value,
+        aliquot_id=aliquot_id.value,
+        donor_age=donor_age.value,
+        donor_sex=donor_sex.value,
+        sequencing_and_assay_codes=sequencing_and_assay_codes.value,
+        sequencing_center_code=sequencing_center_code.value,
+        accession=accession.value,
+        analysis_info=analysis_info.value,
+        file_extension=file_extension.value,
+        errors=errors,
     )
 
 
-def get_sample_data(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> SampleData:
-    """Get sample data for given file item."""
-    sample_source_data = get_sample_source_data(file_item, auth_key)
-    donor_data = get_donor_data(file_item, auth_key)
-    return SampleData(
-        sample_source_data=sample_source_data,
-        donor_data=donor_data,
+def get_filename_part(
+    value: str = "", errors: Optional[List[str]] = None
+) -> FilenamePart:
+    """Get filename part with given value and errors."""
+    if errors:
+        return FilenamePart(value, tuple(errors))
+    return FilenamePart(value=value, errors=tuple())
+
+
+def get_exclusive_filename_part(
+    filename_parts: List[FilenamePart], part_name: str
+) -> FilenamePart:
+    """Get exclusive filename part from given collection.
+
+    If no filename part or multiple found, return an error.
+
+    Idea is that only one value expected for these and anything else
+    suggests either a problem with the data that needs investigation.
+    """
+    unique_parts = set(filename_parts)
+    if not unique_parts:
+        return get_filename_part(errors=[f"No value found for {part_name}"])
+    if len(unique_parts) > 1:
+        values = set([part.value for part in unique_parts])
+        errors = [error for part in unique_parts for error in part.errors]
+        if len(values) > 1:
+            errors += [f"Multiple values found for {part_name}: {values}"]
+        return get_filename_part(errors=errors)
+    return filename_parts[0]
+
+
+def get_filename_part_for_values(
+    values: List[str], part_name: str, source_name: str = ""
+) -> FilenamePart:
+    """Get filename part for given values."""
+    if not values:
+        error_message = f"No value found for {part_name}"
+        if source_name:
+            error_message += f" from {source_name}"
+        return get_filename_part(errors=[error_message])
+    if len(set(values)) > 1:
+        if source_name:
+            error_message = (
+                f"Multiple values found for {part_name} from {source_name}:"
+                f" {values}"
+            )
+        else:
+            error_message = f"Multiple values found for {part_name}: {values}"
+        return get_filename_part(errors=[error_message])
+    return get_filename_part(value=values[0])
+
+
+def get_project_id(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get project ID for file.
+
+    If cell culture mixture or cell line-derived, use default project ID,
+    as assuming to be from benchmarking cell line data.
+
+    If tissue-derived, parse project ID from tissue item, which should
+    hold ID from TPC.
+    """
+    parts = []
+    if file_utils.is_cell_culture_mixture_derived(file, request_handler):
+        parts.append(get_filename_part(value=DEFAULT_PROJECT_ID))
+    if file_utils.is_cell_line_derived(file, request_handler):
+        parts.append(get_filename_part(value=DEFAULT_PROJECT_ID))
+    if file_utils.is_tissue_derived(file, request_handler):
+        parts.append(get_project_id_from_tissue(file, request_handler))
+    return get_exclusive_filename_part(parts, "project ID")
+
+
+def get_project_id_from_tissue(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get project ID from tissue item."""
+    project_ids = get_property_values_from_identifiers(
+        request_handler,
+        file_utils.get_tissues(file, request_handler=request_handler),
+        tissue_utils.get_project_id,
+    )
+    return get_filename_part_for_values(project_ids, "project ID", source_name="tissue")
+
+
+def get_sample_source_id(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get sample source ID for file."""
+    parts = []
+    if file_utils.is_cell_culture_mixture_derived(file, request_handler):
+        parts.append(get_cell_culture_mixture_code(file, request_handler))
+    if file_utils.is_cell_line_derived(file, request_handler):
+        parts.append(get_cell_line_id(file, request_handler))
+    if file_utils.is_tissue_derived(file, request_handler):
+        parts.append(get_donor_kit_id(file, request_handler))
+    return get_exclusive_filename_part(parts, "sample source ID")
+
+
+def get_cell_culture_mixture_code(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get mixture code for file naming."""
+    codes = get_property_values_from_identifiers(
+        request_handler,
+        file_utils.get_cell_culture_mixtures(file, request_handler=request_handler),
+        file_utils.get_code,
+    )
+    return get_filename_part_for_values(
+        codes, "sample source ID", source_name="cell culture mixture"
     )
 
 
-def get_sample_source_data(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Union[InvalidData, SampleSourceData]:
-    """Get tissue data for file."""
-    sample = get_sample_from_file(file_item, auth_key)
-    if is_tissue_sample(sample, auth_key):
-        return get_tissue_data_from_sample(sample, auth_key)
-    if is_cell_culture_sample(sample, auth_key):
-        return get_cell_line_data_from_sample(sample, auth_key)
-    return InvalidData()
-
-
-def is_tissue_sample(sample_item: Dict[str, Any], auth_key: Dict[str, str]) -> bool:
-    """Check if sample derives from tissue."""
-    sample_sources = get_sample_sources_from_sample(sample_item, auth_key)
-    return any([is_tissue(sample_source) for sample_source in sample_sources])
-
-
-def is_tissue(sample_source: Dict[str, Any]) -> bool:
-    """Is sample source a Tissue item?"""
-    source_types = get_type_info(sample_source)
-    if PortalConstants.TISSUE_TYPE in source_types:
-        return True
-    return False
-
-
-def is_cell_culture_sample(
-    sample_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> bool:
-    """Check if sample derives from cell culture."""
-    sample_sources = get_sample_sources_from_sample(sample_item, auth_key)
-    return any([is_cell_culture(sample_source) for sample_source in sample_sources])
-
-
-def is_cell_culture(sample_source: Dict[str, Any]) -> bool:
-    """Is sample source a CellCulture?"""
-    source_types = get_type_info(sample_source)
-    if PortalConstants.CELL_CULTURE_TYPE in source_types:
-        return True
-    return False
-
-
-def get_type_info(item: Dict[str, Any]) -> List[str]:
-    return item.get(PortalConstants.TYPE, [])
-
-
-def get_sample_sources_from_sample(
-    sample_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get all sample sources for given sample item."""
-    sample_sources = sample_item.get(PortalConstants.SAMPLE_SOURCES, [])
-    return [get_item(item, auth_key) for item in sample_sources]
-
-
-def get_tissue_data_from_sample(sample_item: Dict[str, Any]) -> TissueData:
-    raise NotImplementedError("Not prepared to handle tissue samples yet")
-
-
-def get_cell_line_data_from_sample(
-    sample_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> CellLineData:
-    cell_line_id = ""
-    sample_sources = get_sample_sources_from_sample(sample_item, auth_key)
-    cell_line_ids = set(
-        [
-            get_cell_line_id_from_sample_source(sample_source, auth_key)
-            for sample_source in sample_sources
-        ]
+def get_cell_line_id(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get cell line ID for file naming."""
+    cell_line_ids = get_property_values_from_identifiers(
+        request_handler,
+        file_utils.get_cell_lines(file, request_handler=request_handler),
+        file_utils.get_code,
     )
-    if len(cell_line_ids) == 1:
-        cell_line_id = cell_line_ids.pop()
+    return get_filename_part_for_values(
+        cell_line_ids, "sample source ID", source_name="cell line"
+    )
+
+
+def get_donor_kit_id(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get donor kit ID for file naming."""
+    donor_kit_ids = get_property_values_from_identifiers(
+        request_handler,
+        file_utils.get_tissues(file, request_handler=request_handler),
+        tissue_utils.get_donor_kit_id,
+    )
+    return get_filename_part_for_values(
+        donor_kit_ids, "sample source ID", source_name="tissue"
+    )
+
+
+def get_protocol_id(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get protocol ID for file."""
+    parts = []
+    if file_utils.is_cell_culture_mixture_derived(file, request_handler):
+        parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
+    if file_utils.is_cell_line_derived(file, request_handler):
+        parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
+    if file_utils.is_tissue_derived(file, request_handler):
+        parts.append(get_protocol_id_from_tissues(file, request_handler))
+    return get_exclusive_filename_part(parts, "protocol ID")
+
+
+def get_protocol_id_from_tissues(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get protocol ID from tissue items."""
+    protocol_ids = get_property_values_from_identifiers(
+        request_handler,
+        file_utils.get_tissues(file, request_handler=request_handler),
+        tissue_utils.get_protocol_id,
+    )
+    return get_filename_part_for_values(
+        protocol_ids, "protocol ID", source_name="tissue"
+    )
+
+
+def get_aliquot_id(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get tissue aliquot ID for file."""
+    parts = []
+    if file_utils.is_cell_culture_mixture_derived(file, request_handler):
+        parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
+    if file_utils.is_cell_line_derived(file, request_handler):
+        parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
+    if file_utils.is_tissue_derived(file, request_handler):
+        parts.append(get_aliquot_id_from_samples(file, request_handler))
+    return get_exclusive_filename_part(parts, "tissue aliquot ID")
+
+
+def get_aliquot_id_from_samples(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get aliquot ID from sample items."""
+    aliquot_ids = get_property_values_from_identifiers(
+        request_handler,
+        file_utils.get_samples(file, request_handler=request_handler),
+        sample_utils.get_aliquot_id,
+    )
+    return get_filename_part_for_values(
+        aliquot_ids, "tissue aliquot ID", source_name="sample"
+    )
+
+
+def get_donor_age(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get donor age for file."""
+    parts = []
+    if file_utils.is_only_cell_culture_mixture_derived(file, request_handler):
+        parts.append(get_donor_age_from_cell_culture_mixture(file, request_handler))
     else:
-        logger.error(
-            f"Multiple cell line ids found for sample {get_uuid(sample_item)}:"
-            f" {cell_line_ids}"
-        )
-    return CellLineData(cell_line_id=cell_line_id)
+        parts.append(get_donor_ages(file, request_handler))
+    return get_exclusive_filename_part(parts, "donor age")
 
 
-def get_cell_line_id_from_sample_source(
-    sample_source_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> str:
-    if is_cell_culture_mixture(sample_source_item):
-        return get_code(sample_source_item)
-    if is_cell_culture(sample_source_item):
-        return get_cell_line_id_from_cell_culture(sample_source_item, auth_key)
-    logger.info(
-        f"Unknown sample source type for sample source {get_uuid(sample_source_item)}"
+def get_donor_age_from_cell_culture_mixture(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get donor age for cell culture mixture.
+
+    A bit of special handling here for situations like the HAPMAP mixture.
+    If multiple donors found, return default absent field.
+    """
+    donors = get_property_values_from_identifiers(
+        request_handler,
+        file_utils.get_cell_culture_mixtures(file, request_handler=request_handler),
+        partial(cell_culture_mixture_utils.get_donor, request_handler),
     )
+    if len(donors) > 1:
+        return get_filename_part(value=ABSENT_AGE)
+    ages = get_property_values_from_identifiers(
+        request_handler, donors, donor_utils.get_age
+    )
+    return get_filename_part_for_values(
+        ages, "donor age", source_name="cell culture mixture"
+    )
+
+
+def get_donor_ages(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get donor ages for file."""
+    donor_ages = get_property_values_from_identifiers(
+        request_handler,
+        file_utils.get_donors(file, request_handler=request_handler),
+        donor_utils.get_age,
+    )
+    return get_filename_part_for_values(donor_ages, "donor age")
+
+
+def get_donor_sex(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get donor sex for file."""
+    parts = []
+    if file_utils.is_only_cell_culture_mixture_derived(file, request_handler):
+        parts.append(get_donor_sex_from_cell_culture_mixture(file, request_handler))
+    else:
+        parts.append(get_donor_sexes(file, request_handler))
+    return get_exclusive_filename_part(parts, "donor sex")
+
+
+def get_donor_sex_from_cell_culture_mixture(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get donor sex for cell culture mixture.
+
+    A bit of special handling here for situations like the HAPMAP mixture.
+    If multiple donors found, return default absent field.
+    """
+    donors = get_property_values_from_identifiers(
+        request_handler,
+        file_utils.get_cell_culture_mixtures(file, request_handler=request_handler),
+        partial(cell_culture_mixture_utils.get_donor, request_handler),
+    )
+    if len(donors) > 1:
+        return get_filename_part(value=ABSENT_SEX)
+    sexes = get_property_values_from_identifiers(
+        request_handler, donors, donor_utils.get_sex
+    )
+    abbreviated_sexes = [get_sex_abbreviation(sex) for sex in sexes]
+    return get_filename_part_for_values(abbreviated_sexes, "donor sex")
+
+
+def get_donor_sexes(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get sexes for all associated donors."""
+    sexes = get_property_values_from_identifiers(
+        request_handler,
+        file_utils.get_donors(file, request_handler=request_handler),
+        donor_utils.get_sex,
+    )
+    abbreviated_sexes = [get_sex_abbreviation(sex) for sex in sexes]
+    return get_filename_part_for_values(abbreviated_sexes, "donor sex")
+
+
+def get_sex_abbreviation(sex: str) -> str:
+    """Translate sex to abbreviation for file naming."""
+    if sex == "Male":
+        return MALE_SEX_ABBREVIATION
+    if sex == "Female":
+        return FEMALE_SEX_ABBREVIATION
+    if sex == "Unknown":
+        return ABSENT_SEX
     return ""
 
 
-def get_cell_line_id_from_cell_culture(
-    cell_culture_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> str:
-    """Get cell line id from cell culture."""
-    cell_line = get_cell_line_from_cell_culture(cell_culture_item, auth_key)
-    return get_code(cell_line)
-
-
-def get_cell_line_from_cell_culture(
-    cell_culture_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
-    """Get cell line from cell culture."""
-    cell_line = cell_culture_item.get(PortalConstants.CELL_LINE, {})
-    return get_item(cell_line, auth_key)
-
-
-def get_sample_from_file(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
-    """Get sample for file by walking the data model."""
-    result = {}
-    samples = get_samples_from_file(file_item, auth_key)
-    if not samples:
-        logger.error(f"No sample found for file {get_uuid(file_item)}")
-    elif len(samples) > 1:
-        logger.error(
-            f"Multiple samples found for file {get_uuid(file_item)}:" f" {samples}"
-        )
+def get_sequencing_and_assay_codes(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get sequencing and assay codes for file."""
+    sequencing_codes = get_sequencing_codes(file, request_handler)
+    assay_codes = get_assay_codes(file, request_handler)
+    if len(sequencing_codes) == 1 and len(assay_codes) == 1:
+        return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
+    errors = []
+    if not sequencing_codes:
+        errors.append("No sequencing code found")
     else:
-        result = samples[0]
-    return result
+        errors.append(f"Multiple sequencing codes found: {sequencing_codes}")
+    if not assay_codes:
+        errors.append("No assay code found")
+    else:
+        errors.append(f"Multiple assay codes found: {assay_codes}")
+    return get_filename_part(errors=errors)
 
 
-def get_samples_from_file(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
+def get_sequencing_codes(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> List[str]:
+    """Get sequencing code for file."""
+    return get_property_values_from_identifiers(
+        request_handler,
+        file_utils.get_sequencers(file, request_handler=request_handler),
+        item_utils.get_code,
+    )
+
+
+def get_assay_codes(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> List[str]:
+    """Get assay code for file."""
+    return get_property_values_from_identifiers(
+        request_handler,
+        file_utils.get_assays(file, request_handler=request_handler),
+        item_utils.get_code,
+    )
+
+
+def get_sequencing_center_code(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get sequencing center code for file."""
+    center_code = get_property_value_from_identifier(
+        request_handler, file_utils.get_sequencing_center(file), item_utils.get_code
+    )
+    if center_code:
+        return get_filename_part(value=center_code)
+    return get_filename_part(errors=["Unknown sequencing center code"])
+
+
+def get_accession(file: Dict[str, Any]) -> FilenamePart:
+    """Get accession for file."""
+    accession = item_utils.get_accession(file)
+    if accession:
+        return get_filename_part(value=accession)
+    return get_filename_part(errors=["Unknown accession"])
+
+
+def get_analysis(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get analysis info for file."""
+    if file_utils.is_unaligned_reads(file):
+        return get_filename_part(value=DEFAULT_ABSENT_FIELD)
+    if file_utils.is_aligned_reads(file):
+        return get_analysis_for_aligned_reads(file, request_handler)
+    if file_utils.is_vcf(file, request_handler):
+        return get_analysis_for_vcf(file, request_handler)
+    return get_filename_part(errors=["Unknown analysis info"])
+
+
+def get_analysis_for_aligned_reads(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get analysis info for aligned reads."""
+    software_and_versions = get_software_and_versions(file, request_handler)
+    reference_genome_code = file_utils.get_reference_genome_code(file, request_handler)
+    if software_and_versions and reference_genome_code:
+        return get_filename_part(
+            value=f"{software_and_versions}{ANALYSIS_INFO_SEPARATOR}{reference_genome_code}"
+        )
+    errors = []
+    if not software_and_versions:
+        errors.append("No software and versions found")
+    if not reference_genome_code:
+        errors.append("No reference genome code found")
+    return get_filename_part(errors=errors)
+
+
+def get_software_and_versions(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> str:
+    """Get software and accompanying versions for file.
+
+    Currently only looking for software items with codes, as these are
+    expected to be the software used for naming.
+    """
+    software = request_handler.get_items(file_utils.get_software(file))
+    software_with_codes = get_software_with_codes(software)
+    if not software_with_codes:
+        return ""
+    software_with_codes_and_versions = get_software_with_versions(software_with_codes)
+    if len(software_with_codes) == len(software_with_codes_and_versions):
+        return get_software_and_versions_string(software_with_codes_and_versions)
+    missing_versions = get_software_codes_missing_versions(software_with_codes)
+    logger.warning(f"Missing versions for software items: {missing_versions}.")
+    return ""
+
+
+def get_software_with_codes(
+    software_items: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
-    """Walk data model to get samples for file."""
-    file_sets = get_file_sets_from_file(file_item, auth_key)
-    libraries = get_libraries_from_file_sets(file_sets, auth_key)
-    analytes = get_analytes_from_libraries(libraries, auth_key)
-    return get_samples_from_analytes(analytes, auth_key)
+    """Get software items with codes."""
+    return [item for item in software_items if item_utils.get_code(item)]
 
 
-def get_file_sets_from_file(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
+def get_software_with_versions(
+    software_items: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
-    """Get file sets for file."""
-    to_get = file_item.get(PortalConstants.FILE_SETS, [])
-
-    # If file sets are not present on the item, try to get it from the MWFR (only works for output files)
-    if not to_get:
-        hashable_key = get_hashable_key(auth_key)
-        to_get = search_file_sets_from_output_file(file_item[PortalConstants.UUID], hashable_key)
-
-    return [get_item(item, auth_key) for item in to_get]
+    """Get software items with versions."""
+    return [item for item in software_items if item_utils.get_version(item)]
 
 
-@lru_cache
-def search_file_sets_from_output_file(file_uuid: str, hashable_key: Tuple[str, str]) -> List[Dict[str, Any]]:
-    key = unhash_key(hashable_key)
-    search_query = f"/search/?type=MetaWorkflowRun&workflow_runs.output.file.uuid={file_uuid}"
-    mwfrs = ff_utils.search_metadata(search_query, key=key)
-    to_get = []
-    if mwfrs:
-        mwfr = mwfrs[0] # We are expecting at most one result
-        to_get = mwfr[PortalConstants.FILE_SETS]
-    return to_get
-
-
-def get_items_from_property(
-    items: List[Dict[str, Any]], property_name: str, auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get items from given property."""
-    result = []
-    for item in items:
-        to_get = item.get(property_name, [])
-        result.extend([get_item(item, auth_key) for item in to_get])
-    return result
-
-
-def get_libraries_from_file_sets(
-    file_sets: List[Dict[str, Any]], auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get libraries for file sets."""
-    return get_items_from_property(file_sets, PortalConstants.LIBRARIES, auth_key)
-
-
-def get_analytes_from_libraries(
-    libraries: List[Dict[str, Any]], auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get analytes for libraries."""
-    analytes = deduplicate_items_by_uuid(
+def get_software_and_versions_string(software_items: List[Dict[str, Any]]) -> str:
+    """Get string representation of software and versions."""
+    return ANALYSIS_INFO_SEPARATOR.join(
         [
-            analyte
-            for library in libraries
-            for analyte in get_analytes(library)
+            f"{item_utils.get_code(item)}{ANALYSIS_INFO_SEPARATOR}"
+            f"{item_utils.get_version(item)}"
+            for item in software_items
         ]
     )
-    return [get_item(get_uuid(analyte), auth_key) for analyte in analytes]
 
 
-def get_analytes(item: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Get analyte property from item."""
-    return item.get(PortalConstants.ANALYTE, [])
-
-
-def get_samples_from_analytes(
-    analytes: List[Dict[str, Any]], auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get samples for analytes."""
-    return get_items_from_property(analytes, PortalConstants.SAMPLES, auth_key)
-
-
-def get_donor_data(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Union[InvalidData, DonorData]:
-    """Get donor data for file."""
-    donor = get_donor_from_file(file_item, auth_key)
-    if donor:
-        return get_donor_data_from_donor(donor)
-    elif is_hapmap6_mixture_derived(file_item, auth_key):
-        return get_default_absent_donor_data()
-    return InvalidData()
-
-
-def get_default_absent_donor_data() -> DonorData:
-    """Get empty donor data."""
-    return DonorData(sex=ABSENT_SEX, age=ABSENT_AGE)
-
-
-def get_donor_from_file(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
-    """Get donor for file by walking the data model."""
-    sample_sources = get_sample_sources_from_file(file_item, auth_key)
-    donors = get_donors_from_sample_sources(sample_sources, auth_key)
-    if not donors:
-        logger.error(f"No donor found for file {get_uuid(file_item)}")
-    elif len(donors) > 1:
-        logger.error(
-            f"Multiple donors found for file {get_uuid(file_item)}:" f" {donors}"
-        )
-    else:
-        return donors[0]
-
-
-def get_sample_sources_from_file(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get sample sources for file by walking the data model."""
-    samples = get_samples_from_file(file_item, auth_key)
-    return get_sample_sources_from_samples(samples, auth_key)
-
-
-def get_sample_sources_from_samples(
-    samples: List[Dict[str, Any]], auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get sample sources for samples."""
-    result = []
-    for sample in samples:
-        sample_sources = get_sample_sources_from_sample(sample, auth_key)
-        result.extend(sample_sources)
-    return result
-
-
-def get_donors_from_sample_sources(
-    sample_sources: List[Dict[str, Any]], auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get donors for sample sources."""
+def get_software_codes_missing_versions(
+    software_items: List[Dict[str, Any]]
+) -> List[str]:
+    """Get software items missing versions."""
     return [
-        get_donor_from_sample_source(sample_source, auth_key)
-        for sample_source in sample_sources
+        item_utils.get_code(item)
+        for item in software_items
+        if not item_utils.get_version(item)
     ]
 
 
-def get_donor_from_sample_source(
-    sample_source_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
-    """Get donor for sample source."""
-    if is_tissue(sample_source_item):
-        return get_donor_from_item(sample_source_item, auth_key)
-    if is_cell_culture_mixture(sample_source_item):
-        return get_donor_from_cell_culture_mixture(sample_source_item, auth_key)
-    if is_cell_culture(sample_source_item):
-        return get_donor_from_cell_culture(sample_source_item, auth_key)
-    return {}
-
-
-def is_hapmap6_mixture_derived(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> bool:
-    """Check if sample source is the HAPMAP6 mixture."""
-    sample_sources = get_sample_sources_from_file(file_item, auth_key)
-    if len(sample_sources) == 1 and is_hapmap6_mixture(sample_sources[0]):
-        return True
-    return False
-
-
-def is_hapmap6_mixture(sample_source_item: Dict[str, Any]) -> bool:
-    """Check if sample source is the HAPMAP6 mixture."""
-    return get_code(sample_source_item) == PortalConstants.HAPMAP6
-
-
-def get_donor_from_cell_culture(
-    cell_culture_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
-    """Get donor from cell culture."""
-    cell_line = get_cell_line_from_cell_culture(cell_culture_item, auth_key)
-    return get_donor_from_cell_line(cell_line, auth_key)
-
-
-def get_donor_from_cell_line(
-    cell_line_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
-    """Get donor from cell line."""
-    return get_donor_from_item(cell_line_item, auth_key)
-
-
-def get_donor_from_item(
-    item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
-    """Get donor from item."""
-    donor = item.get(PortalConstants.DONOR, {})
-    return get_item(donor, auth_key)
-
-
-def is_cell_culture_mixture(sample_source_item: Dict[str, Any]) -> bool:
-    """Check if sample source is a CellCultureMixture."""
-    source_types = get_type_info(sample_source_item)
-    if PortalConstants.CELL_CULTURE_MIXTURE_TYPE in source_types:
-        return True
-    return False
-
-
-def get_donor_from_cell_culture_mixture(
-    cell_culture_mixture_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
-    """Get donor from cell culture mixture."""
-    result = {}
-    cell_cultures = get_cell_cultures_from_cell_culture_mixture(
-        cell_culture_mixture_item, auth_key
-    )
-    donors = [
-        get_donor_from_cell_culture(cell_culture, auth_key)
-        for cell_culture in cell_cultures
-    ]
-    unique_donors = deduplicate_items_by_uuid(donors)
-    if not unique_donors:
-        logger.error(
-            f"No unique donor found for cell culture mixture"
-            f" {get_uuid(cell_culture_mixture_item)}"
+def get_analysis_for_vcf(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get analysis info for VCF files."""
+    software_and_versions = get_software_and_versions(file, request_handler)
+    reference_genome_code = file_utils.get_reference_genome_code(file, request_handler)
+    variant_types = get_variant_types(file)
+    if software_and_versions and reference_genome_code and variant_types:
+        return get_filename_part(
+            value=(
+                f"{software_and_versions}{ANALYSIS_INFO_SEPARATOR}"
+                f"{reference_genome_code}{ANALYSIS_INFO_SEPARATOR}{variant_types}"
+            )
         )
-    elif len(unique_donors) > 1:
-        logger.error(
-            f"Multiple unique donors found for cell culture mixture"
-            f" {get_uuid(cell_culture_mixture_item)}:"
-            f" {unique_donors}"
-        )
-    else:
-        result = unique_donors[0]
-    return result
+    errors = []
+    if not variant_types:
+        errors.append("No variant type found")
+    if not software_and_versions:
+        errors.append("No software and versions found")
+    if not reference_genome_code:
+        errors.append("No reference genome code found")
+    return get_filename_part(errors=errors)
 
 
-def get_cell_cultures_from_cell_culture_mixture(
-    cell_culture_mixture_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get cell cultures from cell culture mixture."""
-    cell_culture_links = [
-        component.get(PortalConstants.CELL_CULTURE, {})
-        for component in cell_culture_mixture_item.get(PortalConstants.COMPONENTS, [])
-    ]
-    return [get_item(item, auth_key) for item in cell_culture_links]
-
-
-def deduplicate_items_by_uuid(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Deduplicate items by UUID."""
-    uuids = set()
+def get_variant_types(file: Dict[str, Any]) -> str:
+    """Get variant types for VCF files."""
     result = []
-    for item in items:
-        uuid = item.get(PortalConstants.UUID)
-        if uuid not in uuids:
-            uuids.add(uuid)
-            result.append(item)
-    return result
+    if file_utils.has_single_nucleotide_variants(file):
+        result.append(SNV_VARIANT_TYPE)
+    if file_utils.has_copy_number_variants(file):
+        result.append(CNV_VARIANT_TYPE)
+    if file_utils.has_structural_variants(file):
+        result.append(SV_VARIANT_TYPE)
+    if file_utils.has_mobile_element_insertions(file):
+        result.append(MEI_VARIANT_TYPE)
+    return ANALYSIS_INFO_SEPARATOR.join(sorted(result))
 
 
-def get_donor_data_from_donor(donor_item: Dict[str, Any]) -> DonorData:
-    """Populate DonorData from donor item."""
-    return DonorData(
-        sex=donor_item.get(PortalConstants.SEX, ""),
-        age=donor_item.get(PortalConstants.AGE, ""),
-    )
-
-
-def get_experiment_data(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> ExperimentData:
-    """Get experiment data for file."""
-    return ExperimentData(
-        sequencing_code=get_sequencing_code(file_item, auth_key),
-        assay_code=get_assay_code(file_item, auth_key),
-    )
-
-
-def get_sequencing_code(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> str:
-    """Get sequencing code for file."""
-    result = ""
-    sequencing_items = get_sequencing_items_from_file(file_item, auth_key)
-    sequencers = [
-        get_sequencer_from_sequencing(sequencing_item, auth_key)
-        for sequencing_item in sequencing_items
-    ]
-    if not sequencers:
-        logger.error(f"No sequencers found for file {get_uuid(file_item)}")
-    elif len(sequencers) > 1:
-        logger.error(
-            f"Multiple sequencers found for file {get_uuid(file_item)}:"
-            f" {sequencers}"
-        )
-    else:
-        result = get_code(sequencers[0])
-    return result
-
-
-def get_sequencer_from_sequencing(
-    sequencing_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
-    """Get sequencer for sequencing."""
-    sequencer = sequencing_item.get(PortalConstants.SEQUENCER, {})
-    return get_item(sequencer, auth_key)
-
-
-def get_sequencing_items_from_file(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get sequencing items for file."""
-    file_sets = get_file_sets_from_file(file_item, auth_key)
-    return get_sequencing_from_file_sets(file_sets, auth_key)
-
-
-def get_sequencing_from_file_sets(
-    file_sets: List[Dict[str, Any]], auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get sequencing items for file sets."""
-    return [get_sequencing_from_file_set(file_set, auth_key) for file_set in file_sets]
-
-
-def get_sequencing_from_file_set(
-    file_set_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
-    """Get sequencing item for file set."""
-    sequencing = file_set_item.get(PortalConstants.SEQUENCING, {})
-    return get_item(sequencing, auth_key)
-
-
-def get_code(item: Dict[str, Any]) -> str:
-    """Get file naming code from item."""
-    return item.get(PortalConstants.CODE, "")
-
-
-def get_assay_code(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> str:
-    result = ""
-    assays = get_assays_from_file(file_item, auth_key)
-    if not assays:
-        logger.error(f"No assays found for file {get_uuid(file_item)}")
-    elif len(assays) > 1:
-        logger.error(
-            f"Multiple assays found for file {get_uuid(file_item)}:" f" {assays}"
-        )
-    else:
-        result = get_code(assays[0])
-    return result
-
-
-def get_assays_from_file(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get assays for file."""
-    file_sets = get_file_sets_from_file(file_item, auth_key)
-    libraries = get_libraries_from_file_sets(file_sets, auth_key)
-    return get_assays_from_libraries(libraries, auth_key)
-
-
-def get_assays_from_libraries(
-    libraries: List[Dict[str, Any]], auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get assays for libraries."""
-    return [get_assay_from_library(library, auth_key) for library in libraries]
-
-
-def get_assay_from_library(
-    library: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
-    """Get assay for library."""
-    assay = library.get(PortalConstants.ASSAY, {})
-    return get_item(assay, auth_key)
-
-
-def get_file_data(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> FileData:
-    """Get file data for file."""
-    return FileData(
-        center_code=get_center_code(file_item, auth_key),
-        accession=get_accession(file_item),
-        software=get_software(file_item, auth_key),
-        software_version=get_software_version(file_item, auth_key),
-        genome=get_genome(file_item, auth_key),
-        variant_type=get_variant_type(file_item),
-        data_type=get_data_type(file_item),
-        alignment_details=get_alignment_details(file_item),
-        file_extension=get_file_extension(file_item, auth_key),
-    )
-
-
-def get_center_code(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> str:
-    """Get center code for file."""
-    sequencing_center = get_sequencing_center_from_file(file_item, auth_key)
-    return get_code(sequencing_center)
-
-
-def get_sequencing_center_from_file(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
-    """Get sequencing center for file."""
-    return get_item(file_item.get(PortalConstants.SEQUENCING_CENTER, {}), auth_key)
-
-
-def get_unique_codes(items: List[Dict[str, Any]]) -> List[str]:
-    """Get unique codes from items."""
-    unique_codes = set([get_code(item) for item in items if get_code(item)])
-    return list(unique_codes)
-
-
-def get_accession(file_item: Dict[str, Any]) -> str:
-    """Get file accession."""
-    return file_item.get(PortalConstants.ACCESSION, "")
-
-
-def get_data_type(file_item: Dict[str, Any]) -> str:
-    """Get data type for file."""
-    result = file_item.get(PortalConstants.DATA_TYPE, "")
-    if isinstance(result, list):
-        return ",".join(result)
-    return result
-
-
-def get_software(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> str:
-    """Get software for file.
-
-    Assuming only one software per file.
-    """
-    result = ""
-    software = get_software_from_file(file_item, auth_key)
-    software_codes = get_unique_codes(software)
-    if not software_codes:
-        logger.error(f"No software codes found for file {get_uuid(file_item)}")
-    elif len(software_codes) > 1:
-        logger.error(
-            f"Multiple software codes found for file {get_uuid(file_item)}:"
-            f" {software_codes}"
-        )
-    else:
-        result = software_codes[0]
-    return result
-
-
-def get_software_from_file(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> List[Dict[str, Any]]:
-    """Get software for file."""
-    return [
-        get_item(software, auth_key)
-        for software in file_item.get(PortalConstants.SOFTWARE, [])
-    ]
-
-
-def get_software_version(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> str:
-    """Get software version for file.
-
-    Assuming only one software version per file.
-    """
-    result = ""
-    software = get_software_from_file(file_item, auth_key)
-    software_with_codes = [
-        software_item for software_item in software if get_code(software_item)
-    ]
-    if not software_with_codes:
-        logger.error(f"No software version codes found for file {get_uuid(file_item)}")
-    elif len(software_with_codes) > 1:
-        logger.error(
-            f"Multiple software version codes found for file {get_uuid(file_item)}:"
-            f" {software_with_codes}"
-        )
-    else:
-        result = get_version(software_with_codes[0])
-    return result
-
-
-def get_version(item: Dict[str, Any]) -> str:
-    """Get version from item."""
-    return item.get(PortalConstants.VERSION, "")
-
-
-def get_genome(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> str:
-    """Get genome for file."""
-    reference_genome = get_reference_genome_from_file(file_item, auth_key)
-    return get_code(reference_genome)
-
-
-def get_reference_genome_from_file(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
-    """Get reference genome for file."""
-    reference_genome = file_item.get(PortalConstants.REFERENCE_GENOME, {})
-    return get_item(reference_genome, auth_key)
-
-
-def get_variant_type(file_item: Dict[str, Any]) -> str:
-    """Get variant type for file."""
-    return ",".join(get_variant_types(file_item))
-
-
-def get_variant_types(file_item: Dict[str, Any]) -> List[str]:
-    """Get variant types for file."""
-    return file_item.get(PortalConstants.VARIANT_TYPE, [])
-
-
-def get_alignment_details(file_item: Dict[str, Any]) -> List[str]:
-    """Get alignment details for file."""
-    return file_item.get(PortalConstants.ALIGNMENT_DETAILS, [])
-
-
-def get_file_extension(file_item: Dict[str, Any], auth_key: Dict[str, str]) -> str:
-    file_format = get_file_format_from_file(file_item, auth_key)
-    return get_standard_extension(file_format)
-
-
-def get_file_format_from_file(
-    file_item: Dict[str, Any], auth_key: Dict[str, str]
-) -> Dict[str, Any]:
+def get_file_extension(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
     """Get file format for file."""
-    file_format = file_item.get(PortalConstants.FILE_FORMAT, {})
-    return get_item(file_format, auth_key)
+    if file_utils.is_bam(file, request_handler):
+        return get_bam_file_extensions(file, request_handler)
+    if not (
+        file_utils.is_fastq(file, request_handler)
+        or file_utils.is_vcf(file, request_handler)
+    ):
+        logger.warning(
+            f"Unexpected file format for file {item_utils.get_uuid(file)}:"
+            f" {file_utils.get_file_format(file, request_handler)}."
+            f" May warrant further investigation."
+        )
+    file_format = file_utils.get_file_extension(file, request_handler)
+    if file_format:
+        return get_filename_part(value=file_format)
+    return get_filename_part(errors=["Unknown file extension"])
 
 
-def get_standard_extension(file_format: Dict[str, Any]) -> str:
-    """Get standard extension for file format."""
-    return file_format.get(PortalConstants.STANDARD_FILE_EXTENSION, "")
+def get_bam_file_extensions(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> FilenamePart:
+    """Get file extensions for BAM files.
+
+    Note: Order of additional extensions important; expected to be:
+
+        * aligned.sorted.phased.bam
+
+    when all apply, and similarly if only some apply.
+    """
+    result = []
+    if file_utils.is_aligned_reads(file):
+        result += [ALIGNED_READS_EXTENSION]
+    if file_utils.are_reads_sorted(file):
+        result += [SORTED_EXTENSION]
+    if file_utils.are_reads_phased(file):
+        result += [PHASED_EXTENSION]
+    result += [file_utils.get_file_extension(file, request_handler)]
+    return get_filename_part(value=".".join(result))
+
+
+def collect_errors(*filename_parts: FilenamePart) -> List[str]:
+    """Collect errors from filename parts."""
+    return [
+        error
+        for part in filename_parts
+        for error in part.errors
+    ]
+
+
+def has_errors(annotated_filename: AnnotatedFilename) -> bool:
+    """Check if annotated filename has errors."""
+    return bool(annotated_filename.errors)
+
+
+def log_annotated_filenames(annotated_filenames: List[AnnotatedFilename]) -> None:
+    """Log annotated filenames."""
+    for annotated_filename in annotated_filenames:
+        if has_errors(annotated_filename):
+            logger.error(
+                f"Errors found for file {get_identifier(annotated_filename)}:"
+                f" {annotated_filename.errors}"
+            )
+        else:
+            logger.info(
+                f"Annotated filename for file {get_identifier(annotated_filename)}:"
+                f" {get_annotated_filename_string(annotated_filename)}"
+            )
+
+
+def get_annotated_filename_string(annotated_filename: AnnotatedFilename) -> str:
+    """Get string representation of annotated filename."""
+    return FILENAME_SEPARATOR.join(
+        [
+            annotated_filename.project_id,
+            annotated_filename.sample_source_id,
+            annotated_filename.protocol_id,
+            annotated_filename.tissue_aliquot_id,
+            str(annotated_filename.donor_age),
+            annotated_filename.donor_sex,
+            annotated_filename.sequencing_and_assay_codes,
+            annotated_filename.sequencing_center_code,
+            annotated_filename.accession,
+            annotated_filename.analysis_info,
+            annotated_filename.file_extension,
+        ]
+    )
 
 
 def patch_annotated_filenames(
-    filenames_data: List[FilenameData],
+    annotated_filenames: List[AnnotatedFilename],
     auth_key: Dict[str, str],
     dry_run: bool = False,
 ) -> None:
@@ -966,26 +801,20 @@ def patch_annotated_filenames(
 
     If dry run, only log filenames generated and patch bodies.
     """
-    for filename_data in filenames_data:
-        annotated_filename = create_annotated_filename(filename_data)
+    for annotated_filename in annotated_filenames:
         if has_errors(annotated_filename):
-            logger.error(
-                f"Errors found for file {annotated_filename.uuid}:"
-                f" {annotated_filename.errors}"
+            logger.info(
+                f"Skipping file {get_identifier(annotated_filename)} due to errors."
             )
             continue
         patch_body = get_patch_body(annotated_filename, auth_key)
         if dry_run:
             logger.info(
-                f"Would patch file {annotated_filename.uuid} with: {patch_body}"
+                f"Would patch file {get_identifier(annotated_filename)} with:"
+                f" {patch_body}"
             )
         else:
             patch_file(annotated_filename, patch_body, auth_key)
-
-
-def has_errors(annotated_filename: AnnotatedFilename) -> bool:
-    """Check if annotated filename has errors."""
-    return bool(annotated_filename.errors)
 
 
 def get_patch_body(
@@ -999,27 +828,30 @@ def get_patch_body(
 
 def get_filename_patch(annotated_filename: AnnotatedFilename) -> Dict[str, Any]:
     """Get filename patch for annotated filename."""
-    return {PortalConstants.ANNOTATED_FILENAME: annotated_filename.filename}
+    filename = get_annotated_filename_string(annotated_filename)
+    return {file_constants.ANNOTATED_FILENAME: filename}
 
 
 def get_extra_files_patch(
     annotated_filename: AnnotatedFilename, auth_key: Dict[str, str]
 ) -> Dict[str, Any]:
     """Get extra files patch body with annotated filename variant."""
-    file_raw_view = get_item(annotated_filename.uuid, auth_key, add_on="frame=raw")
+    file_raw_view = ff_utils.get_metadata(
+        get_identifier(annotated_filename), key=auth_key, add_on="frame=raw"
+    )
     extra_files = get_extra_files(file_raw_view)
     extra_files_to_patch = [
         get_extra_file_patch(extra_file, annotated_filename, auth_key)
         for extra_file in extra_files
     ]
     if extra_files_to_patch:
-        return {PortalConstants.EXTRA_FILES: extra_files_to_patch}
+        return {file_constants.EXTRA_FILES: extra_files_to_patch}
     return {}
 
 
 def get_extra_files(file_item: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Check if file has any extra files."""
-    return file_item.get(PortalConstants.EXTRA_FILES, [])
+    return file_item.get(file_constants.EXTRA_FILES, [])
 
 
 def get_extra_file_patch(
@@ -1036,7 +868,7 @@ def get_extra_file_patch(
     )
     return {
         **extra_file_item,
-        PortalConstants.FILENAME: annotated_extra_file_name,
+        file_constants.FILENAME: annotated_extra_file_name,
     }
 
 
@@ -1045,20 +877,15 @@ def get_extra_file_format_extension(
 ) -> str:
     """Get extra file format extension."""
     extra_file_format = get_extra_file_format(extra_file_item, auth_key)
-    return get_standard_extension(extra_file_format)
+    return file_format_utils.get_standard_extension(extra_file_format)
 
 
 def get_extra_file_format(
     extra_file_item: Dict[str, Any], auth_key: Dict[str, str]
 ) -> Dict[str, Any]:
     """Get extra file format."""
-    file_format = get_file_format(extra_file_item)
-    return get_item(file_format, auth_key)
-
-
-def get_file_format(file_item: Dict[str, Any]) -> Dict[str, Any]:
-    """Get file format for file."""
-    return file_item.get(PortalConstants.FILE_FORMAT, {})
+    file_format = file_utils.get_file_format(extra_file_item)
+    return ff_utils.get_metadata(file_format, key=auth_key)
 
 
 def get_annotated_extra_file_name(
@@ -1066,7 +893,7 @@ def get_annotated_extra_file_name(
 ) -> str:
     """Get annotated extra file name."""
     filename_without_extension = get_filename_without_extension(
-        annotated_filename.filename
+        get_annotated_filename_string(annotated_filename)
     )
     return f"{filename_without_extension}.{extra_file_format_extension}"
 
@@ -1085,405 +912,12 @@ def patch_file(
     try:
         ff_utils.patch_metadata(
             patch_body,
-            obj_id=annotated_filename.uuid,
+            obj_id=get_identifier(annotated_filename),
             key=auth_key,
         )
-        logger.info(f"Patched file {annotated_filename.uuid}")
+        logger.info(f"Patched file {get_identifier(annotated_filename)}")
     except Exception as e:
-        logger.error(f"Error patching file {annotated_filename.uuid}: {e}")
-
-
-def create_annotated_filename(filename_data: FilenameData) -> AnnotatedFilename:
-    """Attempt to create annotated filename for given filename data.
-
-    Accumulate errors on the dataclass for later logging.
-    """
-    filename, errors = create_filename(filename_data)
-    return AnnotatedFilename(
-        get_uuid(filename_data.file),
-        filename,
-        filename_data.file,
-        errors=errors,
-    )
-
-
-def create_filename(filename_data: FilenameData) -> Tuple[str, List[str]]:
-    """Create filename from given filename data."""
-    sample_part = create_sample_part(filename_data)
-    experiment_part = create_experiment_part(filename_data)
-    file_part = create_file_part(filename_data)
-    filename = join_filename_parts([sample_part, experiment_part, file_part])
-    errors = collect_errors([sample_part, experiment_part, file_part])
-    return filename, errors
-
-
-def create_sample_part(filename_data: FilenameData) -> FilenamePart:
-    """Create sample part of filename from given filename data."""
-    sample_data = filename_data.sample_data
-    sample_source_part = create_sample_source_part(sample_data.sample_source_data)
-    donor_part = create_donor_part(sample_data.donor_data)
-    sample_filename = join_filename_parts([sample_source_part, donor_part])
-    sample_errors = collect_errors([sample_source_part, donor_part])
-    return FilenamePart(sample_filename, sample_errors)
-
-
-def create_sample_source_part(
-    sample_source_data: Union[InvalidData, SampleSourceData]
-) -> FilenamePart:
-    """Create sample source part of filename from given sample source data."""
-    if isinstance(sample_source_data, InvalidData):
-        return FilenamePart("", ["No sample source data found"])
-    if isinstance(sample_source_data, TissueData):
-        return create_tissue_part(sample_source_data)
-    if isinstance(sample_source_data, CellLineData):
-        return create_cell_line_part(sample_source_data)
-    return FilenamePart(
-        "",
-        [f"Invalid sample source data: {sample_source_data}"],
-    )
-
-
-def create_tissue_part(tissue_data: TissueData) -> FilenamePart:
-    """Validate and create tissue part of filename."""
-    errors = validate_tissue_data(tissue_data)
-    filename = create_tissue_filename(tissue_data)
-    return FilenamePart(filename, errors)
-
-
-def validate_tissue_data(tissue_data: TissueData) -> List[str]:
-    """Validate tissue data."""
-    errors = []
-    if not tissue_data.project_id:
-        errors.append("No project ID found")
-    if not tissue_data.kit_id:
-        errors.append("No kit ID found")
-    if not tissue_data.protocol_id:
-        errors.append("No protocol ID found")
-    if not tissue_data.aliquot_id:
-        errors.append("No aliquot ID found")
-    if not tissue_data.core_id:
-        errors.append("No core ID found")
-    return errors
-
-
-def create_tissue_filename(tissue_data: TissueData) -> str:
-    """Create tissue filename."""
-    return (
-        f"{tissue_data.project_id}"
-        f"{tissue_data.kit_id}"
-        f"{FILENAME_SEPARATOR}"
-        f"{tissue_data.protocol_id}"
-        f"{FILENAME_SEPARATOR}"
-        f"{tissue_data.aliquot_id}"
-        f"{tissue_data.core_id}"
-    )
-
-
-def create_cell_line_part(cell_line_data: CellLineData) -> FilenamePart:
-    """Validate and create cell line part of filename."""
-    errors = validate_cell_line_data(cell_line_data)
-    filename = create_cell_line_filename(cell_line_data)
-    return FilenamePart(filename, errors)
-
-
-def validate_cell_line_data(cell_line_data: CellLineData) -> List[str]:
-    """Validate cell line data."""
-    errors = []
-    if not cell_line_data.cell_line_id:
-        errors.append("No cell line ID found")
-    return errors
-
-
-def create_cell_line_filename(cell_line_data: CellLineData) -> str:
-    """Create cell line filename."""
-    return (
-        f"{DEFAULT_PROJECT_ID}"
-        f"{cell_line_data.cell_line_id}"
-        f"{FILENAME_SEPARATOR}"
-        f"{DEFAULT_ABSENT_FIELD}"
-        f"{FILENAME_SEPARATOR}"
-        f"{DEFAULT_ABSENT_FIELD}"
-    )
-
-
-def create_donor_part(donor_data: Union[InvalidData, DonorData]) -> FilenamePart:
-    """Validate and create donor part of filename."""
-    errors = validate_donor_data(donor_data)
-    filename = create_donor_filename(donor_data)
-    return FilenamePart(filename, errors)
-
-
-def create_donor_filename(donor_data: Union[InvalidData, DonorData]) -> str:
-    """Create donor filename."""
-    if isinstance(donor_data, DonorData):
-        abbreviated_sex = get_donor_sex_abbreviation(donor_data)
-        return f"{abbreviated_sex}{donor_data.age}"
-    return ""
-
-
-def get_donor_sex_abbreviation(donor_data: DonorData) -> str:
-    """Abbreviate sex for donor."""
-    if donor_data.sex == PortalConstants.MALE_SEX:
-        return MALE_SEX_ABBREVIATION
-    if donor_data.sex == PortalConstants.FEMALE_SEX:
-        return FEMALE_SEX_ABBREVIATION
-    if donor_data.sex == ABSENT_SEX:
-        return donor_data.sex
-    return ""
-
-
-def validate_donor_data(donor_data: Union[InvalidData, DonorData]) -> List[str]:
-    """Validate donor data."""
-    if isinstance(donor_data, InvalidData):
-        return ["No donor data found"]
-    if isinstance(donor_data, DonorData):
-        errors = []
-        if not donor_data.sex:
-            errors.append("No donor sex found")
-        elif not is_default_absent_sex(
-            donor_data.sex
-        ) and not get_donor_sex_abbreviation(donor_data):
-            errors.append(f"Unexpected sex {donor_data.sex}")
-        if not donor_data.age:
-            errors.append("No donor age found")
-        return errors
-    return [f"Invalid donor data: {donor_data}"]
-
-
-def is_default_absent_sex(sex: str) -> bool:
-    """Is sex the default absent value?"""
-    return sex == ABSENT_SEX
-
-
-def create_experiment_part(filename_data: FilenameData) -> FilenamePart:
-    """Create experiment part of filename."""
-    experiment_data = filename_data.experiment_data
-    errors = validate_experiment_data(experiment_data)
-    filename = create_experiment_filename(experiment_data)
-    return FilenamePart(filename, errors)
-
-
-def validate_experiment_data(experiment_data: ExperimentData) -> List[str]:
-    """Validate experiment data."""
-    errors = []
-    if not experiment_data.sequencing_code:
-        errors.append("No sequencing code found")
-    if not experiment_data.assay_code:
-        errors.append("No assay code found")
-    return errors
-
-
-def create_experiment_filename(experiment_data: ExperimentData) -> str:
-    """Create experiment filename."""
-    return f"{experiment_data.sequencing_code}" f"{experiment_data.assay_code}"
-
-
-def create_file_part(filename_data: FilenameData) -> FilenamePart:
-    """Create file part of filename."""
-    file_data = filename_data.file_data
-    errors = validate_file_data(file_data)
-    filename = create_file_filename(file_data)
-    return FilenamePart(filename, errors)
-
-
-def validate_file_data(file_data: FileData) -> List[str]:
-    """Validate file data."""
-    if is_bam_file(file_data):
-        return validate_bam_file_data(file_data)
-    if is_vcf_file(file_data):
-        return validate_vcf_file_data(file_data)
-    if is_fastq_file(file_data):
-        return validate_fastq_file_data(file_data)
-    return [f"Unexpected file data: {file_data}"]
-
-
-def validate_bam_file_data(file_data: FileData) -> List[str]:
-    """Validate BAM file data."""
-    errors = []
-    if not file_data.center_code:
-        errors.append("No center code found")
-    if not file_data.accession:
-        errors.append("No accession found")
-    if not file_data.software:
-        errors.append("No software found")
-    if not file_data.software_version:
-        errors.append("No software version found")
-    if not file_data.genome:
-        errors.append("No genome found")
-    if not file_data.data_type:
-        errors.append("No data type found")
-    if not file_data.alignment_details:
-        errors.append("No alignment details found")
-    if not file_data.file_extension:
-        errors.append("No file extension found")
-    if file_data.variant_type:
-        errors.append("Unexpected variant type found")
-    return errors
-
-
-def validate_vcf_file_data(file_data: FileData) -> List[str]:
-    """Validate VCF file data."""
-    errors = []
-    if not file_data.center_code:
-        errors.append("No center code found")
-    if not file_data.accession:
-        errors.append("No accession found")
-    if not file_data.software:
-        errors.append("No software found")
-    if not file_data.software_version:
-        errors.append("No software version found")
-    if not file_data.genome:
-        errors.append("No genome found")
-    if file_data.alignment_details:
-        errors.append("Unexpected alignment details found")
-    if not file_data.file_extension:
-        errors.append("No file extension found")
-    if not file_data.variant_type:
-        errors.append("No variant type found")
-    else:
-        variant_type_for_name = get_variant_type_from_file_data(file_data)
-        if not variant_type_for_name:
-            errors.append("No expected variant type found")
-    return errors
-
-
-def validate_fastq_file_data(file_data: FileData) -> List[str]:
-    """Validate FASTQ file data."""
-    errors = []
-    if not file_data.center_code:
-        errors.append("No center code found")
-    if not file_data.accession:
-        errors.append("No accession found")
-    if file_data.software:
-        errors.append("Unexpected software found")
-    if file_data.genome:
-        errors.append("Unexpected genome found")
-    if file_data.alignment_details:
-        errors.append("Unexpected alignment details found")
-    if file_data.variant_type:
-        errors.append("Unexpected variant type found")
-    if not file_data.file_extension:
-        errors.append("No file extension found")
-    return errors
-
-
-def create_file_filename(file_data: FileData) -> str:
-    """Create file filename."""
-    if is_bam_file(file_data):
-        return create_bam_filename(file_data)
-    if is_vcf_file(file_data):
-        return create_vcf_filename(file_data)
-    if is_fastq_file(file_data):
-        return create_fastq_filename(file_data)
-    return ""
-
-
-def is_bam_file(file_data: FileData) -> bool:
-    """Check if file is a BAM file."""
-    return file_data.file_extension == BAM_EXTENSION
-
-
-def create_bam_filename(file_data: FileData) -> str:
-    """Create BAM filename."""
-    file_extension = get_bam_file_extension(file_data)
-    return (
-        f"{file_data.center_code}"
-        f"{FILENAME_SEPARATOR}"
-        f"{file_data.accession}"
-        f"{FILENAME_SEPARATOR}"
-        f"{file_data.software}"
-        f"{ANALYSIS_INFO_SEPARATOR}"
-        f"{file_data.software_version}"
-        f"{ANALYSIS_INFO_SEPARATOR}"
-        f"{file_data.genome}"
-        f".{file_extension}"
-    )
-
-
-def get_bam_file_extension(file_data: FileData) -> List[str]:
-    """Get BAM file extension.
-
-    Adding on info from alignment details and data type to standard extension.
-    """
-    extensions = []
-    if is_aligned_reads(file_data):
-        extensions.append(ALIGNED_READS_EXTENSION)
-    if is_sorted(file_data):
-        extensions.append(SORTED_EXTENSION)
-    if is_phased(file_data):
-        extensions.append(PHASED_EXTENSION)
-    extensions.append(file_data.file_extension)
-    return ".".join(extensions)
-
-
-def is_aligned_reads(file_data: FileData) -> bool:
-    """Check if file is aligned reads."""
-    return PortalConstants.ALIGNED_READS in file_data.data_type
-
-
-def is_sorted(file_data: FileData) -> bool:
-    """Check if file is sorted."""
-    return PortalConstants.SORTED in file_data.alignment_details
-
-
-def is_phased(file_data: FileData) -> bool:
-    """Check if file is phased."""
-    return PortalConstants.PHASED in file_data.alignment_details
-
-
-def is_vcf_file(file_data: FileData) -> bool:
-    """Check if file is a VCF file."""
-    return file_data.file_extension == VCF_EXTENSION
-
-
-def create_vcf_filename(file_data: FileData) -> str:
-    """Create VCF filename."""
-    variant_type = get_variant_type_from_file_data(file_data)
-    return (
-        f"{file_data.center_code}"
-        f"{FILENAME_SEPARATOR}"
-        f"{file_data.accession}"
-        f"{FILENAME_SEPARATOR}"
-        f"{file_data.software}"
-        f"{ANALYSIS_INFO_SEPARATOR}"
-        f"{file_data.software_version}"
-        f"{ANALYSIS_INFO_SEPARATOR}"
-        f"{file_data.genome}"
-        f"{ANALYSIS_INFO_SEPARATOR}"
-        f"{variant_type}"
-        f".{file_data.file_extension}"
-    )
-
-
-def get_variant_type_from_file_data(file_data: FileData) -> str:
-    """Get variant type from file data."""
-    result = []
-    if PortalConstants.SINGLE_NUCLEOTIDE_VARIANT in file_data.variant_type:
-        result.append(SNV_VARIANT_TYPE)
-    if PortalConstants.STRUCTURAL_VARIANT in file_data.variant_type:
-        result.append(SV_VARIANT_TYPE)
-    if PortalConstants.COPY_NUMBER_VARIANT in file_data.variant_type:
-        result.append(CNV_VARIANT_TYPE)
-    if PortalConstants.MOBILE_ELEMENT_INSERTION in file_data.variant_type:
-        result.append(MEI_VARIANT_TYPE)
-    if len(result) == 1:
-        return result[0]
-    return ""
-
-
-def is_fastq_file(file_data: FileData) -> bool:
-    """Check if file is a FASTQ file."""
-    return file_data.file_extension == FASTQ_EXTENSION
-
-
-def join_filename_parts(filename_parts: List[FilenamePart]) -> str:
-    """Join filename parts into a filename."""
-    return FILENAME_SEPARATOR.join([part.value for part in filename_parts])
-
-
-def collect_errors(filename_parts: List[FilenamePart]) -> List[str]:
-    """Collect errors from filename parts."""
-    return [error for part in filename_parts for error in part.errors]
+        logger.error(f"Error patching file {get_identifier(annotated_filename)}: {e}")
 
 
 def get_auth_key(env: str) -> Dict[str, str]:

@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Union
+from functools import cached_property, lru_cache
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from dcicutils import ff_utils
 from pyramid.request import Request
 from webtest import TestApp
 
-from . import constants
 from ..item_utils import item as item_utils
 from ..utils import get_item as get_item_from_request, get_item_with_testapp
 
@@ -24,6 +24,12 @@ class RequestHandler:
     def __post_init__(self) -> None:
         if not self.request and not self.auth_key and not self.test_app:
             raise ValueError("Either request, auth_key, or test app must be provided")
+
+    @cached_property
+    def hashed_auth_key(self) -> Tuple[str, str]:
+        if not self.auth_key:
+            return tuple()
+        return tuple(self.auth_key.items())
 
     def get_items(
         self,
@@ -69,8 +75,17 @@ class RequestHandler:
 
     def _get_item_from_auth_key(self, identifier: str) -> Dict[str, Any]:
         """Get item from auth_key"""
+        return self._get_and_cache_item_from_auth_key(identifier, self.hashed_auth_key)
+
+    @lru_cache(maxsize=128)
+    @staticmethod
+    def _get_and_cache_item_from_auth_key(
+        identifier: str, auth_key: Tuple[str, str]
+    ) -> Dict[str, Any]:
+        """Get item from auth_key and cache result."""
+        unhashed_auth_key = dict(auth_key)
         return ff_utils.get_metadata(
-            identifier, key=self.auth_key, add_on="frame=object"
+            identifier, key=unhashed_auth_key, add_on="frame=object"
         )
 
     def _get_item_from_test_app(
@@ -126,19 +141,3 @@ def get_property_value_from_identifier(
     """Get property value from item for given identifier."""
     item = request_handler.get_item(identifier)
     return retriever(item)
-
-
-def get_study_from_external_id(external_id: str) -> str:
-    """Get "study" (a.k.a. production or benchmarking) from external ID.
-
-    NOTE: Impossible to determine study from external ID alone, but
-    should suffice for IDs from TPC. Primary concern is TTD IDs can
-    also match criteria and be incorrectly identified. If this becomes
-    an issue, may need to check submission/sequencing centers and add
-    metadata there appropriately.
-    """
-    if external_id.startswith(constants.PRODUCTION_PREFIX):
-        return constants.PRODUCTION_STUDY
-    if external_id.startswith(constants.BENCHMARKING_PREFIX):
-        return constants.BENCHMARKING_STUDY
-    return ""
