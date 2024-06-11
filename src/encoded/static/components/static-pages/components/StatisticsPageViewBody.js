@@ -949,7 +949,7 @@ export function UsageStatsView(props){
                         <AreaChart {...commonChartProps} data={file_downloads_volume} showTooltipOnHover={!enableFileDownloadsChartTooltipItemClick} yAxisLabel="GB" />
                     </AreaChartContainer>
 
-                    <p className='font-italic mt-2'>* File downloads before June 15th, 2024, only include browser-based downloads and may not be accurate.</p>
+                    <p className='font-italic mt-2'>* File downloads before June 15th, 2024, only include browser-initiated downloads and may not be accurate.</p>
 
                 </ColorScaleProvider>
 
