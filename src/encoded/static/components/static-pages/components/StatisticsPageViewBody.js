@@ -600,17 +600,21 @@ export const usageAggsToChartData = _.pick(aggregationsToChartData,
 
 export class UsageStatsViewController extends React.PureComponent {
 
-    static getSearchReqMomentsForTimePeriod(currentGroupBy = "daily"){
+    static getSearchReqMomentsForTimePeriod(currentGroupBy = "daily30"){
         let untilDate = new Date();
         let fromDate;
         if (currentGroupBy === 'monthly'){ // 1 yr (12 mths)
             untilDate = sub(startOfMonth(untilDate), { minutes: 1 }); // Last minute of previous month
             fromDate = toDate(untilDate);
             fromDate = sub(fromDate, { months: 12 }); // Go back 12 months
-        } else if (currentGroupBy === 'daily'){ // 30 days
+        } else if (currentGroupBy === 'daily30'){ // 30 days
             untilDate = sub(untilDate, { days: 1 });
             fromDate = toDate(untilDate);
             fromDate = sub(fromDate, { days: 30 }); // Go back 30 days
+        }else if (currentGroupBy === 'daily60'){ // 60 days
+            untilDate = sub(untilDate, { days: 1 });
+            fromDate = toDate(untilDate);
+            fromDate = sub(fromDate, { days: 60 }); // Go back 60 days
         }
         return { fromDate, untilDate };
     }
@@ -639,9 +643,11 @@ export class UsageStatsViewController extends React.PureComponent {
                     "for_date"
                 ];
 
+                const date_increment = currentGroupBy === 'monthly' ? 'monthly' : 'daily';
+
                 let uri = '/search/?type=TrackingItem&tracking_type=google_analytics&sort=-google_analytics.for_date&format=json';
 
-                uri += '&limit=all&google_analytics.date_increment=' + currentGroupBy;
+                uri += '&limit=all&google_analytics.date_increment=' + date_increment;
                 uri += '&google_analytics.for_date.from=' + formatDate(fromDate, 'yyyy-MM-dd') + '&google_analytics.for_date.to=' + formatDate(untilDate, 'yyyy-MM-dd');
                 uri += "&" + report_names.map(function(n){ return "field=google_analytics.reports." + encodeURIComponent(n); }).join("&");
                 uri += "&field=google_analytics.for_date";
@@ -870,7 +876,7 @@ export function UsageStatsView(props){
         // We want all charts to share the same x axis. Here we round to date boundary.
         // Minor issue is that file downloads are stored in UTC/GMT while analytics are in EST timezone..
         // TODO improve on this somehow, maybe pass prop to FileDownload chart re: timezone parsing of some sort.
-        if (currentGroupBy === 'daily') {
+        if (currentGroupBy === 'daily30' || currentGroupBy === 'daily60') {
             fromDate = add(startOfDay(propFromDate), { minutes: 15 });
             untilDate = add(endOfDay(propUntilDate), { minutes: 45 });
             dateRoundInterval = 'day';
@@ -1000,7 +1006,7 @@ export function UsageStatsView(props){
                             <h3 className="charts-group-title">
                                 <span className="d-block d-sm-inline">Top Fields Faceted</span>
                                 <span className="text-300 d-none d-sm-inline"> - </span>
-                                <span className="text-300">{ countBy.fields_faceted === 'sessions' ? 'by user session' : 'by search result instance' }</span>
+                                <span className="text-300">{ UsageStatsView.titleExtensions['fields_faceted'][countBy.fields_faceted] }</span>
                             </h3>
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="fields_faceted" />}
@@ -1037,6 +1043,10 @@ UsageStatsView.titleExtensions = {
         'filetype': 'by file type',
         'dataset': 'by dataset',
         'top_files': 'top 10 files'
+    },
+    'fields_faceted': {
+        'views': 'by search result instance',
+        'sessions': 'by user session'
     }
 };
 
