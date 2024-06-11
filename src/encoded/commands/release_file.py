@@ -6,8 +6,8 @@ from dataclasses import dataclass
 
 pp = pprint.PrettyPrinter(indent=2)
 
-from dcicutils import ff_utils
-from dcicutils.creds_utils import SMaHTKeyManager
+from dcicutils import ff_utils  # noqa
+from dcicutils.creds_utils import SMaHTKeyManager  # noqa
 
 
 ##################################################################

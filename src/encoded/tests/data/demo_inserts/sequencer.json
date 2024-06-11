@@ -1,0 +1,65 @@
+[
+    {
+        "code": "C",
+        "model": "NovaSeq 6000",
+        "status": "released",
+        "platform": "Illumina",
+        "accession": "SMASRAVLAYI3",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "illumina_novaseq_6000",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "c264052b-0c9f-4b0a-b919-ea1dc4f94d35"
+    },
+    {
+        "code": "A",
+        "model": "NovaSeq X",
+        "status": "released",
+        "platform": "Illumina",
+        "accession": "SMASREBHHRF1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "illumina_novaseq_x",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "adf1e7bd-f89e-4d3d-af41-1712fce9e720"
+    },
+    {
+        "code": "D",
+        "model": "PromethION 24",
+        "status": "released",
+        "platform": "ONT",
+        "accession": "SMASRPKW34EP",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "ont_promethion_24",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "read_length_category": [
+            "Long-read"
+        ],
+        "uuid": "36ed5823-9207-4514-8cc6-e9712deafb0a"
+    },
+    {
+        "code": "B",
+        "model": "Revio",
+        "status": "released",
+        "platform": "PacBio",
+        "accession": "SMASRUU5YSCA",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "pacbio_revio_hifi",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "b88debe3-b07a-46c7-a1a1-78d2b0a0396b"
+    }
+]
