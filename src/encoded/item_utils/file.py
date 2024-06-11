@@ -202,17 +202,17 @@ def get_cell_cultures(
     properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get cell cultures associated with file."""
-    samples = get_samples(properties, request_handler=request_handler)
+    sample_sources = get_sample_sources(properties, request_handler=request_handler)
     if request_handler:
         return [
-            sample
-            for sample in samples
-            if cell_culture.is_cell_culture(request_handler.get_item(sample))
+            sample_source
+            for sample_source in sample_sources
+            if cell_culture.is_cell_culture(request_handler.get_item(sample_source))
         ]
     return [
-        sample
-        for sample in samples
-        if isinstance(sample, dict) and cell_culture.is_cell_culture(sample)
+        sample_source
+        for sample_source in sample_sources
+        if isinstance(sample_source, dict) and cell_culture.is_cell_culture(sample_source)
     ]
 
 

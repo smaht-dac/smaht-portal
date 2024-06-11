@@ -61,7 +61,7 @@ class AnnotatedFilename:
     project_id: str
     sample_source_id: str
     protocol_id: str
-    tissue_aliquot_id: str
+    aliquot_id: str
     donor_age: int
     donor_sex: str
     sequencing_and_assay_codes: str
@@ -330,7 +330,7 @@ def get_cell_line_id(
     cell_line_ids = get_property_values_from_identifiers(
         request_handler,
         file_utils.get_cell_lines(file, request_handler=request_handler),
-        file_utils.get_code,
+        item_utils.get_code,
     )
     return get_filename_part_for_values(
         cell_line_ids, "sample source ID", source_name="cell line"
@@ -778,7 +778,7 @@ def get_annotated_filename_string(annotated_filename: AnnotatedFilename) -> str:
             annotated_filename.project_id,
             annotated_filename.sample_source_id,
             annotated_filename.protocol_id,
-            annotated_filename.tissue_aliquot_id,
+            annotated_filename.aliquot_id,
             str(annotated_filename.donor_age),
             annotated_filename.donor_sex,
             annotated_filename.sequencing_and_assay_codes,
