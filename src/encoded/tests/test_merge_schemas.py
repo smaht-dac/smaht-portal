@@ -1,4 +1,3 @@
-import pytest
 from snovault.schema_utils import load_schema
 from .testing_views import TestingLinkedSchemaField
 
