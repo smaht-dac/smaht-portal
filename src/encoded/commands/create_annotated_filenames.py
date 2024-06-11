@@ -62,8 +62,7 @@ class AnnotatedFilename:
     sample_source_id: str
     protocol_id: str
     aliquot_id: str
-    donor_age: int
-    donor_sex: str
+    donor_sex_and_age: str
     sequencing_and_assay_codes: str
     sequencing_center_code: str
     accession: str
@@ -172,8 +171,7 @@ def get_annotated_filename(
     sample_source_id = get_sample_source_id(file, request_handler)
     protocol_id = get_protocol_id(file, request_handler)
     aliquot_id = get_aliquot_id(file, request_handler)
-    donor_age = get_donor_age(file, request_handler)
-    donor_sex = get_donor_sex(file, request_handler)
+    donor_sex_and_age = get_donor_sex_and_age(file, request_handler)
     sequencing_and_assay_codes = get_sequencing_and_assay_codes(
         file, request_handler
     )
@@ -186,8 +184,7 @@ def get_annotated_filename(
         sample_source_id,
         protocol_id,
         aliquot_id,
-        donor_age,
-        donor_sex,
+        donor_sex_and_age,
         sequencing_and_assay_codes,
         sequencing_center_code,
         accession,
@@ -199,8 +196,7 @@ def get_annotated_filename(
         sample_source_id=sample_source_id.value,
         protocol_id=protocol_id.value,
         aliquot_id=aliquot_id.value,
-        donor_age=donor_age.value,
-        donor_sex=donor_sex.value,
+        donor_sex_and_age=donor_sex_and_age.value,
         sequencing_and_assay_codes=sequencing_and_assay_codes.value,
         sequencing_center_code=sequencing_center_code.value,
         accession=accession.value,
@@ -411,98 +407,55 @@ def get_aliquot_id_from_samples(
     )
 
 
-def get_donor_age(
+def get_donor_sex_and_age(
     file: Dict[str, Any], request_handler: RequestHandler
 ) -> FilenamePart:
-    """Get donor age for file."""
-    parts = []
-    if file_utils.is_only_cell_culture_mixture_derived(file, request_handler):
-        parts.append(get_donor_age_from_cell_culture_mixture(file, request_handler))
-    else:
-        parts.append(get_donor_ages(file, request_handler))
-    return get_exclusive_filename_part(parts, "donor age")
+    """Get donor sex and age for file.
 
-
-def get_donor_age_from_cell_culture_mixture(
-    file: Dict[str, Any], request_handler: RequestHandler
-) -> FilenamePart:
-    """Get donor age for cell culture mixture.
-
-    A bit of special handling here for situations like the HAPMAP mixture.
-    If multiple donors found, return default absent field.
+    Special handling for cell culture mixture-derived files, as these
+    may have multiple donors.
     """
-    donors = get_property_values_from_identifiers(
-        request_handler,
-        file_utils.get_cell_culture_mixtures(file, request_handler=request_handler),
-        partial(cell_culture_mixture_utils.get_donor, request_handler),
-    )
-    if len(donors) > 1:
-        return get_filename_part(value=ABSENT_AGE)
-    ages = get_property_values_from_identifiers(
-        request_handler, donors, donor_utils.get_age
-    )
-    return get_filename_part_for_values(
-        ages, "donor age", source_name="cell culture mixture"
-    )
+    donors = file_utils.get_donors(file, request_handler=request_handler)
+    if not donors:
+        return get_filename_part(errors=["No donors found"])
+    sex_and_age_parts = get_sex_and_age_parts(donors, request_handler)
+    if (
+        len(sex_and_age_parts) > 1
+        and file_utils.is_only_cell_culture_mixture_derived(file, request_handler)
+    ):
+        return get_filename_part(value=get_null_sex_and_age())
+    return get_exclusive_filename_part(sex_and_age_parts, "donor age and sex")
 
 
-def get_donor_ages(
-    file: Dict[str, Any], request_handler: RequestHandler
+def get_null_sex_and_age() -> str:
+    """Get default null sex and age string."""
+    return f"{ABSENT_SEX}{ABSENT_AGE}"
+
+
+def get_sex_and_age_parts(
+    donors: List[str], request_handler: RequestHandler
+) -> List[FilenamePart]:
+    """Get donor and age parts for all donors."""
+    return [
+        get_sex_and_age_part(donor, request_handler) for donor in donors
+    ]
+
+
+def get_sex_and_age_part(
+    donor: Dict[str, Any], request_handler: RequestHandler
 ) -> FilenamePart:
-    """Get donor ages for file."""
-    donor_ages = get_property_values_from_identifiers(
-        request_handler,
-        file_utils.get_donors(file, request_handler=request_handler),
-        donor_utils.get_age,
-    )
-    return get_filename_part_for_values(donor_ages, "donor age")
-
-
-def get_donor_sex(
-    file: Dict[str, Any], request_handler: RequestHandler
-) -> FilenamePart:
-    """Get donor sex for file."""
-    parts = []
-    if file_utils.is_only_cell_culture_mixture_derived(file, request_handler):
-        parts.append(get_donor_sex_from_cell_culture_mixture(file, request_handler))
-    else:
-        parts.append(get_donor_sexes(file, request_handler))
-    return get_exclusive_filename_part(parts, "donor sex")
-
-
-def get_donor_sex_from_cell_culture_mixture(
-    file: Dict[str, Any], request_handler: RequestHandler
-) -> FilenamePart:
-    """Get donor sex for cell culture mixture.
-
-    A bit of special handling here for situations like the HAPMAP mixture.
-    If multiple donors found, return default absent field.
-    """
-    donors = get_property_values_from_identifiers(
-        request_handler,
-        file_utils.get_cell_culture_mixtures(file, request_handler=request_handler),
-        partial(cell_culture_mixture_utils.get_donor, request_handler),
-    )
-    if len(donors) > 1:
-        return get_filename_part(value=ABSENT_SEX)
-    sexes = get_property_values_from_identifiers(
-        request_handler, donors, donor_utils.get_sex
-    )
-    abbreviated_sexes = [get_sex_abbreviation(sex) for sex in sexes]
-    return get_filename_part_for_values(abbreviated_sexes, "donor sex")
-
-
-def get_donor_sexes(
-    file: Dict[str, Any], request_handler: RequestHandler
-) -> FilenamePart:
-    """Get sexes for all associated donors."""
-    sexes = get_property_values_from_identifiers(
-        request_handler,
-        file_utils.get_donors(file, request_handler=request_handler),
-        donor_utils.get_sex,
-    )
-    abbreviated_sexes = [get_sex_abbreviation(sex) for sex in sexes]
-    return get_filename_part_for_values(abbreviated_sexes, "donor sex")
+    """Get donor and age part for given donor."""
+    item = request_handler.get_item(donor)
+    sex = get_sex_abbreviation(donor_utils.get_sex(item))
+    age = donor_utils.get_age(item)
+    if sex and age:
+        return get_filename_part(value=f"{sex}{age}")
+    errors = []
+    if not sex:
+        errors += [f"Unknown sex for donor {item_utils.get_uuid(item)}"]
+    if not age:
+        errors += [f"Unknown age for donor {item_utils.get_uuid(item)}"]
+    return get_filename_part(errors=errors)
 
 
 def get_sex_abbreviation(sex: str) -> str:
@@ -777,21 +730,20 @@ def log_annotated_filenames(annotated_filenames: List[AnnotatedFilename]) -> Non
 
 def get_annotated_filename_string(annotated_filename: AnnotatedFilename) -> str:
     """Get string representation of annotated filename."""
-    return FILENAME_SEPARATOR.join(
+    before_extension = FILENAME_SEPARATOR.join(
         [
             annotated_filename.project_id,
             annotated_filename.sample_source_id,
             annotated_filename.protocol_id,
             annotated_filename.aliquot_id,
-            str(annotated_filename.donor_age),
-            annotated_filename.donor_sex,
+            annotated_filename.donor_sex_and_age,
             annotated_filename.sequencing_and_assay_codes,
             annotated_filename.sequencing_center_code,
             annotated_filename.accession,
             annotated_filename.analysis_info,
-            annotated_filename.file_extension,
         ]
     )
+    return f"{before_extension}.{annotated_filename.file_extension}"
 
 
 def patch_annotated_filenames(

@@ -288,9 +288,13 @@ def is_only_cell_culture_mixture_derived(
 ) -> bool:
     """Check if file is only derived from cell culture mixture."""
     sample_sources = get_sample_sources(properties, request_handler)
-    if len(sample_sources) == 1:
-        return is_cell_culture_mixture_derived(properties, request_handler)
-    return False
+    return all(
+        [
+            cell_culture_mixture.is_cell_culture_mixture(
+                request_handler.get_item(sample_source)
+            ) for sample_source in sample_sources
+        ]
+    )
 
 
 def is_cell_line_derived(
