@@ -20,9 +20,7 @@ def get_code(request_handler: RequestHandler, sample_source: Dict[str, Any]) -> 
     return ""
 
 
-def get_study(
-    request_handler: RequestHandler, sample_source: Dict[str, Any]
-) -> str:
+def get_study(request_handler: RequestHandler, sample_source: Dict[str, Any]) -> str:
     """Get study for a given sample source.
 
     Tissue study information identifiable by its external ID, while

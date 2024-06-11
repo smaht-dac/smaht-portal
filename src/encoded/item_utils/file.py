@@ -212,7 +212,8 @@ def get_cell_cultures(
     return [
         sample_source
         for sample_source in sample_sources
-        if isinstance(sample_source, dict) and cell_culture.is_cell_culture(sample_source)
+        if isinstance(sample_source, dict)
+        and cell_culture.is_cell_culture(sample_source)
     ]
 
 
@@ -292,7 +293,8 @@ def is_only_cell_culture_mixture_derived(
         [
             cell_culture_mixture.is_cell_culture_mixture(
                 request_handler.get_item(sample_source)
-            ) for sample_source in sample_sources
+            )
+            for sample_source in sample_sources
         ]
     )
 
@@ -321,9 +323,7 @@ def is_fastq(
     )
 
 
-def is_bam(
-    properties: Dict[str, Any], request_handler: RequestHandler = None
-) -> bool:
+def is_bam(properties: Dict[str, Any], request_handler: RequestHandler = None) -> bool:
     """Check if file is a BAM file."""
     return get_property_value_from_identifier(
         request_handler,
@@ -332,9 +332,7 @@ def is_bam(
     )
 
 
-def is_vcf(
-    properties: Dict[str, Any], request_handler: RequestHandler = None
-) -> bool:
+def is_vcf(properties: Dict[str, Any], request_handler: RequestHandler = None) -> bool:
     """Check if file is a VCF file."""
     return get_property_value_from_identifier(
         request_handler,

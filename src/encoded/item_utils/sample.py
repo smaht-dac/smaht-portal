@@ -194,9 +194,8 @@ def get_studies_from_sources(
 def get_aliquot_id(properties: Dict[str, Any]) -> str:
     """Get aliquot ID associated with sample."""
     external_id = item.get_external_id(properties)
-    if (
-        BENCHMARKING_ID_REGEX.match(external_id)
-        or PRODUCTION_ID_REGEX.match(external_id)
+    if BENCHMARKING_ID_REGEX.match(external_id) or PRODUCTION_ID_REGEX.match(
+        external_id
     ):
         return external_id.split("-")[2]
     return ""
