@@ -113,9 +113,7 @@ def get_files(
     ) + get_files_from_identifiers(identifiers, request_handler)
 
 
-def get_files_from_search(
-    search_query: str, auth_key: Dict[str, str]
-) -> List[str]:
+def get_files_from_search(search_query: str, auth_key: Dict[str, str]) -> List[str]:
     """Get file items from given search query."""
     if search_query:
         return get_files_from_search_query(search_query, auth_key)
@@ -152,10 +150,7 @@ def get_annotated_filenames(
     files: List[Dict[str, Any]], request_handler: RequestHandler
 ) -> List[AnnotatedFilename]:
     """Get annotated filenames for given files."""
-    return [
-        get_annotated_filename(file_item, request_handler)
-        for file_item in files
-    ]
+    return [get_annotated_filename(file_item, request_handler) for file_item in files]
 
 
 def get_annotated_filename(
@@ -172,9 +167,7 @@ def get_annotated_filename(
     protocol_id = get_protocol_id(file, request_handler)
     aliquot_id = get_aliquot_id(file, request_handler)
     donor_sex_and_age = get_donor_sex_and_age(file, request_handler)
-    sequencing_and_assay_codes = get_sequencing_and_assay_codes(
-        file, request_handler
-    )
+    sequencing_and_assay_codes = get_sequencing_and_assay_codes(file, request_handler)
     sequencing_center_code = get_sequencing_center_code(file, request_handler)
     accession = get_accession(file)
     analysis_info = get_analysis(file, request_handler)
@@ -427,9 +420,8 @@ def get_donor_sex_and_age(
             return get_filename_part(value=get_null_sex_and_age())
         return get_filename_part(errors=["No donors found"])
     sex_and_age_parts = get_sex_and_age_parts(donors, request_handler)
-    if (
-        len(sex_and_age_parts) > 1
-        and file_utils.is_only_cell_culture_mixture_derived(file, request_handler)
+    if len(sex_and_age_parts) > 1 and file_utils.is_only_cell_culture_mixture_derived(
+        file, request_handler
     ):
         return get_filename_part(value=get_null_sex_and_age())
     return get_exclusive_filename_part(sex_and_age_parts, "donor age and sex")
@@ -444,9 +436,7 @@ def get_sex_and_age_parts(
     donors: List[str], request_handler: RequestHandler
 ) -> List[FilenamePart]:
     """Get donor and age parts for all donors."""
-    return [
-        get_sex_and_age_part(donor, request_handler) for donor in donors
-    ]
+    return [get_sex_and_age_part(donor, request_handler) for donor in donors]
 
 
 def get_sex_and_age_part(
@@ -508,9 +498,7 @@ def get_sequencing_codes(
     )
 
 
-def get_assay_codes(
-    file: Dict[str, Any], request_handler: RequestHandler
-) -> List[str]:
+def get_assay_codes(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
     """Get assay code for file."""
     return get_property_values_from_identifiers(
         request_handler,
@@ -539,9 +527,7 @@ def get_accession(file: Dict[str, Any]) -> FilenamePart:
     return get_filename_part(errors=["Unknown accession"])
 
 
-def get_analysis(
-    file: Dict[str, Any], request_handler: RequestHandler
-) -> FilenamePart:
+def get_analysis(file: Dict[str, Any], request_handler: RequestHandler) -> FilenamePart:
     """Get analysis info for file."""
     if file_utils.is_unaligned_reads(file):
         return get_filename_part(value=DEFAULT_ABSENT_FIELD)
@@ -709,11 +695,7 @@ def get_bam_file_extensions(
 
 def collect_errors(*filename_parts: FilenamePart) -> List[str]:
     """Collect errors from filename parts."""
-    return [
-        error
-        for part in filename_parts
-        for error in part.errors
-    ]
+    return [error for part in filename_parts for error in part.errors]
 
 
 def has_errors(annotated_filename: AnnotatedFilename) -> bool:
