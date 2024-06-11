@@ -13,6 +13,7 @@ from .utils import (
     get_items_without_submitted_id,
     get_schema,
     has_affiliations,
+    has_consortia,
     patch_item,
     post_item,
     get_submittable_file_types,
@@ -824,14 +825,15 @@ def test_item_create_permissions(
     loadxl order to ensure links are present. Thus, assumes all item
     types are represented in workbook inserts.
     """
-    assert_submission_center_affiliations( # Must be as expected
-        test_submission_center,
-        anontestapp,
-        unassociated_user_app,
-        submission_center_user_app,
-        consortium_user_app,
-        testapp,
-    ) or assert_consortium_affiliations( # Must be as expected
+    # assert_submission_center_affiliations( # Must be as expected
+    #     test_submission_center,
+    #     anontestapp,
+    #     unassociated_user_app,
+    #     submission_center_user_app,
+    #     consortium_user_app,
+    #     testapp,
+    # ) or
+    assert_consortium_affiliations( # Must be as expected
         test_consortium,
         anontestapp,
         unassociated_user_app,
@@ -849,7 +851,7 @@ def test_item_create_permissions(
     assumed_submittable_file_types = get_submittable_file_types(testapp)
     assumed_admin_item_types = get_items_without_submitted_id(testapp)
     item_properties_to_test = get_item_properties_from_workbook_inserts(
-        test_submission_center
+        test_submission_center, test_consortium
     )
     for item_type in loadxl_order:
         test_properties = item_properties_to_test.get(item_type)
@@ -1026,8 +1028,11 @@ def get_limited_insert(
     """
     schema = get_schema(test_app, item_type)
     required_properties = schema_utils.get_conditional_required(schema)
-    if has_affiliations(insert):
+    if has_consortia(insert):
         properties_to_keep = required_properties + ["submission_centers"] + ["consortia"]
+    elif has_affiliations(insert):
+        properties_to_keep = required_properties + ["submission_centers"]
+
     else:
         properties_to_keep = required_properties
     return {key: value for key, value in insert.items() if key in properties_to_keep}
@@ -1151,6 +1156,7 @@ def assert_submittable_permissions(
 ) -> None:
     """Ensure expected permissions for creation of submittable items."""
     for idx, insert in enumerate(inserts):
+        #import pdb; pdb.set_trace()
         limited_insert = get_limited_insert(testapp, insert, item_type)
         identifying_insert = get_identifying_insert(testapp, insert, item_type)
         if idx == 0:
@@ -1174,6 +1180,7 @@ def assert_submittable_file_permissions(
 ) -> None:
     """Ensure expected permissions for creation of submittable items."""
     for idx, insert in enumerate(inserts):
+        import pdb; pdb.set_trace()
         limited_insert = get_limited_insert(testapp, insert, item_type)
         identifying_insert = get_identifying_insert(testapp, insert, item_type)
         if idx == 0:

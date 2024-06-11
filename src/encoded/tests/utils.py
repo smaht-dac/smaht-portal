@@ -377,8 +377,18 @@ def replace_insert_affiliations(
     """If needed, replace affiliations in item insert with provided
     submission center.
     """
-    if has_affiliations(item_insert):
+    if has_consortia(item_insert) and has_submission_centers(item_insert):
         return replace_affiliations(item_insert, submission_center,consortium)
+    elif has_submission_centers(item_insert):
+        return replace_submission_centers(
+            item_insert,
+            submission_center
+        )                    
+    elif has_consortia(item_insert):
+        return replace_consortia(
+            item_insert,
+            consortium
+            ) 
     return item_insert
 
 
@@ -391,6 +401,59 @@ def has_affiliations(item_insert: Dict[str, Any]) -> bool:
         ]
     )
 
+
+def has_consortia(item_insert: Dict[str, Any]) -> bool:
+    """Check if item insert has consortia."""
+    return any(
+        [
+            item_insert.get("consortia", []),
+        ]
+    )
+
+def has_submission_centers(item_insert: Dict[str, Any]) -> bool:
+    """Check if item insert has submission centers."""
+    return any(
+        [
+            item_insert.get("submission_centers", []),
+        ]
+    )
+
+def replace_consortia(
+    item_insert: Dict[str, Any], consortium: Dict[str,Any]
+) -> Dict[str, Any]:
+    """Replace consortia with provided consortium.
+
+    Assumes consortia property is valid. Can check schemas if
+    assumption no longer holds.
+    """
+    insert_without_affiliation = {
+        key: value
+        for key, value in item_insert.items()
+        if key not in ["submission_centers", "consortia"]
+    }
+    return {
+        **insert_without_affiliation,
+        "consortia": [consortium["uuid"]]
+    }
+
+
+def replace_submission_centers(
+    item_insert: Dict[str, Any], submission_center: Dict[str,Any]
+) -> Dict[str, Any]:
+    """Replace submission_centers with provided submission center.
+
+    Assumes submission center property is valid. Can check schemas if
+    assumption no longer holds.
+    """
+    insert_without_affiliation = {
+        key: value
+        for key, value in item_insert.items()
+        if key not in ["submission_centers", "consortia"]
+    }
+    return {
+        **insert_without_affiliation,
+        "submission_centers": [submission_center["uuid"]]
+    }
 
 def replace_affiliations(
     item_insert: Dict[str, Any], submission_center: Dict[str, Any], consortium: Dict[str,Any] = None
@@ -405,15 +468,10 @@ def replace_affiliations(
         for key, value in item_insert.items()
         if key not in ["submission_centers", "consortia"]
     }
-    if consortium:
-        return {
-        **insert_without_affiliation,
-        "submission_centers": [submission_center["uuid"]],
-        "consortia": [consortium["uuid"]]
-    }
     return {
         **insert_without_affiliation,
         "submission_centers": [submission_center["uuid"]],
+        "consortia": [consortium["uuid"]]
     }
 
 
