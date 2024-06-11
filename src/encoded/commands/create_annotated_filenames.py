@@ -244,7 +244,11 @@ def get_exclusive_filename_part(
 def get_filename_part_for_values(
     values: List[str], part_name: str, source_name: str = ""
 ) -> FilenamePart:
-    """Get filename part for given values."""
+    """Get filename part for given values.
+
+    If no values or multiple found, provide an error message.
+    Otherwise, return the single value.
+    """
     if not values:
         error_message = f"No value found for {part_name}"
         if source_name:

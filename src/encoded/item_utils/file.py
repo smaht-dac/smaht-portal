@@ -243,8 +243,10 @@ def get_donors(
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get donors associated with file."""
     if request_handler:
+        tissues = get_tissues(properties, request_handler)
+        cell_lines = get_cell_lines(properties, request_handler)
         return get_property_values_from_identifiers(
-            request_handler, get_tissues(properties, request_handler), tissue.get_donor
+            request_handler, tissues + cell_lines, tissue.get_donor
         )
     return properties.get("donors", [])
 
