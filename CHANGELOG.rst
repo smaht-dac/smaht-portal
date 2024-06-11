@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+
+0.62.0
+======
+
+Submission Status page updates:
+* Add filters for CellLine and CellCultureMixture
+* Some refactoring of the React component
+* Color filesets by file group
+
+
 0.61.0
 ======
 * Added src/encoded/tests/data/demo_inserts with (well) demo inserts for objects needed
