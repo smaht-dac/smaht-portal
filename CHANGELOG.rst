@@ -8,6 +8,12 @@ Change Log
 ----------
 
 
+0.62.1
+======
+
+- Fix minor issue on Submission Status page
+
+
 0.62.0
 ======
 
