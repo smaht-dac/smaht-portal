@@ -463,21 +463,29 @@ const aggregationsToChartData = {
             let useReport = 'file_downloads_by_filetype';
             let groupingKey = "ga:productVariant"; // File Type
             const countKey = 'ga:metric2'; // Download Count
-            let topCount = 0; //all
+            let topCount = 0; // all
 
-            if (countBy === 'assay_type'){
-                useReport = 'file_downloads_by_assay_type';
-                groupingKey = 'ga:dimension5'; // Assay Type
-            } else if (countBy === 'dataset'){
-                useReport = 'file_downloads_by_dataset';
-                groupingKey = 'ga:dimension6'; // Dataset
-            } else if (countBy === 'top_files'){
-                useReport = 'top_files_downloaded';
-                groupingKey = 'ga:productSku'; // File
-                topCount = 10;
-            } else if (countBy === 'geo_country'){
-                useReport = 'file_downloads_by_country';
-                groupingKey = 'ga:country';
+            switch (countBy) {
+                case 'assay_type':
+                    useReport = 'file_downloads_by_assay_type';
+                    groupingKey = 'ga:dimension5'; // Assay Type
+                    break;
+                case 'dataset':
+                    useReport = 'file_downloads_by_dataset';
+                    groupingKey = 'ga:dimension6'; // Dataset
+                    break;
+                case 'top_files':
+                    useReport = 'top_files_downloaded';
+                    groupingKey = 'ga:productSku'; // File
+                    topCount = 10;
+                    break;
+                case 'geo_country':
+                    useReport = 'file_downloads_by_country';
+                    groupingKey = 'ga:country';
+                    break;
+                default:
+                    // Handle unknown cases if needed
+                    break;
             }
 
             console.log("AGGR", resp, props, countBy, groupingKey, useReport);
@@ -494,21 +502,29 @@ const aggregationsToChartData = {
             let useReport = 'file_downloads_by_filetype';
             let groupingKey = "ga:productVariant"; // File Type
             const countKey = 'ga:metric1'; // Download Size
-            let topCount = 0; //all
+            let topCount = 0; // all
 
-            if (countBy === 'assay_type'){
-                useReport = 'file_downloads_by_assay_type';
-                groupingKey = 'ga:dimension5'; // Assay Type
-            } else if (countBy === 'dataset'){
-                useReport = 'file_downloads_by_dataset';
-                groupingKey = 'ga:dimension6'; // Dataset
-            } else if (countBy === 'top_files'){
-                useReport = 'top_files_downloaded';
-                groupingKey = 'ga:productSku'; // File
-                topCount = 10;
-            } else if (countBy === 'geo_country'){
-                useReport = 'file_downloads_by_country';
-                groupingKey = 'ga:country';
+            switch (countBy) {
+                case 'assay_type':
+                    useReport = 'file_downloads_by_assay_type';
+                    groupingKey = 'ga:dimension5'; // Assay Type
+                    break;
+                case 'dataset':
+                    useReport = 'file_downloads_by_dataset';
+                    groupingKey = 'ga:dimension6'; // Dataset
+                    break;
+                case 'top_files':
+                    useReport = 'top_files_downloaded';
+                    groupingKey = 'ga:productSku'; // File
+                    topCount = 10;
+                    break;
+                case 'geo_country':
+                    useReport = 'file_downloads_by_country';
+                    groupingKey = 'ga:country';
+                    break;
+                default:
+                    // Handle unknown cases if needed
+                    break;
             }
 
             //convert volume to GB
@@ -535,17 +551,33 @@ const aggregationsToChartData = {
             if (!resp || !resp['@graph']) return null;
             const { countBy : { file_views : countBy } } = props;
 
-            let useReport = 'metadata_tsv_by_country';
-            let termBucketField = 'ga:country';
-            let countKey = 'ga:uniquePurchases';
+            let useReport = 'views_by_file';
+            let termBucketField = 'ga:productVariant';
+            let countKey = 'ga:productDetailViews';
 
-            if (countBy !== 'metadata_tsv_by_country') {
-                useReport = 'views_by_file';
-                termBucketField = 'ga:productVariant';
-                countKey = 'ga:productDetailViews';
-
-                if (countBy === 'file_list_views') countKey = 'ga:productListViews';
-                else if (countBy === 'file_clicks') countKey = 'ga:productListClicks';
+            switch (countBy) {
+                case 'file_detail_views_by_file_type':
+                    // No changes needed
+                    break;
+                case 'file_detail_views_by_assay_type':
+                    termBucketField = 'ga:dimension5';
+                    break;
+                case 'file_detail_views_by_dataset':
+                    termBucketField = 'ga:dimension6';
+                    break;
+                case 'file_list_views':
+                    countKey = 'ga:productListViews';
+                    break;
+                case 'file_clicks':
+                    countKey = 'ga:productListClicks';
+                    break;
+                case 'metadata_tsv_by_country':
+                    useReport = 'metadata_tsv_by_country';
+                    termBucketField = 'ga:country';
+                    countKey = 'ga:uniquePurchases';
+                    break;
+                default:
+                    break;
             }
 
             return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum);
@@ -645,7 +677,7 @@ export class UsageStatsViewController extends React.PureComponent {
                 countBy[k] = 'filetype'; // For file_downloads, countBy is treated as 'groupBy'.
                 // Not high enough priority to spend much time improving this file, albeit much straightforward room for it exists.
             } else if (k === 'file_views'){
-                countBy[k] = 'file_detail_views';
+                countBy[k] = 'file_detail_views_by_assay_type';
             } else {
                 countBy[k] = 'views';
             }
@@ -781,7 +813,9 @@ class UsageChartsCountByDropdown extends React.PureComponent {
             menuOptions.set('top_files',                <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Top 10 Files</React.Fragment>);
             // menuOptions.set('geo_country',           <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Country</React.Fragment>);
         } else if (chartID === 'file_views'){
-            menuOptions.set('file_detail_views',        <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Detail View</React.Fragment>);
+            menuOptions.set('file_detail_views_by_file_type',        <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Detail Views by File Type</React.Fragment>);
+            menuOptions.set('file_detail_views_by_assay_type',       <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Detail Views by Assay Type</React.Fragment>);
+            menuOptions.set('file_detail_views_by_dataset',          <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Detail Views by Dataset</React.Fragment>);
             menuOptions.set('file_list_views',          <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Appearance in Search Results</React.Fragment>);
             menuOptions.set('file_clicks',              <React.Fragment><i className="icon far icon-fw icon-hand-point-up mr-1"/>Search Result Click</React.Fragment>);
             menuOptions.set('metadata_tsv_by_country',  <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Metadata.tsv Files Count by Country</React.Fragment>);
@@ -891,11 +925,7 @@ export function UsageStatsView(props){
                         </div>
                         <h3 className="charts-group-title">
                             <span className="d-block d-sm-inline">File Downloads</span><span className="text-300 d-none d-sm-inline"> - </span>
-                            <span className="text-300">{
-                                countBy.file_downloads === 'assay_type' ? 'by assay type' :
-                                    (countBy.file_downloads === 'filetype' ? 'by file type' :
-                                        (countBy.file_downloads === 'dataset' ? 'by dataset' : 'top 10 files'))
-                            }</span>
+                            <span className="text-300">{UsageStatsView.titleExtensions['file_downloads'][countBy.file_downloads]}</span>
                         </h3>
                     </div>
 
@@ -925,9 +955,7 @@ export function UsageStatsView(props){
                         title={
                             <h3 className="charts-group-title">
                                 <span className="d-block d-sm-inline">File Views</span><span className="text-300 d-none d-sm-inline"> - </span>
-                                <span className="text-300">{countBy.file_views === 'metadata_tsv_by_country' ? 'metadata.tsv files' :
-                                    (countBy.file_views === 'file_list_views' ? 'appearances in results' :
-                                        countBy.file_views === 'file_clicks' ? 'clicks from results' : 'detail views')}</span>
+                                <span className="text-300">{UsageStatsView.titleExtensions['file_views'][countBy.file_views]}</span>
                             </h3>
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" />}
@@ -948,9 +976,7 @@ export function UsageStatsView(props){
                             <h3 className="charts-group-title">
                                 <span className="d-block d-sm-inline">{countBy.sessions_by_country === 'sessions' ? 'User Sessions' : 'Page Views'}</span>
                                 <span className="text-300 d-none d-sm-inline"> - </span>
-                                <span className="text-300">{countBy.sessions_by_country === 'device_category' ? 'by device category' :
-                                    (countBy.sessions_by_country === 'page_title' ? 'by page title' :
-                                        (countBy.sessions_by_country === 'page_url' ? 'by page url' : 'by country'))}</span>
+                                <span className="text-300">{UsageStatsView.titleExtensions['sessions_by_country'][countBy.sessions_by_country]}</span>
                             </h3>
                         }
                         subTitle={enableSessionByCountryChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}
@@ -990,6 +1016,30 @@ export function UsageStatsView(props){
         </div>
     );
 }
+UsageStatsView.titleExtensions = {
+    'file_views': {
+        'metadata_tsv_by_country': 'metadata.tsv files',
+        'file_list_views': 'appearances in results',
+        'file_clicks': 'clicks from results',
+        'file_detail_views_by_file_type': 'detail views by file type',
+        'file_detail_views_by_assay_type': 'detail views by assay type',
+        'file_detail_views_by_dataset': 'detail views by dataset',
+    },
+    'sessions_by_country': {
+        'views': 'by country',
+        'sessions': 'by country',
+        'device_category': 'by device category',
+        'page_title': 'by page title',
+        'page_url': 'by page url'
+    },
+    'file_downloads': {
+        'assay_type': 'by assay type',
+        'filetype': 'by file type',
+        'dataset': 'by dataset',
+        'top_files': 'top 10 files'
+    }
+};
+
 
 export function SubmissionsStatsView(props) {
     const {

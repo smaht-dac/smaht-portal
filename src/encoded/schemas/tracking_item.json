@@ -217,7 +217,6 @@
                                         "type" : "string",
                                         "title" : "Type of File"
                                     },
-
                                     "ga:uniquePurchases" : {
                                         "type" : "integer",
                                         "title" : "Downloads and Range Queries",
