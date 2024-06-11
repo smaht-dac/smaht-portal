@@ -176,7 +176,7 @@ run-upgrade-on-inserts = "snovault.commands.run_upgrader_on_inserts:main"
 update-inserts-from-server = "snovault.commands.update_inserts_from_server:main"
 wipe-test-indices = "snovault.commands.wipe_test_indices:main"
 # encoded commands
-create-annoated-filenames = "encoded.commands.create_annotated_filenames:main"
+create-annotated-filenames = "encoded.commands.create_annotated_filenames:main"
 flatten-structured-data = "encoded.commands.flatten_structured_data:main"  # For dev/testing only
 load-users-from-oc = "encoded.commands.load_users_from_oc:main"
 parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/testing only
