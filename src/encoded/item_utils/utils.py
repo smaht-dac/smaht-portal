@@ -77,8 +77,8 @@ class RequestHandler:
         """Get item from auth_key"""
         return self._get_and_cache_item_from_auth_key(identifier, self.hashed_auth_key)
 
-    @lru_cache(maxsize=128)
     @staticmethod
+    @lru_cache(maxsize=128)
     def _get_and_cache_item_from_auth_key(
         identifier: str, auth_key: Tuple[str, str]
     ) -> Dict[str, Any]:
