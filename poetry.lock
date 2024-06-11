@@ -1018,14 +1018,14 @@ xlrd = ">=1.0.0,<2.0.0"
 
 [[package]]
 name = "dcicutils"
-version = "8.9.0.1b8"
+version = "8.10.0"
 description = "Utility package for interacting with the 4DN Data Portal and other 4DN resources"
 category = "main"
 optional = false
 python-versions = "<3.13,>=3.8"
 files = [
-    {file = "dcicutils-8.9.0.1b8-py3-none-any.whl", hash = "sha256:9db844239465541d8a1e483ce3761f1b145d1a7409912857dc6f1c36e54b2a76"},
-    {file = "dcicutils-8.9.0.1b8.tar.gz", hash = "sha256:1aae7e62312204513a9ed420c00b9b5c65228a40664246572763f9973420e733"},
+    {file = "dcicutils-8.10.0-py3-none-any.whl", hash = "sha256:0a2334ced3b92d647501893c99f1f0f86c58a61d24c65531bdb1ae8b448adaef"},
+    {file = "dcicutils-8.10.0.tar.gz", hash = "sha256:448a11c5cd424c0e586ffb369bdb5a9ef537914632e5787b6464937b0a3f8a9a"},
 ]
 
 [package.dependencies]
@@ -1147,21 +1147,21 @@ develop = ["coverage (<5.0.0)", "mock", "pytest (>=3.0.0)", "pytest-cov", "pytes
 
 [[package]]
 name = "encoded-core"
-version = "0.9.3.1b2"
+version = "0.9.5"
 description = "Core data models for Park Lab ENCODE based projects"
 category = "main"
 optional = false
 python-versions = "<3.12,>=3.8.1"
 files = [
-    {file = "encoded_core-0.9.3.1b2-py3-none-any.whl", hash = "sha256:e7dee441707ecd2c0353f08959726d8cc3c464a66e62dce480df1e2b5a5db485"},
-    {file = "encoded_core-0.9.3.1b2.tar.gz", hash = "sha256:47f8432226fa66f0210d7321c7628df8dbf30606151f4570bd6d880ca1c735fb"},
+    {file = "encoded_core-0.9.5-py3-none-any.whl", hash = "sha256:cf3a6c6e8ff8f9fb0e9680908f1ecd88358c345fbd0ab6fc33779a103020d681"},
+    {file = "encoded_core-0.9.5.tar.gz", hash = "sha256:ffc9fe2ae8cc6a8580c0b012b7b105d46b6b49ce12908c8d6fe2afc24071cbe6"},
 ]
 
 [package.dependencies]
 boto3 = ">=1.28.62,<2.0.0"
 botocore = ">=1.31.62,<2.0.0"
 dcicsnovault = ">=11.10.0,<12.0.0"
-dcicutils = ">=8.7.2,<9.0.0"
+dcicutils = ">=8.10.0,<9.0.0"
 elasticsearch = "7.13.4"
 plaster-pastedeploy = "0.6"
 psycopg2-binary = ">=2.9.3,<3.0.0"
@@ -4003,4 +4003,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "e4d2a59d4300566633aac54815157e97675549775b3268a5f909148ac95ae858"
+content-hash = "590cf774bb6dd06553e9342735f2b7660e9e77dc6ca9b7623421be1c6db500b8"
