@@ -7,6 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+0.60.2
+======
+
+* Ensure ``docutils`` is a true dependency
+
+
+0.60.1
+======
+
+
+* Add new command ``check-insert-consistency`` to quickly detect errors on live environments related to inconsistencies with ``master-inserts``
+* Add new command ``load-data-from-local`` to allow interactive updates from ``master-inserts``
+
+
 0.60.0
 ======
 
