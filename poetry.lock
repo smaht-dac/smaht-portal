@@ -4019,4 +4019,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.12"
-content-hash = "205fa712860aed215f4e3e04e4df8bac93c897ab24fdd68b5243f46ea3c52388"
+content-hash = "78d1115a61337e931d95ba7a702a75f97be1dc8d41e1eadb4261b8085be8c938"

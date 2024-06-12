@@ -1,0 +1,30 @@
+[
+    {
+        "code": "101",
+        "title": "RNA-Seq",
+        "status": "released",
+        "accession": "SMAASDZA8VHK",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "bulk_rna_seq",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "beb12f96-624b-4fb8-afd5-8c637f5c0b97"
+    },
+    {
+        "code": "001",
+        "title": "WGS, PCR-free",
+        "status": "released",
+        "accession": "SMAASOMSCCDC",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "bulk_wgs_pcr_free",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "87fbe483-31c6-4ff7-8abd-043d185150af"
+    }
+]

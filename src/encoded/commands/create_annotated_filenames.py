@@ -1374,7 +1374,7 @@ def create_file_filename(file_data: FileData) -> str:
     if is_vcf_file(file_data):
         return create_vcf_filename(file_data)
     if is_fastq_file(file_data):
-        return create_fastq_filename(file_data)
+        return create_fastq_filename(file_data)  # noqa -- BUT TODO: Why is this undefined??
     return ""
 
 
