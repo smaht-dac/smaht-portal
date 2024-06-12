@@ -74,9 +74,13 @@
                                         "type" : "string",
                                         "title" : "Country"
                                     },
+                                    "ga:city" : {
+                                        "type" : "string",
+                                        "title" : "City"
+                                    },
                                     "ga:users" : {
                                         "type" : "integer",
-                                        "title" : "Users",
+                                        "title" : "Unique Users",
                                         "description" : "Total Number of Users"
                                     },
                                     "ga:sessions" : {
@@ -117,7 +121,7 @@
                                     },
                                     "ga:users" : {
                                         "type" : "integer",
-                                        "title" : "Users",
+                                        "title" : "Unique Users",
                                         "description" : "Total Number of Users"
                                     },
                                     "ga:sessions" : {
@@ -162,7 +166,7 @@
                                     },
                                     "ga:users" : {
                                         "type" : "integer",
-                                        "title" : "Users",
+                                        "title" : "Unique Users",
                                         "description" : "Total Number of Users"
                                     },
                                     "ga:sessions" : {
@@ -199,7 +203,7 @@
                                 "properties": {
                                     "ga:productVariant" : {
                                         "type" : "string",
-                                        "title" : "File Type"
+                                        "title" : "Data Category"
                                     },
                                     "ga:productName" : {
                                         "type" : "string",
@@ -207,7 +211,7 @@
                                     },
                                     "ga:productSku" : {
                                         "type" : "string",
-                                        "title" : "File Accession"
+                                        "title" : "Item Id"
                                     },
                                     "ga:productBrand" : {
                                         "type" : "string",
@@ -246,6 +250,14 @@
                                         "type" : "integer",
                                         "title" : "List Views",
                                         "description": "Number of times this File has been seen present in a Browse or Search results page."
+                                    },
+                                    "ga:dimension5" : {
+                                        "type" : "string",
+                                        "title" : "Assay Type"
+                                    },
+                                    "ga:dimension6" : {
+                                        "type" : "string",
+                                        "title" : "Dataset"
                                     }
                                 }
                             }
@@ -264,7 +276,7 @@
                                     },
                                     "ga:productSku" : {
                                         "type" : "string",
-                                        "title" : "Item Accession"
+                                        "title" : "Item Id"
                                     },
                                     "ga:productBrand" : {
                                         "type" : "string",
@@ -307,7 +319,7 @@
                                     },
                                     "ga:users" : {
                                         "type" : "integer",
-                                        "title" : "Users",
+                                        "title" : "Unique Users",
                                         "description" : "Number of Users who've searched this."
                                     },
                                     "ga:sessions" : {
@@ -337,7 +349,7 @@
                                     },
                                     "ga:users" : {
                                         "type" : "integer",
-                                        "title" : "Users",
+                                        "title" : "Unique Users",
                                         "description" : "Number of Users who've searched this."
                                     },
                                     "ga:sessions" : {
@@ -360,24 +372,24 @@
                             "items" : {
                                 "type" : "object",
                                 "properties": {
-                                    "ga:searchKeyword" : {
+                                    "ga:dimension3": {
                                         "type" : "string",
-                                        "title" : "Search Query",
-                                        "description" : "Search query which was typed or linked to."
+                                        "title" : "Field",
+                                        "description" : "Facet field selected as filters"
+                                    },
+                                    "ga:totalEvents" : {
+                                        "type" : "integer",
+                                        "title" : "Total Events"
                                     },
                                     "ga:users" : {
                                         "type" : "integer",
-                                        "title" : "Users",
+                                        "title" : "Unique Users",
                                         "description" : "Number of Users who've searched this."
                                     },
                                     "ga:sessions" : {
                                         "type" : "integer",
                                         "title" : "Sessions",
                                         "description" : "Number of sessions where this search occurred."
-                                    },
-                                    "ga:pageviews" : {
-                                        "type" : "integer",
-                                        "title" : "Pageviews"
                                     }
                                 }
                             }
@@ -393,21 +405,6 @@
                                     "ga:country" : {
                                         "type" : "string",
                                         "title" : "Country"
-                                    },
-                                    "ga:productDetailViews" : {
-                                        "type" : "integer",
-                                        "title" : "Detail Views",
-                                        "description": "Number of times this File has been viewed via its Item page."
-                                    },
-                                    "ga:productListClicks" : {
-                                        "type" : "integer",
-                                        "title" : "Clicks from Browse",
-                                        "description": "Number of times this File has been clicked on from the Browse page."
-                                    },
-                                    "ga:productListViews" : {
-                                        "type" : "integer",
-                                        "title" : "List Views",
-                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
                                     },
                                     "ga:metric2" : {
                                         "type" : "integer",
@@ -436,21 +433,6 @@
                                         "type" : "string",
                                         "title" : "File Type"
                                     },
-                                    "ga:productDetailViews" : {
-                                        "type" : "integer",
-                                        "title" : "Detail Views",
-                                        "description": "Number of times this File has been viewed via its Item page."
-                                    },
-                                    "ga:productListClicks" : {
-                                        "type" : "integer",
-                                        "title" : "Clicks from Browse",
-                                        "description": "Number of times this File has been clicked on from the Browse page."
-                                    },
-                                    "ga:productListViews" : {
-                                        "type" : "integer",
-                                        "title" : "List Views",
-                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
-                                    },
                                     "ga:metric2" : {
                                         "type" : "integer",
                                         "title" : "Downloads"
@@ -478,21 +460,6 @@
                                         "type" : "string",
                                         "title" : "Assay Type"
                                     },
-                                    "ga:productVariant" : {
-                                        "type" : "integer",
-                                        "title" : "Detail Views",
-                                        "description": "Number of times this File has been viewed via its Item page."
-                                    },
-                                    "ga:productListClicks" : {
-                                        "type" : "integer",
-                                        "title" : "Clicks from Browse",
-                                        "description": "Number of times this File has been clicked on from the Browse page."
-                                    },
-                                    "ga:productListViews" : {
-                                        "type" : "integer",
-                                        "title" : "List Views",
-                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
-                                    },
                                     "ga:metric2" : {
                                         "type" : "integer",
                                         "title" : "Downloads"
@@ -519,21 +486,6 @@
                                     "ga:dimension6" : {
                                         "type" : "string",
                                         "title" : "Dataset"
-                                    },
-                                    "ga:productVariant" : {
-                                        "type" : "integer",
-                                        "title" : "Detail Views",
-                                        "description": "Number of times this File has been viewed via its Item page."
-                                    },
-                                    "ga:productListClicks" : {
-                                        "type" : "integer",
-                                        "title" : "Clicks from Browse",
-                                        "description": "Number of times this File has been clicked on from the Browse page."
-                                    },
-                                    "ga:productListViews" : {
-                                        "type" : "integer",
-                                        "title" : "List Views",
-                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
                                     },
                                     "ga:metric2" : {
                                         "type" : "integer",
@@ -564,7 +516,7 @@
                                     },
                                     "ga:productSku" : {
                                         "type" : "string",
-                                        "title" : "Item Accession"
+                                        "title" : "Item Id"
                                     },
                                     "ga:productBrand" : {
                                         "type" : "string",
@@ -577,21 +529,6 @@
                                     "ga:productCategoryLevel2" : {
                                         "type" : "string",
                                         "title" : "Item Type of File"
-                                    },
-                                    "ga:productDetailViews" : {
-                                        "type" : "integer",
-                                        "title" : "Detail Views",
-                                        "description": "Number of times this File has been viewed via its Item page."
-                                    },
-                                    "ga:productListClicks" : {
-                                        "type" : "integer",
-                                        "title" : "Clicks from Browse",
-                                        "description": "Number of times this File has been clicked on from the Browse page."
-                                    },
-                                    "ga:productListViews" : {
-                                        "type" : "integer",
-                                        "title" : "List Views",
-                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
                                     },
                                     "ga:metric2" : {
                                         "type" : "integer",
@@ -628,6 +565,14 @@
                                         "type" : "integer",
                                         "title" : "Files Count",
                                         "description": "Total files count included within the file"
+                                    },
+                                    "ga:dimension5" : {
+                                        "type" : "string",
+                                        "title" : "Assay Type"
+                                    },
+                                    "ga:dimension6" : {
+                                        "type" : "string",
+                                        "title" : "Dataset"
                                     }
                                 }
                             }
