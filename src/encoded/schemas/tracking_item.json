@@ -86,7 +86,7 @@
                                     "sessions" : {
                                         "type" : "integer",
                                         "title" : "Session Count",
-                                        "description" : "Number of sessions from ga:country for the given start->end date range."
+                                        "description" : "Number of sessions from country for the given start->end date range."
                                     },
                                     "avg_session_duration" : {
                                         "type" : "number",
@@ -127,7 +127,7 @@
                                     "sessions" : {
                                         "type" : "integer",
                                         "title" : "Session Count",
-                                        "description" : "Number of sessions from ga:deviceCategory for the given start->end date range."
+                                        "description" : "Number of sessions from device_category for the given start->end date range."
                                     },
                                     "avg_session_duration" : {
                                         "type" : "number",
@@ -172,7 +172,7 @@
                                     "sessions" : {
                                         "type" : "integer",
                                         "title" : "Session Count",
-                                        "description" : "Number of sessions from ga:deviceCategory for the given start->end date range."
+                                        "description" : "Number of sessions from page_url for the given start->end date range."
                                     },
                                     "avg_session_duration" : {
                                         "type" : "number",
