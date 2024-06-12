@@ -8,10 +8,21 @@ Change Log
 ----------
 
 
+0.63.0
+======
+
+`PR 169: Submission Templates <https://github.com/smaht-dac/smaht-portal/pull/169>`_
+
+* Add new command `write-submission-spreadsheets` to generate submission spreadsheets (Excel or Google sheets) for submittable items
+* Schema updates
+  * Update descriptions for many properties with standardized units formatting
+  * Misc. updates to TPC-related properties
+  * Breaking change: Tissue `location` renamed to `anatomical_location`; upgrader included
+
 0.62.1
 ======
 
-- Fix minor issue on Submission Status page
+* Fix minor issue on Submission Status page
 
 
 0.62.0
@@ -25,6 +36,7 @@ Submission Status page updates:
 
 0.61.0
 ======
+
 * Added src/encoded/tests/data/demo_inserts with (well) demo inserts for objects needed
   by the demo metadata spreadsheet (for annual meeting 2024): bcm_formatted_hapmapmix.xlsx ...
   https://docs.google.com/spreadsheets/d/1qCm0bY-vG4a9uiaOvmKHZ12MvhmMKKRfEpgAm-7Hsh4/edit#gid=1472887809
