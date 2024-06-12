@@ -72,7 +72,7 @@
         },
         "basecalling": {
             "title": "Basecalling",
-            "description": "Details of pipeline used to call bases from raw sequencing data",
+            "description": "Details of pipeline used to call bases from raw sequencing data. Relevant for ONT",
             "type": "string",
             "linkTo": "Basecalling"
         },
@@ -80,6 +80,12 @@
             "title": "Flow Cell",
             "description": "Flow cell used for sequencing",
             "type": "string"
+        },
+        "monomer_count": {
+            "title": "Monomer Count",
+            "description": "Monomer count for Kinnex",
+            "type": "integer",
+            "minimum": 0
         },
         "movie_length": {
             "title": "Movie Length",
@@ -96,6 +102,18 @@
                 "Paired-end",
                 "Single-end"
             ]
+        },
+        "sequencing_coverage": {
+            "title": "Sequencing Coverage",
+            "description": "Actual coverage of sequencing",
+            "type": "number",
+            "minimum": 0
+        },
+        "sequencing_read_count": {
+            "title": "Sequencing Read Count",
+            "description": "Actual sequencing read count",
+            "type": "number",
+            "minimum": 0
         },
         "target_coverage": {
             "title": "Target Coverage",
@@ -115,11 +133,23 @@
             "type": "integer",
             "minimum": 0
         },
+        "target_monomer_length": {
+            "title": "Target Monomer Length",
+            "description": "Target monomer length for Kinnex (bp)",
+            "type": "integer",
+            "minimum": 0
+        },
         "sequencer": {
             "title": "Sequencer",
             "description": "Instrument used for sequencing",
             "type": "string",
             "linkTo": "Sequencer"
+        },
+        "sequencing_preparation": {
+            "title": "Sequencing Preparation",
+            "description": "Link to sequencing preparation",
+            "type": "string",
+            "linkTo": "PreparationKit"
         }
     }
 }

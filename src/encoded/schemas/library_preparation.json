@@ -124,6 +124,17 @@
                 ]
             }
         },
+        "preparation_kits" :{
+            "title": "Preparation Kits",
+            "description": "Link to kits used in library preparation.",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "linkTo": "PreparationKit"
+            }
+        },
         "size_selection_method": {
             "title": "Size Selection Method",
             "description": "Method for selecting fragment sizes",
@@ -154,6 +165,17 @@
             "title": "Trim Adapter Sequence",
             "description": "Whether trimming adapter sequence is recommended",
             "type": "boolean"
+        },
+        "treatments": {
+            "title": "Treatments",
+            "description": "Link to treatments applied to library, if applicable.",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "linkTo": "Treatment"
+            }
         }
     }
 }

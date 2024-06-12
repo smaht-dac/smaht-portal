@@ -75,12 +75,6 @@
                 "Frozen"
             ]
         },
-        "sample_preparation": {
-            "title": "Sample Preparation",
-            "description": "Link to associated sample preparation",
-            "type": "string",
-            "linkTo": "SamplePreparation"
-        },
         "sample_sources": {
             "title": "Sample Sources",
             "description": "Link to associated sample sources",

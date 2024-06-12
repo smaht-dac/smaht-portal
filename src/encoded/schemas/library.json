@@ -101,59 +101,25 @@
                 "type": "string"
             }
         },
-        "fragment_maximum_length": {
-            "title": "Fragment Maximum Length",
-            "description": "Maximum length of the sequenced fragments (e.g., as predicted by Agilent Bioanalyzer)",
-            "type": "integer",
-            "minimum": 0
+        "comments": {
+            "title": "Comments",
+            "description": "Additional comments for library",
+            "type": "string"
         },
-        "fragment_mean_length": {
-            "title": "Fragment Mean Length",
-            "description": "Mean length of the sequenced fragments (e.g., as predicted by Agilent Bioanalyzer)",
-            "type": "number",
-            "minimum": 0
+        "concatenated_reads": {
+            "title": "Concatenated Reads Library?",
+            "description": "Whether or not the library contains concatenated reads",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No",
+                "Not applicable"
+            ]
         },
-        "fragment_minimum_length": {
-            "title": "Fragment Minimum Length",
-            "description": "Minimum length of the sequenced fragments (e.g., as predicted by Agilent Bioanalyzer)",
-            "type": "integer",
-            "minimum": 0
-        },
-        "fragment_standard_deviation_length": {
-            "title": "Fragment Standard Deviation Length",
-            "description": "Standard deviation of length of the sequenced fragments (e.g., as predicted by Agilent Bioanalyzer)",
-            "type": "number",
-            "minimum": 0
-        },
-        "insert_coefficient_of_variation": {
-            "title": "Insert Coefficient of Variation",
-            "description": "Coefficient of variation of the length of the sample molecule in the fragments to be sequenced",
-            "type": "number",
-            "minimum": 0
-        },
-        "insert_maximum_length": {
-            "title": "Insert Maximum Length",
-            "description": "Maximum length of the sample molecule in the fragments to be sequenced",
-            "type": "integer",
-            "minimum": 0
-        },
-        "insert_mean_length": {
-            "title": "Insert Mean Length",
-            "description": "Mean length of the sample molecule in the fragments to be sequenced",
-            "type": "number",
-            "minimum": 0
-        },
-        "insert_minimum_length": {
-            "title": "Insert Minimum Length",
-            "description": "Minimum length of the sample molecule in the fragments to be sequenced",
-            "type": "integer",
-            "minimum": 0
-        },
-        "insert_standard_deviation_length": {
-            "title": "Insert Standard Deviation Length",
-            "description": "Standard deviation of the length of the sample molecule in the fragments to be sequenced",
-            "type": "number",
-            "minimum": 0
+        "library_type": {
+            "title": "Library Type",
+            "description": "Type of library",
+            "type": "string"
         },
         "preparation_date": {
             "title": "Preparation Date",
@@ -161,23 +127,30 @@
             "type": "string",
             "format": "date"
         },
-        "target_insert_maximum_length": {
-            "title": "Target Insert Maximum Length",
-            "description": "Target maximum length of the insert (bp)",
-            "type": "integer",
-            "minimum": 0
+        "size_exclusion_done": {
+            "title": "Size Exclusion Done?",
+            "description": "Whether or not size exclusion was done",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No",
+                "Not applicable"
+            ]
         },
-        "target_insert_mean_length": {
-            "title": "Target Insert Mean Length",
-            "description": "Target mean length of the insert (bp)",
-            "type": "integer",
-            "minimum": 0
+        "size_exclusion": {
+            "title": "Size Exclusion",
+            "description": "Size exclusion limit (bp)",
+            "type": "integer"
         },
-        "target_insert_minimum_length": {
-            "title": "Target Insert Minimum Length",
-            "description": "Target minimum length of the insert (bp)",
-            "type": "integer",
-            "minimum": 0
+        "target_library_size": {
+            "title": "Target library size",
+            "description": "Targetted size for library (bp)",
+            "type": "integer"
+        },
+        "target_monomer_size": {
+            "title": "Target Monomer Size",
+            "description": "For libraries with concatenated reads, the target monomer size (bp)",
+            "type": "integer"
         },
         "analytes": {
             "title": "Analytes",
@@ -203,6 +176,40 @@
             "linkTo": "LibraryPreparation"
         }
     },
+    "allOf": [
+        {
+            "if": {
+                "not": {
+                    "properties": {
+                        "size_exclusion_done": {"const": "Yes"}
+                    }
+                }
+            },
+            "then": {
+                "not": {
+                    "required": [
+                        "size_exclusion"
+                    ]
+                }
+            }
+        },
+        {
+            "if": {
+                "not": {
+                    "properties": {
+                    "concatenated_reads": {"const": "Yes"}
+                    }
+                }
+            },
+            "then": {
+                "not": {
+                    "required": [
+                        "target_monomer_size"
+                    ]
+                }
+            }
+        }
+    ],
     "facets": {
         "submission_centers.display_title": {
             "title": "Submitted By"
