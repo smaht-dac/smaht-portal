@@ -17,6 +17,12 @@
         "concentration_unit": [
             "concentration"
         ],
+        "quality_measure_value": [
+            "quality_measure_method"
+        ],
+        "quality_measure_method": [
+            "quality_measure_value"
+        ],
         "rna_integrity_number": [
             "rna_integrity_number_instrument"
         ],
@@ -96,6 +102,10 @@
             "type": "number",
             "minimum": 0
         },
+        "average_size": {
+            "title": "Average Size",
+            "description": "Average fragment size (Femptopulse), if applicable"
+        },
         "concentration": {
             "title": "Concentration",
             "description": "Analyte concentration",
@@ -142,6 +152,16 @@
                     "Total RNA"
                 ]
             }
+        },
+        "quality_measure_value": {
+            "title": "Quality Measure Value",
+            "description": "Value of quality measure",
+            "type": "number"
+        },
+        "quality_measure_method": {
+            "title": "Quality Measure Method",
+            "description": "Method associatedwith quality measure value (e.g. HMW size, RIN, GQN)",
+            "type": "string"
         },
         "ribosomal_rna_ratio": {
             "title": "Ribosomal RNA Ratio",
@@ -219,6 +239,12 @@
                 "type": "string",
                 "linkTo": "Sample"
             }
+        },
+        "yield": {
+            "title": "Yeild",
+            "description": "Yield of analyte from sample (ug/mg)",
+            "type": "number",
+            "minimum": 0
         }
     },
     "facets": {

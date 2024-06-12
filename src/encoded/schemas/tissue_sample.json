@@ -82,6 +82,12 @@
                 "Specimen"
             ]
         },
+        "core_size": {
+            "title": "Core Size",
+            "description": "Size of core sample, if applicable (mm)",
+            "type": "number",
+            "minimum": 0
+        },
         "processing_date": {
             "title": "Processing Date",
             "description": "Date the sample was processed",
@@ -100,6 +106,26 @@
             "minimum": 0
         }
     },
+    "allOf": [
+        {
+            "if": {
+                "not": {
+                    "properties": {
+                        "category": {
+                            "const": "Core"
+                        }
+                    }
+                }
+            },
+            "then": {
+                "not": {
+                    "required": [
+                        "core_size"
+                    ]
+                }
+            }
+        }
+    ],
     "facets": {
         "category": {
             "title": "Sample Type"
