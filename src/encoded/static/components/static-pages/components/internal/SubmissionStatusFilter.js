@@ -11,6 +11,14 @@ import {
     DEFAULT_FILTER,
 } from './submissionStatusConfig';
 
+const DEFAULT_SELECT = (
+    <React.Fragment>
+        <select className="custom-select" defaultValue="all">
+            <option value="all">All</option>
+        </select>
+    </React.Fragment>
+);
+
 class SubmissionStatusFilterComponent extends React.PureComponent {
     constructor(props) {
         super(props);
@@ -20,6 +28,8 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             filter: DEFAULT_FILTER,
             assays: [],
             sequencers: [],
+            cell_culture_mixtures_and_tissues: [],
+            cell_lines: [],
         };
     }
 
@@ -42,10 +52,33 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         );
     };
 
+    // Does not includes tissues for now
+    getSampleSourceCodes = (type, state_variable) => {
+        ajax.load(
+            `/search/?code%21=No+value&type=${type}&limit=100`,
+            (resp) => {
+                const res = resp['@graph'];
+                const items = res.map((item) => {
+                    return {
+                        title: item.display_title,
+                        code: item.code,
+                    };
+                });
+                this.setState({
+                    [state_variable]: items,
+                });
+            },
+            'GET',
+            fallbackCallback
+        );
+    };
+
     componentDidMount() {
         this.getItemsFromPortal('SubmissionCenter', 'submission_centers');
         this.getItemsFromPortal('Assay', 'assays');
         this.getItemsFromPortal('Sequencer', 'sequencers');
+        this.getSampleSourceCodes('SampleSource', 'cell_culture_mixtures_and_tissues');
+        this.getSampleSourceCodes('CellLine', 'cell_lines');
     }
 
     setFilter = (filterName, selection) => {
@@ -57,113 +90,100 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         }));
     };
 
-    getSubmissionCenterSelect = () => {
-        if (this.state.submission_centers == 0) {
-            return (
-                <React.Fragment>
-                    <select className="custom-select" defaultValue="all">
-                        <option value="all">All</option>
-                    </select>
-                </React.Fragment>
-            );
-        } else {
-            const options = [
-                <option value="all">All</option>,
-                <option value="all_gcc">All GCCs</option>,
-            ];
-            this.state.submission_centers.forEach((sc) => {
-                options.push(<option value={sc.title}>{sc.title}</option>);
-            });
-            return (
-                <React.Fragment>
-                    <select
-                        className="custom-select"
-                        defaultValue="all_gcc"
-                        onChange={(e) =>
-                            this.setFilter('submission_center', e.target.value)
-                        }>
-                        {options}
-                    </select>
-                </React.Fragment>
-            );
-        }
-    };
-
-    getFilesetStatusSelect = () => {
+    getSelect = (options, defaultValue, filterName) => {
         return (
             <React.Fragment>
                 <select
                     className="custom-select"
-                    defaultValue="in review"
+                    defaultValue={defaultValue}
                     onChange={(e) =>
-                        this.setFilter('fileset_status', e.target.value)
+                        this.setFilter(filterName, e.target.value)
                     }>
-                    <option value="all">All</option>
-                    <option value="in review">In Review</option>
-                    <option value="released">
-                        Released, Restricted, Public
-                    </option>
+                    {options}
                 </select>
             </React.Fragment>
         );
     };
 
+    getSubmissionCenterSelect = () => {
+        
+        const options = [
+            <option value="all">All</option>,
+            <option value="all_gcc">All GCCs</option>,
+        ];
+        this.state.submission_centers.forEach((sc) => {
+            options.push(<option value={sc.title}>{sc.title}</option>);
+        });
+        const defaultValue = 'all_gcc';
+        const filterName = 'submission_center';
+        return this.getSelect(options, defaultValue, filterName);
+    };
+
+    getFilesetStatusSelect = () => {
+        const options = [
+            <option value="all">All</option>,
+            <option value="in review">In Review</option>,
+            <option value="released">Released, Restricted, Public</option>,
+        ];
+        const defaultValue = 'in review';
+        const filterName = 'fileset_status';
+        return this.getSelect(options, defaultValue, filterName);
+    };
+
     getAssaySelect() {
         if (this.state.assays == 0) {
-            return (
-                <React.Fragment>
-                    <select className="custom-select" defaultValue="all">
-                        <option value="all">All</option>
-                    </select>
-                </React.Fragment>
-            );
-        } else {
-            const options = [<option value="all">All</option>];
-            this.state.assays.forEach((sc) => {
-                options.push(<option value={sc.title}>{sc.title}</option>);
-            });
-            return (
-                <React.Fragment>
-                    <select
-                        className="custom-select"
-                        defaultValue="all"
-                        onChange={(e) =>
-                            this.setFilter('assay', e.target.value)
-                        }>
-                        {options}
-                    </select>
-                </React.Fragment>
-            );
+            return DEFAULT_SELECT;
         }
+
+        const options = [<option value="all">All</option>];
+        this.state.assays.forEach((sc) => {
+            options.push(<option value={sc.title}>{sc.title}</option>);
+        });
+        const defaultValue = 'all';
+        const filterName = 'assay';
+        return this.getSelect(options, defaultValue, filterName);
     }
 
     getSequencerSelect() {
         if (this.state.sequencers == 0) {
-            return (
-                <React.Fragment>
-                    <select className="custom-select" defaultValue="all">
-                        <option value="all">All</option>
-                    </select>
-                </React.Fragment>
-            );
-        } else {
-            const options = [<option value="all">All</option>];
-            this.state.sequencers.forEach((sc) => {
-                options.push(<option value={sc.title}>{sc.title}</option>);
-            });
-            return (
-                <React.Fragment>
-                    <select
-                        className="custom-select"
-                        defaultValue="all"
-                        onChange={(e) =>
-                            this.setFilter('sequencer', e.target.value)
-                        }>
-                        {options}
-                    </select>
-                </React.Fragment>
-            );
+            return DEFAULT_SELECT;
         }
+
+        const options = [<option value="all">All</option>];
+        this.state.sequencers.forEach((sc) => {
+            options.push(<option value={sc.title}>{sc.title}</option>);
+        });
+        const defaultValue = 'all';
+        const filterName = 'sequencer';
+        return this.getSelect(options, defaultValue, filterName);
+    }
+
+    getCellCultureMixtureAndTissueSelect() {
+        if (this.state.cell_culture_mixtures_and_tissues == 0) {
+            return DEFAULT_SELECT;
+        }
+
+        const options = [<option value="all">All</option>];
+        this.state.cell_culture_mixtures_and_tissues.forEach((sc) => {
+            options.push(<option value={sc.code}>{sc.code}</option>);
+        });
+        const defaultValue = 'all';
+        const filterName = 'cell_culture_mixtures_and_tissues';
+        return this.getSelect(options, defaultValue, filterName);
+    }
+
+    getCellLineSelect() {
+        if (this.state.cell_lines == 0) {
+            return DEFAULT_SELECT;
+        }
+
+        const options = [<option value="all">All</option>];
+        this.state.cell_lines.forEach((sc) => {
+            options.push(<option value={sc.code}>{sc.code}</option>);
+        });
+        const defaultValue = 'all';
+        const filterName = 'cell_line';
+        return this.getSelect(options, defaultValue, filterName);
     }
 
     getFilesetCreationInput = (filter_name) => {
@@ -228,6 +248,14 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
                             </div>
                             <div className="p-2">
                                 Sequencer: {this.getSequencerSelect()}
+                            </div>
+                        </div>
+                        <div className="col-lg-3">
+                            <div className="p-2">
+                                Cell Line: {this.getCellLineSelect()}
+                            </div>
+                            <div className="p-2">
+                                Cell Culture Mixture / Tissue:{this.getCellCultureMixtureAndTissueSelect()}
                             </div>
                         </div>
                         <div className="col-lg-3">
