@@ -411,12 +411,10 @@ const aggregationsToChartData = {
         'function' : function(resp, props){
             if (!resp || !resp['@graph']) return null;
 
-            var countKey    = 'ga:totalEvents',
-                groupingKey = "ga:dimension3"; // Field name, dot notation
+            var countKey    = 'total_events',
+                groupingKey = "field"; // Field name, dot notation
 
-            if (props.countBy.fields_faceted === 'sessions') countKey = 'ga:users';
-            if (props.fields_faceted_group_by === 'term') groupingKey = 'ga:dimension4';
-            if (props.fields_faceted_group_by === 'field+term') groupingKey = 'ga:eventLabel';
+            if (props.countBy.fields_faceted === 'sessions') countKey = 'unique_users';
 
             return commonParsingFxn.analytics_to_buckets(resp, 'fields_faceted', groupingKey, countKey, props.cumulativeSum);
         }
@@ -432,20 +430,20 @@ const aggregationsToChartData = {
                 case 'page_title':
                 case 'page_url':
                     useReport = 'sessions_by_page';
-                    termBucketField = props.countBy.sessions_by_country === 'page_title' ? 'ga:pageTitle' : 'ga:pageUrl';
-                    countKey = 'ga:pageviews';
+                    termBucketField = props.countBy.sessions_by_country === 'page_title' ? 'page_title' : 'page_url';
+                    countKey = 'page_views';
                     break;
                 case 'device_category':
                     useReport = 'sessions_by_device_category';
-                    termBucketField = 'ga:deviceCategory';
-                    countKey = 'ga:pageviews';
+                    termBucketField = 'device_category';
+                    countKey = 'page_views';
                     break;
                 default:
                     useReport = 'sessions_by_country';
                     termBucketField = props.countBy.sessions_by_country === 'views_by_country' || props.countBy.sessions_by_country === 'sessions_by_country' ?
-                        'ga:country' : 'ga:city';
+                        'country' : 'city';
                     countKey = props.countBy.sessions_by_country === 'sessions_by_country' || props.countBy.sessions_by_country === 'sessions_by_city' ?
-                        'ga:users' : 'ga:pageviews';
+                        'unique_users' : 'page_views';
                     break;
             }
 
@@ -463,27 +461,27 @@ const aggregationsToChartData = {
             const { countBy : { file_downloads : countBy } } = props;
 
             let useReport = 'file_downloads_by_filetype';
-            let groupingKey = "ga:productVariant"; // File Type
-            const countKey = 'ga:metric2'; // Download Count
+            let groupingKey = "file_type"; // File Type
+            const countKey = 'downloads_count'; // Download Count
             let topCount = 0; // all
 
             switch (countBy) {
                 case 'assay_type':
                     useReport = 'file_downloads_by_assay_type';
-                    groupingKey = 'ga:dimension5'; // Assay Type
+                    groupingKey = 'assay_type'; // Assay Type
                     break;
                 case 'dataset':
                     useReport = 'file_downloads_by_dataset';
-                    groupingKey = 'ga:dimension6'; // Dataset
+                    groupingKey = 'dataset'; // Dataset
                     break;
                 case 'top_files':
                     useReport = 'top_files_downloaded';
-                    groupingKey = 'ga:productSku'; // File
+                    groupingKey = 'file_item_id'; // File
                     topCount = 10;
                     break;
                 case 'geo_country':
                     useReport = 'file_downloads_by_country';
-                    groupingKey = 'ga:country';
+                    groupingKey = 'country';
                     break;
                 default:
                     // Handle unknown cases if needed
@@ -502,27 +500,27 @@ const aggregationsToChartData = {
             const { countBy : { file_downloads_volume : countBy } } = props;
 
             let useReport = 'file_downloads_by_filetype';
-            let groupingKey = "ga:productVariant"; // File Type
-            const countKey = 'ga:metric1'; // Download Size
+            let groupingKey = "file_type"; // File Type
+            const countKey = 'downloads_size'; // Download Size
             let topCount = 0; // all
 
             switch (countBy) {
                 case 'assay_type':
                     useReport = 'file_downloads_by_assay_type';
-                    groupingKey = 'ga:dimension5'; // Assay Type
+                    groupingKey = 'assay_type'; // Assay Type
                     break;
                 case 'dataset':
                     useReport = 'file_downloads_by_dataset';
-                    groupingKey = 'ga:dimension6'; // Dataset
+                    groupingKey = 'dataset'; // Dataset
                     break;
                 case 'top_files':
                     useReport = 'top_files_downloaded';
-                    groupingKey = 'ga:productSku'; // File
+                    groupingKey = 'file_item_id'; // File
                     topCount = 10;
                     break;
                 case 'geo_country':
                     useReport = 'file_downloads_by_country';
-                    groupingKey = 'ga:country';
+                    groupingKey = 'country';
                     break;
                 default:
                     // Handle unknown cases if needed
@@ -554,29 +552,29 @@ const aggregationsToChartData = {
             const { countBy : { file_views : countBy } } = props;
 
             let useReport = 'views_by_file';
-            let termBucketField = 'ga:productVariant';
-            let countKey = 'ga:productDetailViews';
+            let termBucketField = 'file_type';
+            let countKey = 'detail_views';
 
             switch (countBy) {
                 case 'file_detail_views_by_file_type':
                     // No changes needed
                     break;
                 case 'file_detail_views_by_assay_type':
-                    termBucketField = 'ga:dimension5';
+                    termBucketField = 'assay_type';
                     break;
                 case 'file_detail_views_by_dataset':
-                    termBucketField = 'ga:dimension6';
+                    termBucketField = 'dataset';
                     break;
                 case 'file_list_views':
-                    countKey = 'ga:productListViews';
+                    countKey = 'list_views';
                     break;
                 case 'file_clicks':
-                    countKey = 'ga:productListClicks';
+                    countKey = 'list_clicks';
                     break;
                 case 'metadata_tsv_by_country':
                     useReport = 'metadata_tsv_by_country';
-                    termBucketField = 'ga:country';
-                    countKey = 'ga:uniquePurchases';
+                    termBucketField = 'country';
+                    countKey = 'downloads_count_with_range_queries';
                     break;
                 default:
                     break;
@@ -602,7 +600,7 @@ export const usageAggsToChartData = _.pick(aggregationsToChartData,
 
 export class UsageStatsViewController extends React.PureComponent {
 
-    static getSearchReqMomentsForTimePeriod(currentGroupBy = "daily30"){
+    static getSearchReqMomentsForTimePeriod(currentGroupBy = "daily60"){
         let untilDate = new Date();
         let fromDate;
         if (currentGroupBy === 'monthly'){ // 1 yr (12 mths)
@@ -828,13 +826,13 @@ class UsageChartsCountByDropdown extends React.PureComponent {
             menuOptions.set('file_detail_views_by_dataset',          <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Dataset</React.Fragment>);
             menuOptions.set('file_list_views',          <React.Fragment><i className="icon fas icon-fas icon-list-ul mr-1"/>Appearance in Search Results</React.Fragment>);
             menuOptions.set('file_clicks',              <React.Fragment><i className="icon fas icon-fas icon-mouse-pointer mr-1"/>Search Result Click</React.Fragment>);
-            menuOptions.set('metadata_tsv_by_country',  <React.Fragment><i className="icon fas icon-fas icon-file mr-1"/>Metadata.tsv Files Count by Country</React.Fragment>);
+            // menuOptions.set('metadata_tsv_by_country',  <React.Fragment><i className="icon fas icon-fas icon-file mr-1"/>Metadata.tsv Files Count by Country</React.Fragment>);
         } else if (chartID === 'sessions_by_country') {
             menuOptions.set('views_by_country',         <React.Fragment><i className="icon icon-fw fas icon-map-marker mr-1" />Page Views by Country</React.Fragment>);
             menuOptions.set('views_by_city',            <React.Fragment><i className="icon icon-fw fas icon-map-marker-alt mr-1" />Page Views by City</React.Fragment>);
             menuOptions.set('device_category',          <React.Fragment><i className="icon icon-fw fas icon-laptop mr-1" />Page Views by Device</React.Fragment>);
-            menuOptions.set('page_title',               <React.Fragment><i className="icon icon-fw fas icon-font mr-1" />Page Views by Title</React.Fragment>);
-            menuOptions.set('page_url',                 <React.Fragment><i className="icon icon-fw fas icon-link mr-1" />Page Views by Url</React.Fragment>);
+            menuOptions.set('page_title',               <React.Fragment><i className="icon icon-fw fas icon-font mr-1" />Page Views by Title (may load slowly)</React.Fragment>);
+            menuOptions.set('page_url',                 <React.Fragment><i className="icon icon-fw fas icon-link mr-1" />Page Views by Url (may load slowly)</React.Fragment>);
             menuOptions.set('sessions_by_country',      <React.Fragment><i className="icon icon-fw fas icon-user-friends mr-1" />Unique Users by Country</React.Fragment>);
             menuOptions.set('sessions_by_city',         <React.Fragment><i className="icon icon-fw fas icon-street-view mr-1" />Unique Users by City</React.Fragment>);
         } else {
