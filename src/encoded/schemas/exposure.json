@@ -117,7 +117,7 @@
             "title": "Quantity Unit",
             "description": "Unit of the quantity of the substance to which the donor was exposed",
             "type": "string",
-            "enum": [
+            "suggested_enum": [
                 "Drinks Per Day",
                 "Drinks Per Week",
                 "Packs Per Day",

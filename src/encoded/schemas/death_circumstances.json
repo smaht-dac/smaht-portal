@@ -71,7 +71,7 @@
             "minItems": 1,
             "items": {
                 "type": "string",
-                "enum": [
+                "suggested_enum": [
                     "Cryoprecipitate",
                     "Fresh Frozen Plasma",
                     "Packed Red Blood Cells",
