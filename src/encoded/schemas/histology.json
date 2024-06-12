@@ -53,14 +53,11 @@
         "section_location": {
             "title": "Section Location",
             "description": "Location in the source material that was prepared for the slide",
-            "type": "string",
-            "enum": [
-                "TBD"
-            ]
+            "type": "string"
         },
         "images": {
             "title": "Images",
-            "description": "Histology images",
+            "description": "Links to the images associated with the section",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
@@ -71,7 +68,7 @@
         },
         "tissue": {
             "title": "Tissue",
-            "description": "Tissue source for the sample",
+            "description": "Link to the tissue from which the section was prepared",
             "type": "string",
             "linkTo": "Tissue"
         },

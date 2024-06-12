@@ -4,6 +4,7 @@
         "submitted_id": "TEST_MEDICAL-HISTORY_FEMALE",
         "submission_centers": [
             "smaht"
-        ]
+        ],
+        "donor": "TEST_DONOR_FEMALE"
     }
 ]

@@ -51,6 +51,9 @@
         "accession": {
             "accessionType": "DO"
         },
+        "external_id": {
+            "submissionComment": "For donors from the TPC, this should be the TPC donor ID. Otherwise, the submitter's internal identifier can be used."
+        },
         "schema_version": {
             "default": "1"
         },
@@ -59,7 +62,7 @@
         },
         "age": {
             "title": "Age",
-            "description": "Age of the donor in years",
+            "description": "Age of the donor (years)",
             "type": "integer",
             "minimum": 0
         },
@@ -81,7 +84,7 @@
         },
         "height": {
             "title": "Height",
-            "description": "Height of the donor in meters",
+            "description": "Height of the donor (meters)",
             "type": "number",
             "minimum": 0
         },
@@ -97,7 +100,7 @@
         },
         "weight": {
             "title": "Weight",
-            "description": "Weight of the donor in kilograms",
+            "description": "Weight of the donor (kg)",
             "type": "number",
             "minimum": 0
         }

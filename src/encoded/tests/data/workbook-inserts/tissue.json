@@ -8,7 +8,7 @@
         "external_id": "SMHT-001A",
         "donor": "TEST_DONOR_FEMALE",
         "uberon_id": "UBERON:0002107",
-        "location": "Liver: Left Lobe",
+        "anatomical_location": "Liver: Left Lobe",
         "ischemic_time": 50,
         "ph": 6.7,
         "sample_count": 7,

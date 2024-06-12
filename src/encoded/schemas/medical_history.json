@@ -4,6 +4,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
+        "donor",
         "submission_centers",
         "submitted_id"
     ],
@@ -437,6 +438,12 @@
             "title": "Xenograft Transplantation Details",
             "description": "Details of the xenograft transplantation",
             "type": "string"
+        },
+        "donor": {
+            "title": "Donor",
+            "description": "The donor to which this medical history applies",
+            "type": "string",
+            "linkTo": "Donor"
         }
     }
 }
