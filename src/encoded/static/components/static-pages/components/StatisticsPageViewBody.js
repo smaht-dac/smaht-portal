@@ -414,7 +414,7 @@ const aggregationsToChartData = {
             var countKey    = 'ga:totalEvents',
                 groupingKey = "ga:dimension3"; // Field name, dot notation
 
-            if (props.countBy.fields_faceted === 'sessions') countKey = 'ga:sessions';
+            if (props.countBy.fields_faceted === 'sessions') countKey = 'ga:users';
             if (props.fields_faceted_group_by === 'term') groupingKey = 'ga:dimension4';
             if (props.fields_faceted_group_by === 'field+term') groupingKey = 'ga:eventLabel';
 
@@ -442,8 +442,10 @@ const aggregationsToChartData = {
                     break;
                 default:
                     useReport = 'sessions_by_country';
-                    termBucketField = 'ga:country';
-                    countKey = (props.countBy.sessions_by_country === 'sessions') ? 'ga:sessions' : 'ga:pageviews';
+                    termBucketField = props.countBy.sessions_by_country === 'views_by_country' || props.countBy.sessions_by_country === 'sessions_by_country' ?
+                        'ga:country' : 'ga:city';
+                    countKey = props.countBy.sessions_by_country === 'sessions_by_country' || props.countBy.sessions_by_country === 'sessions_by_city' ?
+                        'ga:users' : 'ga:pageviews';
                     break;
             }
 
@@ -684,6 +686,8 @@ export class UsageStatsViewController extends React.PureComponent {
                 // Not high enough priority to spend much time improving this file, albeit much straightforward room for it exists.
             } else if (k === 'file_views'){
                 countBy[k] = 'file_detail_views_by_assay_type';
+            } else if (k === 'sessions_by_country'){
+                countBy[k] = 'views_by_country';
             } else {
                 countBy[k] = 'views';
             }
@@ -813,27 +817,29 @@ class UsageChartsCountByDropdown extends React.PureComponent {
         const menuOptions = new Map();
 
         if (chartID === 'file_downloads' ){
-            menuOptions.set('filetype',                 <React.Fragment><i className="icon fas icon-fw icon-file-alt mr-1"/>File Type</React.Fragment>);
-            menuOptions.set('assay_type',               <React.Fragment><i className="icon fas icon-fw icon-vial mr-1"/>Assay Type</React.Fragment>);
-            menuOptions.set('dataset',                  <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Dataset</React.Fragment>);
-            menuOptions.set('top_files',                <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Top 10 Files</React.Fragment>);
+            menuOptions.set('filetype',                 <React.Fragment><i className="icon fas icon-fas icon-file-alt mr-1"/>File Downloads by File Type</React.Fragment>);
+            menuOptions.set('assay_type',               <React.Fragment><i className="icon fas icon-fas icon-vial mr-1"/>File Downloads by Assay Type</React.Fragment>);
+            menuOptions.set('dataset',                  <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>File Downloads by Dataset</React.Fragment>);
+            menuOptions.set('top_files',                <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 10 Downloaded Files</React.Fragment>);
             // menuOptions.set('geo_country',           <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Country</React.Fragment>);
         } else if (chartID === 'file_views'){
-            menuOptions.set('file_detail_views_by_file_type',        <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Detail Views by File Type</React.Fragment>);
-            menuOptions.set('file_detail_views_by_assay_type',       <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Detail Views by Assay Type</React.Fragment>);
-            menuOptions.set('file_detail_views_by_dataset',          <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Detail Views by Dataset</React.Fragment>);
-            menuOptions.set('file_list_views',          <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Appearance in Search Results</React.Fragment>);
-            menuOptions.set('file_clicks',              <React.Fragment><i className="icon far icon-fw icon-hand-point-up mr-1"/>Search Result Click</React.Fragment>);
-            menuOptions.set('metadata_tsv_by_country',  <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Metadata.tsv Files Count by Country</React.Fragment>);
+            menuOptions.set('file_detail_views_by_file_type',        <React.Fragment><i className="icon fas icon-fw icon-file-alt mr-1"/>Detail Views by File Type</React.Fragment>);
+            menuOptions.set('file_detail_views_by_assay_type',       <React.Fragment><i className="icon fas icon-fw icon-vial mr-1"/>Detail Views by Assay Type</React.Fragment>);
+            menuOptions.set('file_detail_views_by_dataset',          <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Dataset</React.Fragment>);
+            menuOptions.set('file_list_views',          <React.Fragment><i className="icon fas icon-fas icon-list-ul mr-1"/>Appearance in Search Results</React.Fragment>);
+            menuOptions.set('file_clicks',              <React.Fragment><i className="icon fas icon-fas icon-mouse-pointer mr-1"/>Search Result Click</React.Fragment>);
+            menuOptions.set('metadata_tsv_by_country',  <React.Fragment><i className="icon fas icon-fas icon-file mr-1"/>Metadata.tsv Files Count by Country</React.Fragment>);
         } else if (chartID === 'sessions_by_country') {
-            menuOptions.set('views',                    <React.Fragment><i className="icon icon-fw fas icon-eye mr-1" />Views by Country</React.Fragment>);
-            menuOptions.set('sessions',                 <React.Fragment><i className="icon icon-fw fas icon-user mr-1" />Sessions by Country</React.Fragment>);
-            menuOptions.set('device_category',          <React.Fragment><i className="icon icon-fw fas icon-laptop mr-1" />Views by Device</React.Fragment>);
-            menuOptions.set('page_title',               <React.Fragment><i className="icon icon-fw fas icon-font mr-1" />Views by Page Title</React.Fragment>);
-            menuOptions.set('page_url',                 <React.Fragment><i className="icon icon-fw fas icon-link mr-1" />Views by Page Url</React.Fragment>);
+            menuOptions.set('views_by_country',         <React.Fragment><i className="icon icon-fw fas icon-map-marker mr-1" />Page Views by Country</React.Fragment>);
+            menuOptions.set('views_by_city',            <React.Fragment><i className="icon icon-fw fas icon-map-marker-alt mr-1" />Page Views by City</React.Fragment>);
+            menuOptions.set('device_category',          <React.Fragment><i className="icon icon-fw fas icon-laptop mr-1" />Page Views by Device</React.Fragment>);
+            menuOptions.set('page_title',               <React.Fragment><i className="icon icon-fw fas icon-font mr-1" />Page Views by Title</React.Fragment>);
+            menuOptions.set('page_url',                 <React.Fragment><i className="icon icon-fw fas icon-link mr-1" />Page Views by Url</React.Fragment>);
+            menuOptions.set('sessions_by_country',      <React.Fragment><i className="icon icon-fw fas icon-user-friends mr-1" />Unique Users by Country</React.Fragment>);
+            menuOptions.set('sessions_by_city',         <React.Fragment><i className="icon icon-fw fas icon-street-view mr-1" />Unique Users by City</React.Fragment>);
         } else {
             menuOptions.set('views',                    <React.Fragment><i className="icon icon-fw fas icon-eye mr-1"/>Views</React.Fragment>);
-            menuOptions.set('sessions',                 <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Sessions</React.Fragment>);
+            menuOptions.set('sessions',                 <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Unique Users</React.Fragment>);
         }
 
         const dropdownTitle = menuOptions.get(currCountBy);
@@ -949,7 +955,7 @@ export function UsageStatsView(props){
                         <AreaChart {...commonChartProps} data={file_downloads_volume} showTooltipOnHover={!enableFileDownloadsChartTooltipItemClick} yAxisLabel="GB" />
                     </AreaChartContainer>
 
-                    <p className='font-italic mt-2'>* File downloads before June 15th, 2024, only include browser-initiated downloads and may not be accurate.</p>
+                    <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
 
                 </ColorScaleProvider>
 
@@ -982,7 +988,10 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="sessions_by_country"
                         title={
                             <h3 className="charts-group-title">
-                                <span className="d-block d-sm-inline">{countBy.sessions_by_country === 'sessions' ? 'User Sessions' : 'Page Views'}</span>
+                                <span className="d-block d-sm-inline">{
+                                    countBy.sessions_by_country === 'sessions_by_country' || countBy.sessions_by_country === 'sessions_by_city' ?
+                                        'Unique Users' : 'Page Views'
+                                }</span>
                                 <span className="text-300 d-none d-sm-inline"> - </span>
                                 <span className="text-300">{UsageStatsView.titleExtensions['sessions_by_country'][countBy.sessions_by_country]}</span>
                             </h3>
@@ -1034,8 +1043,10 @@ UsageStatsView.titleExtensions = {
         'file_detail_views_by_dataset': 'detail views by dataset',
     },
     'sessions_by_country': {
-        'views': 'by country',
-        'sessions': 'by country',
+        'views_by_country': 'by country',
+        'views_by_city': 'by city',
+        'sessions_by_country': 'by country',
+        'sessions_by_city': 'by city',
         'device_category': 'by device category',
         'page_title': 'by page title',
         'page_url': 'by page url'
@@ -1048,7 +1059,7 @@ UsageStatsView.titleExtensions = {
     },
     'fields_faceted': {
         'views': 'by search result instance',
-        'sessions': 'by user session'
+        'sessions': 'by unique users'
     }
 };
 
