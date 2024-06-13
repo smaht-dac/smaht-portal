@@ -11,11 +11,10 @@ log = getLogger(__name__)
 
 
 def includeme(config):
-    config.add_route('cool', '/{type_name}/{uuid}/@@cool')
     config.scan(__name__)
 
 
-@view_config(route_name="cool", context=Item, request_method=['GET'],
+@view_config(name="cool", context=Item, request_method=['GET'],
              permission='view')
 @debug_log
 def cool(context,request):
@@ -25,15 +24,11 @@ def cool(context,request):
     # type_name = request.matchdict['type_name']
     # uuid = request.matchdict['uuid']
     # atid = request.resource_path(context)
-    uuid = context.properties.get('uuid')
+    uuid = str(context.uuid)
     body='Cool-'+uuid
-    # return {
-    #     '@graph' : [{
-    #         '@id': atid,
-    #         'body': resbody
-    #     }]
-    # }
-    return Response(
-        content_type='text/plain',
-        body=body
-    )
+    return {
+        '@graph' : {
+            'body': body
+        }
+    }
+    #return body

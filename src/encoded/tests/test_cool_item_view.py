@@ -14,8 +14,8 @@ def test_cool_uuid(es_testapp: TestApp,
     """Tests cool uuid view"""
     item_type="User"
     uuid = get_insert_identifier_for_item_type(es_testapp,item_type)
-    url = f"/user/{uuid}/@@cool"
+    url = f"/users/{uuid}/@@cool"
     response = es_testapp.get(url, status=200)
-    validation = b"Cool-"+uuid == response['@graph']['body']
+    validation = "Cool-"+uuid == response.json['@graph']['body']
     assert validation
 
