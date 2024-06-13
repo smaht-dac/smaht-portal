@@ -99,8 +99,7 @@ def create_annotated_filenames(
     if dry_run:
         logger.info("Dry run: not patching filenames")
     else:
-        patch_report = patch_annotated_filenames(annotated_filenames, auth_key)
-        log_patch_report(patch_report)
+        patch_annotated_filenames(annotated_filenames, auth_key)
 
 
 def get_files(
