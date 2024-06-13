@@ -83,7 +83,7 @@
         },
         "sample_sources": {
             "title": "Sample Sources",
-            "description": "Link to associated sample sources",
+            "description": "Link to associated sample sources (e.g. tissue, cell culture, etc.)",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,

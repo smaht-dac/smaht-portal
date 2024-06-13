@@ -57,6 +57,37 @@ Mounting AWS S3 Files
 ~~~~~~~~~~~~~~~~~~~~~
 If your files are stored on `AWS S3 <https://en.wikipedia.org/wiki/Amazon_S3>`_, tools such as `s3fs <https://github.com/s3fs-fuse/s3fs-fuse>`_ or `goofys <https://github.com/kahing/goofys>`_ facilitate mounting of S3 buckets as local file systems that can be readily accessed by ``smaht-submitr``. Similar tools exist for `Google Cloud Storage <https://en.wikipedia.org/wiki/Google_Cloud_Storage>`_ and `Microsoft Azure <https://en.wikipedia.org/wiki/Microsoft_Azure>`_.
 
+Uploading Files from Google Cloud Storage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If your data files reside in Google Cloud Storage (GCS), we support the ability to upload,
+or more precisely, `transfer` files directly from GCS to AWS S3. The smaht-submitr command-line
+tools (``submit-metadata-bundle`` and ``resume-uploads``) accomplish this by leveraging
+third-party open source software called `rclone <https://rclone.org>`_.
+
+.. TIP::
+   You needn't worry about the details of rclone - its installation, usage, and whatnot - the ``smaht-submitr`` tools automatically installs and hides the details of its workings from you.
+
+|
+
+The advantage of this is that you do not need to download the entire data file to your local machine, which may well not have enough disk space. The rclone facility transfers the data file from GCS to AWS S3 by way of your machine, i.e. by using it as an intermediary, so that only a small portion of the data ever actually travels through your machine at a time.
+
+To take advantage of this you merely need to specificy a couple of command-line options, specifially ``--cloud-source`` and ``--cloud-credentials``, for example::
+
+    submit-metadata-bundle your-metadata.xlsx --submit \
+        --cloud-source your-gcs-bucket-or-bucket-and-folder \
+        --cloud-credentials your-gcp-service-account-file
+
+The ``resume-uploads`` command support these same options. The value specified for the ``--cloud-source`` may be either just a GCS bucket name or
+a bucket name and a sub-folder name within that buckup, e.g. ``your-gcs-bucket/your-gcs-sub-folder``.
+
+To obtain the credentials file you need, via the Google Cloud console (in your browser), navigate to the ``IAM & Admin`` section, select ``Service Accounts``, click on your desired listed service account, and from there click the ``KEYS`` tab at the top, and then the ``ADD KEY`` and ``Create new key`` from the dropdown, and select ``JSON`` for the ``Key type`` and click the ``CREATE`` button. This will save a JSON file with your exported credentials to your download folder; and this is the file to specify with the ``--cloud-credentials`` option. (Note that for security, you should ``chmod 600`` on this file).
+
+.. TIP::
+    If you happen to be running ``smaht-submitr`` on a Google Compute Engine (GCE) instance there is no need to specify the ``--cloud-credentials`` option as the credentials for the associated Google Cloud account are automatically and implicitly available and in force.
+
+|
+
+
 Running Submission Remotely
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

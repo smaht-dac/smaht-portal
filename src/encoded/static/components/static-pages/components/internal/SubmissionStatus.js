@@ -463,6 +463,15 @@ class SubmissionStatusComponent extends React.PureComponent {
 
             return (
                 <tr key={fs.accession}>
+                    <td
+                        className="p-0"
+                        data-tip={
+                            'File group: ' + fs.file_group
+                        }
+                        style={{
+                            backgroundColor: fs.file_group_color,
+                            width: '5px',
+                        }}></td>
                     <td className="text-left ss-fileset-column">
                         {getLink(fs.accession, fs.display_title)}
                         <object.CopyWrapper
@@ -555,7 +564,9 @@ class SubmissionStatusComponent extends React.PureComponent {
                             </td>
                         </tr>
                         <tr>
-                            <th className="text-left ss-fileset-column">
+                            <th
+                                className="text-left ss-fileset-column"
+                                colSpan={2}>
                                 <div className="d-flex flex-row flex-wrap justify-content-between">
                                     <div className="flex-fill">File Set</div>
                                     <div className="flex-fill">

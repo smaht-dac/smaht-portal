@@ -79,9 +79,9 @@ class DummyFileInterfaceImplementation(object):
     """ This is used to simulate a file interface for streaming the TSV output """
     def __init__(self):
         self._line = None
-    def write(self, line):
+    def write(self, line):  # noqa
         self._line = line
-    def read(self):
+    def read(self):  # noqa
         return self._line
 
 
