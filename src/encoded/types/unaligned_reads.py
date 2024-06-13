@@ -1,6 +1,7 @@
 from snovault import collection, load_schema
 
 from .submitted_file import SubmittedFile
+from .acl import ALLOW_CONSORTIUM_CREATE_ACL
 
 
 @collection(
@@ -9,7 +10,9 @@ from .submitted_file import SubmittedFile
     properties={
         "title": "Unaligned Reads",
         "description": "Files containing unaligned sequencing reads",
-    })
+    },
+    acl=ALLOW_CONSORTIUM_CREATE_ACL)
+
 class UnalignedReads(SubmittedFile):
     item_type = "unaligned_reads"
     schema = load_schema("encoded:schemas/unaligned_reads.json")

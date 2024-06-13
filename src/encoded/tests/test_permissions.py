@@ -1156,7 +1156,6 @@ def assert_submittable_permissions(
 ) -> None:
     """Ensure expected permissions for creation of submittable items."""
     for idx, insert in enumerate(inserts):
-        #import pdb; pdb.set_trace()
         limited_insert = get_limited_insert(testapp, insert, item_type)
         identifying_insert = get_identifying_insert(testapp, insert, item_type)
         if idx == 0:
@@ -1180,7 +1179,6 @@ def assert_submittable_file_permissions(
 ) -> None:
     """Ensure expected permissions for creation of submittable items."""
     for idx, insert in enumerate(inserts):
-        import pdb; pdb.set_trace()
         limited_insert = get_limited_insert(testapp, insert, item_type)
         identifying_insert = get_identifying_insert(testapp, insert, item_type)
         if idx == 0:

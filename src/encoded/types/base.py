@@ -191,14 +191,14 @@ class Item(SnovaultItem):
         # Don't finalize to avoid validation here.
         properties = self.upgrade_properties().copy()
         status = properties.get('status')
-        if 'submission_centers' in properties:
-            if DEBUG_PERMISSIONS:
-                PRINT(f'DEBUG_PERMISSIONS: Using submission_centers ACLs status {status} for {self}')
-            return self.SUBMISSION_CENTER_STATUS_ACL.get(status, acl.ONLY_ADMIN_VIEW_ACL)
         if 'consortia' in properties:
             if DEBUG_PERMISSIONS:
                 PRINT(f'DEBUG_PERMISSIONS: Using consortia ACLs status {status} for {self}')
             return self.CONSORTIUM_STATUS_ACL.get(status, acl.ONLY_ADMIN_VIEW_ACL)
+        if 'submission_centers' in properties:
+            if DEBUG_PERMISSIONS:
+                PRINT(f'DEBUG_PERMISSIONS: Using submission_centers ACLs status {status} for {self}')
+            return self.SUBMISSION_CENTER_STATUS_ACL.get(status, acl.ONLY_ADMIN_VIEW_ACL)
         if DEBUG_PERMISSIONS:
             PRINT(f'DEBUG_PERMISSIONS: Falling back to minimal status view for {self}')
         return self.MINIMAL_STATUS_VIEW.get(status, acl.ONLY_ADMIN_VIEW_ACL)
