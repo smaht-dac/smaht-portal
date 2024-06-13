@@ -313,7 +313,7 @@ export const commonParsingFxn = {
 
             return currentItem;
 
-        }); // We get these in decrementing order from back-end
+        });
 
         commonParsingFxn.fillMissingChildBuckets(aggsList, Array.from(termsInAllItems));
 
@@ -907,8 +907,8 @@ export function UsageStatsView(props){
     };
     const countByDropdownProps = { countBy, changeCountByForChart };
 
-    const fileDownloadsChartHeight = enableFileDownloadsChartTooltipItemClick ? 350 : commonContainerProps.defaultHeight;
     const enableFileDownloadsChartTooltipItemClick = (countBy.file_downloads === 'top_files');
+    const fileDownloadsChartHeight = enableFileDownloadsChartTooltipItemClick ? 350 : commonContainerProps.defaultHeight;
     const sessionsByCountryChartHeight = ['page_title', 'page_url'].indexOf(countBy.sessions_by_country) > -1 ? 500 : commonContainerProps.defaultHeight;
     const enableSessionByCountryChartTooltipItemClick = (countBy.sessions_by_country === 'page_url');
 
