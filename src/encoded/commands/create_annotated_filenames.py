@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 from dcicutils import ff_utils
-from dcicutils.creds_utils import SMaHTKeyManager
 
+from encoded.commands.utils import get_auth_key
 from encoded.item_utils import (
     constants,
     donor as donor_utils,
@@ -67,6 +67,9 @@ class AnnotatedFilename:
     analysis_info: str
     file_extension: str
     errors: List[str]
+
+    def __str__(self) -> str:
+        return get_annotated_filename_string(self)
 
 
 def get_identifier(annotated_filename: AnnotatedFilename) -> str:
@@ -882,12 +885,6 @@ def patch_file(
         logger.info(f"Patched file {get_identifier(annotated_filename)}")
     except Exception as e:
         logger.error(f"Error patching file {get_identifier(annotated_filename)}: {e}")
-
-
-def get_auth_key(env: str) -> Dict[str, str]:
-    """Get auth key for given environment."""
-    key_manager = SMaHTKeyManager()
-    return key_manager.get_keydict_for_env(env)
 
 
 def main() -> None:

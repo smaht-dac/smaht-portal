@@ -31,6 +31,11 @@ def get_cell_line_codes(
     )
 
 
+def get_cell_line(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
+    """Get cell line calcprop from cell culture mixture."""
+    return properties.get("cell_line", [])
+
+
 def get_cell_lines(
     request_handler: RequestHandler, properties: Dict[str, Any]
 ) -> List[Union[str, Dict[str, Any]]]:

@@ -75,6 +75,11 @@ def get_file_sets(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]
     return properties.get("file_sets", [])
 
 
+def get_quality_metrics(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
+    """Get quality metrics from properties."""
+    return properties.get("quality_metrics", [])
+
+
 def get_sequencings(
     properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[Union[str, Dict[str, Any]]]:
@@ -211,22 +216,24 @@ def get_cell_culture_mixtures(
 
 
 def get_cell_cultures(
-    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
-) -> List[Union[str, Dict[str, Any]]]:
+    properties: Dict[str, Any], request_handler: RequestHandler
+) -> List[str]:
     """Get cell cultures associated with file."""
     sample_sources = get_sample_sources(properties, request_handler=request_handler)
-    if request_handler:
-        return [
-            sample_source
-            for sample_source in sample_sources
-            if cell_culture.is_cell_culture(request_handler.get_item(sample_source))
-        ]
-    return [
+    cell_culture_mixtures = get_cell_culture_mixtures(
+        properties, request_handler=request_handler
+    )
+    cell_cultures_from_mixtures = get_property_values_from_identifiers(
+        request_handler,
+        cell_culture_mixtures,
+        partial(cell_culture_mixture.get_cell_cultures, request_handler),
+    )
+    direct_cell_cultures = [
         sample_source
         for sample_source in sample_sources
-        if isinstance(sample_source, dict)
-        and cell_culture.is_cell_culture(sample_source)
+        if cell_culture.is_cell_culture(request_handler.get_item(sample_source))
     ]
+    return list(set(cell_cultures_from_mixtures + direct_cell_cultures))
 
 
 def get_cell_lines(

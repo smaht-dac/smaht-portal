@@ -20,10 +20,21 @@ class RequestHandler:
     request: Optional[Request] = None
     auth_key: Optional[Dict[str, str]] = None
     test_app: Optional[TestApp] = None
+    frame: str = "object"
+    datastore: str = "elasticsearch"
 
     def __post_init__(self) -> None:
         if not self.request and not self.auth_key and not self.test_app:
             raise ValueError("Either request, auth_key, or test app must be provided")
+        if self.frame not in {"raw", "object", "embedded"}:
+            raise ValueError(
+                f"Invalid frame: {self.frame}. Must be 'raw', 'object', or 'embedded'"
+            )
+        if self.datastore not in {"elasticsearch", "database"}:
+            raise ValueError(
+                f"Invalid datastore: {self.datastore}."
+                f" Must be 'elasticsearch' or 'database'"
+            )
 
     @cached_property
     def hashed_auth_key(self) -> Tuple[str, str]:
@@ -71,21 +82,30 @@ class RequestHandler:
         self, identifier: str, collection: Optional[str] = None
     ) -> Dict[str, Any]:
         """Get item from request"""
-        return get_item_from_request(self.request, identifier, collection=collection)
+        return get_item_from_request(
+            self.request, identifier, collection=collection, frame=self.frame
+        )
 
     def _get_item_from_auth_key(self, identifier: str) -> Dict[str, Any]:
         """Get item from auth_key"""
-        return self._get_and_cache_item_from_auth_key(identifier, self.hashed_auth_key)
+        return self._get_and_cache_item_from_auth_key(
+            identifier, self.hashed_auth_key, frame=self.frame, datastore=self.datastore
+        )
 
     @staticmethod
     @lru_cache(maxsize=128)
     def _get_and_cache_item_from_auth_key(
-        identifier: str, auth_key: Tuple[str, str]
+        identifier: str,
+        auth_key: Tuple[str, str],
+        frame: str = "object",
+        datastore: str = "elasticsearch",
     ) -> Dict[str, Any]:
         """Get item from auth_key and cache result."""
         unhashed_auth_key = dict(auth_key)
         return ff_utils.get_metadata(
-            identifier, key=unhashed_auth_key, add_on="frame=object"
+            identifier,
+            key=unhashed_auth_key,
+            add_on=f"frame={frame}&datastore={datastore}",
         )
 
     def _get_item_from_test_app(
@@ -93,7 +113,11 @@ class RequestHandler:
     ) -> Dict[str, Any]:
         """Get item from test app"""
         return get_item_with_testapp(
-            self.test_app, identifier, collection=collection, frame="object"
+            self.test_app,
+            identifier,
+            collection=collection,
+            frame=self.frame,
+            datastore=self.datastore,
         )
 
 
