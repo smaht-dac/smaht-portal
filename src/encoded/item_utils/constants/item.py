@@ -1,3 +1,5 @@
 STATUS = "status"
+STATUS_OBSOLETE = "obsolete"
 STATUS_RELEASED = "released"
+STATUS_UPLOADED = "uploaded"
 UUID = "uuid"

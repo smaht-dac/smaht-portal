@@ -411,27 +411,37 @@ class FileRelease:
 
         access_status_mapping = {
             COLO829_HAPMAP: {
-                file_constants.SEQUENCING_READS: file_constants.ACCESS_STATUS_OPEN,
-                file_constants.GERMLINE_VARIANT_CALLS: (
+                file_constants.DATA_CATEGORY_SEQUENCING_READS: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
-                file_constants.SOMATIC_VARIANT_CALLS: file_constants.ACCESS_STATUS_OPEN,
+                file_constants.DATA_CATEGORY_GERMLINE_VARIANT_CALLS: (
+                    file_constants.ACCESS_STATUS_OPEN
+                ),
+                file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
+                    file_constants.ACCESS_STATUS_OPEN
+                ),
             },
             IPSC: {
-                file_constants.SEQUENCING_READS: file_constants.ACCESS_STATUS_PROTECTED,
-                file_constants.GERMLINE_VARIANT_CALLS: (
+                file_constants.DATA_CATEGORY_SEQUENCING_READS: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
-                file_constants.SOMATIC_VARIANT_CALLS: (
+                file_constants.DATA_CATEGORY_GERMLINE_VARIANT_CALLS: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
             },
             TISSUE: {
-                file_constants.SEQUENCING_READS: file_constants.ACCESS_STATUS_PROTECTED,
-                file_constants.GERMLINE_VARIANT_CALLS: (
+                file_constants.DATA_CATEGORY_SEQUENCING_READS: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
-                file_constants.SOMATIC_VARIANT_CALLS: file_constants.ACCESS_STATUS_OPEN,
+                file_constants.DATA_CATEGORY_GERMLINE_VARIANT_CALLS: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
+                    file_constants.ACCESS_STATUS_OPEN
+                ),
             },
         }
         if dataset in [
@@ -585,7 +595,8 @@ class FileRelease:
         exit()
 
     def add_warning(self, msg: str) -> None:
-        self.warnings.append(f"{warning_text('WARNING')} {msg}")
+        warning_message = "WARNING"
+        self.warnings.append(f"{warning_text(warning_message)} {msg}")
 
     def add_okay_message(
         self, property_name: str, property_value: str, add_on: str = ""
