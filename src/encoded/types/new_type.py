@@ -116,56 +116,58 @@ class NewType(Item):
         return
     
 
+def validate_integer_less_than_twenty(
+        context: NewType,
+        request: Request) -> None:
+    """Check that fails a POST and a PATCH if the integer
+      property between -4 and 50 is less than 20"""
+    import pdb; pdb.set_trace()
+    # Skip validator if property is empty
+    if context.type_info.item_type != "new_type":
+        return
+    data = request.json
+    if 'integer_4_to_50' not in data:
+        return
+    integer = data["integer_4_to_50"]
+    threshold = 20
+    new_type_ok = True
+    if context.properties.get("integer_4_to_50","") == integer:
+        return
+    if integer < threshold:
+        new_type_ok = False
+    if new_type_ok:
+        request.validated.update({})
+    else:
+        msg = f'Property value {str(integer)} for integer_4_to_50 must be greater than or equal to {str(threshold)}'
+        request.errors.add('body','New Type: Invalid property value',msg)
 
-# def validate_integer_less_than_twenty(
-#         context,
-#         request):
-#     """Check that fails a POST and a PATCH if the integer
-#       property between -4 and 50 is less than 20"""
-#     # Skip validator if property is empty
-#     if context.type_info != "new_type":
-#         return
-#     data = request.json
-#     if 'integer_4_to_50' not in data:
-#         return
-#     integer = data["integer_4_to_50"]
-#     threshold = 20
-#     new_type_ok = True
-#     if context.properties.get("integer_4_to_50","") == integer:
-#         return
-#     if integer < threshold:
-#         new_type_ok = False
-#     if new_type_ok:
-#         request.validated.update({})
-#     else:
-#         msg = f'Property value {str(integer)} for integer_4_to_50 must be greater than or equal to {str(threshold)}'
-#         request.errors.add('body','New Type: Invalid property value',msg)
 
+NEW_TYPE_ADD_VALIDATORS = [
+    validate_integer_less_than_twenty,
+]
 
-# NEW_TYPE_POST_VALIDATORS = [
-#     validate_integer_less_than_twenty,
-# ]
-
-# NEW_TYPE_PATCH_VALIDATORS = [
-#     validate_integer_less_than_twenty,
-# ]
+NEW_TYPE_EDIT_PATCH_VALIDATORS = [
+    validate_integer_less_than_twenty,
+]
     
-# @view_config(
-#     context=NewType,
-#     permission='add',
-#     request_method='POST',
-#     validators=NEW_TYPE_POST_VALIDATORS,
-# )
-# @debug_log
-# def new_type_add(context, request, render=None):
-#     return collection_add(context, request, render)
+@view_config(
+    context=NewType,
+    permission='add',
+    request_method='POST',
+    validators=NEW_TYPE_ADD_VALIDATORS,
+)
+@debug_log
+def new_type_add(
+    context: NewType, request: Request, render: Optional[bool] = None
+) -> Dict[str, Any]:
+    return collection_add(context, request, render)
 
-# @view_config(
-#     context=NewType,
-#     permission='edit',
-#     request_method='PATCH',
-#     validators=NEW_TYPE_PATCH_VALIDATORS,
-# )
-# @debug_log
-# def new_type_edit(context, request, render=None):
-#     return item_edit(context, request, render)
+@view_config(
+    context=NewType,
+    permission='edit',
+    request_method='PATCH',
+    validators=NEW_TYPE_EDIT_PATCH_VALIDATORS,
+)
+@debug_log
+def new_type_edit(context: NewType, request: Request, render=None) -> Dict[str,Any]:
+    return item_edit(context, request, render)
