@@ -66,7 +66,6 @@ class FileRelease:
         self.patch_dicts = []
         self.warnings = []
 
-
     @cached_property
     def file_sets(self) -> List[dict]:
         return self.get_file_sets_from_file()
@@ -273,7 +272,6 @@ class FileRelease:
             if key != item_constants.UUID
         }
 
-
     def show_patch_dicts(self) -> None:
         print("\n")
         pp.pprint(self.patch_dicts)
@@ -299,9 +297,7 @@ class FileRelease:
             item_constants.UUID: item_utils.get_uuid(item),
             item_constants.STATUS: item_constants.STATUS_RELEASED,
         }
-        self.add_okay_message(
-            item_constants.STATUS, item_constants.STATUS_RELEASED
-        )
+        self.add_okay_message(item_constants.STATUS, item_constants.STATUS_RELEASED)
         self.patch_dicts.append(patch_body)
 
     def get_identifier_to_report(self, item: Dict[str, Any]) -> str:
@@ -500,7 +496,6 @@ class FileRelease:
         self.validate_file_output_status()
         self.validate_file_status()
 
-
     def validate_required_file_props(self) -> None:
         for prop in REQUIRED_FILE_PROPS:
             if prop not in self.file:
@@ -522,13 +517,10 @@ class FileRelease:
             )
 
     def validate_file_output_status(self) -> None:
-        if (
-            file_utils.is_output_file(self.file)
-            and file_utils.is_final_output(self.file)
+        if file_utils.is_output_file(self.file) and file_utils.is_final_output(
+            self.file
         ):
-            self.add_warning(
-                f"File {self.file_accession} is not a final output file."
-            )
+            self.add_warning(f"File {self.file_accession} is not a final output file.")
 
     def validate_file_status(self) -> None:
         if not file_utils.is_uploaded(self.file):
