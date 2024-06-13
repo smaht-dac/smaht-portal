@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.62.0"
+version = "0.63.0"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -43,9 +43,9 @@ certifi = ">=2021.5.30"
 chardet = "^5.0.0"
 codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
+dcicsnovault = "^11.16.0"
+dcicutils = "^8.11.0"
 docutils = ">=0.16,<1"
-dcicsnovault = "^11.14.3"
-dcicutils = "^8.10.0"
 encoded-core = "^0.9.5"
 elasticsearch = "7.13.4"
 execnet = "1.4.1"
@@ -184,9 +184,7 @@ prepare-docker = "encoded.commands.prepare_template:prepare_docker_main"
 prepare-local-dev = "encoded.commands.prepare_template:prepare_local_dev_main"
 release-files = "encoded.commands.release_files:main"
 show-schema= "encoded.commands.show_schema:main"  # For dev/testing only
-
-# container commands
-simulate-environment = "encoded.commands.simulate_environment:main"
+write-submission-spreadsheets = "encoded.commands.write_submission_spreadsheets:main"
 
 [paste.app_factory]
 main = "encoded:main"

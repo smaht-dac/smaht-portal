@@ -16,7 +16,7 @@ def get_donor(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
 
 def get_location(properties: Dict[str, Any]) -> str:
     """Get location of tissue."""
-    return properties.get("location", "")
+    return properties.get("anatomical_location", "")
 
 
 def get_study(properties: Dict[str, Any]) -> str:
