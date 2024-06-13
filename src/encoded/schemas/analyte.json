@@ -17,12 +17,6 @@
         "concentration_unit": [
             "concentration"
         ],
-        "quality_measure_value": [
-            "quality_measure_method"
-        ],
-        "quality_measure_method": [
-            "quality_measure_value"
-        ],
         "rna_integrity_number": [
             "rna_integrity_number_instrument"
         ],
@@ -91,7 +85,7 @@
             "accessionType": "AN"
         },
         "schema_version": {
-            "default": "3"
+            "default": "2"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_ANALYTE_[A-Z0-9-_.]{4,}$"
@@ -155,15 +149,64 @@
                 ]
             }
         },
-        "quality_measure_value": {
-            "title": "Quality Measure Value",
-            "description": "Value of quality measure",
+        "hmw_size": {
+            "title": "HMW size",
+            "description": "High molecular weight size",
             "type": "number"
         },
-        "quality_measure_method": {
-            "title": "Quality Measure Method",
-            "description": "Method associated with quality measure value (e.g. HMW size, RIN, GQN)",
-            "type": "string"
+        "genomic_quality_number": {
+            "title": "Genomic Quality Number",
+            "description": "Genomic quality number, percent of samples above threshold value",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10
+        },
+        "genomic_quality_number_instrument": {
+            "title": "Genomic Quality Number",
+            "description": "Instrument used for GQN assessment",
+            "type": "string",
+            "enum": [
+                "Agilent Bioanalyzer",
+                "Agilent 4200 TapeStation",
+                "Agilent 5300 Fragment Analyzer",
+                "Caliper Life Sciences LabChip GX"
+            ]
+        },
+        "dna_quality_number": {
+            "title": "DNA Quality Number",
+            "description": "DNA Quality Number, percent of samples above threshold value",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10
+        },
+        "dna_quality_number_instrument": {
+            "title": "DQN Instrument",
+            "description": "Instrument used for DQN assessment",
+            "type": "string",
+            "enum": [
+                "Agilent Bioanalyzer",
+                "Agilent 4200 TapeStation",
+                "Agilent 5300 Fragment Analyzer",
+                "Caliper Life Sciences LabChip GX"
+            ]
+        },
+        "dna_integrity_number": {
+            "title": "DNA Integrity Number",
+            "description": "Assessment of the integrity of DNA based on electrophoresis",
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10
+        },
+        "dna_integrity_number_instrument": {
+            "title": "DIN Instrument",
+            "description": "Instrument used for DIN assessment",
+            "type": "string",
+            "enum": [
+                "Agilent Bioanalyzer",
+                "Agilent 4200 TapeStation",
+                "Agilent 5300 Fragment Analyzer",
+                "Caliper Life Sciences LabChip GX"
+            ]
         },
         "ribosomal_rna_ratio": {
             "title": "Ribosomal RNA Ratio",

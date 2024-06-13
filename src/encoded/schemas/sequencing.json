@@ -65,7 +65,7 @@
             "accessionType": "SQ"
         },
         "schema_version": {
-            "default": "4"
+            "default": "3"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_SEQUENCING_[A-Z0-9-_.]{4,}$"
@@ -96,18 +96,6 @@
                 "Paired-end",
                 "Single-end"
             ]
-        },
-        "sequencing_coverage": {
-            "title": "Sequencing Coverage",
-            "description": "Actual coverage of sequencing",
-            "type": "number",
-            "minimum": 0
-        },
-        "sequencing_read_count": {
-            "title": "Sequencing Read Count",
-            "description": "Actual sequencing read count",
-            "type": "number",
-            "minimum": 0
         },
         "target_coverage": {
             "title": "Target Coverage",
@@ -145,11 +133,16 @@
             "type": "string",
             "linkTo": "Sequencer"
         },
-        "sequencing_preparation": {
-            "title": "Sequencing Preparation",
-            "description": "Link to sequencing preparation",
-            "type": "string",
-            "linkTo": "PreparationKit"
+        "sequencing_preparation_kit": {
+            "title": "Sequencing Preparation Kit",
+            "description": "Link to sequencing preparation kits",
+            "type": "array",
+            "uniqueItems": true,
+            "item": {
+                "type": "string",
+                "linkTo": "PreparationKit"
+            }
+            
         }
     }
 }

@@ -116,31 +116,11 @@
                 "Not applicable"
             ]
         },
-        "library_type": {
-            "title": "Library Type",
-            "description": "Type of library",
-            "type": "string"
-        },
         "preparation_date": {
             "title": "Preparation Date",
             "description": "Date of library preparation",
             "type": "string",
             "format": "date"
-        },
-        "size_exclusion_done": {
-            "title": "Size Exclusion Done?",
-            "description": "Whether or not size exclusion was done",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No",
-                "Not applicable"
-            ]
-        },
-        "size_exclusion": {
-            "title": "Size Exclusion",
-            "description": "Size exclusion limit, if size exclusion was done (bp)",
-            "type": "integer"
         },
         "target_library_size": {
             "title": "Target library size",
@@ -177,22 +157,6 @@
         }
     },
     "allOf": [
-        {
-            "if": {
-                "not": {
-                    "properties": {
-                        "size_exclusion_done": {"const": "Yes"}
-                    }
-                }
-            },
-            "then": {
-                "not": {
-                    "required": [
-                        "size_exclusion"
-                    ]
-                }
-            }
-        },
         {
             "if": {
                 "not": {
