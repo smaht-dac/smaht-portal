@@ -227,9 +227,8 @@ class FileRelease:
             print(info)
 
         if len(self.warnings) > 0:
-            print(
-                f"\n{bcolors.WARNING}Please note the following warnings:{bcolors.ENDC}"
-            )
+            warning_message = "Please note the following warnings:"
+            print(f"\n{warning_text(warning_message)}")
             for warning in self.warnings:
                 print(warning)
 
@@ -250,10 +249,8 @@ class FileRelease:
             print(str(e))
             self.print_error_and_exit("Patching failed.")
 
-        print(
-            f"{bcolors.OKGREEN}Release of File {self.file_accession} completed."
-            f"{bcolors.ENDC}"
-        )
+        to_print = f"Release of File {self.file_accession} completed."
+        print(ok_green_text(to_print))
 
     def validate_patch(self, patch_body: Dict[str, Any]) -> None:
         uuid = item_utils.get_uuid(patch_body)
@@ -415,17 +412,25 @@ class FileRelease:
         access_status_mapping = {
             COLO829_HAPMAP: {
                 file_constants.SEQUENCING_READS: file_constants.ACCESS_STATUS_OPEN,
-                file_constants.GERMLINE_VARIANT_CALLS: file_constants.ACCESS_STATUS_OPEN,
+                file_constants.GERMLINE_VARIANT_CALLS: (
+                    file_constants.ACCESS_STATUS_OPEN
+                ),
                 file_constants.SOMATIC_VARIANT_CALLS: file_constants.ACCESS_STATUS_OPEN,
             },
             IPSC: {
                 file_constants.SEQUENCING_READS: file_constants.ACCESS_STATUS_PROTECTED,
-                file_constants.GERMLINE_VARIANT_CALLS: file_constants.ACCESS_STATUS_PROTECTED,
-                file_constants.SOMATIC_VARIANT_CALLS: file_constants.ACCESS_STATUS_PROTECTED,
+                file_constants.GERMLINE_VARIANT_CALLS: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.SOMATIC_VARIANT_CALLS: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
             },
             TISSUE: {
                 file_constants.SEQUENCING_READS: file_constants.ACCESS_STATUS_PROTECTED,
-                file_constants.GERMLINE_VARIANT_CALLS: file_constants.ACCESS_STATUS_PROTECTED,
+                file_constants.GERMLINE_VARIANT_CALLS: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
                 file_constants.SOMATIC_VARIANT_CALLS: file_constants.ACCESS_STATUS_OPEN,
             },
         }
@@ -575,11 +580,12 @@ class FileRelease:
         return True
 
     def print_error_and_exit(self, msg: str) -> None:
-        print(f"{bcolors.FAIL}ERROR: {msg} Exiting.{bcolors.ENDC}")
+        error_message = f"ERROR: {msg} Exiting."
+        print(f"{fail_text(error_message)}")
         exit()
 
     def add_warning(self, msg: str) -> None:
-        self.warnings.append(f"{bcolors.WARNING}WARNING:{bcolors.ENDC} {msg}")
+        self.warnings.append(f"{warning_text('WARNING')} {msg}")
 
     def add_okay_message(
         self, property_name: str, property_value: str, add_on: str = ""
@@ -591,8 +597,8 @@ class FileRelease:
         self, property_name: str, property_value: str, add_on: str = ""
     ) -> str:
         okay_message = (
-            f"  - {bcolors.OKBLUE}{property_name}{bcolors.ENDC} is set to"
-            f" {bcolors.OKBLUE}{property_value}{bcolors.ENDC}"
+            f"  - {ok_blue_text(property_name)} is set to"
+            f" {ok_blue_text(property_value)}."
         )
         return f"{okay_message} {add_on}" if add_on else okay_message
 
@@ -607,6 +613,26 @@ class bcolors:
     ENDC = "\033[0m"
     BOLD = "\033[1m"
     UNDERLINE = "\033[4m"
+
+
+def ok_blue_text(text: str) -> str:
+    return f"{bcolors.OKBLUE}{text}{bcolors.ENDC}"
+
+
+def ok_green_text(text: str) -> str:
+    return f"{bcolors.OKGREEN}{text}{bcolors.ENDC}"
+
+
+def bold_text(text: str) -> str:
+    return f"{bcolors.BOLD}{text}{bcolors.ENDC}"
+
+
+def warning_text(text: str) -> str:
+    return f"{bcolors.WARNING}{text}{bcolors.ENDC}"
+
+
+def fail_text(text: str) -> str:
+    return f"{bcolors.FAIL}{text}{bcolors.ENDC}"
 
 
 def main() -> None:
@@ -626,14 +652,15 @@ def main() -> None:
     args = parser.parse_args()
 
     auth_key = get_auth_key(args.env)
+    server = auth_key.get("server")
 
     file_release = FileRelease(auth_key=auth_key, file_identifier=args.file)
     file_release.prepare(dataset=args.dataset, obsolete_file_identifier=args.replace)
 
     while True:
         resp = input(
-            f"\nDo you want to proceed with the release and execute the metadata patches above? "
-            f"This will patch data on {bcolors.WARNING}{auth_key['server']}.{bcolors.ENDC} "
+            f"\nDo you want to proceed with release and execute patches above? "
+            f"Data will be patched on {warning_text(server)}."
             f"\nYou have the following options: "
             f"\ny - Proceed with release"
             f"\np - Show patch dictionaries "
@@ -648,7 +675,7 @@ def main() -> None:
             file_release.show_patch_dicts()
             continue
         else:
-            print(f"{bcolors.FAIL}Aborted by user.{bcolors.ENDC}")
+            print(f"{warning_text('Aborted by user.')}")
             exit()
 
 
