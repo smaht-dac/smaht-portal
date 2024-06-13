@@ -7,6 +7,99 @@ smaht-portal
 Change Log
 ----------
 
+
+0.63.0
+======
+
+`PR 169: Submission Templates <https://github.com/smaht-dac/smaht-portal/pull/169>`_
+
+* Add new command `write-submission-spreadsheets` to generate submission spreadsheets (Excel or Google sheets) for submittable items
+* Schema updates
+  * Update descriptions for many properties with standardized units formatting
+  * Misc. updates to TPC-related properties
+  * Breaking change: Tissue `location` renamed to `anatomical_location`; upgrader included
+
+0.62.1
+======
+
+* Fix minor issue on Submission Status page
+
+
+0.62.0
+======
+
+Submission Status page updates:
+* Add filters for CellLine and CellCultureMixture
+* Some refactoring of the React component
+* Color filesets by file group
+
+
+0.61.0
+======
+
+* Added src/encoded/tests/data/demo_inserts with (well) demo inserts for objects needed
+  by the demo metadata spreadsheet (for annual meeting 2024): bcm_formatted_hapmapmix.xlsx ...
+  https://docs.google.com/spreadsheets/d/1qCm0bY-vG4a9uiaOvmKHZ12MvhmMKKRfEpgAm-7Hsh4/edit#gid=1472887809
+  FYI: To cause these to be loaded at startup when running locally, edit development.ini and
+  set load_test_data = snovault.loadxl:load_local_data (rather than the default load_prod_data).
+* Updated dcicutils to 8.10.0 (mostly merge support in structured_data).
+* Changed workbook-inserts/assay.json bulk_wgs item to code 002 (to match data/staging/wolf).
+* Changed workbook-inserts/sequencer.json code from A to X (interfering with demo testing).
+* Support merge in ingester for partial object updates from metedata.
+  -  Removed ref_lookup_strategy references for structured_data; refactored/internalized in dcicutils.
+* Added rclone (Google-to-AWS) related documentation.
+* Some make lint fixups.
+
+
+0.60.2
+======
+
+* Ensure ``docutils`` is a true dependency
+
+
+0.60.1
+======
+
+* Add new command ``check-insert-consistency`` to quickly detect errors on live environments related to inconsistencies with ``master-inserts``
+* Add new command ``load-data-from-local`` to allow interactive updates from ``master-inserts``
+
+
+0.60.0
+======
+
+`PR 123: File Overview Page <https://github.com/smaht-dac/smaht-portal/pull/123>`_
+
+* Add File Overview Page for improved view of additional details for File items
+* Upgrade SPC to v0.1.85
+
+
+0.59.3
+======
+
+`PR 179: Bring in inserts command fix <https://github.com/smaht-dac/smaht-portal/pull/179>`_
+
+* Bring in snovault with fix for help strings for command to update inserts
+
+
+0.59.2
+======
+
+`PR 178: Clean up poetry commands <https://github.com/smaht-dac/smaht-portal/pull/178>`_
+
+* Clean up commands in `pyproject.toml`
+  * Remove commands not present in repo
+  * Use snovault commands where possible
+  * Reorganize commands by source repo
+
+
+0.59.1
+======
+
+`PR 175: Fix command to load inserts <https://github.com/smaht-dac/smaht-portal/pull/175>`_
+
+* Update snovault and use its updated command to load inserts
+
+
 0.59.0
 ======
 
@@ -44,7 +137,7 @@ Change Log
 
 
 0.55.0
-=======
+======
 
 `PR 141: Link FileSets to Samples <https://github.com/smaht-dac/smaht-portal/pull/141>`_
 

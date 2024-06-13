@@ -1,0 +1,89 @@
+[
+    {
+        "status": "released",
+        "aliases": [
+            "smaht:FileFormat-bam_bai"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "bam_bai",
+        "description": "Companion format to BAM. Format used to represent the index of a BAM file",
+        "valid_item_types": [
+            "ReferenceFile",
+            "OutputFile"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "standard_file_extension": "bam.bai",
+        "uuid": "d13d06c1-218e-4f61-aaf0-91f226248b3c"
+    },
+    {
+        "status": "released",
+        "aliases": [
+            "smaht:FileFormat-bam_pbi"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "bam_pbi",
+        "description": "Companion format to BAM. Format used to represent the index of a BAM file. This format is specific to PacBio",
+        "valid_item_types": [
+            "ReferenceFile",
+            "OutputFile"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "standard_file_extension": "bam.pbi",
+        "uuid": "9941b00d-fffe-482b-b585-52e0b303e289"
+    },
+    {
+        "status": "released",
+        "aliases": [
+            "smaht:FileFormat-fastq_gz"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "fastq_gz",
+        "description": "Format used to represent short read sequence data, compressed",
+        "valid_item_types": [
+            "OutputFile",
+            "ReferenceFile",
+            "UnalignedReads"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "standard_file_extension": "fastq.gz",
+        "uuid": "c13d06cf-218e-4f61-aaf0-91f226248b2c"
+    },
+    {
+        "status": "released",
+        "aliases": [
+            "smaht:FileFormat-bam"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "bam",
+        "description": "Binary version of a SAM file. Format used to represent aligned sequences",
+        "valid_item_types": [
+            "OutputFile",
+            "ReferenceFile",
+            "AlignedReads",
+            "UnalignedReads"
+        ],
+        "extra_file_formats": [
+            "d13d06c1-218e-4f61-aaf0-91f226248b3c",
+            "9941b00d-fffe-482b-b585-52e0b303e289"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "standard_file_extension": "bam",
+        "uuid": "d13d06cf-218e-4f61-aaf0-91f226248b3c"
+    }
+]

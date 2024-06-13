@@ -27,6 +27,7 @@ import DocumentView from './item-pages/DocumentView';
 import StaticSectionView from './item-pages/StaticSectionView';
 import SMaHTSubmissionView from './forms/SMaHTSubmissionView';
 import SearchView from './browse/SearchView';
+import FileView from './item-pages/FileView';
 
 /**
  * These content_view.register actions occur in this index.js as otherwise
@@ -47,6 +48,7 @@ content_views.register(SchemaView, 'JSONSchema');
 content_views.register(UserView, 'User');
 content_views.register(ImpersonateUserForm, 'User', 'impersonate-user');
 content_views.register(StaticSectionView, 'StaticSection');
+content_views.register(FileView, 'File');
 
 content_views.register(SMaHTSubmissionView, 'Item', 'edit');
 content_views.register(SMaHTSubmissionView, 'Item', 'create');

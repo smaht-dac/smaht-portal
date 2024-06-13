@@ -68,10 +68,13 @@
         "schema_version": {
             "default": "1"
         },
+        "title": {
+            "description": "Name of the cell culture mixture"
+        },
         "components": {
             "title": "Components",
-            "description": "Cultures in the mixture and their corresponding ratios",
-            "type": "array",
+	    "description": "Cultures in the mixture and their corresponding ratios",
+	    "type": "array",
             "minItems": 1,
             "items": {
                 "type": "object",

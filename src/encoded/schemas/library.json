@@ -58,7 +58,7 @@
             "accessionType": "LI"
         },
         "schema_version": {
-            "default": "2"
+            "default": "3"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_LIBRARY_[A-Z0-9-_.]{4,}$"
@@ -108,7 +108,7 @@
         },
         "concatenated_reads": {
             "title": "Concatenated Reads Library?",
-            "description": "Whether or not the library contains concatenated reads",
+            "description": "Whether or not the library contains concatenated reads. Relevant for Kinnex",
             "type": "string",
             "enum": [
                 "Yes",
@@ -139,7 +139,7 @@
         },
         "size_exclusion": {
             "title": "Size Exclusion",
-            "description": "Size exclusion limit (bp)",
+            "description": "Size exclusion limit, if size exclusion was done (bp)",
             "type": "integer"
         },
         "target_library_size": {
@@ -149,7 +149,7 @@
         },
         "target_monomer_size": {
             "title": "Target Monomer Size",
-            "description": "For libraries with concatenated reads, the target monomer size (bp)",
+            "description": "For libraries with concatenated reads, the target monomer size (bp). Relevant for Kinnex",
             "type": "integer"
         },
         "analytes": {

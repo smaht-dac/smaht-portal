@@ -58,21 +58,27 @@
         "accession": {
             "accessionType": "TI"
         },
+        "external_id": {
+            "submissionExamples": [
+                "ST001-1A",
+                "PS0235"
+            ]
+        },
         "schema_version": {
-            "default": "1"
+            "default": "2"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_TISSUE_[A-Z0-9-_.]{4,}$"
         },
         "ischemic_time": {
             "title": "Ischemic Time",
-            "description": "Time interval of ischemia in hours",
+            "description": "Time interval of ischemia (hours)",
             "type": "number",
             "minimum": 0
         },
-        "location": {
-            "title": "Location",
-            "description": "Anatomic location of the tissue in the donor",
+        "anatomical_location": {
+            "title": "Anatomical Location",
+            "description": "Anatomical location of the tissue in the donor",
             "type": "string"
         },
         "pathology_notes": {
@@ -107,13 +113,13 @@
         },
         "recovery_interval": {
             "title": "Recovery Interval",
-            "description": "Total time interval of tissue recovery in minutes",
+            "description": "Total time interval of tissue recovery (minutes)",
             "type": "integer",
             "minimum": 0
         },
         "sample_count": {
             "title": "Sample Count",
-            "description": "Number of samples taken from the tissue",
+            "description": "Number of samples produced from the tissue",
             "type": "integer",
             "minimum": 0
         },
@@ -125,19 +131,20 @@
         },
         "uberon_id": {
             "title": "Uberon Id",
-            "description": "Uberon identifier for the tissue",
+            "description": "Uberon Ontology identifier for the tissue.",
             "type": "string",
-            "pattern": "^UBERON:[0-9]{7}$"
+            "pattern": "^UBERON:[0-9]{7}$",
+            "url": "https://www.ebi.ac.uk/ols4/ontologies/uberon"
         },
         "volume": {
             "title": "Volume",
-            "description": "Volume of the tissue in milliliters",
+            "description": "Volume of the tissue (mL)",
             "type": "number",
             "minimum": 0
         },
         "weight": {
             "title": "Weight",
-            "description": "Weight of the tissue in grams",
+            "description": "Weight of the tissue (g)",
             "type": "number",
             "minimum": 0
         },

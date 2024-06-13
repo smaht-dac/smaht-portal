@@ -34,6 +34,7 @@ def test_size_exclusion_conditional(
     )
     assert patch_item(es_testapp, patch_body,library_uuid,status=status)
 
+@pytest.mark.workbook
 @pytest.mark.parametrize(
      "patch_body,status",
     [   

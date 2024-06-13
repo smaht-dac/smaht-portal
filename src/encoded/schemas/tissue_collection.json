@@ -109,7 +109,7 @@
         },
         "refrigeration_prior_to_procurement_time": {
             "title": "Refrigeration Prior To Procurement Time",
-            "description": "Interval of time in hours the donor was refrigerated prior to tissue collection",
+            "description": "Interval of time the donor was refrigerated prior to tissue collection (hours)",
             "type": "number",
             "minimum": 0
         },
