@@ -82,13 +82,11 @@ class Body extends React.PureComponent {
 
         countsToShow = _.pairs(countsToShow).map(function(countPair, i){
 
-            var colSize = countPair[0] === 'experiment_sets' ?
-                6 : countPair[0] === 'experiments' ?
-                    6 : countPair[0] === 'files' ? 4 : 2;
+            var colSize = countPair[0] === 'total_file_sets' ?
+                6 : countPair[0] === 'total_files';
             var name = null;
-            if (countPair[0] === 'experiment_sets') name = "Exp Sets";
-            if (countPair[0] === 'experiments')     name = "Experiments";
-            if (countPair[0] === 'files')           name = "Files";
+            if (countPair[0] === 'total_file_sets') name = "File Sets";
+            if (countPair[0] === 'total_files')     name = "Files";
 
             return (
                 <div key={countPair[0] || i} className={"text-right col-" + colSize}>
@@ -115,9 +113,8 @@ class Body extends React.PureComponent {
 
     primaryCountLabel(){
         var name = null;
-        if (this.props.primaryCount === 'experiment_sets') name = "Exp Sets";
-        if (this.props.primaryCount === 'experiments') name = "Experiments";
-        if (this.props.primaryCount === 'files') name = "Files";
+        if (this.props.primaryCount === 'total_file_sets') name = "File Sets";
+        if (this.props.primaryCount === 'total_files') name = "Files";
         return (
             <small className="pull-right sets-label">{ name }</small>
         );
@@ -202,7 +199,7 @@ const initialDetailCursorState = {
     'term' : 'Title',
     'filteredOut' : false,
     'includeTitleDescendentPrefix' : true,
-    'primaryCount' : 'experiment_sets',
+    'primaryCount' : 'total_file_sets',
     'path' : [
         //{
         //    'field' : "Test.Field.Name",
@@ -223,10 +220,8 @@ export default class ChartDetailCursor extends React.PureComponent {
 
     static getCounts(d){
         return {
-            'experiments'         : d.experiments || 0,
-            'experiments_active'  : d.active || 0,
-            'experiment_sets'     : d.experiment_sets || 0,
-            'files'               : d.files_all || 0 //d.activeFiles || d.files || 0
+            'total_file_sets'     : d.total_file_sets || 0,
+            'total_files'         : d.total_files || 0 //d.activeFiles || d.files || 0
         };
     }
 

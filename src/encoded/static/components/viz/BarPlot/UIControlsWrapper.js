@@ -21,7 +21,7 @@ export class UIControlsWrapper extends React.PureComponent {
     static canShowChart(chartData){
         if (!chartData) return false;
         if (!chartData.total) return false;
-        if (chartData.total && chartData.total.experiment_sets === 0) return false;
+        if (chartData.total && chartData.total.total_files === 0) return false;
         if (typeof chartData.field !== 'string') return false;
         if (typeof chartData.terms !== 'object') return false;
         if (_.keys(chartData.terms).length === 0) return false;
@@ -42,9 +42,8 @@ export class UIControlsWrapper extends React.PureComponent {
     static defaultProps = {
         'titleMap' : {
             // Aggr type
-            'experiment_sets'   : "Experiment Sets",
-            'experiments'       : 'Experiments',
-            'files_all'         : "Files",
+            'total_file_sets'   : 'File Sets',
+            'total_files'       : "Files",
 
             // Show state
             'all'               : 'All',
@@ -52,24 +51,19 @@ export class UIControlsWrapper extends React.PureComponent {
             'both'              : 'All & Selected'
         },
         'availableFields_XAxis' : [
-            { title : "Experiment Type", field : 'experiments_in_set.experiment_type.display_title' },
-            //{ title : "Digestion Enzyme", field : "experiments_in_set.digestion_enzyme.name" },
-            { title : "Biosource", field : "experiments_in_set.biosample.biosource_summary" },
-            { title : "Biosource Type", field : 'experiments_in_set.biosample.biosource.biosource_type' },
-            { title : "Organism", field : "experiments_in_set.biosample.biosource.organism.name" },
-            { title : "Project", field : "award.project" },
-            { title : "Lab", field : "lab.display_title" },
+            { title : "Library", field : "libraries.display_title" },
+            { title : "Assay", field : 'libraries.assay.code' },
+            { title : "Analyte", field : 'libraries.analytes.display_title' },
+            { title : "Sequencer", field : "sequencing.sequencer.display_title" },
+            { title : "Submission Center", field : "submission_centers.display_title" },
             { title : "Status", field : "status" }
         ],
         'availableFields_Subdivision' : [
-            { title : "Organism", field : "experiments_in_set.biosample.biosource.organism.name" },
-            { title : "Experiment Type", field : 'experiments_in_set.experiment_type.display_title' },
-            //{ title : "Digestion Enzyme", field : "experiments_in_set.digestion_enzyme.name" },
-            { title : "Biosource Type", field : 'experiments_in_set.biosample.biosource.biosource_type' },
-            { title : "Biosource", field : "experiments_in_set.biosample.biosource_summary" },
-            { title : "Project", field : "award.project" },
-            { title : "Center", field : "award.center_title" },
-            { title : "Lab", field : "lab.display_title" },
+            { title : "Library", field : "libraries.display_title" },
+            { title : "Assay", field : 'libraries.assay.code' },
+            { title : "Analyte", field : 'libraries.analytes.display_title' },
+            { title : "Sequencer", field : "sequencing.sequencer.display_title" },
+            { title : "Submission Center", field : "submission_centers.display_title" },
             { title : "Status", field : "status" }
         ],
         'legend' : false,
@@ -80,7 +74,7 @@ export class UIControlsWrapper extends React.PureComponent {
     static getDerivedStateFromProps({ barplot_data_filtered }, { showState }){
         // Switch to 'all' if filtered data to show.
         // Inverse of this is done in componentDidUpdate if filtered data arrives for first time.
-        if (showState === "filtered" && (!barplot_data_filtered || barplot_data_filtered && barplot_data_filtered.total.experiment_sets === 0)){
+        if (showState === "filtered" && (!barplot_data_filtered || barplot_data_filtered && barplot_data_filtered.total.total_file_sets === 0)){
             return { 'showState' : 'all' };
         }
         return null;
@@ -103,8 +97,8 @@ export class UIControlsWrapper extends React.PureComponent {
         this.handleFieldSelect = _.throttle(this.handleFieldSelect.bind(this), 300);
 
         this.state = {
-            'aggregateType' : 'experiment_sets',
-            'showState' : this.filterObjExistsAndNoFiltersSelected() || (props.barplot_data_filtered && props.barplot_data_filtered.total.experiment_sets === 0) ? 'all' : 'filtered',
+            'aggregateType' : 'total_files',
+            'showState' : this.filterObjExistsAndNoFiltersSelected() || (props.barplot_data_filtered && props.barplot_data_filtered.total.total_file_sets === 0) ? 'all' : 'filtered',
             'openDropdown' : null
         };
     }
@@ -115,8 +109,8 @@ export class UIControlsWrapper extends React.PureComponent {
             // Set to filtered if new filtered data arrives.
             // Inverse of this done in getDerivedStateFromProps
             if (showState === "all" && newFilteredData &&
-                newFilteredData.total.experiment_sets > 0 &&
-                (!pastFilteredData || pastFilteredData.total.experiment_sets === 0)){
+                newFilteredData.total.total_file_sets > 0 &&
+                (!pastFilteredData || pastFilteredData.total.total_file_sets === 0)){
                 return { 'showState' : 'filtered' };
             }
             return null;
@@ -266,7 +260,7 @@ export class UIControlsWrapper extends React.PureComponent {
         // TODO: MAYBE REMOVE HREF WHEN SWITCH SEARCH FROM /BROWSE/
         const isSelectedDisabled = !!(
             (this.filterObjExistsAndNoFiltersSelected() && !searchFilters.searchQueryStringFromHref(href)) ||
-            (barplot_data_filtered && barplot_data_filtered.total.experiment_sets === 0)
+            (barplot_data_filtered && barplot_data_filtered.total.total_file_sets === 0)
         );
         const aggrTypeTitle = this.titleMap(aggregateType);
         const showStateTitle = showState === 'all' ? 'All' : 'Selected';
@@ -393,7 +387,7 @@ export class UIControlsWrapper extends React.PureComponent {
                                     onSelect={this.handleAggregateTypeSelect}
                                     title={this.titleMap(aggregateType)}
                                     onToggle={this.handleDropDownYAxisFieldToggle}>
-                                    { this.renderDropDownMenuItems(['experiment_sets','experiments','files_all'], aggregateType) }
+                                    { this.renderDropDownMenuItems(['total_file_sets','total_files'], aggregateType) }
                                 </DropdownButton>
                             </div>
                         </div>
@@ -452,16 +446,15 @@ export class UIControlsWrapper extends React.PureComponent {
 
 export class AggregatedLegend extends React.Component {
 
-    static collectSubDivisionFieldTermCounts = memoize(function(rootField, aggregateType = 'experiment_sets'){
+    static collectSubDivisionFieldTermCounts = memoize(function(rootField, aggregateType = 'total_file_sets'){
         if (!rootField) return null;
 
         const retField = {
             'field' : null,
             'terms' : {},
             'total' : {
-                'experiment_sets' : 0,
-                'experiments' : 0,
-                'files' : 0
+                'total_file_sets' : 0,
+                'total_files' : 0
             }
         };
 
@@ -472,17 +465,14 @@ export class AggregatedLegend extends React.Component {
             _.forEach(_.keys(childField.terms), function(t){
                 if (typeof retField.terms[t] === 'undefined'){
                     retField.terms[t] = {
-                        'experiment_sets' : 0,
-                        'experiments' : 0,
-                        'files' : 0
+                        'total_file_sets' : 0,
+                        'total_files' : 0,
                     };
                 }
-                retField.terms[t].experiment_sets += childField.terms[t].experiment_sets;
-                retField.terms[t].experiments += childField.terms[t].experiments;
-                retField.terms[t].files += childField.terms[t].files;
-                retField.total.experiment_sets += childField.terms[t].experiment_sets;
-                retField.total.experiments += childField.terms[t].experiments;
-                retField.total.files += childField.terms[t].files;
+                retField.terms[t].total_file_sets += childField.terms[t].total_file_sets;
+                retField.terms[t].total_files += childField.terms[t].total_files;
+                retField.total.total_file_sets += childField.terms[t].total_file_sets;
+                retField.total.total_files += childField.terms[t].total_files;
             });
         });
 
@@ -514,7 +504,7 @@ export class AggregatedLegend extends React.Component {
         return Legend.barPlotFieldDataToLegendFieldsData(
             AggregatedLegend.collectSubDivisionFieldTermCounts(
                 showType === 'all' ? barplot_data_unfiltered : barplot_data_filtered || barplot_data_unfiltered,
-                aggregateType || 'experiment_sets',
+                aggregateType || 'total_file_sets',
                 field
             ),
             function(term){ return typeof term[aggregateType] === 'number' ? -term[aggregateType] : 'term'; }
@@ -559,7 +549,7 @@ export class AggregatedLegend extends React.Component {
 
     render(){
         const { field, barplot_data_unfiltered, isLoadingChartData, aggregateType, href, cursorDetailActions, schemas } = this.props;
-        if (!field || !barplot_data_unfiltered || isLoadingChartData || (barplot_data_unfiltered.total && barplot_data_unfiltered.total.experiment_sets === 0)){
+        if (!field || !barplot_data_unfiltered || isLoadingChartData || (barplot_data_unfiltered.total && barplot_data_unfiltered.total.total_file_sets === 0)){
             return null;
         }
 

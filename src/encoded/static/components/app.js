@@ -2317,7 +2317,7 @@ class BodyElement extends React.PureComponent {
 
         const initialFields = [
             'submission_centers.display_title',
-            'sequencing.sequencer.identifier',
+            'sequencing.sequencer.display_title',
         ];
 
         return (

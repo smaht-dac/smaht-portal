@@ -15,7 +15,7 @@ import ReactTooltip from 'react-tooltip';
  * @typedef {Object} FieldObject
  * @prop {string} field - Dot-separated field identifier string.
  * @prop {string} name - Human-readable title or name of field.
- * @prop {{ term: string, field: string, color: string, experiment_sets: number, experiments: number, files: number }[]} terms - List of terms in field.
+ * @prop {{ term: string, field: string, color: string, total_file_sets: number, total_files: number }[]} terms - List of terms in field.
  */
 
 
@@ -46,7 +46,7 @@ class Term extends React.Component {
     }
 
     generateNode(){
-        return _.pick(this.props, 'field', 'term', 'color', 'position', 'experiment_sets', 'experiments', 'files');
+        return _.pick(this.props, 'field', 'term', 'color', 'position', 'total_file_sets', 'total_files');
     }
 
     onMouseEnter(e){
@@ -207,9 +207,8 @@ export class Legend extends React.PureComponent {
                     'term' : p[0],
                     'field' : field.field
                 }),
-                'experiment_sets' : p[1].experiment_sets,
-                'experiments' : p[1].experiments,
-                'files' : p[1].files
+                'total_file_sets' : p[1].total_file_sets,
+                'total_files' : p[1].total_files
             };
         });
 
@@ -259,7 +258,7 @@ export class Legend extends React.PureComponent {
         'expandable': false,
         'expandableAfter' : 5,
         'defaultExpanded' : false,
-        'aggregateType' : 'experiment_sets',
+        'aggregateType' : 'total_file_sets',
         'title' : null //<h4 className="text-500">Legend</h4>
     };
 

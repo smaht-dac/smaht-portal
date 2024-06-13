@@ -409,10 +409,9 @@ export const ChartDataController = {
 
         var allCountsChanged = (
             updatedState && updatedState.barplot_data_unfiltered && updatedState.barplot_data_unfiltered.total && (
-                !state.barplot_data_unfiltered || !state.barplot_data_unfiltered.total || !state.barplot_data_unfiltered.total.experiment_sets ||
-                updatedState.barplot_data_unfiltered.total.experiment_sets !== state.barplot_data_unfiltered.total.experiment_sets ||
-                updatedState.barplot_data_unfiltered.total.experiments !== state.barplot_data_unfiltered.total.experiments ||
-                updatedState.barplot_data_unfiltered.total.files !== state.barplot_data_unfiltered.total.files
+                !state.barplot_data_unfiltered || !state.barplot_data_unfiltered.total || !state.barplot_data_unfiltered.total.total_file_sets ||
+                updatedState.barplot_data_unfiltered.total.total_file_sets !== state.barplot_data_unfiltered.total.total_file_sets ||
+                updatedState.barplot_data_unfiltered.total.total_files !== state.barplot_data_unfiltered.total.total_filesfiles
             )
         );
 

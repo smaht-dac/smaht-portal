@@ -22,7 +22,7 @@ import { PopoverViewContainer } from './ViewContainer';
  * @param {number} [availWidth=400] - Available width, in pixels, for chart.
  * @param {number} [availHeight=400] - Available width, in pixels, for chart.
  * @param {Object} [styleOpts=Chart.getDefaultStyleOpts()] - Style settings for chart which may contain chart offsets (for axes).
- * @param {string} [aggregateType="experiment_sets"] - Type of value to count up. Should be one of ["experiment_sets", "files", "experiments"].
+ * @param {string} [aggregateType="total_files"] - Type of value to count up. Should be one of ["total_file_sets", "total_files"].
  * @param {boolean} [useOnlyPopulatedFields=false] - Determine which fields to show via checking for which fields have multiple terms present.
  * @param {?number} [fullHeightCount=null] - 100% Y-Axis count value. Overrides height of bars.
  * @return {Object} Object containing bar dimensions for first field which has more than 1 possible term, index of field used, and all fields passed originally.
@@ -32,7 +32,7 @@ export function genChartBarDims(
     availWidth              = 400,
     availHeight             = 400,
     styleOpts               = Chart.defaultStyleOpts,
-    aggregateType           = 'experiment_sets',
+    aggregateType           = 'total_files',
     useOnlyPopulatedFields  = false,
     fullHeightCount         = null
 ){
@@ -79,11 +79,8 @@ export function genChartBarDims(
                         'width'     : barWidth,
                         'height'    : barHeight
                     },
-                    'experiment_sets' : termObj.experiment_sets,
-                    'experiments'       : termObj.experiments,
-                    'files'             : termObj.files,
-                    'files_opf'         : termObj.files_opf,
-                    'files_all'         : termObj.files_all
+                    'total_file_sets'     : termObj.total_file_sets,
+                    'total_files'         : termObj.total_files
                 };
                 if (typeof termObj.field === 'string') {
                     barNode.bars = genBarData(termObj, { 'height' : barHeight }, barNode);
@@ -248,7 +245,7 @@ export class Chart extends React.PureComponent {
         'width'         : PropTypes.number,
         'useOnlyPopulatedFields' : PropTypes.bool,
         'showType'      : PropTypes.oneOf(['all', 'filtered', 'both']),
-        'aggregateType' : PropTypes.oneOf(['experiment_sets', 'experiments', 'files_all']),
+        'aggregateType' : PropTypes.oneOf(['total_file_sets', 'total_files']),
         'windowWidth'   : PropTypes.number,
         'href'          : PropTypes.string,
         'cursorDetailActions' : PopoverViewContainer.propTypes.cursorDetailActions
@@ -259,7 +256,7 @@ export class Chart extends React.PureComponent {
         'fields' : [],
         'useOnlyPopulatedFields' : false,
         'showType' : 'both',
-        'aggregateType' : 'experiments',
+        'aggregateType' : 'total_files',
         'styleOptions' : null, // Can use to override default margins/style stuff.
     };
 
