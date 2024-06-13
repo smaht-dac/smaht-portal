@@ -99,7 +99,7 @@
         "average_size": {
             "title": "Average Size",
             "description": "Average fragment size (Femptopulse), if applicable (bp)",
-            "type": "string",
+            "type": "number",
             "minimum": 0
         },
         "concentration": {
@@ -148,11 +148,6 @@
                     "Total RNA"
                 ]
             }
-        },
-        "hmw_size": {
-            "title": "HMW size",
-            "description": "High molecular weight size",
-            "type": "number"
         },
         "genomic_quality_number": {
             "title": "Genomic Quality Number",

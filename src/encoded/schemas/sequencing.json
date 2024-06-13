@@ -138,7 +138,7 @@
             "description": "Link to sequencing preparation kits",
             "type": "array",
             "uniqueItems": true,
-            "item": {
+            "items": {
                 "type": "string",
                 "linkTo": "PreparationKit"
             }
