@@ -268,18 +268,13 @@
         "rna_integrity_number_instrument": {
             "title": "RIN Instrument",
             "description": "Instrument used for RNA integrity assessment",
-            "type": "array",
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "suggested_enum": [
-                    "Agilent Bioanalyzer",
-                    "Agilent 4200 TapeStation",
-                    "Agilent 5300 Fragment Analyzer",
-                    "Caliper Life Sciences LabChip GX"
-                ]
-            }
-            
+            "type": "string",
+            "suggested_enum": [
+                "Agilent Bioanalyzer",
+                "Agilent 4200 TapeStation",
+                "Agilent 5300 Fragment Analyzer",
+                "Caliper Life Sciences LabChip GX"
+            ]
         },
         "sample_quantity": {
             "title": "Sample Quantity",
