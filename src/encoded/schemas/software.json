@@ -126,9 +126,16 @@
         "code": {
             "pattern": "^[A-Za-z0-9_]{2,}$"
         },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_SOFTWARE_[A-Z0-9-_.]{4,}$",
+            "submitterRequired": true
+        },
+        "title": {
+            "description": "The name of the software"
+        },
         "version": {
-            "pattern": ".+",
-            "comment": "TODO: Replace with a proper version pattern"
+            "description": "The version of the software",
+            "pattern": "[A-Za-z0-9._-]+"
         },
         "binary_url": {
             "$merge": "encoded_core:schemas/software.json#/properties/binary_url"
@@ -138,9 +145,6 @@
         },
         "source_url": {
             "$merge": "encoded_core:schemas/software.json#/properties/source_url"
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_SOFTWARE_[A-Z0-9-_.]{4,}$"
         }
     },
     "facets": {
