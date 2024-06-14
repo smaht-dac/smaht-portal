@@ -7,13 +7,55 @@ smaht-portal
 Change Log
 ----------
 
-0.60.3
+0.63.1
 ======
 
 `PR 182: Bm nomenclature fix jun2024 <https://github.com/smaht-dac/smaht-portal/pull/182>`_
 
 * Update PDF with brain and change version
 * Update RST file with brain
+
+0.63.0
+======
+
+`PR 169: Submission Templates <https://github.com/smaht-dac/smaht-portal/pull/169>`_
+
+* Add new command `write-submission-spreadsheets` to generate submission spreadsheets (Excel or Google sheets) for submittable items
+* Schema updates
+  * Update descriptions for many properties with standardized units formatting
+  * Misc. updates to TPC-related properties
+  * Breaking change: Tissue `location` renamed to `anatomical_location`; upgrader included
+
+0.62.1
+======
+
+* Fix minor issue on Submission Status page
+
+
+0.62.0
+======
+
+Submission Status page updates:
+* Add filters for CellLine and CellCultureMixture
+* Some refactoring of the React component
+* Color filesets by file group
+
+
+0.61.0
+======
+
+* Added src/encoded/tests/data/demo_inserts with (well) demo inserts for objects needed
+  by the demo metadata spreadsheet (for annual meeting 2024): bcm_formatted_hapmapmix.xlsx ...
+  https://docs.google.com/spreadsheets/d/1qCm0bY-vG4a9uiaOvmKHZ12MvhmMKKRfEpgAm-7Hsh4/edit#gid=1472887809
+  FYI: To cause these to be loaded at startup when running locally, edit development.ini and
+  set load_test_data = snovault.loadxl:load_local_data (rather than the default load_prod_data).
+* Updated dcicutils to 8.10.0 (mostly merge support in structured_data).
+* Changed workbook-inserts/assay.json bulk_wgs item to code 002 (to match data/staging/wolf).
+* Changed workbook-inserts/sequencer.json code from A to X (interfering with demo testing).
+* Support merge in ingester for partial object updates from metedata.
+  -  Removed ref_lookup_strategy references for structured_data; refactored/internalized in dcicutils.
+* Added rclone (Google-to-AWS) related documentation.
+* Some make lint fixups.
 
 
 0.60.2
@@ -24,7 +66,6 @@ Change Log
 
 0.60.1
 ======
-
 
 * Add new command ``check-insert-consistency`` to quickly detect errors on live environments related to inconsistencies with ``master-inserts``
 * Add new command ``load-data-from-local`` to allow interactive updates from ``master-inserts``
@@ -103,7 +144,7 @@ Change Log
 
 
 0.55.0
-=======
+======
 
 `PR 141: Link FileSets to Samples <https://github.com/smaht-dac/smaht-portal/pull/141>`_
 

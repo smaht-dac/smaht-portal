@@ -70,12 +70,6 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_SEQUENCING_[A-Z0-9-_.]{4,}$"
         },
-        "basecalling": {
-            "title": "Basecalling",
-            "description": "Details of pipeline used to call bases from raw sequencing data",
-            "type": "string",
-            "linkTo": "Basecalling"
-        },
         "flow_cell": {
             "title": "Flow Cell",
             "description": "Flow cell used for sequencing",
@@ -105,15 +99,21 @@
         },
         "target_read_count": {
             "title": "Target Read Count",
-            "description": "Expected read count for the sequencing",
+            "description": "Expected read count for the sequencing, in read pairs if paired-end",
             "type": "integer",
             "minimum": 0
         },
         "target_read_length": {
             "title": "Target Read Length",
-            "description": "Expected read length for the sequencing",
+            "description": "Expected read length for the sequencing (bp)",
             "type": "integer",
             "minimum": 0
+        },
+        "basecalling": {
+            "title": "Basecalling",
+            "description": "Details of pipeline used to call bases from raw sequencing data",
+            "type": "string",
+            "linkTo": "Basecalling"
         },
         "sequencer": {
             "title": "Sequencer",
