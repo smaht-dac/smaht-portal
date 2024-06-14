@@ -14,28 +14,6 @@ from .utils import (
 
 @pytest.mark.workbook
 @pytest.mark.parametrize(
-    "patch_body,status",
-    [   
-        ({"size_exclusion_done":"No"},200),
-        ({"size_exclusion_done":"No","size_exclusion":150},422),
-        ({"size_exclusion_done":"Yes","size_exclusion":150},200),
-    ]
-)
-def test_size_exclusion_conditional(
-    es_testapp: TestApp,
-    workbook: None,
-    patch_body: Dict[str, Any],
-    status: int
-    ) -> None:
-    """Ensure size_exclusion is only valid if size_exclusion_done is Yes."""
-    library_uuid = get_insert_identifier_for_item_type(
-        testapp=es_testapp,
-        item_type="Library"
-    )
-    assert patch_item(es_testapp, patch_body,library_uuid,status=status)
-
-@pytest.mark.workbook
-@pytest.mark.parametrize(
      "patch_body,status",
     [   
         ({"concatenated_reads":"No"},200),

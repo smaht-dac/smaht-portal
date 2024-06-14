@@ -93,28 +93,6 @@
             "title": "Homogenization method",
             "description": "Method of sample homogenization, if applicable. Relevant for non-single-cell DNA extraction",
             "type": "string"
-        },
-        "preparation_kits" :{
-            "title": "Preparation Kits",
-            "description": "Link to kits used in analyte preparation.",
-            "type": "array",
-            "uniqueItems": true,
-            "minItems": 1,
-            "items": {
-                "type": "string",
-                "linkTo": "PreparationKit"
-            }
-        },
-        "treatments": {
-            "title": "Treatments",
-            "description": "Link to treatments applied to sample, if applicable.",
-            "type": "array",
-            "uniqueItems": true,
-            "minItems": 1,
-            "items": {
-                "type": "string",
-                "linkTo": "Treatment"
-            }
         }
     }
 }

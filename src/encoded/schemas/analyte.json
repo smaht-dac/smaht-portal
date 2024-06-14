@@ -23,6 +23,26 @@
         "rna_integrity_number_instrument": [
             "rna_integrity_number"
         ],
+        "dna_integrity_number": [
+            "dna_integrity_number_instrument"
+        ],
+        "dna_integrity_number_instrument": [
+            "dna_integrity_number"
+        ],
+        "genomic_quality_number": [
+            "genomic_quality_number_instrument",
+            "genomic_quality_size_threshold"
+        ],
+        "genomic_quality_number_instrument": [
+            "genomic_quality_number"
+        ],
+        "dna_quality_number": [
+            "dna_quality_number_instrument",
+            "dna_quality_size_threshold"
+        ],
+        "dna_quality_number_instrument": [
+            "dna_quality_number"
+        ],
         "sample_quantity": [
             "sample_quantity_unit"
         ],
@@ -98,7 +118,7 @@
         },
         "average_size": {
             "title": "Average Size",
-            "description": "Average fragment size (Femptopulse), if applicable (bp)",
+            "description": "Average high molecular weight fragment size, if applicable (bp)",
             "type": "number",
             "minimum": 0
         },
@@ -156,16 +176,24 @@
             "minimum": 0,
             "maximum": 10
         },
+        "genomic_quality_size_threshold": {
+            "title": "Genomic Quality Size Threshold",
+            "description": "Threshold set in ProSize for genomic quality number, for assessing percent of samples above threshold size (bp), if applicable",
+            "type": "number",
+            "minimum": 0
+        },
         "genomic_quality_number_instrument": {
-            "title": "Genomic Quality Number",
+            "title": "Genomic Quality Number Instrument",
             "description": "Instrument used for GQN assessment",
-            "type": "string",
-            "enum": [
-                "Agilent Bioanalyzer",
-                "Agilent 4200 TapeStation",
-                "Agilent 5300 Fragment Analyzer",
-                "Caliper Life Sciences LabChip GX"
+            "type": "array",
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                "Agilent 5400 Fragment Analyzer",
+                "Agilent Femto Pulse"
             ]
+            }
+            
         },
         "dna_quality_number": {
             "title": "DNA Quality Number",
@@ -174,20 +202,25 @@
             "minimum": 0,
             "maximum": 10
         },
+        "dna_quality_size_threshold": {
+            "title": "DNA Quality Size Threshold",
+            "description": "Threshold set in ProSize for DNA quality number, for assessing percent of samples above threshold size (bp), if applicable",
+            "type": "number",
+            "minimum": 0
+        },
         "dna_quality_number_instrument": {
             "title": "DQN Instrument",
             "description": "Instrument used for DQN assessment",
             "type": "string",
-            "enum": [
-                "Agilent Bioanalyzer",
-                "Agilent 4200 TapeStation",
+            "suggested_enum": [
+                "Agilent 5400 Fragment Analyzer",
                 "Agilent 5300 Fragment Analyzer",
-                "Caliper Life Sciences LabChip GX"
+                "Agilent 5200 Fragment Analyzer"
             ]
         },
         "dna_integrity_number": {
             "title": "DNA Integrity Number",
-            "description": "Assessment of the integrity of DNA based on electrophoresis",
+            "description": "Assessment of the integrity of genomic DNA based on electrophoresis",
             "type": "number",
             "minimum": 1,
             "maximum": 10
@@ -196,12 +229,28 @@
             "title": "DIN Instrument",
             "description": "Instrument used for DIN assessment",
             "type": "string",
-            "enum": [
-                "Agilent Bioanalyzer",
+            "suggested_enum": [
                 "Agilent 4200 TapeStation",
-                "Agilent 5300 Fragment Analyzer",
-                "Caliper Life Sciences LabChip GX"
+                "Agilent 4150 TapeStation"
             ]
+        },
+        "quantitation_method": {
+            "title": "Quantitation Method",
+            "description": "Method used for analyte quantitation, if applicable",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "Quant-iT PicoGreen dsDNA BR",
+                    "Quant-iT PicoGreen dsDNA HS",
+                    "Qubit dsDNA HS",
+                    "Qubit dsDNA BR",
+                    "Qubit RNA HS",
+                    "Qubit RNA BR"
+                ]
+            }
         },
         "ribosomal_rna_ratio": {
             "title": "Ribosomal RNA Ratio",
@@ -211,21 +260,26 @@
         },
         "rna_integrity_number": {
             "title": "RNA Integrity Number",
-            "description": "Assessment of the integrity of RNA based on electrophoresis",
+            "description": "Assessment of the integrity of RNA based on electrophoresis (or equivalent RQS, RQN)",
             "type": "number",
             "minimum": 1,
             "maximum": 10
         },
         "rna_integrity_number_instrument": {
             "title": "RIN Instrument",
-            "description": "Instrument used for RIN assessment",
-            "type": "string",
-            "enum": [
-                "Agilent Bioanalyzer",
-                "Agilent 4200 TapeStation",
-                "Agilent 5300 Fragment Analyzer",
-                "Caliper Life Sciences LabChip GX"
-            ]
+            "description": "Instrument used for RNA integrity assessment",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "Agilent Bioanalyzer",
+                    "Agilent 4200 TapeStation",
+                    "Agilent 5300 Fragment Analyzer",
+                    "Caliper Life Sciences LabChip GX"
+                ]
+            }
+            
         },
         "sample_quantity": {
             "title": "Sample Quantity",
@@ -280,9 +334,21 @@
                 "linkTo": "Sample"
             }
         },
-        "yield": {
-            "title": "Yeild",
-            "description": "Yield of analyte from sample (ug/mg)",
+        "total_yield": {
+            "title": "Total Yield",
+            "description": "Total yield of analyte from sample (ug)",
+            "type": "number",
+            "minimum": 0
+        },
+        "yield_per_million_cells": {
+            "title": "Yield per million cells",
+            "description": "Yield per million cells (ug/M cells), if applicable",
+            "type": "number",
+            "minimum": 0
+        },
+        "yield_per_mg_tissue": {
+            "title": "Yield per mg tissue",
+            "description": "Yield per milligram of tissue (ug/mg), if applicable",
             "type": "number",
             "minimum": 0
         }
