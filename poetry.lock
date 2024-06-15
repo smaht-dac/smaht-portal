@@ -1097,7 +1097,7 @@ files = [
 name = "docutils"
 version = "0.21.2"
 description = "Docutils -- Python Documentation Utilities"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.9"
 files = [
