@@ -8,6 +8,27 @@ Change Log
 ----------
 
 
+0.64.0
+======
+
+`PR 181: Submission and Usage Statistics Follow-up Updates  <https://github.com/smaht-dac/smaht-portal/pull/181>`_
+
+* Filtering  
+  * Previous 60 days added to date range options
+  * Cumulative sum checkbox added to switch between individual bars and cumulative sum
+* File downloads
+  * File downloads splitted into two charts (count and volume)
+  * Assay Type and Dataset views added
+* File views
+  * Assay Type and Dataset views added
+* Page Views
+  * Page views, Uniqe users by country/city views added
+  * Page title and URL views added
+* Schema and Style
+  * `tracking_item`` schema fields that are still mapped to Universal Analytics naming convention are renamed/replaced
+  * glitches in mobile view fixed
+
+
 0.63.0
 ======
 
@@ -18,6 +39,7 @@ Change Log
   * Update descriptions for many properties with standardized units formatting
   * Misc. updates to TPC-related properties
   * Breaking change: Tissue `location` renamed to `anatomical_location`; upgrader included
+
 
 0.62.1
 ======
