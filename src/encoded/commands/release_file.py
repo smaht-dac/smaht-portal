@@ -21,6 +21,7 @@ from encoded.item_utils.constants import (
     item as item_constants,
 )
 from encoded.item_utils.utils import RequestHandler
+from enocded.server_defaults import ACCESSION_PREFIX
 
 pp = pprint.PrettyPrinter(indent=2)
 
@@ -186,7 +187,7 @@ class FileRelease:
         zip_files = []
         for quality_metric in self.quality_metrics:
             zip_accession = quality_metric_utils.get_zip_file_accession(quality_metric)
-            if zip_accession.startswith("SMA"):
+            if zip_accession.startswith(ACCESSION_PREFIX):
                 zip_file = self.get_metadata(zip_accession)
                 zip_files.append(zip_file)
             else:
