@@ -157,9 +157,9 @@ def get_tissue_samples(
     """Get tissue samples associated with file."""
     samples = get_samples(properties, request_handler=request_handler)
     return [
-        sample
-        for sample in samples
-        if sample.is_tissue_sample(request_handler.get_item(sample))
+        item
+        for item in samples
+        if sample.is_tissue_sample(request_handler.get_item(item))
     ]
 
 
@@ -226,7 +226,7 @@ def get_cell_cultures(
     cell_cultures_from_mixtures = get_property_values_from_identifiers(
         request_handler,
         cell_culture_mixtures,
-        partial(cell_culture_mixture.get_cell_cultures, request_handler),
+        cell_culture_mixture.get_cell_cultures
     )
     direct_cell_cultures = [
         sample_source
@@ -240,7 +240,7 @@ def get_cell_lines(
     properties: Dict[str, Any], request_handler: RequestHandler
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get cell lines associated with file."""
-    cell_cultures = get_cell_cultures(properties, request_handler=request_handler)
+    cell_cultures = get_cell_cultures(properties, request_handler)
     cell_culture_mixtures = get_cell_culture_mixtures(
         properties, request_handler=request_handler
     )

@@ -12,6 +12,9 @@
         "data_type": [
             "Aligned Reads"
         ],
+        "alignment_details": [
+            "Sorted"
+        ],
         "file_format": "BAM",
         "filename": "some_bam.bam",
         "file_sets": [
@@ -22,7 +25,7 @@
         ],
         "reference_genome": "GRCh38",
         "access_status": "Open",
-        "annotated_filename": "SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam",
+        "annotated_filename": "SMHT001-1A-100A1-F65-B003-DAC-SMAARNRVZGBE-bwamem0.1.2_GRCh38.aligned.sorted.bam",
         "file_size": 1000,
         "status": "released",
         "dataset": "colo829t"

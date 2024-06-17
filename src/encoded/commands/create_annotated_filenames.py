@@ -742,8 +742,7 @@ def get_annotated_filename_string(annotated_filename: AnnotatedFilename) -> str:
     """Get string representation of annotated filename."""
     before_extension = FILENAME_SEPARATOR.join(
         [
-            annotated_filename.project_id,
-            annotated_filename.sample_source_id,
+            f"{annotated_filename.project_id}{annotated_filename.sample_source_id}",
             annotated_filename.protocol_id,
             annotated_filename.aliquot_id,
             annotated_filename.donor_sex_and_age,

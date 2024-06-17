@@ -161,7 +161,9 @@ def get_studies(
     return []
 
 
-TPC_ID_COMMON_PATTERN = rf"{tissue.TPC_ID_COMMON_PATTERN}-[A-Z0-9]+$"
+TPC_ID_COMMON_PATTERN = tissue.TPC_ID_COMMON_PATTERN + (
+    r"-(X)|([0-9]{3}X)|([0-9]{3}[A-F][1-6])|([0-9]{3}[S-W][1-9])$"
+)
 BENCHMARKING_ID_REGEX = re.compile(
     rf"{constants.BENCHMARKING_PREFIX}{TPC_ID_COMMON_PATTERN}"
 )

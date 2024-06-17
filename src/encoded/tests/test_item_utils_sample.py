@@ -6,6 +6,7 @@ from webtest import TestApp
 from .utils import get_search
 from ..item_utils import item
 from ..item_utils.sample import (
+    get_aliquot_id,
     get_sample_descriptions,
     get_sample_names,
     get_studies,
@@ -118,3 +119,17 @@ def get_expected_sample_studies(sample: Dict[str, Any]) -> str:
         for tag in expected_sample_study_tags
         for value in tag.split(expected_sample_study_tag)[1].split("|")
     ]
+
+
+@pytest.mark.parametrize(
+    "properties,expected",
+    [
+        ({}, ""),
+        ({"external_id": "FooBar"}, ""),
+        ({"external_id": "ST001-1A-100D6"}, "100"),
+        ({"external_id": "SMHT001-1A-101A3"}, "101"),
+    ],
+)
+def test_get_aliquot_id(properties: Dict[str, Any], expected: str) -> None:
+    """Test aliquot ID retrieval for sample properties."""
+    assert get_aliquot_id(properties) == expected

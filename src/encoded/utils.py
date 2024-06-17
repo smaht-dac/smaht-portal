@@ -161,7 +161,7 @@ def get_item_with_testapp(
     status: Optional[Union[int, List[int]]] = None,
 ) -> Dict[str, Any]:
     """Get item view with given frame, following redirects."""
-    add_on = get_frame_add_on(frame) + get_datastore_add_on(datastore)
+    add_on = "&".join([get_frame_add_on(frame), get_datastore_add_on(datastore)])
     resource_path = get_formatted_resource_path(
         identifier, collection=collection, add_on=add_on
     )

@@ -27,11 +27,14 @@ def get_study(properties: Dict[str, Any]) -> str:
     TPC naming standards, but not impossible; may be more robust to
     check submission centers or more detailed regex on TPC nomenclature.
     """
-    external_id = item.get_external_id(properties)
-    return get_study_from_external_id(external_id)
+    if is_benchmarking(properties):
+        return constants.BENCHMARKING_STUDY
+    if is_production(properties):
+        return constants.PRODUCTION_STUDY
+    return ""
 
 
-TPC_ID_COMMON_PATTERN = rf"{donor.TPC_ID_COMMON_PATTERN}-[0-9][A-Z]{1,2}"
+TPC_ID_COMMON_PATTERN = donor.TPC_ID_COMMON_PATTERN + r"-[0-9][A-Z]{1,2}"
 BENCHMARKING_ID_REGEX = re.compile(
     rf"{constants.BENCHMARKING_PREFIX}{TPC_ID_COMMON_PATTERN}$"
 )
@@ -40,34 +43,24 @@ PRODUCTION_ID_REGEX = re.compile(
 )
 
 
-def get_study_from_external_id(external_id: str) -> str:
-    """get "study" (a.k.a. production or benchmarking) from external id.
+def is_benchmarking(properties: Dict[str, Any]) -> bool:
+    """Check if tissue is from benchmarking study."""
+    external_id = item.get_external_id(properties)
+    return BENCHMARKING_ID_REGEX.match(external_id) is not None
 
-    note: impossible to determine study from external id alone, but
-    should suffice for ids from tpc. primary concern is ttd ids can
-    also match criteria and be incorrectly identified. if this becomes
-    an issue, may need to check submission/sequencing centers and add
-    metadata there appropriately.
-    """
-    if PRODUCTION_ID_REGEX.match(external_id):
-        return constants.production_study
-    if BENCHMARKING_ID_REGEX.match(external_id):
-        return constants.benchmarking_study
-    return ""
+
+def is_production(properties: Dict[str, Any]) -> bool:
+    """Check if tissue is from production study."""
+    external_id = item.get_external_id(properties)
+    return PRODUCTION_ID_REGEX.match(external_id) is not None
 
 
 def get_project_id(properties: Dict[str, Any]) -> str:
     """Get project ID associated with tissue."""
-    external_id = item.get_external_id(properties)
-    return get_project_id_from_external_id(external_id)
-
-
-def get_project_id_from_external_id(external_id: str) -> str:
-    """Get project ID from external ID."""
-    if PRODUCTION_ID_REGEX.match(external_id):
-        return constants.PRODUCTION_PREFIX
-    if BENCHMARKING_ID_REGEX.match(external_id):
+    if is_benchmarking(properties):
         return constants.BENCHMARKING_PREFIX
+    if is_production(properties):
+        return constants.PRODUCTION_PREFIX
     return ""
 
 
@@ -88,14 +81,12 @@ def get_donor_kit_id_from_external_id(external_id: str) -> str:
 
 def get_protocol_id(properties: Dict[str, Any]) -> str:
     """Get protocol ID associated with tissue."""
-    external_id = item.get_external_id(properties)
-    return get_protocol_id_from_external_id(external_id)
+    if is_benchmarking(properties) or is_production(properties):
+        external_id = item.get_external_id(properties)
+        return get_protocol_id_from_external_id(external_id)
+    return ""
 
 
 def get_protocol_id_from_external_id(external_id: str) -> str:
     """Get protocol ID from external ID."""
-    if PRODUCTION_ID_REGEX.match(external_id):
-        return external_id.split("-")[1]
-    if BENCHMARKING_ID_REGEX.match(external_id):
-        return external_id.split("-")[1]
-    return ""
+    return external_id.split("-")[1]

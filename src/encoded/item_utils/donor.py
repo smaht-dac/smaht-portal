@@ -4,12 +4,12 @@ from typing import Any, Dict, Union
 from . import constants
 
 
-TPC_ID_COMMON_PATTERN = r"[0-9]{3}$"
+TPC_ID_COMMON_PATTERN = r"[0-9]{3}"
 BENCHMARKING_ID_REGEX = re.compile(
-    rf"{constants.BENCHMARKING_PREFIX}{TPC_ID_COMMON_PATTERN}"
+    rf"{constants.BENCHMARKING_PREFIX}{TPC_ID_COMMON_PATTERN}$"
 )
 PRODUCTION_ID_REGEX = re.compile(
-    rf"{constants.PRODUCTION_PREFIX}{TPC_ID_COMMON_PATTERN}"
+    rf"{constants.PRODUCTION_PREFIX}{TPC_ID_COMMON_PATTERN}$"
 )
 
 

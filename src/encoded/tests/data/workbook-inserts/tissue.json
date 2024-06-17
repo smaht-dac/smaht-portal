@@ -5,7 +5,7 @@
             "smaht"
         ],
         "submitted_id": "TEST_TISSUE_LIVER",
-        "external_id": "SMHT-001A",
+        "external_id": "SMHT001-1A",
         "donor": "TEST_DONOR_FEMALE",
         "uberon_id": "UBERON:0002107",
         "anatomical_location": "Liver: Left Lobe",
