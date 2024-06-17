@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.64.0
+0.65.0
 ======
 
 * Adds a new API /download_cli that accepts a resource path as a URL or POST param and returns federation token for use with `awscli`
