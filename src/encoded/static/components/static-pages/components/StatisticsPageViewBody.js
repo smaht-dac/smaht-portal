@@ -228,63 +228,94 @@ export const commonParsingFxn = {
 
         return aggsList;
     },
-    'analytics_to_buckets' : function(resp, reportName, termBucketField, countKey, topCount = 0){
-        const subBucketKeysToDate = new Set();
+    'analytics_to_buckets' : function(resp, reportName, termBucketField, countKey, cumulativeSum, topCount = 0){
+        const termsInAllItems = new Set();
 
         // De-dupe -- not particularly necessary as D3 handles this, however nice to have well-formatted data.
         const trackingItems = _.uniq(resp['@graph'], true, function(trackingItem){
             return trackingItem.google_analytics.for_date;
-        });
+        }).reverse(); // We get these in decrementing order from back-end
+
+        let totalSessionsToDate = 0;
+        const termTotals = {}; // e.g. { 'USA': { count: 5, total: 5 }, 'China': { count: 2, total: 2 } }
 
         // Notably, we do NOT sum up total here.
-        const aggsList = trackingItems.map(function(trackingItem, index, allTrackingItems){
+        const aggsList = trackingItems.map(function(trackingItem){
             const { google_analytics : {
                 reports : {
                     [reportName] : currentReport = []
-                }, // `currentReport` => List of JSON objects (report entries, 1 per unique dimension value)
+                }, // `currentReport` => List of JSON objects (report entries, 1 per unique dimension value) - Note: 1 per unique dimension may not be valid for post processing report items in smaht-foursight 
                 for_date
             } } = trackingItem;
 
-            const totalSessions = _.reduce(currentReport, function(sum, trackingItemItem){
-                return sum + trackingItemItem[countKey];
-            }, 0);
-
-            const currItem = {
-                'date'      : trackingItem.google_analytics.for_date,
-                'count'     : totalSessions,
-                'total'     : totalSessions,
-                'children'  : currentReport.map(function(reportEntry){
-                    const term = typeof termBucketField === 'function' ? termBucketField(reportEntry) : reportEntry[termBucketField];
-                    subBucketKeysToDate.add(term);
-                    return {
-                        'term'      : term,
-                        'count'     : reportEntry[countKey],
-                        'total'     : reportEntry[countKey],
-                        'date'      : for_date
+            const termsInCurrenItem = new Set();
+            
+            // Unique-fy
+            // group terms by term since terms are repeated while ga4 to tracking-item conversion done
+            // (note that aggregated values won't work if the aggregated field is already an avg, min, max may field)
+            const { groupedTermsObj, totalSessions } = _.reduce(currentReport, function ({ groupedTermsObj, totalSessions }, trackingItemItem) {
+                const term = typeof termBucketField === 'function' ? termBucketField(trackingItemItem) : trackingItemItem[termBucketField];
+                if (groupedTermsObj[term]) {
+                    groupedTermsObj[term].count += trackingItemItem[countKey];
+                    groupedTermsObj[term].total += trackingItemItem[countKey];
+                } else {
+                    groupedTermsObj[term] = {
+                        'term': term,
+                        'count': trackingItemItem[countKey],
+                        'total': trackingItemItem[countKey],
+                        'date': for_date
                     };
+                    termsInAllItems.add(term);
+                    termsInCurrenItem.add(term);
+                }
+                totalSessions += trackingItemItem[countKey]
+                return { groupedTermsObj, totalSessions };
+            }, { groupedTermsObj: {}, totalSessions: 0 });
+            
+            totalSessionsToDate += totalSessions;
+
+            const currentItem = {
+                'date'      : for_date,
+                'count'     : cumulativeSum ? totalSessionsToDate : totalSessions,
+                'total'     : cumulativeSum ? totalSessionsToDate : totalSessions,
+                'children': _.values(groupedTermsObj).map(function (termItem) {
+                    const cloned = { ...termItem };
+                    if (cumulativeSum) {
+                        let { count = 0, total = 0 } = termTotals[termItem.term] || {};
+                        total += (termItem.total || 0);
+                        count += (termItem.count || 0);
+                        termTotals[termItem.term] = { total, count };
+
+                        cloned.count = count;
+                        cloned.total = total;
+                    }
+                    return cloned;
                 })
             };
 
-            // Unique-fy
-            currItem.children = _.values(_.reduce(currItem.children || [], function(memo, child){
-                if (memo[child.term]) {
-                    memo[child.term].count += child.count;
-                    memo[child.term].total += child.total;
-                } else {
-                    memo[child.term] = child;
-                }
-                return memo;
-            }, {}));
-
-            if (typeof topCount === 'number' && topCount > 0) {
-                currItem.children = _.sortBy(currItem.children, (item) => -1 * item.total).slice(0, topCount);
+            // add missing children for cumulative view
+            if (cumulativeSum) {
+                termsInAllItems.forEach(term => {
+                    if (!termsInCurrenItem.has(term)) {
+                        currentItem.children.push({
+                            'term': term,
+                            'count': termTotals[term].count,
+                            'total': termTotals[term].total,
+                            'date': for_date
+                        });
+                    }
+                });
             }
 
-            return currItem;
+            if (typeof topCount === 'number' && topCount > 0) {
+                currentItem.children = _.sortBy(currentItem.children, (item) => -1 * item.total).slice(0, topCount);
+            }
 
-        }).reverse(); // We get these in decrementing order from back-end
+            return currentItem;
 
-        commonParsingFxn.fillMissingChildBuckets(aggsList, Array.from(subBucketKeysToDate));
+        });
+
+        commonParsingFxn.fillMissingChildBuckets(aggsList, Array.from(termsInAllItems));
 
         return aggsList;
     }
@@ -380,14 +411,12 @@ const aggregationsToChartData = {
         'function' : function(resp, props){
             if (!resp || !resp['@graph']) return null;
 
-            var countKey    = 'ga:totalEvents',
-                groupingKey = "ga:dimension3"; // Field name, dot notation
+            var countKey    = 'total_events',
+                groupingKey = "field"; // Field name, dot notation
 
-            if (props.countBy.fields_faceted === 'sessions') countKey = 'ga:sessions';
-            if (props.fields_faceted_group_by === 'term') groupingKey = 'ga:dimension4';
-            if (props.fields_faceted_group_by === 'field+term') groupingKey = 'ga:eventLabel';
+            if (props.countBy.fields_faceted === 'sessions') countKey = 'unique_users';
 
-            return commonParsingFxn.analytics_to_buckets(resp, 'fields_faceted', groupingKey, countKey);
+            return commonParsingFxn.analytics_to_buckets(resp, 'fields_faceted', groupingKey, countKey, props.cumulativeSum);
         }
     },
     'sessions_by_country' : {
@@ -395,17 +424,30 @@ const aggregationsToChartData = {
         'function' : function(resp, props){
             if (!resp || !resp['@graph']) return null;
 
-            let useReport = 'sessions_by_device_category';
-            let termBucketField = 'ga:deviceCategory';
-            let countKey = 'ga:pageviews';
+            let useReport = null, termBucketField = null, countKey = null;
 
-            if (props.countBy.sessions_by_country !== 'device_category') {
-                useReport = 'sessions_by_country';
-                termBucketField = 'ga:country';
-                countKey = (props.countBy.sessions_by_country === 'sessions') ? 'ga:sessions' : 'ga:pageviews';
+            switch (props.countBy.sessions_by_country) {
+                case 'page_title':
+                case 'page_url':
+                    useReport = 'sessions_by_page';
+                    termBucketField = props.countBy.sessions_by_country === 'page_title' ? 'page_title' : 'page_url';
+                    countKey = 'page_views';
+                    break;
+                case 'device_category':
+                    useReport = 'sessions_by_device_category';
+                    termBucketField = 'device_category';
+                    countKey = 'page_views';
+                    break;
+                default:
+                    useReport = 'sessions_by_country';
+                    termBucketField = props.countBy.sessions_by_country === 'views_by_country' || props.countBy.sessions_by_country === 'sessions_by_country' ?
+                        'country' : 'city';
+                    countKey = props.countBy.sessions_by_country === 'sessions_by_country' || props.countBy.sessions_by_country === 'sessions_by_city' ?
+                        'unique_users' : 'page_views';
+                    break;
             }
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum);
         }
     },
     /**
@@ -419,25 +461,88 @@ const aggregationsToChartData = {
             const { countBy : { file_downloads : countBy } } = props;
 
             let useReport = 'file_downloads_by_filetype';
-            let groupingKey = "ga:productVariant"; // File Type
-            const countKey = 'ga:metric2'; // Download Count
-            let topCount = 0; //all
+            let groupingKey = "file_type"; // File Type
+            const countKey = 'downloads_count'; // Download Count
+            let topCount = 0; // all
 
-            if (countBy === 'assay_type'){
-                useReport = 'file_downloads_by_assay_type';
-                groupingKey = 'ga:dimension5'; // Assay Type
-            } else if (countBy === 'top_files'){
-                useReport = 'top_files_downloaded';
-                groupingKey = 'ga:productSku'; // File
-                topCount = 10;
-            } else if (countBy === 'geo_country'){
-                useReport = 'file_downloads_by_country';
-                groupingKey = 'ga:country';
+            switch (countBy) {
+                case 'assay_type':
+                    useReport = 'file_downloads_by_assay_type';
+                    groupingKey = 'assay_type'; // Assay Type
+                    break;
+                case 'dataset':
+                    useReport = 'file_downloads_by_dataset';
+                    groupingKey = 'dataset'; // Dataset
+                    break;
+                case 'top_files':
+                    useReport = 'top_files_downloaded';
+                    groupingKey = 'file_item_id'; // File
+                    topCount = 10;
+                    break;
+                case 'geo_country':
+                    useReport = 'file_downloads_by_country';
+                    groupingKey = 'country';
+                    break;
+                default:
+                    // Handle unknown cases if needed
+                    break;
             }
 
             console.log("AGGR", resp, props, countBy, groupingKey, useReport);
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, topCount);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, topCount);
+        }
+    },
+    'file_downloads_volume' : {
+        'requires'  : "TrackingItem",
+        'function'  : function(resp, props){
+            if (!resp || !resp['@graph']) return null;
+            const { countBy : { file_downloads_volume : countBy } } = props;
+
+            let useReport = 'file_downloads_by_filetype';
+            let groupingKey = "file_type"; // File Type
+            const countKey = 'downloads_size'; // Download Size
+            let topCount = 0; // all
+
+            switch (countBy) {
+                case 'assay_type':
+                    useReport = 'file_downloads_by_assay_type';
+                    groupingKey = 'assay_type'; // Assay Type
+                    break;
+                case 'dataset':
+                    useReport = 'file_downloads_by_dataset';
+                    groupingKey = 'dataset'; // Dataset
+                    break;
+                case 'top_files':
+                    useReport = 'top_files_downloaded';
+                    groupingKey = 'file_item_id'; // File
+                    topCount = 10;
+                    break;
+                case 'geo_country':
+                    useReport = 'file_downloads_by_country';
+                    groupingKey = 'country';
+                    break;
+                default:
+                    // Handle unknown cases if needed
+                    break;
+            }
+
+            //convert volume to GB
+            const gigabyte = 1024 * 1024 * 1024;
+            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, topCount);
+            if (result && Array.isArray(result) && result.length > 0) {
+                _.forEach(result, (r) => {
+                    r.total = r.total / gigabyte;
+                    r.count = r.count / gigabyte;
+                    if (r.children && Array.isArray(r.children) && r.children.length > 0) {
+                        _.forEach(r.children, (c) => {
+                            c.total = c.total / gigabyte;
+                            c.count = c.count / gigabyte;
+                        });
+                    }
+                });
+            }
+            return result;
         }
     },
     'file_views' : {
@@ -446,20 +551,36 @@ const aggregationsToChartData = {
             if (!resp || !resp['@graph']) return null;
             const { countBy : { file_views : countBy } } = props;
 
-            let useReport = 'metadata_tsv_by_country';
-            let termBucketField = 'ga:country';
-            let countKey = 'ga:uniquePurchases';
+            let useReport = 'views_by_file';
+            let termBucketField = 'file_type';
+            let countKey = 'detail_views';
 
-            if (countBy !== 'metadata_tsv_by_country') {
-                useReport = 'views_by_file';
-                termBucketField = 'ga:productBrand';
-                countKey = 'ga:productDetailViews';
-
-                if (countBy === 'file_list_views') countKey = 'ga:productListViews';
-                else if (countBy === 'file_clicks') countKey = 'ga:productListClicks';
+            switch (countBy) {
+                case 'file_detail_views_by_file_type':
+                    // No changes needed
+                    break;
+                case 'file_detail_views_by_assay_type':
+                    termBucketField = 'assay_type';
+                    break;
+                case 'file_detail_views_by_dataset':
+                    termBucketField = 'dataset';
+                    break;
+                case 'file_list_views':
+                    countKey = 'list_views';
+                    break;
+                case 'file_clicks':
+                    countKey = 'list_clicks';
+                    break;
+                case 'metadata_tsv_by_country':
+                    useReport = 'metadata_tsv_by_country';
+                    termBucketField = 'country';
+                    countKey = 'downloads_count_with_range_queries';
+                    break;
+                default:
+                    break;
             }
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum);
         }
     },
 };
@@ -472,23 +593,28 @@ export const submissionsAggsToChartData = _.pick(aggregationsToChartData,
 );
 
 export const usageAggsToChartData = _.pick(aggregationsToChartData,
-    'sessions_by_country', 'fields_faceted', 'file_downloads', 'file_views'
+    'file_downloads',  'file_downloads_volume',
+    'sessions_by_country', 'fields_faceted','file_views'
 );
 
 
 export class UsageStatsViewController extends React.PureComponent {
 
-    static getSearchReqMomentsForTimePeriod(currentGroupBy = "daily"){
+    static getSearchReqMomentsForTimePeriod(currentGroupBy = "daily60"){
         let untilDate = new Date();
         let fromDate;
         if (currentGroupBy === 'monthly'){ // 1 yr (12 mths)
             untilDate = sub(startOfMonth(untilDate), { minutes: 1 }); // Last minute of previous month
             fromDate = toDate(untilDate);
             fromDate = sub(fromDate, { months: 12 }); // Go back 12 months
-        } else if (currentGroupBy === 'daily'){ // 30 days
+        } else if (currentGroupBy === 'daily30'){ // 30 days
             untilDate = sub(untilDate, { days: 1 });
             fromDate = toDate(untilDate);
             fromDate = sub(fromDate, { days: 30 }); // Go back 30 days
+        }else if (currentGroupBy === 'daily60'){ // 60 days
+            untilDate = sub(untilDate, { days: 1 });
+            fromDate = toDate(untilDate);
+            fromDate = sub(fromDate, { days: 60 }); // Go back 60 days
         }
         return { fromDate, untilDate };
     }
@@ -505,7 +631,9 @@ export class UsageStatsViewController extends React.PureComponent {
                     "fields_faceted",
                     "sessions_by_country",
                     "sessions_by_device_category",
+                    "sessions_by_page",
                     "file_downloads_by_assay_type",
+                    "file_downloads_by_dataset",
                     "file_downloads_by_filetype",
                     "file_downloads_by_country",
                     "top_files_downloaded",
@@ -515,9 +643,11 @@ export class UsageStatsViewController extends React.PureComponent {
                     "for_date"
                 ];
 
+                const date_increment = currentGroupBy === 'monthly' ? 'monthly' : 'daily';
+
                 let uri = '/search/?type=TrackingItem&tracking_type=google_analytics&sort=-google_analytics.for_date&format=json';
 
-                uri += '&limit=all&google_analytics.date_increment=' + currentGroupBy;
+                uri += '&limit=all&google_analytics.date_increment=' + date_increment;
                 uri += '&google_analytics.for_date.from=' + formatDate(fromDate, 'yyyy-MM-dd') + '&google_analytics.for_date.to=' + formatDate(untilDate, 'yyyy-MM-dd');
                 uri += "&" + report_names.map(function(n){ return "field=google_analytics.reports." + encodeURIComponent(n); }).join("&");
                 uri += "&field=google_analytics.for_date";
@@ -549,11 +679,13 @@ export class UsageStatsViewController extends React.PureComponent {
         const countBy = {};
 
         Object.keys(usageAggsToChartData).forEach(function(k){
-            if (k === 'file_downloads'){
+            if (k === 'file_downloads' || k === 'file_downloads_volume'){
                 countBy[k] = 'filetype'; // For file_downloads, countBy is treated as 'groupBy'.
                 // Not high enough priority to spend much time improving this file, albeit much straightforward room for it exists.
             } else if (k === 'file_views'){
-                countBy[k] = 'file_detail_views';
+                countBy[k] = 'file_detail_views_by_assay_type';
+            } else if (k === 'sessions_by_country'){
+                countBy[k] = 'views_by_country';
             } else {
                 countBy[k] = 'views';
             }
@@ -671,6 +803,9 @@ class UsageChartsCountByDropdown extends React.PureComponent {
     handleSelection(evtKey, evt){
         const { changeCountByForChart, chartID } = this.props;
         changeCountByForChart(chartID, evtKey);
+        if (chartID == 'file_downloads') {
+            changeCountByForChart('file_downloads_volume', evtKey);
+        }
     }
 
     render(){
@@ -679,22 +814,30 @@ class UsageChartsCountByDropdown extends React.PureComponent {
 
         const menuOptions = new Map();
 
-        if (chartID === 'file_downloads'){
-            menuOptions.set('filetype',         <React.Fragment><i className="icon far icon-fw icon-file-alt mr-1"/>File Type</React.Fragment>);
-            menuOptions.set('assay_type',       <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Assay Type</React.Fragment>);
-            menuOptions.set('top_files',        <React.Fragment><i className="icon far icon-fw icon-folder mr-1"/>Top 10 Files</React.Fragment>);
-            // menuOptions.set('geo_country',     <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Country</React.Fragment>);
+        if (chartID === 'file_downloads' ){
+            menuOptions.set('filetype',                 <React.Fragment><i className="icon fas icon-fas icon-file-alt mr-1"/>File Downloads by File Type</React.Fragment>);
+            menuOptions.set('assay_type',               <React.Fragment><i className="icon fas icon-fas icon-vial mr-1"/>File Downloads by Assay Type</React.Fragment>);
+            menuOptions.set('dataset',                  <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>File Downloads by Dataset</React.Fragment>);
+            menuOptions.set('top_files',                <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 10 Downloaded Files</React.Fragment>);
+            // menuOptions.set('geo_country',           <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Country</React.Fragment>);
         } else if (chartID === 'file_views'){
-            menuOptions.set('file_detail_views',        <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Detail View</React.Fragment>);
-            menuOptions.set('file_list_views',          <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Appearance in Search Results</React.Fragment>);
-            menuOptions.set('file_clicks',              <React.Fragment><i className="icon far icon-fw icon-hand-point-up mr-1"/>Search Result Click</React.Fragment>);
-            menuOptions.set('metadata_tsv_by_country',  <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Metadata.tsv Files Count by Country</React.Fragment>);
+            menuOptions.set('file_detail_views_by_file_type',        <React.Fragment><i className="icon fas icon-fw icon-file-alt mr-1"/>Detail Views by File Type</React.Fragment>);
+            menuOptions.set('file_detail_views_by_assay_type',       <React.Fragment><i className="icon fas icon-fw icon-vial mr-1"/>Detail Views by Assay Type</React.Fragment>);
+            menuOptions.set('file_detail_views_by_dataset',          <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Dataset</React.Fragment>);
+            menuOptions.set('file_list_views',          <React.Fragment><i className="icon fas icon-fas icon-list-ul mr-1"/>Appearance in Search Results</React.Fragment>);
+            menuOptions.set('file_clicks',              <React.Fragment><i className="icon fas icon-fas icon-mouse-pointer mr-1"/>Search Result Click</React.Fragment>);
+            // menuOptions.set('metadata_tsv_by_country',  <React.Fragment><i className="icon fas icon-fas icon-file mr-1"/>Metadata.tsv Files Count by Country</React.Fragment>);
+        } else if (chartID === 'sessions_by_country') {
+            menuOptions.set('views_by_country',         <React.Fragment><i className="icon icon-fw fas icon-map-marker mr-1" />Page Views by Country</React.Fragment>);
+            menuOptions.set('views_by_city',            <React.Fragment><i className="icon icon-fw fas icon-map-marker-alt mr-1" />Page Views by City</React.Fragment>);
+            menuOptions.set('device_category',          <React.Fragment><i className="icon icon-fw fas icon-laptop mr-1" />Page Views by Device</React.Fragment>);
+            menuOptions.set('page_title',               <React.Fragment><i className="icon icon-fw fas icon-font mr-1" />Page Views by Title (may load slowly)</React.Fragment>);
+            menuOptions.set('page_url',                 <React.Fragment><i className="icon icon-fw fas icon-link mr-1" />Page Views by Url (may load slowly)</React.Fragment>);
+            menuOptions.set('sessions_by_country',      <React.Fragment><i className="icon icon-fw fas icon-user-friends mr-1" />Unique Users by Country</React.Fragment>);
+            menuOptions.set('sessions_by_city',         <React.Fragment><i className="icon icon-fw fas icon-street-view mr-1" />Unique Users by City</React.Fragment>);
         } else {
-            menuOptions.set('views',            <React.Fragment><i className="icon icon-fw fas icon-eye mr-1"/>View</React.Fragment>);
-            menuOptions.set('sessions',         <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>User Session</React.Fragment>);
-            if(chartID === 'sessions_by_country') {
-                menuOptions.set('device_category',  <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Device Category</React.Fragment>);
-            }
+            menuOptions.set('views',                    <React.Fragment><i className="icon icon-fw fas icon-eye mr-1"/>Views</React.Fragment>);
+            menuOptions.set('sessions',                 <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Unique Users</React.Fragment>);
         }
 
         const dropdownTitle = menuOptions.get(currCountBy);
@@ -719,7 +862,8 @@ export function UsageStatsView(props){
         changeCountByForChart, countBy,
         // Passed in from StatsChartViewAggregator:
         sessions_by_country, chartToggles, fields_faceted,
-        file_downloads, file_views, smoothEdges, onChartToggle, onSmoothEdgeToggle
+        file_downloads, file_downloads_volume, file_views,
+        smoothEdges, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
     } = props;
 
     if (loadingStatus === 'failed'){
@@ -736,7 +880,7 @@ export function UsageStatsView(props){
         // We want all charts to share the same x axis. Here we round to date boundary.
         // Minor issue is that file downloads are stored in UTC/GMT while analytics are in EST timezone..
         // TODO improve on this somehow, maybe pass prop to FileDownload chart re: timezone parsing of some sort.
-        if (currentGroupBy === 'daily') {
+        if (currentGroupBy === 'daily30' || currentGroupBy === 'daily60') {
             fromDate = add(startOfDay(propFromDate), { minutes: 15 });
             untilDate = add(endOfDay(propUntilDate), { minutes: 45 });
             dateRoundInterval = 'day';
@@ -755,59 +899,75 @@ export function UsageStatsView(props){
     }, [ currentGroupBy, anyExpandedCharts ]);
 
     const commonContainerProps = { 'onToggle' : onChartToggle, chartToggles, windowWidth, 'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250 };
-    const commonChartProps = { dateRoundInterval, 'xDomain' : commonXDomain, 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter };
+    const commonChartProps = {
+        dateRoundInterval,
+        'xDomain': commonXDomain,
+        'curveFxn': smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter,
+        cumulativeSum: cumulativeSum
+    };
     const countByDropdownProps = { countBy, changeCountByForChart };
-    const fileDownloadClickToTooltip = (countBy.file_downloads === 'top_files');
+
+    const enableFileDownloadsChartTooltipItemClick = (countBy.file_downloads === 'top_files');
+    const fileDownloadsChartHeight = enableFileDownloadsChartTooltipItemClick ? 350 : commonContainerProps.defaultHeight;
+    const sessionsByCountryChartHeight = ['page_title', 'page_url'].indexOf(countBy.sessions_by_country) > -1 ? 500 : commonContainerProps.defaultHeight;
+    const enableSessionByCountryChartTooltipItemClick = (countBy.sessions_by_country === 'page_url');
 
     return (
         <div className="stats-charts-container" key="charts" id="usage">
 
             <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
-                title="Show" outerClassName="dropdown-container mb-0">
-                <div className="d-inline-block ml-15">
+                title="Show" outerClassName="dropdown-container mb-0 sticky-top">
+                <div className="d-inline-block ml-15 mr-15">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
+                </div>
+                <div className="d-inline-block">
+                    <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Show as cumulative sum</Checkbox>
                 </div>
             </GroupByDropdown>
 
-            { session && file_downloads ?
+            { file_downloads ?
 
                 <ColorScaleProvider resetScalesWhenChange={file_downloads}>
+                
+                    <div className="clearfix">
+                        <div className="pull-right mt-05">
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_downloads" />
+                        </div>
+                        <h3 className="charts-group-title">
+                            <span className="d-block d-sm-inline">File Downloads<sup>*</sup></span><span className="text-300 d-none d-sm-inline"> - </span>
+                            <span className="text-300">{UsageStatsView.titleExtensions['file_downloads'][countBy.file_downloads]}</span>
+                        </h3>
+                    </div>
 
-                    <hr/>
+                    <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
-                    <AreaChartContainer {...commonContainerProps} id="file_downloads" defaultHeight={fileDownloadClickToTooltip ? 350 : commonContainerProps.defaultHeight}
-                        title={
-                            <h3 className="text-300 mt-0 mb-0 charts-group-title">
-                                <span className="text-500 d-block d-sm-inline">File Downloads</span><span className="d-none d-sm-inline"> - </span>
-                                {countBy.file_downloads === 'assay_type' ? 'by assay type' :
-                                    (countBy.file_downloads === 'filetype' ? 'by file type' : 'top 10 files')}
-                            </h3>
-                        }
-                        subTitle={
-                            fileDownloadClickToTooltip ? <h4 className="font-weight-normal text-secondary">Click bar to view details</h4> : null
-                        }
-                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_downloads" />}
-                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
-                        <AreaChart {...commonChartProps} data={file_downloads} showTooltipOnHover={!fileDownloadClickToTooltip} />
+                    <AreaChartContainer {...commonContainerProps} id="file_downloads" defaultHeight={fileDownloadsChartHeight}
+                        title={<h5 className="text-400 mt-0">Total File Count</h5>}
+                        subTitle={enableFileDownloadsChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
+                        <AreaChart {...commonChartProps} data={file_downloads} showTooltipOnHover={!enableFileDownloadsChartTooltipItemClick} />
                     </AreaChartContainer>
+
+                    <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" defaultHeight={fileDownloadsChartHeight}
+                        title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
+                        subTitle={enableFileDownloadsChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
+                        <AreaChart {...commonChartProps} data={file_downloads_volume} showTooltipOnHover={!enableFileDownloadsChartTooltipItemClick} yAxisLabel="GB" />
+                    </AreaChartContainer>
+
+                    <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
 
                 </ColorScaleProvider>
 
                 : null }
 
-            {session && file_views ?
+            { file_views ?
 
                 <ColorScaleProvider resetScalesWhenChange={file_views}>
 
-                    <hr />
-
                     <AreaChartContainer {...commonContainerProps} id="file_views"
                         title={
-                            <h3 className="text-300 mt-0 mb-0 charts-group-title">
-                                <span className="text-500 d-block d-sm-inline">File Views</span><span className="d-none d-sm-inline"> - </span>
-                                {countBy.file_views === 'metadata_tsv_by_country' ? 'metadata.tsv files' :
-                                    (countBy.file_views === 'file_list_views' ? 'appearances in results' :
-                                        countBy.file_views === 'file_clicks' ? 'clicks from results' : 'file detail views')}
+                            <h3 className="charts-group-title">
+                                <span className="d-block d-sm-inline">File Views</span><span className="text-300 d-none d-sm-inline"> - </span>
+                                <span className="text-300">{UsageStatsView.titleExtensions['file_views'][countBy.file_views]}</span>
                             </h3>
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" />}
@@ -823,19 +983,22 @@ export function UsageStatsView(props){
 
                 <ColorScaleProvider resetScaleLegendWhenChange={sessions_by_country}>
 
-                    <hr/>
-
                     <AreaChartContainer {...commonContainerProps} id="sessions_by_country"
                         title={
-                            <h3 className="text-300 mt-0 charts-group-title">
-                                <span className="text-500 d-block d-sm-inline">{countBy.sessions_by_country === 'sessions' ? 'User Sessions' : 'Page Views'}</span>
-                                <span className="d-none d-sm-inline"> - </span>
-                                {countBy.sessions_by_country !== 'device_category' ? 'by country' : 'by device categoory'}
+                            <h3 className="charts-group-title">
+                                <span className="d-block d-sm-inline">{
+                                    countBy.sessions_by_country === 'sessions_by_country' || countBy.sessions_by_country === 'sessions_by_city' ?
+                                        'Unique Users' : 'Page Views'
+                                }</span>
+                                <span className="text-300 d-none d-sm-inline"> - </span>
+                                <span className="text-300">{UsageStatsView.titleExtensions['sessions_by_country'][countBy.sessions_by_country]}</span>
                             </h3>
                         }
+                        subTitle={enableSessionByCountryChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" />}
-                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
-                        <AreaChart {...commonChartProps} data={sessions_by_country} />
+                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}
+                        defaultHeight={sessionsByCountryChartHeight}>
+                        <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} />
                     </AreaChartContainer>
 
                 </ColorScaleProvider>
@@ -843,18 +1006,16 @@ export function UsageStatsView(props){
                 : null }
 
 
-            { session && fields_faceted ?
+            { fields_faceted ?
 
                 <ColorScaleProvider resetScaleLegendWhenChange={fields_faceted}>
 
-                    <hr className="mt-3"/>
-
                     <AreaChartContainer {...commonContainerProps} id="fields_faceted"
                         title={
-                            <h3 className="text-300 mt-0 charts-group-title">
-                                <span className="text-500 d-block d-sm-inline">Top Fields Faceted</span>
-                                <span className="d-none d-sm-inline"> - </span>
-                                { countBy.fields_faceted === 'sessions' ? 'by user session' : 'by search result instance' }
+                            <h3 className="charts-group-title">
+                                <span className="d-block d-sm-inline">Top Fields Faceted</span>
+                                <span className="text-300 d-none d-sm-inline"> - </span>
+                                <span className="text-300">{ UsageStatsView.titleExtensions['fields_faceted'][countBy.fields_faceted] }</span>
                             </h3>
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="fields_faceted" />}
@@ -870,6 +1031,36 @@ export function UsageStatsView(props){
         </div>
     );
 }
+UsageStatsView.titleExtensions = {
+    'file_views': {
+        'metadata_tsv_by_country': 'metadata.tsv files',
+        'file_list_views': 'appearances in results',
+        'file_clicks': 'clicks from results',
+        'file_detail_views_by_file_type': 'detail views by file type',
+        'file_detail_views_by_assay_type': 'detail views by assay type',
+        'file_detail_views_by_dataset': 'detail views by dataset',
+    },
+    'sessions_by_country': {
+        'views_by_country': 'by country',
+        'views_by_city': 'by city',
+        'sessions_by_country': 'by country',
+        'sessions_by_city': 'by city',
+        'device_category': 'by device category',
+        'page_title': 'by page title',
+        'page_url': 'by page url'
+    },
+    'file_downloads': {
+        'assay_type': 'by assay type',
+        'filetype': 'by file type',
+        'dataset': 'by dataset',
+        'top_files': 'top 10 files'
+    },
+    'fields_faceted': {
+        'views': 'by search result instance',
+        'sessions': 'by unique users'
+    }
+};
+
 
 export function SubmissionsStatsView(props) {
     const {
@@ -1011,7 +1202,7 @@ SubmissionsStatsView.colorScaleForPublicVsInternal = function(term){
 const convertDataRangeToXDomain = memoize(function (rangePreset = 'all', rangeFrom, rangeTo) {
     const rangeLower = (rangePreset || '').toLowerCase();
     
-    const fallbackFromDate = '2023-11-08';
+    const defaultFromDate = '2023-11-08';
     const today = new Date();
     const month = today.getMonth();
     let from = new Date(today.getFullYear(), month, 1);
@@ -1044,16 +1235,16 @@ const convertDataRangeToXDomain = memoize(function (rangePreset = 'all', rangeFr
             to = new Date(today.getFullYear(), 1, 1);
             break;
         case 'custom':
-            from = new Date(rangeFrom || fallbackFromDate);
+            from = new Date(rangeFrom || defaultFromDate);
             to = rangeTo ? new Date(rangeTo) : null;
             if (from && to && (from > to)) {
-                from = new Date(fallbackFromDate);
+                from = new Date(defaultFromDate);
                 to = null;
             }
             break;
         case 'all':
         default:
-            from = new Date(fallbackFromDate);
+            from = new Date(defaultFromDate);
             break;
     }
     // get first day of date's week
