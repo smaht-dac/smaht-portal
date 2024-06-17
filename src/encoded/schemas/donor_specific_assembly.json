@@ -1,0 +1,148 @@
+{
+    "title": "Donor Specific Assembly",
+    "$id": "/profiles/donor_specific_assembly.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "donor",
+        "submission_centers",
+        "submitted_id"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/code"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/protocols"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/title"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/version"
+        },
+        {
+            "$ref": "mixins.json#/comments"
+        },
+        {
+            "$ref": "mixins.json#/n50"
+        },
+        {
+            "$ref": "mixins.json#/file_links"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "DSA"
+        },
+        "code": {
+            "pattern": "^[A-Za-z0-9]{3,}$"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "version": {
+            "pattern": "^[A-Za-z0-9_-.]{3,}$"
+        },
+        "busco_score": {
+            "title": "BUSCO Score",
+            "description": "Precentage of highly conserved genes in assembly",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+        },
+        "donor": {
+            "title": "Donor",
+            "description": "Link to associated Donor",
+            "type": "string",
+            "linkTo": "Donor"  
+        },
+        "files": {
+            "title": "Files",
+            "description": "Files associated with the reference genome",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "File"
+            }
+        },
+        "largest_contig": {
+            "title": "Largest Contig",
+            "description": "Largest contig in the assembly (Mb)",
+            "type": "number",
+            "minumum": 0
+        },
+        "number_of_contigs": {
+            "title": "Number of Contigs",
+            "description": "Number of contigs in the assembly",
+            "type": "integer",
+            "minumum": 0
+        },
+        "total_length": {
+            "title": "Total Length",
+            "description": "Total number of bases in the assembly (Gb)",
+            "type": "number",
+            "minimum": 0
+        }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "status": {
+            "title": "Status"
+        },
+        "donor": {
+            "title": "Donor"
+        }
+    },
+    "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
+        "donor": {
+            "title": "Donor"
+        },
+        "code": {
+            "title": "Code"
+        }
+    }
+}
