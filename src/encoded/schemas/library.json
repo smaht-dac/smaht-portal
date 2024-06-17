@@ -35,6 +35,9 @@
             "$ref": "mixins.json#/protocols"
         },
         {
+            "$ref": "mixins.json#/comments"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -102,12 +105,10 @@
             }
         },
         "comments": {
-            "title": "Comments",
-            "description": "Additional comments for library",
-            "type": "string"
+            "description": "Additional comments for library"
         },
         "concatenated_reads": {
-            "title": "Concatenated Reads Library?",
+            "title": "Concatenated Reads Included",
             "description": "Whether or not the library contains concatenated reads. Relevant for Kinnex",
             "type": "string",
             "enum": [
@@ -116,16 +117,64 @@
                 "Not applicable"
             ]
         },
+        "fragment_mean_length": {
+            "title": "Fragment Mean Length",
+            "description": "Mean length of the sequenced fragments, e.g. as predicted by Agilent Bioanalyzer (bp)",
+            "type": "number",
+            "minimum": 0
+        },
+        "insert_coefficient_of_variation": {
+            "title": "Insert Coefficient of Variation",
+            "description": "Coefficient of variation of the length of the sample molecule in the fragments to be sequenced",
+            "type": "number",
+            "minimum": 0
+        },
+        "insert_maximum_length": {
+            "title": "Insert Maximum Length",
+            "description": "Maximum length of the sample molecule in the fragments to be sequenced (bp)",
+            "type": "integer",
+            "minimum": 0
+        },
+        "insert_mean_length": {
+            "title": "Insert Mean Length",
+            "description": "Mean length of the sample molecule in the fragments to be sequenced (bp)",
+            "type": "number",
+            "minimum": 0
+        },
+        "insert_minimum_length": {
+            "title": "Insert Minimum Length",
+            "description": "Minimum length of the sample molecule in the fragments to be sequenced (bp)",
+            "type": "integer",
+            "minimum": 0
+        },
         "preparation_date": {
             "title": "Preparation Date",
             "description": "Date of library preparation",
             "type": "string",
             "format": "date"
         },
-        "target_library_size": {
-            "title": "Target library size",
-            "description": "Targetted size for library (bp)",
+        "target_fragment_size": {
+            "title": "Target fragment size",
+            "description": "Targeted fragment size for library (bp)",
             "type": "integer"
+        },
+        "target_insert_maximum_length": {
+            "title": "Target Insert Maximum Length",
+            "description": "Target maximum length of the insert (bp)",
+            "type": "integer",
+            "minimum": 0
+        },
+        "target_insert_mean_length": {
+            "title": "Target Insert Mean Length",
+            "description": "Target mean length of the insert (bp)",
+            "type": "integer",
+            "minimum": 0
+        },
+        "target_insert_minimum_length": {
+            "title": "Target Insert Minimum Length",
+            "description": "Target minimum length of the insert (bp)",
+            "type": "integer",
+            "minimum": 0
         },
         "target_monomer_size": {
             "title": "Target Monomer Size",
@@ -161,7 +210,9 @@
             "if": {
                 "not": {
                     "properties": {
-                    "concatenated_reads": {"const": "Yes"}
+                        "concatenated_reads": {
+                            "const": "Yes"
+                        }
                     }
                 }
             },

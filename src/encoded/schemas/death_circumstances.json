@@ -124,7 +124,7 @@
             "type": "string",
             "enum": [
                 "Brain Dead",
-                "Donation after circulatory death",
+                "Donation Ater Circulatory Death",
                 "Postmortem"
             ]
         },

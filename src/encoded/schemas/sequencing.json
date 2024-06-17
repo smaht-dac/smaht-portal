@@ -75,12 +75,6 @@
             "description": "Flow cell used for sequencing",
             "type": "string"
         },
-        "monomer_count": {
-            "title": "Monomer Count",
-            "description": "Monomer count for Kinnex",
-            "type": "integer",
-            "minimum": 0
-        },
         "movie_length": {
             "title": "Movie Length",
             "description": "Length of movie used in sequencing (hours)",
@@ -117,13 +111,13 @@
         },
         "target_monomer_length": {
             "title": "Target Monomer Length",
-            "description": "Target monomer length for Kinnex (bp)",
+            "description": "Target monomer length for Kinnex/MAS-Seq (bp)",
             "type": "integer",
             "minimum": 0
         },
         "basecalling": {
             "title": "Basecalling",
-            "description": "Details of pipeline used to call bases from raw sequencing data, if applicable. Relevent for ONT",
+            "description": "Details of pipeline used to call bases from raw sequencing data, if applicable. Relevant for ONT",
             "type": "string",
             "linkTo": "Basecalling"
         },
@@ -133,16 +127,15 @@
             "type": "string",
             "linkTo": "Sequencer"
         },
-        "sequencing_preparation_kit": {
-            "title": "Sequencing Preparation Kit",
-            "description": "Link to sequencing preparation kits",
+        "preparation_kits": {
+            "title": "Preparation Kits",
+            "description": "Links to sequencing preparation kits",
             "type": "array",
             "uniqueItems": true,
             "items": {
                 "type": "string",
                 "linkTo": "PreparationKit"
             }
-            
         }
     }
 }
