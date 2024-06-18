@@ -12,12 +12,11 @@ The ``download_cli`` API will return short term AWS credentials for direct acces
     cut -f 1,3 ./smaht_manifest.tsv |
     tail -n +4 |
     grep -v ^# |
-    xargs -n 2 -L 1 sh -c
-    '(credentials=$(curl -s -L --user <access_key_id>:<access_key_secret> $0 |
-    jq -r ".AccessKeyId, .SecretAccessKey, .SessionToken .download_url")
-    && export AWS_ACCESS_KEY_ID=$(echo $credentials | awk "{print \$1}")
-    && export AWS_SECRET_ACCESS_KEY=$(echo $credentials | awk "{print \$2}")
-    && export AWS_SESSION_TOKEN=$(echo $credentials | awk "{print \$3}")
-    && download_url=$(echo $credentials | awk "{print \$4}")
-    && aws s3 cp $download_url $1)'
+    xargs -n 2 -L 1 sh -c '
+    credentials=$(curl -s -L --user <id>>:<secret> "$0" | jq -r ".download_credentials | {AccessKeyId, SecretAccessKey, SessionToken, download_url}") &&
+    export AWS_ACCESS_KEY_ID=$(echo $credentials | jq -r ".AccessKeyId") &&
+    export AWS_SECRET_ACCESS_KEY=$(echo $credentials | jq -r ".SecretAccessKey") &&
+    export AWS_SESSION_TOKEN=$(echo $credentials | jq -r ".SessionToken") &&
+    download_url=$(echo $credentials | jq -r ".download_url") &&
+    aws s3 cp "$download_url" "$1"''
 
