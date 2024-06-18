@@ -81,9 +81,6 @@ def get_submitted_id_pattern_failures(testapp: TestApp) -> List[str]:
     submitted_items = get_submitted_item_types(testapp)
     for item_name, type_info in submitted_items.items():
         pattern_failure = get_submitted_id_pattern_failure(item_name, type_info)
-        import pdb
-
-        pdb.set_trace()
         if pattern_failure:
             result.append(pattern_failure)
     return result

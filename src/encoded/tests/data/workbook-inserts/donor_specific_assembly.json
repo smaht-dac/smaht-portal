@@ -1,0 +1,10 @@
+[
+    {
+        "uuid": "5154145c-f45d-4616-a3d6-557173de5c5a",
+        "submitted_id": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
+        "submission_centers": [
+            "smaht"
+        ],
+        "cell_line": "TEST_CELL-LINE_HELA"
+    }
+]
