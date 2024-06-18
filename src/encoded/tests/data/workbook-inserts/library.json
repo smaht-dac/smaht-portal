@@ -29,5 +29,16 @@
         "fragment_mean_length": 150.7,
         "insert_mean_length": 150.2,
         "assay": "bulk_wgs"
+    },
+    {
+        "uuid": "225356c9-7a02-4ad9-9214-f45ae8eeffec",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY_HELA_ONLY",
+        "analytes": [
+            "TEST_ANALYTE_HELA_ONLY"
+        ],
+        "assay": "bulk_wgs"
     }
 ]

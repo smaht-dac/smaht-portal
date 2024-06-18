@@ -37,5 +37,24 @@
             "TEST_CELL-CULTURE-SAMPLE_HELA",
             "TEST_CELL-CULTURE-SAMPLE_HELA-HEK293"
         ]
+    },
+    {
+        "uuid": "f40150b3-fb8c-4ff2-8102-b37ac00f2af0",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ANALYTE_HELA_ONLY",
+        "molecule_detail": [
+            "mRNA"
+        ],
+        "molecule": [
+            "RNA"
+        ],
+        "a260_a280_ratio": 3.2,
+        "concentration": 6.2,
+        "concentration_unit": "ng/uL",
+        "samples": [
+            "TEST_CELL-CULTURE-SAMPLE_HELA"
+        ]
     }
 ]

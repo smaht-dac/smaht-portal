@@ -25,6 +25,7 @@
     },
     {
         "uuid": "621e0ea9-0365-4e65-9790-05aa43c52261",
+        "accession": "SMAURV9YIJWF",
         "submission_centers": [
             "smaht"
         ],
@@ -38,12 +39,14 @@
         "file_format": "FASTQ",
         "filename": "some_fastq_R2.fastq.gz",
         "file_sets": [
-            "TEST_FILE-SET_LIVER"
+            "TEST_FILE-SET_HELA_ONLY"
         ],
         "read_pair_number": "R2",
         "file_size": 20000,
         "paired_with": "TEST_UNALIGNED-READS_FASTQ",
         "status": "released",
+        "sequencing_center": "smaht",
+        "annotated_filename": "SMHTHELA-X-X-F65-X002-TEST-SMAURV9YIJWF-X.fastq.gz",
         "dataset": "colo829t"
     },
     {
@@ -61,7 +64,7 @@
         "file_format": "FASTQ",
         "filename": "some_fastq_unpaired.fastq.gz",
         "file_sets": [
-            "TEST_FILE-SET_LIVER"
+            "TEST_FILE-SET_HELA"
         ],
         "file_size": 30000,
         "status": "released",

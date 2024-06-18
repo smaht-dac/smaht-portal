@@ -683,7 +683,7 @@ def get_file_extension(
     ):
         logger.warning(
             f"Unexpected file format for file {item_utils.get_uuid(file)}:"
-            f" {file_utils.get_file_format(file, request_handler)}."
+            f" {file_utils.get_file_format(file)}."
             f" May warrant further investigation."
         )
     file_format = file_utils.get_file_extension(file, request_handler)
