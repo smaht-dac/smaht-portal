@@ -18,7 +18,11 @@ def upgrade_library_1_2(
 def upgrade_library_2_3(
     value: Dict[str, Any], system: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """Delete properties in `removed_properties` from library."""
+    """Delete properties in `removed_properties` from library.
+
+    Handle `target_mean_insert_length` to `target_fragment_size`
+    name change.
+    """
 
     removed_properties = [
         "fragment_minimum_length",
@@ -29,3 +33,7 @@ def upgrade_library_2_3(
     for property in removed_properties:
         if property in value:
             del value[property]
+
+    if "target_insert_mean_length" in value:
+        value["target_fragment_size"] = value["target_insert_mean_length"]
+        del value["target_insert_mean_length"]

@@ -3,7 +3,10 @@ from typing import Any, Dict
 import pytest
 from webtest import TestApp
 
-from .utils import patch_item
+from .utils import (
+    patch_item,
+    get_insert_identifier_for_item_type,
+)
 
 
 @pytest.mark.workbook
@@ -28,10 +31,11 @@ def test_rna_integrity_requirements(
     workbook: None,
 ) -> None:
     """Ensure mutual requirements for RIN and instrument."""
+    uuid = get_insert_identifier_for_item_type(es_testapp, "Analyte")
     patch_item(
         es_testapp,
         patch_body,
-        "3932c9d7-c5e6-46c3-9e67-2ccd276f4b74",
+        uuid,
         status=expected_status,
     )
 
@@ -58,10 +62,11 @@ def test_dna_integrity_requirements(
     workbook: None,
 ) -> None:
     """Ensure mutual requirements for DIN and instrument."""
+    uuid = get_insert_identifier_for_item_type(es_testapp, "Analyte")
     patch_item(
         es_testapp,
         patch_body,
-        "3932c9d7-c5e6-46c3-9e67-2ccd276f4b74",
+        uuid,
         status=expected_status,
     )
 
@@ -104,10 +109,11 @@ def test_dna_quality_requirements(
     workbook: None,
 ) -> None:
     """Ensure mutual requirements for DQN, instrument, and threshold size."""
+    uuid = get_insert_identifier_for_item_type(es_testapp, "Analyte")
     patch_item(
         es_testapp,
         patch_body,
-        "3932c9d7-c5e6-46c3-9e67-2ccd276f4b74",
+        uuid,
         status=expected_status,
     )
 
@@ -153,9 +159,10 @@ def test_genome_quality_requirements(
     workbook: None,
 ) -> None:
     """Ensure mutual requirements for GQN, instrument, and threshold size."""
+    uuid = get_insert_identifier_for_item_type(es_testapp, "Analyte")
     patch_item(
         es_testapp,
         patch_body,
-        "3932c9d7-c5e6-46c3-9e67-2ccd276f4b74",
+        uuid,
         status=expected_status,
     )

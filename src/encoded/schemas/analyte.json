@@ -64,6 +64,12 @@
         ],
         "volume_unit": [
             "volume"
+        ],
+        "yield_per_unit": [
+            "yield_unit"
+        ],
+        "yield_unit": [
+            "yield_per_unit"
         ]
     },
     "identifyingProperties": [
@@ -344,17 +350,21 @@
             "type": "number",
             "minimum": 0
         },
-        "yield_per_million_cells": {
-            "title": "Yield per million cells",
-            "description": "Yield per million cells (ug/M cells), if applicable",
+        "yield_per_unit": {
+            "title": "Yield Per Unit",
+            "description": "Yield per unit of sample",
             "type": "number",
             "minimum": 0
         },
-        "yield_per_mg_tissue": {
-            "title": "Yield per mg tissue",
-            "description": "Yield per milligram of tissue (ug/mg), if applicable",
-            "type": "number",
-            "minimum": 0
+        "yield_unit": {
+            "title": "Yield Unit",
+            "description": "Unit used for measuring yield per unit of sample",
+            "type": "string",
+            "enum": [
+                "ug/million cells",
+                "ug/mg",
+                "ug/vial of cells"
+            ]
         }
     },
     "facets": {

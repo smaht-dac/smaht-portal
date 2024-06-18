@@ -106,24 +106,23 @@
             "minimum": 0
         }
     },
-    "allOf": [
+    "anyOf": [
         {
-            "if": {
-                "not": {
-                    "properties": {
-                        "category": {
-                            "const": "Core"
-                        }
+            "not": {
+                "properties": {
+                    "category": {
+                        "const": "Core"
                     }
-                }
-            },
-            "then": {
-                "not": {
-                    "required": [
-                        "core_size"
-                    ]
-                }
+                },
+                "required": [
+                    "category"
+                ]
             }
+        },
+        {
+            "required": [
+                "core_size"
+            ]
         }
     ],
     "facets": {

@@ -114,7 +114,8 @@
             "enum": [
                 "Yes",
                 "No",
-                "Not applicable"
+                "Not applicable",
+                ""
             ]
         },
         "fragment_mean_length": {
@@ -156,17 +157,12 @@
         "target_fragment_size": {
             "title": "Target fragment size",
             "description": "Targeted fragment size for library (bp)",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0
         },
         "target_insert_maximum_length": {
             "title": "Target Insert Maximum Length",
             "description": "Target maximum length of the insert (bp)",
-            "type": "integer",
-            "minimum": 0
-        },
-        "target_insert_mean_length": {
-            "title": "Target Insert Mean Length",
-            "description": "Target mean length of the insert (bp)",
             "type": "integer",
             "minimum": 0
         },
@@ -179,7 +175,8 @@
         "target_monomer_size": {
             "title": "Target Monomer Size",
             "description": "For libraries with concatenated reads, the target monomer size (bp). Relevant for Kinnex",
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0
         },
         "analytes": {
             "title": "Analytes",
@@ -205,24 +202,20 @@
             "linkTo": "LibraryPreparation"
         }
     },
-    "allOf": [
+    "anyOf": [
         {
-            "if": {
-                "not": {
-                    "properties": {
-                        "concatenated_reads": {
-                            "const": "Yes"
-                        }
+            "not": {
+                "properties": {
+                    "concatenated_reads": {
+                        "const": "Yes"
                     }
                 }
-            },
-            "then": {
-                "not": {
-                    "required": [
-                        "target_monomer_size"
-                    ]
-                }
             }
+        },
+        {
+            "required": [
+                "target_monomer_size"
+            ]
         }
     ],
     "facets": {
