@@ -10,6 +10,7 @@
         ],
         "name": "bwa_mem_v1",
         "title": "BWA-MEM",
+        "code": "bwamem",
         "version": "1.2.3"
     },
     {

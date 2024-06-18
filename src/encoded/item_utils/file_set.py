@@ -1,7 +1,7 @@
 from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
-from . import library as library_utils
+from . import library as library_utils, sample as sample_utils
 from .utils import RequestHandler, get_property_values_from_identifiers
 
 
@@ -25,7 +25,16 @@ def get_samples(
     """
     result = []
     if samples := file_set.get("samples"):
-        result = samples
+        if request_handler:
+            parent_samples = get_property_values_from_identifiers(
+                request_handler,
+                samples,
+                partial(sample_utils.get_all_parent_samples, request_handler),
+            )
+            parents_to_add = [item for item in parent_samples if item not in samples]
+            result = samples + parents_to_add
+        else:
+            result = samples
     elif request_handler:
         result = get_property_values_from_identifiers(
             request_handler,

@@ -16,6 +16,7 @@ from encoded.item_utils import (
     item as item_utils,
     sample as sample_utils,
     tissue as tissue_utils,
+    tissue_sample as tissue_sample_utils,
 )
 from encoded.item_utils.constants import file as file_constants
 from encoded.item_utils.utils import (
@@ -421,7 +422,7 @@ def get_aliquot_id_from_tissue_sample(
     Otherwise, return the aliquot ID from the metadata.
     """
     item = request_handler.get_item(sample_id)
-    if tissue_utils.is_homogenate(item):
+    if tissue_sample_utils.is_homogenate(item):
         return DEFAULT_ABSENT_FIELD
     return sample_utils.get_aliquot_id(item)
 
@@ -535,7 +536,7 @@ def get_sequencing_center_code(
         request_handler, file_utils.get_sequencing_center(file), item_utils.get_code
     )
     if center_code:
-        return get_filename_part(value=center_code)
+        return get_filename_part(value=center_code.upper())
     return get_filename_part(errors=["Unknown sequencing center code"])
 
 

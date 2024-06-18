@@ -21,11 +21,13 @@
             "TEST_FILE-SET_LIVER"
         ],
         "software": [
-            "foo:software_vep"
+            "foo:software_vep",
+            "TEST_SOFTWARE_BWA-MEM"
         ],
         "reference_genome": "GRCh38",
+        "sequencing_center": "smaht",
         "access_status": "Open",
-        "annotated_filename": "SMHT001-1A-100A1-F65-B003-DAC-SMAARNRVZGBE-bwamem0.1.2_GRCh38.aligned.sorted.bam",
+        "annotated_filename": "SMHT001-1A-100A1-F65-X002-TEST-SMAARNRVZGBE-bwamem_1.2.3_GRCh38.aligned.sorted.bam",
         "file_size": 1000,
         "status": "released",
         "dataset": "colo829t"

@@ -41,6 +41,37 @@ def get_sample_sources(properties: Dict[str, Any]) -> List[Union[str, Dict[str, 
     return properties.get("sample_sources", [])
 
 
+def get_parent_samples(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
+    """Get parent samples associated with sample."""
+    return properties.get("parent_samples", [])
+
+
+def get_all_parent_samples(
+    request_handler: RequestHandler, properties: Dict[str, Any]
+) -> List[str]:
+    """Get all parent samples associated with sample recursively."""
+    parent_samples = get_parent_samples(properties)
+    to_get = set(
+        get_property_values_from_identifiers(
+            request_handler, parent_samples, item.get_uuid
+        )
+    )
+    seen = set()
+    while to_get:
+        uuid = to_get.pop()
+        if uuid in seen:
+            continue
+        seen.add(uuid)
+        to_get.update(
+            get_property_values_from_identifiers(
+                request_handler,
+                get_parent_samples(request_handler.get_item(uuid)),
+                item.get_uuid,
+            )
+        )
+    return list(seen)
+
+
 def is_tissue_sample(properties: Dict[str, Any]) -> bool:
     """Check if sample is a tissue."""
     return item.get_type(properties) == "TissueSample"
