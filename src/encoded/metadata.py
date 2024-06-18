@@ -147,12 +147,25 @@ TSV_MAPPING = {
 }
 
 
-def generate_file_download_header(download_file_name: str):
+def generate_file_download_header(download_file_name: str, cli=False):
     """ Helper function that generates a suitable header for the File download, generating 18 columns"""
     header1 = ['###', 'Metadata TSV Download', 'Column Count', '18'] + ([''] * 14)  # length 18
-    header2 = ['Suggested command to download: ', '', '',
-               "cut -f 1,3 ./{} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L "
-               "--user <access_key_id>:<access_key_secret> $0 --output $1'".format(download_file_name)] + ([''] * 14)
+    if cli:
+        header2 = ['Suggested command to download: ', '', '',
+                   (f'cut -f 1,3 ./{download_file_name} | tail -n +4 | grep -v ^# | '
+                    f'xargs -n 2 -L 1 sh -c \'credentials=$(curl -s -L '
+                    f'--user <access_key_id>:<access_key_secret> "$0" '
+                    '| jq -r ".download_credentials | {AccessKeyId, SecretAccessKey, SessionToken, download_url}") '
+                    f'&& export AWS_ACCESS_KEY_ID=$(echo $credentials | jq -r ".AccessKeyId") '
+                    f'&& export AWS_SECRET_ACCESS_KEY=$(echo $credentials | jq -r ".SecretAccessKey") '
+                    f'&& export AWS_SESSION_TOKEN=$(echo $credentials | jq -r ".SessionToken") '
+                    f'&& download_url=$(echo $credentials | jq -r ".download_url") '
+                    f'&& aws s3 cp "$download_url" "$1"')] + ([''] * 14)
+    else:
+        header2 = ['Suggested command to download: ', '', '',
+                   "cut -f 1,3 ./{} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L "
+                   "--user <access_key_id>:<access_key_secret> $0 --output $1'".format(download_file_name)] + (
+                              [''] * 14)
     header3 = list(TSV_MAPPING[FILE].keys())
     return header1, header2, header3
 
@@ -262,7 +275,7 @@ def handle_metadata_arguments(context, request):
 
     # Generate a header, resolve mapping
     # Note that this will become more complex as we add additional header types
-    header = generate_file_download_header(download_file_name)
+    header = generate_file_download_header(download_file_name, cli=cli)
     tsv_mapping = TSV_MAPPING[FILE]
     return MetadataArgs(accessions, sort_param, type_param, include_extra_files, download_file_name, header,
                         tsv_mapping, cli)

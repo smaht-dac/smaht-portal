@@ -157,6 +157,9 @@ class TestMetadataTSVWorkbook:
         tsv = res._app_iter[0]
         assert b'Metadata TSV Download' in tsv
         assert b'/output-files/cca15caa-bc11-4a6a-8998-ea0c69df8b9d/@@download_cli' in tsv
+        parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
+        header_command_part = 'jq -r ".download_credentials | {AccessKeyId'
+        assert header_command_part in parsed[1][3]  # this is where suggested command is
 
     @pytest.mark.workbook
     def test_peak_metadata_workbook(self, workbook, es_testapp):
