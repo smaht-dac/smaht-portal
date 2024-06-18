@@ -675,28 +675,42 @@ def test_samples(es_testapp: TestApp, workbook: None) -> None:
     )
     assert submitted_file_with_samples_search
     for submitted_file in submitted_file_with_samples_search:
-        assert_samples_calcprop_matches_embeds(submitted_file)
+        assert_samples_calcprop_includes_embeds(submitted_file)
 
     output_file_with_samples_search = search_type_for_key(
         es_testapp, "OutputFile", search_key
     )
     assert output_file_with_samples_search
     for output_file in output_file_with_samples_search:
-        assert_samples_calcprop_matches_embeds(output_file)
+        assert_samples_calcprop_includes_embeds(output_file)
 
 
-def assert_samples_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
-    """Ensure 'samples' calcprop matches file_sets.libraries.analytes.samples."""
+def assert_samples_calcprop_includes_embeds(file: Dict[str, Any]) -> None:
+    """Ensure 'samples' calcprop includes file_sets.libraries.analytes.samples.
+
+    Due to inclusion of parent samples, the calcprop may include more
+    samples than are directly embedded.
+    """
     samples_from_calcprop = file_utils.get_samples(file)
     file_sets = file_utils.get_file_sets(file)
     samples = get_unique_values(file_sets, file_set_utils.get_samples)
     if samples:
-        assert_items_match(samples_from_calcprop, samples)
+        assert_items_present(samples, samples_from_calcprop)
     else:
         libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
         analytes = get_unique_values(libraries, library_utils.get_analytes)
         samples = get_unique_values(analytes, analyte_utils.get_samples)
-        assert_items_match(samples_from_calcprop, samples)
+        assert_items_present(samples, samples_from_calcprop)
+
+
+def assert_items_present(
+    items: List[Dict[str, Any]], items_to_check: List[Dict[str, Any]]
+) -> None:
+    """Ensure all items present in items_to_check."""
+    items_uuids = [item_utils.get_uuid(item) for item in items]
+    items_to_check_uuids = [item_utils.get_uuid(item) for item in items_to_check]
+    for item_uuid in items_uuids:
+        assert item_uuid in items_to_check_uuids
 
 
 @pytest.mark.workbook

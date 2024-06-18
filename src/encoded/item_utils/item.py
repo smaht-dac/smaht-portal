@@ -13,6 +13,11 @@ def get_accession(properties: Dict[str, Any]) -> str:
     return properties.get("accession", "")
 
 
+def get_at_id(properties: Dict[str, Any]) -> str:
+    """Get @id from properties."""
+    return properties.get("@id", "")
+
+
 def get_status(properties: Dict[str, Any]) -> str:
     """Get status from properties."""
     return properties.get(item_constants.STATUS, "")

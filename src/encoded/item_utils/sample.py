@@ -53,7 +53,7 @@ def get_all_parent_samples(
     parent_samples = get_parent_samples(properties)
     to_get = set(
         get_property_values_from_identifiers(
-            request_handler, parent_samples, item.get_uuid
+            request_handler, parent_samples, item.get_at_id
         )
     )
     seen = set()

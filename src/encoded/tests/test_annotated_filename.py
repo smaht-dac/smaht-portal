@@ -135,7 +135,6 @@ def test_get_annotated_filename(es_testapp: TestApp, workbook: None) -> None:
     for file in files:
         expected = file_utils.get_annotated_filename(file)
         result = str(get_annotated_filename(file, request_handler))
-        import pdb; pdb.set_trace()
         assert result == expected, (
             f"Expected annotated filename {expected} for file"
             f" {item_utils.get_uuid(file)} but found {result}."
