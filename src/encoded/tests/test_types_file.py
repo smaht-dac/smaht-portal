@@ -11,6 +11,7 @@ from .utils import (
 )
 from ..item_utils import (
     analyte as analyte_utils,
+    cell_line as cell_line_utils,
     file as file_utils,
     file_set as file_set_utils,
     item as item_utils,
@@ -20,7 +21,11 @@ from ..item_utils import (
     software as software_utils,
     tissue as tissue_utils,
 )
-from ..item_utils.utils import get_unique_values, RequestHandler
+from ..item_utils.utils import (
+    get_property_values_from_identifiers,
+    get_unique_values,
+    RequestHandler,
+)
 from ..types.file import CalcPropConstants
 
 
@@ -759,7 +764,11 @@ def assert_sample_sources_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
 def test_donors(es_testapp: TestApp, workbook: None) -> None:
     """Ensure 'donors' calcprop is correct.
 
-    Search on the embed and compare to the calcprop to ensure they match.
+    Search on the embed and compare to the calcprop to ensure as
+    expected.
+
+    Note: Donors on cell lines are not embedded but are present on
+    calcprop.
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
@@ -768,8 +777,13 @@ def test_donors(es_testapp: TestApp, workbook: None) -> None:
         es_testapp, "File", search_key, exists=False
     )
     assert file_without_donors_search
+    request_handler = RequestHandler(test_app=es_testapp)
     for file in file_without_donors_search:
-        assert not file_utils.get_donors(file)
+        cell_lines = file_utils.get_cell_lines(file, request_handler)
+        if cell_lines:
+            assert_cell_line_donors_match_calcprop(request_handler, file, cell_lines)
+        else:
+            assert not file_utils.get_donors(file)
 
     submitted_file_with_donors_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
@@ -784,6 +798,19 @@ def test_donors(es_testapp: TestApp, workbook: None) -> None:
     assert output_file_with_donors_search
     for output_file in output_file_with_donors_search:
         assert_donors_calcprop_matches_embeds(output_file)
+
+
+def assert_cell_line_donors_match_calcprop(
+    request_handler: RequestHandler,
+    file: Dict[str, Any],
+    cell_lines: List[Dict[str, Any]],
+) -> None:
+    """Ensure cell line donors match calcprop."""
+    donor_ids = get_property_values_from_identifiers(
+        request_handler, cell_lines, cell_line_utils.get_donor
+    )
+    donors = request_handler.get_items(donor_ids)
+    assert_items_match(donors, file_utils.get_donors(file))
 
 
 def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
