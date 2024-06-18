@@ -56,5 +56,37 @@
         "samples": [
             "TEST_CELL-CULTURE-SAMPLE_HELA"
         ]
+    },
+    {
+        "uuid": "bbaf4f08-f433-4dea-9a9f-c7f9f88191e3",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ANALYTE_HELA-HEK293",
+        "molecule_detail": [
+            "Total DNA"
+        ],
+        "molecule": [
+            "DNA"
+        ],
+        "samples": [
+            "TEST_CELL-CULTURE-SAMPLE_HELA-HEK293-MIX"
+        ]
+    },
+    {
+        "uuid": "9082e5a5-87d5-4871-aaa7-3684b260f4dc",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ANALYTE_LIVER-HOMOGENATE",
+        "molecule_detail": [
+            "Total DNA"
+        ],
+        "molecule": [
+            "DNA"
+        ],
+        "samples": [
+            "TEST_TISSUE-SAMPLE_LIVER-HOMOGENATE"
+        ]
     }
 ]

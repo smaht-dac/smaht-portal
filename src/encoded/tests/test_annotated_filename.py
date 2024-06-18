@@ -10,7 +10,6 @@ from ..commands.create_annotated_filenames import (
     get_annotated_filename,
     get_project_id,
     get_sample_source_id,
-    get_donor_kit_id,
     get_protocol_id,
     get_aliquot_id,
     get_donor_sex_and_age,
@@ -103,10 +102,11 @@ def parse_analysis_and_extension_part(
         analysis = ""
         extension = ""
         for index, part in enumerate(parts):
-            to_add = f".{part}"
             if index == 0:
+                to_add = part
                 analysis += to_add
             else:
+                to_add = f".{part}"
                 if has_starting_digit(part):
                     analysis += to_add
                 elif extension:
@@ -132,6 +132,7 @@ def test_get_annotated_filename(es_testapp: TestApp, workbook: None) -> None:
     """
     request_handler = get_request_handler(es_testapp)
     files = get_submitted_files_with_annotated_filenames(es_testapp)
+    assert files, "No files with annotated filenames found."
     for file in files:
         expected = file_utils.get_annotated_filename(file)
         result = str(get_annotated_filename(file, request_handler))
@@ -159,3 +160,167 @@ def parse_expected_project_id(file: Dict[str, Any]) -> str:
     """Parse expected project ID from annotated filename."""
     annotated_filename = parse_annotated_filename(file)
     return annotated_filename.project_id
+
+
+@pytest.mark.workbook
+def test_get_sample_source_id(es_testapp: TestApp, workbook: None) -> None:
+    """Test sample source ID retrieval for annotated filenames."""
+    request_handler = get_request_handler(es_testapp)
+    files = get_submitted_files_with_annotated_filenames(es_testapp)
+    for file in files:
+        expected = parse_expected_sample_source_id(file)
+        sample_source_id_part = get_sample_source_id(file, request_handler)
+        assert sample_source_id_part.value == expected, (
+            f"Expected sample source ID {expected} for file {item_utils.get_uuid(file)}"
+            f" but found {sample_source_id_part.value}."
+        )
+
+
+def parse_expected_sample_source_id(file: Dict[str, Any]) -> str:
+    """Parse expected sample source ID from annotated filename."""
+    annotated_filename = parse_annotated_filename(file)
+    return annotated_filename.sample_source_id
+
+
+@pytest.mark.workbook
+def test_get_protocol_id(es_testapp: TestApp, workbook: None) -> None:
+    """Test protocol ID retrieval for annotated filenames."""
+    request_handler = get_request_handler(es_testapp)
+    files = get_submitted_files_with_annotated_filenames(es_testapp)
+    for file in files:
+        expected = parse_expected_protocol_id(file)
+        protocol_id_part = get_protocol_id(file, request_handler)
+        assert protocol_id_part.value == expected, (
+            f"Expected protocol ID {expected} for file {item_utils.get_uuid(file)}"
+            f" but found {protocol_id_part.value}."
+        )
+
+
+def parse_expected_protocol_id(file: Dict[str, Any]) -> str:
+    """Parse expected protocol ID from annotated filename."""
+    annotated_filename = parse_annotated_filename(file)
+    return annotated_filename.protocol_id
+
+
+@pytest.mark.workbook
+def test_get_aliquot_id(es_testapp: TestApp, workbook: None) -> None:
+    """Test aliquot ID retrieval for annotated filenames."""
+    request_handler = get_request_handler(es_testapp)
+    files = get_submitted_files_with_annotated_filenames(es_testapp)
+    for file in files:
+        expected = parse_expected_aliquot_id(file)
+        aliquot_id_part = get_aliquot_id(file, request_handler)
+        assert aliquot_id_part.value == expected, (
+            f"Expected aliquot ID {expected} for file {item_utils.get_uuid(file)}"
+            f" but found {aliquot_id_part.value}."
+        )
+
+
+def parse_expected_aliquot_id(file: Dict[str, Any]) -> str:
+    """Parse expected aliquot ID from annotated filename."""
+    annotated_filename = parse_annotated_filename(file)
+    return annotated_filename.aliquot_id
+
+
+@pytest.mark.workbook
+def test_get_donor_sex_and_age(es_testapp: TestApp, workbook: None) -> None:
+    """Test donor sex and age retrieval for annotated filenames."""
+    request_handler = get_request_handler(es_testapp)
+    files = get_submitted_files_with_annotated_filenames(es_testapp)
+    for file in files:
+        expected = parse_expected_donor_sex_and_age(file)
+        donor_sex_and_age_part = get_donor_sex_and_age(file, request_handler)
+        assert donor_sex_and_age_part.value == expected, (
+            f"Epxected donor sex and age {expected} for file"
+            f" {item_utils.get_uuid(file)} but found {donor_sex_and_age_part.value}."
+        )
+
+
+def parse_expected_donor_sex_and_age(file: Dict[str, Any]) -> str:
+    """Parse expected donor sex and age from annotated filename."""
+    annotated_filename = parse_annotated_filename(file)
+    return annotated_filename.donor_sex_and_age
+
+
+@pytest.mark.workbook
+def test_get_sequencing_and_assay_codes(es_testapp: TestApp, workbook: None) -> None:
+    """Test sequencing and assay codes retrieval for annotated filenames."""
+    request_handler = get_request_handler(es_testapp)
+    files = get_submitted_files_with_annotated_filenames(es_testapp)
+    for file in files:
+        expected = parse_expected_sequencing_and_assay_codes(file)
+        sequencing_and_assay_codes_part = get_sequencing_and_assay_codes(
+            file, request_handler
+        )
+        assert sequencing_and_assay_codes_part.value == expected, (
+            f"Expected sequencing and assay codes {expected} for file"
+            f" {item_utils.get_uuid(file)} but found"
+            f" {sequencing_and_assay_codes_part.value}."
+        )
+
+
+def parse_expected_sequencing_and_assay_codes(file: Dict[str, Any]) -> str:
+    """Parse expected sequencing and assay codes from annotated filename."""
+    annotated_filename = parse_annotated_filename(file)
+    return annotated_filename.sequencing_and_assay_codes
+
+
+@pytest.mark.workbook
+def test_get_sequencing_center_code(es_testapp: TestApp, workbook: None) -> None:
+    """Test sequencing center code retrieval for annotated filenames."""
+    request_handler = get_request_handler(es_testapp)
+    files = get_submitted_files_with_annotated_filenames(es_testapp)
+    for file in files:
+        expected = parse_expected_sequencing_center_code(file)
+        sequencing_center_code_part = get_sequencing_center_code(file, request_handler)
+        assert sequencing_center_code_part.value == expected, (
+            f"Expected sequencing center code {expected} for file"
+            f" {item_utils.get_uuid(file)} but found"
+            f" {sequencing_center_code_part.value}."
+        )
+
+
+def parse_expected_sequencing_center_code(file: Dict[str, Any]) -> str:
+    """Parse expected sequencing center code from annotated filename."""
+    annotated_filename = parse_annotated_filename(file)
+    return annotated_filename.sequencing_center_code
+
+
+@pytest.mark.workbook
+def test_get_analysis(es_testapp: TestApp, workbook: None) -> None:
+    """Test analysis retrieval for annotated filenames."""
+    request_handler = get_request_handler(es_testapp)
+    files = get_submitted_files_with_annotated_filenames(es_testapp)
+    for file in files:
+        expected = parse_expected_analysis(file)
+        analysis_part = get_analysis(file, request_handler)
+        assert analysis_part.value == expected, (
+            f"Expected analysis {expected} for file {item_utils.get_uuid(file)}"
+            f" but found {analysis_part.value}."
+        )
+
+
+def parse_expected_analysis(file: Dict[str, Any]) -> str:
+    """Parse expected analysis from annotated filename."""
+    annotated_filename = parse_annotated_filename(file)
+    return annotated_filename.analysis_info
+
+
+@pytest.mark.workbook
+def test_get_file_extension(es_testapp: TestApp, workbook: None) -> None:
+    """Test file extension retrieval for annotated filenames."""
+    request_handler = get_request_handler(es_testapp)
+    files = get_submitted_files_with_annotated_filenames(es_testapp)
+    for file in files:
+        expected = parse_expected_file_extension(file)
+        file_extension_part = get_file_extension(file, request_handler)
+        assert file_extension_part.value == expected, (
+            f"Expected file extension {expected} for file {item_utils.get_uuid(file)}"
+            f" but found {file_extension_part.value}."
+        )
+
+
+def parse_expected_file_extension(file: Dict[str, Any]) -> str:
+    """Parse expected file extension from annotated filename."""
+    annotated_filename = parse_annotated_filename(file)
+    return annotated_filename.file_extension

@@ -13,5 +13,17 @@
         "ph": 6.7,
         "sample_count": 7,
         "weight": 3.4
+    },
+    {
+        "uuid": "4e92d8b9-e0ad-4469-8e8c-01a0a5d7b313",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE_LUNG",
+        "external_id": "ST001-1A",
+        "donor": "TEST_DONOR_MALE",
+        "uberon_id": "UBERON:0002108",
+        "anatomical_location": "Lung: Left Lobe",
+        "weight": 3.4
     }
 ]

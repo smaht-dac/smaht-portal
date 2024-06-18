@@ -381,6 +381,15 @@ def is_aligned_reads(file: Dict[str, Any]) -> bool:
     return "Aligned Reads" in get_data_type(file)
 
 
+def is_variant_calls(file: Dict[str, Any]) -> bool:
+    """Check if file is variant calls."""
+    data_type = get_data_type(file)
+    return (
+        "Germline Variant Calls" in data_type
+        or "Somatic Variant Calls" in data_type
+    )
+
+
 def get_alignment_details(file: Dict[str, Any]) -> List[str]:
     """Get alignment details from file."""
     return file.get("alignment_details", [])

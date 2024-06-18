@@ -417,13 +417,13 @@ def get_aliquot_id_from_tissue_sample(
 ) -> str:
     """Get aliquot ID from tissue sample item.
 
-    If TissueSample is homogenate, provide default absent field.
+    If TissueSample is homogenate, provide default value.
 
     Otherwise, return the aliquot ID from the metadata.
     """
     item = request_handler.get_item(sample_id)
     if tissue_sample_utils.is_homogenate(item):
-        return DEFAULT_ABSENT_FIELD
+        return DEFAULT_ABSENT_FIELD * 2
     return sample_utils.get_aliquot_id(item)
 
 
@@ -536,7 +536,7 @@ def get_sequencing_center_code(
         request_handler, file_utils.get_sequencing_center(file), item_utils.get_code
     )
     if center_code:
-        return get_filename_part(value=center_code.upper())
+        return get_filename_part(value=center_code.lower())
     return get_filename_part(errors=["Unknown sequencing center code"])
 
 
@@ -549,32 +549,35 @@ def get_accession(file: Dict[str, Any]) -> FilenamePart:
 
 
 def get_analysis(file: Dict[str, Any], request_handler: RequestHandler) -> FilenamePart:
-    """Get analysis info for file."""
-    if file_utils.is_unaligned_reads(file):
-        return get_filename_part(value=DEFAULT_ABSENT_FIELD)
-    if file_utils.is_aligned_reads(file):
-        return get_analysis_for_aligned_reads(file, request_handler)
-    if file_utils.is_vcf(file, request_handler):
-        return get_analysis_for_vcf(file, request_handler)
-    return get_filename_part(errors=["Unknown analysis info"])
+    """Get analysis info for file.
 
-
-def get_analysis_for_aligned_reads(
-    file: Dict[str, Any], request_handler: RequestHandler
-) -> FilenamePart:
-    """Get analysis info for aligned reads."""
+    Some error handling here for missing data by file type, but not
+    exhaustive and allowing for some flexibility in what is expected.
+    """
     software_and_versions = get_software_and_versions(file, request_handler)
     reference_genome_code = file_utils.get_reference_genome_code(file, request_handler)
-    if software_and_versions and reference_genome_code:
-        return get_filename_part(
-            value=f"{software_and_versions}{ANALYSIS_INFO_SEPARATOR}{reference_genome_code}"
-        )
-    errors = []
-    if not software_and_versions:
-        errors.append("No software and versions found")
-    if not reference_genome_code:
-        errors.append("No reference genome code found")
-    return get_filename_part(errors=errors)
+    variant_types = get_variant_types(file)
+    if file_utils.is_aligned_reads(file):
+        if not reference_genome_code:
+            return get_filename_part(errors=["No reference genome code found"])
+    if file_utils.is_variant_calls(file):
+        errors = []
+        if not reference_genome_code:
+            errors.append("No reference genome code found")
+        if not variant_types:
+            errors.append("No variant type found")
+        if errors:
+            return get_filename_part(errors=errors)
+    to_write = [
+        string
+        for string in [software_and_versions, reference_genome_code, variant_types]
+        if string
+    ]
+    if not to_write:
+        if file_utils.is_unaligned_reads(file):  # Think this is the only case (?)
+            return get_filename_part(value=DEFAULT_ABSENT_FIELD)
+        return get_filename_part(errors=["Unknown analysis info"])
+    return get_filename_part(value=ANALYSIS_INFO_SEPARATOR.join(to_write))
 
 
 def get_software_and_versions(
@@ -613,11 +616,12 @@ def get_software_with_versions(
 
 def get_software_and_versions_string(software_items: List[Dict[str, Any]]) -> str:
     """Get string representation of software and versions."""
+    sorted_software_items = sorted(software_items, key=item_utils.get_code)
     return ANALYSIS_INFO_SEPARATOR.join(
         [
             f"{item_utils.get_code(item)}{ANALYSIS_INFO_SEPARATOR}"
             f"{item_utils.get_version(item)}"
-            for item in software_items
+            for item in sorted_software_items
         ]
     )
 
@@ -631,30 +635,6 @@ def get_software_codes_missing_versions(
         for item in software_items
         if not item_utils.get_version(item)
     ]
-
-
-def get_analysis_for_vcf(
-    file: Dict[str, Any], request_handler: RequestHandler
-) -> FilenamePart:
-    """Get analysis info for VCF files."""
-    software_and_versions = get_software_and_versions(file, request_handler)
-    reference_genome_code = file_utils.get_reference_genome_code(file, request_handler)
-    variant_types = get_variant_types(file)
-    if software_and_versions and reference_genome_code and variant_types:
-        return get_filename_part(
-            value=(
-                f"{software_and_versions}{ANALYSIS_INFO_SEPARATOR}"
-                f"{reference_genome_code}{ANALYSIS_INFO_SEPARATOR}{variant_types}"
-            )
-        )
-    errors = []
-    if not variant_types:
-        errors.append("No variant type found")
-    if not software_and_versions:
-        errors.append("No software and versions found")
-    if not reference_genome_code:
-        errors.append("No reference genome code found")
-    return get_filename_part(errors=errors)
 
 
 def get_variant_types(file: Dict[str, Any]) -> str:
@@ -675,43 +655,18 @@ def get_file_extension(
     file: Dict[str, Any], request_handler: RequestHandler
 ) -> FilenamePart:
     """Get file format for file."""
-    if file_utils.is_bam(file, request_handler):
-        return get_bam_file_extensions(file, request_handler)
-    if not (
-        file_utils.is_fastq(file, request_handler)
-        or file_utils.is_vcf(file, request_handler)
-    ):
-        logger.warning(
-            f"Unexpected file format for file {item_utils.get_uuid(file)}:"
-            f" {file_utils.get_file_format(file)}."
-            f" May warrant further investigation."
-        )
-    file_format = file_utils.get_file_extension(file, request_handler)
-    if file_format:
-        return get_filename_part(value=file_format)
-    return get_filename_part(errors=["Unknown file extension"])
-
-
-def get_bam_file_extensions(
-    file: Dict[str, Any], request_handler: RequestHandler
-) -> FilenamePart:
-    """Get file extensions for BAM files.
-
-    Note: Order of additional extensions important; expected to be:
-
-        * aligned.sorted.phased.bam
-
-    when all apply, and similarly if only some apply.
-    """
     result = []
+    file_extension = file_utils.get_file_extension(file, request_handler)
     if file_utils.is_aligned_reads(file):
         result += [ALIGNED_READS_EXTENSION]
     if file_utils.are_reads_sorted(file):
         result += [SORTED_EXTENSION]
     if file_utils.are_reads_phased(file):
         result += [PHASED_EXTENSION]
-    result += [file_utils.get_file_extension(file, request_handler)]
-    return get_filename_part(value=".".join(result))
+    result += [file_extension]
+    if file_extension:
+        return get_filename_part(value=".".join(result))
+    return get_filename_part(errors=["Unknown file extension"])
 
 
 def collect_errors(*filename_parts: FilenamePart) -> List[str]:

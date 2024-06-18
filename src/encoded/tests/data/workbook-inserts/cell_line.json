@@ -19,6 +19,7 @@
         "submitted_id": "TEST_CELL-LINE_HEK293",
         "source": "ATCC",
         "title": "HEK293",
+        "donor": "TEST_DONOR_MALE",
         "code": "HEK293"
     }
 ]

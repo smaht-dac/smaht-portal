@@ -19,5 +19,17 @@
             "test_sample_studies",
             "sample_studies-Production"
         ]
+    },
+    {
+        "uuid": "b59d424d-85a4-43f2-ac1c-ed81d41dd6b4",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE-SAMPLE_LIVER-HOMOGENATE",
+        "sample_sources": [
+            "TEST_TISSUE_LUNG"
+        ],
+        "external_id": "ST001-1A-020X",
+        "category": "Homogenate"
     }
 ]

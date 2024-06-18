@@ -40,5 +40,27 @@
             "TEST_ANALYTE_HELA_ONLY"
         ],
         "assay": "bulk_wgs"
+    },
+    {
+        "uuid": "fa00fbc9-360f-4974-9760-3e36b1b8bdba",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY_HELA-HEK293",
+        "analytes": [
+            "TEST_ANALYTE_HELA-HEK293"
+        ],
+        "assay": "bulk_wgs"
+    },
+    {
+        "uuid": "c9464515-db14-475e-af1a-16cc87bfcbbb",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY_LIVER-HOMOGENATE",
+        "analytes": [
+            "TEST_ANALYTE_LIVER-HOMOGENATE"
+        ],
+        "assay": "bulk_wgs"
     }
 ]

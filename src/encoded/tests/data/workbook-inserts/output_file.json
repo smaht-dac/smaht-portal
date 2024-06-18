@@ -36,6 +36,7 @@
     },
     {
         "uuid": "cca15caa-bc11-4a6a-8998-ea0c69df8b9e",
+        "accession": "SMAFI8LOZ6MU",
         "data_category": [
             "Sequencing Reads"
         ],
@@ -43,6 +44,10 @@
             "Aligned Reads"
         ],
         "file_format": "BAM",
+        "alignment_details": [
+            "Phased",
+            "Sorted"
+        ],
         "extra_files": [
             {
                 "filename": "a_second_bam_bai.bai",
@@ -57,7 +62,7 @@
         "sequencing_center": "smaht",
         "file_size": 10000,
         "file_sets": [
-            "TEST_FILE-SET_HELA"
+            "TEST_FILE-SET_LIVER-HOMOGENATE"
         ],
         "software": [
             "TEST_SOFTWARE_BWA-MEM",
@@ -65,6 +70,7 @@
         ],
         "reference_genome": "GRCh38",
         "status": "released",
-        "dataset": "colo829t"
+        "dataset": "colo829t",
+        "annotated_filename": "ST001-1A-XX-M45-X002-test-SMAFI8LOZ6MU-bwamem_1.2.3_GRCh38.aligned.sorted.phased.bam"
     }
 ]

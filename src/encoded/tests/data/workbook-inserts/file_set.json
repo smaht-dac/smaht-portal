@@ -34,5 +34,27 @@
             "TEST_LIBRARY_HELA_ONLY"
         ],
         "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
+    },
+    {
+        "uuid": "e8e1885a-705a-46d7-8937-5969d30280f0",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE-SET_HELA-HEK293",
+        "libraries": [
+            "TEST_LIBRARY_HELA-HEK293"
+        ],
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
+    },
+    {
+        "uuid": "8a55c725-eb48-4ef9-9a54-9271bdf11239",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE-SET_LIVER-HOMOGENATE",
+        "libraries": [
+            "TEST_LIBRARY_LIVER-HOMOGENATE"
+        ],
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
     }
 ]
