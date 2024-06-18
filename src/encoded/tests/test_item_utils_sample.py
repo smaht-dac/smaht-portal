@@ -126,8 +126,8 @@ def get_expected_sample_studies(sample: Dict[str, Any]) -> str:
     [
         ({}, ""),
         ({"external_id": "FooBar"}, ""),
-        ({"external_id": "ST001-1A-100D6"}, "100"),
-        ({"external_id": "SMHT001-1A-101A3"}, "101"),
+        ({"external_id": "ST001-1A-100D6"}, "100D6"),
+        ({"external_id": "SMHT001-1A-101A3"}, "101A3"),
     ],
 )
 def test_get_aliquot_id(properties: Dict[str, Any], expected: str) -> None:
