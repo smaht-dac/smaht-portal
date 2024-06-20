@@ -134,8 +134,8 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
         </table>
     </div>
 
-\*1J and 1L tissues are collected, but not utilized for study
-\*\*Cores made (intact tissue)
+| \* 1J and 1L tissues are collected, but not utilized for study
+| \*\* Cores made (intact tissue)
 
 Table 1B. Protocol IDs for SMaHT production tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
