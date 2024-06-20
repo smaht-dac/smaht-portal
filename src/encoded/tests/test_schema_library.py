@@ -15,9 +15,8 @@ from .utils import (
     [
         ({"concatenated_reads": "No"}, 200),
         ({"concatenated_reads": "No", "target_monomer_size": 1000}, 422),
-        ({"concatenated_reads": "Yes"}, 422),
+        ({"concatenated_reads": "Yes"}, 200),
         ({"concatenated_reads": "Yes", "target_monomer_size": 1000}, 200),
-        ({"concatenated_reads": "", "target_monomer_size": ""}, 200),
     ],
 )
 def test_target_monomer_size_conditional(

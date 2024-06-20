@@ -108,21 +108,21 @@
     },
     "anyOf": [
         {
-            "not": {
-                "properties": {
-                    "category": {
-                        "const": "Core"
-                    }
-                },
-                "required": [
-                    "category"
-                ]
-            }
-        },
-        {
+            "properties": {
+                "category": {
+                    "const": "Core"
+                }
+            },
             "required": [
                 "core_size"
             ]
+        },
+        {
+            "not": {
+                "required": [
+                    "core_size"
+                ]
+            }
         }
     ],
     "facets": {
