@@ -461,7 +461,7 @@ def get_sex_and_age_parts(
 
 
 def get_sex_and_age_part(
-    donor: Dict[str, Any], request_handler: RequestHandler
+    donor: str, request_handler: RequestHandler
 ) -> FilenamePart:
     """Get donor and age part for given donor."""
     item = request_handler.get_item(donor)
@@ -532,12 +532,19 @@ def get_sequencing_center_code(
     file: Dict[str, Any], request_handler: RequestHandler
 ) -> FilenamePart:
     """Get sequencing center code for file."""
-    center_code = get_property_value_from_identifier(
-        request_handler, file_utils.get_sequencing_center(file), item_utils.get_code
-    )
+    center_code = get_sequencing_center_code_from_file(file, request_handler)
     if center_code:
         return get_filename_part(value=center_code.lower())
     return get_filename_part(errors=["Unknown sequencing center code"])
+
+
+def get_sequencing_center_code_from_file(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> str:
+    """Pull sequencing center code."""
+    return get_property_value_from_identifier(
+        request_handler, file_utils.get_sequencing_center(file), item_utils.get_code
+    )
 
 
 def get_accession(file: Dict[str, Any]) -> FilenamePart:
@@ -557,27 +564,52 @@ def get_analysis(file: Dict[str, Any], request_handler: RequestHandler) -> Filen
     software_and_versions = get_software_and_versions(file, request_handler)
     reference_genome_code = file_utils.get_reference_genome_code(file, request_handler)
     variant_types = get_variant_types(file)
+    errors = get_analysis_errors(file, reference_genome_code, variant_types)
+    if errors:
+        return get_filename_part(errors=errors)
+    value = get_analysis_value(
+        software_and_versions, reference_genome_code, variant_types
+    )
+    if not value:
+        if file_utils.is_unaligned_reads(file):  # Think this is the only case (?)
+            return get_filename_part(value=DEFAULT_ABSENT_FIELD)
+        return get_filename_part(errors=["Unknown analysis info"])
+    return get_filename_part(value=value)
+
+
+def get_analysis_errors(
+    file: Dict[str, Any], reference_genome_code: str, variant_types: str
+) -> List[str]:
+    """Get analysis errors for file by file type."""
+    errors = []
+    if file_utils.is_unaligned_reads(file):
+        if reference_genome_code:
+            errors.append("Unexpected reference genome code found")
+        if variant_types:
+            errors.append("Unexpected variant type found")
     if file_utils.is_aligned_reads(file):
         if not reference_genome_code:
-            return get_filename_part(errors=["No reference genome code found"])
+            errors.append("No reference genome code found")
+        if variant_types:
+            errors.append("Unexpected variant type found")
     if file_utils.is_variant_calls(file):
-        errors = []
         if not reference_genome_code:
             errors.append("No reference genome code found")
         if not variant_types:
             errors.append("No variant type found")
-        if errors:
-            return get_filename_part(errors=errors)
+    return errors
+
+
+def get_analysis_value(
+    software_and_versions: str, reference_genome_code: str, variant_types: str
+) -> str:
+    """Get analysis value for filename."""
     to_write = [
         string
         for string in [software_and_versions, reference_genome_code, variant_types]
         if string
     ]
-    if not to_write:
-        if file_utils.is_unaligned_reads(file):  # Think this is the only case (?)
-            return get_filename_part(value=DEFAULT_ABSENT_FIELD)
-        return get_filename_part(errors=["Unknown analysis info"])
-    return get_filename_part(value=ANALYSIS_INFO_SEPARATOR.join(to_write))
+    return ANALYSIS_INFO_SEPARATOR.join(to_write)
 
 
 def get_software_and_versions(
