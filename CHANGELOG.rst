@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.65.1
+======
+
+`PR 182: Bm nomenclature fix jun2024 <https://github.com/smaht-dac/smaht-portal/pull/182>`_
+
+* Update PDF with brain and change version
+* Update RST file with brain
+
 0.65.0
 ======
 

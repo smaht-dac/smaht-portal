@@ -29,13 +29,23 @@ Schema Documentation
             <tbody class="table-border-inner">
                 <tr>
                     <td>
-                        <a href="/static/files/SMaHT Sample and File Nomenclature.pdf" download>
+                        <a href="/static/files/SMaHT Sample and File Nomenclature v1.1.pdf" download>
+                            <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
+                        </a>
+                    </td>
+                    <td>1.1</td>
+                    <td>06/20/2024</td>
+                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v1.1.pdf" download>SMaHT Sample and File Nomenclature v1.1.pdf</a></td>
+                </tr>
+                <tr>
+                    <td>
+                        <a href="/static/files/SMaHT Sample and File Nomenclature v1.0.pdf" download>
                             <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
                         </a>
                     </td>
                     <td>1.0</td>
                     <td>03/01/2024</td>
-                    <td><a href="/static/files/SMaHT Sample and File Nomenclature.pdf" download>SMaHT Sample and File Nomenclature.pdf</a></td>
+                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v1.0.pdf" download>SMaHT Sample and File Nomenclature v1.0.pdf</a></td>
                 </tr>
             </tbody>
         </table>
@@ -107,16 +117,25 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Frozen; homogenized</td>
                 </tr>
                 <tr>
+                    <td>1K**</td>
+                    <td>Skin</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
                     <td>1L*</td>
                     <td>Skin</td>
                     <td>Fixed</td>
                 </tr>
+                <tr>
+                    <td>1Q</td>
+                    <td>Brain, Frontal Lobe</td>
+                    <td>Frozen; homogenate and non-homogenate samples</td>
             </tbody>
         </table>
     </div>
 
-\*1J and 1L tissues are collected, but not utilized for study
-
+| \* 1J and 1L tissues are collected, but not utilized for study.
+| \*\* Cores made (intact tissue).
 
 Table 1B. Protocol IDs for SMaHT production tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
