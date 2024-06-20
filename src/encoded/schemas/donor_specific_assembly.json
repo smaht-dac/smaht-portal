@@ -7,7 +7,7 @@
         "submission_centers",
         "submitted_id"
     ],
-    "oneOf": [
+    "anyOf": [
         {
             "required": [
                 "donor"
@@ -90,6 +90,9 @@
         },
         "version": {
             "pattern": "^[A-Za-z0-9_-.]{3,}$"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_DONOR-SPECIFIC-ASSEMBLY_[A-Z0-9-_.]{4,}$"
         },
         "assembly_status": {
             "title": "Assembly status",
@@ -244,6 +247,9 @@
         },
         "donor": {
             "title": "Donor"
+        },
+        "cell_line": {
+            "title": "Cell Line"
         }
     },
     "columns": {
@@ -255,6 +261,9 @@
         },
         "code": {
             "title": "Code"
+        },
+        "cell_line": {
+            "title": "Cell Line"
         }
     }
 }

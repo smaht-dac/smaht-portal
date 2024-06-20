@@ -10,7 +10,7 @@ def _build_dsa_embedded_list():
 
 @collection(
     name="donor-specific-assemblies",
-    unique_key="donor_specific_assembly:submitted_id",
+    unique_key="submitted_id",
     properties={
         "title": "Donor Specific Assemblies",
         "description": "Assembled donor-specific genomes for sequencing alignment",

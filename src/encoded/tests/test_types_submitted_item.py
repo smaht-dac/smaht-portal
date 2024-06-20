@@ -79,6 +79,7 @@ def get_submitted_id_pattern_failures(testapp: TestApp) -> List[str]:
     """Get failure messages for submitted_id patterns."""
     result = []
     submitted_items = get_submitted_item_types(testapp)
+
     for item_name, type_info in submitted_items.items():
         pattern_failure = get_submitted_id_pattern_failure(item_name, type_info)
         if pattern_failure:
