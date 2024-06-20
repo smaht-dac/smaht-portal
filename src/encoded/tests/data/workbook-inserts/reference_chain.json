@@ -1,0 +1,20 @@
+[
+    {
+        "uuid": "b444f958-9832-4d6e-be7a-4b1019d2df7c",
+        "submitted_id": "TEST_REFERENCE-CHAIN_HELA_GRCH38",
+        "data_category": [
+            "Reference Genome"
+        ],
+        "data_type": [
+            "Reference Sequence"
+        ],
+        "filename": "test_DSA_to_GRCh38.chain.gz",
+        "file_format": "CHAIN",
+        "submission_centers": [
+            "smaht"
+        ],
+        "file_size": 1000,
+        "target_assembly": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
+        "source_assembly": "GRCh38"
+    }
+]

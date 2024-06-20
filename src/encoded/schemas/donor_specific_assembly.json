@@ -5,7 +5,8 @@
     "type": "object",
     "required": [
         "submission_centers",
-        "submitted_id"
+        "submitted_id",
+        "software"
     ],
     "anyOf": [
         {
@@ -69,73 +70,39 @@
             "$ref": "mixins.json#/uuid"
         },
         {
-            "$ref": "mixins.json#/version"
-        },
-        {
             "$ref": "mixins.json#/comments"
         },
         {
             "$ref": "mixins.json#/file_links"
+        },
+        {
+            "$ref": "reference_genome.json#/properties"
         }
     ],
     "properties": {
         "accession": {
             "accessionType": "DA"
         },
-        "code": {
-            "pattern": "^[A-Za-z0-9]{3,}$"
-        },
         "schema_version": {
             "default": "1"
         },
-        "version": {
-            "pattern": "^[A-Za-z0-9_-.]{3,}$"
-        },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_DONOR-SPECIFIC-ASSEMBLY_[A-Z0-9-_.]{4,}$"
-        },
-        "assembly_status": {
-            "title": "Assembly status",
-            "description": "Assembly status of completeness",
-            "type": "string",
-            "enum": [
-                "Complete",
-                "Incomplete"
-            ]
-        },
-        "busco_percent_single_copy": {
-            "title": "BUSCO Percent Single Copy",
-            "description": "BUSCO percentage of highly conserved genes with a single copy present in the assembly",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 100
-        },
-        "busco_percent_duplicated": {
-            "title": "BUSCO Percent Duplicated",
-            "description": "BUSCO percentage of highly conserved genes with multiple copies present in the assembly",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 100
-        },
-        "busco_percent_fragmented": {
-            "title": "BUSCO Percent Fragmented",
-            "description": "BUSCO percentage of highly conserved genes with fragmented representation in the assembly",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 100
-        },
-        "busco_percent_missing": {
-            "title": "BUSCO Percent Missing",
-            "description": "BUSCO percentage of highly conserved genes that are missing from the assembly",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 100
         },
         "cell_line": {
             "title": "Cell Line",
             "description": "Link to associated Cell Line",
             "type": "string",
             "linkTo": "CellLine"
+        },
+        "completion_status": {
+            "title": "Completion Status",
+            "description": "Assembly status of completeness",
+            "type": "string",
+            "enum": [
+                "Complete",
+                "Incomplete"
+            ]
         },
         "contig_l50": {
             "title": "Contig L50",
@@ -155,23 +122,18 @@
             "type": "string",
             "linkTo": "Donor"
         },
-        "files": {
-            "title": "Files",
-            "description": "Files associated with the reference genome",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "File"
-            }
-        },
         "gc_content": {
             "title": "GC Content",
-            "description": "GC Content of assembly (%)",
+            "description": "GC content of assembly (%)",
             "type": "number",
             "minimum": 0,
             "maximum": 100
+        },
+        "genome_size": {
+            "title": "Genome Size",
+            "description": "The soze of both assembled haplotypes (Gb)",
+            "type": "number",
+            "minimum": 0
         },
         "largest_contig": {
             "title": "Largest Contig",
@@ -197,6 +159,34 @@
             "type": "integer",
             "minimum": 0
         },
+        "percent_single_copy": {
+            "title": "Percent Single Copy",
+            "description": "Percentage of highly conserved genes with a single copy present in the assembly (BUSCO)",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+        },
+        "percent_duplicated": {
+            "title": "Percent Duplicated",
+            "description": "Percentage of highly conserved genes with multiple copies present in the assembly (BUSCO)",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+        },
+        "percent_fragmented": {
+            "title": "Percent Fragmented",
+            "description": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+        },
+        "percent_missing": {
+            "title": "Percent Missing",
+            "description": "Percentage of highly conserved genes that are missing from the assembly (BUSCO)",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+        },
         "ploidy": {
             "title": "Ploidy",
             "description": "Ploidy of assembly",
@@ -218,6 +208,17 @@
             "type": "number",
             "minimum": 0
         },
+        "software": {
+            "title": "Software",
+            "description": "Software used to generate the assembly",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "linkTo": "Software"
+            }
+        },
         "total_length": {
             "title": "Total Length",
             "description": "Total number of bases in the assembly (Gb)",
@@ -232,10 +233,16 @@
         },
         "quality_value": {
             "title": "Quality Value",
-            "description": "Quality value of assembly from Merqury",
+            "description": "Quality value of assembly",
             "type": "number",
             "minimum": 0,
             "maximum": 50
+        },
+        "quality_value_software": {
+            "title": "Quality Value Software",
+            "description": "Software used to assess quality value of assembly",
+            "type": "string",
+            "linkTo": "Software"
         }
     },
     "facets": {

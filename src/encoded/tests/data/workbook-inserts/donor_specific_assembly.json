@@ -5,6 +5,12 @@
         "submission_centers": [
             "smaht"
         ],
-        "cell_line": "TEST_CELL-LINE_HELA"
+        "cell_line": "TEST_CELL-LINE_HELA",
+        "file_sets": [
+            "TEST_FILE-SET_HELA"
+        ],
+        "software": [
+            "foo:software_vep"
+        ]
     }
 ]

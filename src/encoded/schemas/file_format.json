@@ -83,6 +83,8 @@
                     "AlignedReads",
                     "OutputFile",
                     "ReferenceFile",
+                    "ReferenceChain",
+                    "ReferenceSequence",
                     "UnalignedReads",
                     "VariantCalls"
                 ]

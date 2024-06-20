@@ -56,5 +56,29 @@
         "valid_item_types": [
             "VariantCalls"
         ]
+    },
+    {
+        "uuid": "4d321757-afad-466d-8b7a-78a787a3b05b",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "CHAIN",
+        "standard_file_extension": "chain.gz",
+        "valid_item_types": [
+            "ReferenceFile",
+            "ReferenceChain"
+        ]
+    },
+    {
+        "uuid": "d6762d2e-0576-4014-a913-3e17e818fe60",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "FASTA",
+        "standard_file_extension": "fasta",
+        "valid_item_types": [
+            "ReferenceFile",
+            "ReferenceSequence"
+        ]
     }
 ]

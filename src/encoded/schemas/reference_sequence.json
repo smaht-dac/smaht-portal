@@ -1,0 +1,109 @@
+{
+    "title": "Reference Sequence",
+    "$id": "/profiles/reference_sequence.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "assembly",
+        "file_format",
+        "filename",
+        "submission_centers",
+        "submitted_id"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/file_links"
+        },
+        {
+            "$ref": "mixins.json#/file_release"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "file.json#/properties"
+        },
+        {
+            "$ref": "submitted_file.json#/properties"
+        }
+    ],
+    "mixinFacets": [
+        {
+            "$ref": "file.json#/facets"
+        }
+    ],
+    "mixinColumns": [
+        {
+            "$ref": "file.json#/columns"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "RS"
+        },
+        "assembly": {
+            "title": "Assembly",
+            "description": "Link to associated reference assembly",
+            "type": "string",
+            "linkTo": "ReferenceGenome"
+        },
+        "data_category": {
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Reference Genome"
+                ]
+            },
+            "default": [
+                "Reference Genome"
+            ]
+        },
+        "data_type": {
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Reference Sequence"
+                ]
+            },
+            "default": [
+                "Reference Sequence"
+            ]
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_REFERENCE-SEQUENCE_[A-Z0-9-_.]{4,}$"
+        }
+    }
+}
