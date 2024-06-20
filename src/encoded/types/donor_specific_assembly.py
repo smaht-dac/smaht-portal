@@ -17,7 +17,7 @@ def _build_dsa_embedded_list():
         "description": "Assembled donor-specific genomes for sequencing alignment",
     },
 )
-class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
+class DonorSpecificAssembly(ReferenceGenome, SubmittedItem):
     item_type = "donor_specific_assembly"
     base_types = [
         "DonorSpecificAssembly",

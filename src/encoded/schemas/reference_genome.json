@@ -4,7 +4,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "identifier",
+        "submitted_id",
         "title"
     ],
     "anyOf": [
@@ -43,9 +43,6 @@
             "$ref": "mixins.json#/description"
         },
         {
-            "$ref": "mixins.json#/identifier"
-        },
-        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -56,6 +53,9 @@
         },
         {
             "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
         },
         {
             "$ref": "mixins.json#/tags"
@@ -86,17 +86,181 @@
         "version": {
             "pattern": "^[A-Za-z0-9_-.]{3,}$"
         },
+        "category": {
+            "title": "Category",
+            "description": "Category of genome assembly",
+            "type": "string",
+            "enum": [
+                "Donor Specific Assembly",
+                "Primary Assembly"
+            ]
+        },
+        "cell_line": {
+            "title": "Cell Line",
+            "description": "Link to associated Cell Line",
+            "type": "string",
+            "linkTo": "CellLine"
+        },
+        "completion_status": {
+            "title": "Completion Status",
+            "description": "Assembly status of completeness",
+            "type": "string",
+            "enum": [
+                "Complete",
+                "Incomplete"
+            ]
+        },
+        "contig_l50": {
+            "title": "Contig L50",
+            "description": "L50 of contigs: the count of the smallest number of contigs whose total length makes up 50% of the assembly size",
+            "type": "integer",
+            "minimum": 0
+        },
+        "contig_n50": {
+            "title": "Contig N50",
+            "description": "N50 of contigs: the sequence length of the shortest contig at 50% of the total assembly length (bp)",
+            "type": "number",
+            "minimum": 0
+        },
+        "donor": {
+            "title": "Donor",
+            "description": "Link to associated Donor",
+            "type": "string",
+            "linkTo": "Donor"
+        },
+        "gc_content": {
+            "title": "GC Content",
+            "description": "GC content of assembly (%)",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+        },
         "genbank_assembly": {
             "title": "GenBank Assembly",
             "description": "GenBank assembly accession",
             "type": "string",
             "pattern": "^GCA_[0-9]{9}.[0-9]{1,}$"
         },
+        "genome_size": {
+            "title": "Genome Size",
+            "description": "The soze of both assembled haplotypes (Gb)",
+            "type": "number",
+            "minimum": 0
+        },
+        "largest_contig": {
+            "title": "Largest Contig",
+            "description": "Largest contig in the assembly (Mb)",
+            "type": "number",
+            "minumum": 0
+        },
+        "number_of_chromosomes": {
+            "title": "Number of Chromosomes",
+            "description": "Number of chromosomes in the assembly",
+            "type": "integer",
+            "minimum": 0
+        },
+        "number_of_contigs": {
+            "title": "Number of Contigs",
+            "description": "Number of contigs in the assembly",
+            "type": "integer",
+            "minumum": 0
+        },
+        "number_of_scaffolds": {
+            "title": "Number of Scaffolds",
+            "description": "Number of scaffolds in the assembly",
+            "type": "integer",
+            "minimum": 0
+        },
+        "percent_single_copy": {
+            "title": "Percent Single Copy",
+            "description": "Percentage of highly conserved genes with a single copy present in the assembly (BUSCO)",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+        },
+        "percent_duplicated": {
+            "title": "Percent Duplicated",
+            "description": "Percentage of highly conserved genes with multiple copies present in the assembly (BUSCO)",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+        },
+        "percent_fragmented": {
+            "title": "Percent Fragmented",
+            "description": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+        },
+        "percent_missing": {
+            "title": "Percent Missing",
+            "description": "Percentage of highly conserved genes that are missing from the assembly (BUSCO)",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+        },
+        "ploidy": {
+            "title": "Ploidy",
+            "description": "Ploidy of assembly",
+            "type": "string",
+            "enum": [
+                "Diploid",
+                "Haploid"
+            ]
+        },
         "refseq_assembly": {
             "title": "RefSeq Assembly",
             "description": "RefSeq assembly accession",
             "type": "string",
             "pattern": "^GCF_[0-9]{9}.[0-9]{1,}$"
+        },
+        "scaffold_l50": {
+            "title": "Scaffold L50",
+            "description": "L50 of scaffolds: the count of the smallest number of scaffolds whose total length makes up 50% of the assembly size",
+            "type": "integer",
+            "minimum": 0
+        },
+        "scaffold_n50": {
+            "title": "Scaffold N50",
+            "description": "N50 of scaffolds: the sequence length of the shortest scaffold at 50% of the total assembly length (bp)",
+            "type": "number",
+            "minimum": 0
+        },
+        "software": {
+            "title": "Software",
+            "description": "Software used to generate the assembly",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "linkTo": "Software"
+            }
+        },
+        "total_length": {
+            "title": "Total Length",
+            "description": "Total number of bases in the assembly (Gb)",
+            "type": "number",
+            "minimum": 0
+        },
+        "total_ungapped_length": {
+            "title": "Total Ungapped Length",
+            "description": "Total ungapped length of the assembly (Gb)",
+            "type": "number",
+            "minimum": 0
+        },
+        "quality_value": {
+            "title": "Quality Value",
+            "description": "Quality value of assembly",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 50
+        },
+        "quality_value_software": {
+            "title": "Quality Value Software",
+            "description": "Software used to assess quality value of assembly",
+            "type": "string",
+            "linkTo": "Software"
         },
         "files": {
             "title": "Files",
@@ -110,12 +274,38 @@
             }
         }
     },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "category": {
+            "title": "Assembly Type"
+        },
+        "completion_status": {
+            "title": "Status"
+        },
+        "donor": {
+            "title": "Donor"
+        },
+        "cell_line": {
+            "title": "Cell Line"
+        }
+    },
     "columns": {
-        "identifier": {
-            "title": "Identifier"
+        "submitted_id": {
+            "title": "Submitted ID"
         },
         "code": {
             "title": "Code"
+        },
+        "category": {
+            "title": "Assembly Type"
+        },
+        "donor": {
+            "title": "Donor"
+        },
+        "cell_line": {
+            "title": "Cell Line"
         }
     }
 }
