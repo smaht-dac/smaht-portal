@@ -70,34 +70,38 @@
                             "items" : {
                                 "type" : "object",
                                 "properties" : {
-                                    "ga:country" : {
+                                    "country" : {
                                         "type" : "string",
                                         "title" : "Country"
                                     },
-                                    "ga:users" : {
+                                    "city" : {
+                                        "type" : "string",
+                                        "title" : "City"
+                                    },
+                                    "unique_users" : {
                                         "type" : "integer",
-                                        "title" : "Users",
+                                        "title" : "Unique Users",
                                         "description" : "Total Number of Users"
                                     },
-                                    "ga:sessions" : {
+                                    "sessions" : {
                                         "type" : "integer",
                                         "title" : "Session Count",
-                                        "description" : "Number of sessions from ga:country for the given start->end date range."
+                                        "description" : "Number of sessions from country for the given start->end date range."
                                     },
-                                    "ga:avgSessionDuration" : {
+                                    "avg_session_duration" : {
                                         "type" : "number",
                                         "title" : "Avg. Session Duration"
                                     },
-                                    "ga:bounceRate" : {
+                                    "bounce_rate" : {
                                         "type" : "number",
                                         "title" : "Bounce Rate"
                                     },
-                                    "ga:sessionsPerUser" : {
+                                    "sessions_per_user" : {
                                         "type" : "number",
                                         "title" : "Sessions per User",
                                         "description": "Number of sessions divided by number of unique users."
                                     },
-                                    "ga:pageviews" : {
+                                    "page_views" : {
                                         "type" : "integer",
                                         "title" : "Pageviews"
                                     }
@@ -111,36 +115,81 @@
                             "items" : {
                                 "type" : "object",
                                 "properties" : {
-                                    "ga:deviceCategory" : {
+                                    "device_category" : {
                                         "type" : "string",
-                                        "title" : "Country"
+                                        "title" : "Device Category"
                                     },
-                                    "ga:users" : {
+                                    "unique_users" : {
                                         "type" : "integer",
-                                        "title" : "Users",
+                                        "title" : "Unique Users",
                                         "description" : "Total Number of Users"
                                     },
-                                    "ga:sessions" : {
+                                    "sessions" : {
                                         "type" : "integer",
                                         "title" : "Session Count",
-                                        "description" : "Number of sessions from ga:deviceCategory for the given start->end date range."
+                                        "description" : "Number of sessions from device_category for the given start->end date range."
                                     },
-                                    "ga:avgSessionDuration" : {
+                                    "avg_session_duration" : {
                                         "type" : "number",
                                         "title" : "Avg. Session Duration"
                                     },
-                                    "ga:bounceRate" : {
+                                    "bounce_rate" : {
                                         "type" : "number",
                                         "title" : "Bounce Rate"
                                     },
-                                    "ga:sessionsPerUser" : {
+                                    "sessions_per_user" : {
                                         "type" : "number",
                                         "title" : "Sessions per User",
                                         "description": "Number of sessions divided by number of unique users."
                                     },
-                                    "ga:pageviews" : {
+                                    "page_views" : {
                                         "type" : "integer",
-                                        "title" : "Pageviews"
+                                        "title" : "Page Views"
+                                    }
+                                }
+                            }
+                        },
+
+                        "sessions_by_page": {
+                            "type" : "array",
+                            "title" : "Page Views by Page",
+                            "items" : {
+                                "type" : "object",
+                                "properties" : {
+                                    "page_title" : {
+                                        "type" : "string",
+                                        "title" : "Page Title"
+                                    },
+                                    "page_url" : {
+                                        "type" : "string",
+                                        "title" : "Page Url"
+                                    },
+                                    "unique_users" : {
+                                        "type" : "integer",
+                                        "title" : "Unique Users",
+                                        "description" : "Total Number of Users"
+                                    },
+                                    "sessions" : {
+                                        "type" : "integer",
+                                        "title" : "Session Count",
+                                        "description" : "Number of sessions from page_url for the given start->end date range."
+                                    },
+                                    "avg_session_duration" : {
+                                        "type" : "number",
+                                        "title" : "Avg. Session Duration"
+                                    },
+                                    "bounce_rate" : {
+                                        "type" : "number",
+                                        "title" : "Bounce Rate"
+                                    },
+                                    "sessions_per_user" : {
+                                        "type" : "number",
+                                        "title" : "Sessions per User",
+                                        "description": "Number of sessions divided by number of unique users."
+                                    },
+                                    "page_views" : {
+                                        "type" : "integer",
+                                        "title" : "Page Views"
                                     }
                                 }
                             }
@@ -152,154 +201,67 @@
                             "items" : {
                                 "type" : "object",
                                 "properties": {
-                                    "ga:productName" : {
+                                    "data_category" : {
+                                        "type" : "string",
+                                        "title" : "Data Category"
+                                    },
+                                    "file_title" : {
                                         "type" : "string",
                                         "title" : "File Title"
                                     },
-                                    "ga:productSku" : {
+                                    "file_item_id" : {
                                         "type" : "string",
-                                        "title" : "File Accession"
+                                        "title" : "Item Id"
                                     },
-                                    "ga:productBrand" : {
+                                    "generated_by" : {
                                         "type" : "string",
-                                        "title" : "Sequencing Center"
+                                        "title" : "Generated By"
                                     },
-                                    "ga:productCategoryLevel2" : {
+                                    "item_type_1" : {
                                         "type" : "string",
-                                        "title" : "Type of File"
+                                        "title" : "Item Type 1"
                                     },
-
-                                    "ga:uniquePurchases" : {
+                                    "item_type_2" : {
+                                        "type" : "string",
+                                        "title" : "Item Type 2"
+                                    },
+                                    "downloads_count_with_range_queries" : {
                                         "type" : "integer",
                                         "title" : "Downloads and Range Queries",
                                         "description": "Combined sum of all download and range query requests."
                                     },
-                                    "ga:metric2" : {
+                                    "downloads_count" : {
                                         "type" : "integer",
                                         "title" : "Downloads",
                                         "description": "All file download requests which are not range queries."
                                     },
-                                    "ga:metric1" : {
+                                    "downloads_size" : {
                                         "type" : "integer",
                                         "title" : "Downloads and Range Queries",
                                         "description": "Cumalitive sum of all files' filesize that was authorized for egress."
                                     },
-                                    "ga:productDetailViews" : {
+                                    "detail_views" : {
                                         "type" : "integer",
                                         "title" : "Detail Views",
                                         "description": "Number of times this File has been viewed via its Item page."
                                     },
-                                    "ga:productListClicks" : {
+                                    "list_clicks" : {
                                         "type" : "integer",
                                         "title" : "Clicks from Browse",
                                         "description": "Number of times this File has been clicked on from the Browse page."
                                     },
-                                    "ga:productListViews" : {
+                                    "list_views" : {
                                         "type" : "integer",
                                         "title" : "List Views",
                                         "description": "Number of times this File has been seen present in a Browse or Search results page."
-                                    }
-                                }
-                            }
-                        },
-
-                        "views_by_other_item" : {
-                            "type" : "array",
-                            "title" : "Item Views",
-                            "description" : "Item views for Item types which are not File",
-                            "items" : {
-                                "type" : "object",
-                                "properties": {
-                                    "ga:productName" : {
+                                    },
+                                    "assay_type" : {
                                         "type" : "string",
-                                        "title" : "Item Title"
+                                        "title" : "Assay Type"
                                     },
-                                    "ga:productSku" : {
+                                    "dataset" : {
                                         "type" : "string",
-                                        "title" : "Item Accession"
-                                    },
-                                    "ga:productBrand" : {
-                                        "type" : "string",
-                                        "title" : "Sequencing Center"
-                                    },
-                                    "ga:productCategoryHierarchy" : {
-                                        "type" : "string",
-                                        "title" : "Type of File"
-                                    },
-                                    "ga:productDetailViews" : {
-                                        "type" : "integer",
-                                        "title" : "Detail Views",
-                                        "description": "Number of times this File has been viewed via its Item page."
-                                    },
-                                    "ga:productListClicks" : {
-                                        "type" : "integer",
-                                        "title" : "Clicks from Browse",
-                                        "description": "Number of times this File has been clicked on from the Browse page."
-                                    },
-                                    "ga:productListViews" : {
-                                        "type" : "integer",
-                                        "title" : "List Views",
-                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
-                                    }
-                                }
-                            }
-                        },
-
-                        "search_search_queries" : {
-                            "type" : "array",
-                            "title" : "Other Search Queries",
-                            "description" : "Search query counts which occurred on the /search/ page.",
-                            "items" : {
-                                "type" : "object",
-                                "properties": {
-                                    "ga:searchKeyword" : {
-                                        "type" : "string",
-                                        "title" : "Search Query",
-                                        "description" : "Search query which was typed or linked to."
-                                    },
-                                    "ga:users" : {
-                                        "type" : "integer",
-                                        "title" : "Users",
-                                        "description" : "Number of Users who've searched this."
-                                    },
-                                    "ga:sessions" : {
-                                        "type" : "integer",
-                                        "title" : "Sessions",
-                                        "description" : "Number of sessions where this search occurred."
-                                    },
-                                    "ga:pageviews" : {
-                                        "type" : "integer",
-                                        "title" : "Pageviews"
-                                    }
-                                }
-                            }
-                        },
-
-                        "browse_search_queries" : {
-                            "type" : "array",
-                            "title" : "Browse Search Queries",
-                            "description" : "Search query counts which occurred on the /browse/ page.",
-                            "items" : {
-                                "type" : "object",
-                                "properties": {
-                                    "ga:searchKeyword" : {
-                                        "type" : "string",
-                                        "title" : "Search Query",
-                                        "description" : "Search query which was typed or linked to."
-                                    },
-                                    "ga:users" : {
-                                        "type" : "integer",
-                                        "title" : "Users",
-                                        "description" : "Number of Users who've searched this."
-                                    },
-                                    "ga:sessions" : {
-                                        "type" : "integer",
-                                        "title" : "Sessions",
-                                        "description" : "Number of sessions where this search occurred."
-                                    },
-                                    "ga:pageviews" : {
-                                        "type" : "integer",
-                                        "title" : "Pageviews"
+                                        "title" : "Dataset"
                                     }
                                 }
                             }
@@ -312,64 +274,49 @@
                             "items" : {
                                 "type" : "object",
                                 "properties": {
-                                    "ga:searchKeyword" : {
+                                    "field": {
                                         "type" : "string",
-                                        "title" : "Search Query",
-                                        "description" : "Search query which was typed or linked to."
+                                        "title" : "Field",
+                                        "description" : "Facet field selected as filters"
                                     },
-                                    "ga:users" : {
+                                    "total_events" : {
                                         "type" : "integer",
-                                        "title" : "Users",
+                                        "title" : "Total Events"
+                                    },
+                                    "unique_users" : {
+                                        "type" : "integer",
+                                        "title" : "Unique Users",
                                         "description" : "Number of Users who've searched this."
                                     },
-                                    "ga:sessions" : {
+                                    "sessions" : {
                                         "type" : "integer",
                                         "title" : "Sessions",
                                         "description" : "Number of sessions where this search occurred."
-                                    },
-                                    "ga:pageviews" : {
-                                        "type" : "integer",
-                                        "title" : "Pageviews"
                                     }
                                 }
                             }
                         },
 
                         "file_downloads_by_country" : {
-                            "type" : "array",
-                            "title" : "File Downloads by Country",
-                           "description": "File Downloads segmented by country",
-                           "items" : {
+                            "type": "array",
+                            "title": "File Downloads by Country",
+                            "description": "File Downloads segmented by country",
+                            "items": {
                                 "type" : "object",
                                 "properties": {
-                                    "ga:country" : {
+                                    "country" : {
                                         "type" : "string",
                                         "title" : "Country"
                                     },
-                                    "ga:productDetailViews" : {
-                                        "type" : "integer",
-                                        "title" : "Detail Views",
-                                        "description": "Number of times this File has been viewed via its Item page."
-                                    },
-                                    "ga:productListClicks" : {
-                                        "type" : "integer",
-                                        "title" : "Clicks from Browse",
-                                        "description": "Number of times this File has been clicked on from the Browse page."
-                                    },
-                                    "ga:productListViews" : {
-                                        "type" : "integer",
-                                        "title" : "List Views",
-                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
-                                    },
-                                    "ga:metric2" : {
+                                    "downloads_count" : {
                                         "type" : "integer",
                                         "title" : "Downloads"
                                     },
-                                    "ga:metric1" : {
+                                    "downloads_size" : {
                                         "type" : "integer",
                                         "title" : "Cumalative Filesize"
                                     },
-                                    "ga:calcMetric_PercentRangeQueries" : {
+                                    "range_queries" : {
                                         "type" : "integer",
                                         "title" : "Range Query Count"
                                     }
@@ -384,34 +331,73 @@
                             "items" : {
                                 "type" : "object",
                                 "properties": {
-                                    "ga:productVariant" : {
+                                    "file_type" : {
                                         "type" : "string",
                                         "title" : "File Type"
                                     },
-                                    "ga:productDetailViews" : {
-                                        "type" : "integer",
-                                        "title" : "Detail Views",
-                                        "description": "Number of times this File has been viewed via its Item page."
-                                    },
-                                    "ga:productListClicks" : {
-                                        "type" : "integer",
-                                        "title" : "Clicks from Browse",
-                                        "description": "Number of times this File has been clicked on from the Browse page."
-                                    },
-                                    "ga:productListViews" : {
-                                        "type" : "integer",
-                                        "title" : "List Views",
-                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
-                                    },
-                                    "ga:metric2" : {
+                                    "downloads_count" : {
                                         "type" : "integer",
                                         "title" : "Downloads"
                                     },
-                                    "ga:metric1" : {
+                                    "downloads_size" : {
                                         "type" : "integer",
                                         "title" : "Cumalative Filesize"
                                     },
-                                    "ga:calcMetric_PercentRangeQueries" : {
+                                    "range_queries" : {
+                                        "type" : "integer",
+                                        "title" : "Range Query Count"
+                                    }
+                                }
+                            }
+                        },
+
+                        "file_downloads_by_assay_type" : {
+                            "type": "array",
+                            "title": "File Downloads by Assay Type",
+                            "description": "File Downloads segmented by assay type",
+                            "items": {
+                                "type" : "object",
+                                "properties": {
+                                    "assay_type" : {
+                                        "type" : "string",
+                                        "title" : "Assay Type"
+                                    },
+                                    "downloads_count" : {
+                                        "type" : "integer",
+                                        "title" : "Downloads"
+                                    },
+                                    "downloads_size" : {
+                                        "type" : "integer",
+                                        "title" : "Cumalative Filesize"
+                                    },
+                                    "range_queries" : {
+                                        "type" : "integer",
+                                        "title" : "Range Query Count"
+                                    }
+                                }
+                            }
+                        },
+
+                        "file_downloads_by_dataset": {
+                            "type": "array",
+                            "title": "File Downloads by Dataset",
+                            "description": "File Downloads segmented by dataset",
+                            "items": {
+                                "type" : "object",
+                                "properties": {
+                                    "dataset" : {
+                                        "type" : "string",
+                                        "title" : "Dataset"
+                                    },
+                                    "downloads_count" : {
+                                        "type" : "integer",
+                                        "title" : "Downloads"
+                                    },
+                                    "downloads_size" : {
+                                        "type" : "integer",
+                                        "title" : "Cumalative Filesize"
+                                    },
+                                    "range_queries" : {
                                         "type" : "integer",
                                         "title" : "Range Query Count"
                                     }
@@ -426,50 +412,35 @@
                             "items" : {
                                 "type" : "object",
                                 "properties": {
-                                    "ga:productName" : {
+                                    "file_title" : {
                                         "type" : "string",
-                                        "title" : "Item Title"
+                                        "title" : "File Title"
                                     },
-                                    "ga:productSku" : {
+                                    "file_item_id" : {
                                         "type" : "string",
-                                        "title" : "Item Accession"
+                                        "title" : "File Item Id"
                                     },
-                                    "ga:productBrand" : {
+                                    "generated_by" : {
                                         "type" : "string",
-                                        "title" : "Sequencing Center"
+                                        "title" : "Generated By"
                                     },
-                                    "ga:productVariant" : {
+                                    "file_type" : {
                                         "type" : "string",
                                         "title" : "File Type"
                                     },
-                                    "ga:productCategoryLevel2" : {
+                                    "item_type_1" : {
                                         "type" : "string",
-                                        "title" : "Item Type of File"
+                                        "title" : "Item Type"
                                     },
-                                    "ga:productDetailViews" : {
-                                        "type" : "integer",
-                                        "title" : "Detail Views",
-                                        "description": "Number of times this File has been viewed via its Item page."
-                                    },
-                                    "ga:productListClicks" : {
-                                        "type" : "integer",
-                                        "title" : "Clicks from Browse",
-                                        "description": "Number of times this File has been clicked on from the Browse page."
-                                    },
-                                    "ga:productListViews" : {
-                                        "type" : "integer",
-                                        "title" : "List Views",
-                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
-                                    },
-                                    "ga:metric2" : {
+                                    "downloads_count" : {
                                         "type" : "integer",
                                         "title" : "Downloads"
                                     },
-                                    "ga:metric1" : {
+                                    "downloads_size" : {
                                         "type" : "integer",
                                         "title" : "Cumalative Filesize"
                                     },
-                                    "ga:calcMetric_PercentRangeQueries" : {
+                                    "range_queries" : {
                                         "type" : "integer",
                                         "title" : "Range Query Count"
                                     }
@@ -483,66 +454,31 @@
                             "items" : {
                                 "type" : "object",
                                 "properties": {
-                                    "ga:country" : {
+                                    "country" : {
                                         "type" : "string",
                                         "title" : "Country"
                                     },
-                                    "ga:productListName" : {
+                                    "source" : {
                                         "type" : "string",
                                         "title" : "List Name",
                                         "description": "The source where the metadata.tsv file is generated"
                                     },
-                                    "ga:uniquePurchases" : {
+                                    "files_count" : {
                                         "type" : "integer",
                                         "title" : "Files Count",
                                         "description": "Total files count included within the file"
-                                    }
-                                }
-                            }
-                        },
-
-                        "file_downloads_by_assay_type" : {
-                            "type" : "array",
-                            "title" : "File Downloads by Assay Type",
-                           "description": "File Downloads segmented by country",
-                           "items" : {
-                                "type" : "object",
-                                "properties": {
-                                    "ga:dimension5" : {
+                                    },
+                                    "assay_type" : {
                                         "type" : "string",
                                         "title" : "Assay Type"
                                     },
-                                    "ga:productVariant" : {
-                                        "type" : "integer",
-                                        "title" : "Detail Views",
-                                        "description": "Number of times this File has been viewed via its Item page."
-                                    },
-                                    "ga:productListClicks" : {
-                                        "type" : "integer",
-                                        "title" : "Clicks from Browse",
-                                        "description": "Number of times this File has been clicked on from the Browse page."
-                                    },
-                                    "ga:productListViews" : {
-                                        "type" : "integer",
-                                        "title" : "List Views",
-                                        "description": "Number of times this File has been seen present in a Browse or Search results page."
-                                    },
-                                    "ga:metric2" : {
-                                        "type" : "integer",
-                                        "title" : "Downloads"
-                                    },
-                                    "ga:metric1" : {
-                                        "type" : "integer",
-                                        "title" : "Cumalative Filesize"
-                                    },
-                                    "ga:calcMetric_PercentRangeQueries" : {
-                                        "type" : "integer",
-                                        "title" : "Range Query Count"
+                                    "dataset" : {
+                                        "type" : "string",
+                                        "title" : "Dataset"
                                     }
                                 }
                             }
                         }
-
 
                     }
                 }

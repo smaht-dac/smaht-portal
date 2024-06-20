@@ -1145,7 +1145,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
 
         @include media-breakpoint-up(lg) {
             display: flex;
-            align-items: flex-start;       
+            align-items: flex-start;
             &.sticky-top {
                 position: sticky;
                 top: 40px;
@@ -1365,6 +1365,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
     &#usage {
         .dropdown-container {
             display: flex !important;
+            align-items: center !important;
         }
         @include media-breakpoint-down(md) {
             h3 {

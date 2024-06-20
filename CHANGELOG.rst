@@ -7,18 +7,44 @@ smaht-portal
 Change Log
 ----------
 
-0.64.0
+0.66.0
 ======
 
 `PR 184: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/184>`_
 
 * Remove SamplePreparation item and merges the property homogenization_method with AnalytePreparation
 * Add properties to Analyte based on GCC Benchmarking Extraction input
-* Changes to properties of Library based on GCC feedback
+* Change to properties of Library based on GCC feedback
 * Include more detailed descriptions and examples of some fields that are technology-specific (i.e. Kinnex)
-* Minor changes to TCC submission schema related to units and changing enums to suggested enums
-* Updates documentation for setting up Google Sheet API credentials for automated submission templates
+* Minor change to TCC submission schema related to units and changing enums to suggested enums
+* Update documentation for setting up Google Sheet API credentials for automated submission templates
 
+0.65.0
+======
+
+* Adds a new API /download_cli that accepts a resource path as a URL or POST param and returns federation token for use with `awscli`
+* Updates /metadata to allow download_cli links
+
+
+0.64.0
+======
+
+`PR 181: Submission and Usage Statistics Follow-up Updates  <https://github.com/smaht-dac/smaht-portal/pull/181>`_
+
+* Filtering  
+  * Previous 60 days added to date range options
+  * Cumulative sum checkbox added to switch between individual bars and cumulative sum
+* File downloads
+  * File downloads splitted into two charts (count and volume)
+  * Assay Type and Dataset views added
+* File views
+  * Assay Type and Dataset views added
+* Page Views
+  * Page views, Uniqe users by country/city views added
+  * Page title and URL views added
+* Schema and Style
+  * `tracking_item`` schema fields that are still mapped to Universal Analytics naming convention are renamed/replaced
+  * glitches in mobile view fixed
 
 
 0.63.0
@@ -31,6 +57,7 @@ Change Log
   * Update descriptions for many properties with standardized units formatting
   * Misc. updates to TPC-related properties
   * Breaking change: Tissue `location` renamed to `anatomical_location`; upgrader included
+
 
 0.62.1
 ======

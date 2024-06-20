@@ -218,10 +218,9 @@ export default class App extends React.PureComponent {
                         '@type': itemType,
                         display_title,
                         title,
-                        sequencing_center: { display_title: sequencingCenterTitle } = {},
-                        file_sets: [
-                            { assay: { display_title: assayTitle } = {} } = {},
-                        ] = [{}],
+                        sequencing_center: { display_title: sequencingCenter } = {},
+                        data_generation_summary: { assays: [assayType] = [] } = {},
+                        dataset,
                         data_category: [file_type] = [],
                     } = item;
 
@@ -231,14 +230,12 @@ export default class App extends React.PureComponent {
                     const prodItem = {
                         item_id: itemID || itemUUID,
                         item_name: display_title || title || null,
-                        item_category:
-                            categories.length >= 1 ? categories[0] : 'Unknown',
-                        item_category2:
-                            categories.length >= 2 ? categories[1] : 'Unknown',
-                        item_category3:
-                            categories.length >= 3 ? categories[2] : 'Unknown',
-                        item_brand: sequencingCenterTitle || null,
-                        experiment_type: assayTitle || null,
+                        item_category: categories.length >= 1 ? categories[0] : 'Unknown',
+                        item_category2: categories.length >= 2 ? categories[1] : 'Unknown',
+                        item_category3: categories.length >= 3 ? categories[2] : 'Unknown',
+                        item_category4: assayType || null,
+                        item_category5: dataset || null,
+                        item_brand: sequencingCenter || null,
                         item_variant: file_type || null,
                     };
 
