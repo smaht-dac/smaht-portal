@@ -460,9 +460,7 @@ def get_sex_and_age_parts(
     return [get_sex_and_age_part(donor, request_handler) for donor in donors]
 
 
-def get_sex_and_age_part(
-    donor: str, request_handler: RequestHandler
-) -> FilenamePart:
+def get_sex_and_age_part(donor: str, request_handler: RequestHandler) -> FilenamePart:
     """Get donor and age part for given donor."""
     item = request_handler.get_item(donor)
     sex = get_sex_abbreviation(donor_utils.get_sex(item))

@@ -224,9 +224,7 @@ def get_cell_cultures(
         properties, request_handler=request_handler
     )
     cell_cultures_from_mixtures = get_property_values_from_identifiers(
-        request_handler,
-        cell_culture_mixtures,
-        cell_culture_mixture.get_cell_cultures
+        request_handler, cell_culture_mixtures, cell_culture_mixture.get_cell_cultures
     )
     direct_cell_cultures = [
         sample_source
@@ -383,10 +381,10 @@ def is_aligned_reads(file: Dict[str, Any]) -> bool:
 
 def is_variant_calls(file: Dict[str, Any]) -> bool:
     """Check if file is variant calls."""
-    data_type = get_data_category(file)
+    data_category = get_data_category(file)
     return (
-        "Germline Variant Calls" in data_type
-        or "Somatic Variant Calls" in data_type
+        "Germline Variant Calls" in data_category
+        or "Somatic Variant Calls" in data_category
     )
 
 
