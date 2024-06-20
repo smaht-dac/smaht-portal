@@ -14,28 +14,28 @@ def google_analytics_tracking_data():
             "reports": {
                 "fields_faceted": [
                     {
-                        "ga:users": 1,
-                        "ga:sessions": 3,
-                        "ga:dimension3": "type",
-                        "ga:totalEvents": 6
+                        "unique_users": 1,
+                        "sessions": 3,
+                        "field": "type",
+                        "total_events": 6
                     },
                     {
-                        "ga:users": 1,
-                        "ga:sessions": 1,
-                        "ga:dimension3": "file_sets.assay.display_title",
-                        "ga:totalEvents": 1
+                        "users": 1,
+                        "sessions": 1,
+                        "field": "file_sets.assay.display_title",
+                        "total_events": 1
                     }
                 ],
                 "views_by_file": [
                     {
-                        "ga:productSku": "/output-files/74523dca-9230-49d8-a07e-b7852e052716/",
-                        "ga:productName": "SMHTCOLO829BL-X-X-M45-C005-uwsc-SMAFIPVP9ZN6-sentieon_bwamem_202308.01_GRCh38.aligned.sorted.bam",
-                        "ga:productBrand": "(not set)",
-                        "ga:uniquePurchases": 0,
-                        "ga:productListViews": 2,
-                        "ga:productListClicks": 0,
-                        "ga:productDetailViews": 4,
-                        "ga:productCategoryLevel2": "OutputFile"
+                        "file_item_id": "/output-files/74523dca-9230-49d8-a07e-b7852e052716/",
+                        "file_title": "SMHTCOLO829BL-X-X-M45-C005-uwsc-SMAFIPVP9ZN6-sentieon_bwamem_202308.01_GRCh38.aligned.sorted.bam",
+                        "generated_by": "(not set)",
+                        "downloads_count_with_range_queries": 0,
+                        "list_views": 2,
+                        "list_clicks": 0,
+                        "detail_views": 4,
+                        "item_type_1": "OutputFile"
                     }
                 ]
             },

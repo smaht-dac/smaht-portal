@@ -7,13 +7,41 @@ smaht-portal
 Change Log
 ----------
 
-0.63.1
+0.65.1
 ======
 
 `PR 182: Bm nomenclature fix jun2024 <https://github.com/smaht-dac/smaht-portal/pull/182>`_
 
 * Update PDF with brain and change version
 * Update RST file with brain
+
+0.65.0
+======
+
+* Adds a new API /download_cli that accepts a resource path as a URL or POST param and returns federation token for use with `awscli`
+* Updates /metadata to allow download_cli links
+
+
+0.64.0
+======
+
+`PR 181: Submission and Usage Statistics Follow-up Updates  <https://github.com/smaht-dac/smaht-portal/pull/181>`_
+
+* Filtering  
+  * Previous 60 days added to date range options
+  * Cumulative sum checkbox added to switch between individual bars and cumulative sum
+* File downloads
+  * File downloads splitted into two charts (count and volume)
+  * Assay Type and Dataset views added
+* File views
+  * Assay Type and Dataset views added
+* Page Views
+  * Page views, Uniqe users by country/city views added
+  * Page title and URL views added
+* Schema and Style
+  * `tracking_item`` schema fields that are still mapped to Universal Analytics naming convention are renamed/replaced
+  * glitches in mobile view fixed
+
 
 0.63.0
 ======
@@ -25,6 +53,7 @@ Change Log
   * Update descriptions for many properties with standardized units formatting
   * Misc. updates to TPC-related properties
   * Breaking change: Tissue `location` renamed to `anatomical_location`; upgrader included
+
 
 0.62.1
 ======
