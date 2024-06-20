@@ -642,7 +642,18 @@ export default class App extends React.PureComponent {
                 ) {
                     tHrefHash = tHrefHash.slice(1); // Strip out '#'
                     setTimeout(function () {
-                        layout.animateScrollTo(tHrefHash, 750, targetOffset);
+                        try {
+                            layout.animateScrollTo(
+                                tHrefHash,
+                                750,
+                                targetOffset
+                            );
+                        } catch (err) {
+                            // Sometimes this happens in benchmarking when searching for href
+                            // Don't want to error out here (breaks Cypress test); just be
+                            // aware if it's happening somewhere unexpectd
+                            console.warn(err.message);
+                        }
                     }, 100);
                 }
             });
