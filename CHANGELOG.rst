@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.65.2
+======
+
+`PR 185: Bm link fix <https://github.com/smaht-dac/smaht-portal/pull/185>`_
+
+* Move "credentials for submission" to Access and rename it to "access key generation"
+* Set up an additional re-direct, update old redirect
+
+
 0.65.1
 ======
 
