@@ -40,8 +40,6 @@ SUM_FILES_AGGREGATION_DEFINITION = {
     }
 }
 
-DATE_RANGE_PRESETS = ['all', 'custom', 'thismonth', 'previousmonth', 'last3months', 'last6months', 'last12months', 'thisyear', 'previousyear']
-
 def includeme(config):
     # config.add_route(
     #     'trace_workflow_runs',
@@ -180,40 +178,35 @@ def date_histogram_aggregations(context, request):
 
     return search_result
 
+DATE_RANGE_PRESETS = {
+    'all': lambda today: (None, None),
+    'thismonth': lambda today: (today.replace(day=1), None),
+    'previousmonth': lambda today: (today.replace(day=1) - relativedelta(months=1), today.replace(day=1) - relativedelta(days=1)),
+    'last3months': lambda today: (today.replace(day=1) - relativedelta(months=2), None),
+    'last6months': lambda today: (today.replace(day=1) - relativedelta(months=5), None),
+    'last12months': lambda today: (today.replace(day=1) - relativedelta(months=11), None),
+    'thisyear': lambda today: (datetime(today.year, 1, 1), None),
+    'previousyear': lambda today: (datetime(today.year - 1, 1, 1), datetime(today.year - 1, 12, 31)),
+}
 
 def convert_date_range(date_range_str):
-    
     data_range_split = date_range_str.split('|')
     preset = data_range_split[0]
-    if preset not in DATE_RANGE_PRESETS:
-        raise IndexError('"{}" is not one of {}.'.format(preset, ', '.join(DATE_RANGE_PRESETS)))
     
+    if preset not in DATE_RANGE_PRESETS and preset != 'custom':
+        raise IndexError(f'"{preset}" is not one of {", ".join(DATE_RANGE_PRESETS.keys())} or custom.')
+
     today = datetime.today()
-    first_day_this_month = today.replace(day=1)
     date_from, date_to = None, None
 
-    if preset == 'thismonth':
-        date_from = first_day_this_month
-    elif preset == 'previousmonth':
-        date_from = first_day_this_month - relativedelta(months=1)
-        date_to = first_day_this_month - relativedelta(days=1)
-    elif preset == 'last3months':
-        date_from = first_day_this_month - relativedelta(months=2)
-    elif preset == 'last6months':
-        date_from = first_day_this_month - relativedelta(months=5)
-    elif preset == 'last12months':
-        date_from = first_day_this_month - relativedelta(months=11)
-    elif preset == 'thisyear':
-        date_from = datetime(today.year, 1, 1)
-    elif preset == 'previousyear':
-        date_from = datetime(today.year - 1, 1, 1)
-        date_to = datetime(today.year - 1, 12, 31)
+    if preset in DATE_RANGE_PRESETS:
+        date_from, date_to = DATE_RANGE_PRESETS[preset](today)
     elif preset == 'custom':
         if len(data_range_split) > 1 and data_range_split[1] and len(data_range_split[1]) == 10:
             date_from = datetime.strptime(data_range_split[1], '%Y-%m-%d')
         if len(data_range_split) > 2 and data_range_split[2] and len(data_range_split[2]) == 10:
             date_to = datetime.strptime(data_range_split[2], '%Y-%m-%d')
-    
+
     return [date_from, date_to]
 
 #
