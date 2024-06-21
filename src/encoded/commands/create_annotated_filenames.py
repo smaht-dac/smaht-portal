@@ -3,27 +3,26 @@ from __future__ import annotations
 import argparse
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from dcicutils import ff_utils
 
 from encoded.commands.utils import get_auth_key
 from encoded.item_utils import (
     constants,
+    cell_culture_mixture as cell_culture_mixture_utils,
+    cell_line as cell_line_utils,
     donor as donor_utils,
     file as file_utils,
     file_format as file_format_utils,
+    file_set as file_set_utils,
     item as item_utils,
     sample as sample_utils,
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
 )
 from encoded.item_utils.constants import file as file_constants
-from encoded.item_utils.utils import (
-    RequestHandler,
-    get_property_values_from_identifiers,
-    get_property_value_from_identifier,
-)
+from encoded.item_utils.utils import RequestHandler
 
 
 logger = logging.getLogger(__name__)
@@ -76,6 +75,217 @@ class AnnotatedFilename:
 def get_identifier(annotated_filename: AnnotatedFilename) -> str:
     """Get identifier for annotated filename."""
     return annotated_filename.accession
+
+
+@dataclass(frozen=True)
+class AssociatedItems:
+
+    file: Dict[str, Any]
+    file_format: Dict[str, Any]
+    sequencing_center: Dict[str, Any]
+    software: List[Dict[str, Any]]
+    reference_genome: Dict[str, Any]
+    file_sets: List[Dict[str, Any]]
+    assays: List[Dict[str, Any]]
+    sequencers: List[Dict[str, Any]]
+    sample_sources: List[Dict[str, Any]]
+    cell_culture_mixtures: List[Dict[str, Any]]
+    cell_lines: List[Dict[str, Any]]
+    tissue_samples: List[Dict[str, Any]]
+    tissues: List[Dict[str, Any]]
+    donors: List[Dict[str, Any]]
+
+
+def get_associated_items(
+    file: Dict[str, Any],
+    request_handler: RequestHandler,
+    file_sets: Optional[List[Dict[str, Any]]] = None,
+) -> AssociatedItems:
+    """Get associated items for given file for annotated filename.
+
+    If provided, use file sets in addition to the file itself, so
+    annotated filename can be created during release process.
+    """
+    sequencing_center = get_sequencing_center(file, request_handler)
+    file_format = get_file_format(file, request_handler)
+    software = get_software(file, request_handler)
+    reference_genome = get_reference_genome(file, request_handler)
+    file_sets = get_file_sets(file, request_handler, file_sets=file_sets)
+    assays = get_assays(file_sets, request_handler)
+    sequencers = get_sequencers(file_sets, request_handler)
+    samples = get_samples(file_sets, request_handler)
+    tissue_samples = get_tissue_samples(samples, request_handler)
+    sample_sources = get_sample_sources(samples, request_handler)
+    cell_culture_mixtures = get_cell_culture_mixtures(sample_sources)
+    tissues = get_tissues(sample_sources)
+    cell_lines = get_cell_lines(sample_sources, request_handler)
+    donors = get_donors(tissues, cell_lines, request_handler)
+    return AssociatedItems(
+        file=file,
+        sequencing_center=sequencing_center,
+        file_format=file_format,
+        software=software,
+        reference_genome=reference_genome,
+        file_sets=file_sets,
+        assays=assays,
+        sequencers=sequencers,
+        tissue_samples=tissue_samples,
+        sample_sources=sample_sources,
+        cell_culture_mixtures=cell_culture_mixtures,
+        tissues=tissues,
+        cell_lines=cell_lines,
+        donors=donors,
+    )
+
+
+def get_item(
+    identifier: Union[str, Dict[str, Any]], request_handler: RequestHandler
+) -> Dict[str, Any]:
+    """Get item from identifier."""
+    return request_handler.get_item(identifier)
+
+
+def get_items(
+    identifiers: Union[str, Dict[str, Any]], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get items from identifiers."""
+    return request_handler.get_items(identifiers)
+
+
+def get_file_sets(
+    file: Dict[str, Any],
+    request_handler: RequestHandler,
+    file_sets: Optional[List[Dict[str, Any]]] = None,
+) -> List[Dict[str, Any]]:
+    """Get file sets for file."""
+    file_sets = file_sets or []
+    to_get = file_utils.get_file_sets(file, request_handler) + file_sets
+    return get_items(to_get, request_handler)
+
+
+def get_file_format(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> Dict[str, Any]:
+    """Get file format for file."""
+    return get_item(file_utils.get_file_format(file), request_handler)
+
+
+def get_sequencing_center(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> Dict[str, Any]:
+    """Get sequencing center for file."""
+    return get_item(file_utils.get_sequencing_center(file), request_handler)
+
+
+def get_reference_genome(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> Dict[str, Any]:
+    """Get reference genome for file."""
+    return get_item(file_utils.get_reference_genome(file), request_handler)
+
+
+def get_software(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get software for file."""
+    return get_items(file_utils.get_software(file), request_handler)
+
+
+def get_assays(
+    file_sets: List[Dict[str, Any]], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get assays for file sets."""
+    assays = [
+        item
+        for file_set in file_sets
+        for item in file_set_utils.get_assays(file_set, request_handler)
+    ]
+    return get_items(assays, request_handler)
+
+
+def get_sequencers(
+    file_sets: List[Dict[str, Any]], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get sequencers for file sets."""
+    sequencers = [
+        file_set_utils.get_sequencer(file_set, request_handler)
+        for file_set in file_sets
+    ]
+    return get_items(sequencers, request_handler)
+
+
+def get_samples(
+    file_sets: List[Dict[str, Any]], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get samples for file sets."""
+    samples = [
+        item
+        for file_set in file_sets
+        for item in file_set_utils.get_samples(file_set, request_handler)
+    ]
+    return get_items(samples, request_handler)
+
+
+def get_tissue_samples(
+    samples: List[Dict[str, Any]], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Filter samples to get tissue samples."""
+    return [
+        sample for sample in samples if tissue_sample_utils.is_tissue_sample(sample)
+    ]
+
+
+def get_sample_sources(
+    samples: List[Dict[str, Any]], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get sample sources for samples."""
+    sample_sources = [
+        item
+        for sample in samples
+        for item in sample_utils.get_sample_sources(sample, request_handler)
+    ]
+    return get_items(sample_sources, request_handler)
+
+
+def get_cell_culture_mixtures(
+    sample_sources: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    """Get cell culture mixtures from sample sources."""
+    return [
+        source for source in sample_sources
+        if cell_culture_mixture_utils.is_cell_culture_mixture(source)
+    ]
+
+
+def get_tissues(sample_sources: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Get tissues from sample sources."""
+    return [source for source in sample_sources if tissue_utils.is_tissue(source)]
+
+
+def get_cell_lines(
+    sample_sources: List[Dict[str, Any]], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get cell lines from sample sources."""
+    cell_lines = [
+        item
+        for source in sample_sources
+        for item in cell_line_utils.get_cell_lines(request_handler, source)
+    ]
+    return get_items(cell_lines, request_handler)
+
+
+def get_donors(
+    tissues: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    request_handler: RequestHandler,
+) -> List[Dict[str, Any]]:
+    """Get donors from tissues and cell lines."""
+    donor_ids = [
+        tissue_utils.get_donor(tissue) for tissue in tissues
+    ] + [
+        cell_line_utils.get_donor(cell_line) for cell_line in cell_lines
+    ]
+    return get_items(donor_ids, request_handler)
 
 
 def create_annotated_filenames(
@@ -155,24 +365,51 @@ def get_annotated_filenames(
 
 
 def get_annotated_filename(
-    file: Dict[str, Any], request_handler: RequestHandler
+    file: Dict[str, Any],
+    request_handler: RequestHandler,
+    file_sets: Optional[Dict[str, List[str]]] = None,
 ) -> AnnotatedFilename:
     """Get annotated filename for given file.
-
 
     Collect all filename parts, recording either the value or any errors
     encountered in the process to be logged later.
     """
-    project_id = get_project_id(file, request_handler)
-    sample_source_id = get_sample_source_id(file, request_handler)
-    protocol_id = get_protocol_id(file, request_handler)
-    aliquot_id = get_aliquot_id(file, request_handler)
-    donor_sex_and_age = get_donor_sex_and_age(file, request_handler)
-    sequencing_and_assay_codes = get_sequencing_and_assay_codes(file, request_handler)
-    sequencing_center_code = get_sequencing_center_code(file, request_handler)
+    associated_items = get_associated_items(file, request_handler, file_sets=file_sets)
+    project_id = get_project_id(
+        associated_items.cell_culture_mixtures,
+        associated_items.cell_lines,
+        associated_items.tissues,
+    )
+    sample_source_id = get_sample_source_id(
+        associated_items.sample_sources,
+        associated_items.cell_culture_mixtures,
+        associated_items.cell_lines,
+        associated_items.tissues,
+    )
+    protocol_id = get_protocol_id(
+        associated_items.cell_culture_mixtures,
+        associated_items.cell_lines,
+        associated_items.tissues,
+    )
+    aliquot_id = get_aliquot_id(
+        associated_items.cell_culture_mixtures,
+        associated_items.cell_lines,
+        associated_items.tissue_samples,
+    )
+    donor_sex_and_age = get_donor_sex_and_age(
+        associated_items.donors, associated_items.sample_sources
+    )
+    sequencing_and_assay_codes = get_sequencing_and_assay_codes(
+        associated_items.sequencers, associated_items.assays
+    )
+    sequencing_center_code = get_sequencing_center_code(
+        associated_items.sequencing_center
+    )
     accession = get_accession(file)
-    analysis_info = get_analysis(file, request_handler)
-    file_extension = get_file_extension(file, request_handler)
+    analysis_info = get_analysis(
+        file, associated_items.software, associated_items.reference_genome
+    )
+    file_extension = get_file_extension(file, associated_items.file_format)
     errors = collect_errors(
         project_id,
         sample_source_id,
@@ -252,12 +489,17 @@ def get_filename_part_for_values(
             )
         else:
             error_message = f"Multiple values found for {part_name}: {values}"
+        empty_values = any(not value for value in values)
+        if empty_values:
+            error_message += " (including empty values)"
         return get_filename_part(errors=[error_message])
     return get_filename_part(value=values[0])
 
 
 def get_project_id(
-    file: Dict[str, Any], request_handler: RequestHandler
+    cell_culture_mixtures: List[Dict[str], Any],
+    cell_lines: List[Dict[str], Any],
+    tissues: List[Dict[str], Any],
 ) -> FilenamePart:
     """Get project ID for file.
 
@@ -268,152 +510,148 @@ def get_project_id(
     hold ID from TPC.
     """
     parts = []
-    if file_utils.is_cell_culture_mixture_derived(file, request_handler):
+    if cell_culture_mixtures or cell_lines:
         parts.append(get_filename_part(value=DEFAULT_PROJECT_ID))
-    if file_utils.is_cell_line_derived(file, request_handler):
-        parts.append(get_filename_part(value=DEFAULT_PROJECT_ID))
-    if file_utils.is_tissue_derived(file, request_handler):
-        parts.append(get_project_id_from_tissue(file, request_handler))
+    if tissues:
+        parts.append(get_project_id_from_tissues(tissues))
     return get_exclusive_filename_part(parts, "project ID")
 
 
-def get_project_id_from_tissue(
-    file: Dict[str, Any], request_handler: RequestHandler
+def get_project_id_from_tissues(
+    tissues: List[Dict[str, Any]]
 ) -> FilenamePart:
     """Get project ID from tissue item."""
-    project_ids = get_property_values_from_identifiers(
-        request_handler,
-        file_utils.get_tissues(file, request_handler=request_handler),
-        tissue_utils.get_project_id,
-    )
+    project_ids = [tissue_utils.get_project_id(tissue) for tissue in tissues]
     return get_filename_part_for_values(project_ids, "project ID", source_name="tissue")
 
 
 def get_sample_source_id(
-    file: Dict[str, Any], request_handler: RequestHandler
+    sample_sources: List[Dict[str], Any],
+    cell_culture_mixtures: List[Dict[str], Any],
+    cell_lines: List[Dict[str], Any],
+    tissues: List[Dict[str], Any],
 ) -> FilenamePart:
     """Get sample source ID for file.
 
     If only cell culture mixture-derived, use mixture code, and don't
     attempt to get cell line IDs (which likely exist).
     """
-    if file_utils.is_only_cell_culture_mixture_derived(file, request_handler):
-        return get_cell_culture_mixture_code(file, request_handler)
+    if is_only_cell_culture_mixture_derived(sample_sources):
+        return get_cell_culture_mixture_code(cell_culture_mixtures)
     parts = []
-    if file_utils.is_cell_culture_mixture_derived(file, request_handler):
-        parts.append(get_cell_culture_mixture_code(file, request_handler))
-    if file_utils.is_cell_line_derived(file, request_handler):
-        parts.append(get_cell_line_id(file, request_handler))
-    if file_utils.is_tissue_derived(file, request_handler):
-        parts.append(get_donor_kit_id(file, request_handler))
+    if cell_culture_mixtures:
+        parts.append(get_cell_culture_mixture_code(cell_culture_mixtures))
+    if cell_lines:
+        parts.append(get_cell_line_id(cell_lines))
+    if tissues:
+        parts.append(get_donor_kit_id(tissues))
     return get_exclusive_filename_part(parts, "sample source ID")
 
 
+def is_only_cell_culture_mixture_derived(
+    sample_sources: List[Dict[str], Any]
+) -> bool:
+    """Check if only cell culture mixture-derived."""
+    return all(
+        cell_culture_mixture_utils.is_cell_culture_mixture(source)
+        for source in sample_sources
+    )
+
+
 def get_cell_culture_mixture_code(
-    file: Dict[str, Any], request_handler: RequestHandler
+    cell_culture_mixtures: List[Dict[str], Any],
 ) -> FilenamePart:
     """Get mixture code for file naming."""
-    codes = get_property_values_from_identifiers(
-        request_handler,
-        file_utils.get_cell_culture_mixtures(file, request_handler=request_handler),
-        item_utils.get_code,
-    )
+    codes = [
+        item_utils.get_code(cell_culture_mixture)
+        for cell_culture_mixture in cell_culture_mixtures
+    ]
     return get_filename_part_for_values(
         codes, "sample source ID", source_name="cell culture mixture"
     )
 
 
 def get_cell_line_id(
-    file: Dict[str, Any], request_handler: RequestHandler
+    cell_lines: List[Dict[str], Any],
 ) -> FilenamePart:
     """Get cell line ID for file naming."""
-    cell_line_ids = get_property_values_from_identifiers(
-        request_handler,
-        file_utils.get_cell_lines(file, request_handler=request_handler),
-        item_utils.get_code,
-    )
+    codes = [item_utils.get_code(cell_line) for cell_line in cell_lines]
     return get_filename_part_for_values(
-        cell_line_ids, "sample source ID", source_name="cell line"
+        codes, "sample source ID", source_name="cell line"
     )
 
 
 def get_donor_kit_id(
-    file: Dict[str, Any], request_handler: RequestHandler
+    tissues: List[Dict[str], Any]
 ) -> FilenamePart:
     """Get donor kit ID for file naming."""
-    donor_kit_ids = get_property_values_from_identifiers(
-        request_handler,
-        file_utils.get_tissues(file, request_handler=request_handler),
-        tissue_utils.get_donor_kit_id,
-    )
+    donor_kit_ids = [
+        tissue_utils.get_donor_kit_id(tissue) for tissue in tissues
+    ]
     return get_filename_part_for_values(
         donor_kit_ids, "sample source ID", source_name="tissue"
     )
 
 
 def get_protocol_id(
-    file: Dict[str, Any], request_handler: RequestHandler
+    cell_culture_mixtures: List[Dict[str], Any],
+    cell_lines: List[Dict[str], Any],
+    tissues: List[Dict[str], Any],
 ) -> FilenamePart:
     """Get protocol ID for file."""
     parts = []
-    if file_utils.is_cell_culture_mixture_derived(file, request_handler):
+    if cell_culture_mixtures or cell_lines:
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
-    if file_utils.is_cell_line_derived(file, request_handler):
-        parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
-    if file_utils.is_tissue_derived(file, request_handler):
-        parts.append(get_protocol_id_from_tissues(file, request_handler))
+    if tissues:
+        parts.append(get_protocol_id_from_tissues(tissues))
     return get_exclusive_filename_part(parts, "protocol ID")
 
 
 def get_protocol_id_from_tissues(
-    file: Dict[str, Any], request_handler: RequestHandler
+    tissues: List[Dict[str], Any]
 ) -> FilenamePart:
     """Get protocol ID from tissue items."""
-    protocol_ids = get_property_values_from_identifiers(
-        request_handler,
-        file_utils.get_tissues(file, request_handler=request_handler),
-        tissue_utils.get_protocol_id,
-    )
+    protocol_ids = [
+        tissue_utils.get_protocol_id(tissue) for tissue in tissues
+    ]
     return get_filename_part_for_values(
         protocol_ids, "protocol ID", source_name="tissue"
     )
 
 
 def get_aliquot_id(
-    file: Dict[str, Any], request_handler: RequestHandler
+    cell_culture_mixtures: List[Dict[str], Any],
+    cell_lines: List[Dict[str], Any],
+    tissue_samples: List[Dict[str], Any],
 ) -> FilenamePart:
     """Get tissue aliquot ID for file."""
     parts = []
-    if file_utils.is_cell_culture_mixture_derived(file, request_handler):
+    if cell_culture_mixtures or cell_lines:
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
-    if file_utils.is_cell_line_derived(file, request_handler):
-        parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
-    if file_utils.is_tissue_derived(file, request_handler):
-        parts.append(get_aliquot_id_from_samples(file, request_handler))
+    if tissue_samples:
+        parts.append(get_aliquot_id_from_samples(tissue_samples))
     return get_exclusive_filename_part(parts, "tissue aliquot ID")
 
 
 def get_aliquot_id_from_samples(
-    file: Dict[str, Any], request_handler: RequestHandler
+    tissue_samples: List[Dict[str], Any]
 ) -> FilenamePart:
     """Get aliquot ID from sample items.
 
     Some special handling required to transform aliquot ID from
     metadata to that of the filename.
     """
-    tissue_samples = file_utils.get_tissue_samples(file, request_handler)
     aliquot_ids = [
-        get_aliquot_id_from_tissue_sample(sample, request_handler)
+        get_aliquot_id_from_tissue_sample(sample)
         for sample in tissue_samples
     ]
-    values = list(set([aliquot_id for aliquot_id in aliquot_ids if aliquot_id]))
     return get_filename_part_for_values(
-        values, "tissue aliquot ID", source_name="sample"
+        aliquot_ids, "tissue aliquot ID", source_name="sample"
     )
 
 
 def get_aliquot_id_from_tissue_sample(
-    sample_id: str, request_handler: RequestHandler
+    tissue_sample: Dict[str, Any]
 ) -> str:
     """Get aliquot ID from tissue sample item.
 
@@ -421,28 +659,27 @@ def get_aliquot_id_from_tissue_sample(
 
     Otherwise, return the aliquot ID from the metadata.
     """
-    item = request_handler.get_item(sample_id)
-    if tissue_sample_utils.is_homogenate(item):
+    if tissue_sample_utils.is_homogenate(tissue_sample):
         return DEFAULT_ABSENT_FIELD * 2
-    return sample_utils.get_aliquot_id(item)
+    return sample_utils.get_aliquot_id(tissue_sample)
 
 
 def get_donor_sex_and_age(
-    file: Dict[str, Any], request_handler: RequestHandler
+    donors: List[Dict[str], Any],
+    sample_sources: List[Dict[str], Any],
 ) -> FilenamePart:
     """Get donor sex and age for file.
 
     Special handling for cell culture mixture-derived files, as these
     may have multiple donors or none.
     """
-    donors = file_utils.get_donors(file, request_handler=request_handler)
     if not donors:
-        if file_utils.is_only_cell_culture_mixture_derived(file, request_handler):
+        if is_only_cell_culture_mixture_derived(sample_sources):
             return get_filename_part(value=get_null_sex_and_age())
         return get_filename_part(errors=["No donors found"])
-    sex_and_age_parts = get_sex_and_age_parts(donors, request_handler)
-    if len(sex_and_age_parts) > 1 and file_utils.is_only_cell_culture_mixture_derived(
-        file, request_handler
+    sex_and_age_parts = get_sex_and_age_parts(donors)
+    if len(sex_and_age_parts) > 1 and is_only_cell_culture_mixture_derived(
+        sample_sources
     ):
         return get_filename_part(value=get_null_sex_and_age())
     return get_exclusive_filename_part(sex_and_age_parts, "donor age and sex")
@@ -454,24 +691,23 @@ def get_null_sex_and_age() -> str:
 
 
 def get_sex_and_age_parts(
-    donors: List[str], request_handler: RequestHandler
+    donors: List[str]
 ) -> List[FilenamePart]:
     """Get donor and age parts for all donors."""
-    return [get_sex_and_age_part(donor, request_handler) for donor in donors]
+    return [get_sex_and_age_part(donor) for donor in donors]
 
 
-def get_sex_and_age_part(donor: str, request_handler: RequestHandler) -> FilenamePart:
+def get_sex_and_age_part(donor: Dict[str, Any]) -> FilenamePart:
     """Get donor and age part for given donor."""
-    item = request_handler.get_item(donor)
-    sex = get_sex_abbreviation(donor_utils.get_sex(item))
-    age = donor_utils.get_age(item)
+    sex = get_sex_abbreviation(donor_utils.get_sex(donor))
+    age = donor_utils.get_age(donor)
     if sex and age:
         return get_filename_part(value=f"{sex}{age}")
     errors = []
     if not sex:
-        errors += [f"Unknown sex for donor {item_utils.get_uuid(item)}"]
+        errors += [f"Unknown sex for donor {item_utils.get_uuid(donor)}"]
     if not age:
-        errors += [f"Unknown age for donor {item_utils.get_uuid(item)}"]
+        errors += [f"Unknown age for donor {item_utils.get_uuid(donor)}"]
     return get_filename_part(errors=errors)
 
 
@@ -487,11 +723,12 @@ def get_sex_abbreviation(sex: str) -> str:
 
 
 def get_sequencing_and_assay_codes(
-    file: Dict[str, Any], request_handler: RequestHandler
+    sequencers: List[Dict[str], Any],
+    assays: List[Dict[str], Any],
 ) -> FilenamePart:
     """Get sequencing and assay codes for file."""
-    sequencing_codes = get_sequencing_codes(file, request_handler)
-    assay_codes = get_assay_codes(file, request_handler)
+    sequencing_codes = get_sequencing_codes(sequencers)
+    assay_codes = get_assay_codes(assays)
     if len(sequencing_codes) == 1 and len(assay_codes) == 1:
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
     errors = []
@@ -507,42 +744,25 @@ def get_sequencing_and_assay_codes(
 
 
 def get_sequencing_codes(
-    file: Dict[str, Any], request_handler: RequestHandler
+    sequencers: List[Dict[str], Any]
 ) -> List[str]:
     """Get sequencing code for file."""
-    return get_property_values_from_identifiers(
-        request_handler,
-        file_utils.get_sequencers(file, request_handler=request_handler),
-        item_utils.get_code,
-    )
+    return list(set([item_utils.get_code(sequencer) for sequencer in sequencers]))
 
 
-def get_assay_codes(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
+def get_assay_codes(assays: List[Dict[str], Any]) -> List[str]:
     """Get assay code for file."""
-    return get_property_values_from_identifiers(
-        request_handler,
-        file_utils.get_assays(file, request_handler=request_handler),
-        item_utils.get_code,
-    )
+    return list(set([item_utils.get_code(assay) for assay in assays]))
 
 
 def get_sequencing_center_code(
-    file: Dict[str, Any], request_handler: RequestHandler
+    sequencing_center: Dict[str, Any]
 ) -> FilenamePart:
     """Get sequencing center code for file."""
-    center_code = get_sequencing_center_code_from_file(file, request_handler)
-    if center_code:
-        return get_filename_part(value=center_code.lower())
+    code = item_utils.get_code(sequencing_center)
+    if code:
+        return get_filename_part(value=code.lower())
     return get_filename_part(errors=["Unknown sequencing center code"])
-
-
-def get_sequencing_center_code_from_file(
-    file: Dict[str, Any], request_handler: RequestHandler
-) -> str:
-    """Pull sequencing center code."""
-    return get_property_value_from_identifier(
-        request_handler, file_utils.get_sequencing_center(file), item_utils.get_code
-    )
 
 
 def get_accession(file: Dict[str, Any]) -> FilenamePart:
@@ -553,14 +773,18 @@ def get_accession(file: Dict[str, Any]) -> FilenamePart:
     return get_filename_part(errors=["Unknown accession"])
 
 
-def get_analysis(file: Dict[str, Any], request_handler: RequestHandler) -> FilenamePart:
+def get_analysis(
+    file: Dict[str, Any],
+    software: List[Dict[str, Any]],
+    reference_genome: Dict[str, Any],
+) -> FilenamePart:
     """Get analysis info for file.
 
     Some error handling here for missing data by file type, but not
     exhaustive and allowing for some flexibility in what is expected.
     """
-    software_and_versions = get_software_and_versions(file, request_handler)
-    reference_genome_code = file_utils.get_reference_genome_code(file, request_handler)
+    software_and_versions = get_software_and_versions(software)
+    reference_genome_code = item_utils.get_code(reference_genome)
     variant_types = get_variant_types(file)
     errors = get_analysis_errors(file, reference_genome_code, variant_types)
     if errors:
@@ -611,14 +835,13 @@ def get_analysis_value(
 
 
 def get_software_and_versions(
-    file: Dict[str, Any], request_handler: RequestHandler
+    software: List[Dict[str, Any]]
 ) -> str:
     """Get software and accompanying versions for file.
 
     Currently only looking for software items with codes, as these are
     expected to be the software used for naming.
     """
-    software = request_handler.get_items(file_utils.get_software(file))
     software_with_codes = get_software_with_codes(software)
     if not software_with_codes:
         return ""
@@ -682,11 +905,11 @@ def get_variant_types(file: Dict[str, Any]) -> str:
 
 
 def get_file_extension(
-    file: Dict[str, Any], request_handler: RequestHandler
+    file: Dict[str, Any], file_format: Dict[str, Any]
 ) -> FilenamePart:
     """Get file format for file."""
     result = []
-    file_extension = file_utils.get_file_extension(file, request_handler)
+    file_extension = file_format_utils.get_standard_file_extension(file_format)
     if file_utils.is_aligned_reads(file):
         result += [ALIGNED_READS_EXTENSION]
     if file_utils.are_reads_sorted(file):
