@@ -34,7 +34,7 @@ export default class StatisticsPageView extends React.PureComponent {
             'tip' : "View statistics related to usage of the SMaHT Data Portal",
             'shouldReaggregate' : function(pastProps, nextProps, pastState, nextState){
                 // Compare object references
-                if (pastProps.countBy !== nextProps.countBy) return true;
+                if ((pastProps.countBy !== nextProps.countBy) || (pastState.cumulativeSum !== nextState.cumulativeSum)) return true;
             }
         }
     };
@@ -138,10 +138,11 @@ export default class StatisticsPageView extends React.PureComponent {
         const { shouldReaggregate } = StatisticsPageView.viewOptions.usage;
         const groupByOptions = {
             'monthly'   : <span>Previous 12 Months</span>,
-            'daily'     : <span>Previous 30 Days</span>
+            'daily30'     : <span>Previous 30 Days</span>,
+            'daily60'     : <span>Previous 60 Days</span>
         };
         return (
-            <dynamicImports.GroupByController groupByOptions={groupByOptions} initialGroupBy="daily">
+            <dynamicImports.GroupByController groupByOptions={groupByOptions} initialGroupBy="daily60">
                 <dynamicImports.UsageStatsViewController {..._.pick(this.props, 'session', 'windowWidth', 'href')}>
                     <dynamicImports.StatsChartViewAggregator {...{ shouldReaggregate }} aggregationsToChartData={dynamicImports.usageAggsToChartData}>
                         <dynamicImports.UsageStatsView />
