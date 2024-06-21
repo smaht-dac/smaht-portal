@@ -1,16 +1,28 @@
 [
     {
-        "uuid": "5154145c-f45d-4616-a3d6-557173de5c5a",
-        "submitted_id": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
-        "submission_centers": [
-            "smaht"
+        "uuid": "12a3228f-f46c-4fbf-a19c-d233bf7d20d8",
+        "filename": "test_DSA.fasta",
+        "submitted_id": "TEST_REFERENCE-GENOME_HELA",
+        "data_category": [
+            "Reference Genome"
         ],
-        "cell_line": "TEST_CELL-LINE_HELA",
+        "data_type": [
+            "Reference Sequence"
+        ],
+        "file_format": "FASTA",
+        "files": [
+            "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
+            "TEST_GENERAL-FILE_HELA_GRCH38"
+        ],
         "file_sets": [
             "TEST_FILE-SET_HELA"
         ],
         "software": [
             "foo:software_vep"
-        ]
+        ],
+        "submission_centers": [
+            "smaht"
+        ],
+        "file_size": 9000
     }
 ]

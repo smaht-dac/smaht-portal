@@ -1,9 +1,20 @@
 [
     {
-        "identifier": "GRCh38",
+        "uuid": "0c11eb87-a43a-4782-8684-ade90d700d63",
         "title": "GRCh38",
-        "consortia": [
+        "identifier": "GRCh38",
+        "submission_centers": [
             "smaht"
-        ]
+        ],
+        "category": "Primary Assembly"
+    },
+    {
+        "uuid": "5154145c-f45d-4616-a3d6-557173de5c5a",
+        "submitted_id": "TEST_REFERENCE-GENOME_HELA",
+        "title": "HELA1",
+        "submission_centers": [
+            "smaht"
+        ],
+        "category": "Donor Specific Assembly"
     }
 ]

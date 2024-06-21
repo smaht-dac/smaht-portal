@@ -1,27 +1,22 @@
 from snovault import collection, load_schema
 
-from .submitted_item import SubmittedItem
-from .reference_genome import ReferenceGenome
+from .submitted_file import SubmittedFile
 
 
 def _build_dsa_embedded_list():
-    """Embeds for search on donor-specific assemblies."""
-    return []
+    """Embeds for search on general files."""
+    return SubmittedFile.embedded_list
 
 
 @collection(
     name="donor-specific-assemblies",
     unique_key="submitted_id",
     properties={
-        "title": "Donor Specific Assemblies",
-        "description": "Assembled donor-specific genomes for sequencing alignment",
+        "title": "Donor Specific Assembly",
+        "description": "Files containing as donor-specific assembly",
     },
 )
-class DonorSpecificAssembly(ReferenceGenome, SubmittedItem):
+class DonorSpecificAssembly(SubmittedFile):
     item_type = "donor_specific_assembly"
-    base_types = [
-        "DonorSpecificAssembly",
-        ReferenceGenome.__name__,
-    ] + SubmittedItem.base_types
     schema = load_schema("encoded:schemas/donor_specific_assembly.json")
     embedded_list = _build_dsa_embedded_list()

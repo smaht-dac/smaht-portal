@@ -20,9 +20,9 @@ def test_unique_keys_in_schemas(testapp: TestApp) -> None:
     for item_type, type_info in get_all_item_types(testapp).items():
         unique_key = get_unique_key(type_info)
         if unique_key:
-            assert has_property(type_info.schema, unique_key), (
-                f"Unique key {unique_key} not in schema for collection {item_type}"
-            )
+            assert has_property(
+                type_info.schema, unique_key
+            ), f"Unique key {unique_key} not in schema for collection {item_type}"
 
 
 def test_expected_unique_keys(testapp: TestApp) -> None:
@@ -49,30 +49,31 @@ def test_expected_unique_keys(testapp: TestApp) -> None:
         schema = get_schema(testapp, item_type)
         has_submitted_id = has_submitted_id_property(schema)
         has_identifier = has_identifier_property(schema)
-        assert not (has_submitted_id and has_identifier), (
-            f"Unexpected combination of submitted_id and identifier for {item_type}"
-        )
+        if item_type != "reference_genome":
+            assert not (
+                has_submitted_id and has_identifier
+            ), f"Unexpected combination of submitted_id and identifier for {item_type}"
         if has_submitted_id:
-            assert get_unique_key(type_info) == "submitted_id", (
-                f"Expected submitted_id as unique key for {item_type}"
-            )
+            assert (
+                get_unique_key(type_info) == "submitted_id"
+            ), f"Expected submitted_id as unique key for {item_type}"
         if has_identifier:
-            assert get_unique_key(type_info) == "identifier", (
-                f"Expected identifier as unique key for {item_type}"
-            )
+            assert (
+                get_unique_key(type_info) == "identifier"
+            ), f"Expected identifier as unique key for {item_type}"
         if not (has_submitted_id or has_identifier):
-            assert item_type in special_item_types_to_unique_keys, (
-                f"Missing information on expected unique key for {item_type}"
-            )
+            assert (
+                item_type in special_item_types_to_unique_keys
+            ), f"Missing information on expected unique key for {item_type}"
             expected_unique_key = special_item_types_to_unique_keys[item_type]
             if expected_unique_key is None:
-                assert not get_unique_key(type_info), (
-                    f"Expected no unique key for {item_type}"
-                )
+                assert not get_unique_key(
+                    type_info
+                ), f"Expected no unique key for {item_type}"
             else:
-                assert get_unique_key(type_info) == expected_unique_key, (
-                    f"Expected {expected_unique_key} as unique key for {item_type}"
-                )
+                assert (
+                    get_unique_key(type_info) == expected_unique_key
+                ), f"Expected {expected_unique_key} as unique key for {item_type}"
 
 
 def has_submitted_id_property(schema: Dict[str, Any]) -> bool:
@@ -147,7 +148,8 @@ def get_parent_types_with_same_unique_key(
 ) -> List[TypeInfo]:
     parent_types = get_parent_types(type_info)
     return [
-        parent_type for parent_type in parent_types
+        parent_type
+        for parent_type in parent_types
         if get_unique_key(parent_type) == unique_key
     ]
 
@@ -159,9 +161,9 @@ def get_item_with_unique_key(
     items_with_unique_key = [
         item for item in collection_items.get("@graph", []) if item.get(unique_key)
     ]
-    assert items_with_unique_key, (
-        f"No items with unique key {unique_key} in collection {type_name} in workbook"
-    )
+    assert (
+        items_with_unique_key
+    ), f"No items with unique key {unique_key} in collection {type_name} in workbook"
     return items_with_unique_key[0]
 
 
@@ -183,6 +185,7 @@ def get_parent_types(type_info: AbstractTypeInfo) -> List[AbstractTypeInfo]:
     """
     all_types = {**type_info.types.by_item_type, **type_info.types.by_abstract_type}
     return [
-        item_type_info for item_type_info in all_types.values()
+        item_type_info
+        for item_type_info in all_types.values()
         if type_info.name in item_type_info.child_types
     ]
