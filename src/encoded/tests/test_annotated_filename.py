@@ -1,6 +1,6 @@
 from unittest import mock
 from contextlib import contextmanager
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple
 
 import pytest
 from webtest import TestApp
@@ -14,7 +14,6 @@ from ..commands.create_annotated_filenames import (
     FilenamePart,
     collect_errors,
     get_aliquot_id,
-    get_aliquot_id_from_tissue_sample,
     get_analysis,
     get_annotated_filename,
     get_donor_sex_and_age,
@@ -27,7 +26,6 @@ from ..commands.create_annotated_filenames import (
     get_sample_source_id,
     get_sequencing_and_assay_codes,
     get_sequencing_center_code,
-    get_sex_and_age_part,
     get_software_and_versions,
 )
 from ..item_utils import constants, file as file_utils, item as item_utils
@@ -261,78 +259,51 @@ def test_get_filename_part_for_values(
         assert any(part_name in error for error in result.errors)
 
 
-@contextmanager
-def patch_is_cell_culture_mixture_derived(value: bool) -> mock.MagicMock:
-    """Patch is_cell_culture_mixture_derived."""
-    with mock.patch(
-        (
-            "encoded.commands.create_annotated_filenames"
-            ".file_utils.is_cell_culture_mixture_derived"
-        ),
-        return_value=value,
-    ) as mock_is_cell_culture_mixture_derived:
-        yield mock_is_cell_culture_mixture_derived
-
-
-@contextmanager
-def patch_is_cell_line_derived(value: bool) -> mock.MagicMock:
-    """Patch is_cell_line_derived."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.file_utils.is_cell_line_derived",
-        return_value=value,
-    ) as mock_is_cell_line_derived:
-        yield mock_is_cell_line_derived
-
-
-@contextmanager
-def patch_is_tissue_derived(value: bool) -> mock.MagicMock:
-    """Patch is_tissue_derived."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.file_utils.is_tissue_derived",
-        return_value=value,
-    ) as mock_is_tissue_derived:
-        yield mock_is_tissue_derived
-
-
-SOME_PROJECT_ID = "some_project_id"
-
-
-@contextmanager
-def patch_get_project_id_from_tissue() -> mock.MagicMock:
-    """Patch get_project_id_from_tissue."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.get_project_id_from_tissue",
-        return_value=get_filename_part(SOME_PROJECT_ID),
-    ) as mock_get_project_id_from_tissue:
-        yield mock_get_project_id_from_tissue
+SOME_ITEM = {"uuid": "some-uuid"}
+MIXTURE_CODE = "mixture_code"
+SOME_CELL_CULTURE_MIXTURE = {"uuid": "some-uuid", "code": MIXTURE_CODE}
+CELL_LINE_CODE = "cell_line_code"
+SOME_CELL_LINE = {"uuid": "some-uuid", "code": CELL_LINE_CODE}
+TISSUE_PROJECT_ID = "ST"
+TISSUE_DONOR_KIT_ID = "100"
+TISSUE_PROTOCOL_ID = "1A"
+TISSUE_EXTERNAL_ID = f"{TISSUE_PROJECT_ID}{TISSUE_DONOR_KIT_ID}-{TISSUE_PROTOCOL_ID}"
+SOME_TISSUE = {"uuid": "some-uuid", "external_id": TISSUE_EXTERNAL_ID}
+ANOTHER_TISSUE = {"uuid": "another-uuid", "external_id": "SMHT100-1B"}
 
 
 @pytest.mark.parametrize(
-    "mixture_derived,cell_line_derived,tissue_derived,expected,errors",
+    "cell_culture_mixtures,cell_lines,tissues,expected,errors",
     [
-        (False, False, False, "", True),
-        (True, False, False, DEFAULT_PROJECT_ID, False),
-        (True, True, False, DEFAULT_PROJECT_ID, False),
-        (False, False, True, SOME_PROJECT_ID, False),
-        (False, True, True, "", True),
-        (True, False, True, "", True),
-        (True, True, True, "", True),
+        ([], [], [], "", True),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [], DEFAULT_PROJECT_ID, False),
+        ([], [SOME_CELL_LINE], [], DEFAULT_PROJECT_ID, False),
+        ([SOME_CELL_CULTURE_MIXTURE], [SOME_CELL_LINE], [], DEFAULT_PROJECT_ID, False),
+        ([], [], [SOME_TISSUE], TISSUE_PROJECT_ID, False),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_TISSUE], "", True),
+        ([], [SOME_CELL_LINE], [SOME_TISSUE], "", True),
+        ([], [], [SOME_TISSUE, SOME_TISSUE], TISSUE_PROJECT_ID, False),
+        (
+            [SOME_CELL_CULTURE_MIXTURE],
+            [SOME_CELL_LINE],
+            [ANOTHER_TISSUE],
+            DEFAULT_PROJECT_ID,
+            False,
+        ),
+        ([], [], [SOME_TISSUE, ANOTHER_TISSUE], "", True),
+        ([], [], [SOME_TISSUE, SOME_ITEM], "", True),
     ],
 )
 def test_get_project_id(
-    mixture_derived: bool,
-    cell_line_derived: bool,
-    tissue_derived: bool,
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissues: List[Dict[str, Any]],
     expected: str,
     errors: bool,
 ) -> None:
     """Test project ID retrieval for annotated filenames."""
-    with patch_is_cell_culture_mixture_derived(mixture_derived):
-        with patch_is_cell_line_derived(cell_line_derived):
-            with patch_is_tissue_derived(tissue_derived):
-                with patch_get_project_id_from_tissue():
-                    result = get_project_id(None, None)
-                    assert_filename_part_matches(result, expected, errors)
+    result = get_project_id(cell_culture_mixtures, cell_lines, tissues)
+    assert_filename_part_matches(result, expected, errors)
 
 
 @contextmanager
@@ -341,430 +312,267 @@ def patch_is_only_cell_culture_mixture_derived(value: bool) -> mock.MagicMock:
     with mock.patch(
         (
             "encoded.commands.create_annotated_filenames"
-            ".file_utils.is_only_cell_culture_mixture_derived"
+            ".is_only_cell_culture_mixture_derived"
         ),
         return_value=value,
     ) as mock_is_only_cell_culture_mixture_derived:
         yield mock_is_only_cell_culture_mixture_derived
 
 
-@contextmanager
-def patch_get_cell_culture_mixture_code(value: str) -> mock.MagicMock:
-    """Patch get_cell_culture_mixture_code."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.get_cell_culture_mixture_code",
-        return_value=get_filename_part(value),
-    ) as mock_get_cell_culture_mixture_code:
-        yield mock_get_cell_culture_mixture_code
-
-
-@contextmanager
-def patch_get_cell_line_id(value: str) -> mock.MagicMock:
-    """Patch get_cell_line_id."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.get_cell_line_id",
-        return_value=get_filename_part(value),
-    ) as mock_get_cell_line_id:
-        yield mock_get_cell_line_id
-
-
-@contextmanager
-def patch_get_donor_kit_id(value: str) -> mock.MagicMock:
-    """Patch get_donor_kit_id."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.get_donor_kit_id",
-        return_value=get_filename_part(value),
-    ) as mock_get_donor_kit_id:
-        yield mock_get_donor_kit_id
-
-
-MIXTURE_CODE = "mixture_code"
-CELL_LINE_ID = "cell_line_id"
-DONOR_KIT_ID = "donor_kit_id"
-
-
-@contextmanager
-def patches_for_sample_source_id(
-    mixture_derived: bool,
-    cell_line_derived: bool,
-    tissue_derived: bool,
-    mixture_code: str = MIXTURE_CODE,
-    cell_line_id: str = CELL_LINE_ID,
-    donor_kit_id: str = DONOR_KIT_ID,
-) -> None:
-    """Mock functions for sample source ID retrieval."""
-    if mixture_derived and not any([cell_line_derived, tissue_derived]):
-        only_mixture_derived = True
-    else:
-        only_mixture_derived = False
-    with patch_is_cell_culture_mixture_derived(mixture_derived):
-        with patch_is_cell_line_derived(cell_line_derived):
-            with patch_is_tissue_derived(tissue_derived):
-                with patch_is_only_cell_culture_mixture_derived(only_mixture_derived):
-                    with patch_get_cell_culture_mixture_code(mixture_code):
-                        with patch_get_cell_line_id(cell_line_id):
-                            with patch_get_donor_kit_id(donor_kit_id):
-                                yield
-
-
 @pytest.mark.parametrize(
-    "mixture_derived,cell_line_derived,tissue_derived,expected,errors",
+    "only_mixture_derived,cell_culture_mixtures,cell_lines,tissues,expected,errors",
     [
-        (False, False, False, "", True),
-        (True, False, False, MIXTURE_CODE, False),
-        (False, True, False, CELL_LINE_ID, False),
-        (False, False, True, DONOR_KIT_ID, False),
-        (True, True, False, "", True),
-        (True, False, True, "", True),
-        (False, True, True, "", True),
-        (True, True, True, "", True),
+        (False, [], [], [], "", True),
+        (True, [SOME_CELL_CULTURE_MIXTURE], [], [], MIXTURE_CODE, False),
+        (True, [SOME_CELL_CULTURE_MIXTURE, SOME_ITEM], [], [], "", True),
+        (False, [], [SOME_CELL_LINE], [], CELL_LINE_CODE, False),
+        (False, [], [SOME_CELL_LINE, SOME_ITEM], [], "", True),
+        (False, [], [], [SOME_TISSUE], TISSUE_DONOR_KIT_ID, False),
+        (False, [], [], [SOME_TISSUE, SOME_ITEM], "", True),
+        (False, [SOME_CELL_CULTURE_MIXTURE], [SOME_CELL_LINE], [SOME_TISSUE], "", True),
     ],
 )
 def test_get_sample_source_id(
-    mixture_derived: bool,
-    cell_line_derived: bool,
-    tissue_derived: bool,
+    only_mixture_derived: bool,
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissues: List[Dict[str, Any]],
     expected: str,
     errors: bool,
 ) -> None:
     """Test sample source ID retrieval for annotated filenames."""
-    with patches_for_sample_source_id(
-        mixture_derived, cell_line_derived, tissue_derived
-    ):
-        result = get_sample_source_id(None, None)
+    with patch_is_only_cell_culture_mixture_derived(only_mixture_derived):
+        result = get_sample_source_id([], cell_culture_mixtures, cell_lines, tissues)
         assert_filename_part_matches(result, expected, errors)
 
 
-PROTOCOL_ID = "protocol_id"
-
-
-@contextmanager
-def patch_get_protocol_id_from_tissues() -> mock.MagicMock:
-    """Patch get_protocol_id_from_tissues."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.get_protocol_id_from_tissues",
-        return_value=get_filename_part(PROTOCOL_ID),
-    ) as mock_get_protocol_id_from_tissues:
-        yield mock_get_protocol_id_from_tissues
-
-
 @pytest.mark.parametrize(
-    "mixture_derived,cell_line_derived,tissue_derived,expected,errors",
+    "cell_culture_mixtures,cell_lines,tissues,expected,errors",
     [
-        (False, False, False, "", True),
-        (True, False, False, DEFAULT_ABSENT_FIELD, False),
-        (False, True, False, DEFAULT_ABSENT_FIELD, False),
-        (False, False, True, PROTOCOL_ID, False),
-        (True, True, False, DEFAULT_ABSENT_FIELD, False),
-        (True, False, True, "", True),
-        (False, True, True, "", True),
-        (True, True, True, "", True),
+        ([], [], [], "", True),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [], DEFAULT_ABSENT_FIELD, False),
+        ([], [SOME_CELL_LINE], [], DEFAULT_ABSENT_FIELD, False),
+        (
+            [SOME_CELL_CULTURE_MIXTURE],
+            [SOME_CELL_LINE],
+            [],
+            DEFAULT_ABSENT_FIELD,
+            False,
+        ),
+        ([], [], [SOME_TISSUE], TISSUE_PROTOCOL_ID, False),
+        ([], [], [SOME_TISSUE, ANOTHER_TISSUE], "", True),
+        ([], [], [SOME_TISSUE, SOME_ITEM], "", True),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_TISSUE], "", True),
+        ([], [SOME_CELL_LINE], [SOME_TISSUE], "", True),
     ],
 )
 def test_get_protocol_id(
-    mixture_derived: bool,
-    cell_line_derived: bool,
-    tissue_derived: bool,
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissues: List[Dict[str, Any]],
     expected: str,
     errors: bool,
 ) -> None:
     """Test protocol ID retrieval for annotated filenames."""
-    with patch_is_cell_culture_mixture_derived(mixture_derived):
-        with patch_is_cell_line_derived(cell_line_derived):
-            with patch_is_tissue_derived(tissue_derived):
-                with patch_get_protocol_id_from_tissues():
-                    result = get_protocol_id(None, None)
-                    assert_filename_part_matches(result, expected, errors)
+    result = get_protocol_id(cell_culture_mixtures, cell_lines, tissues)
+    assert_filename_part_matches(result, expected, errors)
 
 
-ALIQUOT_ID = "aliquot_id"
-
-
-@contextmanager
-def patch_get_aliquot_id_from_samples() -> mock.MagicMock:
-    """Patch get_aliquot_id_from_samples."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.get_aliquot_id_from_samples",
-        return_value=get_filename_part(ALIQUOT_ID),
-    ) as mock_get_aliquot_id_from_samples:
-        yield mock_get_aliquot_id_from_samples
+TISSUE_SAMPLE_ALIQUOT_ID = "100A3"
+TISSUE_SAMPLE_EXTERNAL_ID = f"{TISSUE_EXTERNAL_ID}-{TISSUE_SAMPLE_ALIQUOT_ID}"
+SOME_CORE_TISSUE_SAMPLE = {"category": "Core", "external_id": TISSUE_SAMPLE_EXTERNAL_ID}
+SOME_HOMOGENATE_TISSUE_SAMPLE = {
+    "category": "Homogenate",
+    "external_id": TISSUE_SAMPLE_EXTERNAL_ID,
+}
 
 
 @pytest.mark.parametrize(
-    "mixture_derived,cell_line_derived,tissue_derived,expected,errors",
+    "cell_culture_mixtures,cell_lines,tissue_samples,expected,errors",
     [
-        (False, False, False, "", True),
-        (True, False, False, DEFAULT_ABSENT_FIELD, False),
-        (False, True, False, DEFAULT_ABSENT_FIELD, False),
-        (False, False, True, ALIQUOT_ID, False),
-        (True, True, False, DEFAULT_ABSENT_FIELD, False),
-        (True, False, True, "", True),
-        (False, True, True, "", True),
-        (True, True, True, "", True),
+        ([], [], [], "", True),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [], DEFAULT_ABSENT_FIELD, False),
+        ([], [SOME_CELL_LINE], [], DEFAULT_ABSENT_FIELD, False),
+        (
+            [SOME_CELL_CULTURE_MIXTURE],
+            [SOME_CELL_LINE],
+            [],
+            DEFAULT_ABSENT_FIELD,
+            False,
+        ),
+        ([], [], [SOME_CORE_TISSUE_SAMPLE], TISSUE_SAMPLE_ALIQUOT_ID, False),
+        ([], [], [SOME_HOMOGENATE_TISSUE_SAMPLE], DEFAULT_ABSENT_FIELD * 2, False),
+        ([], [], [SOME_CORE_TISSUE_SAMPLE, SOME_HOMOGENATE_TISSUE_SAMPLE], "", True),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_CORE_TISSUE_SAMPLE], "", True),
+        ([], [SOME_CELL_LINE], [SOME_CORE_TISSUE_SAMPLE], "", True),
     ],
 )
 def test_get_aliquot_id(
-    mixture_derived: bool,
-    cell_line_derived: bool,
-    tissue_derived: bool,
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissue_samples: List[Dict[str, Any]],
     expected: str,
     errors: bool,
 ) -> None:
     """Test aliquot ID retrieval for annotated filenames."""
-    with patch_is_cell_culture_mixture_derived(mixture_derived):
-        with patch_is_cell_line_derived(cell_line_derived):
-            with patch_is_tissue_derived(tissue_derived):
-                with patch_get_aliquot_id_from_samples():
-                    result = get_aliquot_id(None, None)
-                    assert_filename_part_matches(result, expected, errors)
+    result = get_aliquot_id(cell_culture_mixtures, cell_lines, tissue_samples)
+    assert_filename_part_matches(result, expected, errors)
 
 
-def mock_request_handler(
-    value: Union[Dict[str, Any], List[Dict[str, Any]]]
-) -> mock.MagicMock:
-    """Mock request handler."""
-    mocked = mock.create_autospec(RequestHandler)
-    if isinstance(value, list):
-        mocked.get_items.return_value = value
-    else:
-        mocked.get_item.return_value = value
-    return mocked
+SOME_AGE = 30
+SOME_SEX = "Male"
+SOME_DONOR = {"age": SOME_AGE, "sex": SOME_SEX}
+ANOTHER_DONOR = {"age": 35, "sex": "Female"}
 
 
 @pytest.mark.parametrize(
-    "properties,expected",
+    "donors,only_mixture_derived,expected,errors",
     [
-        ({}, ""),
-        ({"category": "Homogenate"}, DEFAULT_ABSENT_FIELD * 2),
-        ({"category": "Core", "external_id": "ST001-1A-100A3"}, "100A3"),
-    ],
-)
-def test_get_aliquot_id_from_tissue_sample(
-    properties: Dict[str, Any], expected: str
-) -> None:
-    """Test aliquot ID retrieval from tissue sample."""
-    request_handler = mock_request_handler(properties)
-    result = get_aliquot_id_from_tissue_sample({}, request_handler)
-    assert result == expected
-
-
-@contextmanager
-def patch_get_sex_and_age_parts(values: List[str]) -> mock.MagicMock:
-    """Patch sex and age filename parts retrieval."""
-    return_value = [get_filename_part(value) for value in values]
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.get_sex_and_age_parts",
-        return_value=return_value,
-    ) as mock_get_sex_and_age_parts:
-        yield mock_get_sex_and_age_parts
-
-
-@contextmanager
-def patch_get_donors(value: List[Dict[str, Any]]) -> mock.MagicMock:
-    """Patch file_utils.get_donors."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.file_utils.get_donors",
-        return_value=value,
-    ) as mock_get_donors:
-        yield mock_get_donors
-
-
-@pytest.mark.parametrize(
-    "donors,is_mixture_derived,sex_and_age_parts,expected,errors",
-    [
-        (False, False, [], "", True),
-        (False, True, [], "NN", False),
-        (True, False, [], "", True),
-        (True, True, [], "", True),
-        (True, False, ["M30"], "M30", False),
-        (True, False, ["M30", "M35"], "", True),
-        (True, True, ["M30", "M35"], "NN", False),
+        ([], False, "", True),
+        ([], True, "NN", False),
+        ([SOME_DONOR], False, "M30", False),
+        ([ANOTHER_DONOR], False, "F35", False),
+        ([SOME_DONOR, ANOTHER_DONOR], False, "", True),
+        ([SOME_DONOR], True, "M30", False),
+        ([SOME_DONOR, ANOTHER_DONOR], True, "NN", False),
     ],
 )
 def test_get_donor_sex_and_age_parts(
-    donors: bool,
-    is_mixture_derived: bool,
-    sex_and_age_parts: List[str],
+    donors: List[Dict[str, Any]],
+    only_mixture_derived: bool,
     expected: str,
     errors: bool,
 ) -> None:
     """Test sex and age retrieval for annotated filenames."""
-    with patch_get_donors(donors):
-        with patch_is_only_cell_culture_mixture_derived(is_mixture_derived):
-            with patch_get_sex_and_age_parts(sex_and_age_parts):
-                result = get_donor_sex_and_age(None, None)
-                assert_filename_part_matches(result, expected, errors)
-
-
-@pytest.mark.parametrize(
-    "properties,expected,errors",
-    [
-        ({}, "", True),
-        ({"sex": "Male", "age": "30"}, "M30", False),
-        ({"sex": "Mele", "age": "30"}, "", True),
-        ({"sex": "Male"}, "", True),
-        ({"age": "30"}, "", True),
-    ],
-)
-def test_get_sex_and_age_part(
-    properties: Dict[str, Any], expected: str, errors: bool
-) -> None:
-    """Test sex and age filename part for donor."""
-    request_handler = mock_request_handler(properties)
-    result = get_sex_and_age_part("", request_handler)
-    assert_filename_part_matches(result, expected, errors)
-
-
-@contextmanager
-def patch_get_sequencing_codes(values: List[str]) -> mock.MagicMock:
-    """Patch sequencing codes retrieval."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.get_sequencing_codes",
-        return_value=values,
-    ) as mock_get_sequencing_codes:
-        yield mock_get_sequencing_codes
-
-
-@contextmanager
-def patch_get_assay_codes(values: List[str]) -> mock.MagicMock:
-    """Patch assay codes retrieval."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.get_assay_codes",
-        return_value=values,
-    ) as mock_get_assay_codes:
-        yield mock_get_assay_codes
-
-
-@pytest.mark.parametrize(
-    "sequencing_codes,assay_codes,expected,errors",
-    [
-        ([], [], "", True),
-        (["A"], [], "", True),
-        ([], ["001"], "", True),
-        (["A"], ["001"], "A001", False),
-        (["A", "B"], ["001"], "", True),
-        (["A"], ["001", "002"], "", True),
-        (["A", "B"], ["001", "002"], "", True),
-    ],
-)
-def test_get_sequencing_and_assay_codes(
-    sequencing_codes: List[str], assay_codes: List[str], expected: str, errors: bool
-) -> None:
-    """Test sequencing and assay codes retrieval for annotated filenames."""
-    with patch_get_sequencing_codes(sequencing_codes):
-        with patch_get_assay_codes(assay_codes):
-            result = get_sequencing_and_assay_codes(None, None)
-            assert_filename_part_matches(result, expected, errors)
-
-
-@contextmanager
-def patch_get_sequencing_center_code_from_file(value: str) -> mock.MagicMock:
-    """Patch sequencing center code retrieval."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.get_sequencing_center_code_from_file",
-        return_value=value,
-    ) as mock_get_sequencing_center_code_from_file:
-        yield mock_get_sequencing_center_code_from_file
-
-
-@pytest.mark.parametrize(
-    "code,expected,errors",
-    [
-        ("", "", True),
-        ("dac", "dac", False),
-        ("DAC", "dac", False),
-    ],
-)
-def test_get_sequencing_center_code(code: str, expected: str, errors: bool) -> None:
-    """Test sequencing center code retrieval for annotated filenames."""
-    with patch_get_sequencing_center_code_from_file(code):
-        result = get_sequencing_center_code(None, None)
+    with patch_is_only_cell_culture_mixture_derived(only_mixture_derived):
+        result = get_donor_sex_and_age(donors, [])
         assert_filename_part_matches(result, expected, errors)
 
 
-@contextmanager
-def patch_get_software_and_versions(values: List[str]) -> mock.MagicMock:
-    """Patch software and versions retrieval."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.get_software_and_versions",
-        return_value=values,
-    ) as mock_get_software_and_versions:
-        yield mock_get_software_and_versions
-
-
-@contextmanager
-def patch_get_reference_genome_code(value: str) -> mock.MagicMock:
-    """Patch reference genome code retrieval."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.file_utils.get_reference_genome_code",
-        return_value=value,
-    ) as mock_get_reference_genome_code:
-        yield mock_get_reference_genome_code
+SEQUENCER_CODE = "A"
+SOME_SEQUENCER = {"code": SEQUENCER_CODE}
+ANOTHER_SEQUENCER = {"code": "B"}
+ASSAY_CODE = "001"
+SOME_ASSAY = {"code": ASSAY_CODE}
+ANOTHER_ASSAY = {"code": "002"}
 
 
 @pytest.mark.parametrize(
-    "file,software_and_versions,reference_genome_code,expected,errors",
+    "sequencers,assays,expected,errors",
     [
-        ({}, "", "", "", True),
-        ({"data_type": ["Unaligned Reads"]}, "foo_1.2.3", "GRCh38", "", True),
-        ({"data_type": ["Unaligned Reads"]}, "", "", DEFAULT_ABSENT_FIELD, False),
-        ({"data_type": ["Unaligned Reads"]}, "foo_1.2.3", "", "foo_1.2.3", False),
-        ({"data_type": ["Aligned Reads"]}, "", "", "", True),
-        ({"data_type": ["Aligned Reads"]}, "foo_1.2.3", "", "", True),
-        ({"data_type": ["Aligned Reads", "SNV"]}, "foo_1.2.3", "GRCh38", "", True),
+        ([], [], "", True),
+        ([SOME_SEQUENCER], [], "", True),
+        ([], [SOME_ASSAY], "", True),
+        ([SOME_SEQUENCER], [SOME_ASSAY], f"{SEQUENCER_CODE}{ASSAY_CODE}", False),
+        ([SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY], "", True),
+        ([SOME_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "", True),
+        ([SOME_SEQUENCER, SOME_ITEM], [SOME_ASSAY], "", True),
+    ],
+)
+def test_get_sequencing_and_assay_codes(
+    sequencers: List[Dict[str, Any]],
+    assays: List[Dict[str, Any]],
+    expected: str,
+    errors: bool,
+) -> None:
+    """Test sequencing and assay codes retrieval for annotated filenames."""
+    result = get_sequencing_and_assay_codes(sequencers, assays)
+    assert_filename_part_matches(result, expected, errors)
+
+
+SEQUENCING_CENTER_CODE = "dac"
+SOME_SEQUENCING_CENTER = {"code": SEQUENCING_CENTER_CODE}
+
+
+@pytest.mark.parametrize(
+    "sequencing_center,expected,errors",
+    [
+        ({}, "", True),
+        (SOME_SEQUENCING_CENTER, SEQUENCING_CENTER_CODE, False),
+        (SOME_ITEM, "", True),
+    ],
+)
+def test_get_sequencing_center_code(
+    sequencing_center: Dict[str, Any], expected: str, errors: bool
+) -> None:
+    """Test sequencing center code retrieval for annotated filenames."""
+    result = get_sequencing_center_code(sequencing_center)
+    assert_filename_part_matches(result, expected, errors)
+
+
+SOFTWARE_CODE = "foo"
+SOFTWARE_VERSION = "1.2.3"
+SOME_SOFTWARE = {"code": SOFTWARE_CODE, "version": SOFTWARE_VERSION}
+ANOTHER_SOFTWARE_CODE = "bar"
+ANOTHER_SOFTWARE_VERSION = "2.3.4"
+ANOTHER_SOFTWARE = {"code": ANOTHER_SOFTWARE_CODE, "version": ANOTHER_SOFTWARE_VERSION}
+REFERENCE_GENOME_CODE = "GRCh38"
+SOME_REFERENCE_GENOME = {"code": REFERENCE_GENOME_CODE}
+SOME_UNALIGNED_READS = {"data_type": ["Unaligned Reads"]}
+SOME_ALIGNED_READS = {"data_type": ["Aligned Reads"]}
+SOME_SOMATIC_VARIANT_CALLS = {"data_category": ["Somatic Variant Calls"]}
+SOME_VARIANT_CALLS = {
+    "data_category": ["Somatic Variant Calls"],
+    "data_type": ["SNV", "CNV", "MEI", "SV", "Indel"],
+}
+
+
+@pytest.mark.parametrize(
+    "file,software,reference_genome,expected,errors",
+    [
+        ({}, [], {}, "", True),
+        (SOME_UNALIGNED_READS, [], {}, DEFAULT_ABSENT_FIELD, False),
         (
-            {"data_type": ["Aligned Reads"]},
-            "foo_1.2.3",
-            "GRCh38",
-            "foo_1.2.3_GRCh38",
+            SOME_UNALIGNED_READS,
+            [SOME_SOFTWARE],
+            {},
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}",
             False,
         ),
-        ({"data_category": ["Somatic Variant Calls"]}, "", "", "", True),
-        ({"data_category": ["Somatic Variant Calls"]}, "foo_1.2.3", "GRCh38", "", True),
+        (SOME_UNALIGNED_READS, [SOME_SOFTWARE], SOME_REFERENCE_GENOME, "", True),
+        (SOME_ALIGNED_READS, [], {}, "", True),
+        (SOME_ALIGNED_READS, [SOME_SOFTWARE], {}, "", True),
         (
-            {
-                "data_category": ["Somatic Variant Calls"],
-                "data_type": ["SNV", "CNV", "MEI", "SV", "Indel"],
-            },
-            "foo_1.2.3",
-            "",
-            "",
-            True,
+            SOME_ALIGNED_READS,
+            [SOME_SOFTWARE],
+            SOME_REFERENCE_GENOME,
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}",
+            False,
         ),
+        (SOME_SOMATIC_VARIANT_CALLS, [SOME_SOFTWARE], SOME_REFERENCE_GENOME, "", True),
         (
-            {
-                "data_category": ["Somatic Variant Calls"],
-                "data_type": ["SNV", "CNV", "MEI", "SV", "Indel"],
-            },
-            "",
-            "GRCh38",
-            "GRCh38_cnv_mei_snv_sv",
+            SOME_VARIANT_CALLS,
+            [SOME_SOFTWARE],
+            SOME_REFERENCE_GENOME,
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_cnv_mei_snv_sv",
             False,
         ),
         (
-            {
-                "data_category": ["Somatic Variant Calls"],
-                "data_type": ["SNV", "CNV", "MEI", "SV", "Indel"],
-            },
-            "foo_1.2.3",
-            "GRCh38",
-            "foo_1.2.3_GRCh38_cnv_mei_snv_sv",
+            SOME_ALIGNED_READS,
+            [SOME_SOFTWARE, ANOTHER_SOFTWARE],
+            SOME_REFERENCE_GENOME,
+            f"{ANOTHER_SOFTWARE_CODE}_{ANOTHER_SOFTWARE_VERSION}_{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}",
+            False,
+        ),
+        (
+            SOME_ALIGNED_READS,
+            [SOME_SOFTWARE, SOME_ITEM],
+            SOME_REFERENCE_GENOME,
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}",
             False,
         ),
     ],
 )
 def test_get_analysis(
     file: Dict[str, Any],
-    software_and_versions: str,
-    reference_genome_code: str,
+    software: List[Dict[str, Any]],
+    reference_genome: Dict[str, Any],
     expected: str,
     errors: bool,
 ) -> None:
     """Test analysis info retrieval for annotated filenames."""
-    with patch_get_software_and_versions(software_and_versions):
-        with patch_get_reference_genome_code(reference_genome_code):
-            result = get_analysis(file, None)
-            assert_filename_part_matches(result, expected, errors)
+    result = get_analysis(file, software, reference_genome)
+    assert_filename_part_matches(result, expected, errors)
 
 
 @pytest.mark.parametrize(
@@ -788,47 +596,39 @@ def test_get_software_and_versions(
     software: List[Dict[str, Any]], expected: str
 ) -> None:
     """Test software names and versions retrieval."""
-    request_handler = mock_request_handler(software)
-    result = get_software_and_versions({}, request_handler)
+    result = get_software_and_versions(software)
     assert result == expected
 
 
-@contextmanager
-def patch_get_file_extension(value: str) -> mock.MagicMock:
-    """Patch file extension retrieval."""
-    with mock.patch(
-        "encoded.commands.create_annotated_filenames.file_utils.get_file_extension",
-        return_value=value,
-    ) as mock_get_file_extension:
-        yield mock_get_file_extension
+FILE_EXTENSION = "foo"
+SOME_FILE_FORMAT = {"standard_file_extension": FILE_EXTENSION}
 
 
 @pytest.mark.parametrize(
-    "file,extension,expected,errors",
+    "file,file_format,expected,errors",
     [
-        ({}, "", "", True),
-        ({}, "foo", "foo", False),
+        ({}, {}, "", True),
+        ({}, SOME_FILE_FORMAT, "foo", False),
         (
             {"data_type": ["Aligned Reads"], "alignment_details": ["Phased", "Sorted"]},
-            "foo",
+            SOME_FILE_FORMAT,
             "aligned.sorted.phased.foo",
             False,
         ),
         (
-            {"alignment_details": ["Phased", "Sorted"]},
-            "foo.gz",
-            "sorted.phased.foo.gz",
+            {"alignment_details": ["Sorted"]},
+            SOME_FILE_FORMAT,
+            "sorted.foo",
             False,
         ),
     ],
 )
 def test_get_file_extension(
-    file: Dict[str, Any], extension: str, expected: str, errors: bool
+    file: Dict[str, Any], file_format: Dict[str, Any], expected: str, errors: bool
 ) -> None:
     """Test file extension retrieval for annotated filenames."""
-    with patch_get_file_extension(extension):
-        result = get_file_extension(file, None)
-        assert_filename_part_matches(result, expected, errors)
+    result = get_file_extension(file, file_format)
+    assert_filename_part_matches(result, expected, errors)
 
 
 @pytest.mark.parametrize(
