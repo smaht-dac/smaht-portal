@@ -180,26 +180,30 @@ class SyncedAccessKeyTable extends React.PureComponent {
                         </Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        <p className="text-center text-600">
+                        <p className="text-center text-500">
                             Please make a note of the new secret access key.
                             <br />
                             This is the last time you will be able to view it.
                         </p>
 
                         <div className="row mt-15">
-                            <div className="col-4 text-600 text-right no-user-select">
+                            <div className="col-5 text-500 text-right no-user-select">
                                 Access Key ID
                             </div>
-                            <div className="col-8">
-                                <code>{access_key_id}</code>
+                            <div className="col-7">
+                                <object.CopyWrapper value={access_key_id} data-tip={'Click to copy'} className="d-inline-block"
+                                    wrapperElement="div" iconProps={{}} analyticsOnCopy={false}><code>{access_key_id}</code>
+                                </object.CopyWrapper>
                             </div>
                         </div>
                         <div className="row mt-05">
-                            <div className="col-4 text-600 text-right no-user-select">
+                            <div className="col-5 text-500 text-right no-user-select">
                                 Secret Access Key
                             </div>
-                            <div className="col-8">
-                                <code>{secret_access_key}</code>
+                            <div className="col-7">
+                                <object.CopyWrapper value={secret_access_key} data-tip={'Click to copy'} className="d-inline-block"
+                                    wrapperElement="div" iconProps={{}} analyticsOnCopy={false}><code>{secret_access_key}</code>
+                                </object.CopyWrapper>
                             </div>
                         </div>
                     </Modal.Body>
