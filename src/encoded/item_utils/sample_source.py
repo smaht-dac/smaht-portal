@@ -36,3 +36,17 @@ def get_study(request_handler: RequestHandler, sample_source: Dict[str, Any]) ->
         if code:
             return constants.BENCHMARKING_STUDY
     return ""
+
+
+def get_cell_lines(
+    request_handler: RequestHandler, sample_source: Dict[str, Any]
+) -> str:
+    """Get cell lines for a given sample source.
+
+    Currently only used for CellCulture and CellCultureMixtures.
+    """
+    if cell_culture.is_cell_culture(sample_source):
+        return [cell_culture.get_cell_line(sample_source)]
+    if cell_culture_mixture.is_cell_culture_mixture(sample_source):
+        return cell_culture_mixture.get_cell_lines(request_handler, sample_source)
+    return []

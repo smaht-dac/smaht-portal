@@ -1,8 +1,16 @@
 from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
-from . import library as library_utils, sample as sample_utils
-from .utils import RequestHandler, get_property_values_from_identifiers
+from . import (
+    library as library_utils,
+    sample as sample_utils,
+    sequencing as sequencing_utils,
+)
+from .utils import (
+    RequestHandler,
+    get_property_value_from_identifier,
+    get_property_values_from_identifiers,
+)
 
 
 def get_sequencing(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
@@ -42,3 +50,23 @@ def get_samples(
             partial(library_utils.get_samples, request_handler=request_handler),
         )
     return result
+
+
+def get_assays(request_handler: RequestHandler, file_set: Dict[str, Any]) -> List[str]:
+    """Get assays connected to file set."""
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_libraries(file_set),
+        library_utils.get_assay,
+    )
+
+
+def get_sequencer(
+    request_handler: RequestHandler, file_set: Dict[str, Any]
+) -> List[str]:
+    """Get sequencers connected to file set."""
+    return get_property_value_from_identifier(
+        request_handler,
+        get_sequencing(file_set),
+        sequencing_utils.get_sequencer,
+    )

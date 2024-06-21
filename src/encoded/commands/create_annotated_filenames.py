@@ -18,6 +18,7 @@ from encoded.item_utils import (
     file_set as file_set_utils,
     item as item_utils,
     sample as sample_utils,
+    sample_source as sample_source_utils,
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
 )
@@ -159,7 +160,7 @@ def get_file_sets(
 ) -> List[Dict[str, Any]]:
     """Get file sets for file."""
     file_sets = file_sets or []
-    to_get = file_utils.get_file_sets(file, request_handler) + file_sets
+    to_get = file_utils.get_file_sets(file) + file_sets
     return get_items(to_get, request_handler)
 
 
@@ -198,7 +199,7 @@ def get_assays(
     assays = [
         item
         for file_set in file_sets
-        for item in file_set_utils.get_assays(file_set, request_handler)
+        for item in file_set_utils.get_assays(request_handler, file_set)
     ]
     return get_items(assays, request_handler)
 
@@ -208,7 +209,7 @@ def get_sequencers(
 ) -> List[Dict[str, Any]]:
     """Get sequencers for file sets."""
     sequencers = [
-        file_set_utils.get_sequencer(file_set, request_handler)
+        file_set_utils.get_sequencer(request_handler, file_set)
         for file_set in file_sets
     ]
     return get_items(sequencers, request_handler)
@@ -242,7 +243,7 @@ def get_sample_sources(
     sample_sources = [
         item
         for sample in samples
-        for item in sample_utils.get_sample_sources(sample, request_handler)
+        for item in sample_utils.get_sample_sources(sample)
     ]
     return get_items(sample_sources, request_handler)
 
@@ -269,7 +270,7 @@ def get_cell_lines(
     cell_lines = [
         item
         for source in sample_sources
-        for item in cell_line_utils.get_cell_lines(request_handler, source)
+        for item in sample_source_utils.get_cell_lines(request_handler, source)
     ]
     return get_items(cell_lines, request_handler)
 
