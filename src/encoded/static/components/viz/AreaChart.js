@@ -129,11 +129,14 @@ export class StatsChartViewAggregator extends React.PureComponent {
     static propTypes = {
         'aggregationsToChartData' : PropTypes.object.isRequired,
         'shouldReaggregate' : PropTypes.func,
+        'cumulativeSum': PropTypes.bool,
         'children' : PropTypes.node.isRequired
     };
 
     constructor(props){
         super(props);
+        const { cumulativeSum = false } = props;
+
         this.getRefWidth = this.getRefWidth.bind(this);
         this.handleToggle = this.handleToggle.bind(this);
         this.handleToggleSmoothEdges = this.handleToggleSmoothEdges.bind(this);
@@ -142,7 +145,7 @@ export class StatsChartViewAggregator extends React.PureComponent {
         this.state = _.extend(this.generateAggsToState(props, {}), {
             'chartToggles' : {},
             'smoothEdges' : false,
-            'cumulativeSum': false
+            'cumulativeSum': cumulativeSum
         });
 
         this.elemRef = React.createRef();
@@ -302,12 +305,12 @@ export class GroupByController extends React.PureComponent {
         super(props);
         this.handleGroupByChange = this.handleGroupByChange.bind(this);
         this.handleDateRangeChange = this.handleDateRangeChange.bind(this);
-        this.state = { 
-            'currentGroupBy' : props.initialGroupBy,
+        this.state = {
+            'currentGroupBy': props.initialGroupBy,
             'currentDateRangePreset': props.initialDateRangePreset,
             'currentDateRangeFrom': props.initialDateRangeFrom || null,
             'currentDateRangeTo': props.initialDateRangeTo || null
-         };
+        };
     }
 
     handleGroupByChange(field){
@@ -326,11 +329,11 @@ export class GroupByController extends React.PureComponent {
                 return null;
             }
 
-            return { 
-                'currentDateRangePreset' : field,
-                'currentDateRangeFrom': field !== 'custom' ? null : from,
-                'currentDateRangeTo': field !== 'custom' ? null : to
-             };
+            return {
+                'currentDateRangePreset': field,
+                'currentDateRangeFrom': field !== 'custom' || from === '' ? null : from,
+                'currentDateRangeTo': field !== 'custom' || to === '' ? null : to
+            };
         });
     }
 
@@ -372,7 +375,25 @@ export class GroupByDropdown extends React.PureComponent {
     constructor(props){
         super(props);
         this.onGroupBySelect = _.throttle(this.onGroupBySelect.bind(this), 1000);
-        this.onDateRangeSelect = _.throttle(this.onDateRangeSelect.bind(this), 1000);
+        this.onDateRangeSelect = this.onDateRangeSelect.bind(this);
+        //used as workaround to fix input type="date" unwanted reset bug
+        this.state = {
+            'tempDateRangeFrom': '',
+            'tempDateRangeTo': ''
+        };
+    }
+
+    componentDidUpdate(pastProps, pastState){
+        const { currentDateRangeFrom, currentDateRangeTo } = this.props;
+        // if current date range from/to changed, then force the temp values get reset
+        if (pastProps.currentDateRangeFrom !== currentDateRangeFrom || pastProps.currentDateRangeTo !== currentDateRangeTo) {
+            setTimeout(() => {
+                this.setState({
+                    'tempDateRangeFrom': currentDateRangeFrom,
+                    'tempDateRangeTo': currentDateRangeTo
+                });
+            }, 750);
+        }
     }
 
     onGroupBySelect(eventKey, evt){
@@ -397,12 +418,13 @@ export class GroupByDropdown extends React.PureComponent {
             dateRangeOptions, currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeTitle,
             loadingStatus, buttonStyle, outerClassName, children,
             groupById, dateRangeId } = this.props;
+        const { tempDateRangeFrom, tempDateRangeTo } = this.state;
         // group by
         const groupByOptionItems = _.map(_.pairs(groupByOptions), ([field, title]) =>
             <DropdownItem eventKey={field} key={field} active={field === currentGroupBy}>{ title }</DropdownItem>
         );
         const selectedGroupByValueTitle = loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch"/> : groupByOptions[currentGroupBy];
-        
+
         if (dateRangeOptions) {
             const dateRangeOptionItems = _.map(_.pairs(_.pick(dateRangeOptions, (value, key) => key !== 'custom')), ([field, title]) =>
                 <DropdownItem eventKey={field} key={field} active={field === currentDateRangePreset}>{title}</DropdownItem>
@@ -421,13 +443,19 @@ export class GroupByDropdown extends React.PureComponent {
                         <div className="text-500 d-block mb-1">{dateRangeTitle}</div>
                         <div className="date-range">
                             {/* <span className="text-300 pt-05">Presets</span> */}
-                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={e => this.onDateRangeSelect(e, null, null)} style={buttonStyleOverriden}>
+                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={(e) => this.onDateRangeSelect(e, null, null)} style={buttonStyleOverriden}>
                                 {dateRangeOptionItems}
                             </DropdownButton>
                             <div className="d-flex custom-date-range">
                                 <span className="text-300 pt-05 d-none d-md-inline-block mr-05">Custom:</span>
-                                <input id="submission_data_range_from" type="date" className="form-control" onChange={e => this.onDateRangeSelect('custom', e.target.value, currentDateRangeTo)} value={currentDateRangeFrom || ''} />
-                                <input id="submission_data_range_to" type="date" className="form-control" onChange={e => this.onDateRangeSelect('custom', currentDateRangeFrom, e.target.value)} value={currentDateRangeTo || ''} />
+                                <input id="submission_data_range_from" type="date"
+                                    className="form-control" value={tempDateRangeFrom || ''}
+                                    onChange={(e) => { this.setState({ "tempDateRangeFrom": e.target.value }); }}
+                                    onBlur={(e) => this.onDateRangeSelect('custom', tempDateRangeFrom, currentDateRangeTo)} />
+                                <input id="submission_data_range_to" type="date"
+                                    className="form-control" value={tempDateRangeTo || ''}
+                                    onChange={(e) => { this.setState({ "tempDateRangeTo": e.target.value }); }}
+                                    onBlur={(e) => this.onDateRangeSelect('custom', currentDateRangeFrom, tempDateRangeTo)} />
                             </div>
                         </div>
                     </div>
@@ -446,7 +474,8 @@ export class GroupByDropdown extends React.PureComponent {
                     {groupByOptionItems}
                 </DropdownButton>
                 {children}
-            </div>);
+            </div>
+        );
     }
 }
 
@@ -716,7 +745,6 @@ export class AreaChart extends React.PureComponent {
     }
 
     static isTermUrl(term){
-        // return term && typeof term === 'string' && term.length > 3 && term.charAt(0) === '/' && term[term.length - 1] === '/';
         return term && typeof term === 'string' && term.length >= 1 && term.charAt(0) === '/';
     }
 
