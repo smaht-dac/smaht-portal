@@ -724,7 +724,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
             else
                 params.date_range = `custom|${props.currentDateRangeFrom || ''}|${props.currentDateRangeTo || ''}`;
         }
-        params.date_histogram = [date_histogram];
+        params.date_histogram = Array.isArray(date_histogram) ? date_histogram : [date_histogram];
         const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
 
         // For local dev/debugging; don't forget to comment out if using.
