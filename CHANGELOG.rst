@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.65.3
+======
+* Documentation for smaht-submitr binary (pyinstaller-based) installation.
+
+
 0.65.2
 ======
 
