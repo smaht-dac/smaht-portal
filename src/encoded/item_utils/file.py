@@ -80,6 +80,11 @@ def get_quality_metrics(properties: Dict[str, Any]) -> List[Union[str, Dict[str,
     return properties.get("quality_metrics", [])
 
 
+def is_uploaded(properties: Dict[str, Any]) -> bool:
+    """Check if file is uploaded."""
+    return item.get_status(properties) == "uploaded"
+
+
 def get_sequencings(
     properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[Union[str, Dict[str, Any]]]:

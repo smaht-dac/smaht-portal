@@ -2,7 +2,7 @@ import argparse
 import pprint
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Dict, List, Any
+from typing import Callable, Dict, List, Any
 
 from dcicutils import ff_utils  # noqa
 from dcicutils.creds_utils import SMaHTKeyManager  # noqa
@@ -10,18 +10,27 @@ from dcicutils.creds_utils import SMaHTKeyManager  # noqa
 from encoded.commands import create_annotated_filenames as caf
 from encoded.commands.utils import get_auth_key
 from encoded.item_utils import (
+    analyte as analyte_utils,
+    cell_culture as cell_culture_utils,
     cell_culture_mixture as cell_culture_mixture_utils,
+    cell_line as cell_line_utils,
     file as file_utils,
+    file_set as file_set_utils,
     item as item_utils,
+    library as library_utils,
     meta_workflow_run as meta_workflow_run_utils,
+    output_file as output_file_utils,
     quality_metric as quality_metric_utils,
+    sample as sample_utils,
+    submitted_file as submitted_file_utils,
+    tissue as tissue_utils,
 )
 from encoded.item_utils.constants import (
     file as file_constants,
     item as item_constants,
 )
 from encoded.item_utils.utils import RequestHandler
-from enocded.server_defaults import ACCESSION_PREFIX
+from encoded.server_defaults import ACCESSION_PREFIX
 
 pp = pprint.PrettyPrinter(indent=2)
 
@@ -73,7 +82,7 @@ class FileRelease:
 
     @cached_property
     def quality_metrics(self) -> List[dict]:
-        quality_metrics = self.request_handler.get_items(
+        quality_metrics = self.get_items(
             file_utils.get_quality_metrics(self.file)
         )
         if not quality_metrics:
@@ -85,77 +94,110 @@ class FileRelease:
 
     @cached_property
     def quality_metrics_zips(self) -> List[dict]:
-        return self.get_quality_metrics_zip_files(self.quality_metrics)
+        return self.get_quality_metrics_zip_files()
 
     @cached_property
     def libraries(self) -> List[dict]:
-        return self.request_handler.get_items(
-            file_utils.get_libraries(self.file, self.request_handler)
+        return self.get_items(
+            self.get_links(self.file_sets, file_set_utils.get_libraries)
         )
 
     @cached_property
     def assays(self) -> List[dict]:
-        return self.request_handler.get_items(
-            file_utils.get_assays(self.file, self.request_handler)
+        return self.get_items(
+            self.get_links(self.libraries, library_utils.get_assay)
         )
 
     @cached_property
     def sequencings(self) -> List[dict]:
-        return self.request_handler.get_items(
-            file_utils.get_sequencings(self.file, self.request_handler)
+        return self.get_items(
+            self.get_links(self.file_sets, file_set_utils.get_sequencing)
         )
 
     @cached_property
     def analytes(self) -> List[dict]:
-        return self.request_handler.get_items(
-            file_utils.get_analytes(self.file, self.request_handler)
+        return self.get_items(
+            self.get_links(self.libraries, library_utils.get_analytes)
         )
 
     @cached_property
     def samples(self) -> List[dict]:
-        return self.request_handler.get_items(
-            file_utils.get_samples(self.file, self.request_handler)
+        return self.get_items(
+            self.get_links(self.analytes, analyte_utils.get_samples)
         )
 
     @cached_property
     def sample_sources(self) -> List[dict]:
-        return self.request_handler.get_items(
-            file_utils.get_sample_sources(self.file, self.request_handler)
+        return self.get_items(
+            self.get_links(self.samples, sample_utils.get_sample_sources)
         )
 
     @cached_property
     def cell_cultures_from_mixtures(self) -> List[dict]:
-        cell_culture_mixtures = file_utils.get_cell_culture_mixtures(
-            self.file, self.request_handler
-        )
+        mixtures = [
+            sample_source
+            for sample_source in self.sample_sources
+            if cell_culture_mixture_utils.is_cell_culture_mixture(sample_source)
+        ]
         cell_cultures = [
             culture
-            for cell_culture_mixture in cell_culture_mixtures
-            for culture in cell_culture_mixture_utils.get_cell_cultures(
-                self.get_metadata(cell_culture_mixture)
-            )
+            for mixture in mixtures
+            for culture in cell_culture_mixture_utils.get_cell_cultures(mixture)
         ]
         if cell_cultures:
-            return self.request_handler.get_items(set(cell_cultures))
+            return self.get_items(cell_cultures)
         return []
 
     @cached_property
     def cell_lines(self) -> List[dict]:
-        return self.request_handler.get_items(
-            file_utils.get_cell_lines(self.file, self.request_handler)
+        cultures_from_sources = [
+            sample_source
+            for sample_source in self.sample_sources
+            if cell_culture_utils.is_cell_culture(sample_source)
+        ]
+        return self.get_items(
+            self.get_links(
+                cultures_from_sources + self.cell_cultures_from_mixtures,
+                cell_culture_utils.get_cell_line,
+            )
         )
 
     @cached_property
     def donors(self) -> List[dict]:
-        return self.request_handler.get_items(
-            file_utils.get_donors(self.file, self.request_handler)
+        tissues = [
+            sample_source
+            for sample_source in self.sample_sources
+            if tissue_utils.is_tissue(sample_source)
+        ]
+        return self.get_items(
+            self.get_links(tissues, tissue_utils.get_donor) + self.get_links(
+                self.cell_lines, cell_line_utils.get_donor
+            )
         )
 
     def get_request_handler(self) -> RequestHandler:
-        return RequestHandler(auth_key=self.key, frame="raw", datastore="database")
+        return RequestHandler(auth_key=self.key, frame="object", datastore="database")
 
     def get_metadata(self, identifier: str) -> dict:
         return self.request_handler.get_item(identifier)
+
+    def get_items(self, identifiers: List[str]) -> List[dict]:
+        """Get metadata for a list of identifiers."""
+        return self.request_handler.get_items(identifiers)
+
+    def get_links(self, items: List[Dict[str, Any]], getter: Callable) -> List[str]:
+        """Get links from a list of items using a getter function.
+
+        Handle link as a string or a list of strings.
+        """
+        result = []
+        for item in items:
+            links = getter(item)
+            if isinstance(links, str):
+                result.append(links)
+            elif isinstance(links, list):
+                result.extend(links)
+        return result
 
     def get_file_sets_from_file(self) -> List[dict]:
         if file_sets := file_utils.get_file_sets(self.file):
@@ -181,7 +223,7 @@ class FileRelease:
                 f" MetaWorkflowRun {item_utils.get_accession(mwfr)}"
             )
 
-        return self.get_metadata(file_sets[0])
+        return [self.get_metadata(file_sets[0])]
 
     def get_quality_metrics_zip_files(self) -> List[dict]:
         zip_files = []
@@ -365,7 +407,9 @@ class FileRelease:
         if annotated_filename:
             return AnnotatedFilenameInfo(annotated_filename, {})
 
-        annotated_filename = caf.get_annotated_filename(self.file, self.request_handler)
+        annotated_filename = caf.get_annotated_filename(
+            self.file, self.request_handler, file_sets=self.file_sets
+        )
         if caf.has_errors(annotated_filename):
             errors = "; ".join(annotated_filename.errors)
             self.print_error_and_exit(
@@ -467,13 +511,15 @@ class FileRelease:
             "lb_ipsc_60",
         ]:
             dataset_category = IPSC
+        elif dataset == TISSUE:
+            dataset_category = TISSUE
         else:
             self.print_error_and_exit(
                 f"Cannot get access_status from dataset {dataset}. Unknown dataset."
             )
 
         access_status = self.get_access_status_from_data_categories(
-            dataset_category, access_status_mapping.get(dataset_category, {})
+            access_status_mapping.get(dataset_category, {})
         )
         return access_status
 
@@ -522,18 +568,18 @@ class FileRelease:
 
     def validate_existing_file_sets(self) -> None:
         existing_file_sets = file_utils.get_file_sets(self.file)
-        if file_utils.is_output_file(self.file):
+        if output_file_utils.is_output_file(self.file):
             self.add_warning(
                 f"File {self.file_accession} already has an associated file set."
                 " It will NOT be overwritten."
             )
-        if file_utils.is_submitted_file(self.file) and not existing_file_sets:
+        if submitted_file_utils.is_submitted_file(self.file) and not existing_file_sets:
             self.print_error_and_exit(
                 f"Submitted file {self.file_accession} has no associated file set."
             )
 
     def validate_file_output_status(self) -> None:
-        if file_utils.is_output_file(self.file) and file_utils.is_final_output(
+        if output_file_utils.is_output_file(self.file) and not output_file_utils.is_final_output(
             self.file
         ):
             self.add_warning(f"File {self.file_accession} is not a final output file.")
@@ -542,7 +588,7 @@ class FileRelease:
         if not file_utils.is_uploaded(self.file):
             self.add_warning(
                 f"File {self.file_accession} has status"
-                f" `{file_utils.get_status(self.file)}`."
+                f" `{item_utils.get_status(self.file)}`."
                 f" Expected `{item_constants.STATUS_UPLOADED}`."
             )
 
@@ -660,6 +706,11 @@ def main() -> None:
         help="Identifier of the file to replace (set to obsolete)",
         required=False,
     )
+    parser.add_argument(
+        "--dry-run",
+        help="Dry run, show patches but do not execute",
+        action="store_true",
+    )
 
     args = parser.parse_args()
 
@@ -668,6 +719,10 @@ def main() -> None:
 
     file_release = FileRelease(auth_key=auth_key, file_identifier=args.file)
     file_release.prepare(dataset=args.dataset, obsolete_file_identifier=args.replace)
+
+    if args.dry_run:
+        file_release.show_patch_dicts()
+        exit()
 
     while True:
         resp = input(

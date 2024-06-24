@@ -1052,7 +1052,7 @@ def get_extra_file_format_extension(
 ) -> str:
     """Get extra file format extension."""
     extra_file_format = get_extra_file_format(extra_file_item, auth_key)
-    return file_format_utils.get_standard_extension(extra_file_format)
+    return file_format_utils.get_standard_file_extension(extra_file_format)
 
 
 def get_extra_file_format(

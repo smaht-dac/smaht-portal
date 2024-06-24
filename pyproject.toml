@@ -182,7 +182,7 @@ load-users-from-oc = "encoded.commands.load_users_from_oc:main"
 parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/testing only
 prepare-docker = "encoded.commands.prepare_template:prepare_docker_main"
 prepare-local-dev = "encoded.commands.prepare_template:prepare_local_dev_main"
-release-files = "encoded.commands.release_files:main"
+release-file = "encoded.commands.release_files:main"
 show-schema= "encoded.commands.show_schema:main"  # For dev/testing only
 write-submission-spreadsheets = "encoded.commands.write_submission_spreadsheets:main"
 
