@@ -564,7 +564,7 @@ class FileRelease:
 
     def validate_existing_file_sets(self) -> None:
         existing_file_sets = file_utils.get_file_sets(self.file)
-        if output_file_utils.is_output_file(self.file):
+        if output_file_utils.is_output_file(self.file) and existing_file_sets:
             self.add_warning(
                 f"File {self.file_accession} already has an associated file set."
                 " It will NOT be overwritten."
