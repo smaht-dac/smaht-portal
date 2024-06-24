@@ -1,19 +1,8 @@
 [
     {
         "uuid": "12a3228f-f46c-4fbf-a19c-d233bf7d20d8",
-        "filename": "test_DSA.fasta",
-        "submitted_id": "TEST_REFERENCE-GENOME_HELA",
-        "data_category": [
-            "Reference Genome"
-        ],
-        "data_type": [
-            "Reference Sequence"
-        ],
-        "file_format": "FASTA",
-        "files": [
-            "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
-            "TEST_GENERAL-FILE_HELA_GRCH38"
-        ],
+        "submitted_id": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
+        "cell_line": "TEST_CELL-LINE_HELA",
         "file_sets": [
             "TEST_FILE-SET_HELA"
         ],
@@ -23,6 +12,10 @@
         "submission_centers": [
             "smaht"
         ],
-        "file_size": 9000
+        "genome_size": 4.5,
+        "ploidy": "Diploid",
+        "number_of_chromosomes": 23,
+        "largest_contig": 30,
+        "contig_n50": 40000
     }
 ]

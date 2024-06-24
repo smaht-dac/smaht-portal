@@ -85,6 +85,12 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_GENERAL-FILE_[A-Z0-9-_.]{4,}$"
         },
+        "donor_specific_assembly": {
+            "title": "Donor-Specific Assembly",
+            "description": "The donor-specific assembly that this file corresponds to",
+            "type": "string",
+            "linkTo": "DonorSpecificAssembly"
+        },
         "source_assembly": {
             "title": "Source Assembly",
             "description": " The reference genome assembly from which the coordinates are being converted, if applicable (For chain files)",

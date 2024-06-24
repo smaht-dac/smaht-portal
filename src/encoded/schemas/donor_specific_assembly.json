@@ -1,13 +1,11 @@
 {
-    "title": "Reference Genome",
+    "title": "Donor Specific Assembly",
     "$id": "/profiles/donor_specific_assembly.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
         "submitted_id",
         "submission_centers",
-        "filename",
-        "file_format",
         "file_sets",
         "software"
     ],
@@ -52,9 +50,6 @@
             "$ref": "mixins.json#/modified"
         },
         {
-            "$ref": "mixins.json#/reference_genome"
-        },
-        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -79,16 +74,6 @@
             "$ref": "mixins.json#/version"
         }
     ],
-    "mixinFacets": [
-        {
-            "$ref": "file.json#/facets"
-        }
-    ],
-    "mixinColumns": [
-        {
-            "$ref": "file.json#/columns"
-        }
-    ],
     "properties": {
         "accession": {
             "accessionType": "DA"
@@ -102,12 +87,6 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_DONOR-SPECIFIC-ASSEMBLY_[A-Z0-9-_.]{4,}$"
         },
-        "cell_line": {
-            "title": "Cell Line",
-            "description": "Link to associated Cell Line",
-            "type": "string",
-            "linkTo": "CellLine"
-        },
         "contig_l50": {
             "title": "Contig L50",
             "description": "L50 of contigs: the count of the smallest number of contigs whose total length makes up 50% of the assembly size",
@@ -119,12 +98,6 @@
             "description": "N50 of contigs: the sequence length of the shortest contig at 50% of the total assembly length (bp)",
             "type": "number",
             "minimum": 0
-        },
-        "donor": {
-            "title": "Donor",
-            "description": "Link to associated Donor",
-            "type": "string",
-            "linkTo": "Donor"
         },
         "gc_content": {
             "title": "GC Content",
@@ -212,17 +185,6 @@
             "type": "number",
             "minimum": 0
         },
-        "software": {
-            "title": "Software",
-            "description": "Software used to generate the assembly",
-            "type": "array",
-            "uniqueItems": true,
-            "minItems": 1,
-            "items": {
-                "type": "string",
-                "linkTo": "Software"
-            }
-        },
         "total_length": {
             "title": "Total Length",
             "description": "Total number of bases in the assembly (Gb)",
@@ -242,11 +204,51 @@
             "minimum": 0,
             "maximum": 50
         },
+        "file_sets": {
+            "description": "File sets used to generate the assembly"
+        },
         "quality_value_software": {
             "title": "Quality Value Software",
             "description": "Software used to assess quality value of assembly",
             "type": "string",
             "linkTo": "Software"
+        },
+        "cell_line": {
+            "title": "Cell Line",
+            "description": "Link to associated Cell Line",
+            "type": "string",
+            "linkTo": "CellLine"
+        },
+        "donor": {
+            "title": "Donor",
+            "description": "Link to associated Donor",
+            "type": "string",
+            "linkTo": "Donor"
+        },
+        "software": {
+            "description": "Software used to generate the assembly"
+        }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "donor": {
+            "title": "Donor"
+        },
+        "cell_line": {
+            "title": "Cell Line"
+        }
+    },
+    "columns": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "donor": {
+            "title": "Donor"
+        },
+        "cell_line": {
+            "title": "Cell Line"
         }
     }
 }

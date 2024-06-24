@@ -4,27 +4,25 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "submission_centers",
-        "title",
-        "category"
+        "identifier",
+        "title"
     ],
-    "oneOf": [
+    "anyOf": [
         {
             "required": [
-                "identifier"
+                "submission_centers"
             ]
         },
         {
             "required": [
-                "submitted_id"
+                "consortia"
             ]
         }
     ],
     "identifyingProperties": [
         "accession",
-        "submitted_id",
-        "identifier",
         "aliases",
+        "identifier",
         "uuid"
     ],
     "additionalProperties": false,
@@ -39,7 +37,13 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/code"
+        },
+        {
             "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -52,9 +56,6 @@
         },
         {
             "$ref": "mixins.json#/submitted"
-        },
-        {
-            "$ref": "mixins.json#/submitted_id"
         },
         {
             "$ref": "mixins.json#/tags"
@@ -76,15 +77,7 @@
         "accession": {
             "accessionType": "RG"
         },
-        "identifier": {
-            "title": "Identifier",
-            "description": "Identifier for reference genome (Must contain GR or gr)",
-            "type": "string",
-            "uniqueKey": true,
-            "minLength": 2,
-            "pattern": "^[A-Za-z0-9-_.]{0,}[Gg][Rr][A-Za-z0-9-_.]{1,}$"
-        },
-        "title": {
+        "code": {
             "pattern": "^[A-Za-z0-9]{3,}$"
         },
         "schema_version": {
@@ -92,27 +85,6 @@
         },
         "version": {
             "pattern": "^[A-Za-z0-9_-.]{3,}$"
-        },
-        "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_REFERENCE-GENOME_[A-Z0-9-_.]{4,}$"
-        },
-        "category": {
-            "title": "Category",
-            "description": "Category of genome assembly",
-            "type": "string",
-            "enum": [
-                "Donor Specific Assembly",
-                "Primary Assembly"
-            ]
-        },
-        "completion_status": {
-            "title": "Completion Status",
-            "description": "Assembly status of completeness",
-            "type": "string",
-            "enum": [
-                "Complete",
-                "Incomplete"
-            ]
         },
         "genbank_assembly": {
             "title": "GenBank Assembly",
@@ -126,17 +98,6 @@
             "type": "string",
             "pattern": "^GCF_[0-9]{9}.[0-9]{1,}$"
         },
-        "software": {
-            "title": "Software",
-            "description": "Software used to generate the assembly",
-            "type": "array",
-            "uniqueItems": true,
-            "minItems": 1,
-            "items": {
-                "type": "string",
-                "linkTo": "Software"
-            }
-        },
         "files": {
             "title": "Files",
             "description": "Files associated with the reference genome",
@@ -149,26 +110,12 @@
             }
         }
     },
-    "facets": {
-        "submission_centers.display_title": {
-            "title": "Submitted By"
-        },
-        "category": {
-            "title": "Assembly Type"
-        },
-        "completion_status": {
-            "title": "Completion Status"
-        }
-    },
     "columns": {
-        "submitted_id": {
-            "title": "Submitted ID"
+        "identifier": {
+            "title": "Identifier"
         },
         "code": {
             "title": "Code"
-        },
-        "category": {
-            "title": "Assembly Type"
         }
     }
 }
