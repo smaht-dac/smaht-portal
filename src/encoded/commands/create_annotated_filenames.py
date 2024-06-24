@@ -232,7 +232,7 @@ def get_tissue_samples(
 ) -> List[Dict[str, Any]]:
     """Filter samples to get tissue samples."""
     return [
-        sample for sample in samples if tissue_sample_utils.is_tissue_sample(sample)
+        sample for sample in samples if sample_utils.is_tissue_sample(sample)
     ]
 
 
