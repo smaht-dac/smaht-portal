@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Union
 from . import (
     cell_culture,
     cell_culture_mixture,
+    cell_line,
     file_format,
     file_set,
     item,
@@ -273,8 +274,15 @@ def get_donors(
     if request_handler:
         tissues = get_tissues(properties, request_handler)
         cell_lines = get_cell_lines(properties, request_handler)
-        return get_property_values_from_identifiers(
-            request_handler, tissues + cell_lines, tissue.get_donor
+        return list(
+            set(
+                get_property_values_from_identifiers(
+                    request_handler, tissues, tissue.get_donor
+                )
+                + get_property_values_from_identifiers(
+                    request_handler, cell_lines, cell_line.get_donor
+                )
+            )
         )
     return properties.get("donors", [])
 
@@ -302,70 +310,6 @@ def get_analysis_summary(properties: Dict[str, Any]) -> Dict[str, Any]:
 def is_file(properties: Dict[str, Any]) -> bool:
     """Check if item is a file."""
     return "File" in item.get_types(properties)
-
-
-def is_cell_culture_mixture_derived(
-    properties: Dict[str, Any], request_handler: RequestHandler
-) -> bool:
-    """Check if file is derived from cell culture mixture."""
-    return any(get_cell_culture_mixtures(properties, request_handler))
-
-
-def is_only_cell_culture_mixture_derived(
-    properties: Dict[str, Any], request_handler: RequestHandler
-) -> bool:
-    """Check if file is only derived from cell culture mixture."""
-    sample_sources = get_sample_sources(properties, request_handler)
-    return all(
-        [
-            cell_culture_mixture.is_cell_culture_mixture(
-                request_handler.get_item(sample_source)
-            )
-            for sample_source in sample_sources
-        ]
-    )
-
-
-def is_cell_line_derived(
-    properties: Dict[str, Any], request_handler: RequestHandler
-) -> bool:
-    """Check if file is derived from cell line."""
-    return any(get_cell_lines(properties, request_handler))
-
-
-def is_tissue_derived(
-    properties: Dict[str, Any], request_handler: RequestHandler
-) -> bool:
-    """Check if file is derived from tissue."""
-    return any(get_tissues(properties, request_handler))
-
-
-def is_fastq(
-    properties: Dict[str, Any], request_handler: RequestHandler = None
-) -> bool:
-    """Check if file is a FASTQ file."""
-    file_format_ = get_file_format(properties)
-    return get_property_value_from_identifier(
-        request_handler, file_format_, file_format.is_fastq
-    )
-
-
-def is_bam(properties: Dict[str, Any], request_handler: RequestHandler = None) -> bool:
-    """Check if file is a BAM file."""
-    return get_property_value_from_identifier(
-        request_handler,
-        get_file_format(properties),
-        file_format.is_bam,
-    )
-
-
-def is_vcf(properties: Dict[str, Any], request_handler: RequestHandler = None) -> bool:
-    """Check if file is a VCF file."""
-    return get_property_value_from_identifier(
-        request_handler,
-        get_file_format(properties),
-        file_format.is_vcf,
-    )
 
 
 def get_file_extension(
@@ -411,17 +355,6 @@ def are_reads_sorted(file: Dict[str, Any]) -> bool:
 def are_reads_phased(file: Dict[str, Any]) -> bool:
     """Check if file is phased."""
     return "Phased" in get_alignment_details(file)
-
-
-def get_reference_genome_code(
-    properties: Dict[str, Any], request_handler: RequestHandler
-) -> str:
-    """Get reference genome code from properties."""
-    return get_property_value_from_identifier(
-        request_handler,
-        get_reference_genome(properties),
-        item.get_code,
-    )
 
 
 def has_single_nucleotide_variants(file: Dict[str, Any]) -> bool:

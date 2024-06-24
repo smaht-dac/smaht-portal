@@ -4,11 +4,14 @@ import pytest
 from webtest import TestApp
 
 from .utils import get_search
-from ..item_utils import item
+from ..item_utils import constants, item
 from ..item_utils.sample import (
+    BENCHMARKING_ID_REGEX,
+    PRODUCTION_ID_REGEX,
     get_aliquot_id,
     get_sample_descriptions,
     get_sample_names,
+    get_study,
     get_studies,
 )
 from ..item_utils.utils import RequestHandler
@@ -119,6 +122,70 @@ def get_expected_sample_studies(sample: Dict[str, Any]) -> str:
         for tag in expected_sample_study_tags
         for value in tag.split(expected_sample_study_tag)[1].split("|")
     ]
+
+
+@pytest.mark.parametrize(
+    "string,expected",
+    [
+        ("", False),
+        ("ST001-1A-XX", False),  # Only 1 X expected
+        ("ST001-1A-100XX", False),  # Only 1 X expected
+        ("ST001-1A-1000X", False),  # Only 3 digits in aliquot ID expected
+        ("ST001-1A-1000A5", False),  # Only 3 digits in aliquot ID expected
+        ("ST001-1A-1000T8", False),  # Only 3 digits in aliquot ID expected
+        ("ST001-1A-100M5", False),  # Aliquot ID letter not expected
+        ("ST001-1A-100A0", False),  # Core ID number too low
+        ("ST001-1A-100A7", False),  # Core ID number too high
+        ("ST001-1A-100T0", False),  # Core ID number too low
+        ("ST001-1A-100T10", False),  # Core ID number too high
+        ("ST001-1A-X", True),
+        ("ST001-1A-100X", True),
+        ("ST001-1A-100A5", True),
+        ("ST001-1A-100T8", True),
+    ],
+)
+def test_benchmarking_id_regex(string: str, expected: bool) -> None:
+    """Test benchmarking ID regex."""
+    return bool(BENCHMARKING_ID_REGEX.match(string)) == expected
+
+
+@pytest.mark.parametrize(
+    "string,expected",
+    [
+        ("", False),
+        ("SMHT001-1A-XX", False),  # Only 1 X expected
+        ("SMHT001-1A-100XX", False),  # Only 1 X expected
+        ("SMHT001-1A-1000X", False),  # Only 3 digits in aliquot ID expected
+        ("SMHT001-1A-1000A5", False),  # Only 3 digits in aliquot ID expected
+        ("SMHT001-1A-1000T8", False),  # Only 3 digits in aliquot ID expected
+        ("SMHT001-1A-100M5", False),  # Aliquot ID letter not expected
+        ("SMHT001-1A-100A0", False),  # Core ID number too low
+        ("SMHT001-1A-100A7", False),  # Core ID number too high
+        ("SMHT001-1A-100T0", False),  # Core ID number too low
+        ("SMHT001-1A-100T10", False),  # Core ID number too high
+        ("SMHT001-1A-X", True),
+        ("SMHT001-1A-100X", True),
+        ("SMHT001-1A-100A5", True),
+        ("SMHT001-1A-100T8", True),
+    ],
+)
+def test_production_id_regex(string: str, expected: bool) -> None:
+    """Test production ID regex."""
+    return bool(PRODUCTION_ID_REGEX.match(string)) == expected
+
+
+@pytest.mark.parametrize(
+    "properties,expected",
+    [
+        ({}, ""),
+        ({"external_id": "FooBar"}, ""),
+        ({"external_id": "ST001-1A-100D6"}, constants.BENCHMARKING_STUDY),
+        ({"external_id": "SMHT001-1A-101A3"}, constants.PRODUCTION_STUDY),
+    ],
+)
+def test_get_study(properties: Dict[str, Any], expected: str) -> None:
+    """Test study retrieval for sample properties."""
+    assert get_study(properties) == expected
 
 
 @pytest.mark.parametrize(
