@@ -50,6 +50,11 @@ def get_data_type(properties: Dict[str, Any]) -> List[str]:
     return properties.get("data_type", [])
 
 
+def get_dataset(properties: Dict[str, Any]) -> str:
+    """Get dataset from properties."""
+    return properties.get("dataset", "")
+
+
 def get_annotated_filename(properties: Dict[str, Any]) -> str:
     """Get annotated filename from properties."""
     return properties.get(file_constants.ANNOTATED_FILENAME, "")

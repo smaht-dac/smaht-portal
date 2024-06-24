@@ -67,6 +67,8 @@ REQUIRED_FILE_PROPS = [file_constants.SEQUENCING_CENTER]
 
 class FileRelease:
 
+    TISSUE = "tissue"
+
     def __init__(self, auth_key: dict, file_identifier: str):
         self.key = auth_key
         self.request_handler = self.get_request_handler()
@@ -452,7 +454,6 @@ class FileRelease:
         # function internal dataset categories:
         COLO829_HAPMAP = "colo829_hapmap"
         IPSC = "ipsc"
-        TISSUE = "tissue"
 
         access_status_mapping = {
             COLO829_HAPMAP: {
@@ -477,7 +478,7 @@ class FileRelease:
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
             },
-            TISSUE: {
+            self.TISSUE: {
                 file_constants.DATA_CATEGORY_SEQUENCING_READS: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
@@ -511,8 +512,8 @@ class FileRelease:
             "lb_ipsc_60",
         ]:
             dataset_category = IPSC
-        elif dataset == TISSUE:
-            dataset_category = TISSUE
+        elif dataset == self.TISSUE:
+            dataset_category = self.TISSUE
         else:
             self.print_error_and_exit(
                 f"Cannot get access_status from dataset {dataset}. Unknown dataset."
