@@ -8,15 +8,16 @@
             "Aligned Reads"
         ],
         "file_format": "BAM",
+        "accession": "TSTFI2115172",
         "extra_files": [
             {
-                "filename": "a_bam_bai.bai",
+                "filename": "TSTFI2115172.bai",
                 "file_size": 3000,
                 "status": "uploaded",
                 "file_format": "BAI"
             },
             {
-                "filename": "a_vcf.vcf",
+                "filename": "TSTFI2115172.vcf",
                 "file_size": 5000,
                 "status": "uploaded",
                 "file_format": "VCF"
