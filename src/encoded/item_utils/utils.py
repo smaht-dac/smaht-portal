@@ -48,9 +48,13 @@ class RequestHandler:
         collection: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Get items from request or auth_key"""
-        return [
+        result = [
             self.get_item(identifier, collection=collection)
             for identifier in identifiers
+        ]
+        seen = set()
+        return [
+            item for item in result if not (item in seen or seen.add(item)) and item
         ]
 
     def _get_identifier(self, identifier: Union[str, Dict[str, Any]]) -> str:
