@@ -24,12 +24,11 @@ class TestMetadataTSVHelper:
         assert len(part) == cls.TSV_WIDTH
 
     @classmethod
-    def check_type_length(cls, es_testapp, t, expected_count):
-        res = es_testapp.post_json('/metadata/',
-                                   {'type': t})
+    def check_type_length(cls, es_testapp, item_type, expected_count):
+        res = es_testapp.post_json('/metadata/', {'type': item_type})
         tsv = res._app_iter[0]
         parsed = cls.read_tsv_from_bytestream(tsv)
-        assert len(parsed[3:]) == expected_count  # there is 1 file of this type
+        assert len(parsed[3:]) == expected_count
 
 
 class DummyRequest:
@@ -119,11 +118,11 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_key_and_length(header1, 'Metadata TSV Download')
         TestMetadataTSVHelper.check_key_and_length(header2, 'Suggested command to download: ')
         TestMetadataTSVHelper.check_key_and_length(header3, 'FileDownloadURL')
-        assert len(parsed[3:]) == 12  # there are 12 entries in the workbook right now, including extra files
+        assert len(parsed[3:]) == 13  # 13 entries in the workbook right now, including extra files
         # test for various types
         TestMetadataTSVHelper.check_type_length(es_testapp, 'AlignedReads', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 3)
-        TestMetadataTSVHelper.check_type_length(es_testapp, 'VariantCalls', 1)
+        TestMetadataTSVHelper.check_type_length(es_testapp, 'VariantCalls', 2)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'ReferenceFile', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'OutputFile', 2)
         res = es_testapp.post_json('/metadata/', {'type': 'OutputFile', 'include_extra_files': True})
@@ -160,10 +159,10 @@ class TestMetadataTSVWorkbook:
                                    {'type': 'File', 'include_extra_files': False}).json
         for facet in res:
             if facet['field'] == 'file_size':
-                assert facet['count'] == 8
+                assert facet['count'] == 9
                 assert facet['min'] == 1000.0
                 assert facet['max'] == 100000.0
-                assert facet['sum'] == 184000.0
+                assert facet['sum'] == 284000.0
             if facet['field'] == 'extra_files.file_size':
                 raise AssertionError('Extra files information present when not desired')
         # check an individual type (with extra files)
