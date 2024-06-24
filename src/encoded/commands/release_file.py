@@ -1,7 +1,7 @@
 import argparse
 import pprint
 from dataclasses import dataclass
-from functools import cached_property
+from functools import cached_property, partial
 from typing import Callable, Dict, List, Any
 
 from dcicutils import ff_utils  # noqa
@@ -11,7 +11,6 @@ from encoded.commands import create_annotated_filenames as caf
 from encoded.commands.utils import get_auth_key
 from encoded.item_utils import (
     analyte as analyte_utils,
-    cell_culture as cell_culture_utils,
     cell_culture_mixture as cell_culture_mixture_utils,
     cell_line as cell_line_utils,
     file as file_utils,
@@ -22,6 +21,7 @@ from encoded.item_utils import (
     output_file as output_file_utils,
     quality_metric as quality_metric_utils,
     sample as sample_utils,
+    sample_source as sample_source_utils,
     submitted_file as submitted_file_utils,
     tissue as tissue_utils,
 )
@@ -152,15 +152,10 @@ class FileRelease:
 
     @cached_property
     def cell_lines(self) -> List[dict]:
-        cultures_from_sources = [
-            sample_source
-            for sample_source in self.sample_sources
-            if cell_culture_utils.is_cell_culture(sample_source)
-        ]
         return self.get_items(
             self.get_links(
-                cultures_from_sources + self.cell_cultures_from_mixtures,
-                cell_culture_utils.get_cell_line,
+                self.sample_sources,
+                partial(sample_source_utils.get_cell_lines, self.request_handler),
             )
         )
 
