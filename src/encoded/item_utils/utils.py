@@ -57,9 +57,9 @@ class RequestHandler:
             item
             for item in result
             if not (
-                item_utils.get_uuid(item) in seen
-                or seen.add(item_utils.get_uuid(item))
-            ) and item
+                item_utils.get_uuid(item) in seen or seen.add(item_utils.get_uuid(item))
+            )
+            and item
         ]
 
     def _get_identifier(self, identifier: Union[str, Dict[str, Any]]) -> str:

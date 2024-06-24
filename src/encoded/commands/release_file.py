@@ -84,9 +84,7 @@ class FileRelease:
 
     @cached_property
     def quality_metrics(self) -> List[dict]:
-        quality_metrics = self.get_items(
-            file_utils.get_quality_metrics(self.file)
-        )
+        quality_metrics = self.get_items(file_utils.get_quality_metrics(self.file))
         if not quality_metrics:
             self.add_warning(
                 f"File {self.file_accession} does not have an associated QualityMetrics"
@@ -106,9 +104,7 @@ class FileRelease:
 
     @cached_property
     def assays(self) -> List[dict]:
-        return self.get_items(
-            self.get_links(self.libraries, library_utils.get_assay)
-        )
+        return self.get_items(self.get_links(self.libraries, library_utils.get_assay))
 
     @cached_property
     def sequencings(self) -> List[dict]:
@@ -124,9 +120,7 @@ class FileRelease:
 
     @cached_property
     def samples(self) -> List[dict]:
-        return self.get_items(
-            self.get_links(self.analytes, analyte_utils.get_samples)
-        )
+        return self.get_items(self.get_links(self.analytes, analyte_utils.get_samples))
 
     @cached_property
     def sample_sources(self) -> List[dict]:
@@ -167,9 +161,8 @@ class FileRelease:
             if tissue_utils.is_tissue(sample_source)
         ]
         return self.get_items(
-            self.get_links(tissues, tissue_utils.get_donor) + self.get_links(
-                self.cell_lines, cell_line_utils.get_donor
-            )
+            self.get_links(tissues, tissue_utils.get_donor)
+            + self.get_links(self.cell_lines, cell_line_utils.get_donor)
         )
 
     def get_request_handler(self) -> RequestHandler:
@@ -575,9 +568,9 @@ class FileRelease:
             )
 
     def validate_file_output_status(self) -> None:
-        if output_file_utils.is_output_file(self.file) and not output_file_utils.is_final_output(
+        if output_file_utils.is_output_file(
             self.file
-        ):
+        ) and not output_file_utils.is_final_output(self.file):
             self.add_warning(f"File {self.file_accession} is not a final output file.")
 
     def validate_file_status(self) -> None:

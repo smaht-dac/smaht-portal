@@ -231,9 +231,7 @@ def get_tissue_samples(
     samples: List[Dict[str, Any]], request_handler: RequestHandler
 ) -> List[Dict[str, Any]]:
     """Filter samples to get tissue samples."""
-    return [
-        sample for sample in samples if sample_utils.is_tissue_sample(sample)
-    ]
+    return [sample for sample in samples if sample_utils.is_tissue_sample(sample)]
 
 
 def get_sample_sources(
@@ -241,9 +239,7 @@ def get_sample_sources(
 ) -> List[Dict[str, Any]]:
     """Get sample sources for samples."""
     sample_sources = [
-        item
-        for sample in samples
-        for item in sample_utils.get_sample_sources(sample)
+        item for sample in samples for item in sample_utils.get_sample_sources(sample)
     ]
     return get_items(sample_sources, request_handler)
 
@@ -253,7 +249,8 @@ def get_cell_culture_mixtures(
 ) -> List[Dict[str, Any]]:
     """Get cell culture mixtures from sample sources."""
     return [
-        source for source in sample_sources
+        source
+        for source in sample_sources
         if cell_culture_mixture_utils.is_cell_culture_mixture(source)
     ]
 
@@ -281,9 +278,7 @@ def get_donors(
     request_handler: RequestHandler,
 ) -> List[Dict[str, Any]]:
     """Get donors from tissues and cell lines."""
-    donor_ids = [
-        tissue_utils.get_donor(tissue) for tissue in tissues
-    ] + [
+    donor_ids = [tissue_utils.get_donor(tissue) for tissue in tissues] + [
         cell_line_utils.get_donor(cell_line) for cell_line in cell_lines
     ]
     return get_items(donor_ids, request_handler)
@@ -518,9 +513,7 @@ def get_project_id(
     return get_exclusive_filename_part(parts, "project ID")
 
 
-def get_project_id_from_tissues(
-    tissues: List[Dict[str, Any]]
-) -> FilenamePart:
+def get_project_id_from_tissues(tissues: List[Dict[str, Any]]) -> FilenamePart:
     """Get project ID from tissue item."""
     project_ids = [tissue_utils.get_project_id(tissue) for tissue in tissues]
     return get_filename_part_for_values(project_ids, "project ID", source_name="tissue")
@@ -549,9 +542,7 @@ def get_sample_source_id(
     return get_exclusive_filename_part(parts, "sample source ID")
 
 
-def is_only_cell_culture_mixture_derived(
-    sample_sources: List[Dict[str], Any]
-) -> bool:
+def is_only_cell_culture_mixture_derived(sample_sources: List[Dict[str], Any]) -> bool:
     """Check if only cell culture mixture-derived."""
     return all(
         cell_culture_mixture_utils.is_cell_culture_mixture(source)
@@ -582,13 +573,9 @@ def get_cell_line_id(
     )
 
 
-def get_donor_kit_id(
-    tissues: List[Dict[str], Any]
-) -> FilenamePart:
+def get_donor_kit_id(tissues: List[Dict[str], Any]) -> FilenamePart:
     """Get donor kit ID for file naming."""
-    donor_kit_ids = [
-        tissue_utils.get_donor_kit_id(tissue) for tissue in tissues
-    ]
+    donor_kit_ids = [tissue_utils.get_donor_kit_id(tissue) for tissue in tissues]
     return get_filename_part_for_values(
         donor_kit_ids, "sample source ID", source_name="tissue"
     )
@@ -608,13 +595,9 @@ def get_protocol_id(
     return get_exclusive_filename_part(parts, "protocol ID")
 
 
-def get_protocol_id_from_tissues(
-    tissues: List[Dict[str], Any]
-) -> FilenamePart:
+def get_protocol_id_from_tissues(tissues: List[Dict[str], Any]) -> FilenamePart:
     """Get protocol ID from tissue items."""
-    protocol_ids = [
-        tissue_utils.get_protocol_id(tissue) for tissue in tissues
-    ]
+    protocol_ids = [tissue_utils.get_protocol_id(tissue) for tissue in tissues]
     return get_filename_part_for_values(
         protocol_ids, "protocol ID", source_name="tissue"
     )
@@ -634,26 +617,21 @@ def get_aliquot_id(
     return get_exclusive_filename_part(parts, "tissue aliquot ID")
 
 
-def get_aliquot_id_from_samples(
-    tissue_samples: List[Dict[str], Any]
-) -> FilenamePart:
+def get_aliquot_id_from_samples(tissue_samples: List[Dict[str], Any]) -> FilenamePart:
     """Get aliquot ID from sample items.
 
     Some special handling required to transform aliquot ID from
     metadata to that of the filename.
     """
     aliquot_ids = [
-        get_aliquot_id_from_tissue_sample(sample)
-        for sample in tissue_samples
+        get_aliquot_id_from_tissue_sample(sample) for sample in tissue_samples
     ]
     return get_filename_part_for_values(
         aliquot_ids, "tissue aliquot ID", source_name="sample"
     )
 
 
-def get_aliquot_id_from_tissue_sample(
-    tissue_sample: Dict[str, Any]
-) -> str:
+def get_aliquot_id_from_tissue_sample(tissue_sample: Dict[str, Any]) -> str:
     """Get aliquot ID from tissue sample item.
 
     If TissueSample is homogenate, provide default value.
@@ -691,9 +669,7 @@ def get_null_sex_and_age() -> str:
     return f"{ABSENT_SEX}{ABSENT_AGE}"
 
 
-def get_sex_and_age_parts(
-    donors: List[str]
-) -> List[FilenamePart]:
+def get_sex_and_age_parts(donors: List[str]) -> List[FilenamePart]:
     """Get donor and age parts for all donors."""
     return [get_sex_and_age_part(donor) for donor in donors]
 
@@ -744,9 +720,7 @@ def get_sequencing_and_assay_codes(
     return get_filename_part(errors=errors)
 
 
-def get_sequencing_codes(
-    sequencers: List[Dict[str], Any]
-) -> List[str]:
+def get_sequencing_codes(sequencers: List[Dict[str], Any]) -> List[str]:
     """Get sequencing code for file."""
     return list(set([item_utils.get_code(sequencer) for sequencer in sequencers]))
 
@@ -756,9 +730,7 @@ def get_assay_codes(assays: List[Dict[str], Any]) -> List[str]:
     return list(set([item_utils.get_code(assay) for assay in assays]))
 
 
-def get_sequencing_center_code(
-    sequencing_center: Dict[str, Any]
-) -> FilenamePart:
+def get_sequencing_center_code(sequencing_center: Dict[str, Any]) -> FilenamePart:
     """Get sequencing center code for file."""
     code = item_utils.get_code(sequencing_center)
     if code:
@@ -835,9 +807,7 @@ def get_analysis_value(
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
 
 
-def get_software_and_versions(
-    software: List[Dict[str, Any]]
-) -> str:
+def get_software_and_versions(software: List[Dict[str, Any]]) -> str:
     """Get software and accompanying versions for file.
 
     Currently only looking for software items with codes, as these are
