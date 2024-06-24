@@ -1800,61 +1800,67 @@ body[data-pathname^="/data/benchmarking"] {
 				}
 		
 				>.row {
-					.title {
-						color: #343741;
-						font-family: Inter;
-						font-size: 24px;
-						font-weight: 600;
-						margin-top: 5px;
-					}
-					.description {
-						font-family: Inter;
-						font-size: 0.875rem;
-						color: #5D5E63;
-						line-height: 20px;
-
-						.disclaimer {
-							color: #5D5E63;
+					.information-container {
+						margin-bottom: 20px;
+						.title {
+							color: #343741;
+							font-family: Inter;
+							font-size: 24px;
+							font-weight: 600;
+							margin-top: 5px;
+						}
+						.description {
 							font-family: Inter;
 							font-size: 0.875rem;
+							color: #5D5E63;
 							line-height: 20px;
-							margin-top: 10px;
-							span {
-								font-weight: 500;
+	
+							.disclaimer {
+								color: #5D5E63;
+								font-family: Inter;
+								font-size: 0.875rem;
+								line-height: 20px;
+								margin-top: 10px;
+								span {
+									font-weight: 500;
+								}
+							}
+						}
+						.callout {
+							margin-top: 24px;
+							border-radius: 7px;
+							max-width: 980px;
+							border-top-left-radius: 0.25rem;
+							border-bottom-left-radius: 0.25rem;
+							
+							&-text {
+								font-family: Inter;
+								color: #5D5E63;
+								font-size: 0.875rem;
+								padding: 8px;
+								line-height: 20px;
+	
+								.flag {
+									font-weight: 600;
+								}
+								.headline {
+									font-weight: 600;
+								}
+							}
+							&.warning {
+								background-color: #FFF9F9;
+								border: 1px solid #F6D6D6;
+								border-left: 4px solid #BB3F3F;
+	
+								.flag {
+									font-weight: 600;
+									color: #BB3F3F;
+								}
 							}
 						}
 					}
-					.callout {
-						margin-top: 24px;
-						border-radius: 7px;
-						max-width: 980px;
-						border-top-left-radius: 0.25rem;
-						border-bottom-left-radius: 0.25rem;
-						
-						&-text {
-							font-family: Inter;
-							color: #5D5E63;
-							font-size: 0.875rem;
-							padding: 8px;
-							line-height: 20px;
-
-							.flag {
-								font-weight: 600;
-							}
-							.headline {
-								font-weight: 600;
-							}
-						}
-						&.warning {
-							background-color: #FFF9F9;
-							border: 1px solid #F6D6D6;
-							border-left: 4px solid #BB3F3F;
-
-							.flag {
-								font-weight: 600;
-								color: #BB3F3F;
-							}
-						}
+					.toggle-information {
+						display: none;
 					}
 				}
 
@@ -1880,16 +1886,80 @@ body[data-pathname^="/data/benchmarking"] {
 
 		@include media-breakpoint-up(lg) {
 			display: flex;
+			flex: 1;
 			padding: 0px;
 
 			// Header and description text
 			.benchmarking-layout-container {
 				flex: 1;
-				padding: 25px 32px 0px 20px;
-				.benchmarking-layout{
+				padding: 20px 32px 20px 20px;
+				overflow: scroll;
+
+				.benchmarking-layout {
+					.page-summary {
+						.information-container {
+							margin-bottom: 0px;
+							
+							.title-container {
+								display: flex;
+								flex-direction: row;
+								margin-top: 5px;
+								margin-bottom: 20px;
+								.title {
+									margin: 0px;
+								}
+								.toggle-information {
+									display: flex;
+									border: none;
+									background-color: transparent;
+									margin: auto 0px 8px 12px;
+									padding: 0px;
+									border-radius: 5px;
+									height: auto;
+									
+									span {
+										margin: auto;
+										font-size: 0.75rem;
+										line-height: 0.75rem;
+										color: $carbon-gray;
+									}
+								}
+							}
+						}
+
+						.body-container {
+							&.expanded {
+								max-height: 400px;
+								transition: max-height 150ms ease-in-out;
+								overflow: hidden;
+								margin-bottom: 1.5rem;
+							}
+							&.collapsed {
+								max-height: 0px;
+								transition: max-height 150ms ease-in-out;
+								overflow: hidden;
+							}
+						}
+					}
+
 					>nav.nav-tabs {
 						a.nav-link {
 							text-align: left;
+						}
+					}
+
+					.tab-content {
+						.embedded-search-container {
+							.search-view-controls-and-results {
+								.facets-column {
+									transition: max-height 150ms ease-in-out;
+								}
+								.results-column {
+									.react-infinite-container {
+										transition: max-height 150ms ease-in-out;
+									}
+								}
+							}
 						}
 					}
 				}
@@ -1898,7 +1968,6 @@ body[data-pathname^="/data/benchmarking"] {
 			// Side nav
 			.benchmarking-nav-container {
 				display: flex;
-				padding-top: 5px;
 	
 				.benchmarking-nav {
 					width: 100%;
@@ -2032,9 +2101,6 @@ body[data-pathname^="/data/benchmarking"] {
 					hr {
 						display: none;
 					}
-				}
-				.benchmarking-layout-container {
-					width: calc(100% - 32px);
 				}
 			}
 		}

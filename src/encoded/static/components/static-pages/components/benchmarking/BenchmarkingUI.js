@@ -18,26 +18,50 @@ export const BenchmarkingLayout = ({
     showBamQCLink = false,
     bamQCHash = '', // TODO: Other datasets will have qcs on same page accessible by anchor hash
     children,
+    setShowInformation = null,
     callout = null,
+    showInformation = true,
 }) => {
     const cls = `description readable ${!schemas ? 'mb-5' : ''}`;
 
     return (
         <div className="benchmarking-layout">
-            <div className="row">
-                <div className="col-auto col-lg-9 mb-2">
-                    <h2 className="title">{title}</h2>
-                    <div className={cls}>
-                        {description}
-                        <p className="disclaimer">
-                            <span className="">Note:</span> The raw sequence
-                            files, i.e. unaligned BAM and FASTQ, and the data
-                            from the benchmarking tissue samples that were not
-                            distributed by TPC will be available upon request at
-                            this time &#40;through Globus&#41;.
-                        </p>
+            <div className="page-summary row">
+                <div className="information-container col-auto col-lg-9">
+                    <div className="title-container">
+                        <h2 className="title">{title}</h2>
+                        {setShowInformation && (
+                            <button
+                                className="toggle-information"
+                                onClick={() =>
+                                    setShowInformation(!showInformation)
+                                }>
+                                {showInformation ? (
+                                    <span>Hide details</span>
+                                ) : (
+                                    <span>&bull;&bull;&bull;</span>
+                                )}
+                            </button>
+                        )}
                     </div>
-                    {callout}
+                    <div
+                        className={
+                            'body-container' +
+                            (showInformation ? ' expanded' : ' collapsed')
+                        }>
+                        <div className={cls}>
+                            {description}
+                            <p className="disclaimer">
+                                <span className="">Note:</span> The raw sequence
+                                files, i.e. unaligned BAM and FASTQ, and the
+                                data from the benchmarking tissue samples that
+                                were not distributed by TPC will be available
+                                upon request at this time &#40;through
+                                Globus&#41;.
+                            </p>
+                        </div>
+                        {callout}
+                    </div>
                 </div>
                 {/* TODO: Re-add documentation button once we have it available */}
                 {showBamQCLink && (
