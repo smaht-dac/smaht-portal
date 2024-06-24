@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.65.3
+======
+
+`PR 186: Bm primary tissue ui <https://github.com/smaht-dac/smaht-portal/pull/186>`_
+
+* Enable benchmarking tables for Donor 1 and Donor 2 primary tissues
+* Fix bug with Donor 2 data table
+
+
 0.65.2
 ======
 
