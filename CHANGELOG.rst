@@ -18,6 +18,25 @@ Change Log
 * Include more detailed descriptions and examples of some fields that are technology-specific (i.e. Kinnex)
 * Minor change to TCC submission schema related to units and changing enums to suggested enums
 * Update documentation for setting up Google Sheet API credentials for automated submission templates
+
+0.65.3
+======
+
+`PR 186: Bm primary tissue ui <https://github.com/smaht-dac/smaht-portal/pull/186>`_
+
+* Enable benchmarking tables for Donor 1 and Donor 2 primary tissues
+* Fix bug with Donor 2 data table
+
+
+0.65.2
+======
+
+`PR 185: Bm link fix <https://github.com/smaht-dac/smaht-portal/pull/185>`_
+
+* Move "credentials for submission" to Access and rename it to "access key generation"
+* Set up an additional re-direct, update old redirect
+
+
 0.65.1
 ======
 
