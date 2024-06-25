@@ -52,6 +52,12 @@ The SMaHT data portal submission tool is implemented as a command-line Python pa
 
 Once installed, these key commands will be available for execution from the command-line: ``submit-metadata-bundle``, ``resume-uploads``
 
+.. TIP::
+   As of June 2024 we offer an alternative installation procedure to the primary procedure outlined below. This alternative does not require installing Python or anything; rather a self-contained binary is installed. Please see the `Binary Installation <https://submitr.readthedocs.io/en/latest/binary_installation.html>`_ section for details.
+
+
+|
+
 Templates
 =========
 
