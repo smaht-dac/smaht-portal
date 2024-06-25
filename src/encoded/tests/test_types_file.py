@@ -7,11 +7,7 @@ from dcicutils import schema_utils
 from webtest.app import TestApp
 
 from .utils import (
-    get_item,
-    get_search,
-    patch_item,
-    post_item,
-    post_item_and_return_location,
+    get_item, get_search, patch_item, post_item, post_item_and_return_location
 )
 from ..item_utils import (
     analyte as analyte_utils,
@@ -87,9 +83,7 @@ def bam_output_file(
     return post_item(testapp, bam_output_file_properties, "OutputFile")
 
 
-def test_href(
-    output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]
-) -> None:
+def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]) -> None:
     """Ensure download link formatted as expected."""
     expected = (
         f"/output-files/{output_file.get('uuid')}/@@download/"
@@ -99,34 +93,29 @@ def test_href(
     assert output_file.get("href") == expected
 
 
-def test_output_file_status_tracking_calcprop(
-    smaht_admin_app: TestApp,
-    output_file: Dict[str, Any],
-    file_formats: Dict[str, Dict[str, Any]],
-) -> None:
-    """Tests that as we make changes to the output file, the calc prop for changing status
-    Note that for this to work, changes need to be tied to a real (not virtual) user
-    so that last_modified is present
+def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_file: Dict[str, Any],
+                                              file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """ Tests that as we make changes to the output file, the calc prop for changing status
+        Note that for this to work, changes need to be tied to a real (not virtual) user
+        so that last_modified is present
     """
-    res = output_file["file_status_tracking"]
-    assert "in review" in res
-    assert "released" not in res
-    assert "released_date" not in res
-    assert "public" not in res
-    res = smaht_admin_app.patch_json(
-        f'{output_file["@id"]}', {"status": "released"}
-    ).json["@graph"][0]["file_status_tracking"]
-    assert "in review" in res
-    assert "released" in res
-    assert "released_date" in res
-    assert "public" not in res
-    res = smaht_admin_app.patch_json(
-        f'{output_file["@id"]}', {"status": "public"}
-    ).json["@graph"][0]["file_status_tracking"]
-    assert "in review" in res
-    assert "released" in res
-    assert "released_date" in res
-    assert "public" in res
+    res = output_file['file_status_tracking']
+    assert 'in review' in res
+    assert 'released' not in res
+    assert 'released_date' not in res
+    assert 'public' not in res
+    res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
+                                     {'status': 'released'}).json['@graph'][0]['file_status_tracking']
+    assert 'in review' in res
+    assert 'released' in res
+    assert 'released_date' in res
+    assert 'public' not in res
+    res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
+                                     {'status': 'public'}).json['@graph'][0]['file_status_tracking']
+    assert 'in review' in res
+    assert 'released' in res
+    assert 'released_date' in res
+    assert 'public' in res
 
 
 @pytest.mark.parametrize(
@@ -138,25 +127,23 @@ def test_output_file_status_tracking_calcprop(
         ("in review", True),
         ("obsolete", False),
         ("public", False),
-    ],
+    ]
 )
 def test_upload_credentials(
     status: str, expected: bool, testapp: TestApp, output_file: Dict[str, Any]
 ) -> None:
     """Ensure upload credentials presence by file status."""
     patch_body = {"status": status}
-    patch_response = patch_item(testapp, patch_body, output_file.get("uuid"))
+    patch_response = patch_item(
+        testapp, patch_body, output_file.get("uuid")
+    )
     result = patch_response.get("upload_credentials")
     if expected is False:
         assert result is None
     else:
         assert isinstance(result, dict)
         for expected_key in (
-            "key",
-            "upload_url",
-            "AccessKeyId",
-            "SessionToken",
-            "SecretAccessKey",
+            "key", "upload_url", "AccessKeyId", "SessionToken", "SecretAccessKey"
         ):
             assert expected_key in result
 
@@ -167,20 +154,18 @@ def test_upload_credentials(
         ("released", "Open"),
         ("public", "Open"),
         ("restricted", "Protected"),
-        (
-            "deleted",
-            None,
-        ),  # test just one additional since there is significant setup cost
-    ],
+        ("deleted", None),  # test just one additional since there is significant setup cost
+    ]
 )
-def test_file_access_status(
-    status: str, expected: Optional[str], testapp: TestApp, output_file: Dict[str, Any]
-) -> None:
-    """Ensure calcprop for file_access_status reports Open, Protected or None in the
-    appropriate cases
+def test_file_access_status(status: str, expected: Optional[str], testapp: TestApp,
+                            output_file: Dict[str, Any]) -> None:
+    """ Ensure calcprop for file_access_status reports Open, Protected or None in the
+        appropriate cases
     """
     patch_body = {"status": status}
-    patch_response = patch_item(testapp, patch_body, output_file.get("uuid"))
+    patch_response = patch_item(
+        testapp, patch_body, output_file.get("uuid")
+    )
     result = patch_response.get("file_access_status", None)
     assert result == expected
 
@@ -199,39 +184,22 @@ def test_upload_key(
     assert output_file.get("upload_key") == expected
 
 
-def test_output_file_force_md5(
-    testapp: TestApp,
-    output_file: Dict[str, Any],
-    output_file2: Dict[str, Any],
-    file_formats: Dict[str, Dict[str, Any]],
-) -> None:
-    """Tests that we can skip md5 check by passing ?force_md5 to patch output_file2 to md5 of output_file"""
-    atid = output_file2["@id"]
-    testapp.patch_json(
-        f"/{atid}", {"md5sum": "00000000000000000000000000000001"}, status=422
-    )  # fails without force_md5
-    testapp.patch_json(
-        f"/{atid}?force_md5", {"md5sum": "00000000000000000000000000000001"}, status=200
-    )
+def test_output_file_force_md5(testapp: TestApp, output_file: Dict[str, Any], output_file2: Dict[str, Any],
+                               file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """ Tests that we can skip md5 check by passing ?force_md5 to patch output_file2 to md5 of output_file """
+    atid = output_file2['@id']
+    testapp.patch_json(f'/{atid}', {'md5sum': '00000000000000000000000000000001'}, status=422)  # fails without force_md5
+    testapp.patch_json(f'/{atid}?force_md5', {'md5sum': '00000000000000000000000000000001'}, status=200)
 
 
-def test_output_file_get_post_upload(
-    testapp: TestApp,
-    output_file: Dict[str, Any],
-    file_formats: Dict[str, Dict[str, Any]],
-) -> None:
-    """Tests that the get_upload API works correctly for a basic output file"""
-    atid = output_file["@id"]
-    res = testapp.get(f"/{atid}?upload").json
-    assert "upload_credentials" in res
-    for upload_key in [
-        "key",
-        "upload_url",
-        "AccessKeyId",
-        "SessionToken",
-        "SecretAccessKey",
-    ]:
-        assert upload_key in res["upload_credentials"]
+def test_output_file_get_post_upload(testapp: TestApp, output_file: Dict[str, Any],
+                                     file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """ Tests that the get_upload API works correctly for a basic output file """
+    atid = output_file['@id']
+    res = testapp.get(f'/{atid}?upload').json
+    assert 'upload_credentials' in res
+    for upload_key in ['key', 'upload_url', 'AccessKeyId', 'SessionToken', 'SecretAccessKey']:
+        assert upload_key in res['upload_credentials']
 
     # This does not work right now - it's untested in CGAP and 4DN, not clear it works there either - Will Nov 16 2023
     # res = testapp.post_json(f'/{atid}?upload', {}).json
@@ -240,15 +208,12 @@ def test_output_file_get_post_upload(
     #     assert upload_key in res['upload_credentials']
 
 
-def test_output_file_download(
-    testapp: TestApp,
-    output_file: Dict[str, Any],
-    file_formats: Dict[str, Dict[str, Any]],
-) -> None:
-    """Tests that download returns a reasonable looking URL"""
-    atid = output_file["@id"]
-    res = testapp.get(f"/{atid}@@download", status=307).json
-    assert "smaht-unit-testing-wfout.s3.amazonaws.com" in res["message"]
+def test_output_file_download(testapp: TestApp, output_file: Dict[str, Any],
+                              file_formats: Dict[str, Dict[str, Any]]) -> None:
+    """ Tests that download returns a reasonable looking URL """
+    atid = output_file['@id']
+    res = testapp.get(f'/{atid}@@download', status=307).json
+    assert 'smaht-unit-testing-wfout.s3.amazonaws.com' in res['message']
 
 
 @pytest.mark.parametrize(
@@ -305,7 +270,7 @@ def test_validate_extra_file_format_on_patch(
         ([{"file_format": "bai", "filename": "foo.bai"}], 200),
         ([{"file_format": "bai", "filename": "foo.bai"}], 200),
         ([{"file_format": "bai", "filename": "foo.bai", "foo": "bar"}], 200),
-    ],
+    ]
 )
 def test_validate_extra_files_update_properties(
     extra_files: List[Dict[str, Any]],
@@ -436,7 +401,8 @@ def generate_file_insert_for_type(
         "schema_version",
     ]
     existing_keys_to_use = {
-        key: value for key, value in raw_insert.items() if key not in keys_to_skip
+        key: value for key, value in raw_insert.items()
+        if key not in keys_to_skip
     }
     filename_to_use = get_test_filename(file_type_data)
     submitted_id_to_use = get_test_submitted_id(file_type_data)
@@ -827,7 +793,9 @@ def test_file_summary(es_testapp: TestApp, workbook: None) -> None:
     one item.
     """
     search_key = "file_summary.uuid"  # should always be present if file_summary present
-    file_with_summary_search = search_type_for_key(es_testapp, "File", search_key)
+    file_with_summary_search = search_type_for_key(
+        es_testapp, "File", search_key
+    )
     for file in file_with_summary_search:
         assert_file_summary_matches_expected(file, es_testapp)
     all_fields = schema_utils.get_properties(
@@ -879,7 +847,7 @@ def assert_values_match_if_present(
     """Ensure key-value pair matches expected value.
 
     If key present, value must match expected value. If key not present,
-    expected value must be false.
+    expected value must be falsy.
     """
     value = summary_values.get(key)
     if value:
@@ -897,7 +865,8 @@ def assert_all_summary_fields_present_in_items(
 ) -> None:
     """Ensure all summary fields have value for at least one item."""
     fields_exist = [
-        any(item.get(summary_key, {}).get(field) for item in items) for field in fields
+        any(item.get(summary_key, {}).get(field) for item in items)
+        for field in fields
     ]
     missing_fields = [
         field for field, exists in zip(fields, fields_exist) if not exists
@@ -914,7 +883,9 @@ def test_data_generation_summary(es_testapp: TestApp, workbook: None) -> None:
     one item.
     """
     search_key = "data_generation_summary.data_type"
-    files_with_summary_search = search_type_for_key(es_testapp, "File", search_key)
+    files_with_summary_search = search_type_for_key(
+        es_testapp, "File", search_key
+    )
     for file in files_with_summary_search:
         assert_data_generation_summary_matches_expected(file, es_testapp)
     all_fields = schema_utils.get_properties(
@@ -936,13 +907,9 @@ def assert_data_generation_summary_matches_expected(
     expected_data_category = file_utils.get_data_category(file)
     expected_data_type = file_utils.get_data_type(file)
     sequencing_center = file_utils.get_sequencing_center(file)
-    expected_sequencing_center = (
-        item_utils.get_display_title(
-            get_item(es_testapp, item_utils.get_uuid(sequencing_center))
-        )
-        if sequencing_center
-        else ""
-    )
+    expected_sequencing_center = item_utils.get_display_title(
+        get_item(es_testapp, item_utils.get_uuid(sequencing_center))
+    ) if sequencing_center else ""
     expected_submission_centers = [
         item_utils.get_display_title(
             get_item(es_testapp, item_utils.get_uuid(submission_center))
@@ -950,33 +917,25 @@ def assert_data_generation_summary_matches_expected(
         for submission_center in item_utils.get_submission_centers(file)
     ]
     assays = file_utils.get_assays(file)
-    expected_assays = (
-        [
-            item_utils.get_display_title(
-                get_item(es_testapp, item_utils.get_uuid(assay))
-            )
-            for assay in assays
-        ]
-        if assays
-        else []
-    )
+    expected_assays = [
+        item_utils.get_display_title(
+            get_item(es_testapp, item_utils.get_uuid(assay))
+        )
+        for assay in assays
+    ] if assays else []
     sequencings = [
         file_set_utils.get_sequencing(file_set)
         for file_set in file_utils.get_file_sets(file)
     ]
-    expected_platforms = (
-        [
-            item_utils.get_display_title(
-                get_item(
-                    es_testapp,
-                    item_utils.get_uuid(sequencing_utils.get_sequencer(sequencing)),
-                )
+    expected_platforms = [
+        item_utils.get_display_title(
+            get_item(
+                es_testapp,
+                item_utils.get_uuid(sequencing_utils.get_sequencer(sequencing)),
             )
-            for sequencing in sequencings
-        ]
-        if sequencings
-        else []
-    )
+        )
+        for sequencing in sequencings
+    ] if sequencings else []
     assert_values_match_if_present(
         data_generation_summary, "data_category", expected_data_category
     )
@@ -1009,7 +968,9 @@ def test_sample_summary(es_testapp: TestApp, workbook: None) -> None:
     )
     assert file_without_summary_search  # Not expected for Reference Files
 
-    files_with_summary_search = search_type_for_key(es_testapp, "File", search_key)
+    files_with_summary_search = search_type_for_key(
+        es_testapp, "File", search_key
+    )
     for file in files_with_summary_search:
         assert_sample_summary_matches_expected(file, es_testapp)
 
@@ -1066,18 +1027,28 @@ def assert_sample_summary_matches_expected(
     )
     expected_studies = get_unique_values(
         samples,
-        functools.partial(sample_utils.get_studies, request_handler=request_handler),
+        functools.partial(
+            sample_utils.get_studies, request_handler=request_handler
+        ),
     )
-    assert_values_match_if_present(sample_summary, "analytes", expected_analytes)
+    assert_values_match_if_present(
+        sample_summary, "analytes", expected_analytes
+    )
     assert_values_match_if_present(
         sample_summary, "sample_names", expected_sample_names
     )
-    assert_values_match_if_present(sample_summary, "tissues", expected_tissues)
-    assert_values_match_if_present(sample_summary, "donor_ids", expected_donor_ids)
+    assert_values_match_if_present(
+        sample_summary, "tissues", expected_tissues
+    )
+    assert_values_match_if_present(
+        sample_summary, "donor_ids", expected_donor_ids
+    )
     assert_values_match_if_present(
         sample_summary, "sample_descriptions", expected_sample_descriptions
     )
-    assert_values_match_if_present(sample_summary, "studies", expected_studies)
+    assert_values_match_if_present(
+        sample_summary, "studies", expected_studies
+    )
 
 
 @pytest.mark.workbook
@@ -1094,11 +1065,11 @@ def test_analysis_summary(es_testapp: TestApp, workbook: None) -> None:
     )
     assert file_without_summary_search  # Not expected for Reference Files
 
-    files_with_summary_search = search_type_for_key(es_testapp, "File", search_key)
+    files_with_summary_search = search_type_for_key(
+        es_testapp, "File", search_key
+    )
     for file in files_with_summary_search:
-        assert_analysis_software_matches_expected(file, es_testapp)
-        assert_analysis_reference_genome_matches_expected(file, es_testapp)
-
+        assert_analysis_summary_matches_expected(file, es_testapp)
     all_fields = schema_utils.get_properties(
         CalcPropConstants.ANALYSIS_SUMMARY_SCHEMA
     ).keys()
@@ -1107,10 +1078,10 @@ def test_analysis_summary(es_testapp: TestApp, workbook: None) -> None:
     )
 
 
-def assert_analysis_software_matches_expected(
+def assert_analysis_summary_matches_expected(
     file: Dict[str, Any], es_testapp: TestApp
 ) -> None:
-    """Compare 'analysis_summary.software' calcprop to expected values.
+    """Compare 'analysis_summary' calcprop to expected values.
 
     Expected values determined here by parsing file properties/embeds.
     """
@@ -1119,26 +1090,15 @@ def assert_analysis_software_matches_expected(
         get_item(es_testapp, item_utils.get_uuid(item))
         for item in file_utils.get_software(file)
     ]
-    expected_software = [
-        software_utils.get_title_with_version(item) for item in software
-    ]
-    assert_values_match_if_present(analysis_summary, "software", expected_software)
-
-
-def assert_analysis_reference_genome_matches_expected(
-    file: Dict[str, Any], es_testapp: TestApp
-) -> None:
-    """Compare 'analysis_summary.reference_genome' calcprop to expected values.
-
-    Expected values determined here by parsing file properties/embeds.
-    """
-    analysis_summary = file_utils.get_analysis_summary(file)
-
     reference_genome = file_utils.get_reference_genome(file)
-    if reference_genome:
-        expected_reference_genome = item_utils.get_display_title(reference_genome)
-    else:
-        expected_reference_genome = False
+    expected_software = [
+        software_utils.get_title_with_version(item)
+        for item in software
+    ]
+    expected_reference_genome = item_utils.get_display_title(reference_genome)
+    assert_values_match_if_present(
+        analysis_summary, "software", expected_software
+    )
     assert_values_match_if_present(
         analysis_summary, "reference_genome", expected_reference_genome
     )
@@ -1148,7 +1108,9 @@ def assert_analysis_reference_genome_matches_expected(
 def test_unique_key(es_testapp: TestApp, workbook: None) -> None:
     """Ensure `submitted_id` is valid unique key for File."""
     search_key = "submitted_id"
-    files_with_submitted_id_search = search_type_for_key(es_testapp, "File", search_key)
+    files_with_submitted_id_search = search_type_for_key(
+        es_testapp, "File", search_key
+    )
     file_with_submitted_id = files_with_submitted_id_search[0]
     get_item(
         es_testapp, f"/files/{item_utils.get_submitted_id(file_with_submitted_id)}"

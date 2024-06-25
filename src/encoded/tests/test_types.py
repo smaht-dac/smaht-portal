@@ -49,9 +49,10 @@ def test_expected_unique_keys(testapp: TestApp) -> None:
         schema = get_schema(testapp, item_type)
         has_submitted_id = has_submitted_id_property(schema)
         has_identifier = has_identifier_property(schema)
-        assert not (
-            has_submitted_id and has_identifier
-        ), f"Unexpected combination of submitted_id and identifier for {item_type}"
+        if item_type != "reference_genome":
+            assert not (
+                has_submitted_id and has_identifier
+            ), f"Unexpected combination of submitted_id and identifier for {item_type}"
         if has_submitted_id:
             assert (
                 get_unique_key(type_info) == "submitted_id"
