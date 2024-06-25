@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.65.3.1b1"  # TODO: To become 0.65.4
+version = "0.66.0.1b1"  # TODO: To become 0.67.0
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"

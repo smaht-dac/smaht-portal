@@ -10,6 +10,7 @@
         ],
         "external_id": "SMHT-0001",
         "category": "Core",
+        "core_size": 5,
         "weight": 800,
         "tags": [
             "test_sample_names",
