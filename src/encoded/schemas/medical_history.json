@@ -364,7 +364,8 @@
             "enum": [
                 "No",
                 "Unknown",
-                "Yes"
+                "Yes",
+                "Not applicable"
             ]
         },
         "syphilis_rpr": {
