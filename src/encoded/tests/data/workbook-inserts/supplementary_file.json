@@ -14,8 +14,7 @@
             "smaht"
         ],
         "file_size": 1000,
-        "source_assembly": "GRCh38",
-        "donor_specific_assembly": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA"
+        "source_assembly": "GRCh38"
     },
     {
         "uuid": "f1074e68-5c24-462b-909d-472356e5a15f",
@@ -31,7 +30,6 @@
         "submission_centers": [
             "smaht"
         ],
-        "donor_specific_assembly": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
         "file_size": 1000
     }
 ]

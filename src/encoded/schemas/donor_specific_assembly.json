@@ -6,20 +6,10 @@
     "required": [
         "submitted_id",
         "submission_centers",
+        "category",
         "derived_from",
-        "software"
-    ],
-    "anyOf": [
-        {
-            "required": [
-                "donor"
-            ]
-        },
-        {
-            "required": [
-                "cell_line"
-            ]
-        }
+        "software",
+        "files"
     ],
     "identifyingProperties": [
         "accession",
@@ -80,6 +70,15 @@
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_DONOR-SPECIFIC-ASSEMBLY_[A-Z0-9-_.]{4,}$"
+        },
+        "category": {
+            "title": "Category",
+            "description": "Category of the assembly",
+            "type": "string",
+            "enum": [
+                "Donor",
+                "Cell Line"
+            ]
         },
         "contig_l50": {
             "title": "Contig L50",
@@ -198,23 +197,16 @@
             "minimum": 0,
             "maximum": 50
         },
-        "quality_value_software": {
-            "title": "Quality Value Software",
-            "description": "Software used to assess quality value of assembly",
-            "type": "string",
-            "linkTo": "Software"
-        },
-        "cell_line": {
-            "title": "Cell Line",
-            "description": "Link to associated Cell Line",
-            "type": "string",
-            "linkTo": "CellLine"
-        },
-        "donor": {
-            "title": "Donor",
-            "description": "Link to associated Donor",
-            "type": "string",
-            "linkTo": "Donor"
+        "files": {
+            "title": "Files",
+            "description": "Files associated with the reference genome",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "SubmittedFile"
+            }
         },
         "derived_from": {
             "title": "Derived From",
@@ -243,22 +235,16 @@
         "submission_centers.display_title": {
             "title": "Submitted By"
         },
-        "donor": {
-            "title": "Donor"
-        },
-        "cell_line": {
-            "title": "Cell Line"
+        "category": {
+            "title": "Category"
         }
     },
     "columns": {
         "submission_centers.display_title": {
             "title": "Submitted By"
         },
-        "donor": {
-            "title": "Donor"
-        },
-        "cell_line": {
-            "title": "Cell Line"
+        "category": {
+            "title": "Category"
         }
     }
 }

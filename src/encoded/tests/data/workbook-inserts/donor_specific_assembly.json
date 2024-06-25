@@ -2,7 +2,6 @@
     {
         "uuid": "12a3228f-f46c-4fbf-a19c-d233bf7d20d8",
         "submitted_id": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
-        "cell_line": "TEST_CELL-LINE_HELA",
         "derived_from": [
             "TEST_FILE-SET_HELA"
         ],
@@ -12,10 +11,15 @@
         "submission_centers": [
             "smaht"
         ],
+        "category": "Cell Line",
         "genome_size": 4.5,
         "ploidy": "Diploid",
         "number_of_chromosomes": 23,
         "largest_contig": 30,
-        "contig_n50": 40000
+        "contig_n50": 40000,
+        "files": [
+            "TEST_SUPPLEMENTARY-FILE_HELA_GRCH38",
+            "TEST_SUPPLEMENTARY-FILE_HELA_FASTA"
+        ]
     }
 ]

@@ -1,13 +1,25 @@
 import pytest
 from webtest import TestApp
 
-from .utils import get_search
+from .utils import get_item
 
 
 @pytest.mark.workbook
-def test_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
-    """Ensure files rev link works."""
-    file_set_search = get_search(
-        es_testapp, "?type=DonorSpecificAssembly&files.uuid!=No+value"
+def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure submitted_id is resource path for donor-specific assembly
+    within DonorSpecificAssembly and ReferenceGenome collections.
+    """
+
+    get_item(
+        es_testapp,
+        "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
+        collection="DonorSpecificAssembly",
+        status=301,
     )
-    assert file_set_search
+
+    get_item(
+        es_testapp,
+        "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
+        collection="ReferenceGenome",
+        status=301,
+    )

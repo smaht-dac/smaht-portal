@@ -59,8 +59,8 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
         "unaligned_reads",
         "aligned_reads",
         "variant_calls",
-        "donor_specific_assembly",
         "supplementary_file",
+        "donor_specific_assembly",
     ]
 
     def loadxl_order(self):
