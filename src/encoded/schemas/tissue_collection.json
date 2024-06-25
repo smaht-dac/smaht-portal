@@ -85,7 +85,7 @@
             "uniqueItems": true,
             "items": {
                 "type": "string",
-                "enum": [
+                "suggested_enum": [
                     "Cornea",
                     "Heart",
                     "Intestine",

@@ -7,6 +7,50 @@ smaht-portal
 Change Log
 ----------
 
+0.66.0
+======
+
+`PR 184: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/184>`_
+
+* Remove SamplePreparation item and merges the property homogenization_method with AnalytePreparation
+* Add properties to Analyte based on GCC Benchmarking Extraction input
+* Change to properties of Library based on GCC feedback
+* Include more detailed descriptions and examples of some fields that are technology-specific (i.e. Kinnex)
+* Minor change to TCC submission schema related to units and changing enums to suggested enums
+* Update documentation for setting up Google Sheet API credentials for automated submission templates
+
+0.65.3
+======
+
+`PR 186: Bm primary tissue ui <https://github.com/smaht-dac/smaht-portal/pull/186>`_
+
+* Enable benchmarking tables for Donor 1 and Donor 2 primary tissues
+* Fix bug with Donor 2 data table
+
+
+0.65.2
+======
+
+`PR 185: Bm link fix <https://github.com/smaht-dac/smaht-portal/pull/185>`_
+
+* Move "credentials for submission" to Access and rename it to "access key generation"
+* Set up an additional re-direct, update old redirect
+
+
+0.65.1
+======
+
+`PR 182: Bm nomenclature fix jun2024 <https://github.com/smaht-dac/smaht-portal/pull/182>`_
+
+* Update PDF with brain and change version
+* Update RST file with brain
+
+0.65.0
+======
+
+* Adds a new API /download_cli that accepts a resource path as a URL or POST param and returns federation token for use with `awscli`
+* Updates /metadata to allow download_cli links
+
 
 0.64.0
 ======

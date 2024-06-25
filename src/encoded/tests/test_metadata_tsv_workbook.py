@@ -148,6 +148,16 @@ class TestMetadataTSVWorkbook:
                 )  # merge grp
                 break
 
+        # check download links are now download_cli
+        res = es_testapp.post_json('/metadata/',
+                                   {'type': 'File', 'include_extra_files': True, 'cli': True})
+        tsv = res._app_iter[0]
+        assert b'Metadata TSV Download' in tsv
+        assert b'/output-files/cca15caa-bc11-4a6a-8998-ea0c69df8b9d/@@download_cli' in tsv
+        parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
+        header_command_part = 'jq -r ".download_credentials | {AccessKeyId'
+        assert header_command_part in parsed[1][3]  # this is where suggested command is
+
     @pytest.mark.workbook
     def test_peak_metadata_workbook(self, workbook, es_testapp):
         """Tests we can peak at metadata for files and get facet information (just file size for now)"""

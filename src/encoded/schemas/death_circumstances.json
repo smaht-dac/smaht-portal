@@ -71,7 +71,7 @@
             "minItems": 1,
             "items": {
                 "type": "string",
-                "enum": [
+                "suggested_enum": [
                     "Cryoprecipitate",
                     "Fresh Frozen Plasma",
                     "Packed Red Blood Cells",
@@ -108,7 +108,7 @@
                 "Homicide",
                 "Natural",
                 "Suicide",
-                "Unknown",
+                "Undetermined",
                 "Unreported"
             ]
         },
@@ -123,8 +123,8 @@
             "description": "Status of donor when enrolled in the study",
             "type": "string",
             "enum": [
-                "Brain dead",
-                "Donation after circulatory death",
+                "Brain Dead",
+                "Donation Ater Circulatory Death",
                 "Postmortem"
             ]
         },
@@ -132,7 +132,7 @@
             "title": "Hardy Scale",
             "description": "Death classification based on the 4-point Hardy Scale",
             "type": "integer",
-            "minimum": 1,
+            "minimum": 0,
             "maximum": 4
         },
         "place_of_death": {

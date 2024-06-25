@@ -35,6 +35,9 @@
             "$ref": "mixins.json#/protocols"
         },
         {
+            "$ref": "mixins.json#/comments"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -58,7 +61,7 @@
             "accessionType": "LI"
         },
         "schema_version": {
-            "default": "2"
+            "default": "3"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_LIBRARY_[A-Z0-9-_.]{4,}$"
@@ -101,27 +104,23 @@
                 "type": "string"
             }
         },
-        "fragment_maximum_length": {
-            "title": "Fragment Maximum Length",
-            "description": "Maximum length of the sequenced fragments, e.g. as predicted by Agilent Bioanalyzer (bp)",
-            "type": "integer",
-            "minimum": 0
+        "comments": {
+            "description": "Additional comments for library"
+        },
+        "concatenated_reads": {
+            "title": "Concatenated Reads Included",
+            "description": "Whether or not the library contains concatenated reads. Relevant for Kinnex",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No",
+                "Not applicable",
+                ""
+            ]
         },
         "fragment_mean_length": {
             "title": "Fragment Mean Length",
             "description": "Mean length of the sequenced fragments, e.g. as predicted by Agilent Bioanalyzer (bp)",
-            "type": "number",
-            "minimum": 0
-        },
-        "fragment_minimum_length": {
-            "title": "Fragment Minimum Length",
-            "description": "Minimum length of the sequenced fragments, e.g. as predicted by Agilent Bioanalyzer (bp)",
-            "type": "integer",
-            "minimum": 0
-        },
-        "fragment_standard_deviation_length": {
-            "title": "Fragment Standard Deviation Length",
-            "description": "Standard deviation of length of the sequenced fragments, e.g. as predicted by Agilent Bioanalyzer (bp)",
             "type": "number",
             "minimum": 0
         },
@@ -149,17 +148,17 @@
             "type": "integer",
             "minimum": 0
         },
-        "insert_standard_deviation_length": {
-            "title": "Insert Standard Deviation Length",
-            "description": "Standard deviation of the length of the sample molecule in the fragments to be sequenced (bp)",
-            "type": "number",
-            "minimum": 0
-        },
         "preparation_date": {
             "title": "Preparation Date",
             "description": "Date of library preparation",
             "type": "string",
             "format": "date"
+        },
+        "target_fragment_size": {
+            "title": "Target fragment size",
+            "description": "Targeted fragment size for library (bp)",
+            "type": "integer",
+            "minimum": 0
         },
         "target_insert_maximum_length": {
             "title": "Target Insert Maximum Length",
@@ -167,15 +166,15 @@
             "type": "integer",
             "minimum": 0
         },
-        "target_insert_mean_length": {
-            "title": "Target Insert Mean Length",
-            "description": "Target mean length of the insert (bp)",
-            "type": "integer",
-            "minimum": 0
-        },
         "target_insert_minimum_length": {
             "title": "Target Insert Minimum Length",
             "description": "Target minimum length of the insert (bp)",
+            "type": "integer",
+            "minimum": 0
+        },
+        "target_monomer_size": {
+            "title": "Target Monomer Size",
+            "description": "For libraries with concatenated reads, the target monomer size (bp). Relevant for Kinnex",
             "type": "integer",
             "minimum": 0
         },
@@ -203,6 +202,22 @@
             "linkTo": "LibraryPreparation"
         }
     },
+    "anyOf": [
+        {
+            "properties": {
+                "concatenated_reads": {
+                    "const": "Yes"
+                }
+            }
+        },
+        {
+            "not": {
+                "required": [
+                    "target_monomer_size"
+                ]
+            }
+        }
+    ],
     "facets": {
         "submission_centers.display_title": {
             "title": "Submitted By"
