@@ -7,7 +7,9 @@
         "file_format",
         "filename",
         "submission_centers",
-        "submitted_id"
+        "submitted_id",
+        "data_type",
+        "data_category"
     ],
     "identifyingProperties": [
         "accession",
@@ -32,13 +34,7 @@
             "$ref": "mixins.json#/file_release"
         },
         {
-            "$ref": "mixins.json#/flow_cell_details"
-        },
-        {
             "$ref": "mixins.json#/modified"
-        },
-        {
-            "$ref": "mixins.json#/n50"
         },
         {
             "$ref": "mixins.json#/reference_genome"
@@ -77,7 +73,7 @@
     ],
     "properties": {
         "accession": {
-            "accessionType": "GF"
+            "accessionType": "SF"
         },
         "schema_version": {
             "default": "1"

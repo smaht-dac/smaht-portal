@@ -81,9 +81,9 @@
                 "type": "string",
                 "enum": [
                     "AlignedReads",
-                    "GeneralFile",
                     "OutputFile",
                     "ReferenceFile",
+                    "SupplementaryFile",
                     "UnalignedReads",
                     "VariantCalls"
                 ]
