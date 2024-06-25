@@ -126,7 +126,7 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_type_length(es_testapp, 'VariantCalls', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'ReferenceFile', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'OutputFile', 2)
-        TestMetadataTSVHelper.check_type_length(es_testapp, 'GeneralFile', 2)
+        TestMetadataTSVHelper.check_type_length(es_testapp, 'SupplementaryFile', 2)
 
         res = es_testapp.post_json('/metadata/', {'type': 'OutputFile', 'include_extra_files': True})
         tsv = res._app_iter[0]

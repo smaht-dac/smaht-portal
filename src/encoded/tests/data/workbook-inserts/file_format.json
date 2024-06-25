@@ -66,7 +66,7 @@
         "standard_file_extension": "chain.gz",
         "valid_item_types": [
             "ReferenceFile",
-            "GeneralFile"
+            "SupplementaryFile"
         ]
     },
     {
@@ -78,7 +78,7 @@
         "standard_file_extension": "fasta",
         "valid_item_types": [
             "ReferenceFile",
-            "GeneralFile"
+            "SupplementaryFile"
         ]
     }
 ]

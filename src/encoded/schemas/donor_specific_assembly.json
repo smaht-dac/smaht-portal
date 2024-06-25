@@ -6,7 +6,7 @@
     "required": [
         "submitted_id",
         "submission_centers",
-        "file_sets",
+        "derived_from",
         "software"
     ],
     "anyOf": [
@@ -39,9 +39,6 @@
         },
         {
             "$ref": "mixins.json#/description"
-        },
-        {
-            "$ref": "mixins.json#/file_links"
         },
         {
             "$ref": "mixins.json#/file_release"
@@ -222,8 +219,27 @@
             "type": "string",
             "linkTo": "Donor"
         },
+        "derived_from": {
+            "title": "Derived From",
+            "description": "Files used as input to generate the assembly",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "FileSet"
+            }
+        },
         "software": {
-            "description": "Software used to generate the assembly"
+            "title": "Software",
+            "description": "Software used to generate the assembly",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Software"
+            }
         }
     },
     "facets": {

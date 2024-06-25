@@ -1,6 +1,6 @@
 {
-    "title": "General File",
-    "$id": "/profiles/general_file.json",
+    "title": "Supplementary File",
+    "$id": "/profiles/supplementary_file.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
@@ -83,7 +83,7 @@
             "default": "1"
         },
         "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_GENERAL-FILE_[A-Z0-9-_.]{4,}$"
+            "pattern": "^[A-Z0-9]{3,}_SUPPLEMENTARY-FILE_[A-Z0-9-_.]{4,}$"
         },
         "donor_specific_assembly": {
             "title": "Donor-Specific Assembly",

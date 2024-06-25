@@ -3,7 +3,7 @@
         "uuid": "12a3228f-f46c-4fbf-a19c-d233bf7d20d8",
         "submitted_id": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
         "cell_line": "TEST_CELL-LINE_HELA",
-        "file_sets": [
+        "derived_from": [
             "TEST_FILE-SET_HELA"
         ],
         "software": [
