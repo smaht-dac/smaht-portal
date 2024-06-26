@@ -1896,7 +1896,7 @@ body[data-pathname^="/data/benchmarking"] {
 				overflow: scroll;
 
 				.benchmarking-layout {
-					.page-summary {
+					.page-description {
 						.information-container {
 							margin-bottom: 0px;
 							
@@ -1912,16 +1912,21 @@ body[data-pathname^="/data/benchmarking"] {
 									display: flex;
 									border: none;
 									background-color: transparent;
-									margin: auto 0px 8px 12px;
+									margin: auto 0px auto 8px;
 									padding: 0px;
 									border-radius: 5px;
-									height: auto;
+									height: 25px;
+									width: 25px;
 									
 									span {
 										margin: auto;
-										font-size: 0.75rem;
-										line-height: 0.75rem;
+										font-size: 0.875rem;
 										color: $carbon-gray;
+										height: 25px;
+									}
+
+									&:hover {
+										background-color: #F6F6F6;
 									}
 								}
 							}
@@ -1933,11 +1938,24 @@ body[data-pathname^="/data/benchmarking"] {
 								transition: max-height 150ms ease-in-out;
 								overflow: hidden;
 								margin-bottom: 1.5rem;
+								
+								.overlay {
+									display: none;
+								}
 							}
 							&.collapsed {
-								max-height: 0px;
+								max-height: 20px;
 								transition: max-height 150ms ease-in-out;
 								overflow: hidden;
+								margin-bottom: 10px;
+
+								.overlay {
+									position: absolute;
+									width: 100%;
+									height: 20px;
+									bottom: 10px;
+									background: linear-gradient(rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 1));
+								}
 							}
 						}
 					}

@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import { Tab, Tabs } from 'react-bootstrap';
+import ReactTooltip from 'react-tooltip';
 
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
@@ -26,21 +27,35 @@ export const BenchmarkingLayout = ({
 
     return (
         <div className="benchmarking-layout">
-            <div className="page-summary row">
+            <div className="page-description row">
                 <div className="information-container col-auto col-lg-9">
                     <div className="title-container">
                         <h2 className="title">{title}</h2>
                         {setShowInformation && (
                             <button
                                 className="toggle-information"
+                                type="button"
+                                aria-label={
+                                    showInformation
+                                        ? 'Hide Description'
+                                        : 'Show Description'
+                                }
+                                aria-expanded={showInformation}
+                                aria-controls="benchmarking-page-description-container"
                                 onClick={() =>
                                     setShowInformation(!showInformation)
                                 }>
-                                {showInformation ? (
-                                    <span>Hide details</span>
-                                ) : (
-                                    <span>&bull;&bull;&bull;</span>
-                                )}
+                                <span>
+                                    {showInformation ? (
+                                        <i
+                                            className="icon icon-eye-slash fas"
+                                            data-tip="Hide Description"></i>
+                                    ) : (
+                                        <i
+                                            className="icon icon-eye fas"
+                                            data-tip="Show Description"></i>
+                                    )}
+                                </span>
                             </button>
                         )}
                     </div>
@@ -48,7 +63,8 @@ export const BenchmarkingLayout = ({
                         className={
                             'body-container' +
                             (showInformation ? ' expanded' : ' collapsed')
-                        }>
+                        }
+                        id="benchmarking-page-description-container">
                         <div className={cls}>
                             {description}
                             <p className="disclaimer">
@@ -61,6 +77,7 @@ export const BenchmarkingLayout = ({
                             </p>
                         </div>
                         {callout}
+                        {!showInformation && <div className="overlay"></div>}
                     </div>
                 </div>
                 {/* TODO: Re-add documentation button once we have it available */}

@@ -232,8 +232,8 @@ const BenchmarkingTable = (props) => {
                 />
             }
             rowHeight={31}
-            maxFacetsBodyHeight={800}
-            maxResultsBodyHeight={835}
+            maxFacetsBodyHeight={700}
+            maxResultsBodyHeight={735}
             {...{
                 searchHref,
                 schemas,
