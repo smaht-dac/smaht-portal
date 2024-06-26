@@ -109,9 +109,15 @@
             "type": "integer",
             "minimum": 0
         },
+        "target_monomer_length": {
+            "title": "Target Monomer Length",
+            "description": "Target monomer length for Kinnex/MAS-Seq (bp)",
+            "type": "integer",
+            "minimum": 0
+        },
         "basecalling": {
             "title": "Basecalling",
-            "description": "Details of pipeline used to call bases from raw sequencing data",
+            "description": "Details of pipeline used to call bases from raw sequencing data, if applicable. Relevant for ONT",
             "type": "string",
             "linkTo": "Basecalling"
         },
@@ -120,6 +126,16 @@
             "description": "Instrument used for sequencing",
             "type": "string",
             "linkTo": "Sequencer"
+        },
+        "preparation_kits": {
+            "title": "Preparation Kits",
+            "description": "Links to sequencing preparation kits",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "PreparationKit"
+            }
         }
     }
 }

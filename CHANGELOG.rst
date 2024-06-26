@@ -7,6 +7,18 @@ smaht-portal
 Change Log
 ----------
 
+0.66.0
+======
+
+`PR 184: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/184>`_
+
+* Remove SamplePreparation item and merges the property homogenization_method with AnalytePreparation
+* Add properties to Analyte based on GCC Benchmarking Extraction input
+* Change to properties of Library based on GCC feedback
+* Include more detailed descriptions and examples of some fields that are technology-specific (i.e. Kinnex)
+* Minor change to TCC submission schema related to units and changing enums to suggested enums
+* Update documentation for setting up Google Sheet API credentials for automated submission templates
+
 0.65.3
 ======
 

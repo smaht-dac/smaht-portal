@@ -45,7 +45,6 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
             'cell_culture_mixture',
             'preparation_kit',
             'treatment',
-            'sample_preparation',
             'tissue_sample',
             'cell_culture_sample',
             'cell_sample',
