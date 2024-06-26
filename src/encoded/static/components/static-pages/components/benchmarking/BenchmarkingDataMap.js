@@ -250,7 +250,7 @@ export const BenchmarkingDataMap = {
                 eventKey: '#brain',
                 title: 'Brain',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q',
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q',
             },
         ],
     },
@@ -265,7 +265,7 @@ export const BenchmarkingDataMap = {
                 eventKey: '#brain',
                 title: 'Brain',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q',
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q',
             },
         ],
     },
