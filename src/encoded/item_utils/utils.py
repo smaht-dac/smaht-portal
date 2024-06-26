@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Union
+from functools import cached_property, lru_cache
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from dcicutils import ff_utils
 from pyramid.request import Request
 from webtest import TestApp
 
-from . import constants
 from ..item_utils import item as item_utils
 from ..utils import get_item as get_item_from_request, get_item_with_testapp
 
@@ -20,10 +20,27 @@ class RequestHandler:
     request: Optional[Request] = None
     auth_key: Optional[Dict[str, str]] = None
     test_app: Optional[TestApp] = None
+    frame: str = "object"
+    datastore: str = "elasticsearch"
 
     def __post_init__(self) -> None:
         if not self.request and not self.auth_key and not self.test_app:
             raise ValueError("Either request, auth_key, or test app must be provided")
+        if self.frame not in {"raw", "object", "embedded"}:
+            raise ValueError(
+                f"Invalid frame: {self.frame}. Must be 'raw', 'object', or 'embedded'"
+            )
+        if self.datastore not in {"elasticsearch", "database"}:
+            raise ValueError(
+                f"Invalid datastore: {self.datastore}."
+                f" Must be 'elasticsearch' or 'database'"
+            )
+
+    @cached_property
+    def hashed_auth_key(self) -> Tuple[str, str]:
+        if not self.auth_key:
+            return tuple()
+        return tuple(self.auth_key.items())
 
     def get_items(
         self,
@@ -31,9 +48,18 @@ class RequestHandler:
         collection: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Get items from request or auth_key"""
-        return [
+        result = [
             self.get_item(identifier, collection=collection)
             for identifier in identifiers
+        ]
+        seen = set()
+        return [
+            item
+            for item in result
+            if not (
+                item_utils.get_uuid(item) in seen or seen.add(item_utils.get_uuid(item))
+            )
+            and item
         ]
 
     def _get_identifier(self, identifier: Union[str, Dict[str, Any]]) -> str:
@@ -65,12 +91,30 @@ class RequestHandler:
         self, identifier: str, collection: Optional[str] = None
     ) -> Dict[str, Any]:
         """Get item from request"""
-        return get_item_from_request(self.request, identifier, collection=collection)
+        return get_item_from_request(
+            self.request, identifier, collection=collection, frame=self.frame
+        )
 
     def _get_item_from_auth_key(self, identifier: str) -> Dict[str, Any]:
         """Get item from auth_key"""
+        return self._get_and_cache_item_from_auth_key(
+            identifier, self.hashed_auth_key, frame=self.frame, datastore=self.datastore
+        )
+
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def _get_and_cache_item_from_auth_key(
+        identifier: str,
+        auth_key: Tuple[str, str],
+        frame: str = "object",
+        datastore: str = "elasticsearch",
+    ) -> Dict[str, Any]:
+        """Get item from auth_key and cache result."""
+        unhashed_auth_key = dict(auth_key)
         return ff_utils.get_metadata(
-            identifier, key=self.auth_key, add_on="frame=object"
+            identifier,
+            key=unhashed_auth_key,
+            add_on=f"frame={frame}&datastore={datastore}",
         )
 
     def _get_item_from_test_app(
@@ -78,7 +122,11 @@ class RequestHandler:
     ) -> Dict[str, Any]:
         """Get item from test app"""
         return get_item_with_testapp(
-            self.test_app, identifier, collection=collection, frame="object"
+            self.test_app,
+            identifier,
+            collection=collection,
+            frame=self.frame,
+            datastore=self.datastore,
         )
 
 
@@ -126,19 +174,3 @@ def get_property_value_from_identifier(
     """Get property value from item for given identifier."""
     item = request_handler.get_item(identifier)
     return retriever(item)
-
-
-def get_study_from_external_id(external_id: str) -> str:
-    """Get "study" (a.k.a. production or benchmarking) from external ID.
-
-    NOTE: Impossible to determine study from external ID alone, but
-    should suffice for IDs from TPC. Primary concern is TTD IDs can
-    also match criteria and be incorrectly identified. If this becomes
-    an issue, may need to check submission/sequencing centers and add
-    metadata there appropriately.
-    """
-    if external_id.startswith(constants.PRODUCTION_PREFIX):
-        return constants.PRODUCTION_STUDY
-    if external_id.startswith(constants.BENCHMARKING_PREFIX):
-        return constants.BENCHMARKING_STUDY
-    return ""

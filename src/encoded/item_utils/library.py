@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
 from . import analyte as analyte_utils, sample as sample_utils
@@ -20,7 +21,9 @@ def get_samples(
     """Get samples connected to library."""
     if request_handler:
         return get_property_values_from_identifiers(
-            request_handler, get_analytes(library), analyte_utils.get_samples
+            request_handler,
+            get_analytes(library),
+            partial(analyte_utils.get_all_samples, request_handler),
         )
     return []
 

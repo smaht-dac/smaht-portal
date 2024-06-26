@@ -17,9 +17,11 @@ def test_get_samples(es_testapp: TestApp, workbook: None) -> None:
     for file_set in file_sets_with_samples:
         samples = file_set_utils.get_samples(file_set)
         assert samples
-        assert samples == file_set_utils.get_samples(
+        expected_samples = file_set_utils.get_samples(
             file_set, request_handler=request_handler
-        )
+        )  # Includes parent samples, if present
+        for sample in samples:
+            assert sample in expected_samples
     file_sets_without_samples = get_search(
         es_testapp, "?type=FileSet&samples.uuid=No+value&frame=object"
     )
