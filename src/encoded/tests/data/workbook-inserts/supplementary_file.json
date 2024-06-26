@@ -30,6 +30,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "file_size": 1000
+        "file_size": 1000,
+        "md5sum": "00000000000000000000000000000001"
     }
 ]
