@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.60.2
+======
+
+`PR 188: feat: increase benchmarking table visibility <https://github.com/smaht-dac/smaht-portal/pull/188>`_
+
+* Increase height of benchmarking tables
+* Support toggling the benchmarking page descriptions
+* Upgrade SPC to v0.1.86
+
+
 0.60.1
 ======
 
@@ -16,8 +26,8 @@ Change Log
 
 
 0.60.0
-======  
-  
+======
+
 `PR 123: File Overview Page <https://github.com/smaht-dac/smaht-portal/pull/123>`_
 
 * Add File Overview Page for improved view of additional details for File items
