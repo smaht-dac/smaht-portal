@@ -157,10 +157,11 @@ def get_item_with_testapp(
     identifier: str,
     collection: Optional[str] = None,
     frame: Optional[str] = None,
+    datastore: Optional[str] = None,
     status: Optional[Union[int, List[int]]] = None,
 ) -> Dict[str, Any]:
     """Get item view with given frame, following redirects."""
-    add_on = get_frame_add_on(frame)
+    add_on = "&".join([get_frame_add_on(frame), get_datastore_add_on(datastore)])
     resource_path = get_formatted_resource_path(
         identifier, collection=collection, add_on=add_on
     )
@@ -174,6 +175,13 @@ def get_frame_add_on(frame: Union[str, None]) -> str:
     """Format frame parameter, if provided."""
     if frame:
         return f"frame={frame}"
+    return ""
+
+
+def get_datastore_add_on(datastore: Union[str, None]) -> str:
+    """Format datastore parameter, if provided."""
+    if datastore:
+        return f"datastore={datastore}"
     return ""
 
 

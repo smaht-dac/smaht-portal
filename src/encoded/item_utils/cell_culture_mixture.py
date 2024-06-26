@@ -1,7 +1,7 @@
 import functools
 from typing import Any, Dict, List, Union
 
-from . import cell_culture, item
+from . import cell_culture, cell_line, item
 from .utils import RequestHandler, get_property_values_from_identifiers
 
 
@@ -31,6 +31,11 @@ def get_cell_line_codes(
     )
 
 
+def get_cell_line(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
+    """Get cell line calcprop from cell culture mixture."""
+    return properties.get("cell_line", [])
+
+
 def get_cell_lines(
     request_handler: RequestHandler, properties: Dict[str, Any]
 ) -> List[Union[str, Dict[str, Any]]]:
@@ -47,3 +52,14 @@ def get_cell_cultures(properties: Dict[str, Any]) -> List[Union[str, Dict[str, A
     """Get cell cultures from components."""
     components = get_components(properties)
     return [get_cell_culture(component) for component in components]
+
+
+def get_donors(
+    request_handler: RequestHandler, properties: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Get donors from cell culture mixture."""
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_cell_lines(request_handler, properties),
+        cell_line.get_donor,
+    )

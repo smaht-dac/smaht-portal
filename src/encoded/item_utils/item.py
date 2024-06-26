@@ -1,9 +1,11 @@
 from typing import Any, Dict, List, Union
 
+from .constants import item as item_constants
+
 
 def get_uuid(properties: Dict[str, Any]) -> str:
     """Get UUID from properties."""
-    return properties.get("uuid", "")
+    return properties.get(item_constants.UUID, "")
 
 
 def get_accession(properties: Dict[str, Any]) -> str:
@@ -11,9 +13,14 @@ def get_accession(properties: Dict[str, Any]) -> str:
     return properties.get("accession", "")
 
 
+def get_at_id(properties: Dict[str, Any]) -> str:
+    """Get @id from properties."""
+    return properties.get("@id", "")
+
+
 def get_status(properties: Dict[str, Any]) -> str:
     """Get status from properties."""
-    return properties.get("status", "")
+    return properties.get(item_constants.STATUS, "")
 
 
 def get_display_title(properties: Dict[str, Any]) -> str:
@@ -84,3 +91,13 @@ def get_aliases(properties: Dict[str, Any]) -> List[str]:
 def get_identifier(properties: Dict[str, Any]) -> str:
     """Get identifier from properties."""
     return properties.get("identifier", "")
+
+
+def get_version(properties: Dict[str, Any]) -> str:
+    """Get version from properties."""
+    return properties.get("version", "")
+
+
+def is_released(properties: Dict[str, Any]) -> bool:
+    """Check if item is released."""
+    return get_status(properties) == item_constants.STATUS_RELEASED
