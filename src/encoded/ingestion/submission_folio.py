@@ -31,6 +31,7 @@ class SmahtSubmissionFolio:
         self.validate_skip = get_parameter(submission.parameters, "validate_skip", as_type=bool, default=False)
         self.ref_nocache = get_parameter(submission.parameters, "ref_nocache", as_type=bool, default=False)
         self.autoadd = get_parameter(submission.parameters, "autoadd", as_type=str, default=None)
+        self.merge = get_parameter(submission.parameters, "merge", as_type=bool, default=False)
         self.consortium = get_parameter(submission.parameters, "consortium", as_type=str, default=None)
         self.submission_center = get_parameter(submission.parameters, "submission_center", as_type=str, default=None)
         self.user = get_parameter(submission.parameters, "user", as_type=str, default=None)

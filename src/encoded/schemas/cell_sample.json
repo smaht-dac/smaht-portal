@@ -86,7 +86,8 @@
             "title": "Cell Ontology ID",
             "description": "Cell Ontology identifier for the cell sample",
             "type": "string",
-            "pattern": "^CL:[0-9]{7}$"
+            "pattern": "^CL:[0-9]{7}$",
+            "url": "https://cell-ontology.github.io/"
         }
     }
 }

@@ -63,7 +63,7 @@
         },
         "ischemic_time": {
             "title": "Ischemic Time",
-            "description": "Time interval in minutes between death, presumed death, or cross-clamp application and beginning of tissue collection",
+            "description": "Time interval between death, presumed death, or cross-clamp application and beginning of tissue collection (hours)",
             "type": "number",
             "minimum": 0
         },
@@ -85,7 +85,7 @@
             "uniqueItems": true,
             "items": {
                 "type": "string",
-                "enum": [
+                "suggested_enum": [
                     "Cornea",
                     "Heart",
                     "Intestine",
@@ -109,7 +109,7 @@
         },
         "refrigeration_prior_to_procurement_time": {
             "title": "Refrigeration Prior To Procurement Time",
-            "description": "Interval of time in hours the donor was refrigerated prior to tissue collection",
+            "description": "Interval of time the donor was refrigerated prior to tissue collection (hours)",
             "type": "number",
             "minimum": 0
         },

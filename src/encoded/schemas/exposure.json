@@ -63,6 +63,7 @@
                 "Alcohol",
                 "Chemical",
                 "Environmental",
+                "Toxic Exposure",
                 "Illicit Drug",
                 "Occupational",
                 "Tobacco",
@@ -81,7 +82,7 @@
         },
         "cessation_duration": {
             "title": "Cessation Duration",
-            "description": "Duration since exposure ceased in years",
+            "description": "Duration since exposure ceased (years)",
             "type": "integer",
             "minimum": 0
         },
@@ -92,7 +93,7 @@
         },
         "duration": {
             "title": "Duration",
-            "description": "Duration of the exposure in years",
+            "description": "Duration of the exposure (years)",
             "type": "number",
             "minimum": 0
         },
@@ -117,7 +118,7 @@
             "title": "Quantity Unit",
             "description": "Unit of the quantity of the substance to which the donor was exposed",
             "type": "string",
-            "enum": [
+            "suggested_enum": [
                 "Drinks Per Day",
                 "Drinks Per Week",
                 "Packs Per Day",
@@ -129,10 +130,11 @@
             "description": "Route of the exposure",
             "type": "string",
             "enum": [
-                "Dermal",
+                "Intranasal",
+                "Transdermal",
                 "Inhalation",
                 "Ingestion",
-                "Injection",
+                "IV",
                 "Unknown"
             ]
         },

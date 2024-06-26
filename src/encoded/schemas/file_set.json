@@ -60,6 +60,10 @@
         "schema_version": {
             "default": "2"
         },
+        "comments": {
+            "description": "Additional comments on file set",
+            "permission": "restricted_fields"
+        },
         "libraries": {
             "title": "Libraries",
             "description": "Link to associated libraries",

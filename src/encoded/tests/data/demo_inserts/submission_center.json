@@ -1,0 +1,47 @@
+[
+    {
+        "code": "bcm",
+        "title": "BCM GCC",
+        "status": "released",
+        "aliases": [
+            "bcm_gcc:bcm_gcc"
+        ],
+        "identifier": "bcm_gcc",
+        "description": "Baylor College of Medicine",
+        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
+        "uuid": "f5446853-630e-474c-ba51-35b7e992269b"
+    },
+    {
+        "code": "washu",
+        "title": "WASHU GCC",
+        "status": "public",
+        "aliases": [
+            "washu_gcc:washu_gcc"
+        ],
+        "identifier": "washu_gcc",
+        "description": "Washington University in St. Louis GCC",
+        "uuid": "6030743e-631e-48e5-876d-df336066fa6e"
+    },
+    {
+        "code": "mayo",
+        "title": "MAYO TTD",
+        "status": "released",
+        "aliases": [
+            "mayo_ttd:mayo_ttd"
+        ],
+        "identifier": "mayo_ttd",
+        "description": "Mayo Clinic Abyzov TTD",
+        "uuid": "7a7021f8-2f90-4aac-80c8-72d5e03c5bd1"
+    },
+    {
+        "code": "uwsc",
+        "title": "UWSC GCC",
+        "status": "released",
+        "aliases": [
+            "uwsc_gcc:uwsc_gcc"
+        ],
+        "identifier": "uwsc_gcc",
+        "description": "University of Washington & Seattle Children\u2019s Hospital GCC",
+        "uuid": "3cd5a0a8-96e0-4eb1-862d-526509efb9b3"
+    }
+]

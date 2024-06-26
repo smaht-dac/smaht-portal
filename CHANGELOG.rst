@@ -7,19 +7,124 @@ smaht-portal
 Change Log
 ----------
 
+0.66.0
+======
+
+`PR 184: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/184>`_
+
+* Remove SamplePreparation item and merges the property homogenization_method with AnalytePreparation
+* Add properties to Analyte based on GCC Benchmarking Extraction input
+* Change to properties of Library based on GCC feedback
+* Include more detailed descriptions and examples of some fields that are technology-specific (i.e. Kinnex)
+* Minor change to TCC submission schema related to units and changing enums to suggested enums
+* Update documentation for setting up Google Sheet API credentials for automated submission templates
+
+0.65.3
+======
+
+`PR 186: Bm primary tissue ui <https://github.com/smaht-dac/smaht-portal/pull/186>`_
+
+* Enable benchmarking tables for Donor 1 and Donor 2 primary tissues
+* Fix bug with Donor 2 data table
+
+
+0.65.2
+======
+
+`PR 185: Bm link fix <https://github.com/smaht-dac/smaht-portal/pull/185>`_
+
+* Move "credentials for submission" to Access and rename it to "access key generation"
+* Set up an additional re-direct, update old redirect
+
+
+0.65.1
+======
+
+`PR 182: Bm nomenclature fix jun2024 <https://github.com/smaht-dac/smaht-portal/pull/182>`_
+
+* Update PDF with brain and change version
+* Update RST file with brain
+
+0.65.0
+======
+
+* Adds a new API /download_cli that accepts a resource path as a URL or POST param and returns federation token for use with `awscli`
+* Updates /metadata to allow download_cli links
+
+
+0.64.0
+======
+
+`PR 181: Submission and Usage Statistics Follow-up Updates  <https://github.com/smaht-dac/smaht-portal/pull/181>`_
+
+* Filtering  
+  * Previous 60 days added to date range options
+  * Cumulative sum checkbox added to switch between individual bars and cumulative sum
+* File downloads
+  * File downloads splitted into two charts (count and volume)
+  * Assay Type and Dataset views added
+* File views
+  * Assay Type and Dataset views added
+* Page Views
+  * Page views, Uniqe users by country/city views added
+  * Page title and URL views added
+* Schema and Style
+  * `tracking_item`` schema fields that are still mapped to Universal Analytics naming convention are renamed/replaced
+  * glitches in mobile view fixed
+
+
+0.63.0
+======
+
+`PR 169: Submission Templates <https://github.com/smaht-dac/smaht-portal/pull/169>`_
+
+* Add new command `write-submission-spreadsheets` to generate submission spreadsheets (Excel or Google sheets) for submittable items
+* Schema updates
+  * Update descriptions for many properties with standardized units formatting
+  * Misc. updates to TPC-related properties
+  * Breaking change: Tissue `location` renamed to `anatomical_location`; upgrader included
+
+
+0.62.1
+======
+
+* Fix minor issue on Submission Status page
+
+
+0.62.0
+======
+
+Submission Status page updates:
+* Add filters for CellLine and CellCultureMixture
+* Some refactoring of the React component
+* Color filesets by file group
+
+
+0.61.0
+======
+
+* Added src/encoded/tests/data/demo_inserts with (well) demo inserts for objects needed
+  by the demo metadata spreadsheet (for annual meeting 2024): bcm_formatted_hapmapmix.xlsx ...
+  https://docs.google.com/spreadsheets/d/1qCm0bY-vG4a9uiaOvmKHZ12MvhmMKKRfEpgAm-7Hsh4/edit#gid=1472887809
+  FYI: To cause these to be loaded at startup when running locally, edit development.ini and
+  set load_test_data = snovault.loadxl:load_local_data (rather than the default load_prod_data).
+* Updated dcicutils to 8.10.0 (mostly merge support in structured_data).
+* Changed workbook-inserts/assay.json bulk_wgs item to code 002 (to match data/staging/wolf).
+* Changed workbook-inserts/sequencer.json code from A to X (interfering with demo testing).
+* Support merge in ingester for partial object updates from metedata.
+  -  Removed ref_lookup_strategy references for structured_data; refactored/internalized in dcicutils.
+* Added rclone (Google-to-AWS) related documentation.
+* Some make lint fixups.
+
+
 0.60.2
 ======
 
-`PR 188: feat: increase benchmarking table visibility <https://github.com/smaht-dac/smaht-portal/pull/188>`_
-
-* Increase height of benchmarking tables
-* Support toggling the benchmarking page descriptions
-* Upgrade SPC to v0.1.86
+* Ensure ``docutils`` is a true dependency
 
 
 0.60.1
 ======
-
 
 * Add new command ``check-insert-consistency`` to quickly detect errors on live environments related to inconsistencies with ``master-inserts``
 * Add new command ``load-data-from-local`` to allow interactive updates from ``master-inserts``
@@ -98,7 +203,7 @@ Change Log
 
 
 0.55.0
-=======
+======
 
 `PR 141: Link FileSets to Samples <https://github.com/smaht-dac/smaht-portal/pull/141>`_
 

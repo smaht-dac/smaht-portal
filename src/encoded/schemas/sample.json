@@ -75,15 +75,9 @@
                 "Frozen"
             ]
         },
-        "sample_preparation": {
-            "title": "Sample Preparation",
-            "description": "Link to associated sample preparation",
-            "type": "string",
-            "linkTo": "SamplePreparation"
-        },
         "sample_sources": {
             "title": "Sample Sources",
-            "description": "Link to associated sample sources",
+            "description": "Link to associated sample sources (e.g. tissue, cell culture, etc.)",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
