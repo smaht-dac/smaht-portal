@@ -1986,6 +1986,7 @@ body[data-pathname^="/data/benchmarking"] {
 			// Side nav
 			.benchmarking-nav-container {
 				display: flex;
+				min-height: calc(100vh - 236px);
 	
 				.benchmarking-nav {
 					width: 100%;
@@ -2105,7 +2106,7 @@ body[data-pathname^="/data/benchmarking"] {
 			}
 			&.collapse-nav {
 				flex-wrap: nowrap;
-				.benchmarking-nav-container{
+				.benchmarking-nav-container {
 					width: 32px;
 					border-right: 1px solid #E7F0F3;
 					background-color: #FBFBFC;
