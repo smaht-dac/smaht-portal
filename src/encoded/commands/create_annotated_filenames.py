@@ -115,7 +115,7 @@ def get_associated_items(
     assays = get_assays(file_sets, request_handler)
     sequencers = get_sequencers(file_sets, request_handler)
     samples = get_samples(file_sets, request_handler)
-    tissue_samples = get_tissue_samples(samples, request_handler)
+    tissue_samples = get_tissue_samples(samples)
     sample_sources = get_sample_sources(samples, request_handler)
     cell_culture_mixtures = get_cell_culture_mixtures(sample_sources)
     tissues = get_tissues(sample_sources)
@@ -227,9 +227,7 @@ def get_samples(
     return get_items(samples, request_handler)
 
 
-def get_tissue_samples(
-    samples: List[Dict[str, Any]], request_handler: RequestHandler
-) -> List[Dict[str, Any]]:
+def get_tissue_samples(samples: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Filter samples to get tissue samples."""
     return [sample for sample in samples if sample_utils.is_tissue_sample(sample)]
 
