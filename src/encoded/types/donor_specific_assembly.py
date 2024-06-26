@@ -21,6 +21,6 @@ def _build_dsa_embedded_list():
 )
 class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
     item_type = "donor_specific_assembly"
-    base_types = ['DonorSpecificAssembly', ReferenceGenome.__name__] + SubmittedItem.base_types
+    base_types = ["ReferenceGenome"] + SubmittedItem.base_types
     schema = load_schema("encoded:schemas/donor_specific_assembly.json")
     embedded_list = _build_dsa_embedded_list()

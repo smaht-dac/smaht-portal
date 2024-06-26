@@ -1,25 +1,21 @@
 import pytest
 from webtest import TestApp
 
-from .utils import get_item
+from .utils import get_insert_identifier_for_item_type, get_search
 
 
 @pytest.mark.workbook
-def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None:
-    """Ensure submitted_id is resource path for donor-specific assembly
-    within DonorSpecificAssembly and ReferenceGenome collections.
+def test_searchable_as_reference_genome(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure DonorSpecificAssemblies can searched in ReferenceGenome.
     """
 
-    get_item(
+    uuid = get_insert_identifier_for_item_type(
         es_testapp,
-        "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
-        collection="DonorSpecificAssembly",
-        status=301,
+        "DonorSpecificAssembly"
     )
 
-    get_item(
+    get_search(
         es_testapp,
-        "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
-        collection="ReferenceGenome",
-        status=301,
+        f"/search/?type=ReferenceGenome&uuid={uuid}",
+        status=200
     )
