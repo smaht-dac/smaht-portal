@@ -1,8 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
 import { Tab, Tabs } from 'react-bootstrap';
-import ReactTooltip from 'react-tooltip';
 
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
@@ -42,19 +40,19 @@ export const BenchmarkingLayout = ({
                                 }
                                 aria-expanded={showInformation}
                                 aria-controls="benchmarking-page-description-container"
+                                data-tip={
+                                    showInformation
+                                        ? 'Hide Description'
+                                        : 'Show Description'
+                                }
                                 onClick={() =>
                                     setShowInformation(!showInformation)
                                 }>
                                 <span>
-                                    {showInformation ? (
-                                        <i
-                                            className="icon icon-eye-slash fas"
-                                            data-tip="Hide Description"></i>
-                                    ) : (
-                                        <i
-                                            className="icon icon-eye fas"
-                                            data-tip="Show Description"></i>
-                                    )}
+                                    <i
+                                        className={`icon icon-eye${
+                                            showInformation ? '-slash' : ''
+                                        } fas`}></i>
                                 </span>
                             </button>
                         )}
