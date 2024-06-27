@@ -10,7 +10,7 @@ Change Log
 0.68.0
 ======
 
-`PR : Add routes endpoint <>`_
+`PR 193: Add routes endpoint <https://github.com/smaht-dac/smaht-portal/pull/193>`_
 
 * Add `/routes` endpoint to return all available routes
 
