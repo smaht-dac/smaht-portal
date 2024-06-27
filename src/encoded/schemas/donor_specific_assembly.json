@@ -7,9 +7,17 @@
         "submitted_id",
         "submission_centers",
         "category",
+        "ploidy",
         "derived_from",
         "software",
-        "files"
+        "files",
+        "number_of_chromosomes",
+        "number_of_contigs",
+        "number_of_scaffolds",
+        "genome_size",
+        "contig_n50",
+        "scaffold_n50",
+        "total_ungapped_length"
     ],
     "identifyingProperties": [
         "accession",
@@ -92,6 +100,12 @@
             "type": "number",
             "minimum": 0
         },
+        "gaps_between_scaffolds": {
+            "title": "Gaps Between Scaffolds",
+            "description": "Number of gaps between scaffolds",
+            "type": "integer",
+            "minimum": 0
+        },
         "gc_content": {
             "title": "GC Content",
             "description": "GC content of assembly (%)",
@@ -101,13 +115,13 @@
         },
         "genome_size": {
             "title": "Genome Size",
-            "description": "The soze of both assembled haplotypes (Gb)",
+            "description": "The size of both assembled haplotypes (bp)",
             "type": "number",
             "minimum": 0
         },
         "largest_contig": {
             "title": "Largest Contig",
-            "description": "Largest contig in the assembly (Mb)",
+            "description": "Largest contig in the assembly (bp)",
             "type": "number",
             "minumum": 0
         },
@@ -163,7 +177,8 @@
             "type": "string",
             "enum": [
                 "Diploid",
-                "Haploid"
+                "Haploid",
+                "Aneuploid"
             ]
         },
         "scaffold_l50": {
@@ -180,13 +195,13 @@
         },
         "total_length": {
             "title": "Total Length",
-            "description": "Total number of bases in the assembly (Gb)",
+            "description": "Total number of bases in the assembly (bp)",
             "type": "number",
             "minimum": 0
         },
         "total_ungapped_length": {
             "title": "Total Ungapped Length",
-            "description": "Total ungapped length of the assembly (Gb)",
+            "description": "Total ungapped length of the assembly (bp)",
             "type": "number",
             "minimum": 0
         },

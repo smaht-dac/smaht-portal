@@ -12,11 +12,14 @@
             "smaht"
         ],
         "category": "Cell Line",
-        "genome_size": 4.5,
+        "genome_size": 3100000000,
+        "total_ungapped_length": 2900000000,
         "ploidy": "Diploid",
         "number_of_chromosomes": 23,
-        "largest_contig": 30,
-        "contig_n50": 40000,
+        "number_of_scaffolds": 470,
+        "number_of_contigs": 1000,
+        "contig_n50": 50000000,
+        "scaffold_n50": 67000000,
         "files": [
             "TEST_SUPPLEMENTARY-FILE_HELA_GRCH38",
             "TEST_SUPPLEMENTARY-FILE_HELA_FASTA"

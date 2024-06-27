@@ -80,11 +80,6 @@
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_SUPPLEMENTARY-FILE_[A-Z0-9-_.]{4,}$"
-        },
-        "source_assembly": {
-            "title": "Source Assembly",
-            "description": " The reference genome assembly from which the coordinates are being converted, if applicable (For chain files)",
-            "type": "string"
         }
     }
 }
