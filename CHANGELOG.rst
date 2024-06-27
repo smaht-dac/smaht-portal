@@ -11,6 +11,7 @@ Change Log
 ======
 
 * Documentation for smaht-submitr binary (pyinstaller-based) installation.
+* Updates related to Python 3.12.
 
 
 0.67.0
