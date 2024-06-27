@@ -10,7 +10,22 @@
         ],
         "name": "bwa_mem_v1",
         "title": "BWA-MEM",
+        "code": "bwamem",
         "version": "1.2.3"
+    },
+    {
+        "uuid": "611e4b36-13cb-48f4-957c-465acf7dd548",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_SOFTWARE_STRELKA",
+        "category": [
+            "Variant Calling"
+        ],
+        "name": "strelka",
+        "title": "Strelka",
+        "code": "strelka",
+        "version": "3.1.1"
     },
     {
         "uuid": "be085e03-0989-4b44-81af-37efef5aa086",
