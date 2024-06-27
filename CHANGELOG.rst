@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.68.1
+======
+
+`PR 192: fix: include missing TPC and GCC in awardees table <https://github.com/smaht-dac/smaht-portal/pull/192>`_
+
+* Fix missing consortium entries in the awardees table
+
+
 0.68.0
 ======
 
