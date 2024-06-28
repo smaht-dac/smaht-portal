@@ -1,6 +1,6 @@
 ACCESS_STATUS = "access_status"
-ACCESS_STATUS_OPEN = "Open"
-ACCESS_STATUS_PROTECTED = "Protected"
+ACCESS_STATUS_OPEN = "open"
+ACCESS_STATUS_PROTECTED = "protected"
 ANNOTATED_FILENAME = "annotated_filename"
 DATA_CATEGORY = "data_category"
 DATA_CATEGORY_GERMLINE_VARIANT_CALLS = "Germline Variant Calls"
