@@ -19,10 +19,6 @@
         "number_of_scaffolds": 470,
         "number_of_contigs": 1000,
         "contig_n50": 50000000,
-        "scaffold_n50": 67000000,
-        "files": [
-            "TEST_SUPPLEMENTARY-FILE_HELA_GRCH38",
-            "TEST_SUPPLEMENTARY-FILE_HELA_FASTA"
-        ]
+        "scaffold_n50": 67000000
     }
 ]

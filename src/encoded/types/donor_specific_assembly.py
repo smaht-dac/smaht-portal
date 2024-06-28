@@ -1,14 +1,14 @@
-from snovault import collection, load_schema
+from typing import Union, List
+from snovault import collection, load_schema, calculated_property
+from pyramid.request import Request
+
 from .submitted_item import SubmittedItem
 from .reference_genome import ReferenceGenome
 
+
 def _build_dsa_embedded_list():
     """Embeds for search on general files."""
-    embedded_list = SubmittedItem.embedded_list + [
-        "derived_from.libraries.analytes.samples.display_title",
-        "derived_from.libraries.analytes.samples.sample_sources.submitted_id",
-    ]
-    return embedded_list
+    return SubmittedItem.embedded_list
 
 
 @collection(
@@ -24,3 +24,23 @@ class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
     base_types = ["ReferenceGenome"] + SubmittedItem.base_types
     schema = load_schema("encoded:schemas/donor_specific_assembly.json")
     embedded_list = _build_dsa_embedded_list()
+
+    rev = {
+        "files": ("SupplementaryFile", "donor_specific_assembly"),
+    }
+
+    @calculated_property(
+        schema={
+            "title": "Files",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "SupplementaryFile",
+            },
+        },
+    )
+    def files(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "files")
+        if result:
+            return result
+        return

@@ -5,9 +5,6 @@
 	    "code": "GRCh38",
         "consortia": [
             "smaht"
-        ],
-        "files": [
-            "TEST_SUPPLEMENTARY-FILE_HELA_GRCH38"
         ]
     }
 ]

@@ -19,3 +19,10 @@ def test_searchable_as_reference_genome(es_testapp: TestApp, workbook: None) -> 
         f"/search/?type=ReferenceGenome&uuid={uuid}",
         status=200
     )
+
+
+@pytest.mark.workbook
+def test_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure files rev link works."""
+    file_set_search = get_search(es_testapp, "?type=DonorSpecificAssembly&files.uuid!=No+value")
+    assert file_set_search
