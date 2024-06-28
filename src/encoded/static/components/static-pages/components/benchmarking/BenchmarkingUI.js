@@ -100,8 +100,6 @@ const TabTitle = ({ title, searchHref = '' }) => {
                 }
             });
 
-            console.log('obj', obj);
-
             // Fetch the total number of files for the extracted dataset
             ajax.promise(
                 '/search_total',
