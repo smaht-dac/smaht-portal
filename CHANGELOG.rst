@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.68.2
+======
+
+`PR 190: Bm primary tissue ui 2 <https://github.com/smaht-dac/smaht-portal/pull/190>`_
+
+* Add brain table for donors 3 & 4
+* Remaining update to use `dataset=tissue`
+
+
 0.68.1
 ======
 
