@@ -247,7 +247,7 @@ const BenchmarkingTable = (props) => {
                 'dataset',
                 'file_sets.libraries.analytes.samples.sample_sources.code',
                 'status',
-                'validation-errors',
+                'validation-errors', // TODO: look into why this alone isn't enough to hide this facet
             ]}
             hideColumns={['display_title']}
             clearSelectedItemsOnFilter
