@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.68.3
+======
+
+`PR 194: Fix constants casing <https://github.com/smaht-dac/smaht-portal/pull/194>`_
+
+* Fix `access_status` enum options case in `item_utils`
+
+
 0.68.2
 ======
 
