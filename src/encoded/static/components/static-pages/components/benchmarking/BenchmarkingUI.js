@@ -78,20 +78,36 @@ const TabTitle = ({ title, searchHref = '' }) => {
 
     useEffect(() => {
         if (searchHref) {
-            // Extract the dataset parameter from the searchHref
+            // Extract parameters from the searchHref
             const paramString = searchHref.split('?')[1];
-            const dataset = new URLSearchParams(paramString).get('dataset');
+            const urlSearchParams = new URLSearchParams(paramString);
+
+            const arrayKeys = ['status', 'dataset'];
+
+            const obj = {};
+            urlSearchParams.forEach((val, key) => {
+                // check first for keys that should be in an array
+                if (arrayKeys.includes(key) && !obj.hasOwnProperty(key)) {
+                    // create a new array
+                    obj[key] = [val];
+                } else if (arrayKeys.includes(key) && obj.hasOwnProperty(key)) {
+                    // add to the array
+                    obj[key].push(val);
+                } else {
+                    // not an array key
+                    // just add the key value pair
+                    obj[key] = val;
+                }
+            });
+
+            console.log('obj', obj);
 
             // Fetch the total number of files for the extracted dataset
             ajax.promise(
                 '/search_total',
                 'POST',
                 {}, // headers
-                JSON.stringify({
-                    type: 'File',
-                    status: ['released', 'restricted', 'public'],
-                    dataset: [dataset],
-                })
+                JSON.stringify(obj)
             )
                 .then((res) => {
                     if (res.status === 'error') {
