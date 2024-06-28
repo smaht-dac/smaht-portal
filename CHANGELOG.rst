@@ -7,14 +7,29 @@ smaht-portal
 Change Log
 ----------
 
-0.67.1
+0.68.2
 ======
 
-`PR 188: feat: increase benchmarking table visibility <https://github.com/smaht-dac/smaht-portal/pull/188>`_
+`PR 190: Bm primary tissue ui 2 <https://github.com/smaht-dac/smaht-portal/pull/190>`_
 
-* Increase height of benchmarking tables
-* Support toggling the benchmarking page descriptions
-* Upgrade SPC to v0.1.86
+* Add brain table for donors 3 & 4
+* Remaining update to use `dataset=tissue`
+
+
+0.68.1
+======
+
+`PR 192: fix: include missing TPC and GCC in awardees table <https://github.com/smaht-dac/smaht-portal/pull/192>`_
+
+* Fix missing consortium entries in the awardees table
+
+
+0.68.0
+======
+
+`PR 193: Add routes endpoint <https://github.com/smaht-dac/smaht-portal/pull/193>`_
+
+* Add `/routes` endpoint to return all available routes
 
 
 0.67.0
