@@ -246,6 +246,8 @@ const BenchmarkingTable = (props) => {
             hideFacets={[
                 'dataset',
                 'file_sets.libraries.analytes.samples.sample_sources.code',
+                'status',
+                'validation-errors',
             ]}
             hideColumns={['display_title']}
             clearSelectedItemsOnFilter
