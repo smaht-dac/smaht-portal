@@ -72,7 +72,9 @@
             "type": "string",
             "enum": [
                 "Fresh",
-                "Frozen"
+                "Fixed",
+                "Frozen",
+                "Snap Frozen"
             ]
         },
         "sample_sources": {
