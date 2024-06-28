@@ -7,6 +7,35 @@ smaht-portal
 Change Log
 ----------
 
+0.68.1
+======
+
+`PR 192: fix: include missing TPC and GCC in awardees table <https://github.com/smaht-dac/smaht-portal/pull/192>`_
+
+* Fix missing consortium entries in the awardees table
+
+
+0.68.0
+======
+
+`PR 193: Add routes endpoint <https://github.com/smaht-dac/smaht-portal/pull/193>`_
+
+* Add `/routes` endpoint to return all available routes
+
+
+0.67.0
+======
+
+`PR 187: Update file naming and release commands <https://github.com/smaht-dac/smaht-portal/pull/187>`_
+
+* Refactor and improve commands `release_file` and `create_annotated_filenames`
+  * Add test coverage, especially for annotated filenames
+  * Add to `item_utils` and use extensively in commands
+  * Fix command names in pyproject.toml
+  * Update commands for tissue data
+* Add `tissue` to `dataset` enum for benchmarking files + update benchmarking searches
+
+
 0.66.0
 ======
 
@@ -18,6 +47,7 @@ Change Log
 * Include more detailed descriptions and examples of some fields that are technology-specific (i.e. Kinnex)
 * Minor change to TCC submission schema related to units and changing enums to suggested enums
 * Update documentation for setting up Google Sheet API credentials for automated submission templates
+
 
 0.65.3
 ======

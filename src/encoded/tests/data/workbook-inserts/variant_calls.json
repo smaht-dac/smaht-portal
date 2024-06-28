@@ -21,5 +21,34 @@
         "file_size": 100000,
         "status": "public",
         "dataset": "colo829t"
+    },
+    {
+        "uuid": "2288de14-3d59-40fc-8181-afeb5adac694",
+        "accession": "SMAVCFO3516G",
+        "submission_centers": [
+            "smaht"
+        ],
+        "sequencing_center": "smaht",
+        "submitted_id": "TEST_VARIANT-CALLS_HELA-HEK293",
+        "data_category": [
+            "Germline Variant Calls"
+        ],
+        "data_type": [
+            "SNV",
+            "Indel",
+            "SV",
+            "CNV",
+            "MEI"
+        ],
+        "file_format": "VCF",
+        "filename": "some_vcf.vcf",
+        "file_sets": [
+            "TEST_FILE-SET_HELA-HEK293"
+        ],
+        "reference_genome": "GRCh38",
+        "file_size": 100000,
+        "status": "uploaded",
+        "annotated_filename": "SMHTHELAHEK293-X-X-NN-X002-test-SMAVCFO3516G-GRCh38_cnv_mei_snv_sv.vcf",
+        "dataset": "colo829t"
     }
 ]
