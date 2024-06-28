@@ -36,5 +36,16 @@
             "test_sample_studies",
             "sample_studies-Benchmarking"
         ]
+    },
+    {
+        "uuid": "197fa327-b004-4dde-9393-687992723e66",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_CELL-CULTURE-SAMPLE_HELA-HEK293-MIX",
+        "sample_sources": [
+            "TEST_CELL-CULTURE-MIXTURE_HELA-HEK293"
+        ],
+        "preservation_type": "Frozen"
     }
 ]

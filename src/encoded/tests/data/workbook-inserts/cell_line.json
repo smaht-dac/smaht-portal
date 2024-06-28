@@ -8,7 +8,8 @@
         "source": "ATCC",
         "title": "HeLa",
         "url": "https://www.atcc.org/products/ccl-2",
-        "code": "HELA"
+        "code": "HELA",
+        "donor": "TEST_DONOR_FEMALE"
     },
     {
         "uuid": "d4b870db-17e8-4596-95f8-ec6fcb3665cb",
@@ -18,6 +19,7 @@
         "submitted_id": "TEST_CELL-LINE_HEK293",
         "source": "ATCC",
         "title": "HEK293",
+        "donor": "TEST_DONOR_MALE",
         "code": "HEK293"
     }
 ]

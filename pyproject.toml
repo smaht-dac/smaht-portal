@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.66.0"
+version = "0.68.4"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -43,7 +43,7 @@ certifi = ">=2021.5.30"
 chardet = "^5.0.0"
 codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
-dcicsnovault = "^11.16.0"
+dcicsnovault = "^11.17.0"
 dcicutils = "^8.11.0"
 docutils = ">=0.16,<1"
 encoded-core = "^0.9.5"
@@ -176,13 +176,13 @@ run-upgrade-on-inserts = "snovault.commands.run_upgrader_on_inserts:main"
 update-inserts-from-server = "snovault.commands.update_inserts_from_server:main"
 wipe-test-indices = "snovault.commands.wipe_test_indices:main"
 # encoded commands
-create-annoated-filenames = "encoded.commands.create_annotated_filenames:main"
+create-annotated-filenames = "encoded.commands.create_annotated_filenames:main"
 flatten-structured-data = "encoded.commands.flatten_structured_data:main"  # For dev/testing only
 load-users-from-oc = "encoded.commands.load_users_from_oc:main"
 parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/testing only
 prepare-docker = "encoded.commands.prepare_template:prepare_docker_main"
 prepare-local-dev = "encoded.commands.prepare_template:prepare_local_dev_main"
-release-files = "encoded.commands.release_files:main"
+release-file = "encoded.commands.release_file:main"
 show-schema= "encoded.commands.show_schema:main"  # For dev/testing only
 write-submission-spreadsheets = "encoded.commands.write_submission_spreadsheets:main"
 

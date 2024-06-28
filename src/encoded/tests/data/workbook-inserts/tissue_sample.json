@@ -8,17 +8,29 @@
         "sample_sources": [
             "TEST_TISSUE_LIVER"
         ],
-        "external_id": "SMHT-0001",
+        "external_id": "SMHT001-1A-100A1",
         "category": "Core",
         "core_size": "1.5",
         "weight": 800,
         "tags": [
             "test_sample_names",
-            "sample_names-SMHT-0001",
+            "sample_names-SMHT001-1A-100A1",
             "test_sample_descriptions",
             "sample_descriptions-Core",
             "test_sample_studies",
             "sample_studies-Production"
         ]
+    },
+    {
+        "uuid": "b59d424d-85a4-43f2-ac1c-ed81d41dd6b4",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE-SAMPLE_LIVER-HOMOGENATE",
+        "sample_sources": [
+            "TEST_TISSUE_LUNG"
+        ],
+        "external_id": "ST001-1A-020X",
+        "category": "Homogenate"
     }
 ]

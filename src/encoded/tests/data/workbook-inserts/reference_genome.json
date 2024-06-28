@@ -2,6 +2,7 @@
     {
         "identifier": "GRCh38",
         "title": "GRCh38",
+	"code": "GRCh38",
         "consortia": [
             "smaht"
         ]
