@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.68.3
+======
+
+*  Update /homepage to include counts for benchmarking tissues
+
+
 0.68.2
 ======
 
@@ -96,7 +102,7 @@ Change Log
 
 `PR 181: Submission and Usage Statistics Follow-up Updates  <https://github.com/smaht-dac/smaht-portal/pull/181>`_
 
-* Filtering  
+* Filtering
   * Previous 60 days added to date range options
   * Cumulative sum checkbox added to switch between individual bars and cumulative sum
 * File downloads
