@@ -243,7 +243,10 @@ const BenchmarkingTable = (props) => {
                 onResetSelectedItems,
             }}
             columnExtensionMap={benchmarkingColExtMap}
-            hideFacets={['dataset']}
+            hideFacets={[
+                'dataset',
+                'file_sets.libraries.analytes.samples.sample_sources.code',
+            ]}
             hideColumns={['display_title']}
             clearSelectedItemsOnFilter
         />
