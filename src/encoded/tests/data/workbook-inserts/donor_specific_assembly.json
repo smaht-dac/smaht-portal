@@ -11,10 +11,8 @@
         "submission_centers": [
             "smaht"
         ],
-        "category": "Cell Line",
         "genome_size": 3100000000,
         "total_ungapped_length": 2900000000,
-        "ploidy": "Diploid",
         "number_of_chromosomes": 23,
         "number_of_scaffolds": 470,
         "number_of_contigs": 1000,

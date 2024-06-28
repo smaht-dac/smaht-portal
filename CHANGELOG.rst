@@ -13,7 +13,7 @@ Change Log
 `PR 189: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/189>`_
 
 * Create DonorSpecificAssembly item type that contains information and QC metrics, and links to FileSet and Software used to generate the assembly.
-* Create a submittable GeneralFile that can contain files as reference fasta and chain files. These can link to DSA.
+* Create a submittable SupplementaryFile that can contain files as reference fasta and chain files. These can link to DSA.
 * Add notes_to_tsv property to file.json schema for including static banners for notes on file pages.
 * Add test for DonorSpecificAssembly rev_link
 

@@ -5,6 +5,7 @@ from pyramid.request import Request
 from .submitted_item import SubmittedItem
 from .reference_genome import ReferenceGenome
 
+from ..item_utils import file as file_utils
 
 def _build_dsa_embedded_list():
     """Embeds for search on general files."""
@@ -26,7 +27,7 @@ class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
     embedded_list = _build_dsa_embedded_list()
 
     rev = {
-        "files": ("SupplementaryFile", "donor_specific_assembly"),
+        "files": ("SupplementaryFile", "donor_specific_assembly")
     }
 
     @calculated_property(

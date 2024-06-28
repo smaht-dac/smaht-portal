@@ -6,7 +6,6 @@
     "required": [
         "submitted_id",
         "submission_centers",
-        "category",
         "derived_from",
         "software"
     ],
@@ -28,9 +27,6 @@
         },
         {
             "$ref": "mixins.json#/description"
-        },
-        {
-            "$ref": "mixins.json#/file_release"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -69,15 +65,6 @@
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_DONOR-SPECIFIC-ASSEMBLY_[A-Z0-9-_.]{4,}$"
-        },
-        "category": {
-            "title": "Category",
-            "description": "Category of the assembly",
-            "type": "string",
-            "enum": [
-                "Donor",
-                "Cell Line"
-            ]
         },
         "contig_l50": {
             "title": "Contig L50",
@@ -168,9 +155,9 @@
             "type": "string",
             "default": "Diploid",
             "enum": [
+                "Aneuploid",
                 "Diploid",
-                "Haploid",
-                "Aneuploid"
+                "Haploid"   
             ]
         },
         "scaffold_l50": {
@@ -199,7 +186,7 @@
         },
         "quality_value": {
             "title": "Quality Value",
-            "description": "Quality value of assembly",
+            "description": "Consensus quality value of the assembly (from Merqury)",
             "type": "number",
             "minimum": 0,
             "maximum": 50
