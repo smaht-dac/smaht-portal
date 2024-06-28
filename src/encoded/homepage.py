@@ -149,12 +149,6 @@ def generate_tissue_donor_count(context, request):
     return generate_unique_facet_count(context, request, search_param, 'file_sets.donors.display_title')
 
 
-def generate_tissue_type_count(context, request):
-    """ Get tissue type count by aggregating on sample sources """
-    search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.sample_sources.display_title')
-
-
 def generate_tissue_assay_count(context, request):
     """ Get total assay count for tissues """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
@@ -184,8 +178,7 @@ def home(context, request):
         # Tissue stats
         (generate_tissue_file_count, {'context': context, 'request': request})  # 6
         (generate_tissue_donor_count, {'context': context, 'request': request})  # 7
-        (generate_tissue_type_count, {'context': context, 'request': request})  # 8
-        (generate_tissue_assay_count, {'context': context, 'request': request})  # 9
+        (generate_tissue_assay_count, {'context': context, 'request': request})  # 8
 
     ])
     time = datetime.now(timezone('EST'))
@@ -235,8 +228,8 @@ def home(context, request):
                         "link": "/data/benchmarking/lung",
                         "figures": [
                             { "value": search_results[7], "unit": "Donors" },
-                            { "value": search_results[8], "unit": "Tissue Types" },
-                            { "value": search_results[9], "unit": "Assays" },
+                            { "value": 4, "unit": "Tissue Types" },
+                            { "value": search_results[8], "unit": "Assays" },
                             { "value": search_results[6], "unit": "Files Generated" }
                         ]
                     }
