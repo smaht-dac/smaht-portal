@@ -17,10 +17,9 @@ export const BenchmarkingLayout = ({
     showBamQCLink = false,
     bamQCHash = '', // TODO: Other datasets will have qcs on same page accessible by anchor hash
     children,
-    setShowInformation = null,
     callout = null,
-    showInformation = true,
 }) => {
+    const [showInformation, setShowInformation] = useState(showInformation);
     const cls = `description readable ${!schemas ? 'mb-5' : ''}`;
 
     return (

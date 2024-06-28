@@ -31,7 +31,6 @@ export const BenchmarkingUI = (props) => {
 };
 
 export const COLO829Data = ({ schemas, session, facets, href, context }) => {
-    const [showInformation, setShowInformation] = useState(true);
     const colo829TabMapArray = BenchmarkingDataMap.COLO829?.tabMapArray;
 
     return (
@@ -40,8 +39,6 @@ export const COLO829Data = ({ schemas, session, facets, href, context }) => {
             showBamQCLink={true}
             title={BenchmarkingDataMap.COLO829?.title}
             description={BenchmarkingDataMap.COLO829?.description}
-            showInformation={showInformation}
-            setShowInformation={setShowInformation}
             callout={BenchmarkingDataMap.COLO829?.callout}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
@@ -53,16 +50,13 @@ export const COLO829Data = ({ schemas, session, facets, href, context }) => {
 };
 
 export const HapMapData = ({ schemas, session, facets, href, context }) => {
-    const [showInformation, setShowInformation] = useState(true);
     const hapMapTabMapArray = BenchmarkingDataMap.HapMap?.tabMapArray;
 
     return (
         <BenchmarkingLayout
             {...{ schemas }}
             title={BenchmarkingDataMap.HapMap?.title}
-            description={BenchmarkingDataMap.HapMap?.description}
-            showInformation={showInformation}
-            setShowInformation={setShowInformation}>
+            description={BenchmarkingDataMap.HapMap?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="HapMap-Tab-Renderer"
@@ -79,16 +73,13 @@ export const IPSCFibroblastData = ({
     href,
     context,
 }) => {
-    const [showInformation, setShowInformation] = useState(true);
     const iPSCTabMapArray = BenchmarkingDataMap.iPScFibroblasts?.tabMapArray;
 
     return (
         <BenchmarkingLayout
             {...{ schemas }}
             title={BenchmarkingDataMap.iPScFibroblasts?.title}
-            description={BenchmarkingDataMap.iPScFibroblasts?.description}
-            showInformation={showInformation}
-            setShowInformation={setShowInformation}>
+            description={BenchmarkingDataMap.iPScFibroblasts?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="IPSC-Tab-Renderer"
@@ -99,16 +90,13 @@ export const IPSCFibroblastData = ({
 };
 
 export const Donor1Data = ({ schemas, session, facets, href, context }) => {
-    const [showInformation, setShowInformation] = useState(true);
     const donor1TabMapArray = BenchmarkingDataMap.Donor1?.tabMapArray;
 
     return (
         <BenchmarkingLayout
             {...{ schemas }}
             title={BenchmarkingDataMap.Donor1?.title}
-            description={BenchmarkingDataMap.Donor1?.description}
-            showInformation={showInformation}
-            setShowInformation={setShowInformation}>
+            description={BenchmarkingDataMap.Donor1?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Donor1-Tab-Renderer"
@@ -119,16 +107,13 @@ export const Donor1Data = ({ schemas, session, facets, href, context }) => {
 };
 
 export const Donor2Data = ({ schemas, session, facets, href, context }) => {
-    const [showInformation, setShowInformation] = useState(true);
     const donor2TabMapArray = BenchmarkingDataMap.Donor2?.tabMapArray;
 
     return (
         <BenchmarkingLayout
             {...{ schemas }}
             title={BenchmarkingDataMap.Donor2?.title}
-            description={BenchmarkingDataMap.Donor2?.description}
-            showInformation={showInformation}
-            setShowInformation={setShowInformation}>
+            description={BenchmarkingDataMap.Donor2?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Donor2-Tab-Renderer"
@@ -139,16 +124,13 @@ export const Donor2Data = ({ schemas, session, facets, href, context }) => {
 };
 
 export const Donor3Data = ({ schemas, session, facets, href, context }) => {
-    const [showInformation, setShowInformation] = useState(true);
     const donor3TabMapArray = BenchmarkingDataMap.Donor3?.tabMapArray;
 
     return (
         <BenchmarkingLayout
             {...{ schemas }}
             title={BenchmarkingDataMap.Donor3?.title}
-            description={BenchmarkingDataMap.Donor3?.description}
-            showInformation={showInformation}
-            setShowInformation={setShowInformation}>
+            description={BenchmarkingDataMap.Donor3?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Donor3-Tab-Renderer"
@@ -159,16 +141,13 @@ export const Donor3Data = ({ schemas, session, facets, href, context }) => {
 };
 
 export const Donor4Data = ({ schemas, session, facets, href, context }) => {
-    const [showInformation, setShowInformation] = useState(true);
     const donor4TabMapArray = BenchmarkingDataMap.Donor4?.tabMapArray;
 
     return (
         <BenchmarkingLayout
             {...{ schemas }}
             title={BenchmarkingDataMap.Donor4?.title}
-            description={BenchmarkingDataMap.Donor4?.description}
-            showInformation={showInformation}
-            setShowInformation={setShowInformation}>
+            description={BenchmarkingDataMap.Donor4?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="Donor4-Tab-Renderer"
