@@ -106,12 +106,12 @@ $footer-link-color: $slate-60;
 
 // We set navbar to become fixed position @ Bootstrap's medium size.
 @mixin navbar-fixed-position {
-    @include media-breakpoint-up(md) {
+    @include media-breakpoint-up(lg) {
         @content;
     }
 }
 @mixin navbar-static-position {
-    @include media-breakpoint-down(sm) {
+    @include media-breakpoint-down(md) {
         @content;
     }
 }
