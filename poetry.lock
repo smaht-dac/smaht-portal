@@ -1031,14 +1031,14 @@ files = [
 
 [[package]]
 name = "dcicsnovault"
-version = "11.16.0.1b6"
+version = "11.17.0.1b1"
 description = "Storage support for 4DN Data Portals."
 category = "main"
 optional = false
 python-versions = "<3.13,>=3.9"
 files = [
-    {file = "dcicsnovault-11.16.0.1b6-py3-none-any.whl", hash = "sha256:71a502ec455c1c74188edca87802c4accb9a66f17a06fa229930281a1e967967"},
-    {file = "dcicsnovault-11.16.0.1b6.tar.gz", hash = "sha256:a4e843323f0560a8ffb87d1e6ec2c9a292cafa2bc3584bbc7669fe2e137663c4"},
+    {file = "dcicsnovault-11.17.0.1b1-py3-none-any.whl", hash = "sha256:15e49a13724e0b381211a37941af1e3ecebb0b0e80afa046d0d8d5dc8de89250"},
+    {file = "dcicsnovault-11.17.0.1b1.tar.gz", hash = "sha256:77b7e991afa0dadfae644e2d61b92a2af9b3203321492b52228bf7df91249d3e"},
 ]
 
 [package.dependencies]
@@ -1219,20 +1219,20 @@ develop = ["coverage (<5.0.0)", "mock", "pytest (>=3.0.0)", "pytest-cov", "pytes
 
 [[package]]
 name = "encoded-core"
-version = "0.9.5.1b6"
+version = "0.9.5.1b7"
 description = "Core data models for Park Lab ENCODE based projects"
 category = "main"
 optional = false
 python-versions = "<3.13,>=3.9.0"
 files = [
-    {file = "encoded_core-0.9.5.1b6-py3-none-any.whl", hash = "sha256:12454ea5d289440af168b2048b32a943692cda95008b5a727be0aaec1b339938"},
-    {file = "encoded_core-0.9.5.1b6.tar.gz", hash = "sha256:9e19a29645da31a4b75d39d835c3261e4639ccd73b3ba451f6e22c551d445329"},
+    {file = "encoded_core-0.9.5.1b7-py3-none-any.whl", hash = "sha256:f984b63570f3b510d6ece018349b275b702e01cb4f16cf64c89a2d6d316ed3e5"},
+    {file = "encoded_core-0.9.5.1b7.tar.gz", hash = "sha256:38869f12fcaf85d45ba87ab665a1df138c2da5a3f2af78291e1dc9ccc0126336"},
 ]
 
 [package.dependencies]
 boto3 = ">=1.34.136,<2.0.0"
 botocore = ">=1.34.136,<2.0.0"
-dcicsnovault = "11.16.0.1b6"
+dcicsnovault = "11.17.0.1b1"
 dcicutils = "8.12.0.1b6"
 elasticsearch = "7.13.4"
 plaster-pastedeploy = "0.6"
@@ -4472,4 +4472,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.13"
-content-hash = "2348b656009f4d87ce3722e2f62eb5c15f816cc3e36cb5d3af32d4d8100f9a0f"
+content-hash = "8eb0bdbbd045ceaf0d0e732c540b331ff536398dc555cfdae7092bc0b0ef9d42"
