@@ -7,7 +7,8 @@ smaht-portal
 Change Log
 ----------
 
-0.68.0
+
+0.69.0
 ======
 
 * Documentation for smaht-submitr binary (pyinstaller-based) installation.
@@ -16,6 +17,49 @@ Change Log
   to facilitate running a local ElasticSearch proxy to observe traffic (resquests/responses)
   between the portal and ElasticSearch with a tool like mitmproxy or mitmweb; see comments
   in base.ini; and see in snovault/dev_server for where this is handled.
+
+
+0.68.4
+======
+
+`PR 196: Bm primary tissue fixes <https://github.com/smaht-dac/smaht-portal/pull/196>`_
+
+* Hide unexpected facets
+* Fix tab title counts
+* Fix for home page link to primary/benchmarking tissue page
+
+
+0.68.3
+======
+
+`PR 194: Fix constants casing <https://github.com/smaht-dac/smaht-portal/pull/194>`_
+
+* Fix `access_status` enum options case in `item_utils`
+
+
+0.68.2
+======
+
+`PR 190: Bm primary tissue ui 2 <https://github.com/smaht-dac/smaht-portal/pull/190>`_
+
+* Add brain table for donors 3 & 4
+* Remaining update to use `dataset=tissue`
+
+
+0.68.1
+======
+
+`PR 192: fix: include missing TPC and GCC in awardees table <https://github.com/smaht-dac/smaht-portal/pull/192>`_
+
+* Fix missing consortium entries in the awardees table
+
+
+0.68.0
+======
+
+`PR 193: Add routes endpoint <https://github.com/smaht-dac/smaht-portal/pull/193>`_
+
+* Add `/routes` endpoint to return all available routes
 
 
 0.67.0
