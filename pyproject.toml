@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.67.0.1b2"  # TODO: To become 0.68.0
+version = "0.67.0.1b6"  # TODO: To become 0.68.0
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -38,19 +38,19 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.9.1,<3.13"
-boto3 = "^1.34.135"
-botocore = "^1.34.135"
+boto3 = "^1.34.136"
+botocore = "^1.34.136"
 certifi = ">=2021.5.30"
 chardet = "^5.0.0"
 codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
 #dcicsnovault = "^11.16.0"
-dcicsnovault = "11.16.0.1b5"
+dcicsnovault = "11.16.0.1b6"
 #dcicutils = "^8.11.0"
 dcicutils = "8.12.0.1b6"
 docutils = ">=0.16,<1"
 #encoded-core = "^0.9.5"
-encoded-core = "0.9.5.1b5"
+encoded-core = "0.9.5.1b6"
 elasticsearch = "7.13.4"
 execnet = "1.4.1"
 googleapi = "^0.1.0"
@@ -123,8 +123,8 @@ pygments = "^2.17.2"
 
 [tool.poetry.dev-dependencies]
 # PyCharm says boto3-stubs contains useful type hints
-boto3-stubs = "^1.34.135"
-botocore-stubs = "^1.34.135"
+boto3-stubs = "^1.34.136"
+botocore-stubs = "^1.34.136"
 coverage = ">=6.2"
 codacy-coverage = ">=1.3.11"
 coveralls = ">=3.3.1"
