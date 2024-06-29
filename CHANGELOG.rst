@@ -12,6 +12,10 @@ Change Log
 
 * Documentation for smaht-submitr binary (pyinstaller-based) installation.
 * Updates related to Python 3.12.
+* New (and commented out by default) elasticsearch.server.actual_port property in base.ini
+  to facilitate running a local ElasticSearch proxy to observe traffic (resquests/responses)
+  between the portal and ElasticSearch with a tool like mitmproxy or mitmweb; see comments
+  in base.ini; and see in snovault/dev_server for where this is handled.
 
 
 0.67.0
