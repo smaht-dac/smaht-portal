@@ -731,7 +731,7 @@ body[data-path="/"]>#application>#layout {
 				@include prefix(border-radius, $homepage-about-consort-border-radius);
 				> i {
 					color: #BBCCF9;
-					font-size: 12px;
+					font-size: 0.75rem;
 				}
 
 				&:hover {
@@ -910,7 +910,7 @@ body[data-path="/"]>#application>#layout {
 	.consortium-tooltip-header {
 		font-family: Inter;
 		font-weight: 600;
-		font-size: 12px;
+		font-size: 0.75rem;
 	}
 
 
@@ -990,7 +990,7 @@ div#popover-consortium-map {
 		&-header {
 			font-family: Inter;
 			font-weight: 600;
-			font-size: 12px;
+			font-size: 0.75rem;
 			margin: 0;
 		}
 		&-content {
@@ -1983,7 +1983,7 @@ body[data-pathname^="/data/benchmarking"] {
 						color: #343741;
 
 						i {
-							font-size: 12px;
+							font-size: 0.75rem;
 							margin: auto;
 						}
 					}

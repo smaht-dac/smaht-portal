@@ -43,7 +43,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
     .latest-release {
         display: flex;
-        font-size: 12px;
+        font-size: 0.75rem;
         margin-left: 35px;
         color: $homepage-subtitle-text-color;
 
@@ -127,7 +127,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             // Font Styling
             span {
                 font-weight: 700;
-                font-size: 12px;
+                font-size: 0.75rem;
                 color: $homepage-card-text-color;
                 margin: auto;
                 line-height: 20px;
@@ -256,7 +256,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             margin: auto auto auto 0;
 
                             span {
-                                font-size: 12px;
+                                font-size: 0.75rem;
                                 font-weight: 500;
                                 color: $homepage-card-text-color;
                                 width: max-content;
@@ -490,7 +490,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     animation: fadeIn 200ms ease-in;
 
                     h5 {
-                        font-size: 12px;
+                        font-size: 0.75rem;
                         line-height: 15px;
                         font-weight: 600;
                         letter-spacing: normal;
@@ -593,7 +593,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
         .footnote {
             color: #5B7595;
-            font-size: 12px;
+            font-size: 0.75rem;
             font-weight: 500;
             margin: auto auto 5px auto;
             width: 250px;
@@ -616,7 +616,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 background-color: transparent;
                 color: #5B7595;
                 width: 100px;
-                font-size: 12px;
+                font-size: 0.75rem;
                 border-radius: 15px;
                 margin: auto;
                 border: none;
@@ -720,7 +720,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             margin-bottom: 5px;
                             ul {
                                 li {
-                                    font-size: 12px;
+                                    font-size: 0.75rem;
                                     line-height: 18px;
                                     margin-bottom: 0px;
                                 }
