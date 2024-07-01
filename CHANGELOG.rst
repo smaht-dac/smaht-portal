@@ -7,6 +7,30 @@ smaht-portal
 Change Log
 ----------
 
+0.68.5
+======
+
+* Quick fix to hide validation errors facet
+
+
+0.68.4
+======
+
+`PR 196: Bm primary tissue fixes <https://github.com/smaht-dac/smaht-portal/pull/196>`_
+
+* Hide unexpected facets
+* Fix tab title counts
+* Fix for home page link to primary/benchmarking tissue page
+
+
+0.68.3
+======
+
+`PR 194: Fix constants casing <https://github.com/smaht-dac/smaht-portal/pull/194>`_
+
+* Fix `access_status` enum options case in `item_utils`
+
+
 0.68.2
 ======
 
