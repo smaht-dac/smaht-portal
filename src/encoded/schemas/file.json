@@ -189,6 +189,9 @@
         "file_sets.sequencing.sequencer.display_title": {
             "title": "Sequencing Platform"
         },
+        "file_sets.samples.sample_sources.donor.display_title": {
+            "title": "Donor"
+        },
         "file_format.display_title": {
             "title": "Data Format"
         },
