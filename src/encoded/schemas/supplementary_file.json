@@ -90,8 +90,7 @@
         "source_assembly": {
             "title": "Source Assembly",
             "description": "The reference genome assembly from which the coordinates are being converted (for chain files)",
-            "type": "string",
-            "linkTo": "ReferenceGenome"
+            "type": "string"
         }
     }
 }

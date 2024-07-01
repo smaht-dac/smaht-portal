@@ -22,7 +22,14 @@ def test_searchable_as_reference_genome(es_testapp: TestApp, workbook: None) -> 
 
 
 @pytest.mark.workbook
-def test_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
-    """Ensure files rev link works."""
-    file_set_search = get_search(es_testapp, "?type=DonorSpecificAssembly&files.uuid!=No+value")
-    assert file_set_search
+def test_sequence_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure sequence files rev link works."""
+    fa_file_set_search = get_search(es_testapp, "?type=DonorSpecificAssembly&sequence_files.uuid!=No+value")
+    assert fa_file_set_search
+
+
+@pytest.mark.workbook
+def test_chain_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure chain files rev link workks."""
+    chain_file_set_search = get_search(es_testapp, "?type=DonorSpecificAssembly&chain_files.uuid!=No+value")
+    assert chain_file_set_search

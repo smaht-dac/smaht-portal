@@ -5,7 +5,8 @@ from pyramid.request import Request
 from .submitted_item import SubmittedItem
 from .reference_genome import ReferenceGenome
 
-from ..item_utils import file as file_utils
+from ..item_utils.utils import RequestHandler
+from ..item_utils import donor_specific_assembly as dsa_utils
 
 def _build_dsa_embedded_list():
     """Embeds for search on general files."""
@@ -32,7 +33,7 @@ class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
 
     @calculated_property(
         schema={
-            "title": "Files",
+            "title": "Sequence Files",
             "type": "array",
             "items": {
                 "type": "string",
@@ -40,8 +41,31 @@ class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
             },
         },
     )
-    def files(self, request: Request) -> Union[List[str], None]:
-        result = self.rev_link_atids(request, "files")
-        if result:
-            return result
+    def sequence_files(self, request: Request) -> Union[List[str], None]:
+        """Get fasta sequence files from files."""
+        results = self.rev_link_atids(request, "files")
+        request_handler = RequestHandler(request = request)
+        seq_files = dsa_utils.get_sequence_files(request_handler,results)
+        if seq_files:
+            return seq_files
+        return
+    
+
+    @calculated_property(
+        schema={
+            "title": "Chain Files",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "SupplementaryFile",
+            },
+        },
+    )
+    def chain_files(self,request:Request) -> Union[List[str], None]:
+        """Get chain files from files."""
+        results = self.rev_link_atids(request, "files")
+        request_handler = RequestHandler(request = request)
+        chain_files = dsa_utils.get_chain_files(request_handler,results)
+        if chain_files:
+            return chain_files
         return
