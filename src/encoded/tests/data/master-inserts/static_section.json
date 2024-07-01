@@ -264,6 +264,26 @@
         ]
     },
     {
+        "identifier": "data.analysis.colo829_snv_indel_detection",
+        "title": "COLO829 SNV/Indel Detection Challenge Data",
+        "file": "/docs/public/colo829_snv_indel_detection.rst",
+        "status": "public",
+        "options": {
+            "filetype": "rst",
+            "collapsible": false,
+            "default_open": true,
+            "initial_header_level": 2
+        },
+        "section_type": "Page Section",
+        "uuid": "6843c6e7-7b47-457d-96c3-387af3c07207",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "getting_started",
         "uuid": "442c8aa0-dc6c-43d7-814a-854af460b015",
         "file": "/docs/source/getting_started.rst",

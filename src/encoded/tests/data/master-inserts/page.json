@@ -668,7 +668,8 @@
         "title": "Data",
         "status": "public",
         "children": [
-            "39deafe0-34ae-4ab8-8261-3661b0c79a38"
+            "39deafe0-34ae-4ab8-8261-3661b0c79a38",
+            "aa7a1d0f-6638-44a2-891e-95bb96aaa868"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -852,6 +853,48 @@
             "include-top-link": false
         },
         "uuid": "458bae26-17ba-4af9-adc5-9c7c4a13cbfd",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data/analysis",
+        "title": "Benchmarking Analysis",
+        "status": "public",
+        "children": [
+            "b4b2da6b-d5be-4cd3-81da-691ecc1f9308"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "aa7a1d0f-6638-44a2-891e-95bb96aaa868",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data/analysis/colo829-snv-indel-detetion",
+        "title": "COLO829 SNV/Indel Detection",
+        "status": "public",
+        "content": [
+            "6843c6e7-7b47-457d-96c3-387af3c07207"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "skip-depth": 1,
+            "header-depth": 4,
+            "include-top-link": false
+        },
+        "uuid": "b4b2da6b-d5be-4cd3-81da-691ecc1f9308",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

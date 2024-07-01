@@ -127,7 +127,7 @@ function DataNavItem(props) {
                     linkToTopLevelDirPage={false}
                 />
                 <BigDropdownPageTreeMenu
-                    childrenToHide={['data/benchmarking']}
+                    childrenToHide={['data/benchmarking', 'data/analysis']}
                 />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
