@@ -60,7 +60,7 @@
 		padding-bottom: 15px;
 		border-bottom: 1px solid #f4f4f4;
 
-		&h5 { font-size: 20px; margin-bottom: 10px; padding-bottom: 8px; }
+		&h5 { font-size: 1.25rem; margin-bottom: 10px; padding-bottom: 8px; }
 
 		> i.icon-link {
 			opacity: 0.15;
@@ -677,7 +677,7 @@ body[data-path="/"]>#application>#layout {
 
 		h2 {
 			color: $homepage-subtitle-text-color;
-			font-size: 20px;
+			font-size: 1.25rem;
 			font-weight: 400;
 		}
 
@@ -713,7 +713,7 @@ body[data-path="/"]>#application>#layout {
 			h3 {
 				color: #416485;
 				font-weight: 600;
-				font-size: 20px;
+				font-size: 1.25rem;
 				margin: 0px auto 20px 0px;
 				text-align: left;
 			}
@@ -2053,7 +2053,7 @@ body[data-pathname^="/data/benchmarking"] {
 	.tbd-notice {
 		color: #343741;
 		font-family: Inter;
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: 600;
 	}
 
