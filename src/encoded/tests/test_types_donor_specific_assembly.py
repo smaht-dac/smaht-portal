@@ -33,3 +33,10 @@ def test_chain_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
     """Ensure chain files rev link workks."""
     chain_file_set_search = get_search(es_testapp, "?type=DonorSpecificAssembly&chain_files.uuid!=No+value")
     assert chain_file_set_search
+
+
+@pytest.mark.workbook
+def test_donors_calc_prop(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure chain files rev link workks."""
+    donors_set_search = get_search(es_testapp, "?type=DonorSpecificAssembly&donors.uuid!=No+value")
+    assert donors_set_search
