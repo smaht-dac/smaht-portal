@@ -176,7 +176,7 @@ $facetlist-excluding: #450000;
 				}
 	
 				& > div > span {
-					font-size: 13px;
+					font-size: 0.813rem;
 				}
 			}
 			.facet-list {
@@ -184,11 +184,11 @@ $facetlist-excluding: #450000;
 					& > a {
 						& > .facet-item {
 							color: #727272;
-							font-size: 13px;
+							font-size: 0.813rem;
 						}
 						& > .facet-count {
 							color: #727272;
-							font-size: 13px;
+							font-size: 0.813rem;
 						}
 					}
 					&.selected {
