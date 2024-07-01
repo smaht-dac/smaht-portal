@@ -225,7 +225,7 @@ def home(context, request):
                     },
                     {
                         "title": "Benchmarking Tissues",
-                        "link": "/data/benchmarking/lung",
+                        "link": "/data/benchmarking/donor-st001",
                         "figures": [
                             { "value": search_results[7], "unit": "Donors" },
                             { "value": 4, "unit": "Tissue Types" },

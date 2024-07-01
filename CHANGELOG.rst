@@ -7,10 +7,22 @@ smaht-portal
 Change Log
 ----------
 
+0.68.5
+======
+
+*  Update /homepage to include counts for benchmarking tissues
+
+
 0.68.4
 ======
 
 *  Update /homepage to include counts for benchmarking tissues
+
+`PR 196: Bm primary tissue fixes <https://github.com/smaht-dac/smaht-portal/pull/196>`_
+
+* Hide unexpected facets
+* Fix tab title counts
+* Fix for home page link to primary/benchmarking tissue page
 
 
 0.68.3
