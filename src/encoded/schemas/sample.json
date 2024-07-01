@@ -71,8 +71,8 @@
             "description": "Method of sample preservation",
             "type": "string",
             "enum": [
-                "Fresh",
                 "Fixed",
+                "Fresh",
                 "Frozen",
                 "Snap Frozen"
             ]

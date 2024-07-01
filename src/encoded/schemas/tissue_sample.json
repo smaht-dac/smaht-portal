@@ -85,7 +85,7 @@
         "core_size": {
             "title": "Core Size",
             "description": "Size of core sample, if applicable (mm)",
-            "type": "str",
+            "type": "string",
             "enum": [
                 "1.5",
                 "3.0",
