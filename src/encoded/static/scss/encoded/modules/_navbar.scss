@@ -236,7 +236,7 @@ div.navbar-fixed-top {
             text-decoration: none;
             margin-right: 0;
 
-            @include navbar-fixed-position { // = md
+            @include navbar-fixed-position { // = lg 
                 min-width: 215px;
             }
 
@@ -360,7 +360,7 @@ div.navbar-fixed-top {
 
                     .user-account-item {
                         
-                        @media screen and (min-width: 767px) {
+                        @include media-breakpoint-up(lg) {
                             background-color: #0E74D2;
                             border: 1px solid #0B62BA;
                             border-radius: 4px;
@@ -395,7 +395,7 @@ div.navbar-fixed-top {
                                 overflow: hidden;
                                 text-overflow: ellipsis;
                             }
-                            @include media-breakpoint-up(lg){
+                            @include media-breakpoint-up(lg) {
                                 img.account-icon-image {
                                     margin-right: 12px;
                                 }
@@ -404,7 +404,7 @@ div.navbar-fixed-top {
 
     
                         &.user-account-item {
-                            @media screen and (min-width: 767px) {
+                            @include media-breakpoint-up(lg) {
                                 background-color: #0E74D2;
                                 border: 1px solid #0B62BA;
                                 border-radius: 4px;
@@ -1192,9 +1192,6 @@ body[data-current-action="multiselect"] {
 	}
 
 //}
-
-
-
 
 
 body.scrolled-past-top {

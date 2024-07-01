@@ -105,7 +105,7 @@ export class NavigationBar extends React.PureComponent {
                     <div className="navbar-inner-container">
                         <Navbar
                             label="main"
-                            expand="md"
+                            expand="lg"
                             className="navbar-main"
                             id="navbar-icon"
                             onToggle={this.onToggleNavBar}

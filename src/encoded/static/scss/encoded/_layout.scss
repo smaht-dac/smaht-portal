@@ -131,7 +131,7 @@ body {
 
 
 	/* top padding for small & large screens re: fixed nav & sticky footer */
-	@include media-breakpoint-up(md) {
+	@include media-breakpoint-up(lg) {
 		&:before {
 			content: "";
 			display: block;
