@@ -48,7 +48,8 @@ class SearchBase:
             'ST002-1D',
             'ST003-1Q',
             'ST004-1Q'
-        ]
+        ],
+        'additional_facet': 'donors.display_title'  # required since this is default_hidden for now
     }
 
 
