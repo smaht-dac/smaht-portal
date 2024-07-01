@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.68.6
+======
+
+`PR 195: fix: tablet navigation collapse <https://github.com/smaht-dac/smaht-portal/pull/195>`_
+
+* Fixes collapsing navigation bar for tablet size screens
+* Switch to mobile navigation component early
+
+
 0.68.5
 ======
 
