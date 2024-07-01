@@ -90,7 +90,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 
                 i {
                     color: #5B7595;
-                    font-size: 16px;
+                    font-size: 1rem;
                     font-weight: 400;
                     animation: fadeIn 200ms ease-in;
                 }
@@ -181,7 +181,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         span {
                             color: $homepage-card-text-color;
                             font-weight: 600;
-                            font-size: 16px;
+                            font-size: 1rem;
                         }
         
                     }
@@ -363,7 +363,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     align-items: flex-start;
                     font-size: 21px;
                     i {
-                        font-size: 16px;
+                        font-size: 1rem;
                     }
                 }
             }
@@ -467,7 +467,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 h4 {
                     margin: auto;
                     padding: 0;
-                    font-size: 16px;
+                    font-size: 1rem;
                     font-weight: 700;
                     color: #1E366C;
                     letter-spacing: 1.5px;
@@ -741,7 +741,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     
             .selector-buttons {
                 button {
-                    font-size: 16px;
+                    font-size: 1rem;
                     width: 180px;
                 }
     

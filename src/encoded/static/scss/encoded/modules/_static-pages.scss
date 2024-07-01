@@ -623,7 +623,7 @@ body[data-path="/"]>#application>#layout {
 					background-color: #FEE5E5;
 				}
 				&-heading {
-					font-size: 16px;
+					font-size: 1rem;
 				};
 
 				button.close {
@@ -691,7 +691,7 @@ body[data-path="/"]>#application>#layout {
 				margin-top: 0px;
 			}
 			h2 {
-				font-size: 16px;
+				font-size: 1rem;
 				margin-top: 0px;
 			}
 			@media screen and (min-width: 767px) {
@@ -1768,7 +1768,7 @@ body[data-pathname^="/data/benchmarking"] {
 					.nav-link {
 						color: #5D5E63;
 						font-family: Inter;
-						font-size: 16px;
+						font-size: 1rem;
 						font-weight: 400; 
 		
 						&.active {
@@ -1937,7 +1937,7 @@ body[data-pathname^="/data/benchmarking"] {
 							}
 			
 							&.top {
-								font-size: 16px;
+								font-size: 1rem;
 							}
 							&.active {
 								font-weight: 500;
@@ -1958,7 +1958,7 @@ body[data-pathname^="/data/benchmarking"] {
 	
 						span.navlink-drop {
 							color: #717378;
-							font-size: 16px;
+							font-size: 1rem;
 							font-weight: 400;
 							font-family: Inter;
 							text-align: left;
