@@ -1223,13 +1223,47 @@ version = "0.9.5.1b9"
 description = "Core data models for Park Lab ENCODE based projects"
 category = "main"
 optional = false
-python-versions = "*"
-files = []
-develop = true
+python-versions = "<3.13,>=3.9.0"
+files = [
+    {file = "encoded_core-0.9.5.1b9-py3-none-any.whl", hash = "sha256:1fe8f23a0328ee71f7ed8e6125c175b3d26fa436fa679d07303bbc617d9bdd06"},
+    {file = "encoded_core-0.9.5.1b9.tar.gz", hash = "sha256:fd8d01dbc729d9c35ad0d60a99d2ebe845fde47971d475561507c289b13c430f"},
+]
 
-[package.source]
-type = "directory"
-url = "../encoded-core"
+[package.dependencies]
+boto3 = ">=1.34.136,<2.0.0"
+botocore = ">=1.34.136,<2.0.0"
+dcicsnovault = "11.17.0.1b5"
+dcicutils = "8.12.0.1b8"
+elasticsearch = "7.13.4"
+plaster-pastedeploy = "0.6"
+psycopg2-binary = ">=2.9.3,<3.0.0"
+PyJWT = ">=2.6.0,<3.0.0"
+pyramid = "1.10.8"
+pyramid_localroles = ">=0.1,<1"
+pyramid-multiauth = ">=0.9.0,<1"
+pyramid-retry = ">=1.0,<2.0"
+pyramid-tm = ">=2.4,<3.0"
+pyramid_translogger = ">=0.1,<0.2"
+PyYAML = ">=6.0.1,<7.0.0"
+requests = ">=2.23.0,<3.0.0"
+SPARQLWrapper = ">=1.8.5,<2.0.0"
+SQLAlchemy = "1.4.41"
+structlog = ">=19.2.0,<20"
+subprocess-middleware = ">=0.3.0,<0.4.0"
+supervisor = ">=4.2.4,<5.0.0"
+toml = ">=0.10.1,<1"
+transaction = ">=3.0.0,<4.0.0"
+translationstring = "1.3"
+uptime = ">=3.0.1,<4"
+urllib3 = ">=1.26.4,<2.0.0"
+venusian = ">=3.1.0,<4.0.0"
+waitress = ">=2.1.1,<3.0.0"
+WebOb = ">=1.8.7,<2.0.0"
+WebTest = ">=2.0.35,<3.0.0"
+WSGIProxy2 = "0.4.2"
+"zope.deprecation" = ">=4.4.0,<5.0.0"
+"zope.interface" = ">=4.7.2,<5.0.0"
+"zope.sqlalchemy" = "1.6"
 
 [[package]]
 name = "et-xmlfile"
