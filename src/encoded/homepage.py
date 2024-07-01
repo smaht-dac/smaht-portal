@@ -173,12 +173,12 @@ def home(context, request):
 
         # iPSC & Fibroblast stats
         (generate_ipsc_assay_count, {'context': context, 'request': request}),  # 4
-        (generate_ipsc_cell_line_file_count, {'context': context, 'request': request})  # 5
+        (generate_ipsc_cell_line_file_count, {'context': context, 'request': request}),  # 5
 
         # Tissue stats
-        (generate_tissue_file_count, {'context': context, 'request': request})  # 6
-        (generate_tissue_donor_count, {'context': context, 'request': request})  # 7
-        (generate_tissue_assay_count, {'context': context, 'request': request})  # 8
+        (generate_tissue_file_count, {'context': context, 'request': request}),  # 6
+        (generate_tissue_donor_count, {'context': context, 'request': request}),  # 7
+        (generate_tissue_assay_count, {'context': context, 'request': request}),  # 8
 
     ])
     time = datetime.now(timezone('EST'))
