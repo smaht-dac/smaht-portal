@@ -90,13 +90,13 @@
 		&.can-collapse {
 			font-size: 27px;
 			> i.icon-plus, > i.icon-minus {
-				font-size: 24px;
+				font-size: 1.5rem;
 			}
 		}
 	}
 
 	h3.section-title, h3.homepage-section-title {
-		font-size: 24px;
+		font-size: 1.5rem;
 		margin-bottom: 10px;
 		padding-bottom: 8px;
 		&.can-collapse {
@@ -935,31 +935,31 @@ body[data-path="/"]>#application>#layout {
 				}
 			}
 			td.consortium-table-OC {
-				font-size: 22px;
+				font-size: 1.375rem;
 				background-color: #DEF2FE;
 				cursor: default;
 				color: #2E82B2;
 			}
 			td.consortium-table-DAC {
-				font-size: 22px;
+				font-size: 1.375rem;
 				background-color: #FFE1E2;
 				cursor: default;
 				color: #EA0018;
 			}
 			td.consortium-table-TPC {
-				font-size: 22px;
+				font-size: 1.375rem;
 				background-color: #F6E9F7;
 				cursor: default;
 				color: #8F4895;
 			}
 			td.consortium-table-GCC {
-				font-size: 22px;
+				font-size: 1.375rem;
 				background-color: #FFE7D5;
 				cursor: default;
 				color: #FF691A;
 			}
 			td.consortium-table-TTD {
-				font-size: 22px;
+				font-size: 1.375rem;
 				background-color: #D9F7DC;
 				cursor: default;
 				color: #225928;
@@ -1803,7 +1803,7 @@ body[data-pathname^="/data/benchmarking"] {
 					.title {
 						color: #343741;
 						font-family: Inter;
-						font-size: 24px;
+						font-size: 1.5rem;
 						font-weight: 600;
 						margin-top: 5px;
 					}
@@ -2077,7 +2077,7 @@ body[data-pathname^="/data/benchmarking"] {
 
 				>.modal-header>.modal-title {
 					color: #343741;
-					font-size: 24px;
+					font-size: 1.5rem;
 					font-weight: 600;
 				}
 				>.modal-body {
@@ -2116,7 +2116,7 @@ body[data-pathname^="/data/benchmarking"] {
 			
 						.tsv-metadata-stat {
 							color: #343741;
-							font-size: 24px;
+							font-size: 1.5rem;
 							font-weight: 600;
 						}
 					}
