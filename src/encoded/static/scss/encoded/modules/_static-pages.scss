@@ -724,7 +724,7 @@ body[data-path="/"]>#application>#layout {
 				border: 1px solid $homepage-about-consort-btn-border-color;
 				color: #416485;
 				font-weight: 500;
-				font-size: 14px;
+				font-size: 0.875rem;
 				letter-spacing: normal;
 				line-height: normal;
 				margin-bottom: 5px;
@@ -898,14 +898,14 @@ body[data-path="/"]>#application>#layout {
 	}
 	.consortium-tooltip-wrapper {
 		max-width: 220px;
-		font-size: 14px;
+		font-size: 0.875rem;
 		font-weight: 600;
 		z-index: 2;
 	}
 	.consortium-tooltip-content {
 		font-family: Inter;
 		font-weight: 400;
-		font-size: 14px;
+		font-size: 0.875rem;
 	}
 	.consortium-tooltip-header {
 		font-family: Inter;
@@ -977,7 +977,7 @@ body[data-path="/"]>#application>#layout {
 
 div#popover-consortium-map {
 	max-width: 400px;
-	font-size: 14px;
+	font-size: 0.875rem;
 	font-weight: 600;
 	z-index: 2;
 
@@ -996,7 +996,7 @@ div#popover-consortium-map {
 		&-content {
 			font-family: Inter;
 			font-weight: 400;
-			font-size: 14px;
+			font-size: 0.875rem;
 			
 			.pi-list {
 				list-style-type: none;
@@ -1929,7 +1929,7 @@ body[data-pathname^="/data/benchmarking"] {
 			
 						li.sidenav-link {
 							font-family: Inter;
-							font-size: 14px;
+							font-size: 0.875rem;
 							font-weight: 400;
 			
 							> a {
@@ -2088,7 +2088,7 @@ body[data-pathname^="/data/benchmarking"] {
 					}
 			
 					li {
-						font-size: 14px;
+						font-size: 0.875rem;
 					}
 
 					.tsv-metadata-overview {

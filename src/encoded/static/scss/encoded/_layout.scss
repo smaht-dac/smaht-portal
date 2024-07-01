@@ -286,7 +286,7 @@ body.is-full-screen {
 		height: auto;
 
 		a {
-			font-size: 14px;
+			font-size: 0.875rem;
 			color: $footer-text-color;
 			text-decoration: underline;
 		}
@@ -301,7 +301,7 @@ body.is-full-screen {
 			text-align: center;
 			color: $footer-text-color;
 			padding: 15px 0px 14px;
-			font-size: 14px;
+			font-size: 0.875rem;
 			@include media-breakpoint-up(sm) {
 
 				text-align: right;

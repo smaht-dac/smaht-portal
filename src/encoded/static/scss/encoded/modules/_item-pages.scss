@@ -1391,7 +1391,7 @@ File Overview Styles
 						.datum {
 							display: flex;
 							padding: 5px 0px;
-							font-size: 14px;
+							font-size: 0.875rem;
 							justify-content: space-between;
 
 							&-title {
@@ -1661,7 +1661,7 @@ File Overview Styles
 						}
 
 						span {
-							font-size: 14px;
+							font-size: 0.875rem;
 							font-weight: 400;
 						}
 					}
@@ -1790,7 +1790,7 @@ File Overview Styles
 				}
 		
 				li {
-					font-size: 14px;
+					font-size: 0.875rem;
 				}
 
 				.tsv-metadata-overview {

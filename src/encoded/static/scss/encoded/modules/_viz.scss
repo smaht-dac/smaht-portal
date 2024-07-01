@@ -244,7 +244,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             color: $homepage-card-text-color;
                             margin-right: 8px;
                             i {
-                                font-size: 14px;
+                                font-size: 0.875rem;
                                 opacity: 0.5;
                                 margin: auto 10px auto auto;
                             }
@@ -519,7 +519,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                                     margin-right: 11px;
                                 }
                                 span {
-                                    font-size: 14px;
+                                    font-size: 0.875rem;
                                     font-weight: 500;
                                     line-height: 20px;
                                     color: #0E3669;
@@ -562,7 +562,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     }
                     ul {
                         li {
-                            font-size: 14px;
+                            font-size: 0.875rem;
                             font-weight: 500;
                             line-height: 20px;
                             color: #0E3669;
