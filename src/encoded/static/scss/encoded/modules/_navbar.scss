@@ -2,7 +2,7 @@
 
 @mixin navbar-link-button-item {
     position: relative;
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: 400;
     color: $navbar-link-color;
     padding-top: 0;
@@ -23,7 +23,7 @@
 
         &-envelope {
             margin-right: 10px;
-            font-size: 18px;
+            font-size: 1.125rem;
         }
     }
 
