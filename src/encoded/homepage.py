@@ -146,7 +146,7 @@ def generate_tissue_file_count(context, request):
 def generate_tissue_donor_count(context, request):
     """ Get donor count by aggregating on donor """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.samples.sample_sources.donor.display_title')
+    return generate_unique_facet_count(context, request, search_param, 'donors.display_title')
 
 
 def generate_tissue_assay_count(context, request):
