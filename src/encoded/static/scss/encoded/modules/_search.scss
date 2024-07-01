@@ -80,7 +80,7 @@ $facetlist-excluding: #450000;
 
 		.facets-title-column {
 			.facets-title {
-				font-size: 18px;
+				font-size: 1.125rem;
 				font-weight: 500;
 				color: #343741;
 			}
@@ -132,7 +132,7 @@ $facetlist-excluding: #450000;
 		.properties-controls {
 			button {
 				color: #343741;
-				font-size: 12px;
+				font-size: 0.75rem;
 				font-weight: 500;
 				line-height: 1.7;
 				background-color: transparent;
@@ -171,12 +171,12 @@ $facetlist-excluding: #450000;
 				span.expand-toggle {
 					display: flex;
 					i.icon {
-						font-size: 12px;
+						font-size: 0.75rem;
 					}
 				}
 	
 				& > div > span {
-					font-size: 13px;
+					font-size: 0.813rem;
 				}
 			}
 			.facet-list {
@@ -184,11 +184,11 @@ $facetlist-excluding: #450000;
 					& > a {
 						& > .facet-item {
 							color: #727272;
-							font-size: 13px;
+							font-size: 0.813rem;
 						}
 						& > .facet-count {
 							color: #727272;
-							font-size: 13px;
+							font-size: 0.813rem;
 						}
 					}
 					&.selected {
@@ -494,7 +494,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 
 	border-bottom: 1px solid rgba(0,0,0,.05);
 	box-shadow: 0 1px 5px -2px #0002;
-	font-size: 14px;
+	font-size: 0.875rem;
 	// margin-bottom: 9px;
 
 	// Re-style result row re: CGAP styling/theming/branding.

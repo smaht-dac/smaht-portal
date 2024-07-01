@@ -2,7 +2,7 @@
 
 @mixin navbar-link-button-item {
     position: relative;
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: 400;
     color: $navbar-link-color;
     padding-top: 0;
@@ -23,7 +23,7 @@
 
         &-envelope {
             margin-right: 10px;
-            font-size: 18px;
+            font-size: 1.125rem;
         }
     }
 
@@ -187,7 +187,7 @@ div.navbar-fixed-top {
                 //box-shadow: 0 0 3px rgba(0,0,0,0.2);
                 .navbar-brand {
                     div.img-container {
-                        font-size: 16px;
+                        font-size: 1rem;
                         img {
                             height: 30px;
                         }
@@ -205,12 +205,12 @@ div.navbar-fixed-top {
                         }
                         
                         a.nav-link {
-                            font-size: 16px;
+                            font-size: 1rem;
     
                             &.helpdesk {
                                 .icon {
                                     &.icon-envelope {
-                                        font-size: 15px;
+                                        font-size: 0.938rem;
                                     }
                                 }
     
@@ -227,7 +227,7 @@ div.navbar-fixed-top {
             padding: 0px !important;
             // margin-left: -50px !important;
             color: $navbar-default-brand-color;
-            font-size: 20px;
+            font-size: 1.25rem;
             font-weight: 500;
             min-width: 270px;
             height: 100%;
@@ -672,7 +672,7 @@ div.navbar-fixed-top {
          > div.text-container {
     
             position: relative;
-            font-size: 13.5px;
+            font-size: 0.844rem;
             text-align: center;
             line-height: 16px;
 
@@ -728,7 +728,7 @@ div.navbar-fixed-top {
     }
 
     .icon-fw.circle-icon {
-        font-size: 20px;
+        font-size: 1.25rem;
         vertical-align: middle;
         margin-right: 7px;
         transform: translate(0, -1px);
@@ -1203,7 +1203,7 @@ body.scrolled-past-top {
         nav.navbar-main {
             .navbar-brand {
                 div.img-container {
-                    font-size: 16px;
+                    font-size: 1rem;
                     img {
                         height: 30px;
                     }
@@ -1213,12 +1213,12 @@ body.scrolled-past-top {
                 .navbar-nav {
 
                     a.nav-link {
-                        font-size: 16px;
+                        font-size: 1rem;
 
                         &.helpdesk {
                             .icon {
                                 &.icon-envelope {
-                                    font-size: 15px;
+                                    font-size: 0.938rem;
                                 }
                             }
 

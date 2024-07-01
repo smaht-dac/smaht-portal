@@ -43,7 +43,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
     .latest-release {
         display: flex;
-        font-size: 12px;
+        font-size: 0.75rem;
         margin-left: 35px;
         color: $homepage-subtitle-text-color;
 
@@ -56,7 +56,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             margin-top: -1px;
 
             i {
-                font-size: 10px;
+                font-size: 0.625rem;
                 opacity: 0.5;
                 margin: auto;
             }
@@ -85,12 +85,12 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 align-items: center;
                 flex-direction: column;
                 align-items: flex-start;
-                font-size: 21px;
+                font-size: 1.313rem;
                 animation: fadeIn 200ms ease-in;
                 
                 i {
                     color: #5B7595;
-                    font-size: 16px;
+                    font-size: 1rem;
                     font-weight: 400;
                     animation: fadeIn 200ms ease-in;
                 }
@@ -127,7 +127,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             // Font Styling
             span {
                 font-weight: 700;
-                font-size: 12px;
+                font-size: 0.75rem;
                 color: $homepage-card-text-color;
                 margin: auto;
                 line-height: 20px;
@@ -181,7 +181,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         span {
                             color: $homepage-card-text-color;
                             font-weight: 600;
-                            font-size: 16px;
+                            font-size: 1rem;
                         }
         
                     }
@@ -239,12 +239,12 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
                         h4 {
                             display: flex;
-                            font-size: 28px;
+                            font-size: 1.75rem;
                             font-weight: 600;
                             color: $homepage-card-text-color;
                             margin-right: 8px;
                             i {
-                                font-size: 14px;
+                                font-size: 0.875rem;
                                 opacity: 0.5;
                                 margin: auto 10px auto auto;
                             }
@@ -256,7 +256,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             margin: auto auto auto 0;
 
                             span {
-                                font-size: 12px;
+                                font-size: 0.75rem;
                                 font-weight: 500;
                                 color: $homepage-card-text-color;
                                 width: max-content;
@@ -361,9 +361,9 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 h3 {
                     flex-direction: column;
                     align-items: flex-start;
-                    font-size: 21px;
+                    font-size: 1.313rem;
                     i {
-                        font-size: 16px;
+                        font-size: 1rem;
                     }
                 }
             }
@@ -374,7 +374,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         &-header {
                             &-content {
                                 span {
-                                    font-size: 18px;
+                                    font-size: 1.125rem;
                                 }
                             }
                             &-button {
@@ -392,7 +392,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                                 padding-right: 10px;
 
                                 h4 {
-                                    font-size: 28px;
+                                    font-size: 1.75rem;
                                 }
 
                                 &:last-of-type {
@@ -427,7 +427,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         .timeline-item {
             &-header {
                 h3 {
-                    font-size: 24px;
+                    font-size: 1.5rem;
                 }
             }
         }
@@ -467,7 +467,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 h4 {
                     margin: auto;
                     padding: 0;
-                    font-size: 16px;
+                    font-size: 1rem;
                     font-weight: 700;
                     color: #1E366C;
                     letter-spacing: 1.5px;
@@ -490,7 +490,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     animation: fadeIn 200ms ease-in;
 
                     h5 {
-                        font-size: 12px;
+                        font-size: 0.75rem;
                         line-height: 15px;
                         font-weight: 600;
                         letter-spacing: normal;
@@ -519,7 +519,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                                     margin-right: 11px;
                                 }
                                 span {
-                                    font-size: 14px;
+                                    font-size: 0.875rem;
                                     font-weight: 500;
                                     line-height: 20px;
                                     color: #0E3669;
@@ -562,7 +562,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     }
                     ul {
                         li {
-                            font-size: 14px;
+                            font-size: 0.875rem;
                             font-weight: 500;
                             line-height: 20px;
                             color: #0E3669;
@@ -593,7 +593,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
         .footnote {
             color: #5B7595;
-            font-size: 12px;
+            font-size: 0.75rem;
             font-weight: 500;
             margin: auto auto 5px auto;
             width: 250px;
@@ -616,7 +616,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 background-color: transparent;
                 color: #5B7595;
                 width: 100px;
-                font-size: 12px;
+                font-size: 0.75rem;
                 border-radius: 15px;
                 margin: auto;
                 border: none;
@@ -720,7 +720,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             margin-bottom: 5px;
                             ul {
                                 li {
-                                    font-size: 12px;
+                                    font-size: 0.75rem;
                                     line-height: 18px;
                                     margin-bottom: 0px;
                                 }
@@ -741,7 +741,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     
             .selector-buttons {
                 button {
-                    font-size: 16px;
+                    font-size: 1rem;
                     width: 180px;
                 }
     

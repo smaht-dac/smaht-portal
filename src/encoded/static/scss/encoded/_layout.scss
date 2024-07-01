@@ -211,7 +211,7 @@ body.is-full-screen {
 
 	h1.page-title {
 
-		font-size: 24px;
+		font-size: 1.5rem;
 		font-weight: 600;
 		color: #343741;
 
@@ -243,7 +243,7 @@ body.is-full-screen {
 			font-weight: 400;
 			margin-left: 2px;
 			margin-top: 0px;
-			font-size: 18px;
+			font-size: 1.125rem;
 			//padding-bottom: 10px;
 			> .subtitle-prepend {
 				margin-right: 8px;
@@ -286,7 +286,7 @@ body.is-full-screen {
 		height: auto;
 
 		a {
-			font-size: 14px;
+			font-size: 0.875rem;
 			color: $footer-text-color;
 			text-decoration: underline;
 		}
@@ -301,7 +301,7 @@ body.is-full-screen {
 			text-align: center;
 			color: $footer-text-color;
 			padding: 15px 0px 14px;
-			font-size: 14px;
+			font-size: 0.875rem;
 			@include media-breakpoint-up(sm) {
 
 				text-align: right;
