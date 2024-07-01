@@ -140,13 +140,13 @@ def generate_ipsc_assay_count(context, request):
 def generate_tissue_file_count(context, request):
     """ Get total file count for tissues """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param)
+    return generate_search_total(context, request, search_param)
 
 
 def generate_tissue_donor_count(context, request):
     """ Get donor count by aggregating on donor """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.donors.display_title')
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.analytes.samples.sample_sources.code')
 
 
 def generate_tissue_assay_count(context, request):
