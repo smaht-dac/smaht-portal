@@ -13,25 +13,25 @@ from .utils import (
 @pytest.mark.parametrize(
     "patch_body,expected_status",
     [
-        ({"category": "Homogenate", "core_size": "1.5"}, 422),
-        ({"category": "Core", "core_size": ""}, 422),
+        ({"size": 5}, 422),
+        ({"size_unit": "cm^3"}, 422),
         (
             {
-                "category": "Core",
-                "core_size": "1.5",
+                "size": 5,
+                "size_unit": "cm^3",
             },
             200,
         ),
     ],
 )
-def test_core_size_requirements(
+def test_size_unit_requirements(
     patch_body: Dict[str, Any],
     expected_status: int,
     es_testapp: TestApp,
     workbook: None,
 ) -> None:
     """Ensure mutual requirements for RIN and instrument."""
-    uuid = get_insert_identifier_for_item_type(es_testapp, "TissueSample")
+    uuid = get_insert_identifier_for_item_type(es_testapp, "Tissue")
     patch_item(
         es_testapp,
         patch_body,

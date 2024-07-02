@@ -71,8 +71,10 @@
             "description": "Method of sample preservation",
             "type": "string",
             "enum": [
+                "Fixed",
                 "Fresh",
-                "Frozen"
+                "Frozen",
+                "Snap Frozen"
             ]
         },
         "sample_sources": {

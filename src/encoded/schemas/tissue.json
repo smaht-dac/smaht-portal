@@ -15,6 +15,14 @@
         "submitted_id",
         "uuid"
     ],
+    "dependentRequired": {
+        "size": [
+            "size_unit"
+        ],
+        "size_unit": [
+            "size"
+        ]
+    },
     "additionalProperties": false,
     "mixinProperties": [
         {
@@ -93,6 +101,22 @@
             "minimum": 0,
             "maximum": 14
         },
+        "preservation_medium": {
+            "title": "Preservation Medium",
+            "description": "Medium used for tissue preservation",
+            "type": "string"
+        },
+        "preservation_type": {
+            "title": "Preservation Type",
+            "description": "Method of tissue preservation",
+            "type": "string",
+            "enum": [
+                "Fixed",
+                "Fresh",
+                "Frozen",
+                "Snap Frozen"
+            ]
+        },
         "prosector_notes": {
             "title": "Prosector Notes",
             "description": "Notes from prosector report on the tissue recovery",
@@ -125,9 +149,18 @@
         },
         "size": {
             "title": "Size",
-            "description": "Size of the tissue (cm^3)",
+            "description": "Size of the tissue",
             "type": "number",
             "minimum": 0
+        },
+        "size_unit": {
+            "title": "Size Unit",
+            "description": "Unit of measurement for size of the tissue",
+            "type": "string",
+            "enum": [
+                "cm^2",
+                "cm^3"
+            ]
         },
         "uberon_id": {
             "title": "Uberon Id",

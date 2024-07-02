@@ -81,7 +81,10 @@ Change Log
 * Minor change to TCC submission schema related to units and changing enums to suggested enums
 * Update documentation for setting up Google Sheet API credentials for automated submission templates
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> main
 0.65.3
 ======
 
