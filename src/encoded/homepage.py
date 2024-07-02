@@ -37,6 +37,20 @@ class SearchBase:
         'status': ['released', 'restricted', 'public'],
         'dataset': ['lb_fibroblast', 'lb_ipsc_1', 'lb_ipsc_2', 'lb_ipsc_4', 'lb_ipsc_52', 'lb_ipsc_60']
     }
+    TISSUES_RELEASED_FILES_SEARCH_PARAMS = {
+        'type': 'File',
+        'status': ['released', 'restricted', 'public'],
+        'dataset': ['tissue'],
+        'file_sets.libraries.analytes.samples.sample_sources.code': [
+            'ST001-1A',
+            'ST001-1D',
+            'ST002-1G',
+            'ST002-1D',
+            'ST003-1Q',
+            'ST004-1Q'
+        ],
+        'additional_facet': 'donors.display_title'  # required since this is default_hidden for now
+    }
 
 
 def make_concurrent_search_requests(search_helpers):
@@ -124,6 +138,24 @@ def generate_ipsc_assay_count(context, request):
     return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
 
 
+def generate_tissue_file_count(context, request):
+    """ Get total file count for tissues """
+    search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
+    return generate_search_total(context, request, search_param)
+
+
+def generate_tissue_donor_count(context, request):
+    """ Get donor count by aggregating on donor """
+    search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
+    return generate_unique_facet_count(context, request, search_param, 'donors.display_title')
+
+
+def generate_tissue_assay_count(context, request):
+    """ Get total assay count for tissues """
+    search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+
+
 @view_config(route_name='home', request_method=['GET'])
 @debug_log
 def home(context, request):
@@ -142,7 +174,13 @@ def home(context, request):
 
         # iPSC & Fibroblast stats
         (generate_ipsc_assay_count, {'context': context, 'request': request}),  # 4
-        (generate_ipsc_cell_line_file_count, {'context': context, 'request': request})  # 5
+        (generate_ipsc_cell_line_file_count, {'context': context, 'request': request}),  # 5
+
+        # Tissue stats
+        (generate_tissue_file_count, {'context': context, 'request': request}),  # 6
+        (generate_tissue_donor_count, {'context': context, 'request': request}),  # 7
+        (generate_tissue_assay_count, {'context': context, 'request': request}),  # 8
+
     ])
     time = datetime.now(timezone('EST'))
     response = {
@@ -190,10 +228,10 @@ def home(context, request):
                         "title": "Benchmarking Tissues",
                         "link": "/data/benchmarking/donor-st001",
                         "figures": [
-                            { "value": 0, "unit": "Donors" },
-                            { "value": 0, "unit": "Tissue Types" },
-                            { "value": 0, "unit": "Assays" },
-                            { "value": 0, "unit": "Files Generated" }
+                            { "value": search_results[7], "unit": "Donors" },
+                            { "value": 4, "unit": "Tissue Types" },
+                            { "value": search_results[8], "unit": "Assays" },
+                            { "value": search_results[6], "unit": "Files Generated" }
                         ]
                     }
                 ]

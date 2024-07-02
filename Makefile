@@ -74,6 +74,7 @@ clear-aws:
 	@echo "unset AWS_ACCESS_KEY_ID" > ~/.clear_aws_env && \
 	echo "unset AWS_SECRET_ACCESS_KEY" >> ~/.clear_aws_env && \
 	echo "unset AWS_SESSION_TOKEN" >> ~/.clear_aws_env && \
+	chmod +x ~/.clear_aws_env && \
 	echo "Run 'source ~/.clear_aws_env' to finish clearing"
 
 

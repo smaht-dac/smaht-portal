@@ -139,6 +139,21 @@ class FileSet(SubmittedItem):
         request_handler: RequestHandler, library: Dict[str, Any]
     ) -> Union[str, None]:
         """ Note this is also derived from the library """
+        samples = library_utils.get_samples(
+            library, request_handler=request_handler
+        )
+        if len(samples) > 1:
+            return None  # there is too much complexity
+
+        # If we are a tissue sample, generate this based on the sample field, not the sample
+        # sources field
+        sample = samples[0]
+        if 'tissue' in sample:
+            return get_property_value_from_identifier(
+                request_handler, sample, item_utils.get_submitted_id
+            )
+
+        # If we get here, we are not a tissue sample and should rely on sample sources
         sample_sources = library_utils.get_sample_sources(
             library, request_handler=request_handler
         )

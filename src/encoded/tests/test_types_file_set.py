@@ -19,6 +19,6 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
     """ Ensure we generate a reasonable looking group when file set data is present """
     res = es_testapp.get('/file-sets/b98f9849-3b7f-4f2f-a58f-81100954e00d/').json
     file_merge_group = res['file_group']
-    assert file_merge_group['sample_source'] == 'TEST_TISSUE_LIVER'
+    assert file_merge_group['sample_source'] == 'TEST_TISSUE-SAMPLE_LIVER'
     assert file_merge_group['sequencing'] == 'illumina_novaseqx-Paired-end-150-R9'
     assert file_merge_group['assay'] == 'bulk_wgs'
