@@ -13,12 +13,14 @@ from encoded.item_utils import (
     cell_culture_mixture as cell_culture_mixture_utils,
     cell_line as cell_line_utils,
     donor as donor_utils,
+    donor_specific_assembly as dsa_utils,
     file as file_utils,
     file_format as file_format_utils,
     file_set as file_set_utils,
     item as item_utils,
     sample as sample_utils,
     sample_source as sample_source_utils,
+    supplementary_file as supp_file_utils,
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
 )
@@ -87,6 +89,7 @@ class AssociatedItems:
     software: List[Dict[str, Any]]
     reference_genome: Dict[str, Any]
     file_sets: List[Dict[str, Any]]
+    donor_specific_assembly: Dict[str, Any]
     assays: List[Dict[str, Any]]
     sequencers: List[Dict[str, Any]]
     sample_sources: List[Dict[str, Any]]
@@ -101,6 +104,7 @@ def get_associated_items(
     file: Dict[str, Any],
     request_handler: RequestHandler,
     file_sets: Optional[List[Dict[str, Any]]] = None,
+    donor_specific_assembly: Optional[Union[str,Dict[str, Any]]] = None,
 ) -> AssociatedItems:
     """Get associated items for given file for annotated filename.
 
@@ -111,7 +115,13 @@ def get_associated_items(
     file_format = get_file_format(file, request_handler)
     software = get_software(file, request_handler)
     reference_genome = get_reference_genome(file, request_handler)
-    file_sets = get_file_sets(file, request_handler, file_sets=file_sets)
+    donor_specific_assembly = get_donor_specific_assembly(file, request_handler, donor_specific_assembly)
+    if donor_specific_assembly:
+        derived_from = get_derived_from(donor_specific_assembly, request_handler)
+        file_sets=derived_from
+        software = software + get_dsa_software(file,request_handler)
+    else:
+        file_sets = get_file_sets(file, request_handler, file_sets=file_sets)
     assays = get_assays(file_sets, request_handler)
     sequencers = get_sequencers(file_sets, request_handler)
     samples = get_samples(file_sets, request_handler)
@@ -128,6 +138,7 @@ def get_associated_items(
         software=software,
         reference_genome=reference_genome,
         file_sets=file_sets,
+        donor_specific_assembly=donor_specific_assembly,
         assays=assays,
         sequencers=sequencers,
         tissue_samples=tissue_samples,
@@ -164,6 +175,16 @@ def get_file_sets(
     return get_items(to_get, request_handler)
 
 
+def get_donor_specific_assembly(
+    file: Dict[str, Any],
+    request_handler: RequestHandler,
+    donor_specific_assembly: Optional[Union[str,Dict[str, Any]]] = None,
+) -> List[Dict[str, Any]]:
+    """Get donor_specific_assembly for supplementary file."""
+    to_get = supp_file_utils.get_donor_specific_assembly(file)
+    return get_item(to_get, request_handler)
+
+
 def get_file_format(
     file: Dict[str, Any], request_handler: RequestHandler
 ) -> Dict[str, Any]:
@@ -190,6 +211,24 @@ def get_software(
 ) -> List[Dict[str, Any]]:
     """Get software for file."""
     return get_items(file_utils.get_software(file), request_handler)
+
+
+def get_dsa_software(file: Dict[str, Any], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get software from DSA for file."""
+    return get_items(supp_file_utils.get_dsa_software(file,request_handler), request_handler)
+
+
+def get_derived_from(
+    donor_specific_assembly: Dict[str, Any],
+    request_handler: RequestHandler,
+) -> List[Dict[str, Any]]:
+    """Get derived_from file set for donor-specific assembly."""
+    derived_from = [
+        item
+        for item in dsa_utils.get_derived_from(donor_specific_assembly)
+    ]
+    return get_items(derived_from, request_handler)
 
 
 def get_assays(
@@ -362,13 +401,15 @@ def get_annotated_filename(
     file: Dict[str, Any],
     request_handler: RequestHandler,
     file_sets: Optional[Dict[str, List[str]]] = None,
+    donor_specific_assembly: Optional[Dict[str, List[str]]] = None,
 ) -> AnnotatedFilename:
     """Get annotated filename for given file.
 
     Collect all filename parts, recording either the value or any errors
     encountered in the process to be logged later.
+    `derived_from` applies to SupplementaryFiles
     """
-    associated_items = get_associated_items(file, request_handler, file_sets=file_sets)
+    associated_items = get_associated_items(file, request_handler, file_sets=file_sets, donor_specific_assembly=donor_specific_assembly)
     project_id = get_project_id(
         associated_items.cell_culture_mixtures,
         associated_items.cell_lines,
@@ -748,6 +789,7 @@ def get_analysis(
     file: Dict[str, Any],
     software: List[Dict[str, Any]],
     reference_genome: Dict[str, Any],
+    donor_specific_assembly: Dict[str, Any] = None
 ) -> FilenamePart:
     """Get analysis info for file.
 

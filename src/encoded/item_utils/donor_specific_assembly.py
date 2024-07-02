@@ -32,6 +32,11 @@ def get_libraries(request_handler: RequestHandler,derived_from: str):
         file_sets = request_handler.get_items(derived_from)
         return get_property_values_from_identifiers(request_handler,file_sets,file_set_utils.get_libraries)
     return []
+
+
+def get_software(properties: Dict[str, Any]):
+    """Get software for the assembly."""
+    return properties.get("software", [])
     
 
 def get_analytes(request_handler: RequestHandler, derived_from: str):

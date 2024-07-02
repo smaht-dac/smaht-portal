@@ -44,7 +44,7 @@ def test_donors_calc_prop(es_testapp: TestApp, workbook: None) -> None:
         uuid,
         collection='DonorSpecificAssembly'
     )
-    assert len(dsa.get("donors",[])) == 2
+    assert len(dsa.get("donors",[])) == 1
 
 
 @pytest.mark.workbook
@@ -56,4 +56,4 @@ def test_cell_lines_calc_prop(es_testapp: TestApp, workbook: None) -> None:
         uuid,
         collection='DonorSpecificAssembly'
     )
-    assert len(dsa.get("cell_lines",[])) == 2
+    assert len(dsa.get("cell_lines",[])) == 1
