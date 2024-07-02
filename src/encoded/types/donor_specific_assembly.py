@@ -35,7 +35,22 @@ class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
         "files": ("SupplementaryFile", "donor_specific_assembly")
     }
 
-
+    @calculated_property(
+        schema = {
+            "title": "Cell Line",
+            "description": "Cell line source the assembly is derived from, if applicable",
+            "type": "array",
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "linkTo": "CellLine",
+            },
+        },
+    )
+    def cell_lines(self, request: Request, derived_from: Optional[List[str]] = None
+    ) -> Union[str, None]:
+        """Get Cell Lines associated with the assembly."""
+        return self._get_cell_lines(request, derived_from=derived_from)
 
     @calculated_property(
         schema={
@@ -56,18 +71,17 @@ class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
             return chain_files
         return
     
-
     @calculated_property(
         schema = {
             "title": "Donor",
-            "description": "Donor or cell line source the assembly is derived from",
+            "description": "Donor source the assembly is derived from",
             "type": "array",
             "uniqueItems": True,
             "items": {
                 "type": "string",
                 "linkTo": "Donor",
             },
-        }
+        },
     )
     def donors(self, request: Request, derived_from: Optional[List[str]] = None
     ) -> Union[str, None]:
@@ -93,11 +107,20 @@ class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
             return seq_files
         return
     
-    
+    def _get_cell_lines(
+        self, request: Request, derived_from: Optional[List[str]] = None
+    ) -> List[str]:
+        """Get the cell line source associated with the assembly, if applicable."""
+        result = None
+        if derived_from:
+            request_handler = RequestHandler(request=request)
+            result = dsa_utils.get_cell_lines(self.properties,request_handler)
+        return result or None
+
     def _get_donors(
         self, request: Request, derived_from: Optional[List[str]] = None
     ) -> List[str]:
-        """Get the donor or cell line source associated with the assembly."""
+        """Get the donor source associated with the assembly."""
         result = None
         if derived_from:
             request_handler = RequestHandler(request=request)
