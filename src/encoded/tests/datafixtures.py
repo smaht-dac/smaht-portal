@@ -30,6 +30,13 @@ def file_formats(testapp, test_consortium):
             'standard_file_extension': 'bam',
             'extra_file_formats': ['bai'],
         },
+        "CHAIN": {
+            'standard_file_extension': 'chain.gz',
+        },
+        "FASTA": {
+            'standard_file_extension': 'fasta',
+            'other_allowed_extensions': ['fa']
+        },
         'VCF': {"standard_file_extension": "vcf",},
         'mcool': {'standard_file_extension': 'mcool'},
         'zip': {'standard_file_extension': 'zip'},
@@ -48,6 +55,7 @@ def file_formats(testapp, test_consortium):
         "AlignedReads",
         "UnalignedReads",
         "VariantCalls",
+        "SupplementaryFile"
     ]
     for eff, info in ef_format_info.items():
         info['identifier'] = eff

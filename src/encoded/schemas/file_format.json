@@ -83,6 +83,7 @@
                     "AlignedReads",
                     "OutputFile",
                     "ReferenceFile",
+                    "SupplementaryFile",
                     "UnalignedReads",
                     "VariantCalls"
                 ]

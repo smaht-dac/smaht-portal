@@ -55,9 +55,7 @@ def get_submitted_id_code_pattern(testapp: TestApp) -> str:
     uppercase, so convert for comparison.
     """
     submission_center_schema = get_schema(testapp, "submission_center")
-    submission_center_code = schema_utils.get_property(
-        submission_center_schema, "code"
-    )
+    submission_center_code = schema_utils.get_property(submission_center_schema, "code")
     code_pattern = schema_utils.get_pattern(submission_center_code)
     return code_pattern.upper()
 
@@ -185,11 +183,12 @@ def get_test_submission_center_from_inserts(testapp: TestApp) -> Dict[str, Any]:
 
 
 def get_test_submission_center(
-    submission_center_inserts: List[Dict[str, Any]]
+    submission_center_inserts: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
     """Get SubmissionCenter to use for submitted IDs."""
     matching_centers = [
-        insert for insert in submission_center_inserts
+        insert
+        for insert in submission_center_inserts
         if insert.get("code") == WORKBOOK_SUBMISSION_CENTER_CODE
     ]
     assert len(matching_centers) == 1, (
@@ -200,7 +199,7 @@ def get_test_submission_center(
 
 
 def assert_dummy_submitted_id_code_valid(
-    item_properties_to_test: Dict[str, Dict]
+    item_properties_to_test: Dict[str, Dict],
 ) -> None:
     """Ensure no conflicts between dummy code and existing ones."""
     submission_center_inserts = item_properties_to_test["submission_center"]
@@ -267,8 +266,7 @@ def get_insert_with_invalid_submitted_id(insert: Dict[str, Any]) -> Dict[str, An
     """Create similar insert with invalid dummy submitted_id_code."""
     return {
         key: (
-            value if key != SUBMITTED_ID_PROPERTY
-            else get_invalid_submitted_id(value)
+            value if key != SUBMITTED_ID_PROPERTY else get_invalid_submitted_id(value)
         )
         for key, value in insert.items()
     }
@@ -323,9 +321,9 @@ def test_submitted_items_have_submitted_id(testapp: TestApp) -> None:
     """Test presence of submitted_id on all SubmittedItem children."""
     submitted_item_types = get_submitted_item_types(testapp)
     for item_name, type_info in submitted_item_types.items():
-        assert has_submitted_id(type_info), (
-            f"{item_name} is child of SubmittedItem but lacks 'submitted_id'"
-        )
+        assert has_submitted_id(
+            type_info
+        ), f"{item_name} is child of SubmittedItem but lacks 'submitted_id'"
 
 
 def test_items_with_submitted_id_are_submitted_items(testapp: TestApp) -> None:
@@ -336,10 +334,10 @@ def test_items_with_submitted_id_are_submitted_items(testapp: TestApp) -> None:
     functional_item_types = get_functional_item_types(testapp)
     for item_name, type_info in functional_item_types.items():
         if has_submitted_id(type_info):
-            assert is_submitted_item(type_info), (
-                f"{item_name} has 'submitted_id' but is not SubmittedItem"
-            )
+            assert is_submitted_item(
+                type_info
+            ), f"{item_name} has 'submitted_id' but is not SubmittedItem"
         else:
-            assert not is_submitted_item(type_info), (
-                f"{item_name} is SubmittedItem but lacks 'submitted_id'"
-            )
+            assert not is_submitted_item(
+                type_info
+            ), f"{item_name} is SubmittedItem but lacks 'submitted_id'"

@@ -1,0 +1,96 @@
+{
+    "title": "Supplementary File",
+    "$id": "/profiles/supplementary_file.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "file_format",
+        "filename",
+        "submission_centers",
+        "submitted_id",
+        "data_type",
+        "data_category"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/file_links"
+        },
+        {
+            "$ref": "mixins.json#/file_release"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/reference_genome"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "file.json#/properties"
+        },
+        {
+            "$ref": "submitted_file.json#/properties"
+        }
+    ],
+    "mixinFacets": [
+        {
+            "$ref": "file.json#/facets"
+        }
+    ],
+    "mixinColumns": [
+        {
+            "$ref": "file.json#/columns"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "SF"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_SUPPLEMENTARY-FILE_[A-Z0-9-_.]{4,}$"
+        },
+        "donor_specific_assembly": {
+            "title":"Donor-Specific Assembly",
+            "description": "Associated donor-specific assembly, if applicable",
+            "type": "string",
+            "linkTo": "DonorSpecificAssembly"
+        },
+        "source_assembly": {
+            "title": "Source Assembly",
+            "description": "The reference genome assembly from which the coordinates are being converted (for chain files)",
+            "type": "string"
+        }
+    }
+}
