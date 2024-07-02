@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.68.5
+======
+
+* Quick fix to hide validation errors facet
+
+
 0.68.4
 ======
 
