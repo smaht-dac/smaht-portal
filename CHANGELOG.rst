@@ -15,7 +15,13 @@ Change Log
 * Create DonorSpecificAssembly item type that contains information and QC metrics, and links to FileSet and Software used to generate the assembly.
 * Create a submittable SupplementaryFile that can contain files as reference fasta and chain files. These can link to DSA.
 * Add notes_to_tsv property to file.json schema for including static banners for notes on file pages.
-* Add test for DonorSpecificAssembly rev_link
+* Add test for DonorSpecificAssembly rev_links
+
+
+0.68.5
+======
+
+* Quick fix to hide validation errors facet
 
 
 0.68.4
