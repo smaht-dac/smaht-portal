@@ -7,10 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.68.6
+======
+
+* Update /homepage to include counts for benchmarking tissues
+
+
 0.68.5
 ======
 
-*  Update /homepage to include counts for benchmarking tissues
+* Quick fix to hide validation errors facet
 
 
 0.68.4
