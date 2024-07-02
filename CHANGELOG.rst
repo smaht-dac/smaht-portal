@@ -7,7 +7,6 @@ smaht-portal
 Change Log
 ----------
 
-
 0.69.0
 ======
 
@@ -17,6 +16,12 @@ Change Log
   to facilitate running a local ElasticSearch proxy to observe traffic (resquests/responses)
   between the portal and ElasticSearch with a tool like mitmproxy or mitmweb; see comments
   in base.ini; and see in snovault/dev_server for where this is handled.
+
+
+0.68.5
+======
+
+* Quick fix to hide validation errors facet
 
 
 0.68.4
