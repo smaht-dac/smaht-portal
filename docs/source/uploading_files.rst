@@ -57,8 +57,8 @@ Mounting AWS S3 Files
 ~~~~~~~~~~~~~~~~~~~~~
 If your files are stored on `AWS S3 <https://en.wikipedia.org/wiki/Amazon_S3>`_, tools such as `s3fs <https://github.com/s3fs-fuse/s3fs-fuse>`_ or `goofys <https://github.com/kahing/goofys>`_ facilitate mounting of S3 buckets as local file systems that can be readily accessed by ``smaht-submitr``. Similar tools exist for `Google Cloud Storage <https://en.wikipedia.org/wiki/Google_Cloud_Storage>`_ and `Microsoft Azure <https://en.wikipedia.org/wiki/Microsoft_Azure>`_.
 
-Uploading Files from Google Cloud Storage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Uploading Files from Google Cloud Storage (or AWS S3)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If your data files reside in Google Cloud Storage (GCS), we support the ability to upload,
 or more precisely, `transfer` files directly from GCS to AWS S3. The smaht-submitr command-line
 tools (``submit-metadata-bundle`` and ``resume-uploads``) accomplish this by leveraging
@@ -84,6 +84,11 @@ To obtain the credentials file you need, via the Google Cloud console (in your b
 
 .. TIP::
     If you happen to be running ``smaht-submitr`` on a Google Compute Engine (GCE) instance there is no need to specify the ``--cloud-credentials`` option as the credentials for the associated Google Cloud account are automatically and implicitly available and in force.
+
+|
+
+.. TIP::
+    This same exact mechanism is actually also support for AWS S3, i.e. if you have a file in your own AWS S3 storage that you want to upload to SMaHT via ``smaht-submitr``, use the same options as desribed above, but specify your S3 bucket/folder for the ``--cloud-source`` option and your AWS credentials file for the ``--cloud-credentials`` file.
 
 |
 
