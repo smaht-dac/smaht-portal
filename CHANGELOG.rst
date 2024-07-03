@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.70.0
+======
+* Nested QC (QualityMetric) development.
+
+
 0.69.0
 ======
 

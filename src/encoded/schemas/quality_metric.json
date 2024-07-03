@@ -93,6 +93,7 @@
             "title": "QC Values",
             "description": "QC values and their associated metadata",
             "items": {
+                "enable_nested": true,
                 "type": "object",
                 "additionalProperties": false,
                 "required": [
