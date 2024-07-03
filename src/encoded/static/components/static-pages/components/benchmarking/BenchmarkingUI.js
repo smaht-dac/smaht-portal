@@ -19,7 +19,7 @@ export const BenchmarkingLayout = ({
     children,
     callout = null,
 }) => {
-    const [showInformation, setShowInformation] = useState(showInformation);
+    const [showInformation, setShowInformation] = useState(false);
     const cls = `description readable ${!schemas ? 'mb-5' : ''}`;
 
     return (
