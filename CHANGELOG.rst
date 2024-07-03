@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.68.3
+0.69.1
 ======
 
 `PR 188: feat: increase benchmarking table visibility <https://github.com/smaht-dac/smaht-portal/pull/188>`_
@@ -15,6 +15,41 @@ Change Log
 * Increase height of benchmarking tables
 * Support toggling the benchmarking page descriptions
 * Upgrade SPC to v0.1.86
+
+
+0.69.0
+======
+
+* Documentation for smaht-submitr binary (pyinstaller-based) installation.
+* Updates related to Python 3.12.
+* New (and commented out by default) elasticsearch.server.actual_port property in base.ini
+  to facilitate running a local ElasticSearch proxy to observe traffic (resquests/responses)
+  between the portal and ElasticSearch with a tool like mitmproxy or mitmweb; see comments
+  in base.ini; and see in snovault/dev_server for where this is handled.
+
+
+0.68.5
+======
+
+* Quick fix to hide validation errors facet
+
+
+0.68.4
+======
+
+`PR 196: Bm primary tissue fixes <https://github.com/smaht-dac/smaht-portal/pull/196>`_
+
+* Hide unexpected facets
+* Fix tab title counts
+* Fix for home page link to primary/benchmarking tissue page
+
+
+0.68.3
+======
+
+`PR 194: Fix constants casing <https://github.com/smaht-dac/smaht-portal/pull/194>`_
+
+* Fix `access_status` enum options case in `item_utils`
 
 
 0.68.2
