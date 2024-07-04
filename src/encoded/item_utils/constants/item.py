@@ -1,0 +1,6 @@
+STATUS = "status"
+STATUS_OBSOLETE = "obsolete"
+STATUS_RELEASED = "released"
+STATUS_UPLOADED = "uploaded"
+SUBMITTED_ID = "submitted_id"
+UUID = "uuid"

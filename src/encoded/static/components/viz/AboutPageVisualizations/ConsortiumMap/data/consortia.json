@@ -40,7 +40,8 @@
         "marker-color-hex": "#984ea3",
         "project": "Tissue Procurement Center (TPC) Supporting the Somatic Mosaicism across Human Tissues (SMaHT) Network",
         "project-number": "1U24MH133204-01",
-        "url": "https://reporter.nih.gov/project-details/10661300"
+        "url": "https://reporter.nih.gov/project-details/10661300",
+        "include_in_table": true
     },
     {
         "x": 940,
@@ -61,14 +62,15 @@
         "x": 78,
         "y": 10,
         "pis": ["Bennet, James T", "Eichler, Evan", "Stergachis, Andrew B"],
-        "institution": "Seattle Children's Hospital",
+        "institution": "University of Washington & Seattle Children's Hospital",
         "center-type": "Genome Characterization Center",
         "center-type-short": "GCC",
         "marker-color": "orange",
         "marker-color-hex": "#ff7f00",
-        "project": "Mosaicism in Human Tissues, from Telomere to Telomere to RFA-22-013: Somatic Mosaicism across Human Tissues Program: Genome Characterization Centers.",
+        "project": "Mosaicism in Human Tissues, from Telomere to Telomere to RFA-22-013: Somatic Mosaicism across Human Tissues Program: Genome Characterization Centers",
         "project-number": "1UM1DA058220-01",
-        "url": "https://reporter.nih.gov/project-details/10662071"
+        "url": "https://reporter.nih.gov/project-details/10662071",
+        "include_in_table": true
     },
     {
         "x": 912,

@@ -23,6 +23,36 @@
         "rna_integrity_number_instrument": [
             "rna_integrity_number"
         ],
+        "dna_integrity_number": [
+            "dna_integrity_number_instrument"
+        ],
+        "dna_integrity_number_instrument": [
+            "dna_integrity_number"
+        ],
+        "genomic_quality_number": [
+            "genomic_quality_number_instrument",
+            "genomic_quality_size_threshold"
+        ],
+        "genomic_quality_number_instrument": [
+            "genomic_quality_number",
+            "genomic_quality_size_threshold"
+        ],
+        "genomic_quality_size_threshold": [
+            "genomic_quality_number",
+            "genomic_quality_number_instrument"
+        ],
+        "dna_quality_number": [
+            "dna_quality_number_instrument",
+            "dna_quality_size_threshold"
+        ],
+        "dna_quality_number_instrument": [
+            "dna_quality_number",
+            "dna_quality_size_threshold"
+        ],
+        "dna_quality_size_threshold": [
+            "dna_quality_number",
+            "dna_quality_number_instrument"
+        ],
         "sample_quantity": [
             "sample_quantity_unit"
         ],
@@ -34,6 +64,12 @@
         ],
         "volume_unit": [
             "volume"
+        ],
+        "yield_per_unit": [
+            "yield_unit"
+        ],
+        "yield_unit": [
+            "yield_per_unit"
         ]
     },
     "identifyingProperties": [
@@ -96,6 +132,12 @@
             "type": "number",
             "minimum": 0
         },
+        "average_fragment_size": {
+            "title": "Average Fragment Size",
+            "description": "Average high molecular weight fragment size, if applicable (bp)",
+            "type": "number",
+            "minimum": 0
+        },
         "concentration": {
             "title": "Concentration",
             "description": "Analyte concentration",
@@ -110,6 +152,70 @@
                 "ng/uL",
                 "mg/mL"
             ]
+        },
+        "dna_integrity_number": {
+            "title": "DNA Integrity Number",
+            "description": "Assessment of the integrity of genomic DNA based on electrophoresis",
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10
+        },
+        "dna_integrity_number_instrument": {
+            "title": "DIN Instrument",
+            "description": "Instrument used for DIN assessment",
+            "type": "string",
+            "suggested_enum": [
+                "Agilent 4200 TapeStation",
+                "Agilent 4150 TapeStation"
+            ]
+        },
+        "dna_quality_number": {
+            "title": "DNA Quality Number",
+            "description": "DNA Quality Number, percent of samples above threshold value",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10
+        },
+        "dna_quality_number_instrument": {
+            "title": "DQN Instrument",
+            "description": "Instrument used for DNA quality number assessment",
+            "type": "string",
+            "suggested_enum": [
+                "Agilent 5400 Fragment Analyzer",
+                "Agilent 5300 Fragment Analyzer",
+                "Agilent 5200 Fragment Analyzer"
+            ]
+        },
+        "dna_quality_size_threshold": {
+            "title": "DNA Quality Size Threshold",
+            "description": "Threshold set in ProSize for DNA quality number, for assessing percent of samples above threshold size (bp), if applicable",
+            "type": "number",
+            "minimum": 0
+        },
+        "genomic_quality_number": {
+            "title": "Genomic Quality Number",
+            "description": "Genomic quality number, percent of samples above threshold value",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10
+        },
+        "genomic_quality_number_instrument": {
+            "title": "Genomic Quality Number Instrument",
+            "description": "Instrument used for GQN assessment",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "Agilent 5400 Fragment Analyzer",
+                    "Agilent Femto Pulse"
+                ]
+            }
+        },
+        "genomic_quality_size_threshold": {
+            "title": "Genomic Quality Size Threshold",
+            "description": "Threshold set in ProSize for genomic quality number, for assessing percent of samples above threshold size (bp), if applicable",
+            "type": "number",
+            "minimum": 0
         },
         "molecule": {
             "title": "Molecule",
@@ -143,6 +249,24 @@
                 ]
             }
         },
+        "quantitation_method": {
+            "title": "Quantitation Method",
+            "description": "Method used for analyte quantitation, if applicable",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "Quant-iT PicoGreen dsDNA BR",
+                    "Quant-iT PicoGreen dsDNA HS",
+                    "Qubit dsDNA HS",
+                    "Qubit dsDNA BR",
+                    "Qubit RNA HS",
+                    "Qubit RNA BR"
+                ]
+            }
+        },
         "ribosomal_rna_ratio": {
             "title": "Ribosomal RNA Ratio",
             "description": "The 28S/18S ribosomal RNA band ratio used to assess the quality of total RNA",
@@ -151,16 +275,16 @@
         },
         "rna_integrity_number": {
             "title": "RNA Integrity Number",
-            "description": "Assessment of the integrity of RNA based on electrophoresis",
+            "description": "Assessment of the integrity of RNA based on electrophoresis (or equivalent RNA Quality Score or RNA Quality Number)",
             "type": "number",
             "minimum": 1,
             "maximum": 10
         },
         "rna_integrity_number_instrument": {
             "title": "RIN Instrument",
-            "description": "Instrument used for RIN assessment",
+            "description": "Instrument used for RNA integrity assessment",
             "type": "string",
-            "enum": [
+            "suggested_enum": [
                 "Agilent Bioanalyzer",
                 "Agilent 4200 TapeStation",
                 "Agilent 5300 Fragment Analyzer",
@@ -219,6 +343,28 @@
                 "type": "string",
                 "linkTo": "Sample"
             }
+        },
+        "total_yield": {
+            "title": "Total Yield",
+            "description": "Total yield of analyte from sample (ug)",
+            "type": "number",
+            "minimum": 0
+        },
+        "yield_per_unit": {
+            "title": "Yield Per Unit",
+            "description": "Yield per unit of sample",
+            "type": "number",
+            "minimum": 0
+        },
+        "yield_unit": {
+            "title": "Yield Unit",
+            "description": "Unit used for measuring yield per unit of sample",
+            "type": "string",
+            "enum": [
+                "ug/million cells",
+                "ug/mg",
+                "ug/vial of cells"
+            ]
         }
     },
     "facets": {

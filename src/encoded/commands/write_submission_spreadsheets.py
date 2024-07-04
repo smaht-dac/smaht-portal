@@ -11,13 +11,12 @@ import structlog
 from dcicutils.creds_utils import SMaHTKeyManager
 from dcicutils.misc_utils import to_camel_case, to_snake_case
 from dcicutils import schema_utils
-from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from snovault.schema_views import SubmissionSchemaConstants
 
-from encoded.item_utils import constants as item_constants
+from encoded.item_utils.constants import item as item_constants
 from encoded.item_utils.utils import RequestHandler
 from encoded.project.loadxl import ITEM_INDEX_ORDER
 
@@ -37,7 +36,7 @@ Google Sheets API Reference:
     * https://developers.google.com/sheets/api/reference/rest/v4
 
 To generate credentials for Google Sheets API, see instructions under
-the Web Application section here:
+the Desktop app section here:
     * https://developers.google.com/workspace/guides/create-credentials
 
 Overview:
@@ -47,8 +46,9 @@ Overview:
 4. Create credentials for the project
 5. Download the credentials as JSON
 6. Save the credentials as `google_sheets_creds.json` in the home directory
-7. Run the script to generate the token
-8. Token will be saved as `google_sheets_token.json` in the home directory
+7. Under OAuth consent screen, add your email under Test users
+8. Run the script to generate the token
+9. Token will be saved as `google_sheets_token.json` in the home directory
 
 If token expires, delete the token file and run the script again to generate
 a new token.

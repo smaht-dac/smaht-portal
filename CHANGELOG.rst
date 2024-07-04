@@ -7,6 +7,101 @@ smaht-portal
 Change Log
 ----------
 
+0.69.0
+======
+
+* Documentation for smaht-submitr binary (pyinstaller-based) installation.
+* Updates related to Python 3.12.
+* New (and commented out by default) elasticsearch.server.actual_port property in base.ini
+  to facilitate running a local ElasticSearch proxy to observe traffic (resquests/responses)
+  between the portal and ElasticSearch with a tool like mitmproxy or mitmweb; see comments
+  in base.ini; and see in snovault/dev_server for where this is handled.
+
+
+0.68.5
+======
+
+* Quick fix to hide validation errors facet
+
+
+0.68.4
+======
+
+`PR 196: Bm primary tissue fixes <https://github.com/smaht-dac/smaht-portal/pull/196>`_
+
+* Hide unexpected facets
+* Fix tab title counts
+* Fix for home page link to primary/benchmarking tissue page
+
+
+0.68.3
+======
+
+`PR 194: Fix constants casing <https://github.com/smaht-dac/smaht-portal/pull/194>`_
+
+* Fix `access_status` enum options case in `item_utils`
+
+
+0.68.2
+======
+
+`PR 190: Bm primary tissue ui 2 <https://github.com/smaht-dac/smaht-portal/pull/190>`_
+
+* Add brain table for donors 3 & 4
+* Remaining update to use `dataset=tissue`
+
+
+0.68.1
+======
+
+`PR 192: fix: include missing TPC and GCC in awardees table <https://github.com/smaht-dac/smaht-portal/pull/192>`_
+
+* Fix missing consortium entries in the awardees table
+
+
+0.68.0
+======
+
+`PR 193: Add routes endpoint <https://github.com/smaht-dac/smaht-portal/pull/193>`_
+
+* Add `/routes` endpoint to return all available routes
+
+
+0.67.0
+======
+
+`PR 187: Update file naming and release commands <https://github.com/smaht-dac/smaht-portal/pull/187>`_
+
+* Refactor and improve commands `release_file` and `create_annotated_filenames`
+  * Add test coverage, especially for annotated filenames
+  * Add to `item_utils` and use extensively in commands
+  * Fix command names in pyproject.toml
+  * Update commands for tissue data
+* Add `tissue` to `dataset` enum for benchmarking files + update benchmarking searches
+
+
+0.66.0
+======
+
+`PR 184: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/184>`_
+
+* Remove SamplePreparation item and merges the property homogenization_method with AnalytePreparation
+* Add properties to Analyte based on GCC Benchmarking Extraction input
+* Change to properties of Library based on GCC feedback
+* Include more detailed descriptions and examples of some fields that are technology-specific (i.e. Kinnex)
+* Minor change to TCC submission schema related to units and changing enums to suggested enums
+* Update documentation for setting up Google Sheet API credentials for automated submission templates
+
+
+0.65.3
+======
+
+`PR 186: Bm primary tissue ui <https://github.com/smaht-dac/smaht-portal/pull/186>`_
+
+* Enable benchmarking tables for Donor 1 and Donor 2 primary tissues
+* Fix bug with Donor 2 data table
+
+
 0.65.2
 ======
 

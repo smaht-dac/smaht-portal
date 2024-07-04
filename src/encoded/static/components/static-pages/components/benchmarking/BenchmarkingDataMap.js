@@ -207,14 +207,14 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#liver',
                 title: 'Liver',
-                // searchHref:
-                //    '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A',
             },
             {
                 eventKey: '#lung',
                 title: 'Lung',
-                // searchHref:
-                //     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D',
             },
         ],
     },
@@ -228,14 +228,14 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#colon',
                 title: 'Colon',
-                // searchHref:
-                //     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G',
             },
             {
                 eventKey: '#lung',
                 title: 'Lung',
-                // searchHref:
-                //     '/search/?type=File&status=released&status=restricted&status=public&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D',
             },
         ],
     },
@@ -249,6 +249,8 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#brain',
                 title: 'Brain',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q',
             },
         ],
     },
@@ -262,6 +264,8 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#brain',
                 title: 'Brain',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q',
             },
         ],
     },
