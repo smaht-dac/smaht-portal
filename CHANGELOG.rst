@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.69.0
+0.70.0
 ======
 
 `PR 189: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/189>`_
@@ -16,6 +16,15 @@ Change Log
 * Create a submittable SupplementaryFile that can contain files as reference fasta and chain files. These can link to DSA.
 * Add notes_to_tsv property to file.json schema for including static banners for notes on file pages.
 * Add test for DonorSpecificAssembly rev_links
+
+0.69.0
+======
+* Documentation for smaht-submitr binary (pyinstaller-based) installation.
+* Updates related to Python 3.12.
+* New (and commented out by default) elasticsearch.server.actual_port property in base.ini
+  to facilitate running a local ElasticSearch proxy to observe traffic (resquests/responses)
+  between the portal and ElasticSearch with a tool like mitmproxy or mitmweb; see comments
+  in base.ini; and see in snovault/dev_server for where this is handled.
 
 
 0.68.5
