@@ -13,7 +13,6 @@ def test_searchable_as_reference_genome(es_testapp: TestApp, workbook: None) -> 
         es_testapp,
         "DonorSpecificAssembly"
     )
-
     get_search(
         es_testapp,
         f"/search/?type=ReferenceGenome&uuid={uuid}",
@@ -22,25 +21,58 @@ def test_searchable_as_reference_genome(es_testapp: TestApp, workbook: None) -> 
 
 
 @pytest.mark.workbook
+def test_dsa_reference_genome_collection(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure DonorSpecificAssemblies can be found in ReferenceGenome collection.
+    """
+
+    uuid = get_insert_identifier_for_item_type(
+        es_testapp,
+        "DonorSpecificAssembly"
+    )
+    get_item(
+        es_testapp,
+        uuid,
+        collection="ReferenceGenome",
+        status=301
+    )
+
+
+@pytest.mark.workbook
 def test_sequence_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
     """Ensure sequence files rev link works."""
-    fa_file_set_search = get_search(es_testapp, "?type=DonorSpecificAssembly&sequence_files.uuid!=No+value")
+    fa_file_set_search = get_search(
+        es_testapp,
+        "?type=DonorSpecificAssembly&sequence_files.uuid!=No+value"
+    )
     assert fa_file_set_search
 
 
 @pytest.mark.workbook
 def test_chain_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
     """Ensure chain files rev link works."""
-    chain_file_set_search = get_search(es_testapp, "?type=DonorSpecificAssembly&chain_files.uuid!=No+value")
+    chain_file_set_search = get_search(
+        es_testapp,
+        "?type=DonorSpecificAssembly&chain_files.uuid!=No+value"
+    )
     assert chain_file_set_search
 
 
 @pytest.mark.workbook
 def test_donors_calc_prop(es_testapp: TestApp, workbook: None) -> None:
     """Ensure donors calcprop works."""
-    #import pdb; pdb.set_trace()
-    donors_set_search = get_search(es_testapp, "?type=DonorSpecificAssembly&donors!=No+value")
-    assert donors_set_search
+    uuid=get_insert_identifier_for_item_type(es_testapp,"DonorSpecificAssembly")
+    dsa=get_item(
+        es_testapp,
+        uuid,
+        collection='DonorSpecificAssembly',
+        datastore='database'
+    )
+    assert len(dsa.get("donors",[])) == 1
+    # donors_set_search = get_search(
+    #     es_testapp,
+    #     "?type=DonorSpecificAssembly&donors!=No+value"
+    # )
+    # assert donors_set_search
 
 
 @pytest.mark.workbook
@@ -50,6 +82,7 @@ def test_cell_lines_calc_prop(es_testapp: TestApp, workbook: None) -> None:
     dsa=get_item(
         es_testapp,
         uuid,
-        collection='DonorSpecificAssembly'
+        collection='DonorSpecificAssembly',
+        datastore='database'
     )
     assert len(dsa.get("cell_lines",[])) == 1
