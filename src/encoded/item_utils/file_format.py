@@ -3,3 +3,11 @@ from typing import Any, Dict
 
 def get_standard_file_extension(properties: Dict[str, Any]) -> str:
     return properties.get("standard_file_extension", "")
+
+
+def get_other_allowed_extensions(properties: Dict[str, Any]) -> str:
+    return properties.get("other_allowed_extensions", "")
+
+
+def is_chain_file(properties: Dict[str, Any]) -> bool:
+    return get_standard_file_extension(properties) == "chain.gz"

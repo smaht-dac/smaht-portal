@@ -8,6 +8,7 @@
         "filename",
         "submission_centers",
         "submitted_id",
+        "software",
         "data_type",
         "data_category"
     ],
@@ -82,14 +83,19 @@
             "pattern": "^[A-Z0-9]{3,}_SUPPLEMENTARY-FILE_[A-Z0-9-_.]{4,}$"
         },
         "donor_specific_assembly": {
-            "title":"Donor-Specific Assembly",
-            "description": "Associated donor-specific assembly, if applicable",
+            "title": "Donor-Specific Assembly",
+            "description": "Link to the associated Donor-Specific Assembly",
             "type": "string",
             "linkTo": "DonorSpecificAssembly"
         },
+        "target_assembly": {
+            "title":"Target Assembly",
+            "description": "The assembly to which the coordinates are being converted required for chain files)",
+            "type": "string"
+        },
         "source_assembly": {
             "title": "Source Assembly",
-            "description": "The reference genome assembly from which the coordinates are being converted (for chain files)",
+            "description": "The assembly from which the coordinates are being converted (required chain files)",
             "type": "string"
         }
     }

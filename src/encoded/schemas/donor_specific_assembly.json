@@ -5,9 +5,9 @@
     "type": "object",
     "required": [
         "submitted_id",
+        "title",
         "submission_centers",
-        "derived_from",
-        "software"
+        "derived_from"
     ],
     "identifyingProperties": [
         "accession",
@@ -20,13 +20,13 @@
             "$ref": "mixins.json#/accession"
         },
         {
-            "$ref": "mixins.json#/aliases"
-        },
-        {
             "$ref": "mixins.json#/attribution"
         },
         {
             "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/title"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -193,13 +193,13 @@
         },
         "derived_from": {
             "title": "Derived From",
-            "description": "File set used as input to generate the assembly",
+            "description": "Files used as input to generate the assembly",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
             "items": {
                 "type": "string",
-                "linkTo": "FileSet"
+                "linkTo": "File"
             }
         },
         "software": {
@@ -217,17 +217,14 @@
     "facets": {
         "submission_centers.display_title": {
             "title": "Submitted By"
-        },
-        "category": {
-            "title": "Category"
         }
     },
     "columns": {
+        "title": {
+            "title": "Title"
+        },
         "submission_centers.display_title": {
             "title": "Submitted By"
-        },
-        "category": {
-            "title": "Category"
         }
     }
 }

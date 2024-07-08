@@ -11,9 +11,15 @@ from ..item_utils import donor_specific_assembly as dsa_utils
 def _build_dsa_embedded_list():
     """Embeds for search on general files."""
     return SubmittedItem.embedded_list + [
-        "derived_from.libraries.analytes.samples.sample_sources.donor",
-        "derived_from.libraries.analytes.samples.sample_sources.cell_line.code",
-        "derived_from.libraries.analytes.samples.sample_sources.components.cell_culture.cell_line.code",
+        "derived_from.file_sets.libraries.analytes.samples.sample_sources.code",
+        "derived_from.file_sets.libraries.analytes.samples.sample_sources.description",
+        "derived_from.file_sets.libraries.analytes.samples.sample_sources.donor",
+        "derived_from.file_sets.libraries.analytes.samples.sample_sources.cell_line.code",
+        "derived_from.file_sets.libraries.analytes.samples.sample_sources.cell_line.donor",
+        "derived_from.file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.cell_line.code",
+        "derived_from.file_sets.samples.sample_sources.code",
+        "derived_from.file_sets.samples.sample_sources.description",
+        "derived_from.file_sets.samples.sample_sources.donor",
     ]
 
 
@@ -108,21 +114,17 @@ class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
         return
     
     def _get_cell_lines(
-        self, request: Request, derived_from: Optional[List[str]] = None
+        self, request: Request, derived_from: List[str]
     ) -> List[str]:
         """Get the cell line source associated with the assembly, if applicable."""
-        result = None
-        if derived_from:
-            request_handler = RequestHandler(request=request)
-            result = dsa_utils.get_cell_lines(self.properties,request_handler)
-        return result or None
+        request_handler = RequestHandler(request=request)
+        return dsa_utils.get_cell_lines(self.properties,request_handler)
+
 
     def _get_donors(
-        self, request: Request, derived_from: Optional[List[str]] = None
+        self, request: Request, derived_from: List[str]
     ) -> List[str]:
         """Get the donor source associated with the assembly."""
-        result = None
-        if derived_from:
-            request_handler = RequestHandler(request=request)
-            result = dsa_utils.get_donors(self.properties,request_handler)
-        return result or None
+        request_handler = RequestHandler(request=request)
+        return dsa_utils.get_donors(self.properties,request_handler)
+

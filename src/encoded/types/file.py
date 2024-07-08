@@ -332,6 +332,7 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.libraries.analytes.samples.sample_sources.description",
         "file_sets.libraries.analytes.samples.sample_sources.donor",
         "file_sets.libraries.analytes.samples.sample_sources.cell_line.code",
+        "file_sets.libraries.analytes.samples.sample_sources.cell_line.donor",
         "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.cell_line.code",
         "file_sets.samples.sample_sources.code",
         "file_sets.samples.sample_sources.description",
@@ -430,6 +431,20 @@ class File(Item, CoreFile):
     ) -> str:
         return CoreFile.href(self, request, file_format, accession=accession)
 
+    @calculated_property(
+            schema={
+                "title": "Notes to tsv file",
+                "description": "Notes that go into the metadata.tsv file",
+                "type": "string"
+        }
+    )
+    def tsv_notes(self, request: Request, notes_to_tsv: Union[str, None] = None):
+        if notes_to_tsv is None:
+            return ''
+        else:
+            notes_to_tsv_string = ','.join(notes_to_tsv)
+        return notes_to_tsv_string
+    
     @calculated_property(
         condition=show_upload_credentials, schema=UNMAPPED_OBJECT_SCHEMA
     )

@@ -2,12 +2,8 @@ from typing import List, Dict, Any, Union, Optional
 from functools import partial
 
 from .utils import RequestHandler, get_property_value_from_identifier, get_property_values_from_identifiers
-from .file import get_file_format
 from . import (
-    library as library_utils,
     sample as sample_utils,
-    analyte as analyte_utils,
-    file_set as file_set_utils,
     tissue as tissue_utils,
     cell_culture as cell_culture_utils,
     cell_culture_mixture as cell_culture_mixture_utils,
@@ -18,33 +14,17 @@ from .file_format import get_standard_file_extension
 
 def get_file_format_id(request_handler: RequestHandler,identifier: str):
     """Return identifier of file_format for file."""
-    return get_property_value_from_identifier(request_handler,identifier,get_file_format)
+    return get_property_value_from_identifier(request_handler,identifier,file_utils.get_file_format)
 
 
 def get_derived_from(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
-    """Get file_sets the donor-specific assembly is derived from."""
+    """Get files the donor-specific assembly is derived from."""
     return properties.get("derived_from", [])
-
-
-def get_libraries(request_handler: RequestHandler,derived_from: str):
-    """Get libraries from the file set the assembly is derived from."""
-    if request_handler:
-        file_sets = request_handler.get_items(derived_from)
-        return get_property_values_from_identifiers(request_handler,file_sets,file_set_utils.get_libraries)
-    return []
 
 
 def get_software(properties: Dict[str, Any]):
     """Get software for the assembly."""
     return properties.get("software", [])
-    
-
-def get_analytes(request_handler: RequestHandler, derived_from: str):
-    """Get analytes from the libraries the assembly is derived from."""
-    if request_handler:
-        libraries = get_libraries(request_handler,derived_from)
-        return get_property_values_from_identifiers(request_handler,libraries,library_utils.get_analytes)
-    return []
     
 
 def get_samples(properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None) -> List[Union[str, Dict[str, Any]]]:
@@ -53,7 +33,7 @@ def get_samples(properties: Dict[str, Any], request_handler: Optional[RequestHan
         return get_property_values_from_identifiers(
             request_handler,
             get_derived_from(properties),
-            partial(file_set_utils.get_samples, request_handler=request_handler),
+            partial(file_utils.get_samples, request_handler=request_handler),
         )
     return properties.get("samples", [])
 
@@ -147,24 +127,22 @@ def get_cell_lines(
 
 
 def get_donors(
-    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
+    properties: Dict[str, Any], request_handler: RequestHandler
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get donors or cell lines of the assembly."""
-    if request_handler:
-        tissues = get_tissues(properties, request_handler)
-        cell_lines = get_cell_lines(properties, request_handler)
-        return list(
-            set(
-                get_property_values_from_identifiers(
-                    request_handler, tissues, tissue_utils.get_donor
-                )
-                + get_property_values_from_identifiers(
-                    request_handler, cell_lines, cell_line_utils.get_donor
-                )
+    tissues = get_tissues(properties, request_handler)
+    cell_lines = get_cell_lines(properties, request_handler)
+    result =  list(
+        set(
+            get_property_values_from_identifiers(
+                request_handler, tissues, tissue_utils.get_donor
+            )
+            + get_property_values_from_identifiers(
+                request_handler, cell_lines, cell_line_utils.get_donor
             )
         )
-    return properties.get("donors", [])
-
+    )
+    return result
 
 def is_fasta_file(request_handler: RequestHandler, identifier: str):
     """Check if file_format has the fa file extension."""

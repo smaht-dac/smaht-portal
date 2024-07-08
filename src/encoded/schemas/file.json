@@ -113,6 +113,7 @@
                     "Germline Variant Calls",
                     "Quality Control",
                     "Reference Genome",
+                    "Donor-Specific Assembly",
                     "Reference Transcriptome",
                     "RNA Quantification",
                     "Sequencing Reads",

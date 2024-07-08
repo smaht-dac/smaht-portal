@@ -323,6 +323,26 @@ def get_file_extension(
     )
 
 
+def get_accepted_file_extensions(
+    properties: Dict[str, Any], request_handler: RequestHandler
+) -> str:
+    """Get all accepted file extensions from properties."""
+    return list(
+        set(
+            get_property_value_from_identifier(
+                request_handler,
+                get_file_format(properties),
+                file_format.get_standard_file_extension,
+            )
+                + get_property_value_from_identifier(
+                    request_handler,
+                    get_file_format(properties),
+                    file_format.get_other_allowed_extensions,
+            )
+        )
+    )
+
+
 def is_unaligned_reads(file: Dict[str, Any]) -> bool:
     """Check if file is unaligned reads."""
     return "Unaligned Reads" in get_data_type(file)
