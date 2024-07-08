@@ -7,13 +7,15 @@ smaht-portal
 Change Log
 ----------
 
-0.68.6
+0.69.0
 ======
 
-`PR 195: fix: tablet navigation collapse <https://github.com/smaht-dac/smaht-portal/pull/195>`_
-
-* Fixes collapsing navigation bar for tablet size screens
-* Switch to mobile navigation component early
+* Documentation for smaht-submitr binary (pyinstaller-based) installation.
+* Updates related to Python 3.12.
+* New (and commented out by default) elasticsearch.server.actual_port property in base.ini
+  to facilitate running a local ElasticSearch proxy to observe traffic (resquests/responses)
+  between the portal and ElasticSearch with a tool like mitmproxy or mitmweb; see comments
+  in base.ini; and see in snovault/dev_server for where this is handled.
 
 
 0.68.5
