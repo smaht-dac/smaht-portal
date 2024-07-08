@@ -717,6 +717,22 @@
             }
         }
     },
+    "preservation_medium": {
+        "title": "Preservation Medium",
+        "description": "Medium used for preservation",
+        "type": "string"
+    },
+    "preservation_type": {
+        "title": "Preservation Type",
+        "description": "Method of preservation",
+        "type": "string",
+        "enum": [
+            "Fixed",
+            "Fresh",
+            "Frozen",
+            "Snap Frozen"
+        ]
+    },
     "protocols": {
         "protocols": {
             "title": "Protocols",

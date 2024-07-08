@@ -59,6 +59,12 @@
             "$ref": "mixins.json#/uuid"
         },
         {
+            "$ref": "mixins.json#/preservation_medium"
+        },
+        {
+            "$ref": "mixins.json#/preservation_type"
+        },
+        {
             "$ref": "sample_source.json#/properties"
         }
     ],
@@ -100,22 +106,6 @@
             "type": "number",
             "minimum": 0,
             "maximum": 14
-        },
-        "preservation_medium": {
-            "title": "Preservation Medium",
-            "description": "Medium used for tissue preservation",
-            "type": "string"
-        },
-        "preservation_type": {
-            "title": "Preservation Type",
-            "description": "Method of tissue preservation",
-            "type": "string",
-            "enum": [
-                "Fixed",
-                "Fresh",
-                "Frozen",
-                "Snap Frozen"
-            ]
         },
         "prosector_notes": {
             "title": "Prosector Notes",
