@@ -19,8 +19,13 @@ Change Log
 * Updates related to Python 3.12.
 * New (and commented out by default) elasticsearch.server.actual_port property in base.ini
   to facilitate running a local ElasticSearch proxy to observe traffic (resquests/responses)
-  between the portal and ElasticSearch with a tool like mitmproxy or mitmweb; see comments
-  in base.ini; and see in snovault/dev_server for where this is handled.
+  between the portal and ElasticSearch with a tool like mitmproxy or mitmweb; see comments in
+  base.ini; and see in snovault/dev_server for where this is handled. For example to actually
+  run ElasticSearch on port 9201 but proxy smaht-portal ElasticSearch requests through port 9200,
+  set elasticsearch.server.actual_port to 9201 and elasticsearch.server to localhost:9200,
+  and then run: mitmweb --mode reverse:http://localhost:9201 -p 9200 --web-port 8081
+  and then brows to http://localhost:8081 to view the ElasticSearch traffic.
+  And you'll need to first do: pip install mitmproxy
 
 
 0.68.5
