@@ -7,10 +7,22 @@ smaht-portal
 Change Log
 ----------
 
-0.68.6
+0.69.1
 ======
 
-* Update /homepage to include counts for benchmarking tissues
+* Update ``/homepage`` to include counts for benchmarking tissues
+* Update ``file_group`` calcprop to account for tissue data
+
+
+0.69.0
+======
+
+* Documentation for smaht-submitr binary (pyinstaller-based) installation.
+* Updates related to Python 3.12.
+* New (and commented out by default) elasticsearch.server.actual_port property in base.ini
+  to facilitate running a local ElasticSearch proxy to observe traffic (resquests/responses)
+  between the portal and ElasticSearch with a tool like mitmproxy or mitmweb; see comments
+  in base.ini; and see in snovault/dev_server for where this is handled.
 
 
 0.68.5
