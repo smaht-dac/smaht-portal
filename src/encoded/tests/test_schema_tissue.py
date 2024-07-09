@@ -30,7 +30,7 @@ def test_size_unit_requirements(
     es_testapp: TestApp,
     workbook: None,
 ) -> None:
-    """Ensure mutual requirements for RIN and instrument."""
+    """Ensure mutual requirements for size and size_unit."""
     uuid = get_insert_identifier_for_item_type(es_testapp, "Tissue")
     patch_item(
         es_testapp,
