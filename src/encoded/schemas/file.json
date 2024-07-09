@@ -189,6 +189,10 @@
         "file_sets.sequencing.sequencer.display_title": {
             "title": "Sequencing Platform"
         },
+        "donors.display_title": {
+            "title": "Donor",
+            "default_hidden": true
+        },
         "file_format.display_title": {
             "title": "Data Format"
         },

@@ -19,6 +19,14 @@ Change Log
 * Make `core_size` a string enum
 * Add `size_unit` to Tissue to account for tissues measured in cm^2 instead of cm^3
 
+
+0.69.1
+======
+
+* Update ``/homepage`` to include counts for benchmarking tissues
+* Update ``file_group`` calcprop to account for tissue data
+
+
 0.69.0
 ======
 
@@ -38,6 +46,8 @@ Change Log
 
 0.68.4
 ======
+
+*  Update /homepage to include counts for benchmarking tissues
 
 `PR 196: Bm primary tissue fixes <https://github.com/smaht-dac/smaht-portal/pull/196>`_
 
@@ -146,7 +156,7 @@ Change Log
 
 `PR 181: Submission and Usage Statistics Follow-up Updates  <https://github.com/smaht-dac/smaht-portal/pull/181>`_
 
-* Filtering  
+* Filtering
   * Previous 60 days added to date range options
   * Cumulative sum checkbox added to switch between individual bars and cumulative sum
 * File downloads
