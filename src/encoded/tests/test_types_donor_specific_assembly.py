@@ -417,7 +417,7 @@ def test_donors_calc_prop(
 
 @pytest.mark.workbook
 def test_searchable_as_reference_genome(es_testapp: TestApp, workbook: None) -> None:
-    """Ensure DonorSpecificAssemblies can searched in ReferenceGenome.
+    """Ensure DonorSpecificAssemblies can be searched in ReferenceGenome.
     """
 
     uuid = get_insert_identifier_for_item_type(
@@ -431,21 +431,21 @@ def test_searchable_as_reference_genome(es_testapp: TestApp, workbook: None) -> 
     )
 
 
-# @pytest.mark.workbook
-# def test_dsa_reference_genome_collection(es_testapp: TestApp, workbook: None) -> None:
-#     """Ensure DonorSpecificAssemblies can be found in ReferenceGenome collection.
-#     """
+@pytest.mark.workbook
+def test_dsa_reference_genome_collection(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure DonorSpecificAssemblies can be found in the ReferenceGenome collection.
+    """
 
-#     uuid = get_insert_identifier_for_item_type(
-#         es_testapp,
-#         "DonorSpecificAssembly"
-#     )
-#     get_item(
-#         es_testapp,
-#         uuid,
-#         collection="ReferenceGenome",
-#         status=301
-#     )
+    uuid = get_insert_identifier_for_item_type(
+        es_testapp,
+        "DonorSpecificAssembly"
+    )
+    get_item(
+        es_testapp,
+        uuid,
+        collection="ReferenceGenome",
+        status=301
+    )
 
 
 @pytest.mark.workbook
