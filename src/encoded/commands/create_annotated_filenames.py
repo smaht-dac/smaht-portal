@@ -433,7 +433,7 @@ def get_annotated_filename(
     accession = get_accession(file)
     file_extension = get_file_extension(file, associated_items.file_format)
     analysis_info = get_analysis(
-        file, associated_items.software, associated_items.reference_genome,associated_items.file_format, associated_items.donor_specific_assembly
+        file, associated_items.software, associated_items.reference_genome,associated_items.file_format
     )
     errors = collect_errors(
         project_id,
@@ -780,8 +780,6 @@ def get_analysis(
     software: List[Dict[str, Any]],
     reference_genome: Dict[str, Any],
     file_extension: Dict[str, Any],
-    donor_specific_assembly: Dict[str, Any] = None,
-
 ) -> FilenamePart:
     """Get analysis info for file.
 
@@ -797,7 +795,7 @@ def get_analysis(
     value = get_analysis_value(
         software_and_versions, reference_genome_code, variant_types
     )
-    if donor_specific_assembly and file_format_utils.is_chain_file(file_extension):
+    if file_format_utils.is_chain_file(file_extension):
         value = f"{value}{ANALYSIS_INFO_SEPARATOR}{get_chain_file_value(file)}"
     if not value:
         if file_utils.is_unaligned_reads(file):  # Think this is the only case (?)

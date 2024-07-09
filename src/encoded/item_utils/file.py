@@ -343,6 +343,16 @@ def get_accepted_file_extensions(
     )
 
 
+def is_fasta_file(properties: Dict[str, Any],request_handler: RequestHandler):
+    """Check if file file_format has the fa or fasta file extension."""
+    return get_file_extension(properties,request_handler) in ["fa","fasta"]
+
+
+def is_chain_file(properties: Dict[str, Any],request_handler: RequestHandler):
+    """Check if file_format has the chain.gz file extension."""
+    return get_file_extension(properties,request_handler) == "chain.gz"
+
+
 def is_unaligned_reads(file: Dict[str, Any]) -> bool:
     """Check if file is unaligned reads."""
     return "Unaligned Reads" in get_data_type(file)

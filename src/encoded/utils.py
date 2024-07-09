@@ -65,6 +65,8 @@ def get_item(
 
     Wrapper around get_item_or_none() for consistent return value type.
     """
+    # if item_identifier in ["12a3228f-f46c-4fbf-a19c-d233bf7d20d8","621e0ea9-0365-4e65-9790-05aa43c52261"]:
+    #     import pdb;pdb.set_trace()
     item_type = to_camel_case(collection) if collection else collection
     result = get_item_or_none(request, item_identifier, itype=item_type, frame=frame)
     if result is not None:

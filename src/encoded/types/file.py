@@ -431,20 +431,20 @@ class File(Item, CoreFile):
     ) -> str:
         return CoreFile.href(self, request, file_format, accession=accession)
 
-    @calculated_property(
-            schema={
-                "title": "Notes to tsv file",
-                "description": "Notes that go into the metadata.tsv file",
-                "type": "string"
-        }
-    )
-    def tsv_notes(self, request: Request, notes_to_tsv: Union[str, None] = None):
-        if notes_to_tsv is None:
-            return ''
-        else:
-            notes_to_tsv_string = ','.join(notes_to_tsv)
-        return notes_to_tsv_string
-    
+    # @calculated_property(
+    #         schema={
+    #             "title": "Notes to tsv file",
+    #             "description": "Notes that go into the metadata.tsv file",
+    #             "type": "string"
+    #     }
+    # )
+    # def tsv_notes(self, request: Request, notes_to_tsv: Union[str, None] = None):
+    #     if notes_to_tsv is None:
+    #         return ''
+    #     else:
+    #         notes_to_tsv_string = ','.join(notes_to_tsv)
+    #     return notes_to_tsv_string
+
     @calculated_property(
         condition=show_upload_credentials, schema=UNMAPPED_OBJECT_SCHEMA
     )
@@ -531,6 +531,7 @@ class File(Item, CoreFile):
             }
         else:  # we need the revision history
             result = {}
+            # import pdb; pdb.set_trace()
             revision_history = request.embed(f'/{self.uuid}/@@revision-history', as_user='IMPORT')
             for revision in revision_history['revisions']:
                 status = revision.get('status')

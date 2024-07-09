@@ -4,7 +4,7 @@
         "submitted_id": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
         "title": "Hela_DSA",
         "derived_from": [
-            "TEST_UNALIGNED-READS_FASTQ_R2"
+            "TSTFI2115172"
         ],
         "software": [
             "TEST_SOFTWARE_BWA-MEM"

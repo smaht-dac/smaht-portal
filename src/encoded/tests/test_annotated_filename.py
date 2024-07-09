@@ -507,10 +507,16 @@ ANOTHER_SOFTWARE_CODE = "bar"
 ANOTHER_SOFTWARE_VERSION = "2.3.4"
 ANOTHER_SOFTWARE = {"code": ANOTHER_SOFTWARE_CODE, "version": ANOTHER_SOFTWARE_VERSION}
 REFERENCE_GENOME_CODE = "GRCh38"
+TARGET_GENOME_CODE = "HELA_DSA"
+
 SOME_REFERENCE_GENOME = {"code": REFERENCE_GENOME_CODE}
 SOME_UNALIGNED_READS = {"data_type": ["Unaligned Reads"]}
 SOME_ALIGNED_READS = {"data_type": ["Aligned Reads"]}
-SOME_CHAIN_FILE = {"data_type": ["SupplementaryFile"]}
+SOME_CHAIN_FILE = {
+    "data_type": ["SupplementaryFile"],
+    "source_assembly": REFERENCE_GENOME_CODE,
+    "target_assembly": TARGET_GENOME_CODE
+}
 SOME_SOMATIC_VARIANT_CALLS = {"data_category": ["Somatic Variant Calls"]}
 SOME_VARIANT_CALLS = {
     "data_category": ["Somatic Variant Calls"],
@@ -518,17 +524,17 @@ SOME_VARIANT_CALLS = {
 }
 SOME_FILE_EXTENSION = {
     "identifier": "BAM",
-    "standard_file_extention": "bam",
+    "standard_file_extension": "bam",
     "valid_item_types": ["AlignedReads"]
 }
 VCF_FILE_EXTENSION = {
     "identifier": "VCF",
-    "standard_file_extention": "vcf.gz",
+    "standard_file_extension": "vcf.gz",
     "valid_item_types": ["VariantCalls"]
 }
 CHAIN_FILE_EXTENSION = {
     "identifier": "CHAIN",
-    "standard_file_extention": "chain.gz",
+    "standard_file_extension": "chain.gz",
     "valid_item_types": ["SupplementaryFile"]
 }
 
@@ -580,6 +586,14 @@ CHAIN_FILE_EXTENSION = {
             SOME_REFERENCE_GENOME,
             SOME_FILE_EXTENSION,
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}",
+            False,
+        ),
+        (
+            SOME_CHAIN_FILE,
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            CHAIN_FILE_EXTENSION,
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}To{TARGET_GENOME_CODE}",
             False,
         ),
     ],
