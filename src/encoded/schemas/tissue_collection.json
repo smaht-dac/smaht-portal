@@ -97,6 +97,12 @@
                 ]
             }
         },
+        "recovery_interval": {
+            "title": "Recovery Interval",
+            "description": "Total time interval of tissue collection (minutes)",
+            "type": "integer",
+            "minimum": 0
+        },
         "refrigeration_prior_to_procurement": {
             "title": "Refrigeration Prior To Procurement",
             "description": "Whether the donor was refrigerated prior to tissue collection",

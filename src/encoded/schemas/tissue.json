@@ -127,7 +127,7 @@
         },
         "recovery_interval": {
             "title": "Recovery Interval",
-            "description": "Total time interval of tissue recovery (minutes)",
+            "description": "Time interval of tissue recovery (minutes)",
             "type": "integer",
             "minimum": 0
         },
