@@ -179,6 +179,7 @@ export const HashBasedTabController = ({
 
     return (
         <Tabs
+            key={session}
             {...{ defaultActiveKey }}
             mountOnEnter={true} // Don't load other tabs until switch to them (faster initial load + easier debugging)
             id={controllerId}
