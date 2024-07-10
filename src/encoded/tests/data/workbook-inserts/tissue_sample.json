@@ -12,6 +12,8 @@
         "category": "Core",
         "core_size": "1.5",
         "weight": 800,
+        "preservation_type": "Fixed",
+        "preservation_medium": "Formalin",
         "tags": [
             "test_sample_names",
             "sample_names-SMHT001-1A-100A1",
@@ -31,6 +33,7 @@
             "TEST_TISSUE_LUNG"
         ],
         "external_id": "ST001-1A-020X",
-        "category": "Homogenate"
+        "category": "Homogenate",
+        "preservation_type": "Snap Frozen"
     }
 ]
