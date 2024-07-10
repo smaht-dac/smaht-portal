@@ -487,16 +487,16 @@ def test_es_donors_calc_prop(es_testapp: TestApp, workbook: None) -> None:
     # assert donors_set_search
 
 
-# @pytest.mark.workbook
-# def test_es_cell_lines_calc_prop(es_testapp: TestApp, workbook: None) -> None:
-#     """Ensure the cell line calcprop works."""
-#     uuid=get_insert_identifier_for_item_type(es_testapp,"DonorSpecificAssembly")
-#     dsa=get_item(
-#         es_testapp,
-#         uuid,
-#         collection='DonorSpecificAssembly',
-#         frame="object"
-#         # datastore='database'
-#     )
-#     assert len(dsa.get("cell_lines",[])) == 1
+@pytest.mark.workbook
+def test_es_cell_lines_calc_prop(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure the cell line calcprop works."""
+    uuid=get_insert_identifier_for_item_type(es_testapp,"DonorSpecificAssembly")
+    dsa=get_item(
+        es_testapp,
+        uuid,
+        collection='DonorSpecificAssembly',
+        frame="object"
+        # datastore='database'
+    )
+    assert len(dsa.get("cell_lines",[])) == 1
 
