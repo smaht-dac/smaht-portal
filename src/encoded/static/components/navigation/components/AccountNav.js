@@ -84,7 +84,12 @@ export const AccountNav = React.memo(function AccountNav(props) {
 
     const { details: userDetails = {}, user_actions: userActions = [] } =
         JWT.getUserInfo() || {};
-    const { first_name: acctTitle = 'Account', email } = userDetails;
+    const {
+        first_name: acctTitle = 'Account',
+        last_name = '',
+        email,
+    } = userDetails;
+
     const acctIcon = (typeof email === 'string' &&
         email.indexOf('@') > -1 &&
         object.itemUtil.User.gravatar(
@@ -99,7 +104,12 @@ export const AccountNav = React.memo(function AccountNav(props) {
     const navItemTitle = (
         <React.Fragment>
             {acctIcon}
-            <span className="user-first-name">{acctTitle}</span>
+            <span className="user-first-name">
+                {(acctTitle + ' ' + last_name)
+                    .split(' ')
+                    .map((s) => s[0])
+                    .join('')}
+            </span>
         </React.Fragment>
     );
 
