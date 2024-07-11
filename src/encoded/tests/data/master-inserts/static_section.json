@@ -266,10 +266,10 @@
     {
         "identifier": "data.analysis.colo829_snv_indel_detection",
         "title": "COLO829 SNV/Indel Detection Challenge Data",
-        "file": "/docs/public/colo829_snv_indel_detection.rst",
+        "file": "/docs/public/colo829_snv_indel_detection.jsx",
         "status": "public",
         "options": {
-            "filetype": "rst",
+            "filetype": "jsx",
             "collapsible": false,
             "default_open": true,
             "initial_header_level": 2
