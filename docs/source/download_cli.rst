@@ -36,13 +36,13 @@ Linux
     sudo ./aws/install
     aws --version
 
-If the ``unzip`` happens to not be installed then for Debian/Ubuntu flavors of Linux you'll first need to do:
+If the ``unzip`` command happens to not be installed then for Debian/Ubuntu flavors of Linux you'll first need to do:
 
 .. code-block:: bash
 
     sudo apt install -y unzip
 
-If the ``unzip`` happens to not be installed then for RedHat/CentoS flavors of Linux you'll first need to do:
+If the ``unzip`` command happens to not be installed then for RedHat/CentoS flavors of Linux you'll first need to do:
 
 .. code-block:: bash
 

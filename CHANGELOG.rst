@@ -9,7 +9,8 @@ Change Log
 
 0.69.2
 ======
-* Minor documentation updates for how to install awscli (docs/source/download_cli.rst).
+* Minor documentation updates for how to install awscli in docs/source/{file_download,download_cli}.rst.
+* Update to dcicutils 8.13.3.
 
 
 0.69.1
