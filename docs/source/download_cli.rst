@@ -40,7 +40,7 @@ For more information see: https://docs.aws.amazon.com/cli/latest/userguide/getti
 MacOS
 -----
 
-If you are using `Homebrew <https://brew.sh/>`_
+If you are using `Homebrew <https://brew.sh/>`_ simply run:
 
 .. code-block:: bash
 
