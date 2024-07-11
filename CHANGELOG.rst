@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.69.2
+======
+* Minor documentation updates for how to install awscli (docs/source/download_cli.rst).
+
+
 0.69.1
 ======
 
