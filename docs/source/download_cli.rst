@@ -33,10 +33,17 @@ Linux
     curl https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o awscliv2.zip
     unzip awscliv2.zip
     sudo ./aws/install
+    # The 'aws' command should not be ready for use.
 
 For more information see: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
 MacOS
 -----
 
-TODO
+If you are using `Homebrew <https://brew.sh/>`_
+
+.. code-block:: bash
+
+    brew install awscli
+
+For more information see: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
