@@ -28,7 +28,11 @@ It is likely that the aws command-line tool is already installed on your system,
 Linux
 -----
 
-TODO
+.. code-block:: bash
+
+    curl https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o awscliv2.zip
+    unzip awscliv2.zip
+    sudo ./aws/install
 
 For more information see: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
