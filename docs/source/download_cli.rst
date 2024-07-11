@@ -23,4 +23,16 @@ The ``download_cli`` API will return short term AWS credentials for direct acces
 Installing AWS CLI
 ^^^^^^^^^^^^^^^^^^
 
+It is likely that the aws command-line tool is already installed on your system, but if not here are some brief instructions for how to do this.
+
+Linux
+-----
+
+TODO
+
+For more information see: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+
+MacOS
+-----
+
 TODO
