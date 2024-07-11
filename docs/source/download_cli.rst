@@ -48,8 +48,6 @@ If the ``unzip`` happens to not be installed then for RedHat/CentoS flavors of L
 
     sudo yum install -y unzip
 
-For more information see: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
-
 MacOS
 -----
 
@@ -67,5 +65,3 @@ If you are not using ``brew``:
     curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
     sudo installer -pkg AWSCLIV2.pkg -target /
     aws --version
-
-For more information see: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
