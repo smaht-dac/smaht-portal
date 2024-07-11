@@ -20,3 +20,7 @@ The ``download_cli`` API will return short term AWS credentials for direct acces
     download_url=$(echo $credentials | jq -r ".download_url") &&
     aws s3 cp "$download_url" "$1"''
 
+Installing AWS CLI
+^^^^^^^^^^^^^^^^^^
+
+TODO
