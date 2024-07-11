@@ -34,7 +34,19 @@ Linux
     curl https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o awscliv2.zip
     unzip awscliv2.zip
     sudo ./aws/install
-    # The 'aws' command should now be ready for use.
+    aws --version
+
+If the ``unzip`` happens to not be installed then for Debian/Ubuntu flavors of Linux you'll need to do:
+
+.. code-block:: bash
+
+    sudo apt install -y unzip
+
+If the ``unzip`` happens to not be installed then for RedHat/CentoS flavors of Linux you'll need to do:
+
+.. code-block:: bash
+
+    sudo yum install -y unzip
 
 For more information see: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
@@ -46,5 +58,14 @@ If you are using `Homebrew <https://brew.sh/>`_ simply run:
 .. code-block:: bash
 
     brew install awscli
+    aws --version
+
+If you are not using `Homebrew <https://brew.sh/>`_:
+
+.. code-block:: bash
+
+    curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+    sudo installer -pkg AWSCLIV2.pkg -target /
+    aws --version
 
 For more information see: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
