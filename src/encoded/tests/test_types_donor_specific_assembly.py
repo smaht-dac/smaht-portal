@@ -476,7 +476,6 @@ def test_es_donors_calc_prop(es_testapp: TestApp, workbook: None) -> None:
         es_testapp,
         uuid,
         collection='DonorSpecificAssembly',
-        frame="object"
         # datastore='database'
     )
     assert len(dsa.get("donors",[])) == 1

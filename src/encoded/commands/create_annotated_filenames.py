@@ -13,7 +13,6 @@ from encoded.item_utils import (
     cell_culture_mixture as cell_culture_mixture_utils,
     cell_line as cell_line_utils,
     donor as donor_utils,
-    donor_specific_assembly as dsa_utils,
     file as file_utils,
     file_format as file_format_utils,
     file_set as file_set_utils,
