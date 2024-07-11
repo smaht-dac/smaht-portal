@@ -24,6 +24,7 @@ Installing AWS CLI
 ^^^^^^^^^^^^^^^^^^
 
 It is likely that the aws command-line tool is already installed on your system, but if not here are some brief instructions for how to do this.
+For more information see: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
 Linux
 -----
@@ -33,7 +34,7 @@ Linux
     curl https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o awscliv2.zip
     unzip awscliv2.zip
     sudo ./aws/install
-    # The 'aws' command should not be ready for use.
+    # The 'aws' command should now be ready for use.
 
 For more information see: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
