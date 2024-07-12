@@ -7,13 +7,21 @@ smaht-portal
 Change Log
 ----------
 
-0.69.1
+0.69.2
 ======
 
 `PR 195: fix: tablet navigation collapse <https://github.com/smaht-dac/smaht-portal/pull/195>`_
 
 * Fixes collapsing navigation bar for tablet size screens
 * Switch to mobile navigation component early
+* Show initials for username in tablet screen size
+
+
+0.69.1
+======
+
+* Update ``/homepage`` to include counts for benchmarking tissues
+* Update ``file_group`` calcprop to account for tissue data
 
 
 0.69.0
@@ -35,6 +43,8 @@ Change Log
 
 0.68.4
 ======
+
+*  Update /homepage to include counts for benchmarking tissues
 
 `PR 196: Bm primary tissue fixes <https://github.com/smaht-dac/smaht-portal/pull/196>`_
 
@@ -140,7 +150,7 @@ Change Log
 
 `PR 181: Submission and Usage Statistics Follow-up Updates  <https://github.com/smaht-dac/smaht-portal/pull/181>`_
 
-* Filtering  
+* Filtering
   * Previous 60 days added to date range options
   * Cumulative sum checkbox added to switch between individual bars and cumulative sum
 * File downloads
