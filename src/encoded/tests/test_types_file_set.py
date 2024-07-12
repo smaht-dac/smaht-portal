@@ -1,7 +1,8 @@
+from typing import Dict, Any
 import pytest
 from webtest import TestApp
 
-from .utils import get_search
+from .utils import get_search, get_insert_identifier_for_item_type, patch_item
 
 
 FILE_SET_ID = 'b98f9849-3b7f-4f2f-a58f-81100954e00d'
@@ -22,3 +23,34 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
     assert file_merge_group['sample_source'] == 'TEST_TISSUE-SAMPLE_LIVER'
     assert file_merge_group['sequencing'] == 'illumina_novaseqx-Paired-end-150-R9'
     assert file_merge_group['assay'] == 'bulk_wgs'
+
+
+@pytest.mark.workbook
+@pytest.mark.parametrize(
+    "library,sequencing,expected_status",
+    [
+        ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_PACBIO_30X-30H",200), # FiberSeq and PacBio
+        ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_ONT-90X",200), # FiberSeq and ONT
+        ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_NOVASEQ-500X", 422), # bulk_wgs and ONT
+        ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_ONT-90X", 200), #Cas9 Nanopore and ONT
+        ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_ONT-90X", 200), #Cas9 Nanopore and ONT
+        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X",200) #bulk_wgs and Illumina NovaSeqX
+    ],
+)
+def test_validate_compatible_assay_and_sequencer_on_patch(
+    es_testapp: TestApp,
+    library: str,
+    sequencing: str,
+    expected_status: int,
+) -> None:
+    """Ensure file set assay and sequencer validated on PATCH.
+
+    Note: Permissible combinations of assay and sequencer are determined by `mutually_dependent`.
+    """
+    import pdb; pdb.set_trace()
+    identifier = get_insert_identifier_for_item_type(es_testapp,'file_set')
+    patch_body = {
+        "libraries": [library],
+        "sequencing": sequencing
+    }
+    patch_item(es_testapp, patch_body, identifier, status=expected_status)

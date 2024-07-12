@@ -1,9 +1,17 @@
 from typing import Any, Dict, List, Union
 
+from pyramid.view import view_config
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
+from snovault.util import debug_log, get_item_or_none
 
-from .submitted_item import SubmittedItem
+from .submitted_item import (
+    SUBMITTED_ITEM_ADD_VALIDATORS,
+    SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS,
+    SUBMITTED_ITEM_EDIT_PUT_VALIDATORS,
+    SubmittedItem,
+    SubmittedSmahtCollection
+)
 from ..item_utils import (
     file_set as file_set_utils,
     item as item_utils,
@@ -13,6 +21,12 @@ from ..item_utils import (
 from ..item_utils.utils import RequestHandler, get_property_value_from_identifier
 from ..utils import load_extended_descriptions_in_schemas
 
+
+from .base import (
+    collection_add,
+    item_edit,
+    Item
+)
 
 # These codes are used to generate the mergeable bam grouping calc prop
 # This obviously is not data drive, but in calc props we cannot rely on search
@@ -71,6 +85,9 @@ class FileSet(SubmittedItem):
         "files": ("File", "file_sets"),
         "meta_workflow_runs": ("MetaWorkflowRun", "file_sets"),
     }
+
+    class Collection(Item.Collection):
+        pass
 
     @calculated_property(
         schema={
@@ -245,3 +262,76 @@ class FileSet(SubmittedItem):
             'sequencing': sequencing_part,
             'assay': assay_part
         }
+
+
+def validate_compatible_assay_and_sequencer(context, request):
+    """Check filesets to make sure they are linked to compatible library.assay and sequencing items.
+    
+    The list of mutually_dependent assays and sequencers may need to be updated as new techologies come out 
+    or are added to the portal.
+    """
+    data = request.json
+    import pdb; pdb.set_trace()
+    libraries = data['libraries']
+    for library in libraries:
+       assay=get_item_or_none(request,library,'library').get('assay')
+    assays = [library_utils.get_assay(library) for library in libraries]
+    sequencer=sequencing_utils.get_sequencer(data['sequencing'])
+    
+    mutually_dependent = {
+        "bulk_fiberseq": {"pacbio_revio_hifi"}, # Fiber-Seq and PacBio
+        "bulk_mas_iso_seq":{"pacbio_revio_hifi"}, # MAS ISO-Seq and PacBio
+        "cas9_nanopore":{"ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"}, # Cas9 Nanopore and ONT
+        "bulk_ultralong_wgs":{"ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"} # Ultralong WGS and ONT
+    }
+    overlap = list(set(assays) & mutually_dependent.keys())
+    if overlap:
+        for assay in overlap:
+            special_sequencers = mutually_dependent['assay']
+            if sequencer not in special_sequencers:
+                msg = f"Sequencer {sequencer} is not allowed for assay {assay}."
+                request.errors.add('body', 'FileSet: invalid links', msg)
+            else:
+                request.validated.update({})
+    return request.validated.update({})
+
+
+
+# FILE_SET_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
+#     validate_compatible_assay_and_sequencer
+# ]
+
+# @view_config(
+#     context=FileSet,
+#     permission='add',
+#     request_method='POST',
+#     validators=FILE_SET_ADD_VALIDATORS,
+# )
+# @debug_log
+# def file_set_add(context, request, render=None):
+#     return collection_add(context, request, render)
+
+
+FILE_SET_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
+    validate_compatible_assay_and_sequencer
+]
+
+FILE_SET_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
+    validate_compatible_assay_and_sequencer
+]
+
+@view_config(
+    context=FileSet.Collection,
+    permission='edit',
+    request_method='PUT',
+    validators=FILE_SET_EDIT_PUT_VALIDATORS,
+)
+@view_config(
+    context=FileSet,
+    permission='edit',
+    request_method='PATCH',
+    validators=FILE_SET_EDIT_PATCH_VALIDATORS,
+)
+@debug_log
+def file_set_edit(context, request, render=None):
+    return item_edit(context, request, render)

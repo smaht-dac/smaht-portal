@@ -50,7 +50,7 @@
         "analytes": [
             "TEST_ANALYTE_HELA-HEK293"
         ],
-        "assay": "bulk_wgs"
+        "assay": "cas9_nanopore"
     },
     {
         "uuid": "c9464515-db14-475e-af1a-16cc87bfcbbb",
@@ -61,6 +61,6 @@
         "analytes": [
             "TEST_ANALYTE_LIVER-HOMOGENATE"
         ],
-        "assay": "bulk_wgs"
+        "assay": "bulk_fiberseq"
     }
 ]
