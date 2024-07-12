@@ -10,17 +10,7 @@ from ..item_utils import donor_specific_assembly as dsa_utils
 
 def _build_dsa_embedded_list():
     """Embeds for search on general files."""
-    return SubmittedItem.embedded_list #+ [
-    #     "derived_from.file_sets.libraries.analytes.samples.sample_sources.code",
-    #     "derived_from.file_sets.libraries.analytes.samples.sample_sources.description",
-    #     "derived_from.file_sets.libraries.analytes.samples.sample_sources.donor",
-    #     "derived_from.file_sets.libraries.analytes.samples.sample_sources.cell_line.code",
-    #     "derived_from.file_sets.libraries.analytes.samples.sample_sources.cell_line.donor",
-    #     "derived_from.file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.cell_line.code",
-    #     "derived_from.file_sets.samples.sample_sources.code",
-    #     "derived_from.file_sets.samples.sample_sources.description",
-    #     "derived_from.file_sets.samples.sample_sources.donor",
-    # ]
+    return SubmittedItem.embedded_list
 
 
 @collection(

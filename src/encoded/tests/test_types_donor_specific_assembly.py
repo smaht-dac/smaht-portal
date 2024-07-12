@@ -413,7 +413,7 @@ def test_donors_calc_prop(
     """Ensure the cell line calcprop works."""
     assert len(donor_specific_assembly.get("donors",[])) == 1
 
-####### WORKBOOK TESTS ##### 
+####### WORKBOOK TESTS #####
 
 @pytest.mark.workbook
 def test_searchable_as_reference_genome(es_testapp: TestApp, workbook: None) -> None:
@@ -476,14 +476,8 @@ def test_es_donors_calc_prop(es_testapp: TestApp, workbook: None) -> None:
         es_testapp,
         uuid,
         collection='DonorSpecificAssembly',
-        # datastore='database'
     )
     assert len(dsa.get("donors",[])) == 1
-    # donors_set_search = get_search(
-    #     es_testapp,
-    #     "?type=DonorSpecificAssembly&donors!=No+value"
-    # )
-    # assert donors_set_search
 
 
 @pytest.mark.workbook
@@ -495,7 +489,6 @@ def test_es_cell_lines_calc_prop(es_testapp: TestApp, workbook: None) -> None:
         uuid,
         collection='DonorSpecificAssembly',
         frame="object"
-        # datastore='database'
     )
     assert len(dsa.get("cell_lines",[])) == 1
 
