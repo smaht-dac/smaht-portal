@@ -273,11 +273,11 @@ def validate_compatible_assay_and_sequencer(context, request):
     data = request.json
     import pdb; pdb.set_trace()
     libraries = data['libraries']
+    assays = []
     for library in libraries:
        assay=get_item_or_none(request,library,'library').get('assay')
-    assays = [library_utils.get_assay(library) for library in libraries]
-    sequencer=sequencing_utils.get_sequencer(data['sequencing'])
-    
+       assays.append(assay.get("identifier",""))
+    sequencer=sequencing_utils.get_sequencer(get_item_or_none(request,data['sequencing'],'sequencing'))
     mutually_dependent = {
         "bulk_fiberseq": {"pacbio_revio_hifi"}, # Fiber-Seq and PacBio
         "bulk_mas_iso_seq":{"pacbio_revio_hifi"}, # MAS ISO-Seq and PacBio
