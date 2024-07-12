@@ -842,11 +842,16 @@ body[data-current-action="multiselect"] {
         body.scrolled-past-top &,
         body.is-select-page &,
         body.is-item-view &,
-        body.is-full-screen & {
-        //body.is-full-screen:not([data-pathname="/browse/"]):not([data-pathname="/search/"]) & {
-            //height: $navbar-small-height;
+        body.is-full-screen {
+            height: $navbar-small-height;
             top: $navbar-small-height;
-            //height: calc(100vh - #{$navbar-small-height});
+
+            @include media-breakpoint-between(sm, md) {
+                top: 80px;
+            }
+            @include media-breakpoint-down(sm) {
+                top: 0px;
+            }
         }
 
         @mixin after-big-link-append {

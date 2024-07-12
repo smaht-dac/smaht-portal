@@ -867,270 +867,273 @@ i.status-indicator-dot {
 		User Profile Page
 ***********************************************************/
 
-div.user-profile-page {
-	background-color: #eee;
+body[data-pathname^="/users/"] {
+	#post-navbar-container {
+		display: flex;
+		flex-direction: column;
 
-	@include media-breakpoint-up(md){
-		min-height: calc(100vh - 231px); // 250px is sum of header, footer, and page title. If any of those change, this needs updating.
-	}
-
-
-	.panel.user-info,
-	.panel.user-work-info {
-
-		// Override of prev CSS
-		.col-md-3.text-right.text-left-xs {
-			@include media-breakpoint-down(sm){
-				text-align: left !important;
-			}
-		}
-
-		#email {
-			font-weight: 500;
-		}
-
-		.formatted-info-panel {
-
-			&:not(.no-details){
-				/* min-height: 41px; */
-			}
-
-			/* When in list (maybe ToDo: li > .formatted-info-panel) ... */
-			&.no-details.no-icon.no-label {
-				display: inline-block;
-				padding: 0;
-				vertical-align: text-top;
-				max-width: 85%;
-				word-break: break-word;
-			}
-
-			.block-title,
-			.block-title a {
-				font-weight: 600;
-			}
-		}
-
-	}
-
-	.card {
-		box-shadow: none;
-		&.access-keys-container, 
-		&.organizations {
-			.card-header {
-				height: 95px;
-				display: flex;
-				align-items: center;
-				padding-left: 30px;
-
-				h3 {
-					font-size: 24px;
-					font-weight: 400;
-					color:$gray-70;
+		.user-profile-page {
+			flex: 1;
+			background-color: #eee;
+		
+			.panel.user-info,
+			.panel.user-work-info {
+		
+				// Override of prev CSS
+				.col-md-3.text-right.text-left-xs {
+					@include media-breakpoint-down(sm){
+						text-align: left !important;
+					}
 				}
-			}
-		}
-
-		&.user-info {
-			/* for fun - comment out bottom transform in Inspect Element */
-			transform: rotateZ(0deg) scale3d(1, 1, 1) translateX(0);
-			opacity: 1;
-			left: 0px;
-			transition: transform 1.2s ease-out, opacity 1.5s ease-out, left 1.2s ease-out;
-			position: relative;
-			z-index: 2;
-
-			&.transition { transform: rotateZ(-900deg) scale3d(0.1, 0.1, 0.1) translateX(-1200px); opacity: 0; left: -900px; }
-
-			.user-title-row-container {
-				margin-bottom: 20px;
-				border-bottom: 1px solid #eee;
-			}
-
-			.user-title {
-				font-size: 32px;
-				color: $gray-70;
-				font-weight: 600;
-
-				.editable-field-entry {
-					//max-width: 50%; // Need to fit 2 inline editable fields on one row for users full name.
-					text-overflow: ellipsis;
-					.value {
+		
+				#email {
+					font-weight: 500;
+				}
+		
+				.formatted-info-panel {
+		
+					&:not(.no-details){
+						/* min-height: 41px; */
+					}
+		
+					/* When in list (maybe ToDo: li > .formatted-info-panel) ... */
+					&.no-details.no-icon.no-label {
+						display: inline-block;
+						padding: 0;
+						vertical-align: text-top;
+						max-width: 85%;
 						word-break: break-word;
-						.edit-button {
-							font-size: 1rem;
+					}
+		
+					.block-title,
+					.block-title a {
+						font-weight: 600;
+					}
+				}
+		
+			}
+		
+			.card {
+				box-shadow: none;
+				&.access-keys-container, 
+				&.organizations {
+					.card-header {
+						height: 95px;
+						display: flex;
+						align-items: center;
+						padding-left: 30px;
+		
+						h3 {
+							font-size: 24px;
+							font-weight: 400;
+							color:$gray-70;
 						}
 					}
 				}
-
-			}
-
-			@include media-breakpoint-up(md){
-
-				.user-title {
-					/* white-space: nowrap; */
-					/* overflow: hidden; */
-					text-overflow: ellipsis;
-				}
-			}
-
-			@include media-breakpoint-down(sm){
-
-				.user-title-col {
-					padding-top: 2px;
-				}
-
-				.user-title {
-					font-size: 2rem;
-					font-weight: 400;
-					margin-right: 70px;
-				}
-			}
-
-			div.gravatar-container {
-				position: relative;
-
-				img.gravatar {
-					width: 50px;
-					height: 50px;
-					float: right;
-					border-radius: $border-radius-base;
-				}
-
-				a.edit-button-remote {
-					opacity: 0;
-					position: absolute;
-					background: #fff;
-					color: #000;
-					top: 0;
-					right: 10px;
-					line-height: 21px;
-					width: 21px;
-					padding-left: 2px;
-					border-radius: 5px;
-					&:after {
-						display: none;
-						content: none;
+		
+				&.user-info {
+					/* for fun - comment out bottom transform in Inspect Element */
+					transform: rotateZ(0deg) scale3d(1, 1, 1) translateX(0);
+					opacity: 1;
+					left: 0px;
+					transition: transform 1.2s ease-out, opacity 1.5s ease-out, left 1.2s ease-out;
+					position: relative;
+					z-index: 2;
+		
+					&.transition { transform: rotateZ(-900deg) scale3d(0.1, 0.1, 0.1) translateX(-1200px); opacity: 0; left: -900px; }
+		
+					.user-title-row-container {
+						margin-bottom: 20px;
+						border-bottom: 1px solid #eee;
 					}
-				}
-
-				&:hover {
-					a.edit-button-remote {
-						opacity: 0.5;
-						&:hover {
-							opacity: 1;
-						}
-					}
-				}
-
-				@include media-breakpoint-down(sm){
-					img.gravatar {
-						width: 94px; /* Account for border */
-						height: 70px;
-						position: relative;
-						z-index: 2;
-						margin-bottom: -70px;
-						margin-top: 5px;
-						border-left: 24px solid #FFF;
-					}
-				}
-			}
-
-		}
-	}
-
-	@include media-breakpoint-up(md){
-		.editing .user-title .editable-field-entry.inline:not(.editing) {
-			display: inline-block;
-			//max-width: 30%;
-		}
-	}
-
-	.panel.user-work-info {
-
-		> .block-title {
-			margin-bottom: 20px;
-			padding-bottom: 20px;
-			border-bottom: 1px solid #eee;
-			padding-top: 0;
-
-			> i.icon.icon-fw {
-				margin-right: 5px;
-				font-size: 1.5rem;
-			}
-		}
-
-	}
-
-	.access-keys-container {
-
-		table.access-keys-table {
-			thead {
-				tr {
-					background-color: #F0F9FF;
-					border: 1px solid #EDF3F6;
-					border-left: none;
-					border-right: none;
-					th {
-						background-color: transparent;
-						border:none;
-					}
-				}
-			}
-
-			tr {
-				width: 100%;
-				border-bottom: 1px solid #eee;
-				td {
-					border-top: none;
-					&.access-key-buttons {
-						display:flex;
-						width: 140px;
-						margin: auto 10px auto auto;
-
-						.btn.btn-xs {
-							margin: 0 4px;
-
-							&.reset {
-								background-color: transparent;
-								border: none;
-								color: $gray-70;
-
-								&:hover {
-									background-color: #eee;
+		
+					.user-title {
+						font-size: 32px;
+						color: $gray-70;
+						font-weight: 600;
+		
+						.editable-field-entry {
+							//max-width: 50%; // Need to fit 2 inline editable fields on one row for users full name.
+							text-overflow: ellipsis;
+							.value {
+								word-break: break-word;
+								.edit-button {
+									font-size: 1rem;
 								}
-								&:focus {
-									box-shadow: #eee;
+							}
+						}
+		
+					}
+		
+					@include media-breakpoint-up(md){
+		
+						.user-title {
+							/* white-space: nowrap; */
+							/* overflow: hidden; */
+							text-overflow: ellipsis;
+						}
+					}
+		
+					@include media-breakpoint-down(sm){
+		
+						.user-title-col {
+							padding-top: 2px;
+						}
+		
+						.user-title {
+							font-size: 2rem;
+							font-weight: 400;
+							margin-right: 70px;
+						}
+					}
+		
+					div.gravatar-container {
+						position: relative;
+		
+						img.gravatar {
+							width: 50px;
+							height: 50px;
+							float: right;
+							border-radius: $border-radius-base;
+						}
+		
+						a.edit-button-remote {
+							opacity: 0;
+							position: absolute;
+							background: #fff;
+							color: #000;
+							top: 0;
+							right: 10px;
+							line-height: 21px;
+							width: 21px;
+							padding-left: 2px;
+							border-radius: 5px;
+							&:after {
+								display: none;
+								content: none;
+							}
+						}
+		
+						&:hover {
+							a.edit-button-remote {
+								opacity: 0.5;
+								&:hover {
+									opacity: 1;
+								}
+							}
+						}
+		
+						@include media-breakpoint-down(sm){
+							img.gravatar {
+								width: 94px; /* Account for border */
+								height: 70px;
+								position: relative;
+								z-index: 2;
+								margin-bottom: -70px;
+								margin-top: 5px;
+								border-left: 24px solid #FFF;
+							}
+						}
+					}
+		
+				}
+			}
+		
+			@include media-breakpoint-up(md){
+				.editing .user-title .editable-field-entry.inline:not(.editing) {
+					display: inline-block;
+					//max-width: 30%;
+				}
+			}
+		
+			.panel.user-work-info {
+		
+				> .block-title {
+					margin-bottom: 20px;
+					padding-bottom: 20px;
+					border-bottom: 1px solid #eee;
+					padding-top: 0;
+		
+					> i.icon.icon-fw {
+						margin-right: 5px;
+						font-size: 1.5rem;
+					}
+				}
+		
+			}
+		
+			.access-keys-container {
+		
+				table.access-keys-table {
+					thead {
+						tr {
+							background-color: #F0F9FF;
+							border: 1px solid #EDF3F6;
+							border-left: none;
+							border-right: none;
+							th {
+								background-color: transparent;
+								border:none;
+							}
+						}
+					}
+		
+					tr {
+						width: 100%;
+						border-bottom: 1px solid #eee;
+						td {
+							border-top: none;
+							&.access-key-buttons {
+								display:flex;
+								width: 140px;
+								margin: auto 10px auto auto;
+		
+								.btn.btn-xs {
+									margin: 0 4px;
+		
+									&.reset {
+										background-color: transparent;
+										border: none;
+										color: $gray-70;
+		
+										&:hover {
+											background-color: #eee;
+										}
+										&:focus {
+											box-shadow: #eee;
+										}
+									}
 								}
 							}
 						}
 					}
 				}
+		
+				#add-access-key.btn{
+					float: right;
+					min-width: 180px;
+					font-weight: 600;
+					background-color: #0E74D2;
+					border-color: #0B62BA;
+					border-radius: 5px;
+		
+					&:hover {
+						background-color: #0f6cc2;
+					}
+					&:focus {
+						box-shadow: 0 0 0 0.2rem #0b62ba4d;
+					}
+				}
+		
+				.no-access-keys > hr:first-child {
+					margin-top: 0;
+					margin-bottom: 17px;
+				}
+		
 			}
+		
 		}
-
-		#add-access-key.btn{
-			float: right;
-			min-width: 180px;
-			font-weight: 600;
-			background-color: #0E74D2;
-			border-color: #0B62BA;
-			border-radius: 5px;
-
-			&:hover {
-				background-color: #0f6cc2;
-			}
-			&:focus {
-				box-shadow: 0 0 0 0.2rem #0b62ba4d;
-			}
-		}
-
-		.no-access-keys > hr:first-child {
-			margin-top: 0;
-			margin-bottom: 17px;
-		}
-
 	}
-
 }
 
 
@@ -1618,7 +1621,7 @@ File Overview Styles
 	
 	}
 
-	@include media-breakpoint-up(md) {
+	@include media-breakpoint-up(lg) {
 		.tabs-bar-outer {
 			.tabs-bar {
 				background-color: #F5F9FB;

@@ -4,7 +4,7 @@
 
     > .overlay-bg {
         display: none;
-        @include media-breakpoint-up(md){
+        @include media-breakpoint-up(lg){
             display: block;
             position: fixed;
             z-index: 100;
@@ -40,7 +40,7 @@
         //    padding-top: 41px; // Offset re: static navbar
         //}
 
-        @include media-breakpoint-up(md){
+        @include media-breakpoint-up(lg){
             
             position: fixed;
             //z-index: 100;
