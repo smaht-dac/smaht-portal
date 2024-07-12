@@ -1,9 +1,9 @@
-<>
-    <h2>Release History</h2>
+<div className="html-container">
+    <h3>Release History</h3>
 
     <div class="table-responsive"> 
-        <table class="table table-borderless table-sm text-center">
-            <thead class="thead-smaht">
+        <table class="table table-borderless table-sm text-left">
+            <thead class="thead-smaht-purple">
                 <tr>
                     <th>Release Version</th>
                     <th>Title</th>
@@ -20,6 +20,18 @@
         </table>
     </div>
 
+    <h2>Version 1.0 [latest]</h2>
     <DownloadAllFilesFromSearchHrefButton {...{ session }} />
 
-</>
+    <h3>Truth Sets</h3>
+    <p>[Description Here]</p>
+
+    <h3>Negative Control</h3>
+    <p>[Description Here]</p>
+
+    <h3>Genome Stratification for Benchmarking</h3>
+    <p>[Description Here]</p>
+
+    <h3>Submitted VCFs & Analysis Results</h3>
+    <p>[Description Here]</p>
+</div>
