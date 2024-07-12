@@ -530,7 +530,6 @@ class File(Item, CoreFile):
             }
         else:  # we need the revision history
             result = {}
-            #import pdb; pdb.set_trace()
             revision_history = request.embed(f'/{self.uuid}/@@revision-history', as_user='IMPORT')
             for revision in revision_history['revisions']:
                 status = revision.get('status')
