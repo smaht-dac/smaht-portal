@@ -7,14 +7,17 @@ smaht-portal
 Change Log
 ----------
 
-0.69.2
+
+0.70.0
 ======
 
-`PR 195: fix: tablet navigation collapse <https://github.com/smaht-dac/smaht-portal/pull/195>`_
+`PR 200: SN TPC Schema update <https://github.com/smaht-dac/smaht-portal/pull/200>`_
 
-* Fixes collapsing navigation bar for tablet size screens
-* Switch to mobile navigation component early
-* Show initials for username in tablet screen size
+* Follow-up changes to the TPC submission schema:
+* Add `preservation_type` and `preservation_medium` properties to Tissue.
+* Make `preservation_type` an enum for Tissue and Sample
+* Make `core_size` a string enum
+* Add `size_unit` to Tissue to account for tissues measured in cm^2 instead of cm^3
 
 
 0.69.1

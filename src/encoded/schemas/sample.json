@@ -49,6 +49,12 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/preservation_medium"
+        },
+        {
+            "$ref": "mixins.json#/preservation_type"
         }
     ],
     "properties": {
@@ -60,20 +66,6 @@
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_SAMPLE_[A-Z0-9-_.]{4,}$"
-        },
-        "preservation_medium": {
-            "title": "Preservation Medium",
-            "description": "Medium used for sample preservation",
-            "type": "string"
-        },
-        "preservation_type": {
-            "title": "Preservation Type",
-            "description": "Method of sample preservation",
-            "type": "string",
-            "enum": [
-                "Fresh",
-                "Frozen"
-            ]
         },
         "sample_sources": {
             "title": "Sample Sources",
