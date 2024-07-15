@@ -60,6 +60,49 @@ WORKBOOK_FILENAME = "submission_workbook.xlsx"
 FONT = "Arial"
 FONT_SIZE = 10
 
+TPC_SUBMISSION_ITEMS = [
+    "Donor",
+    "Demographic",
+    "MedicalHistory",
+    "Diagnosis",
+    "Exposure",
+    "FamilyHistory",
+    "MedicalTreatment",
+    "DeathCircumstances",
+    "TissueCollection",
+    "Tissue",
+    "TissueSample"
+]
+
+GCC_SUBMISSION_ITEMS = [
+    "Donor",
+    "Tissue",
+    "TissueSample",
+    "CellSample",
+    "CellLine",
+    "CellCulture",
+    "CellCultureMixture",
+    "CellCultureSample",
+    "Analyte",
+    "AnalytePreparation",
+    "PreparationKit",
+    "Treatment",
+    "Library",
+    "LibraryPreparation",
+    "Sequencing",
+    "Basecalling",
+    "FileSet",
+    "UnalignedReads",
+    "AlignedReads",
+    "VariantCalls",
+    "Software" 
+]
+
+DSA_SUBMISSION_ITEMS = [
+    "DonorSpecificAssembly",
+    "SupplementaryFile",
+    "Software"
+]
 
 @dataclass(frozen=True)
 class SheetsClient:
@@ -300,6 +343,8 @@ def write_item_spreadsheets(
     items: List[str],
     request_handler: RequestHandler,
     workbook: bool = False,
+    tpc: bool = False,
+    gcc: bool = False,
     separate_comments: bool = False,
 ) -> None:
     """Write submission spreadsheets for specified items"""
@@ -312,7 +357,7 @@ def write_item_spreadsheets(
         f" {submission_schemas.keys()}"
     )
     if workbook:
-        write_workbook(output, submission_schemas, separate_comments=separate_comments)
+        write_workbook(output, submission_schemas, separate_comments=separate_comments,tpc=tpc,gcc=gcc)
     else:
         write_spreadsheets(
             output, submission_schemas, separate_comments=separate_comments
@@ -345,11 +390,15 @@ def get_submission_schema_endpoint(item: str) -> Dict[str, Any]:
 
 
 def write_workbook(
-    output: Path, submission_schemas: Dict[str, Any], separate_comments: bool = False
+    output: Path,
+    submission_schemas: Dict[str, Any],
+    tpc: bool = False,
+    gcc: bool = False,
+    separate_comments: bool = False
 ) -> None:
     """Write a single workbook containing all submission spreadsheets."""
     workbook = openpyxl.Workbook()
-    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas)
+    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,tpc=tpc,gcc=gcc)
     write_workbook_sheets(
         workbook, ordered_submission_schemas, separate_comments=separate_comments
     )
@@ -359,14 +408,21 @@ def write_workbook(
 
 
 def get_ordered_submission_schemas(
-    submission_schemas: Dict[str, Any]
+    submission_schemas: Dict[str, Any],
+    tpc: bool = False,
+    gcc: bool = False
 ) -> Dict[str, Dict[str, Any]]:
     """Order submission schemas."""
     result = {}
-    for item in ITEM_INDEX_ORDER:
-        camel_case_item = to_camel_case(item)
-        if camel_case_item in submission_schemas:
-            result[camel_case_item] = submission_schemas[camel_case_item]
+    if tpc:
+        item_order = TPC_SUBMISSION_ITEMS
+    elif gcc:
+        item_order = GCC_SUBMISSION_ITEMS
+    else:
+        item_order = [to_camel_case(item) for item in ITEM_INDEX_ORDER]
+    for item in item_order:
+        if item in submission_schemas:
+            result[item] = submission_schemas[item]
     return result
 
 
@@ -388,7 +444,9 @@ def write_workbook_sheets(
 
 
 def write_spreadsheets(
-    output: Path, submission_schemas: Dict[str, Any], separate_comments: bool = False
+    output: Path,
+    submission_schemas: Dict[str, Any],
+    separate_comments: bool = False
 ) -> None:
     """Write submission spreadsheets."""
     for item, submission_schema in submission_schemas.items():
@@ -850,6 +908,8 @@ def main():
     )
     parser.add_argument("--env", help="Environment", default="data")
     parser.add_argument("--item", help="Item name", nargs="+")
+    parser.add_argument("--tpc", help="TPC Submission items", action="store_true")
+    parser.add_argument("--gcc", help="GCC Submission items", action="store_true")
     parser.add_argument("--all", help="All items", action="store_true")
     parser.add_argument(
         "--workbook",
@@ -891,6 +951,28 @@ def main():
             args.output,
             request_handler,
             workbook=args.workbook,
+            separate_comments=args.separate,
+        )
+    elif args.tpc:
+        log.info("Writing TPC submission spreadsheet")
+        write_item_spreadsheets(
+            args.output,
+            TPC_SUBMISSION_ITEMS,
+            request_handler,
+            workbook=args.workbook,
+            tpc = True,
+            gcc = False,
+            separate_comments=args.separate,
+        )
+    elif args.gcc:
+        log.info("Writing GCC/TTD submission spreadsheet")
+        write_item_spreadsheets(
+            args.output,
+            GCC_SUBMISSION_ITEMS,
+            request_handler,
+            workbook=args.workbook,
+            tpc = False,
+            gcc = True,
             separate_comments=args.separate,
         )
     elif args.item:
