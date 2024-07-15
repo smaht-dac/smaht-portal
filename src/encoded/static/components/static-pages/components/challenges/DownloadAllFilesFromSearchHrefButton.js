@@ -23,11 +23,11 @@ import {
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 
 import { EmbeddedItemSearchTable } from '../../../item-pages/components/EmbeddedItemSearchTable';
+import { itemUtil } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/object';
 import {
     SelectAllFilesButton,
     SelectedItemsDownloadButton,
-} from '../benchmarking/BenchmarkingTable';
-import { itemUtil } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/object';
+} from '../SelectAllAboveTableComponent';
 
 /**
  * Mimicks the behavior of SelectedItemsController to take all of the items found in a search query
