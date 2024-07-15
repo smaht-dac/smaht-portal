@@ -267,32 +267,35 @@ class FileSet(SubmittedItem):
 def validate_compatible_assay_and_sequencer(context, request):
     """Check filesets to make sure they are linked to compatible library.assay and sequencing items.
     
-    The list of mutually_dependent assays and sequencers may need to be updated as new techologies come out 
+    The list of `conditionally_dependent` assays and sequencers may need to be updated as new techologies come out 
     or are added to the portal.
     """
+    conditionally_dependent = {
+        "bulk_fiberseq": ["pacbio_revio_hifi"], # Fiber-Seq and PacBio
+        "bulk_mas_iso_seq":["pacbio_revio_hifi"], # MAS ISO-Seq and PacBio
+        "cas9_nanopore":["ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"], # Cas9 Nanopore and ONT
+        "bulk_ultralong_wgs":["ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"] # Ultralong WGS and ONT
+    }
+
     data = request.json
-    import pdb; pdb.set_trace()
     libraries = data['libraries']
     assays = []
     for library in libraries:
-       assay=get_item_or_none(request,library,'library').get('assay')
+       assay_aid=get_item_or_none(request,library,'library').get("assay","")
+       assay=get_item_or_none(request,assay_aid,'assay')
        assays.append(assay.get("identifier",""))
-    sequencer=sequencing_utils.get_sequencer(get_item_or_none(request,data['sequencing'],'sequencing'))
-    mutually_dependent = {
-        "bulk_fiberseq": {"pacbio_revio_hifi"}, # Fiber-Seq and PacBio
-        "bulk_mas_iso_seq":{"pacbio_revio_hifi"}, # MAS ISO-Seq and PacBio
-        "cas9_nanopore":{"ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"}, # Cas9 Nanopore and ONT
-        "bulk_ultralong_wgs":{"ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"} # Ultralong WGS and ONT
-    }
-    overlap = list(set(assays) & mutually_dependent.keys())
+    sequencer_aid=sequencing_utils.get_sequencer(get_item_or_none(request,data['sequencing'],'sequencing'))
+    sequencer = get_item_or_none(request,sequencer_aid,'sequencer').get("identifier","")
+    overlap = list(set(assays) & conditionally_dependent.keys())
     if overlap:
+        #import pdb; pdb.set_trace()
         for assay in overlap:
-            special_sequencers = mutually_dependent['assay']
+            special_sequencers = conditionally_dependent[assay]
             if sequencer not in special_sequencers:
                 msg = f"Sequencer {sequencer} is not allowed for assay {assay}."
-                request.errors.add('body', 'FileSet: invalid links', msg)
+                return request.errors.add('body', 'FileSet: invalid links', msg)
             else:
-                request.validated.update({})
+                return request.validated.update({})
     return request.validated.update({})
 
 
@@ -302,7 +305,7 @@ def validate_compatible_assay_and_sequencer(context, request):
 # ]
 
 # @view_config(
-#     context=FileSet,
+#     context=FileSet.Collection,
 #     permission='add',
 #     request_method='POST',
 #     validators=FILE_SET_ADD_VALIDATORS,
@@ -321,7 +324,7 @@ FILE_SET_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
 ]
 
 @view_config(
-    context=FileSet.Collection,
+    context=FileSet,
     permission='edit',
     request_method='PUT',
     validators=FILE_SET_EDIT_PUT_VALIDATORS,

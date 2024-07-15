@@ -2,7 +2,7 @@ from typing import Dict, Any
 import pytest
 from webtest import TestApp
 
-from .utils import get_search, get_insert_identifier_for_item_type, patch_item
+from .utils import get_search, get_insert_identifier_for_item_type, patch_item, get_item
 
 
 FILE_SET_ID = 'b98f9849-3b7f-4f2f-a58f-81100954e00d'
@@ -30,9 +30,8 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
     "library,sequencing,expected_status",
     [
         ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_PACBIO_30X-30H",200), # FiberSeq and PacBio
-        ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_ONT-90X",200), # FiberSeq and ONT
+        ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_ONT-90X",422), # FiberSeq and ONT
         ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_NOVASEQ-500X", 422), # bulk_wgs and ONT
-        ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_ONT-90X", 200), #Cas9 Nanopore and ONT
         ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_ONT-90X", 200), #Cas9 Nanopore and ONT
         ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X",200) #bulk_wgs and Illumina NovaSeqX
     ],
@@ -45,12 +44,21 @@ def test_validate_compatible_assay_and_sequencer_on_patch(
 ) -> None:
     """Ensure file set assay and sequencer validated on PATCH.
 
-    Note: Permissible combinations of assay and sequencer are determined by `mutually_dependent`.
+    Note: Permissible combinations of assay and sequencer are determined by `conditionally_dependent`.
     """
-    import pdb; pdb.set_trace()
+    library_uuid=get_item(
+        es_testapp,
+        library,
+        'Library'
+    ).get("uuid","")
+    sequencing_uuid=get_item(
+        es_testapp,
+        sequencing,
+        'Sequencing'
+    ).get("uuid","")
     identifier = get_insert_identifier_for_item_type(es_testapp,'file_set')
     patch_body = {
-        "libraries": [library],
-        "sequencing": sequencing
+        "libraries": [library_uuid],
+        "sequencing": sequencing_uuid
     }
     patch_item(es_testapp, patch_body, identifier, status=expected_status)

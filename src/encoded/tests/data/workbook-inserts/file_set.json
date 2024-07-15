@@ -44,7 +44,7 @@
         "libraries": [
             "TEST_LIBRARY_HELA-HEK293"
         ],
-        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
+        "sequencing": "TEST_SEQUENCING_ONT-90X"
     },
     {
         "uuid": "8a55c725-eb48-4ef9-9a54-9271bdf11239",
@@ -55,6 +55,6 @@
         "libraries": [
             "TEST_LIBRARY_LIVER-HOMOGENATE"
         ],
-        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
+        "sequencing": "TEST_SEQUENCING_PACBIO_30X-30H"
     }
 ]

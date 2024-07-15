@@ -27,5 +27,5 @@ def test_home_page_workbook(es_testapp, workbook):
     assert home['@graph'][0]['categories'][0]['figures'][-1]['value'] == 6
     assert home['@graph'][0]['categories'][0]['figures'][-1]['unit'] == 'Files Generated'
     # check assay count (should be 1 as of right now)
-    assert home['@graph'][0]['categories'][0]['figures'][1]['value'] == 1
+    assert home['@graph'][0]['categories'][0]['figures'][1]['value'] == 2
     assert home['@graph'][0]['categories'][0]['figures'][1]['unit'] == 'Assays'

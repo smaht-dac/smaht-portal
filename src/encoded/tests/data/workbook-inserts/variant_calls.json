@@ -48,7 +48,7 @@
         "reference_genome": "GRCh38",
         "file_size": 100000,
         "status": "uploaded",
-        "annotated_filename": "SMHTHELAHEK293-X-X-NN-X002-test-SMAVCFO3516G-GRCh38_cnv_mei_snv_sv.vcf",
+        "annotated_filename": "SMHTHELAHEK293-X-X-NN-D099-test-SMAVCFO3516G-GRCh38_cnv_mei_snv_sv.vcf",
         "dataset": "colo829t"
     }
 ]
