@@ -10,7 +10,6 @@ from .submitted_item import (
     SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS,
     SUBMITTED_ITEM_EDIT_PUT_VALIDATORS,
     SubmittedItem,
-    SubmittedSmahtCollection
 )
 from ..item_utils import (
     file_set as file_set_utils,
@@ -299,20 +298,19 @@ def validate_compatible_assay_and_sequencer(context, request):
     return request.validated.update({})
 
 
+FILE_SET_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
+    validate_compatible_assay_and_sequencer
+]
 
-# FILE_SET_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
-#     validate_compatible_assay_and_sequencer
-# ]
-
-# @view_config(
-#     context=FileSet.Collection,
-#     permission='add',
-#     request_method='POST',
-#     validators=FILE_SET_ADD_VALIDATORS,
-# )
-# @debug_log
-# def file_set_add(context, request, render=None):
-#     return collection_add(context, request, render)
+@view_config(
+    context=FileSet.Collection,
+    permission='add',
+    request_method='POST',
+    validators=FILE_SET_ADD_VALIDATORS,
+)
+@debug_log
+def file_set_add(context, request, render=None):
+    return collection_add(context, request, render)
 
 
 FILE_SET_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
