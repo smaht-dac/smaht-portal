@@ -6,8 +6,10 @@ import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es
 
 import { EmbeddedItemSearchTable } from '../../../item-pages/components/EmbeddedItemSearchTable';
 import { TableControllerWithSelections } from '../TableControllerWithSelections';
-import { BenchmarkingAboveTableComponent } from '../benchmarking/BenchmarkingTable';
-import { SelectAllFilesButton } from '../SelectAllAboveTableComponent';
+import {
+    SelectAllAboveTableComponent,
+    SelectAllFilesButton,
+} from '../SelectAllAboveTableComponent';
 
 export const ChallengeTableWrapper = (props) => {
     const { searchHref, schemas, facets, session, href, context } = props;
@@ -118,12 +120,11 @@ const ChallengeTable = (props) => {
         // Data Category
         data_type: { disabled: true },
     };
-
     return (
         <EmbeddedItemSearchTable
             key={session}
             embeddedTableHeader={
-                <BenchmarkingAboveTableComponent
+                <SelectAllAboveTableComponent
                     {...{
                         session,
                         selectedItems,
