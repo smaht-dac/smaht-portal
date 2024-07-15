@@ -11,6 +11,7 @@
         "organs_transplanted": [
             "Heart",
             "Liver"
-        ]
+        ],
+        "recovery_interval": 1440
     }
 ]

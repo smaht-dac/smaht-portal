@@ -343,7 +343,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 exclusive_requirements=["bar"],
             ),
         ),
-        (  # More complicated case with most attributes
+        (  # More complicated case with suggested_enum
             "baz",
             {
                 "description": "Baz",
