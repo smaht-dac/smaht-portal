@@ -1058,9 +1058,7 @@ def assert_submittable_permissions(
         if idx == 0:
             post_item_to_fail(anontestapp, item_type, limited_insert)
             post_item_to_fail(unassociated_user_app, item_type, limited_insert)
-            post_item_then_delete(
-                testapp, submission_center_user_app, item_type, limited_insert
-            )
+            post_item_then_delete(testapp, submission_center_user_app, item_type, limited_insert)
             post_item_to_fail(consortium_user_app, item_type, limited_insert)
         post_item(testapp, identifying_insert, item_type, status=201)
 
