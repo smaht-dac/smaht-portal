@@ -25,13 +25,17 @@
 
     <h3>Truth Sets</h3>
     <p>[Description Here]</p>
+    <ChallengeTableWrapper searchHref="?type=File" context={context} schemas={schemas} session={session} href={href}/>
 
     <h3>Negative Control</h3>
     <p>[Description Here]</p>
+    <ChallengeTableWrapper searchHref="?type=File" context={context} schemas={schemas} session={session} href={href} />
 
     <h3>Genome Stratification for Benchmarking</h3>
     <p>[Description Here]</p>
+    <ChallengeTableWrapper searchHref="?type=File" context={context} schemas={schemas} session={session} href={href}/>
 
     <h3>Submitted VCFs & Analysis Results</h3>
     <p>[Description Here]</p>
+    <ChallengeTableWrapper searchHref="?type=File" context={context} schemas={schemas} session={session} href={href}/>
 </div>
