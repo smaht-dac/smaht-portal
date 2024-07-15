@@ -99,19 +99,19 @@ export const AccountNav = React.memo(function AccountNav(props) {
         'user-account-item is-logged-in is-dropdown' +
         (acctIcon && acctIcon.type === 'img' ? ' has-image' : '');
 
-    // Set account title if names provided
-    const accountTitle =
-        first_name && last_name ? first_name + ' ' + last_name : 'Account';
+    // Use initials when provided
+    let accountTitle =
+        first_name && last_name
+            ? (first_name + ' ' + last_name)
+                  .split(' ')
+                  .map((s) => s[0].toUpperCase())
+                  .join('')
+            : 'Account';
 
     const navItemTitle = (
         <React.Fragment>
             {acctIcon}
-            <span className="user-first-name">
-                {accountTitle
-                    .split(' ')
-                    .map((s) => s[0])
-                    .join('')}
-            </span>
+            <span className="user-first-name">{accountTitle}</span>
         </React.Fragment>
     );
 
