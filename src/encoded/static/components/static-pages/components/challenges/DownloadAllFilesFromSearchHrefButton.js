@@ -53,7 +53,6 @@ export const DownloadAllFilesFromSearchHrefButton = ({
                     newMap.set(atID, item);
                 });
                 setSelectedItems(newMap);
-                console.log('newMap', newMap);
             },
             'GET',
             (err) => {
