@@ -141,18 +141,19 @@ const ChallengeTable = (props) => {
                 searchHref,
                 schemas,
                 session,
-                facets,
+                // facets,
                 selectedItems,
                 onSelectItem,
                 onResetSelectedItems,
             }}
             columnExtensionMap={benchmarkingColExtMap}
-            hideFacets={[
-                'dataset',
-                'file_sets.libraries.analytes.samples.sample_sources.code',
-                'status',
-                'validation-errors.name',
-            ]}
+            // hideFacets={[
+            //     'dataset',
+            //     'file_sets.libraries.analytes.samples.sample_sources.code',
+            //     'status',
+            //     'validation-errors.name',
+            // ]}
+            facets={null}
             hideColumns={['display_title']}
             clearSelectedItemsOnFilter
         />
