@@ -1,0 +1,47 @@
+[
+    {
+        "uuid": "b444f958-9832-4d6e-be7a-4b1019d2df7c",
+        "submitted_id": "TEST_SUPPLEMENTARY-FILE_HELA_GRCH38",
+        "data_category": [
+            "Donor-Specific Assembly"
+        ],
+        "data_type": [
+            "Sequence Interval"
+        ],
+        "filename": "test_DSA_to_GRCh38.chain.gz",
+        "file_format": "CHAIN",
+        "submission_centers": [
+            "smaht"
+        ],
+        "software": [
+            "TEST_SOFTWARE_BWA-MEM"
+        ],
+        "file_size": 1000,
+        "sequencing_center": "smaht",
+        "donor_specific_assembly": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
+        "target_assembly": "Hela_DSA",
+        "source_assembly": "GRCh38"
+    },
+    {
+        "uuid": "f1074e68-5c24-462b-909d-472356e5a15f",
+        "submitted_id": "TEST_SUPPLEMENTARY-FILE_HELA_FASTA",
+        "data_category": [
+            "Donor-Specific Assembly"
+        ],
+        "data_type": [
+            "Reference Sequence"
+        ],
+        "filename": "test_hela.fasta",
+        "file_format": "FASTA",
+        "submission_centers": [
+            "smaht"
+        ],
+        "software": [
+            "TEST_SOFTWARE_BWA-MEM"
+        ],
+        "sequencing_center": "smaht",
+        "file_size": 1000,
+        "md5sum": "00000000000000000000000000000001",
+        "donor_specific_assembly": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA"
+    }
+]

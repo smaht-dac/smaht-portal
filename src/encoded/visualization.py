@@ -1,7 +1,7 @@
 # import uuid
 #
 # from botocore.exceptions import ClientError
-from copy import copy, deepcopy
+from copy import deepcopy
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 # from dcicutils.misc_utils import print_error_message
@@ -177,6 +177,7 @@ def date_histogram_aggregations(context, request):
         del search_result[field_to_delete]
 
     return search_result
+
 
 DATE_RANGE_PRESETS = {
     'all': lambda today: (None, None),

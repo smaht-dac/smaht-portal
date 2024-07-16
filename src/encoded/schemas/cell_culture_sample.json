@@ -55,6 +55,12 @@
             "$ref": "mixins.json#/uuid"
         },
         {
+            "$ref": "mixins.json#/preservation_medium"
+        },
+        {
+            "$ref": "mixins.json#/preservation_type"
+        },
+        {
             "$ref": "sample.json#/properties"
         }
     ],

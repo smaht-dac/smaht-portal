@@ -19,6 +19,7 @@ from encoded.item_utils import (
     item as item_utils,
     sample as sample_utils,
     sample_source as sample_source_utils,
+    supplementary_file as supp_file_utils,
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
 )
@@ -30,6 +31,8 @@ logger = logging.getLogger(__name__)
 
 FILENAME_SEPARATOR = "-"
 ANALYSIS_INFO_SEPARATOR = "_"
+CHAIN_FILE_INFO_SEPARATOR = "To"
+
 
 DEFAULT_PROJECT_ID = constants.PRODUCTION_PREFIX
 DEFAULT_ABSENT_FIELD = "X"
@@ -87,6 +90,7 @@ class AssociatedItems:
     software: List[Dict[str, Any]]
     reference_genome: Dict[str, Any]
     file_sets: List[Dict[str, Any]]
+    donor_specific_assembly: Dict[str, Any]
     assays: List[Dict[str, Any]]
     sequencers: List[Dict[str, Any]]
     sample_sources: List[Dict[str, Any]]
@@ -111,7 +115,11 @@ def get_associated_items(
     file_format = get_file_format(file, request_handler)
     software = get_software(file, request_handler)
     reference_genome = get_reference_genome(file, request_handler)
-    file_sets = get_file_sets(file, request_handler, file_sets=file_sets)
+    donor_specific_assembly = get_donor_specific_assembly(file, request_handler)
+    if donor_specific_assembly:
+        file_sets=get_derived_from_file_sets(file, request_handler)
+    else:
+        file_sets = get_file_sets(file, request_handler, file_sets=file_sets)
     assays = get_assays(file_sets, request_handler)
     sequencers = get_sequencers(file_sets, request_handler)
     samples = get_samples(file_sets, request_handler)
@@ -128,6 +136,7 @@ def get_associated_items(
         software=software,
         reference_genome=reference_genome,
         file_sets=file_sets,
+        donor_specific_assembly=donor_specific_assembly,
         assays=assays,
         sequencers=sequencers,
         tissue_samples=tissue_samples,
@@ -162,6 +171,26 @@ def get_file_sets(
     file_sets = file_sets or []
     to_get = file_utils.get_file_sets(file) + file_sets
     return get_items(to_get, request_handler)
+
+
+def get_derived_from_file_sets(
+    file: Dict[str, Any],
+    request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get file sets from derived_from files."""
+    to_get = supp_file_utils.get_derived_from_file_sets(file,request_handler)
+    return get_items(to_get,request_handler)
+
+
+def get_donor_specific_assembly(
+    file: Dict[str, Any],
+    request_handler: RequestHandler,
+) -> List[Dict[str, Any]]:
+    """Get donor_specific_assembly for supplementary file."""
+    if supp_file_utils.is_supplementary_file(file):
+        to_get = supp_file_utils.get_donor_specific_assembly(file)
+        return get_item(to_get, request_handler)
+    return
 
 
 def get_file_format(
@@ -367,6 +396,7 @@ def get_annotated_filename(
 
     Collect all filename parts, recording either the value or any errors
     encountered in the process to be logged later.
+    `derived_from` applies to SupplementaryFiles
     """
     associated_items = get_associated_items(file, request_handler, file_sets=file_sets)
     project_id = get_project_id(
@@ -400,10 +430,10 @@ def get_annotated_filename(
         associated_items.sequencing_center
     )
     accession = get_accession(file)
-    analysis_info = get_analysis(
-        file, associated_items.software, associated_items.reference_genome
-    )
     file_extension = get_file_extension(file, associated_items.file_format)
+    analysis_info = get_analysis(
+        file, associated_items.software, associated_items.reference_genome,associated_items.file_format
+    )
     errors = collect_errors(
         project_id,
         sample_source_id,
@@ -748,6 +778,7 @@ def get_analysis(
     file: Dict[str, Any],
     software: List[Dict[str, Any]],
     reference_genome: Dict[str, Any],
+    file_extension: Dict[str, Any],
 ) -> FilenamePart:
     """Get analysis info for file.
 
@@ -763,6 +794,8 @@ def get_analysis(
     value = get_analysis_value(
         software_and_versions, reference_genome_code, variant_types
     )
+    if file_format_utils.is_chain_file(file_extension):
+        value = f"{value}{ANALYSIS_INFO_SEPARATOR}{get_chain_file_value(file)}"
     if not value:
         if file_utils.is_unaligned_reads(file):  # Think this is the only case (?)
             return get_filename_part(value=DEFAULT_ABSENT_FIELD)
@@ -871,6 +904,13 @@ def get_variant_types(file: Dict[str, Any]) -> str:
     if file_utils.has_mobile_element_insertions(file):
         result.append(MEI_VARIANT_TYPE)
     return ANALYSIS_INFO_SEPARATOR.join(sorted(result))
+
+
+def get_chain_file_value(file: Dict[str, Any]) -> str:
+    """Get reference conversion direction for chain files."""
+    target_assembly=supp_file_utils.get_target_assembly(file)
+    source_assembly=supp_file_utils.get_source_assembly(file)
+    return CHAIN_FILE_INFO_SEPARATOR.join([source_assembly,target_assembly])
 
 
 def get_file_extension(

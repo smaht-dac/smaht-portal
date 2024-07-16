@@ -3,7 +3,6 @@ from pyramid.view import view_config
 from snovault import calculated_property, collection, display_title_schema, load_schema
 from snovault.types.user import User as SnovaultUser
 from snovault.types.user import user_page_view as SnoUserPageView
-from snovault.types.user import USER_PAGE_VIEW_ATTRIBUTES
 from snovault.types.user import user_add as SnoUserAdd
 from snovault.util import debug_log
 
@@ -78,9 +77,13 @@ class User(Item, SnovaultUser):
         return roles
 
 
+USER_PAGE_VIEW_ATTRIBUTES = ['@id', '@type', 'uuid', 'title', 'display_title', 'email', 'consortia',
+                             'submission_centers']
+
+
 @view_config(context=User, permission='view', request_method='GET', name='page')
 @debug_log
-def user_page_view(context, request, user_page_view_attributes = USER_PAGE_VIEW_ATTRIBUTES):
+def user_page_view(context, request, user_page_view_attributes=USER_PAGE_VIEW_ATTRIBUTES):
     """smth."""
     return SnoUserPageView(context, request, user_page_view_attributes=user_page_view_attributes)
 
