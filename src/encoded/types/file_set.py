@@ -275,27 +275,26 @@ def validate_compatible_assay_and_sequencer(context, request):
         "cas9_nanopore":["ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"], # Cas9 Nanopore and ONT
         "bulk_ultralong_wgs":["ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"] # Ultralong WGS and ONT
     }
-
     data = request.json
-    libraries = data['libraries']
-    assays = []
-    for library in libraries:
-       assay_aid=get_item_or_none(request,library,'library').get("assay","")
-       assay=get_item_or_none(request,assay_aid,'assay')
-       assays.append(assay.get("identifier",""))
-    sequencer_aid=sequencing_utils.get_sequencer(get_item_or_none(request,data['sequencing'],'sequencing'))
-    sequencer = get_item_or_none(request,sequencer_aid,'sequencer').get("identifier","")
-    overlap = list(set(assays) & conditionally_dependent.keys())
-    if overlap:
-        #import pdb; pdb.set_trace()
-        for assay in overlap:
-            special_sequencers = conditionally_dependent[assay]
-            if sequencer not in special_sequencers:
-                msg = f"Sequencer {sequencer} is not allowed for assay {assay}."
-                return request.errors.add('body', 'FileSet: invalid links', msg)
-            else:
-                return request.validated.update({})
-    return request.validated.update({})
+    if 'libraries' in data:
+        libraries = data['libraries']
+        assays = []
+        for library in libraries:
+            assay_aid=get_item_or_none(request,library,'library').get("assay","")
+            assay=get_item_or_none(request,assay_aid,'assay')
+            assays.append(assay.get("identifier",""))
+        sequencer_aid=sequencing_utils.get_sequencer(get_item_or_none(request,data['sequencing'],'sequencing'))
+        sequencer = get_item_or_none(request,sequencer_aid,'sequencer').get("identifier","")
+        overlap = list(set(assays) & conditionally_dependent.keys())
+        if overlap:
+            for assay in overlap:
+                special_sequencers = conditionally_dependent[assay]
+                if sequencer not in special_sequencers:
+                    msg = f"Sequencer {sequencer} is not allowed for assay {assay}."
+                    return request.errors.add('body', 'FileSet: invalid links', msg)
+                else:
+                    return request.validated.update({})
+        return request.validated.update({})
 
 
 FILE_SET_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
