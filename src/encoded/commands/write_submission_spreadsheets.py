@@ -491,11 +491,19 @@ def get_array_subtype(property_schema: Dict[str, Any]) -> str:
     return schema_utils.get_schema_type(schema_utils.get_items(property_schema))
 
 
+def get_suggested_enum(property_schema: Dict[str, Any]) -> List[str]:
+    """Get suggested_enum or nested suggested_enum for property values."""
+
+    return schema_utils.get_suggested_enum(
+        property_schema
+    ) or schema_utils.get_suggested_enum(schema_utils.get_items(property_schema))
+
+
 def get_examples(property_schema: Dict[str, Any]) -> List[str]:
     """Get examples for property values."""
     return schema_utils.get_submission_examples(
         property_schema
-    ) or schema_utils.get_suggested_enum(property_schema)
+    ) or get_suggested_enum(property_schema)
 
 
 def get_corequirements(property_schema: Dict[str, Any]) -> List[str]:

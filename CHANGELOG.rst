@@ -7,16 +7,38 @@ smaht-portal
 Change Log
 ----------
 
-0.69.1
+
+0.71.0
 ======
 
+`PR 189: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/189>`_
+
+* Create DonorSpecificAssembly item type that contains information and QC metrics, and links to FileSet and Software used to generate the assembly.
+* Create a submittable SupplementaryFile that can contain files as reference fasta and chain files. These can link to DSA.
+* Add notes_to_tsv property to file.json schema for including static banners for notes on file pages.
+* Add test for DonorSpecificAssembly rev_links
+
+
+0.70.0
+======
+
+`PR 200: SN TPC Schema update <https://github.com/smaht-dac/smaht-portal/pull/200>`_
+
+* Follow-up changes to the TPC submission schema:
+* Add `preservation_type` and `preservation_medium` properties to Tissue.
+* Make `preservation_type` an enum for Tissue and Sample
+* Make `core_size` a string enum
+* Add `size_unit` to Tissue to account for tissues measured in cm^2 instead of cm^3
+
+
+0.69.1
+======
 * Update ``/homepage`` to include counts for benchmarking tissues
 * Update ``file_group`` calcprop to account for tissue data
 
 
 0.69.0
 ======
-
 * Documentation for smaht-submitr binary (pyinstaller-based) installation.
 * Updates related to Python 3.12.
 * New (and commented out by default) elasticsearch.server.actual_port property in base.ini

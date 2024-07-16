@@ -1110,7 +1110,8 @@ def test_analysis_summary(es_testapp: TestApp, workbook: None) -> None:
         es_testapp, "File", search_key
     )
     for file in files_with_summary_search:
-        assert_analysis_summary_matches_expected(file, es_testapp)
+        assert_analysis_software_matches_expected(file, es_testapp)
+        assert_analysis_reference_genome_matches_expected(file, es_testapp)
     all_fields = schema_utils.get_properties(
         CalcPropConstants.ANALYSIS_SUMMARY_SCHEMA
     ).keys()
@@ -1119,10 +1120,27 @@ def test_analysis_summary(es_testapp: TestApp, workbook: None) -> None:
     )
 
 
-def assert_analysis_summary_matches_expected(
+def assert_analysis_reference_genome_matches_expected(
     file: Dict[str, Any], es_testapp: TestApp
 ) -> None:
-    """Compare 'analysis_summary' calcprop to expected values.
+    """Compare 'analysis_summary' reference_genome calcprop to expected values.
+
+    Expected values determined here by parsing file properties/embeds.
+    """
+    analysis_summary = file_utils.get_analysis_summary(file)
+    reference_genome = file_utils.get_reference_genome(file)
+    expected_reference_genome = None
+    if reference_genome:
+        expected_reference_genome = item_utils.get_display_title(reference_genome)
+    assert_values_match_if_present(
+        analysis_summary, "reference_genome", expected_reference_genome
+    )
+
+
+def assert_analysis_software_matches_expected(
+    file: Dict[str, Any], es_testapp: TestApp
+) -> None:
+    """Compare 'analysis_summary' software calcprop to expected values.
 
     Expected values determined here by parsing file properties/embeds.
     """
@@ -1131,19 +1149,13 @@ def assert_analysis_summary_matches_expected(
         get_item(es_testapp, item_utils.get_uuid(item))
         for item in file_utils.get_software(file)
     ]
-    reference_genome = file_utils.get_reference_genome(file)
     expected_software = [
         software_utils.get_title_with_version(item)
         for item in software
     ]
-    expected_reference_genome = item_utils.get_display_title(reference_genome)
     assert_values_match_if_present(
         analysis_summary, "software", expected_software
     )
-    assert_values_match_if_present(
-        analysis_summary, "reference_genome", expected_reference_genome
-    )
-
 
 @pytest.mark.workbook
 def test_unique_key(es_testapp: TestApp, workbook: None) -> None:
