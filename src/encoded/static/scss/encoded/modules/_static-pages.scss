@@ -2122,18 +2122,35 @@ body[data-pathname^="/data/benchmarking"] {
 					}
 
 					/*** metadata.tsv modal ***/
-					pre.curl-command {
-						border: 1px dashed #dedede;
-						padding: 5px;
-					}
-					.curl-command-wrapper i.icon-copy {
-						margin-left: 5px;
-
-						&:after {
-							content : "Copy";
-							font-family: $font-family-base;
-							font-weight: 600;
-							padding-left: 6px;
+					.code-snippet-container {
+						.code-snippet-header {
+							font-size: 1.25rem;
+						}
+						pre {
+							&.curl-command {
+								border: 1px dashed #dedede;
+								padding: 5px;
+							}
+							&.aws_cli-command {
+								height: min-content;
+								text-wrap: wrap;
+								background-color: rgb(44 43 52);
+								padding: 10px 70px 10px 10px;
+								color: white;
+								border-radius: 5px;
+								background-color: #f0f2f3;
+								color: #343434;
+							}
+						}
+						.curl-command-wrapper i.icon-copy {
+							margin-left: 5px;
+	
+							&:after {
+								content : "Copy";
+								font-family: $font-family-base;
+								font-weight: 600;
+								padding-left: 6px;
+							}
 						}
 					}
 				}
