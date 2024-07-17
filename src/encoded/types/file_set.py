@@ -292,8 +292,6 @@ def validate_compatible_assay_and_sequencer(context, request):
                 if sequencer not in special_sequencers:
                     msg = f"Sequencer {sequencer} is not allowed for assay {assay}."
                     return request.errors.add('body', 'FileSet: invalid links', msg)
-                else:
-                    return request.validated.update({})
         return request.validated.update({})
 
 

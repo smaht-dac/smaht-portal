@@ -40,7 +40,6 @@ def test_validate_rna_molecule_properties_on_post(
 ) -> None:
     """Ensure analyte molecule RNA properties validated on POST."""
     analyte_insert = get_item_from_search(es_testapp,'analyte')
-    #import pdb; pdb.set_trace()
     identifying_post_body = {
         "submitted_id": 'TEST_ANALYTE_TEST',
         "submission_centers": analyte_insert.get("submission_centers",[]),

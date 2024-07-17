@@ -34,5 +34,23 @@
         "title": "Cas9 Targeted Nanopore Sequencing",
         "code": "099",
         "identifier": "cas9_nanopore"
+    },
+    {
+        "uuid": "5e7ebb66-8fc1-47fe-92b3-5d96b9af2788",
+        "submission_centers": [
+            "smaht"
+        ],
+        "title": "MAS-ISO-Seq",
+        "code": "102",
+        "identifier": "bulk_mas_iso_seq"
+    },
+    {
+        "code": "101",
+        "title": "RNA-Seq",
+        "identifier": "bulk_rna_seq",
+        "submission_centers": [
+            "smaht"
+        ],
+        "uuid": "beb12f96-624b-4fb8-afd5-8c637f5c0b97"
     }
 ]
