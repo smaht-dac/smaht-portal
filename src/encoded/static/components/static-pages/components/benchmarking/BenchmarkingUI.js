@@ -19,7 +19,7 @@ export const BenchmarkingLayout = ({
     children,
     callout = null,
 }) => {
-    const [showInformation, setShowInformation] = useState(false);
+    const [showInformation, setShowInformation] = useState(true);
     const cls = `description readable ${!schemas ? 'mb-5' : ''}`;
 
     return (
@@ -28,33 +28,6 @@ export const BenchmarkingLayout = ({
                 <div className="information-container col-auto col-lg-9">
                     <div className="title-container">
                         <h2 className="title">{title}</h2>
-                        {setShowInformation && (
-                            <button
-                                className="toggle-information"
-                                type="button"
-                                aria-label={
-                                    showInformation
-                                        ? 'Hide Description'
-                                        : 'Show Description'
-                                }
-                                aria-expanded={showInformation}
-                                aria-controls="benchmarking-page-description-container"
-                                data-tip={
-                                    showInformation
-                                        ? 'Hide Description'
-                                        : 'Show Description'
-                                }
-                                onClick={() =>
-                                    setShowInformation(!showInformation)
-                                }>
-                                <span>
-                                    <i
-                                        className={`icon icon-eye${
-                                            showInformation ? '-slash' : ''
-                                        } fas`}></i>
-                                </span>
-                            </button>
-                        )}
                     </div>
                     <div
                         className={
@@ -74,7 +47,20 @@ export const BenchmarkingLayout = ({
                             </p>
                         </div>
                         {callout}
-                        {!showInformation && <div className="overlay"></div>}
+                        <button
+                            onClick={() => {
+                                console.log('clicked', showInformation);
+                                setShowInformation(!showInformation);
+                            }}
+                            className="toggle-information-text-button">
+                            <i
+                                className={`icon icon-angle-${
+                                    showInformation ? 'up' : 'down'
+                                } fas`}></i>
+                            <span className="toggle-information-text">
+                                Show{showInformation ? ' less' : ' more'}
+                            </span>
+                        </button>
                     </div>
                 </div>
                 {/* TODO: Re-add documentation button once we have it available */}
