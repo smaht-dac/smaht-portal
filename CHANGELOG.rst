@@ -10,6 +10,12 @@ Change Log
 0.71.1
 ======
 
+* Disable tagging and commenting functionality for non-admins on Submission Status page
+
+
+0.71.1
+======
+
 `PR 198: Bm accessibility font fix <https://github.com/smaht-dac/smaht-portal/pull/198>`_
 
 * Convert pixel font sizes to use rem

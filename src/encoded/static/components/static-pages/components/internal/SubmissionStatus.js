@@ -1,8 +1,11 @@
 'use strict';
 
 import React from 'react';
-import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import {
+    JWT,
+    ajax,
+    object,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import {
     fallbackCallback,
     formatDate,
@@ -22,6 +25,9 @@ import { SubmissionStatusFilter } from './SubmissionStatusFilter';
 class SubmissionStatusComponent extends React.PureComponent {
     constructor(props) {
         super(props);
+
+        const userDetails = JWT.getUserInfo();
+
         this.state = {
             initialLoading: true,
             loading: false,
@@ -34,6 +40,7 @@ class SubmissionStatusComponent extends React.PureComponent {
             visibleCommentInputs: [],
             comments: {},
             newComments: {},
+            isUserAdmin: userDetails.details.groups.includes('admin'),
         };
     }
 
@@ -208,9 +215,8 @@ class SubmissionStatusComponent extends React.PureComponent {
             ? 'input-group input-group-sm mb-1'
             : 'collapse';
 
-        return (
-            <li className="ss-line-height-140">
-                Comments:{' '}
+        const commentInputField = this.state.isUserAdmin ? (
+            <React.Fragment>
                 <a
                     href="#"
                     onClick={(e) =>
@@ -236,6 +242,14 @@ class SubmissionStatusComponent extends React.PureComponent {
                         </div>
                     </div>
                 </div>
+            </React.Fragment>
+        ) : (
+            ''
+        );
+
+        return (
+            <li className="ss-line-height-140">
+                Comments: {commentInputField}
             </li>
         );
     };
@@ -350,12 +364,17 @@ class SubmissionStatusComponent extends React.PureComponent {
         }
         const comments = [];
         fs_comments.forEach((c) => {
+            const trashSymbol = this.state.isUserAdmin ? (
+                <span
+                    className="far icon icon-fw icon-trash-alt text-muted pl-1 clickable"
+                    onClick={() => this.removeComment(fs, c)}></span>
+            ) : (
+                ''
+            );
             comments.push(
                 <li className="ss-line-height-140">
                     <strong>{c}</strong>
-                    <span
-                        className="far icon icon-fw icon-trash-alt text-muted pl-1 clickable"
-                        onClick={() => this.removeComment(fs, c)}></span>
+                    {trashSymbol}
                 </li>
             );
         });
@@ -389,7 +408,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                     analyte.samples?.forEach((sample) => {
                         fs_details.push(
                             <li className="ss-line-height-140">
-                                Sample: {getLink(sample.uuid, sample.display_title)}
+                                Sample:{' '}
+                                {getLink(sample.uuid, sample.display_title)}
                             </li>
                         );
                     });
@@ -448,26 +468,35 @@ class SubmissionStatusComponent extends React.PureComponent {
             const filesetStatusTags = SUBMISSION_STATUS_TAGS.map((tag) => {
                 const badgeType =
                     fs.tags && fs.tags.includes(tag) ? 'info' : 'lighter';
-                const cn = 'badge clickable badge-' + badgeType;
-                return (
-                    <React.Fragment>
-                        <div
-                            className={cn}
-                            onClick={() => this.toggleTag(fs, tag)}>
-                            {tag}
-                        </div>
-                        <br />
-                    </React.Fragment>
-                );
+
+                if (this.state.isUserAdmin) {
+                    const cn = 'badge clickable badge-' + badgeType;
+                    return (
+                        <React.Fragment>
+                            <div
+                                className={cn}
+                                onClick={() => this.toggleTag(fs, tag)}>
+                                {tag}
+                            </div>
+                            <br />
+                        </React.Fragment>
+                    );
+                } else {
+                    const cn = 'badge badge-' + badgeType;
+                    return (
+                        <React.Fragment>
+                            <div className={cn}>{tag}</div>
+                            <br />
+                        </React.Fragment>
+                    );
+                }
             });
 
             return (
                 <tr key={fs.accession}>
                     <td
                         className="p-0"
-                        data-tip={
-                            'File group: ' + fs.file_group
-                        }
+                        data-tip={'File group: ' + fs.file_group}
                         style={{
                             backgroundColor: fs.file_group_color,
                             width: '5px',
