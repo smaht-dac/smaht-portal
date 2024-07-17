@@ -1,6 +1,4 @@
 <>
-    <p>The SMaHT (Somatic Mosaicism across Human Tissues) Network is a new NIH initiative to identify non-inherited, somatic variations in human genomes over time and to understand the role of such genetic variation in human health, development, aging, and disease.</p>
-
     <p>The Network consists of:</p>
     <ol>
         <li>A Tissue Procurement Center that procures tissue samples from post-mortem donors</li>
