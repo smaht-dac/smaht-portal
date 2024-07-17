@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.71.1
+0.71.2
 ======
 
 * Disable tagging and commenting functionality for non-admins on Submission Status page
