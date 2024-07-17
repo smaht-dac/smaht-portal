@@ -52,19 +52,21 @@ def validate_rna_specific_assay(context,request):
 
     data = request.json
     if 'analytes' in data:
-        molecules = [get_item_or_none(request, analyte, 'analytes').get("molecule",[]) for analyte in data['analytes']]
-        if 'RNA' in molecules:
-            assay = get_item_or_none(request,data['assay'],'assays').get("identifier","")
-            if assay not in rna_assays:
-                msg = f"Assay {assay} is specific to RNA analytes."
-                return request.errors.add('body', 'Library: invalid links', msg)
-            else:
-                return request.validated.update({})
+        molecules = []
+        for analyte in data['analytes']:
+            molecules+=get_item_or_none(request, analyte, 'analytes').get("molecule",[])
+        assay = get_item_or_none(request,data['assay'],'assays').get("identifier","")
+        if 'RNA' in molecules and assay not in rna_assays:
+            msg = f"Assay {assay} is specific to DNA analytes."
+            return request.errors.add('body', 'Library: invalid links', msg)
+        elif 'RNA' not in molecules and assay in rna_assays:
+            msg = f"Assay {assay} is specific to RNA analytes."
+            return request.errors.add('body', 'Library: invalid links', msg)
         return request.validated.update({})
     
 
 def validate_assay_specific_properties(context,request):
-    """Check that assay is appropriate for assay-specifc properties.
+    """Check that assay is appropriate for assay-specific properties.
     
     Assay-specific properties are in `assay_dependent`
     """
@@ -73,6 +75,7 @@ def validate_assay_specific_properties(context,request):
         "target_monomer_size": ["bulk_mas_iso_seq"]
     }
     data = request.json
+    import pdb; pdb.set_trace()
     if 'assay' in data:
         for property in assay_dependent.keys():
             if data.get('property',""):

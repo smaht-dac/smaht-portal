@@ -33,7 +33,7 @@
         "libraries": [
             "TEST_LIBRARY_HELA_ONLY"
         ],
-        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
+        "sequencing": "TEST_SEQUENCING_PACBIO_30X-30H"
     },
     {
         "uuid": "e8e1885a-705a-46d7-8937-5969d30280f0",

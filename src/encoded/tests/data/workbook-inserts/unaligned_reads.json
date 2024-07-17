@@ -46,7 +46,7 @@
         "paired_with": "TEST_UNALIGNED-READS_FASTQ",
         "status": "released",
         "sequencing_center": "smaht",
-        "annotated_filename": "SMHTHELA-X-X-F65-X002-test-SMAURV9YIJWF-X.fastq.gz",
+        "annotated_filename": "SMHTHELA-X-X-F65-B102-test-SMAURV9YIJWF-X.fastq.gz",
         "dataset": "colo829t"
     },
     {
