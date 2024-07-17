@@ -40,7 +40,7 @@ class SubmissionStatusComponent extends React.PureComponent {
             visibleCommentInputs: [],
             comments: {},
             newComments: {},
-            isUserAdmin: userDetails.details.groups.includes('admin'),
+            isUserAdmin: userDetails.details.groups?.includes('admin'),
         };
     }
 
