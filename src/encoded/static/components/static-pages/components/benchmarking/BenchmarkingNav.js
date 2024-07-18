@@ -66,6 +66,8 @@ export const BenchmarkingUINav = (props) => {
             <button
                 type="button"
                 className="toggle-button"
+                aria-label="Toggle Side Navigation"
+                aria-expanded={props.showNav}
                 onClick={() => props.setShowNav(!props.showNav)}>
                 {props.showNav ? (
                     <i className="icon icon-arrow-left fas"></i>

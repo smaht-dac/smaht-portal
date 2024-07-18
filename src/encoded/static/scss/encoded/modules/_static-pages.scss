@@ -2076,6 +2076,14 @@ body[data-pathname^="/data/benchmarking"] {
 							font-size: 12px;
 							margin: auto;
 						}
+
+						&:hover {
+							background-color: #F6F6F6;
+						}
+
+						&:active {
+							background-color: #f2f2f2;
+						}
 					}
 				}
 			}

@@ -49,7 +49,9 @@ export const BenchmarkingLayout = ({
                         {callout}
                         <button
                             onClick={() => setShowInformation(!showInformation)}
-                            className="toggle-information-text-button">
+                            className="toggle-information-text-button"
+                            aria-label="Toggle full description"
+                            aria-expanded={showInformation}>
                             <i
                                 className={`icon icon-angle-${
                                     showInformation ? 'up' : 'down'
