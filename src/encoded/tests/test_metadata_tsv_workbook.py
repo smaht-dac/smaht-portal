@@ -118,13 +118,15 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_key_and_length(header1, 'Metadata TSV Download')
         TestMetadataTSVHelper.check_key_and_length(header2, 'Suggested command to download: ')
         TestMetadataTSVHelper.check_key_and_length(header3, 'FileDownloadURL')
-        assert len(parsed[3:]) == 13  # 13 entries in the workbook right now, including extra files
+        assert len(parsed[3:]) == 15  # there are 15 entries in the workbook right now, including extra files
         # test for various types
         TestMetadataTSVHelper.check_type_length(es_testapp, 'AlignedReads', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 3)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'VariantCalls', 2)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'ReferenceFile', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'OutputFile', 2)
+        TestMetadataTSVHelper.check_type_length(es_testapp, 'SupplementaryFile', 2)
+
         res = es_testapp.post_json('/metadata/', {'type': 'OutputFile', 'include_extra_files': True})
         tsv = res._app_iter[0]
         parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
@@ -151,11 +153,14 @@ class TestMetadataTSVWorkbook:
                 break
 
         # check download links are now download_cli
-        res = es_testapp.post_json('/metadata/',
-                                   {'type': 'File', 'include_extra_files': True, 'cli': True})
+        res = es_testapp.post_json(
+            "/metadata/", {"type": "File", "include_extra_files": True, "cli": True}
+        )
         tsv = res._app_iter[0]
-        assert b'Metadata TSV Download' in tsv
-        assert b'/output-files/cca15caa-bc11-4a6a-8998-ea0c69df8b9d/@@download_cli' in tsv
+        assert b"Metadata TSV Download" in tsv
+        assert (
+            b"/output-files/cca15caa-bc11-4a6a-8998-ea0c69df8b9d/@@download_cli" in tsv
+        )
         parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
         header_command_part = 'jq -r ".download_credentials | {AccessKeyId'
         assert header_command_part in parsed[1][3]  # this is where suggested command is
@@ -169,10 +174,10 @@ class TestMetadataTSVWorkbook:
                                    {'type': 'File', 'include_extra_files': False}).json
         for facet in res:
             if facet['field'] == 'file_size':
-                assert facet['count'] == 9
+                assert facet['count'] == 11
                 assert facet['min'] == 1000.0
                 assert facet['max'] == 100000.0
-                assert facet['sum'] == 284000.0
+                assert facet['sum'] == 286000.0
             if facet['field'] == 'extra_files.file_size':
                 raise AssertionError('Extra files information present when not desired')
         # check an individual type (with extra files)

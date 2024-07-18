@@ -1,0 +1,23 @@
+[
+    {
+        "uuid": "12a3228f-f46c-4fbf-a19c-d233bf7d20d8",
+        "submitted_id": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
+        "title": "Hela_DSA",
+        "derived_from": [
+            "TEST_UNALIGNED-READS_FASTQ_R2"
+        ],
+        "software": [
+            "TEST_SOFTWARE_BWA-MEM"
+        ],
+        "submission_centers": [
+            "smaht"
+        ],
+        "genome_size": 3100000000,
+        "total_ungapped_length": 2900000000,
+        "number_of_chromosomes": 23,
+        "number_of_scaffolds": 470,
+        "number_of_contigs": 1000,
+        "contig_n50": 50000000,
+        "scaffold_n50": 67000000
+    }
+]
