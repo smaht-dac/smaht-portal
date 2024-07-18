@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.72.0
+======
+
+`PR 204: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/204>`_
+
+* For MedicalHistory, change `enum` from "Not done" to "Not Done" for consistency
+
+
 0.71.1
 ======
 
