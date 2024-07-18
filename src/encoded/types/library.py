@@ -75,10 +75,9 @@ def validate_assay_specific_properties(context,request):
         "target_monomer_size": ["bulk_mas_iso_seq"]
     }
     data = request.json
-    import pdb; pdb.set_trace()
     if 'assay' in data:
         for property in assay_dependent.keys():
-            if data.get('property',""):
+            if data.get(property,""):
                 assay = get_item_or_none(request,data['assay'],'assays').get("identifier","")
                 if assay not in assay_dependent[property]:
                     msg = f"Property {property} not compatible with assay {assay}."
