@@ -1,7 +1,6 @@
 from typing import Dict, Any
 import pytest
 from webtest.app import TestApp
-from dataclasses import dataclass
 from .test_permissions import post_item_to_fail, post_item_then_delete
 
 
@@ -46,6 +45,7 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
 )
 def test_validate_compatible_assay_and_sequencer_on_patch(
     es_testapp: TestApp,
+    workbook: None,
     library: str,
     sequencing: str,
     expected_status: int,
@@ -85,6 +85,7 @@ def test_validate_compatible_assay_and_sequencer_on_patch(
 )
 def test_validate_compatible_assay_and_sequencer_on_post(
     es_testapp: TestApp,
+    workbook: None,
     library: str,
     sequencing: str,
     expected_status: int,

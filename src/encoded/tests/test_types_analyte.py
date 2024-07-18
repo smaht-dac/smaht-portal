@@ -16,6 +16,7 @@ from .test_permissions import post_item_then_delete, post_item_to_fail
 )
 def test_validate_rna_molecule_properties_on_patch(
     es_testapp: TestApp,
+    workbook: None,
     patch_body: Dict[str, Any],
     expected_status: int
 ) -> None:
@@ -35,6 +36,7 @@ def test_validate_rna_molecule_properties_on_patch(
 )
 def test_validate_rna_molecule_properties_on_post(
     es_testapp: TestApp,
+    workbook: None,
     post_body: Dict[str, Any],
     expected_status: int
 ) -> None:
