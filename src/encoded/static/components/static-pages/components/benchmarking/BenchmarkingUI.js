@@ -48,10 +48,7 @@ export const BenchmarkingLayout = ({
                         </div>
                         {callout}
                         <button
-                            onClick={() => {
-                                console.log('clicked', showInformation);
-                                setShowInformation(!showInformation);
-                            }}
+                            onClick={() => setShowInformation(!showInformation)}
                             className="toggle-information-text-button">
                             <i
                                 className={`icon icon-angle-${

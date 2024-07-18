@@ -1936,6 +1936,10 @@ body[data-pathname^="/data/benchmarking"] {
 								&:hover {
 									background-color: #F6F6F6;
 								}
+
+								&:active {
+									background-color: #f2f2f2;
+								}
 							}
 						}
 
@@ -1951,6 +1955,9 @@ body[data-pathname^="/data/benchmarking"] {
 								transition: max-height 150ms ease-in-out;
 								overflow: hidden;
 								margin-bottom: 1.5rem;
+								display: -webkit-box;
+								@include prefix(line-clamp, 2);
+								@include prefix(box-orient, vertical);
 							}
 						}
 					}
