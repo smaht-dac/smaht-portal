@@ -68,14 +68,14 @@ def test_validate_read_pairs_on_post(
     post_body: Dict[str, Any],
     expected_status: int
 ) -> None:
-    """Ensure R2 files are paired with R1 files on PATCH."""
-    r2_insert = get_item(es_testapp,"TEST_UNALIGNED-READS_FASTQ_R2","UnalignedReads")
+    """Ensure R2 files are paired with R1 files on POST."""
+    r2_file =get_r2_paired_file(es_testapp)
     identifying_post_body = {
         "submitted_id": "TEST_UNALIGNED-READS_TEST",
-        "file_format": r2_insert.get("file_format",""),
-        "file_sets": r2_insert.get("file_sets",[]),
+        "file_format": r2_file.get("file_format",""),
+        "file_sets": r2_file.get("file_sets",[]),
         "filename": "test_R2.fastq.gz",
-        "submission_centers": r2_insert.get("submission_centers",[]),
+        "submission_centers": r2_file.get("submission_centers",[]),
         **post_body
     }
     if expected_status == 422:

@@ -36,19 +36,28 @@ class UnalignedReads(SubmittedFile):
 def validate_read_pairs(context,request):
     """Check that file is R2 if it has `paired_with` and link of R2 files corresponds to an R1 file."""
     data = request.json
-    if 'read_pair_number' in data:
-        reads = data['read_pair_number']
-        if 'paired_with' in data:
-            paired_reads = get_item_or_none(request,data['paired_with'],'unaligned-reads').get("read_pair_number","")
-            if reads != 'R2': # paired_with is exclusive to R2
-                msg = f"paired_with property is specific to R2 files, read_pair_number is {reads}."
-                return request.errors.add('body', 'UnalignedReads: invalid property', msg)
-            elif paired_reads != "R1": # paired with read_pair_number must be R1
-                msg = f"paired_with file must have read_pair_number of R1, Linked file read_pair_number is {paired_reads}."
-                return request.errors.add('body', 'UnalignedReads: invalid links', msg)
-        elif reads == 'R2': # paired_with has a value if file is R2
-            msg = "paired_with property is required for R2 files."
+    if 'read_pair_number' in data and 'paired_with' in data:
+        paired_reads = get_item_or_none(request,data['paired_with'],'unaligned-reads').get("read_pair_number","")
+        if data['read_pair_number'] != 'R2': # paired_with is exclusive to R2
+            msg = f"paired_with property is specific to R2 files, read_pair_number is {data['read_pair_number']}."
             return request.errors.add('body', 'UnalignedReads: invalid property', msg)
+        elif paired_reads != "R1":
+            msg = f"paired_with file must have read_pair_number of R1, Linked file read_pair_number is {paired_reads}."
+            return request.errors.add('body', 'UnalignedReads: invalid links', msg)
+        else:
+            return request.validated.update({})
+    elif 'paired_with' in data:
+            msg = "paired_with property is specific to R2 files, No read_pair_number is provided."
+            return request.errors.add('body', 'UnalignedReads: invalid property', msg)
+    elif 'read_pair_number' in data:
+            if data['read_pair_number'] == "R2":
+                msg = "paired_with property is required for R2 files, No value provided"
+                return request.errors.add('body', 'UnalignedReads: invalid property', msg)
+            else:
+                return request.validated.update({})
+    else:
+        return request.validated.update({})
+
     
 
 UNALIGNED_READS_ADD_VALIDATORS = SUBMITTED_FILE_ADD_VALIDATORS + [
