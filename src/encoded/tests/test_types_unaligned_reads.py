@@ -7,7 +7,8 @@ from webtest import TestApp
 from .utils import (
     post_item,
     patch_item,
-    get_item
+    get_item,
+    get_search
 )
 
 @pytest.mark.workbook
@@ -43,7 +44,8 @@ def test_validate_read_pairs_on_patch(
     expected_status: int
 ) -> None:
     """Ensure R2 files are paired with R1 files on PATCH."""
-    identifier = get_item(es_testapp,"TEST_UNALIGNED-READS_FASTQ_R2","UnalignedReads").get("uuid","")
+    r2_file =get_r2_paired_file(es_testapp)
+    identifier = r2_file.get("uuid","")
     if expected_status == 422:
         response = patch_item(es_testapp, patch_body, identifier,status=expected_status)
         assert assert_paired_with_invalid(response)
@@ -55,6 +57,8 @@ def test_validate_read_pairs_on_patch(
 @pytest.mark.parametrize(
     "post_body,expected_status", [
         ({"read_pair_number": "R2","paired_with":"TEST_UNALIGNED-READS_FASTQ"}, 200),
+        ({"read_pair_number": "R1","paired_with":"TEST_UNALIGNED-READS_FASTQ"}, 422),
+        ({"paired_with":"TEST_UNALIGNED-READS_FASTQ"}, 422),
         ({"read_pair_number": "R2","paired_with":"TEST_UNALIGNED-READS_FASTQ_NO_READ_PAIR_NUMBER"}, 422)
     ]
 )
@@ -81,16 +85,15 @@ def test_validate_read_pairs_on_post(
         post_item(es_testapp,identifying_post_body,'unaligned_reads')
 
 
-
 def assert_paired_with_invalid(
     response: Dict[str, Any],
 ) -> bool:
-    """Ensure invalid paired_with link error in response."""
+    """Ensure invalid `paired_with` error in response."""
     assert "ValidationFailure" in response.get("@type", [])
     assert response.get("status") == "error"
     errors = response.get("errors", [])
 
-    error_msg = "paired_with file must have read_pair_number of R1"
+    error_msg = "paired_with"
     assert errors
     invalid_paired_with_error_found = False
     for error in errors:
@@ -98,3 +101,13 @@ def assert_paired_with_invalid(
             invalid_paired_with_error_found = True
             break
     return invalid_paired_with_error_found
+
+
+def get_r2_paired_file(es_testapp: TestApp) -> Dict[str, Any]:
+    """Get R2 read pair UnalignedReads from workbook."""
+    r2_paired_search = get_search(
+        es_testapp,
+        "?type=UnalignedReads&read_pair_number=R2&paired_with.uuid!=No+value",
+    )
+    assert r2_paired_search, "No paired R2 read pair file found"
+    return r2_paired_search[0]
