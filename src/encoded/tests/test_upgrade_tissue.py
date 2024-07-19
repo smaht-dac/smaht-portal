@@ -8,8 +8,8 @@ from .utils import get_upgrader
 @pytest.mark.parametrize(
     "tissue,expected",
     [
-        ({}, {"schema_version": "2"}),
-        ({"recovery_interval": 123}, {"schema_version": "2"}),
+        ({}, {"schema_version": "3"}),
+        ({"recovery_interval": 123}, {"schema_version": "3"}),
     ],
 )
 def test_upgrade_tissue_2_3(
