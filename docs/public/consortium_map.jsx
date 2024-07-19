@@ -1,17 +1,9 @@
 <>
-    <p>The Network consists of:</p>
-    <ol>
-        <li>A Tissue Procurement Center that procures tissue samples from post-mortem donors</li>
-        <li>Five Genome Characterization Centers that generate sequencing data</li>
-        <li>A Data Analysis Center that uniformly processes the SMaHT data</li>
-        <li>14 Tools and Technology Development Projects what focus on developing novel experimental assays and computational methods to detect somatic mutations.</li>
-    </ol>
+    <p>SMaHT is an NIH initiative to identify non-inherited, somatic variations in human genomes and understand the role of such genetic variation in human health, development, aging, and disease.</p>
 
-    <p>The SMaHT Network aims to generate sequencing data using multiple short- and long-read technologies and profiling assays. Please refer to our <a href="/about/consortium/data">data overview</a> for more information.</p>
+    <p>Please refer to our <a href="https://data.smaht.org/about/consortium/data" target="_blank">data overview</a> to see the data types that the SMaHT Network generates. For more information about the Network, please visit the <a href="https://www.smaht.org" target="_blank">SMaHT Organization Center website</a>.</p>
 
-    <p>The location and more information about the SMaHT Network members are below.</p>
-
-    <p>For more information about the Network, please visit the <a href="https://www.smaht.org" target="_blank">SMaHT Organization Center website.</a></p>
+    <p>The Network consists of: (1) Tissue Procurement Center (TPC); (2) Genome Characterization Centers (GCCs) that generate sequencing data; (3) Data Analysis Center (DAC), and (4) Tools and Technology Development (TTD) projects that focus on developing novel experimental and computational methods to detect somatic mosaic mutations.</p>
 
     <ConsortiumMap />
 </>
