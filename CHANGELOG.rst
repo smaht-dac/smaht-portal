@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+0.72.1
+======
+
+`PR 195: fix: tablet navigation collapse <https://github.com/smaht-dac/smaht-portal/pull/195>`_
+
+* Fix collapsing navigation bar for tablet size screens
+* Switch to mobile navigation component early
+* Show initials for username in tablet screen size
+* Fix mobile styling bugs
+
+
 0.72.0
 ======
 
@@ -33,16 +44,6 @@ Change Log
 * Add notes_to_tsv property to file.json schema for including static banners for notes on file pages.
 * Add test for DonorSpecificAssembly rev_links
 
-
-0.70.1
-======
-
-`PR 195: fix: tablet navigation collapse <https://github.com/smaht-dac/smaht-portal/pull/195>`_
-
-* Fix collapsing navigation bar for tablet size screens
-* Switch to mobile navigation component early
-* Show initials for username in tablet screen size
-* Fix mobile styling bugs
 
 0.70.0
 ======
