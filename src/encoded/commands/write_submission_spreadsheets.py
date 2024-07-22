@@ -57,6 +57,38 @@ a new token.
 ITEM_SPREADSHEET_SUFFIX = "_submission.xlsx"
 WORKBOOK_FILENAME = "submission_workbook.xlsx"
 
+EXAMPLE_FILE_UUID="35f2299b-86e8-47e1-96a3-c5a5ec5d49a6"
+
+POPULATE_ORDER = {
+    "AlignedReads": {"submitted": ['file_sets','derived_from','software'], "unsubmitted": ["file_format","reference_genome"]},
+    "UnalignedReads": {"submitted": ['file_sets','derived_from','software','paired_with'], "unsubmitted": ["file_format","reference_genome"]},
+    "VariantCalls": {"submitted": ['file_sets','derived_from','software'], "unsubmitted": ["file_format","reference_genome"]},
+    "FileSet":{"submitted": ['libraries','sequencing','samples'],'unsubmitted': []},
+    "Software": {"submitted": [],'unsubmitted': []},
+    "Library": {"submitted": ['library_preparation','analytes'],'unsubmitted': ['assay']},
+    "Sequencing": {"submitted": ['preparation_kits','basecalling'],'unsubmitted': ['sequencer']},
+    "Basecalling": {"submitted": [],'unsubmitted': []},
+    "LibraryPreparation": {"submitted": ['preparation_kits','treatments'],'unsubmitted': []},
+    "Analyte": {"submitted": ['analyte_preparation','samples'],'unsubmitted': []},
+    "AnalytePreparation": {"submitted": ['preparation_kits','treatments'],'unsubmitted': []},
+    "Treatment": {"submitted": [],'unsubmitted': []},
+    "CellSample": {"submitted": ['parent_samples','sample_sources'],'unsubmitted': []},
+    "CellCultureSample": {"submitted": ['sample_sources'],'unsubmitted': []},
+    "TissueSample": {"submitted": ['parent_samples','sample_sources'],'unsubmitted': []},
+    "CellCultureMixture": {"submitted": ['components'],'unsubmitted': []},
+    "CellCulture": {"submitted": ['cell_line'],'unsubmitted': []},
+    "CellLine": {"submitted": ['donor'],'unsubmitted': []},
+    "Tissue": {"submitted": ['donor'],'unsubmitted': []},
+    "Donor": {"submitted": [],'unsubmitted': []}
+}
+
+NON_SUBMITTED = [
+    "Sequencer",
+    "FileFormat",
+    "Assay",
+    "ReferenceGenome"
+]
+
 FONT = "Arial"
 FONT_SIZE = 10
 
@@ -276,15 +308,16 @@ def write_all_spreadsheets(
     request_handler: RequestHandler,
     workbook: bool = False,
     separate_comments: bool = False,
+    example: bool = False
 ) -> None:
     """Write all submission spreadsheets"""
     submission_schemas = get_all_submission_schemas(request_handler)
     log.info(f"Writing submission spreadsheets to: {output}")
     if workbook:
-        write_workbook(output, submission_schemas, separate_comments=separate_comments)
+        write_workbook(output, submission_schemas, separate_comments=separate_comments,example=example)
     else:
         write_spreadsheets(
-            output, submission_schemas, separate_comments=separate_comments
+            output, submission_schemas, separate_comments=separate_comments, example=example
         )
 
 
@@ -301,6 +334,7 @@ def write_item_spreadsheets(
     request_handler: RequestHandler,
     workbook: bool = False,
     separate_comments: bool = False,
+    example: bool = False
 ) -> None:
     """Write submission spreadsheets for specified items"""
     submission_schemas = get_submission_schemas(items, request_handler)
@@ -312,10 +346,10 @@ def write_item_spreadsheets(
         f" {submission_schemas.keys()}"
     )
     if workbook:
-        write_workbook(output, submission_schemas, separate_comments=separate_comments)
+        write_workbook(output, submission_schemas, separate_comments=separate_comments,example=example)
     else:
         write_spreadsheets(
-            output, submission_schemas, separate_comments=separate_comments
+            output, submission_schemas, separate_comments=separate_comments,example=example
         )
 
 
@@ -345,14 +379,21 @@ def get_submission_schema_endpoint(item: str) -> Dict[str, Any]:
 
 
 def write_workbook(
-    output: Path, submission_schemas: Dict[str, Any], separate_comments: bool = False
+    output: Path,
+    submission_schemas: Dict[str, Any],
+    separate_comments: bool = False,
+    request_handler: RequestHandler = None,
+    example: bool = False
 ) -> None:
     """Write a single workbook containing all submission spreadsheets."""
     workbook = openpyxl.Workbook()
     ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas)
-    write_workbook_sheets(
+    if example:
+        write_populated_workbook_sheets(workbook, ordered_submission_schemas, separate_comments=separate_comments,request_handler=request_handler,example=example)
+    else: 
+        write_workbook_sheets(
         workbook, ordered_submission_schemas, separate_comments=separate_comments
-    )
+        )
     file_path = Path(output, WORKBOOK_FILENAME)
     save_workbook(workbook, file_path)
     log.info(f"Workbook written to: {file_path}")
@@ -373,7 +414,7 @@ def get_ordered_submission_schemas(
 def write_workbook_sheets(
     workbook: openpyxl.Workbook,
     submission_schemas: Dict[str, Dict[str, Any]],
-    separate_comments: bool = False,
+    separate_comments: bool = False
 ) -> None:
     """Write workbook sheets for given schemas."""
     for index, (item, submission_schema) in enumerate(submission_schemas.items()):
@@ -385,6 +426,28 @@ def write_workbook_sheets(
         else:
             worksheet = workbook.create_sheet(title=spreadsheet.item)
             write_properties(worksheet, spreadsheet.properties, separate_comments)
+
+
+def write_populated_workbook_sheets(
+    workbook: openpyxl.Workbook,
+    submission_schemas: Dict[str, Dict[str, Any]],
+    separate_comments: bool = False,
+    request_handler: RequestHandler = None,
+    example: bool = False
+) -> None:
+    """Write workbook sheets for given schemas."""
+    import pdb; pdb.set_trace()
+    for index, (item, submission_schema) in enumerate(submission_schemas.items()):
+        spreadsheet = get_spreadsheet(item, submission_schema)
+        
+        if index == 0:
+            worksheet = workbook.active
+            set_sheet_name(worksheet, spreadsheet)
+            write_properties(worksheet, spreadsheet.properties, separate_comments)
+            
+        else:
+            worksheet = workbook.create_sheet(title=spreadsheet.item)
+            write_properties(worksheet, spreadsheet.properties, separate_comments,request_handler=request_handler,example=example)
 
 
 def write_spreadsheets(
@@ -646,6 +709,18 @@ def is_submitted_id(property_: Property) -> bool:
     return property_.name == item_constants.SUBMITTED_ID
 
 
+def write_example(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet,
+    index: int,
+    property_: Property,
+) -> None:
+    """Write property to the worksheet"""
+    row = 1  # cells 1-indexed
+    cell = worksheet.cell(row=row, column=index, value=property_.name)
+    set_cell_font(cell, property_)
+    set_cell_width(worksheet, index, property_)
+
+
 def write_property(
     worksheet: openpyxl.worksheet.worksheet.Worksheet,
     index: int,
@@ -871,6 +946,11 @@ def main():
             f" For more information, see docstring within the script."
         ),
     )
+    parser.add_argument(
+        "--example",
+        help="Write out populated example submission.",
+        action="store_true"
+    )
     args = parser.parse_args()
 
     keys = SMaHTKeyManager().get_keydict_for_env(args.env)
@@ -901,6 +981,15 @@ def main():
             request_handler,
             workbook=args.workbook,
             separate_comments=args.separate,
+        )
+    elif args.example:
+        log.info("Writing example submission spreadsheet")
+        write_all_spreadsheets(
+            args.output,
+            request_handler,
+            workbook=args.workbook,
+            separate_comments=args.separate,
+            example=True
         )
     else:
         parser.error("No items specified to write or update spreadsheets for")
