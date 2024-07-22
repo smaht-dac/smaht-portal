@@ -32,7 +32,7 @@ const ConsortiumTable = () => {
                 'center-type align-middle text-center consortium-table-' +
                 c['center-type-short'];
             const pis = c['pis'].map((p, j) => {
-                return lab_links[p] ? (
+                return j === 0 && lab_links[p] ? (
                     <div className="text-nowrap" key={j}>
                         <a href={lab_links[p]} target="_blank">
                             {p}
