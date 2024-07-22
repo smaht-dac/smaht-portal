@@ -113,6 +113,7 @@
                     "Germline Variant Calls",
                     "Quality Control",
                     "Reference Genome",
+                    "Donor-Specific Assembly",
                     "Reference Transcriptome",
                     "RNA Quantification",
                     "Sequencing Reads",
@@ -180,6 +181,16 @@
         },
         "s3_lifecycle_status": {
             "$merge": "encoded_core:schemas/file.json#/properties/s3_lifecycle_status"
+        },
+        "notes_to_tsv": {
+            "desciption": "Additional information intended to be shown in the metadata.tsv file",
+            "type": "array",
+            "permission": "restricted_fields",
+            "comment": "value will be used to include notes in the metadata.tsv file",
+            "items": {
+                "title": "Notes to tsv file",
+                "type": "string"
+            }
         }
     },
     "facets": {
@@ -188,6 +199,10 @@
         },
         "file_sets.sequencing.sequencer.display_title": {
             "title": "Sequencing Platform"
+        },
+        "donors.display_title": {
+            "title": "Donor",
+            "default_hidden": true
         },
         "file_format.display_title": {
             "title": "Data Format"
