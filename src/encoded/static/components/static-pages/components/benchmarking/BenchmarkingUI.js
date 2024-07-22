@@ -195,7 +195,7 @@ export const HashBasedTabController = ({
                         }}>
                         <div className="mt-1">
                             <BenchmarkingTableController
-                                {...{ searchHref }}
+                                {...{ searchHref, tabMap }}
                                 {...commonTableProps}
                             />
                         </div>

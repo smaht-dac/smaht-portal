@@ -27,7 +27,8 @@ import { EmbeddedItemSearchTable } from '../../../item-pages/components/Embedded
 export const BenchmarkingTableController = (props) => {
     // Mostly serves as an intermediary/wrapper HOC to make selectedItemsController methods
     // and props available in BenchmarkingTable's aboveTableComponent
-    const { searchHref, schemas, facets, session, href, context } = props;
+    const { searchHref, schemas, facets, session, href, context, tabMap } =
+        props;
 
     // Some fields overriden in BenchmarkingTable component
     const originalColExtMap =
@@ -54,6 +55,7 @@ export const BenchmarkingTableController = (props) => {
                     href,
                     context,
                     facets,
+                    tabMap,
                 }}
             />
         </SelectedItemsController>
@@ -71,6 +73,7 @@ const BenchmarkingTable = (props) => {
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
+        tabMap,
     } = props;
 
     const selectedFileProps = {
@@ -248,8 +251,8 @@ const BenchmarkingTable = (props) => {
                 'file_sets.libraries.analytes.samples.sample_sources.code',
                 'status',
                 'validation-errors.name',
-            ]}
-            hideColumns={['display_title']}
+            ].concat(tabMap?.facetsToHide || [])}
+            hideColumns={['display_title'].concat(tabMap?.columnsToHide || [])}
             clearSelectedItemsOnFilter
         />
     );
