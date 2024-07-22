@@ -924,13 +924,54 @@ body[data-pathname^="/users/"] {
 						padding-left: 30px;
 		
 						h3 {
-							font-size: 24px;
+							font-size: 1.5rem;
 							font-weight: 400;
 							color:$gray-70;
 						}
 					}
 				}
-		
+				@include media-breakpoint-up(md){
+					min-height: calc(100vh - 231px); // 250px is sum of header, footer, and page title. If any of those change, this needs updating.
+				}
+			
+			
+				.panel.user-info,
+				.panel.user-work-info {
+			
+					// Override of prev CSS
+					.col-md-3.text-right.text-left-xs {
+						@include media-breakpoint-down(sm){
+							text-align: left !important;
+						}
+					}
+			
+					#email {
+						font-weight: 500;
+					}
+			
+					.formatted-info-panel {
+			
+						&:not(.no-details){
+							/* min-height: 41px; */
+						}
+			
+						/* When in list (maybe ToDo: li > .formatted-info-panel) ... */
+						&.no-details.no-icon.no-label {
+							display: inline-block;
+							padding: 0;
+							vertical-align: text-top;
+							max-width: 85%;
+							word-break: break-word;
+						}
+			
+						.block-title,
+						.block-title a {
+							font-weight: 600;
+						}
+					}
+			
+				}
+				
 				&.user-info {
 					/* for fun - comment out bottom transform in Inspect Element */
 					transform: rotateZ(0deg) scale3d(1, 1, 1) translateX(0);
@@ -948,7 +989,7 @@ body[data-pathname^="/users/"] {
 					}
 		
 					.user-title {
-						font-size: 32px;
+						font-size: 2rem;
 						color: $gray-70;
 						font-weight: 600;
 		
@@ -1039,6 +1080,7 @@ body[data-pathname^="/users/"] {
 				}
 			}
 		
+			
 			@include media-breakpoint-up(md){
 				.editing .user-title .editable-field-entry.inline:not(.editing) {
 					display: inline-block;
@@ -1340,7 +1382,7 @@ File Overview Styles
 					flex: 1 1 215px;
 					.datum {
 						flex-direction: column;
-						font-size: 12px;
+						font-size: 0.75rem;
 		
 						&-title {
 							margin-top: 5px;
@@ -1379,7 +1421,7 @@ File Overview Styles
 						background-color: #F1F9FF;
 		
 						&-text {
-							font-size: 17px;
+							font-size: 1.063rem;
 							font-weight: 500;
 							margin: auto auto auto 15px;
 						}
@@ -1394,7 +1436,7 @@ File Overview Styles
 						.datum {
 							display: flex;
 							padding: 5px 0px;
-							font-size: 14px;
+							font-size: 0.875rem;
 							justify-content: space-between;
 
 							&-title {
@@ -1444,7 +1486,7 @@ File Overview Styles
 							height: 100%;
 							color: $carbon-gray;
 							font-family: Inter;
-							font-size: 16px;
+							font-size: 1rem;
 							font-weight: 400;
 							padding: 0px 15px;
 							background-color: #FFFFFF;
@@ -1509,7 +1551,7 @@ File Overview Styles
 							align-items: center;
 							
 							.icon {
-								font-size: 40px;
+								font-size: 2.5rem;
 								margin-bottom: 16px;
 								color: $gray-30;
 							}
@@ -1664,7 +1706,7 @@ File Overview Styles
 						}
 
 						span {
-							font-size: 14px;
+							font-size: 0.875rem;
 							font-weight: 400;
 						}
 					}
@@ -1782,18 +1824,18 @@ File Overview Styles
 
 			>.modal-header>.modal-title {
 				color: $gray-70;
-				font-size: 24px;
+				font-size: 1.5rem;
 				font-weight: 600;
 			}
 			>.modal-body {
 				h2 {
 					color: $gray-70;
-					font-size: 18px;
+					font-size: 1.125rem;
 					font-weight: 600;
 				}
 		
 				li {
-					font-size: 14px;
+					font-size: 0.875rem;
 				}
 
 				.tsv-metadata-overview {
@@ -1821,7 +1863,7 @@ File Overview Styles
 		
 					.tsv-metadata-stat {
 						color: $gray-70;
-						font-size: 24px;
+						font-size: 1.5rem;
 						font-weight: 600;
 					}
 				}
