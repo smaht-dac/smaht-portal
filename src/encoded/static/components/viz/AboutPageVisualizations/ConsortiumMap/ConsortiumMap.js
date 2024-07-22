@@ -7,6 +7,7 @@ import us from './data/us.json';
 import consortia from './data/consortia.json';
 import consortiaLegend from './data/consortia_legend.json';
 import consortiaLabels from './data/consortia_labels.json';
+import lab_links from './data/lab_links.json';
 
 import {
     OverlayTrigger,
@@ -31,7 +32,13 @@ const ConsortiumTable = () => {
                 'center-type align-middle text-center consortium-table-' +
                 c['center-type-short'];
             const pis = c['pis'].map((p, j) => {
-                return (
+                return lab_links[p] ? (
+                    <div className="text-nowrap" key={j}>
+                        <a href={lab_links[p]} target="_blank">
+                            {p}
+                        </a>
+                    </div>
+                ) : (
                     <div className="text-nowrap" key={j}>
                         {p}
                     </div>
