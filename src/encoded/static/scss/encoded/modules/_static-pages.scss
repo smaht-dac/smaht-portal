@@ -814,6 +814,35 @@ body[data-path="/"]>#application>#layout {
 	Styles related to About page visualizations
 ***********************************************************/
 
+// Awardees Page Styles
+body[data-pathname="/about/consortium/awardees"] {
+	#content {
+		.static-page {
+			.section-content {
+				p {
+					.center-count {
+						font-weight: 500;
+						&.color {
+							&-tpc {
+								color: #984ea3;
+							}
+							&-gcc {
+								color: #ff7f00;
+							}
+							&-dac {
+								color: #e41a1c;
+							}
+							&-ttd {
+								color: #4daf4a;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 // Consortium Map
 .consortium-map {
 	font-family: Inter;

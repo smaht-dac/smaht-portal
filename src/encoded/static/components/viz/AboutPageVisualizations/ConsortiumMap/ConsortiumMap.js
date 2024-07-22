@@ -401,15 +401,6 @@ export const ConsortiumMap = () => {
                     </Overlay>
                 </div>
                 <ConsortiumTable />
-                {/* <Tabs
-                    defaultActiveKey="map"
-                    className="mb-3 float-right"
-                    variant="pills">
-                    <Tab eventKey="map" title="Map view">
-                    </Tab>
-                    <Tab eventKey="table" title="Table view" className="pt-5">
-                    </Tab>
-                </Tabs> */}
             </div>
         </div>
     );
