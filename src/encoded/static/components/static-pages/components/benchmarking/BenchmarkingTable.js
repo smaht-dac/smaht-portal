@@ -250,7 +250,7 @@ const BenchmarkingTable = (props) => {
                 'dataset',
                 'file_sets.libraries.analytes.samples.sample_sources.code',
                 'status',
-                'validation-errors.name',
+                'validation_errors.name',
             ].concat(tabMap?.facetsToHide || [])}
             hideColumns={['display_title'].concat(tabMap?.columnsToHide || [])}
             clearSelectedItemsOnFilter
