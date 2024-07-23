@@ -343,7 +343,8 @@
                 "lb_ipsc_4",
                 "lb_ipsc_52",
                 "lb_ipsc_60",
-                "tissue"
+                "tissue",
+                "colo829_snv_indel_challenge_data"
             ]
         }
     },
