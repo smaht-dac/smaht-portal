@@ -93,13 +93,13 @@
         },
         "genome_size": {
             "title": "Genome Size",
-            "description": "The size of both assembled haplotypes (bp)",
+            "description": "The size of both combined assembled haplotypes (bp)",
             "type": "integer",
             "minimum": 0
         },
-        "largest_contig": {
-            "title": "Largest Contig",
-            "description": "Largest contig in the assembly (bp)",
+        "largest_contig_size": {
+            "title": "Largest Contig Size",
+            "description": "Size of the largest contig in the assembly (bp)",
             "type": "integer",
             "minumum": 0
         },
@@ -128,8 +128,8 @@
             "minimum": 0,
             "maximum": 100
         },
-        "percent_duplicated": {
-            "title": "Percent Duplicated",
+        "percent_multi_copy": {
+            "title": "Percent Multiple Copy",
             "description": "Percentage of highly conserved genes with multiple copies present in the assembly (BUSCO)",
             "type": "number",
             "minimum": 0,
@@ -172,11 +172,8 @@
             "type": "integer",
             "minimum": 0
         },
-        "total_length": {
-            "title": "Total Length",
-            "description": "Total number of bases in the assembly (bp)",
-            "type": "integer",
-            "minimum": 0
+        "title": {
+            "description": "Title of the assembly (e.g. Hela_DSA)"
         },
         "total_ungapped_length": {
             "title": "Total Ungapped Length",
@@ -186,14 +183,14 @@
         },
         "quality_value": {
             "title": "Quality Value",
-            "description": "Consensus quality value of the assembly (from Merqury)",
+            "description": "Consensus quality value (QV) of the assembly (from Merqury)",
             "type": "number",
             "minimum": 0,
             "maximum": 50
         },
         "derived_from": {
             "title": "Derived From",
-            "description": "Files used as input to generate the assembly",
+            "description": "Link to files used as input to generate the assembly",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
@@ -204,7 +201,7 @@
         },
         "software": {
             "title": "Software",
-            "description": "Software used to generate the assembly",
+            "description": "Link to software used to generate the assembly",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
