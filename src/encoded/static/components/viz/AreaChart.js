@@ -904,6 +904,9 @@ export class AreaChart extends React.PureComponent {
         if (yAxisScale === 'Pow' && yAxisPower !== null){
             scale.exponent(yAxisPower);
         }
+        if (yAxisScale === 'Symlog' && yAxisPower !== null){
+            scale.constant(yAxisPower);
+        }
         return scale;
     }
 
@@ -1105,7 +1108,7 @@ export class AreaChart extends React.PureComponent {
                                         const handleOnClick = (e) => { e.stopPropagation(); tProps.removeTooltip(); };
                                         const term =
                                             AreaChart.isTermUrl(c.term) ?
-                                                <a key={c.term} href={c.term} target="_blank" rel="noreferrer" onClick={handleOnClick}>{c.term}</a> : c.term;
+                                                <a key={c.term} href={c.term} target="_blank" rel="noreferrer" onClick={handleOnClick} data-tip={c.termDisplayAs || c.term}>{c.termDisplayAs || c.term}</a> : c.term;
                                         return (
                                             <tr key={c.term || i} className={currentTerm === c.term ? 'active' : null}>
                                                 <td className="patch-cell">
@@ -1113,7 +1116,7 @@ export class AreaChart extends React.PureComponent {
                                                 </td>
                                                 <td className="term-name-cell">{ term }</td>
                                                 <td className="term-name-total">
-                                                    { c[tdp] % 1 > 0 ?  Math.round(c[tdp] * 100) / 100 : c[tdp] }
+                                                    { c[tdp] >= 0.01 && c[tdp] % 1 > 0 ?  Math.round(c[tdp] * 100) / 100 : (c[tdp] >= 0.01 ? c[tdp] : '<0.01') }
                                                     { yAxisLabel && yAxisLabel !== 'Count' ? ' ' + yAxisLabel : null }
                                                 </td>
                                             </tr>
@@ -1322,7 +1325,7 @@ export class AreaChartContainer extends React.Component {
     expandButton(){
         const { windowWidth } = this.props;
         const gridState = layout.responsiveGridState(windowWidth);
-        if (gridState !== 'xl') return null;
+        if (['xs', 'sm'].indexOf(gridState) > -1) return null;
         const expanded = AreaChartContainer.isExpanded(this.props);
         return (
             <button type="button" className="btn btn-outline-dark btn-sm" onClick={this.toggleExpanded}>
