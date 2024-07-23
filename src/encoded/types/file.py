@@ -524,6 +524,12 @@ class File(Item, CoreFile):
         # only seen in unit tests that force validation errors (test_real_validation_error)
         if 'status' not in self.properties:
             return None
+
+        # ignore reference files
+        if self.type_info.name == 'ReferenceFile':
+            return None
+
+        # Proceed otherwise
         current_status = self.properties['status']
         if current_status in ['uploading', 'in review']:
             return {
@@ -546,7 +552,6 @@ class File(Item, CoreFile):
                     result["released"]
                 )
             return result
-
 
     @staticmethod
     def get_date_from_datetime(datetime_str: str) -> str:
