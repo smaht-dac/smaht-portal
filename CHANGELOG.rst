@@ -13,7 +13,7 @@ Change Log
 
 * Adds two arguments to `write-submission-spreadsheets` that create submission_workbook templates with a subset of ordered tabs consistent with the submission templates shared with TPCs and GCCs/TDDs.
   * `--tpc` outputs tabs for the TPC submission
-  * `--gcc`` outputs tabs for the GCC/TDD submissions
+  * `--gcc` outputs tabs for the GCC/TDD submissions
 
 
 0.73.0

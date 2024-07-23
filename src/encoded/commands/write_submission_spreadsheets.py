@@ -125,9 +125,11 @@ class SheetsClient:
 def update_google_sheets(
     sheets_client: SheetsClient,
     request_handler: RequestHandler,
+    gcc: bool = False,
+    tpc: bool = False
 ) -> None:
     """Update Google Sheets with the latest submission schemas."""
-    spreadsheets = get_spreadsheets(request_handler)
+    spreadsheets = get_spreadsheets(request_handler,gcc=gcc,tpc=tpc)
     log.info("Clearing existing Google sheets.")
     delete_existing_sheets(sheets_client)
     log.info("Updating Google sheets with tabs.")
@@ -139,9 +141,13 @@ def update_google_sheets(
     log.info("Google sheets updated.")
 
 
-def get_spreadsheets(request_handler: RequestHandler) -> List[Spreadsheet]:
+def get_spreadsheets(
+        request_handler: RequestHandler,
+        gcc: bool = False,
+        tpc: bool = False
+    ) -> List[Spreadsheet]:
     submission_schemas = get_all_submission_schemas(request_handler)
-    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas)
+    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,gcc=gcc,tpc=tpc)
     return [
         get_spreadsheet(item, submission_schema)
         for item, submission_schema in ordered_submission_schemas.items()
@@ -938,14 +944,32 @@ def main():
     request_handler = RequestHandler(auth_key=keys)
     if not args.output and not args.google:
         parser.error("No output specified")
+    if args.gcc and args.tpc:
+        parser.error("Cannot specify both gcc and tpc")
+    if args.all and args.tpc:
+        parser.error("Cannot specify both all and tpc")
+    if args.all and args.gcc:
+        parser.error("Cannot specify both all and gcc")
     if args.all and args.item:
         parser.error("Cannot specify both all and item")
-    if args.google:
+    if args.google and args.all:
         log.info(f"Google Sheet ID: {args.google}")
         log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
         spreadsheet_client = get_google_sheet_client(args.google)
         update_google_sheets(spreadsheet_client, request_handler)
-    elif args.all:
+    elif args.google and args.gcc:
+        log.info(f"Google Sheet ID: {args.google}")
+        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+        log.info("Writing GCC submission Google sheet")
+        spreadsheet_client = get_google_sheet_client(args.google)
+        update_google_sheets(spreadsheet_client, request_handler,gcc=True)
+    elif args.google and args.tpc:
+        log.info(f"Google Sheet ID: {args.google}")
+        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+        log.info("Writing TPC submission Google sheet")
+        spreadsheet_client = get_google_sheet_client(args.google)
+        update_google_sheets(spreadsheet_client, request_handler,tpc=True)
+    elif args.workbook and args.all:
         log.info("Writing all submission spreadsheets")
         write_all_spreadsheets(
             args.output,
@@ -953,7 +977,7 @@ def main():
             workbook=args.workbook,
             separate_comments=args.separate,
         )
-    elif args.tpc:
+    elif args.workbook and args.tpc:
         log.info("Writing TPC submission spreadsheet")
         write_item_spreadsheets(
             args.output,
@@ -964,7 +988,7 @@ def main():
             gcc = False,
             separate_comments=args.separate,
         )
-    elif args.gcc:
+    elif args.workbook and args.gcc:
         log.info("Writing GCC/TTD submission spreadsheet")
         write_item_spreadsheets(
             args.output,
