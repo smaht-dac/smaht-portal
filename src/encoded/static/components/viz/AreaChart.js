@@ -903,8 +903,7 @@ export class AreaChart extends React.PureComponent {
         const scale = d3['scale' + yAxisScale]().rangeRound([height, 0]).domain(yExtents);
         if (yAxisScale === 'Pow' && yAxisPower !== null){
             scale.exponent(yAxisPower);
-        }
-        if (yAxisScale === 'Symlog' && yAxisPower !== null){
+        } else if (yAxisScale === 'Symlog' && yAxisPower !== null){
             scale.constant(yAxisPower);
         }
         return scale;
