@@ -7,11 +7,21 @@ smaht-portal
 Change Log
 ----------
 
-0.73.0
+0.74.0
 ======
 
 * Minor documentation updates for how to install awscli in docs/source/{file_download,download_cli}.rst.
 * Update to dcicutils 8.13.3.
+
+
+0.73.0
+======
+
+`PR 206: SN Remove tisuse recovery_interval  <https://github.com/smaht-dac/smaht-portal/pull/206>`_
+
+* Removes `recovery_interval` property from Tissue schema
+* Includes upgrader for tissue schema from version 2 to 3 with test
+* All existing `recovery_interval` values for Tissue items have already been transferred to TissueCollection items linked to Donor
 
 
 0.72.0
