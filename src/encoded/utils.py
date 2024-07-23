@@ -249,7 +249,7 @@ def pluralize_collection(collection: str) -> str:
     ]
     if name in specials:
         return name
-    if name.endswith("ry") or name.endswith("gy"):
+    if name.endswith("ry") or name.endswith("gy") or name.endswith("ly"):
         return name[:-1] + "ies"
     if name.endswith("sis"):
         return name[:-2] + "es"

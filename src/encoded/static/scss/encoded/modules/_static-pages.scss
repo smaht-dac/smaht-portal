@@ -11,8 +11,8 @@
 .static-section-entry,
 .home-content-area {
 
-	font-size: 15px;
-	font-size: 15.75px;
+	font-size: 0.938rem;
+	font-size: 0.984rem;
 	line-height: 1.65rem;
 
 	h1, h2, h3, h4, h5, h6 {
@@ -60,7 +60,7 @@
 		padding-bottom: 15px;
 		border-bottom: 1px solid #f4f4f4;
 
-		&h5 { font-size: 20px; margin-bottom: 10px; padding-bottom: 8px; }
+		&h5 { font-size: 1.25rem; margin-bottom: 10px; padding-bottom: 8px; }
 
 		> i.icon-link {
 			opacity: 0.15;
@@ -85,18 +85,18 @@
 	}
 
 	h2.section-title, h2.homepage-section-title {
-		font-size: 32px;
+		font-size: 2rem;
 		line-height: 38px;
 		&.can-collapse {
-			font-size: 27px;
+			font-size: 1.688rem;
 			> i.icon-plus, > i.icon-minus {
-				font-size: 24px;
+				font-size: 1.5rem;
 			}
 		}
 	}
 
 	h3.section-title, h3.homepage-section-title {
-		font-size: 24px;
+		font-size: 1.5rem;
 		margin-bottom: 10px;
 		padding-bottom: 8px;
 		&.can-collapse {
@@ -623,7 +623,7 @@ body[data-path="/"]>#application>#layout {
 					background-color: #FEE5E5;
 				}
 				&-heading {
-					font-size: 16px;
+					font-size: 1rem;
 				};
 
 				button.close {
@@ -663,7 +663,7 @@ body[data-path="/"]>#application>#layout {
 
 
 		h1 {
-			font-size: 42px;
+			font-size: 2.625rem;
 			font-weight: 600;
 		}
 
@@ -677,7 +677,7 @@ body[data-path="/"]>#application>#layout {
 
 		h2 {
 			color: $homepage-subtitle-text-color;
-			font-size: 20px;
+			font-size: 1.25rem;
 			font-weight: 400;
 		}
 
@@ -687,19 +687,19 @@ body[data-path="/"]>#application>#layout {
 			padding-top: 8px;
 
 			h1 {
-				font-size: 25px;
+				font-size: 1.563rem;
 				margin-top: 0px;
 			}
 			h2 {
-				font-size: 16px;
+				font-size: 1rem;
 				margin-top: 0px;
 			}
 			@media screen and (min-width: 767px) {
 				h1 {
-					font-size: 38px;
+					font-size: 2.375rem;
 				}
 				h2 {
-					font-size: 18px;
+					font-size: 1.125rem;
 				}
 			}
 		}
@@ -713,7 +713,7 @@ body[data-path="/"]>#application>#layout {
 			h3 {
 				color: #416485;
 				font-weight: 600;
-				font-size: 20px;
+				font-size: 1.25rem;
 				margin: 0px auto 20px 0px;
 				text-align: left;
 			}
@@ -724,14 +724,14 @@ body[data-path="/"]>#application>#layout {
 				border: 1px solid $homepage-about-consort-btn-border-color;
 				color: #416485;
 				font-weight: 500;
-				font-size: 14px;
+				font-size: 0.875rem;
 				letter-spacing: normal;
 				line-height: normal;
 				margin-bottom: 5px;
 				@include prefix(border-radius, $homepage-about-consort-border-radius);
 				> i {
 					color: #BBCCF9;
-					font-size: 12px;
+					font-size: 0.75rem;
 				}
 
 				&:hover {
@@ -898,19 +898,19 @@ body[data-path="/"]>#application>#layout {
 	}
 	.consortium-tooltip-wrapper {
 		max-width: 220px;
-		font-size: 14px;
+		font-size: 0.875rem;
 		font-weight: 600;
 		z-index: 2;
 	}
 	.consortium-tooltip-content {
 		font-family: Inter;
 		font-weight: 400;
-		font-size: 14px;
+		font-size: 0.875rem;
 	}
 	.consortium-tooltip-header {
 		font-family: Inter;
 		font-weight: 600;
-		font-size: 12px;
+		font-size: 0.75rem;
 	}
 
 
@@ -935,31 +935,31 @@ body[data-path="/"]>#application>#layout {
 				}
 			}
 			td.consortium-table-OC {
-				font-size: 22px;
+				font-size: 1.375rem;
 				background-color: #DEF2FE;
 				cursor: default;
 				color: #2E82B2;
 			}
 			td.consortium-table-DAC {
-				font-size: 22px;
+				font-size: 1.375rem;
 				background-color: #FFE1E2;
 				cursor: default;
 				color: #EA0018;
 			}
 			td.consortium-table-TPC {
-				font-size: 22px;
+				font-size: 1.375rem;
 				background-color: #F6E9F7;
 				cursor: default;
 				color: #8F4895;
 			}
 			td.consortium-table-GCC {
-				font-size: 22px;
+				font-size: 1.375rem;
 				background-color: #FFE7D5;
 				cursor: default;
 				color: #FF691A;
 			}
 			td.consortium-table-TTD {
-				font-size: 22px;
+				font-size: 1.375rem;
 				background-color: #D9F7DC;
 				cursor: default;
 				color: #225928;
@@ -977,7 +977,7 @@ body[data-path="/"]>#application>#layout {
 
 div#popover-consortium-map {
 	max-width: 400px;
-	font-size: 14px;
+	font-size: 0.875rem;
 	font-weight: 600;
 	z-index: 2;
 
@@ -990,13 +990,13 @@ div#popover-consortium-map {
 		&-header {
 			font-family: Inter;
 			font-weight: 600;
-			font-size: 12px;
+			font-size: 0.75rem;
 			margin: 0;
 		}
 		&-content {
 			font-family: Inter;
 			font-weight: 400;
-			font-size: 14px;
+			font-size: 0.875rem;
 			
 			.pi-list {
 				list-style-type: none;
@@ -1642,7 +1642,7 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 				}
 			}
 			.text {
-				font-size: 7px;
+				font-size: 0.438rem;
 				margin-left: 10px;
 				line-height: 10px;
 			}
@@ -1768,7 +1768,7 @@ body[data-pathname^="/data/benchmarking"] {
 					.nav-link {
 						color: #5D5E63;
 						font-family: Inter;
-						font-size: 16px;
+						font-size: 1rem;
 						font-weight: 400; 
 		
 						&.active {
@@ -1803,11 +1803,11 @@ body[data-pathname^="/data/benchmarking"] {
 					.information-container {
 						padding: 10px;
 						margin-bottom: 20px;
-
+						
 						.title {
 							color: #343741;
 							font-family: Inter;
-							font-size: 24px;
+							font-size: 1.5rem;
 							font-weight: 600;
 							margin-top: 5px;
 						}
@@ -2019,7 +2019,7 @@ body[data-pathname^="/data/benchmarking"] {
 			
 						li.sidenav-link {
 							font-family: Inter;
-							font-size: 14px;
+							font-size: 0.875rem;
 							font-weight: 400;
 			
 							> a {
@@ -2027,7 +2027,7 @@ body[data-pathname^="/data/benchmarking"] {
 							}
 			
 							&.top {
-								font-size: 16px;
+								font-size: 1rem;
 							}
 							&.active {
 								font-weight: 500;
@@ -2048,7 +2048,7 @@ body[data-pathname^="/data/benchmarking"] {
 	
 						span.navlink-drop {
 							color: #717378;
-							font-size: 16px;
+							font-size: 1rem;
 							font-weight: 400;
 							font-family: Inter;
 							text-align: left;
@@ -2073,7 +2073,7 @@ body[data-pathname^="/data/benchmarking"] {
 						color: #343741;
 
 						i {
-							font-size: 12px;
+							font-size: 0.75rem;
 							margin: auto;
 						}
 
@@ -2148,7 +2148,7 @@ body[data-pathname^="/data/benchmarking"] {
 	.tbd-notice {
 		color: #343741;
 		font-family: Inter;
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: 600;
 	}
 
@@ -2172,18 +2172,18 @@ body[data-pathname^="/data/benchmarking"] {
 
 				>.modal-header>.modal-title {
 					color: #343741;
-					font-size: 24px;
+					font-size: 1.5rem;
 					font-weight: 600;
 				}
 				>.modal-body {
 					h2 {
 						color: #343741;
-						font-size: 18px;
+						font-size: 1.125rem;
 						font-weight: 600;
 					}
 			
 					li {
-						font-size: 14px;
+						font-size: 0.875rem;
 					}
 
 					.tsv-metadata-overview {
@@ -2211,7 +2211,7 @@ body[data-pathname^="/data/benchmarking"] {
 			
 						.tsv-metadata-stat {
 							color: #343741;
-							font-size: 24px;
+							font-size: 1.5rem;
 							font-weight: 600;
 						}
 					}
@@ -2285,7 +2285,7 @@ tbody.table-border-inner {
 }
 
 .cell-small-text {
-	font-size: 11px;
+	font-size: 0.688rem;
 	line-height: 1.3;
 	width: 250px;
 }
@@ -2298,7 +2298,7 @@ tbody.table-border-inner {
 Unique styling of Submission Status page
 **/
 .ss-font-size-10{
-	font-size: 10px !important;
+	font-size: 0.625rem !important;
 }
 .ss-line-height-140 {
     line-height: 140%;
