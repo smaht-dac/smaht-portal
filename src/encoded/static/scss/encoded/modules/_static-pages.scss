@@ -1921,7 +1921,7 @@ body[data-pathname^="/data/benchmarking"] {
 								border: none;
 								border-radius: 4px;
 								margin: 10px 0px;
-								color: $carbon-gray;
+								color: $link-color;
 								font-size: 0.875rem;
 								
 								.icon {
@@ -1934,11 +1934,7 @@ body[data-pathname^="/data/benchmarking"] {
 								}
 	
 								&:hover {
-									background-color: #F6F6F6;
-								}
-
-								&:active {
-									background-color: #f2f2f2;
+									font-weight: 500;
 								}
 							}
 						}
