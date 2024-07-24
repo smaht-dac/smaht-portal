@@ -1002,30 +1002,33 @@ export function UsageStatsView(props){
         <div className="stats-charts-container" key="charts" id="usage">
 
             <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
-                title="Show" outerClassName="dropdown-container mb-0 sticky-top">
-                <div className="d-inline-block ml-15 mr-15">
+                groupByTitle="Show" outerClassName="dropdown-container mb-0 sticky-top">
+                <div className="d-inline-block mr-15 pt-08">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                 </div>
-                <div className="d-inline-block mr-15">
+                <div className="d-inline-block mr-3 mb-2 pt-08">
                     <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Show as cumulative sum</Checkbox>
                 </div>
-                <span className="text-500 mr-1">Y-Axis scale:</span>
-                <div className="d-flex">
-                    <DropdownButton
-                        title={(scale && scale['yAxisScale'] && UsageStatsView.yScaleLabels[scale['yAxisScale']]) || '-'}
-                        onSelect={(e) => setScale({ yAxisScale: e, yAxisPower: e === 'Pow' ? 0.5 : 50 })}>
-                        <DropdownItem eventKey={'Linear'} key={'scale-linear'} >{UsageStatsView.yScaleLabels['Linear']}</DropdownItem>
-                        <DropdownItem eventKey={'Pow'} key={'scale-pow'} >{UsageStatsView.yScaleLabels['Pow']}</DropdownItem>
-                        <DropdownItem eventKey={'Symlog'} key={'scale-log'} >{UsageStatsView.yScaleLabels['Symlog']}</DropdownItem>
-                    </DropdownButton>
-                </div>
-                {
-                    <div className={"ml-15" + (showScaleRange ? " d-inline-block" : " d-none")}>
-                        <input type="range" id="input_range_y_scale_power" min={scaleRangeMin} max={scaleRangeMax} step={scaleRangeStep} value={scale['yAxisPower']}
-                            onChange={(e) => setScale({ yAxisScale: scale['yAxisScale'], yAxisPower: e.target.valueAsNumber })} data-tip={scaleRangeTooltip} />
-                        <span className='ml-05'>{scale['yAxisPower']}</span>
+                <div className="d-block d-md-inline-block pt-08">
+                    <div className="d-md-flex">
+                        <span className="text-500 mr-1">Y-Axis scale:</span>
+                        <div className='mb-15'>
+                            <DropdownButton
+                                title={(scale && scale['yAxisScale'] && UsageStatsView.yScaleLabels[scale['yAxisScale']]) || '-'}
+                                onSelect={(e) => setScale({ yAxisScale: e, yAxisPower: e === 'Pow' ? 0.5 : 50 })}>
+                                <DropdownItem eventKey={'Linear'} key={'scale-linear'} >{UsageStatsView.yScaleLabels['Linear']}</DropdownItem>
+                                <DropdownItem eventKey={'Pow'} key={'scale-pow'} >{UsageStatsView.yScaleLabels['Pow']}</DropdownItem>
+                                <DropdownItem eventKey={'Symlog'} key={'scale-log'} >{UsageStatsView.yScaleLabels['Symlog']}</DropdownItem>
+                            </DropdownButton>
+                        </div>
+                        <div className={"ml-md-15" + (showScaleRange ? " d-block d-md-inline-block" : " d-none")}>
+                            <input type="range" id="input_range_y_scale_power" className='w-75'
+                                min={scaleRangeMin} max={scaleRangeMax} step={scaleRangeStep} value={scale['yAxisPower']} data-tip={scaleRangeTooltip}
+                                onChange={(e) => setScale({ yAxisScale: scale['yAxisScale'], yAxisPower: e.target.valueAsNumber })} />
+                            <span className='ml-05'>{scale['yAxisPower']}</span>
+                        </div>
                     </div>
-                }
+                </div>
             </GroupByDropdown>
 
             { file_downloads ?
@@ -1167,9 +1170,9 @@ UsageStatsView.titleExtensions = {
         'metadata_tsv_by_country': 'metadata.tsv files',
         'file_list_views': 'appearances in results',
         'file_clicks': 'clicks from results',
-        'file_detail_views_by_file_type': 'detail views by file type',
-        'file_detail_views_by_assay_type': 'detail views by assay type',
-        'file_detail_views_by_dataset': 'detail views by dataset',
+        'file_detail_views_by_file_type': 'by file type',
+        'file_detail_views_by_assay_type': 'by assay type',
+        'file_detail_views_by_dataset': 'by dataset',
     },
     'sessions_by_country': {
         'views_by_country': 'by country',
@@ -1198,8 +1201,8 @@ UsageStatsView.titleExtensions = {
 };
 UsageStatsView.yScaleLabels = {
     'Linear': 'Linear',
-    'Symlog':  'Logarithmic',
-    'Pow': 'Power'
+    'Symlog': 'Log',
+    'Pow': 'Pow'
 }
 
 

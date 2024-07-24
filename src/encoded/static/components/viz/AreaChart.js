@@ -364,7 +364,6 @@ export class GroupByDropdown extends React.PureComponent {
         'groupByTitle' : "Group By",
         'dateRangeTitle' : "Date",
         'buttonStyle' : {
-            'marginLeft' : 12,
             'textAlign' : 'left'
         },
         'outerClassName' : "dropdown-container mb-15",
@@ -430,12 +429,11 @@ export class GroupByDropdown extends React.PureComponent {
                 <DropdownItem eventKey={field} key={field} active={field === currentDateRangePreset}>{title}</DropdownItem>
             );
             const selectedDateRangeValueTitle = (loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch" /> : dateRangeOptions[currentDateRangePreset]);
-            const buttonStyleOverriden = buttonStyle && _.extend({}, buttonStyle, { 'marginLeft': 0 });
             return (
                 <div className={outerClassName}>
                     <div className="dropdown-container-col col-12 col-lg-3 align-top">
                         <div className="text-500 d-block mb-1">{groupByTitle}</div>
-                        <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyleOverriden} disabled={groupByOptionItems.length < 2}>
+                        <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2}>
                             {groupByOptionItems}
                         </DropdownButton>
                     </div>
@@ -443,7 +441,7 @@ export class GroupByDropdown extends React.PureComponent {
                         <div className="text-500 d-block mb-1">{dateRangeTitle}</div>
                         <div className="date-range">
                             {/* <span className="text-300 pt-05">Presets</span> */}
-                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={(e) => this.onDateRangeSelect(e, null, null)} style={buttonStyleOverriden}>
+                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={(e) => this.onDateRangeSelect(e, null, null)} style={buttonStyle}>
                                 {dateRangeOptionItems}
                             </DropdownButton>
                             <div className="d-flex custom-date-range">
@@ -459,7 +457,7 @@ export class GroupByDropdown extends React.PureComponent {
                             </div>
                         </div>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-3 align-top pl-2">
+                    <div className="dropdown-container-col col-12 col-lg-3 align-top pl-1">
                         <div className="text-500 d-block mb-1">Settings</div>
                         {children}
                     </div>
@@ -469,11 +467,16 @@ export class GroupByDropdown extends React.PureComponent {
 
         return (
             <div className={outerClassName}>
-                <span className="text-500">{groupByTitle}</span>
-                <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2}>
-                    {groupByOptionItems}
-                </DropdownButton>
-                {children}
+                <div className="dropdown-container-col col-12 col-lg-3 align-top">
+                    <span className="text-500 d-block mb-1">{groupByTitle}</span>
+                    <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2}>
+                        {groupByOptionItems}
+                    </DropdownButton>
+                </div>
+                <div className="dropdown-container-col col-12 col-lg-9 align-top pl-1">
+                    <div className="text-500 d-block mb-1">Settings</div>
+                    {children}
+                </div>
             </div>
         );
     }
