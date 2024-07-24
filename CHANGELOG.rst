@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.74.1
+======
+
+`PR 207: feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/207>`_
+
+* Reorganize Awardees Visualizations
+* Provide links to individual PI's labs
+* Reformat/Reword copy
+
+
 0.74.0
 ======
 `PR 205: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/205>`_
