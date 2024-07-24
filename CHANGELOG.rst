@@ -7,25 +7,22 @@ smaht-portal
 Change Log
 ----------
 
-0.73.1
+0.74.0
 ======
+`PR 205: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/205>`_
 
-`PR 188: feat: increase benchmarking table visibility <https://github.com/smaht-dac/smaht-portal/pull/188>`_
-
-* Increase height of benchmarking tables
-* Support toggling the benchmarking page descriptions
-* Upgrade SPC to v0.1.86
+* Adds two arguments to `write-submission-spreadsheets` that create submission_workbook templates with a subset of ordered tabs consistent with the submission templates shared with TPCs and GCCs/TDDs.
+  * `--tpc` outputs tabs for the TPC submission
+  * `--gcc` outputs tabs for the GCC/TDD submissions
 
 
 0.73.0
-======
-
-`PR 206: SN Remove tisuse recovery_interval  <https://github.com/smaht-dac/smaht-portal/pull/206>`_
+=======
+`PR 206: SN Remove tissue recovery_interval  <https://github.com/smaht-dac/smaht-portal/pull/206>`_
 
 * Removes `recovery_interval` property from Tissue schema
 * Includes upgrader for tissue schema from version 2 to 3 with test
 * All existing `recovery_interval` values for Tissue items have already been transferred to TissueCollection items linked to Donor
-
 
 
 0.72.0
