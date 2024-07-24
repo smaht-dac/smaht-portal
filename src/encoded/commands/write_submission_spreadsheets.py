@@ -82,12 +82,6 @@ POPULATE_ORDER = {
     "Donor": {"submitted": [],'unsubmitted': []}
 }
 
-NON_SUBMITTED = [
-    "Sequencer",
-    "FileFormat",
-    "Assay",
-    "ReferenceGenome"
-]
 
 FONT = "Arial"
 FONT_SIZE = 10
@@ -499,8 +493,9 @@ def write_spreadsheets(
     """Write submission spreadsheets."""
     for item, submission_schema in submission_schemas.items():
         if example:
-            uuid = ["29a2e311-f455-4139-9cf0-0da0fe164c81"]
-            spreadsheet = get_example_spreadsheet(item,request_handler,uuid,submission_schema)
+            uuid = ["d4020a63-338c-4103-8461-417d09df5cbd"]
+            unlinked_spreadsheet = get_example_spreadsheet(item,request_handler,uuid,submission_schema)
+            spreadsheet = get_linked_spreadsheet(request_handler,unlinked_spreadsheet)
         else:
             spreadsheet = get_spreadsheet(item, submission_schema)
         write_spreadsheet(output, spreadsheet, separate_comments)
@@ -571,6 +566,42 @@ def get_submission_examples(
     """Get examples of property values for items."""
     return [request_handler.get_item(obj_id) for obj_id in obj_ids]
 
+
+def get_linked_spreadsheet(
+    request_handler: RequestHandler,
+    spreadsheet: Spreadsheet
+):
+    """Get spreadsheet with links filled out with submitted_id or identifier."""
+    links = get_all_links(spreadsheet)
+    import pdb; pdb.set_trace()
+    for link in links:
+        for idx, example in enumerate(spreadsheet.examples):
+            id_values = []
+            values = example[link]
+            if type(values) is list:
+                for value in values:
+                    item = request_handler.get_item(value)
+                    id_values.append(get_linked_item_id(item))
+            else:
+                item = request_handler.get_item(values)
+                id_values.append(get_linked_item_id(item))
+            spreadsheet.examples[idx][link] = " | ".join(id_values)
+    return spreadsheet
+
+
+def get_linked_item_id(response: Dict[str,Any]):
+    """Get either submitted_id or identifier for item."""
+    submitted_id = response.get("submitted_id","")
+    if submitted_id:
+        return submitted_id
+    else:
+        return response.get("identifier","")
+        
+
+def get_all_links(spreadsheet: Spreadsheet):
+    """Get all links from properties."""
+    links = get_required_links(spreadsheet.properties) + get_non_required_links(spreadsheet.properties)
+    return [link.name for link in links]
 
 def get_properties(submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
@@ -716,6 +747,8 @@ def write_properties(
                 if property_.name in item:
                     value = item[property_.name]
                     write_example(worksheet,index,row,property_,value)
+                else:
+                    write_empty(worksheet,index,row,property_)
 
 
 
@@ -815,8 +848,18 @@ def write_example(
         value=get_example_list(value)
     row =  row  # cells 1-indexed, start with 2
     cell = worksheet.cell(row=row, column=index, value=value)
-    set_cell_font(cell, property_)
-    set_cell_width(worksheet, index, property_)
+    cell.font = openpyxl.styles.Font(name=FONT, size=FONT_SIZE)
+    #set_cell_width(worksheet, index, property_)
+
+def write_empty(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet,
+    index: int,
+    row: int,
+    property_: Property
+):
+    """Write empty cell to the worksheet."""
+    cell = worksheet.cell(row=row, column=index, value=None)
+    cell.font = openpyxl.styles.Font(name=FONT, size=FONT_SIZE)
 
 
 def is_array(value):
@@ -1085,7 +1128,7 @@ def main():
             separate_comments=args.separate,
             example=True
         )
-    if args.google and args.all:
+    elif args.google and args.all:
         log.info(f"Google Sheet ID: {args.google}")
         log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
         spreadsheet_client = get_google_sheet_client(args.google)
