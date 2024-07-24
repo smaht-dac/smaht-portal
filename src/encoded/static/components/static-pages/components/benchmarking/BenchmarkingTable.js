@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import queryString from 'query-string';
 import _ from 'underscore';
-import { Modal } from 'react-bootstrap';
+import { Modal, Tabs, Tab } from 'react-bootstrap';
 import ReactTooltip from 'react-tooltip';
 
 import {
@@ -966,28 +966,29 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
 
     return (
         <>
-            <div className="code-snippet-container mt-2 mb-4">
-                <h3 className="code-snippet-header">awscli</h3>
-                <hr />
-                <object.CopyWrapper
-                    value={aws_cli.plainValue}
-                    className="curl-command-wrapper"
-                    data-tip={'Click to copy'}
-                    wrapperElement="div"
-                    iconProps={{}}>
-                    {aws_cli.htmlValue}
-                </object.CopyWrapper>
-            </div>
             <div className="code-snippet-container">
-                <h3 className="code-snippet-header">cURL</h3>
-                <object.CopyWrapper
-                    value={plainValue}
-                    className="curl-command-wrapper"
-                    data-tip={'Click to copy'}
-                    wrapperElement="div"
-                    iconProps={{}}>
-                    {htmlValue}
-                </object.CopyWrapper>
+                <Tabs defaultActiveKey="curl" className="" variant="pills">
+                    <Tab eventKey="curl" title="cURL">
+                        <object.CopyWrapper
+                            value={plainValue}
+                            className="curl-command-wrapper"
+                            data-tip={'Click to copy'}
+                            wrapperElement="div"
+                            iconProps={{}}>
+                            {htmlValue}
+                        </object.CopyWrapper>
+                    </Tab>
+                    <Tab eventKey="aws" title="AWS CLI" className="">
+                        <object.CopyWrapper
+                            value={aws_cli.plainValue}
+                            className="curl-command-wrapper"
+                            data-tip={'Click to copy'}
+                            wrapperElement="div"
+                            iconProps={{}}>
+                            {aws_cli.htmlValue}
+                        </object.CopyWrapper>
+                    </Tab>
+                </Tabs>
             </div>
         </>
     );

@@ -2123,34 +2123,38 @@ body[data-pathname^="/data/benchmarking"] {
 
 					/*** metadata.tsv modal ***/
 					.code-snippet-container {
+						margin-top: 20px;
 						.code-snippet-header {
 							font-size: 1.25rem;
 						}
-						pre {
-							&.curl-command {
-								border: 1px dashed #dedede;
-								padding: 5px;
-							}
-							&.aws_cli-command {
-								height: min-content;
-								text-wrap: wrap;
-								background-color: rgb(44 43 52);
-								padding: 10px 70px 10px 10px;
-								color: white;
-								border-radius: 5px;
-								background-color: #f0f2f3;
-								color: #343434;
+						.nav {
+							align-items: flex-end;
+							margin-left: 10px;
+
+							.nav-item {
+								color: #5D5E63;
+								font-size: 1rem;
+								font-weight: 400;
+								border-radius: 8px 8px 0px 0px;
+								padding: 2px 15px;
+
+								&.active {
+									color: #343741;
+									font-weight: 600;
+									background-color: transparent;
+									border: none;
+									border-bottom: 1px solid black;
+								}
 							}
 						}
-						.curl-command-wrapper i.icon-copy {
-							margin-left: 5px;
-	
-							&:after {
-								content : "Copy";
-								font-family: $font-family-base;
-								font-weight: 600;
-								padding-left: 6px;
-							}
+						pre {
+							height: min-content;
+							text-wrap: wrap;
+							padding: 10px;
+							border: 2px solid #f0f0f1;
+							border-radius: 5px;
+							background-color: #f8f8f8;
+							color: #212529;
 						}
 					}
 				}
