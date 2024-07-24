@@ -928,11 +928,56 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
 
 const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
     const { filename, session } = props;
-    console.log('filename', filename);
+
+    // Assign html and plain values for each command
     const aws_cli = {
         htmlValue: (
             <pre className="aws_cli-command mb-15">
-                {`cut -f 1,3 ./smaht_manifest.tsv | tail -n +4 | grep -v ^# |  xargs -n 2 -L 1 sh -c 'credentials=$(curl -s -L --user <id>>:<secret> "$0" | jq -r ".download_credentials | {AccessKeyId, SecretAccessKey, SessionToken, download_url}") && export AWS_ACCESS_KEY_ID=$(echo $credentials | jq -r ".AccessKeyId") && export AWS_SECRET_ACCESS_KEY=$(echo $credentials | jq -r ".SecretAccessKey") && export AWS_SESSION_TOKEN=$(echo $credentials | jq -r ".SessionToken") && download_url=$(echo $credentials | jq -r ".download_url") && aws s3 cp "$download_url" "$1"''`}
+                cut -f 1,3 <b>{filename}</b> | tail -n +4 | grep -v ^# | xargs
+                &#40;curl -s -L --user $
+                {session ? (
+                    <>
+                        <code style={{ opacity: 0.5 }}>
+                            {' '}
+                            --user{' '}
+                            <em>{'<access_key_id>:<access_key_secret>'}</em>
+                        </code>{' '}
+                    </>
+                ) : (
+                    ''
+                )}{' '}
+                &quot;$0&quot; | jq -r &quot;.download_credentials |
+                &#123;AccessKeyId, SecretAccessKey, SessionToken,
+                download_url&#125;&quot;&#41; && export
+                AWS_ACCESS_KEY_ID=$&#40;echo $credentials | jq -r
+                &quot;.AccessKeyId&quot;&#41; && export
+                AWS_SECRET_ACCESS_KEY=$&#40;echo $credentials | jq -r
+                &quot;.SecretAccessKey&quot;&#41; && export
+                AWS_SESSION_TOKEN=$&#40;echo $credentials | jq -r
+                &quot;.SessionToken&quot;&#41; && download_url=$&#40;echo
+                $credentials | jq -r &quot;.download_url&quot;&#41; && aws s3 cp
+                &quot;$download_url&quot; &quot;$1&quot;&#39;&#39;
+            </pre>
+        ),
+        plainValue: `cut -f 1,3 ${filename} | tail -n +4 | grep -v ^# |  xargs -n 2 -L 1 sh -c 'credentials=$(curl -s -L --user <id>:<secret> "$0" | jq -r ".download_credentials | {AccessKeyId, SecretAccessKey, SessionToken, download_url}") && export AWS_ACCESS_KEY_ID=$(echo $credentials | jq -r ".AccessKeyId") && export AWS_SECRET_ACCESS_KEY=$(echo $credentials | jq -r ".SecretAccessKey") && export AWS_SESSION_TOKEN=$(echo $credentials | jq -r ".SessionToken") && download_url=$(echo $credentials | jq -r ".download_url") && aws s3 cp "$download_url" "$1"'`,
+    };
+    const curl = {
+        htmlValue: (
+            <pre className="mb-15 curl-command">
+                cut -f 1,3 <b>~/Downloads/{filename}</b> | tail -n +4 | grep -v
+                ^# | xargs -n 2 -L 1 sh -c &apos;curl -L
+                {session ? (
+                    <>
+                        <code style={{ opacity: 0.5 }}>
+                            {' '}
+                            --user{' '}
+                            <em>{'<access_key_id>:<access_key_secret>'}</em>
+                        </code>{' '}
+                        $0 --output $1&apos;
+                    </>
+                ) : (
+                    " $0 --output $1'"
+                )}
             </pre>
         ),
         plainValue:
@@ -941,28 +986,6 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                 ? " --user <access_key_id>:<access_key_secret> $0 --output $1'"
                 : " $0 --output $1'"),
     };
-    const htmlValue = (
-        <pre className="mb-15 curl-command">
-            cut -f 1,3 <b>~/Downloads/{filename}</b> | tail -n +4 | grep -v ^# |
-            xargs -n 2 -L 1 sh -c &apos;curl -L
-            {session ? (
-                <>
-                    <code style={{ opacity: 0.5 }}>
-                        {' '}
-                        --user <em>{'<access_key_id>:<access_key_secret>'}</em>
-                    </code>{' '}
-                    $0 --output $1&apos;
-                </>
-            ) : (
-                " $0 --output $1'"
-            )}
-        </pre>
-    );
-    const plainValue =
-        `cut -f 1,3 ~/Downloads/${filename} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L` +
-        (session
-            ? " --user <access_key_id>:<access_key_secret> $0 --output $1'"
-            : " $0 --output $1'");
 
     return (
         <>
@@ -970,12 +993,12 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                 <Tabs defaultActiveKey="curl" className="" variant="pills">
                     <Tab eventKey="curl" title="cURL">
                         <object.CopyWrapper
-                            value={plainValue}
+                            value={curl.plainValue}
                             className="curl-command-wrapper"
                             data-tip={'Click to copy'}
                             wrapperElement="div"
                             iconProps={{}}>
-                            {htmlValue}
+                            {curl.htmlValue}
                         </object.CopyWrapper>
                     </Tab>
                     <Tab eventKey="aws" title="AWS CLI" className="">
