@@ -1923,6 +1923,7 @@ body[data-pathname^="/data/benchmarking"] {
 								margin: 10px 0px;
 								color: $link-color;
 								font-size: 0.875rem;
+								font-weight: 500;
 								
 								.icon {
 									margin: auto 8px auto auto;
@@ -1934,7 +1935,7 @@ body[data-pathname^="/data/benchmarking"] {
 								}
 	
 								&:hover {
-									font-weight: 500;
+									font-weight: 600;
 								}
 							}
 						}
