@@ -17,6 +17,16 @@ Change Log
   * Change property name from `largest_contig` to `largest_contig_size` for clartiy
   * Change enums for `data_type` and `data_category` specific to SupplementaryFile fasta and chain files
   * Fix descriptions of some properties
+  
+
+0.74.1
+======
+
+`PR 188: feat: increase benchmarking table visibility <https://github.com/smaht-dac/smaht-portal/pull/188>`_
+
+* Increase height of benchmarking tables
+* Support toggling the benchmarking page descriptions
+* Upgrade SPC to v0.1.86
 
 
 0.74.0
