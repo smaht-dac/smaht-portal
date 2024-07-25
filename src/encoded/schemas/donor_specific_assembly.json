@@ -86,7 +86,7 @@
         },
         "gc_content": {
             "title": "GC Content",
-            "description": "GC content of assembly (%)",
+            "description": "GC content of assembly excluding N (%)",
             "type": "number",
             "minimum": 0,
             "maximum": 100
@@ -124,30 +124,42 @@
         "percent_single_copy": {
             "title": "Percent Single Copy",
             "description": "Percentage of highly conserved genes with a single copy present in the assembly (BUSCO)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
+            "type": "array",
+            "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+            }
         },
         "percent_multi_copy": {
             "title": "Percent Multiple Copy",
             "description": "Percentage of highly conserved genes with multiple copies present in the assembly (BUSCO)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
+            "type": "array",
+            "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+            }
         },
         "percent_fragmented": {
             "title": "Percent Fragmented",
             "description": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
+            "type": "array",
+            "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+            }
         },
         "percent_missing": {
             "title": "Percent Missing",
             "description": "Percentage of highly conserved genes that are missing from the assembly (BUSCO)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
+            "type": "array",
+            "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+            }
         },
         "ploidy": {
             "title": "Ploidy",
