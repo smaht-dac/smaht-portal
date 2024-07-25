@@ -977,11 +977,7 @@ def main():
             workbook=args.workbook,
             separate_comments=args.separate,
         )
-<<<<<<< HEAD
-    elif args.tpc:
-=======
     elif args.workbook and args.tpc:
->>>>>>> main
         log.info("Writing TPC submission spreadsheet")
         write_item_spreadsheets(
             args.output,
@@ -992,11 +988,7 @@ def main():
             gcc = False,
             separate_comments=args.separate,
         )
-<<<<<<< HEAD
-    elif args.gcc:
-=======
     elif args.workbook and args.gcc:
->>>>>>> main
         log.info("Writing GCC/TTD submission spreadsheet")
         write_item_spreadsheets(
             args.output,
