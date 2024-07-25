@@ -326,7 +326,7 @@ function CustomStaticLinks({ pathName, href }) {
                                 <div className="level-3">
                                     <a
                                         className="level-3-title text-small d-block"
-                                        href="/data/analysis/colo829-snv-indel-detetion"
+                                        href="/data/analysis/colo829-snv-indel-detection"
                                         id="menutree-linkto-lung_page">
                                         <span>COLO829 SNV/Indel Detection</span>
                                     </a>

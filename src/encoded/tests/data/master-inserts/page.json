@@ -882,7 +882,7 @@
         ]
     },
     {
-        "identifier": "data/analysis/colo829-snv-indel-detetion",
+        "identifier": "data/analysis/colo829-snv-indel-detection",
         "title": "COLO829 SNV/Indel Detection",
         "status": "public",
         "content": [
