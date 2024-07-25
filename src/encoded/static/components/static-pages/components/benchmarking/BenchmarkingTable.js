@@ -153,6 +153,19 @@ const BenchmarkingTable = (props) => {
         data_type: {
             widthMap: { lg: 155, md: 155, sm: 150 },
         },
+        // Variant Type
+        variant_type: {
+            render: function (result, parentProps) {
+                const { variant_type = [] } = result || {};
+                if (variant_type.length === 0) {
+                    return null;
+                } else if (variant_type.length === 1) {
+                    return variant_type[0];
+                } else {
+                    return variant_type.join(', ');
+                }
+            },
+        },
         // Format
         'file_format.display_title': {
             colTitle: 'Format',
