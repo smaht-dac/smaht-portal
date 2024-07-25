@@ -12,8 +12,7 @@ import {
 } from '../SelectAllAboveTableComponent';
 
 export const ChallengeTableWrapper = (props) => {
-    const { schemas, facets, session, href, context } = props;
-    const searchHref = '?type=File';
+    const { searchHref, schemas, facets, session, href, context } = props;
     return (
         <TableControllerWithSelections
             {...{ searchHref, schemas, facets, session, href, context }}>
