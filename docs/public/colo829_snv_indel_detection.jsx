@@ -21,7 +21,7 @@
     </div>
 
     <h2 className="section-title py-2 mt-3 d-inline-block">Version 1.0 [latest]</h2>
-        <DownloadAllFilesFromSearchHrefButton {...{ session }} cls="mt-5 float-right"/>
+    <DownloadAllFilesFromSearchHrefButton {...{ session }} searchHref="?type=File&dataset=colo829_indel_challenge_data" cls="mt-5 float-right"/>
 
     <h3 className="section-title">Truth Sets</h3>
     <p>[Description Here]</p>

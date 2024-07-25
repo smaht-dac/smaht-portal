@@ -1727,6 +1727,16 @@ body.is-item-view[data-pathname^="/users/"] #page-title-container,
 	border-right: none;
 }
 
+.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
+	&[data-first-visible-column=true] {
+		padding-left: 16px !important;
+	}
+
+	>.inner>.toggle-detail-button-container {
+		display: none;
+	}
+}
+
 /***
 Unique styling for benchmarking pages
 **/
@@ -2055,16 +2065,6 @@ body[data-pathname^="/data/benchmarking"] {
 		font-family: Inter;
 		font-size: 1.25rem;
 		font-weight: 600;
-	}
-
-	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
-		&[data-first-visible-column=true] {
-			padding-left: 15px !important;
-		}
-
-		>.inner>.toggle-detail-button-container {
-			display: none;
-		}
 	}
 
 	// May need to move this to search if we end up using this functionality elsewhere

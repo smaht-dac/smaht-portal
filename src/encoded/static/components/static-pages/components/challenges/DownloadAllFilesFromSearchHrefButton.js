@@ -7,22 +7,9 @@ import ReactTooltip from 'react-tooltip';
 
 import {
     ajax,
-    analytics,
     memoizedUrlParse,
-    object,
-    logger,
-    valueTransforms,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import {
-    LocalizedTime,
-    display as dateTimeDisplay,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
-import {
-    SelectedItemsController,
-    SelectionItemCheckbox,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 
-import { EmbeddedItemSearchTable } from '../../../item-pages/components/EmbeddedItemSearchTable';
 import { itemUtil } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/object';
 import {
     SelectAllFilesButton,
