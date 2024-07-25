@@ -21,21 +21,21 @@
     </div>
 
     <h2 className="section-title py-2 mt-3 d-inline-block">Version 1.0 [latest]</h2>
-    <DownloadAllFilesFromSearchHrefButton {...{ session }} searchHref="?type=File&dataset=colo829_indel_challenge_data" cls="mt-5 float-right"/>
+    <DownloadAllFilesFromSearchHrefButton {...{ session }} searchHref="?type=File&dataset=colo829_snv_indel_challenge_data" cls="mt-5 float-right"/>
 
     <h3 className="section-title">Truth Sets</h3>
     <p>[Description Here]</p>
-    <ChallengeTableWrapper searchHref="?type=File&dataset=colo829_indel_challenge_data&tags=truth_sets" context={context} schemas={schemas} session={session} href={href}/>
+    <ChallengeTableWrapper searchHref="?type=File&dataset=colo829_snv_indel_challenge_data&tags=truth_set" context={context} schemas={schemas} session={session} href={href}/>
 
     <h3 className="section-title">Negative Control</h3>
     <p>[Description Here]</p>
-    <ChallengeTableWrapper searchHref="?type=File&dataset=colo829_indel_challenge_data&tags=negative_control" context={context} schemas={schemas} session={session} href={href} />
+    <ChallengeTableWrapper searchHref="?type=File&dataset=colo829_snv_indel_challenge_data&tags=negative_control" context={context} schemas={schemas} session={session} href={href} />
 
     <h3 className="section-title">Genome Stratification for Benchmarking</h3>
     <p>[Description Here]</p>
-    <ChallengeTableWrapper searchHref="?type=File&dataset=colo829_indel_challenge_data&tags=genome_stratification" context={context} schemas={schemas} session={session} href={href}/>
+    <ChallengeTableWrapper searchHref="?type=File&dataset=colo829_snv_indel_challenge_data&tags=genome_stratification" context={context} schemas={schemas} session={session} href={href}/>
 
     <h3 className="section-title">Submitted VCFs & Analysis Results</h3>
     <p>[Description Here]</p>
-    <ChallengeTableWrapper searchHref="?type=File&dataset=colo829_indel_challenge_data&tags=analysis_results" context={context} schemas={schemas} session={session} href={href}/>
+    <ChallengeTableWrapper searchHref="?type=File&dataset=colo829_snv_indel_challenge_data&tags=analysis_results" context={context} schemas={schemas} session={session} href={href}/>
 </div>
