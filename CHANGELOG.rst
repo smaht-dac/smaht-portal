@@ -7,11 +7,37 @@ smaht-portal
 Change Log
 ----------
 
-0.72.0
+0.75.0
 ======
 
 * Bug fix: consider loadxl order in staggered reindexing
 * Add ``retracted`` status to Files with submission center only view
+
+
+0.74.0
+======
+`PR 205: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/205>`_
+
+* Adds two arguments to `write-submission-spreadsheets` that create submission_workbook templates with a subset of ordered tabs consistent with the submission templates shared with TPCs and GCCs/TDDs.
+  * `--tpc` outputs tabs for the TPC submission
+  * `--gcc` outputs tabs for the GCC/TDD submissions
+
+
+0.73.0
+=======
+`PR 206: SN Remove tissue recovery_interval  <https://github.com/smaht-dac/smaht-portal/pull/206>`_
+
+* Removes `recovery_interval` property from Tissue schema
+* Includes upgrader for tissue schema from version 2 to 3 with test
+* All existing `recovery_interval` values for Tissue items have already been transferred to TissueCollection items linked to Donor
+
+
+0.72.0
+======
+
+`PR 204: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/204>`_
+
+* For MedicalHistory, change `enum` from "Not done" to "Not Done" for consistency
 
 
 0.71.1
