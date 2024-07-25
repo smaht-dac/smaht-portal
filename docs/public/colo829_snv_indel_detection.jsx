@@ -12,7 +12,7 @@
             </thead>
             <tbody class="table-border-inner">
                 <tr>
-                    <td className="pl-1"><a href="#">V1.0</a></td>
+                    <td className="pl-1">V1.0</td>
                     <td className="pl-1">COLO829 SNV Indel Detection Challenge - Presented at 2024 SMaHT annual meeting</td>
                     <td className="pl-1">June 15, 2024</td>
                 </tr>
