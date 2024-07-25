@@ -7,13 +7,23 @@ smaht-portal
 Change Log
 ----------
 
+0.75.0
+======
+
+`PR210: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/210>`_
+* Changes to DonorSpecificAssembly and SupplementaryFile schemas to reflect GCC feedback:
+  * BUSCO score properties (i.e. percent_single_copy) changed type to arrays of numbers to reflect multiple haplotypes
+  * Change property name from percent_duplicate to percent_multi_copy for clarity
+  * Fix descriptions of some properties
+
+
 0.74.0
 ======
 `PR 205: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/205>`_
 
 * Adds two arguments to `write-submission-spreadsheets` that create submission_workbook templates with a subset of ordered tabs consistent with the submission templates shared with TPCs and GCCs/TDDs.
   * `--tpc` outputs tabs for the TPC submission
-  * `--gcc`` outputs tabs for the GCC/TDD submissions
+  * `--gcc` outputs tabs for the GCC/TDD submissions
 
 
 0.73.0
