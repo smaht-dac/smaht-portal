@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
 import { Tab, Tabs } from 'react-bootstrap';
 
@@ -24,24 +23,48 @@ export const BenchmarkingLayout = ({
     children,
     callout = null,
 }) => {
+    const [showInformation, setShowInformation] = useState(true);
     const cls = `description readable ${!schemas ? 'mb-5' : ''}`;
 
     return (
         <div className="benchmarking-layout">
-            <div className="row">
-                <div className="col-auto col-lg-9 mb-2">
-                    <h2 className="title">{title}</h2>
-                    <div className={cls}>
-                        {description}
-                        <p className="disclaimer">
-                            <span className="">Note:</span> The raw sequence
-                            files, i.e. unaligned BAM and FASTQ, and the data
-                            from the benchmarking tissue samples that were not
-                            distributed by TPC will be available upon request at
-                            this time &#40;through Globus&#41;.
-                        </p>
+            <div className="page-description row">
+                <div className="information-container col-auto col-lg-9">
+                    <div className="title-container">
+                        <h2 className="title">{title}</h2>
                     </div>
-                    {callout}
+                    <div
+                        className={
+                            'body-container' +
+                            (showInformation ? ' expanded' : ' collapsed')
+                        }
+                        id="benchmarking-page-description-container">
+                        <div className={cls}>
+                            {description}
+                            <p className="disclaimer">
+                                <span className="">Note:</span> The raw sequence
+                                files, i.e. unaligned BAM and FASTQ, and the
+                                data from the benchmarking tissue samples that
+                                were not distributed by TPC will be available
+                                upon request at this time &#40;through
+                                Globus&#41;.
+                            </p>
+                        </div>
+                        {callout}
+                        <button
+                            onClick={() => setShowInformation(!showInformation)}
+                            className="toggle-information-text-button"
+                            aria-label="Toggle full description"
+                            aria-expanded={showInformation}>
+                            <i
+                                className={`icon icon-angle-${
+                                    showInformation ? 'up' : 'down'
+                                } fas`}></i>
+                            <span className="toggle-information-text">
+                                Show{showInformation ? ' less' : ' more'}
+                            </span>
+                        </button>
+                    </div>
                 </div>
                 {/* TODO: Re-add documentation button once we have it available */}
                 {showBamQCLink && (
