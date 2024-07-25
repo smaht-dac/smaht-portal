@@ -57,31 +57,30 @@ a new token.
 ITEM_SPREADSHEET_SUFFIX = "_submission.xlsx"
 WORKBOOK_FILENAME = "submission_workbook.xlsx"
 
-EXAMPLE_FILE_UUID="35f2299b-86e8-47e1-96a3-c5a5ec5d49a6"
+EXAMPLE_FILE_UUIDS=["d4020a63-338c-4103-8461-417d09df5cbd"]
 
-POPULATE_ORDER = {
-    "AlignedReads": {"submitted": ['file_sets','derived_from','software'], "unsubmitted": ["file_format","reference_genome"]},
-    "UnalignedReads": {"submitted": ['file_sets','derived_from','software','paired_with'], "unsubmitted": ["file_format","reference_genome"]},
-    "VariantCalls": {"submitted": ['file_sets','derived_from','software'], "unsubmitted": ["file_format","reference_genome"]},
-    "FileSet":{"submitted": ['libraries','sequencing','samples'],'unsubmitted': []},
-    "Software": {"submitted": [],'unsubmitted': []},
-    "Library": {"submitted": ['library_preparation','analytes'],'unsubmitted': ['assay']},
-    "Sequencing": {"submitted": ['preparation_kits','basecalling'],'unsubmitted': ['sequencer']},
-    "Basecalling": {"submitted": [],'unsubmitted': []},
-    "LibraryPreparation": {"submitted": ['preparation_kits','treatments'],'unsubmitted': []},
-    "Analyte": {"submitted": ['analyte_preparation','samples'],'unsubmitted': []},
-    "AnalytePreparation": {"submitted": ['preparation_kits','treatments'],'unsubmitted': []},
-    "Treatment": {"submitted": [],'unsubmitted': []},
-    "CellSample": {"submitted": ['parent_samples','sample_sources'],'unsubmitted': []},
-    "CellCultureSample": {"submitted": ['sample_sources'],'unsubmitted': []},
-    "TissueSample": {"submitted": ['parent_samples','sample_sources'],'unsubmitted': []},
-    "CellCultureMixture": {"submitted": ['components'],'unsubmitted': []},
-    "CellCulture": {"submitted": ['cell_line'],'unsubmitted': []},
-    "CellLine": {"submitted": ['donor'],'unsubmitted': []},
-    "Tissue": {"submitted": ['donor'],'unsubmitted': []},
-    "Donor": {"submitted": [],'unsubmitted': []}
-}
-
+POPULATE_ORDER = [
+    "VariantCalls",
+    "AlignedReads",
+    "UnalignedReads",
+    "FileSet",
+    "Software",
+    "Library",
+    "Sequencing",
+    "Basecalling",
+    "LibraryPreparation",
+    "Analyte",
+    "AnalytePreparation",
+    "Treatment",
+    "CellSample",
+    "CellCultureSample",
+    "TissueSample",
+    "CellCultureMixture",
+    "CellCulture",
+    "CellLine",
+    "Tissue",
+    "Donor"
+]
 
 FONT = "Arial"
 FONT_SIZE = 10
@@ -129,6 +128,7 @@ DSA_SUBMISSION_ITEMS = [
     "SupplementaryFile",
     "Software"
 ]
+
 
 @dataclass(frozen=True)
 class SheetsClient:
@@ -390,11 +390,15 @@ def write_item_spreadsheets(
         f"Writing submission spreadsheets to {output} for items:"
         f" {submission_schemas.keys()}"
     )
-    if workbook:
+    if example and workbook:
+        write_example_workbook(output,submission_schemas,tpc=tpc,gcc=gcc,request_handler=request_handler)
+    elif example:
+        write_example_spreadsheets(output,submission_schemas,request_handler=request_handler)
+    elif workbook:
         write_workbook(output, submission_schemas,request_handler=request_handler,separate_comments=separate_comments,tpc=tpc,gcc=gcc)
     else:
         write_spreadsheets(
-            output, submission_schemas,request_handler=request_handler,separate_comments=separate_comments,example=example
+            output, submission_schemas,request_handler=request_handler,separate_comments=separate_comments
         )
 
 
@@ -430,27 +434,51 @@ def write_workbook(
     tpc: bool = False,
     gcc: bool = False,
     separate_comments: bool = False,
-    example: bool = False
 ) -> None:
     """Write a single workbook containing all submission spreadsheets."""
     workbook = openpyxl.Workbook()
     ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,tpc=tpc,gcc=gcc)
     write_workbook_sheets(
-        workbook, ordered_submission_schemas, separate_comments=separate_comments,example=example
+        workbook, ordered_submission_schemas, separate_comments=separate_comments
     )
     file_path = Path(output, WORKBOOK_FILENAME)
     save_workbook(workbook, file_path)
     log.info(f"Workbook written to: {file_path}")
 
 
+
+def write_example_workbook(
+    output: Path,
+    submission_schemas: Dict[str, Any],
+    request_handler: RequestHandler,
+    tpc: bool = False,
+    gcc: bool = False,
+    separate_comments: bool = False
+) -> None:
+    """Write a single workbook containing all submission spreadsheets.
+    
+    Currently writes out sheets in reverse order."""
+    workbook = openpyxl.Workbook()
+    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,tpc=tpc,gcc=gcc)
+    write_example_workbook_sheets(
+        workbook, ordered_submission_schemas,request_handler=request_handler, separate_comments=separate_comments
+    )
+    file_path = Path(output, WORKBOOK_FILENAME)
+    save_workbook(workbook, file_path)
+    log.info(f"Example workbook written to: {file_path}")
+
+
 def get_ordered_submission_schemas(
     submission_schemas: Dict[str, Any],
     tpc: bool = False,
-    gcc: bool = False
+    gcc: bool = False,
+    order: List[str] = None
 ) -> Dict[str, Dict[str, Any]]:
     """Order submission schemas."""
     result = {}
-    if tpc:
+    if order:
+        item_order = order
+    elif tpc:
         item_order = TPC_SUBMISSION_ITEMS
     elif gcc:
         item_order = GCC_SUBMISSION_ITEMS
@@ -466,14 +494,10 @@ def write_workbook_sheets(
     workbook: openpyxl.Workbook,
     submission_schemas: Dict[str, Dict[str, Any]],
     separate_comments: bool = False,
-    example: bool = False
 ) -> None:
     """Write workbook sheets for given schemas."""
     for index, (item, submission_schema) in enumerate(submission_schemas.items()):
-        if example:
-            spreadsheet = get_example_spreadsheet(item, submission_schemas)
-        else:
-            spreadsheet = get_spreadsheet(item, submission_schema)
+        spreadsheet = get_spreadsheet(item, submission_schema)
         if index == 0:
             worksheet = workbook.active
             set_sheet_name(worksheet, spreadsheet)
@@ -481,6 +505,26 @@ def write_workbook_sheets(
         else:
             worksheet = workbook.create_sheet(title=spreadsheet.item)
             write_properties(worksheet, spreadsheet.properties, separate_comments)
+
+
+@dataclass
+class ExampleFields:
+    """Data struct for keeping track of linked items in example spreadsheets.
+    
+    Seed File is currently set with EXAMPLE_FILE_UUIDs."""
+    seed_files: List[str]
+    fields: Dict[str,List[Union[str,None]]]
+
+
+def get_example_fields(seed_files: List[str],items = List[str]) -> ExampleFields:
+    """Get linked id information for item."""
+    fields = {}
+    for item in items:
+        fields[item] = []
+    return ExampleFields(
+        seed_files=seed_files,
+        fields=fields,
+    )
 
 
 def write_spreadsheets(
@@ -492,14 +536,52 @@ def write_spreadsheets(
 ) -> None:
     """Write submission spreadsheets."""
     for item, submission_schema in submission_schemas.items():
-        if example:
-            uuid = ["d4020a63-338c-4103-8461-417d09df5cbd"]
-            unlinked_spreadsheet = get_example_spreadsheet(item,request_handler,uuid,submission_schema)
-            spreadsheet = get_linked_spreadsheet(request_handler,unlinked_spreadsheet)
-        else:
-            spreadsheet = get_spreadsheet(item, submission_schema)
+        spreadsheet = get_spreadsheet(item, submission_schema)
         write_spreadsheet(output, spreadsheet, separate_comments)
 
+
+def write_example_spreadsheets(
+    output: Path,
+    submission_schemas: Dict[str, Any],
+    request_handler: RequestHandler,
+    separate_comments: bool = False,
+) -> None:
+    """Write example submission spreadsheets."""
+    example_fields = get_example_fields(EXAMPLE_FILE_UUIDS,GCC_SUBMISSION_ITEMS)
+    submission_schemas = get_ordered_submission_schemas(submission_schemas,order=POPULATE_ORDER)
+    for item, submission_schema in submission_schemas.items():
+        unlinked_spreadsheet = get_example_spreadsheet(
+            item,request_handler,example_fields,submission_schema
+        )
+        spreadsheet,example_fields = get_linked_spreadsheet(
+            request_handler,unlinked_spreadsheet,example_fields
+        )
+        write_example_spreadsheet(output, spreadsheet, separate_comments)
+
+
+def write_example_workbook_sheets(
+    workbook: openpyxl.Workbook,
+    submission_schemas: Dict[str, Dict[str, Any]],
+    request_handler: RequestHandler,
+    separate_comments: bool = False
+) -> None:
+    """Write example workbook sheets for given schemas."""
+    example_fields = get_example_fields(EXAMPLE_FILE_UUIDS,GCC_SUBMISSION_ITEMS)
+    submission_schemas = get_ordered_submission_schemas(submission_schemas,order=POPULATE_ORDER)
+    for index, (item, submission_schema) in enumerate(submission_schemas.items()):
+        unlinked_spreadsheet = get_example_spreadsheet(
+            item,request_handler,example_fields,submission_schema
+        )
+        spreadsheet, example_fields = get_linked_spreadsheet(
+            request_handler,unlinked_spreadsheet,example_fields
+        )
+        if index == 0:
+            worksheet = workbook.active
+            set_sheet_name(worksheet, spreadsheet)
+            write_properties(worksheet, spreadsheet.properties, separate_comments,examples=spreadsheet.examples)
+        else:
+            worksheet = workbook.create_sheet(title=spreadsheet.item)
+            write_properties(worksheet, spreadsheet.properties, separate_comments,examples=spreadsheet.examples)
 
 
 @dataclass(frozen=True)
@@ -546,11 +628,16 @@ def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet
 def get_example_spreadsheet(
         item: str,
         request_handler: RequestHandler,
-        obj_ids: List[str],
+        example_fields: ExampleFields,
         submission_schema: Dict[str,Any]
     ) -> Spreadsheet:
-    """Get examples of spreadsheet information for item."""
-    example = get_submission_examples(request_handler,obj_ids)
+    """Get example property values of spreadsheet information for item."""
+    starting = ['AlignedReads'] # Currently just aligned reads
+    #starting = ['AlignedReads','VariantCalls']
+    if item in starting:
+        example = get_submission_examples(request_handler,example_fields,seed=True)
+    else:
+        example = get_submission_examples(request_handler,example_fields,item_type=item)
     properties = get_properties(submission_schema)
     return Spreadsheet(
         item=item,
@@ -561,32 +648,55 @@ def get_example_spreadsheet(
 
 def get_submission_examples(
     request_handler: RequestHandler,
-    obj_ids: List[str]
+    example_fields: ExampleFields,
+    item_type: str = None,
+    seed: bool = False
     ):
     """Get examples of property values for items."""
-    return [request_handler.get_item(obj_id) for obj_id in obj_ids]
+    if seed:
+        return [request_handler.get_item(obj_id) for obj_id in example_fields.seed_files]
+    else:
+        return [request_handler.get_item(obj_id) for obj_id in example_fields.fields[item_type]]
 
 
 def get_linked_spreadsheet(
     request_handler: RequestHandler,
-    spreadsheet: Spreadsheet
+    spreadsheet: Spreadsheet,
+    example_fields: ExampleFields
 ):
     """Get spreadsheet with links filled out with submitted_id or identifier."""
     links = get_all_links(spreadsheet)
-    import pdb; pdb.set_trace()
     for link in links:
         for idx, example in enumerate(spreadsheet.examples):
-            id_values = []
-            values = example[link]
-            if type(values) is list:
-                for value in values:
-                    item = request_handler.get_item(value)
+            if link in example:
+                id_values = []
+                values = example[link]
+                if type(values) is list:
+                    for value in values:
+                        item = request_handler.get_item(value)
+                        example_fields = update_example_fields(item,example_fields)
+                        id_values.append(get_linked_item_id(item))
+                else:
+                    item = request_handler.get_item(values)
+                    example_fields = update_example_fields(item,example_fields)
                     id_values.append(get_linked_item_id(item))
-            else:
-                item = request_handler.get_item(values)
-                id_values.append(get_linked_item_id(item))
-            spreadsheet.examples[idx][link] = " | ".join(id_values)
-    return spreadsheet
+                spreadsheet.examples[idx][link] = " | ".join(id_values)
+    return spreadsheet, example_fields
+
+
+def update_example_fields(item: Dict[str,Any],example_fields: ExampleFields):
+    """Update value of example field for linked submitted item.
+    
+    Currently I think the only item that might match multiple keys is CellCultureMixture but may need to update later
+    """
+    key = [value for value in item['@type'] if value in example_fields.fields.keys()]
+    if len(key)>1:
+        key = ["CellCultureMixture"] # I think this is the only case
+    if key:
+        atid = item.get("@id","")
+        if atid not in example_fields.fields[key[0]]:
+            example_fields.fields[key[0]].append(atid) 
+    return example_fields
 
 
 def get_linked_item_id(response: Dict[str,Any]):
@@ -602,6 +712,7 @@ def get_all_links(spreadsheet: Spreadsheet):
     """Get all links from properties."""
     links = get_required_links(spreadsheet.properties) + get_non_required_links(spreadsheet.properties)
     return [link.name for link in links]
+
 
 def get_properties(submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
@@ -751,7 +862,6 @@ def write_properties(
                     write_empty(worksheet,index,row,property_)
 
 
-
 def get_ordered_properties(properties: List[Property]) -> List[Property]:
     """Order properties to write.
 
@@ -839,17 +949,13 @@ def write_example(
     property_: Property,
     value: Any,
 ) -> None:
-    """Write example to the worksheet"""
-    # if is_link(value):
-    #     pass
-    # elif is_array_of_links(value):
-    #     pass
+    """Write example of property value to the worksheet"""
     if is_array(value):
         value=get_example_list(value)
     row =  row  # cells 1-indexed, start with 2
     cell = worksheet.cell(row=row, column=index, value=value)
     cell.font = openpyxl.styles.Font(name=FONT, size=FONT_SIZE)
-    #set_cell_width(worksheet, index, property_)
+
 
 def write_empty(
     worksheet: openpyxl.worksheet.worksheet.Worksheet,
@@ -1100,7 +1206,10 @@ def main():
     )
     parser.add_argument(
         "--example",
-        help="Write out populated example submission.",
+        help=(f" Write out populated example submission template."
+        f"Currently works with --gcc and --item."
+        f"Starts of with {EXAMPLE_FILE_UUIDS} as AlignedReads."
+        ),
         action="store_true"
     )
     args = parser.parse_args()
@@ -1127,6 +1236,17 @@ def main():
             workbook=args.workbook,
             separate_comments=args.separate,
             example=True
+        )
+    elif args.example and args.workbook:
+        log.info("Writing example submission spreadsheet for GCC submission")
+        write_item_spreadsheets(
+            args.output,
+            GCC_SUBMISSION_ITEMS,
+            request_handler,
+            workbook=args.workbook,
+            separate_comments=args.separate,
+            example=True,
+            gcc=True
         )
     elif args.google and args.all:
         log.info(f"Google Sheet ID: {args.google}")
