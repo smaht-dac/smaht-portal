@@ -8,9 +8,17 @@ Change Log
 ----------
 
 
+0.77.0
+======
+
+* Nested QC (QualityMetric) development.
+
+
 0.76.0
 ======
-* Nested QC (QualityMetric) development.
+
+* Minor documentation updates for how to install awscli in docs/source/{file_download,download_cli}.rst.
+* Update to dcicutils 8.13.3.
 
 
 0.75.0
