@@ -145,21 +145,21 @@
                         "maximum": 100
                     },
                     "percent_multi_copy": {
-                        "title": "Percent Multiple Copy",
+                        "title": "Percent Multiple Copy (%)",
                         "description": "Percentage of highly conserved genes with multiple copies present in the assembly",
                         "type": "number",
                         "minimum": 0,
                         "maximum": 100
                     },
                     "percent_fragmented": {
-                        "title": "Percent Fragmented",
+                        "title": "Percent Fragmented (%)",
                         "description": "Percentage of highly conserved genes with fragmented representation in the assembly",
                         "type": "number",
                         "minimum": 0,
                         "maximum": 100
                     },
                     "percent_missing": {
-                        "title": "Percent Missing",
+                        "title": "Percent Missing (%)",
                         "description": "Percentage of highly conserved genes that are missing from assembly",
                         "type": "number",
                         "minimum": 0,
