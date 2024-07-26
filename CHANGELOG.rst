@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.75.0
+0.76.0
 ======
 
 `PR210: DSA Schema Update <https://github.com/smaht-dac/smaht-portal/pull/210>`_
@@ -18,6 +18,13 @@ Change Log
   * Change enums for `data_type` and `data_category` specific to SupplementaryFile fasta and chain files
   * Fix descriptions of some properties
   
+
+0.75.0
+======
+
+* Bug fix: consider loadxl order in staggered reindexing
+* Add ``retracted`` status to Files with submission center only view
+
 
 0.74.1
 ======
