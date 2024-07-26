@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+
+0.75.0
+======
+
+* Bug fix: consider loadxl order in staggered reindexing
+* Add ``retracted`` status to Files with submission center only view
+
+
 0.74.1
 ======
 

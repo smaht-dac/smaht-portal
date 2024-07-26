@@ -382,7 +382,8 @@ class File(Item, CoreFile):
         'uploading': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'upload failed': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'to be uploaded by workflow': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
-        'archived': acl.ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL
+        'archived': acl.ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
+        'retracted': acl.ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
     })
     # These are all view only in case we find ourselves in this situation
     Item.CONSORTIUM_STATUS_ACL.update({
@@ -523,6 +524,12 @@ class File(Item, CoreFile):
         # only seen in unit tests that force validation errors (test_real_validation_error)
         if 'status' not in self.properties:
             return None
+
+        # ignore reference files
+        if self.type_info.name == 'ReferenceFile':
+            return None
+
+        # Proceed otherwise
         current_status = self.properties['status']
         if current_status in ['uploading', 'in review']:
             return {
@@ -545,7 +552,6 @@ class File(Item, CoreFile):
                     result["released"]
                 )
             return result
-
 
     @staticmethod
     def get_date_from_datetime(datetime_str: str) -> str:
