@@ -847,9 +847,7 @@ body[data-current-action="multiselect"] {
         body.is-select-page &,
         body.is-item-view &,
         body.is-full-screen {
-            height: $navbar-small-height;
             top: $navbar-small-height;
-
 
             @include media-breakpoint-down(md) {
                 top: 0px;
@@ -1212,39 +1210,41 @@ body[data-current-action="multiselect"] {
 body.scrolled-past-top {
     div.navbar-fixed-top {
 
-        nav.navbar-main {
-            .navbar-brand {
-                div.img-container {
-                    font-size: 1rem;
-                    img {
-                        height: 30px;
-                    }
-                }
-            }
-            .navbar-collapse {
-                .navbar-nav {
-
-                    a.nav-link {
+        @include media-breakpoint-up(lg) {
+            nav.navbar-main {
+                .navbar-brand {
+                    div.img-container {
                         font-size: 1rem;
-
-                        &.helpdesk {
-                            .icon {
-                                &.icon-envelope {
-                                    font-size: 0.938rem;
-                                }
-                            }
-
+                        img {
+                            height: 30px;
                         }
-            
+                    }
+                }
+                .navbar-collapse {
+                    .navbar-nav {
+    
+                        a.nav-link {
+                            font-size: 1rem;
+    
+                            &.helpdesk {
+                                .icon {
+                                    &.icon-envelope {
+                                        font-size: 0.938rem;
+                                    }
+                                }
+    
+                            }
+                
+                        }
                     }
                 }
             }
-        }
-    
-        #account-menu-item {
-            img.account-icon-image {
-                width: 24px !important;
-                height: 24px !important;
+        
+            #account-menu-item {
+                img.account-icon-image {
+                    width: 24px !important;
+                    height: 24px !important;
+                }
             }
         }
     }
