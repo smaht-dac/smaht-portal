@@ -838,6 +838,10 @@ body[data-current-action="multiselect"] {
             background-color: rgba(28,28,30,.7);
         }
 
+        @include media-breakpoint-between(sm, md) {
+            top: 0px;
+        }
+
         // Rules for pages at which to be offset less from top.
         body.scrolled-past-top &,
         body.is-select-page &,
@@ -846,10 +850,8 @@ body[data-current-action="multiselect"] {
             height: $navbar-small-height;
             top: $navbar-small-height;
 
-            @include media-breakpoint-between(sm, md) {
-                top: 80px;
-            }
-            @include media-breakpoint-down(sm) {
+
+            @include media-breakpoint-down(md) {
                 top: 0px;
             }
         }
@@ -1138,6 +1140,13 @@ body[data-current-action="multiselect"] {
             top: 132px;
             .big-dropdown-menu {
                 max-height: calc(100vh - 132px);
+            }
+        }
+
+        @include media-breakpoint-down(md) {
+            .big-dropdown-menu {
+                max-height: 100vh;
+                height: 100vh;
             }
         }
 
