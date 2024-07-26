@@ -121,9 +121,9 @@
             "type": "integer",
             "minimum": 0
         },
-        "percent_single_copy": {
-            "title": "Percent Single Copy",
-            "description": "Percentage of highly conserved genes with a single copy present in the assembly (BUSCO)",
+        "percent_single_copy_hap1": {
+            "title": "Percent Single Copy Hap1",
+            "description": "Percentage of highly conserved genes with a single copy present in the Hap1 assembly (BUSCO)",
             "type": "array",
             "items": {
                 "type": "number",
@@ -131,9 +131,9 @@
                 "maximum": 100
             }
         },
-        "percent_multi_copy": {
-            "title": "Percent Multiple Copy",
-            "description": "Percentage of highly conserved genes with multiple copies present in the assembly (BUSCO)",
+        "percent_single_copy_hap2": {
+            "title": "Percent Single Copy Hap2",
+            "description": "Percentage of highly conserved genes with a single copy present in the Hap2 assembly (BUSCO)",
             "type": "array",
             "items": {
                 "type": "number",
@@ -141,9 +141,9 @@
                 "maximum": 100
             }
         },
-        "percent_fragmented": {
-            "title": "Percent Fragmented",
-            "description": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+        "percent_multi_copy_hap1": {
+            "title": "Percent Multiple Copy Hap1",
+            "description": "Percentage of highly conserved genes with multiple copies present in the Hap1 assembly (BUSCO)",
             "type": "array",
             "items": {
                 "type": "number",
@@ -151,9 +151,49 @@
                 "maximum": 100
             }
         },
-        "percent_missing": {
-            "title": "Percent Missing",
-            "description": "Percentage of highly conserved genes that are missing from the assembly (BUSCO)",
+        "percent_multi_copy_hap2": {
+            "title": "Percent Multiple Copy Hap2",
+            "description": "Percentage of highly conserved genes with multiple copies present in the Hap2 assembly (BUSCO)",
+            "type": "array",
+            "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+            }
+        },
+        "percent_fragmented_hap1": {
+            "title": "Percent Fragmented Hap1",
+            "description": "Percentage of highly conserved genes with fragmented representation in the Hap1 assembly (BUSCO)",
+            "type": "array",
+            "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+            }
+        },
+        "percent_fragmented_hap2": {
+            "title": "Percent Fragmented Hap2",
+            "description": "Percentage of highly conserved genes with fragmented representation in the Hap2 assembly (BUSCO)",
+            "type": "array",
+            "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+            }
+        },
+        "percent_missing_hap1": {
+            "title": "Percent Missing Hap1",
+            "description": "Percentage of highly conserved genes that are missing from the Hap1 assembly (BUSCO)",
+            "type": "array",
+            "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+            }
+        },
+        "percent_missing_hap2": {
+            "title": "Percent Missing Hap2",
+            "description": "Percentage of highly conserved genes that are missing from the Hap2 assembly (BUSCO)",
             "type": "array",
             "items": {
                 "type": "number",
