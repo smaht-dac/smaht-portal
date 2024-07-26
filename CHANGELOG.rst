@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.76.0
+======
+
+* Add new section to Data nav for challenge results
+* Add COLO829 SNV/Indel V1 Challenge Page + tables
 
 0.75.0
 ======
