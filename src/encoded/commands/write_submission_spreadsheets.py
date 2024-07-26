@@ -463,10 +463,11 @@ def write_spreadsheets(
 @dataclass(frozen=True)
 class Property:
     """Struct to hold property info required for spreadsheet.
-
-    Note: No effort to handle nested properties "well" here, i.e. no
-    recursion; specifically no attempt to handle array of objects or
-    nested objects. However, arrays of strings are handled by
+    
+    Note: Does not currently handle nested objects. 
+    However, arrays of objects with nested properties are handled
+    by making new Property instances for each (currently relevant for CellCultureMixture)
+    and arrays of strings are handled by
     bringing select info to top level.
     """
 
@@ -503,12 +504,18 @@ def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet
 def get_properties(submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
     properties = schema_utils.get_properties(submission_schema)
-    return [get_property(key, value) for key, value in properties.items()]
+    property_list = []
+    for key, value in properties.items():
+        property_list += get_property(key, value)
+    return property_list
 
 
 def get_property(property_name: str, property_schema: Dict[str, Any]) -> Property:
     """Get property information"""
-    return Property(
+    object_array = is_array_of_objects(property_schema)
+    if object_array:
+        return get_array_object_property(property_name, object_array)
+    return [Property(
         name=property_name,
         description=schema_utils.get_description(property_schema),
         value_type=schema_utils.get_schema_type(property_schema),
@@ -522,7 +529,42 @@ def get_property(property_name: str, property_schema: Dict[str, Any]) -> Propert
         format_=schema_utils.get_format(property_schema),
         requires=get_corequirements(property_schema),
         exclusive_requirements=get_exclusive_requirements(property_schema),
-    )
+    )]
+
+
+def get_array_object_property(property_name:str, property_schema: Dict[str, Any]) -> Property:
+    """Get property information for nested objects."""
+    object_properties = []
+    count = 2
+    for index in range(0,count): #duplicate columns for multiple accepted values
+        for key, value in property_schema.items():
+            combined_property_name=f"{property_name}#{index}.{key}"
+            object_properties.append(
+                Property(
+                name=combined_property_name,
+                description=schema_utils.get_description(value),
+                value_type=schema_utils.get_schema_type(value),
+                required=is_required(value),
+                link=is_link(value),
+                enum=get_enum(value),
+                array_subtype=get_array_subtype(value),
+                pattern=schema_utils.get_pattern(value),
+                comment=schema_utils.get_submission_comment(value),
+                examples=get_examples(value),
+                format_=schema_utils.get_format(value),
+                requires=get_corequirements(value),
+                exclusive_requirements=get_exclusive_requirements(value),
+                )
+            )
+    return object_properties
+
+
+
+def is_array_of_objects(property_schema: Dict[str, Any]) -> bool:
+    """Check if property is an array of objects."""
+    if property_schema.get("items",""):
+        return property_schema.get("items","").get("properties","")
+    return ""
 
 
 def is_required(property_schema: Dict[str, Any]) -> bool:
@@ -638,6 +680,8 @@ def get_ordered_properties(properties: List[Property]) -> List[Property]:
        - Non-required non-links (alphabetically)
        - Required links (alphabetically)
        - Non-required links (alphabetically)
+
+    For arrays of objects, these may still be out of order
     """
     return [
         *get_required_non_links(properties),
