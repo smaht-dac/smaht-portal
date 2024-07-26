@@ -374,6 +374,52 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 exclusive_requirements=["bar"],
             )],
         ),
+        (
+            "baz", # test array of objects
+            {
+                "description": "Baz",
+                "type": "array",
+                "is_required": True,
+                "items": {
+                    "properties": {
+                        "foo": {
+                            "description": "Foo",
+                            "type": "number"
+                        }
+                    }
+                },
+            },
+            [Property(
+                name="baz#0.foo",
+                description="Foo",
+                value_type="number",
+                required=False,
+                link=False,
+                enum=[],
+                array_subtype="",
+                pattern="",
+                comment="",
+                examples=[],
+                format_="",
+                requires=[],
+                exclusive_requirements=[],
+            ),
+            Property(
+                name="baz#1.foo",
+                description="Foo",
+                value_type="number",
+                required=False,
+                link=False,
+                enum=[],
+                array_subtype="",
+                pattern="",
+                comment="",
+                examples=[],
+                format_="",
+                requires=[],
+                exclusive_requirements=[],
+            )],
+        ),
     ],
 )
 def test_get_property(
