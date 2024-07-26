@@ -1,6 +1,15 @@
 <div className="html-container">
     <h3>Release History</h3>
 
+    <p>SMaHT Mosaic SNV/indel Detection Challenge was carried out within the Network in May 2024 to test available pipelines for detecting mosaic SNVs/indels using Illumina data. The output of this challenge will form the basis of the SMaHT SNV/indel pipeline at DAC.</p>
+    <p>Version 1.0 (June 26, 2024) is an unofficial internal release, and the V1.0 data are to be shared within the SMaHT Network only.</p>
+    <p>What is released in V1.0:</p>
+    <ol>
+        <li>Truth set for SNVs in COLO829-BLT50.</li>
+        <li>Negative controls for SNVs: (i) germline variant sites based on COLO829-BL and (ii) homozygous reference / non-variant sites.</li>
+        <li>Genome stratification: (i) easy, (ii) difficult, and (iii) extreme regions.</li>
+    </ol>
+
     <div class="table-responsive"> 
         <table class="table table-borderless table-sm text-left">
             <thead class="thead-smaht-purple">
