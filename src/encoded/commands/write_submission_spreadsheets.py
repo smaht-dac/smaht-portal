@@ -60,6 +60,49 @@ WORKBOOK_FILENAME = "submission_workbook.xlsx"
 FONT = "Arial"
 FONT_SIZE = 10
 
+TPC_SUBMISSION_ITEMS = [
+    "Donor",
+    "Demographic",
+    "MedicalHistory",
+    "Diagnosis",
+    "Exposure",
+    "FamilyHistory",
+    "MedicalTreatment",
+    "DeathCircumstances",
+    "TissueCollection",
+    "Tissue",
+    "TissueSample"
+]
+
+GCC_SUBMISSION_ITEMS = [
+    "Donor",
+    "Tissue",
+    "TissueSample",
+    "CellSample",
+    "CellLine",
+    "CellCulture",
+    "CellCultureMixture",
+    "CellCultureSample",
+    "Analyte",
+    "AnalytePreparation",
+    "PreparationKit",
+    "Treatment",
+    "Library",
+    "LibraryPreparation",
+    "Sequencing",
+    "Basecalling",
+    "FileSet",
+    "UnalignedReads",
+    "AlignedReads",
+    "VariantCalls",
+    "Software" 
+]
+
+DSA_SUBMISSION_ITEMS = [
+    "DonorSpecificAssembly",
+    "SupplementaryFile",
+    "Software"
+]
 
 @dataclass(frozen=True)
 class SheetsClient:
@@ -82,9 +125,11 @@ class SheetsClient:
 def update_google_sheets(
     sheets_client: SheetsClient,
     request_handler: RequestHandler,
+    gcc: bool = False,
+    tpc: bool = False
 ) -> None:
     """Update Google Sheets with the latest submission schemas."""
-    spreadsheets = get_spreadsheets(request_handler)
+    spreadsheets = get_spreadsheets(request_handler,gcc=gcc,tpc=tpc)
     log.info("Clearing existing Google sheets.")
     delete_existing_sheets(sheets_client)
     log.info("Updating Google sheets with tabs.")
@@ -96,9 +141,13 @@ def update_google_sheets(
     log.info("Google sheets updated.")
 
 
-def get_spreadsheets(request_handler: RequestHandler) -> List[Spreadsheet]:
+def get_spreadsheets(
+        request_handler: RequestHandler,
+        gcc: bool = False,
+        tpc: bool = False
+    ) -> List[Spreadsheet]:
     submission_schemas = get_all_submission_schemas(request_handler)
-    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas)
+    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,gcc=gcc,tpc=tpc)
     return [
         get_spreadsheet(item, submission_schema)
         for item, submission_schema in ordered_submission_schemas.items()
@@ -300,6 +349,8 @@ def write_item_spreadsheets(
     items: List[str],
     request_handler: RequestHandler,
     workbook: bool = False,
+    tpc: bool = False,
+    gcc: bool = False,
     separate_comments: bool = False,
 ) -> None:
     """Write submission spreadsheets for specified items"""
@@ -312,7 +363,7 @@ def write_item_spreadsheets(
         f" {submission_schemas.keys()}"
     )
     if workbook:
-        write_workbook(output, submission_schemas, separate_comments=separate_comments)
+        write_workbook(output, submission_schemas, separate_comments=separate_comments,tpc=tpc,gcc=gcc)
     else:
         write_spreadsheets(
             output, submission_schemas, separate_comments=separate_comments
@@ -345,11 +396,15 @@ def get_submission_schema_endpoint(item: str) -> Dict[str, Any]:
 
 
 def write_workbook(
-    output: Path, submission_schemas: Dict[str, Any], separate_comments: bool = False
+    output: Path,
+    submission_schemas: Dict[str, Any],
+    tpc: bool = False,
+    gcc: bool = False,
+    separate_comments: bool = False
 ) -> None:
     """Write a single workbook containing all submission spreadsheets."""
     workbook = openpyxl.Workbook()
-    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas)
+    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,tpc=tpc,gcc=gcc)
     write_workbook_sheets(
         workbook, ordered_submission_schemas, separate_comments=separate_comments
     )
@@ -359,14 +414,21 @@ def write_workbook(
 
 
 def get_ordered_submission_schemas(
-    submission_schemas: Dict[str, Any]
+    submission_schemas: Dict[str, Any],
+    tpc: bool = False,
+    gcc: bool = False
 ) -> Dict[str, Dict[str, Any]]:
     """Order submission schemas."""
     result = {}
-    for item in ITEM_INDEX_ORDER:
-        camel_case_item = to_camel_case(item)
-        if camel_case_item in submission_schemas:
-            result[camel_case_item] = submission_schemas[camel_case_item]
+    if tpc:
+        item_order = TPC_SUBMISSION_ITEMS
+    elif gcc:
+        item_order = GCC_SUBMISSION_ITEMS
+    else:
+        item_order = [to_camel_case(item) for item in ITEM_INDEX_ORDER]
+    for item in item_order:
+        if item in submission_schemas:
+            result[item] = submission_schemas[item]
     return result
 
 
@@ -388,7 +450,9 @@ def write_workbook_sheets(
 
 
 def write_spreadsheets(
-    output: Path, submission_schemas: Dict[str, Any], separate_comments: bool = False
+    output: Path,
+    submission_schemas: Dict[str, Any],
+    separate_comments: bool = False
 ) -> None:
     """Write submission spreadsheets."""
     for item, submission_schema in submission_schemas.items():
@@ -491,11 +555,19 @@ def get_array_subtype(property_schema: Dict[str, Any]) -> str:
     return schema_utils.get_schema_type(schema_utils.get_items(property_schema))
 
 
+def get_suggested_enum(property_schema: Dict[str, Any]) -> List[str]:
+    """Get suggested_enum or nested suggested_enum for property values."""
+
+    return schema_utils.get_suggested_enum(
+        property_schema
+    ) or schema_utils.get_suggested_enum(schema_utils.get_items(property_schema))
+
+
 def get_examples(property_schema: Dict[str, Any]) -> List[str]:
     """Get examples for property values."""
     return schema_utils.get_submission_examples(
         property_schema
-    ) or schema_utils.get_suggested_enum(property_schema)
+    ) or get_suggested_enum(property_schema)
 
 
 def get_corequirements(property_schema: Dict[str, Any]) -> List[str]:
@@ -842,6 +914,8 @@ def main():
     )
     parser.add_argument("--env", help="Environment", default="data")
     parser.add_argument("--item", help="Item name", nargs="+")
+    parser.add_argument("--tpc", help="TPC Submission items", action="store_true")
+    parser.add_argument("--gcc", help="GCC Submission items", action="store_true")
     parser.add_argument("--all", help="All items", action="store_true")
     parser.add_argument(
         "--workbook",
@@ -870,19 +944,59 @@ def main():
     request_handler = RequestHandler(auth_key=keys)
     if not args.output and not args.google:
         parser.error("No output specified")
+    if args.gcc and args.tpc:
+        parser.error("Cannot specify both gcc and tpc")
+    if args.all and args.tpc:
+        parser.error("Cannot specify both all and tpc")
+    if args.all and args.gcc:
+        parser.error("Cannot specify both all and gcc")
     if args.all and args.item:
         parser.error("Cannot specify both all and item")
-    if args.google:
+    if args.google and args.all:
         log.info(f"Google Sheet ID: {args.google}")
         log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
         spreadsheet_client = get_google_sheet_client(args.google)
         update_google_sheets(spreadsheet_client, request_handler)
-    elif args.all:
+    elif args.google and args.gcc:
+        log.info(f"Google Sheet ID: {args.google}")
+        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+        log.info("Writing GCC submission Google sheet")
+        spreadsheet_client = get_google_sheet_client(args.google)
+        update_google_sheets(spreadsheet_client, request_handler,gcc=True)
+    elif args.google and args.tpc:
+        log.info(f"Google Sheet ID: {args.google}")
+        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+        log.info("Writing TPC submission Google sheet")
+        spreadsheet_client = get_google_sheet_client(args.google)
+        update_google_sheets(spreadsheet_client, request_handler,tpc=True)
+    elif args.workbook and args.all:
         log.info("Writing all submission spreadsheets")
         write_all_spreadsheets(
             args.output,
             request_handler,
             workbook=args.workbook,
+            separate_comments=args.separate,
+        )
+    elif args.workbook and args.tpc:
+        log.info("Writing TPC submission spreadsheet")
+        write_item_spreadsheets(
+            args.output,
+            TPC_SUBMISSION_ITEMS,
+            request_handler,
+            workbook=args.workbook,
+            tpc = True,
+            gcc = False,
+            separate_comments=args.separate,
+        )
+    elif args.workbook and args.gcc:
+        log.info("Writing GCC/TTD submission spreadsheet")
+        write_item_spreadsheets(
+            args.output,
+            GCC_SUBMISSION_ITEMS,
+            request_handler,
+            workbook=args.workbook,
+            tpc = False,
+            gcc = True,
             separate_comments=args.separate,
         )
     elif args.item:

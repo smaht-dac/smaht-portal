@@ -9,3 +9,10 @@ def upgrade_tissue_1_2(value: Dict[str, Any], system: Dict[str, Any]) -> Dict[st
     if existing_location:
         value["anatomical_location"] = existing_location
         del value["location"]
+
+
+@upgrade_step("tissue", "2", "3")
+def upgrade_tissue_2_3(value: Dict[str, Any], system: Dict[str, Any]) -> Dict[str, Any]:
+    existing_recovery_interval = value.get("recovery_interval")
+    if existing_recovery_interval:
+        del value["recovery_interval"]
