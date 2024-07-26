@@ -296,7 +296,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
         (  # Simple case with defaults
             "bar",
             {},
-            Property(
+            [Property(
                 name="bar",
                 description="",
                 value_type="",
@@ -310,7 +310,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 format_="",
                 requires=[],
                 exclusive_requirements=[],
-            ),
+            )],
         ),
         (  # More complicated case with most attributes
             "baz",
@@ -327,7 +327,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 "also_requires": ["foo"],
                 "required_if_not_one_of": ["bar"],
             },
-            Property(
+            [Property(
                 name="baz",
                 description="Baz",
                 value_type="number",
@@ -341,7 +341,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 format_="format",
                 requires=["foo"],
                 exclusive_requirements=["bar"],
-            ),
+            )],
         ),
         (  # More complicated case with suggested_enum
             "baz",
@@ -358,7 +358,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 "also_requires": ["foo"],
                 "required_if_not_one_of": ["bar"],
             },
-            Property(
+            [Property(
                 name="baz",
                 description="Baz",
                 value_type="number",
@@ -372,7 +372,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 format_="format",
                 requires=["foo"],
                 exclusive_requirements=["bar"],
-            ),
+            )],
         ),
     ],
 )
