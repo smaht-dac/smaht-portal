@@ -7,15 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-0.74.2
+
+0.76.0
 ======
 
-`PR 195: fix: tablet navigation collapse <https://github.com/smaht-dac/smaht-portal/pull/195>`_
+* Minor documentation updates for how to install awscli in docs/source/{file_download,download_cli}.rst.
+* Update to dcicutils 8.13.3.
 
-* Fix collapsing navigation bar for tablet size screens
-* Switch to mobile navigation component early
-* Show initials for username in tablet screen size
-* Fix mobile styling bugs
+
+0.75.0
+======
+
+* Bug fix: consider loadxl order in staggered reindexing
+* Add ``retracted`` status to Files with submission center only view
 
 
 0.74.1
