@@ -81,6 +81,19 @@
                 "restricted"
             ]
         },
+        "external_quality_metrics": {
+            "description": "Link to externally-generated QC reports",
+            "items": {
+                "description": "Associated QC report",
+                "linkTo": "ExternalQualityMetric",
+                "title": "Quality Metric",
+                "type": "string"
+            },
+            "minItems": 1,
+            "title": "External Quality Metrics",
+            "type": "array",
+            "uniqueItems": true
+        },
         "file_format": {
             "$merge": "encoded_core:schemas/file.json#/properties/file_format"
         },

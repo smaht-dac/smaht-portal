@@ -56,6 +56,7 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
         "basecalling",
         "sequencing",
         "file_set",
+        "external_quality_metric",
         "unaligned_reads",
         "aligned_reads",
         "variant_calls",
