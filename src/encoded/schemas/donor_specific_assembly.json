@@ -185,7 +185,7 @@
             "minimum": 0
         },
         "title": {
-            "description": "Title of the assembly (e.g. Hela_DSA)"
+            "description": "Title of the assembly (e.g. ST001_DSA)"
         },
         "total_ungapped_length": {
             "title": "Total Ungapped Length",

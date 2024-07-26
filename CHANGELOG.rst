@@ -10,7 +10,7 @@ Change Log
 0.75.0
 ======
 
-`PR210: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/210>`_
+`PR210: DSA Schema Update <https://github.com/smaht-dac/smaht-portal/pull/210>`_
 * Changes to DonorSpecificAssembly and SupplementaryFile schemas to reflect GCC feedback:
   * BUSCO score properties (i.e. `percent_single_copy`) changed type to arrays of numbers to reflect multiple haplotypes
   * Change property name from `percent_duplicate` to `percent_multi_copy` for clarity
