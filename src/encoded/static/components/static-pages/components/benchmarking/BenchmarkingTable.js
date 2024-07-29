@@ -994,7 +994,7 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
     return (
         <>
             <div className="code-snippet-container">
-                <Tabs defaultActiveKey="curl" className="" variant="pills">
+                <Tabs defaultActiveKey="curl" variant="pills">
                     <Tab eventKey="curl" title="cURL">
                         <object.CopyWrapper
                             value={curl.plainValue}
@@ -1005,7 +1005,7 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                             {curl.htmlValue}
                         </object.CopyWrapper>
                     </Tab>
-                    <Tab eventKey="aws" title="AWS CLI" className="">
+                    <Tab eventKey="aws" title="AWS CLI">
                         <object.CopyWrapper
                             value={aws_cli.plainValue}
                             className="curl-command-wrapper"
