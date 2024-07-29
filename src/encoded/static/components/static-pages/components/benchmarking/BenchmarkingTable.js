@@ -996,37 +996,35 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
     };
 
     return (
-        <>
-            <div className="code-snippet-container">
-                <Tabs
-                    defaultActiveKey="curl"
-                    variant="pills"
-                    onSelect={(k) => {
-                        setIsAWSDownload(k === 'aws');
-                    }}>
-                    <Tab eventKey="curl" title="cURL">
-                        <object.CopyWrapper
-                            value={curl.plainValue}
-                            className="curl-command-wrapper"
-                            data-tip={'Click to copy'}
-                            wrapperElement="div"
-                            iconProps={{}}>
-                            {curl.htmlValue}
-                        </object.CopyWrapper>
-                    </Tab>
-                    <Tab eventKey="aws" title="AWS CLI">
-                        <object.CopyWrapper
-                            value={aws_cli.plainValue}
-                            className="curl-command-wrapper"
-                            data-tip={'Click to copy'}
-                            wrapperElement="div"
-                            iconProps={{}}>
-                            {aws_cli.htmlValue}
-                        </object.CopyWrapper>
-                    </Tab>
-                </Tabs>
-            </div>
-        </>
+        <div className="code-snippet-container">
+            <Tabs
+                defaultActiveKey="curl"
+                variant="pills"
+                onSelect={(k) => {
+                    setIsAWSDownload(k === 'aws');
+                }}>
+                <Tab eventKey="curl" title="cURL">
+                    <object.CopyWrapper
+                        value={curl.plainValue}
+                        className="curl-command-wrapper"
+                        data-tip={'Click to copy'}
+                        wrapperElement="div"
+                        iconProps={{}}>
+                        {curl.htmlValue}
+                    </object.CopyWrapper>
+                </Tab>
+                <Tab eventKey="aws" title="AWS CLI">
+                    <object.CopyWrapper
+                        value={aws_cli.plainValue}
+                        className="curl-command-wrapper"
+                        data-tip={'Click to copy'}
+                        wrapperElement="div"
+                        iconProps={{}}>
+                        {aws_cli.htmlValue}
+                    </object.CopyWrapper>
+                </Tab>
+            </Tabs>
+        </div>
     );
 });
 
@@ -1101,11 +1099,7 @@ const SelectedItemsDownloadStartButton = React.memo(
                 action={action}
                 className="d-inline-block d-block-xs-only">
                 {isAWSDownload && (
-                    <input
-                        type="hidden"
-                        name="cli"
-                        value={JSON.stringify('True')}
-                    />
+                    <input type="hidden" name="cli" value="True" />
                 )}
                 <input
                     type="hidden"
