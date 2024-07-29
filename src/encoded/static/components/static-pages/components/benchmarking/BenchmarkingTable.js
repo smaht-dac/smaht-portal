@@ -568,6 +568,8 @@ const SelectedItemsDownloadModal = function (props) {
     const { onHide, filenamePrefix, selectedItems, session } = props;
     let { action } = props;
 
+    const [isAWSDownload, setIsAWSDownload] = useState(false);
+
     useEffect(() => {
         const {
             analyticsAddItemsToCart = false,
@@ -754,6 +756,7 @@ const SelectedItemsDownloadModal = function (props) {
                     <ModalCodeSnippets
                         filename={suggestedFilename}
                         session={session}
+                        setIsAWSDownload={setIsAWSDownload}
                     />
                 </div>
             </Modal.Body>
@@ -770,6 +773,7 @@ const SelectedItemsDownloadModal = function (props) {
                         accessionArray,
                         suggestedFilename,
                         action,
+                        isAWSDownload,
                     }}
                 />
             </Modal.Footer>
@@ -928,7 +932,7 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
 );
 
 const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
-    const { filename, session } = props;
+    const { filename, session, setIsAWSDownload } = props;
 
     // Assign html and plain values for each command
     const aws_cli = {
@@ -994,7 +998,12 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
     return (
         <>
             <div className="code-snippet-container">
-                <Tabs defaultActiveKey="curl" variant="pills">
+                <Tabs
+                    defaultActiveKey="curl"
+                    variant="pills"
+                    onSelect={(k) => {
+                        setIsAWSDownload(k === 'aws');
+                    }}>
                     <Tab eventKey="curl" title="cURL">
                         <object.CopyWrapper
                             value={curl.plainValue}
@@ -1034,6 +1043,7 @@ const SelectedItemsDownloadStartButton = React.memo(
             selectedItems,
             accessionArray = [],
             action,
+            isAWSDownload,
         } = props;
 
         const { onClick } = useMemo(
@@ -1090,6 +1100,13 @@ const SelectedItemsDownloadStartButton = React.memo(
                 method="POST"
                 action={action}
                 className="d-inline-block d-block-xs-only">
+                {isAWSDownload && (
+                    <input
+                        type="hidden"
+                        name="cli"
+                        value={JSON.stringify('True')}
+                    />
+                )}
                 <input
                     type="hidden"
                     name="accessions"
