@@ -17,6 +17,7 @@
                     <th className="pl-1">Release Version</th>
                     <th className="pl-1">Title</th>
                     <th className="pl-1">Release date</th>
+                    <th className="pl-1">Document</th>
                 </tr>
             </thead>
             <tbody class="table-border-inner">
@@ -24,13 +25,18 @@
                     <td className="pl-1">V1.0</td>
                     <td className="pl-1">COLO829 SNV Indel Detection Challenge - Presented at 2024 SMaHT annual meeting</td>
                     <td className="pl-1">June 15, 2024</td>
+                    <td className="pl-1">
+                        <a href="/static/files/SMaHT Sample and File Nomenclature v1.1.pdf" download>
+                            <i className="icon fas icon-file-pdf text-danger icon-lg"></i>
+                        </a>
+                    </td>
                 </tr>
             </tbody>
         </table>
     </div>
 
     <h2 className="section-title py-2 mt-3 d-inline-block">Version 1.0 [latest]</h2>
-    <DownloadAllFilesFromSearchHrefButton {...{ session }} searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data" cls="mt-5 float-right"/>
+    <DownloadAllFilesFromSearchHrefButton {...{ session }} searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data" cls="mt-5 float-right">Download All Version 1.0 Files</DownloadAllFilesFromSearchHrefButton>
 
     <h3 className="section-title">Truth Sets</h3>
     <p className="mb-2">The truth set in the Version 1 release includes SNVs with VAF &gt; 25% in the pure COLO829-T cancer cell line (corresponding to VAF &gt; 0.5%, expected in the BLT50 mixture samples) to analyze variants considered for the SNV/Indel Detection Challenge.</p>
