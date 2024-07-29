@@ -935,7 +935,7 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
         htmlValue: (
             <pre className="aws_cli-command mb-15">
                 cut -f 1,3 <b>{filename}</b> | tail -n +4 | grep -v ^# | xargs
-                &#40;curl -s -L --user $
+                -n 2 -L 1 sh -c &#39;credentials=$&#40;curl -s -L
                 {session ? (
                     <>
                         <code style={{ opacity: 0.5 }}>
@@ -946,7 +946,8 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                     </>
                 ) : (
                     ''
-                )}{' '}
+                )}
+                {''}
                 &quot;$0&quot; | jq -r &quot;.download_credentials |
                 &#123;AccessKeyId, SecretAccessKey, SessionToken,
                 download_url&#125;&quot;&#41; && export
@@ -957,10 +958,10 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                 AWS_SESSION_TOKEN=$&#40;echo $credentials | jq -r
                 &quot;.SessionToken&quot;&#41; && download_url=$&#40;echo
                 $credentials | jq -r &quot;.download_url&quot;&#41; && aws s3 cp
-                &quot;$download_url&quot; &quot;$1&quot;&#39;&#39;
+                &quot;$download_url&quot; &quot;$1&quot;&#39;
             </pre>
         ),
-        plainValue: `cut -f 1,3 ${filename} | tail -n +4 | grep -v ^# |  xargs -n 2 -L 1 sh -c 'credentials=$(curl -s -L --user ${
+        plainValue: `cut -f 1,3 ${filename} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'credentials=$(curl -s -L --user ${
             session ? '<access_key_id>:<access_key_secret>' : ''
         } "$0" | jq -r ".download_credentials | {AccessKeyId, SecretAccessKey, SessionToken, download_url}") && export AWS_ACCESS_KEY_ID=$(echo $credentials | jq -r ".AccessKeyId") && export AWS_SECRET_ACCESS_KEY=$(echo $credentials | jq -r ".SecretAccessKey") && export AWS_SESSION_TOKEN=$(echo $credentials | jq -r ".SessionToken") && download_url=$(echo $credentials | jq -r ".download_url") && aws s3 cp "$download_url" "$1"'`,
     };
