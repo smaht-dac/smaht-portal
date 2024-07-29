@@ -27,6 +27,7 @@ export const DownloadAllFilesFromSearchHrefButton = ({
     searchHref = '/search/?type=File',
     session,
     analyticsAddItemsToCart,
+    children,
     cls = '',
 }) => {
     const [selectedItems, setSelectedItems] = useState(new Map());
@@ -81,7 +82,7 @@ export const DownloadAllFilesFromSearchHrefButton = ({
             {...{ selectedItems, session }}
             analyticsAddItemsToCart>
             <i className="icon icon-download fas mr-03" />
-            Download {selectedItems.size} Selected Files
+            {!!children ? children : `Download ${selectedItems.size} Files`}
         </SelectedItemsDownloadButton>
     );
 };
