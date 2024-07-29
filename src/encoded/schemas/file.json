@@ -70,6 +70,7 @@
             "enum": [
                 "uploading",
                 "uploaded",
+                "retracted",
                 "upload failed",
                 "to be uploaded by workflow",
                 "released",
