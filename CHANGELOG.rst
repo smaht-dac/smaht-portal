@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.77.0
+======
+
+* Nested QC (QualityMetric) development.
+
+
 0.76.1
 ======
 
@@ -16,12 +22,6 @@ Change Log
 * Switch to mobile navigation component early
 * Show initials for username in tablet screen size
 * Fix mobile styling bugs
-
-
-0.77.0
-======
-
-* Nested QC (QualityMetric) development.
 
 
 0.76.0

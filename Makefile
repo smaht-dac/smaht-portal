@@ -136,16 +136,16 @@ build-locust:  # just pip installs locust - may cause instability
 	pip install locust
 
 deploy1:  # starts postgres/ES locally and loads inserts, and also starts ingestion engine
-	@DEBUGLOG=`pwd` SNOVAULT_DB_TEST_PORT=`grep 'sqlalchemy[.]url =' development.ini | sed -E 's|.*:([0-9]+)/.*|\1|'` dev-servers development.ini --app-name app --clear --init --load
+	@DEBUGLOG=`pwd` SNOVAULT_DB_TEST_PORT=`grep 'sqlalchemy[.]url =' development.ini | sed -E '/^[[:space:]]*#/d' | sed -E 's|.*:([0-9]+)/.*|\1|'` dev-servers development.ini --app-name app --clear --init --load
 
 deploy1a:  # starts postgres/ES locally and loads inserts, but does not start the ingestion engine
-	@DEBUGLOG=`pwd` SNOVAULT_DB_TEST_PORT=`grep 'sqlalchemy[.]url =' development.ini | sed -E 's|.*:([0-9]+)/.*|\1|'` dev-servers development.ini --app-name app --clear --init --load --no_ingest
+	@DEBUGLOG=`pwd` SNOVAULT_DB_TEST_PORT=`grep 'sqlalchemy[.]url =' development.ini | sed -E '/^[[:space:]]*#/d' | sed -E 's|.*:([0-9]+)/.*|\1|'` dev-servers development.ini --app-name app --clear --init --load --no_ingest
 
 deploy1b:  # starts ingestion engine separately so it can be easily stopped and restarted for debugging in foreground
-	@echo "Starting ingestion listener. Press ^C to exit." && DEBUGLOG=`pwd` SNOVAULT_DB_TEST_PORT=`grep 'sqlalchemy[.]url =' development.ini | sed -E 's|.*:([0-9]+)/.*|\1|'` poetry run ingestion-listener development.ini --app-name app
+	@echo "Starting ingestion listener. Press ^C to exit." && DEBUGLOG=`pwd` SNOVAULT_DB_TEST_PORT=`grep 'sqlalchemy[.]url =' development.ini | sed -E '/^[[:space:]]*#/d' | sed -E 's|.*:([0-9]+)/.*|\1|'` poetry run ingestion-listener development.ini --app-name app
 
 deploy2:  # spins up waittress to serve the application
-	@DEBUGLOG=`pwd` SNOVAULT_DB_TEST_PORT=`grep 'sqlalchemy[.]url =' development.ini | sed -E 's|.*:([0-9]+)/.*|\1|'` pserve development.ini
+	@DEBUGLOG=`pwd` SNOVAULT_DB_TEST_PORT=`grep 'sqlalchemy[.]url =' development.ini | sed -E '/^[[:space:]]*#/d' | sed -E 's|.*:([0-9]+)/.*|\1|'` pserve development.ini
 
 psql-dev:  # starts psql with the url after 'sqlalchemy.url =' in development.ini
 	@scripts/psql-start.bash dev
@@ -168,6 +168,7 @@ kill:  # kills back-end processes associated with the application. Use with care
 	-pkill -f elasticsearch &
 	-pkill -f moto_server &
 	-pkill -f nginx &
+	rm -rf /tmp/snovault
 
 clean-python:
 	@echo -n "Are you sure? This will wipe all libraries installed on this virtualenv [y/N] " && read ans && [ $${ans:-N} = y ]
