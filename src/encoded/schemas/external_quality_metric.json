@@ -68,9 +68,7 @@
            "items": {
                 "type": "string",
                 "suggested_enum": [
-                    "Alignment",
-                    "Variant Calling",
-                    "Sequencing"
+                    "DuplexSeq"
                 ]
             }
         },
@@ -87,23 +85,16 @@
                 ],
                 "properties": {
                     "key": {
-                        "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/key"
+                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/key"
                     },
                     "value": {
-                        "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/value",
-                        "type": [
-                            "array",
-                            "boolean",
-                            "integer",
-                            "number",
-                            "string"
-                        ]
+                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/value"
                     },
                     "derived_from": {
-                        "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/derived_from"
+                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/derived_from"
                     },
                     "tooltip": {
-                        "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/tooltip"
+                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/tooltip"
                     }
                 }
             }
