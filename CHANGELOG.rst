@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.76.2
+======
+
+* Remove Doug user
+
+
 0.76.1
 ======
 
