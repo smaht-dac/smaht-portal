@@ -1800,60 +1800,69 @@ body[data-pathname^="/data/benchmarking"] {
 				}
 		
 				>.row {
-					.title {
-						color: #343741;
-						font-family: Inter;
-						font-size: 1.5rem;
-						font-weight: 600;
-						margin-top: 5px;
-					}
-					.description {
-						font-family: Inter;
-						font-size: 0.875rem;
-						color: #5D5E63;
-						line-height: 20px;
-
-						.disclaimer {
-							color: #5D5E63;
-							font-family: Inter;
-							font-size: 0.875rem;
-							line-height: 20px;
-							margin-top: 10px;
-							span {
-								font-weight: 500;
-							}
-						}
-					}
-					.callout {
-						margin-top: 24px;
-						border-radius: 7px;
-						max-width: 980px;
-						border-top-left-radius: 0.25rem;
-						border-bottom-left-radius: 0.25rem;
+					.information-container {
+						padding: 10px;
+						margin-bottom: 20px;
 						
-						&-text {
+						.title {
+							color: #343741;
 							font-family: Inter;
-							color: #5D5E63;
+							font-size: 1.5rem;
+							font-weight: 600;
+							margin-top: 5px;
+						}
+						.description {
+							font-family: Inter;
 							font-size: 0.875rem;
-							padding: 8px;
+							color: #5D5E63;
 							line-height: 20px;
-
-							.flag {
-								font-weight: 600;
-							}
-							.headline {
-								font-weight: 600;
+	
+							.disclaimer {
+								color: #5D5E63;
+								font-family: Inter;
+								font-size: 0.875rem;
+								line-height: 20px;
+								margin-top: 10px;
+								span {
+									font-weight: 500;
+								}
 							}
 						}
-						&.warning {
-							background-color: #FFF9F9;
-							border: 1px solid #F6D6D6;
-							border-left: 4px solid #BB3F3F;
-
-							.flag {
-								font-weight: 600;
-								color: #BB3F3F;
+						.callout {
+							margin-top: 24px;
+							border-radius: 7px;
+							max-width: 980px;
+							border-top-left-radius: 0.25rem;
+							border-bottom-left-radius: 0.25rem;
+							
+							&-text {
+								font-family: Inter;
+								color: #5D5E63;
+								font-size: 0.875rem;
+								padding: 8px;
+								line-height: 20px;
+	
+								.flag {
+									font-weight: 600;
+								}
+								.headline {
+									font-weight: 600;
+								}
 							}
+							&.warning {
+								background-color: #FFF9F9;
+								border: 1px solid #F6D6D6;
+								border-left: 4px solid #BB3F3F;
+	
+								.flag {
+									font-weight: 600;
+									color: #BB3F3F;
+								}
+							}
+						}
+
+						.toggle-information-text-button {
+							display: none;
 						}
 					}
 				}
@@ -1880,16 +1889,94 @@ body[data-pathname^="/data/benchmarking"] {
 
 		@include media-breakpoint-up(lg) {
 			display: flex;
+			flex: 1;
 			padding: 0px;
 
 			// Header and description text
 			.benchmarking-layout-container {
 				flex: 1;
-				padding: 25px 32px 0px 20px;
-				.benchmarking-layout{
+				padding: 20px 32px 20px 20px;
+				overflow: scroll;
+
+				.benchmarking-layout {
+					.page-description {
+						.information-container {
+							margin-bottom: 0px;
+							padding: 0px 0px 20px 10px;
+							
+							.title-container {
+								display: flex;
+								flex-direction: row;
+								margin-top: 5px;
+								margin-bottom: 20px;
+								.title {
+									margin: 0px;
+								}
+							}
+							.toggle-information-text-button {
+								position: absolute;
+								display: flex;
+								bottom: 0px;
+								background-color: transparent;
+								border: none;
+								border-radius: 4px;
+								margin: 10px 0px;
+								color: $link-color;
+								font-size: 0.875rem;
+								font-weight: 500;
+								
+								.icon {
+									margin: auto 8px auto auto;
+								}
+	
+								.toggle-information-text {
+									margin: auto;
+									height: 25px;
+								}
+	
+								&:hover {
+									font-weight: 600;
+								}
+							}
+						}
+
+						.body-container {
+							&.expanded {
+								max-height: 400px;
+								transition: max-height 150ms ease-in-out;
+								overflow: hidden;
+								margin-bottom: 1.5rem;
+							}
+							&.collapsed {
+								max-height: 40px;
+								transition: max-height 150ms ease-in-out;
+								overflow: hidden;
+								margin-bottom: 1.5rem;
+								display: -webkit-box;
+								@include prefix(line-clamp, 2);
+								@include prefix(box-orient, vertical);
+							}
+						}
+					}
+
 					>nav.nav-tabs {
 						a.nav-link {
 							text-align: left;
+						}
+					}
+
+					.tab-content {
+						.embedded-search-container {
+							.search-view-controls-and-results {
+								.facets-column {
+									transition: max-height 150ms ease-in-out;
+								}
+								.results-column {
+									.react-infinite-container {
+										transition: max-height 150ms ease-in-out;
+									}
+								}
+							}
 						}
 					}
 				}
@@ -1898,7 +1985,7 @@ body[data-pathname^="/data/benchmarking"] {
 			// Side nav
 			.benchmarking-nav-container {
 				display: flex;
-				padding-top: 5px;
+				min-height: calc(100vh - 236px);
 	
 				.benchmarking-nav {
 					width: 100%;
@@ -1986,6 +2073,14 @@ body[data-pathname^="/data/benchmarking"] {
 							font-size: 0.75rem;
 							margin: auto;
 						}
+
+						&:hover {
+							background-color: #F6F6F6;
+						}
+
+						&:active {
+							background-color: #f2f2f2;
+						}
 					}
 				}
 			}
@@ -2018,7 +2113,7 @@ body[data-pathname^="/data/benchmarking"] {
 			}
 			&.collapse-nav {
 				flex-wrap: nowrap;
-				.benchmarking-nav-container{
+				.benchmarking-nav-container {
 					width: 32px;
 					border-right: 1px solid #E7F0F3;
 					background-color: #FBFBFC;
@@ -2032,9 +2127,6 @@ body[data-pathname^="/data/benchmarking"] {
 					hr {
 						display: none;
 					}
-				}
-				.benchmarking-layout-container {
-					width: calc(100% - 32px);
 				}
 			}
 		}
