@@ -13,6 +13,12 @@ Change Log
 * Nested QC (QualityMetric) development.
 
 
+0.76.2
+======
+
+* Remove Doug user
+
+
 0.76.1
 ======
 
