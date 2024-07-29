@@ -960,7 +960,9 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                 &quot;$download_url&quot; &quot;$1&quot;&#39;&#39;
             </pre>
         ),
-        plainValue: `cut -f 1,3 ${filename} | tail -n +4 | grep -v ^# |  xargs -n 2 -L 1 sh -c 'credentials=$(curl -s -L --user <id>:<secret> "$0" | jq -r ".download_credentials | {AccessKeyId, SecretAccessKey, SessionToken, download_url}") && export AWS_ACCESS_KEY_ID=$(echo $credentials | jq -r ".AccessKeyId") && export AWS_SECRET_ACCESS_KEY=$(echo $credentials | jq -r ".SecretAccessKey") && export AWS_SESSION_TOKEN=$(echo $credentials | jq -r ".SessionToken") && download_url=$(echo $credentials | jq -r ".download_url") && aws s3 cp "$download_url" "$1"'`,
+        plainValue: `cut -f 1,3 ${filename} | tail -n +4 | grep -v ^# |  xargs -n 2 -L 1 sh -c 'credentials=$(curl -s -L --user ${
+            session ? '<access_key_id>:<access_key_secret>' : ''
+        } "$0" | jq -r ".download_credentials | {AccessKeyId, SecretAccessKey, SessionToken, download_url}") && export AWS_ACCESS_KEY_ID=$(echo $credentials | jq -r ".AccessKeyId") && export AWS_SECRET_ACCESS_KEY=$(echo $credentials | jq -r ".SecretAccessKey") && export AWS_SESSION_TOKEN=$(echo $credentials | jq -r ".SessionToken") && download_url=$(echo $credentials | jq -r ".download_url") && aws s3 cp "$download_url" "$1"'`,
     };
     const curl = {
         htmlValue: (
