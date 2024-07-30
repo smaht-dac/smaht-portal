@@ -2183,6 +2183,17 @@ body[data-pathname^="/data/benchmarking"] {
 						font-size: 0.875rem;
 					}
 
+					.disclaimer {
+						color: #212529;
+						font-family: Inter;
+						font-size: 0.875rem;
+						line-height: 20px;
+						margin-top: 10px;
+						span {
+							font-weight: 500;
+						}
+					}
+
 					.tsv-metadata-overview {
 						border-radius: 7px;
 						border: 1px solid #CAE5FE;
@@ -2239,7 +2250,7 @@ body[data-pathname^="/data/benchmarking"] {
 										margin-left: 5px;
 										font-weight: 400;
 										margin: auto;
-										margin-left: 5px;
+										margin-left: 8px;
 									}
 								}
 

@@ -755,6 +755,19 @@ const SelectedItemsDownloadModal = function (props) {
                             following cURL or AWS CLI command:
                         </li>
                     </ol>
+                    <p className="disclaimer">
+                        <span>
+                            <b>Note:</b>
+                        </span>{' '}
+                        AWS CLI requires an additional package download, find
+                        instructions{' '}
+                        <a
+                            href="/docs/access/how-to-download-files#downloading-files-with-the-aws-cli"
+                            target="_blank">
+                            here
+                        </a>
+                        .
+                    </p>
                     <ModalCodeSnippets
                         filename={suggestedFilename}
                         session={session}
