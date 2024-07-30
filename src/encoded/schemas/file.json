@@ -82,7 +82,7 @@
             ]
         },
         "external_quality_metrics": {
-            "description": "Link to externally-generated QC reports",
+            "description": "Link to externally-generated QC metrics associated with file",
             "items": {
                 "description": "Associated QC report",
                 "linkTo": "ExternalQualityMetric",
@@ -126,7 +126,7 @@
                     "Germline Variant Calls",
                     "Quality Control",
                     "Reference Genome",
-                    "Donor-Specific Assembly",
+                    "Reference Conversion",
                     "Reference Transcriptome",
                     "RNA Quantification",
                     "Sequencing Reads",
@@ -149,6 +149,7 @@
                     "In Silico Generated",
                     "Index",
                     "Reference Sequence",
+                    "Chain File",
                     "Sequence Interval",
                     "Statistics",
                     "Transcript Expression",
