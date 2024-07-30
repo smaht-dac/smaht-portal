@@ -57,7 +57,9 @@ a new token.
 ITEM_SPREADSHEET_SUFFIX = "_submission.xlsx"
 WORKBOOK_FILENAME = "submission_workbook.xlsx"
 
-EXAMPLE_FILE_UUIDS=["d4020a63-338c-4103-8461-417d09df5cbd"]
+EXAMPLE_FILE_UUIDS=["4e142999-5d48-4dcd-b7d6-558e5960e69b",
+                    #"d4020a63-338c-4103-8461-417d09df5cbd"
+                    ]
 
 POPULATE_ORDER = [
     "VariantCalls",
@@ -350,17 +352,16 @@ def write_all_spreadsheets(
     output: Path,
     request_handler: RequestHandler,
     workbook: bool = False,
-    separate_comments: bool = False,
-    example: bool = False
+    separate_comments: bool = False
 ) -> None:
     """Write all submission spreadsheets"""
     submission_schemas = get_all_submission_schemas(request_handler)
     log.info(f"Writing submission spreadsheets to: {output}")
     if workbook:
-        write_workbook(output, submission_schemas, separate_comments=separate_comments,request_handler=request_handler,example=example)
+        write_workbook(output, submission_schemas, separate_comments=separate_comments)
     else:
         write_spreadsheets(
-            output, submission_schemas, separate_comments=separate_comments,request_handler=request_handler,example=example
+            output, submission_schemas, separate_comments=separate_comments
         )
 
 
@@ -395,10 +396,10 @@ def write_item_spreadsheets(
     elif example:
         write_example_spreadsheets(output,submission_schemas,request_handler=request_handler)
     elif workbook:
-        write_workbook(output, submission_schemas,request_handler=request_handler,separate_comments=separate_comments,tpc=tpc,gcc=gcc)
+        write_workbook(output, submission_schemas,separate_comments=separate_comments,tpc=tpc,gcc=gcc)
     else:
         write_spreadsheets(
-            output, submission_schemas,request_handler=request_handler,separate_comments=separate_comments
+            output, submission_schemas,separate_comments=separate_comments
         )
 
 
@@ -430,10 +431,9 @@ def get_submission_schema_endpoint(item: str) -> Dict[str, Any]:
 def write_workbook(
     output: Path,
     submission_schemas: Dict[str, Any],
-    request_handler: RequestHandler,
     tpc: bool = False,
     gcc: bool = False,
-    separate_comments: bool = False,
+    separate_comments: bool = False
 ) -> None:
     """Write a single workbook containing all submission spreadsheets."""
     workbook = openpyxl.Workbook()
@@ -444,7 +444,6 @@ def write_workbook(
     file_path = Path(output, WORKBOOK_FILENAME)
     save_workbook(workbook, file_path)
     log.info(f"Workbook written to: {file_path}")
-
 
 
 def write_example_workbook(
@@ -530,9 +529,7 @@ def get_example_fields(seed_files: List[str],items = List[str]) -> ExampleFields
 def write_spreadsheets(
     output: Path,
     submission_schemas: Dict[str, Any],
-    request_handler: RequestHandler,
-    separate_comments: bool = False,
-    example: bool = False
+    separate_comments: bool = False
 ) -> None:
     """Write submission spreadsheets."""
     for item, submission_schema in submission_schemas.items():
@@ -608,6 +605,8 @@ class Property:
     format_: str = ""
     requires: Optional[List[str]] = None
     exclusive_requirements: Optional[List[str]] = None
+    nested: bool = False
+    search: str = ""
 
 
 @dataclass(frozen=True)
@@ -667,22 +666,38 @@ def get_linked_spreadsheet(
 ):
     """Get spreadsheet with links filled out with submitted_id or identifier."""
     links = get_all_links(spreadsheet)
+    nested_links = get_nested_links(spreadsheet)
     for link in links:
         for idx, example in enumerate(spreadsheet.examples):
-            if link in example:
-                id_values = []
+            if link in nested_links:   
+                values = get_nested_example(example,link)
+                parent_property, nested_property, n_index = extract_nested_property_names(link)
+                id_values, example_fields = get_id_list(request_handler,values,example_fields)
+                spreadsheet.examples[idx][parent_property][n_index][nested_property] = " | ".join(id_values)
+            elif link in example:
                 values = example[link]
-                if type(values) is list:
-                    for value in values:
-                        item = request_handler.get_item(value)
-                        example_fields = update_example_fields(item,example_fields)
-                        id_values.append(get_linked_item_id(item))
-                else:
-                    item = request_handler.get_item(values)
-                    example_fields = update_example_fields(item,example_fields)
-                    id_values.append(get_linked_item_id(item))
+                id_values, example_fields = get_id_list(request_handler,values,example_fields)
                 spreadsheet.examples[idx][link] = " | ".join(id_values)
     return spreadsheet, example_fields
+
+
+def get_id_list(
+    request_handler: RequestHandler,
+    values: Union[str,List[str]],
+    example_fields: ExampleFields
+    ):
+    """Return list of submitted_id or identifier values from @ids."""
+    id_values = []
+    if type(values) is list:
+        for value in values:
+            item = request_handler.get_item(value)
+            example_fields = update_example_fields(item,example_fields)
+            id_values.append(get_linked_item_id(item))
+    else:
+        item = request_handler.get_item(values)
+        example_fields = update_example_fields(item,example_fields)
+        id_values.append(get_linked_item_id(item))
+    return id_values, example_fields
 
 
 def update_example_fields(item: Dict[str,Any],example_fields: ExampleFields):
@@ -715,6 +730,15 @@ def get_all_links(spreadsheet: Spreadsheet):
     return [link.name for link in links]
 
 
+def get_nested_links(spreadsheet: Spreadsheet) -> List[Property]:
+    """Get links that are nested within properties."""
+    return [
+            property_.name
+            for property_ in spreadsheet.properties
+            if property_.nested and property_.link
+        ]
+
+
 def get_properties(submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
     properties = schema_utils.get_properties(submission_schema)
@@ -724,7 +748,7 @@ def get_properties(submission_schema: Dict[str, Any]) -> List[Property]:
     return property_list
 
 
-def get_property(property_name: str, property_schema: Dict[str, Any]) -> Property:
+def get_property(property_name: str, property_schema: Dict[str, Any],is_nested: bool = False) -> Property:
     """Get property information"""
     return Property(
         name=property_name,
@@ -740,6 +764,8 @@ def get_property(property_name: str, property_schema: Dict[str, Any]) -> Propert
         format_=schema_utils.get_format(property_schema),
         requires=get_corequirements(property_schema),
         exclusive_requirements=get_exclusive_requirements(property_schema),
+        nested=is_nested,
+        search=get_search_url(property_schema)
     )
 
 
@@ -761,7 +787,7 @@ def get_nested_property(property_name:str, property_schema: Dict[str, Any]) -> L
         for key, value in property_schema.items():
             combined_property_name=f"{property_name}#{index}.{key}"
             object_properties.append(
-                get_property(combined_property_name,value)
+                get_property(combined_property_name,value,is_nested=True)
             )
     return object_properties
 
@@ -776,6 +802,20 @@ def get_array_object_properties(property_schema: Dict[str, Any]) -> Union[Dict[s
 def is_required(property_schema: Dict[str, Any]) -> bool:
     """Check if property is required"""
     return property_schema.get(SubmissionSchemaConstants.IS_REQUIRED, False)
+
+
+def get_search_url(property_schema: Dict[str, Any]) -> str:
+    """Get portal search url for linked item names."""
+    if is_link(property_schema):
+        linked_item = get_linkto(property_schema) or get_linkto(schema_utils.get_items(property_schema))
+        return f"https://data.smaht.org/search/?type={linked_item}"
+    else:
+        return ""
+
+
+def get_linkto(property_schema: Dict[str, Any]) -> str:
+    """Get item type a property links to."""
+    return property_schema.get("linkTo","")
 
 
 def is_link(property_schema: Dict[str, Any]) -> bool:
@@ -889,11 +929,30 @@ def write_properties(
             write_property(worksheet, index, property_)
         if examples:
             for row, item in enumerate(examples, start=2):
-                if property_.name in item:
+                if property_.nested:
+                    value = get_nested_example(item,property_.name,)
+                    write_example(worksheet,index,row,property_,value)
+                elif property_.name in item:
                     value = item[property_.name]
                     write_example(worksheet,index,row,property_,value)
                 else:
                     write_empty(worksheet,index,row,property_)
+
+
+def extract_nested_property_names(property_name: str):
+    """Extract the parent and nested property names from a nested property column name.
+    
+    Expects the format parent_property#n_index.nested_property """
+    parent_property = property_name.split("#")[0]
+    nested_property = property_name.split(".")[1]
+    n_index= int(property_name.split("#")[1].split(".")[0])
+    return parent_property, nested_property, n_index
+
+
+def get_nested_example(item: Dict[str, Any],property_name: str):
+    """Get example values from properties nested within an array of objects."""
+    parent_property, nested_property, n_index = extract_nested_property_names(property_name)
+    return item[parent_property][n_index][nested_property]
 
 
 def get_ordered_properties(properties: List[Property]) -> List[Property]:
@@ -1100,6 +1159,8 @@ def get_comment_text(property_: Property) -> str:
     comment_lines += get_comment_requires(property_, indent)
     comment_lines += get_comment_pattern(property_, indent)
     comment_lines += get_comment_note(property_, indent)
+    comment_lines += get_comment_search(property_, indent)
+    comment_lines += get_comment_nested(property_, indent)
     return "\n".join(comment_lines)
 
 
@@ -1140,6 +1201,17 @@ def get_comment_link(property_: Property, indent: str) -> List[str]:
         return [f"Link:{indent}Yes"]
     return []
 
+
+def get_comment_nested(property_: Property, indent: str) -> List[str]:
+    if property_.nested:
+        return [f"Nested:{indent}Yes"]
+    return []
+
+
+def get_comment_search(property_: Property, indent: str) -> List[str]:
+    if property_.search:
+        return [f"Search:{indent}{property_.search}"]
+    return []
 
 def get_comment_required(property_: Property, indent: str) -> List[str]:
     if property_.required:
@@ -1182,7 +1254,7 @@ def is_date_format(format_: str) -> bool:
 
 def get_comment_height(comment_text: str) -> int:
     """Get comment height based on number of lines."""
-    pixels_per_line = 20  # Looks reasonable for the font size
+    pixels_per_line = 25  # Looks reasonable for the font size
     lines = [line for line in comment_text.split("\n")]
     return len(lines) * pixels_per_line
 
@@ -1263,27 +1335,32 @@ def main():
         parser.error("Cannot specify both all and gcc")
     if args.all and args.item:
         parser.error("Cannot specify both all and item")
-    if args.example and args.item:
-        log.info(f"Writing example submission spreadsheets for item(s): {args.item}")
-        write_item_spreadsheets(
-            args.output,
-            args.item,
-            request_handler,
-            workbook=args.workbook,
-            separate_comments=args.separate,
-            example=True
-        )
-    elif args.example and args.workbook:
-        log.info("Writing example submission spreadsheet for GCC submission")
-        write_item_spreadsheets(
-            args.output,
-            GCC_SUBMISSION_ITEMS,
-            request_handler,
-            workbook=args.workbook,
-            separate_comments=args.separate,
-            example=True,
-            gcc=True
-        )
+    if args.example:
+        if args.item:
+            log.info(f"Writing example submission spreadsheets for item(s): {args.item}")
+            write_item_spreadsheets(
+                args.output,
+                args.item,
+                request_handler,
+                workbook=args.workbook,
+                separate_comments=args.separate,
+                example=True
+            )
+        elif args.gcc:
+            log.info("Writing example submission spreadsheet for GCC submission")
+            write_item_spreadsheets(
+                args.output,
+                GCC_SUBMISSION_ITEMS,
+                request_handler,
+                workbook=args.workbook,
+                separate_comments=args.separate,
+                example=True,
+                gcc=True
+            )
+        elif args.google:
+            parser.error("--example argument currently not functional for Google sheets")
+        else: 
+            parser.error("--example argument currently only works for individual item lists or --gcc")
     elif args.google and args.all:
         log.info(f"Google Sheet ID: {args.google}")
         log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")

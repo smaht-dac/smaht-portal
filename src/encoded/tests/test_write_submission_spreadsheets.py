@@ -114,6 +114,7 @@ def patch_item_index_order(submission_schemas: Dict[str, Dict[str, Any]]) -> moc
         (False, True),
         (True, False),
         (True, True),
+        (True, False),
     ],
 )
 def test_write_all_spreadsheets(
@@ -194,7 +195,7 @@ def assert_workbook_written(
     tempdir: str,
     submission_schemas: Dict[str, Dict[str, Any]],
     separate_comments: bool,
-    items: Optional[List[str]] = None,
+    items: Optional[List[str]] = None
 ) -> None:
     """Assert that the workbook was written correctly at a high level."""
     workbook_path = Path(tempdir).joinpath(WORKBOOK_FILENAME)
@@ -209,7 +210,7 @@ def assert_workbook_written(
 
 def get_expected_schemas(
     submission_schemas: Dict[str, Dict[str, Any]],
-    items: Optional[List[str]] = None,
+    items: Optional[List[str]] = None
 ) -> Dict[str, Dict[str, Any]]:
     """Get the expected schemas for the given items."""
     if items is None:
@@ -342,6 +343,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 format_="format",
                 requires=["foo"],
                 exclusive_requirements=["bar"],
+                search="https://data.smaht.org/search/?type=Bar"
             ),
         ),
         (  # More complicated case with suggested_enum
@@ -373,6 +375,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 format_="format",
                 requires=["foo"],
                 exclusive_requirements=["bar"],
+                search="https://data.smaht.org/search/?type=Bar"
             ),
         ),
     ],
@@ -421,6 +424,7 @@ def test_get_property(
                     format_="",
                     requires=[],
                     exclusive_requirements=[],
+                    nested=True
                 ),
                 Property(
                     name="baz#1.foo",
@@ -436,6 +440,7 @@ def test_get_property(
                     format_="",
                     requires=[],
                     exclusive_requirements=[],
+                    nested=True
                 )
             ]
         ),
@@ -575,6 +580,25 @@ def test_get_ordered_properties(
         (  # Date format without pattern
             Property("foo", format_="date"),
             "Required:  No\nFormat:  YYYY-MM-DD",
+        ),
+        (  # Most search and nested
+            Property(
+                "foo",
+                description="Foo",
+                required=False,
+                link=True,
+                value_type="string",
+                nested=True,
+                search="test.url.com",
+            ),
+            (
+                "Description:  Foo\n"
+                "Type:  string\n"
+                "Link:  Yes\n"
+                "Required:  No\n"
+                "Search:  test.url.com\n"
+                "Nested:  Yes"
+            ),
         ),
     ],
 )
