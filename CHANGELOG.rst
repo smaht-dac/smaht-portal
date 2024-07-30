@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.78.0
+======
+`PR212: Add functionality for arrays of objects <https://github.com/smaht-dac/smaht-portal/pull/212>`_
+* Updates write_submission_spreadsheets to write out columns for arrays of objects
+* Currently relevant for CellCultureMixture and the components property which has two nested properties, `ratio` and `cull_culture`
+
+
 0.77.0
 ======
 

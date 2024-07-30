@@ -22,6 +22,7 @@ from ..commands.write_submission_spreadsheets import (
     get_font,
     get_ordered_properties,
     get_property,
+    get_nested_properties,
     get_spreadsheet,
     is_link,
     write_all_spreadsheets,
@@ -384,6 +385,68 @@ def test_get_property(
     For more complicated attributes, see respective unit tests.
     """
     property_ = get_property(property_name, property_schema)
+    assert property_ == expected
+
+
+@pytest.mark.parametrize(
+    "property_name,property_schema,expected",
+    [
+        (
+            "baz", # test array of objects
+            {
+                "description": "Baz",
+                "type": "array",
+                "is_required": True,
+                "items": {
+                    "properties": {
+                        "foo": {
+                            "description": "Foo",
+                            "type": "number"
+                        }
+                    }
+                }
+            },
+            [
+                Property(
+                    name="baz#0.foo",
+                    description="Foo",
+                    value_type="number",
+                    required=False,
+                    link=False,
+                    enum=[],
+                    array_subtype="",
+                    pattern="",
+                    comment="",
+                    examples=[],
+                    format_="",
+                    requires=[],
+                    exclusive_requirements=[],
+                ),
+                Property(
+                    name="baz#1.foo",
+                    description="Foo",
+                    value_type="number",
+                    required=False,
+                    link=False,
+                    enum=[],
+                    array_subtype="",
+                    pattern="",
+                    comment="",
+                    examples=[],
+                    format_="",
+                    requires=[],
+                    exclusive_requirements=[],
+                )
+            ]
+        ),
+    ]
+)
+def test_get_nested_properties(
+    property_name: str, property_schema: Dict[str, Any], expected: Property
+) -> None:
+    """Test get_nested_properties from schema.
+    """
+    property_ = get_nested_properties(property_name, property_schema)
     assert property_ == expected
 
 
