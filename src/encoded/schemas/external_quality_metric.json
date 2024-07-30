@@ -85,16 +85,21 @@
                 ],
                 "properties": {
                     "key": {
-                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/key"
+                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/key",
+                        "description": "Name of QC metric"
                     },
                     "value": {
-                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/value"
+                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/value",
+                        "description": "Value of QC metric"
+
                     },
-                    "derived_from": {
-                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/derived_from"
+                    "key_identifier": {
+                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/derived_from",
+                        "description": "Identifier for the QC metric"
                     },
-                    "tooltip": {
-                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/tooltip"
+                    "key_description": {
+                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/tooltip",
+                        "description": "Description of the QC metric"
                     }
                 }
             }
