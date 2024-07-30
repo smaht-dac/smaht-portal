@@ -531,7 +531,6 @@ def get_property(property_name: str, property_schema: Dict[str, Any]) -> Propert
 
 def get_nested_properties(property_name: str, property_schema: Dict[str, Any]) -> List[Property]:
     """Get nested property information if property is array of objects, otherwise get property information."""
-    import pdb; pdb.set_trace()
     if object_array := is_property_array_of_objects(property_schema):
         return get_array_object_properties(property_name, object_array)
     return [get_property(property_name,property_schema)]

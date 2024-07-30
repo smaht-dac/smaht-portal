@@ -22,6 +22,7 @@ from ..commands.write_submission_spreadsheets import (
     get_font,
     get_ordered_properties,
     get_property,
+    get_nested_properties,
     get_spreadsheet,
     is_link,
     write_all_spreadsheets,
@@ -296,7 +297,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
         (  # Simple case with defaults
             "bar",
             {},
-            [Property(
+            Property(
                 name="bar",
                 description="",
                 value_type="",
@@ -310,7 +311,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 format_="",
                 requires=[],
                 exclusive_requirements=[],
-            )],
+            ),
         ),
         (  # More complicated case with most attributes
             "baz",
@@ -327,7 +328,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 "also_requires": ["foo"],
                 "required_if_not_one_of": ["bar"],
             },
-            [Property(
+            Property(
                 name="baz",
                 description="Baz",
                 value_type="number",
@@ -341,7 +342,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 format_="format",
                 requires=["foo"],
                 exclusive_requirements=["bar"],
-            )],
+            ),
         ),
         (  # More complicated case with suggested_enum
             "baz",
@@ -358,7 +359,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 "also_requires": ["foo"],
                 "required_if_not_one_of": ["bar"],
             },
-            [Property(
+            Property(
                 name="baz",
                 description="Baz",
                 value_type="number",
@@ -372,8 +373,24 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                 format_="format",
                 requires=["foo"],
                 exclusive_requirements=["bar"],
-            )],
+            ),
         ),
+    ],
+)
+def test_get_property(
+    property_name: str, property_schema: Dict[str, Any], expected: Property
+) -> None:
+    """Test creation of Property class from schema.
+
+    For more complicated attributes, see respective unit tests.
+    """
+    property_ = get_property(property_name, property_schema)
+    assert property_ == expected
+
+
+@pytest.mark.parametrize(
+    "property_name,property_schema,expected",
+    [
         (
             "baz", # test array of objects
             {
@@ -387,49 +404,49 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
                             "type": "number"
                         }
                     }
-                },
+                }
             },
-            [Property(
-                name="baz#0.foo",
-                description="Foo",
-                value_type="number",
-                required=False,
-                link=False,
-                enum=[],
-                array_subtype="",
-                pattern="",
-                comment="",
-                examples=[],
-                format_="",
-                requires=[],
-                exclusive_requirements=[],
-            ),
-            Property(
-                name="baz#1.foo",
-                description="Foo",
-                value_type="number",
-                required=False,
-                link=False,
-                enum=[],
-                array_subtype="",
-                pattern="",
-                comment="",
-                examples=[],
-                format_="",
-                requires=[],
-                exclusive_requirements=[],
-            )],
+            [
+                Property(
+                    name="baz#0.foo",
+                    description="Foo",
+                    value_type="number",
+                    required=False,
+                    link=False,
+                    enum=[],
+                    array_subtype="",
+                    pattern="",
+                    comment="",
+                    examples=[],
+                    format_="",
+                    requires=[],
+                    exclusive_requirements=[],
+                ),
+                Property(
+                    name="baz#1.foo",
+                    description="Foo",
+                    value_type="number",
+                    required=False,
+                    link=False,
+                    enum=[],
+                    array_subtype="",
+                    pattern="",
+                    comment="",
+                    examples=[],
+                    format_="",
+                    requires=[],
+                    exclusive_requirements=[],
+                )
+            ]
         ),
-    ],
+    ]
 )
-def test_get_property(
+def test_get_nested_properties(
     property_name: str, property_schema: Dict[str, Any], expected: Property
 ) -> None:
-    """Test creation of Property class from schema.
-
-    For more complicated attributes, see respective unit tests.
+    """Test get_nested_properties from schema.
     """
-    property_ = get_property(property_name, property_schema)
+    property_ = get_nested_properties(property_name, property_schema)
     assert property_ == expected
 
 
