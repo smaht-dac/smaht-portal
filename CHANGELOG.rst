@@ -7,6 +7,59 @@ smaht-portal
 Change Log
 ----------
 
+0.77.0
+======
+
+`PR210: DSA Schema Update <https://github.com/smaht-dac/smaht-portal/pull/210>`_
+* Changes to DonorSpecificAssembly and SupplementaryFile schemas to reflect GCC feedback:
+  * BUSCO score properties created for each haplotype  (e.g. `percent_single_copy` to `percent_single_copy_hap1` and `percent_single_copy_hap2`)
+  * Change property name from `percent_duplicate` to `percent_multi_copy` for clarity
+  * Change property name from `largest_contig` to `largest_contig_size` for clartiy
+  * Change enums for `data_type` and `data_category` specific to SupplementaryFile fasta and chain files
+  * Fix descriptions of some properties
+
+
+0.76.2
+======
+
+* Remove Doug user
+
+
+0.76.1
+======
+
+`PR 195: fix: tablet navigation collapse <https://github.com/smaht-dac/smaht-portal/pull/195>`_
+
+* Fix collapsing navigation bar for tablet size screens
+* Switch to mobile navigation component early
+* Show initials for username in tablet screen size
+* Fix mobile styling bugs
+
+
+0.76.0
+======
+
+* Minor documentation updates for how to install awscli in docs/source/{file_download,download_cli}.rst.
+* Update to dcicutils 8.13.3.
+
+
+0.75.0
+======
+
+* Bug fix: consider loadxl order in staggered reindexing
+* Add ``retracted`` status to Files with submission center only view
+
+
+0.74.1
+======
+
+`PR 188: feat: increase benchmarking table visibility <https://github.com/smaht-dac/smaht-portal/pull/188>`_
+
+* Increase height of benchmarking tables
+* Support toggling the benchmarking page descriptions
+* Upgrade SPC to v0.1.86
+
+
 0.74.0
 ======
 `PR 205: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/205>`_
