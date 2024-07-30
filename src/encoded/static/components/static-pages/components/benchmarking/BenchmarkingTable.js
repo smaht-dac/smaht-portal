@@ -713,17 +713,19 @@ const SelectedItemsDownloadModal = function (props) {
                     <ul className="pl-2">
                         <li className="mb-1">
                             You{' '}
-                            <span className="text-danger text-500">
-                                must include an access key in your cURL or
-                                aws_cli command
+                            <span className="text-600">
+                                must include an access key in your cURL or AWS
+                                CLI command
                             </span>{' '}
                             for bulk downloads.
                         </li>
                         <li className="mb-1">
                             You can configure the access key in your profile,
                             then use it in place of
-                            &lt;access_key_id&gt;:&lt;access_key_secret&gt;,
-                            below.
+                            <span className="text-danger text-600">
+                                &lt;access_key_id&gt;:&lt;access_key_secret&gt;
+                            </span>
+                            , below.
                         </li>
                         <li className="mb-1">
                             Important information about the manifest file can be
@@ -750,7 +752,7 @@ const SelectedItemsDownloadModal = function (props) {
                         <li>
                             Once you have saved the manifest you may download
                             the files on any machine or server with the
-                            following cURL command:
+                            following cURL or AWS CLI command:
                         </li>
                     </ol>
                     <ModalCodeSnippets
@@ -931,6 +933,14 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
     }
 );
 
+const ModalCodeTabTitle = () => {
+    return (
+        <span className="nav-item-title">
+            AWS CLI <span className="badge badge-secondary">fastest</span>
+        </span>
+    );
+};
+
 const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
     const { filename, session, setIsAWSDownload } = props;
 
@@ -942,10 +952,12 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                 -n 2 -L 1 sh -c &#39;credentials=$&#40;curl -s -L
                 {session ? (
                     <>
-                        <code style={{ opacity: 0.5 }}>
+                        <code>
                             {' '}
-                            --user{' '}
-                            <em>{'<access_key_id>:<access_key_secret>'}</em>
+                            -&#8288;-&#8288;user&nbsp;
+                            <span className="text-danger text-600">
+                                {'<access_key_id>:<access_key_secret>'}
+                            </span>
                         </code>{' '}
                     </>
                 ) : (
@@ -976,10 +988,12 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                 ^# | xargs -n 2 -L 1 sh -c &apos;curl -L
                 {session ? (
                     <>
-                        <code style={{ opacity: 0.5 }}>
+                        <code>
                             {' '}
-                            --user{' '}
-                            <em>{'<access_key_id>:<access_key_secret>'}</em>
+                            -&#8288;-&#8288;user&nbsp;
+                            <span className="text-danger text-600">
+                                {'<access_key_id>:<access_key_secret>'}
+                            </span>
                         </code>{' '}
                         $0 --output $1&apos;
                     </>
@@ -1013,7 +1027,7 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                         {curl.htmlValue}
                     </object.CopyWrapper>
                 </Tab>
-                <Tab eventKey="aws" title="AWS CLI">
+                <Tab eventKey="aws" title={<ModalCodeTabTitle />}>
                     <object.CopyWrapper
                         value={aws_cli.plainValue}
                         className="curl-command-wrapper"

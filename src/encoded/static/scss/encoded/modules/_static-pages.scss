@@ -2229,13 +2229,26 @@ body[data-pathname^="/data/benchmarking"] {
 								font-weight: 400;
 								border-radius: 8px 8px 0px 0px;
 								padding: 2px 15px;
+								border-bottom: 2px transparent solid;
+
+								.nav-item-title {
+									display: flex;
+									.badge {
+										color: #5d5e63;
+										background-color: #f2f2f2;
+										margin-left: 5px;
+										font-weight: 400;
+										margin: auto;
+										margin-left: 5px;
+									}
+								}
+
 
 								&.active {
 									color: #343741;
 									font-weight: 600;
 									background-color: transparent;
-									border: none;
-									border-bottom: 1px solid black;
+									border-color: black;
 								}
 							}
 						}
