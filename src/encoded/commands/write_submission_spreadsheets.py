@@ -506,16 +506,13 @@ def get_properties(submission_schema: Dict[str, Any]) -> List[Property]:
     properties = schema_utils.get_properties(submission_schema)
     property_list = []
     for key, value in properties.items():
-        property_list += get_property(key, value)
+        property_list += get_nested_properties(key, value)
     return property_list
 
 
 def get_property(property_name: str, property_schema: Dict[str, Any]) -> Property:
     """Get property information"""
-    object_array = is_array_of_objects(property_schema)
-    if object_array:
-        return get_array_object_property(property_name, object_array)
-    return [Property(
+    return Property(
         name=property_name,
         description=schema_utils.get_description(property_schema),
         value_type=schema_utils.get_schema_type(property_schema),
@@ -529,41 +526,34 @@ def get_property(property_name: str, property_schema: Dict[str, Any]) -> Propert
         format_=schema_utils.get_format(property_schema),
         requires=get_corequirements(property_schema),
         exclusive_requirements=get_exclusive_requirements(property_schema),
-    )]
+    )
 
 
-def get_array_object_property(property_name:str, property_schema: Dict[str, Any]) -> Property:
+def get_nested_properties(property_name: str, property_schema: Dict[str, Any]) -> List[Property]:
+    """Get nested property information if property is array of objects, otherwise get property information."""
+    import pdb; pdb.set_trace()
+    if object_array := is_property_array_of_objects(property_schema):
+        return get_array_object_properties(property_name, object_array)
+    return [get_property(property_name,property_schema)]
+
+
+def get_array_object_properties(property_name:str, property_schema: Dict[str, Any]) -> List[Property]:
     """Get property information for nested objects."""
     object_properties = []
-    count = 2
-    for index in range(0,count): #duplicate columns for multiple accepted values
+    count = 2 # duplicate columns twice to show that multiple values are accepted
+    for index in range(0,count): 
         for key, value in property_schema.items():
             combined_property_name=f"{property_name}#{index}.{key}"
             object_properties.append(
-                Property(
-                name=combined_property_name,
-                description=schema_utils.get_description(value),
-                value_type=schema_utils.get_schema_type(value),
-                required=is_required(value),
-                link=is_link(value),
-                enum=get_enum(value),
-                array_subtype=get_array_subtype(value),
-                pattern=schema_utils.get_pattern(value),
-                comment=schema_utils.get_submission_comment(value),
-                examples=get_examples(value),
-                format_=schema_utils.get_format(value),
-                requires=get_corequirements(value),
-                exclusive_requirements=get_exclusive_requirements(value),
-                )
+                get_property(combined_property_name,value)
             )
     return object_properties
 
 
-
-def is_array_of_objects(property_schema: Dict[str, Any]) -> bool:
-    """Check if property is an array of objects."""
-    if property_schema.get("items",""):
-        return property_schema.get("items","").get("properties","")
+def is_property_array_of_objects(property_schema: Dict[str, Any]) -> Union[Dict[str,Any], None]:
+    """Get nested properties if property is an array of objects."""
+    if item := property_schema.get("items",""):
+        return item.get("properties","")
     return ""
 
 
