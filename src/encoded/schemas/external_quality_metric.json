@@ -86,11 +86,11 @@
                 "properties": {
                     "key": {
                         "$merge": "quality_metric.json#/properties/qc_values/items/properties/key",
-                        "description": "Name of QC metric"
+                        "description": "Name of the QC metric"
                     },
                     "value": {
                         "$merge": "quality_metric.json#/properties/qc_values/items/properties/value",
-                        "description": "Value of QC metric"
+                        "description": "Value of the QC metric"
 
                     },
                     "key_identifier": {

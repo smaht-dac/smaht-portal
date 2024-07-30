@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.79.0
+======
+`PR216: Add ExternalQualityMetric <https://github.com/smaht-dac/smaht-portal/pull/216>`_
+* Add `ExternalQualityMetric` item type which is a submitted item inheriting some properties from pre-existing `QualityMetric`
+* Create new linking property `external_quality_metrics` in `file.json`
+* Add new properties to `variant_calls.json` schema: `comparator`, `external_databases`, and `filtering_methods`
+
+
 0.78.0
 ======
 `PR212: Add functionality for arrays of objects <https://github.com/smaht-dac/smaht-portal/pull/212>`_
