@@ -97,7 +97,7 @@
         },
         "comparators": {
             "title": "Comparators",
-            "description": "Link to comparator samples used for normal matching",
+            "description": "Link to comparator sample files used for normal matching",
             "type": "array",
             "items": {
                 "type": "string"
