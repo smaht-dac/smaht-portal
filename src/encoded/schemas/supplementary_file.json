@@ -82,6 +82,29 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_SUPPLEMENTARY-FILE_[A-Z0-9-_.]{4,}$"
         },
+        "data_category": {
+            "type": "string",
+            "enum": [
+                "Reference Genome",
+                "Reference Conversion",
+                "Reference Transcriptome",
+                "Genome Region",
+                "Genome Annotation",
+                "RNA Quantification"
+            ]
+        },
+        "data_type": {
+            "type": "string",
+            "enum": [
+                "Reference Sequence",
+                "Chain File",
+                "Sequence Interval",
+                "Gene Expression",
+                "Gene Model",
+                "In Silico Generated",
+                "Transcript Expression"
+            ]
+        },
         "donor_specific_assembly": {
             "title": "Donor-Specific Assembly",
             "description": "Link to the associated Donor-Specific Assembly",

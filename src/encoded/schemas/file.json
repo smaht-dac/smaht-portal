@@ -83,7 +83,8 @@
             ]
         },
         "file_format": {
-            "$merge": "encoded_core:schemas/file.json#/properties/file_format"
+            "$merge": "encoded_core:schemas/file.json#/properties/file_format",
+            "desciption": "Format for the file"
         },
         "filename": {
             "$merge": "encoded_core:schemas/file.json#/properties/filename"
