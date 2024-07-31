@@ -463,10 +463,11 @@ def write_spreadsheets(
 @dataclass(frozen=True)
 class Property:
     """Struct to hold property info required for spreadsheet.
-
-    Note: No effort to handle nested properties "well" here, i.e. no
-    recursion; specifically no attempt to handle array of objects or
-    nested objects. However, arrays of strings are handled by
+    
+    Note: Does not currently handle nested objects. 
+    However, arrays of objects with nested properties are handled
+    by making new Property instances for each (currently relevant for CellCultureMixture)
+    and arrays of strings are handled by
     bringing select info to top level.
     """
 
@@ -503,7 +504,10 @@ def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet
 def get_properties(submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
     properties = schema_utils.get_properties(submission_schema)
-    return [get_property(key, value) for key, value in properties.items()]
+    property_list = []
+    for key, value in properties.items():
+        property_list += get_nested_properties(key, value)
+    return property_list
 
 
 def get_property(property_name: str, property_schema: Dict[str, Any]) -> Property:
@@ -523,6 +527,36 @@ def get_property(property_name: str, property_schema: Dict[str, Any]) -> Propert
         requires=get_corequirements(property_schema),
         exclusive_requirements=get_exclusive_requirements(property_schema),
     )
+
+
+def get_nested_properties(property_name: str, property_schema: Dict[str, Any]) -> List[Property]:
+    """Get nested property information if property is array of objects, otherwise get property information."""
+    if object_array := get_array_object_properties(property_schema):
+        return get_nested_property(property_name, object_array)
+    return [get_property(property_name,property_schema)]
+
+
+def get_nested_property(property_name:str, property_schema: Dict[str, Any]) -> List[Property]:
+    """Get property information for nested objects.
+    
+    `count` value is arbitrarily set to 2 to show that multiple values can be accepted in the template
+    """
+    object_properties = []
+    count = 2 
+    for index in range(0,count): 
+        for key, value in property_schema.items():
+            combined_property_name=f"{property_name}#{index}.{key}"
+            object_properties.append(
+                get_property(combined_property_name,value)
+            )
+    return object_properties
+
+
+def get_array_object_properties(property_schema: Dict[str, Any]) -> Union[Dict[str,Any], None]:
+    """Get nested properties if property is an array of objects."""
+    if item := property_schema.get("items",""):
+        return item.get("properties","")
+    return ""
 
 
 def is_required(property_schema: Dict[str, Any]) -> bool:
@@ -638,6 +672,8 @@ def get_ordered_properties(properties: List[Property]) -> List[Property]:
        - Non-required non-links (alphabetically)
        - Required links (alphabetically)
        - Non-required links (alphabetically)
+
+    For arrays of objects, these may still be out of order
     """
     return [
         *get_required_non_links(properties),
