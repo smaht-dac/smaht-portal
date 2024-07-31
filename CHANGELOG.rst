@@ -13,6 +13,12 @@ Change Log
 * Nested QC (QualityMetric) development.
 
 
+0.78.1
+======
+
+* Disable tagging and commenting functionality for non-admins on Submission Status page
+
+
 0.78.0
 ======
 
