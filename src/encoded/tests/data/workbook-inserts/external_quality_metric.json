@@ -12,7 +12,7 @@
             {
                 "key": "foo",
                 "value": "bar",
-                "key_description": "Description of how foo was derived"
+                "tooltip": "Description of how foo was derived"
             },
             {
                 "key": "bar",

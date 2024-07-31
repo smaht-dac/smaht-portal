@@ -93,13 +93,11 @@
                         "description": "Value of the QC metric"
 
                     },
-                    "key_identifier": {
-                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/derived_from",
-                        "description": "Identifier for the QC metric"
+                    "derived_from": {
+                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/derived_from"
                     },
-                    "key_description": {
-                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/tooltip",
-                        "description": "Description of the QC metric"
+                    "tooltip": {
+                        "$merge": "quality_metric.json#/properties/qc_values/items/properties/tooltip"
                     }
                 }
             }
