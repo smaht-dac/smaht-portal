@@ -57,8 +57,10 @@ a new token.
 ITEM_SPREADSHEET_SUFFIX = "_submission.xlsx"
 WORKBOOK_FILENAME = "submission_workbook.xlsx"
 
+
+OVERVIEW_GUIDELINES_SHEET_ID = "1hDz22YGyLsgnoC0QeZwmf6zk0guZ9930yEFi1huhV20"
 EXAMPLE_FILE_UUIDS=["4e142999-5d48-4dcd-b7d6-558e5960e69b",
-                    #"d4020a63-338c-4103-8461-417d09df5cbd"
+                    "d4020a63-338c-4103-8461-417d09df5cbd"
                     ]
 
 POPULATE_ORDER = [
@@ -136,11 +138,17 @@ DSA_SUBMISSION_ITEMS = [
 class SheetsClient:
     client: googleapiclient.discovery.Resource
     sheet_id: str
+    cover_sheet_id: str
 
     def get_worksheets(self) -> List[Dict[str, Any]]:
         """Get the worksheets from Google Sheets."""
         sheet = self.client.get(spreadsheetId=self.sheet_id).execute()
         return sheet["sheets"]
+    
+    def get_coversheet(self) -> List[Dict[str, Any]]:
+        """Get the Overview/Guidelines sheet from Google Sheets."""
+        sheet = self.client.get(spreadsheetId=self.cover_sheet_id).execute()
+        sheet["sheets"] 
 
     def submit_requests(self, requests: List[Dict[str, Any]]) -> None:
         """Submit requests to Google Sheets."""
@@ -154,10 +162,11 @@ def update_google_sheets(
     sheets_client: SheetsClient,
     request_handler: RequestHandler,
     gcc: bool = False,
-    tpc: bool = False
+    tpc: bool = False,
+    example: bool = False
 ) -> None:
     """Update Google Sheets with the latest submission schemas."""
-    spreadsheets = get_spreadsheets(request_handler,gcc=gcc,tpc=tpc)
+    spreadsheets = get_spreadsheets(request_handler,gcc=gcc,tpc=tpc,example=example)
     log.info("Clearing existing Google sheets.")
     delete_existing_sheets(sheets_client)
     log.info("Updating Google sheets with tabs.")
@@ -172,9 +181,23 @@ def update_google_sheets(
 def get_spreadsheets(
         request_handler: RequestHandler,
         gcc: bool = False,
-        tpc: bool = False
+        tpc: bool = False,
+        example: bool = False
     ) -> List[Spreadsheet]:
     submission_schemas = get_all_submission_schemas(request_handler)
+    if example:
+        example_fields = get_example_fields(EXAMPLE_FILE_UUIDS,GCC_SUBMISSION_ITEMS)
+        submission_schemas = get_ordered_submission_schemas(submission_schemas,order=POPULATE_ORDER)
+        spreadsheets = []
+        for item, submission_schema in submission_schemas.items():
+            unlinked_spreadsheet = get_example_spreadsheet(
+                item,request_handler,example_fields,submission_schema
+            )
+            spreadsheet,example_fields = get_linked_spreadsheet(
+                request_handler,unlinked_spreadsheet,example_fields
+            )
+            spreadsheets.append(spreadsheet)
+        return spreadsheets
     ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,gcc=gcc,tpc=tpc)
     return [
         get_spreadsheet(item, submission_schema)
@@ -210,6 +233,19 @@ def get_delete_sheet_request(sheet_id: int) -> Dict[str, Any]:
     return {"deleteSheet": {"sheetId": sheet_id}}
 
 
+def add_overview_sheet(
+    sheets_client: SheetsClient,
+    spreadsheets: List[Spreadsheet]
+) -> None:
+    """Add Overview/Guidelines sheet to spreadsheet."""
+    requests = []
+    for sheet in sheets_client.get_coversheet():
+        index = get_worksheet_id(sheet)
+        requests.append(get_copy_sheet_request(sheets_client.cover_sheet_id,index,sheets_client.sheet_id))
+    if requests:
+        sheets_client.submit_requests(requests)
+
+
 def update_or_add_spreadsheets(
     sheets_client: SheetsClient, spreadsheets: List[Spreadsheet]
 ) -> None:
@@ -242,6 +278,19 @@ def get_update_sheet_title_request(
     }
 
 
+def get_copy_sheet_request(cover_sheet_id: str,index: int, sheet_id: str) -> Dict[str, Any]:
+    """Get request to copy a sheet."""
+    return {
+        "copyTo": {
+            "properties": {
+                "spreadsheetId": cover_sheet_id,
+                "sheetId": index
+            }
+        },
+        "destinationSpreadsheetId": sheet_id
+    }
+
+
 def get_max_column_count(properties: List[Property]) -> int:
     """Get the maximum column count."""
     return len(properties) if len(properties) > 15 else 15
@@ -263,7 +312,8 @@ def get_add_sheet_request(spreadsheet: Spreadsheet, sheet_id: int) -> Dict[str, 
 
 
 def write_values_to_sheets(
-    sheets_client: SheetsClient, spreadsheets: List[Spreadsheet]
+    sheets_client: SheetsClient,
+    spreadsheets: List[Spreadsheet]
 ) -> None:
     """Write values to the Google Sheets."""
     requests = []
@@ -275,7 +325,11 @@ def write_values_to_sheets(
 
 def get_update_cells_request(spreadsheet: Spreadsheet, sheet_id: int) -> Dict[str, Any]:
     """Get request to update cells with properties."""
-    values = get_values(spreadsheet)
+    if spreadsheet.examples:
+        values = get_example_values(spreadsheet)
+    else: 
+        values = get_values(spreadsheet)
+    
     return {
         "updateCells": {
             "rows": values,
@@ -300,6 +354,45 @@ def get_cell_value(property_: Property) -> Dict[str, Any]:
         },
         "note": get_comment_text(property_),
     }
+
+
+def get_example_cell_value(value: Union[str, List]) -> Dict[str, Any]:
+    """Get the example cell value."""
+    if is_array(value):
+        value=get_example_list(value)
+    return {
+        "userEnteredValue": {"stringValue": str(value)},
+        "userEnteredFormat": {
+            "textFormat": {"fontFamily": FONT, "fontSize": FONT_SIZE}
+        }
+    }
+
+
+def get_empty_cell():
+    """Get empty cell"""
+    return {
+        "userEnteredValue": {},
+        "userEnteredFormat": {}
+    }
+
+def get_example_values(spreadsheet: Spreadsheet) -> List[Dict[str, Any]]:
+    """Get example values for the Google spreadsheet"""
+    ordered_properties = get_ordered_properties(spreadsheet.properties)
+    values = [{"values": [get_cell_value(property_) for property_ in ordered_properties]}]
+    for idx, example in enumerate(spreadsheet.examples):
+        row_values = {"values":[]}
+        for property_ in ordered_properties:
+            if property_.nested:
+                parent_property, nested_property, n_index = extract_nested_property_names(property_.name)
+                value = example[parent_property][n_index][nested_property]
+                row_values["values"].append(get_example_cell_value(value))
+            elif property_.name in example:
+                value = example[property_.name]
+                row_values["values"].append(get_example_cell_value(value))
+            else:
+                row_values["values"].append(get_empty_cell())
+        values.append(row_values)
+    return values
 
 
 def get_text_format(property_: Property) -> Dict[str, Any]:
@@ -1336,7 +1429,13 @@ def main():
     if args.all and args.item:
         parser.error("Cannot specify both all and item")
     if args.example:
-        if args.item:
+        if args.google:
+            log.info(f"Google Sheet ID: {args.google}")
+            log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+            log.info("Writing GCC submission example to Google sheet")
+            spreadsheet_client = get_google_sheet_client(args.google)
+            update_google_sheets(spreadsheet_client, request_handler,gcc=True,example=True)
+        elif args.item:
             log.info(f"Writing example submission spreadsheets for item(s): {args.item}")
             write_item_spreadsheets(
                 args.output,
@@ -1357,8 +1456,6 @@ def main():
                 example=True,
                 gcc=True
             )
-        elif args.google:
-            parser.error("--example argument currently not functional for Google sheets")
         else: 
             parser.error("--example argument currently only works for individual item lists or --gcc")
     elif args.google and args.all:
@@ -1432,7 +1529,7 @@ def get_google_sheet_client(sheet_id: str) -> SheetsClient:
     """Get Google Sheet to write/update."""
     credentials = get_google_credentials()
     service = build("sheets", "v4", credentials=credentials)
-    return SheetsClient(service.spreadsheets(), sheet_id)
+    return SheetsClient(service.spreadsheets(), sheet_id, OVERVIEW_GUIDELINES_SHEET_ID)
 
 
 def get_google_credentials() -> Dict[str, Any]:
