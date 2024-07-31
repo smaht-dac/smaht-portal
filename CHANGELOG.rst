@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.78.1
+======
+
+* Disable tagging and commenting functionality for non-admins on Submission Status page
+
+
 0.78.0
 ======
 `PR212: Add functionality for arrays of objects <https://github.com/smaht-dac/smaht-portal/pull/212>`_
