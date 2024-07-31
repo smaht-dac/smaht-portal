@@ -22,6 +22,8 @@ export function EmbeddedItemSearchTable(props) {
         schemas: propSchemas,
         defaultOpenIndices,
         maxHeight,
+        maxFacetsBodyHeight,
+        maxResultsBodyHeight,
         columns,
         columnExtensionMap,
         // May not be present which prevents VirtualHrefController from navigating upon mount. Useful if want to init with filterSet search or in other place.
@@ -75,6 +77,8 @@ export function EmbeddedItemSearchTable(props) {
         renderDetailPane,
         defaultOpenIndices,
         maxHeight,
+        maxFacetsBodyHeight,
+        maxResultsBodyHeight,
         rowHeight,
         openRowHeight,
         stickyFirstColumn,
