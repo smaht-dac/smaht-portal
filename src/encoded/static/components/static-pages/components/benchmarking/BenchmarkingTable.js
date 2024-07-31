@@ -752,7 +752,7 @@ const SelectedItemsDownloadModal = function (props) {
                         <li>
                             Once you have saved the manifest you may download
                             the files on any machine or server with the
-                            following cURL or AWS CLI command:
+                            following <b>cURL or AWS CLI</b> command:
                         </li>
                     </ol>
                     <p className="disclaimer">
@@ -949,7 +949,7 @@ const BenchmarkingDataDownloadOverviewStats = React.memo(
 const ModalCodeTabTitle = () => {
     return (
         <span className="nav-item-title">
-            AWS CLI <span className="badge badge-secondary">fastest</span>
+            AWS CLI <span className="badge badge-secondary">faster</span>
         </span>
     );
 };
