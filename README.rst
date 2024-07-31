@@ -117,6 +117,6 @@ both smaht-portal and cgap-portal locally simultaneously, you will need to do th
 2. Change the 'sqlalchemy.url' property in development.ini to change its temporary directory (host) from its default (/tmp/snovault/pgdata) to something else, e.g. /tmp/snovault_smaht/pgdata).
 3. Change the 'elasticsearch.server' property in base.ini to change its default port (9200) to something else, e.g. 9202.
 4. Set the 'elasticsearch.server.transport_ports' property in base.ini to something other than its implicit default (9300-9305) to something else, e.g. 9400-9405.
-5. Change the 'port' propety in the '[server:main]' section in development from its default (6543) to something else, e.g. 7543.
+5. Change the 'port' propety in the '[server:main]' section in development.ini from its default (6543) to something else, e.g. 7543.
 6. Change the 'server 127.0.0.1:6543' value in src/encoded/nginx-dev.conf to match the value in #5 above, e.g. 'server 127.0.0.1:7543'.
 7. Change the 'listen 8000' value in src/encoded/nginx-dev.conf to 'listen 8001'.
