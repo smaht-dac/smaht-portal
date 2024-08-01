@@ -723,6 +723,7 @@ const SelectedItemsDownloadModal = function (props) {
                             You can configure the access key in your profile,
                             then use it in place of
                             <span className="text-danger text-600">
+                                {' '}
                                 &lt;access_key_id&gt;:&lt;access_key_secret&gt;
                             </span>
                             , below.
@@ -967,7 +968,7 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                     <>
                         <code>
                             {' '}
-                            -&#8288;-&#8288;user&nbsp;
+                            -&#8288;-&#8288;user
                             <span className="text-danger text-600">
                                 {'<access_key_id>:<access_key_secret>'}
                             </span>
@@ -1003,7 +1004,7 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                     <>
                         <code>
                             {' '}
-                            -&#8288;-&#8288;user&nbsp;
+                            -&#8288;-&#8288;user
                             <span className="text-danger text-600">
                                 {'<access_key_id>:<access_key_secret>'}
                             </span>

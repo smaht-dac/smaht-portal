@@ -1798,6 +1798,14 @@ body[data-pathname^="/data/benchmarking"] {
 						}
 					}
 				}
+
+				.tab-content {
+					.embedded-search-container {
+						>div {
+							flex-direction: column;
+						}
+					}
+				}
 		
 				>.row {
 					.information-container {
@@ -1885,6 +1893,21 @@ body[data-pathname^="/data/benchmarking"] {
 		// Side nav
 		.benchmarking-nav-container {
 			display: none;
+		}
+		
+
+		@include media-breakpoint-up(sm) {
+			.benchmarking-layout-container {
+				.benchmarking-layout {
+					.tab-content {
+						.embedded-search-container {
+							>div {
+								flex-direction: row;
+							}
+						}
+					}
+				}
+			}
 		}
 
 		@include media-breakpoint-up(lg) {
@@ -2161,6 +2184,7 @@ body[data-pathname^="/data/benchmarking"] {
 
 	// May need to move this to search if we end up using this functionality elsewhere
 	.batch-files-download-modal {
+		overflow-y: scroll;
 		> .modal-dialog {
 			min-width: 75%;
 
@@ -2181,6 +2205,14 @@ body[data-pathname^="/data/benchmarking"] {
 			
 					li {
 						font-size: 0.875rem;
+
+						.text-danger {
+							word-break: break-word;
+	
+							@include media-breakpoint-down(sm) {
+								word-break: break-all;
+							}
+						}
 					}
 
 					.disclaimer {
@@ -2274,6 +2306,11 @@ body[data-pathname^="/data/benchmarking"] {
 									border-radius: 5px;
 									background-color: #f8f8f8;
 									color: #212529;
+
+
+									@include media-breakpoint-down(sm) {
+										word-break: break-all;
+									}
 								}
 								
 								.icon {
