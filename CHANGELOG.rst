@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.78.2
+======
+
+`PR 208: feat: AWS CLI command <https://github.com/smaht-dac/smaht-portal/pull/208>`_
+* Reorganize CLI commands components
+* Utilize bootstrap Tabs component
+* Styling updates for the command container
+
+
 0.78.1
 ======
 

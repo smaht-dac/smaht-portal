@@ -361,11 +361,11 @@ def metadata_tsv(context, request):
                 for field_name, tsv_descriptor in args.tsv_mapping.items():
                     traversal_path = tsv_descriptor.field_name()
                     if tsv_descriptor.use_base_metadata():
-                        field = descend_field(request, file, traversal_path) or ''
+                        field = descend_field(request, file, traversal_path, cli=cli) or ''
                         if field_name == FILE_GROUP:  # requires special care
                             field = handle_file_group(field)
                     else:
-                        field = descend_field(request, ef, traversal_path) or ''
+                        field = descend_field(request, ef, traversal_path, cli=cli) or ''
                     ef_line.append(field)
                 data_lines += [ef_line]
 
