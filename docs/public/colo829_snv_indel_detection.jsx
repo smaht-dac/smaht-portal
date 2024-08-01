@@ -26,7 +26,7 @@
                     <td className="pl-1">COLO829 SNV Indel Detection Challenge - Presented at 2024 SMaHT annual meeting</td>
                     <td className="pl-1">June 15, 2024</td>
                     <td className="pl-1">
-                        <a href="/static/files/SMaHT Sample and File Nomenclature v1.1.pdf" download>
+                        <a href="/static/files/SMaHT_Benchmark_SNVIndel_Challenge-DataRelease_V1-July8.pdf" download>
                             <i className="icon fas icon-file-pdf text-danger icon-lg"></i>
                         </a>
                     </td>
