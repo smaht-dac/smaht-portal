@@ -102,15 +102,15 @@
             "grouping": "Mergeable Files",
             "extended_description": "src/encoded/docs/extended_description_FileSet_MergeableFiles.html"
         },
-        "file_merge_group.sample_source": {
+        "file_group.sample_source": {
             "title": "Sample Source Tag",
             "grouping": "Mergeable Files"
         },
-        "file_merge_group.sequencing": {
+        "file_group.sequencing": {
             "title": "Sequencing Tag",
             "grouping": "Mergeable Files"
         },
-        "file_merge_group.assay": {
+        "file_group.assay": {
             "title": "Assay Tag",
             "grouping": "Mergeable Files"
         },
