@@ -316,7 +316,7 @@ function CustomStaticLinks({ pathName, href }) {
                             </div>
                         </div>
                         <div className="row">
-                            <div className="level-2 col-auto">
+                            <div className="level-2 col-12">
                                 <div className="level-2-title-container my-1">
                                     <div className="level-2-title text-medium text-600">
                                         SMaHT Challenges
