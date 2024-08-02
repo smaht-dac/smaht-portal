@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import queryString from 'query-string';
 import _ from 'underscore';
-import { Modal } from 'react-bootstrap';
+import { Modal, Tabs, Tab } from 'react-bootstrap';
 import ReactTooltip from 'react-tooltip';
 
 import {
@@ -325,6 +325,8 @@ const SelectedItemsDownloadModal = function (props) {
     const { onHide, filenamePrefix, selectedItems, session } = props;
     let { action } = props;
 
+    const [isAWSDownload, setIsAWSDownload] = useState(false);
+
     useEffect(() => {
         const {
             analyticsAddItemsToCart = false,
@@ -468,16 +470,20 @@ const SelectedItemsDownloadModal = function (props) {
                     <ul className="pl-2">
                         <li className="mb-1">
                             You{' '}
-                            <span className="text-danger text-500">
-                                must include an access key in your cURL command
+                            <span className="text-600">
+                                must include an access key in your cURL or AWS
+                                CLI command
                             </span>{' '}
                             for bulk downloads.
                         </li>
                         <li className="mb-1">
                             You can configure the access key in your profile,
                             then use it in place of
-                            &lt;access_key_id&gt;:&lt;access_key_secret&gt;,
-                            below.
+                            <span className="text-danger text-600">
+                                {' '}
+                                &lt;access_key_id&gt;:&lt;access_key_secret&gt;
+                            </span>
+                            , below.
                         </li>
                         <li className="mb-1">
                             Important information about the manifest file can be
@@ -504,12 +510,26 @@ const SelectedItemsDownloadModal = function (props) {
                         <li>
                             Once you have saved the manifest you may download
                             the files on any machine or server with the
-                            following cURL command:
+                            following <b>cURL or AWS CLI</b> command:
                         </li>
                     </ol>
-                    <ModalCodeSnippet
+                    <p className="disclaimer">
+                        <span>
+                            <b>Note:</b>
+                        </span>{' '}
+                        AWS CLI requires an additional package download, find
+                        instructions{' '}
+                        <a
+                            href="/docs/access/how-to-download-files#downloading-files-with-the-aws-cli"
+                            target="_blank">
+                            here
+                        </a>
+                        .
+                    </p>
+                    <ModalCodeSnippets
                         filename={suggestedFilename}
                         session={session}
+                        setIsAWSDownload={setIsAWSDownload}
                     />
                 </div>
             </Modal.Body>
@@ -526,6 +546,7 @@ const SelectedItemsDownloadModal = function (props) {
                         accessionArray,
                         suggestedFilename,
                         action,
+                        isAWSDownload,
                     }}
                 />
             </Modal.Footer>
@@ -553,7 +574,7 @@ const DataDownloadOverviewStats = React.memo(function DataDownloadOverviewStats(
     };
 
     const callbackFxn = useCallback((resp) => {
-        // console.log('DataDownloadOverviewStats resp', resp);
+        // console.log('BenchmarkingDataDownloadOverviewStats resp', resp);
         const facets = resp || [];
 
         // Figure out which ones are the facets we need
@@ -677,43 +698,114 @@ const DataDownloadOverviewStats = React.memo(function DataDownloadOverviewStats(
     );
 });
 
-const ModalCodeSnippet = React.memo(function ModalCodeSnippet(props) {
-    const { filename, session } = props;
-    const htmlValue = (
-        <pre className="mb-15 curl-command">
-            cut -f 1,3 <b>~/Downloads/{filename}</b> | tail -n +4 | grep -v ^# |
-            xargs -n 2 -L 1 sh -c &apos;curl -L
-            {session ? (
-                <>
-                    <code style={{ opacity: 0.5 }}>
-                        {' '}
-                        --user <em>{'<access_key_id>:<access_key_secret>'}</em>
-                    </code>{' '}
-                    $0 --output $1&apos;
-                </>
-            ) : (
-                " $0 --output $1'"
-            )}
-        </pre>
+const ModalCodeTabTitle = () => {
+    return (
+        <span className="nav-item-title">
+            AWS CLI <span className="badge badge-secondary">faster</span>
+        </span>
     );
-    const plainValue =
-        `cut -f 1,3 ~/Downloads/${filename} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L` +
-        (session
-            ? " --user <access_key_id>:<access_key_secret> $0 --output $1'"
-            : " $0 --output $1'");
+};
+
+const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
+    const { filename, session, setIsAWSDownload } = props;
+
+    // Assign html and plain values for each command
+    const aws_cli = {
+        htmlValue: (
+            <pre className="aws_cli-command mb-15">
+                cut -f 1,3 <b>{filename}</b> | tail -n +4 | grep -v ^# | xargs
+                -n 2 -L 1 sh -c &#39;credentials=$&#40;curl -s -L
+                {session ? (
+                    <>
+                        <code>
+                            {' '}
+                            -&#8288;-&#8288;user
+                            <span className="text-danger text-600">
+                                {'<access_key_id>:<access_key_secret>'}
+                            </span>
+                        </code>{' '}
+                    </>
+                ) : (
+                    ''
+                )}
+                {''}
+                &quot;$0&quot; | jq -r &quot;.download_credentials |
+                &#123;AccessKeyId, SecretAccessKey, SessionToken,
+                download_url&#125;&quot;&#41; && export
+                AWS_ACCESS_KEY_ID=$&#40;echo $credentials | jq -r
+                &quot;.AccessKeyId&quot;&#41; && export
+                AWS_SECRET_ACCESS_KEY=$&#40;echo $credentials | jq -r
+                &quot;.SecretAccessKey&quot;&#41; && export
+                AWS_SESSION_TOKEN=$&#40;echo $credentials | jq -r
+                &quot;.SessionToken&quot;&#41; && download_url=$&#40;echo
+                $credentials | jq -r &quot;.download_url&quot;&#41; && aws s3 cp
+                &quot;$download_url&quot; &quot;$1&quot;&#39;
+            </pre>
+        ),
+        plainValue: `cut -f 1,3 ${filename} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'credentials=$(curl -s -L --user ${
+            session ? '<access_key_id>:<access_key_secret>' : ''
+        } "$0" | jq -r ".download_credentials | {AccessKeyId, SecretAccessKey, SessionToken, download_url}") && export AWS_ACCESS_KEY_ID=$(echo $credentials | jq -r ".AccessKeyId") && export AWS_SECRET_ACCESS_KEY=$(echo $credentials | jq -r ".SecretAccessKey") && export AWS_SESSION_TOKEN=$(echo $credentials | jq -r ".SessionToken") && download_url=$(echo $credentials | jq -r ".download_url") && aws s3 cp "$download_url" "$1"'`,
+    };
+    const curl = {
+        htmlValue: (
+            <pre className="mb-15 curl-command">
+                cut -f 1,3 <b>~/Downloads/{filename}</b> | tail -n +4 | grep -v
+                ^# | xargs -n 2 -L 1 sh -c &apos;curl -L
+                {session ? (
+                    <>
+                        <code>
+                            {' '}
+                            -&#8288;-&#8288;user
+                            <span className="text-danger text-600">
+                                {'<access_key_id>:<access_key_secret>'}
+                            </span>
+                        </code>{' '}
+                        $0 --output $1&apos;
+                    </>
+                ) : (
+                    " $0 --output $1'"
+                )}
+            </pre>
+        ),
+        plainValue:
+            `cut -f 1,3 ~/Downloads/${filename} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L` +
+            (session
+                ? " --user <access_key_id>:<access_key_secret> $0 --output $1'"
+                : " $0 --output $1'"),
+    };
 
     return (
-        <object.CopyWrapper
-            value={plainValue}
-            className="curl-command-wrapper mt-2"
-            data-tip={'Click to copy'}
-            wrapperElement="div"
-            iconProps={{}}>
-            {htmlValue}
-        </object.CopyWrapper>
+        <div className="code-snippet-container">
+            <Tabs
+                defaultActiveKey="curl"
+                variant="pills"
+                onSelect={(k) => {
+                    setIsAWSDownload(k === 'aws');
+                }}>
+                <Tab eventKey="curl" title="cURL">
+                    <object.CopyWrapper
+                        value={curl.plainValue}
+                        className="curl-command-wrapper"
+                        data-tip={'Click to copy'}
+                        wrapperElement="div"
+                        iconProps={{}}>
+                        {curl.htmlValue}
+                    </object.CopyWrapper>
+                </Tab>
+                <Tab eventKey="aws" title={<ModalCodeTabTitle />}>
+                    <object.CopyWrapper
+                        value={aws_cli.plainValue}
+                        className="curl-command-wrapper"
+                        data-tip={'Click to copy'}
+                        wrapperElement="div"
+                        iconProps={{}}>
+                        {aws_cli.htmlValue}
+                    </object.CopyWrapper>
+                </Tab>
+            </Tabs>
+        </div>
     );
 });
-
 /**
  * Use this button to download the tsv file metadata.
  *
@@ -727,6 +819,7 @@ const SelectedItemsDownloadStartButton = React.memo(
             selectedItems,
             accessionArray = [],
             action,
+            isAWSDownload,
         } = props;
 
         const { onClick } = useMemo(
@@ -783,6 +876,9 @@ const SelectedItemsDownloadStartButton = React.memo(
                 method="POST"
                 action={action}
                 className="d-inline-block d-block-xs-only">
+                {isAWSDownload && (
+                    <input type="hidden" name="cli" value="True" />
+                )}
                 <input
                     type="hidden"
                     name="accessions"
