@@ -7,11 +7,44 @@ smaht-portal
 Change Log
 ----------
 
-0.77.0
+0.79.0
 ======
 
 * Add new section to Data nav for challenge results
 * Add COLO829 SNV/Indel V1 Challenge Page + tables
+
+0.78.2
+======
+
+`PR 208: feat: AWS CLI command <https://github.com/smaht-dac/smaht-portal/pull/208>`_
+* Reorganize CLI commands components
+* Utilize bootstrap Tabs component
+* Styling updates for the command container
+
+
+0.78.1
+======
+
+* Disable tagging and commenting functionality for non-admins on Submission Status page
+
+
+0.78.0
+======
+`PR212: Add functionality for arrays of objects <https://github.com/smaht-dac/smaht-portal/pull/212>`_
+* Updates write_submission_spreadsheets to write out columns for arrays of objects
+* Currently relevant for CellCultureMixture and the components property which has two nested properties, `ratio` and `cull_culture`
+
+
+0.77.0
+======
+
+`PR210: DSA Schema Update <https://github.com/smaht-dac/smaht-portal/pull/210>`_
+* Changes to DonorSpecificAssembly and SupplementaryFile schemas to reflect GCC feedback:
+  * BUSCO score properties created for each haplotype  (e.g. `percent_single_copy` to `percent_single_copy_hap1` and `percent_single_copy_hap2`)
+  * Change property name from `percent_duplicate` to `percent_multi_copy` for clarity
+  * Change property name from `largest_contig` to `largest_contig_size` for clartiy
+  * Change enums for `data_type` and `data_category` specific to SupplementaryFile fasta and chain files
+  * Fix descriptions of some properties
 
 
 0.76.2

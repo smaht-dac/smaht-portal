@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import queryString from 'query-string';
 import _ from 'underscore';
-import { Modal } from 'react-bootstrap';
+import { Modal, Tabs, Tab } from 'react-bootstrap';
 import ReactTooltip from 'react-tooltip';
 
 import {
