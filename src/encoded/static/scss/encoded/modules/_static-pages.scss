@@ -1727,13 +1727,15 @@ body.is-item-view[data-pathname^="/users/"] #page-title-container,
 	border-right: none;
 }
 
-.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
-	&[data-first-visible-column=true] {
-		padding-left: 16px !important;
-	}
+body[data-pathname^="/data"] {
+	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
+		&[data-first-visible-column=true] {
+			padding-left: 16px !important;
+		}
 
-	>.inner>.toggle-detail-button-container {
-		display: none;
+		>.inner>.toggle-detail-button-container {
+			display: none;
+		}
 	}
 }
 
