@@ -11,6 +11,7 @@ Change Log
 ======
 
 * Nested QC (QualityMetric) development.
+* Added validators endpoint to validate (initially) submitted_id for smaht-submitr.
 
 
 0.78.2
