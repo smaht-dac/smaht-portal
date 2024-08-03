@@ -9,13 +9,10 @@ def includeme(config):
 
 
 def _validators_submitted_id(context, request):
-    if submitted_id := request.GET.get("value"):
+    if (submitted_id := request.GET.get("value")) and (submission_centers := request.GET.get("submission_centers")):
         # Note that passing submission_centers (the known/valid set of submission-center names, e.g. smaht_dac)
         # is done for more control and for performance so we don't have to get the set of submission centers here.
-        if submission_centers := request.GET.get("submission_centers"):
-            submission_centers = [item.strip() for item in submission_centers.split(",")]
-        else:
-            submission_centers = _get_submission_centers(request)
+        submission_centers = [item.strip() for item in submission_centers.split(",")]
         result = validate_submitted_id(request, submitted_id=submitted_id, submission_centers=submission_centers)
         if result is None:
             status = "OK"
@@ -31,17 +28,6 @@ def _validators_submitted_id(context, request):
 _VALIDATORS = {
     "submitted_id": _validators_submitted_id
 }
-
-
-def _get_submission_centers(request):
-    result = []
-    # TODO: Do we need an as_user="INGESTION" argument or something with the request.embed call below?
-    if submission_centers := request.embed("/submission-centers"):
-        for item in submission_centers.get("@graph"):
-            if submission_center := item.get("identifier"):
-                if submission_center not in result:
-                    result.append(submission_center)
-    return result
 
 
 @view_config(route_name="validators", request_method=["GET"])
