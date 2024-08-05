@@ -34,10 +34,17 @@
             </tbody>
         </table>
     </div>
-
-    <h2 className="section-title py-2 mt-5 d-inline-block">Version 1.0 [latest]</h2>
-    <DownloadAllFilesFromSearchHrefButton {...{ session }} searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data&tags!=analysis_results" cls="mt-5 float-right">Download All Version 1.0 Files</DownloadAllFilesFromSearchHrefButton>
-
+    <div className="row py-2 mt-5">
+        <div className="col-md-6 col-12">
+            <h2 className="section-title d-inline-block">Version 1.0 [latest]</h2>
+        </div>
+        <div className="col-md-6 col-12 justify-content-md-end d-flex">
+            <div className="align-content-center">
+                <DownloadAllFilesFromSearchHrefButton {...{ session }} searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data&tags!=analysis_results">Download All Version 1.0 Files</DownloadAllFilesFromSearchHrefButton>
+            </div>
+        </div>
+    </div>
+   
     <h3 className="section-title">Truth Sets</h3>
     <p className="mb-2">The truth set in the Version 1 release includes SNVs with VAF &gt; 25% in the pure COLO829-T cancer cell line (corresponding to VAF &gt; 0.5%, expected in the BLT50 mixture samples) to analyze variants considered for the SNV/Indel Detection Challenge.</p>
     <ChallengeTableWrapper searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data&tags=truth_set" context={context} schemas={schemas} session={session} href={href}/>
