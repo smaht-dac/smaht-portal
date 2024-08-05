@@ -14,6 +14,13 @@ Change Log
 * Added validators endpoint to validate (initially) submitted_id for smaht-submitr.
 
 
+0.78.3
+======
+
+`PR 213: Bm homepage drawer update <https://github.com/smaht-dac/smaht-portal/pull/213>`_
+* Change defaultActiveKey and activeKey settings to get different home page drawer-tiers to stay open once selected
+
+
 0.78.2
 ======
 
