@@ -70,6 +70,7 @@
             "enum": [
                 "uploading",
                 "uploaded",
+                "retracted",
                 "upload failed",
                 "to be uploaded by workflow",
                 "released",
@@ -82,7 +83,8 @@
             ]
         },
         "file_format": {
-            "$merge": "encoded_core:schemas/file.json#/properties/file_format"
+            "$merge": "encoded_core:schemas/file.json#/properties/file_format",
+            "description": "Format for the file"
         },
         "filename": {
             "$merge": "encoded_core:schemas/file.json#/properties/filename"
@@ -113,7 +115,7 @@
                     "Germline Variant Calls",
                     "Quality Control",
                     "Reference Genome",
-                    "Donor-Specific Assembly",
+                    "Reference Conversion",
                     "Reference Transcriptome",
                     "RNA Quantification",
                     "Sequencing Reads",
@@ -136,6 +138,7 @@
                     "In Silico Generated",
                     "Index",
                     "Reference Sequence",
+                    "Chain File",
                     "Sequence Interval",
                     "Statistics",
                     "Transcript Expression",

@@ -43,6 +43,9 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
                         title: item.display_title,
                     };
                 });
+                items.sort((a, b) => {
+                    return a.title < b.title ? -1 : 1;
+                });
                 this.setState({
                     [state_variable]: items,
                 });
@@ -107,13 +110,27 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
 
     getSubmissionCenterSelect = () => {
         
-        const options = [
+        const options = [ 
             <option value="all">All</option>,
-            <option value="all_gcc">All GCCs</option>,
+            <option value="all_gcc">All GCCs</option>
         ];
+        const options_gcc = [];
+        const options_other = []
+
         this.state.submission_centers.forEach((sc) => {
-            options.push(<option value={sc.title}>{sc.title}</option>);
+            const op = <option value={sc.title}>{sc.title}</option>;
+            if(sc.title.includes("GCC")){
+                options_gcc.push(op);
+            }else{
+                options_other.push(op);
+            }
         });
+        if(options_gcc.length > 0){
+            options.push(<optgroup label="GCCs">{options_gcc}</optgroup>);
+        }
+        if(options_other.length > 0){
+            options.push(<optgroup label="Other">{options_other}</optgroup>);
+        }
         const defaultValue = 'all_gcc';
         const filterName = 'submission_center';
         return this.getSelect(options, defaultValue, filterName);
