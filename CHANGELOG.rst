@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.79.0
+======
+
+* Added validators endpoint to validate (initially) submitted_id for smaht-submitr.
+
+
 0.78.3
 ======
 
