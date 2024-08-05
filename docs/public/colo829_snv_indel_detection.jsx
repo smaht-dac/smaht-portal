@@ -35,7 +35,7 @@
         </table>
     </div>
 
-    <h2 className="section-title py-2 mt-3 d-inline-block">Version 1.0 [latest]</h2>
+    <h2 className="section-title py-2 mt-5 d-inline-block">Version 1.0 [latest]</h2>
     <DownloadAllFilesFromSearchHrefButton {...{ session }} searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data&tags!=analysis_results" cls="mt-5 float-right">Download All Version 1.0 Files</DownloadAllFilesFromSearchHrefButton>
 
     <h3 className="section-title">Truth Sets</h3>
