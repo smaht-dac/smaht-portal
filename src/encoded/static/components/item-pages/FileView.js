@@ -7,8 +7,8 @@ import queryString from 'query-string';
 import { FileViewDataCards } from './components/file-overview/FileViewDataCards';
 import { FileViewTabs } from './components/file-overview/FileViewTabs';
 import DefaultItemView from './DefaultItemView';
-import { SelectedItemsDownloadButton } from '../static-pages/components/benchmarking/BenchmarkingTable';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { SelectedItemsDownloadButton } from '../static-pages/components/SelectAllAboveTableComponent';
 
 // Page containing the details of Items of type File
 export default class FileOverview extends DefaultItemView {

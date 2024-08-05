@@ -3,13 +3,13 @@ import { EmbeddedItemSearchTable } from '../EmbeddedItemSearchTable';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import {
-    SelectedItemsDownloadButton,
-    SelectAllFilesButton,
-} from '../../../static-pages/components/benchmarking/BenchmarkingTable';
-import {
     SelectedItemsController,
     SelectionItemCheckbox,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
+import {
+    SelectAllFilesButton,
+    SelectedItemsDownloadButton,
+} from '../../../static-pages/components/SelectAllAboveTableComponent';
 
 /**
  * Wraps the File Overview Table in a SelectedItemsController component, which
