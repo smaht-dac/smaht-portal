@@ -12,5 +12,7 @@ from .quality_metric import QualityMetric
     })
 class ExternalQualityMetric(SubmittedItem, QualityMetric):
     item_type = 'external_quality_metric'
+    base_types = ["QualityMetric"] + SubmittedItem.base_types
+
     schema = load_schema("encoded:schemas/external_quality_metric.json")
     embedded_list = []

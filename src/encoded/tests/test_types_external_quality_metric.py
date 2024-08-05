@@ -26,3 +26,10 @@ def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None
         collection="QualityMetric",
         status=301
     )
+    get_item(
+        es_testapp,
+        "TEST_EXTERNAL-QUALITY-METRIC_HELA-HEK293-VCF",
+        collection="QualityMetric",
+        status=301,
+        datastore="database"
+    )
