@@ -30,7 +30,7 @@ def _validator_submitted_id(context, request, submitted_id):
     """
     EFFECTIVE_PRINCIPALS_SUBMITS_FOR_PREFIX = "submits_for."
     STATUS_OK = "OK"
-    if submitted_id := value:
+    if submitted_id:
         if (submission_centers := request.GET.get("submission_centers")):
             # Allow passing in submission_centers just in case we need it explicit control.
             submission_centers = [item.strip() for item in submission_centers.split(",")]
