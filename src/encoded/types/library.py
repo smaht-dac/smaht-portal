@@ -41,10 +41,10 @@ class Library(SubmittedItem):
     class Collection(Item.Collection):
         pass
 
-def validate_rna_specific_assay(context,request):
-    """Check that analyte.molecule includes RNA for RNA-specific assays.
+def validate_molecule_specific_assay(context,request):
+    """Check that analyte.molecule includes the correct molecule for molecule-specific assays.
     
-    The assays with `valid_moleucles` property may need to be updated as new techologies come out 
+    The assays with `valid_molecules` property may need to be updated as new techologies come out 
     or are added to the portal.
     """
 
@@ -56,11 +56,9 @@ def validate_rna_specific_assay(context,request):
         assay = get_item_or_none(request,data['assay'],'assays')
         valid_molecules = assay.get("valid_molecules",[])
         if valid_molecules:
-            if 'RNA' in molecules and 'RNA' not in valid_molecules:
-                msg = f"Assay {assay} is specific to DNA analytes."
-                return request.errors.add('body', 'Library: invalid links', msg)
-            elif 'RNA' not in molecules and 'RNA' not in valid_molecules:
-                msg = f"Assay {assay} is specific to RNA analytes."
+            overlap = list(set(molecules) & set(valid_molecules))
+            if not overlap:
+                msg = f"Assay {assay} is specific to molecules: {valid_molecules}."
                 return request.errors.add('body', 'Library: invalid links', msg)
         return request.validated.update({})
     
@@ -82,7 +80,7 @@ def validate_assay_specific_properties(context,request):
 
 
 LIBRARY_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
-    validate_rna_specific_assay,
+    validate_molecule_specific_assay,
     validate_assay_specific_properties
 ]
 
@@ -98,12 +96,12 @@ def library_add(context, request, render=None):
 
 
 LIBRARY_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
-    validate_rna_specific_assay,
+    validate_molecule_specific_assay,
     validate_assay_specific_properties
 ]
 
 LIBRARY_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
-    validate_rna_specific_assay,
+    validate_molecule_specific_assay,
     validate_assay_specific_properties
 ]
 

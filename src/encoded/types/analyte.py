@@ -46,14 +46,12 @@ def validate_rna_molecule_properties(context,request):
     RNA-specific properties in `RNA_PROPERTIES`.
     """
 
-
-    molecule = 'RNA'
     data = request.json
     if 'molecule' in data:
-        if molecule not in data['molecule']:
+        if 'RNA' not in data['molecule']:
             for property in RNA_PROPERTIES:
                 if data.get(property,""):
-                    msg = f"Property {property} is specific to molecule {molecule}."
+                    msg = f"Property {property} is specific to molecule RNA."
                     return request.errors.add('body', 'Analyte: invalid property values', msg)
                 else:
                     return request.validated.update({})

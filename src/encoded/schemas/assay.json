@@ -82,7 +82,11 @@
             "type": "array",
             "uniqueItems": true,
             "items": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                    "DNA",
+                    "RNA"
+                ]
             }
         },
         "valid_sequencers": {
