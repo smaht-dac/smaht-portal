@@ -22,7 +22,6 @@ class ExternalQualityMetric(SubmittedItem, QualityMetric):
 
         Allows ExternalQualityMetric types to show up in search of QualityMetric collection.
         """
-        import pdb; pdb.set_trace()
         resource = super(QualityMetric, self).get(name, None)
         if resource is not None:
             return resource

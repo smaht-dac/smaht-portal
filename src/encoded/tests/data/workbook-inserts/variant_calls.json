@@ -45,7 +45,7 @@
         "file_sets": [
             "TEST_FILE-SET_HELA-HEK293"
         ],
-        "external_quality_metrics": ["TEST_EXTERNAL-QUALITY-METRIC_HELA-HEK293-VCF"],
+        "quality_metrics": ["TEST_EXTERNAL-QUALITY-METRIC_HELA-HEK293-VCF"],
         "reference_genome": "GRCh38",
         "file_size": 100000,
         "status": "uploaded",
