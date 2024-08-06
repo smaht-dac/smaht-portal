@@ -7,6 +7,35 @@ smaht-portal
 Change Log
 ----------
 
+0.78.4
+======
+
+`PR 218: fix: typerror in ItemDetailList's ShouldUseTable <https://github.com/smaht-dac/smaht-portal/pull/218>`_
+* fix: typerror, support number value being first
+
+
+0.78.3
+======
+
+`PR 213: Bm homepage drawer update <https://github.com/smaht-dac/smaht-portal/pull/213>`_
+* Change defaultActiveKey and activeKey settings to get different home page drawer-tiers to stay open once selected
+
+
+0.78.2
+======
+
+`PR 208: feat: AWS CLI command <https://github.com/smaht-dac/smaht-portal/pull/208>`_
+* Reorganize CLI commands components
+* Utilize bootstrap Tabs component
+* Styling updates for the command container
+
+
+0.78.1
+======
+
+* Disable tagging and commenting functionality for non-admins on Submission Status page
+
+
 0.78.0
 ======
 `PR212: Add functionality for arrays of objects <https://github.com/smaht-dac/smaht-portal/pull/212>`_

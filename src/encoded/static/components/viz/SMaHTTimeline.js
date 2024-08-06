@@ -34,9 +34,7 @@ const TimelineItem = ({ currentTier, setCurrentTier, data, itemKey }) => {
                 </h3>
             </div>
             <div className="timeline-content">
-                <TimelineAccordion
-                    defaultActiveKey={1}
-                    activeKey={currentTier === itemKey ? undefined : null}>
+                <TimelineAccordion defaultActiveKey={itemKey === 0 ? 1 : 0}>
                     {categories.map((category, j) => {
                         return (
                             <TimelineAccordionDrawer
