@@ -16,14 +16,6 @@ from .base import (
     Item
 )
 
-RNA_ASSAYS = [
-    "bulk_rna_seq",
-    "bulk_mas_iso_seq",
-    "sc_snrna_seq",
-    "sc_storm_seq",
-    "sc_tranquil_seq"
-]
-
 ASSAY_DEPENDENT = {
     "target_monomer_size": ["bulk_mas_iso_seq"]
 }
@@ -52,7 +44,8 @@ class Library(SubmittedItem):
 def validate_rna_specific_assay(context,request):
     """Check that analyte.molecule includes RNA for RNA-specific assays.
     
-    RNA-specific assays are in `RNA_ASSAYS`
+    The assays with `valid_moleucles` property may need to be updated as new techologies come out 
+    or are added to the portal.
     """
 
     data = request.json
@@ -60,13 +53,15 @@ def validate_rna_specific_assay(context,request):
         molecules = []
         for analyte in data['analytes']:
             molecules+=get_item_or_none(request, analyte, 'analytes').get("molecule",[])
-        assay = get_item_or_none(request,data['assay'],'assays').get("identifier","")
-        if 'RNA' in molecules and assay not in RNA_ASSAYS:
-            msg = f"Assay {assay} is specific to DNA analytes."
-            return request.errors.add('body', 'Library: invalid links', msg)
-        elif 'RNA' not in molecules and assay in RNA_ASSAYS:
-            msg = f"Assay {assay} is specific to RNA analytes."
-            return request.errors.add('body', 'Library: invalid links', msg)
+        assay = get_item_or_none(request,data['assay'],'assays')
+        valid_molecules = assay.get("valid_molecules",[])
+        if valid_molecules:
+            if 'RNA' in molecules and 'RNA' not in valid_molecules:
+                msg = f"Assay {assay} is specific to DNA analytes."
+                return request.errors.add('body', 'Library: invalid links', msg)
+            elif 'RNA' not in molecules and 'RNA' not in valid_molecules:
+                msg = f"Assay {assay} is specific to RNA analytes."
+                return request.errors.add('body', 'Library: invalid links', msg)
         return request.validated.update({})
     
 
