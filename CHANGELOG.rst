@@ -7,6 +7,128 @@ smaht-portal
 Change Log
 ----------
 
+0.78.4
+======
+
+`PR 218: fix: typerror in ItemDetailList's ShouldUseTable <https://github.com/smaht-dac/smaht-portal/pull/218>`_
+* fix: typerror, support number value being first
+
+
+0.78.3
+======
+
+`PR 213: Bm homepage drawer update <https://github.com/smaht-dac/smaht-portal/pull/213>`_
+* Change defaultActiveKey and activeKey settings to get different home page drawer-tiers to stay open once selected
+
+
+0.78.2
+======
+
+`PR 208: feat: AWS CLI command <https://github.com/smaht-dac/smaht-portal/pull/208>`_
+* Reorganize CLI commands components
+* Utilize bootstrap Tabs component
+* Styling updates for the command container
+
+
+0.78.1
+======
+
+* Disable tagging and commenting functionality for non-admins on Submission Status page
+
+
+0.78.0
+======
+`PR212: Add functionality for arrays of objects <https://github.com/smaht-dac/smaht-portal/pull/212>`_
+* Updates write_submission_spreadsheets to write out columns for arrays of objects
+* Currently relevant for CellCultureMixture and the components property which has two nested properties, `ratio` and `cull_culture`
+
+
+0.77.0
+======
+
+`PR210: DSA Schema Update <https://github.com/smaht-dac/smaht-portal/pull/210>`_
+* Changes to DonorSpecificAssembly and SupplementaryFile schemas to reflect GCC feedback:
+  * BUSCO score properties created for each haplotype  (e.g. `percent_single_copy` to `percent_single_copy_hap1` and `percent_single_copy_hap2`)
+  * Change property name from `percent_duplicate` to `percent_multi_copy` for clarity
+  * Change property name from `largest_contig` to `largest_contig_size` for clartiy
+  * Change enums for `data_type` and `data_category` specific to SupplementaryFile fasta and chain files
+  * Fix descriptions of some properties
+
+
+0.76.2
+======
+
+* Remove Doug user
+
+
+0.76.1
+======
+
+`PR 195: fix: tablet navigation collapse <https://github.com/smaht-dac/smaht-portal/pull/195>`_
+
+* Fix collapsing navigation bar for tablet size screens
+* Switch to mobile navigation component early
+* Show initials for username in tablet screen size
+* Fix mobile styling bugs
+
+
+0.76.0
+======
+
+* Minor documentation updates for how to install awscli in docs/source/{file_download,download_cli}.rst.
+* Update to dcicutils 8.13.3.
+
+
+0.75.0
+======
+
+* Bug fix: consider loadxl order in staggered reindexing
+* Add ``retracted`` status to Files with submission center only view
+
+
+0.74.1
+======
+
+`PR 188: feat: increase benchmarking table visibility <https://github.com/smaht-dac/smaht-portal/pull/188>`_
+
+* Increase height of benchmarking tables
+* Support toggling the benchmarking page descriptions
+* Upgrade SPC to v0.1.86
+
+
+0.74.0
+======
+`PR 205: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/205>`_
+
+* Adds two arguments to `write-submission-spreadsheets` that create submission_workbook templates with a subset of ordered tabs consistent with the submission templates shared with TPCs and GCCs/TDDs.
+  * `--tpc` outputs tabs for the TPC submission
+  * `--gcc` outputs tabs for the GCC/TDD submissions
+
+
+0.73.0
+=======
+`PR 206: SN Remove tissue recovery_interval  <https://github.com/smaht-dac/smaht-portal/pull/206>`_
+
+* Removes `recovery_interval` property from Tissue schema
+* Includes upgrader for tissue schema from version 2 to 3 with test
+* All existing `recovery_interval` values for Tissue items have already been transferred to TissueCollection items linked to Donor
+
+
+0.72.0
+======
+
+`PR 204: Update submission schema from TPC and GCC feedback <https://github.com/smaht-dac/smaht-portal/pull/204>`_
+
+* For MedicalHistory, change `enum` from "Not done" to "Not Done" for consistency
+
+
+0.71.1
+======
+
+`PR 198: Bm accessibility font fix <https://github.com/smaht-dac/smaht-portal/pull/198>`_
+
+* Convert pixel font sizes to use rem
+
 
 0.71.0
 ======

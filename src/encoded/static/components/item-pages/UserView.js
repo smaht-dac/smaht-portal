@@ -382,7 +382,7 @@ const AccessKeyTable = React.memo(function AccessKeyTable({
     }
 
     return (
-        <table className="table table-responsive-sm access-keys-table bg-white">
+        <table className="table table-responsive-md access-keys-table bg-white">
             <thead>
                 <tr>
                     <th>Access Key ID</th>

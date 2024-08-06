@@ -313,10 +313,10 @@ def test_chain_file(
     item = {
         "submitted_id": "TEST_SUPPLEMENTARY-FILE_HELA_GRCH38",
         "data_category": [
-            "Donor-Specific Assembly"
+            "Reference Conversion"
         ],
         "data_type": [
-            "Sequence Interval"
+            "Chain File"
         ],
         "filename": "test_DSA_to_GRCh38.chain.gz",
         "file_format": file_formats.get("CHAIN", {}).get("uuid", ""),
@@ -329,8 +329,8 @@ def test_chain_file(
         "file_size": 1000,
         "sequencing_center": test_submission_center["uuid"],
         "donor_specific_assembly": donor_specific_assembly["uuid"],
-        "target_assembly": "Hela_DSA",
-        "source_assembly": "GRCh38"
+        "target_assembly": "GRCh38",
+        "source_assembly": "Hela_DSA"
     }
     return post_item_and_return_location(testapp, item, 'supplementary_file')
 
@@ -346,7 +346,7 @@ def test_sequence_file(
     item = {
         "submitted_id": "TEST_SUPPLEMENTARY-FILE_HELA_FASTA",
         "data_category": [
-            "Donor-Specific Assembly"
+            "Reference Genome"
         ],
         "data_type": [
             "Reference Sequence"

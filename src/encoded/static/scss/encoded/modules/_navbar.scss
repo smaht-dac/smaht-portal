@@ -2,7 +2,7 @@
 
 @mixin navbar-link-button-item {
     position: relative;
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: 400;
     color: $navbar-link-color;
     padding-top: 0;
@@ -23,7 +23,7 @@
 
         &-envelope {
             margin-right: 10px;
-            font-size: 18px;
+            font-size: 1.125rem;
         }
     }
 
@@ -187,7 +187,7 @@ div.navbar-fixed-top {
                 //box-shadow: 0 0 3px rgba(0,0,0,0.2);
                 .navbar-brand {
                     div.img-container {
-                        font-size: 16px;
+                        font-size: 1rem;
                         img {
                             height: 30px;
                         }
@@ -205,12 +205,12 @@ div.navbar-fixed-top {
                         }
                         
                         a.nav-link {
-                            font-size: 16px;
+                            font-size: 1rem;
     
                             &.helpdesk {
                                 .icon {
                                     &.icon-envelope {
-                                        font-size: 15px;
+                                        font-size: 0.938rem;
                                     }
                                 }
     
@@ -227,7 +227,7 @@ div.navbar-fixed-top {
             padding: 0px !important;
             // margin-left: -50px !important;
             color: $navbar-default-brand-color;
-            font-size: 20px;
+            font-size: 1.25rem;
             font-weight: 500;
             min-width: 270px;
             height: 100%;
@@ -236,7 +236,7 @@ div.navbar-fixed-top {
             text-decoration: none;
             margin-right: 0;
 
-            @include navbar-fixed-position { // = md
+            @include navbar-fixed-position { // = lg 
                 min-width: 215px;
             }
 
@@ -360,7 +360,7 @@ div.navbar-fixed-top {
 
                     .user-account-item {
                         
-                        @media screen and (min-width: 767px) {
+                        @include media-breakpoint-up(lg) {
                             background-color: #0E74D2;
                             border: 1px solid #0B62BA;
                             border-radius: 4px;
@@ -395,7 +395,7 @@ div.navbar-fixed-top {
                                 overflow: hidden;
                                 text-overflow: ellipsis;
                             }
-                            @include media-breakpoint-up(lg){
+                            @include media-breakpoint-up(lg) {
                                 img.account-icon-image {
                                     margin-right: 12px;
                                 }
@@ -404,7 +404,7 @@ div.navbar-fixed-top {
 
     
                         &.user-account-item {
-                            @media screen and (min-width: 767px) {
+                            @include media-breakpoint-up(lg) {
                                 background-color: #0E74D2;
                                 border: 1px solid #0B62BA;
                                 border-radius: 4px;
@@ -435,6 +435,7 @@ div.navbar-fixed-top {
                                         color: black;
                                         font-weight: 500;
                                         margin: auto 12px auto 13px;
+                                        line-height: 30px;
                                     }
 
                                     &:hover {
@@ -672,7 +673,7 @@ div.navbar-fixed-top {
          > div.text-container {
     
             position: relative;
-            font-size: 13.5px;
+            font-size: 0.844rem;
             text-align: center;
             line-height: 16px;
 
@@ -728,7 +729,7 @@ div.navbar-fixed-top {
     }
 
     .icon-fw.circle-icon {
-        font-size: 20px;
+        font-size: 1.25rem;
         vertical-align: middle;
         margin-right: 7px;
         transform: translate(0, -1px);
@@ -837,15 +838,20 @@ body[data-current-action="multiselect"] {
             background-color: rgba(28,28,30,.7);
         }
 
+        @include media-breakpoint-between(sm, md) {
+            top: 0px;
+        }
+
         // Rules for pages at which to be offset less from top.
         body.scrolled-past-top &,
         body.is-select-page &,
         body.is-item-view &,
-        body.is-full-screen & {
-        //body.is-full-screen:not([data-pathname="/browse/"]):not([data-pathname="/search/"]) & {
-            //height: $navbar-small-height;
+        body.is-full-screen {
             top: $navbar-small-height;
-            //height: calc(100vh - #{$navbar-small-height});
+
+            @include media-breakpoint-down(md) {
+                top: 0px;
+            }
         }
 
         @mixin after-big-link-append {
@@ -1135,6 +1141,13 @@ body[data-current-action="multiselect"] {
             }
         }
 
+        @include media-breakpoint-down(md) {
+            .big-dropdown-menu {
+                max-height: 100vh;
+                height: 100vh;
+            }
+        }
+
         &[data-is-mobile-view="true"]{
             top: 0px;
             .big-dropdown-menu {
@@ -1194,45 +1207,44 @@ body[data-current-action="multiselect"] {
 //}
 
 
-
-
-
 body.scrolled-past-top {
     div.navbar-fixed-top {
 
-        nav.navbar-main {
-            .navbar-brand {
-                div.img-container {
-                    font-size: 16px;
-                    img {
-                        height: 30px;
-                    }
-                }
-            }
-            .navbar-collapse {
-                .navbar-nav {
-
-                    a.nav-link {
-                        font-size: 16px;
-
-                        &.helpdesk {
-                            .icon {
-                                &.icon-envelope {
-                                    font-size: 15px;
-                                }
-                            }
-
+        @include media-breakpoint-up(lg) {
+            nav.navbar-main {
+                .navbar-brand {
+                    div.img-container {
+                        font-size: 1rem;
+                        img {
+                            height: 30px;
                         }
-            
+                    }
+                }
+                .navbar-collapse {
+                    .navbar-nav {
+    
+                        a.nav-link {
+                            font-size: 1rem;
+    
+                            &.helpdesk {
+                                .icon {
+                                    &.icon-envelope {
+                                        font-size: 0.938rem;
+                                    }
+                                }
+    
+                            }
+                
+                        }
                     }
                 }
             }
-        }
-    
-        #account-menu-item {
-            img.account-icon-image {
-                width: 24px !important;
-                height: 24px !important;
+        
+            #account-menu-item {
+                img.account-icon-image {
+                    width: 24px !important;
+                    height: 24px !important;
+                }
             }
         }
     }
