@@ -16,6 +16,18 @@ from .base import (
     Item
 )
 
+RNA_ASSAYS = [
+    "bulk_rna_seq",
+    "bulk_mas_iso_seq",
+    "sc_snrna_seq",
+    "sc_storm_seq",
+    "sc_tranquil_seq"
+]
+
+ASSAY_DEPENDENT = {
+    "target_monomer_size": ["bulk_mas_iso_seq"]
+}
+
 def _build_library_embedded_list():
     """Embeds for search on libraries."""
     return []
@@ -40,15 +52,8 @@ class Library(SubmittedItem):
 def validate_rna_specific_assay(context,request):
     """Check that analyte.molecule includes RNA for RNA-specific assays.
     
-    RNA-specific assays are in `rna_assays`
+    RNA-specific assays are in `RNA_ASSAYS`
     """
-    rna_assays = [
-        "bulk_rna_seq",
-        "bulk_mas_iso_seq",
-        "sc_snrna_seq",
-        "sc_storm_seq",
-        "sc_tranquil_seq"
-    ]
 
     data = request.json
     if 'analytes' in data:
@@ -56,10 +61,10 @@ def validate_rna_specific_assay(context,request):
         for analyte in data['analytes']:
             molecules+=get_item_or_none(request, analyte, 'analytes').get("molecule",[])
         assay = get_item_or_none(request,data['assay'],'assays').get("identifier","")
-        if 'RNA' in molecules and assay not in rna_assays:
+        if 'RNA' in molecules and assay not in RNA_ASSAYS:
             msg = f"Assay {assay} is specific to DNA analytes."
             return request.errors.add('body', 'Library: invalid links', msg)
-        elif 'RNA' not in molecules and assay in rna_assays:
+        elif 'RNA' not in molecules and assay in RNA_ASSAYS:
             msg = f"Assay {assay} is specific to RNA analytes."
             return request.errors.add('body', 'Library: invalid links', msg)
         return request.validated.update({})
@@ -68,18 +73,14 @@ def validate_rna_specific_assay(context,request):
 def validate_assay_specific_properties(context,request):
     """Check that assay is appropriate for assay-specific properties.
     
-    Assay-specific properties are in `assay_dependent`
+    Assay-specific properties are in `ASSAY_DEPENDENT`
     """
-
-    assay_dependent = {
-        "target_monomer_size": ["bulk_mas_iso_seq"]
-    }
     data = request.json
     if 'assay' in data:
-        for property in assay_dependent.keys():
+        for property in ASSAY_DEPENDENT.keys():
             if data.get(property,""):
                 assay = get_item_or_none(request,data['assay'],'assays').get("identifier","")
-                if assay not in assay_dependent[property]:
+                if assay not in ASSAY_DEPENDENT[property]:
                     msg = f"Property {property} not compatible with assay {assay}."
                     return request.errors.add('body', 'Library: invalid property value', msg)
         return request.validated.update({})

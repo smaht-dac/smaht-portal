@@ -34,6 +34,12 @@ SINGLE_CELL_ASSAY_CODES = [
     '016', '012', '014', '105', '104', '103', '013', '011', '010'
 ]
 
+CONDITIONALLY_DEPENDENT = {
+    "bulk_fiberseq": ["pacbio_revio_hifi"], # Fiber-Seq and PacBio
+    "bulk_mas_iso_seq":["pacbio_revio_hifi"], # MAS ISO-Seq and PacBio
+    "cas9_nanopore":["ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"], # Cas9 Nanopore and ONT
+    "bulk_ultralong_wgs":["ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"] # Ultralong WGS and ONT
+}
 
 def _build_file_set_embedded_list():
     """Embeds for search on file sets."""
@@ -266,15 +272,9 @@ class FileSet(SubmittedItem):
 def validate_compatible_assay_and_sequencer(context, request):
     """Check filesets to make sure they are linked to compatible library.assay and sequencing items.
     
-    The list of `conditionally_dependent` assays and sequencers may need to be updated as new techologies come out 
+    The list of `CONDITIONALLY_DEPENDENT` assays and sequencers may need to be updated as new techologies come out 
     or are added to the portal.
     """
-    conditionally_dependent = {
-        "bulk_fiberseq": ["pacbio_revio_hifi"], # Fiber-Seq and PacBio
-        "bulk_mas_iso_seq":["pacbio_revio_hifi"], # MAS ISO-Seq and PacBio
-        "cas9_nanopore":["ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"], # Cas9 Nanopore and ONT
-        "bulk_ultralong_wgs":["ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"] # Ultralong WGS and ONT
-    }
     data = request.json
     if 'libraries' in data:
         libraries = data['libraries']
@@ -285,10 +285,10 @@ def validate_compatible_assay_and_sequencer(context, request):
             assays.append(assay.get("identifier",""))
         sequencer_aid=sequencing_utils.get_sequencer(get_item_or_none(request,data['sequencing'],'sequencing'))
         sequencer = get_item_or_none(request,sequencer_aid,'sequencer').get("identifier","")
-        overlap = list(set(assays) & conditionally_dependent.keys())
+        overlap = list(set(assays) & CONDITIONALLY_DEPENDENT.keys())
         if overlap:
             for assay in overlap:
-                special_sequencers = conditionally_dependent[assay]
+                special_sequencers = CONDITIONALLY_DEPENDENT[assay]
                 if sequencer not in special_sequencers:
                     msg = f"Sequencer {sequencer} is not allowed for assay {assay}."
                     return request.errors.add('body', 'FileSet: invalid links', msg)

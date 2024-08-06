@@ -17,6 +17,12 @@ from .base import (
 )
 
 
+RNA_PROPERTIES = [
+    'rna_integrity_number',
+    'rna_integrity_number_instrument',
+    'ribosomal_rna_ratio'
+]
+
 @collection(
     name="analytes",
     unique_key="submitted_id",
@@ -35,18 +41,17 @@ class Analyte(SubmittedItem):
 
 
 def validate_rna_molecule_properties(context,request):
-    """Check that `molecule` contains RNA if RNA-specific properties have values."""
+    """Check that `molecule` contains RNA if RNA-specific properties have values.
+    
+    RNA-specific properties in `RNA_PROPERTIES`.
+    """
 
-    rna_properties = [
-        'rna_integrity_number',
-        'rna_integrity_number_instrument',
-        'ribosomal_rna_ratio'
-    ]
+
     molecule = 'RNA'
     data = request.json
     if 'molecule' in data:
         if molecule not in data['molecule']:
-            for property in rna_properties:
+            for property in RNA_PROPERTIES:
                 if data.get(property,""):
                     msg = f"Property {property} is specific to molecule {molecule}."
                     return request.errors.add('body', 'Analyte: invalid property values', msg)
