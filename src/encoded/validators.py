@@ -1,6 +1,7 @@
 from pyramid.view import view_config
 from snovault.util import debug_log
 from encoded.types.submitted_item import validate_submitted_id
+from typing import List
 
 # Module with custom validators exposed as APIs.
 # First used for submitted_id validation for smaht-submitr.
@@ -62,7 +63,11 @@ def _validator_submitted_id(context, request, submitted_id):
     return {}
 
 
-def _lookup_submission_center_codes(request, submission_centers):
+def _lookup_submission_center_codes(request, submission_centers: List[str]) -> List[str]:
+    """
+    Returns the list of submission code identifiers (e.g. ['washu_gcc']) given a
+    list of submission center uuids (e.g. ['6030743e-631e-48e5-876d-df336066fa6e']).
+    """
     submission_center_codes = []
     for submission_center in submission_centers:
         # TODO: Do we need an as_user="INGESTION" argument or something with the request.embed call below?
