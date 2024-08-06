@@ -126,10 +126,11 @@ def update_google_sheets(
     sheets_client: SheetsClient,
     request_handler: RequestHandler,
     gcc: bool = False,
-    tpc: bool = False
+    tpc: bool = False,
+    items: List[str] = None
 ) -> None:
     """Update Google Sheets with the latest submission schemas."""
-    spreadsheets = get_spreadsheets(request_handler,gcc=gcc,tpc=tpc)
+    spreadsheets = get_spreadsheets(request_handler,gcc=gcc,tpc=tpc,items=items)
     log.info("Clearing existing Google sheets.")
     delete_existing_sheets(sheets_client)
     log.info("Updating Google sheets with tabs.")
@@ -144,10 +145,17 @@ def update_google_sheets(
 def get_spreadsheets(
         request_handler: RequestHandler,
         gcc: bool = False,
-        tpc: bool = False
+        tpc: bool = False,
+        items: List[str] = None
     ) -> List[Spreadsheet]:
     submission_schemas = get_all_submission_schemas(request_handler)
     ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,gcc=gcc,tpc=tpc)
+    if items:
+        return [
+            get_spreadsheet(item, submission_schema)
+            for item, submission_schema in ordered_submission_schemas.items()
+            if item in items
+        ]
     return [
         get_spreadsheet(item, submission_schema)
         for item, submission_schema in ordered_submission_schemas.items()
@@ -988,23 +996,33 @@ def main():
         parser.error("Cannot specify both all and gcc")
     if args.all and args.item:
         parser.error("Cannot specify both all and item")
-    if args.google and args.all:
-        log.info(f"Google Sheet ID: {args.google}")
-        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-        spreadsheet_client = get_google_sheet_client(args.google)
-        update_google_sheets(spreadsheet_client, request_handler)
-    elif args.google and args.gcc:
-        log.info(f"Google Sheet ID: {args.google}")
-        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-        log.info("Writing GCC submission Google sheet")
-        spreadsheet_client = get_google_sheet_client(args.google)
-        update_google_sheets(spreadsheet_client, request_handler,gcc=True)
-    elif args.google and args.tpc:
-        log.info(f"Google Sheet ID: {args.google}")
-        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-        log.info("Writing TPC submission Google sheet")
-        spreadsheet_client = get_google_sheet_client(args.google)
-        update_google_sheets(spreadsheet_client, request_handler,tpc=True)
+    # Google spreadsheets
+    if args.google:
+        if args.all:
+            log.info(f"Google Sheet ID: {args.google}")
+            log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+            spreadsheet_client = get_google_sheet_client(args.google)
+            update_google_sheets(spreadsheet_client, request_handler)
+        elif args.gcc:
+            log.info(f"Google Sheet ID: {args.google}")
+            log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+            log.info("Writing GCC submission Google sheet")
+            spreadsheet_client = get_google_sheet_client(args.google)
+            update_google_sheets(spreadsheet_client, request_handler,gcc=True)
+        elif args.tpc:
+            log.info(f"Google Sheet ID: {args.google}")
+            log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+            log.info("Writing TPC submission Google sheet")
+            spreadsheet_client = get_google_sheet_client(args.google)
+            update_google_sheets(spreadsheet_client, request_handler,tpc=True)
+        elif args.item:
+            log.info(f"Google Sheet ID: {args.google}")
+            log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+            log.info(f"Writing submission Google sheet for item(s): {args.item}")
+            spreadsheet_client = get_google_sheet_client(args.google)
+            update_google_sheets(spreadsheet_client, request_handler,items=args.item)
+        else:
+            parser.error("No items specified to write or update Google spreadsheets for")
     elif args.workbook and args.all:
         log.info("Writing all submission spreadsheets")
         write_all_spreadsheets(
