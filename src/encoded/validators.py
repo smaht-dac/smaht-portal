@@ -72,7 +72,8 @@ def _lookup_submission_center_codes(request, submission_centers):
     return submission_center_codes
 
 
-# Names of validators; i.e. the {validator} part of the endpoint /validators/{validator}.
+# Names of validators, i.e. the {validator} part of the endpoint /validators/{validator},
+# and its mapping to its specific validator function; currently just submitted_id.
 _VALIDATORS = {
     "submitted_id": _validator_submitted_id
 }
