@@ -10,19 +10,19 @@ def includeme(config):
     config.scan(__name__)
 
 
-def _validator_submitted_id(context, request, value):
+def _validator_submitted_id(context, request, submitted_id):
     """
-    Assuming the given value argument is a submitted_id, returns a dictionary with an indication of
-    whether or not it is of valid format. An optional request submission_centers argument may be given
-    representing a comma-separated list of submission center names (e.g. washu_gcc) which are allowed
-    to be represented within the submitted_id; if this is NOT given then the submission centers are
-    obtained from the effective_principals for the user of the request; UNLESS the user has admin
-    priviliges in which case we say that the given submitted_id is valid regardless of its format.
-    If the submitted_id is valid then returns something like this:
+    Validates the given submitted_id argument and returns a dictionary with an indication of
+    whether or not it is of valid format. An optional submission_centers request argument may
+    be given representing a comma-separated list of submission center names (e.g. washu_gcc)
+    which are allowed to be represented within the submitted_id; if this is NOT given then the
+    submission centers are obtained from the effective_principals for the USER of the request;
+    UNLESS the user has admin priviliges in which case we say that the given submitted_id is
+    valid regardless of its format. If the submitted_id is valid then returns something like:
 
       {"submitted_id": "BCM_SOFTWARE_LIMA", "status": "OK"}
 
-    If the submitted_id is not valid then returns something like this:
+    If the submitted_id is not valid then returns something like:
 
       {"submitted_id": "XYZ_SOFTWARE_LIMA",
        "status": "Submitted ID BCM_SOFTWARE_LIMA start (XYZ) does not match options for submission centers: ['DAC', 'WASHU']"}
