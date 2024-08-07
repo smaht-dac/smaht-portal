@@ -20,6 +20,14 @@ Change Log
   - DonorSpecificAssembly.total_ungapped_length
 
 
+0.78.5
+======
+
+`PR 220: fix: move modal styles into search.scss <https://github.com/smaht-dac/smaht-portal/pull/220>`_
+* fix: styling issue in File Overview metadata download modal
+* Move modal styles into _search.scss file
+
+
 0.78.4
 ======
 
