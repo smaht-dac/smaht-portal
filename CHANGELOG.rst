@@ -11,6 +11,8 @@ Change Log
 ======
 
 * Added validators endpoint to validate (initially) submitted_id for smaht-submitr.
+* Added allow_multiplier_suffix and allow_commas properties (both true) to target_read_length
+  in the Sequencing schema (.../schemas/sequencing.json) for processing by smaht-submitr.
 
 
 0.78.4
