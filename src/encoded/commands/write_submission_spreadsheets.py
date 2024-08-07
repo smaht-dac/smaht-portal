@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import googleapiclient
+import googleapiclient.discovery
 import openpyxl
 import structlog
 from dcicutils.creds_utils import SMaHTKeyManager
@@ -27,6 +28,8 @@ GOOGLE_SHEET_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 GOOGLE_CREDENTIALS_LOCATION = "~/google_sheets_creds.json"
 GOOGLE_CREDENTIALS_PATH = Path.expanduser(Path(GOOGLE_CREDENTIALS_LOCATION))
 GOOGLE_TOKEN_PATH = Path.expanduser(Path("~/google_sheets_token.json"))
+
+OVERVIEW_GUIDELINES_SHEET_ID = "1hDz22YGyLsgnoC0QeZwmf6zk0guZ9930yEFi1huhV20"
 
 """
 Google Information as of 2024-06-10
@@ -108,11 +111,21 @@ DSA_SUBMISSION_ITEMS = [
 class SheetsClient:
     client: googleapiclient.discovery.Resource
     sheet_id: str
+    cover_sheet_id: str
 
     def get_worksheets(self) -> List[Dict[str, Any]]:
         """Get the worksheets from Google Sheets."""
         sheet = self.client.get(spreadsheetId=self.sheet_id).execute()
         return sheet["sheets"]
+    
+    def submit_copy_requests(self,requests: Dict[str, Any]) -> None:
+        """Submit copyTo requests to Google Sheets."""
+        request=self.client.sheets().copyTo(
+            spreadsheetId = self.cover_sheet_id,
+            sheetId=0,
+            body=requests,
+        )
+        request.execute()
 
     def submit_requests(self, requests: List[Dict[str, Any]]) -> None:
         """Submit requests to Google Sheets."""
@@ -133,6 +146,8 @@ def update_google_sheets(
     spreadsheets = get_spreadsheets(request_handler,gcc=gcc,tpc=tpc,items=items)
     log.info("Clearing existing Google sheets.")
     delete_existing_sheets(sheets_client)
+    # log.info("Adding Overview/Guidelines in Google sheets.")
+    # add_overview_sheet(sheets_client,spreadsheets)
     log.info("Updating Google sheets with tabs.")
     update_or_add_spreadsheets(sheets_client, spreadsheets)
     log.info("Writing properties to Google sheets.")
@@ -190,6 +205,16 @@ def get_delete_sheet_request(sheet_id: int) -> Dict[str, Any]:
     return {"deleteSheet": {"sheetId": sheet_id}}
 
 
+def add_overview_sheet(
+    sheets_client: SheetsClient,
+    spreadsheets: List[Spreadsheet]
+) -> None:
+    """Add Overview/Guidelines sheet to spreadsheet."""
+    requests= get_copy_sheet_request(sheets_client.sheet_id)
+    if requests:
+        sheets_client.submit_copy_requests(requests)
+
+
 def update_or_add_spreadsheets(
     sheets_client: SheetsClient, spreadsheets: List[Spreadsheet]
 ) -> None:
@@ -219,6 +244,13 @@ def get_update_sheet_title_request(
             },
             "fields": "title",
         }
+    }
+
+
+def get_copy_sheet_request(sheet_id: str) -> Dict[str, Any]:
+    """Get request to copy a sheet."""
+    return {
+        "destinationSpreadsheetId": sheet_id
     }
 
 
@@ -1077,7 +1109,7 @@ def get_google_sheet_client(sheet_id: str) -> SheetsClient:
     """Get Google Sheet to write/update."""
     credentials = get_google_credentials()
     service = build("sheets", "v4", credentials=credentials)
-    return SheetsClient(service.spreadsheets(), sheet_id)
+    return SheetsClient(service.spreadsheets(), sheet_id, OVERVIEW_GUIDELINES_SHEET_ID)
 
 
 def get_google_credentials() -> Dict[str, Any]:
