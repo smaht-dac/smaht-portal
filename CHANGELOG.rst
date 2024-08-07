@@ -13,6 +13,13 @@ Change Log
 * Added validators endpoint to validate (initially) submitted_id for smaht-submitr.
 
 
+0.78.4
+======
+
+`PR 218: fix: typerror in ItemDetailList's ShouldUseTable <https://github.com/smaht-dac/smaht-portal/pull/218>`_
+* fix: typerror, support number value being first
+
+
 0.78.3
 ======
 
