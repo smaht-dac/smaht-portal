@@ -11,8 +11,13 @@ Change Log
 ======
 
 * Added validators endpoint to validate (initially) submitted_id for smaht-submitr.
-* Added allow_multiplier_suffix and allow_commas properties (both true) to target_read_length
-  in the Sequencing schema (.../schemas/sequencing.json) for processing by smaht-submitr.
+* Added allow_multiplier_suffix and allow_commas properties (both true) to these schemas properties:
+  - Sequencing.target_read_length
+  - DonorSpecificAssembly.contig_n50
+  - DonorSpecificAssembly.genome_size
+  - DonorSpecificAssembly.largest_contig_size
+  - DonorSpecificAssembly.scaffold_n50
+  - DonorSpecificAssembly.total_ungapped_length
 
 
 0.78.4
