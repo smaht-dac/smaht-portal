@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.78.6
+======
+
+`PR 207: feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/207>`_
+
+* Reorganize Awardees Visualizations
+* Provide links to individual PI's labs
+* Reformat/reword copy
+
+
 0.78.5
 ======
 
