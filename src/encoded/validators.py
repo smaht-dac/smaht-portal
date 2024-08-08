@@ -33,7 +33,7 @@ def _validator_submitted_id(context, request, submitted_id):
     STATUS_OK = "OK"
     if submitted_id:
         if (submission_centers := request.GET.get("submission_centers")):
-            # Allow passing in submission_centers just in case we need it explicit control.
+            # Allow passing in submission_centers just in case we need explicit control.
             submission_centers = [item.strip() for item in submission_centers.split(",")]
         elif "group.admin" in request.effective_principals:
             # For admin users we let anything be valid. Not 100% technically correct; really should
