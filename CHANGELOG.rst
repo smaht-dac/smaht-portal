@@ -7,6 +7,28 @@ smaht-portal
 Change Log
 ----------
 
+0.78.5
+======
+
+`PR 220: fix: move modal styles into search.scss <https://github.com/smaht-dac/smaht-portal/pull/220>`_
+* fix: styling issue in File Overview metadata download modal
+* Move modal styles into _search.scss file
+
+
+0.78.4
+======
+
+`PR 218: fix: typerror in ItemDetailList's ShouldUseTable <https://github.com/smaht-dac/smaht-portal/pull/218>`_
+* fix: typerror, support number value being first
+
+
+0.78.3
+======
+
+`PR 213: Bm homepage drawer update <https://github.com/smaht-dac/smaht-portal/pull/213>`_
+* Change defaultActiveKey and activeKey settings to get different home page drawer-tiers to stay open once selected
+
+
 0.78.2
 ======
 
