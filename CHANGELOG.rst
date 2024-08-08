@@ -7,14 +7,60 @@ smaht-portal
 Change Log
 ----------
 
-0.76.3
+0.78.5
 ======
 
-`PR 207: feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/207>`_
+`PR 220: fix: move modal styles into search.scss <https://github.com/smaht-dac/smaht-portal/pull/220>`_
+* fix: styling issue in File Overview metadata download modal
+* Move modal styles into _search.scss file
 
-* Reorganize Awardees Visualizations
-* Provide links to individual PI's labs
-* Reformat/reword copy
+
+0.78.4
+======
+
+`PR 218: fix: typerror in ItemDetailList's ShouldUseTable <https://github.com/smaht-dac/smaht-portal/pull/218>`_
+* fix: typerror, support number value being first
+
+
+0.78.3
+======
+
+`PR 213: Bm homepage drawer update <https://github.com/smaht-dac/smaht-portal/pull/213>`_
+* Change defaultActiveKey and activeKey settings to get different home page drawer-tiers to stay open once selected
+
+
+0.78.2
+======
+
+`PR 208: feat: AWS CLI command <https://github.com/smaht-dac/smaht-portal/pull/208>`_
+* Reorganize CLI commands components
+* Utilize bootstrap Tabs component
+* Styling updates for the command container
+
+
+0.78.1
+======
+
+* Disable tagging and commenting functionality for non-admins on Submission Status page
+
+
+0.78.0
+======
+`PR212: Add functionality for arrays of objects <https://github.com/smaht-dac/smaht-portal/pull/212>`_
+* Updates write_submission_spreadsheets to write out columns for arrays of objects
+* Currently relevant for CellCultureMixture and the components property which has two nested properties, `ratio` and `cull_culture`
+
+
+0.77.0
+======
+
+`PR210: DSA Schema Update <https://github.com/smaht-dac/smaht-portal/pull/210>`_
+* Changes to DonorSpecificAssembly and SupplementaryFile schemas to reflect GCC feedback:
+  * BUSCO score properties created for each haplotype  (e.g. `percent_single_copy` to `percent_single_copy_hap1` and `percent_single_copy_hap2`)
+  * Change property name from `percent_duplicate` to `percent_multi_copy` for clarity
+  * Change property name from `largest_contig` to `largest_contig_size` for clartiy
+  * Change enums for `data_type` and `data_category` specific to SupplementaryFile fasta and chain files
+  * Fix descriptions of some properties
 
 
 0.76.2
