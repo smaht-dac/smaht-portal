@@ -7,6 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+0.80.0
+======
+`PR216: Add ExternalQualityMetric <https://github.com/smaht-dac/smaht-portal/pull/216>`_
+* Add `ExternalQualityMetric` item type which is a submitted item inheriting some properties from pre-existing `QualityMetric`
+* Create new linking property `external_quality_metrics` in `file.json`
+* Add new properties to `variant_calls.json` schema: `comparator`, `external_databases`, and `filtering_methods`
+
+
+0.79.0
+======
+`PR216: Add ExternalQualityMetric <https://github.com/smaht-dac/smaht-portal/pull/221>`_
+* Embed `file_sets.sequencing.target_coverage`` in file.py and adds "Target Group Coverage" to `data_generation_summary`` used in the File Overview Page
+
+
 0.78.5
 ======
 
