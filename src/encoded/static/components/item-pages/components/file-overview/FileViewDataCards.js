@@ -107,8 +107,13 @@ const data_information = [
     },
     {
         title: 'Dataset Target Coverage',
-        getProp: (context = {}) =>
-            context?.data_generation_summary?.target_group_coverage?.join(', '),
+        getProp: (context = {}) => {
+            const cov = context?.data_generation_summary?.target_group_coverage;
+            if (cov && cov.length > 0) {
+                return cov[0] + 'X';
+            }
+            return null;
+        },
     },
 ];
 const sample_information = [
