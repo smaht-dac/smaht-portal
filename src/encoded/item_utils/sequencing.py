@@ -16,6 +16,11 @@ def get_target_read_length(properties: Dict[str, Any]) -> Union[int, None]:
     return properties.get("target_read_length")
 
 
+def get_target_coverage(properties: Dict[str, Any]) -> Union[int, None]:
+    """Get target coverage from properties."""
+    return properties.get("target_coverage")
+
+
 def get_flow_cell(properties: Dict[str, Any]) -> str:
     """Get flow cell from properties."""
     return properties.get("flow_cell", "")
