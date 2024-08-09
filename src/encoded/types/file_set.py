@@ -270,28 +270,29 @@ def validate_compatible_assay_and_sequencer(context, request):
     or are added to the portal.
     """
     data = request.json
-    assays = []
-    valid_sequencers = []
-    for library in data['libraries']:
-        assay_aid = library_utils.get_assay(
-            get_item_or_none(request, library, 'library')
+    if 'libraries' in data:
+        assays = []
+        valid_sequencers = []
+        for library in data['libraries']:
+            assay_aid = library_utils.get_assay(
+                get_item_or_none(request, library, 'library')
+            )
+            assay = get_item_or_none(request, assay_aid, 'assay')
+            assays.append(
+                item_utils.get_identifier(assay)
+            )
+            valid_sequencers += assay_utils.get_valid_sequencers(assay)
+        sequencer_aid = sequencing_utils.get_sequencer(
+            get_item_or_none(request, data['sequencing'], 'sequencing')
         )
-        assay = get_item_or_none(request, assay_aid, 'assay')
-        assays.append(
-            item_utils.get_identifier(assay)
+        sequencer = item_utils.get_identifier(
+            get_item_or_none(request, sequencer_aid, 'sequencer')
         )
-        valid_sequencers += assay_utils.get_valid_sequencers(assay)
-    sequencer_aid = sequencing_utils.get_sequencer(
-        get_item_or_none(request, data['sequencing'], 'sequencing')
-    )
-    sequencer = item_utils.get_identifier(
-        get_item_or_none(request, sequencer_aid, 'sequencer')
-    )
-    if valid_sequencers:
-        if sequencer not in valid_sequencers:
-            msg = f"Sequencer {sequencer} is not allowed for assay {assay}. Valid sequencers are {','.join(valid_sequencers)}"
-            return request.errors.add('body', 'FileSet: invalid links', msg)
-    return request.validated.update({})
+        if valid_sequencers:
+            if sequencer not in valid_sequencers:
+                msg = f"Sequencer {sequencer} is not allowed for assay {assay}. Valid sequencers are {','.join(valid_sequencers)}"
+                return request.errors.add('body', 'FileSet: invalid links', msg)
+        return request.validated.update({})
 
 
 FILE_SET_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
