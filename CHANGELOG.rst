@@ -7,6 +7,18 @@ smaht-portal
 Change Log
 ----------
 
+0.81.0
+======
+
+`PR 209: Statistics Y-Axis Scale <https://github.com/smaht-dac/smaht-portal/pull/209>`_
+* Usage stats: Add y-axis linear/pow/log scale options
+* Usage stats: Split file downlods into two sections as file downloads and top file downloads (/w top 10/25/50/100 options) for clarity
+* Usage stats: Exclude index file downloads (external_files)
+* Submission stats: Fix custom date range filtering bug
+* Misc: Improve charts and filters rendering in small and mid-size devices
+* Misc: Improves warning messages displayed when the charts fail to render
+
+
 0.80.0
 ======
 `PR216: Add ExternalQualityMetric <https://github.com/smaht-dac/smaht-portal/pull/216>`_
