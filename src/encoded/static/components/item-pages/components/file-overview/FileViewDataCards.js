@@ -105,6 +105,16 @@ const data_information = [
         getProp: (context = {}) =>
             context?.data_generation_summary?.sequencing_platforms?.join(', '),
     },
+    {
+        title: 'Dataset Target Coverage',
+        getProp: (context = {}) => {
+            const cov = context?.data_generation_summary?.target_group_coverage;
+            if (cov && cov.length > 0) {
+                return cov[0] + 'X';
+            }
+            return null;
+        },
+    },
 ];
 const sample_information = [
     {
