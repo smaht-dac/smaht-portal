@@ -16,6 +16,12 @@ from .base import (
     Item
 )
 
+from ..item_utils import (
+    item as item_utils,
+    assay as assay_utils,
+    analyte as analyte_utils
+)
+
 ASSAY_DEPENDENT = {
     "target_monomer_size": ["bulk_mas_iso_seq"]
 }
@@ -41,42 +47,43 @@ class Library(SubmittedItem):
     class Collection(Item.Collection):
         pass
 
-def validate_molecule_specific_assay(context,request):
+def validate_molecule_specific_assay(context, request):
     """Check that analyte.molecule includes the correct molecule for molecule-specific assays.
     
     The assays with `valid_molecules` property may need to be updated as new techologies come out 
     or are added to the portal.
     """
-
     data = request.json
-    if 'analytes' in data:
-        molecules = []
-        for analyte in data['analytes']:
-            molecules+=get_item_or_none(request, analyte, 'analytes').get("molecule",[])
-        assay = get_item_or_none(request,data['assay'],'assays')
-        valid_molecules = assay.get("valid_molecules",[])
-        if valid_molecules:
-            overlap = list(set(molecules) & set(valid_molecules))
-            if not overlap:
-                msg = f"Assay {assay} is specific to molecules: {valid_molecules}."
-                return request.errors.add('body', 'Library: invalid links', msg)
-        return request.validated.update({})
+    molecules = []
+    for analyte in data['analytes']:
+        molecules += analyte_utils.get_molecule(
+            get_item_or_none(request, analyte, 'analytes')
+        )
+    assay = get_item_or_none(request, data['assay'], 'assays')
+    valid_molecules = assay_utils.get_valid_molecules(assay)
+    if valid_molecules:
+        overlap = list(set(molecules) & set(valid_molecules))
+        if not overlap:
+            msg = f"Assay {assay} is specific to molecules: {valid_molecules}."
+            return request.errors.add('body', 'Library: invalid links', msg)
+    return request.validated.update({})
     
 
-def validate_assay_specific_properties(context,request):
+def validate_assay_specific_properties(context, request):
     """Check that assay is appropriate for assay-specific properties.
     
     Assay-specific properties are in `ASSAY_DEPENDENT`
     """
     data = request.json
-    if 'assay' in data:
-        for property in ASSAY_DEPENDENT.keys():
-            if data.get(property,""):
-                assay = get_item_or_none(request,data['assay'],'assays').get("identifier","")
-                if assay not in ASSAY_DEPENDENT[property]:
-                    msg = f"Property {property} not compatible with assay {assay}."
-                    return request.errors.add('body', 'Library: invalid property value', msg)
-        return request.validated.update({})
+    for property in ASSAY_DEPENDENT.keys():
+        if property in data:
+            assay = item_utils.get_identifier(
+                get_item_or_none(request, data['assay'], 'assays')
+            )
+            if assay not in ASSAY_DEPENDENT[property]:
+                msg = f"Property {property} not compatible with assay {assay}. Valid for assays {', '.join(ASSAY_DEPENDENT[property])}"
+                return request.errors.add('body', 'Library: invalid property value', msg)
+    return request.validated.update({})
 
 
 LIBRARY_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [

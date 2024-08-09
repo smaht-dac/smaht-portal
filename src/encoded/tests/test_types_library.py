@@ -2,8 +2,10 @@ import pytest
 from webtest.app import TestApp
 from typing import Dict, Any
 
-from .utils import get_insert_identifier_for_item_type, patch_item, get_item_from_search
-from .test_permissions import post_item_then_delete, post_item_to_fail
+from .utils import get_insert_identifier_for_item_type, patch_item, get_item_from_search, post_item
+
+from ..item_utils import item as item_utils
+
 
 @pytest.mark.workbook
 @pytest.mark.parametrize(
@@ -37,24 +39,24 @@ def test_validate_library_properties_on_patch(
     expected_status: int
 ) -> None:
     """Ensure library assay, and analytes, and RNA properties validated on PATCH."""
-    identifier = get_insert_identifier_for_item_type(es_testapp,'library')
+    identifier = get_insert_identifier_for_item_type(es_testapp, 'library')
     patch_item(es_testapp, patch_body, identifier, status=expected_status)
 
 
 @pytest.mark.workbook
 @pytest.mark.parametrize(
-    "post_body,expected_status", [
-        ({"assay": "bulk_wgs", "analytes": ["TEST_ANALYTE_LIVER"]}, 200), # DNA assay and analyte
-        ({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_HELA"]}, 200), # RNA assay and analyte
-        ({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_LIVER"]}, 422), #RNA assay and DNA analyte
-        ({"assay": "bulk_fiberseq", "analytes": ["TEST_ANALYTE_HELA"]}, 422), #DNA assay and RNA analyte
+    "post_body,expected_status,index", [
+        ({"assay": "bulk_wgs", "analytes": ["TEST_ANALYTE_LIVER"]}, 201,1), # DNA assay and analyte
+        ({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_HELA"]}, 201,2), # RNA assay and analyte
+        ({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_LIVER"]}, 422,2), #RNA assay and DNA analyte
+        ({"assay": "bulk_fiberseq", "analytes": ["TEST_ANALYTE_HELA"]}, 422,2), #DNA assay and RNA analyte
         (
             {
                 "assay": "bulk_rna_seq",
                 "analytes": ["TEST_ANALYTE_HELA"],
                 "concatenated_reads": "Yes",
                 "target_monomer_size": 10000
-            }, 422
+            }, 422,2
         ), #MAS ISO-Seq properties and incompatible assay
         (
             {
@@ -62,7 +64,7 @@ def test_validate_library_properties_on_patch(
                 "analytes": ["TEST_ANALYTE_HELA"],
                 "concatenated_reads": "Yes",
                 "target_monomer_size": 10000
-            }, 200 #MAS ISO-Seq properties and compatible assay
+            }, 201,3 #MAS ISO-Seq properties and compatible assay
         ),
     ]
 )
@@ -70,19 +72,16 @@ def test_validate_library_properties_on_post(
     es_testapp: TestApp,
     workbook: None,
     post_body: Dict[str, Any],
-    expected_status: int
+    expected_status: int,
+    index: int
 ) -> None:
     """Ensure library assay, and analytes, and RNA properties validated on POST."""
     library_insert = get_item_from_search(es_testapp,'library')
     identifying_post_body = {
-        "submitted_id": 'TEST_LIBRARY_TEST',
-        "submission_centers":  library_insert.get("submission_centers",[]),
+        "submitted_id": f"TEST_LIBRARY_TEST{index}",
+        "submission_centers":  item_utils.get_submission_centers(library_insert),
         **post_body
     }
-    if expected_status == 422:
-        post_item_to_fail(es_testapp,"library",identifying_post_body)
-    elif expected_status == 200:
-        post_item_then_delete(es_testapp,es_testapp,"library",identifying_post_body)
-
+    post_item(es_testapp, identifying_post_body, 'library', status=expected_status)
 
 

@@ -97,7 +97,19 @@
             "type": "array",
             "uniqueItems": true,
             "items": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                    "element_aviti",
+                    "bgi_dnbseq_g400",
+                    "illumina_novaseq_x_plus",
+                    "illumina_hiseq_x",
+                    "ont_minion_mk1b",
+                    "ont_promethion_2_solo",
+                    "ont_promethion_24",
+                    "illumina_novaseq_6000",
+                    "pacbio_revio_hifi",
+                    "illumina_novaseq_x"
+                ]
             }
         }
     },

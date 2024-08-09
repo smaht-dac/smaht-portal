@@ -1,3 +1,5 @@
+import re
+
 from snovault import collection, load_schema
 from snovault.util import debug_log
 
@@ -17,12 +19,6 @@ from .base import (
 )
 
 
-RNA_PROPERTIES = [
-    'rna_integrity_number',
-    'rna_integrity_number_instrument',
-    'ribosomal_rna_ratio'
-]
-
 @collection(
     name="analytes",
     unique_key="submitted_id",
@@ -40,26 +36,22 @@ class Analyte(SubmittedItem):
         pass
 
 
-def validate_rna_molecule_properties(context,request):
-    """Check that `molecule` contains RNA if RNA-specific properties have values.
-    
-    RNA-specific properties in `RNA_PROPERTIES`.
-    """
-
+def validate_molecule_specific_properties(context,request):
+    """Check that `molecule` is compatible with molecule-specific properties."""
     data = request.json
+    molecules = ['DNA','RNA']
     if 'molecule' in data:
-        if 'RNA' not in data['molecule']:
-            for property in RNA_PROPERTIES:
-                if data.get(property,""):
-                    msg = f"Property {property} is specific to molecule RNA."
+        for molecule in molecules:
+            if molecule not in data['molecule']:
+                specific_properties = [ key for key in data.keys() if re.match(f"{molecule.lower()}",key) ]
+                if specific_properties:
+                    msg = f"Property {specific_properties} is specific to molecule {molecule}."
                     return request.errors.add('body', 'Analyte: invalid property values', msg)
-                else:
-                    return request.validated.update({})
         return request.validated.update({})
 
 
 ANALYTE_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
-    validate_rna_molecule_properties
+    validate_molecule_specific_properties
 ]
 
 @view_config(
@@ -74,11 +66,11 @@ def analyte_add(context, request, render=None):
 
 
 ANALYTE_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
-    validate_rna_molecule_properties
+    validate_molecule_specific_properties
 ]
 
 ANALYTE_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
-    validate_rna_molecule_properties
+    validate_molecule_specific_properties
 ]
 
 @view_config(

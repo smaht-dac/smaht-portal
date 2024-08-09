@@ -29,17 +29,17 @@
         "dna_integrity_number_instrument": [
             "dna_integrity_number"
         ],
-        "genomic_quality_number": [
-            "genomic_quality_number_instrument",
-            "genomic_quality_size_threshold"
+        "dna_genomic_quality_number": [
+            "dna_genomic_quality_number_instrument",
+            "dna_genomic_quality_size_threshold"
         ],
-        "genomic_quality_number_instrument": [
-            "genomic_quality_number",
-            "genomic_quality_size_threshold"
+        "dna_genomic_quality_number_instrument": [
+            "dna_genomic_quality_number",
+            "dna_genomic_quality_size_threshold"
         ],
-        "genomic_quality_size_threshold": [
-            "genomic_quality_number",
-            "genomic_quality_number_instrument"
+        "dna_genomic_quality_size_threshold": [
+            "dna_genomic_quality_number",
+            "dna_genomic_quality_number_instrument"
         ],
         "dna_quality_number": [
             "dna_quality_number_instrument",
@@ -192,14 +192,14 @@
             "type": "number",
             "minimum": 0
         },
-        "genomic_quality_number": {
+        "dna_genomic_quality_number": {
             "title": "Genomic Quality Number",
             "description": "Genomic quality number, percent of samples above threshold value",
             "type": "number",
             "minimum": 0,
             "maximum": 10
         },
-        "genomic_quality_number_instrument": {
+        "dna_genomic_quality_number_instrument": {
             "title": "Genomic Quality Number Instrument",
             "description": "Instrument used for GQN assessment",
             "type": "array",
@@ -211,7 +211,7 @@
                 ]
             }
         },
-        "genomic_quality_size_threshold": {
+        "dna_genomic_quality_size_threshold": {
             "title": "Genomic Quality Size Threshold",
             "description": "Threshold set in ProSize for genomic quality number, for assessing percent of samples above threshold size (bp), if applicable",
             "type": "number",
