@@ -1363,15 +1363,11 @@ $workflow-node-color-type-global-context: #ffb3b3;
         background-color: #F1F9FF;
     }
     &#usage {
-        .dropdown-container {
-            display: flex !important;
-            align-items: center !important;
-        }
         @include media-breakpoint-down(md) {
             h3 {
                 font-size: 1rem;
             }
-            .dropdown .btn {
+            .chart-group .dropdown .btn {
                 max-width: 160px;
                 overflow: hidden;
                 text-overflow: ellipsis;
