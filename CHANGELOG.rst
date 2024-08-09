@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.80.1
+======
+`PR222: feat: add dataset target coverage row <https://github.com/smaht-dac/smaht-portal/pull/222>`_
+* Add dataset target coverage row to File Overview's Data Information card
+
+
 0.80.0
 ======
 `PR216: Add ExternalQualityMetric <https://github.com/smaht-dac/smaht-portal/pull/216>`_
