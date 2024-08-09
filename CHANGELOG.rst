@@ -7,6 +7,19 @@ smaht-portal
 Change Log
 ----------
 
+0.82.0
+======
+
+* Added validators endpoint to validate (initially) submitted_id for smaht-submitr.
+* Added allow_multiplier_suffix and allow_commas properties (both true) to these schemas properties:
+  - Sequencing.target_read_length
+  - DonorSpecificAssembly.contig_n50
+  - DonorSpecificAssembly.genome_size
+  - DonorSpecificAssembly.largest_contig_size
+  - DonorSpecificAssembly.scaffold_n50
+  - DonorSpecificAssembly.total_ungapped_length
+
+
 0.81.0
 ======
 
