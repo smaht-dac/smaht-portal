@@ -89,10 +89,10 @@ def test_analyte(
     item = {
         "submitted_id": "TEST_ANALYTE_HELA_ONLY",
         "molecule_detail": [
-            "mRNA"
+            "Total DNA"
         ],
         "molecule": [
-            "RNA"
+            "DNA"
         ],
         "a260_a280_ratio": 3.2,
         "concentration": 6.2,

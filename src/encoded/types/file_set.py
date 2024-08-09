@@ -1,10 +1,18 @@
 from typing import Any, Dict, List, Union
 
+from pyramid.view import view_config
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
+from snovault.util import debug_log, get_item_or_none
 
-from .submitted_item import SubmittedItem
+from .submitted_item import (
+    SUBMITTED_ITEM_ADD_VALIDATORS,
+    SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS,
+    SUBMITTED_ITEM_EDIT_PUT_VALIDATORS,
+    SubmittedItem,
+)
 from ..item_utils import (
+    assay as assay_utils,
     file_set as file_set_utils,
     item as item_utils,
     library as library_utils,
@@ -14,13 +22,18 @@ from ..item_utils.utils import RequestHandler, get_property_value_from_identifie
 from ..utils import load_extended_descriptions_in_schemas
 
 
+from .base import (
+    collection_add,
+    item_edit,
+    Item
+)
+
 # These codes are used to generate the mergeable bam grouping calc prop
 # This obviously is not data drive, but in calc props we cannot rely on search
 # and would rather hard code this potentially expensive operation - Will 16 April 2024
 SINGLE_CELL_ASSAY_CODES = [
     '016', '012', '014', '105', '104', '103', '013', '011', '010'
 ]
-
 
 def _build_file_set_embedded_list():
     """Embeds for search on file sets."""
@@ -71,6 +84,9 @@ class FileSet(SubmittedItem):
         "files": ("File", "file_sets"),
         "meta_workflow_runs": ("MetaWorkflowRun", "file_sets"),
     }
+
+    class Collection(Item.Collection):
+        pass
 
     @calculated_property(
         schema={
@@ -245,3 +261,74 @@ class FileSet(SubmittedItem):
             'sequencing': sequencing_part,
             'assay': assay_part
         }
+
+
+def validate_compatible_assay_and_sequencer(context, request):
+    """Check filesets to make sure they are linked to compatible library.assay and sequencing items.
+    
+    The assays with `valid_sequencers` property may need to be updated as new techologies come out 
+    or are added to the portal.
+    """
+    data = request.json
+    assays = []
+    valid_sequencers = []
+    for library in data['libraries']:
+        assay_aid = library_utils.get_assay(
+            get_item_or_none(request, library, 'library')
+        )
+        assay = get_item_or_none(request, assay_aid, 'assay')
+        assays.append(
+            item_utils.get_identifier(assay)
+        )
+        valid_sequencers += assay_utils.get_valid_sequencers(assay)
+    sequencer_aid = sequencing_utils.get_sequencer(
+        get_item_or_none(request, data['sequencing'], 'sequencing')
+    )
+    sequencer = item_utils.get_identifier(
+        get_item_or_none(request, sequencer_aid, 'sequencer')
+    )
+    if valid_sequencers:
+        if sequencer not in valid_sequencers:
+            msg = f"Sequencer {sequencer} is not allowed for assay {assay}. Valid sequencers are {','.join(valid_sequencers)}"
+            return request.errors.add('body', 'FileSet: invalid links', msg)
+    return request.validated.update({})
+
+
+FILE_SET_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
+    validate_compatible_assay_and_sequencer
+]
+
+@view_config(
+    context=FileSet.Collection,
+    permission='add',
+    request_method='POST',
+    validators=FILE_SET_ADD_VALIDATORS,
+)
+@debug_log
+def file_set_add(context, request, render=None):
+    return collection_add(context, request, render)
+
+
+FILE_SET_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
+    validate_compatible_assay_and_sequencer
+]
+
+FILE_SET_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
+    validate_compatible_assay_and_sequencer
+]
+
+@view_config(
+    context=FileSet,
+    permission='edit',
+    request_method='PUT',
+    validators=FILE_SET_EDIT_PUT_VALIDATORS,
+)
+@view_config(
+    context=FileSet,
+    permission='edit',
+    request_method='PATCH',
+    validators=FILE_SET_EDIT_PATCH_VALIDATORS,
+)
+@debug_log
+def file_set_edit(context, request, render=None):
+    return item_edit(context, request, render)
