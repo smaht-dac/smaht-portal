@@ -11,6 +11,11 @@ from .utils import (
     get_search
 )
 
+from ..item_utils import (
+     item as item_utils,
+     file as file_utils
+)
+
 @pytest.mark.workbook
 def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None:
     """Ensure submitted_id is resource path for unaligned reads file
@@ -45,12 +50,12 @@ def test_validate_read_pairs_on_patch(
 ) -> None:
     """Ensure R2 files are paired with R1 files on PATCH."""
     r2_file =get_r2_paired_file(es_testapp)
-    identifier = r2_file.get("uuid","")
+    uuid = item_utils.get_uuid(r2_file)
     if expected_status == 422:
-        response = patch_item(es_testapp, patch_body, identifier,status=expected_status)
+        response = patch_item(es_testapp, patch_body, uuid, status=expected_status)
         assert assert_paired_with_invalid(response)
     elif expected_status == 200:
-        patch_item(es_testapp, patch_body, identifier,status=expected_status)
+        patch_item(es_testapp, patch_body, uuid, status=expected_status)
 
 
 @pytest.mark.workbook
@@ -72,17 +77,17 @@ def test_validate_read_pairs_on_post(
     r2_file =get_r2_paired_file(es_testapp)
     identifying_post_body = {
         "submitted_id": "TEST_UNALIGNED-READS_TEST",
-        "file_format": r2_file.get("file_format",""),
-        "file_sets": r2_file.get("file_sets",[]),
+        "file_format": file_utils.get_file_format(r2_file),
+        "file_sets": file_utils.get_file_sets(r2_file),
         "filename": "test_R2.fastq.gz",
-        "submission_centers": r2_file.get("submission_centers",[]),
+        "submission_centers": item_utils.get_submission_centers(r2_file),
         **post_body
     }
     if expected_status == 422:
-        response = post_item(es_testapp,identifying_post_body,'unaligned_reads',status=expected_status)
+        response = post_item(es_testapp, identifying_post_body, 'unaligned_reads',status=expected_status)
         assert assert_paired_with_invalid(response)
     elif expected_status == 200:
-        post_item(es_testapp,identifying_post_body,'unaligned_reads')
+        post_item(es_testapp, identifying_post_body, 'unaligned_reads')
 
 
 def assert_paired_with_invalid(

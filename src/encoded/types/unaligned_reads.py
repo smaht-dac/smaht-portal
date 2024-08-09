@@ -37,7 +37,7 @@ def validate_read_pairs(context,request):
     """Check that file is R2 if it has `paired_with` and link of R2 files corresponds to an R1 file."""
     data = request.json
     if 'read_pair_number' in data and 'paired_with' in data:
-        paired_reads = get_item_or_none(request,data['paired_with'],'unaligned-reads').get("read_pair_number","")
+        paired_reads = get_item_or_none(request, data['paired_with'], 'unaligned-reads').get("read_pair_number","")
         if data['read_pair_number'] != 'R2': # paired_with is exclusive to R2
             msg = f"paired_with property is specific to R2 files, read_pair_number is {data['read_pair_number']}."
             return request.errors.add('body', 'UnalignedReads: invalid property', msg)
