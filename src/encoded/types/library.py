@@ -54,20 +54,19 @@ def validate_molecule_specific_assay(context, request):
     or are added to the portal.
     """
     data = request.json
-    if 'analytes' in data:
-        molecules = []
-        for analyte in data['analytes']:
-            molecules += analyte_utils.get_molecule(
-                get_item_or_none(request, analyte, 'analytes')
-            )
-        assay = get_item_or_none(request, data['assay'], 'assays')
-        valid_molecules = assay_utils.get_valid_molecules(assay)
-        if valid_molecules:
-            overlap = list(set(molecules) & set(valid_molecules))
-            if not overlap:
-                msg = f"Assay {assay} is specific to molecules: {valid_molecules}."
-                return request.errors.add('body', 'Library: invalid links', msg)
-        return request.validated.update({})
+    molecules = []
+    for analyte in data['analytes']:
+        molecules += analyte_utils.get_molecule(
+            get_item_or_none(request, analyte, 'analytes')
+        )
+    assay = get_item_or_none(request, data['assay'], 'assays')
+    valid_molecules = assay_utils.get_valid_molecules(assay)
+    if valid_molecules:
+        overlap = list(set(molecules) & set(valid_molecules))
+        if not overlap:
+            msg = f"Assay {assay} is specific to molecules: {valid_molecules}."
+            return request.errors.add('body', 'Library: invalid links', msg)
+    return request.validated.update({})
     
 
 def validate_assay_specific_properties(context, request):

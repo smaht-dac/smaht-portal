@@ -40,14 +40,14 @@ def validate_molecule_specific_properties(context,request):
     """Check that `molecule` is compatible with molecule-specific properties."""
     data = request.json
     molecules = ['DNA','RNA']
-    if 'molecule' in data:
-        for molecule in molecules:
-            if molecule not in data['molecule']:
-                specific_properties = [ key for key in data.keys() if re.match(f"{molecule.lower()}",key) ]
-                if specific_properties:
-                    msg = f"Property {specific_properties} is specific to molecule {molecule}."
-                    return request.errors.add('body', 'Analyte: invalid property values', msg)
-        return request.validated.update({})
+    # if 'molecule' in data:
+    for molecule in molecules:
+        if molecule not in data['molecule']:
+            specific_properties = [ key for key in data.keys() if re.match(f"{molecule.lower()}",key) ]
+            if specific_properties:
+                msg = f"Property {specific_properties} is specific to molecule {molecule}."
+                return request.errors.add('body', 'Analyte: invalid property values', msg)
+    return request.validated.update({})
 
 
 ANALYTE_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [

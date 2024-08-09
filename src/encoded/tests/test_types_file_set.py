@@ -81,7 +81,7 @@ def test_validate_compatible_assay_and_sequencer_on_patch(
         ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_ONT-90X",422,1), # FiberSeq and ONT
         ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_NOVASEQ-500X", 422,1), # bulk_wgs and ONT
         ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_ONT-90X", 201,2), #Cas9 Nanopore and ONT
-        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X",201,2) #bulk_wgs and Illumina NovaSeqX
+        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X",201,3) #bulk_wgs and Illumina NovaSeqX
     ],
 )
 def test_validate_compatible_assay_and_sequencer_on_post(
