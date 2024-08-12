@@ -481,6 +481,7 @@ class Property:
     """
 
     name: str
+    item: str
     description: str = ""
     value_type: str = ""
     required: bool = False
@@ -493,6 +494,7 @@ class Property:
     format_: str = ""
     requires: Optional[List[str]] = None
     exclusive_requirements: Optional[List[str]] = None
+    search: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -503,26 +505,27 @@ class Spreadsheet:
 
 def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet:
     """Get spreadsheet information for item."""
-    properties = get_properties(submission_schema)
+    properties = get_properties(item, submission_schema)
     return Spreadsheet(
         item=item,
         properties=properties,
     )
 
 
-def get_properties(submission_schema: Dict[str, Any]) -> List[Property]:
+def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
     properties = schema_utils.get_properties(submission_schema)
     property_list = []
     for key, value in properties.items():
-        property_list += get_nested_properties(key, value)
+        property_list += get_nested_properties(item, key, value)
     return property_list
 
 
-def get_property(property_name: str, property_schema: Dict[str, Any]) -> Property:
+def get_property(item: str, property_name: str, property_schema: Dict[str, Any]) -> Property:
     """Get property information"""
     return Property(
         name=property_name,
+        item=item,
         description=schema_utils.get_description(property_schema),
         value_type=schema_utils.get_schema_type(property_schema),
         required=is_required(property_schema),
@@ -535,17 +538,18 @@ def get_property(property_name: str, property_schema: Dict[str, Any]) -> Propert
         format_=schema_utils.get_format(property_schema),
         requires=get_corequirements(property_schema),
         exclusive_requirements=get_exclusive_requirements(property_schema),
+        search=get_search_url(property_schema)
     )
 
 
-def get_nested_properties(property_name: str, property_schema: Dict[str, Any]) -> List[Property]:
+def get_nested_properties(item: str, property_name: str, property_schema: Dict[str, Any]) -> List[Property]:
     """Get nested property information if property is array of objects, otherwise get property information."""
     if object_array := get_array_object_properties(property_schema):
-        return get_nested_property(property_name, object_array)
-    return [get_property(property_name,property_schema)]
+        return get_nested_property(item, property_name, object_array)
+    return [get_property(item, property_name, property_schema)]
 
 
-def get_nested_property(property_name:str, property_schema: Dict[str, Any]) -> List[Property]:
+def get_nested_property(item: str, property_name:str, property_schema: Dict[str, Any]) -> List[Property]:
     """Get property information for nested objects.
     
     `count` value is arbitrarily set to 2 to show that multiple values can be accepted in the template
@@ -556,7 +560,7 @@ def get_nested_property(property_name:str, property_schema: Dict[str, Any]) -> L
         for key, value in property_schema.items():
             combined_property_name=f"{property_name}#{index}.{key}"
             object_properties.append(
-                get_property(combined_property_name,value)
+                get_property(item, combined_property_name,value)
             )
     return object_properties
 
@@ -576,6 +580,11 @@ def is_required(property_schema: Dict[str, Any]) -> bool:
 def is_link(property_schema: Dict[str, Any]) -> bool:
     """Check if property is a link to another item"""
     return schema_utils.is_link(property_schema) or is_array_of_links(property_schema)
+
+
+def get_linkto(property_schema: Dict[str, Any]) -> bool:
+    """Get property linkTo item"""
+    return property_schema.get("linkTo","")
 
 
 def is_array_of_links(property_schema: Dict[str, Any]) -> bool:
@@ -842,6 +851,8 @@ def get_comment_text(property_: Property) -> str:
     comment_lines += get_comment_requires(property_, indent)
     comment_lines += get_comment_pattern(property_, indent)
     comment_lines += get_comment_note(property_, indent)
+    comment_lines += get_comment_search(property_, indent)
+
     return "\n".join(comment_lines)
 
 
@@ -915,6 +926,23 @@ def get_comment_note(property_: Property, indent: str) -> List[str]:
     if property_.comment:
         return [f"Note:{indent}{property_.comment}"]
     return []
+
+
+def get_comment_search(property_: Property, indent: str) -> List[str]:
+    if property_.search:
+        if property_.name == "file_format":
+            return [f"Search:{indent}{property_.search}&valid_item_types={property_.item}"]
+        return [f"Search:{indent}{property_.search}"]
+    return []
+
+
+def get_search_url(property_schema: Dict[str, Any]) -> str:
+    """Get portal search url for linked item names."""
+    if is_link(property_schema):
+        linked_item = get_linkto(property_schema) or get_linkto(schema_utils.get_items(property_schema))
+        return f"https://data.smaht.org/search/?type={linked_item}"
+    else:
+        return ""
 
 
 def is_date_format(format_: str) -> bool:
