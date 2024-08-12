@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.82.1
+======
+`PR 224: feat: error state for homepage timeline <https://github.com/smaht-dac/smaht-portal/pull/224>`_
+
+* Implement error state for homepage timeline
+
+
 0.82.0
 ======
 
