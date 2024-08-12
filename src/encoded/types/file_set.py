@@ -28,6 +28,8 @@ from .base import (
     Item
 )
 
+from .utils import get_properties, get_property_for_validation
+
 # These codes are used to generate the mergeable bam grouping calc prop
 # This obviously is not data drive, but in calc props we cannot rely on search
 # and would rather hard code this potentially expensive operation - Will 16 April 2024
@@ -263,8 +265,8 @@ class FileSet(SubmittedItem):
         }
 
 
-def validate_compatible_assay_and_sequencer(context, request):
-    """Check filesets to make sure they are linked to compatible library.assay and sequencing items.
+def validate_compatible_assay_and_sequencer_on_add(context, request):
+    """Check filesets to make sure they are linked to compatible library.assay and sequencing items on add.
     
     The assays with `valid_sequencers` property may need to be updated as new techologies come out 
     or are added to the portal.
@@ -294,8 +296,42 @@ def validate_compatible_assay_and_sequencer(context, request):
     return request.validated.update({})
 
 
+def validate_compatible_assay_and_sequencer_on_edit(context, request):
+    """Check filesets to make sure they are linked to compatible library.assay and sequencing items on edit.
+    
+    The assays with `valid_sequencers` property may need to be updated as new techologies come out 
+    or are added to the portal.
+    """
+    existing_properties = get_properties(context)
+    properties_to_update = get_properties(request)
+    libraries = get_property_for_validation('libraries', existing_properties, properties_to_update)
+    assays = []
+    valid_sequencers = []
+    for library in libraries:
+        assay_aid = library_utils.get_assay(
+            get_item_or_none(request, library, 'library')
+        )
+        assay = get_item_or_none(request, assay_aid, 'assay')
+        assays.append(
+            item_utils.get_identifier(assay)
+        )
+        valid_sequencers += assay_utils.get_valid_sequencers(assay)
+    sequencing = get_property_for_validation('sequencing', existing_properties, properties_to_update)
+    sequencer_aid = sequencing_utils.get_sequencer(
+        get_item_or_none(request, sequencing, 'sequencing')
+    )
+    sequencer = item_utils.get_identifier(
+        get_item_or_none(request, sequencer_aid, 'sequencer')
+    )
+    if valid_sequencers:
+        if sequencer not in valid_sequencers:
+            msg = f"Sequencer {sequencer} is not allowed for assay {assays}. Valid sequencers are {','.join(valid_sequencers)}"
+            return request.errors.add('body', 'FileSet: invalid links', msg)
+    return request.validated.update({})
+
+
 FILE_SET_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
-    validate_compatible_assay_and_sequencer
+    validate_compatible_assay_and_sequencer_on_add
 ]
 
 @view_config(
@@ -310,11 +346,11 @@ def file_set_add(context, request, render=None):
 
 
 FILE_SET_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
-    validate_compatible_assay_and_sequencer
+    validate_compatible_assay_and_sequencer_on_edit
 ]
 
 FILE_SET_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
-    validate_compatible_assay_and_sequencer
+    validate_compatible_assay_and_sequencer_on_edit
 ]
 
 @view_config(

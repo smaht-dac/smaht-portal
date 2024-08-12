@@ -12,6 +12,8 @@ from ..item_utils import item as item_utils
     "patch_body,expected_status", [
         ({"assay": "bulk_wgs", "analytes": ["TEST_ANALYTE_LIVER"]}, 200), # DNA assay and analyte
         ({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_HELA"]}, 200), # RNA assay and analyte
+        ({"analytes": ["TEST_ANALYTE_LIVER"]}, 422), #RNA assay and DNA analyte patch
+        ({"assay": "bulk_fiberseq"}, 422), #RNA assay and DNA analyte patch
         ({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_LIVER"]}, 422), #RNA assay and DNA analyte
         ({"assay": "bulk_fiberseq", "analytes": ["TEST_ANALYTE_HELA"]}, 422), #DNA assay and RNA analyte
         (
@@ -46,17 +48,17 @@ def test_validate_library_properties_on_patch(
 @pytest.mark.workbook
 @pytest.mark.parametrize(
     "post_body,expected_status,index", [
-        ({"assay": "bulk_wgs", "analytes": ["TEST_ANALYTE_LIVER"]}, 201,1), # DNA assay and analyte
-        ({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_HELA"]}, 201,2), # RNA assay and analyte
-        ({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_LIVER"]}, 422,2), #RNA assay and DNA analyte
-        ({"assay": "bulk_fiberseq", "analytes": ["TEST_ANALYTE_HELA"]}, 422,2), #DNA assay and RNA analyte
+        ({"assay": "bulk_wgs", "analytes": ["TEST_ANALYTE_LIVER"]}, 201, 1), # DNA assay and analyte
+        ({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_HELA"]}, 201, 2), # RNA assay and analyte
+        ({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_LIVER"]}, 422, 3), #RNA assay and DNA analyte
+        ({"assay": "bulk_fiberseq", "analytes": ["TEST_ANALYTE_HELA"]}, 422, 4), #DNA assay and RNA analyte
         (
             {
                 "assay": "bulk_rna_seq",
                 "analytes": ["TEST_ANALYTE_HELA"],
                 "concatenated_reads": "Yes",
                 "target_monomer_size": 10000
-            }, 422,2
+            }, 422, 5
         ), #MAS ISO-Seq properties and incompatible assay
         (
             {
@@ -64,7 +66,7 @@ def test_validate_library_properties_on_patch(
                 "analytes": ["TEST_ANALYTE_HELA"],
                 "concatenated_reads": "Yes",
                 "target_monomer_size": 10000
-            }, 201,3 #MAS ISO-Seq properties and compatible assay
+            }, 201, 6 #MAS ISO-Seq properties and compatible assay
         ),
     ]
 )

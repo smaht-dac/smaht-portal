@@ -16,6 +16,8 @@ from .base import (
     Item
 )
 
+from .utils import get_properties, get_property_for_validation
+
 from ..item_utils import (
     item as item_utils,
     assay as assay_utils,
@@ -47,7 +49,7 @@ class Library(SubmittedItem):
     class Collection(Item.Collection):
         pass
 
-def validate_molecule_specific_assay(context, request):
+def validate_molecule_specific_assay_on_add(context, request):
     """Check that analyte.molecule includes the correct molecule for molecule-specific assays.
     
     The assays with `valid_molecules` property may need to be updated as new techologies come out 
@@ -69,27 +71,73 @@ def validate_molecule_specific_assay(context, request):
     return request.validated.update({})
     
 
-def validate_assay_specific_properties(context, request):
-    """Check that assay is appropriate for assay-specific properties.
+def validate_molecule_specific_assay_on_edit(context, request):
+    """Check that analyte.molecule includes the correct molecule for molecule-specific assays.
+    
+    The assays with `valid_molecules` property may need to be updated as new techologies come out 
+    or are added to the portal.
+    """
+    existing_properties = get_properties(context)
+    properties_to_update = get_properties(request)
+    molecules = []
+    analytes = get_property_for_validation('analytes', existing_properties, properties_to_update)
+    for analyte in analytes:
+        molecules += analyte_utils.get_molecule(
+            get_item_or_none(request, analyte, 'analytes')
+        )
+    assay_link = get_property_for_validation('assay', existing_properties, properties_to_update)
+    assay = get_item_or_none(request, assay_link, 'assays')
+    valid_molecules = assay_utils.get_valid_molecules(assay)
+    if valid_molecules:
+        overlap = list(set(molecules) & set(valid_molecules))
+        if not overlap:
+            msg = f"Assay {assay} is specific to molecules: {valid_molecules}."
+            return request.errors.add('body', 'Library: invalid links', msg)
+    return request.validated.update({})
+
+
+def validate_assay_specific_properties_on_add(context, request):
+    """Check that assay is appropriate for assay-specific properties on add.
     
     Assay-specific properties are in `ASSAY_DEPENDENT`
     """
     data = request.json
     if 'assay' in data:
-        for property in ASSAY_DEPENDENT.keys():
-            if property in data:
+        for key in ASSAY_DEPENDENT.keys():
+            if key in data:
                 assay = item_utils.get_identifier(
                     get_item_or_none(request, data['assay'], 'assays')
                 )
-                if assay not in ASSAY_DEPENDENT[property]:
-                    msg = f"Property {property} not compatible with assay {assay}. Valid for assays {', '.join(ASSAY_DEPENDENT[property])}"
+                if assay not in ASSAY_DEPENDENT[key]:
+                    msg = f"Property {key} not compatible with assay {assay}. Valid for assays {', '.join(ASSAY_DEPENDENT[key])}"
                     return request.errors.add('body', 'Library: invalid property value', msg)
         return request.validated.update({})
+    
+
+def validate_assay_specific_properties_on_edit(context, request):
+    """Check that assay is appropriate for assay-specific properties on edit.
+    
+    Assay-specific properties are in `ASSAY_DEPENDENT`
+    """
+    existing_properties = get_properties(context)
+    properties_to_update = get_properties(request)
+    all_property_keys = list(set().union(existing_properties.keys(), properties_to_update.keys()))
+
+    assay_link = get_property_for_validation('assay', existing_properties, properties_to_update)
+    for key in ASSAY_DEPENDENT.keys():
+        if key in all_property_keys:
+            assay = item_utils.get_identifier(
+                get_item_or_none(request, assay_link, 'assays')
+            )
+            if assay not in ASSAY_DEPENDENT[key]:
+                msg = f"Property {key} not compatible with assay {assay}. Valid for assays {', '.join(ASSAY_DEPENDENT[key])}"
+                return request.errors.add('body', 'Library: invalid property value', msg)
+    return request.validated.update({})
 
 
 LIBRARY_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
-    validate_molecule_specific_assay,
-    validate_assay_specific_properties
+    validate_molecule_specific_assay_on_add,
+    validate_assay_specific_properties_on_add
 ]
 
 @view_config(
@@ -104,13 +152,13 @@ def library_add(context, request, render=None):
 
 
 LIBRARY_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
-    validate_molecule_specific_assay,
-    validate_assay_specific_properties
+    validate_molecule_specific_assay_on_edit,
+    validate_assay_specific_properties_on_edit
 ]
 
 LIBRARY_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
-    validate_molecule_specific_assay,
-    validate_assay_specific_properties
+    validate_molecule_specific_assay_on_edit,
+    validate_assay_specific_properties_on_edit
 ]
 
 @view_config(

@@ -5,7 +5,10 @@ from webtest import TestApp
 
 from .utils import (
     patch_item,
-    get_insert_identifier_for_item_type,
+    get_item_from_search
+)
+from ..item_utils import (
+    item as item_utils
 )
 
 
@@ -31,11 +34,17 @@ def test_rna_integrity_requirements(
     workbook: None,
 ) -> None:
     """Ensure mutual requirements for RIN and instrument."""
-    uuid = get_insert_identifier_for_item_type(es_testapp, "Analyte")
+    rna_uuid = item_utils.get_uuid(
+        get_item_from_search(
+            es_testapp,
+            "Analyte",
+            add_on="&molecule=RNA"
+        )
+    )
     patch_item(
         es_testapp,
         patch_body,
-        uuid,
+        rna_uuid,
         status=expected_status,
     )
 
@@ -62,11 +71,17 @@ def test_dna_integrity_requirements(
     workbook: None,
 ) -> None:
     """Ensure mutual requirements for DIN and instrument."""
-    uuid = get_insert_identifier_for_item_type(es_testapp, "Analyte")
+    dna_uuid = item_utils.get_uuid(
+        get_item_from_search(
+            es_testapp,
+            "Analyte",
+            add_on="&molecule=DNA"
+        )
+    )
     patch_item(
         es_testapp,
         patch_body,
-        uuid,
+        dna_uuid,
         status=expected_status,
     )
 
@@ -109,11 +124,17 @@ def test_dna_quality_requirements(
     workbook: None,
 ) -> None:
     """Ensure mutual requirements for DQN, instrument, and threshold size."""
-    uuid = get_insert_identifier_for_item_type(es_testapp, "Analyte")
+    dna_uuid = item_utils.get_uuid(
+        get_item_from_search(
+            es_testapp,
+            "Analyte",
+            add_on="&molecule=DNA"
+        )
+    )
     patch_item(
         es_testapp,
         patch_body,
-        uuid,
+        dna_uuid,
         status=expected_status,
     )
 
@@ -122,47 +143,53 @@ def test_dna_quality_requirements(
 @pytest.mark.parametrize(
     "patch_body,expected_status",
     [
-        ({"genomic_quality_number": 6}, 422),
+        ({"dna_genomic_quality_number": 6}, 422),
         (
-            {"genomic_quality_number_instrument": ["Agilent 5400 Fragment Analyzer"]},
+            {"dna_genomic_quality_number_instrument": ["Agilent 5400 Fragment Analyzer"]},
             422,
         ),
-        ({"genomic_quality_size_threshold": 1000}, 422),
+        ({"dna_genomic_quality_size_threshold": 1000}, 422),
         (
             {
-                "genomic_quality_number": 6,
-                "genomic_quality_number_instrument": ["Agilent 4200 TapeStation"],
+                "dna_genomic_quality_number": 6,
+                "dna_genomic_quality_number_instrument": ["Agilent 4200 TapeStation"],
             },
             422,
         ),
         (
             {
-                "genomic_quality_number": 6,
-                "genomic_quality_size_threshold": 1000,
+                "dna_genomic_quality_number": 6,
+                "dna_genomic_quality_size_threshold": 1000,
             },
             422,
         ),
         (
             {
-                "genomic_quality_number": 6,
-                "genomic_quality_size_threshold": 1000,
-                "genomic_quality_number_instrument": ["Agilent 4200 TapeStation"],
+                "dna_genomic_quality_number": 6,
+                "dna_genomic_quality_size_threshold": 1000,
+                "dna_genomic_quality_number_instrument": ["Agilent 4200 TapeStation"],
             },
             200,
         ),
     ],
 )
-def test_genome_quality_requirements(
+def test_dna_genome_quality_requirements(
     patch_body: Dict[str, Any],
     expected_status: int,
     es_testapp: TestApp,
     workbook: None,
 ) -> None:
     """Ensure mutual requirements for GQN, instrument, and threshold size."""
-    uuid = get_insert_identifier_for_item_type(es_testapp, "Analyte")
+    dna_uuid = item_utils.get_uuid(
+        get_item_from_search(
+            es_testapp,
+            "Analyte",
+            add_on="&molecule=DNA"
+        )
+    )
     patch_item(
         es_testapp,
         patch_body,
-        uuid,
+        dna_uuid,
         status=expected_status,
     )
