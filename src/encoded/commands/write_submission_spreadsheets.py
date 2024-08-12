@@ -868,7 +868,7 @@ def get_comment_value_type(property_: Property, indent: str) -> List[str]:
             return [
                 (
                     f"Type:{indent}{property_.array_subtype}"
-                    f"{indent}(Multiple values allowed. Use '|' as a delimitor)"
+                    f"{indent}(Multiple values allowed. Use '|' as a delimiter)"
                 )
             ]
         else:
@@ -937,7 +937,9 @@ def get_comment_search(property_: Property, indent: str) -> List[str]:
 
 
 def get_search_url(property_schema: Dict[str, Any]) -> str:
-    """Get portal search url for linked item names."""
+    """Get portal search url for linked item names.
+    
+    If property is file_format, include query for specific File type"""
     if is_link(property_schema):
         linked_item = get_linkto(property_schema) or get_linkto(schema_utils.get_items(property_schema))
         return f"https://data.smaht.org/search/?type={linked_item}"
