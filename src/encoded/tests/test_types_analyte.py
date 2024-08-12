@@ -15,7 +15,8 @@ from ..item_utils import (
         ({"molecule": ["RNA"],"molecule_detail": ["mRNA"]}, 200),
         ({"molecule": ["RNA"],"molecule_detail": ["mRNA"],"dna_integrity_number_instrument": "Agilent 5400 Fragment Analyzer"}, 422),
         ({"molecule": ['DNA'],"molecule_detail": ["Total DNA"], "rna_integrity_number": 7, "rna_integrity_number_instrument": "Agilent Bioanalyzer"},422),
-        ({"molecule": ['RNA'], "ribosomal_rna_ratio": 1.5}, 200),
+        ({"ribosomal_rna_ratio": 1.5}, 200),
+        ({"molecule": ["DNA"]}, 422),
         ({"molecule": ['RNA','DNA'], "molecule_detail": ["mRNA","Total DNA"], "ribosomal_rna_ratio": 1.5}, 200),
         ({"molecule": ['RNA','DNA'], "molecule_detail": ["mRNA","Total DNA"], "dna_integrity_number": 5, "dna_integrity_number_instrument": "Agilent 5400 Fragment Analyzer"}, 200),
     ]
@@ -35,11 +36,24 @@ def test_validate_molecule_specific_properties_on_patch(
 @pytest.mark.parametrize(
     "post_body,expected_status,index", [
         ({"molecule": ["RNA"],"molecule_detail": ["mRNA"]}, 201,1),
-        ({"molecule": ["RNA"],"molecule_detail": ["mRNA"],"dna_integrity_number_instrument": "Agilent 5400 Fragment Analyzer"}, 422,1),
-        ({"molecule": ['DNA'],"molecule_detail": ["Total DNA"],"rna_integrity_number": 7, "rna_integrity_number_instrument": "Agilent Bioanalyzer"},422,1),
-        ({"molecule": ['RNA'],"molecule_detail": ["mRNA"], "ribosomal_rna_ratio": 1.5}, 201,2),
-        ({"molecule": ['RNA','DNA'],"molecule_detail": ["mRNA","Total DNA"], "ribosomal_rna_ratio": 1.5}, 201,3),
-        ({"molecule": ['RNA','DNA'], "molecule_detail": ["mRNA","Total DNA"], "dna_integrity_number": 5, "dna_integrity_number_instrument": "Agilent 5400 Fragment Analyzer"}, 201,4),
+        ({"molecule": ["RNA"],"molecule_detail": ["mRNA"],"dna_integrity_number_instrument": "Agilent 5400 Fragment Analyzer"}, 422,2),
+        ({"molecule": ['DNA'],"molecule_detail": ["Total DNA"],"rna_integrity_number": 7, "rna_integrity_number_instrument": "Agilent Bioanalyzer"},422,3),
+        ({"molecule": ['RNA'],"molecule_detail": ["mRNA"], "ribosomal_rna_ratio": 1.5}, 201,4),
+        (
+            {
+                "molecule": ['RNA','DNA'],
+                "molecule_detail": ["mRNA","Total DNA"],
+                "ribosomal_rna_ratio": 1.5
+            }, 201,5
+        ),
+        (
+            {
+                "molecule": ['RNA','DNA'],
+                "molecule_detail": ["mRNA","Total DNA"],
+                "dna_integrity_number": 6,
+                "dna_integrity_number_instrument":"Agilent 5400 Fragment Analyzer"
+            }, 201,6
+        ),
     ]
 )
 def test_validate_molecule_specific_on_post(
