@@ -11,6 +11,8 @@ Change Log
 ======
 
 * Nested QC (QualityMetric) development.
+* Simplified Makefile for deploy1/1a/1b/2 for dcicsnovault 11.21.1 changes;
+  related to allowing smaht-portal and cgap-portal to run at the same time locally.
 
 
 0.82.0
