@@ -129,11 +129,14 @@ export class StatsChartViewAggregator extends React.PureComponent {
     static propTypes = {
         'aggregationsToChartData' : PropTypes.object.isRequired,
         'shouldReaggregate' : PropTypes.func,
+        'cumulativeSum': PropTypes.bool,
         'children' : PropTypes.node.isRequired
     };
 
     constructor(props){
         super(props);
+        const { cumulativeSum = false } = props;
+
         this.getRefWidth = this.getRefWidth.bind(this);
         this.handleToggle = this.handleToggle.bind(this);
         this.handleToggleSmoothEdges = this.handleToggleSmoothEdges.bind(this);
@@ -142,7 +145,7 @@ export class StatsChartViewAggregator extends React.PureComponent {
         this.state = _.extend(this.generateAggsToState(props, {}), {
             'chartToggles' : {},
             'smoothEdges' : false,
-            'cumulativeSum': false
+            'cumulativeSum': cumulativeSum
         });
 
         this.elemRef = React.createRef();
@@ -302,12 +305,12 @@ export class GroupByController extends React.PureComponent {
         super(props);
         this.handleGroupByChange = this.handleGroupByChange.bind(this);
         this.handleDateRangeChange = this.handleDateRangeChange.bind(this);
-        this.state = { 
-            'currentGroupBy' : props.initialGroupBy,
+        this.state = {
+            'currentGroupBy': props.initialGroupBy,
             'currentDateRangePreset': props.initialDateRangePreset,
             'currentDateRangeFrom': props.initialDateRangeFrom || null,
             'currentDateRangeTo': props.initialDateRangeTo || null
-         };
+        };
     }
 
     handleGroupByChange(field){
@@ -326,11 +329,11 @@ export class GroupByController extends React.PureComponent {
                 return null;
             }
 
-            return { 
-                'currentDateRangePreset' : field,
-                'currentDateRangeFrom': field !== 'custom' ? null : from,
-                'currentDateRangeTo': field !== 'custom' ? null : to
-             };
+            return {
+                'currentDateRangePreset': field,
+                'currentDateRangeFrom': field !== 'custom' || from === '' ? null : from,
+                'currentDateRangeTo': field !== 'custom' || to === '' ? null : to
+            };
         });
     }
 
@@ -361,7 +364,6 @@ export class GroupByDropdown extends React.PureComponent {
         'groupByTitle' : "Group By",
         'dateRangeTitle' : "Date",
         'buttonStyle' : {
-            'marginLeft' : 12,
             'textAlign' : 'left'
         },
         'outerClassName' : "dropdown-container mb-15",
@@ -372,7 +374,25 @@ export class GroupByDropdown extends React.PureComponent {
     constructor(props){
         super(props);
         this.onGroupBySelect = _.throttle(this.onGroupBySelect.bind(this), 1000);
-        this.onDateRangeSelect = _.throttle(this.onDateRangeSelect.bind(this), 1000);
+        this.onDateRangeSelect = this.onDateRangeSelect.bind(this);
+        //used as workaround to fix input type="date" unwanted reset bug
+        this.state = {
+            'tempDateRangeFrom': '',
+            'tempDateRangeTo': ''
+        };
+    }
+
+    componentDidUpdate(pastProps, pastState){
+        const { currentDateRangeFrom, currentDateRangeTo } = this.props;
+        // if current date range from/to changed, then force the temp values get reset
+        if (pastProps.currentDateRangeFrom !== currentDateRangeFrom || pastProps.currentDateRangeTo !== currentDateRangeTo) {
+            setTimeout(() => {
+                this.setState({
+                    'tempDateRangeFrom': currentDateRangeFrom,
+                    'tempDateRangeTo': currentDateRangeTo
+                });
+            }, 750);
+        }
     }
 
     onGroupBySelect(eventKey, evt){
@@ -397,23 +417,23 @@ export class GroupByDropdown extends React.PureComponent {
             dateRangeOptions, currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeTitle,
             loadingStatus, buttonStyle, outerClassName, children,
             groupById, dateRangeId } = this.props;
+        const { tempDateRangeFrom, tempDateRangeTo } = this.state;
         // group by
         const groupByOptionItems = _.map(_.pairs(groupByOptions), ([field, title]) =>
             <DropdownItem eventKey={field} key={field} active={field === currentGroupBy}>{ title }</DropdownItem>
         );
         const selectedGroupByValueTitle = loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch"/> : groupByOptions[currentGroupBy];
-        
+
         if (dateRangeOptions) {
             const dateRangeOptionItems = _.map(_.pairs(_.pick(dateRangeOptions, (value, key) => key !== 'custom')), ([field, title]) =>
                 <DropdownItem eventKey={field} key={field} active={field === currentDateRangePreset}>{title}</DropdownItem>
             );
             const selectedDateRangeValueTitle = (loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch" /> : dateRangeOptions[currentDateRangePreset]);
-            const buttonStyleOverriden = buttonStyle && _.extend({}, buttonStyle, { 'marginLeft': 0 });
             return (
                 <div className={outerClassName}>
                     <div className="dropdown-container-col col-12 col-lg-3 align-top">
                         <div className="text-500 d-block mb-1">{groupByTitle}</div>
-                        <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyleOverriden} disabled={groupByOptionItems.length < 2}>
+                        <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2}>
                             {groupByOptionItems}
                         </DropdownButton>
                     </div>
@@ -421,17 +441,23 @@ export class GroupByDropdown extends React.PureComponent {
                         <div className="text-500 d-block mb-1">{dateRangeTitle}</div>
                         <div className="date-range">
                             {/* <span className="text-300 pt-05">Presets</span> */}
-                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={e => this.onDateRangeSelect(e, null, null)} style={buttonStyleOverriden}>
+                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={(e) => this.onDateRangeSelect(e, null, null)} style={buttonStyle}>
                                 {dateRangeOptionItems}
                             </DropdownButton>
                             <div className="d-flex custom-date-range">
                                 <span className="text-300 pt-05 d-none d-md-inline-block mr-05">Custom:</span>
-                                <input id="submission_data_range_from" type="date" className="form-control" onChange={e => this.onDateRangeSelect('custom', e.target.value, currentDateRangeTo)} value={currentDateRangeFrom || ''} />
-                                <input id="submission_data_range_to" type="date" className="form-control" onChange={e => this.onDateRangeSelect('custom', currentDateRangeFrom, e.target.value)} value={currentDateRangeTo || ''} />
+                                <input id="submission_data_range_from" type="date"
+                                    className="form-control" value={tempDateRangeFrom || ''}
+                                    onChange={(e) => { this.setState({ "tempDateRangeFrom": e.target.value }); }}
+                                    onBlur={(e) => this.onDateRangeSelect('custom', tempDateRangeFrom, currentDateRangeTo)} />
+                                <input id="submission_data_range_to" type="date"
+                                    className="form-control" value={tempDateRangeTo || ''}
+                                    onChange={(e) => { this.setState({ "tempDateRangeTo": e.target.value }); }}
+                                    onBlur={(e) => this.onDateRangeSelect('custom', currentDateRangeFrom, tempDateRangeTo)} />
                             </div>
                         </div>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-3 align-top pl-2">
+                    <div className="dropdown-container-col col-12 col-lg-3 align-top pl-1">
                         <div className="text-500 d-block mb-1">Settings</div>
                         {children}
                     </div>
@@ -441,12 +467,18 @@ export class GroupByDropdown extends React.PureComponent {
 
         return (
             <div className={outerClassName}>
-                <span className="text-500">{groupByTitle}</span>
-                <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2}>
-                    {groupByOptionItems}
-                </DropdownButton>
-                {children}
-            </div>);
+                <div className="dropdown-container-col col-12 col-lg-3 align-top">
+                    <span className="text-500 d-block mb-1">{groupByTitle}</span>
+                    <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2}>
+                        {groupByOptionItems}
+                    </DropdownButton>
+                </div>
+                <div className="dropdown-container-col col-12 col-lg-9 align-top pl-1">
+                    <div className="text-500 d-block mb-1">Settings</div>
+                    {children}
+                </div>
+            </div>
+        );
     }
 }
 
@@ -716,7 +748,6 @@ export class AreaChart extends React.PureComponent {
     }
 
     static isTermUrl(term){
-        // return term && typeof term === 'string' && term.length > 3 && term.charAt(0) === '/' && term[term.length - 1] === '/';
         return term && typeof term === 'string' && term.length >= 1 && term.charAt(0) === '/';
     }
 
@@ -875,6 +906,8 @@ export class AreaChart extends React.PureComponent {
         const scale = d3['scale' + yAxisScale]().rangeRound([height, 0]).domain(yExtents);
         if (yAxisScale === 'Pow' && yAxisPower !== null){
             scale.exponent(yAxisPower);
+        } else if (yAxisScale === 'Symlog' && yAxisPower !== null){
+            scale.constant(yAxisPower);
         }
         return scale;
     }
@@ -1077,7 +1110,7 @@ export class AreaChart extends React.PureComponent {
                                         const handleOnClick = (e) => { e.stopPropagation(); tProps.removeTooltip(); };
                                         const term =
                                             AreaChart.isTermUrl(c.term) ?
-                                                <a key={c.term} href={c.term} target="_blank" rel="noreferrer" onClick={handleOnClick}>{c.term}</a> : c.term;
+                                                <a key={c.term} href={c.term} target="_blank" rel="noreferrer" onClick={handleOnClick} data-tip={c.termDisplayAs || c.term}>{c.termDisplayAs || c.term}</a> : c.term;
                                         return (
                                             <tr key={c.term || i} className={currentTerm === c.term ? 'active' : null}>
                                                 <td className="patch-cell">
@@ -1085,7 +1118,7 @@ export class AreaChart extends React.PureComponent {
                                                 </td>
                                                 <td className="term-name-cell">{ term }</td>
                                                 <td className="term-name-total">
-                                                    { c[tdp] % 1 > 0 ?  Math.round(c[tdp] * 100) / 100 : c[tdp] }
+                                                    { c[tdp] >= 0.01 && c[tdp] % 1 > 0 ?  Math.round(c[tdp] * 100) / 100 : (c[tdp] >= 0.01 ? c[tdp] : '<0.01') }
                                                     { yAxisLabel && yAxisLabel !== 'Count' ? ' ' + yAxisLabel : null }
                                                 </td>
                                             </tr>
@@ -1294,7 +1327,7 @@ export class AreaChartContainer extends React.Component {
     expandButton(){
         const { windowWidth } = this.props;
         const gridState = layout.responsiveGridState(windowWidth);
-        if (gridState !== 'xl') return null;
+        if (['xs', 'sm'].indexOf(gridState) > -1) return null;
         const expanded = AreaChartContainer.isExpanded(this.props);
         return (
             <button type="button" className="btn btn-outline-dark btn-sm" onClick={this.toggleExpanded}>
