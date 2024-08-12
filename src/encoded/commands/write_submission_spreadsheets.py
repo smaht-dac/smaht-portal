@@ -578,6 +578,11 @@ def is_link(property_schema: Dict[str, Any]) -> bool:
     return schema_utils.is_link(property_schema) or is_array_of_links(property_schema)
 
 
+def is_array(property_schema: Dict[str, Any]) -> bool:
+    """Check if property is an array"""
+    return schema_utils.get_schema_type(property_schema) == "array"
+
+
 def is_array_of_links(property_schema: Dict[str, Any]) -> bool:
     """Check if property is an array of links"""
     return schema_utils.is_link(schema_utils.get_items(property_schema))
