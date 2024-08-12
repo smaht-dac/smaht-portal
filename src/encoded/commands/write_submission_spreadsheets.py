@@ -481,7 +481,7 @@ class Property:
     """
 
     name: str
-    item: str
+    item: str = ""
     description: str = ""
     value_type: str = ""
     required: bool = False
@@ -494,7 +494,7 @@ class Property:
     format_: str = ""
     requires: Optional[List[str]] = None
     exclusive_requirements: Optional[List[str]] = None
-    search: Optional[str] = None
+    search: Optional[str] = ""
 
 
 @dataclass(frozen=True)
