@@ -4,7 +4,6 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "cell_line",
         "submission_centers",
         "submitted_id"
     ],
@@ -12,6 +11,18 @@
         "accession",
         "submitted_id",
         "uuid"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "cell_line"
+            ]
+        },
+        {
+            "required": [
+                "parent_samples"
+            ]
+        }
     ],
     "additionalProperties": false,
     "mixinProperties": [
@@ -32,6 +43,9 @@
         },
         {
             "$ref": "mixins.json#/protocols"
+        },
+        {
+            "$ref": "mixins.json#/parent_samples"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -96,6 +110,13 @@
             "type": "array",
             "items": {
                 "type": "string"
+            }
+        },
+        "parent_samples": {
+            "description": "Link to associated tissues samples from which this cell culture was derived",
+            "items": {
+                "type": "string",
+                "linkTo": "TissueSample"
             }
         },
         "passage_number": {
