@@ -158,13 +158,19 @@ psql-test:  # starts psql with a url constructed from data in 'ps aux'.
 	@scripts/psql-start.bash test
 
 kibana-start:  # starts a dev version of kibana (default port)
-	scripts/kibana-start
+	bash scripts/kibana-start.bash
 
 kibana-start-test:  # starts a test version of kibana (port chosen for active tests)
-	scripts/kibana-start test
+	bash scripts/kibana-start.bash test
 
 kibana-stop:
-	scripts/kibana-stop
+	bash scripts/kibana-stop.bash
+
+opensearch-dashboard-start:
+	# New: 2024-08-13
+	# OpenSearch (rather than ElasticSearch) as we are using
+	# now seems to require OpenSearch Dashboard rather than Kibana. 
+	bash scripts/opensearch-dashboard-start.bash
 
 kill:  # kills back-end processes associated with the application. Use with care.
 	-pkill -f postgres &
