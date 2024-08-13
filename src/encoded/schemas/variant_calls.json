@@ -1,5 +1,6 @@
 {
     "title": "Variant Calls",
+    "description": "Files containing variant calls",
     "$id": "/profiles/variant_calls.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

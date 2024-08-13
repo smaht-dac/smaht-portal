@@ -1,5 +1,6 @@
 {
     "title": "Library",
+    "description": "Library items contain information on sequencing libraries prepared from analytes.",
     "$id": "/profiles/library.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

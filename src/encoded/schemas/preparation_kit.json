@@ -1,5 +1,6 @@
 {
     "title": "Preparation Kit",
+    "description": "A kit used in analyte preparation, library preparation, or sequencing",
     "$id": "/profiles/preparation_kit.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

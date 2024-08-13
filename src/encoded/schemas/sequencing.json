@@ -1,5 +1,6 @@
 {
     "title": "Sequencing",
+    "description": "Sequencing items contain information on the sequencing of libraries.",
     "$id": "/profiles/sequencing.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

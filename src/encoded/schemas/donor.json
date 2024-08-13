@@ -1,5 +1,6 @@
 {
     "title": "Donor",
+    "description": "Individuals who donated tissues",
     "$id": "/profiles/donor.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

@@ -929,6 +929,10 @@ def get_comment_note(property_: Property, indent: str) -> List[str]:
 
 
 def get_comment_search(property_: Property, indent: str) -> List[str]:
+    """Get text for search url.
+    
+    If property is file_format, include query for specific File type
+    """
     if property_.search:
         if property_.name == "file_format":
             return [f"Search:{indent}{property_.search}&valid_item_types={property_.item}"]
@@ -937,9 +941,7 @@ def get_comment_search(property_: Property, indent: str) -> List[str]:
 
 
 def get_search_url(property_schema: Dict[str, Any]) -> str:
-    """Get portal search url for linked item names.
-    
-    If property is file_format, include query for specific File type"""
+    """Get portal search url for linked item names."""
     if is_link(property_schema):
         linked_item = get_linkto(property_schema) or get_linkto(schema_utils.get_items(property_schema))
         return f"https://data.smaht.org/search/?type={linked_item}"
