@@ -13,6 +13,8 @@ Change Log
 * Nested QC (QualityMetric) development.
 * Simplified Makefile for deploy1/1a/1b/2 for dcicsnovault 11.21.1 changes;
   related to allowing smaht-portal and cgap-portal to run at the same time locally.
+* Added scripts/opensearch-dashboard-start.bash and Makefile target opensearch-dashboard-starto
+  now that we are using OpenSearch rather than ElasticSearch we seem to need this rather than Kibana.
 
 
 0.82.0
