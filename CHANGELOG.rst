@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+0.83.0
+======
+`PR 225: SN Improvements to automated submission spreadsheet <https://github.com/smaht-dac/smaht-portal/pull/226>`_
+* In `write-submission-spreadsheet`:
+  * clean up args messages
+  * Add functionality for` --item` working with `--google`
+  * Adjust comment descriptions to clarify | delimiter and add search links for submitted items
+* In `schemas/`:
+  * Include schema description for GCC-submitted items
+
+
 0.82.0
 ======
 
