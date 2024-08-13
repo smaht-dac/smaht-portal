@@ -7,10 +7,62 @@ smaht-portal
 Change Log
 ----------
 
+0.82.0
+======
+
+* Added validators endpoint to validate (initially) submitted_id for smaht-submitr.
+* Added allow_multiplier_suffix and allow_commas properties (both true) to these schemas properties:
+  - Sequencing.target_read_length
+  - DonorSpecificAssembly.contig_n50
+  - DonorSpecificAssembly.genome_size
+  - DonorSpecificAssembly.largest_contig_size
+  - DonorSpecificAssembly.scaffold_n50
+  - DonorSpecificAssembly.total_ungapped_length
+
+
+0.81.0
+======
+
+`PR 209: Statistics Y-Axis Scale <https://github.com/smaht-dac/smaht-portal/pull/209>`_
+
+* Usage stats: Add y-axis linear/pow/log scale options
+* Usage stats: Split file downlods into two sections as file downloads and top file downloads (/w top 10/25/50/100 options) for clarity
+* Usage stats: Exclude index file downloads (external_files)
+* Submission stats: Fix custom date range filtering bug
+* Misc: Improve charts and filters rendering in small and mid-size devices
+* Misc: Improves warning messages displayed when the charts fail to render
+
+
+0.80.0
+======
+`PR216: Add ExternalQualityMetric <https://github.com/smaht-dac/smaht-portal/pull/216>`_
+
+* Add `ExternalQualityMetric` item type which is a submitted item inheriting some properties from pre-existing `QualityMetric`
+* Create new linking property `external_quality_metrics` in `file.json`
+* Add new properties to `variant_calls.json` schema: `comparator`, `external_databases`, and `filtering_methods`
+
+
+0.79.0
+======
+`PR216: Add ExternalQualityMetric <https://github.com/smaht-dac/smaht-portal/pull/221>`_
+
+* Embed `file_sets.sequencing.target_coverage`` in file.py and adds "Target Group Coverage" to `data_generation_summary`` used in the File Overview Page
+
+
+0.78.5
+======
+
+`PR 220: fix: move modal styles into search.scss <https://github.com/smaht-dac/smaht-portal/pull/220>`_
+
+* fix: styling issue in File Overview metadata download modal
+* Move modal styles into _search.scss file
+
+
 0.78.4
 ======
 
 `PR 218: fix: typerror in ItemDetailList's ShouldUseTable <https://github.com/smaht-dac/smaht-portal/pull/218>`_
+
 * fix: typerror, support number value being first
 
 
@@ -18,6 +70,7 @@ Change Log
 ======
 
 `PR 213: Bm homepage drawer update <https://github.com/smaht-dac/smaht-portal/pull/213>`_
+
 * Change defaultActiveKey and activeKey settings to get different home page drawer-tiers to stay open once selected
 
 
@@ -25,6 +78,7 @@ Change Log
 ======
 
 `PR 208: feat: AWS CLI command <https://github.com/smaht-dac/smaht-portal/pull/208>`_
+
 * Reorganize CLI commands components
 * Utilize bootstrap Tabs component
 * Styling updates for the command container
@@ -39,6 +93,7 @@ Change Log
 0.78.0
 ======
 `PR212: Add functionality for arrays of objects <https://github.com/smaht-dac/smaht-portal/pull/212>`_
+
 * Updates write_submission_spreadsheets to write out columns for arrays of objects
 * Currently relevant for CellCultureMixture and the components property which has two nested properties, `ratio` and `cull_culture`
 
@@ -47,6 +102,7 @@ Change Log
 ======
 
 `PR210: DSA Schema Update <https://github.com/smaht-dac/smaht-portal/pull/210>`_
+
 * Changes to DonorSpecificAssembly and SupplementaryFile schemas to reflect GCC feedback:
   * BUSCO score properties created for each haplotype  (e.g. `percent_single_copy` to `percent_single_copy_hap1` and `percent_single_copy_hap2`)
   * Change property name from `percent_duplicate` to `percent_multi_copy` for clarity

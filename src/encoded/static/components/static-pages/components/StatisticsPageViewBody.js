@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import memoize from 'memoize-one';
@@ -228,7 +228,7 @@ export const commonParsingFxn = {
 
         return aggsList;
     },
-    'analytics_to_buckets' : function(resp, reportName, termBucketField, countKey, cumulativeSum, topCount = 0){
+    'analytics_to_buckets' : function(resp, reportName, termBucketField, countKey, cumulativeSum, termDisplayAsFunc = null, topCount = 0){
         const termsInAllItems = new Set();
 
         // De-dupe -- not particularly necessary as D3 handles this, however nice to have well-formatted data.
@@ -261,6 +261,7 @@ export const commonParsingFxn = {
                 } else {
                     groupedTermsObj[term] = {
                         'term': term,
+                        'termDisplayAs': typeof termDisplayAsFunc === 'function' ? termDisplayAsFunc(trackingItemItem) : null,
                         'count': trackingItemItem[countKey],
                         'total': trackingItemItem[countKey],
                         'date': for_date
@@ -299,6 +300,7 @@ export const commonParsingFxn = {
                     if (!termsInCurrenItem.has(term)) {
                         currentItem.children.push({
                             'term': term,
+                            'termDisplayAs': typeof termDisplayAsFunc === 'function' ? termDisplayAsFunc(term) : null,
                             'count': termTotals[term].count,
                             'total': termTotals[term].total,
                             'date': for_date
@@ -460,11 +462,7 @@ const aggregationsToChartData = {
             if (!resp || !resp['@graph']) return null;
             const { countBy : { file_downloads : countBy } } = props;
 
-            let useReport = 'file_downloads_by_filetype';
-            let groupingKey = "file_type"; // File Type
-            const countKey = 'downloads_count'; // Download Count
-            let topCount = 0; // all
-
+            let useReport, groupingKey, countKey = 'downloads_count';
             switch (countBy) {
                 case 'assay_type':
                     useReport = 'file_downloads_by_assay_type';
@@ -474,23 +472,15 @@ const aggregationsToChartData = {
                     useReport = 'file_downloads_by_dataset';
                     groupingKey = 'dataset'; // Dataset
                     break;
-                case 'top_files':
-                    useReport = 'top_files_downloaded';
-                    groupingKey = 'file_item_id'; // File
-                    topCount = 10;
-                    break;
-                case 'geo_country':
-                    useReport = 'file_downloads_by_country';
-                    groupingKey = 'country';
-                    break;
-                default:
-                    // Handle unknown cases if needed
+                default: //file type
+                    useReport = 'file_downloads_by_filetype';
+                    groupingKey = "file_type"; // File Type
                     break;
             }
 
             console.log("AGGR", resp, props, countBy, groupingKey, useReport);
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, topCount);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum);
         }
     },
     'file_downloads_volume' : {
@@ -499,11 +489,7 @@ const aggregationsToChartData = {
             if (!resp || !resp['@graph']) return null;
             const { countBy : { file_downloads_volume : countBy } } = props;
 
-            let useReport = 'file_downloads_by_filetype';
-            let groupingKey = "file_type"; // File Type
-            const countKey = 'downloads_size'; // Download Size
-            let topCount = 0; // all
-
+            let useReport, groupingKey, countKey = 'downloads_size';
             switch (countBy) {
                 case 'assay_type':
                     useReport = 'file_downloads_by_assay_type';
@@ -513,23 +499,99 @@ const aggregationsToChartData = {
                     useReport = 'file_downloads_by_dataset';
                     groupingKey = 'dataset'; // Dataset
                     break;
-                case 'top_files':
-                    useReport = 'top_files_downloaded';
-                    groupingKey = 'file_item_id'; // File
+                default: //file type
+                    useReport = 'file_downloads_by_filetype';
+                    groupingKey = "file_type"; // File Type
+                    break;
+            }
+
+            //convert volume to GB
+            const gigabyte = 1024 * 1024 * 1024;
+            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum);
+            if (result && Array.isArray(result) && result.length > 0) {
+                _.forEach(result, (r) => {
+                    r.total = r.total / gigabyte;
+                    r.count = r.count / gigabyte;
+                    if (r.children && Array.isArray(r.children) && r.children.length > 0) {
+                        _.forEach(r.children, (c) => {
+                            c.total = c.total / gigabyte;
+                            c.count = c.count / gigabyte;
+                        });
+                    }
+                });
+            }
+            return result;
+        }
+    },
+    'top_file_downloads' : {
+        'requires'  : "TrackingItem",
+        'function'  : function(resp, props){
+            if (!resp || !resp['@graph']) return null;
+            const { countBy : { top_file_downloads : countBy } } = props;
+
+            let useReport = 'top_files_downloaded';
+            let groupingKey = 'file_item_id'; // File
+            const countKey = 'downloads_count'; // Download Count
+            let topCount = 0; // all
+
+            switch (countBy) {
+                case 'top_files_10':
                     topCount = 10;
                     break;
-                case 'geo_country':
-                    useReport = 'file_downloads_by_country';
-                    groupingKey = 'country';
+                case 'top_files_25':
+                    topCount = 25;
+                    break;
+                case 'top_files_50':
+                    topCount = 50;
+                    break;
+                case 'top_files_100':
+                    topCount = 100;
                     break;
                 default:
                     // Handle unknown cases if needed
                     break;
             }
 
+            // const termDisplayAsFunc = function(item){ return item.file_type && item.file_title ? `${item.file_title} (${item.file_type})` : item.term };
+            const termDisplayAsFunc = function(item){ return item.file_title ? item.file_title : (item.file_type ? `${item.term} (${item.file_type})` : item.term) };
+
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
+        }
+    },
+    'top_file_downloads_volume' : {
+        'requires'  : "TrackingItem",
+        'function'  : function(resp, props){
+            if (!resp || !resp['@graph']) return null;
+            const { countBy : { top_file_downloads_volume : countBy } } = props;
+
+            const useReport = 'top_files_downloaded';
+            const groupingKey = 'file_item_id'; // File
+            const countKey = 'downloads_size'; // Download Size
+            let topCount = 0; // all
+
+            switch (countBy) {
+                case 'top_files_10':
+                    topCount = 10;
+                    break;
+                case 'top_files_25':
+                    topCount = 25;
+                    break;
+                case 'top_files_50':
+                    topCount = 50;
+                    break;
+                case 'top_files_100':
+                    topCount = 100;
+                    break;
+                default:
+                    // Handle unknown cases if needed
+                    break;
+            }
+
+            const termDisplayAsFunc = function(item){ return item.file_type && item.file_title ? `${item.file_title} (${item.file_type})` : item.term };
+            
             //convert volume to GB
             const gigabyte = 1024 * 1024 * 1024;
-            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, topCount);
+            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
             if (result && Array.isArray(result) && result.length > 0) {
                 _.forEach(result, (r) => {
                     r.total = r.total / gigabyte;
@@ -594,6 +656,7 @@ export const submissionsAggsToChartData = _.pick(aggregationsToChartData,
 
 export const usageAggsToChartData = _.pick(aggregationsToChartData,
     'file_downloads',  'file_downloads_volume',
+    'top_file_downloads',  'top_file_downloads_volume',
     'sessions_by_country', 'fields_faceted','file_views'
 );
 
@@ -681,7 +744,8 @@ export class UsageStatsViewController extends React.PureComponent {
         Object.keys(usageAggsToChartData).forEach(function(k){
             if (k === 'file_downloads' || k === 'file_downloads_volume'){
                 countBy[k] = 'filetype'; // For file_downloads, countBy is treated as 'groupBy'.
-                // Not high enough priority to spend much time improving this file, albeit much straightforward room for it exists.
+            } else if (k === 'top_file_downloads' || k === 'top_file_downloads_volume'){
+                countBy[k] = 'top_files_10'; // For top_file_downloads, countBy is treated as 'groupBy'.
             } else if (k === 'file_views'){
                 countBy[k] = 'file_detail_views_by_assay_type';
             } else if (k === 'sessions_by_country'){
@@ -711,8 +775,6 @@ export class UsageStatsViewController extends React.PureComponent {
 }
 
 
-
-
 export class SubmissionStatsViewController extends React.PureComponent {
 
     static createFileSearchUri(props, date_histogram) {
@@ -724,7 +786,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
             else
                 params.date_range = `custom|${props.currentDateRangeFrom || ''}|${props.currentDateRangeTo || ''}`;
         }
-        params.date_histogram = [date_histogram];
+        params.date_histogram = Array.isArray(date_histogram) ? date_histogram : [date_histogram];
         const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
 
         // For local dev/debugging; don't forget to comment out if using.
@@ -805,6 +867,8 @@ class UsageChartsCountByDropdown extends React.PureComponent {
         changeCountByForChart(chartID, evtKey);
         if (chartID == 'file_downloads') {
             changeCountByForChart('file_downloads_volume', evtKey);
+        } else  if (chartID == 'top_file_downloads') {
+            changeCountByForChart('top_file_downloads_volume', evtKey);
         }
     }
 
@@ -814,32 +878,41 @@ class UsageChartsCountByDropdown extends React.PureComponent {
 
         const menuOptions = new Map();
 
-        if (chartID === 'file_downloads' ){
-            menuOptions.set('filetype',                 <React.Fragment><i className="icon fas icon-fas icon-file-alt mr-1"/>File Downloads by File Type</React.Fragment>);
-            menuOptions.set('assay_type',               <React.Fragment><i className="icon fas icon-fas icon-vial mr-1"/>File Downloads by Assay Type</React.Fragment>);
-            menuOptions.set('dataset',                  <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>File Downloads by Dataset</React.Fragment>);
-            menuOptions.set('top_files',                <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 10 Downloaded Files</React.Fragment>);
-            // menuOptions.set('geo_country',           <React.Fragment><i className="icon fas icon-fw icon-globe mr-1"/>Country</React.Fragment>);
-        } else if (chartID === 'file_views'){
-            menuOptions.set('file_detail_views_by_file_type',        <React.Fragment><i className="icon fas icon-fw icon-file-alt mr-1"/>Detail Views by File Type</React.Fragment>);
-            menuOptions.set('file_detail_views_by_assay_type',       <React.Fragment><i className="icon fas icon-fw icon-vial mr-1"/>Detail Views by Assay Type</React.Fragment>);
-            menuOptions.set('file_detail_views_by_dataset',          <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Dataset</React.Fragment>);
-            menuOptions.set('file_list_views',          <React.Fragment><i className="icon fas icon-fas icon-list-ul mr-1"/>Appearance in Search Results</React.Fragment>);
-            menuOptions.set('file_clicks',              <React.Fragment><i className="icon fas icon-fas icon-mouse-pointer mr-1"/>Search Result Click</React.Fragment>);
-            // menuOptions.set('metadata_tsv_by_country',  <React.Fragment><i className="icon fas icon-fas icon-file mr-1"/>Metadata.tsv Files Count by Country</React.Fragment>);
-        } else if (chartID === 'sessions_by_country') {
-            menuOptions.set('views_by_country',         <React.Fragment><i className="icon icon-fw fas icon-map-marker mr-1" />Page Views by Country</React.Fragment>);
-            menuOptions.set('views_by_city',            <React.Fragment><i className="icon icon-fw fas icon-map-marker-alt mr-1" />Page Views by City</React.Fragment>);
-            menuOptions.set('device_category',          <React.Fragment><i className="icon icon-fw fas icon-laptop mr-1" />Page Views by Device</React.Fragment>);
-            menuOptions.set('page_title',               <React.Fragment><i className="icon icon-fw fas icon-font mr-1" />Page Views by Title (may load slowly)</React.Fragment>);
-            menuOptions.set('page_url',                 <React.Fragment><i className="icon icon-fw fas icon-link mr-1" />Page Views by Url (may load slowly)</React.Fragment>);
-            menuOptions.set('sessions_by_country',      <React.Fragment><i className="icon icon-fw fas icon-user-friends mr-1" />Unique Users by Country</React.Fragment>);
-            menuOptions.set('sessions_by_city',         <React.Fragment><i className="icon icon-fw fas icon-street-view mr-1" />Unique Users by City</React.Fragment>);
-        } else {
-            menuOptions.set('views',                    <React.Fragment><i className="icon icon-fw fas icon-eye mr-1"/>Views</React.Fragment>);
-            menuOptions.set('sessions',                 <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Unique Users</React.Fragment>);
+        switch(chartID) {
+            case 'file_downloads':
+                menuOptions.set('filetype',   <React.Fragment><i className="icon fas icon-fas icon-file-alt mr-1"/>File Downloads by File Type</React.Fragment>);
+                menuOptions.set('assay_type', <React.Fragment><i className="icon fas icon-fas icon-vial mr-1"/>File Downloads by Assay Type</React.Fragment>);
+                menuOptions.set('dataset',    <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>File Downloads by Dataset</React.Fragment>);
+                break;
+            case 'top_file_downloads':
+                menuOptions.set('top_files_10',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 10</React.Fragment>);
+                menuOptions.set('top_files_25',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 25</React.Fragment>);
+                menuOptions.set('top_files_50',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 50 (may load slowly)</React.Fragment>);
+                menuOptions.set('top_files_100',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 100 (may load slowly)</React.Fragment>);
+                break;
+            case 'file_views':
+                menuOptions.set('file_detail_views_by_file_type',  <React.Fragment><i className="icon fas icon-fw icon-file-alt mr-1"/>Detail Views by File Type</React.Fragment>);
+                menuOptions.set('file_detail_views_by_assay_type', <React.Fragment><i className="icon fas icon-fw icon-vial mr-1"/>Detail Views by Assay Type</React.Fragment>);
+                menuOptions.set('file_detail_views_by_dataset',    <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Dataset</React.Fragment>);
+                menuOptions.set('file_list_views',                 <React.Fragment><i className="icon fas icon-fas icon-list-ul mr-1"/>Appearance in Search Results</React.Fragment>);
+                menuOptions.set('file_clicks',                      <React.Fragment><i className="icon fas icon-fas icon-mouse-pointer mr-1"/>Search Result Click</React.Fragment>);
+                // menuOptions.set('metadata_tsv_by_country',  <React.Fragment><i className="icon fas icon-fas icon-file mr-1"/>Metadata.tsv Files Count by Country</React.Fragment>);
+                break;
+            case 'sessions_by_country':
+                menuOptions.set('views_by_country',    <React.Fragment><i className="icon icon-fw fas icon-map-marker mr-1" />Page Views by Country</React.Fragment>);
+                menuOptions.set('views_by_city',       <React.Fragment><i className="icon icon-fw fas icon-map-marker-alt mr-1" />Page Views by City</React.Fragment>);
+                menuOptions.set('device_category',     <React.Fragment><i className="icon icon-fw fas icon-laptop mr-1" />Page Views by Device</React.Fragment>);
+                menuOptions.set('page_title',          <React.Fragment><i className="icon icon-fw fas icon-font mr-1" />Page Views by Title (may load slowly)</React.Fragment>);
+                menuOptions.set('page_url',            <React.Fragment><i className="icon icon-fw fas icon-link mr-1" />Page Views by Url (may load slowly)</React.Fragment>);
+                menuOptions.set('sessions_by_country', <React.Fragment><i className="icon icon-fw fas icon-user-friends mr-1" />Unique Users by Country</React.Fragment>);
+                menuOptions.set('sessions_by_city',    <React.Fragment><i className="icon icon-fw fas icon-street-view mr-1" />Unique Users by City</React.Fragment>);
+                break;
+            default:
+                menuOptions.set('views',    <React.Fragment><i className="icon icon-fw fas icon-eye mr-1"/>Views</React.Fragment>);
+                menuOptions.set('sessions', <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Unique Users</React.Fragment>);
+            break;
         }
-
+        
         const dropdownTitle = menuOptions.get(currCountBy);
 
         return (
@@ -862,18 +935,11 @@ export function UsageStatsView(props){
         changeCountByForChart, countBy,
         // Passed in from StatsChartViewAggregator:
         sessions_by_country, chartToggles, fields_faceted,
-        file_downloads, file_downloads_volume, file_views,
+        file_downloads, file_downloads_volume, top_file_downloads, top_file_downloads_volume, file_views,
         smoothEdges, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
     } = props;
 
-    if (loadingStatus === 'failed'){
-        return <div className="stats-charts-container" key="charts" id="usage"><ErrorIcon/></div>;
-    }
-
-    if (!mounted || (loadingStatus === 'loading' && (!file_downloads && !sessions_by_country))){
-        return <div className="stats-charts-container" key="charts" id="usage"><LoadingIcon/></div>;
-    }
-
+    const [ scale, setScale ] = useState({ yAxisScale: 'Linear', yAxisPower: 0.5 });
     const { anyExpandedCharts, commonXDomain, dateRoundInterval } = useMemo(function(){
         const { fromDate: propFromDate, untilDate: propUntilDate } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
         let fromDate, untilDate, dateRoundInterval;
@@ -898,6 +964,14 @@ export function UsageStatsView(props){
         };
     }, [ currentGroupBy, anyExpandedCharts ]);
 
+    if (loadingStatus === 'failed'){
+        return <div className="stats-charts-container" key="charts" id="usage"><ErrorIcon/></div>;
+    }
+
+    if (!mounted || (loadingStatus === 'loading' && (!file_downloads && !sessions_by_country))){
+        return <div className="stats-charts-container" key="charts" id="usage"><LoadingIcon/></div>;
+    }
+
     const commonContainerProps = { 'onToggle' : onChartToggle, chartToggles, windowWidth, 'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250 };
     const commonChartProps = {
         dateRoundInterval,
@@ -907,21 +981,53 @@ export function UsageStatsView(props){
     };
     const countByDropdownProps = { countBy, changeCountByForChart };
 
-    const enableFileDownloadsChartTooltipItemClick = (countBy.file_downloads === 'top_files');
-    const fileDownloadsChartHeight = enableFileDownloadsChartTooltipItemClick ? 350 : commonContainerProps.defaultHeight;
     const sessionsByCountryChartHeight = ['page_title', 'page_url'].indexOf(countBy.sessions_by_country) > -1 ? 500 : commonContainerProps.defaultHeight;
     const enableSessionByCountryChartTooltipItemClick = (countBy.sessions_by_country === 'page_url');
+
+    let showScaleRange = true;
+    let scaleRangeTooltip = '';
+    let scaleRangeMin, scaleRangeMax, scaleRangeStep;
+    //set defaults
+    if (scale['yAxisScale'] === 'Pow') {
+        scaleRangeMin = 0; scaleRangeMax = 1; scaleRangeStep = 0.1;
+        scaleRangeTooltip = 'exponent';
+    } else if (scale['yAxisScale'] === 'Symlog') {
+        scaleRangeMin = 0; scaleRangeMax = 100; scaleRangeStep = 0.5;
+        scaleRangeTooltip = 'constant';
+    } else {
+        showScaleRange = false;
+    }
 
     return (
         <div className="stats-charts-container" key="charts" id="usage">
 
             <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
-                title="Show" outerClassName="dropdown-container mb-0 sticky-top">
-                <div className="d-inline-block ml-15 mr-15">
+                groupByTitle="Show" outerClassName="dropdown-container mb-0 sticky-top">
+                <div className="d-inline-block mr-15 pt-08">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                 </div>
-                <div className="d-inline-block">
+                <div className="d-inline-block mr-3 mb-2 pt-08">
                     <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Show as cumulative sum</Checkbox>
+                </div>
+                <div className="d-block d-md-inline-block pt-08">
+                    <div className="d-md-flex">
+                        <span className="text-500 mr-1">Y-Axis scale:</span>
+                        <div className='mb-15'>
+                            <DropdownButton
+                                title={(scale && scale['yAxisScale'] && UsageStatsView.yScaleLabels[scale['yAxisScale']]) || '-'}
+                                onSelect={(e) => setScale({ yAxisScale: e, yAxisPower: e === 'Pow' ? 0.5 : 50 })}>
+                                <DropdownItem eventKey={'Linear'} key={'scale-linear'} >{UsageStatsView.yScaleLabels['Linear']}</DropdownItem>
+                                <DropdownItem eventKey={'Pow'} key={'scale-pow'} >{UsageStatsView.yScaleLabels['Pow']}</DropdownItem>
+                                <DropdownItem eventKey={'Symlog'} key={'scale-log'} >{UsageStatsView.yScaleLabels['Symlog']}</DropdownItem>
+                            </DropdownButton>
+                        </div>
+                        <div className={"ml-md-15" + (showScaleRange ? " d-block d-md-inline-block" : " d-none")}>
+                            <input type="range" id="input_range_y_scale_power" className='w-75'
+                                min={scaleRangeMin} max={scaleRangeMax} step={scaleRangeStep} value={scale['yAxisPower']} data-tip={scaleRangeTooltip}
+                                onChange={(e) => setScale({ yAxisScale: scale['yAxisScale'], yAxisPower: e.target.valueAsNumber })} />
+                            <span className='ml-05'>{scale['yAxisPower']}</span>
+                        </div>
+                    </div>
                 </div>
             </GroupByDropdown>
 
@@ -941,16 +1047,44 @@ export function UsageStatsView(props){
 
                     <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
-                    <AreaChartContainer {...commonContainerProps} id="file_downloads" defaultHeight={fileDownloadsChartHeight}
-                        title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                        subTitle={enableFileDownloadsChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
-                        <AreaChart {...commonChartProps} data={file_downloads} showTooltipOnHover={!enableFileDownloadsChartTooltipItemClick} />
+                    <AreaChartContainer {...commonContainerProps} id="file_downloads" title={<h5 className="text-400 mt-0">Total File Count</h5>}>
+                        <AreaChart {...commonChartProps} data={file_downloads} {...scale} />
                     </AreaChartContainer>
 
-                    <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" defaultHeight={fileDownloadsChartHeight}
+                    <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" defaultHeight={300} title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}>
+                        <AreaChart {...commonChartProps} data={file_downloads_volume} yAxisLabel="GB" {...scale} />
+                    </AreaChartContainer>
+
+                    <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
+
+                </ColorScaleProvider>
+
+                : null }
+
+            { top_file_downloads ?
+
+                <ColorScaleProvider resetScalesWhenChange={top_file_downloads}>
+                
+                    <div className="clearfix">
+                        <div className="pull-right mt-05">
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="top_file_downloads" />
+                        </div>
+                        <h3 className="charts-group-title">
+                            <span className="d-block d-sm-inline">Top File Downloads<sup>*</sup></span><span className="text-300 d-none d-sm-inline"> - </span>
+                            <span className="text-300">{UsageStatsView.titleExtensions['top_file_downloads'][countBy.top_file_downloads]}</span>
+                        </h3>
+                    </div>
+
+                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads" defaultHeight={300}
+                        title={<h5 className="text-400 mt-0">Total File Count</h5>}
+                        subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
+                        <AreaChart {...commonChartProps} data={top_file_downloads} showTooltipOnHover={false} {...scale} />
+                    </AreaChartContainer>
+
+                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" defaultHeight={350}
                         title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                        subTitle={enableFileDownloadsChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
-                        <AreaChart {...commonChartProps} data={file_downloads_volume} showTooltipOnHover={!enableFileDownloadsChartTooltipItemClick} yAxisLabel="GB" />
+                        subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
+                        <AreaChart {...commonChartProps} data={top_file_downloads_volume} showTooltipOnHover={false} yAxisLabel="GB" {...scale} />
                     </AreaChartContainer>
 
                     <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
@@ -972,7 +1106,7 @@ export function UsageStatsView(props){
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" />}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
-                        <AreaChart {...commonChartProps} data={file_views} />
+                        <AreaChart {...commonChartProps} data={file_views} {...scale} />
                     </AreaChartContainer>
 
                 </ColorScaleProvider>
@@ -998,7 +1132,7 @@ export function UsageStatsView(props){
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" />}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}
                         defaultHeight={sessionsByCountryChartHeight}>
-                        <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} />
+                        <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} {...scale} />
                     </AreaChartContainer>
 
                 </ColorScaleProvider>
@@ -1020,7 +1154,7 @@ export function UsageStatsView(props){
                         }
                         extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="fields_faceted" />}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
-                        <AreaChart {...commonChartProps} data={fields_faceted} />
+                        <AreaChart {...commonChartProps} data={fields_faceted} {...scale} />
                     </AreaChartContainer>
 
 
@@ -1036,9 +1170,9 @@ UsageStatsView.titleExtensions = {
         'metadata_tsv_by_country': 'metadata.tsv files',
         'file_list_views': 'appearances in results',
         'file_clicks': 'clicks from results',
-        'file_detail_views_by_file_type': 'detail views by file type',
-        'file_detail_views_by_assay_type': 'detail views by assay type',
-        'file_detail_views_by_dataset': 'detail views by dataset',
+        'file_detail_views_by_file_type': 'by file type',
+        'file_detail_views_by_assay_type': 'by assay type',
+        'file_detail_views_by_dataset': 'by dataset',
     },
     'sessions_by_country': {
         'views_by_country': 'by country',
@@ -1052,14 +1186,24 @@ UsageStatsView.titleExtensions = {
     'file_downloads': {
         'assay_type': 'by assay type',
         'filetype': 'by file type',
-        'dataset': 'by dataset',
-        'top_files': 'top 10 files'
+        'dataset': 'by dataset'
+    },
+    'top_file_downloads': {
+        'top_files_10': 'top 10',
+        'top_files_25': 'top 25',
+        'top_files_50': 'top 50',
+        'top_files_100': 'top 100'
     },
     'fields_faceted': {
         'views': 'by search result instance',
         'sessions': 'by unique users'
     }
 };
+UsageStatsView.yScaleLabels = {
+    'Linear': 'Linear',
+    'Symlog': 'Log',
+    'Pow': 'Pow'
+}
 
 
 export function SubmissionsStatsView(props) {
@@ -1091,6 +1235,7 @@ export function SubmissionsStatsView(props) {
         currentGroupBy, groupByOptions, handleGroupByChange,
         currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange, loadingStatus
     };
+    const invalidDateRange = currentDateRangeFrom && currentDateRangeTo && currentDateRangeFrom > currentDateRangeTo;
 
     return (
         <div className="stats-charts-container" key="charts" id="submissions">
@@ -1110,19 +1255,15 @@ export function SubmissionsStatsView(props) {
 
                 <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
-                <AreaChartContainer {...commonContainerProps} id="files_uploading" title={
-                    <h5 className="text-400 mt-0">
-                        Total File Count
-                    </h5>
-                }>
+                <AreaChartContainer {...commonContainerProps} id="files_uploading"
+                    title={<h5 className="text-400 mt-0">Total File Count</h5>}
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploading} />}>
                     <AreaChart {...commonChartProps} data={files_uploading} />
                 </AreaChartContainer>
 
-                <AreaChartContainer {...commonContainerProps} id="file_volume_uploading" title={
-                    <h5 className="text-400 mt-0">
-                        Total File Size (GB)
-                    </h5>
-                }>
+                <AreaChartContainer {...commonContainerProps} id="file_volume_uploading"
+                    title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploading} />}>
                     <AreaChart {...commonChartProps} data={file_volume_uploading} yAxisLabel="GB" />
                 </AreaChartContainer>
 
@@ -1134,19 +1275,15 @@ export function SubmissionsStatsView(props) {
 
                 <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
-                <AreaChartContainer {...commonContainerProps} id="files_uploaded" title={
-                    <h5 className="text-400 mt-0">
-                        Total File Count
-                    </h5>
-                }>
+                <AreaChartContainer {...commonContainerProps} id="files_uploaded"
+                    title={<h5 className="text-400 mt-0">Total File Count</h5>}
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploaded} />}>
                     <AreaChart {...commonChartProps} data={files_uploaded} />
                 </AreaChartContainer>
 
-                <AreaChartContainer {...commonContainerProps} id="file_volume_uploaded" title={
-                    <h5 className="text-400 mt-0">
-                        Total File Size (GB)
-                    </h5>
-                }>
+                <AreaChartContainer {...commonContainerProps} id="file_volume_uploaded"
+                    title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploaded} />}>
                     <AreaChart {...commonChartProps} data={file_volume_uploaded} yAxisLabel="GB" />
                 </AreaChartContainer>
 
@@ -1159,19 +1296,15 @@ export function SubmissionsStatsView(props) {
 
                 <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
-                <AreaChartContainer {...commonContainerProps} id="files_released" title={
-                    <h5 className="text-400 mt-0">
-                        Total File Count
-                    </h5>
-                }>
+                <AreaChartContainer {...commonContainerProps} id="files_released"
+                    title={<h5 className="text-400 mt-0">Total File Count</h5>}
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_released} />}>
                     <AreaChart {...commonChartProps} data={files_released} />
                 </AreaChartContainer>
 
-                <AreaChartContainer {...commonContainerProps} id="file_volume_released" title={
-                    <h5 className="text-400 mt-0">
-                        Total File Size (GB)
-                    </h5>
-                }>
+                <AreaChartContainer {...commonContainerProps} id="file_volume_released"
+                    title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_released} />}>
                     <AreaChart {...commonChartProps} data={file_volume_released} yAxisLabel="GB" />
                 </AreaChartContainer>
 
@@ -1253,4 +1386,14 @@ const convertDataRangeToXDomain = memoize(function (rangePreset = 'all', rangeFr
     const firstWeekdayFrom = new Date(from.getTime() - daysDifference * 24 * 60 * 60 * 1000);
 
     return [firstWeekdayFrom, to];
+});
+
+const ChartSubTitle = memoize(function ({ title, data, invalidDateRange }) {
+    if (invalidDateRange === true) {
+        return <h4 className="font-weight-normal text-secondary">Invalid date range</h4>;
+    }
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+        return <h4 className="font-weight-normal text-secondary">No data to display</h4>;
+    }
+    return title || null;
 });

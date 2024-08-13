@@ -96,6 +96,34 @@
                 ]
             }
         },
+        "comparators": {
+            "title": "Comparators",
+            "description": "Link to comparator sample files used for normal matching",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "external_databases": {
+            "title": "External Databases",
+            "description": "External databases used for filtering variant calls",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "dbSNP v2.0",
+                    "gnomAD v4.0"
+                ]
+            }
+        },
+        "filtering_methods": {
+            "title": "Filtering Methods",
+            "description": "Filtering methods used in variant calling",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
         "schema_version": {
             "default": "2"
         },

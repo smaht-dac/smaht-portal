@@ -114,7 +114,9 @@
             "title": "Target Read Length",
             "description": "Expected read length for the sequencing (bp)",
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "allow_commas": true,
+            "allow_multiplier_suffix": true
         },
         "target_monomer_length": {
             "title": "Target Monomer Length",
