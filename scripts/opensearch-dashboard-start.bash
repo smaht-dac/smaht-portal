@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# New: 2024-08-13
+# Same as kibana-start.bash except for the newer OpenSearch Dashboard (left variable names as kibana).
+# Since we are now (as of quite a while ago) using OpenSearch (rather than ElasticSearch) as we are
+# seem to be required OpenSearch Dashboard rather than Kibana.
+#
 docker_kibana_image=opensearchproject/opensearch-dashboards:2.14.0
 docker_kibana_port=5601
 local_kibana_port=${docker_kibana_port}
@@ -10,7 +15,7 @@ if [ "$1" = "test" ]; then
 
     # This deletes all the output that doesn't match our pattern and includes only what does.
     # Ref: https://stackoverflow.com/questions/6011661/regexp-sed-suppress-no-match-output
-    port=`ps aux | sed -E '/.*elasticsearch.*-Ehttp[.]port=([0-9]+)[^0-9].*/!d;s//\1/'`
+    port=`ps aux | sed -E '/.*opensearch.*-Ehttp[.]port=([0-9]+)[^0-9].*/!d;s//\1/'`
 
     if [ -z "${port}" ]; then
         echo "Cannot find test port."
@@ -86,7 +91,7 @@ existing_kibana=`docker ps | egrep "${kibana_docker_pattern}"`
 
 if [ -z "${existing_kibana}" ]; then
 
-    echo "OpenSearch Dashboard is not already running for ES port ${local_es_port}"
+    echo "OpenSearch Dashboard is not already running for OpenSearch port ${local_es_port}"
     docker_es_url="http://host.docker.internal:${local_es_port}"
     echo ▶ docker run -d --network localnet -p ${local_kibana_port}:${docker_kibana_port} -e OPENSEARCH_HOSTS=${docker_es_url} -e DISABLE_SECURITY_DASHBOARDS_PLUGIN=true ${docker_kibana_image}
     docker run -d --network localnet -p ${local_kibana_port}:${docker_kibana_port} -e OPENSEARCH_HOSTS=${docker_es_url} -e DISABLE_SECURITY_DASHBOARDS_PLUGIN=true ${docker_kibana_image}
@@ -94,7 +99,7 @@ if [ -z "${existing_kibana}" ]; then
     sleep 5
 
 else
-    echo "OpenSearch Dashboard is already listening on port ${local_kibana_port} for elasticsearch on port ${local_es_port}:"
+    echo "OpenSearch Dashboard is already listening on port ${local_kibana_port} for OpenSearch on port ${local_es_port}:"
     echo " ${existing_kibana}"
 fi
 
