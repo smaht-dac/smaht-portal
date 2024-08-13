@@ -2,9 +2,9 @@
 
 # New: 2024-08-13
 # Same as kibana-start.bash except for the newer OpenSearch Dashboard (left variable names as kibana).
-# Since we are now (as of quite a while ago) using OpenSearch (rather than ElasticSearch) as we are
+# Since we are now (as of quite a while ago) using OpenSearch (rather than ElasticSearch) as we
 # seem to be required OpenSearch Dashboard rather than Kibana.
-#
+
 docker_kibana_image=opensearchproject/opensearch-dashboards:2.14.0
 docker_kibana_port=5601
 local_kibana_port=${docker_kibana_port}
