@@ -93,6 +93,9 @@ if [ -z "${existing_kibana}" ]; then
 
     echo "OpenSearch Dashboard is not already running for OpenSearch port ${local_es_port}"
     docker_es_url="http://host.docker.internal:${local_es_port}"
+    # With DISABLE_SECURITY_DASHBOARDS_PLUGIN=true OpenSearch Dashboard will require login;
+    # and have not not yet successfully been able to define the username/password, e.g. via
+    # the OPENSEARCH_USERNAME/OPENSEARCH_PASSWORD environment variables; do not seem to work.
     echo ▶ docker run -d --network localnet -p ${local_kibana_port}:${docker_kibana_port} -e OPENSEARCH_HOSTS=${docker_es_url} -e DISABLE_SECURITY_DASHBOARDS_PLUGIN=true ${docker_kibana_image}
     docker run -d --network localnet -p ${local_kibana_port}:${docker_kibana_port} -e OPENSEARCH_HOSTS=${docker_es_url} -e DISABLE_SECURITY_DASHBOARDS_PLUGIN=true ${docker_kibana_image}
     echo "Waiting for OpenSearch Dashboard to start ..."
