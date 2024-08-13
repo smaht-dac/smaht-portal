@@ -6,6 +6,7 @@ import {
     DotRouterTab,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
 import { FileOverviewTableController } from './FileOverviewTable';
+import { VcfComparatorTable } from './VcfComparatorTable';
 
 /**
  * DotRouterTab content for displaying the files in the same file set as the
@@ -66,19 +67,24 @@ const AssociatedFilesTab = (props) => {
 };
 
 // DotRouterTab content for displaying Analysis information for the current file.
-const AnalysisInformationTab = ({ context }) => {
-    return (
-        <div className="no-results">
-            <div className="no-results-content">
-                <i class="icon icon-network-wired fas"></i>
-                <h3 className="header">Analysis Information Coming Soon</h3>
-                <span className="subheader">
-                    Check back for updates on Analysis Information development
-                    with future portal releases
-                </span>
+const AnalysisInformationTab = (props) => {
+    if (props?.context?.file_summary?.file_format === 'vcf') {
+        return <VcfComparatorTable {...props} />;
+    } else {
+        // no results
+        return (
+            <div className="no-results">
+                <div className="no-results-content">
+                    <i className="icon icon-network-wired fas"></i>
+                    <h3 className="header">Analysis Information Coming Soon</h3>
+                    <span className="subheader">
+                        Check back for updates on Analysis Information
+                        development with future portal releases
+                    </span>
+                </div>
             </div>
-        </div>
-    );
+        );
+    }
 };
 
 // DotRouterTab content for displaying QC information for the current file.
@@ -116,7 +122,7 @@ export const FileViewTabs = (props) => {
                     dotPath=".analysis-information"
                     tabTitle="Analysis Information"
                     arrowTabs={false}>
-                    <AnalysisInformationTab />
+                    <AnalysisInformationTab {...props} />
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".qc-overview"
