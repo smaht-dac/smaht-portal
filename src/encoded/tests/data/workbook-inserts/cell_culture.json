@@ -25,6 +25,6 @@
             "smaht"
         ],
         "submitted_id": "TEST_CELL-CULTURE_LIVER",
-        "parent_samples": ["TEST_TISSUE-SAMPLE_LIVER"]
+        "tissue": "TEST_TISSUE_LIVER"
     }
 ]

@@ -20,7 +20,7 @@
         },
         {
             "required": [
-                "parent_samples"
+                "tissue"
             ]
         }
     ],
@@ -43,9 +43,6 @@
         },
         {
             "$ref": "mixins.json#/protocols"
-        },
-        {
-            "$ref": "mixins.json#/parent_samples"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -112,13 +109,6 @@
                 "type": "string"
             }
         },
-        "parent_samples": {
-            "description": "Link to associated tissues samples from which this cell culture was derived",
-            "items": {
-                "type": "string",
-                "linkTo": "TissueSample"
-            }
-        },
         "passage_number": {
             "title": "Passage Number",
             "description": "Number of times the cell line has been passaged since the culture start date until harvest",
@@ -130,6 +120,12 @@
             "description": "Cell line used for the cell culture",
             "type": "string",
             "linkTo": "CellLine"
+        },
+        "tissue": {
+            "title": "Tissue",
+            "description": "Tissue used for the cell culture",
+            "type": "string",
+            "linkTo": "Tissue"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_CELL-CULTURE_[A-Z0-9-_.]{4,}$"
