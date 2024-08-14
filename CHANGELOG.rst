@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.83.0
+======
+`PR226: SN Add tissue link to cell_culture <https://github.com/smaht-dac/smaht-portal/pull/226>`_
+* Add `parent_samples` link in `cell_culture_sample.json`
+* Add `tissue` link in `cell_culture.json`
+* Make `anyOf` for requiring `cell_line` and/or `tissue`
+
+
 0.82.1
 ======
 

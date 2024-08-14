@@ -47,5 +47,17 @@
             "TEST_CELL-CULTURE-MIXTURE_HELA-HEK293"
         ],
         "preservation_type": "Frozen"
+    },
+    {
+        "uuid": "a26d1fa1-e63f-4f0d-81a9-905b5d7834d5",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_CELL-CULTURE-SAMPLE_LIVER",
+        "sample_sources": [
+            "TEST_CELL-CULTURE_LIVER"
+        ],
+        "parent_samples": ["TEST_TISSUE-SAMPLE_LIVER"],
+        "preservation_type": "Fresh"
     }
 ]

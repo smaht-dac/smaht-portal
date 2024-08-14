@@ -23,5 +23,21 @@
             "test_sample_studies",
             "sample_studies-Production"
         ]
+    },
+    {
+        "uuid": "72781f82-4f55-4ad4-b171-ead6252377ed",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_CELL-SAMPLE_LIVER-CULTURE-CELL",
+        "cell_ontology_id": "CL:0000182",
+        "preservation_type": "Fresh",
+        "sample_sources": [
+            "TEST_CELL-CULTURE_LIVER"
+        ],
+        "cell_count": 100,
+        "parent_samples": [
+            "TEST_CELL-CULTURE-SAMPLE_LIVER"
+        ]
     }
 ]
