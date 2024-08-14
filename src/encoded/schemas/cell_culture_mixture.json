@@ -1,6 +1,6 @@
 {
     "title": "Cell Culture Mixture",
-    "description": "A Cell Culture Mixture is a mixtures of cell cultures. For example, COLO829BLT50 is a mixture of the cell cultures COLO829BL and COLO829T at a 50-to-1 ratio.",
+    "description": "A Cell Culture Mixture is a mixture of cell cultures. For example, COLO829BLT50 is a mixture of the cell cultures COLO829BL and COLO829T at a 50-to-1 ratio.",
     "$id": "/profiles/cell_culture_mixture.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

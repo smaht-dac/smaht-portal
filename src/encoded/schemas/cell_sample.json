@@ -1,6 +1,6 @@
 {
     "title": "Cell Sample",
-    "description": "Samples consisting of isolated cells. The Cell Sample item is intended for specific cell types taken from a source tissue or cell culture, such as flow-sorted neurons from a brain. Because of this, the Cell Sample item will contain informations on the cell type isolated and other relevant information.",
+    "description": "Samples consisting of isolated cells. The Cell Sample item is intended for specific cell types taken from a source tissue or cell culture, such as flow-sorted neurons from a brain. Because of this, the Cell Sample item will contain information on the cell type isolated and other relevant information.",
     "$id": "/profiles/cell_sample.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

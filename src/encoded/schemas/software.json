@@ -1,6 +1,6 @@
 {
     "title": "Software",
-    "description": "Software used to genearte files or perform analysis",
+    "description": "Software used to generate files or perform analysis",
     "$id": "/profiles/software.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

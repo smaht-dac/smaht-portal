@@ -1,6 +1,6 @@
 {
     "title": "File Set",
-    "description": "A FileSet item consists of the file produced from sequencing a library. Note: each library generated requires its own unique assocated FileSet.",
+    "description": "A FileSet item consists of the file produced from sequencing a library. Note: each library generated requires its own unique associated FileSet.",
     "$id": "/profiles/file_set.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
