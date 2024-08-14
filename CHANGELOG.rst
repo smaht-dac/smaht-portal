@@ -9,8 +9,12 @@ Change Log
 
 0.82.1
 ======
-`PR222: feat: add dataset target coverage row <https://github.com/smaht-dac/smaht-portal/pull/222>`_
-* Add dataset target coverage row to File Overview's Data Information card
+
+`PR 207: feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/207>`_
+
+* Reorganize Awardees Visualizations
+* Provide links to individual PI's labs
+* Reformat/reword copy
 
 
 0.82.0
