@@ -18,6 +18,16 @@ Change Log
   * Include schema description for GCC-submitted items
 
 
+0.82.1
+======
+
+`PR 207: feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/207>`_
+
+* Reorganize Awardees Visualizations
+* Provide links to individual PI's labs
+* Reformat/reword copy
+
+
 0.82.0
 ======
 
