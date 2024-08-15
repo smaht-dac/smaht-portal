@@ -93,10 +93,7 @@ export class NavigationBar extends React.PureComponent {
 
         return (
             <div className="navbar-container">
-                <div
-                    id="top-nav"
-                    className="navbar-fixed-top"
-                    role="navigation">
+                <div id="top-nav" className="navbar-fixed-top">
                     <TestWarning
                         visible={testWarningVisible}
                         setHidden={hideTestWarning}
@@ -110,11 +107,15 @@ export class NavigationBar extends React.PureComponent {
                             id="navbar-icon"
                             onToggle={this.onToggleNavBar}
                             expanded={mobileDropdownOpen}>
-                            <a className="navbar-brand" href="/">
+                            <a
+                                className="navbar-brand"
+                                href="/"
+                                aria-label="Navigate to the homepage">
                                 <div className="smaht-logo-wrapper img-container mr-05">
                                     <img
                                         className="smaht-logo"
                                         src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
+                                        alt="SMaHT Data Portal Logo"
                                         height="50"
                                     />
                                     <span>SMaHT Data Portal</span>
