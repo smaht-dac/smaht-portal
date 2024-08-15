@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Union
 
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
+import structlog
 
 from .submitted_item import SubmittedItem
 from ..item_utils import (
@@ -12,6 +13,9 @@ from ..item_utils import (
 )
 from ..item_utils.utils import RequestHandler, get_property_value_from_identifier
 from ..utils import load_extended_descriptions_in_schemas
+
+
+log = structlog.getLogger(__name__)
 
 
 # These codes are used to generate the mergeable bam grouping calc prop
@@ -212,14 +216,17 @@ class FileSet(SubmittedItem):
         request_handler = RequestHandler(request=request)
         library = file_set_utils.get_libraries(self.properties)
         if not library:
+            log.error(f'Did not get library for {self.properties}')
             return None
         library = request_handler.get_item(library[0])
         assay_part = self.generate_assay_part(request_handler, library)
         if not assay_part:  # we return none if this is a single cell assay to omit this prop
+            log.error(f'Did not get assay part for {assay_part}')
             return None
 
         sample_source_part = self.generate_sample_source_part(request_handler, library)
         if not sample_source_part:
+            log.error(f'Did not get sample_source_part for {library}')
             return None
 
         # If we've reached this part, the library/assay is compatible
@@ -228,6 +235,7 @@ class FileSet(SubmittedItem):
         )
         sequencing_part = self.generate_sequencing_part(request_handler, sequencing)
         if not sequencing_part:
+            log.error(f'Did not get sequencing part for {sequencing}')
             return None
 
         # We need this because sequencing and sample submission centers could be different
