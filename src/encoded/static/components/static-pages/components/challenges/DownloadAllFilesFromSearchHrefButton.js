@@ -82,7 +82,7 @@ export const DownloadAllFilesFromSearchHrefButton = ({
             {...{ selectedItems, session }}
             analyticsAddItemsToCart>
             <i className="icon icon-download fas mr-03" />
-            {!!children ? children : `Download ${selectedItems.size} Files`}
+            {children ? children : `Download ${selectedItems.size} Files`}
         </SelectedItemsDownloadButton>
     );
 };

@@ -40,7 +40,7 @@
         </div>
         <div className="col-md-6 col-12 justify-content-md-end d-flex">
             <div className="align-content-center">
-                <DownloadAllFilesFromSearchHrefButton {...{ session }} searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data&tags!=analysis_results">Download All Version 1.0 Files</DownloadAllFilesFromSearchHrefButton>
+                <DownloadAllFilesFromSearchHrefButton session={session} searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data&tags!=analysis_results">Download All Version 1.0 Files</DownloadAllFilesFromSearchHrefButton>
             </div>
         </div>
     </div>
