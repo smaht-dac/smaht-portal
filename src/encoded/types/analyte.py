@@ -44,6 +44,7 @@ def validate_molecule_specific_properties_on_add(context,request):
     """Check that `molecule` is compatible with molecule-specific properties on add."""
     data = request.json
     molecules = ['DNA','RNA']
+
     for molecule in molecules:
         if molecule not in data['molecule']:
             specific_properties = [ key for key in data.keys() if re.match(f"{molecule.lower()}",key) ]
