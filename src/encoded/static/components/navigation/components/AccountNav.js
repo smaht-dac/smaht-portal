@@ -270,8 +270,12 @@ const HelpdeskButton = React.memo(function HelpdeskButton(props) {
         'mailto:smhelp@hms-dbmi.atlassian.net?subject=Helpdesk%20Inquiry%20from%20data.smaht.org&body=Name%3A%0D%0AContact%20Information%20(so%20we%20can%20get%20back%20to%20you!)%3A%0D%0A%0D%0AQuestions%2FComments%3A%0D%0A%0D%0A';
 
     return (
-        <a role="button" href={mailto} className="helpdesk nav-link">
-            <i className="icon icon-envelope fas" />
+        <a
+            role="button"
+            aria-label="Email the Helpdesk"
+            href={mailto}
+            className="helpdesk nav-link">
+            <i className="icon icon-envelope fas" aria-hidden="true" />
             Helpdesk
         </a>
     );
