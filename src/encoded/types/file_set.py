@@ -147,7 +147,7 @@ class FileSet(SubmittedItem):
             library, request_handler=request_handler
         )
         log.error(f'Got samples {samples} for library {library}')
-        if len(samples) > 1:
+        if len(samples) > 1 or len(samples) == 0:
             return None  # there is too much complexity
 
         # If we are a tissue sample, generate this based on the sample field, not the sample

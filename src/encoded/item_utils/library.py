@@ -2,7 +2,7 @@ from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
 from . import analyte as analyte_utils, sample as sample_utils
-from .utils import RequestHandler, get_property_values_from_identifiers
+from .utils import RequestHandler, get_property_values_from_identifiers, get_property_value_from_identifier
 
 
 def get_assay(library: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
@@ -33,10 +33,10 @@ def get_samples(
 ) -> List[str]:
     """Get samples connected to library."""
     if request_handler:
-        return get_property_values_from_identifiers(
+        return get_property_value_from_identifier(
             request_handler,
             get_analytes(library),
-            partial(analyte_utils.get_samples, request_handler),
+            analyte_utils.get_samples,
         )
     return []
 
