@@ -71,6 +71,7 @@ const ChallengeTable = (props) => {
             render: function (result, parentProps) {
                 const {
                     '@id': atId,
+                    filename,
                     display_title,
                     annotated_filename,
                 } = result || {};
@@ -81,13 +82,18 @@ const ChallengeTable = (props) => {
                             href={atId}
                             target="_blank"
                             rel="noreferrer noopener">
-                            {annotated_filename || display_title}
+                            {filename || annotated_filename || display_title}
                         </a>
                     </span>
                 );
             },
         },
-        // TODO: When description and version columns are ready, add those here
+        description: {
+            widthMap: { lg: 500, md: 400, sm: 300 },
+        },
+        version: {
+            widthMap: { lg: 105, md: 100, sm: 100 },
+        },
         // File Size
         file_size: {
             widthMap: { lg: 105, md: 100, sm: 100 },
