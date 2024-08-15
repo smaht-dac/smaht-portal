@@ -34,8 +34,8 @@ const CLTList = ({ list }) => {
                                 }>
                                 <div>
                                     <img
-                                        src={item.iconSrc}
-                                        alt={`${item.title} icon`}
+                                        src={item.icon.src}
+                                        alt={`${item.icon.alt}`}
                                     />
                                     <span>{item.title}</span>
                                 </div>
@@ -47,8 +47,8 @@ const CLTList = ({ list }) => {
                         <li key={i}>
                             <div>
                                 <img
-                                    src={item.iconSrc}
-                                    alt={`${item.title} icon`}
+                                    src={item.icon.src}
+                                    alt={`${item.icon.alt}`}
                                 />
                                 <span>{item.title}</span>
                             </div>
@@ -67,7 +67,10 @@ export const CLTCard = ({ currentTier }) => {
             header: 'Ectoderm Tissues',
             items: [
                 {
-                    iconSrc: '/static/img/anatomy-icons/Brain.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Brain.svg',
+                        alt: 'Brain icon',
+                    },
                     title: 'Brain: unrelated donors',
                     tier_0: true,
                     tier_1: false,
@@ -88,7 +91,10 @@ export const CLTCard = ({ currentTier }) => {
                 },
                 {
                     // Added a second version of Brain, since they are meant to have slightly different titles
-                    iconSrc: '/static/img/anatomy-icons/Brain.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Brain.svg',
+                        alt: 'Brain icon',
+                    },
                     title: 'Brain: 4 subregions',
                     tier_0: false,
                     tier_1: true,
@@ -96,7 +102,10 @@ export const CLTCard = ({ currentTier }) => {
                     // TODO: Does this also require the same note as above?
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Sun-exposed skin.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Sun-exposed skin.svg',
+                        alt: 'Sun-exposed skin icon',
+                    },
                     title: 'Sun-exposed skin',
                     tier_0: true,
                     tier_1: true,
@@ -104,14 +113,20 @@ export const CLTCard = ({ currentTier }) => {
                 },
                 {
                     // TODO: Double check that it was correct to remove this from just Tier 0
-                    iconSrc: '/static/img/anatomy-icons/Non-exposed skin.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Non-exposed skin.svg',
+                        alt: 'Non-exposed skin icon',
+                    },
                     title: 'Non-exposed skin',
                     tier_0: false,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Adrenal Gland.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Adrenal Gland.svg',
+                        alt: 'Adrenal Gland skin icon',
+                    },
                     title: 'Adrenal medulla',
                     tier_0: false,
                     tier_1: true,
@@ -123,28 +138,40 @@ export const CLTCard = ({ currentTier }) => {
             header: 'Mesoderm Tissues',
             items: [
                 {
-                    iconSrc: '/static/img/anatomy-icons/Heart.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Heart.svg',
+                        alt: 'Heart icon',
+                    },
                     title: 'Heart',
                     tier_0: false,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Blood.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Blood.svg',
+                        alt: 'Blood icon',
+                    },
                     title: 'Blood',
                     tier_0: false,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Skeletal Muscle.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Skeletal Muscle.svg',
+                        alt: 'Skeletal Muscle icon',
+                    },
                     title: 'Skeletal Muscle',
                     tier_0: false,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Aorta.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Aorta.svg',
+                        alt: 'Aorta icon',
+                    },
                     title: 'Aorta',
                     tier_0: false,
                     tier_1: true,
@@ -156,28 +183,40 @@ export const CLTCard = ({ currentTier }) => {
             header: 'Endoderm Tissues',
             items: [
                 {
-                    iconSrc: '/static/img/anatomy-icons/Liver.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Liver.svg',
+                        alt: 'Liver icon',
+                    },
                     title: 'Liver',
                     tier_0: true,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Lung.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Lung.svg',
+                        alt: 'Lung icon',
+                    },
                     title: 'Lung',
                     tier_0: true,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Colon.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Colon.svg',
+                        alt: 'Colon icon',
+                    },
                     title: 'Colon',
                     tier_0: true,
                     tier_1: false,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Ascending Colon.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Ascending Colon.svg',
+                        alt: 'Ascending Colon icon',
+                    },
                     title: 'Ascending Colon',
                     tier_0: false,
                     tier_1: true,
@@ -185,14 +224,20 @@ export const CLTCard = ({ currentTier }) => {
                 },
                 {
                     // TODO: Double check it was correct to remove this from just tier 0
-                    iconSrc: '/static/img/anatomy-icons/Descending Colon.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Descending Colon.svg',
+                        alt: 'Descending Colon icon',
+                    },
                     title: 'Descending Colon',
                     tier_0: false,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Esophagus.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Esophagus.svg',
+                        alt: 'Esophagus icon',
+                    },
                     title: 'Esophagus',
                     tier_0: false,
                     tier_1: true,
@@ -204,28 +249,40 @@ export const CLTCard = ({ currentTier }) => {
             header: 'Cell Line Mixtures',
             items: [
                 {
-                    iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Cell Line Mixture.svg',
+                        alt: 'Cell Line Mixture icon',
+                    },
                     title: 'COLO829 Mixture',
                     tier_0: true,
                     tier_1: false,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Cell Line Mixture.svg',
+                        alt: 'Cell Line Mixture icon',
+                    },
                     title: 'HapMap Mixture',
                     tier_0: true,
                     tier_1: false,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Cell Line Mixture.svg',
+                        alt: 'Cell Line Mixture icon',
+                    },
                     title: 'iPSC & Fibroblast',
                     tier_0: true,
                     tier_1: false,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Cell Line Mixture.svg',
+                        alt: 'Cell Line Mixture icon',
+                    },
                     title: 'Descending Colon',
                     tier_0: false,
                     tier_1: false,
@@ -237,21 +294,30 @@ export const CLTCard = ({ currentTier }) => {
             header: 'Other Tissues',
             items: [
                 {
-                    iconSrc: '/static/img/anatomy-icons/Buccal Swab.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Buccal Swab.svg',
+                        alt: 'Buccal Swab icon',
+                    },
                     title: 'Buccal Swab',
                     tier_0: false,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Fibroblast.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Fibroblast.svg',
+                        alt: 'Fibroblast icon',
+                    },
                     title: 'Skin Fibroblast',
                     tier_0: false,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '/static/img/anatomy-icons/Testes or Ovary.svg',
+                    icon: {
+                        src: '/static/img/anatomy-icons/Testes or Ovary.svg',
+                        alt: 'Gender symbols icon',
+                    },
                     title: 'Testis / Ovary',
                     tier_0: false,
                     tier_1: true,

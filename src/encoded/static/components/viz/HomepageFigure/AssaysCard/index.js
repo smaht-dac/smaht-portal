@@ -44,17 +44,18 @@ export const AssaysCard = ({ currentTier }) => {
     const assaysList = [
         {
             header: 'Bulk WGS short read',
-            iconSrc: '/static/img/assay-icons/Bulk WGS short read.svg',
+            icon: {
+                src: '/static/img/assay-icons/Bulk WGS short read.svg',
+                alt: 'Bulk WGS short read icon',
+            },
             items: [
                 {
-                    iconSrc: '',
                     title: 'Illumina NovaSeq',
                     tier_0: true,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '',
                     title: 'Ultima Genomics',
                     tier_0: true,
                     tier_1: true,
@@ -64,17 +65,18 @@ export const AssaysCard = ({ currentTier }) => {
         },
         {
             header: 'Bulk WGS long read',
-            iconSrc: '/static/img/assay-icons/Bulk WGS long read.svg',
+            icon: {
+                src: '/static/img/assay-icons/Bulk WGS long read.svg',
+                alt: 'Bulk WGS long read icon',
+            },
             items: [
                 {
-                    iconSrc: '',
                     title: 'PacBio HiFi',
                     tier_0: true,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '',
                     title: 'ONT',
                     tier_0: true,
                     tier_1: true,
@@ -84,17 +86,18 @@ export const AssaysCard = ({ currentTier }) => {
         },
         {
             header: 'Bulk RNA-seq',
-            iconSrc: '/static/img/assay-icons/Bulk RNA-seq.svg',
+            icon: {
+                src: '/static/img/assay-icons/Bulk RNA-seq.svg',
+                alt: 'Bulk RNA-seq icon',
+            },
             items: [
                 {
-                    iconSrc: '',
                     title: 'Illumina NovaSeq',
                     tier_0: true,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '',
                     title: 'MAS-Seq',
                     tier_0: true,
                     tier_1: true,
@@ -104,31 +107,30 @@ export const AssaysCard = ({ currentTier }) => {
         },
         {
             header: 'Single-cell WGS',
-            iconSrc: '/static/img/assay-icons/Single-cell WGS.svg',
+            icon: {
+                src: '/static/img/assay-icons/Single-cell WGS.svg',
+                alt: 'Single-cell WGS icon',
+            },
             items: [
                 {
-                    iconSrc: '',
                     title: 'DLP+',
                     tier_0: true,
                     tier_1: true,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '',
                     title: 'MALBAC',
                     tier_0: true,
                     tier_1: false,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '',
                     title: 'PTA and PTA-HAT-Seq',
                     tier_0: true,
                     tier_1: false,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '',
                     title: 'Cas9-targeted seq',
                     tier_0: true,
                     tier_1: false,
@@ -138,24 +140,24 @@ export const AssaysCard = ({ currentTier }) => {
         },
         {
             header: 'Single-cell RNA-Seq',
-            iconSrc: '/static/img/assay-icons/Single-cell RNA-Seq.svg',
+            icon: {
+                src: '/static/img/assay-icons/Single-cell RNA-Seq.svg',
+                alt: 'Single-cell RNA-Seq icon',
+            },
             items: [
                 {
-                    iconSrc: '',
                     title: 'snRNA-Seq',
                     tier_0: true,
                     tier_1: false,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '',
                     title: 'STORM-Seq',
                     tier_0: true,
                     tier_1: false,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '',
                     title: 'Tranquil-Seq',
                     tier_0: true,
                     tier_1: false,
@@ -165,38 +167,36 @@ export const AssaysCard = ({ currentTier }) => {
         },
         {
             header: 'Single-molecule/duplex WGS',
-            iconSrc: '/static/img/assay-icons/Single-molecule duplex WGS.svg',
+            icon: {
+                src: '/static/img/assay-icons/Single-molecule duplex WGS.svg',
+                alt: 'Single-molecule duplex WGS icon',
+            },
             items: [
                 {
-                    iconSrc: '',
                     title: 'Nanoseq',
                     tier_0: true,
                     tier_1: true,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '',
                     title: 'CODEC',
                     tier_0: true,
                     tier_1: true,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '',
                     title: 'Duplex sequencing',
                     tier_0: true,
                     tier_1: true,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '',
                     title: 'HiDEF-Seq',
                     tier_0: true,
                     tier_1: false,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '',
                     title: 'CompDuplex-Seq',
                     tier_0: true,
                     tier_1: false,
@@ -206,38 +206,36 @@ export const AssaysCard = ({ currentTier }) => {
         },
         {
             header: 'Epigenome profiling',
-            iconSrc: '/static/img/assay-icons/Epigenome profiling.svg',
+            icon: {
+                src: '/static/img/assay-icons/Epigenome profiling.svg',
+                alt: 'Epigenome profiling icon',
+            },
             items: [
                 {
-                    iconSrc: '',
                     title: 'NT-Seq',
                     tier_0: true,
                     tier_1: false,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '',
                     title: 'Fiber-Seq',
                     tier_0: true,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '',
                     title: 'Hi-C',
                     tier_0: true,
                     tier_1: true,
                     tier_2: true,
                 },
                 {
-                    iconSrc: '',
                     title: 'GoTchA',
                     tier_0: true,
                     tier_1: false,
                     tier_2: false,
                 },
                 {
-                    iconSrc: '',
                     title: 'ATAC-Seq/MetaCS',
                     tier_0: true,
                     tier_1: false,
@@ -261,7 +259,10 @@ export const AssaysCard = ({ currentTier }) => {
                         <div className="card-list assays" key={i}>
                             <h5>{assay.header}</h5>
                             <div className="card-list-icon-container">
-                                <img src={assay.iconSrc} />
+                                <img
+                                    src={assay.icon.src}
+                                    alt={assay.icon.alt}
+                                />
                                 <AssayList list={activeItems} />
                             </div>
                         </div>
