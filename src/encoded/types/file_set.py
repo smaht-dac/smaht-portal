@@ -146,6 +146,7 @@ class FileSet(SubmittedItem):
         samples = library_utils.get_samples(
             library, request_handler=request_handler
         )
+        log.error(f'Got samples {samples} for library {library}')
         if len(samples) > 1:
             return None  # there is too much complexity
 
@@ -153,6 +154,7 @@ class FileSet(SubmittedItem):
         # sources field
         sample = samples[0]
         if 'tissue' in sample:
+            log.error(f'Attempting to grab submitted_id from {sample}')
             return get_property_value_from_identifier(
                 request_handler, sample, item_utils.get_submitted_id
             )
@@ -161,10 +163,12 @@ class FileSet(SubmittedItem):
         sample_sources = library_utils.get_sample_sources(
             library, request_handler=request_handler
         )
+        log.error(f'Got sample_sources {sample_sources}')
         if len(sample_sources) > 1:
             return None  # there is too much complexity
         else:
             sample_source = sample_sources[0]
+        log.error(f'Attempting to grab submitted_id from {sample_source}')
         return get_property_value_from_identifier(
             request_handler, sample_source, item_utils.get_submitted_id
         )
