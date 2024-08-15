@@ -99,6 +99,7 @@ export class BigDropdownNavItem extends React.PureComponent {
 
         const navItemProps = {
             id,
+            'aria-label': 'Open ' + navItemContent + ' dropdown menu.',
             active,
             key: id,
             href: !children ? navItemHref : null,
