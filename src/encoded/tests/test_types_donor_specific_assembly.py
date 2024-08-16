@@ -205,7 +205,7 @@ def test_derived_paired_with(
         "file_format": file_formats.get("FASTQ", {}).get("uuid", ""),
         "file_sets": [test_fileset["uuid"]],
         "submission_centers": [test_submission_center["uuid"]],
-        "submitted_id": "TEST_UNALIGNED-READS_FASTQ",
+        "submitted_id": "TEST_UNALIGNED-READS_LIVER-FASTQ-R1",
         "data_category": [
             "Sequencing Reads"
         ],
@@ -235,7 +235,7 @@ def test_derived_from_file(
         "file_format": file_formats.get("FASTQ", {}).get("uuid", ""),
         "file_sets": [test_fileset["uuid"]],
         "submission_centers": [test_submission_center["uuid"]],
-        "submitted_id": "TEST_UNALIGNED-READS_FASTQ_R2",
+        "submitted_id": "TEST_UNALIGNED-READS_LIVER-FASTQ-R2",
         "data_category": [
             "Sequencing Reads"
         ],
