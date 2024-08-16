@@ -4,7 +4,6 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "cell_line",
         "submission_centers",
         "submitted_id"
     ],
@@ -12,6 +11,18 @@
         "accession",
         "submitted_id",
         "uuid"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "cell_line"
+            ]
+        },
+        {
+            "required": [
+                "tissue"
+            ]
+        }
     ],
     "additionalProperties": false,
     "mixinProperties": [
@@ -109,6 +120,12 @@
             "description": "Cell line used for the cell culture",
             "type": "string",
             "linkTo": "CellLine"
+        },
+        "tissue": {
+            "title": "Tissue",
+            "description": "Tissue used for the cell culture",
+            "type": "string",
+            "linkTo": "Tissue"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_CELL-CULTURE_[A-Z0-9-_.]{4,}$"

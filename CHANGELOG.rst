@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.83.0
+0.84.0
 ======
 
 * Nested QC (QualityMetric) development.
@@ -15,6 +15,25 @@ Change Log
   related to allowing smaht-portal and cgap-portal to run at the same time locally.
 * Added scripts/opensearch-dashboard-start.bash and Makefile target opensearch-dashboard-starto
   now that we are using OpenSearch rather than ElasticSearch we seem to need this rather than Kibana.
+
+
+0.83.0
+======
+
+`PR226: SN Add tissue link to cell_culture <https://github.com/smaht-dac/smaht-portal/pull/226>`_
+* Add `parent_samples` link in `cell_culture_sample.json`
+* Add `tissue` link in `cell_culture.json`
+* Make `anyOf` for requiring `cell_line` and/or `tissue`
+
+
+0.82.1
+======
+
+`PR 207: feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/207>`_
+
+* Reorganize Awardees Visualizations
+* Provide links to individual PI's labs
+* Reformat/reword copy
 
 
 0.82.0
