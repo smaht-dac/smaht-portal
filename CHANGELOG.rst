@@ -17,6 +17,12 @@ Change Log
   now that we are using OpenSearch rather than ElasticSearch we seem to need this rather than Kibana.
 
 
+0.83.1
+======
+
+* Updates `file_group` calcprop to properly resolve analyte.samples only when computing the `sample_source_part`
+
+
 0.83.0
 ======
 
