@@ -112,16 +112,10 @@ export const FileViewTabs = (props) => {
                 isActive={true}
                 prependDotPath="file-overview">
                 <DotRouterTab
-                    dotPath=".associated-files"
-                    tabTitle="Associated Files"
-                    arrowTabs={false}
-                    default>
-                    <AssociatedFilesTab {...props} />
-                </DotRouterTab>
-                <DotRouterTab
                     dotPath=".analysis-information"
                     tabTitle="Analysis Information"
-                    arrowTabs={false}>
+                    arrowTabs={false}
+                    default>
                     <AnalysisInformationTab {...props} />
                 </DotRouterTab>
                 <DotRouterTab
@@ -129,6 +123,12 @@ export const FileViewTabs = (props) => {
                     tabTitle="QC Overview"
                     arrowTabs={false}>
                     <QCOverviewTab />
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".associated-files"
+                    tabTitle="Associated Files"
+                    arrowTabs={false}>
+                    <AssociatedFilesTab {...props} />
                 </DotRouterTab>
             </DotRouter>
         </div>
