@@ -146,7 +146,6 @@ class FileSet(SubmittedItem):
         samples = library_utils.get_samples(
             library, request_handler=request_handler
         )
-        log.error(f'Got samples {samples} for library {library}')
         if len(samples) > 1 or len(samples) == 0:
             return None  # there is too much complexity
 
@@ -154,7 +153,6 @@ class FileSet(SubmittedItem):
         # sources field
         sample = samples[0]
         if 'tissue' in sample:
-            log.error(f'Attempting to grab submitted_id from {sample}')
             return get_property_value_from_identifier(
                 request_handler, sample, item_utils.get_submitted_id
             )
@@ -163,12 +161,10 @@ class FileSet(SubmittedItem):
         sample_sources = library_utils.get_sample_sources(
             library, request_handler=request_handler
         )
-        log.error(f'Got sample_sources {sample_sources}')
         if len(sample_sources) > 1:
             return None  # there is too much complexity
         else:
             sample_source = sample_sources[0]
-        log.error(f'Attempting to grab submitted_id from {sample_source}')
         return get_property_value_from_identifier(
             request_handler, sample_source, item_utils.get_submitted_id
         )
@@ -220,17 +216,14 @@ class FileSet(SubmittedItem):
         request_handler = RequestHandler(request=request)
         library = file_set_utils.get_libraries(self.properties)
         if not library:
-            log.error(f'Did not get library for {self.properties}')
             return None
         library = request_handler.get_item(library[0])
         assay_part = self.generate_assay_part(request_handler, library)
         if not assay_part:  # we return none if this is a single cell assay to omit this prop
-            log.error(f'Did not get assay part for {assay_part}')
             return None
 
         sample_source_part = self.generate_sample_source_part(request_handler, library)
         if not sample_source_part:
-            log.error(f'Did not get sample_source_part for {library}')
             return None
 
         # If we've reached this part, the library/assay is compatible
@@ -239,7 +232,6 @@ class FileSet(SubmittedItem):
         )
         sequencing_part = self.generate_sequencing_part(request_handler, sequencing)
         if not sequencing_part:
-            log.error(f'Did not get sequencing part for {sequencing}')
             return None
 
         # We need this because sequencing and sample submission centers could be different
