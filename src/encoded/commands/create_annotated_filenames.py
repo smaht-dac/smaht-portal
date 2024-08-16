@@ -637,6 +637,7 @@ def get_aliquot_id(
     tissue_samples: List[Dict[str], Any],
 ) -> FilenamePart:
     """Get tissue aliquot ID for file."""
+
     parts = []
     if cell_culture_mixtures or cell_lines:
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
@@ -654,9 +655,27 @@ def get_aliquot_id_from_samples(tissue_samples: List[Dict[str], Any]) -> Filenam
     aliquot_ids = [
         get_aliquot_id_from_tissue_sample(sample) for sample in tissue_samples
     ]
+    if len(aliquot_ids) > 1:
+        aliquot_ids = get_multiple_aliquot_id_from_samples(aliquot_ids)
     return get_filename_part_for_values(
         aliquot_ids, "tissue aliquot ID", source_name="sample"
     )
+
+
+def get_multiple_aliquot_id_from_samples(ids: List[str]):
+    """Get filename part for files merged from multiple tissue sample aliquots."""
+    aliquot_ids = []
+    core_ids = []
+    for id in ids:
+        aliquot_id = id[:-2]
+        core_id = id[-2:]
+        aliquot_ids.append(aliquot_id) if aliquot_id not in aliquot_ids else aliquot_ids
+        core_ids.append(core_id) if core_id not in core_ids else core_ids
+    if len(aliquot_ids) == 1 and len(core_ids) > 1:
+        aliquot_core_id =  [f"{aliquot_ids[0]}MC"]
+    else:
+       aliquot_core_id = ["MAMC"]
+    return aliquot_core_id
 
 
 def get_aliquot_id_from_tissue_sample(tissue_sample: Dict[str, Any]) -> str:
