@@ -12,7 +12,7 @@ from ..item_utils import (
 @pytest.mark.workbook
 @pytest.mark.parametrize(
     "patch_body,expected_status", [
-        ({"molecule": ["RNA"],"molecule_detail": ["mRNA"]}, 200),
+        (pytest.param({"molecule": ["RNA"],"molecule_detail": ["mRNA"]}, 200,id="first_test")),
         ({"molecule": ["RNA"],"molecule_detail": ["mRNA"],"dna_integrity_number_instrument": "Agilent 5400 Fragment Analyzer"}, 422),
         ({"molecule": ['DNA'],"molecule_detail": ["Total DNA"], "rna_integrity_number": 7, "rna_integrity_number_instrument": "Agilent Bioanalyzer"},422),
         ({"ribosomal_rna_ratio": 1.5}, 200),
@@ -22,14 +22,26 @@ from ..item_utils import (
     ]
 )
 def test_validate_molecule_specific_properties_on_patch(
+    request,
     es_testapp: TestApp,
-    workbook: None,
     patch_body: Dict[str, Any],
-    expected_status: int
+    expected_status: int,
+    workbook: None,
 ) -> None:
     """Ensure analyte molecule-specific properties validated on PATCH."""
-    identifier = get_insert_identifier_for_item_type(es_testapp, 'analyte')
-    patch_item(es_testapp, patch_body, identifier, status=expected_status)
+    analyte_insert = get_item_from_search(es_testapp, 'analyte')
+    identifying_post_body = {
+        "uuid": "224ee404-5370-4313-a408-ee343ba17389",
+        "submitted_id": "TEST_ANALYTE_TEST0",
+        "submission_centers": item_utils.get_submission_centers(analyte_insert),
+        "samples": analyte_utils.get_samples(analyte_insert),
+        "molecule": ["DNA"],
+        "molecule_detail": ["Total DNA"]
+    }
+    uuid = identifying_post_body["uuid"]
+    if request.node.name == "test_validate_molecule_specific_properties_on_patch[first_test]":
+        post_item(es_testapp, identifying_post_body, 'analyte') # If it's the first test, post item
+    patch_item(es_testapp, patch_body, uuid, status=expected_status)
 
 
 @pytest.mark.workbook
