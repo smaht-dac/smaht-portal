@@ -163,13 +163,11 @@ def get_sample_source_description(
             request_handler, sample_source
         )
     if cell_culture.is_cell_culture(sample_source):
-        result = [
-            get_property_value_from_identifier(
+        result = get_property_value_from_identifier(
                 request_handler,
                 cell_culture.get_cell_line(sample_source),
                 item.get_code,
             )
-        ]
     return result
 
 
