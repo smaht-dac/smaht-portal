@@ -13,6 +13,13 @@ Change Log
 * Add new section to Data nav for challenge results
 * Add COLO829 SNV/Indel V1 Challenge Page + tables
 
+
+0.83.1
+======
+
+* Updates `file_group` calcprop to properly resolve analyte.samples only when computing the `sample_source_part`
+
+
 0.83.0
 ======
 `PR226: SN Add tissue link to cell_culture <https://github.com/smaht-dac/smaht-portal/pull/226>`_
