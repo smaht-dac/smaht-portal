@@ -15,15 +15,28 @@ def get_analytes(library: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
     return library.get("analytes", [])
 
 
-def get_samples(
+def get_all_samples(
     library: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[str]:
-    """Get samples connected to library."""
+    """Get all samples (including parent_samples) connected to library."""
     if request_handler:
         return get_property_values_from_identifiers(
             request_handler,
             get_analytes(library),
             partial(analyte_utils.get_all_samples, request_handler),
+        )
+    return []
+
+
+def get_samples(
+    library: Dict[str, Any], request_handler: Optional[RequestHandler] = None
+) -> List[str]:
+    """Get samples (excluding parent_samples) connected to library."""
+    if request_handler:
+        return get_property_values_from_identifiers(
+            request_handler,
+            get_analytes(library),
+            analyte_utils.get_samples,
         )
     return []
 
@@ -35,7 +48,7 @@ def get_sample_sources(
     if request_handler:
         return get_property_values_from_identifiers(
             request_handler,
-            get_samples(library, request_handler=request_handler),
+            get_all_samples(library, request_handler=request_handler),
             sample_utils.get_sample_sources,
         )
     return []
