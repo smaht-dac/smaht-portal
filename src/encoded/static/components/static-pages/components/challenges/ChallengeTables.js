@@ -66,7 +66,8 @@ const ChallengeTable = (props) => {
             },
         },
         // File
-        annotated_filename: {
+        filename: {
+            colTitle: 'File',
             widthMap: { lg: 500, md: 400, sm: 300 },
             render: function (result, parentProps) {
                 const {
@@ -89,13 +90,22 @@ const ChallengeTable = (props) => {
             },
         },
         description: {
+            colTitle: 'Description',
             widthMap: { lg: 500, md: 400, sm: 300 },
+            render: function (result) {
+                return result?.description;
+            },
         },
         version: {
+            colTitle: 'Version',
             widthMap: { lg: 105, md: 100, sm: 100 },
+            render: function (result) {
+                return result?.version;
+            },
         },
         // File Size
         file_size: {
+            colTitle: 'File Size',
             widthMap: { lg: 105, md: 100, sm: 100 },
             render: function (result, parentProps) {
                 const value = result?.file_size;
@@ -148,6 +158,13 @@ const ChallengeTable = (props) => {
                 'access_status', // Access
                 'data_type', // Data Category
             ]}
+            columns={{
+                '@type': {},
+                filename: {},
+                description: {},
+                version: {},
+                file_size: {},
+            }}
             clearSelectedItemsOnFilter
         />
     );
