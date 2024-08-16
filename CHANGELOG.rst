@@ -16,7 +16,7 @@ Change Log
   * In `FileSet`, check that the combination of `libraries.analytes.assay` and `sequencing.sequencer` are compatible
   * In `Library`, check that assay-specific properties are compatible with the linked assay (e.g. `bulk_mas_iso_seq` and `target_monomer_size`)
   * In `Library` and `Analyte` , check that `molecule` is compatible with molecule-specific properties
-  * In `UnalignedReads`, check that `paired_with` is only present for R2 files and that the linked file is R1.
+  * In `UnalignedReads`, check that `paired_with` is only present for R2 files and that the linked file is R1. Also check the the R1 and R2 files are linked to the same `FileSet`
   * Add more specific error messages to help with submission
 
 
