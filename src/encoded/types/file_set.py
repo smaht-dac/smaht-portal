@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Union
 
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
+import structlog
 
 from .submitted_item import SubmittedItem
 from ..item_utils import (
@@ -12,6 +13,9 @@ from ..item_utils import (
 )
 from ..item_utils.utils import RequestHandler, get_property_value_from_identifier
 from ..utils import load_extended_descriptions_in_schemas
+
+
+log = structlog.getLogger(__name__)
 
 
 # These codes are used to generate the mergeable bam grouping calc prop
@@ -142,7 +146,7 @@ class FileSet(SubmittedItem):
         samples = library_utils.get_samples(
             library, request_handler=request_handler
         )
-        if len(samples) > 1:
+        if len(samples) > 1 or len(samples) == 0:
             return None  # there is too much complexity
 
         # If we are a tissue sample, generate this based on the sample field, not the sample
