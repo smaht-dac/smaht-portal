@@ -11,10 +11,13 @@ Change Log
 ======
 
 * Nested QC (QualityMetric) development.
+  - Added enable_nested (true) for qc_values item in quality_metric.json.
+  - Removed array type from qc_values.value.type array in quality_metric.json.
 * Simplified Makefile for deploy1/1a/1b/2 for dcicsnovault 11.21.1 changes;
   related to allowing smaht-portal and cgap-portal to run at the same time locally.
 * Added scripts/opensearch-dashboard-start.bash and Makefile target opensearch-dashboard-starto
   now that we are using OpenSearch rather than ElasticSearch we seem to need this rather than Kibana.
+* Added demo directory with script to export some sample/demo from smaht-staging and import locally.
 
 
 0.83.1

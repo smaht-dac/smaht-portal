@@ -107,7 +107,6 @@
                     "value": {
                         "$merge": "encoded_core:schemas/quality_metric_generic.json#/properties/qc_values/items/properties/value",
                         "type": [
-                            "array",
                             "boolean",
                             "integer",
                             "number",
