@@ -265,7 +265,7 @@
     },
     {
         "identifier": "data.analysis.colo829_snv_indel_detection",
-        "title": "COLO829 SNV/Indel Detection Challenge Data",
+        "title": "COLO829 SNV/Indel Detection Challenge: Truth set and other related data",
         "file": "/docs/public/colo829_snv_indel_detection.jsx",
         "status": "public",
         "options": {
