@@ -20,7 +20,7 @@
         "reference_genome": "GRCh38",
         "file_size": 100000,
         "status": "public",
-        "dataset": "tissue"
+        "dataset": "colo829t"
     },
     {
         "uuid": "2288de14-3d59-40fc-8181-afeb5adac694",

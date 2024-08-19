@@ -484,6 +484,8 @@ class Property:
     format_: str = ""
     requires: Optional[List[str]] = None
     exclusive_requirements: Optional[List[str]] = None
+    allow_commas: Optional[bool] = False
+    allow_multiplier_suffix: Optional[bool] = False
 
 
 @dataclass(frozen=True)
@@ -526,6 +528,8 @@ def get_property(property_name: str, property_schema: Dict[str, Any]) -> Propert
         format_=schema_utils.get_format(property_schema),
         requires=get_corequirements(property_schema),
         exclusive_requirements=get_exclusive_requirements(property_schema),
+        allow_commas=is_allow_commas(property_schema),
+        allow_multiplier_suffix=is_allow_multiplier_suffix(property_schema)
     )
 
 
@@ -612,6 +616,16 @@ def get_corequirements(property_schema: Dict[str, Any]) -> List[str]:
 def get_exclusive_requirements(property_schema: Dict[str, Any]) -> List[str]:
     """Get the exclusive requirements for the property."""
     return property_schema.get(SubmissionSchemaConstants.REQUIRED_IF_NOT_ONE_OF) or []
+
+
+def is_allow_commas(property_schema: Dict[str, Any]) -> bool:
+    """Check if allow_commas is present in the property."""
+    return property_schema.get("allow_commas", False)
+
+
+def is_allow_multiplier_suffix(property_schema: Dict[str, Any]) -> bool:
+    """Check if allow_multiplier is present in the property."""
+    return property_schema.get("allow_multiplier_suffix", False)
 
 
 def write_spreadsheet(
@@ -833,6 +847,7 @@ def get_comment_text(property_: Property) -> str:
     comment_lines += get_comment_requires(property_, indent)
     comment_lines += get_comment_pattern(property_, indent)
     comment_lines += get_comment_note(property_, indent)
+    comment_lines += get_comment_numbers(property_, indent)
     return "\n".join(comment_lines)
 
 
@@ -906,6 +921,16 @@ def get_comment_note(property_: Property, indent: str) -> List[str]:
     if property_.comment:
         return [f"Note:{indent}{property_.comment}"]
     return []
+
+
+def get_comment_numbers(property_: Property, indent: str) -> List[str]:
+    """Get comment for allow_commas and allow_multiplier_suffix."""
+    comment = []
+    if property_.allow_commas:
+        comment.append(f"{indent} Commas allowed (e.g. 1,000,000)")
+    if property_.allow_multiplier_suffix:
+        comment.append(f"{indent} Abbreviations allowed, such as 1M for 1000000 or 10.5kb for 10500 bp")
+    return comment
 
 
 def is_date_format(format_: str) -> bool:
