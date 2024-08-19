@@ -580,7 +580,7 @@ CHAIN_FILE_EXTENSION = {
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             VCF_FILE_EXTENSION,
-            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_cnv_mei_snv_sv",
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}",
             False,
         ),
         (
