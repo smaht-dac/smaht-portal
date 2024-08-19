@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.84.0
+0.85.0
 ======
 
 * Nested QC (QualityMetric) development.
@@ -18,6 +18,14 @@ Change Log
 * Added scripts/opensearch-dashboard-start.bash and Makefile target opensearch-dashboard-starto
   now that we are using OpenSearch rather than ElasticSearch we seem to need this rather than Kibana.
 * Added demo directory with script to export some sample/demo from smaht-staging and import locally.
+
+
+0.84.0
+======
+
+`PR 229`: SN Cell Culture upgrade `<https://github.com/smaht-dac/smaht-portal/pull/229>`_
+* Change `CellCulture.cell_line` property to be an array of strings linking to `CellLine`, rather than a string.
+  * Adds an upgrader with test for `cell_culture`
 
 
 0.83.1
