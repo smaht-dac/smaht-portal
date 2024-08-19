@@ -17,16 +17,16 @@
             <thead class="thead-smaht-purple">
                 <tr>
                     <th className="pl-1">Release Version</th>
-                    <th className="pl-1">Title</th>
+                    <th className="pl-1">Description</th>
                     <th className="pl-1">Release date</th>
                     <th className="pl-1">Document</th>
                 </tr>
             </thead>
             <tbody class="table-border-inner">
                 <tr>
-                    <td className="pl-1">V1.0</td>
-                    <td className="pl-1">COLO829 SNV Indel Detection Challenge - Presented at 2024 SMaHT annual meeting</td>
-                    <td className="pl-1">June 15, 2024</td>
+                    <td className="pl-1">V1.0 [Latest]</td>
+                    <td className="pl-1">COLO829 SNV/indel detection challenge - SNV truth set and related datasets</td>
+                    <td className="pl-1">August 22, 2024</td>
                     <td className="pl-1">
                         <a href="/static/files/SMaHT_Benchmark_SNVIndel_Challenge-DataRelease_V1-July8.pdf" download>
                             <i className="icon fas icon-file-pdf text-danger icon-lg"></i>
@@ -38,7 +38,7 @@
     </div>
     <div className="row py-2 mt-5">
         <div className="col-md-6 col-12">
-            <h2 className="section-title d-inline-block">Version 1.0 [latest]</h2>
+            <h2 className="section-title d-inline-block">Version 1.0</h2>
         </div>
         <div className="col-md-6 col-12 justify-content-md-end d-flex">
             <div className="align-content-center">
