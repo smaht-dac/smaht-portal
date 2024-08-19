@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.84.0
+======
+`PR 229`: SN Cell Culture upgrade `<https://github.com/smaht-dac/smaht-portal/pull/229>`_
+* Change `CellCulture.cell_line` property to be an array of strings linking to `CellLine`, rather than a string.
+  * Adds an upgrader with test for `cell_culture`
+
+
 0.83.1
 ======
 
