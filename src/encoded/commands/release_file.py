@@ -251,7 +251,6 @@ class FileRelease:
         self.add_release_items_to_patchdict(self.cell_lines, "CellLine")
         self.add_release_items_to_patchdict(self.donors, "Donor")
 
-        import pdb; pdb.set_trace()
         if obsolete_file_identifier:
             obsolete_file = self.get_metadata(obsolete_file_identifier)
             self.add_obsolete_file_patchdict(obsolete_file)
