@@ -328,7 +328,10 @@ function CustomStaticLinks({ pathName, href }) {
                                         className="level-3-title text-small d-block"
                                         href="/data/analysis/colo829-snv-indel-detection"
                                         id="menutree-linkto-lung_page">
-                                        <span>COLO829 SNV/Indel Detection</span>
+                                        <span>
+                                            COLO829 SNV/Indel Detection
+                                            Challenge
+                                        </span>
                                     </a>
                                 </div>
                             </div>
