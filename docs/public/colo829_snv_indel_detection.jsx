@@ -48,16 +48,16 @@
     </div>
    
     <h3 className="section-title">Truth Sets</h3>
-    <p className="mb-2">The truth set in the Version 1 release includes SNVs with VAF &gt; 25% in the pure COLO829-T cancer cell line (corresponding to VAF &gt; 0.5%, expected in the BLT50 mixture samples) to analyze variants considered for the SNV/Indel Detection Challenge.</p>
+    <p className="mb-2">To analyze variants for the SNV/indel detection challenge, the V1.0 truth set includes SNVs with VAF &gt; 25% in the pure COLO829-T cancer cell line, which correspond to VAF &gt; 0.5% expected in the BLT50 mixture samples.</p>
     <ChallengeTableWrapper searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data&tags=truth_set" context={context} schemas={schemas} session={session} href={href}/>
 
     <h3 className="section-title">Negative Control Sites for COLO829 SNVs</h3>
     <p className="mb-2">For accurate estimation of precision, we derived the “negative control” set consisting of positions that are (almost certainly) not true mosaic variant sites. The negative controls include non-variant, homozygous reference positions and germline variant positions in COLO829-BL.</p>
     <ChallengeTableWrapper searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data&tags=negative_control&sort=filename" context={context} schemas={schemas} session={session} href={href} />
 
-    <h3 className="section-title">Genome Stratification for Benchmarking</h3>
+    <h3 className="section-title mt-4">Genome Stratification for Benchmarking</h3>
     <p className="mb-2">We categorized genomic regions with different levels of confidence for mosaic variant detection, stratified into three groups, i.e. “Easy”, “Difficult”, and “Extreme”. We considered the easy regions in the Genome in a Bottle and expanded the genome categorization based on k-mer-based read mappability scores using the UMAP software (<a href="https://pubmed.ncbi.nlm.nih.gov/30169659/" target="_blank" rel="noreferrer noopener">Karimzadeh M et al. (2018) NAR</a>). The regions are based on the GRCh38 reference human genome.</p>
-    <ChallengeTableWrapper searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data&tags=genome_stratification" context={context} schemas={schemas} session={session} href={href}/>
+    <ChallengeTableWrapper searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data&tags=genome_stratification&sort=description" context={context} schemas={schemas} session={session} href={href}/>
 
     {/* <h3 className="section-title">Submitted VCFs & Analysis Results</h3>
     <p>[Description Here]</p>
