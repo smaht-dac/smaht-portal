@@ -8,7 +8,7 @@
 docker_kibana_image=opensearchproject/opensearch-dashboards:2.14.0
 docker_kibana_port=5601
 local_kibana_port=${docker_kibana_port}
-default_es_port=9200
+default_es_port=9200 # see cgap-portal/base.ini elasticsearch.server or elasticsearch.server.actual_port
 local_es_port=${default_es_port}
 
 if [ "$1" = "test" ]; then
