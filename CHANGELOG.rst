@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.83.0
+0.85.0
 ======
 `PR 225: SN Improvements to automated submission spreadsheet <https://github.com/smaht-dac/smaht-portal/pull/226>`_
 * In `write-submission-spreadsheet`:
@@ -16,6 +16,27 @@ Change Log
   * Adjust comment descriptions to clarify | delimiter and add search links for submitted items
 * In `schemas/`:
   * Include schema description for GCC-submitted items
+
+
+0.84.0
+======
+`PR 229`: SN Cell Culture upgrade `<https://github.com/smaht-dac/smaht-portal/pull/229>`_
+* Change `CellCulture.cell_line` property to be an array of strings linking to `CellLine`, rather than a string.
+  * Adds an upgrader with test for `cell_culture`
+
+
+0.83.1
+======
+
+* Updates `file_group` calcprop to properly resolve analyte.samples only when computing the `sample_source_part`
+
+
+0.83.0
+======
+`PR226: SN Add tissue link to cell_culture <https://github.com/smaht-dac/smaht-portal/pull/226>`_
+* Add `parent_samples` link in `cell_culture_sample.json`
+* Add `tissue` link in `cell_culture.json`
+* Make `anyOf` for requiring `cell_line` and/or `tissue`
 
 
 0.82.1

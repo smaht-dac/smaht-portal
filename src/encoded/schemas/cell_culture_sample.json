@@ -38,6 +38,9 @@
             "$ref": "mixins.json#/protocols"
         },
         {
+            "$ref": "mixins.json#/parent_samples"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
