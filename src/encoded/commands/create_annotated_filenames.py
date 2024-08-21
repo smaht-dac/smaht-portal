@@ -658,12 +658,15 @@ def get_aliquot_id_from_samples(tissue_samples: List[Dict[str], Any]) -> Filenam
 
 
 def get_multiple_aliquot_id_from_samples(ids: List[str]):
-    """Get filename part for files merged from multiple tissue sample aliquots."""
+    """Get filename part for files merged from multiple tissue sample aliquots.
+    
+    `aliquot_id` is the first two or three numbers indicating the tissue sample aliquot and `core_id` is the last two values which are either an alpha-numeric code for Core or Specimen samples (e.g. A1), or XX for Homogenate samples.
+    """
     aliquot_ids = []
     core_ids = []
     for id in ids:
         aliquot_id = id[:-2]
-        core_id = id[-2:]
+        core_id = id[-2:] # grab last two alphanumerals
         aliquot_ids.append(aliquot_id) if aliquot_id not in aliquot_ids else aliquot_ids
         core_ids.append(core_id) if core_id not in core_ids else core_ids
     if len(aliquot_ids) == 1 and len(core_ids) > 1:
