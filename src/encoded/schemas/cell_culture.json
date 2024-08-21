@@ -1,5 +1,6 @@
 {
     "title": "Cell Culture",
+    "description": "A Cell Culture is a collection of cells grown under specific conditions. For example, the specific instance of COLO829BL that was cultured and grown by a specific center would be a Cell Culture item.",
     "$id": "/profiles/cell_culture.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
