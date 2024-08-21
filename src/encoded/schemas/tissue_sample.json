@@ -1,5 +1,6 @@
 {
     "title": "Tissue Sample",
+    "description": "Samples derived from a tissue. A Tissue Sample describes a portion taken from a Tissue, likely consisting of some unknown mixture of cell types.",
     "$id": "/profiles/tissue_sample.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

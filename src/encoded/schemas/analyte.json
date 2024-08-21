@@ -1,5 +1,6 @@
 {
     "title": "Analyte",
+    "description": "Analyte items contain information on molecules extracted from samples for subsequent analysis.",
     "$id": "/profiles/analyte.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

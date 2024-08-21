@@ -1,5 +1,6 @@
 {
     "title": "Tissue",
+    "description": "Tissues collected from an individual",
     "$id": "/profiles/tissue.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

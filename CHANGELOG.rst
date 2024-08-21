@@ -7,9 +7,10 @@ smaht-portal
 Change Log
 ----------
 
-0.85.0
+0.86.0
 ======
 
+* Circa: 2024-08-19 (dmichaels)
 * Nested QC (QualityMetric) development.
   - Added enable_nested (true) for qc_values item in quality_metric.json.
   - Removed array type from qc_values.value.type array in quality_metric.json.
@@ -18,6 +19,18 @@ Change Log
 * Added scripts/opensearch-dashboard-start.bash and Makefile target opensearch-dashboard-starto
   now that we are using OpenSearch rather than ElasticSearch we seem to need this rather than Kibana.
 * Added demo directory with script to export some sample/demo from smaht-staging and import locally.
+
+
+0.85.0
+======
+
+`PR 225: SN Improvements to automated submission spreadsheet <https://github.com/smaht-dac/smaht-portal/pull/226>`_
+* In `write-submission-spreadsheet`:
+  * clean up args messages
+  * Add functionality for` --item` working with `--google`
+  * Adjust comment descriptions to clarify | delimiter and add search links for submitted items
+* In `schemas/`:
+  * Include schema description for GCC-submitted items
 
 
 0.84.0
