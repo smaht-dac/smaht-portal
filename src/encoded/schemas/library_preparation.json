@@ -1,5 +1,6 @@
 {
     "title": "Library Preparation",
+    "description": "Library Preparation items contain more detailed information on library preparation protocols.",
     "$id": "/profiles/library_preparation.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
