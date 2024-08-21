@@ -19,6 +19,10 @@ Change Log
 * Added scripts/opensearch-dashboard-start.bash and Makefile target opensearch-dashboard-starto
   now that we are using OpenSearch rather than ElasticSearch we seem to need this rather than Kibana.
 * Added demo directory with script to export some sample/demo from smaht-staging and import locally.
+* Added /upload_file_exists/{upload_file_uuid}/{upload_file_name} endpoint in metadata.py; for use
+  by smaht-submitr to determine if a file to upload has already been uploaded; and in particular if
+  it has been uploaded but is still marked as 'uploading' because its md5 is still in the process of
+  being computed (i.e. otherwise we could simply look at the file status an be done with it).
 
 
 0.85.0
