@@ -1,5 +1,6 @@
 {
     "title": "Unaligned Reads",
+    "description": "Files containing unaligned sequencing reads",
     "$id": "/profiles/unaligned_reads.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

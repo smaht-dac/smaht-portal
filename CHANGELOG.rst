@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.84.0
+0.86.0
 ======
 `PR 219: SN Metadata Custom Validators<https://github.com/smaht-dac/smaht-portal/pull/219>`_
 
@@ -18,6 +18,30 @@ Change Log
   * In `Library` and `Analyte` , check that `molecule` is compatible with molecule-specific properties
   * In `UnalignedReads`, check that `paired_with` is only present for R2 files and that the linked file is R1. Also check the the R1 and R2 files are linked to the same `FileSet`
   * Add more specific error messages to help with submission
+
+
+0.85.0
+======
+`PR 225: SN Improvements to automated submission spreadsheet <https://github.com/smaht-dac/smaht-portal/pull/226>`_
+* In `write-submission-spreadsheet`:
+  * clean up args messages
+  * Add functionality for` --item` working with `--google`
+  * Adjust comment descriptions to clarify | delimiter and add search links for submitted items
+* In `schemas/`:
+  * Include schema description for GCC-submitted items
+
+
+0.84.0
+======
+`PR 229`: SN Cell Culture upgrade `<https://github.com/smaht-dac/smaht-portal/pull/229>`_
+* Change `CellCulture.cell_line` property to be an array of strings linking to `CellLine`, rather than a string.
+  * Adds an upgrader with test for `cell_culture`
+
+
+0.83.1
+======
+
+* Updates `file_group` calcprop to properly resolve analyte.samples only when computing the `sample_source_part`
 
 
 0.83.0

@@ -4,6 +4,7 @@ from pyramid.view import view_config
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
 from snovault.util import debug_log, get_item_or_none
+import structlog
 
 from .submitted_item import (
     SUBMITTED_ITEM_ADD_VALIDATORS,
@@ -29,6 +30,8 @@ from .base import (
 )
 
 from .utils import get_properties, get_property_for_validation
+log = structlog.getLogger(__name__)
+
 
 # These codes are used to generate the mergeable bam grouping calc prop
 # This obviously is not data drive, but in calc props we cannot rely on search
@@ -160,7 +163,7 @@ class FileSet(SubmittedItem):
         samples = library_utils.get_samples(
             library, request_handler=request_handler
         )
-        if len(samples) > 1:
+        if len(samples) > 1 or len(samples) == 0:
             return None  # there is too much complexity
 
         # If we are a tissue sample, generate this based on the sample field, not the sample

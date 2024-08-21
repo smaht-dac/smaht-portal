@@ -30,7 +30,7 @@ def test_cell_culture(
     test_cell_line
 ):
     item = {
-        "cell_line": test_cell_line["uuid"],
+        "cell_line": [test_cell_line["uuid"]],
         "submission_centers": [test_submission_center["uuid"]],
         "submitted_id": "TEST_CELL-CULTURE_HELA",
         "culture_duration": 15,
