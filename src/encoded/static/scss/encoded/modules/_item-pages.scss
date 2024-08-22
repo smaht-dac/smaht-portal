@@ -490,21 +490,6 @@ h3.submission-subtitle {
 
 @mixin statusColorStyles {
 
-	// Blue
-	&[data-status="Benign"]:before,
-	&[data-status="Not a candidate"]:before,
-	&[data-status="Known gene for phenotype"]:before {						// Applicable to ClinVar Clinical Significance
-		color: #fff;
-		background-color: $primary;
-	}
-
-	// Dark Blue
-	&[data-status="Likely benign"]:before,
-	&[data-status="Weak candidate"]:before {					// Applicable to ClinVar Clinical Significance
-		color: #fff;
-		background-color: $primary-dark;
-	}
-
 	// Green
 	&[data-status="current"]:before,						// Applicable to Item.status
 	&[data-status="shared"]:before,							// Applicable to Item.status
@@ -538,9 +523,7 @@ h3.submission-subtitle {
 	&[data-status="started"]:before, 						// Applicable to WorkflowRun.run_status
 	&[data-status="running"]:before,						// Applicable to WorkflowRun.run_status + columnExtensionMap columns
 	&[data-status="in progress"]:before, 					// Applicable to columnExtensionMap columns
-	&[data-status="incomplete"]:before, 					// Applicable to columnExtensionMap columns
-	&[data-status="uncertain significance"]:before,			// Applicable to ClinVar Clinical Significance
-	&[data-status="associaton"]:before {					// Applicable to ClinVar Clinical Significance
+	&[data-status="incomplete"]:before { 					// Applicable to columnExtensionMap columns
 		color: #fff;
 		background-color: #d8bd22;
 	}
@@ -549,10 +532,6 @@ h3.submission-subtitle {
 	&[data-status="replaced"]:before,						// Applicable to Item.status
 	&[data-status="inactive"]:before,						// Applicable to Item.status
 	&[data-status="revoked"]:before,						// Applicable to User.status
-	&[data-status="probable-pathogenic"]:before,			// Applicable to ClinVar Clinical Significance
-	&[data-status="Likely pathogenic"]:before,				// Applicable to SampleVariant Interpretation Classification
-	&[data-status="Moderate candidate"]:before,
-	&[data-status="affects"]:before,						// Applicable to ClinVar Clinical Significance
 	&[data-status="restricted"]:before{						// Deprecated?
 		color: #fff;
 		background-color: #812423;
@@ -561,10 +540,9 @@ h3.submission-subtitle {
 	// Bright Red
 	&[data-status="deleted"]:before,						// Applicable to Item.status
 	&[data-status="upload failed"]:before,					// Applicable to File.status
-	&[data-status="error"]:before,							// Applicable to WorkflowRun.run_status + columnExtensionMap columns
-	&[data-status="risk factor"]:before,					// Applicable to ClinVar Clinical Significance
-	&[data-status="Pathogenic"]:before, 					// Applicable to ClinVar Clinical Significance
-	&[data-status="Strong candidate"]:before {
+	&[data-status="retracted"]:before,						// Applicable to File.status
+	&[data-status="obsolete"]:before,						// Applicable to File.status
+	&[data-status="error"]:before {							// Applicable to WorkflowRun.run_status + columnExtensionMap columns
 		color: #fff;
 		background-color: #a90d0b;
 	}
@@ -577,14 +555,9 @@ h3.submission-subtitle {
 	}
 
 	// Gray
-	&[data-status="obsolete"]:before,						// Applicable to Item.status
 	&[data-status="not implemented"]:before,				// Applicable to columnExtensionMap columns
 	&[data-status="not started"]:before,					// Applicable to columnExtensionMap columns
-	&[data-status="not provided"]:before,					// Applicable to ClinVar Clinical Significance
-	&[data-status="Uncertain significance"]:before,			// Applicable to SampleVariant Interpretation Classification
-	&[data-status="unspecified"]:before,					// Deprecated? Fallback for lack of status in some cases?
-	&[data-status="Weak candidate"]:before,
-	&[data-status="Known gene for phenotype"]:before {
+	&[data-status="unspecified"]:before {				// Deprecated? Fallback for lack of status in some cases?
 	    color: #fff;
 		background-color: #7b7b7b;
 	}
@@ -1349,6 +1322,11 @@ File Overview Styles
 								}
 							}
 							&[data-status="obsolete"] {
+								.icon-circle {
+									color: #B90F05;
+								}
+							}
+							&[data-status="retracted"] {
 								.icon-circle {
 									color: #B90F05;
 								}
