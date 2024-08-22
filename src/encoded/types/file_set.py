@@ -154,6 +154,7 @@ class FileSet(SubmittedItem):
         sample = samples[0]
         if 'tissue' in sample:
             sample_meta = request_handler.get_item(sample)
+            log.warning(f'got sample meta {sample_meta}')
             if sample_meta.get('category') != 'Homogenate':
                 return get_property_value_from_identifier(
                     request_handler, sample, item_utils.get_submitted_id
