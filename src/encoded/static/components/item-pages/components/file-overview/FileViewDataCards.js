@@ -1,7 +1,10 @@
 'use strict';
 
 import React from 'react';
-import { bytesToLargerUnit } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
+import {
+    bytesToLargerUnit,
+    capitalizeSentence,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 
 /**
@@ -72,6 +75,18 @@ const file_properties = [
                 />
             ) : null;
         },
+    },
+    {
+        title: 'Status',
+        getProp: (context = {}) => (
+            <>
+                <i
+                    className="status-indicator-dot mr-07"
+                    data-status={context?.status}
+                />
+                {capitalizeSentence(context?.status)}
+            </>
+        ),
     },
 ];
 const data_information = [
