@@ -10,6 +10,7 @@ import {
     SelectedItemsController,
     SelectionItemCheckbox,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
+import { OverlayTrigger, Popover } from 'react-bootstrap';
 
 /**
  * Wraps the File Overview Table in a SelectedItemsController component, which
@@ -157,8 +158,39 @@ export const FileOverviewTable = (props) => {
                 if (!value) return null;
                 return (
                     <span className="value">
-                        {value.charAt(0).toUpperCase() + value.slice(1)}
+                        <i
+                            className="status-indicator-dot mr-07"
+                            data-status={value}
+                        />
+                        {capitalizeSentence(value)}
                     </span>
+                );
+            },
+            noSort: true,
+        },
+        // Notes
+        tsv_notes: {
+            widthMap: { lg: 120, md: 120, sm: 100 },
+            colTitle: 'Notes',
+            render: function (result, parentProps) {
+                const value = result?.tsv_notes;
+                if (!value) return null;
+
+                const popover = (
+                    <Popover id="popover-basic">
+                        <Popover.Title as="h3">TSV Notes</Popover.Title>
+                        <Popover.Content>{value}</Popover.Content>
+                    </Popover>
+                );
+
+                return (
+                    <OverlayTrigger
+                        trigger="click"
+                        placement="top"
+                        overlay={popover}>
+                        <i className="icon icon-exclamation-triangle fas text-warning mr-05" />
+                        View TSV Notes
+                    </OverlayTrigger>
                 );
             },
             noSort: true,
@@ -243,6 +275,7 @@ export const FileOverviewTable = (props) => {
                     'software.display_title': {},
                     'software.version': {},
                     status: {},
+                    tsv_notes: {},
                     release_date: {},
                     file_size: {},
                 }}
