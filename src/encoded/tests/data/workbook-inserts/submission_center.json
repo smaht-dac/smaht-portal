@@ -3,5 +3,20 @@
         "identifier": "smaht",
         "title": "SMaHT Test Center",
         "code": "test"
+    },
+    {
+        "identifier": "tpc",
+        "title": "Test TPC",
+        "code": "tpctest"
+    },
+    {
+        "identifier": "gcc",
+        "title": "Test GCC",
+        "code": "gcctest"
+    },
+    {
+        "identifier": "ttd",
+        "title": "Test TTD",
+        "code": "ttdtest"
     }
 ]

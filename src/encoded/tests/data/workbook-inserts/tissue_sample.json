@@ -30,10 +30,49 @@
         ],
         "submitted_id": "TEST_TISSUE-SAMPLE_LIVER-HOMOGENATE",
         "sample_sources": [
-            "TEST_TISSUE_LUNG"
+            "TEST_TISSUE_LIVER"
         ],
         "external_id": "ST001-1A-020X",
         "category": "Homogenate",
+        "preservation_type": "Snap Frozen"
+    },
+    {
+        "uuid": "53c566f5-9162-4183-a34d-7ece38b4275f",
+        "submission_centers": [
+            "gcc"
+        ],
+        "submitted_id": "GCCTEST_TISSUE-SAMPLE_LUNG-CORE",
+        "sample_sources": [
+            "TEST_TISSUE_LUNG"
+        ],
+        "external_id": "ST001-1A-001A1",
+        "category": "Core",
+        "preservation_type": "Fresh"
+    },
+    {
+        "uuid": "5e07cc95-ca4b-4dbf-8c0e-9c33ea6e9cab",
+        "submission_centers": [
+            "tpc"
+        ],
+        "submitted_id": "TPCTEST_TISSUE-SAMPLE_LIVER-SPECIMEN",
+        "sample_sources": [
+            "TEST_TISSUE_LIVER"
+        ],
+        "external_id": "ST001-1A-001S8",
+        "category": "Specimen",
+        "preservation_type": "Snap Frozen"
+    },
+    {
+        "uuid": "3550c0a6-b8ca-436a-b563-737a7ce68c3c",
+        "submission_centers": [
+            "ttd"
+        ],
+        "submitted_id": "TTDTEST_TISSUE-SAMPLE_LUNG",
+        "sample_sources": [
+            "TEST_TISSUE_LUNG"
+        ],
+        "external_id": "12-40",
+        "category": "Specimen",
         "preservation_type": "Snap Frozen"
     }
 ]

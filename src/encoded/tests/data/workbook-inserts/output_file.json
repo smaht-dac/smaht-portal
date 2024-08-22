@@ -72,6 +72,6 @@
         "reference_genome": "GRCh38",
         "status": "released",
         "dataset": "colo829t",
-        "annotated_filename": "ST001-1A-XX-M45-X002-test-SMAFI8LOZ6MU-bwamem_1.2.3_GRCh38.aligned.sorted.phased.bam"
+        "annotated_filename": "SMHT001-1A-XX-F65-X002-test-SMAFI8LOZ6MU-bwamem_1.2.3_GRCh38.aligned.sorted.phased.bam"
     }
 ]

@@ -384,16 +384,23 @@ def replace_affiliations(
 
     Assumes submission_centers property is valid. Can check schemas if
     assumption no longer holds.
+    Replace submitted_id to match provided submission center if present
     """
+    code = submission_center.get("code")
     insert_without_affiliation = {
         key: value
         for key, value in item_insert.items()
-        if key not in ["submission_centers", "consortia"]
+        if key not in ["submission_centers", "consortia","submitted_id"]
     }
-    return {
+    new_insert = {
         **insert_without_affiliation,
         "submission_centers": [submission_center["uuid"]],
     }
+    if submitted_id := item_insert.get("submitted_id"):
+        type_unique_id = "_".join(submitted_id.split("_")[-2:])#get type and unique identifnier without center code
+        new_insert['submitted_id'] = f"{code.upper()}_{type_unique_id}"
+    return new_insert
+
 
 
 def post_identifying_insert(
@@ -475,9 +482,9 @@ def delete_field(
     return patch_item(test_app, patch_body or {}, resource_path, status=status)
 
 
-def get_item_from_search(test_app: TestApp, collection: str) -> Dict[str, Any]:
+def get_item_from_search(test_app: TestApp, collection: str, add_on: str = "") -> Dict[str, Any]:
     """Get workbook item for given collection via search."""
-    search_results = get_search(test_app, f"type={to_camel_case(collection)}")
+    search_results = get_search(test_app, f"type={to_camel_case(collection)}{add_on}")
     assert search_results, f"No {collection} found in search results"
     return search_results[0]
 

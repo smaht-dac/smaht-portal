@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, List
 
 from dcicutils.misc_utils import exported
 from pyramid.request import Request
@@ -16,6 +16,16 @@ def get_properties(properties_container: Union[Request, Item]) -> Dict[str, Any]
     raise NotImplementedError(
         f"Unable to get properties from {properties_container.__class__.__name__}"
     )
+
+
+def  get_property_for_validation(
+    validate_property: str, existing_properties: Dict[str, Any], update_properties: Dict[str, Any]
+) -> List[str]:
+    """Get property for validation.
+    If property is being updated, use the updated value.
+    Otherwise, use the existing value. Currently does not handle default null values.
+    """
+    return update_properties.get(validate_property) or existing_properties.get(validate_property)
 
 
 exported(get_item)
