@@ -24,6 +24,7 @@ def includeme(config):
     config.add_route('metadata', '/metadata/')
     config.add_route('metadata_redirect', '/metadata/{search_params}/{tsv}')
     config.add_route("upload_file_exists", "/upload_file_exists/{upload_file_uuid}/{upload_file_name}")
+    config.add_route("upload_file_size", "/upload_file_size/{upload_file_uuid}/{upload_file_name}")
     config.scan(__name__)
 
 
@@ -390,6 +391,28 @@ def upload_file_exists(context, request):
             try:
                 s3.head_object(Bucket=upload_bucket, Key=f"{upload_file_uuid}/{upload_file_name}")
                 return Response(status=200)
+            except Exception:
+                pass
+    return Response(status=404)
+
+
+@view_config(route_name="upload_file_size", request_method=["GET"])
+@debug_log
+def upload_file_size(context, request):
+    if ((upload_file_uuid := request.matchdict.get("upload_file_uuid")) and
+        (upload_file_name := request.matchdict.get("upload_file_name"))):  # noqa
+        if not (upload_bucket := request.GET.get("upload_bucket")):
+            upload_bucket = request.registry.settings.get("file_upload_bucket")
+        if upload_bucket:
+            s3 = boto_client("s3")
+            try:
+                response = s3.head_object(Bucket=upload_bucket, Key=f"{upload_file_uuid}/{upload_file_name}")
+                if isinstance(file_size := response.get("ContentLength", None), int):
+                    return {
+                        "bucket": upload_bucket,
+                        "key": f"{upload_file_uuid}/{upload_file_name}",
+                        "size": file_size
+                    }
             except Exception:
                 pass
     return Response(status=404)
