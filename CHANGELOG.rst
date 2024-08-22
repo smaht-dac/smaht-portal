@@ -23,8 +23,8 @@ Change Log
   upload has already been uploaded; and get its size as a side-effect; returns HTTP 200 if found otherwise 404);
   in particular we want to check if it has been uploaded but is still marked as 'uploading' because its md5 is
   still in the process of being computed (i.e. otherwise we could simply look at the file status an be done with it).
-* New protection of /ingestion-status endpoint (in ingestion/ingestion_status.py) for authenticated,
-  i.e. logged in, users only. Also protect/limit /ingestion-status/{keys,keys_sorted,flush} to admin.
+* New protection of /ingestion-status endpoint (in ingestion/ingestion_status.py) for authenticated
+  users only; and also limit /ingestion-status/{keys,keys_sorted,flush} to admin users only.
 
 
 0.85.0
