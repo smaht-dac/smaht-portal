@@ -43,7 +43,7 @@
         ],
         "submitted_id": "GCCTEST_TISSUE-SAMPLE_LUNG-CORE",
         "sample_sources": [
-            "TEST_TISSUE_LUNG"
+            "TPCTEST_TISSUE_LUNG"
         ],
         "external_id": "ST001-1A-001A1",
         "category": "Core",
@@ -69,7 +69,7 @@
         ],
         "submitted_id": "TTDTEST_TISSUE-SAMPLE_LUNG",
         "sample_sources": [
-            "TEST_TISSUE_LUNG"
+            "TPCTEST_TISSUE_LUNG"
         ],
         "external_id": "12-40",
         "category": "Specimen",

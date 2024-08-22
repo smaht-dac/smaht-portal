@@ -17,8 +17,19 @@ from .base import (
     item_edit,
     Item
 )
-from .utils import get_properties, get_property_for_validation
-from ..item_utils import submission_center as sub_center_utils
+from .utils import (
+    get_properties,
+    get_property_for_validation,
+)
+from ..item_utils import (
+    submission_center as sub_center_utils,
+    item as item_utils,
+)
+from ..item_utils.utils import (
+    get_property_value_from_identifier,
+    get_property_values_from_identifiers,
+    RequestHandler,
+)
 
 HOMOGENATE_EXTERNAL_ID_REGEX = "^[A-Z0-9]{3,}-[0-9][A-Z]-[0-9]{3}X$"
 SPECIMEN_EXTERNAL_ID_REGEX = "^[A-Z0-9]{3,}-[0-9][A-Z]-[0-9]{3}[S-W][1-9]$"
@@ -52,16 +63,21 @@ class TissueSample(Sample):
 
 
 def validate_external_id_on_add(context, request):
-    """Check that `external_id` is consistent with `category` nomenclature if the submission_center is a GCC or TPC on add."""
+    """Check that `external_id` is consistent with `category` nomenclature if the sample_source is a TPC tissue on add."""
     data = request.json
-    submission_centers = data["submission_centers"]
-    checked_centers=[]
+    sample_sources = data["sample_sources"]
     external_id = data['external_id']
     category = data['category']
-    for submission_center in submission_centers:
+    checked_centers=[]
+    import pdb; pdb.set_trace()
+    for sample_source in sample_sources:
         checked_centers.append(
-            not sub_center_utils.is_ttd(
-                get_item_or_none(request, submission_center, "submission-centers")))
+            sub_center_utils.is_tpc(
+                item_utils.get_submission_centers(
+                    get_item_or_none(request, sample_source, 'sample-sources')
+                )
+            )
+        )
     if any(checked_centers):
         if not assert_external_id_category_match(external_id, category):
             msg = f"external_id {external_id} does not match nomenclature for {category} samples."
@@ -71,24 +87,30 @@ def validate_external_id_on_add(context, request):
 
 
 def validate_external_id_on_edit(context, request):
-    """Check that `external_id` is consistent with `category` nomenclature if the submission_center is a GCC or TPC on edit."""
+    """Check that `external_id` is consistent with `category` nomenclature if the sample_source is a TPC tissue on edit."""
+    request_handler = RequestHandler(request=request)
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
-    submission_centers = get_property_for_validation('submission_centers',existing_properties,properties_to_update)
+    sample_sources = get_property_for_validation('sample_sources',existing_properties,properties_to_update)
     category = get_property_for_validation('category',existing_properties,properties_to_update)
     external_id = get_property_for_validation('external_id',existing_properties,properties_to_update)
     checked_centers=[]
-    for submission_center in submission_centers:
+    for sample_source in sample_sources:
         checked_centers.append(
-            not sub_center_utils.is_ttd(
-                get_item_or_none(request, submission_center, "submission-centers")))
+            sub_center_utils.is_tpc(
+                get_property_value_from_identifier(
+                    request_handler,
+                    sample_source,
+                    item_utils.get_submission_centers
+                )
+            )
+        )
     if any(checked_centers):
         if not assert_external_id_category_match(external_id, category):
             msg = f"external_id {external_id} does not match nomenclature for {category} samples."
             return request.errors.add('body', 'TissueSample: invalid property', msg)
         else:
             return request.validated.update({})  
-
 
 
 def assert_external_id_category_match(external_id: str, category: str):
