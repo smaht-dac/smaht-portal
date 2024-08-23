@@ -125,6 +125,19 @@
                 ]
             }
         },
+        "restriction_enzymes": {
+            "title": "Restriction Enzymes",
+            "description": "Restriction enzymes used in fragmentation",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "MungBean"
+                ]
+            }
+        },
         "size_selection_method": {
             "title": "Size Selection Method",
             "description": "Method for selecting fragment sizes",
