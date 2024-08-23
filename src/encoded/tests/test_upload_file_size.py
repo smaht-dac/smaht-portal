@@ -50,10 +50,10 @@ def test_upload_file_size(testapp, submission_center_user_app, anontestapp, regi
         assert response.status_code == 200
         assert response.json == {"bucket": file_upload_bucket, "key": file_upload_key, "size": file_size}
 
-        # Make sure we get HTTP 404 for non-existent file.
+        # Make sure we get HTTP 404 (not found) for non-existent file.
         response = authenticated_user_app.get(f'/files/{file_upload_key_nonexistent}/upload_file_size', status=404)
         assert response.status_code == 404
 
-        # Make sure we get an exception for an unauthenticated (not logged in) user.
-        with pytest.raises(Exception):
-            response = unauthenticated_user_app.get(f'/files/{file_uuid}/upload_file_size')
+        # Make sure we get HTTP 403 (forbidden) for an unauthenticated (not logged in) user.
+        response = unauthenticated_user_app.get(f'/files/{file_uuid}/upload_file_size', status=403)
+        assert response.status_code == 403
