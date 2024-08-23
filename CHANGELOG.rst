@@ -27,6 +27,12 @@ Change Log
   users only; and also limit /ingestion-status/{keys,keys_sorted,flush} to admin users only.
 
 
+0.85.1
+======
+
+* Update to `file_group` to evaluate homogenate samples as if they are cell lines (using `sample_source`)
+
+
 0.85.0
 ======
 
