@@ -134,7 +134,10 @@
             "items": {
                 "type": "string",
                 "suggested_enum": [
-                    "MungBean"
+                    "Mung Bean Nuclease",
+                    "HpyCH4V",
+                    "Tn5",
+                    "AluI"
                 ]
             }
         },
