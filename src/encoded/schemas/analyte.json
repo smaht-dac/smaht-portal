@@ -368,6 +368,36 @@
             ]
         }
     },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "molecule": {
+                        "contains": {
+                            "const": "RNA"
+                        }
+                    }
+                },
+                "required": [
+                    "molecule"
+                ]
+            },
+            "then": {
+                "required": [
+                    "rna_integrity_number",
+                    "rna_integrity_number_instrument"
+                ]
+            },
+            "else": {
+                "not": {
+                    "required": [
+                        "rna_integrity_number",
+                        "rna_integrity_number_instrument"
+                    ]
+                }
+            }
+        }
+    ],
     "facets": {
         "submission_centers.display_title": {
             "title": "Submitted By"

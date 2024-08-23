@@ -127,7 +127,7 @@
         },
         "restriction_enzymes": {
             "title": "Restriction Enzymes",
-            "description": "Restriction enzymes used in fragmentation",
+            "description": "Restriction enzymes used in fragmentation. Required if fragmentation_method contains Restriction Enzyme",
             "type": "array",
             "uniqueItems": true,
             "minItems": 1,
@@ -136,7 +136,6 @@
                 "suggested_enum": [
                     "Mung Bean Nuclease",
                     "HpyCH4V",
-                    "Tn5",
                     "AluI"
                 ]
             }
@@ -172,5 +171,25 @@
             "description": "Whether trimming adapter sequence is recommended",
             "type": "boolean"
         }
+    },
+    "if": {
+        "properties": {
+            "fragmentation_method": {
+                "contains": {
+                    "const": "Restriction Enzyme"
+                }
+            }
+        },
+        "required": ["fragmentation_method"]
+    },
+    "then": {
+        "required": ["restriction_enzymes"]
+    },
+    "else": {
+        "not": {
+                "required": [
+                    "restriction_enzymes"
+                ]
+            }
     }
 }
