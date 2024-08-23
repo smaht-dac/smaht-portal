@@ -46,7 +46,7 @@ def test_upload_file_size(testapp, submission_center_user_app, anontestapp, regi
     with mock.patch.object(encoded.types.file, "boto_client", boto_client):
 
         # Happy path.
-        response = authenticated_user_app.get(f'/files/{file_uuid}/upload_file_size')
+        response = authenticated_user_app.get(f'/files/{file_uuid}/upload_file_size', status=200)
         assert response.status_code == 200
         assert response.json == {"bucket": file_upload_bucket, "key": file_upload_key, "size": file_size}
 
