@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.85.1
+======
+
+* Update to `file_group` to evaluate homogenate samples as if they are cell lines (using `sample_source`)
+
+
 0.85.0
 ======
 `PR 225: SN Improvements to automated submission spreadsheet <https://github.com/smaht-dac/smaht-portal/pull/226>`_
