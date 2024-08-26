@@ -646,12 +646,15 @@ def get_aliquot_id_from_samples(tissue_samples: List[Dict[str], Any]) -> Filenam
 
     Some special handling required to transform aliquot ID from
     metadata to that of the filename.
+    If the external_id indicates it is a benchmarking or production tissue_sample, check for mergability of tissue sample aliquots
     """
     aliquot_ids = [
         get_aliquot_id_from_tissue_sample(sample) for sample in tissue_samples
     ]
-    if len(aliquot_ids) > 1:
-        aliquot_ids = get_multiple_aliquot_id_from_samples(aliquot_ids)
+    bench_or_prod = [ tissue_sample_utils.is_benchmarking(sample) or tissue_sample_utils.is_production(sample) for sample in tissue_samples]
+    if all(bench_or_prod):
+        if len(aliquot_ids) > 1:
+            aliquot_ids = get_multiple_aliquot_id_from_samples(aliquot_ids)
     return get_filename_part_for_values(
         aliquot_ids, "tissue aliquot ID", source_name="sample"
     )

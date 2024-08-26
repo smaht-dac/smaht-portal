@@ -394,7 +394,7 @@ SOME_HOMOGENATE_TISSUE_SAMPLE = {
     "category": "Homogenate",
     "external_id": TISSUE_SAMPLE_EXTERNAL_ID,
 }
-
+SOME_OTHER_TISSUE_SAMPLE = {"category": "Core", "external_id": "SN001-01-010A1"}
 
 @pytest.mark.parametrize(
     "cell_culture_mixtures,cell_lines,tissue_samples,expected,errors",
@@ -409,6 +409,7 @@ SOME_HOMOGENATE_TISSUE_SAMPLE = {
             DEFAULT_ABSENT_FIELD,
             False,
         ),
+        ([], [], [SOME_OTHER_TISSUE_SAMPLE, SOME_CORE_TISSUE_SAMPLE], "", True),
         ([], [], [SOME_CORE_TISSUE_SAMPLE], TISSUE_SAMPLE_ALIQUOT_ID, False),
         ([], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE2], "MAMC", False),
         ([], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], "100MC", False),
