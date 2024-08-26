@@ -380,9 +380,9 @@
                 }
             },
             "allOf": [
-                {"not": { "required": ["dna_genomic_quality_number"]}},
-                {"not": { "required": ["dna_genomic_quality_number_instrument"]}},
-                {"not": { "required": ["dna_genomic_quality_size_threshold"]}},
+                {"not": { "required": ["genomic_quality_number"]}},
+                {"not": { "required": ["genomic_quality_number_instrument"]}},
+                {"not": { "required": ["genomic_quality_size_threshold"]}},
                 {"not": { "required": ["dna_integrity_number"]}},
                 {"not": { "required": ["dna_integrity_number_instrument"]}},
                 {"not": { "required": ["dna_quality_number"]}},
