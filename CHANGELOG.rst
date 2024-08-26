@@ -11,12 +11,18 @@ Change Log
 ======
 `PR 230: SN Update annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/230>`_
 * In `commands/create_annotated_filenames.py`:
-  * For annotated filenames, update `aliquot_id` to be `[aliquot_id]MC` if multiple tissue samples from the same tissue aliquot but multiple cores (e.g. ST001-1A-001A1 and ST001-1A-001B2) and` MAMC` if from multiple tissue samples from different tissue aliquots
+  * For annotated filenames, update `aliquot_id` to be `[aliquot_id]MC` if multiple benchmarking or production tissue samples from the same tissue aliquot but multiple cores (e.g. ST001-1A-001A1 and ST001-1A-001B2) and` MAMC` if from multiple tissue samples from different tissue aliquots
   * Remove the variant type from the end of annotated filenames for vcfs
 * In `commands/write_submission_spreadsheets.py`
   * Add notes for properties that allow commas for large numbers and allow abbreviations (e.g. 100M or 3.1 Gb)
 * In `schemas/file.json`
   * Add a `version` property for front-end
+
+
+0.85.1
+======
+
+* Update to `file_group` to evaluate homogenate samples as if they are cell lines (using `sample_source`)
 
 
 0.85.0
