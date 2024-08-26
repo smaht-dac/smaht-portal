@@ -28,7 +28,7 @@
                     <td className="pl-1">COLO829 SNV/indel detection challenge - SNV truth set and related datasets</td>
                     <td className="pl-1">August 29, 2024</td>
                     <td className="pl-1">
-                        <a href="/static/files/SMaHT_Benchmark_SNVIndel_Challenge-DataRelease_V1-Aug12-2024.pdf" download>
+                        <a href="/static/files/SMaHT_Benchmark_SNVIndel_Challenge-DataRelease_V1_Aug12-2024.pdf" download>
                             <i className="icon fas icon-file-pdf text-danger icon-lg"></i>
                         </a>
                     </td>
