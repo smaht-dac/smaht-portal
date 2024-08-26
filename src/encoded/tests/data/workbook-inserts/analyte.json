@@ -36,7 +36,9 @@
         "samples": [
             "TEST_CELL-CULTURE-SAMPLE_HELA",
             "TEST_CELL-CULTURE-SAMPLE_HELA-HEK293"
-        ]
+        ],
+        "rna_integrity_number": 7,
+        "rna_integrity_number_instrument": "Agilent Bioanalyzer"
     },
     {
         "uuid": "f40150b3-fb8c-4ff2-8102-b37ac00f2af0",
@@ -55,7 +57,9 @@
         "concentration_unit": "ng/uL",
         "samples": [
             "TEST_CELL-CULTURE-SAMPLE_HELA"
-        ]
+        ],
+        "rna_integrity_number": 9,
+        "rna_integrity_number_instrument": "Agilent Bioanalyzer"
     },
     {
         "uuid": "bbaf4f08-f433-4dea-9a9f-c7f9f88191e3",
