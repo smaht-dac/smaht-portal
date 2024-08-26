@@ -7,11 +7,35 @@ smaht-portal
 Change Log
 ----------
 
-0.84.0
+0.86.0
 ======
 
 * Add new section to Data nav for challenge results
 * Add COLO829 SNV/Indel V1 Challenge Page + tables
+
+
+0.85.1
+======
+
+* Update to `file_group` to evaluate homogenate samples as if they are cell lines (using `sample_source`)
+
+
+0.85.0
+======
+`PR 225: SN Improvements to automated submission spreadsheet <https://github.com/smaht-dac/smaht-portal/pull/226>`_
+* In `write-submission-spreadsheet`:
+  * clean up args messages
+  * Add functionality for` --item` working with `--google`
+  * Adjust comment descriptions to clarify | delimiter and add search links for submitted items
+* In `schemas/`:
+  * Include schema description for GCC-submitted items
+
+
+0.84.0
+======
+`PR 229`: SN Cell Culture upgrade `<https://github.com/smaht-dac/smaht-portal/pull/229>`_
+* Change `CellCulture.cell_line` property to be an array of strings linking to `CellLine`, rather than a string.
+  * Adds an upgrader with test for `cell_culture`
 
 
 0.83.1

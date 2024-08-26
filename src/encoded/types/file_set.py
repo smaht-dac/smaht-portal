@@ -153,11 +153,13 @@ class FileSet(SubmittedItem):
         # sources field
         sample = samples[0]
         if 'tissue' in sample:
-            return get_property_value_from_identifier(
-                request_handler, sample, item_utils.get_submitted_id
-            )
+            sample_meta = request_handler.get_item(sample)
+            if sample_meta.get('category') != 'Homogenate':
+                return get_property_value_from_identifier(
+                    request_handler, sample, item_utils.get_submitted_id
+                )
 
-        # If we get here, we are not a tissue sample and should rely on sample sources
+        # If we get here, we are a Homogenate tissue sample or cell line and should rely on sample sources
         sample_sources = library_utils.get_sample_sources(
             library, request_handler=request_handler
         )
