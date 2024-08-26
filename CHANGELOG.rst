@@ -10,21 +10,14 @@ Change Log
 0.86.0
 ======
 
-* Circa: 2024-08-19 (dmichaels)
-* Nested QC (QualityMetric) development.
-  - Added enable_nested (true) for qc_values item in quality_metric.json.
-  - Removed array type from qc_values.value.type array in quality_metric.json.
-* Simplified Makefile for deploy1/1a/1b/2 for dcicsnovault 11.21.1 changes;
-  related to allowing smaht-portal and cgap-portal to run at the same time locally.
-* Added scripts/opensearch-dashboard-start.bash and Makefile target opensearch-dashboard-starto
-  now that we are using OpenSearch rather than ElasticSearch we seem to need this rather than Kibana.
-* Added demo directory with script to export some sample/demo from smaht-staging and import locally.
-* Added /files/upload_file_size endpoint (types/file.py); for use by smaht-submitr to determine if a file to
-  upload has already been uploaded; and get its size as a side-effect; returns HTTP 200 if found otherwise 404);
-  in particular we want to check if it has been uploaded but is still marked as 'uploading' because its md5 is
-  still in the process of being computed (i.e. otherwise we could simply look at the file status an be done with it).
-* New protection of /ingestion-status endpoint (in ingestion/ingestion_status.py) for authenticated
-  users only; and also limit /ingestion-status/{keys,keys_sorted,flush} to admin users only.
+`PR 230: SN Update annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/230>`_
+* In `commands/create_annotated_filenames.py`:
+  * For annotated filenames, update `aliquot_id` to be `[aliquot_id]MC` if multiple benchmarking or production tissue samples from the same tissue aliquot but multiple cores (e.g. ST001-1A-001A1 and ST001-1A-001B2) and` MAMC` if from multiple tissue samples from different tissue aliquots
+  * Remove the variant type from the end of annotated filenames for vcfs
+* In `commands/write_submission_spreadsheets.py`
+  * Add notes for properties that allow commas for large numbers and allow abbreviations (e.g. 100M or 3.1 Gb)
+* In `schemas/file.json`
+  * Add a `version` property for front-end
 
 
 0.85.1

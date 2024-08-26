@@ -35,24 +35,26 @@ def get_study(properties: Dict[str, Any]) -> str:
 
 
 TPC_ID_COMMON_PATTERN = donor.TPC_ID_COMMON_PATTERN + r"-[0-9][A-Z]{1,2}"
-BENCHMARKING_ID_REGEX = re.compile(
-    rf"{constants.BENCHMARKING_PREFIX}{TPC_ID_COMMON_PATTERN}$"
-)
-PRODUCTION_ID_REGEX = re.compile(
-    rf"{constants.PRODUCTION_PREFIX}{TPC_ID_COMMON_PATTERN}$"
-)
+BENCHMARKING_ID_REGEX = rf"{constants.BENCHMARKING_PREFIX}{TPC_ID_COMMON_PATTERN}"
+PRODUCTION_ID_REGEX = rf"{constants.PRODUCTION_PREFIX}{TPC_ID_COMMON_PATTERN}"
 
+BENCHMARKING_TISSUE_REGEX = re.compile(
+    rf"{BENCHMARKING_ID_REGEX}$"
+)
+PRODUCTION_TISSUE_REGEX = re.compile(
+    rf"{PRODUCTION_ID_REGEX}$"
+)
 
 def is_benchmarking(properties: Dict[str, Any]) -> bool:
     """Check if tissue is from benchmarking study."""
     external_id = item.get_external_id(properties)
-    return BENCHMARKING_ID_REGEX.match(external_id) is not None
+    return BENCHMARKING_TISSUE_REGEX.match(external_id) is not None
 
 
 def is_production(properties: Dict[str, Any]) -> bool:
     """Check if tissue is from production study."""
     external_id = item.get_external_id(properties)
-    return PRODUCTION_ID_REGEX.match(external_id) is not None
+    return PRODUCTION_TISSUE_REGEX.match(external_id) is not None
 
 
 def get_project_id(properties: Dict[str, Any]) -> str:
@@ -72,9 +74,9 @@ def get_donor_kit_id(properties: Dict[str, Any]) -> str:
 
 def get_donor_kit_id_from_external_id(external_id: str) -> str:
     """Get donor kit ID from external ID."""
-    if PRODUCTION_ID_REGEX.match(external_id):
+    if PRODUCTION_TISSUE_REGEX.match(external_id):
         return external_id.split("-")[0].strip(constants.PRODUCTION_PREFIX)
-    if BENCHMARKING_ID_REGEX.match(external_id):
+    if BENCHMARKING_TISSUE_REGEX.match(external_id):
         return external_id.split("-")[0].strip(constants.BENCHMARKING_PREFIX)
     return ""
 
