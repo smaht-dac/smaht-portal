@@ -56,8 +56,8 @@
     <ChallengeTableWrapper searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data&tags=negative_control&sort=filename" context={context} schemas={schemas} session={session} href={href} />
 
     <h3 className="section-title mt-4">Genome Stratification for Benchmarking</h3>
-    <p className="mb-2">We categorized genomic regions with different levels of confidence for mosaic variant detection, stratified into three groups, i.e. “Easy”, “Difficult”, and “Extreme”. We considered the easy regions in the Genome in a Bottle and expanded the genome categorization based on k-mer-based read mappability scores using the UMAP software (<a href="https://pubmed.ncbi.nlm.nih.gov/30169659/" target="_blank" rel="noreferrer noopener">Karimzadeh M et al. (2018) NAR</a>). The regions are based on the GRCh38 reference human genome.</p>
-    <ul>
+    <p className="mb-1">We categorized genomic regions with different levels of confidence for mosaic variant detection, stratified into three groups, i.e. “Easy”, “Difficult”, and “Extreme”. We considered the easy regions in the Genome in a Bottle and expanded the genome categorization based on k-mer-based read mappability scores using the UMAP software (<a href="https://pubmed.ncbi.nlm.nih.gov/30169659/" target="_blank" rel="noreferrer noopener">Karimzadeh M et al. (2018) NAR</a>). The regions are based on the GRCh38 reference human genome.</p>
+    <ul className="mb-2">
         <li>Easy = GIAB easy region that excluded the difficult regions.</li>
         <li>Difficult Tier 1 = UMAP24 regions, i.e., regions that are uniquely mappable by 24-mer sequences, determined using the Umap software.</li>
         <li>Difficult Tier 2 = UMAP36 regions</li>
