@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.87.0
+0.88.0
 ======
 
 * Circa: 2024-08-19 (dmichaels)
@@ -25,6 +25,19 @@ Change Log
   still in the process of being computed (i.e. otherwise we could simply look at the file status an be done with it).
 * New protection of /ingestion-status endpoint (in ingestion/ingestion_status.py) for authenticated
   users only; and also limit /ingestion-status/{keys,keys_sorted,flush} to admin users only.
+
+
+0.87.0
+======
+
+`PR 219: SN Metadata Custom Validators<https://github.com/smaht-dac/smaht-portal/pull/219>`_
+* Add custom validators for metadata audit checks with tests for POST and PATCH:
+  * Update `assay.json``` schema to include properties `valid_molecules` and `valid_sequencers` to assist in validation. Will need to patch current assay items for this to function
+  * In `FileSet`, check that the combination of `libraries.analytes.assay` and `sequencing.sequencer` are compatible
+  * In `Library`, check that assay-specific properties are compatible with the linked assay (e.g. `bulk_mas_iso_seq` and `target_monomer_size`)
+  * In `Library` and `Analyte` , check that `molecule` is compatible with molecule-specific properties
+  * In `UnalignedReads`, check that `paired_with` is only present for R2 files and that the linked file is R1. Also check the the R1 and R2 files are linked to the same `FileSet`
+  * Add more specific error messages to help with submission
 
 
 0.86.0
@@ -128,7 +141,7 @@ Change Log
 
 0.79.0
 ======
-`PR216: Add ExternalQualityMetric <https://github.com/smaht-dac/smaht-portal/pull/221>`_
+`PR221: Include target_coverage in file data_generation_summary <https://github.com/smaht-dac/smaht-portal/pull/221>`_
 
 * Embed `file_sets.sequencing.target_coverage`` in file.py and adds "Target Group Coverage" to `data_generation_summary`` used in the File Overview Page
 
