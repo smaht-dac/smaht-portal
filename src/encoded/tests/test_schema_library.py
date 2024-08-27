@@ -5,8 +5,9 @@ from webtest.app import TestApp
 
 from .utils import (
     patch_item,
-    get_insert_identifier_for_item_type,
+    get_item_from_search
 )
+from ..item_utils import item as item_utils
 
 
 @pytest.mark.workbook
@@ -23,7 +24,11 @@ def test_target_monomer_size_conditional(
     es_testapp: TestApp, workbook: None, patch_body: Dict[str, Any], status: int
 ) -> None:
     """Ensure target_monomer_size is only valid if concatenated_reads is Yes."""
-    library_uuid = get_insert_identifier_for_item_type(
-        testapp=es_testapp, item_type="Library"
+    mas_iso_uuid = item_utils.get_uuid(
+        get_item_from_search(
+            es_testapp,
+            "Library",
+            add_on="&assay.display_title=MAS-ISO-Seq"
+        )
     )
-    assert patch_item(es_testapp, patch_body, library_uuid, status=status)
+    assert patch_item(es_testapp, patch_body, mas_iso_uuid, status=status)

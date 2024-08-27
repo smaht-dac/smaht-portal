@@ -533,15 +533,13 @@ def test_analyte(
     item = {
         "submitted_id": "TEST_ANALYTE_HELA_ONLY",
         "molecule_detail": [
-            "mRNA"
+            "Total DNA"
         ],
         "molecule": [
-            "RNA"
+            "DNA"
         ],
         "a260_a280_ratio": 3.2,
         "concentration": 6.2,
-        "rna_integrity_number": 9,
-        "rna_integrity_number_instrument": "Agilent Bioanalyzer",
         "concentration_unit": "ng/uL",
         "samples": [test_cell_culture_sample["uuid"]],
         "submission_centers": [test_submission_center["uuid"]],
@@ -651,7 +649,7 @@ def test_derived_paired_with(
         "file_format": file_formats.get("FASTQ", {}).get("uuid", ""),
         "file_sets": [test_fileset["uuid"]],
         "submission_centers": [test_submission_center["uuid"]],
-        "submitted_id": "TEST_UNALIGNED-READS_FASTQ",
+        "submitted_id": "TEST_UNALIGNED-READS_LIVER-FASTQ-R1",
         "data_category": [
             "Sequencing Reads"
         ],
@@ -681,7 +679,7 @@ def test_derived_from_file(
         "file_format": file_formats.get("FASTQ", {}).get("uuid", ""),
         "file_sets": [test_fileset["uuid"]],
         "submission_centers": [test_submission_center["uuid"]],
-        "submitted_id": "TEST_UNALIGNED-READS_FASTQ_R2",
+        "submitted_id": "TEST_UNALIGNED-READS_LIVER-FASTQ-R2",
         "data_category": [
             "Sequencing Reads"
         ],
