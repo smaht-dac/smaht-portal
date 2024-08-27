@@ -172,24 +172,28 @@
             "type": "boolean"
         }
     },
-    "if": {
-        "properties": {
-            "fragmentation_method": {
-                "contains": {
-                    "const": "Restriction Enzyme"
-                }
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "fragmentation_method": {
+                        "contains": {
+                            "const": "Restriction Enzyme"
+                        }
+                    }
+                },
+                "required": ["fragmentation_method"]
+            },
+            "then": {
+                "required": ["restriction_enzymes"]
+            },
+            "else": {
+                "not": {
+                        "required": [
+                            "restriction_enzymes"
+                        ]
+                    }
             }
-        },
-        "required": ["fragmentation_method"]
-    },
-    "then": {
-        "required": ["restriction_enzymes"]
-    },
-    "else": {
-        "not": {
-                "required": [
-                    "restriction_enzymes"
-                ]
-            }
-    }
+        }
+    ]
 }
