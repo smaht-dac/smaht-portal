@@ -92,18 +92,19 @@ const ChallengeTable = (props) => {
         // Description
         description: {
             colTitle: 'Description',
-            widthMap: { lg: 500, md: 400, sm: 300 },
+            widthMap: { lg: 480, md: 380, sm: 280 },
             render: function (result) {
                 return result?.description;
             },
         },
-        // version: {
-        //     colTitle: 'Version',
-        //     widthMap: { lg: 105, md: 100, sm: 100 },
-        //     render: function (result) {
-        //         return result?.version;
-        //     },
-        // },
+        // Version
+        version: {
+            colTitle: 'Version',
+            widthMap: { lg: 105, md: 100, sm: 100 },
+            render: function (result) {
+                return result?.version;
+            },
+        },
         // File Size
         file_size: {
             colTitle: 'File Size',
@@ -163,7 +164,7 @@ const ChallengeTable = (props) => {
                 '@type': {},
                 filename: {},
                 description: {},
-                // version: {},
+                version: {},
                 file_size: {},
             }}
             clearSelectedItemsOnFilter
