@@ -57,9 +57,9 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_LIBRARY_LIVER-HOMOGENATE",
+        "submitted_id": "TEST_LIBRARY_LUNG-HOMOGENATE",
         "analytes": [
-            "TEST_ANALYTE_LIVER-HOMOGENATE"
+            "TEST_ANALYTE-LUNG-HOMOGENATE"
         ],
         "assay": "bulk_fiberseq"
     }

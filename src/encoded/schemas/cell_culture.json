@@ -21,7 +21,7 @@
         },
         {
             "required": [
-                "tissue"
+                "tissue_samples"
             ]
         }
     ],
@@ -125,13 +125,15 @@
                 "linkTo": "CellLine"
             }
         },
-        "tissue": {
-            "title": "Tissue",
-            "description": "Tissue used for the cell culture",
+        "tissue_samples": {
+            "title": "Tissue Samples",
+            "description":"Tissue samples the cell culture was derived from",
             "type": "array",
+            "minItem": 1,
+            "uniqueItems": true,
             "items": {
                 "type": "string",
-                "linkTo": "Tissue"
+                "linkTo": "TissueSample"
             }
         },
         "submitted_id": {

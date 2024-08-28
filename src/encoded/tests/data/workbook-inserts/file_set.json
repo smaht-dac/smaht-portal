@@ -51,9 +51,9 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE-SET_LIVER-HOMOGENATE",
+        "submitted_id": "TEST_FILE-SET_LUNG-HOMOGENATE",
         "libraries": [
-            "TEST_LIBRARY_LIVER-HOMOGENATE"
+            "TEST_LIBRARY_LUNG-HOMOGENATE"
         ],
         "sequencing": "TEST_SEQUENCING_PACBIO_30X-30H"
     }
