@@ -57,7 +57,6 @@
         "sample_sources": [
             "TEST_CELL-CULTURE_LIVER"
         ],
-        "parent_samples": ["TEST_TISSUE-SAMPLE_LIVER"],
         "preservation_type": "Fresh"
     }
 ]

@@ -8,16 +8,16 @@
             "Aligned Reads"
         ],
         "file_format": "BAM",
-        "accession": "TSTFI2115172",
+        "accession": "SMAFI2115172",
         "extra_files": [
             {
-                "filename": "TSTFI2115172.bai",
+                "filename": "SMAFI2115172.bai",
                 "file_size": 3000,
                 "status": "uploaded",
                 "file_format": "BAI"
             },
             {
-                "filename": "TSTFI2115172.vcf",
+                "filename": "SMAFI2115172.vcf",
                 "file_size": 5000,
                 "status": "uploaded",
                 "file_format": "VCF"
@@ -72,6 +72,6 @@
         "reference_genome": "GRCh38",
         "status": "released",
         "dataset": "colo829t",
-        "annotated_filename": "ST001-1A-XX-M45-B004-test-SMAFI8LOZ6MU-bwamem_1.2.3_GRCh38.aligned.sorted.phased.bam"
+        "annotated_filename": "ST001-1D-XX-M45-B004-test-SMAFI8LOZ6MU-bwamem_1.2.3_GRCh38.aligned.sorted.phased.bam"
     }
 ]

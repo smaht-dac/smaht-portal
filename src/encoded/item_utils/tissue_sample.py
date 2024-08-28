@@ -77,13 +77,3 @@ def is_production(properties: Dict[str, Any]) -> bool:
     """Check if tissue sample is from production study."""
     external_id = item_utils.get_external_id(properties)
     return re.match(PRODUCTION_ID_REGEX, external_id) is not None
-
-
-def get_donor(request_handler: RequestHandler, properties: Dict[str, Any]) -> List[str]:
-    """Get donor from tissue from properties sample_soures."""
-    tissues = sample_utils.get_tissues(properties, request_handler)
-    return get_property_values_from_identifiers(
-        request_handler,
-            tissues,
-            tissue_utils.get_donor
-        )

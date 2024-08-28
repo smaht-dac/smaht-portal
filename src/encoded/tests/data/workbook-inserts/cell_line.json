@@ -41,7 +41,6 @@
         "submitted_id": "TEST_CELL-LINE_IPSC_FIBROBLAST",
         "source": "ATCC",
         "title": "LB_LA2 iPSC Fibroblast",
-        "donor": "TEST_DONOR_MALE",
         "code": "IPSCLBLA2",
         "parent_cell_lines": ["TEST_CELL-LINE_FIBROBLAST"]
     }

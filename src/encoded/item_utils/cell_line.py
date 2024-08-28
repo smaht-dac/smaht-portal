@@ -7,8 +7,13 @@ from ..item_utils import (
     item as item_utils
 )
 
-def get_donor(request_handler: RequestHandler, properties: Dict[str, Any]) -> Union[str, None]:
-    """Get donor from cell line.
+def get_donor(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
+    """Get donor from cell culture."""
+    return properties.get("donor", "")
+
+
+def get_source_donor(request_handler: RequestHandler, properties: Dict[str, Any]) -> Union[str, None]:
+    """Get source_donor from cell line.
     
     Returns donor from properties, tissue_samples, or recursively through parent_cell_lines if present."""
     if "donor" in properties:
@@ -28,7 +33,7 @@ def get_donor(request_handler: RequestHandler, properties: Dict[str, Any]) -> Un
         )
         return [donor for donor in set(result)][0]
     else:
-        return None
+        return ""
     
 
 
