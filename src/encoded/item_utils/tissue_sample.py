@@ -1,12 +1,8 @@
 import re
-from typing import Any, Dict, List
-
-from .utils import RequestHandler, get_property_values_from_identifiers
+from typing import Any, Dict
 
 from . import (
-    item as item_utils,
-    sample as sample_utils,
-    tissue as tissue_utils
+    item as item_utils
 )
 
 
