@@ -1,5 +1,6 @@
 {
     "title": "Aligned Reads",
+    "description": "Files containing sequencing reads aligned to a reference genome",
     "$id": "/profiles/aligned_reads.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

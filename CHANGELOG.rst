@@ -7,6 +7,47 @@ smaht-portal
 Change Log
 ----------
 
+0.87.0
+======
+`PR 219: SN Metadata Custom Validators<https://github.com/smaht-dac/smaht-portal/pull/219>`_
+* Add custom validators for metadata audit checks with tests for POST and PATCH:
+  * Update `assay.json``` schema to include properties `valid_molecules` and `valid_sequencers` to assist in validation. Will need to patch current assay items for this to function
+  * In `FileSet`, check that the combination of `libraries.analytes.assay` and `sequencing.sequencer` are compatible
+  * In `Library`, check that assay-specific properties are compatible with the linked assay (e.g. `bulk_mas_iso_seq` and `target_monomer_size`)
+  * In `Library` and `Analyte` , check that `molecule` is compatible with molecule-specific properties
+  * In `UnalignedReads`, check that `paired_with` is only present for R2 files and that the linked file is R1. Also check the the R1 and R2 files are linked to the same `FileSet`
+  * Add more specific error messages to help with submission
+
+
+0.86.0
+======
+`PR 230: SN Update annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/230>`_
+* In `commands/create_annotated_filenames.py`:
+  * For annotated filenames, update `aliquot_id` to be `[aliquot_id]MC` if multiple benchmarking or production tissue samples from the same tissue aliquot but multiple cores (e.g. ST001-1A-001A1 and ST001-1A-001B2) and` MAMC` if from multiple tissue samples from different tissue aliquots
+  * Remove the variant type from the end of annotated filenames for vcfs
+* In `commands/write_submission_spreadsheets.py`
+  * Add notes for properties that allow commas for large numbers and allow abbreviations (e.g. 100M or 3.1 Gb)
+* In `schemas/file.json`
+  * Add a `version` property for front-end
+
+
+0.85.1
+======
+
+* Update to `file_group` to evaluate homogenate samples as if they are cell lines (using `sample_source`)
+
+
+0.85.0
+======
+`PR 225: SN Improvements to automated submission spreadsheet <https://github.com/smaht-dac/smaht-portal/pull/226>`_
+* In `write-submission-spreadsheet`:
+  * clean up args messages
+  * Add functionality for` --item` working with `--google`
+  * Adjust comment descriptions to clarify | delimiter and add search links for submitted items
+* In `schemas/`:
+  * Include schema description for GCC-submitted items
+
+
 0.84.0
 ======
 `PR 229`: SN Cell Culture upgrade `<https://github.com/smaht-dac/smaht-portal/pull/229>`_
@@ -75,7 +116,7 @@ Change Log
 
 0.79.0
 ======
-`PR216: Add ExternalQualityMetric <https://github.com/smaht-dac/smaht-portal/pull/221>`_
+`PR221: Include target_coverage in file data_generation_summary <https://github.com/smaht-dac/smaht-portal/pull/221>`_
 
 * Embed `file_sets.sequencing.target_coverage`` in file.py and adds "Target Group Coverage" to `data_generation_summary`` used in the File Overview Page
 
