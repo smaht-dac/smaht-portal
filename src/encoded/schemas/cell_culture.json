@@ -133,7 +133,7 @@
             "uniqueItems": true,
             "items": {
                 "type": "string",
-                "linkTo": "TissueSample"
+                "linkTo": "Sample"
             }
         },
         "submitted_id": {

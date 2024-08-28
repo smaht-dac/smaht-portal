@@ -10,23 +10,6 @@
         "submitted_id",
         "title"
     ],
-    "anyOf": [
-        {
-            "required": [
-                "donor"
-            ]
-        },
-        {
-            "required": [
-                "tissue_samples"
-            ]
-        },
-        {
-            "required": [
-                "parent_cell_lines"
-            ]
-        }
-    ],
     "identifyingProperties": [
         "accession",
         "submitted_id",
@@ -99,7 +82,7 @@
             "format": "uri"
         },
         "parent_cell_lines": {
-            "title": "Cell Lines",
+            "title": "Parent Cell Lines",
             "description":"Cell lines the cell line was derived from",
             "type": "array",
             "minItem": 1,
@@ -117,7 +100,7 @@
             "uniqueItems": true,
             "items": {
                 "type": "string",
-                "linkTo": "TissueSample"
+                "linkTo": "Sample"
             }
         },
         "donor": {

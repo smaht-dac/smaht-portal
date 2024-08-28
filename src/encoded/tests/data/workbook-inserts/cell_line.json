@@ -30,11 +30,11 @@
         "submitted_id": "TEST_CELL-LINE_FIBROBLAST",
         "source": "ATCC",
         "title": "LB_LA2 Fibroblast",
-        "donor": "TEST_DONOR_MALE",
+        "tissue_samples": ["TEST_TISSUE-SAMPLE_LIVER"],
         "code": "LBLA2"
     },
     {
-        "uuid": "bc530650-7930-4eed-a951-7a9ce2030827",
+        "uuid": "cf7552aa-0dbf-4b99-9942-e21bf94016e6",
         "submission_centers": [
             "smaht"
         ],
@@ -42,7 +42,7 @@
         "source": "ATCC",
         "title": "LB_LA2 iPSC Fibroblast",
         "donor": "TEST_DONOR_MALE",
-        "code": "LBLA2",
+        "code": "IPSCLBLA2",
         "parent_cell_lines": ["TEST_CELL-LINE_FIBROBLAST"]
     }
 ]
