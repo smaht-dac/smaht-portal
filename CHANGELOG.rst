@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.89.0
+======
+
+`PR 232: SN RE property <https://github.com/smaht-dac/smaht-portal/pull/232>`_
+* Add a property `restriction_enzymes` to `LibraryPreparation`
+* Add columns to `SubmissionCenter` search page for `identifier` and `code`
+* Add `description` property to `VariantCalls`
+
+
 0.88.0
 ======
 
