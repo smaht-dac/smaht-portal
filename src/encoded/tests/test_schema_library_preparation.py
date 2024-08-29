@@ -32,7 +32,7 @@ def test_library_preparation(
        ({"fragmentation_method": ["Transposase"], "restriction_enzymes": ["AluI"]}, 422),
     ],
 )
-def test_restiction_enzyme_conditional(
+def test_restriction_enzyme_conditional(
     testapp: TestApp, test_library_preparation: Dict[str, Any], patch_body: Dict[str, Any], status: int
 ) -> None:
     """Ensure restriction_enzymes is only valid if fragmentation_method contains Restriction Enzyme."""
