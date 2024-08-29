@@ -1757,6 +1757,18 @@ body.is-item-view[data-pathname^="/users/"] #page-title-container,
 	border-right: none;
 }
 
+body[data-pathname^="/data"] {
+	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
+		&[data-first-visible-column=true] {
+			padding-left: 16px !important;
+		}
+
+		>.inner>.toggle-detail-button-container {
+			display: none;
+		}
+	}
+}
+
 /***
 Unique styling for benchmarking pages
 **/
@@ -2195,13 +2207,6 @@ body[data-pathname^="/data/benchmarking"] {
 		}
 	}
 
-	.tbd-notice {
-		color: #343741;
-		font-family: Inter;
-		font-size: 1.25rem;
-		font-weight: 600;
-	}
-
 	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
 		&[data-first-visible-column=true] {
 			padding-left: 15px !important;
@@ -2216,6 +2221,10 @@ body[data-pathname^="/data/benchmarking"] {
 /** Utilities for static page tables **/
 thead.thead-smaht tr>th {
 	background-color: $baby-20;
+}
+
+thead.thead-smaht-purple tr>th {
+	background-color: #eaeaff;
 }
 
 tbody.table-border-inner {
