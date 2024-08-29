@@ -564,7 +564,7 @@ def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet
 def get_eqm_spreadsheet(eqm: Dict[str, Any]):
     """Get spreadsheet information for ExternalQualityMetric item."""
     item = list(eqm['template'].keys())[0]
-    properties = get_eqm_properties(eqm)
+    properties = get_eqm_properties(item, eqm)
     return Spreadsheet(
         item=item,
         properties=properties,
@@ -579,12 +579,11 @@ def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Propert
     return property_list
 
 
-def get_eqm_properties(eqm: Dict[str, Any]):
+def get_eqm_properties(item: str, eqm: Dict[str, Any]):
     """Format property information from ExternalQualityMetric template.
     
     Grabs normal properties from schema and then formats qc_values.key and qc_values.tooltip to be title and description"""
     properties = schema_utils.get_properties(eqm['schema'])
-    item = list(eqm['template'].keys())[0]
     primary_properties = {key: value for key, value in properties.items() if key in eqm['template'][item].keys() and key != "qc_values"}
     secondary_properties = get_eqm_qc_values(item, eqm)
     all_properties = {**primary_properties, **secondary_properties}
