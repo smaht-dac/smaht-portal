@@ -134,10 +134,11 @@ def update_google_sheets(
     request_handler: RequestHandler,
     gcc: bool = False,
     tpc: bool = False,
-    items: List[str] = None
+    items: List[str] = None,
+    eqm: Union[Dict[str, Any], None] = None
 ) -> None:
     """Update Google Sheets with the latest submission schemas."""
-    spreadsheets = get_spreadsheets(request_handler,gcc=gcc,tpc=tpc,items=items)
+    spreadsheets = get_spreadsheets(request_handler, gcc=gcc, tpc=tpc, items=items, eqm=eqm)
     log.info("Clearing existing Google sheets.")
     delete_existing_sheets(sheets_client)
     log.info("Updating Google sheets with tabs.")
@@ -153,20 +154,26 @@ def get_spreadsheets(
         request_handler: RequestHandler,
         gcc: bool = False,
         tpc: bool = False,
-        items: List[str] = None
+        items: List[str] = None,
+        eqm: Union[Dict[str, Any], None] = None
     ) -> List[Spreadsheet]:
     submission_schemas = get_all_submission_schemas(request_handler)
-    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,gcc=gcc,tpc=tpc)
+    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas, gcc=gcc, tpc=tpc)
     if items:
-        return [
+        spreadsheets = [
             get_spreadsheet(item, submission_schema)
             for item, submission_schema in ordered_submission_schemas.items()
             if item in items
         ]
-    return [
-        get_spreadsheet(item, submission_schema)
-        for item, submission_schema in ordered_submission_schemas.items()
-    ]
+    else:
+        spreadsheets = [
+            get_spreadsheet(item, submission_schema)
+            for item, submission_schema in ordered_submission_schemas.items()
+        ]
+    if eqm:
+        eqm['schema'] = get_submission_schema('ExternalQualityMetric', request_handler)
+        spreadsheets.append(get_eqm_spreadsheet(eqm))
+    return spreadsheets
 
 
 def delete_existing_sheets(sheets_client: SheetsClient) -> None:
@@ -370,8 +377,9 @@ def write_item_spreadsheets(
     eqm: Union[Dict[str, Any], None] = None
 ) -> None:
     """Write submission spreadsheets for specified items"""
-    import pdb; pdb.set_trace()
     submission_schemas = get_submission_schemas(items, request_handler)
+    if eqm:
+        eqm['schema'] = get_submission_schema('ExternalQualityMetric', request_handler)
     if not submission_schemas:
         log.error("No submission schemas found for given items. Exiting...")
         return
@@ -421,7 +429,7 @@ def get_eqm_template(
     result = ff_utils.search_metadata(search,key=keys)
     if result:
         value = EQM_TAB_NAMES[eqm]
-        return {value: result[0]}
+        return {'template': {value: result[0]}}
     else:
         log.error("No ExternalQualityMetric found for given `eqm` value. Exiting...")
         return
@@ -468,7 +476,8 @@ def get_ordered_submission_schemas(
 def write_workbook_sheets(
     workbook: openpyxl.Workbook,
     submission_schemas: Dict[str, Dict[str, Any]],
-    separate_comments: bool = False
+    separate_comments: bool = False,
+    eqm: Union[Dict[str, Any], None] = None
 ) -> None:
     """Write workbook sheets for given schemas."""
     for index, (item, submission_schema) in enumerate(submission_schemas.items()):
@@ -480,17 +489,31 @@ def write_workbook_sheets(
         else:
             worksheet = workbook.create_sheet(title=spreadsheet.item)
             write_properties(worksheet, spreadsheet.properties, separate_comments)
+    if eqm:
+        spreadsheet = get_eqm_spreadsheet(eqm)
+        worksheet = workbook.create_sheet(title=spreadsheet.item)
+        write_properties(worksheet, spreadsheet.properties, separate_comments)
+
+
+
+
 
 
 def write_spreadsheets(
     output: Path,
     submission_schemas: Dict[str, Any],
-    separate_comments: bool = False
+    separate_comments: bool = False,
+    eqm: Union[Dict[str, Any], None] = None
 ) -> None:
     """Write submission spreadsheets."""
     for item, submission_schema in submission_schemas.items():
         spreadsheet = get_spreadsheet(item, submission_schema)
         write_spreadsheet(output, spreadsheet, separate_comments)
+    if eqm:
+        spreadsheet = get_eqm_spreadsheet(eqm)
+        write_spreadsheet(output, spreadsheet, separate_comments)
+
+
 
 
 @dataclass(frozen=True)
@@ -538,6 +561,15 @@ def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet
     )
 
 
+def get_eqm_spreadsheet(eqm: Dict[str, Any]):
+    """Get spreadsheet information for ExternalQualityMetric item."""
+    item = list(eqm['template'].keys())[0]
+    properties = get_eqm_properties(eqm)
+    return Spreadsheet(
+        item=item,
+        properties=properties,
+    )
+
 def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
     properties = schema_utils.get_properties(submission_schema)
@@ -545,6 +577,37 @@ def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Propert
     for key, value in properties.items():
         property_list += get_nested_properties(item, key, value)
     return property_list
+
+
+def get_eqm_properties(eqm: Dict[str, Any]):
+    """Format property information from ExternalQualityMetric template.
+    
+    Grabs normal properties from schema and then formats qc_values.key and qc_values.tooltip to be title and description"""
+    properties = schema_utils.get_properties(eqm['schema'])
+    item = list(eqm['template'].keys())[0]
+    primary_properties = {key: value for key, value in properties.items() if key in eqm['template'][item].keys() and key != "qc_values"}
+    secondary_properties = get_eqm_qc_values(item, eqm)
+    all_properties = {**primary_properties, **secondary_properties}
+    property_list = []
+    for key, value in all_properties.items():
+        property_list.append(get_property(item, key, value))
+    return property_list
+    
+
+def get_eqm_qc_values(item: str, eqm: Dict[str, Any]):
+    """Get qc_values format to match schema properties.
+    
+    If `tooltip` is present, add as a `submissionComment.
+    """
+    qc_values = eqm['template'][item]['qc_values']
+    qc_values_properties = {}
+    for metric in qc_values:
+        qc_values_properties[metric['derived_from']] = {
+            "description": metric['key'],
+        }
+        if "tooltip" in metric:
+            qc_values_properties[metric['derived_from']]["submissionComment"] = metric['tooltip']
+    return qc_values_properties
 
 
 def get_property(item: str, property_name: str, property_schema: Dict[str, Any]) -> Property:
@@ -770,13 +833,13 @@ def get_required_non_links(properties: List[Property]) -> List[Property]:
 
 def get_non_required_non_links(properties: List[Property]) -> List[Property]:
     """Get non-required non-link properties."""
-    return sort_properties_alphabetically(
-        [
+    return [ #sort_properties_alphabetically(
+        #[
             property_
             for property_ in properties
             if not property_.required and not property_.link
         ]
-    )
+    #)
 
 
 def get_required_links(properties: List[Property]) -> List[Property]:
@@ -1084,7 +1147,9 @@ def main():
     if args.all and args.item:
         parser.error("Cannot specify both all and item")
     # Google spreadsheets
+    eqm = None
     if args.eqm:
+        log.info(f"Grabbing ExternalQualityMetric template for {args.eqm}")
         eqm = get_eqm_template(
             eqm=args.eqm,
             keys=keys
@@ -1100,19 +1165,19 @@ def main():
             log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
             log.info("Writing GCC submission Google sheet")
             spreadsheet_client = get_google_sheet_client(args.google)
-            update_google_sheets(spreadsheet_client, request_handler,gcc=True)
+            update_google_sheets(spreadsheet_client, request_handler, gcc=True, eqm=eqm)
         elif args.tpc:
             log.info(f"Google Sheet ID: {args.google}")
             log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
             log.info("Writing TPC submission Google sheet")
             spreadsheet_client = get_google_sheet_client(args.google)
-            update_google_sheets(spreadsheet_client, request_handler,tpc=True)
+            update_google_sheets(spreadsheet_client, request_handler, tpc=True)
         elif args.item:
             log.info(f"Google Sheet ID: {args.google}")
             log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
             log.info(f"Writing submission Google sheet for item(s): {args.item}")
             spreadsheet_client = get_google_sheet_client(args.google)
-            update_google_sheets(spreadsheet_client, request_handler,items=args.item)
+            update_google_sheets(spreadsheet_client, request_handler, items=args.item, eqm=eqm)
         else:
             parser.error("No items specified to write or update Google spreadsheets for")
     elif args.workbook and args.all:
