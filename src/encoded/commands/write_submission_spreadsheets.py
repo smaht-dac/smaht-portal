@@ -582,7 +582,8 @@ def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Propert
 def get_eqm_properties(item: str, eqm: Dict[str, Any]):
     """Format property information from ExternalQualityMetric template.
     
-    Grabs normal properties from schema and then formats qc_values.key and qc_values.tooltip to be title and description"""
+    Grabs normal properties from schema and then formats qc_values.key and qc_values.tooltip to be description and submissionComment.
+    """
     properties = schema_utils.get_properties(eqm['schema'])
     primary_properties = {key: value for key, value in properties.items() if key in eqm['template'][item].keys() and key != "qc_values"}
     secondary_properties = get_eqm_qc_values(item, eqm)
@@ -787,7 +788,7 @@ def get_ordered_properties(properties: List[Property]) -> List[Property]:
 
     Rank via:
        - Required non-links (~alphabetically)
-       - Non-required non-links (alphabetically)
+       - Non-required non-links (not alphabetically)
        - Required links (alphabetically)
        - Non-required links (alphabetically)
 
@@ -831,14 +832,12 @@ def get_required_non_links(properties: List[Property]) -> List[Property]:
 
 
 def get_non_required_non_links(properties: List[Property]) -> List[Property]:
-    """Get non-required non-link properties."""
-    return [ #sort_properties_alphabetically(
-        #[
+    """Get non-required non-link properties (non-alphabetically)."""
+    return [
             property_
             for property_ in properties
             if not property_.required and not property_.link
         ]
-    #)
 
 
 def get_required_links(properties: List[Property]) -> List[Property]:
