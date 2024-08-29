@@ -719,7 +719,7 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                     <>
                         <code>
                             {' '}
-                            -&#8288;-&#8288;user
+                            -&#8288;-&#8288;user{' '}
                             <span className="text-danger text-600">
                                 {'<access_key_id>:<access_key_secret>'}
                             </span>
