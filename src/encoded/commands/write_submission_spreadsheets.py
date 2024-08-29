@@ -9,6 +9,7 @@ import googleapiclient
 import googleapiclient.discovery
 import openpyxl
 import structlog
+from dcicutils import ff_utils
 from dcicutils.creds_utils import SMaHTKeyManager
 from dcicutils.misc_utils import to_camel_case, to_snake_case
 from dcicutils import schema_utils
@@ -96,7 +97,7 @@ GCC_SUBMISSION_ITEMS = [
     "UnalignedReads",
     "AlignedReads",
     "VariantCalls",
-    "Software" 
+    "Software"
 ]
 
 DSA_SUBMISSION_ITEMS = [
@@ -104,6 +105,11 @@ DSA_SUBMISSION_ITEMS = [
     "SupplementaryFile",
     "Software"
 ]
+
+EQM_TAB_NAMES = {
+    "dsa": "DSA_ExternalQualityMetric",
+    "duplexseq": "DuplexSeq_ExternalQualityMetric"
+}
 
 @dataclass(frozen=True)
 class SheetsClient:
@@ -361,8 +367,10 @@ def write_item_spreadsheets(
     tpc: bool = False,
     gcc: bool = False,
     separate_comments: bool = False,
+    eqm: Union[Dict[str, Any], None] = None
 ) -> None:
     """Write submission spreadsheets for specified items"""
+    import pdb; pdb.set_trace()
     submission_schemas = get_submission_schemas(items, request_handler)
     if not submission_schemas:
         log.error("No submission schemas found for given items. Exiting...")
@@ -372,10 +380,10 @@ def write_item_spreadsheets(
         f" {submission_schemas.keys()}"
     )
     if workbook:
-        write_workbook(output, submission_schemas, separate_comments=separate_comments,tpc=tpc,gcc=gcc)
+        write_workbook(output, submission_schemas, separate_comments=separate_comments,tpc=tpc,gcc=gcc, eqm=eqm)
     else:
         write_spreadsheets(
-            output, submission_schemas, separate_comments=separate_comments
+            output, submission_schemas, separate_comments=separate_comments, eqm=eqm
         )
 
 
@@ -404,18 +412,34 @@ def get_submission_schema_endpoint(item: str) -> Dict[str, Any]:
     return f"{SubmissionSchemaConstants.ENDPOINT}{to_snake_case(item)}.json"
 
 
+def get_eqm_template(
+    eqm: str,
+    keys: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Get the ExternalQualityMetric with tags `eqm` from search."""
+    search = f"search/?type=ExternalQualityMetric&status=restricted&tags={eqm}&frame=raw"
+    result = ff_utils.search_metadata(search,key=keys)
+    if result:
+        value = EQM_TAB_NAMES[eqm]
+        return {value: result[0]}
+    else:
+        log.error("No ExternalQualityMetric found for given `eqm` value. Exiting...")
+        return
+
+
 def write_workbook(
     output: Path,
     submission_schemas: Dict[str, Any],
     tpc: bool = False,
     gcc: bool = False,
-    separate_comments: bool = False
+    separate_comments: bool = False,
+    eqm: Union[str, None] = None
 ) -> None:
     """Write a single workbook containing all submission spreadsheets."""
     workbook = openpyxl.Workbook()
     ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,tpc=tpc,gcc=gcc)
     write_workbook_sheets(
-        workbook, ordered_submission_schemas, separate_comments=separate_comments
+        workbook, ordered_submission_schemas, separate_comments=separate_comments, eqm=eqm
     )
     file_path = Path(output, WORKBOOK_FILENAME)
     save_workbook(workbook, file_path)
@@ -444,7 +468,7 @@ def get_ordered_submission_schemas(
 def write_workbook_sheets(
     workbook: openpyxl.Workbook,
     submission_schemas: Dict[str, Dict[str, Any]],
-    separate_comments: bool = False,
+    separate_comments: bool = False
 ) -> None:
     """Write workbook sheets for given schemas."""
     for index, (item, submission_schema) in enumerate(submission_schemas.items()):
@@ -1038,6 +1062,11 @@ def main():
             f" Token will be saved to {GOOGLE_TOKEN_PATH}."
             f" For more information, see docstring within the script."
         ),
+    ),
+    parser.add_argument(
+        "--eqm",
+        choices=["dsa","duplexseq"],
+        help="External Quality Metric for specific submissions"
     )
     args = parser.parse_args()
 
@@ -1055,6 +1084,11 @@ def main():
     if args.all and args.item:
         parser.error("Cannot specify both all and item")
     # Google spreadsheets
+    if args.eqm:
+        eqm = get_eqm_template(
+            eqm=args.eqm,
+            keys=keys
+        )
     if args.google:
         if args.all:
             log.info(f"Google Sheet ID: {args.google}")
@@ -1087,7 +1121,7 @@ def main():
             args.output,
             request_handler,
             workbook=args.workbook,
-            separate_comments=args.separate,
+            separate_comments=args.separate
         )
     elif args.workbook and args.tpc:
         log.info("Writing TPC submission spreadsheet")
@@ -1098,7 +1132,7 @@ def main():
             workbook=args.workbook,
             tpc = True,
             gcc = False,
-            separate_comments=args.separate,
+            separate_comments=args.separate
         )
     elif args.workbook and args.gcc:
         log.info("Writing GCC/TTD submission spreadsheet")
@@ -1110,6 +1144,7 @@ def main():
             tpc = False,
             gcc = True,
             separate_comments=args.separate,
+            eqm=eqm
         )
     elif args.item:
         log.info(f"Writing submission spreadsheets for item(s): {args.item}")
@@ -1119,6 +1154,7 @@ def main():
             request_handler,
             workbook=args.workbook,
             separate_comments=args.separate,
+            eqm=eqm
         )
     else:
         parser.error("No items specified to write or update spreadsheets for")
