@@ -62,5 +62,16 @@
             "TEST_ANALYTE_LUNG-HOMOGENATE"
         ],
         "assay": "bulk_fiberseq"
+    },
+    {
+        "uuid": "cebf54cd-3a6d-48a8-89b7-481701620196",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY_IPSC_FIBROBLAST",
+        "analytes": [
+            "TEST_ANALYTE_IPSC_FIBROBLAST"
+        ],
+        "assay": "bulk_wgs"
     }
 ]

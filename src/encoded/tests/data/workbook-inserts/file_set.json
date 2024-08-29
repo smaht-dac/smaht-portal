@@ -56,5 +56,16 @@
             "TEST_LIBRARY_LUNG-HOMOGENATE"
         ],
         "sequencing": "TEST_SEQUENCING_PACBIO_30X-30H"
+    },
+    {
+        "uuid": "0f50e72d-13c7-422e-9f8a-4e42ce927b87",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE-SET_IPSC_FIBROBLAST",
+        "libraries": [
+            "TEST_LIBRARY_IPSC_FIBROBLAST"
+        ],
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
     }
 ]
