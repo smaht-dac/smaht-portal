@@ -123,3 +123,84 @@ def test_validate_compatible_assay_and_sequencer_on_post(
     }
     post_item(es_testapp,post_body,'file_set',status=expected_status)
 
+
+@pytest.mark.workbook
+@pytest.mark.parametrize(
+    "library,sequencing,expected_status", [
+        ("TEST_LIBRARY_HELA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 200), # RNA with target_read_count
+        ("TEST_LIBRARY_HELA","TEST_SEQUENCING_NOVASEQ-500X", 422), # RNA with target_coverage
+        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_RNA-NOVASEQ-500X", 422), # DNA with target_read_count
+        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X", 200), # DNA with target_coverage
+    ]
+)
+def test_validate_molecule_sequencing_properties_on_edit(
+    es_testapp: TestApp,
+    workbook: None,
+    library: str,
+    sequencing: str,
+    expected_status: int
+) -> None:
+    """Ensure that molecule-specific properties for sequencer are validate on PATCH."""
+    patch_body = {}
+    if library:
+        library_uuid=item_utils.get_uuid(
+            get_item(
+                es_testapp,
+                library,
+                'Library'
+            )
+        )
+        patch_body['libraries'] = [library_uuid]
+    if sequencing:
+        sequencing_uuid=item_utils.get_uuid(
+            get_item(
+                es_testapp,
+                sequencing,
+                'Sequencing'
+            )
+        )
+        patch_body['sequencing'] = sequencing_uuid
+    identifier = get_insert_identifier_for_item_type(es_testapp,'file_set')
+    patch_item(es_testapp, patch_body, identifier, status=expected_status)
+
+
+@pytest.mark.workbook
+@pytest.mark.parametrize(
+    "library,sequencing,expected_status,index", [
+        ("TEST_LIBRARY_HELA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 202, 1), # RNA with target_read_count
+        ("TEST_LIBRARY_HELA","TEST_SEQUENCING_NOVASEQ-500X", 422, 2), # RNA with target_coverage
+        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_RNA-NOVASEQ-500X", 422, 3), # DNA with target_read_count
+        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X", 201, 4), # DNA with target_coverage
+    ]
+)
+def test_validate_molecule_sequencing_properties_on_add(
+    es_testapp: TestApp,
+    workbook: None,
+    library: str,
+    sequencing: str,
+    expected_status: int,
+    index: int
+) -> None:
+    """Ensure that molecule-specific properties for sequencer are validate on POST"""
+    submission_center = get_insert_identifier_for_item_type(es_testapp,'submission_center')
+    library_uuid=item_utils.get_uuid(
+        get_item(
+            es_testapp,
+            library,
+            'Library'
+        )
+    )
+    sequencing_uuid=item_utils.get_uuid(
+        get_item(
+            es_testapp,
+            sequencing,
+            'Sequencing'
+        )
+    )
+    post_body = {
+        "submitted_id": f"TEST_FILE-SET_TEST2-{index}",
+        "submission_centers": [submission_center],
+        "libraries": [library_uuid],
+        "sequencing": sequencing_uuid
+    }
+    post_item(es_testapp,post_body,'file_set',status=expected_status)

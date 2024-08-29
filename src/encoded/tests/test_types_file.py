@@ -998,12 +998,12 @@ def assert_data_generation_summary_matches_expected(
         )
         for sequencing in sequencings
     ] if sequencings else []
-    expected_target_coverage = [
-        sequencing_utils.get_target_coverage(
+    expected_target_coverage = []
+    for sequencing in sequencings:
+        target_coverage = sequencing_utils.get_target_coverage(
             get_item(es_testapp, item_utils.get_uuid(sequencing))
         )
-        for sequencing in sequencings
-    ] if sequencings else []
+        expected_target_coverage.append(target_coverage) if target_coverage else expected_target_coverage
     assert_values_match_if_present(
         data_generation_summary, "data_category", expected_data_category
     )
