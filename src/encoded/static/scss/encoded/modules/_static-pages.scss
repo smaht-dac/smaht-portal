@@ -1744,6 +1744,35 @@ div#popover-consortium-data-alluvial-table {
 	}
 }
 
+// styles for tips and alerts - called "admonition" in RST pages
+.admonition {
+	padding: 12px;
+	line-height: 24px;
+	margin-top: 24px;
+
+	.admonition-title {
+		font-weight: 700;
+		display: block;
+		color: #fff;
+		padding: 6px 12px;
+		margin: -12px -12px 12px;
+	}
+	
+	&.tip {
+		background-color: #F7F2F8;
+		.admonition-title {
+			background-color: #9278AF;
+		}
+	}
+	&.info {
+		background-color: #F5FAFF;
+		.admonition-title {
+			background-color: #283887;
+		}
+
+	}
+}
+
 /***
 Unique styling of page title container for static pages
 (also used for user profiles)
