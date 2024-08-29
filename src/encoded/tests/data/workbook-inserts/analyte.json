@@ -78,7 +78,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_LIVER-HOMOGENATE",
+        "submitted_id": "TEST_ANALYTE_LUNG-HOMOGENATE",
         "molecule_detail": [
             "Total DNA"
         ],
@@ -86,7 +86,7 @@
             "DNA"
         ],
         "samples": [
-            "TEST_TISSUE-SAMPLE_LIVER-HOMOGENATE"
+            "TEST_TISSUE-SAMPLE_LUNG-HOMOGENATE"
         ]
     }
 ]
