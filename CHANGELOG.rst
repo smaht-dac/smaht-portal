@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.88.0
+0.90.0
 ======
 
 * Circa: 2024-08-19 (dmichaels)
@@ -26,6 +26,21 @@ Change Log
 * New protection of /ingestion-status endpoint (in ingestion/ingestion_status.py) for authenticated
   users only; and also limit /ingestion-status/{keys,keys_sorted,flush} to admin users only.
 
+
+0.89.0
+======
+
+`PR 232: SN RE property <https://github.com/smaht-dac/smaht-portal/pull/232>`_
+* Add a property `restriction_enzymes` to `LibraryPreparation`
+* Add columns to `SubmissionCenter` search page for `identifier` and `code`
+* Add `description` property to `VariantCalls`
+
+
+0.88.0
+======
+
+* Add new section to Data nav for challenge results
+* Add COLO829 SNV/Indel V1 Challenge Page + tables
 
 0.87.0
 ======
