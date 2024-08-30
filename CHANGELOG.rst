@@ -25,6 +25,8 @@ Change Log
   still in the process of being computed (i.e. otherwise we could simply look at the file status an be done with it).
 * New protection of /ingestion-status endpoint (in ingestion/ingestion_status.py) for authenticated
   users only; and also limit /ingestion-status/{keys,keys_sorted,flush} to admin users only.
+* From dmichaels-minor-validation-fixes-20240829 branch (2024-08-30): PR-236
+  Minor validation fixes to guard agaist None dereference in types/file_set.py and types/library.py.
 
 
 0.89.0
