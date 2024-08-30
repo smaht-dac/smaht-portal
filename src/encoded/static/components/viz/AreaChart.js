@@ -764,7 +764,7 @@ export class AreaChart extends React.PureComponent {
         'stackChildren'         : true,
         'height'                : 300,
         'yAxisLabel'            : 'Count',
-        'yAxisScale'            : 'Linear', // Must be one of 'Linear', 'Log', 'Pow'
+        'yAxisScale'            : 'Pow', // Must be one of 'Linear', 'Log', 'Pow'
         'yAxisPower'            : null,
         'xDomain'               : [ new Date('2023-11-01'), null ],
         'yDomain'               : [ 0, null ],
