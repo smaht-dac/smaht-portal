@@ -7,6 +7,7 @@ import us from './data/us.json';
 import consortia from './data/consortia.json';
 import consortiaLegend from './data/consortia_legend.json';
 import consortiaLabels from './data/consortia_labels.json';
+import lab_links from './data/lab_links.json';
 
 import {
     OverlayTrigger,
@@ -31,7 +32,13 @@ const ConsortiumTable = () => {
                 'center-type align-middle text-center consortium-table-' +
                 c['center-type-short'];
             const pis = c['pis'].map((p, j) => {
-                return (
+                return j === 0 && lab_links[p] ? (
+                    <div className="text-nowrap" key={j}>
+                        <a href={lab_links[p]} target="_blank">
+                            {p}
+                        </a>
+                    </div>
+                ) : (
                     <div className="text-nowrap" key={j}>
                         {p}
                     </div>
@@ -369,7 +376,7 @@ export const ConsortiumMap = () => {
     }, []);
 
     return (
-        <div className="consortium-map-container container py-5">
+        <div className="consortium-map-container container">
             <p className="visualization-warning d-block d-sm-none">
                 <span>Note:</span> for the best experience, please view the
                 visualization below on a tablet or desktop.
@@ -378,44 +385,29 @@ export const ConsortiumMap = () => {
                 <div
                     id="consortiumMapTooltip"
                     className="p-1 rounded bg-white consortium-tooltip border"></div>
-                <Tabs
-                    defaultActiveKey="map"
-                    className="mb-3 float-right"
-                    variant="pills">
-                    <Tab eventKey="map" title="Map view">
-                        <div
-                            className="consortium-map-container"
-                            ref={mapReference}>
-                            <span className="interaction-notice">
-                                Hover over pins to read more about each SMaHT
-                                Consortium Member
-                            </span>
-                            <Overlay
-                                target={overlayTarget?.current?.node}
-                                show={showOverlay}
-                                placement="bottom"
-                                flip={true}>
-                                <Popover id="popover-consortium-map">
-                                    <PopoverTitle>
-                                        {
-                                            overlayTarget.current?.data[
-                                                'center-type'
-                                            ]
-                                        }
-                                    </PopoverTitle>
-                                    <PopoverContent>
-                                        <ConsortiumPopoverContent
-                                            data={overlayTarget.current?.data}
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </Overlay>
-                        </div>
-                    </Tab>
-                    <Tab eventKey="table" title="Table view" className="pt-5">
-                        <ConsortiumTable />
-                    </Tab>
-                </Tabs>
+                <div className="consortium-map-container" ref={mapReference}>
+                    <span className="interaction-notice">
+                        Hover over pins to read more about each SMaHT Consortium
+                        Member
+                    </span>
+                    <Overlay
+                        target={overlayTarget?.current?.node}
+                        show={showOverlay}
+                        placement="bottom"
+                        flip={true}>
+                        <Popover id="popover-consortium-map">
+                            <PopoverTitle>
+                                {overlayTarget.current?.data['center-type']}
+                            </PopoverTitle>
+                            <PopoverContent>
+                                <ConsortiumPopoverContent
+                                    data={overlayTarget.current?.data}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                    </Overlay>
+                </div>
+                <ConsortiumTable />
             </div>
         </div>
     );

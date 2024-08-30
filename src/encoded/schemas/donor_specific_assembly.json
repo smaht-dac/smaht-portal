@@ -1,5 +1,6 @@
 {
     "title": "Donor Specific Assembly",
+    "description": "A genome assembly generated from an individual donor.",
     "$id": "/profiles/donor_specific_assembly.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
