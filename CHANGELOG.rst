@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.89.3
+======
+`PR239: Add mei_detection_challenge_data enum ot dataset <https://github.com/smaht-dac/smaht-portal/pull/239>`_
+* Add `mei_detection_challenge_data` enum to `dataset`
+
+
 0.89.2
 ======
 
