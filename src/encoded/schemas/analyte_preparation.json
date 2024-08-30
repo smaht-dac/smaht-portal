@@ -1,5 +1,6 @@
 {
     "title": "Analyte Preparation",
+    "description": "Analyte Preparation items contain more detailed information on analyte extraction protocols.",
     "$id": "/profiles/analyte_preparation.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -60,7 +61,7 @@
         },
         "cell_lysis_method": {
             "title": "Cell Lysis Method",
-            "description": "Cell lysis method for analyte extraction, if applicable. Relevant for DNA extraction for single-cell assays",
+            "description": "Cell lysis method for analyte extraction, if applicable. Relevant for extraction for single-cell assays",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
@@ -91,8 +92,17 @@
         },
         "homogenization_method": {
             "title": "Homogenization method",
-            "description": "Method of sample homogenization, if applicable. Relevant for non-single-cell DNA extraction",
+            "description": "Method of sample homogenization, if applicable. Relevant for non-single-cell extraction",
             "type": "string"
+        },
+        "suspension_type": {
+            "title": "Suspension Type",
+            "description": "Type of cell suspension. Relevant for extraction for single-cell assays",
+            "type": "string",
+            "enum": [
+                "Whole Cell",
+                "Nucleus"
+            ]
         }
     }
 }

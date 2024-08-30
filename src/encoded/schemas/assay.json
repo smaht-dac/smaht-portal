@@ -73,6 +73,44 @@
         },
         "schema_version": {
             "default": "1"
+        },
+        "valid_molecules": {
+            "title": "Valid Molecules",
+            "description": "Molecules that are compatible with the assay",
+            "minItems": 1,
+            "permission": "restricted_fields",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "DNA",
+                    "RNA"
+                ]
+            }
+        },
+        "valid_sequencers": {
+            "title": "Valid Sequencers",
+            "description": "Sequencers that are compatible with the assay",
+            "minItems": 1,
+            "permission": "restricted_fields",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "element_aviti",
+                    "bgi_dnbseq_g400",
+                    "illumina_novaseq_x_plus",
+                    "illumina_hiseq_x",
+                    "ont_minion_mk1b",
+                    "ont_promethion_2_solo",
+                    "ont_promethion_24",
+                    "illumina_novaseq_6000",
+                    "pacbio_revio_hifi",
+                    "illumina_novaseq_x"
+                ]
+            }
         }
     },
     "columns": {
