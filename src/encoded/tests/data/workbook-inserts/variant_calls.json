@@ -15,7 +15,7 @@
         "file_format": "VCF",
         "filename": "some_vcf.vcf",
         "file_sets": [
-            "TEST_FILE-SET_LIVER"
+            "TEST_FILE-SET_LIVER-DNA"
         ],
         "reference_genome": "GRCh38",
         "file_size": 100000,
@@ -43,7 +43,7 @@
         "file_format": "VCF",
         "filename": "some_vcf.vcf",
         "file_sets": [
-            "TEST_FILE-SET_HELA-HEK293"
+            "TEST_FILE-SET_HELA-HEK293-DNA"
         ],
         "external_quality_metrics": ["TEST_EXTERNAL-QUALITY-METRIC_HELA-HEK293-VCF"],
         "reference_genome": "GRCh38",

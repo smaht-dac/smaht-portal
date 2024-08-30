@@ -25,7 +25,7 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
     """ Ensure we generate a reasonable looking group when file set data is present """
     res = es_testapp.get('/file-sets/b98f9849-3b7f-4f2f-a58f-81100954e00d/').json
     file_merge_group = res['file_group']
-    assert file_merge_group['sample_source'] == 'TEST_TISSUE-SAMPLE_LIVER'
+    assert file_merge_group['sample_source'] == 'TEST_TISSUE-SAMPLE_LIVER-DNA'
     assert file_merge_group['sequencing'] == 'illumina_novaseqx-Paired-end-150-R9'
     assert file_merge_group['assay'] == 'bulk_wgs'
 
@@ -34,16 +34,20 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
 @pytest.mark.parametrize(
     "library,sequencing,expected_status",
     [
-        ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_PACBIO_30X-30H", 200), # FiberSeq and PacBio
-        ("","TEST_SEQUENCING_ONT-90X", 422), # FiberSeq and ONT
-        ("","TEST_LIBRARY_HELA-HEK293", 422), # Cas9 Nanopore and PacBio
-        ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_ONT-90X", 422), # FiberSeq and ONT
-        ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_NOVASEQ-500X", 422), # bulk_wgs and ONT
-        ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_ONT-90X", 200), #Cas9 Nanopore and ONT
-        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X", 200) #bulk_wgs and Illumina NovaSeqX
+        ("TEST_LIBRARY_LIVER-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-PACBIO_30X-30H", 200), # FiberSeq and PacBio
+        ("","TEST_SEQUENCING_DNA-ONT-90X", 422), # FiberSeq and ONT
+        ("","TEST_LIBRARY_HELA-HEK293-DNA", 422), # Cas9 Nanopore and PacBio
+        ("TEST_LIBRARY_LIVER-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-ONT-90X", 422), # FiberSeq and ONT
+        ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 422), # bulk_wgs and ONT
+        ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-ONT-90X", 200), #Cas9 Nanopore and ONT
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 200), #bulk_wgs and Illumina NovaSeqX
+        ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 200), # RNA with target_read_count
+        ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 422), # RNA with target_coverage
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 422), # DNA with target_read_count
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING-DNA-NOVASEQ-500X", 200), # DNA with target_coverage
     ],
 )
-def test_validate_compatible_assay_and_sequencer_on_patch(
+def test_validate_compatible_library_and_sequencer_on_patch(
     es_testapp: TestApp,
     workbook: None,
     library: str,
@@ -81,14 +85,18 @@ def test_validate_compatible_assay_and_sequencer_on_patch(
 @pytest.mark.parametrize(
     "library,sequencing,expected_status,index",
     [
-        ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_PACBIO_30X-30H", 201, 1), # FiberSeq and PacBio
-        ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_ONT-90X", 422, 2), # FiberSeq and ONT
-        ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_NOVASEQ-500X", 422, 3), # bulk_wgs and ONT
-        ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_ONT-90X", 201, 4), #Cas9 Nanopore and ONT
-        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X", 201, 5), #bulk_wgs and Illumina NovaSeqX
+        ("TEST_LIBRARY_LIVER-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-PACBIO_30X-30H", 201, 1), # FiberSeq and PacBio
+        ("TEST_LIBRARY_LIVER-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-ONT-90X", 422, 2), # FiberSeq and ONT
+        ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 422, 3), # bulk_wgs and ONT
+        ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-ONT-90X", 201, 4), #Cas9 Nanopore and ONT
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 201, 5), #bulk_wgs and Illumina NovaSeqX
+        ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 201, 6), # RNA with target_read_count
+        ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 422, 7), # RNA with target_coverage
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 422, 8), # DNA with target_read_count
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 201, 9), # DNA with target_coverage
     ],
 )
-def test_validate_compatible_assay_and_sequencer_on_post(
+def test_validate_compatible_library_and_sequencer_on_post(
     es_testapp: TestApp,
     workbook: None,
     library: str,
@@ -117,88 +125,6 @@ def test_validate_compatible_assay_and_sequencer_on_post(
     )
     post_body = {
         "submitted_id": f"TEST_FILE-SET_TEST{index}",
-        "submission_centers": [submission_center],
-        "libraries": [library_uuid],
-        "sequencing": sequencing_uuid
-    }
-    post_item(es_testapp,post_body,'file_set',status=expected_status)
-
-
-@pytest.mark.workbook
-@pytest.mark.parametrize(
-    "library,sequencing,expected_status", [
-        ("TEST_LIBRARY_HELA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 200), # RNA with target_read_count
-        ("TEST_LIBRARY_HELA","TEST_SEQUENCING_NOVASEQ-500X", 422), # RNA with target_coverage
-        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_RNA-NOVASEQ-500X", 422), # DNA with target_read_count
-        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X", 200), # DNA with target_coverage
-    ]
-)
-def test_validate_molecule_sequencing_properties_on_edit(
-    es_testapp: TestApp,
-    workbook: None,
-    library: str,
-    sequencing: str,
-    expected_status: int
-) -> None:
-    """Ensure that molecule-specific properties for sequencer are validate on PATCH."""
-    patch_body = {}
-    if library:
-        library_uuid=item_utils.get_uuid(
-            get_item(
-                es_testapp,
-                library,
-                'Library'
-            )
-        )
-        patch_body['libraries'] = [library_uuid]
-    if sequencing:
-        sequencing_uuid=item_utils.get_uuid(
-            get_item(
-                es_testapp,
-                sequencing,
-                'Sequencing'
-            )
-        )
-        patch_body['sequencing'] = sequencing_uuid
-    identifier = get_insert_identifier_for_item_type(es_testapp,'file_set')
-    patch_item(es_testapp, patch_body, identifier, status=expected_status)
-
-
-@pytest.mark.workbook
-@pytest.mark.parametrize(
-    "library,sequencing,expected_status,index", [
-        ("TEST_LIBRARY_HELA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 201, 1), # RNA with target_read_count
-        ("TEST_LIBRARY_HELA","TEST_SEQUENCING_NOVASEQ-500X", 422, 2), # RNA with target_coverage
-        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_RNA-NOVASEQ-500X", 422, 3), # DNA with target_read_count
-        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X", 201, 4), # DNA with target_coverage
-    ]
-)
-def test_validate_molecule_sequencing_properties_on_add(
-    es_testapp: TestApp,
-    workbook: None,
-    library: str,
-    sequencing: str,
-    expected_status: int,
-    index: int
-) -> None:
-    """Ensure that molecule-specific properties for sequencer are validate on POST"""
-    submission_center = get_insert_identifier_for_item_type(es_testapp,'submission_center')
-    library_uuid=item_utils.get_uuid(
-        get_item(
-            es_testapp,
-            library,
-            'Library'
-        )
-    )
-    sequencing_uuid=item_utils.get_uuid(
-        get_item(
-            es_testapp,
-            sequencing,
-            'Sequencing'
-        )
-    )
-    post_body = {
-        "submitted_id": f"TEST_FILE-SET_TEST2-{index}",
         "submission_centers": [submission_center],
         "libraries": [library_uuid],
         "sequencing": sequencing_uuid

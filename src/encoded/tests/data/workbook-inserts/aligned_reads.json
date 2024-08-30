@@ -18,7 +18,7 @@
         "file_format": "BAM",
         "filename": "some_bam.bam",
         "file_sets": [
-            "TEST_FILE-SET_LIVER"
+            "TEST_FILE-SET_LIVER-DNA"
         ],
         "software": [
             "foo:software_vep",
