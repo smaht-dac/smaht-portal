@@ -5,10 +5,14 @@ import { Tab, Tabs } from 'react-bootstrap';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 
-import { BenchmarkingTableController } from './BenchmarkingTable';
+import {
+    BenchmarkingTable,
+    BenchmarkingTableController,
+} from './BenchmarkingTable';
 import { navigate } from '../../../util';
 import { NotLoggedInAlert } from '../../../navigation/components';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { TableControllerWithSelections } from '../TableControllerWithSelections';
 
 export const BenchmarkingLayout = ({
     schemas,
@@ -202,6 +206,7 @@ export const HashBasedTabController = ({
 
     return (
         <Tabs
+            key={session}
             {...{ defaultActiveKey }}
             mountOnEnter={true} // Don't load other tabs until switch to them (faster initial load + easier debugging)
             id={controllerId}
@@ -217,10 +222,11 @@ export const HashBasedTabController = ({
                             eventKey,
                         }}>
                         <div className="mt-1">
-                            <BenchmarkingTableController
+                            <TableControllerWithSelections
                                 {...{ searchHref }}
-                                {...commonTableProps}
-                            />
+                                {...commonTableProps}>
+                                <BenchmarkingTable />
+                            </TableControllerWithSelections>
                         </div>
                     </Tab>
                 );
