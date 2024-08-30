@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.89.1
+======
+* 2024-08-29/dmichaels
+* Minor validation fixes to guard agaist None dereference in types/file_set.py and types/library.py.
+
+
 0.89.0
 ======
 
