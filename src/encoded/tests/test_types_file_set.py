@@ -167,7 +167,7 @@ def test_validate_molecule_sequencing_properties_on_edit(
 @pytest.mark.workbook
 @pytest.mark.parametrize(
     "library,sequencing,expected_status,index", [
-        ("TEST_LIBRARY_HELA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 202, 1), # RNA with target_read_count
+        ("TEST_LIBRARY_HELA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 201, 1), # RNA with target_read_count
         ("TEST_LIBRARY_HELA","TEST_SEQUENCING_NOVASEQ-500X", 422, 2), # RNA with target_coverage
         ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_RNA-NOVASEQ-500X", 422, 3), # DNA with target_read_count
         ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X", 201, 4), # DNA with target_coverage
