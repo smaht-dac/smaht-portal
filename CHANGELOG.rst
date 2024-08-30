@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.89.2
+======
+
+* Update manifest to prioritize `filename` over `display_title`
+
+
 0.89.1
 ======
 
