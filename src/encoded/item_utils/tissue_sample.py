@@ -11,6 +11,8 @@ from ..item_utils.tissue import (
     PRODUCTION_ID_REGEX
 )
 
+TPC_CENTER_REGEX = "NDRI_"
+
 CORE_REGEX = "-[0-9]{3}[A-F][1-6]$"
 SPECIMEN_REGEX = "-[0-9]{3}[S-W][1-9]$"
 HOMOGENATE_REGEX = "-[0-9]{3}X$"
@@ -73,3 +75,9 @@ def is_production(properties: Dict[str, Any]) -> bool:
     """Check if tissue sample is from production study."""
     external_id = item_utils.get_external_id(properties)
     return re.match(PRODUCTION_ID_REGEX, external_id) is not None
+
+
+def is_tpc_sample(properties: Dict[str, Any]) -> bool:
+    """Check if tissue sample submission center is from NDRI."""
+    submitted_id = item_utils.get_submitted_id(properties)
+    return re.match(TPC_CENTER_REGEX, submitted_id) is not None
