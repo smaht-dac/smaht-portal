@@ -1,16 +1,18 @@
 import React from 'react';
-import { EmbeddedItemSearchTable } from '../EmbeddedItemSearchTable';
+import { OverlayTrigger, Popover } from 'react-bootstrap';
+
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import {
-    SelectedItemsDownloadButton,
-    SelectAllFilesButton,
-} from '../../../static-pages/components/benchmarking/BenchmarkingTable';
 import {
     SelectedItemsController,
     SelectionItemCheckbox,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
-import { OverlayTrigger, Popover } from 'react-bootstrap';
+
+import {
+    SelectAllFilesButton,
+    SelectedItemsDownloadButton,
+} from '../../../static-pages/components/SelectAllAboveTableComponent';
+import { EmbeddedItemSearchTable } from '../EmbeddedItemSearchTable';
 
 /**
  * Wraps the File Overview Table in a SelectedItemsController component, which

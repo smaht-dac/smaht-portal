@@ -1,6 +1,7 @@
 import pytest
+import re
 
-from ..item_utils.donor import BENCHMARKING_ID_REGEX, PRODUCTION_ID_REGEX
+from ..item_utils.donor import BENCHMARKING_DONOR_REGEX, PRODUCTION_DONOR_REGEX
 
 
 @pytest.mark.parametrize(
@@ -16,7 +17,7 @@ from ..item_utils.donor import BENCHMARKING_ID_REGEX, PRODUCTION_ID_REGEX
 )
 def test_benchmarking_id_regex(string: str, expected_match: bool) -> None:
     """Test benchmarking ID regex."""
-    result = BENCHMARKING_ID_REGEX.match(string)
+    result = BENCHMARKING_DONOR_REGEX.match(string)
     assert bool(result) == expected_match
 
 
@@ -33,5 +34,5 @@ def test_benchmarking_id_regex(string: str, expected_match: bool) -> None:
 )
 def test_production_id_regex(string: str, expected_match: bool) -> None:
     """Test production ID regex."""
-    result = PRODUCTION_ID_REGEX.match(string)
+    result = PRODUCTION_DONOR_REGEX.match(string)
     assert bool(result) == expected_match
