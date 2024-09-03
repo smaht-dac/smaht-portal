@@ -1,6 +1,7 @@
 import React from 'react';
 import { OverlayTrigger, Popover } from 'react-bootstrap';
 
+import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import {
@@ -172,7 +173,7 @@ export const FileOverviewTable = (props) => {
         },
         // Notes
         tsv_notes: {
-            widthMap: { lg: 120, md: 120, sm: 100 },
+            widthMap: { lg: 190, md: 170, sm: 150 },
             colTitle: 'Notes',
             render: function (result, parentProps) {
                 const value = result?.tsv_notes;
@@ -180,7 +181,9 @@ export const FileOverviewTable = (props) => {
 
                 const popover = (
                     <Popover id="popover-basic">
-                        <Popover.Title as="h3">TSV Notes</Popover.Title>
+                        <Popover.Title as="h3" className="mt-0">
+                            TSV Notes
+                        </Popover.Title>
                         <Popover.Content>{value}</Popover.Content>
                     </Popover>
                 );
@@ -190,8 +193,12 @@ export const FileOverviewTable = (props) => {
                         trigger="click"
                         placement="top"
                         overlay={popover}>
-                        <i className="icon icon-exclamation-triangle fas text-warning mr-05" />
-                        View TSV Notes
+                        <button
+                            type="button"
+                            className="btn btn-link btn-xs text-truncate">
+                            <i className="icon icon-exclamation-triangle fas text-warning mr-05" />
+                            View TSV Notes
+                        </button>
                     </OverlayTrigger>
                 );
             },
