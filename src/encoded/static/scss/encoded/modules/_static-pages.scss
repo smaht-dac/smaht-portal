@@ -814,6 +814,35 @@ body[data-path="/"]>#application>#layout {
 	Styles related to About page visualizations
 ***********************************************************/
 
+// Awardees Page Styles
+body[data-pathname="/about/consortium/awardees"] {
+	#content {
+		.static-page {
+			.section-content {
+				p {
+					.center-count {
+						font-weight: 500;
+						&.color {
+							&-tpc {
+								color: #984ea3;
+							}
+							&-gcc {
+								color: #ff7f00;
+							}
+							&-dac {
+								color: #e41a1c;
+							}
+							&-ttd {
+								color: #4daf4a;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 // Consortium Map
 .consortium-map {
 	font-family: Inter;
@@ -850,7 +879,7 @@ body[data-path="/"]>#application>#layout {
 	}
 
 	&-container {
-		padding-top: 75px;
+		padding-top: 15px;
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
@@ -916,6 +945,7 @@ body[data-path="/"]>#application>#layout {
 
 	// Table styles
 	table.table-striped {
+		margin-top: 75px;
 		th {
 			background-color: #F1F9FF; 
 			font-weight: 600;
@@ -1714,6 +1744,35 @@ div#popover-consortium-data-alluvial-table {
 	}
 }
 
+// styles for tips and alerts - called "admonition" in RST pages
+.admonition {
+	padding: 12px;
+	line-height: 24px;
+	margin-top: 24px;
+
+	.admonition-title {
+		font-weight: 700;
+		display: block;
+		color: #fff;
+		padding: 6px 12px;
+		margin: -12px -12px 12px;
+	}
+	
+	&.tip {
+		background-color: #F7F2F8;
+		.admonition-title {
+			background-color: #9278AF;
+		}
+	}
+	&.info {
+		background-color: #F5FAFF;
+		.admonition-title {
+			background-color: #283887;
+		}
+
+	}
+}
+
 /***
 Unique styling of page title container for static pages
 (also used for user profiles)
@@ -1725,6 +1784,18 @@ body.is-item-view[data-pathname^="/users/"] #page-title-container,
 	border: 1px solid #E7F0F3;
 	border-left: none;
 	border-right: none;
+}
+
+body[data-pathname^="/data"] {
+	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
+		&[data-first-visible-column=true] {
+			padding-left: 16px !important;
+		}
+
+		>.inner>.toggle-detail-button-container {
+			display: none;
+		}
+	}
 }
 
 /***
@@ -1798,62 +1869,79 @@ body[data-pathname^="/data/benchmarking"] {
 						}
 					}
 				}
+
+				.tab-content {
+					.embedded-search-container {
+						>div {
+							flex-direction: column;
+						}
+					}
+				}
 		
 				>.row {
-					.title {
-						color: #343741;
-						font-family: Inter;
-						font-size: 1.5rem;
-						font-weight: 600;
-						margin-top: 5px;
-					}
-					.description {
-						font-family: Inter;
-						font-size: 0.875rem;
-						color: #5D5E63;
-						line-height: 20px;
-
-						.disclaimer {
-							color: #5D5E63;
-							font-family: Inter;
-							font-size: 0.875rem;
-							line-height: 20px;
-							margin-top: 10px;
-							span {
-								font-weight: 500;
-							}
-						}
-					}
-					.callout {
-						margin-top: 24px;
-						border-radius: 7px;
-						max-width: 980px;
-						border-top-left-radius: 0.25rem;
-						border-bottom-left-radius: 0.25rem;
+					.information-container {
+						padding: 10px;
+						margin-bottom: 20px;
 						
-						&-text {
+						.title {
+							color: #343741;
 							font-family: Inter;
-							color: #5D5E63;
+							font-size: 1.5rem;
+							font-weight: 600;
+							margin-top: 5px;
+						}
+						.description {
+							font-family: Inter;
 							font-size: 0.875rem;
-							padding: 8px;
+							color: #5D5E63;
 							line-height: 20px;
-
-							.flag {
-								font-weight: 600;
-							}
-							.headline {
-								font-weight: 600;
+	
+							.disclaimer {
+								color: #5D5E63;
+								font-family: Inter;
+								font-size: 0.875rem;
+								line-height: 20px;
+								margin-top: 10px;
+								span {
+									font-weight: 500;
+								}
 							}
 						}
-						&.warning {
-							background-color: #FFF9F9;
-							border: 1px solid #F6D6D6;
-							border-left: 4px solid #BB3F3F;
-
-							.flag {
-								font-weight: 600;
-								color: #BB3F3F;
+						.callout {
+							margin-top: 24px;
+							border-radius: 7px;
+							max-width: 980px;
+							border-top-left-radius: 0.25rem;
+							border-bottom-left-radius: 0.25rem;
+							
+							&-text {
+								font-family: Inter;
+								color: #5D5E63;
+								font-size: 0.875rem;
+								padding: 8px;
+								line-height: 20px;
+	
+								.flag {
+									font-weight: 600;
+								}
+								.headline {
+									font-weight: 600;
+								}
 							}
+							&.warning {
+								background-color: #FFF9F9;
+								border: 1px solid #F6D6D6;
+								border-left: 4px solid #BB3F3F;
+	
+								.flag {
+									font-weight: 600;
+									color: #BB3F3F;
+								}
+							}
+						}
+
+						.toggle-information-text-button {
+							display: none;
 						}
 					}
 				}
@@ -1877,19 +1965,112 @@ body[data-pathname^="/data/benchmarking"] {
 		.benchmarking-nav-container {
 			display: none;
 		}
+		
+
+		@include media-breakpoint-up(sm) {
+			.benchmarking-layout-container {
+				.benchmarking-layout {
+					.tab-content {
+						.embedded-search-container {
+							>div {
+								flex-direction: row;
+							}
+						}
+					}
+				}
+			}
+		}
 
 		@include media-breakpoint-up(lg) {
 			display: flex;
+			flex: 1;
 			padding: 0px;
 
 			// Header and description text
 			.benchmarking-layout-container {
 				flex: 1;
-				padding: 25px 32px 0px 20px;
-				.benchmarking-layout{
+				padding: 20px 32px 20px 20px;
+				overflow: scroll;
+
+				.benchmarking-layout {
+					.page-description {
+						.information-container {
+							margin-bottom: 0px;
+							padding: 0px 0px 20px 10px;
+							
+							.title-container {
+								display: flex;
+								flex-direction: row;
+								margin-top: 5px;
+								margin-bottom: 20px;
+								.title {
+									margin: 0px;
+								}
+							}
+							.toggle-information-text-button {
+								position: absolute;
+								display: flex;
+								bottom: 0px;
+								background-color: transparent;
+								border: none;
+								border-radius: 4px;
+								margin: 10px 0px;
+								color: $link-color;
+								font-size: 0.875rem;
+								font-weight: 500;
+								
+								.icon {
+									margin: auto 8px auto auto;
+								}
+	
+								.toggle-information-text {
+									margin: auto;
+									height: 25px;
+								}
+	
+								&:hover {
+									font-weight: 600;
+								}
+							}
+						}
+
+						.body-container {
+							&.expanded {
+								max-height: 400px;
+								transition: max-height 150ms ease-in-out;
+								overflow: hidden;
+								margin-bottom: 1.5rem;
+							}
+							&.collapsed {
+								max-height: 40px;
+								transition: max-height 150ms ease-in-out;
+								overflow: hidden;
+								margin-bottom: 1.5rem;
+								display: -webkit-box;
+								@include prefix(line-clamp, 2);
+								@include prefix(box-orient, vertical);
+							}
+						}
+					}
+
 					>nav.nav-tabs {
 						a.nav-link {
 							text-align: left;
+						}
+					}
+
+					.tab-content {
+						.embedded-search-container {
+							.search-view-controls-and-results {
+								.facets-column {
+									transition: max-height 150ms ease-in-out;
+								}
+								.results-column {
+									.react-infinite-container {
+										transition: max-height 150ms ease-in-out;
+									}
+								}
+							}
 						}
 					}
 				}
@@ -1898,7 +2079,7 @@ body[data-pathname^="/data/benchmarking"] {
 			// Side nav
 			.benchmarking-nav-container {
 				display: flex;
-				padding-top: 5px;
+				min-height: calc(100vh - 236px);
 	
 				.benchmarking-nav {
 					width: 100%;
@@ -1986,6 +2167,14 @@ body[data-pathname^="/data/benchmarking"] {
 							font-size: 0.75rem;
 							margin: auto;
 						}
+
+						&:hover {
+							background-color: #F6F6F6;
+						}
+
+						&:active {
+							background-color: #f2f2f2;
+						}
 					}
 				}
 			}
@@ -2018,7 +2207,7 @@ body[data-pathname^="/data/benchmarking"] {
 			}
 			&.collapse-nav {
 				flex-wrap: nowrap;
-				.benchmarking-nav-container{
+				.benchmarking-nav-container {
 					width: 32px;
 					border-right: 1px solid #E7F0F3;
 					background-color: #FBFBFC;
@@ -2032,9 +2221,6 @@ body[data-pathname^="/data/benchmarking"] {
 					hr {
 						display: none;
 					}
-				}
-				.benchmarking-layout-container {
-					width: calc(100% - 32px);
 				}
 			}
 		}
@@ -2050,13 +2236,6 @@ body[data-pathname^="/data/benchmarking"] {
 		}
 	}
 
-	.tbd-notice {
-		color: #343741;
-		font-family: Inter;
-		font-size: 1.25rem;
-		font-weight: 600;
-	}
-
 	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
 		&[data-first-visible-column=true] {
 			padding-left: 15px !important;
@@ -2066,88 +2245,15 @@ body[data-pathname^="/data/benchmarking"] {
 			display: none;
 		}
 	}
-
-	// May need to move this to search if we end up using this functionality elsewhere
-	.batch-files-download-modal {
-		> .modal-dialog {
-			min-width: 75%;
-
-			>.modal-content {
-				border-radius: 11px;
-
-				>.modal-header>.modal-title {
-					color: #343741;
-					font-size: 1.5rem;
-					font-weight: 600;
-				}
-				>.modal-body {
-					h2 {
-						color: #343741;
-						font-size: 1.125rem;
-						font-weight: 600;
-					}
-			
-					li {
-						font-size: 0.875rem;
-					}
-
-					.tsv-metadata-overview {
-						border-radius: 7px;
-						border: 1px solid #CAE5FE;
-						background: #F1F9FF;
-						box-shadow: none;
-						gap: 30px;
-						
-						@include media-breakpoint-between(md, lg){
-							gap: 50px;
-						}
-
-						@include media-breakpoint-between(lg, xl){
-							gap: 70px;
-						}
-
-						@include media-breakpoint-up(xl){
-							gap: 90px;
-						}
-			
-						.tsv-metadata-stat-title {
-							color: #387FC1;
-						}
-			
-						.tsv-metadata-stat {
-							color: #343741;
-							font-size: 1.5rem;
-							font-weight: 600;
-						}
-					}
-
-					/*** metadata.tsv modal ***/
-					pre.curl-command {
-						border: 1px dashed #dedede;
-						padding: 5px;
-					}
-					.curl-command-wrapper i.icon-copy {
-						margin-left: 5px;
-
-						&:after {
-							content : "Copy";
-							font-family: $font-family-base;
-							font-weight: 600;
-							padding-left: 6px;
-						}
-					}
-				}
-				>.modal-footer {
-					background-color: #F8F8F8;
-				}
-			}
-		}
-	}
 }
 
 /** Utilities for static page tables **/
 thead.thead-smaht tr>th {
 	background-color: $baby-20;
+}
+
+thead.thead-smaht-purple tr>th {
+	background-color: #eaeaff;
 }
 
 tbody.table-border-inner {

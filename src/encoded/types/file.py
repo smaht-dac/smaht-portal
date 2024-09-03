@@ -55,6 +55,7 @@ from ..item_utils import (
     sample as sample_utils,
     software as software_utils,
     tissue as tissue_utils,
+    sequencing as sequencing_utils
 )
 from ..item_utils.utils import (
     get_property_value_from_identifier,
@@ -187,6 +188,7 @@ class CalcPropConstants:
     DATA_GENERATION_SUBMISSION_CENTERS = "submission_centers"
     DATA_GENERATION_ASSAYS = "assays"
     DATA_GENERATION_SEQUENCING_PLATFORMS = "sequencing_platforms"
+    DATA_GENERATION_TARGET_COVERAGE = "target_group_coverage"
     DATA_GENERATION_SCHEMA = {
         "title": "Data Generation Summary",
         "description": "Summary of data generation",
@@ -231,6 +233,13 @@ class CalcPropConstants:
                     "type": "string",
                 },
             },
+            DATA_GENERATION_TARGET_COVERAGE: {
+                "title": "Target Group Coverage",
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
         },
     }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
@@ -325,6 +334,7 @@ def _build_file_embedded_list() -> List[str]:
         # Facets + Data generation summary + Link calcprops
         "file_sets.libraries.assay",
         "file_sets.sequencing.sequencer",
+        "file_sets.sequencing.target_coverage",
 
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
@@ -382,7 +392,8 @@ class File(Item, CoreFile):
         'uploading': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'upload failed': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'to be uploaded by workflow': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
-        'archived': acl.ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL
+        'archived': acl.ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
+        'retracted': acl.ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
     })
     # These are all view only in case we find ourselves in this situation
     Item.CONSORTIUM_STATUS_ACL.update({
@@ -523,6 +534,12 @@ class File(Item, CoreFile):
         # only seen in unit tests that force validation errors (test_real_validation_error)
         if 'status' not in self.properties:
             return None
+
+        # ignore reference files
+        if self.type_info.name == 'ReferenceFile':
+            return None
+
+        # Proceed otherwise
         current_status = self.properties['status']
         if current_status in ['uploading', 'in review']:
             return {
@@ -545,7 +562,6 @@ class File(Item, CoreFile):
                     result["released"]
                 )
             return result
-
 
     @staticmethod
     def get_date_from_datetime(datetime_str: str) -> str:
@@ -828,6 +844,13 @@ class File(Item, CoreFile):
                     item_utils.get_display_title,
                 )
             ),
+            constants.DATA_GENERATION_TARGET_COVERAGE: (
+                get_property_values_from_identifiers(
+                    request_handler,
+                    file_utils.get_sequencings(file_properties, request_handler),
+                    sequencing_utils.get_target_coverage
+                )
+            )
         }
         return {
             key: value for key, value in to_include.items() if value

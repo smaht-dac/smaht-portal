@@ -1,5 +1,6 @@
 {
     "title": "Supplementary File",
+    "description": "Submitted files not processed through DAC analysis pipelines",
     "$id": "/profiles/supplementary_file.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -88,14 +89,23 @@
             "type": "string",
             "linkTo": "DonorSpecificAssembly"
         },
+        "haplotype": {
+            "title": "Haplotype",
+            "description": "Haplotype name for the file (for fasta files).",
+            "type": "string",
+            "suggested_enum": [
+                "Hap1",
+                "Hap2"
+            ]
+        },
         "target_assembly": {
             "title":"Target Assembly",
-            "description": "The assembly to which the coordinates are being converted required for chain files)",
+            "description": "The assembly to which the coordinates are being converted (required for chain files)",
             "type": "string"
         },
         "source_assembly": {
             "title": "Source Assembly",
-            "description": "The assembly from which the coordinates are being converted (required chain files)",
+            "description": "The assembly from which the coordinates are being converted (required for chain files)",
             "type": "string"
         }
     }

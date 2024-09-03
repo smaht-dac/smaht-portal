@@ -4,8 +4,8 @@ import pytest
 
 from ..item_utils import constants
 from ..item_utils.tissue import (
-    BENCHMARKING_ID_REGEX,
-    PRODUCTION_ID_REGEX,
+    BENCHMARKING_TISSUE_REGEX,
+    PRODUCTION_TISSUE_REGEX,
     get_donor_kit_id,
     get_project_id,
     get_protocol_id,
@@ -41,7 +41,7 @@ def test_get_study(properties: Dict[str, Any], expected: str) -> None:
 )
 def test_benchmarking_id_regex(string: str, expected_match: bool) -> None:
     """Test benchmarking ID regex."""
-    result = BENCHMARKING_ID_REGEX.match(string)
+    result = BENCHMARKING_TISSUE_REGEX.match(string)
     assert bool(result) == expected_match
 
 
@@ -59,7 +59,7 @@ def test_benchmarking_id_regex(string: str, expected_match: bool) -> None:
 )
 def test_production_id_regex(string: str, expected_match: bool) -> None:
     """Test production ID regex."""
-    result = PRODUCTION_ID_REGEX.match(string)
+    result = PRODUCTION_TISSUE_REGEX.match(string)
     assert bool(result) == expected_match
 
 

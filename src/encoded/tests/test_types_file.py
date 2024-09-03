@@ -88,6 +88,25 @@ def bam_output_file(
     return post_item(testapp, bam_output_file_properties, "OutputFile")
 
 
+@pytest.fixture
+def reference_file(
+    testapp: TestApp, file_formats: Dict[str, dict], test_consortium: Dict[str, Any]
+) -> Dict[str, Any]:
+    """ Reference File for testing the file release status calc prop omission """
+    item = {
+        'file_format': file_formats.get('BAM').get('uuid'),
+        'md5sum': '00000000000000000000000000000000',
+        'content_md5sum': '00000000000000000000000000000000',
+        'filename': 'my.bam',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
+        'status': 'released',  # if it does clear the prop will definitely show up
+        'consortia': [test_consortium['uuid']],
+    }
+    res = testapp.post_json('/reference_file', item)
+    return res.json['@graph'][0]
+
+
 def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]) -> None:
     """Ensure download link formatted as expected."""
     expected = (
@@ -99,11 +118,13 @@ def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any
 
 
 def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_file: Dict[str, Any],
+                                              reference_file: Dict[str, Any],
                                               file_formats: Dict[str, Dict[str, Any]]) -> None:
     """ Tests that as we make changes to the output file, the calc prop for changing status
         Note that for this to work, changes need to be tied to a real (not virtual) user
         so that last_modified is present
     """
+    assert not reference_file.get('file_status_tracking')  # should be absent
     res = output_file['file_status_tracking']
     assert 'in review' in res
     assert 'released' not in res
@@ -977,6 +998,12 @@ def assert_data_generation_summary_matches_expected(
         )
         for sequencing in sequencings
     ] if sequencings else []
+    expected_target_coverage = [
+        sequencing_utils.get_target_coverage(
+            get_item(es_testapp, item_utils.get_uuid(sequencing))
+        )
+        for sequencing in sequencings
+    ] if sequencings else []
     assert_values_match_if_present(
         data_generation_summary, "data_category", expected_data_category
     )
@@ -992,6 +1019,9 @@ def assert_data_generation_summary_matches_expected(
     assert_values_match_if_present(data_generation_summary, "assays", expected_assays)
     assert_values_match_if_present(
         data_generation_summary, "sequencing_platforms", expected_platforms
+    )
+    assert_values_match_if_present(
+        data_generation_summary,"target_group_coverage",expected_target_coverage
     )
 
 

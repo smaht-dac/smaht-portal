@@ -84,7 +84,8 @@ export const AccountNav = React.memo(function AccountNav(props) {
 
     const { details: userDetails = {}, user_actions: userActions = [] } =
         JWT.getUserInfo() || {};
-    const { first_name: acctTitle = 'Account', email } = userDetails;
+    const { first_name = '', last_name = '', email } = userDetails;
+
     const acctIcon = (typeof email === 'string' &&
         email.indexOf('@') > -1 &&
         object.itemUtil.User.gravatar(
@@ -93,13 +94,24 @@ export const AccountNav = React.memo(function AccountNav(props) {
             { className: 'account-icon-image' },
             'mm'
         )) || <i className="account-icon icon icon-user fas" />;
+
     const cls =
         'user-account-item is-logged-in is-dropdown' +
         (acctIcon && acctIcon.type === 'img' ? ' has-image' : '');
+
+    // Use initials when provided
+    let accountTitle =
+        first_name && last_name
+            ? (first_name + ' ' + last_name)
+                  .split(' ')
+                  .map((s) => s[0].toUpperCase())
+                  .join('')
+            : 'Account';
+
     const navItemTitle = (
         <React.Fragment>
             {acctIcon}
-            <span className="user-first-name">{acctTitle}</span>
+            <span className="user-first-name">{accountTitle}</span>
         </React.Fragment>
     );
 

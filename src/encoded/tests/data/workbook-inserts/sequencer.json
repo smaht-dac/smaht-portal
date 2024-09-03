@@ -11,5 +11,28 @@
             "Short-read"
         ],
         "code": "X"
+    },
+    {
+        "uuid": "36ed5823-9207-4514-8cc6-e9712deafb0a",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "ont_promethion_24",
+        "platform": "ONT",
+        "model": "PromethION24",
+        "read_length_category": [
+            "Long-read"
+        ],
+        "code": "D"
+    },
+    {
+        "uuid": "b88debe3-b07a-46c7-a1a1-78d2b0a0396b",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "pacbio_revio_hifi",
+        "platform": "PacBio",
+        "model": "Revio",
+        "code": "B"
     }
 ]
