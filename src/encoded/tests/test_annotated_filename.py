@@ -386,25 +386,20 @@ TISSUE_SAMPLE_EXTERNAL_ID = f"{TISSUE_EXTERNAL_ID}-{TISSUE_SAMPLE_ALIQUOT_ID}"
 TISSUE_SAMPLE_EXTERNAL_ID2 = f"{TISSUE_EXTERNAL_ID}-{TISSUE_SAMPLE_ALIQUOT_ID2}"
 TISSUE_SAMPLE_EXTERNAL_ID3 = f"{TISSUE_EXTERNAL_ID}-{TISSUE_SAMPLE_ALIQUOT_ID3}"
 
-SOME_CORE_TISSUE_SAMPLE = {"submitted_id":"GCC_TISSUE-SAMPLE_TEST1","category": "Core", "external_id": TISSUE_SAMPLE_EXTERNAL_ID}
-CORE_TISSUE_SAMPLE2 = {"submitted_id":"GCC_TISSUE-SAMPLE_TEST2","category": "Core", "external_id": TISSUE_SAMPLE_EXTERNAL_ID2}
-CORE_TISSUE_SAMPLE3 = {"submitted_id":"GCC_TISSUE-SAMPLE_TEST3","category": "Core", "external_id": TISSUE_SAMPLE_EXTERNAL_ID3}
+SOME_CORE_TISSUE_SAMPLE = {"category": "Core", "external_id": TISSUE_SAMPLE_EXTERNAL_ID}
+CORE_TISSUE_SAMPLE2 = {"category": "Core", "external_id": TISSUE_SAMPLE_EXTERNAL_ID2}
+CORE_TISSUE_SAMPLE3 = {"category": "Core", "external_id": TISSUE_SAMPLE_EXTERNAL_ID3}
 
 TPC_TISSUE_SAMPLE = {
-    "submitted_id":"NDRI_TISSUE-SAMPLE_TEST5",
     "category": "Core", 
     "external_id": TISSUE_SAMPLE_EXTERNAL_ID
 }
 
 SOME_HOMOGENATE_TISSUE_SAMPLE = {
-    "submitted_id":"GCC_TISSUE-SAMPLE_TEST4",
     "category": "Homogenate",
     "external_id": TISSUE_SAMPLE_EXTERNAL_ID,
 }
-SOME_OTHER_TISSUE_SAMPLE = {
-    "submitted_id":"GCC_TISSUE-SAMPLE_TEST5",
-    "category": "Core", 
-    "external_id": "SN001-01-010A1"}
+SOME_OTHER_TISSUE_SAMPLE = {"category": "Core", "external_id": "SN001-01-010A1"}
 
 @pytest.mark.parametrize(
     "cell_culture_mixtures,cell_lines,tissue_samples,expected,errors",
