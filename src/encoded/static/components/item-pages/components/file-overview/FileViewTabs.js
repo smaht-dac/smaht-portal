@@ -98,6 +98,29 @@ const QCOverviewTab = ({ context }) => {
 };
 
 export const FileViewTabs = (props) => {
+    const { context } = props;
+    const { file_sets = [] } = context || {};
+
+    let associatedFilesTitle = 'Associated Files';
+
+    let warningsOnFileset = false;
+    file_sets.forEach((file_set) => {
+        if (file_set.warningsOnFileset) {
+            // tentative: need to update when get official name of calcprop
+            warningsOnFileset = true;
+        }
+    });
+
+    // Check whether there are any warnings on the files within Associated Files
+    if (warningsOnFileset) {
+        associatedFilesTitle = (
+            <div>
+                <i className="icon fas icon-exclamation-triangle text-warning mr-05"></i>
+                Associated Files
+            </div>
+        );
+    }
+
     return (
         <div className="tabs-container">
             <DotRouter
@@ -107,7 +130,7 @@ export const FileViewTabs = (props) => {
                 prependDotPath="file-overview">
                 <DotRouterTab
                     dotPath=".associated-files"
-                    tabTitle="Associated Files"
+                    tabTitle={associatedFilesTitle}
                     arrowTabs={false}
                     default>
                     <AssociatedFilesTab {...props} />
