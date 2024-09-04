@@ -2,6 +2,7 @@ from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
 from . import (
+    item as item_utils,
     library as library_utils,
     sample as sample_utils,
     sequencing as sequencing_utils,
@@ -74,4 +75,13 @@ def get_sequencer(
 
 def get_files(file_set: Dict[str, Any]) -> List[str]:
     """Get files calc_prop connected to file set."""
-    return file_set.get("files", [])
+    return file_set.get("files",[])
+
+
+def get_files_status(request_handler: RequestHandler, file_set: Dict[str, Any]) -> List[str]:
+    """Get status from files connected to file set."""
+    return get_property_values_from_identifiers(
+            request_handler,
+            get_files(file_set),
+            item_utils.get_status
+        )

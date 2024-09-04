@@ -410,16 +410,9 @@ def has_mobile_element_insertions(file: Dict[str, Any]) -> bool:
 def get_associated_files_status(
     file: Dict[str, Any], request_handler: RequestHandler
 ) -> List[str]:
-    """Get associated files from the FileSet.files calcprop"""
-    import pdb; pdb.set_trace()
-    files = get_property_values_from_identifiers(
-        request_handler,
-        get_file_sets(file),
-        file_set.get_files
-    )
-    result = get_property_values_from_identifiers(
+    """Get associated files status from the FileSet.files_status calcprop"""
+    return  get_property_values_from_identifiers(
             request_handler,
-            files,
-            item.get_status
+            get_file_sets(file),
+            partial(file_set.get_files_status, request_handler)
         )
-    return result
