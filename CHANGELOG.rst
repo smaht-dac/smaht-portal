@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.90.0
+======
+`PR233: SN Add valid_molecules required <https://github.com/smaht-dac/smaht-portal/pull/238>`_
+* Add `valid_molecules` as a required proeprty for Assay
+
+
 0.89.3
 ======
 `PR239: Add mei_detection_challenge_data enum ot dataset <https://github.com/smaht-dac/smaht-portal/pull/239>`_
