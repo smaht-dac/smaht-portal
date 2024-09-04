@@ -5,10 +5,7 @@ import { Tab, Tabs } from 'react-bootstrap';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 
-import {
-    BenchmarkingTable,
-    BenchmarkingTableController,
-} from './BenchmarkingTable';
+import { BenchmarkingTable } from './BenchmarkingTable';
 import { navigate } from '../../../util';
 import { NotLoggedInAlert } from '../../../navigation/components';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
@@ -52,6 +49,7 @@ export const BenchmarkingLayout = ({
                         </div>
                         {callout}
                         <button
+                            type="button"
                             onClick={() => setShowInformation(!showInformation)}
                             className="toggle-information-text-button"
                             aria-label="Toggle full description"
@@ -175,7 +173,7 @@ export const HashBasedTabController = ({
     // By default, use the eventKey passed in; if none, set to the first item in the map
     const defaultActiveKey = defaultActiveKeyProp || tabMapArray[0]?.eventKey;
 
-    // Commons needed by BenchmarkingTableController...
+    // Commons needed by TableControllerWithSelections...
     const commonTableProps = { schemas, session, facets, href, context };
 
     // Grab the hash for use in setting the current active tab

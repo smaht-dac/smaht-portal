@@ -83,22 +83,24 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#truthset',
                 title: 'Truth Set',
-                searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829_snv_indel_challenge_data&tags=truth_set',
-                columnsToHide: [
-                    'file_sets.libraries.assay.display_title',
-                    'file_sets.sequencing.sequencer.display_title',
-                    'sequencing_center.display_title',
-                    'software.display_title',
-                ],
-                facetsToHide: [
-                    'file_sets.libraries.assay.display_title',
-                    'file_sets.sequencing.sequencer.display_title',
-                    'sequencing_center.display_title',
-                    'software.display_title',
-                ],
-                // columnsToAdd: [variant_type]
-                // facetsToAdd: [variant_type, release_version]
+                searchHref: '/search/?type=File', //&status=released&status=restricted&status=public&dataset=colo829_snv_indel_challenge_data&tags=truth_set',
+                // facetsToHide: [
+                //     'file_sets.libraries.assay.display_title',
+                //     'file_sets.sequencing.sequencer.display_title',
+                //     'sequencing_center.display_title',
+                //     'software.display_title',
+                // ],
+                columns: {
+                    '@type': {},
+                    access_status: {},
+                    annotated_filename: {},
+                    variant_type: {},
+                    'file_format.display_title': {},
+                    data_type: {},
+                    'submission_centers.display_title': {},
+                    date_created: {},
+                    file_size: {},
+                },
             },
         ],
         callout: (
