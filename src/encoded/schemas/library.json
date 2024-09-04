@@ -95,6 +95,11 @@
             "type": "number",
             "minimum": 0
         },
+        "antibody": {
+            "title": "Antibody",
+            "description":"Antibody used for affinity enrichment",
+            "type": "string"
+        },
         "barcode_sequences": {
             "title": "Barcode Sequences",
             "description": "Barcode sequence for multiplexed sequencing",
@@ -125,6 +130,11 @@
             "type": "number",
             "minimum": 0
         },
+        "guide_rna_sequence": {
+            "title": "Guide RNA Sequence",
+            "description": "Guide RNA sequence. Relevant for Cas9 Nanopore",
+            "type": "string"
+        },
         "insert_coefficient_of_variation": {
             "title": "Insert Coefficient of Variation",
             "description": "Coefficient of variation of the length of the sample molecule in the fragments to be sequenced",
@@ -154,6 +164,11 @@
             "description": "Date of library preparation",
             "type": "string",
             "format": "date"
+        },
+        "target_dna_sequence": {
+            "title": "Target DNA Sequence",
+            "description": "Target DNA sequence used in insert selection",
+            "type": "string"
         },
         "target_fragment_size": {
             "title": "Target fragment size",
