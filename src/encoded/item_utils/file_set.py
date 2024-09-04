@@ -70,3 +70,8 @@ def get_sequencer(
         get_sequencing(file_set),
         sequencing_utils.get_sequencer,
     )
+
+
+def get_files(file_set: Dict[str, Any]) -> List[str]:
+    """Get files calc_prop connected to file set."""
+    return file_set.get("files", [])

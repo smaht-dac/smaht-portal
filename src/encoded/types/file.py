@@ -481,6 +481,18 @@ class File(Item, CoreFile):
             return self.PROTECTED
         return None
 
+    @calculated_property(schema = {
+        "title": "Associated Files Status",
+        "description": "Obsolete or retracted status of associated files",
+        "type": "array",
+        "items": {
+            "type": "string"
+        }
+    })
+    def get_associated_file_status(self, request: Request, file_sets: Optional[List[str]] = None):
+        """If any associated files have status obsolete/retracted, get the tsv_notes for the file"""
+        return self._get_associated_file_status(request, file_sets)
+
     @calculated_property(
         schema={
             "title": "File Status Tracking",
@@ -721,6 +733,16 @@ class File(Item, CoreFile):
         if file_sets:
             request_handler = RequestHandler(request=request)
             result = file_utils.get_analytes(self.properties, request_handler)
+        return result or None
+
+    def _get_associated_file_status(
+            self, request: Request, file_sets: Optional[List[str]] = None
+    ) -> List[str]:
+        """Get the status of associated files within file_sets."""
+        result = None
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            return file_utils.get_associated_files_status(self.properties, request_handler)
         return result or None
 
     def _get_samples(

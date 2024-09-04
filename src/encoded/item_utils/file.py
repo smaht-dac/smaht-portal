@@ -405,3 +405,21 @@ def has_structural_variants(file: Dict[str, Any]) -> bool:
 def has_mobile_element_insertions(file: Dict[str, Any]) -> bool:
     """Check if file has MEIs."""
     return "MEI" in get_data_type(file)
+
+
+def get_associated_files_status(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> List[str]:
+    """Get associated files from the FileSet.files calcprop"""
+    import pdb; pdb.set_trace()
+    files = get_property_values_from_identifiers(
+        request_handler,
+        get_file_sets(file),
+        file_set.get_files
+    )
+    result = get_property_values_from_identifiers(
+            request_handler,
+            files,
+            item.get_status
+        )
+    return result
