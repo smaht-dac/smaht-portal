@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.90.0
+======
+`PR241: SN Add properties to library <https://github.com/smaht-dac/smaht-portal/pull/241>`_
+* Add properties `target_dna_sequence`, `guide_rna_sequence`, and `antibody` to Library schema
+* Change property `restriction_enzymes` to `enzymes` in LibraryPreparation (recently added property so it is empty in the portal) to apply for transposase enzymes as well and update associated tests.
+
+
 0.89.3
 ======
 `PR239: Add mei_detection_challenge_data enum ot dataset <https://github.com/smaht-dac/smaht-portal/pull/239>`_
