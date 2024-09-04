@@ -1,7 +1,11 @@
 <div className="html-container">
     <p>The mosaic SNV/indel Detection Challenge was carried out within the SMaHT consortium in May 2024 to test current SNV/indel-calling pipelines that use Illumina WGS as the primary sequencing data. The goal of this challenge is to determine the optimal pipeline for somatic mosaic SNV/indel pipelines for the consortium.</p>
-    <div className="alert alert-primary mt-1" role="alert">
-    Version 1.0 (initially released via Globus on June 26, 2024) is an <b>unofficial release, and the V1.0 data are to be shared internally, i.e. within the SMaHT Network only</b>.
+    <div className="admonition info mt-3 mb-3" role="alert">
+        <div className="admonition-title">
+            <i className="icon icon-exclamation-circle fas" />
+            Version Notice
+        </div>
+        Version 1.0 (initially released via Globus on June 26, 2024) is an <b>unofficial release, and the V1.0 data are to be shared internally, i.e. within the SMaHT Network only</b>.
     </div>
     <p><b>What is released in V1.0:</b></p>
     <ol className="mb-2">
@@ -47,7 +51,7 @@
         </div>
     </div>
    
-    <h3 className="section-title">Truth Sets</h3>
+    <h3 className="section-title">COLO829 SNV Truth Sets</h3>
     <p className="mb-2">To analyze variants for the SNV/indel detection challenge, the V1.0 truth set includes SNVs with VAF &gt; 25% in the pure COLO829-T cancer cell line, which correspond to VAF &gt; 0.5% expected in the BLT50 mixture samples.</p>
     <ChallengeTableWrapper searchHref="/search/?type=File&dataset=colo829_snv_indel_challenge_data&tags=truth_set" context={context} schemas={schemas} session={session} href={href}/>
 

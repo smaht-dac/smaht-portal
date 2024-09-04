@@ -15,6 +15,25 @@ Change Log
   * Change ordering of columns so that non-required non-link properties are not sorted alphabetically
 
 
+0.89.3
+======
+`PR239: Add mei_detection_challenge_data enum ot dataset <https://github.com/smaht-dac/smaht-portal/pull/239>`_
+* Add `mei_detection_challenge_data` enum to `dataset`
+
+
+0.89.2
+======
+
+* Update manifest to prioritize `filename` over `display_title`
+
+
+0.89.1
+======
+
+`PR222: feat: add dataset target coverage row <https://github.com/smaht-dac/smaht-portal/pull/222>`_
+* Add dataset target coverage row to File Overview's Data Information card
+
+
 0.89.0
 ======
 
