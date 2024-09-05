@@ -1212,10 +1212,9 @@ def test_associated_file_retracted(es_testapp: TestApp, workbook: None) -> None:
         )[0]
     )
     file_set_file_count = len(file_set_utils.get_files(
-            get_item(
+            get_search(
                 es_testapp,
-                retracted_file_file_set,
-                "FileSet"
+                f"?type=FileSet&uuid={retracted_file_file_set}&files.file_format=bam"
             )
         )
     )

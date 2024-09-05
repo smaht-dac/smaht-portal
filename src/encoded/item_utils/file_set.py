@@ -87,8 +87,8 @@ def get_associated_files_status(request_handler: RequestHandler, at_id: str, fil
         a_file for a_file in get_files(file_set, request_handler) 
         if file_utils.is_bam_file(a_file) & item_utils.get_at_id(a_file) != at_id 
     ]
-    import pdb; pdb.set_trace()
-
+    if files:
+        import pdb; pdb.set_trace()
     return get_property_values_from_identifiers(
             request_handler,
             files,
