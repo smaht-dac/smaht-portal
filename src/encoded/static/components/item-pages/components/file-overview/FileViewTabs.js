@@ -78,8 +78,8 @@ const AnalysisInformationTab = ({ context }) => {
                     with future portal releases
                 </span>
             </div>
-        );
-    }
+        </div>
+    );
 };
 
 // DotRouterTab content for displaying QC information for the current file.
