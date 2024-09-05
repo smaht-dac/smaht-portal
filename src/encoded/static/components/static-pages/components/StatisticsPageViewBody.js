@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import memoize from 'memoize-one';
@@ -13,6 +13,9 @@ import DropdownButton from 'react-bootstrap/esm/DropdownButton';
 import { Checkbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Checkbox';
 import { console, ajax, analytics, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { navigate } from './../../util';
+import { Term } from './../../util/Schemas';
+import { EmbeddedSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
+import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 import {
     StatsViewController, GroupByDropdown, ColorScaleProvider,
     AreaChart, AreaChartContainer, LoadingIcon, ErrorIcon, HorizontalD3ScaleLegend,
@@ -654,6 +657,7 @@ export const submissionsAggsToChartData = _.pick(aggregationsToChartData,
     'files_released', 'file_volume_released'
 );
 
+
 export const usageAggsToChartData = _.pick(aggregationsToChartData,
     'file_downloads',  'file_downloads_volume',
     'top_file_downloads',  'top_file_downloads_volume',
@@ -854,7 +858,6 @@ export class SubmissionStatsViewController extends React.PureComponent {
 }
 
 
-
 class UsageChartsCountByDropdown extends React.PureComponent {
 
     constructor(props){
@@ -867,7 +870,7 @@ class UsageChartsCountByDropdown extends React.PureComponent {
         changeCountByForChart(chartID, evtKey);
         if (chartID == 'file_downloads') {
             changeCountByForChart('file_downloads_volume', evtKey);
-        } else  if (chartID == 'top_file_downloads') {
+        } else if (chartID == 'top_file_downloads') {
             changeCountByForChart('top_file_downloads_volume', evtKey);
         }
     }
@@ -931,13 +934,28 @@ class UsageChartsCountByDropdown extends React.PureComponent {
 
 export function UsageStatsView(props){
     const {
-        loadingStatus, mounted, session, groupByOptions, handleGroupByChange, currentGroupBy, windowWidth,
+        loadingStatus, mounted, href, session, groupByOptions, handleGroupByChange, currentGroupBy, windowWidth,
         changeCountByForChart, countBy,
         // Passed in from StatsChartViewAggregator:
         sessions_by_country, chartToggles, fields_faceted,
         file_downloads, file_downloads_volume, top_file_downloads, top_file_downloads_volume, file_views,
+        // settings
         smoothEdges, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
     } = props;
+
+    if (loadingStatus === 'failed'){
+        return <div className="stats-charts-container" key="charts" id="usage"><ErrorIcon/></div>;
+    }
+
+    if (!mounted || (loadingStatus === 'loading' && (!file_downloads && !sessions_by_country))){
+        return <div className="stats-charts-container" key="charts" id="usage"><LoadingIcon/></div>;
+    }
+
+    const [tableToggle, setTableToggle] = useState({});
+    const handleToggleTable = function (chartKey) {
+        const newTableToggle = _.extend({}, tableToggle, { [chartKey]: !(tableToggle[chartKey] || false) });
+        setTableToggle(newTableToggle);
+    }
 
     const [ scale, setScale ] = useState({ yAxisScale: 'Pow', yAxisPower: 0.5 });
     const { anyExpandedCharts, commonXDomain, dateRoundInterval } = useMemo(function(){
@@ -964,14 +982,6 @@ export function UsageStatsView(props){
         };
     }, [ currentGroupBy, anyExpandedCharts ]);
 
-    if (loadingStatus === 'failed'){
-        return <div className="stats-charts-container" key="charts" id="usage"><ErrorIcon/></div>;
-    }
-
-    if (!mounted || (loadingStatus === 'loading' && (!file_downloads && !sessions_by_country))){
-        return <div className="stats-charts-container" key="charts" id="usage"><LoadingIcon/></div>;
-    }
-
     const commonContainerProps = { 'onToggle' : onChartToggle, chartToggles, windowWidth, 'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250 };
     const commonChartProps = {
         dateRoundInterval,
@@ -984,25 +994,15 @@ export function UsageStatsView(props){
     const sessionsByCountryChartHeight = ['page_title', 'page_url'].indexOf(countBy.sessions_by_country) > -1 ? 500 : commonContainerProps.defaultHeight;
     const enableSessionByCountryChartTooltipItemClick = (countBy.sessions_by_country === 'page_url');
 
-    let showScaleRange = true;
-    let scaleRangeTooltip = '';
-    let scaleRangeMin, scaleRangeMax, scaleRangeStep;
-    //set defaults
-    if (scale['yAxisScale'] === 'Pow') {
-        scaleRangeMin = 0; scaleRangeMax = 1; scaleRangeStep = 0.1;
-        scaleRangeTooltip = 'exponent';
-    } else if (scale['yAxisScale'] === 'Symlog') {
-        scaleRangeMin = 0; scaleRangeMax = 100; scaleRangeStep = 0.5;
-        scaleRangeTooltip = 'constant';
-    } else {
-        showScaleRange = false;
-    }
+    const { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep } = UsageStatsView.getYScaleDefaults(scale['yAxisScale']);
+
+    const isSticky = !_.any(_.values(tableToggle), (v)=> v === true);
 
     return (
         <div className="stats-charts-container" key="charts" id="usage">
 
             <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
-                groupByTitle="Show" outerClassName="dropdown-container mb-0 sticky-top">
+                groupByTitle="Show" outerClassName={"dropdown-container mb-0" + (isSticky ? " sticky-top" : "")}>
                 <div className="d-inline-block mr-15 pt-08">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                 </div>
@@ -1047,13 +1047,46 @@ export function UsageStatsView(props){
 
                     <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
-                    <AreaChartContainer {...commonContainerProps} id="file_downloads" title={<h5 className="text-400 mt-0">Total File Count</h5>}>
+                    <AreaChartContainer {...commonContainerProps} id="file_downloads"
+                        title={<h5 className="text-400 mt-0">Total File Count</h5>}
+                        extraButtons={[
+                            <AnalyticsRawDataToggle
+                                toggled={tableToggle["file_downloads"] || false}
+                                toggleChanged={() => handleToggleTable("file_downloads")}
+                                key="file_downloads_toggle" />
+                        ]}>
                         <AreaChart {...commonChartProps} data={file_downloads} {...scale} />
                     </AreaChartContainer>
 
-                    <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" defaultHeight={300} title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}>
+                    {tableToggle.file_downloads &&
+                        <AnalyticsRawDataTable data={file_downloads}
+                            key={'dt_file_downloads'}
+                            href={href}
+                            session={session}
+                            dateRoundInterval={dateRoundInterval}
+                            containerId="content_file_downloads" />
+                    }
+
+                    <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" defaultHeight={300}
+                        title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
+                        extraButtons={[
+                            <AnalyticsRawDataToggle
+                                toggled={tableToggle["file_downloads_volume"] || false}
+                                toggleChanged={() => handleToggleTable("file_downloads_volume")}
+                                key="file_downloads_volume_toggle" />
+                        ]}>
                         <AreaChart {...commonChartProps} data={file_downloads_volume} yAxisLabel="GB" {...scale} />
                     </AreaChartContainer>
+
+                    {tableToggle.file_downloads_volume &&
+                        <AnalyticsRawDataTable data={file_downloads_volume} 
+                            key={'dt_file_downloads_volume'}
+                            valueLabel="GB"
+                            href={href}
+                            session={session}
+                            dateRoundInterval={dateRoundInterval}
+                            containerId="content_file_downloads_volume" />
+                    }
 
                     <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
 
@@ -1077,15 +1110,47 @@ export function UsageStatsView(props){
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_downloads" defaultHeight={300}
                         title={<h5 className="text-400 mt-0">Total File Count</h5>}
+                        extraButtons={[
+                            <AnalyticsRawDataToggle
+                                toggled={tableToggle["top_file_downloads"] || false}
+                                toggleChanged={() => handleToggleTable("top_file_downloads")}
+                                key="top_file_downloads_toggle" />
+                        ]}
                         subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
                         <AreaChart {...commonChartProps} data={top_file_downloads} showTooltipOnHover={false} {...scale} />
                     </AreaChartContainer>
 
+                    {tableToggle.top_file_downloads &&
+                        <AnalyticsRawDataTable data={top_file_downloads} 
+                            key={'dt_top_file_downloads'}
+                            valueLabel="GB"
+                            href={href}
+                            session={session}
+                            dateRoundInterval={dateRoundInterval}
+                            containerId="content_top_file_downloads" />
+                    }
+
                     <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" defaultHeight={350}
                         title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
+                        extraButtons={[
+                            <AnalyticsRawDataToggle
+                                toggled={tableToggle["top_file_downloads_volume"] || false}
+                                toggleChanged={() => handleToggleTable("top_file_downloads_volume")}
+                                key="top_file_downloads_volume_toggle" />
+                        ]}
                         subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
                         <AreaChart {...commonChartProps} data={top_file_downloads_volume} showTooltipOnHover={false} yAxisLabel="GB" {...scale} />
                     </AreaChartContainer>
+
+                    {tableToggle.top_file_downloads_volume &&
+                        <AnalyticsRawDataTable data={top_file_downloads_volume} 
+                            key={'dt_top_file_downloads_volume'}
+                            valueLabel="GB"
+                            href={href}
+                            session={session}
+                            dateRoundInterval={dateRoundInterval}
+                            containerId="content_top_file_downloads_volume" />
+                    }
 
                     <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
 
@@ -1104,10 +1169,25 @@ export function UsageStatsView(props){
                                 <span className="text-300">{UsageStatsView.titleExtensions['file_views'][countBy.file_views]}</span>
                             </h3>
                         }
-                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" />}
+                        extraButtons={[
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" />,
+                            <AnalyticsRawDataToggle
+                                toggled={tableToggle["file_views"] || false}
+                                toggleChanged={() => handleToggleTable("file_views")}
+                                key="file_views_toggle" />
+                        ]}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
                         <AreaChart {...commonChartProps} data={file_views} {...scale} />
                     </AreaChartContainer>
+
+                    {tableToggle.file_views &&
+                        <AnalyticsRawDataTable data={file_views} 
+                            key={'dt_file_views'}
+                            href={href}
+                            session={session}
+                            dateRoundInterval={dateRoundInterval}
+                            containerId="content_file_views" />
+                    }
 
                 </ColorScaleProvider>
 
@@ -1129,11 +1209,27 @@ export function UsageStatsView(props){
                             </h3>
                         }
                         subTitle={enableSessionByCountryChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}
-                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" />}
+                        extraButtons={[
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" />,
+                            <AnalyticsRawDataToggle
+                                toggled={tableToggle["sessions_by_country"] || false}
+                                toggleChanged={() => handleToggleTable("sessions_by_country")}
+                                key="sessions_by_country_toggle" />
+                        ]}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}
                         defaultHeight={sessionsByCountryChartHeight}>
                         <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} {...scale} />
                     </AreaChartContainer>
+
+
+                    {tableToggle.sessions_by_country &&
+                        <AnalyticsRawDataTable data={sessions_by_country} 
+                            key={'dt_sessions_by_country'}
+                            href={href}
+                            session={session}
+                            dateRoundInterval={dateRoundInterval}
+                            containerId="content_sessions_by_country" />
+                    }
 
                 </ColorScaleProvider>
 
@@ -1199,6 +1295,22 @@ UsageStatsView.titleExtensions = {
         'sessions': 'by unique users'
     }
 };
+UsageStatsView.getYScaleDefaults = function (yScale) {
+    let showScaleRange = true;
+    let scaleRangeTooltip = '';
+    let scaleRangeMin, scaleRangeMax, scaleRangeStep;
+    //set defaults
+    if (yScale === 'Pow') {
+        scaleRangeMin = 0; scaleRangeMax = 1; scaleRangeStep = 0.1;
+        scaleRangeTooltip = 'exponent';
+    } else if (yScale === 'Symlog') {
+        scaleRangeMin = 0; scaleRangeMax = 100; scaleRangeStep = 0.5;
+        scaleRangeTooltip = 'constant';
+    } else {
+        showScaleRange = false;
+    }
+    return { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep };
+}
 UsageStatsView.yScaleLabels = {
     'Linear': 'Linear',
     'Symlog': 'Log',
@@ -1397,3 +1509,109 @@ const ChartSubTitle = memoize(function ({ title, data, invalidDateRange }) {
     }
     return title || null;
 });
+
+/**
+ * converts aggregates to SearchView-compatible context objects and displays in table
+ */
+const AnalyticsRawDataTable = React.memo((props) => {
+    const { data, valueLabel = null, session, containerId = '', href, dateRoundInterval } = props;
+    const [columns, setColumns] = useState({});
+    const [graph, setGraph] = useState([]);
+
+    useEffect(() => {
+        if (!Array.isArray(data) || data.length === 0) {
+            return;
+        }
+        // date column is default
+        let cols = { 
+            'display_title': { 
+                title: 'Date', 
+                type: 'string',
+                widthMap : { 'lg' : 150, 'md' : 150, 'sm' : 150 },
+                render: function (result) {
+                    return (
+                        <a
+                            href={`/search/?type=TrackingItem&google_analytics.for_date=${result.date}&google_analytics.date_increment=${dateRoundInterval === 'month' ? 'monthly' : 'daily'}`}
+                            target="_blank" rel="noreferrer noopener">
+                            {result.date}
+                        </a>
+                    );
+                }    
+            } };
+        // create columns and columnExtensionMap
+        const [item] = data;
+        if (item && Array.isArray(item.children) && item.children.length > 0) {
+            cols = _.reduce(_.pluck(item.children, 'term'), function (m, c) {
+                m[c] = {
+                    title: c,
+                    type: 'integer',
+                    widthMap : { 'lg' : 140, 'md' : 120, 'sm' : 120 },
+                    render: function (result) {
+                        if (valueLabel && result[c] !== 0) {
+                            const roundedValue = (result[c] >= 0.01 && result[c] % 1 > 0) ? Math.round(result[c] * 100) / 100 : (result[c] >= 0.01 ? result[c] : '<0.01')
+                            return (<span className="value text-right">{roundedValue + ' ' + valueLabel}</span>);
+                        }
+                        return <span className="value text-right">{result[c]}</span>;
+                    }
+                };
+                return m;
+            }, { ...cols });
+        }
+        setColumns(cols);
+        // create @graph
+        const result = _.map(data, function (d) {
+            return {
+                display_title: d.date,
+                date: d.date,
+                '@id': d.date,
+                ..._.reduce(d.children, (m2, c) => {
+                    m2[c.term] = c.total;
+                    return m2;
+                }, {}),
+                '@type': ['CustomAnalyticsItem'],
+                'date_created': d.date
+            };
+        });
+        setGraph(result);
+    }, [data]);
+
+    const passProps = {
+        isFullscreen: false,
+        href,
+        context: {
+            '@graph': graph || [],
+            total: graph?.length || 0,
+            columns: columns || [],
+            facets: null
+        },
+        currentAction: null,
+        columns,
+        columnExtensionMap: columns,
+        session,
+        schemas: null,
+        facets: null,
+        maxHeight: 150,
+        maxResultsBodyHeight: 150,
+        tableColumnClassName: "col-12",
+        facetColumnClassName: "d-none",
+        stickyFirstColumn: true,
+        termTransformFxn: Term.toName,
+        placeholderReplacementFxn: function () { }
+    };
+
+    return (
+        <div className="container" id={containerId}>
+            <CommonSearchView {...passProps} />
+        </div>
+    );
+});
+
+const AnalyticsRawDataToggle = function (props) {
+    const { toggled, toggleChanged } = props;
+    const buttonClassName = "btn btn-sm mr-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+    return (
+        <button type="button" className={buttonClassName} onClick={toggleChanged} data-tip="Toggle data table view">
+            <i className={"icon icon-fw fas icon-table"} />
+        </button>
+    );
+}
