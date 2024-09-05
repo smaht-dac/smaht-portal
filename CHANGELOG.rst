@@ -7,10 +7,112 @@ smaht-portal
 Change Log
 ----------
 
+0.89.3
+======
+`PR239: Add mei_detection_challenge_data enum ot dataset <https://github.com/smaht-dac/smaht-portal/pull/239>`_
+* Add `mei_detection_challenge_data` enum to `dataset`
+
+
+0.89.2
+======
+
+* Update manifest to prioritize `filename` over `display_title`
+
+
+0.89.1
+======
+
+`PR222: feat: add dataset target coverage row <https://github.com/smaht-dac/smaht-portal/pull/222>`_
+* Add dataset target coverage row to File Overview's Data Information card
+
+
+0.89.0
+======
+
+`PR 232: SN RE property <https://github.com/smaht-dac/smaht-portal/pull/232>`_
+* Add a property `restriction_enzymes` to `LibraryPreparation`
+* Add columns to `SubmissionCenter` search page for `identifier` and `code`
+* Add `description` property to `VariantCalls`
+
+
+0.88.0
+======
+
+* Add new section to Data nav for challenge results
+* Add COLO829 SNV/Indel V1 Challenge Page + tables
+
+0.87.0
+======
+
+`PR 219: SN Metadata Custom Validators<https://github.com/smaht-dac/smaht-portal/pull/219>`_
+* Add custom validators for metadata audit checks with tests for POST and PATCH:
+  * Update `assay.json``` schema to include properties `valid_molecules` and `valid_sequencers` to assist in validation. Will need to patch current assay items for this to function
+  * In `FileSet`, check that the combination of `libraries.analytes.assay` and `sequencing.sequencer` are compatible
+  * In `Library`, check that assay-specific properties are compatible with the linked assay (e.g. `bulk_mas_iso_seq` and `target_monomer_size`)
+  * In `Library` and `Analyte` , check that `molecule` is compatible with molecule-specific properties
+  * In `UnalignedReads`, check that `paired_with` is only present for R2 files and that the linked file is R1. Also check the the R1 and R2 files are linked to the same `FileSet`
+  * Add more specific error messages to help with submission
+
+
+0.86.0
+======
+
+`PR 230: SN Update annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/230>`_
+* In `commands/create_annotated_filenames.py`:
+  * For annotated filenames, update `aliquot_id` to be `[aliquot_id]MC` if multiple benchmarking or production tissue samples from the same tissue aliquot but multiple cores (e.g. ST001-1A-001A1 and ST001-1A-001B2) and` MAMC` if from multiple tissue samples from different tissue aliquots
+  * Remove the variant type from the end of annotated filenames for vcfs
+* In `commands/write_submission_spreadsheets.py`
+  * Add notes for properties that allow commas for large numbers and allow abbreviations (e.g. 100M or 3.1 Gb)
+* In `schemas/file.json`
+  * Add a `version` property for front-end
+
+
+0.85.1
+======
+
+* Update to `file_group` to evaluate homogenate samples as if they are cell lines (using `sample_source`)
+
+
+0.85.0
+======
+`PR 225: SN Improvements to automated submission spreadsheet <https://github.com/smaht-dac/smaht-portal/pull/226>`_
+* In `write-submission-spreadsheet`:
+  * clean up args messages
+  * Add functionality for` --item` working with `--google`
+  * Adjust comment descriptions to clarify | delimiter and add search links for submitted items
+* In `schemas/`:
+  * Include schema description for GCC-submitted items
+
+
+0.84.0
+======
+`PR 229`: SN Cell Culture upgrade `<https://github.com/smaht-dac/smaht-portal/pull/229>`_
+* Change `CellCulture.cell_line` property to be an array of strings linking to `CellLine`, rather than a string.
+  * Adds an upgrader with test for `cell_culture`
+
+
+0.83.1
+======
+
+* Updates `file_group` calcprop to properly resolve analyte.samples only when computing the `sample_source_part`
+
+
 0.83.0
 ======
-`PR 227: feat: VCF comparator and software information <https://github.com/smaht-dac/smaht-portal/pull/227>`_
-* Provide table for VCF files' comparator and software
+`PR226: SN Add tissue link to cell_culture <https://github.com/smaht-dac/smaht-portal/pull/226>`_
+* Add `parent_samples` link in `cell_culture_sample.json`
+* Add `tissue` link in `cell_culture.json`
+* Make `anyOf` for requiring `cell_line` and/or `tissue`
+
+
+0.82.1
+======
+
+`PR 207: feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/207>`_
+
+* Reorganize Awardees Visualizations
+* Provide links to individual PI's labs
+* Reformat/reword copy
 
 
 0.82.0
@@ -50,7 +152,7 @@ Change Log
 
 0.79.0
 ======
-`PR216: Add ExternalQualityMetric <https://github.com/smaht-dac/smaht-portal/pull/221>`_
+`PR221: Include target_coverage in file data_generation_summary <https://github.com/smaht-dac/smaht-portal/pull/221>`_
 
 * Embed `file_sets.sequencing.target_coverage`` in file.py and adds "Target Group Coverage" to `data_generation_summary`` used in the File Overview Page
 

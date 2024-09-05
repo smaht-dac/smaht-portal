@@ -939,7 +939,7 @@ export function UsageStatsView(props){
         smoothEdges, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
     } = props;
 
-    const [ scale, setScale ] = useState({ yAxisScale: 'Linear', yAxisPower: 0.5 });
+    const [ scale, setScale ] = useState({ yAxisScale: 'Pow', yAxisPower: 0.5 });
     const { anyExpandedCharts, commonXDomain, dateRoundInterval } = useMemo(function(){
         const { fromDate: propFromDate, untilDate: propUntilDate } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
         let fromDate, untilDate, dateRoundInterval;

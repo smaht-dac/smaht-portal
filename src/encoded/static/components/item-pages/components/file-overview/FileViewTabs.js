@@ -53,7 +53,7 @@ const AssociatedFilesTab = (props) => {
             ) : (
                 <div className="no-results">
                     <div className="no-results-content">
-                        <i class="icon icon-folder-open fas"></i>
+                        <i className="icon icon-folder-open fas"></i>
                         <h3 className="header">No Associated Files Found</h3>
                         <span className="subheader">
                             There are no DAC generated or externally generated
@@ -67,21 +67,16 @@ const AssociatedFilesTab = (props) => {
 };
 
 // DotRouterTab content for displaying Analysis information for the current file.
-const AnalysisInformationTab = (props) => {
-    if (props?.context?.file_summary?.file_format === 'vcf') {
-        return <VcfComparatorTable {...props} />;
-    } else {
-        // no results
-        return (
-            <div className="no-results">
-                <div className="no-results-content">
-                    <i className="icon icon-network-wired fas"></i>
-                    <h3 className="header">Analysis Information Coming Soon</h3>
-                    <span className="subheader">
-                        Check back for updates on Analysis Information
-                        development with future portal releases
-                    </span>
-                </div>
+const AnalysisInformationTab = ({ context }) => {
+    return (
+        <div className="no-results">
+            <div className="no-results-content">
+                <i className="icon icon-network-wired fas"></i>
+                <h3 className="header">Analysis Information Coming Soon</h3>
+                <span className="subheader">
+                    Check back for updates on Analysis Information development
+                    with future portal releases
+                </span>
             </div>
         );
     }
@@ -92,7 +87,7 @@ const QCOverviewTab = ({ context }) => {
     return (
         <div className="no-results">
             <div className="no-results-content">
-                <i class="icon icon-chart-area fas"></i>
+                <i className="icon icon-chart-area fas"></i>
                 <h3 className="header">QC Overview Coming Soon</h3>
                 <span className="subheader">
                     Check back for updates on QC Overview development with

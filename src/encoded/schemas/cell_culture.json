@@ -1,10 +1,10 @@
 {
     "title": "Cell Culture",
+    "description": "A Cell Culture is a collection of cells grown under specific conditions. For example, the specific instance of COLO829BL that was cultured and grown by a specific center would be a Cell Culture item.",
     "$id": "/profiles/cell_culture.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "cell_line",
         "submission_centers",
         "submitted_id"
     ],
@@ -12,6 +12,18 @@
         "accession",
         "submitted_id",
         "uuid"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "cell_line"
+            ]
+        },
+        {
+            "required": [
+                "tissue"
+            ]
+        }
     ],
     "additionalProperties": false,
     "mixinProperties": [
@@ -60,7 +72,7 @@
             "accessionType": "CC"
         },
         "schema_version": {
-            "default": "3"
+            "default": "4"
         },
         "culture_duration": {
             "title": "Culture Duration",
@@ -107,8 +119,20 @@
         "cell_line": {
             "title": "Cell Line",
             "description": "Cell line used for the cell culture",
-            "type": "string",
-            "linkTo": "CellLine"
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "CellLine"
+            }
+        },
+        "tissue": {
+            "title": "Tissue",
+            "description": "Tissue used for the cell culture",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "Tissue"
+            }
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_CELL-CULTURE_[A-Z0-9-_.]{4,}$"
