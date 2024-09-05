@@ -1213,14 +1213,15 @@ def test_associated_file_status(es_testapp: TestApp, workbook: None) -> None:
     )
     file_set_file_count = len(file_set_utils.get_files(
             get_item(
-            es_testapp,
-            retracted_file_file_set,
-            "FileSet"
+                es_testapp,
+                retracted_file_file_set,
+                "FileSet"
+            )
         )
-    ))
+    )
     import pdb; pdb.set_trace()
     status_search = get_search(
         es_testapp,
-        "?type=File&associated_file_status=True"
+        "?type=File&associated_file_status=True",
     )
     assert len(status_search) == file_set_file_count

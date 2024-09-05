@@ -741,7 +741,7 @@ class File(Item, CoreFile):
             request_handler = RequestHandler(request=request)
             status = file_utils.get_associated_files_status(self.properties, request_handler)
             result = "True" if "obsolete" in status or "retracted" in status else "False"
-        return result or None
+        return result
 
     def _get_samples(
         self, request: Request, file_sets: Optional[List[str]] = None
