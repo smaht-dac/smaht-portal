@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+
+0.90.0
+======
+`PR234: Add mei_detection_challenge_data enum ot dataset <https://github.com/smaht-dac/smaht-portal/pull/234>`_
+* Allow `CellLine` to link to itself with `parent_cell_lines`
+* Allow `CellLine` to link to `TissueSample` (`Sample`) with `tissue_samples`
+* Allow `CellCulture` to link to `TissueSample`instead of `Tissue`
+* Add a calculated property to `CellLine`, `source_donor`, that gets the donor information, if present, from `donor`, `tissue_samples`, or `parent_cell_lines`
+
 0.89.3
 ======
 `PR239: Add mei_detection_challenge_data enum ot dataset <https://github.com/smaht-dac/smaht-portal/pull/239>`_
