@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.90.1
+======
+
+* Add operator `is_type` to QC thresholds schema
+
+
 0.90.0
 ======
 `PR241: SN Add properties to library <https://github.com/smaht-dac/smaht-portal/pull/241>`_
