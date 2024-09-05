@@ -449,8 +449,6 @@ def donor(testapp: TestApp, donor_properties: Dict[str, Any]) -> Dict[str, Any]:
     return post_item(testapp, donor_properties, "Donor")
 
 
-
-
 @pytest.fixture
 def test_cell_line(
     testapp,
@@ -811,4 +809,3 @@ def test_sequence_file(
         "donor_specific_assembly": donor_specific_assembly["uuid"],
     }
     return post_item_and_return_location(testapp, item, 'supplementary_file')
-

@@ -7,8 +7,43 @@ smaht-portal
 Change Log
 ----------
 
+0.89.3
+======
+`PR239: Add mei_detection_challenge_data enum ot dataset <https://github.com/smaht-dac/smaht-portal/pull/239>`_
+* Add `mei_detection_challenge_data` enum to `dataset`
+
+
+0.89.2
+======
+
+* Update manifest to prioritize `filename` over `display_title`
+
+
+0.89.1
+======
+
+`PR222: feat: add dataset target coverage row <https://github.com/smaht-dac/smaht-portal/pull/222>`_
+* Add dataset target coverage row to File Overview's Data Information card
+
+
+0.89.0
+======
+
+`PR 232: SN RE property <https://github.com/smaht-dac/smaht-portal/pull/232>`_
+* Add a property `restriction_enzymes` to `LibraryPreparation`
+* Add columns to `SubmissionCenter` search page for `identifier` and `code`
+* Add `description` property to `VariantCalls`
+
+
+0.88.0
+======
+
+* Add new section to Data nav for challenge results
+* Add COLO829 SNV/Indel V1 Challenge Page + tables
+
 0.87.0
 ======
+
 `PR 219: SN Metadata Custom Validators<https://github.com/smaht-dac/smaht-portal/pull/219>`_
 * Add custom validators for metadata audit checks with tests for POST and PATCH:
   * Update `assay.json``` schema to include properties `valid_molecules` and `valid_sequencers` to assist in validation. Will need to patch current assay items for this to function
@@ -21,6 +56,7 @@ Change Log
 
 0.86.0
 ======
+
 `PR 230: SN Update annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/230>`_
 * In `commands/create_annotated_filenames.py`:
   * For annotated filenames, update `aliquot_id` to be `[aliquot_id]MC` if multiple benchmarking or production tissue samples from the same tissue aliquot but multiple cores (e.g. ST001-1A-001A1 and ST001-1A-001B2) and` MAMC` if from multiple tissue samples from different tissue aliquots

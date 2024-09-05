@@ -228,81 +228,116 @@ function CustomStaticLinks({ pathName, href }) {
     switch (pathName) {
         case 'data':
             return (
-                <div className="help-menu-tree level-1 col-12 col-md-6 col-lg-8 has-children">
-                    <div
-                        className={`level-1-title-container ${
-                            href.includes(pathName + '/benchmarking')
-                                ? ' active'
-                                : ''
-                        }`}>
-                        <div className="level-1-title text-medium">
-                            Benchmarking Data
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="level-2 col-12 col-md-6">
-                            <div className="level-2-title-container my-1">
-                                <div className="level-2-title text-medium text-600">
-                                    Cell Lines
-                                </div>
+                <>
+                    <div className="help-menu-tree level-1 col-12 col-md-6 col-lg-8 has-children">
+                        <div
+                            className={`level-1-title-container ${
+                                href.includes(pathName + '/benchmarking')
+                                    ? ' active'
+                                    : ''
+                            }`}>
+                            <div className="level-1-title text-medium">
+                                Benchmarking Data
                             </div>
+                        </div>
+                        <div className="row">
+                            <div className="level-2 col-12 col-md-6">
+                                <div className="level-2-title-container my-1">
+                                    <div className="level-2-title text-medium text-600">
+                                        Cell Lines
+                                    </div>
+                                </div>
 
-                            <div className="level-3">
-                                <a
-                                    className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/COLO829"
-                                    id="menutree-linkto-colo829_page">
-                                    <span>COLO829</span>
-                                </a>
-                                <a
-                                    className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/HapMap"
-                                    id="menutree-linkto-hapmap_page">
-                                    <span>HapMap</span>
-                                </a>
-                                <a
-                                    className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/iPSC-fibroblasts"
-                                    id="menutree-linkto-ipscfirbro_page">
-                                    <span>iPSC and Fibroblasts</span>
-                                </a>
-                            </div>
-                        </div>
-                        <div className="level-2 col-12 col-md-6 mt-md-0 mt-1">
-                            <div className="level-2-title-container my-1">
-                                <div className="level-2-title text-medium text-600">
-                                    Benchmarking Tissues
+                                <div className="level-3">
+                                    <a
+                                        className="level-3-title text-small d-block"
+                                        href="/data/benchmarking/COLO829"
+                                        id="menutree-linkto-colo829_page">
+                                        <span>COLO829</span>
+                                    </a>
+                                    <a
+                                        className="level-3-title text-small d-block"
+                                        href="/data/benchmarking/HapMap"
+                                        id="menutree-linkto-hapmap_page">
+                                        <span>HapMap</span>
+                                    </a>
+                                    <a
+                                        className="level-3-title text-small d-block"
+                                        href="/data/benchmarking/iPSC-fibroblasts"
+                                        id="menutree-linkto-ipscfirbro_page">
+                                        <span>iPSC and Fibroblasts</span>
+                                    </a>
                                 </div>
                             </div>
-                            <div className="level-3">
-                                <a
-                                    className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/donor-st001"
-                                    id="menutree-linkto-lung_page">
-                                    <span>Donor ST001</span>
-                                </a>
-                                <a
-                                    className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/donor-st002"
-                                    id="menutree-linkto-liver_page">
-                                    <span>Donor ST002</span>
-                                </a>
-                                <a
-                                    className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/donor-st003"
-                                    id="menutree-linkto-liver_page">
-                                    <span>Donor ST003</span>
-                                </a>
-                                <a
-                                    className="level-3-title text-small d-block"
-                                    href="/data/benchmarking/donor-st004"
-                                    id="menutree-linkto-liver_page">
-                                    <span>Donor ST004</span>
-                                </a>
+                            <div className="level-2 col-12 col-md-6 mt-md-0 mt-1">
+                                <div className="level-2-title-container my-1">
+                                    <div className="level-2-title text-medium text-600">
+                                        Benchmarking Tissues
+                                    </div>
+                                </div>
+                                <div className="level-3">
+                                    <a
+                                        className="level-3-title text-small d-block"
+                                        href="/data/benchmarking/donor-st001"
+                                        id="menutree-linkto-lung_page">
+                                        <span>Donor ST001</span>
+                                    </a>
+                                    <a
+                                        className="level-3-title text-small d-block"
+                                        href="/data/benchmarking/donor-st002"
+                                        id="menutree-linkto-liver_page">
+                                        <span>Donor ST002</span>
+                                    </a>
+                                    <a
+                                        className="level-3-title text-small d-block"
+                                        href="/data/benchmarking/donor-st003"
+                                        id="menutree-linkto-liver_page">
+                                        <span>Donor ST003</span>
+                                    </a>
+                                    <a
+                                        className="level-3-title text-small d-block"
+                                        href="/data/benchmarking/donor-st004"
+                                        id="menutree-linkto-liver_page">
+                                        <span>Donor ST004</span>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                    <div className="help-menu-tree level-1 col-12 col-md-6 col-lg-4 has-children">
+                        <div
+                            className={`level-1-title-container ${
+                                href.includes(pathName + '/benchmarking')
+                                    ? ' active'
+                                    : ''
+                            }`}>
+                            <div className="level-1-title text-medium">
+                                Benchmarking Analysis
+                            </div>
+                        </div>
+                        <div className="row">
+                            <div className="level-2 col-12">
+                                <div className="level-2-title-container my-1">
+                                    <div className="level-2-title text-medium text-600">
+                                        SMaHT Challenges
+                                    </div>
+                                </div>
+
+                                <div className="level-3">
+                                    <a
+                                        className="level-3-title text-small d-block"
+                                        href="/data/analysis/colo829-snv-indel-detection"
+                                        id="menutree-linkto-lung_page">
+                                        <span>
+                                            COLO829 SNV/Indel Detection
+                                            Challenge
+                                        </span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </>
             );
         default:
             return null;

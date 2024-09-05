@@ -1744,6 +1744,35 @@ div#popover-consortium-data-alluvial-table {
 	}
 }
 
+// styles for tips and alerts - called "admonition" in RST pages
+.admonition {
+	padding: 12px;
+	line-height: 24px;
+	margin-top: 24px;
+
+	.admonition-title {
+		font-weight: 700;
+		display: block;
+		color: #fff;
+		padding: 6px 12px;
+		margin: -12px -12px 12px;
+	}
+	
+	&.tip {
+		background-color: #F7F2F8;
+		.admonition-title {
+			background-color: #9278AF;
+		}
+	}
+	&.info {
+		background-color: #F5FAFF;
+		.admonition-title {
+			background-color: #283887;
+		}
+
+	}
+}
+
 /***
 Unique styling of page title container for static pages
 (also used for user profiles)
@@ -1755,6 +1784,18 @@ body.is-item-view[data-pathname^="/users/"] #page-title-container,
 	border: 1px solid #E7F0F3;
 	border-left: none;
 	border-right: none;
+}
+
+body[data-pathname^="/data"] {
+	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
+		&[data-first-visible-column=true] {
+			padding-left: 16px !important;
+		}
+
+		>.inner>.toggle-detail-button-container {
+			display: none;
+		}
+	}
 }
 
 /***
@@ -2195,13 +2236,6 @@ body[data-pathname^="/data/benchmarking"] {
 		}
 	}
 
-	.tbd-notice {
-		color: #343741;
-		font-family: Inter;
-		font-size: 1.25rem;
-		font-weight: 600;
-	}
-
 	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
 		&[data-first-visible-column=true] {
 			padding-left: 15px !important;
@@ -2216,6 +2250,10 @@ body[data-pathname^="/data/benchmarking"] {
 /** Utilities for static page tables **/
 thead.thead-smaht tr>th {
 	background-color: $baby-20;
+}
+
+thead.thead-smaht-purple tr>th {
+	background-color: #eaeaff;
 }
 
 tbody.table-border-inner {

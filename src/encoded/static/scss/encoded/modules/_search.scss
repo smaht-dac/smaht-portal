@@ -405,6 +405,14 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 	}
 }
 
+/** Shared table styles for benchmarking, challenge pages, file view, etc. **/
+.tbd-notice {
+	color: #343741;
+	font-family: Inter;
+	font-size: 1.25rem;
+	font-weight: 600;
+}
+
 /** TSV Download modal styles **/
 .batch-files-download-modal {
 	overflow-y: scroll;
@@ -686,5 +694,4 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 			}
 		}
 	}
-
 }
