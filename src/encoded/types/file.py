@@ -482,13 +482,17 @@ class File(Item, CoreFile):
         return None
 
     @calculated_property(schema = {
-        "title": "Associated Files Status",
+        "title": "Associated File Retracted",
         "description": "Presence of obsolete or retracted status in associated files",
-        "type": "string"
+        "type": "string",
+        "enum": [
+            "True",
+            "False"
+        ]
     })
-    def associated_file_status(self, request: Request, file_sets: Optional[List[str]] = None) -> Optional[str]:
+    def associated_file_retracted(self, request: Request, file_sets: Optional[List[str]] = None) -> Optional[str]:
         """Check if any associated files have status obsolete or retracted."""
-        return self._get_associated_file_status(request, file_sets)
+        return self._get_associated_file_retracted(request, file_sets)
 
     @calculated_property(
         schema={
@@ -732,14 +736,15 @@ class File(Item, CoreFile):
             result = file_utils.get_analytes(self.properties, request_handler)
         return result or None
 
-    def _get_associated_file_status(
+    def _get_associated_file_retracted(
             self, request: Request, file_sets: Optional[List[str]] = None
     ) -> List[str]:
-        """Get the status of associated files within file_sets."""
+        """Check if any associated files within file_sets have status retracted or obsolete."""
         result = None
         if file_sets:
             request_handler = RequestHandler(request=request)
-            status = file_utils.get_associated_files_status(self.properties, request_handler)
+            at_id = f"{self.item_type}/{self.uuid}"
+            status = file_utils.get_associated_files_status(self.properties, request_handler, at_id)
             result = "True" if "obsolete" in status or "retracted" in status else "False"
         return result
 

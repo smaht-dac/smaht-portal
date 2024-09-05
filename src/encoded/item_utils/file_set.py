@@ -6,6 +6,7 @@ from . import (
     library as library_utils,
     sample as sample_utils,
     sequencing as sequencing_utils,
+    file as file_utils,
 )
 from .utils import (
     RequestHandler,
@@ -73,15 +74,23 @@ def get_sequencer(
     )
 
 
-def get_files(file_set: Dict[str, Any]) -> List[str]:
+def get_files(file_set: Dict[str, Any], request_handler: Optional[RequestHandler] = None) -> List[str]:
     """Get files calc_prop connected to file set."""
+    if request_handler:
+        return request_handler.get_items(file_set.get("files"))
     return file_set.get("files",[])
 
 
-def get_files_status(request_handler: RequestHandler, file_set: Dict[str, Any]) -> List[str]:
+def get_associated_files_status(request_handler: RequestHandler, at_id: str, file_set: Dict[str, Any]) -> List[str]:
     """Get status from files connected to file set."""
+    files = [ 
+        a_file for a_file in get_files(file_set, request_handler) 
+        if file_utils.is_bam_file(a_file) & item_utils.get_at_id(a_file) != at_id 
+    ]
+    import pdb; pdb.set_trace()
+
     return get_property_values_from_identifiers(
             request_handler,
-            get_files(file_set),
+            files,
             item_utils.get_status
         )

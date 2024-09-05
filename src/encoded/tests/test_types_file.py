@@ -1201,8 +1201,8 @@ def test_unique_key(es_testapp: TestApp, workbook: None) -> None:
 
 
 @pytest.mark.workbook
-def test_associated_file_status(es_testapp: TestApp, workbook: None) -> None:
-    """Ensure `associated_file_status` calc_prop is working."""
+def test_associated_file_retracted(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure `associated_file_retracted` calc_prop is working."""
     retracted_file_file_set = item_utils.get_display_title(
         file_utils.get_file_sets(
             get_search(
@@ -1219,9 +1219,8 @@ def test_associated_file_status(es_testapp: TestApp, workbook: None) -> None:
             )
         )
     )
-    import pdb; pdb.set_trace()
     status_search = get_search(
         es_testapp,
-        "?type=File&associated_file_status=True",
+        "?type=File&associated_file_retracted=True",
     )
     assert len(status_search) == file_set_file_count
