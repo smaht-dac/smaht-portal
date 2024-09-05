@@ -215,6 +215,7 @@ export const BenchmarkingTable = (props) => {
             embeddedTableHeader={
                 <SelectAllAboveTableComponent
                     {...{
+                        facets,
                         session,
                         selectedItems,
                         onSelectItem,
@@ -237,12 +238,15 @@ export const BenchmarkingTable = (props) => {
                 onResetSelectedItems,
             }}
             columnExtensionMap={benchmarkingColExtMap}
-            hideFacets={[
-                'dataset',
-                'file_sets.libraries.analytes.samples.sample_sources.code',
-                'status',
-                'validation_errors.name',
-            ]}
+            hideFacets={
+                tabMap?.facetsToHide || [
+                    'dataset',
+                    'file_sets.libraries.analytes.samples.sample_sources.code',
+                    'status',
+                    'validation_errors.name',
+                    'version',
+                ]
+            }
             hideColumns={['display_title']}
             clearSelectedItemsOnFilter
             columns={tabMap?.columns}

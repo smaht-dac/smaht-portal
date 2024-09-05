@@ -244,6 +244,9 @@
         },
         "software.display_title": {
             "title": "Analysis Method"
+        },
+        "version": {
+            "title": "Release Version"
         }
     },
     "columns": {

@@ -84,12 +84,16 @@ export const BenchmarkingDataMap = {
                 eventKey: '#truthset',
                 title: 'Truth Set',
                 searchHref: '/search/?type=File', //&status=released&status=restricted&status=public&dataset=colo829_snv_indel_challenge_data&tags=truth_set',
-                // facetsToHide: [
-                //     'file_sets.libraries.assay.display_title',
-                //     'file_sets.sequencing.sequencer.display_title',
-                //     'sequencing_center.display_title',
-                //     'software.display_title',
-                // ],
+                facetsToHide: [
+                    'dataset',
+                    'file_sets.libraries.analytes.samples.sample_sources.code',
+                    'status',
+                    'validation_errors.name',
+                    'file_sets.libraries.assay.display_title',
+                    'file_sets.sequencing.sequencer.display_title',
+                    'sequencing_center.display_title',
+                    'software.display_title',
+                ],
                 columns: {
                     '@type': {},
                     access_status: {},
