@@ -130,10 +130,15 @@
             "type": "number",
             "minimum": 0
         },
-        "guide_rna_sequence": {
-            "title": "Guide RNA Sequence",
-            "description": "Guide RNA sequence. Relevant for Cas9 Nanopore",
-            "type": "string"
+        "guide_sequence": {
+            "title": "Guide Sequence",
+            "description": "Guide sequence. Relevant for Cas9 capture experiments",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string"
+            }
         },
         "insert_coefficient_of_variation": {
             "title": "Insert Coefficient of Variation",
@@ -165,10 +170,15 @@
             "type": "string",
             "format": "date"
         },
-        "target_dna_sequence": {
-            "title": "Target DNA Sequence",
-            "description": "Target DNA sequence used in insert selection",
-            "type": "string"
+        "dna_target": {
+            "title": "DNA Target",
+            "description": "DNA target used in insert selection",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string"
+            }
         },
         "target_fragment_size": {
             "title": "Target fragment size",
