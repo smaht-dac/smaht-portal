@@ -1393,6 +1393,9 @@ $workflow-node-color-type-global-context: #ffb3b3;
                     }
                 }
             }
+            .search-result-column-block[data-field="display_title"] {
+                padding-left: 0px !important;
+            }
         }
     }
 
