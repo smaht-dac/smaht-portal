@@ -45,6 +45,18 @@ const DataCard = ({ header = '', data = [] }) => {
  */
 const file_properties = [
     {
+        title: 'Status',
+        getProp: (context = {}) => (
+            <>
+                <i
+                    className="status-indicator-dot mr-07"
+                    data-status={context?.status}
+                />
+                {capitalizeSentence(context?.status)}
+            </>
+        ),
+    },
+    {
         title: 'Annotated Name',
         getProp: (context = {}) =>
             context?.annotated_filename ?? context?.filename,
@@ -75,18 +87,6 @@ const file_properties = [
                 />
             ) : null;
         },
-    },
-    {
-        title: 'Status',
-        getProp: (context = {}) => (
-            <>
-                <i
-                    className="status-indicator-dot mr-07"
-                    data-status={context?.status}
-                />
-                {capitalizeSentence(context?.status)}
-            </>
-        ),
     },
 ];
 const data_information = [
