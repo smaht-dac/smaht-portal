@@ -14,7 +14,6 @@ import { Checkbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/f
 import { console, ajax, analytics, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { navigate } from './../../util';
 import { Term } from './../../util/Schemas';
-import { EmbeddedSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 import {
     StatsViewController, GroupByDropdown, ColorScaleProvider,
@@ -555,7 +554,6 @@ const aggregationsToChartData = {
                     break;
             }
 
-            // const termDisplayAsFunc = function(item){ return item.file_type && item.file_title ? `${item.file_title} (${item.file_type})` : item.term };
             const termDisplayAsFunc = function(item){ return item.file_title ? item.file_title : (item.file_type ? `${item.term} (${item.file_type})` : item.term) };
 
             return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
@@ -1544,6 +1542,14 @@ const AnalyticsRawDataTable = React.memo((props) => {
         return result;
     };
 
+    const roundValue = function (value, label, threshold = 0.01) {
+        let roundedValue = value;
+        if (value !== 0) {
+            roundedValue = (value >= threshold && value % 1 > 0) ? Math.round(value * 100) / 100 : (value >= threshold ? value : ('<' + threshold))
+        }
+        return label && roundValue !== 0 ? roundedValue + ' ' + label : roundedValue;
+    }
+
     useEffect(() => {
         if (!Array.isArray(data) || data.length === 0) {
             return;
@@ -1556,16 +1562,21 @@ const AnalyticsRawDataTable = React.memo((props) => {
             'display_title': {
                 title: isTransposed ? 'Item' : 'Date',
                 type: 'string',
-                widthMap: { 'lg': 200, 'md': 200, 'sm': 200 },
-                'noSort' : true,
+                noSort: true,
+                widthMap: { 'lg': 250, 'md': 250, 'sm': 250 },
                 render: function (result) {
+                    // overall sum
+                    const totalValue = roundValue(_.reduce(result.children, (sum, child) => sum + child.total, 0), valueLabel);
+
                     return isTransposed ? (
-                        <span className="value text-truncate text-left">{result.display_title}</span>
+                        <span className="value text-truncate text-left">
+                            {result.display_title} ({totalValue})
+                        </span>
                     ) : (
                         <a
                             href={`/search/?type=TrackingItem&google_analytics.for_date=${result.date}&google_analytics.date_increment=${dateRoundInterval === 'month' ? 'monthly' : 'daily'}`}
                             target="_blank" rel="noreferrer noopener">
-                            {result.display_title}
+                            {result.display_title} ({totalValue})
                         </a>
                     );
                 }
@@ -1580,14 +1591,10 @@ const AnalyticsRawDataTable = React.memo((props) => {
                 m[c] = {
                     title: c,
                     type: 'integer',
+                    noSort: true,
                     widthMap: { 'lg': 140, 'md': 120, 'sm': 120 },
-                    'noSort' : true,
                     render: function (result) {
-                        if (valueLabel && result[c] !== 0) {
-                            const roundedValue = (result[c] >= 0.01 && result[c] % 1 > 0) ? Math.round(result[c] * 100) / 100 : (result[c] >= 0.01 ? result[c] : '<0.01');
-                            return (<span className="value text-right">{roundedValue + ' ' + valueLabel}</span>);
-                        }
-                        return <span className="value text-right">{result[c]}</span>;
+                        return <span className="value text-right">{roundValue(result[c], valueLabel)}</span>;
                     }
                 };
                 return m;
@@ -1598,9 +1605,11 @@ const AnalyticsRawDataTable = React.memo((props) => {
 
         // create @graph
         const result = _.map(processData, function (d) {
+            console.log('xxx d:', d);
             return {
-                display_title: isTransposed ? d.term : d.date,
+                display_title: isTransposed ? (d.termDisplayAs || d.term) : d.date,
                 '@id': isTransposed ? d.term : d.date,
+                children: d.children, // Ekleyerek toplam değeri hesaplarken kullanacağız
                 ..._.reduce(d.children, (m2, c) => {
                     m2[isTransposed ? c.date : c.term] = c.total;
                     return m2;
