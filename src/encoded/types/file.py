@@ -346,10 +346,10 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.samples.sample_sources.code",
         "file_sets.samples.sample_sources.description",
         "file_sets.samples.sample_sources.donor",
-        "file_sets.files_status_retracted"
+        "file_sets.files_status_retracted",
 
         # For manifest
-        "fil_sets.sequencing.sequencer.display_title",
+        "sequencing.sequencer.display_title",
 
         # Include file groups tags
         "file_sets.file_group.*",
