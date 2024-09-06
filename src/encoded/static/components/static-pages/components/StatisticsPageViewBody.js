@@ -1059,7 +1059,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {tableToggle.file_downloads &&
-                        <AnalyticsRawDataTable data={file_downloads}
+                        <AnalyticsRawDataTableTransposed data={file_downloads}
                             key={'dt_file_downloads'}
                             href={href}
                             session={session}
@@ -1079,7 +1079,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {tableToggle.file_downloads_volume &&
-                        <AnalyticsRawDataTable data={file_downloads_volume} 
+                        <AnalyticsRawDataTableTransposed data={file_downloads_volume} 
                             key={'dt_file_downloads_volume'}
                             valueLabel="GB"
                             href={href}
@@ -1570,6 +1570,118 @@ const AnalyticsRawDataTable = React.memo((props) => {
                 }, {}),
                 '@type': ['CustomAnalyticsItem'],
                 'date_created': d.date
+            };
+        });
+        setGraph(result);
+    }, [data]);
+
+    const passProps = {
+        isFullscreen: false,
+        href,
+        context: {
+            '@graph': graph || [],
+            total: graph?.length || 0,
+            columns: columns || [],
+            facets: null
+        },
+        currentAction: null,
+        columns,
+        columnExtensionMap: columns,
+        session,
+        schemas: null,
+        facets: null,
+        maxHeight: 150,
+        maxResultsBodyHeight: 150,
+        tableColumnClassName: "col-12",
+        facetColumnClassName: "d-none",
+        stickyFirstColumn: true,
+        termTransformFxn: Term.toName,
+        placeholderReplacementFxn: function () { }
+    };
+
+    return (
+        <div className="container" id={containerId}>
+            <CommonSearchView {...passProps} />
+        </div>
+    );
+});
+
+const AnalyticsRawDataTableTransposed = React.memo((props) => {
+    const { data, valueLabel = null, session, containerId = '', href, dateRoundInterval } = props;
+    const [columns, setColumns] = useState({});
+    const [graph, setGraph] = useState([]);
+
+    const transposeData = (data) => {
+        const result = [];  
+        const termMap = {};
+    
+        data.forEach(({ date, children }) => {
+            children.forEach(({ term, count, total }) => {
+                if (!termMap[term]) {
+                    termMap[term] = { term, count: 0, total: 0, children: [] };
+                    result.push(termMap[term]);
+                }
+    
+                termMap[term].children.push({ date, count, total });
+                termMap[term].count += count;
+                termMap[term].total += total;
+            });
+        });
+    
+        return result;
+    };
+    
+    const transposed = transposeData(data);
+
+    useEffect(() => {
+        if (!Array.isArray(data) || data.length === 0) {
+            return;
+        }
+        const transposed = transposeData(data);
+        // date column is default
+        let cols = { 
+            'display_title': { 
+                title: 'Item', 
+                type: 'string',
+                widthMap : { 'lg' : 200, 'md' : 200, 'sm' : 200 },
+                render: function (result) {
+                    return (
+                        <span className="value text-truncate text-left">{result.display_title}</span>
+                    );
+                }    
+            } };
+        // create columns and columnExtensionMap
+        const [item] = transposed;
+        if (item && Array.isArray(item.children) && item.children.length > 0) {
+            cols = _.reduce(_.pluck(item.children, 'date'), function (m, c) {
+                m[c] = {
+                    title: c,
+                    type: 'integer',
+                    widthMap : { 'lg' : 140, 'md' : 120, 'sm' : 120 },
+                    render: function (result) {
+                        if (valueLabel && result[c] !== 0) {
+                            const roundedValue = (result[c] >= 0.01 && result[c] % 1 > 0) ? Math.round(result[c] * 100) / 100 : (result[c] >= 0.01 ? result[c] : '<0.01')
+                            return (<span className="value text-right">{roundedValue + ' ' + valueLabel}</span>);
+                        }
+                        return <span className="value text-right">{result[c]}</span>;
+                    }
+                };
+                return m;
+            }, { ...cols });
+        }
+        setColumns(cols);
+        // create @graph
+        const result = _.map(transposed, function (d) {
+            return {
+                display_title: d.term,
+                date: d.term,
+                '@id': d.term,
+                ..._.reduce(d.children, (m2, c) => {
+                    m2[c.date] = c.total;
+                    return m2;
+                }, {}),
+                '@type': ['CustomAnalyticsItem'],
+                'date_created': d.term
             };
         });
         setGraph(result);
