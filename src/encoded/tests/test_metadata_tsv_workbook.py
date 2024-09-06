@@ -105,7 +105,6 @@ class TestMetadataTSVWorkbook:
     def test_metadata_tsv_workbook(self, workbook, es_testapp):
         """ Tests we can process regular files in multiples in the workbook """
         es_testapp.post_json('/index', {})  # index the files
-        import pdb; pdb.set_trace()
         res = es_testapp.post_json('/metadata/',
                                    {'type': 'File', 'include_extra_files': True})
         tsv = res._app_iter[0]

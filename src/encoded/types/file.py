@@ -349,7 +349,7 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.files_status_retracted"
 
         # For manifest
-        "sequencing.sequencer.display_title",
+        "fil_sets.sequencing.sequencer.display_title",
 
         # Include file groups tags
         "file_sets.file_group.*",
