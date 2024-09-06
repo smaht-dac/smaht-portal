@@ -27,6 +27,12 @@ Change Log
   users only; and also limit /ingestion-status/{keys,keys_sorted,flush} to admin users only.
 
 
+0.90.1
+======
+
+* Add operator `is_type` to QC thresholds schema
+
+
 0.90.0
 ======
 
