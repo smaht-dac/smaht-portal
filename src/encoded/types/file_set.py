@@ -109,6 +109,18 @@ class FileSet(SubmittedItem):
         if result:
             return result
         return
+    
+    @calculated_property(
+        schema={
+            "title": "Files Status",
+            "type": "array",
+            "items": {
+                "type": "string",
+            },
+        },
+    )
+    def files_status_retracted(self, request: Request, files: Optional[List[str]] = None) -> Union[List[str], None]:
+        return self._get_files_status_retracted(request,files)
 
     @calculated_property(
         schema={
@@ -125,6 +137,14 @@ class FileSet(SubmittedItem):
         if result:
             return result
         return
+
+    def _get_files_status_retracted(self, request, files):
+        """Get the status of rev linked files."""
+        result = None
+        if files:
+            request_handler = RequestHandler(request=request)
+            result = file_set_utils.get_associated_files_retracted(request_handler,files)
+        return result
 
     @staticmethod
     def generate_sequencing_part(

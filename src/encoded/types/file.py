@@ -55,7 +55,7 @@ from ..item_utils import (
     sample as sample_utils,
     software as software_utils,
     tissue as tissue_utils,
-    sequencing as sequencing_utils
+    sequencing as sequencing_utils,
 )
 from ..item_utils.utils import (
     get_property_value_from_identifier,
@@ -346,6 +346,7 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.samples.sample_sources.code",
         "file_sets.samples.sample_sources.description",
         "file_sets.samples.sample_sources.donor",
+        "file_sets.files_status_retracted"
 
         # For manifest
         "sequencing.sequencer.display_title",
@@ -480,19 +481,6 @@ class File(Item, CoreFile):
         elif status == 'restricted':
             return self.PROTECTED
         return None
-
-    @calculated_property(schema = {
-        "title": "Associated File Retracted",
-        "description": "Presence of obsolete or retracted status in associated files",
-        "type": "string",
-        "enum": [
-            "True",
-            "False"
-        ]
-    })
-    def associated_file_retracted(self, request: Request, file_sets: Optional[List[str]] = None) -> Optional[str]:
-        """Check if any associated files have status obsolete or retracted."""
-        return self._get_associated_file_retracted(request, file_sets)
 
     @calculated_property(
         schema={
@@ -735,18 +723,6 @@ class File(Item, CoreFile):
             request_handler = RequestHandler(request=request)
             result = file_utils.get_analytes(self.properties, request_handler)
         return result or None
-
-    def _get_associated_file_retracted(
-            self, request: Request, file_sets: Optional[List[str]] = None
-    ) -> List[str]:
-        """Check if any associated files within file_sets have status retracted or obsolete."""
-        result = None
-        if file_sets:
-            request_handler = RequestHandler(request=request)
-            at_id = f"{self.item_type}/{self.uuid}"
-            status = file_utils.get_associated_files_status(self.properties, request_handler, at_id)
-            result = "True" if "obsolete" in status or "retracted" in status else "False"
-        return result
 
     def _get_samples(
         self, request: Request, file_sets: Optional[List[str]] = None

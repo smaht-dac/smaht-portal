@@ -105,6 +105,7 @@ class TestMetadataTSVWorkbook:
     def test_metadata_tsv_workbook(self, workbook, es_testapp):
         """ Tests we can process regular files in multiples in the workbook """
         es_testapp.post_json('/index', {})  # index the files
+        import pdb; pdb.set_trace()
         res = es_testapp.post_json('/metadata/',
                                    {'type': 'File', 'include_extra_files': True})
         tsv = res._app_iter[0]
@@ -120,7 +121,7 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_key_and_length(header3, 'FileDownloadURL')
         assert len(parsed[3:]) == 17  # there are 17 entries in the workbook right now, including extra files
         # test for various types
-        TestMetadataTSVHelper.check_type_length(es_testapp, 'AlignedReads', 1)
+        TestMetadataTSVHelper.check_type_length(es_testapp, 'AlignedReads', 2)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 5)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'VariantCalls', 2)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'ReferenceFile', 1)

@@ -1198,28 +1198,3 @@ def test_unique_key(es_testapp: TestApp, workbook: None) -> None:
     get_item(
         es_testapp, f"/files/{item_utils.get_submitted_id(file_with_submitted_id)}"
     )
-
-
-@pytest.mark.workbook
-def test_associated_file_retracted(es_testapp: TestApp, workbook: None) -> None:
-    """Ensure `associated_file_retracted` calc_prop is working."""
-    retracted_file_file_set = item_utils.get_display_title(
-        file_utils.get_file_sets(
-            get_search(
-                es_testapp,
-                "?type=File&status=retracted"
-            )[0]
-        )[0]
-    )
-    file_set_file_count = len(file_set_utils.get_files(
-            get_search(
-                es_testapp,
-                f"?type=FileSet&uuid={retracted_file_file_set}&files.file_format=bam"
-            )
-        )
-    )
-    status_search = get_search(
-        es_testapp,
-        "?type=File&associated_file_retracted=True",
-    )
-    assert len(status_search) == file_set_file_count
