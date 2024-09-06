@@ -1059,12 +1059,13 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {tableToggle.file_downloads &&
-                        <AnalyticsRawDataTableTransposed data={file_downloads}
+                        <AnalyticsRawDataTable data={file_downloads}
                             key={'dt_file_downloads'}
                             href={href}
                             session={session}
                             dateRoundInterval={dateRoundInterval}
-                            containerId="content_file_downloads" />
+                            containerId="content_file_downloads"
+                            isTransposed />
                     }
 
                     <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" defaultHeight={300}
@@ -1079,13 +1080,14 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {tableToggle.file_downloads_volume &&
-                        <AnalyticsRawDataTableTransposed data={file_downloads_volume} 
+                        <AnalyticsRawDataTable data={file_downloads_volume} 
                             key={'dt_file_downloads_volume'}
                             valueLabel="GB"
                             href={href}
                             session={session}
                             dateRoundInterval={dateRoundInterval}
-                            containerId="content_file_downloads_volume" />
+                            containerId="content_file_downloads_volume"
+                            isTransposed />
                     }
 
                     <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
@@ -1127,7 +1129,8 @@ export function UsageStatsView(props){
                             href={href}
                             session={session}
                             dateRoundInterval={dateRoundInterval}
-                            containerId="content_top_file_downloads" />
+                            containerId="content_top_file_downloads"
+                            isTransposed />
                     }
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" defaultHeight={350}
@@ -1149,7 +1152,8 @@ export function UsageStatsView(props){
                             href={href}
                             session={session}
                             dateRoundInterval={dateRoundInterval}
-                            containerId="content_top_file_downloads_volume" />
+                            containerId="content_top_file_downloads_volume"
+                            isTransposed />
                     }
 
                     <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
@@ -1186,7 +1190,8 @@ export function UsageStatsView(props){
                             href={href}
                             session={session}
                             dateRoundInterval={dateRoundInterval}
-                            containerId="content_file_views" />
+                            containerId="content_file_views"
+                            isTransposed />
                     }
 
                 </ColorScaleProvider>
@@ -1228,7 +1233,8 @@ export function UsageStatsView(props){
                             href={href}
                             session={session}
                             dateRoundInterval={dateRoundInterval}
-                            containerId="content_sessions_by_country" />
+                            containerId="content_sessions_by_country"
+                            isTransposed />
                     }
 
                 </ColorScaleProvider>
@@ -1514,153 +1520,71 @@ const ChartSubTitle = memoize(function ({ title, data, invalidDateRange }) {
  * converts aggregates to SearchView-compatible context objects and displays in table
  */
 const AnalyticsRawDataTable = React.memo((props) => {
-    const { data, valueLabel = null, session, containerId = '', href, dateRoundInterval } = props;
-    const [columns, setColumns] = useState({});
-    const [graph, setGraph] = useState([]);
-
-    useEffect(() => {
-        if (!Array.isArray(data) || data.length === 0) {
-            return;
-        }
-        // date column is default
-        let cols = { 
-            'display_title': { 
-                title: 'Date', 
-                type: 'string',
-                widthMap : { 'lg' : 150, 'md' : 150, 'sm' : 150 },
-                render: function (result) {
-                    return (
-                        <a
-                            href={`/search/?type=TrackingItem&google_analytics.for_date=${result.date}&google_analytics.date_increment=${dateRoundInterval === 'month' ? 'monthly' : 'daily'}`}
-                            target="_blank" rel="noreferrer noopener">
-                            {result.date}
-                        </a>
-                    );
-                }    
-            } };
-        // create columns and columnExtensionMap
-        const [item] = data;
-        if (item && Array.isArray(item.children) && item.children.length > 0) {
-            cols = _.reduce(_.pluck(item.children, 'term'), function (m, c) {
-                m[c] = {
-                    title: c,
-                    type: 'integer',
-                    widthMap : { 'lg' : 140, 'md' : 120, 'sm' : 120 },
-                    render: function (result) {
-                        if (valueLabel && result[c] !== 0) {
-                            const roundedValue = (result[c] >= 0.01 && result[c] % 1 > 0) ? Math.round(result[c] * 100) / 100 : (result[c] >= 0.01 ? result[c] : '<0.01')
-                            return (<span className="value text-right">{roundedValue + ' ' + valueLabel}</span>);
-                        }
-                        return <span className="value text-right">{result[c]}</span>;
-                    }
-                };
-                return m;
-            }, { ...cols });
-        }
-        setColumns(cols);
-        // create @graph
-        const result = _.map(data, function (d) {
-            return {
-                display_title: d.date,
-                date: d.date,
-                '@id': d.date,
-                ..._.reduce(d.children, (m2, c) => {
-                    m2[c.term] = c.total;
-                    return m2;
-                }, {}),
-                '@type': ['CustomAnalyticsItem'],
-                'date_created': d.date
-            };
-        });
-        setGraph(result);
-    }, [data]);
-
-    const passProps = {
-        isFullscreen: false,
-        href,
-        context: {
-            '@graph': graph || [],
-            total: graph?.length || 0,
-            columns: columns || [],
-            facets: null
-        },
-        currentAction: null,
-        columns,
-        columnExtensionMap: columns,
-        session,
-        schemas: null,
-        facets: null,
-        maxHeight: 150,
-        maxResultsBodyHeight: 150,
-        tableColumnClassName: "col-12",
-        facetColumnClassName: "d-none",
-        stickyFirstColumn: true,
-        termTransformFxn: Term.toName,
-        placeholderReplacementFxn: function () { }
-    };
-
-    return (
-        <div className="container" id={containerId}>
-            <CommonSearchView {...passProps} />
-        </div>
-    );
-});
-
-const AnalyticsRawDataTableTransposed = React.memo((props) => {
-    const { data, valueLabel = null, session, containerId = '', href, dateRoundInterval } = props;
+    const { data, valueLabel = null, session, containerId = '', href, dateRoundInterval, isTransposed = false } = props;
     const [columns, setColumns] = useState({});
     const [graph, setGraph] = useState([]);
 
     const transposeData = (data) => {
-        const result = [];  
+        const result = [];
         const termMap = {};
-    
+
         data.forEach(({ date, children }) => {
             children.forEach(({ term, count, total }) => {
                 if (!termMap[term]) {
                     termMap[term] = { term, count: 0, total: 0, children: [] };
                     result.push(termMap[term]);
                 }
-    
+
                 termMap[term].children.push({ date, count, total });
                 termMap[term].count += count;
                 termMap[term].total += total;
             });
         });
-    
+
         return result;
     };
-    
-    const transposed = transposeData(data);
 
     useEffect(() => {
         if (!Array.isArray(data) || data.length === 0) {
             return;
         }
-        const transposed = transposeData(data);
-        // date column is default
-        let cols = { 
-            'display_title': { 
-                title: 'Item', 
+
+        const processData = isTransposed ? transposeData(data) : data;
+
+        // date or term column based on transposed or not
+        let cols = {
+            'display_title': {
+                title: isTransposed ? 'Item' : 'Date',
                 type: 'string',
-                widthMap : { 'lg' : 200, 'md' : 200, 'sm' : 200 },
+                widthMap: { 'lg': 200, 'md': 200, 'sm': 200 },
+                'noSort' : true,
                 render: function (result) {
-                    return (
+                    return isTransposed ? (
                         <span className="value text-truncate text-left">{result.display_title}</span>
+                    ) : (
+                        <a
+                            href={`/search/?type=TrackingItem&google_analytics.for_date=${result.date}&google_analytics.date_increment=${dateRoundInterval === 'month' ? 'monthly' : 'daily'}`}
+                            target="_blank" rel="noreferrer noopener">
+                            {result.display_title}
+                        </a>
                     );
-                }    
-            } };
+                }
+            }
+        };
+
         // create columns and columnExtensionMap
-        const [item] = transposed;
+        const [item] = processData;
         if (item && Array.isArray(item.children) && item.children.length > 0) {
-            cols = _.reduce(_.pluck(item.children, 'date'), function (m, c) {
+            const keys = isTransposed ? _.pluck(item.children, 'date') : _.pluck(item.children, 'term');
+            cols = _.reduce(keys, (m, c) => {
                 m[c] = {
                     title: c,
                     type: 'integer',
-                    widthMap : { 'lg' : 140, 'md' : 120, 'sm' : 120 },
+                    widthMap: { 'lg': 140, 'md': 120, 'sm': 120 },
+                    'noSort' : true,
                     render: function (result) {
                         if (valueLabel && result[c] !== 0) {
-                            const roundedValue = (result[c] >= 0.01 && result[c] % 1 > 0) ? Math.round(result[c] * 100) / 100 : (result[c] >= 0.01 ? result[c] : '<0.01')
+                            const roundedValue = (result[c] >= 0.01 && result[c] % 1 > 0) ? Math.round(result[c] * 100) / 100 : (result[c] >= 0.01 ? result[c] : '<0.01');
                             return (<span className="value text-right">{roundedValue + ' ' + valueLabel}</span>);
                         }
                         return <span className="value text-right">{result[c]}</span>;
@@ -1669,23 +1593,24 @@ const AnalyticsRawDataTableTransposed = React.memo((props) => {
                 return m;
             }, { ...cols });
         }
+
         setColumns(cols);
+
         // create @graph
-        const result = _.map(transposed, function (d) {
+        const result = _.map(processData, function (d) {
             return {
-                display_title: d.term,
-                date: d.term,
-                '@id': d.term,
+                display_title: isTransposed ? d.term : d.date,
+                '@id': isTransposed ? d.term : d.date,
                 ..._.reduce(d.children, (m2, c) => {
-                    m2[c.date] = c.total;
+                    m2[isTransposed ? c.date : c.term] = c.total;
                     return m2;
                 }, {}),
                 '@type': ['CustomAnalyticsItem'],
-                'date_created': d.term
+                'date_created': isTransposed ? d.term : d.date
             };
         });
         setGraph(result);
-    }, [data]);
+    }, [data, isTransposed]);
 
     const passProps = {
         isFullscreen: false,
