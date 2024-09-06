@@ -4,7 +4,7 @@ import _ from 'underscore';
 import {
     Accordion,
     AccordionContext,
-    useAccordionToggle,
+    useAccordionButton,
 } from 'react-bootstrap';
 
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
@@ -112,7 +112,7 @@ export const BenchmarkingUINav = (props) => {
 function ContextAwareToggle({ children, eventKey, callback }) {
     const currentEventKey = useContext(AccordionContext);
 
-    const decoratedOnClick = useAccordionToggle(eventKey, (e) => {
+    const decoratedOnClick = useAccordionButton(eventKey, (e) => {
         e.preventDefault();
         return callback && callback(eventKey);
     });

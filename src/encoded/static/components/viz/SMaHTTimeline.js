@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import {
     Accordion,
     AccordionContext,
-    useAccordionToggle,
+    useAccordionButton,
 } from 'react-bootstrap';
 import Card from 'react-bootstrap/esm/Card';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
@@ -67,7 +67,7 @@ function ContextAwareToggle({
 }) {
     const currentEventKey = useContext(AccordionContext);
 
-    const decoratedOnClick = useAccordionToggle(
+    const decoratedOnClick = useAccordionButton(
         eventKey,
         () => callback && callback(eventKey)
     );

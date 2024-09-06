@@ -2,8 +2,8 @@ import React from 'react';
 import {
     OverlayTrigger,
     Popover,
-    PopoverContent,
-    PopoverTitle,
+    PopoverBody,
+    PopoverHeader,
 } from 'react-bootstrap';
 
 const CLTList = ({ list }) => {
@@ -24,12 +24,12 @@ const CLTList = ({ list }) => {
                                     <Popover
                                         id={item.title}
                                         className="md-w-25">
-                                        <PopoverTitle>
+                                        <PopoverHeader>
                                             {item.title}
-                                        </PopoverTitle>
-                                        <PopoverContent>
+                                        </PopoverHeader>
+                                        <PopoverBody>
                                             {item.data}
-                                        </PopoverContent>
+                                        </PopoverBody>
                                     </Popover>
                                 }>
                                 <div>

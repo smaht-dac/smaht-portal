@@ -12,8 +12,8 @@ import lab_links from './data/lab_links.json';
 import {
     OverlayTrigger,
     Popover,
-    PopoverTitle,
-    PopoverContent,
+    PopoverHeader,
+    PopoverBody,
     Tooltip,
     Tab,
     Tabs,
@@ -92,7 +92,7 @@ const ConsortiumTable = () => {
 };
 
 /**
- * Contents placed inside of a React Bootstrap PopoverContent component
+ * Contents placed inside of a React Bootstrap PopoverBody component
  */
 const ConsortiumPopoverContent = ({ data }) => {
     return (
@@ -396,14 +396,14 @@ export const ConsortiumMap = () => {
                         placement="bottom"
                         flip={true}>
                         <Popover id="popover-consortium-map">
-                            <PopoverTitle>
+                            <PopoverHeader>
                                 {overlayTarget.current?.data['center-type']}
-                            </PopoverTitle>
-                            <PopoverContent>
+                            </PopoverHeader>
+                            <PopoverBody>
                                 <ConsortiumPopoverContent
                                     data={overlayTarget.current?.data}
                                 />
-                            </PopoverContent>
+                            </PopoverBody>
                         </Popover>
                     </Overlay>
                 </div>

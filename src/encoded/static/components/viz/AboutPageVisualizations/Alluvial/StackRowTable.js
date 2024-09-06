@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import {
     OverlayTrigger,
     Popover,
-    PopoverContent,
-    PopoverTitle,
+    PopoverBody,
+    PopoverHeader,
 } from 'react-bootstrap';
 import tableData from './data/stackrow_data.json';
 import graph from './data/alluvial_data.json';
@@ -66,15 +66,15 @@ const StackRowItem = ({ value = 0, data = [], data_generator = '' }) => {
                     rootClose
                     overlay={
                         <Popover id="popover-consortium-data-alluvial-table">
-                            <PopoverTitle>
+                            <PopoverHeader>
                                 {value +
                                     (value > 1
                                         ? ' sequencing platforms'
                                         : ' sequencing platform')}
-                            </PopoverTitle>
-                            <PopoverContent>
+                            </PopoverHeader>
+                            <PopoverBody>
                                 <PopoverContents data={data} />
-                            </PopoverContent>
+                            </PopoverBody>
                         </Popover>
                     }>
                     <OverlayTriggerContent value={value} data={data} />
@@ -101,8 +101,8 @@ const StackRowTopLabel = ({ assayType }) => {
                         aria-labelledby={`Details about ${assayType.display_name}.`}
                         onMouseEnter={() => setShowPopover(true)}
                         onMouseLeave={() => setShowPopover(false)}>
-                        <PopoverTitle>{assayType.display_name}</PopoverTitle>
-                        <PopoverContent>
+                        <PopoverHeader>{assayType.display_name}</PopoverHeader>
+                        <PopoverBody>
                             {assayType.description ? (
                                 <p>{assayType.description}</p>
                             ) : null}
@@ -114,7 +114,7 @@ const StackRowTopLabel = ({ assayType }) => {
                                     Read more
                                 </a>
                             )}
-                        </PopoverContent>
+                        </PopoverBody>
                     </Popover>
                 }>
                 <span
