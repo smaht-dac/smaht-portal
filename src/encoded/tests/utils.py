@@ -475,9 +475,9 @@ def delete_field(
     return patch_item(test_app, patch_body or {}, resource_path, status=status)
 
 
-def get_item_from_search(test_app: TestApp, collection: str) -> Dict[str, Any]:
+def get_item_from_search(test_app: TestApp, collection: str, add_on: str = "") -> Dict[str, Any]:
     """Get workbook item for given collection via search."""
-    search_results = get_search(test_app, f"type={to_camel_case(collection)}")
+    search_results = get_search(test_app, f"type={to_camel_case(collection)}{add_on}")
     assert search_results, f"No {collection} found in search results"
     return search_results[0]
 

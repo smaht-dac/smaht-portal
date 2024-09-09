@@ -814,6 +814,35 @@ body[data-path="/"]>#application>#layout {
 	Styles related to About page visualizations
 ***********************************************************/
 
+// Awardees Page Styles
+body[data-pathname="/about/consortium/awardees"] {
+	#content {
+		.static-page {
+			.section-content {
+				p {
+					.center-count {
+						font-weight: 500;
+						&.color {
+							&-tpc {
+								color: #984ea3;
+							}
+							&-gcc {
+								color: #ff7f00;
+							}
+							&-dac {
+								color: #e41a1c;
+							}
+							&-ttd {
+								color: #4daf4a;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 // Consortium Map
 .consortium-map {
 	font-family: Inter;
@@ -850,7 +879,7 @@ body[data-path="/"]>#application>#layout {
 	}
 
 	&-container {
-		padding-top: 75px;
+		padding-top: 15px;
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
@@ -916,6 +945,7 @@ body[data-path="/"]>#application>#layout {
 
 	// Table styles
 	table.table-striped {
+		margin-top: 75px;
 		th {
 			background-color: #F1F9FF; 
 			font-weight: 600;
@@ -1714,6 +1744,35 @@ div#popover-consortium-data-alluvial-table {
 	}
 }
 
+// styles for tips and alerts - called "admonition" in RST pages
+.admonition {
+	padding: 12px;
+	line-height: 24px;
+	margin-top: 24px;
+
+	.admonition-title {
+		font-weight: 700;
+		display: block;
+		color: #fff;
+		padding: 6px 12px;
+		margin: -12px -12px 12px;
+	}
+	
+	&.tip {
+		background-color: #F7F2F8;
+		.admonition-title {
+			background-color: #9278AF;
+		}
+	}
+	&.info {
+		background-color: #F5FAFF;
+		.admonition-title {
+			background-color: #283887;
+		}
+
+	}
+}
+
 /***
 Unique styling of page title container for static pages
 (also used for user profiles)
@@ -1725,6 +1784,18 @@ body.is-item-view[data-pathname^="/users/"] #page-title-container,
 	border: 1px solid #E7F0F3;
 	border-left: none;
 	border-right: none;
+}
+
+body[data-pathname^="/data"] {
+	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
+		&[data-first-visible-column=true] {
+			padding-left: 16px !important;
+		}
+
+		>.inner>.toggle-detail-button-container {
+			display: none;
+		}
+	}
 }
 
 /***
@@ -1795,6 +1866,14 @@ body[data-pathname^="/data/benchmarking"] {
 								margin-left: 5px;
 								font-weight: 600;
 							}
+						}
+					}
+				}
+
+				.tab-content {
+					.embedded-search-container {
+						>div {
+							flex-direction: column;
 						}
 					}
 				}
@@ -1885,6 +1964,21 @@ body[data-pathname^="/data/benchmarking"] {
 		// Side nav
 		.benchmarking-nav-container {
 			display: none;
+		}
+		
+
+		@include media-breakpoint-up(sm) {
+			.benchmarking-layout-container {
+				.benchmarking-layout {
+					.tab-content {
+						.embedded-search-container {
+							>div {
+								flex-direction: row;
+							}
+						}
+					}
+				}
+			}
 		}
 
 		@include media-breakpoint-up(lg) {
@@ -2142,13 +2236,6 @@ body[data-pathname^="/data/benchmarking"] {
 		}
 	}
 
-	.tbd-notice {
-		color: #343741;
-		font-family: Inter;
-		font-size: 1.25rem;
-		font-weight: 600;
-	}
-
 	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
 		&[data-first-visible-column=true] {
 			padding-left: 15px !important;
@@ -2158,88 +2245,15 @@ body[data-pathname^="/data/benchmarking"] {
 			display: none;
 		}
 	}
-
-	// May need to move this to search if we end up using this functionality elsewhere
-	.batch-files-download-modal {
-		> .modal-dialog {
-			min-width: 75%;
-
-			>.modal-content {
-				border-radius: 11px;
-
-				>.modal-header>.modal-title {
-					color: #343741;
-					font-size: 1.5rem;
-					font-weight: 600;
-				}
-				>.modal-body {
-					h2 {
-						color: #343741;
-						font-size: 1.125rem;
-						font-weight: 600;
-					}
-			
-					li {
-						font-size: 0.875rem;
-					}
-
-					.tsv-metadata-overview {
-						border-radius: 7px;
-						border: 1px solid #CAE5FE;
-						background: #F1F9FF;
-						box-shadow: none;
-						gap: 30px;
-						
-						@include media-breakpoint-between(md, lg){
-							gap: 50px;
-						}
-
-						@include media-breakpoint-between(lg, xl){
-							gap: 70px;
-						}
-
-						@include media-breakpoint-up(xl){
-							gap: 90px;
-						}
-			
-						.tsv-metadata-stat-title {
-							color: #387FC1;
-						}
-			
-						.tsv-metadata-stat {
-							color: #343741;
-							font-size: 1.5rem;
-							font-weight: 600;
-						}
-					}
-
-					/*** metadata.tsv modal ***/
-					pre.curl-command {
-						border: 1px dashed #dedede;
-						padding: 5px;
-					}
-					.curl-command-wrapper i.icon-copy {
-						margin-left: 5px;
-
-						&:after {
-							content : "Copy";
-							font-family: $font-family-base;
-							font-weight: 600;
-							padding-left: 6px;
-						}
-					}
-				}
-				>.modal-footer {
-					background-color: #F8F8F8;
-				}
-			}
-		}
-	}
 }
 
 /** Utilities for static page tables **/
 thead.thead-smaht tr>th {
 	background-color: $baby-20;
+}
+
+thead.thead-smaht-purple tr>th {
+	background-color: #eaeaff;
 }
 
 tbody.table-border-inner {

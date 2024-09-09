@@ -9,7 +9,31 @@
         "flow_cell": "R9",
         "target_coverage": 500,
         "target_read_length": 150,
-        "sequencer": "illumina_novaseqx",
+        "sequencer": "illumina_novaseqx"
+    },
+    {
+        "uuid": "bbbe4180-8f6b-4fa1-8f01-22451b0e3bd1",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_SEQUENCING_ONT-90X",
+        "read_type": "Single-end",
+        "flow_cell": "R10.4.1",
+        "target_coverage": 90,
+        "target_read_length": 150000,
+        "sequencer": "ont_promethion_24",
         "basecalling": "TEST_BASECALLING_DORADO"
+    },
+    {
+        "uuid": "2dcd6841-f71a-461d-b68f-649f413723e4",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_SEQUENCING_PACBIO_30X-30H",
+        "read_type": "Single-end",
+        "target_coverage": 30,
+        "target_read_length": 20000,
+        "movie_length": 30,
+        "sequencer": "pacbio_revio_hifi"
     }
 ]

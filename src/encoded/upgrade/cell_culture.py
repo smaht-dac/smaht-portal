@@ -20,3 +20,11 @@ def upgrade_cell_culture_2_3(value: Dict[str, Any], system: Dict[str, Any]) -> N
         del value["doubling_time"]
     if "doubling_number" in value:
         del value["doubling_number"]
+
+
+@upgrade_step("cell_culture", "3", "4")
+def upgrade_cell_culture_3_4(value: Dict[str, Any], system: Dict[str, Any]) -> Dict[str, Any]:
+    """Change `cell_line` linkTo to `cell_line` list of linkTos."""
+    cell_line = value.get("cell_line")
+    if cell_line:
+        value["cell_line"] = [cell_line]

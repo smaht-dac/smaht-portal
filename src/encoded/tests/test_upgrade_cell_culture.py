@@ -60,3 +60,29 @@ def test_upgrade_cell_culture_2_3(
         )
         == expected
     )
+
+
+@pytest.mark.parametrize(
+    "cell_culture,expected",
+    [
+        ({}, {"schema_version": "4"}),
+        (
+            {
+                "cell_line": "SOME_CELL-LINE_XYZ",
+                "schema_version": "3",
+            },
+            {"cell_line": ["SOME_CELL-LINE_XYZ"], "schema_version": "4"},
+        ),
+    ],
+)
+def test_upgrade_cell_culture_3_4(
+    app: Router, cell_culture: Dict[str, Any], expected: Dict[str, Any]
+) -> None:
+    """Test cell culture upgrader from version 3 to 4."""
+    upgrader = get_upgrader(app)
+    assert (
+        upgrader.upgrade(
+            "cell_culture", cell_culture, current_version="3", target_version="4"
+        )
+        == expected
+    )

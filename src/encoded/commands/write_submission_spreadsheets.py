@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import googleapiclient
+import googleapiclient.discovery
 import openpyxl
 import structlog
 from dcicutils.creds_utils import SMaHTKeyManager
@@ -126,10 +127,11 @@ def update_google_sheets(
     sheets_client: SheetsClient,
     request_handler: RequestHandler,
     gcc: bool = False,
-    tpc: bool = False
+    tpc: bool = False,
+    items: List[str] = None
 ) -> None:
     """Update Google Sheets with the latest submission schemas."""
-    spreadsheets = get_spreadsheets(request_handler,gcc=gcc,tpc=tpc)
+    spreadsheets = get_spreadsheets(request_handler,gcc=gcc,tpc=tpc,items=items)
     log.info("Clearing existing Google sheets.")
     delete_existing_sheets(sheets_client)
     log.info("Updating Google sheets with tabs.")
@@ -144,10 +146,17 @@ def update_google_sheets(
 def get_spreadsheets(
         request_handler: RequestHandler,
         gcc: bool = False,
-        tpc: bool = False
+        tpc: bool = False,
+        items: List[str] = None
     ) -> List[Spreadsheet]:
     submission_schemas = get_all_submission_schemas(request_handler)
     ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,gcc=gcc,tpc=tpc)
+    if items:
+        return [
+            get_spreadsheet(item, submission_schema)
+            for item, submission_schema in ordered_submission_schemas.items()
+            if item in items
+        ]
     return [
         get_spreadsheet(item, submission_schema)
         for item, submission_schema in ordered_submission_schemas.items()
@@ -463,14 +472,16 @@ def write_spreadsheets(
 @dataclass(frozen=True)
 class Property:
     """Struct to hold property info required for spreadsheet.
-
-    Note: No effort to handle nested properties "well" here, i.e. no
-    recursion; specifically no attempt to handle array of objects or
-    nested objects. However, arrays of strings are handled by
+    
+    Note: Does not currently handle nested objects. 
+    However, arrays of objects with nested properties are handled
+    by making new Property instances for each (currently relevant for CellCultureMixture)
+    and arrays of strings are handled by
     bringing select info to top level.
     """
 
     name: str
+    item: str = ""
     description: str = ""
     value_type: str = ""
     required: bool = False
@@ -483,6 +494,9 @@ class Property:
     format_: str = ""
     requires: Optional[List[str]] = None
     exclusive_requirements: Optional[List[str]] = None
+    allow_commas: Optional[bool] = False
+    allow_multiplier_suffix: Optional[bool] = False
+    search: Optional[str] = ""
 
 
 @dataclass(frozen=True)
@@ -493,23 +507,27 @@ class Spreadsheet:
 
 def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet:
     """Get spreadsheet information for item."""
-    properties = get_properties(submission_schema)
+    properties = get_properties(item, submission_schema)
     return Spreadsheet(
         item=item,
         properties=properties,
     )
 
 
-def get_properties(submission_schema: Dict[str, Any]) -> List[Property]:
+def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
     properties = schema_utils.get_properties(submission_schema)
-    return [get_property(key, value) for key, value in properties.items()]
+    property_list = []
+    for key, value in properties.items():
+        property_list += get_nested_properties(item, key, value)
+    return property_list
 
 
-def get_property(property_name: str, property_schema: Dict[str, Any]) -> Property:
+def get_property(item: str, property_name: str, property_schema: Dict[str, Any]) -> Property:
     """Get property information"""
     return Property(
         name=property_name,
+        item=item,
         description=schema_utils.get_description(property_schema),
         value_type=schema_utils.get_schema_type(property_schema),
         required=is_required(property_schema),
@@ -522,7 +540,40 @@ def get_property(property_name: str, property_schema: Dict[str, Any]) -> Propert
         format_=schema_utils.get_format(property_schema),
         requires=get_corequirements(property_schema),
         exclusive_requirements=get_exclusive_requirements(property_schema),
+        allow_commas=is_allow_commas(property_schema),
+        allow_multiplier_suffix=is_allow_multiplier_suffix(property_schema),
+        search=get_search_url(property_schema)
     )
+
+
+def get_nested_properties(item: str, property_name: str, property_schema: Dict[str, Any]) -> List[Property]:
+    """Get nested property information if property is array of objects, otherwise get property information."""
+    if object_array := get_array_object_properties(property_schema):
+        return get_nested_property(item, property_name, object_array)
+    return [get_property(item, property_name, property_schema)]
+
+
+def get_nested_property(item: str, property_name:str, property_schema: Dict[str, Any]) -> List[Property]:
+    """Get property information for nested objects.
+    
+    `count` value is arbitrarily set to 2 to show that multiple values can be accepted in the template
+    """
+    object_properties = []
+    count = 2 
+    for index in range(0,count): 
+        for key, value in property_schema.items():
+            combined_property_name=f"{property_name}#{index}.{key}"
+            object_properties.append(
+                get_property(item, combined_property_name,value)
+            )
+    return object_properties
+
+
+def get_array_object_properties(property_schema: Dict[str, Any]) -> Union[Dict[str,Any], None]:
+    """Get nested properties if property is an array of objects."""
+    if item := property_schema.get("items",""):
+        return item.get("properties","")
+    return ""
 
 
 def is_required(property_schema: Dict[str, Any]) -> bool:
@@ -533,6 +584,11 @@ def is_required(property_schema: Dict[str, Any]) -> bool:
 def is_link(property_schema: Dict[str, Any]) -> bool:
     """Check if property is a link to another item"""
     return schema_utils.is_link(property_schema) or is_array_of_links(property_schema)
+
+
+def get_linkto(property_schema: Dict[str, Any]) -> bool:
+    """Get property linkTo item"""
+    return property_schema.get("linkTo","")
 
 
 def is_array_of_links(property_schema: Dict[str, Any]) -> bool:
@@ -578,6 +634,16 @@ def get_corequirements(property_schema: Dict[str, Any]) -> List[str]:
 def get_exclusive_requirements(property_schema: Dict[str, Any]) -> List[str]:
     """Get the exclusive requirements for the property."""
     return property_schema.get(SubmissionSchemaConstants.REQUIRED_IF_NOT_ONE_OF) or []
+
+
+def is_allow_commas(property_schema: Dict[str, Any]) -> bool:
+    """Check if allow_commas is present in the property."""
+    return property_schema.get("allow_commas", False)
+
+
+def is_allow_multiplier_suffix(property_schema: Dict[str, Any]) -> bool:
+    """Check if allow_multiplier is present in the property."""
+    return property_schema.get("allow_multiplier_suffix", False)
 
 
 def write_spreadsheet(
@@ -638,6 +704,8 @@ def get_ordered_properties(properties: List[Property]) -> List[Property]:
        - Non-required non-links (alphabetically)
        - Required links (alphabetically)
        - Non-required links (alphabetically)
+
+    For arrays of objects, these may still be out of order
     """
     return [
         *get_required_non_links(properties),
@@ -790,6 +858,7 @@ def get_comment_text(property_: Property) -> str:
     indent = "  "
     comment_lines += get_comment_description(property_, indent)
     comment_lines += get_comment_value_type(property_, indent)
+    comment_lines += get_comment_numbers(property_, indent)
     comment_lines += get_comment_enum(property_, indent)
     comment_lines += get_comment_examples(property_, indent)
     comment_lines += get_comment_link(property_, indent)
@@ -797,6 +866,8 @@ def get_comment_text(property_: Property) -> str:
     comment_lines += get_comment_requires(property_, indent)
     comment_lines += get_comment_pattern(property_, indent)
     comment_lines += get_comment_note(property_, indent)
+    comment_lines += get_comment_search(property_, indent)
+
     return "\n".join(comment_lines)
 
 
@@ -812,7 +883,7 @@ def get_comment_value_type(property_: Property, indent: str) -> List[str]:
             return [
                 (
                     f"Type:{indent}{property_.array_subtype}"
-                    f"{indent}(Multiple values allowed)"
+                    f"{indent}(Multiple values allowed. Use '|' as a delimiter)"
                 )
             ]
         else:
@@ -870,6 +941,37 @@ def get_comment_note(property_: Property, indent: str) -> List[str]:
     if property_.comment:
         return [f"Note:{indent}{property_.comment}"]
     return []
+
+
+def get_comment_numbers(property_: Property, indent: str) -> List[str]:
+    """Get comment for allow_commas and allow_multiplier_suffix."""
+    comment = []
+    if property_.allow_commas:
+        comment.append(f"{indent} Commas allowed (e.g. 1,000,000)")
+    if property_.allow_multiplier_suffix:
+        comment.append(f"{indent} Abbreviations allowed, such as 1M for 1000000 or 10.5kb for 10500 bp")
+    return comment
+
+
+def get_comment_search(property_: Property, indent: str) -> List[str]:
+    """Get text for search url.
+    
+    If property is file_format, include query for specific File type
+    """
+    if property_.search:
+        if property_.name == "file_format":
+            return [f"Search:{indent}{property_.search}&valid_item_types={property_.item}"]
+        return [f"Search:{indent}{property_.search}"]
+    return []
+
+
+def get_search_url(property_schema: Dict[str, Any]) -> str:
+    """Get portal search url for linked item names."""
+    if is_link(property_schema):
+        linked_item = get_linkto(property_schema) or get_linkto(schema_utils.get_items(property_schema))
+        return f"https://data.smaht.org/search/?type={linked_item}"
+    else:
+        return ""
 
 
 def is_date_format(format_: str) -> bool:
@@ -952,23 +1054,33 @@ def main():
         parser.error("Cannot specify both all and gcc")
     if args.all and args.item:
         parser.error("Cannot specify both all and item")
-    if args.google and args.all:
-        log.info(f"Google Sheet ID: {args.google}")
-        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-        spreadsheet_client = get_google_sheet_client(args.google)
-        update_google_sheets(spreadsheet_client, request_handler)
-    elif args.google and args.gcc:
-        log.info(f"Google Sheet ID: {args.google}")
-        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-        log.info("Writing GCC submission Google sheet")
-        spreadsheet_client = get_google_sheet_client(args.google)
-        update_google_sheets(spreadsheet_client, request_handler,gcc=True)
-    elif args.google and args.tpc:
-        log.info(f"Google Sheet ID: {args.google}")
-        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-        log.info("Writing TPC submission Google sheet")
-        spreadsheet_client = get_google_sheet_client(args.google)
-        update_google_sheets(spreadsheet_client, request_handler,tpc=True)
+    # Google spreadsheets
+    if args.google:
+        if args.all:
+            log.info(f"Google Sheet ID: {args.google}")
+            log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+            spreadsheet_client = get_google_sheet_client(args.google)
+            update_google_sheets(spreadsheet_client, request_handler)
+        elif args.gcc:
+            log.info(f"Google Sheet ID: {args.google}")
+            log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+            log.info("Writing GCC submission Google sheet")
+            spreadsheet_client = get_google_sheet_client(args.google)
+            update_google_sheets(spreadsheet_client, request_handler,gcc=True)
+        elif args.tpc:
+            log.info(f"Google Sheet ID: {args.google}")
+            log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+            log.info("Writing TPC submission Google sheet")
+            spreadsheet_client = get_google_sheet_client(args.google)
+            update_google_sheets(spreadsheet_client, request_handler,tpc=True)
+        elif args.item:
+            log.info(f"Google Sheet ID: {args.google}")
+            log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+            log.info(f"Writing submission Google sheet for item(s): {args.item}")
+            spreadsheet_client = get_google_sheet_client(args.google)
+            update_google_sheets(spreadsheet_client, request_handler,items=args.item)
+        else:
+            parser.error("No items specified to write or update Google spreadsheets for")
     elif args.workbook and args.all:
         log.info("Writing all submission spreadsheets")
         write_all_spreadsheets(

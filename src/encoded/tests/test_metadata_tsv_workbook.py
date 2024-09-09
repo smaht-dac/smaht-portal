@@ -118,10 +118,10 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_key_and_length(header1, 'Metadata TSV Download')
         TestMetadataTSVHelper.check_key_and_length(header2, 'Suggested command to download: ')
         TestMetadataTSVHelper.check_key_and_length(header3, 'FileDownloadURL')
-        assert len(parsed[3:]) == 15  # there are 15 entries in the workbook right now, including extra files
+        assert len(parsed[3:]) == 17  # there are 17 entries in the workbook right now, including extra files
         # test for various types
         TestMetadataTSVHelper.check_type_length(es_testapp, 'AlignedReads', 1)
-        TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 3)
+        TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 5)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'VariantCalls', 2)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'ReferenceFile', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'OutputFile', 2)
@@ -160,6 +160,9 @@ class TestMetadataTSVWorkbook:
         assert b"Metadata TSV Download" in tsv
         assert (
             b"/output-files/cca15caa-bc11-4a6a-8998-ea0c69df8b9d/@@download_cli" in tsv
+        )
+        assert not (  # check that all URLs are @@download_cli
+            b"/@@download/" in tsv
         )
         parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
         header_command_part = 'jq -r ".download_credentials | {AccessKeyId'
