@@ -1,22 +1,39 @@
 import React from 'react';
 
-export const VcfComparatorTable = () => {
+export const VcfComparatorTable = ({ context }) => {
+    console.log('VCF context', context);
     return (
         <div className="vcf-comparator-table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Comparator</th>
-                        <th>Software</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>File ex. 1</td>
-                        <td>Software ex. 2</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div className="content">
+                <h3 className="header">Comparator</h3>
+                <h3 className="header">Software</h3>
+                <table className="vcf-comparator-table-container table table-responsive">
+                    <thead>
+                        <tr>
+                            <th className="name">
+                                <span>Name</span>
+                            </th>
+                            <th className="version">
+                                <span>Version</span>
+                            </th>
+                            <th className="notes">
+                                <span>Notes</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {context.software.map((software, i) => {
+                            return (
+                                <tr key={i}>
+                                    <td>{software.display_title}</td>
+                                    <td>{software.version}</td>
+                                    <td>{software?.notes ?? '-'}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 };

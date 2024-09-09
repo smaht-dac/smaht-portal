@@ -1647,6 +1647,58 @@ File Overview Styles
 							}
 						}
 					}
+
+					.vcf-comparator-table-container {
+						table {
+							width: 100%;
+
+							thead {
+								border-bottom: 1px solid #9BA5B7;
+								background-color: #F1F9FF;
+								height: 45px;
+							}
+							
+							th {
+								background-color: transparent;
+								border-right: 1px solid #BACAD7;
+								text-align: left;
+								padding-left: 16px;
+
+								span {
+									font-size: 0.875rem;
+									color: #343741;
+									font-weight: 600;
+								}
+
+								&:last-of-type {
+									border-right: none;
+								}
+
+								&.name {
+									min-width: 300px;
+								}
+								&.version {
+									min-width: 150px;
+								}
+								&.notes {
+									width: 100%;
+									min-width: 300px;
+								}
+							}
+
+							tbody {
+								tr {
+									border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+									td {
+										padding-left: 16px;
+										text-align: left;
+										border-right: 1px solid rgba(0, 0, 0, 0.05);
+										height: 30px;
+									}
+								}
+							}
+						}
+					}
 				}
 			}
 		
