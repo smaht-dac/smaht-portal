@@ -704,46 +704,210 @@ body[data-path="/"]>#application>#layout {
 			}
 		}
 
-		.about-consortium {
-			padding: 20px 30px;
-			background-color: $cobalt-10;
-			border-color: $cobalt-30;
-			@include prefix(border-radius, $homepage-card-border-radius);
 
-			h3 {
-				color: #416485;
-				font-weight: 600;
-				font-size: 1.25rem;
-				margin: 0px auto 20px 0px;
-				text-align: left;
-			}
-			
-			// TODO: If this style of button will be re-used, make it one of the overrides for a BS button
-			a {
-				background-color: $homepage-about-consort-btn-bg-color;
-				border: 1px solid $homepage-about-consort-btn-border-color;
-				color: #416485;
-				font-weight: 500;
-				font-size: 0.875rem;
-				letter-spacing: normal;
-				line-height: normal;
-				margin-bottom: 5px;
-				@include prefix(border-radius, $homepage-about-consort-border-radius);
-				> i {
-					color: #BBCCF9;
-					font-size: 0.75rem;
+
+		.container {
+			// position: relative;
+
+			.notifications-panel {
+				.section {
+					&.data-release-tracker {
+						display: none;
+					}
+					&.announcements {
+						display: none;
+					}
 				}
+		
+				.about-consortium {
+					padding: 20px 30px;
+					width: 100%;
+					background-color: $cobalt-10;
+					border: 1px solid $cobalt-30;
+					box-shadow: 0 1px 5px -1px rgba(0, 0, 0, 0.1333333333);
+					@include prefix(border-radius, $homepage-card-border-radius);
+					// box-shadow: none;
+					// border: none;
+					// display: flex;
+					// flex-direction: column;
+			
+					.section-header {
+						color: #416485;
+						font-weight: 600;
+						font-size: 1.25rem;
+						margin: 0px auto 20px 0px;
+						text-align: left;
+					}
 
-				&:hover {
-					background-color: #ffffff;
+					&-links {
+						display: flex;
+						flex-direction: row;
+						flex-wrap: wrap;
+						width: 100%;
+						
+						// TODO: If this style of button will be re-used, make it one of the overrides for a BS button
+						.link-container {
+							width: 100%;
+
+							a {
+								width: 100%;
+								background-color: $homepage-about-consort-btn-bg-color;
+								border: 1px solid $homepage-about-consort-btn-border-color;
+								color: #416485;
+								font-weight: 500;
+								font-size: 0.875rem;
+								letter-spacing: normal;
+								line-height: normal;
+								margin-bottom: 5px;
+								@include prefix(border-radius, $homepage-about-consort-border-radius);
+								> i {
+									color: #BBCCF9;
+									font-size: 0.75rem;
+								}
+								
+								&:hover {
+									background-color: #ffffff;
+								}
+							}
+						}
+					}
+		
 				}
 			}
 		}
+	}
 
-		@media screen and (min-width: 992px) {
-			.about-consortium {
-				a {
-					margin-bottom: auto;
+
+	@media screen and (min-width: 992px) {
+		.about-consortium {
+			&-links {
+				gap: 20px;
+
+				.link-container {
+					flex: 1;
+					a {
+						margin-bottom: auto;
+					}
+				}
+			}
+		}
+	}
+
+	
+	@include media-breakpoint-up(xxl) {
+		position: relative;
+		.homepage-contents {
+			.container {
+				.notifications-panel {
+					position: absolute;
+					display: flex;
+					flex-direction: column;
+					justify-content: flex-start;
+					gap: 50px;
+					padding: 40px 18px;
+					background-color: $cobalt-10;
+					height: 100%;
+					right: 0px;
+					width: 300px;
+					border-left: 1px solid #A9A9FF;
+					border-top: 1px solid #A9A9FF;
+					border-radius: 34px 0px 0px 0px;
+					animation: from-right 100ms;
+
+
+					@keyframes from-right {
+						0% {
+							transform: translateX(100%);
+						}
+						100% {
+							transform: translateX(0);
+						}
+					}
+
+					.section {
+						display: flex;
+						flex-direction: column;
+
+						&-header {
+							font-size: 1.25rem;
+							color: $homepage-header-text-color;
+							font-weight: 600;
+							margin-bottom: 1rem;
+						}
+						&-body {
+							padding: 8px;
+							border: 1px solid #8C9EFE;
+							border-radius: 6px;
+						}
+
+						&.data-release-tracker {
+							display: flex;
+							.section-body {
+								background-color: white;
+							}
+						}
+						&.announcements {
+							display: flex;
+
+							.section-body {
+								background-color: #EEF6FE;
+								
+								.announcement-container {
+									background-color: white;
+									padding: 8px;
+									font-size: 0.75rem;
+									border-radius: 6px;
+									border: 1px solid #C0CAFF;
+									color: #485983;
+								}
+							}
+						}
+						&.about-consortium {
+							display: flex;
+							flex-direction: column;
+							padding: 0px;
+							border: none;
+							box-shadow: none;
+
+							.section-header {
+								color: $homepage-header-text-color;
+							}
+
+							.section-body {
+								padding: 0px;
+								background-color: transparent;
+								border: none;
+
+								.about-consortium-links {
+									flex-direction: column;
+									gap: 10px;
+									
+									.link-container {
+										a {
+											width: 100%;
+											margin-bottom: 0px;
+										}
+									}
+								}
+							}
+							
+						}
+
+					}
+
+					
+					
+				}
+			}
+		}
+	}
+	@include media-breakpoint-up(xxxl) {
+		position: relative;
+		.homepage-contents {
+			.container {
+				.notifications-panel {
+					width: 400px;
+					padding: 38px 27px;
 				}
 			}
 		}

@@ -11,6 +11,7 @@ import {
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 import { pageTitleViews } from './../../PageTitleSection';
 import { GuestHomeView } from './GuestHomeView';
+import { NotificationsPanel } from '../components/NotificationsPanel';
 
 /**
  * Homepage View component. Gets rendered at '/' and '/home' paths.
@@ -37,7 +38,7 @@ export default class HomePage extends React.PureComponent {
         // Render alerts here instead of (unused-for-homepage) PageTitleSection
         return (
             <div className="homepage-wrapper">
-                <div id="full-alerts-container">
+                <div id="full-alerts-container" className="d-flex d-xxl-none">
                     <Alerts alerts={alerts} className="alerts container" />
                 </div>
                 <GuestHomeView
