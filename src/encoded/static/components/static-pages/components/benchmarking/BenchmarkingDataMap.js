@@ -135,6 +135,12 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=hapmap',
             },
+            {
+                eventKey: '#hapmap-downsampled',
+                title: 'Downsampled',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=mei_detection_challenge_data',
+            },
         ],
     },
     iPScFibroblasts: {
