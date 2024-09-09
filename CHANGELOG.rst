@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.90.2
+======
+`PR 245: SN Make antibody an array <https://github.com/smaht-dac/smaht-portal/pull/245>`_
+* In Library, make `antibody` and array of strings
+* Small fix to submission template delimiter description
+
+
 0.90.1
 ======
 
