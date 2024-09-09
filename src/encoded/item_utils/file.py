@@ -313,7 +313,7 @@ def is_file(properties: Dict[str, Any]) -> bool:
 
 
 def get_file_extension(
-    properties: Dict[str, Any], request_handler: RequestHandler
+    request_handler: RequestHandler, properties: Dict[str, Any] 
 ) -> str:
     """Get file extension from properties."""
     return get_property_value_from_identifier(
@@ -343,19 +343,19 @@ def get_accepted_file_extensions(
     )
 
 
-def is_bam_file(properties: Dict[str, Any],request_handler: RequestHandler) -> bool:
+def is_bam_file(request_handler: RequestHandler, properties: Dict[str, Any]) -> bool:
     """Check if file file_format has the bam file extension."""
-    return get_file_extension(properties,request_handler) == "bam"
+    return get_file_extension(request_handler, properties) == "bam"
 
 
 def is_fasta_file(properties: Dict[str, Any],request_handler: RequestHandler) -> bool:
     """Check if file file_format has the fa or fasta file extension."""
-    return get_file_extension(properties,request_handler) in ["fa","fasta"]
+    return get_file_extension(request_handler, properties) in ["fa","fasta"]
 
 
 def is_chain_file(properties: Dict[str, Any],request_handler: RequestHandler) -> bool:
     """Check if file_format has the chain.gz file extension."""
-    return get_file_extension(properties,request_handler) == "chain.gz"
+    return get_file_extension(request_handler,properties) == "chain.gz"
 
 
 def is_unaligned_reads(file: Dict[str, Any]) -> bool:

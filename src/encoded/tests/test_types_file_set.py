@@ -129,7 +129,7 @@ def test_validate_compatible_assay_and_sequencer_on_post(
 
 
 @pytest.mark.workbook
-def test_associated_files_retracted(es_testapp: TestApp, workbook: None) -> None:
+def test_files_status_retracted(es_testapp: TestApp, workbook: None) -> None:
     """Ensure `associated_files_retracted` calc_prop is working."""
     status_search = get_search(
         es_testapp,

@@ -112,14 +112,15 @@ class FileSet(SubmittedItem):
     
     @calculated_property(
         schema={
-            "title": "Files Status",
-            "type": "array",
-            "items": {
-                "type": "string",
-            },
+            "title": "Files Status Retracted",
+            "type": "string",
+            "enum": [
+                "True",
+                "False"
+            ],
         },
     )
-    def files_status_retracted(self, request: Request, files: Optional[List[str]] = None) -> Union[List[str], None]:
+    def files_status_retracted(self, request: Request, files: Optional[List[str]] = None) -> str:
         return self._get_files_status_retracted(request,files)
 
     @calculated_property(
