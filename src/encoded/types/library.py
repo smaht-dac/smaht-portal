@@ -59,7 +59,7 @@ def validate_molecule_specific_assay_on_add(context, request):
     """
     if "skip_links=true" in request.url:  # xyzzy
         return
-    import pdb ; pdb.set_trace()  # noqa
+    # import pdb ; pdb.set_trace()  # noqa
     data = request.json
     molecules = []
     for analyte in data['analytes']:
