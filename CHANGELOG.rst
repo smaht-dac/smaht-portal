@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.91.0
+0.92.0
 ======
 
 * Circa: 2024-08-19 (dmichaels)
@@ -25,6 +25,15 @@ Change Log
   still in the process of being computed (i.e. otherwise we could simply look at the file status an be done with it).
 * New protection of /ingestion-status endpoint (in ingestion/ingestion_status.py) for authenticated
   users only; and also limit /ingestion-status/{keys,keys_sorted,flush} to admin users only.
+
+
+0.91.0
+======
+`PR234: SN Cell Line links <https://github.com/smaht-dac/smaht-portal/pull/234>`_
+* Allow `CellLine` to link to itself with `parent_cell_lines`
+* Allow `CellLine` to link to `TissueSample` (`Sample`) with `tissue_samples`
+* Allow `CellCulture` to link to `TissueSample`. Keeping `Tissue` link for now, to remove later.
+* Add a calculated property to `CellLine`, `source_donor`, that gets the donor information, if present, from `donor`, `tissue_samples`, or `parent_cell_lines`
 
 
 0.90.2

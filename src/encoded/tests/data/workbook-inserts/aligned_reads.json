@@ -32,5 +32,30 @@
         "file_size": 1000,
         "status": "released",
         "dataset": "colo829t"
+    },
+    {
+        "uuid": "9ad4250a-b6aa-4e3c-be69-177139345151",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ALIGNED-READS_ISPC_FIBROBLAST",
+        "data_category": [
+            "Sequencing Reads"
+        ],
+        "data_type": [
+            "Aligned Reads"
+        ],
+        "alignment_details": [
+            "Sorted"
+        ],
+        "file_format": "BAM",
+        "filename": "some_bam.bam",
+        "file_sets": [
+            "TEST_FILE-SET_IPSC_FIBROBLAST"
+        ],
+        "software": [
+            "TEST_SOFTWARE_BWA-MEM"
+        ],
+        "reference_genome": "GRCh38"
     }
 ]
