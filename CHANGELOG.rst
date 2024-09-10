@@ -7,10 +7,14 @@ smaht-portal
 Change Log
 ----------
 
-0.90.3
+
+0.91.0
 ======
-`PR241: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
-* Add downsampled hapmap tab
+`PR234: SN Cell Line links <https://github.com/smaht-dac/smaht-portal/pull/234>`_
+* Allow `CellLine` to link to itself with `parent_cell_lines`
+* Allow `CellLine` to link to `TissueSample` (`Sample`) with `tissue_samples`
+* Allow `CellCulture` to link to `TissueSample`. Keeping `Tissue` link for now, to remove later.
+* Add a calculated property to `CellLine`, `source_donor`, that gets the donor information, if present, from `donor`, `tissue_samples`, or `parent_cell_lines`
 
 
 0.90.2
