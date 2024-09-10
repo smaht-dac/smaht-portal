@@ -7,6 +7,36 @@ smaht-portal
 Change Log
 ----------
 
+
+0.91.0
+======
+`PR234: SN Cell Line links <https://github.com/smaht-dac/smaht-portal/pull/234>`_
+* Allow `CellLine` to link to itself with `parent_cell_lines`
+* Allow `CellLine` to link to `TissueSample` (`Sample`) with `tissue_samples`
+* Allow `CellCulture` to link to `TissueSample`. Keeping `Tissue` link for now, to remove later.
+* Add a calculated property to `CellLine`, `source_donor`, that gets the donor information, if present, from `donor`, `tissue_samples`, or `parent_cell_lines`
+
+
+0.90.2
+======
+`PR 245: SN Make antibody an array <https://github.com/smaht-dac/smaht-portal/pull/245>`_
+* In Library, make `antibody` and array of strings
+* Small fix to submission template delimiter description
+
+
+0.90.1
+======
+
+* Add operator `is_type` to QC thresholds schema
+
+
+0.90.0
+======
+`PR241: SN Add properties to library <https://github.com/smaht-dac/smaht-portal/pull/241>`_
+* Add properties `dna_target`, `guide_sequence`, and `antibody` to Library schema
+* Change property `restriction_enzymes` to `enzymes` in LibraryPreparation (recently added property so it is empty in the portal) to apply for transposase enzymes as well and update associated tests.
+
+
 0.89.3
 ======
 `PR239: Add mei_detection_challenge_data enum ot dataset <https://github.com/smaht-dac/smaht-portal/pull/239>`_
