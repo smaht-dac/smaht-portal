@@ -19,7 +19,11 @@ from ..item_utils import (
     library as library_utils,
     sequencing as sequencing_utils,
 )
-from ..item_utils.utils import RequestHandler, get_property_value_from_identifier
+from ..item_utils.utils import (
+    RequestHandler,
+    get_property_value_from_identifier,
+    get_property_values_from_identifiers
+)
 from ..utils import load_extended_descriptions_in_schemas
 
 
@@ -163,18 +167,24 @@ class FileSet(SubmittedItem):
         samples = library_utils.get_samples(
             library, request_handler=request_handler
         )
-        if len(samples) > 1 or len(samples) == 0:
-            return None  # there is too much complexity
-
+        if len(samples) == 0:
+            return None
+        if len(samples) > 1:
+            if 'tissue' in samples:
+                samples_meta = request_handler.get_items(samples)
+                for sample_meta in samples_meta:
+                    if sample_meta.get('category') != 'Homogenate':
+                        return None # this should give some kind of warning. Should not have multiple intact tissue samples
+        if len(samples) == 1:
+            sample = samples[0]
+            if 'tissue' in sample:
+                sample_meta = request_handler.get_item(sample)
+                if sample_meta.get('category') != 'Homogenate':
+                    return get_property_value_from_identifier(
+                        request_handler, sample, item_utils.get_submitted_id
+                    )
         # If we are a tissue sample, generate this based on the sample field, not the sample
         # sources field
-        sample = samples[0]
-        if 'tissue' in sample:
-            sample_meta = request_handler.get_item(sample)
-            if sample_meta.get('category') != 'Homogenate':
-                return get_property_value_from_identifier(
-                    request_handler, sample, item_utils.get_submitted_id
-                )
 
         # If we get here, we are a Homogenate tissue sample or cell line and should rely on sample sources
         sample_sources = library_utils.get_sample_sources(
@@ -336,7 +346,7 @@ def validate_compatible_assay_and_sequencer_on_edit(context, request):
 
 
 FILE_SET_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
-    validate_compatible_assay_and_sequencer_on_add
+    #validate_compatible_assay_and_sequencer_on_add
 ]
 
 @view_config(
