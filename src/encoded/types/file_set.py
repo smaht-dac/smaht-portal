@@ -119,7 +119,9 @@ class FileSet(SubmittedItem):
             ],
         },
     )
-    def files_status_retracted(self, request: Request, files: Optional[List[str]] = None) -> str:
+    def files_status_retracted(
+        self, request: Request, files: Optional[List[str]] = None
+    ) -> Union[str, None]:
         return self._get_files_status_retracted(request,files)
 
     @calculated_property(
@@ -137,14 +139,6 @@ class FileSet(SubmittedItem):
         if result:
             return result
         return
-
-    def _get_files_status_retracted(self, request, files):
-        """Get the status of rev linked files."""
-        result = None
-        if files:
-            request_handler = RequestHandler(request=request)
-            result = file_set_utils.get_associated_files_retracted(request_handler,files)
-        return result
 
     @staticmethod
     def generate_sequencing_part(
@@ -289,6 +283,14 @@ class FileSet(SubmittedItem):
             'sequencing': sequencing_part,
             'assay': assay_part
         }
+
+    def _get_files_status_retracted(self, request, files):
+        """Get the status of rev linked files."""
+        result = None
+        if files:
+            request_handler = RequestHandler(request=request)
+            result = file_set_utils.get_associated_files_retracted(request_handler,files)
+        return result
 
 
 def validate_compatible_assay_and_sequencer_on_add(context, request):

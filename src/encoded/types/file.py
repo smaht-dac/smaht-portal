@@ -55,7 +55,7 @@ from ..item_utils import (
     sample as sample_utils,
     software as software_utils,
     tissue as tissue_utils,
-    sequencing as sequencing_utils,
+    sequencing as sequencing_utils
 )
 from ..item_utils.utils import (
     get_property_value_from_identifier,
