@@ -9,8 +9,9 @@ Change Log
 
 0.90.2
 ======
-`PR241: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
-* Add downsampled hapmap tab
+`PR 245: SN Make antibody an array <https://github.com/smaht-dac/smaht-portal/pull/245>`_
+* In Library, make `antibody` and array of strings
+* Small fix to submission template delimiter description
 
 
 0.90.1
