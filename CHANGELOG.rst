@@ -7,9 +7,8 @@ smaht-portal
 Change Log
 ----------
 
-0.92.0
+0.93.0
 ======
-
 * Circa: 2024-08-19 (dmichaels)
 * Nested QC (QualityMetric) development.
   - Added enable_nested (true) for qc_values item in quality_metric.json.
@@ -25,6 +24,13 @@ Change Log
   still in the process of being computed (i.e. otherwise we could simply look at the file status an be done with it).
 * New protection of /ingestion-status endpoint (in ingestion/ingestion_status.py) for authenticated
   users only; and also limit /ingestion-status/{keys,keys_sorted,flush} to admin users only.
+
+
+0.92.0
+======
+`PR244: SN FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/244>`_
+* Create calcprop for FileSet, `files_status_retracted`, that returns "True" if a file in files has the status of `obsolete` or `retracted`
+* Embed `file_set.files_status_retracted` in File
 
 
 0.91.0
@@ -45,13 +51,11 @@ Change Log
 
 0.90.1
 ======
-
 * Add operator `is_type` to QC thresholds schema
 
 
 0.90.0
 ======
-
 `PR241: SN Add properties to library <https://github.com/smaht-dac/smaht-portal/pull/241>`_
 * Add properties `dna_target`, `guide_sequence`, and `antibody` to Library schema
 * Change property `restriction_enzymes` to `enzymes` in LibraryPreparation (recently added property so it is empty in the portal) to apply for transposase enzymes as well and update associated tests.
@@ -59,6 +63,7 @@ Change Log
 
 0.89.3
 ======
+
 `PR239: Add mei_detection_challenge_data enum ot dataset <https://github.com/smaht-dac/smaht-portal/pull/239>`_
 * Add `mei_detection_challenge_data` enum to `dataset`
 
