@@ -95,12 +95,12 @@ const FileViewHeader = (props) => {
                 <h1 className="header-text">File Overview</h1>
                 <SelectedItemsDownloadButton
                     id="download_tsv_multiselect"
-                    className="btn btn-primary btn-sm mr-05 align-items-center download-file-button"
+                    className="btn btn-primary btn-sm me-1 align-items-center download-file-button"
                     session={session}
                     selectedItems={selectedFile}
                     disabled={false}
                     analyticsAddItemsToCart>
-                    <i className="icon icon-download fas mr-07" />
+                    <i className="icon icon-download fas me-1" />
                     Download File
                 </SelectedItemsDownloadButton>
             </div>

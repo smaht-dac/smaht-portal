@@ -233,7 +233,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             const badgeType = this.state.filter[type].includes(tag)
                 ? 'info'
                 : 'lighter';
-            const cn = 'badge clickable mr-1 badge-' + badgeType;
+            const cn = 'badge clickable me-1 badge-' + badgeType;
             return (
                 <div
                     className={cn}

@@ -93,7 +93,7 @@ body {
 
 	> .alerts {
 		margin-top: 20px;
-		.alert.no-close-button > button.close {
+		.alert.no-close-button > button.btn-close {
 			display: none;
 		}
 	}
@@ -247,7 +247,7 @@ body.is-full-screen {
 			//padding-bottom: 10px;
 			> .subtitle-prepend {
 				margin-right: 8px;
-				&.border-right {
+				&.border-end {
 					padding-right : 8px;
 					border-right: 1px solid #ddd;
 				}

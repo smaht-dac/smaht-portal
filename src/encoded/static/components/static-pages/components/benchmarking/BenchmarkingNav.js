@@ -131,7 +131,7 @@ function ContextAwareToggle({ children, eventKey, callback }) {
                 onClick={decoratedOnClick}>
                 <div className="d-flex justify-content-between align-items-center w-100">
                     {children}
-                    <i className={openStatusIconCls + ' mr-1'} />
+                    <i className={openStatusIconCls + ' me-1'} />
                 </div>
             </button>
         </div>
@@ -167,7 +167,7 @@ const BenchmarkingUINavLinkGenerator = ({
                                     <BenchmarkingUINavLink
                                         key={obj.eventKey}
                                         title={obj.title}
-                                        cls="pl-2"
+                                        cls="ps-2"
                                         {...{ currPath }}
                                         href={path + obj.eventKey}
                                     />

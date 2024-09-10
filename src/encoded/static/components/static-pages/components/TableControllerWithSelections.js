@@ -17,7 +17,7 @@ export const TableControllerWithSelections = (props) => {
     if (!searchHref) {
         return (
             <div className="tbd-notice mt-2">
-                Data: <span className="font-italic">Coming Soon</span>
+                Data: <span className="fst-italic">Coming Soon</span>
             </div>
         );
     }

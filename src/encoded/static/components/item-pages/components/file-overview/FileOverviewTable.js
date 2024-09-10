@@ -285,13 +285,13 @@ const FileOverviewAboveTableComponent = (props) => {
 
     return (
         <div className="d-flex w-100 mb-05">
-            <div className="col-auto ml-0 pl-0">
+            <div className="col-auto ms-0 ps-0">
                 <span className="text-400" id="results-count">
                     {totalResultCount}
                 </span>{' '}
                 Results
             </div>
-            <div className="ml-auto col-auto mr-0 pr-0">
+            <div className="ms-auto col-auto me-0 pe-0">
                 <SelectAllFilesButton
                     {...selectedFileProps}
                     context={context}
@@ -299,10 +299,10 @@ const FileOverviewAboveTableComponent = (props) => {
                 <SelectedItemsDownloadButton
                     id="download_tsv_multiselect"
                     disabled={selectedItems?.size === 0}
-                    className="btn btn-primary btn-sm mr-05 align-items-center"
+                    className="btn btn-primary btn-sm me-1 align-items-center"
                     {...{ selectedItems, session }}
                     analyticsAddItemsToCart>
-                    <i className="icon icon-download fas mr-07" />
+                    <i className="icon icon-download fas me-1" />
                     Download {selectedItems?.size} Selected Files
                 </SelectedItemsDownloadButton>
             </div>

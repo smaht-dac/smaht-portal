@@ -58,8 +58,8 @@ const ConsortiumTable = () => {
                             <div className="px-1">{c['center-type-short']}</div>
                         </OverlayTrigger>
                     </td>
-                    <td className="align-middle border-right">{pis}</td>
-                    <td className="align-middle border-right">
+                    <td className="align-middle border-end">{pis}</td>
+                    <td className="align-middle border-end">
                         {c?.table_institution_name ?? c['institution']}
                     </td>
                     <td className="align-middle">

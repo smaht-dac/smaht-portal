@@ -156,7 +156,7 @@ function LeftNavAuthenticated(props) {
         [context]
     );
     return (
-        <div className="navbar-nav mr-auto">
+        <div className="navbar-nav me-auto">
             <DataNavItem {...props} />
             <DocsNavItem {...props} />
             <AboutNavItem {...props} />
@@ -169,7 +169,7 @@ const LeftNavGuest = React.memo(function LeftNavGuest(props) {
     const { pathname = '/' } = url.parse(href, false);
 
     return (
-        <div className="navbar-nav mr-auto">
+        <div className="navbar-nav me-auto">
             <AboutNavItem {...props} />
             <DocsNavItem {...props} />
         </div>

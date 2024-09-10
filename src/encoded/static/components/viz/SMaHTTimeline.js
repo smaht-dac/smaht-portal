@@ -21,7 +21,7 @@ const TimelineItem = ({ currentTier, setCurrentTier, data, itemKey }) => {
                 className="timeline-marker"
                 onClick={() => setCurrentTier(itemKey)}></div>
             <div className="timeline-item-header">
-                <h3 className="text-left">
+                <h3 className="text-start">
                     {title}&nbsp;
                     {subtitle ? (
                         <i className="timeline-item-subheader">
@@ -88,7 +88,7 @@ function ContextAwareToggle({
                     setCurrentTier(tier);
                 }}>
                 <div className="d-flex justify-start">
-                    <i className={openStatusIconCls + ' m-auto mr-1'} />
+                    <i className={openStatusIconCls + ' m-auto me-1'} />
                     {children}
                 </div>
             </button>
@@ -137,7 +137,7 @@ function TimelineAccordionDrawer(props) {
                         setCurrentTier,
                         link,
                     }}>
-                    <span className="text-left">{title}</span>
+                    <span className="text-start">{title}</span>
                 </ContextAwareToggle>
             </Card.Header>
             <Accordion.Collapse {...{ eventKey }}>

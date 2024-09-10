@@ -78,7 +78,7 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
             </ul>
 
             <a className="btn btn-block btn-primary mt-2" href={mailtoLink}>
-                <i className="icon fas icon-envelope mr-05" />
+                <i className="icon fas icon-envelope me-1" />
                 Request Access
             </a>
             {/*

@@ -197,7 +197,7 @@ class SubmissionStatusComponent extends React.PureComponent {
 
         return (
             <div className="d-flex flex-row-reverse">
-                <div className="ml-1 ss-padding-top-3">
+                <div className="ms-1 ss-padding-top-3">
                     <i
                         className={syncIconClass}
                         onClick={() => this.refresh()}></i>
@@ -366,7 +366,7 @@ class SubmissionStatusComponent extends React.PureComponent {
         fs_comments.forEach((c) => {
             const trashSymbol = this.state.isUserAdmin ? (
                 <span
-                    className="far icon icon-fw icon-trash-alt text-muted pl-1 clickable"
+                    className="far icon icon-fw icon-trash-alt text-muted ps-1 clickable"
                     onClick={() => this.removeComment(fs, c)}></span>
             ) : (
                 ''
@@ -445,7 +445,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 const mwfr_badge = createBadge(badgeType, mwfr.final_status);
 
                 mwfrs.push(
-                    <li className="text-left pb-1">
+                    <li className="text-start pb-1">
                         {getLink(
                             mwfr.accession,
                             mwfr.meta_workflow?.display_title
@@ -501,7 +501,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                             backgroundColor: fs.file_group_color,
                             width: '5px',
                         }}></td>
-                    <td className="text-left ss-fileset-column">
+                    <td className="text-start ss-fileset-column">
                         {getLink(fs.accession, fs.display_title)}
                         <object.CopyWrapper
                             value={fs.accession}
@@ -559,7 +559,7 @@ class SubmissionStatusComponent extends React.PureComponent {
         if (this.state.initialLoading) {
             return (
                 <div className="p-5 text-center">
-                    <i className="icon icon-fw fas icon-spinner icon-spin mr-1"></i>
+                    <i className="icon icon-fw fas icon-spinner icon-spin me-1"></i>
                     Loading
                 </div>
             );
@@ -568,7 +568,7 @@ class SubmissionStatusComponent extends React.PureComponent {
         if (this.state.loading) {
             loadingSpinner = (
                 <div className="py-2">
-                    <i className="icon icon-spin icon-spinner fas mr-1"></i>
+                    <i className="icon icon-spin icon-spinner fas me-1"></i>
                     Loading
                 </div>
             );
@@ -586,7 +586,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 className="bg-white border border-white border-bottom-0">
                                 <div className="d-flex">
                                     {loadingSpinner}
-                                    <div className="ml-auto p-2">
+                                    <div className="ms-auto p-2">
                                         {this.getPageination()}
                                     </div>
                                 </div>
@@ -594,7 +594,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                         </tr>
                         <tr>
                             <th
-                                className="text-left ss-fileset-column"
+                                className="text-start ss-fileset-column"
                                 colSpan={2}>
                                 <div className="d-flex flex-row flex-wrap justify-content-between">
                                     <div className="flex-fill">File Set</div>
@@ -613,10 +613,10 @@ class SubmissionStatusComponent extends React.PureComponent {
                                     </div>
                                 </div>
                             </th>
-                            <th className="text-left">Submission</th>
-                            <th className="text-left">O2 status</th>
-                            <th className="text-left">MetaWorkflowRuns</th>
-                            <th className="text-left">
+                            <th className="text-start">Submission</th>
+                            <th className="text-start">O2 status</th>
+                            <th className="text-start">MetaWorkflowRuns</th>
+                            <th className="text-start">
                                 Tags{' '}
                                 <i
                                     className="icon icon-fw fas icon-info-circle"

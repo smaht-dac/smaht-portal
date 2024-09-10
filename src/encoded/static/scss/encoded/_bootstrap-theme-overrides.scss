@@ -10,8 +10,8 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 
 
 // Taken largely from bootstrap / spacing.scss
-// Overrides ONLY mb-, mt-, pb-, pt-, ml-, mr-, pl-, and pr- util classnames to use
-// more fine-grained increments of _pixels-at-default-zoom_ so that e.g. mr-16 is equivalent to having margin-right: 16px at default zoom.
+// Overrides ONLY mb-, mt-, pb-, pt-, ms-, me-, ps-, and pe- util classnames to use
+// more fine-grained increments of _pixels-at-default-zoom_ so that e.g. me-16 is equivalent to having margin-right: 16px at default zoom.
 @each $breakpoint in map-keys($grid-breakpoints) {
 	@include media-breakpoint-up($breakpoint) {
 	  	$infix: breakpoint-infix($breakpoint, $grid-breakpoints);
@@ -116,9 +116,9 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 }
 
 // Note: Temporary; use btn-sm styling for buttons on tablet and mobile
-@include media-breakpoint-down(xs){
+@media (max-width: 576px) {
 	.btn {
-		@include button-size(1px, 5px, 0.825rem, 1.5, $border-radius-sm);
+		@include button-size(1px, 5px, 0.825rem, 1.5);
 		font-weight: 400;
 		padding-top: 2px;
 	}
@@ -127,7 +127,7 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 /** Extending Bootstrap button w/ rounded & ext-padding class **/
 /** btn-xs was removed in Bootstrap v4 so we recreate it here **/
 .btn.btn-xs {
-    @include button-size(1px, 5px, 0.825rem, 1.5, $border-radius-sm);
+    @include button-size(1px, 5px, 0.825rem, 1.5);
     font-weight: 400;
     padding-top: 2px;
 }
@@ -210,14 +210,14 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 	  margin-left: -$btn-border-width;
 	}
   
-	// Reset rounded corners
-	> div.dropdown:not(:last-child) > .btn:not(.dropdown-toggle) {
-	  @include border-right-radius(0);
-	}
+	// // Reset rounded corners
+	// > div.dropdown:not(:last-child) > .btn:not(.dropdown-toggle) {
+	//   @include border-right-radius(0);
+	// }
   
-	> div.dropdown:not(:first-child) > .btn {
-	  @include border-left-radius(0);
-	}
+	// > div.dropdown:not(:first-child) > .btn {
+	//   @include border-left-radius(0);
+	// }
   }
   
 /* Copy of Bootstrap's own SCSS adjusted for react-bootstrap's DropdownButton which is .btn wrapped in div.dropdown */
@@ -329,7 +329,7 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 			margin-top: 0;
 			margin-bottom: 0;
 
-			&.h4 + button.close {
+			&.h4 + button.btn-close {
 				/* Default size for Modal.Title is h4; increase close button icon size (experimental) */
 				font-size: 1.8em;
 			}

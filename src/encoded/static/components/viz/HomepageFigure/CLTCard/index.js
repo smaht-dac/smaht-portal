@@ -77,7 +77,7 @@ export const CLTCard = ({ currentTier }) => {
                     data: (
                         <>
                             <div>Please Note:</div>
-                            <div className="font-italic">
+                            <div className="fst-italic">
                                 The donors for brain tissue differ from and are
                                 unrelated to those who supplied other
                                 benchmarking tissues (e.g. such as skin, liver,
