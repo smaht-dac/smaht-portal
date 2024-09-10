@@ -56,8 +56,6 @@ def validate_molecule_specific_assay_on_add(context, request):
     The assays with `valid_molecules` property may need to be updated as new techologies come out 
     or are added to the portal.
     """
-    if "skip_links=true" in request.url:  # xyzzy
-        return
     data = request.json
     molecules = []
     for analyte in data['analytes']:
