@@ -135,4 +135,4 @@ def test_files_status_retracted(es_testapp: TestApp, workbook: None) -> None:
         es_testapp,
         "?type=FileSet&files_status_retracted=True",
     )
-    assert status_search
+    assert len(status_search) == 1
