@@ -7,12 +7,40 @@ smaht-portal
 Change Log
 ----------
 
-0.89.4
+0.92.1
 ======
 `PR 240: fix: SN TPC samples annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/240>`_
 * In `commands/create_annotated_filename.py`:
   * Grab unique `aliquot_ids` so that files with tissue samples from TPC are not considered to have merged aliquots
   e.g. file has identical samples `ST001-1A-001A1` from GCC and `ST001-1A-001A1` from TPC. The TPC item is used for metadata cross-checking, and shouldn't be considered when checking if samples were merged for analyte extraction.
+
+0.91.0
+======
+`PR234: SN Cell Line links <https://github.com/smaht-dac/smaht-portal/pull/234>`_
+* Allow `CellLine` to link to itself with `parent_cell_lines`
+* Allow `CellLine` to link to `TissueSample` (`Sample`) with `tissue_samples`
+* Allow `CellCulture` to link to `TissueSample`. Keeping `Tissue` link for now, to remove later.
+* Add a calculated property to `CellLine`, `source_donor`, that gets the donor information, if present, from `donor`, `tissue_samples`, or `parent_cell_lines`
+
+
+0.90.2
+======
+`PR 245: SN Make antibody an array <https://github.com/smaht-dac/smaht-portal/pull/245>`_
+* In Library, make `antibody` and array of strings
+* Small fix to submission template delimiter description
+
+
+0.90.1
+======
+
+* Add operator `is_type` to QC thresholds schema
+
+
+0.90.0
+======
+`PR241: SN Add properties to library <https://github.com/smaht-dac/smaht-portal/pull/241>`_
+* Add properties `dna_target`, `guide_sequence`, and `antibody` to Library schema
+* Change property `restriction_enzymes` to `enzymes` in LibraryPreparation (recently added property so it is empty in the portal) to apply for transposase enzymes as well and update associated tests.
 
 
 0.89.3
