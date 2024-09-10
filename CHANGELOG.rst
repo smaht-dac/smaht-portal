@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.90.3
+======
+`PR241: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
+* Add downsampled hapmap tab
+
+
 0.90.2
 ======
 `PR 245: SN Make antibody an array <https://github.com/smaht-dac/smaht-portal/pull/245>`_
