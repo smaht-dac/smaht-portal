@@ -346,6 +346,7 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.samples.sample_sources.code",
         "file_sets.samples.sample_sources.description",
         "file_sets.samples.sample_sources.donor",
+        "file_sets.files_status_retracted",
 
         # For manifest
         "sequencing.sequencer.display_title",
