@@ -313,7 +313,7 @@ def is_file(properties: Dict[str, Any]) -> bool:
 
 
 def get_file_extension(
-    request_handler: RequestHandler, properties: Dict[str, Any] 
+    properties: Dict[str, Any], request_handler: RequestHandler
 ) -> str:
     """Get file extension from properties."""
     return get_property_value_from_identifier(
@@ -343,19 +343,14 @@ def get_accepted_file_extensions(
     )
 
 
-def is_bam_file(request_handler: RequestHandler, properties: Dict[str, Any]) -> bool:
-    """Check if file file_format has the bam file extension."""
-    return get_file_extension(request_handler, properties) == "bam"
-
-
-def is_fasta_file(properties: Dict[str, Any],request_handler: RequestHandler) -> bool:
+def is_fasta_file(properties: Dict[str, Any],request_handler: RequestHandler):
     """Check if file file_format has the fa or fasta file extension."""
-    return get_file_extension(request_handler, properties) in ["fa","fasta"]
+    return get_file_extension(properties,request_handler) in ["fa","fasta"]
 
 
-def is_chain_file(properties: Dict[str, Any],request_handler: RequestHandler) -> bool:
+def is_chain_file(properties: Dict[str, Any],request_handler: RequestHandler):
     """Check if file_format has the chain.gz file extension."""
-    return get_file_extension(request_handler,properties) == "chain.gz"
+    return get_file_extension(properties,request_handler) == "chain.gz"
 
 
 def is_unaligned_reads(file: Dict[str, Any]) -> bool:
@@ -410,14 +405,3 @@ def has_structural_variants(file: Dict[str, Any]) -> bool:
 def has_mobile_element_insertions(file: Dict[str, Any]) -> bool:
     """Check if file has MEIs."""
     return "MEI" in get_data_type(file)
-
-
-def get_associated_files_status(
-    file: Dict[str, Any], request_handler: RequestHandler, at_id: str
-) -> List[str]:
-    """Get associated files status from the FileSet.files_status calcprop"""
-    return  get_property_values_from_identifiers(
-            request_handler,
-            get_file_sets(file),
-            partial(file_set.get_associated_files_status, request_handler, at_id)
-    )
