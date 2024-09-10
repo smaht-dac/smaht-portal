@@ -20,6 +20,7 @@ from ..item_utils import (
      unaligned_reads as ur_utils,
      file as file_utils
 )
+from encoded.validator_decorators import link_related_validator
 
 @collection(
     name="unaligned-reads",
@@ -37,6 +38,7 @@ class UnalignedReads(SubmittedFile):
         pass
 
 
+@link_related_validator
 def validate_read_pairs_on_add(context,request):
     """Check that file is R2 if it has `paired_with` and link of R2 files corresponds to an R1 file on add."""
     data = request.json

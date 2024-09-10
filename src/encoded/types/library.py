@@ -1,7 +1,7 @@
+from pyramid.view import view_config
 from snovault import collection, load_schema
 from snovault.util import debug_log, get_item_or_none
-
-from pyramid.view import view_config
+from encoded.validator_decorators import link_related_validator
 
 from .submitted_item import (
     SUBMITTED_ITEM_ADD_VALIDATORS,
@@ -49,7 +49,6 @@ class Library(SubmittedItem):
     class Collection(Item.Collection):
         pass
 
-from encoded.validator_decorators import link_related_validator
 @link_related_validator
 def validate_molecule_specific_assay_on_add(context, request):
     """Check that analyte.molecule includes the correct molecule for molecule-specific assays.
@@ -59,15 +58,9 @@ def validate_molecule_specific_assay_on_add(context, request):
     """
     if "skip_links=true" in request.url:  # xyzzy
         return
-    # import pdb ; pdb.set_trace()  # noqa
     data = request.json
     molecules = []
     for analyte in data['analytes']:
-        # FIX: 2024-08-29/dmichaels
-        # Guard against passing None to library_utils.get_assay.
-        # molecules += analyte_utils.get_molecule(
-        #     get_item_or_none(request, analyte, 'analytes')
-        # )
         if (analyte := get_item_or_none(request, analyte, 'analytes')) is not None:
             molecules += analyte_utils.get_molecule(analyte)
     assay = get_item_or_none(request, data['assay'], 'assays')

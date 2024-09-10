@@ -30,6 +30,8 @@ from .base import (
 )
 
 from .utils import get_properties, get_property_for_validation
+from encoded.validator_decorators import link_related_validator
+
 log = structlog.getLogger(__name__)
 
 
@@ -270,6 +272,7 @@ class FileSet(SubmittedItem):
         }
 
 
+@link_related_validator
 def validate_compatible_assay_and_sequencer_on_add(context, request):
     """Check filesets to make sure they are linked to compatible library.assay and sequencing items on add.
     
@@ -280,12 +283,6 @@ def validate_compatible_assay_and_sequencer_on_add(context, request):
     assays = []
     valid_sequencers = []
     for library in data['libraries']:
-        # FIX: 2024-08-29/dmichaels
-        # Guard against passing None to library_utils.get_assay.
-        # TODO: What should really be done here if assay_aid is None (continue) ??
-        # assay_aid = library_utils.get_assay(
-        #     get_item_or_none(request, library, 'library')
-        # )
         if (library := get_item_or_none(request, library, 'library')) is None:
             continue
         assay_aid = library_utils.get_assay(library)
