@@ -124,6 +124,14 @@ export const BenchmarkingDataMap = {
                     </li>
                     <li>83.5%: HG005 (Male; Chinese)</li>
                 </ul>
+
+                <p>
+                    For the MEI Detection Challenge, DAC used the bulk WGS data
+                    from BCM-GCC to downsample the HapMap mixture data to 50X,
+                    100X, 200X, and 300X for Illumina (originally ~400X); and to
+                    30X, 60X, and 90X for PacBio and ONT (originally ~100X
+                    each).{' '}
+                </p>
             </div>
         ),
         type: 'Cell Line Data',
