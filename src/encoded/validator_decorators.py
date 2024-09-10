@@ -7,5 +7,6 @@ from typing import Callable
 def link_related_validator(wrapped_function: Callable) -> Callable:
     # import pdb ; pdb.set_trace()  # noqa
     def decorator(*args, **kwargs) -> Callable:
-        pass
+        nonlocal wrapped_function
+        return wrapped_function(*args, **kwargs)
     return decorator
