@@ -494,7 +494,6 @@ h3.submission-subtitle {
 	&[data-status="current"]:before,						// Applicable to Item.status
 	&[data-status="shared"]:before,							// Applicable to Item.status
 	&[data-status="released"]:before,						// Applicable to Item.status
-	&[data-status="uploaded"]:before,						// Applicable to File.status
 	&[data-status="public"]:before,							// Applicable to Pages & UserContent
 	&[data-status="complete"]:before,						// Applicable to WorkflowRun.run_status + columnExtensionMap columns
 	&[data-status="protective"]:before {					// Applicable to ClinVar Clinical Significance
@@ -523,7 +522,8 @@ h3.submission-subtitle {
 	&[data-status="started"]:before, 						// Applicable to WorkflowRun.run_status
 	&[data-status="running"]:before,						// Applicable to WorkflowRun.run_status + columnExtensionMap columns
 	&[data-status="in progress"]:before, 					// Applicable to columnExtensionMap columns
-	&[data-status="incomplete"]:before { 					// Applicable to columnExtensionMap columns
+	&[data-status="incomplete"]:before, 					// Applicable to columnExtensionMap columns
+	&[data-status="uploaded"]:before {						// Applicable to File.status
 		color: #fff;
 		background-color: #d8bd22;
 	}
