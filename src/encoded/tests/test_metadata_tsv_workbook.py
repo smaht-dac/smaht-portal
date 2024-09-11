@@ -177,10 +177,10 @@ class TestMetadataTSVWorkbook:
                                    {'type': 'File', 'include_extra_files': False}).json
         for facet in res:
             if facet['field'] == 'file_size':
-                assert facet['count'] == 11
+                assert facet['count'] == 13
                 assert facet['min'] == 1000.0
                 assert facet['max'] == 100000.0
-                assert facet['sum'] == 286000.0
+                assert facet['sum'] == 316000.0
             if facet['field'] == 'extra_files.file_size':
                 raise AssertionError('Extra files information present when not desired')
         # check an individual type (with extra files)

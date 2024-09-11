@@ -384,6 +384,7 @@ class File(Item, CoreFile):
         'uploaded',
         'in review',
         'released',
+        'retracted',
         'restricted',
         'public'
     ]

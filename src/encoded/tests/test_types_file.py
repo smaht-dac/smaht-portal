@@ -529,7 +529,7 @@ def test_libraries(es_testapp: TestApp, workbook: None) -> None:
         assert not file_utils.get_libraries(file)
 
     submitted_file_with_libraries_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted"
     )
     assert submitted_file_with_libraries_search
     for submitted_file in submitted_file_with_libraries_search:
@@ -577,7 +577,7 @@ def test_sequencing(es_testapp: TestApp, workbook: None) -> None:
         assert not file_utils.get_sequencings(file)
 
     submitted_file_with_sequencing_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted"
     )
     assert submitted_file_with_sequencing_search
     for submitted_file in submitted_file_with_sequencing_search:
@@ -618,7 +618,7 @@ def test_assays(es_testapp: TestApp, workbook: None) -> None:
         assert not file_utils.get_assays(file)
 
     submitted_file_with_assays_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted"
     )
     assert submitted_file_with_assays_search
     for submitted_file in submitted_file_with_assays_search:
@@ -635,8 +635,6 @@ def test_assays(es_testapp: TestApp, workbook: None) -> None:
 def assert_assays_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'assays' calcprop matches file_sets.assay."""
     assays_from_calcprop = file_utils.get_assays(file)
-    # if assays_from_calcprop == []:
-    #     import pdb; pdb.set_trace()
     file_sets = file_utils.get_file_sets(file)
     libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
     assays = get_unique_values(libraries, library_utils.get_assay)
@@ -660,7 +658,7 @@ def test_analytes(es_testapp: TestApp, workbook: None) -> None:
         assert not file_utils.get_analytes(file)
 
     submitted_file_with_analytes_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted"
     )
     assert submitted_file_with_analytes_search
     for submitted_file in submitted_file_with_analytes_search:
@@ -677,8 +675,6 @@ def test_analytes(es_testapp: TestApp, workbook: None) -> None:
 def assert_analytes_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'analytes' calcprop matches file_sets.libraries.analytes."""
     analytes_from_calcprop = file_utils.get_analytes(file)
-    # if analytes_from_calcprop == []:
-    #     import pdb; pdb.set_trace()
     file_sets = file_utils.get_file_sets(file)
     libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
     analytes = get_unique_values(libraries, library_utils.get_analytes)
@@ -702,7 +698,7 @@ def test_samples(es_testapp: TestApp, workbook: None) -> None:
         assert not file_utils.get_samples(file)
 
     submitted_file_with_samples_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted"
     )
     assert submitted_file_with_samples_search
     for submitted_file in submitted_file_with_samples_search:
@@ -723,8 +719,6 @@ def assert_samples_calcprop_includes_embeds(file: Dict[str, Any]) -> None:
     samples than are directly embedded.
     """
     samples_from_calcprop = file_utils.get_samples(file)
-    # if samples_from_calcprop == []:
-    #     import pdb; pdb.set_trace()
     file_sets = file_utils.get_file_sets(file)
     samples = get_unique_values(file_sets, file_set_utils.get_samples)
     if samples:
@@ -763,7 +757,7 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
         assert not file_utils.get_sample_sources(file)
 
     submitted_file_with_sample_sources_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted"
     )
     assert submitted_file_with_sample_sources_search
     for submitted_file in submitted_file_with_sample_sources_search:
@@ -780,8 +774,6 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
 def assert_sample_sources_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'sample_sources' calcprop matches upstream sample sources."""
     sample_sources_from_calcprop = file_utils.get_sample_sources(file)
-    # if sample_sources_from_calcprop == []:
-    #     import pdb; pdb.set_trace()
     file_sets = file_utils.get_file_sets(file)
     libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
     analytes = get_unique_values(libraries, library_utils.get_analytes)
@@ -816,7 +808,7 @@ def test_donors(es_testapp: TestApp, workbook: None) -> None:
             assert not file_utils.get_donors(file)
 
     submitted_file_with_donors_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted"
     )
     assert submitted_file_with_donors_search
     for submitted_file in submitted_file_with_donors_search:
@@ -835,13 +827,11 @@ def assert_cell_line_donors_match_calcprop(
     file: Dict[str, Any],
     cell_lines: List[Dict[str, Any]],
 ) -> None:
-    """Ensure cell line donors match calcprop."""
+    """Ensure cell line donors match calcprop.""" 
     donor_ids = get_property_values_from_identifiers(
-        request_handler, cell_lines, cell_line_utils.get_donor
+        request_handler, cell_lines, functools.partial(cell_line_utils.get_source_donor, request_handler)
     )
-    donors = request_handler.get_items(donor_ids)
-    # if donors == []:
-    #     import pdb; pdb.set_trace()   
+    donors = request_handler.get_items(donor_ids)  
     assert_items_match(donors, file_utils.get_donors(file))
 
 
@@ -853,9 +843,7 @@ def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     analytes = get_unique_values(libraries, library_utils.get_analytes)
     samples = get_unique_values(analytes, analyte_utils.get_samples)
     sample_sources = get_unique_values(samples, sample_utils.get_sample_sources)
-    donors = get_unique_values(sample_sources, tissue_utils.get_donor)
-    # if donors == []:
-    #     import pdb; pdb.set_trace()        
+    donors = get_unique_values(sample_sources, tissue_utils.get_donor)     
     assert_items_match(donors_from_calcprop, donors)
 
 
@@ -959,7 +947,7 @@ def test_data_generation_summary(es_testapp: TestApp, workbook: None) -> None:
     """
     search_key = "data_generation_summary.data_type"
     files_with_summary_search = search_type_for_key(
-        es_testapp, "File", search_key
+        es_testapp, "File", search_key, add_on="&status!=retracted"
     )
     for file in files_with_summary_search:
         assert_data_generation_summary_matches_expected(file, es_testapp)

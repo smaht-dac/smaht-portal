@@ -19,7 +19,7 @@
         "read_pair_number": "R1",
         "file_size": 10000,
         "status": "released",
-        "dataset": "colo829t",
+        "dataset": "tissue",
         "flow_cell_barcode": "HAWT3ADXX",
         "flow_cell_lane": 1
     },
@@ -41,6 +41,9 @@
             "TEST_FILE-SET_LIVER"
         ],
         "read_pair_number": "R2",
+        "file_size": 10000,
+        "status": "released",
+        "dataset": "tissue",
         "paired_with": "TEST_UNALIGNED-READS_LIVER-FASTQ-R1"
 
     },
