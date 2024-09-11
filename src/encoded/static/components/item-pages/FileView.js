@@ -123,7 +123,7 @@ const FileViewHeader = (props) => {
                     <span className="vertical-divider">|</span>
                     <ViewJSONAction href={context['@id']}>
                         <a
-                            className="view-json"
+                            className="view-json link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
                             aria-label="Open JSON code in new tab"
                             tabIndex="0">
                             <i className="icon icon-file-code far"></i>

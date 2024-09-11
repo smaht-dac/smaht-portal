@@ -423,6 +423,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                                 By signing up, you are agreeing to our{' '}
                                 <a
                                     href="/help/about/privacy-policy"
+                                    className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
                                     target="_blank"
                                     rel="noreferrer noopener">
                                     Privacy Policy
@@ -545,6 +546,7 @@ class LookupProjectField extends React.PureComponent {
                     <div style={LookupProjectField.fieldTitleColStyle}>
                         <a
                             href={object.itemUtil.atId(currentProjectDetails)}
+                            className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
                             target="_blank"
                             data-tip="View project in new tab"
                             rel="noopener noreferrer"

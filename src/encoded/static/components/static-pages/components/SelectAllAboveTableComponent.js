@@ -440,7 +440,8 @@ const SelectedItemsDownloadModal = function (props) {
                             <a
                                 href="https://smaht.org/policies/"
                                 target="_blank"
-                                rel="noreferrer noopener">
+                                rel="noreferrer noopener"
+                                className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover">
                                 SMaHT Data Use Policy
                             </a>{' '}
                             for the use of open- and protected-access data.
@@ -450,7 +451,8 @@ const SelectedItemsDownloadModal = function (props) {
                             <a
                                 href="https://smaht.org/policies/"
                                 target="_blank"
-                                rel="noreferrer noopener">
+                                rel="noreferrer noopener"
+                                className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover">
                                 SMaHT Publication Policy
                             </a>
                             .
@@ -491,7 +493,8 @@ const SelectedItemsDownloadModal = function (props) {
                             <a
                                 href="/docs/user-guide/manifest"
                                 target="_blank"
-                                rel="noreferrer noopener">
+                                rel="noreferrer noopener"
+                                className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover">
                                 here
                             </a>
                             .
@@ -521,7 +524,8 @@ const SelectedItemsDownloadModal = function (props) {
                         instructions{' '}
                         <a
                             href="/docs/access/how-to-download-files#downloading-files-with-the-aws-cli"
-                            target="_blank">
+                            target="_blank"
+                            className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover">
                             here
                         </a>
                         .

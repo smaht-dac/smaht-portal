@@ -108,7 +108,8 @@ export const FileOverviewTable = (props) => {
                         <a
                             href={atId}
                             target="_blank"
-                            rel="noreferrer noopener">
+                            rel="noreferrer noopener"
+                            className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover">
                             {annotated_filename || display_title}
                         </a>
                     </span>

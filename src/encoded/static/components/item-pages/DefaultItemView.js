@@ -255,7 +255,7 @@ export default class DefaultItemView extends React.PureComponent {
                         message: (
                             <span>
                                 You have been redirected from{' '}
-                                <a href={ourOldItem['@id']}>
+                                <a href={ourOldItem['@id']} className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover">
                                     {redirected_from_accession}
                                 </a>
                                 , which this item ({context.accession})

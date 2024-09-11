@@ -34,7 +34,7 @@ const ConsortiumTable = () => {
             const pis = c['pis'].map((p, j) => {
                 return j === 0 && lab_links[p] ? (
                     <div className="text-nowrap" key={j}>
-                        <a href={lab_links[p]} target="_blank">
+                        <a href={lab_links[p]} target="_blank" className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover">
                             {p}
                         </a>
                     </div>
@@ -66,7 +66,7 @@ const ConsortiumTable = () => {
                         {c['project']} <br />
                         <small>
                             Project number:{' '}
-                            <a href={c['url']} target="_blank" rel="noreferrer">
+                            <a href={c['url']} target="_blank" rel="noreferrer" className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover">
                                 {c['project-number']}
                             </a>
                         </small>

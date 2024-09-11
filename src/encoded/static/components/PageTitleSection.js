@@ -423,7 +423,7 @@ export class StaticPageBreadcrumbs extends React.Component {
         } else if (shouldDisable) {
             inner = <span>{ancestor.display_title}</span>;
         } else {
-            inner = <a href={ancestor['@id']}>{ancestor.display_title}</a>;
+            inner = <a href={ancestor['@id']} className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover">{ancestor.display_title}</a>;
         }
         return (
             <div
@@ -462,6 +462,7 @@ export class StaticPageBreadcrumbs extends React.Component {
                             style={style}>
                             <i className="icon icon-fw icon-pencil-alt fas" />{' '}
                             <a
+                                className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
                                 href={editAction.href}
                                 data-tip="Edit this Static Page">
                                 Edit
