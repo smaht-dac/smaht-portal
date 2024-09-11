@@ -7,6 +7,29 @@ smaht-portal
 Change Log
 ----------
 
+0.92.0
+======
+`PR244: SN FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/244>`_
+* Create calcprop for FileSet, `files_status_retracted`, that returns "True" if a file in files has the status of `obsolete` or `retracted`
+* Embed `file_set.files_status_retracted` in File
+
+
+0.91.0
+======
+`PR234: SN Cell Line links <https://github.com/smaht-dac/smaht-portal/pull/234>`_
+* Allow `CellLine` to link to itself with `parent_cell_lines`
+* Allow `CellLine` to link to `TissueSample` (`Sample`) with `tissue_samples`
+* Allow `CellCulture` to link to `TissueSample`. Keeping `Tissue` link for now, to remove later.
+* Add a calculated property to `CellLine`, `source_donor`, that gets the donor information, if present, from `donor`, `tissue_samples`, or `parent_cell_lines`
+
+
+0.90.2
+======
+`PR 245: SN Make antibody an array <https://github.com/smaht-dac/smaht-portal/pull/245>`_
+* In Library, make `antibody` and array of strings
+* Small fix to submission template delimiter description
+
+
 0.90.1
 ======
 

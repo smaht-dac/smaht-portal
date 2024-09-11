@@ -2,9 +2,11 @@ from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
 from . import (
+    item as item_utils,
     library as library_utils,
     sample as sample_utils,
     sequencing as sequencing_utils,
+    file as file_utils,
 )
 from .utils import (
     RequestHandler,
@@ -70,3 +72,28 @@ def get_sequencer(
         get_sequencing(file_set),
         sequencing_utils.get_sequencer,
     )
+
+
+def get_files(file_set: Dict[str, Any]) -> List[str]:
+    """Get files calc_prop connected to file set."""
+    return file_set.get("files",[])
+
+
+def get_associated_files_retracted(request_handler: RequestHandler, files: List[str]) -> List[str]:
+    """Get status from files connected to file set. 
+    
+    Returns True if any associated bam files are retracted or obsolete status, else False"""
+    for file in files:
+        status = get_property_value_from_identifier(
+            request_handler,
+            file,
+            item_utils.get_status
+        )
+        format = get_property_value_from_identifier(
+            request_handler,
+            file,
+            partial(file_utils.is_bam_file,request_handler)
+        )
+        if format and (status == "obsolete" or status == "retracted"):
+            return "True"
+    return "False"
