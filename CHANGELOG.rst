@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.92.1
+======
+`PR249: SN Fix FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/249>`_
+* For test_types_file.py tests for calculated properties, only check SubmittedFiles that are not retracted or obsolete status.
+
+
 0.92.0
 ======
 `PR244: SN FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/244>`_
