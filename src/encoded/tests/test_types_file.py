@@ -500,7 +500,7 @@ def test_meta_workflow_run_outputs_rev_link(
 
 
 def search_type_for_key(
-    testapp: TestApp, item_type: str, key: str, exists: Optional[bool] = True
+    testapp: TestApp, item_type: str, key: str, exists: Optional[bool] = True, add_on: Optional[str] = ""
 ) -> List[Dict[str, Any]]:
     """Search for items of a given type for given key."""
     query = f"?type={item_type}&{key}"
@@ -508,6 +508,7 @@ def search_type_for_key(
         query += "!=No+value"
     else:
         query += "=No+value"
+    query += add_on
     return get_search(testapp, query)
 
 
@@ -528,7 +529,7 @@ def test_libraries(es_testapp: TestApp, workbook: None) -> None:
         assert not file_utils.get_libraries(file)
 
     submitted_file_with_libraries_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
     )
     assert submitted_file_with_libraries_search
     for submitted_file in submitted_file_with_libraries_search:
@@ -576,7 +577,7 @@ def test_sequencing(es_testapp: TestApp, workbook: None) -> None:
         assert not file_utils.get_sequencings(file)
 
     submitted_file_with_sequencing_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
     )
     assert submitted_file_with_sequencing_search
     for submitted_file in submitted_file_with_sequencing_search:
@@ -617,7 +618,7 @@ def test_assays(es_testapp: TestApp, workbook: None) -> None:
         assert not file_utils.get_assays(file)
 
     submitted_file_with_assays_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
     )
     assert submitted_file_with_assays_search
     for submitted_file in submitted_file_with_assays_search:
@@ -657,7 +658,7 @@ def test_analytes(es_testapp: TestApp, workbook: None) -> None:
         assert not file_utils.get_analytes(file)
 
     submitted_file_with_analytes_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
     )
     assert submitted_file_with_analytes_search
     for submitted_file in submitted_file_with_analytes_search:
@@ -697,7 +698,7 @@ def test_samples(es_testapp: TestApp, workbook: None) -> None:
         assert not file_utils.get_samples(file)
 
     submitted_file_with_samples_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
     )
     assert submitted_file_with_samples_search
     for submitted_file in submitted_file_with_samples_search:
@@ -756,7 +757,7 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
         assert not file_utils.get_sample_sources(file)
 
     submitted_file_with_sample_sources_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
     )
     assert submitted_file_with_sample_sources_search
     for submitted_file in submitted_file_with_sample_sources_search:
@@ -807,7 +808,7 @@ def test_donors(es_testapp: TestApp, workbook: None) -> None:
             assert not file_utils.get_donors(file)
 
     submitted_file_with_donors_search = search_type_for_key(
-        es_testapp, "SubmittedFile", search_key
+        es_testapp, "SubmittedFile", search_key, add_on="&status!=retracted&status!=obsolete"
     )
     assert submitted_file_with_donors_search
     for submitted_file in submitted_file_with_donors_search:
