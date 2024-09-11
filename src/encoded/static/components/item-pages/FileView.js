@@ -86,7 +86,7 @@ const FileViewTitle = (props) => {
 // Header component containing high-level information for the file item
 const FileViewHeader = (props) => {
     const { context = {}, session } = props;
-    const { accession, status, description } = context;
+    const { accession, status, description, notes_to_tsv } = context;
     const selectedFile = new Map([[context['@id'], context]]);
 
     return (
@@ -144,6 +144,26 @@ const FileViewHeader = (props) => {
                     </span>
                 </div>
             </div>
+            {notes_to_tsv.length > 0 ? (
+                <div className="data-group data-row">
+                    <div className="datum description">
+                        <span className="datum-title">Notes </span>
+                        <span className="vertical-divider">|</span>
+                        <ul className="list-unstyled">
+                            {notes_to_tsv.map((note, i) => (
+                                <li
+                                    key={note}
+                                    className={
+                                        'datum-value-notes-to-tsv text-gray ' +
+                                        (i > 0 ? 'mt-1' : '')
+                                    }>
+                                    {note}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            ) : null}
         </div>
     );
 };
