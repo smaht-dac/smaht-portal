@@ -1,6 +1,6 @@
 'use strict';
 
-import React from 'react';
+import React, { useState } from 'react';
 import url from 'url';
 import _ from 'underscore';
 import queryString from 'query-string';
@@ -9,6 +9,7 @@ import { FileViewTabs } from './components/file-overview/FileViewTabs';
 import DefaultItemView from './DefaultItemView';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SelectedItemsDownloadButton } from '../static-pages/components/SelectAllAboveTableComponent';
+import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
 
 // Page containing the details of Items of type File
 export default class FileOverview extends DefaultItemView {
@@ -144,23 +145,25 @@ const FileViewHeader = (props) => {
                     </span>
                 </div>
             </div>
-            {notes_to_tsv.length > 0 ? (
+            {notes_to_tsv && notes_to_tsv.length > 0 ? (
                 <div className="data-group data-row">
                     <div className="datum description">
                         <span className="datum-title">Notes </span>
                         <span className="vertical-divider">|</span>
-                        <ul className="list-unstyled">
-                            {notes_to_tsv.map((note, i) => (
-                                <li
-                                    key={note}
-                                    className={
-                                        'datum-value-notes-to-tsv text-gray ' +
-                                        (i > 0 ? 'mt-1' : '')
-                                    }>
-                                    {note}
-                                </li>
-                            ))}
-                        </ul>
+                        <ShowHideInformationToggle id="show-hide-tsv-notes">
+                            <ul className="list-unstyled">
+                                {notes_to_tsv.map((note, i) => (
+                                    <li
+                                        key={note}
+                                        className={
+                                            'datum-value-notes-to-tsv text-gray ' +
+                                            (i > 0 ? 'mt-1' : '')
+                                        }>
+                                        {note}
+                                    </li>
+                                ))}
+                            </ul>
+                        </ShowHideInformationToggle>
                     </div>
                 </div>
             ) : null}

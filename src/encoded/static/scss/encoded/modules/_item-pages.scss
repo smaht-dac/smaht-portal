@@ -834,6 +834,66 @@ i.status-indicator-dot {
 }
 
 
+.show-hide-information-toggle {
+
+	.toggle-information-container {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+
+		.toggle-information-text-button {
+			font-family: "Inter", Helvetica, Arial, sans-serif;
+			display: flex;
+			align-items: center;
+			justify-content: flex-start;
+			margin-top: 10px;
+			background-color: transparent;
+			border: none;
+			border-radius: 4px;
+			color: $link-color;
+			font-size: 0.875rem;
+			font-weight: 500;
+
+			.icon {
+				margin-right: 8px;
+			}
+
+			.toggle-information-text {
+				margin: 0;
+				height: 25px;
+			}
+
+			&:hover {
+				font-weight: 600;
+			}
+			&.btn:focus,
+			&.btn:active {
+				outline: none !important;
+				box-shadow: none;
+			}
+		}
+
+		&.expanded, &.collapsed {
+			transition: max-height 150ms ease-in-out;
+			overflow: hidden;
+			display: flex;
+			flex-direction: column;
+		}
+
+		&.expanded {
+			max-height: 200px;
+			overflow: scroll;
+		}
+
+		&.collapsed {
+			max-height: 40px;
+			display: -webkit-box;
+			@include prefix(line-clamp, 2);
+			@include prefix(box-orient, vertical);
+		}
+	}	
+}
+
 
 
 /**********************************************************
