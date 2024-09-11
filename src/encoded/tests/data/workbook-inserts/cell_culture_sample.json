@@ -57,7 +57,17 @@
         "sample_sources": [
             "TEST_CELL-CULTURE_LIVER"
         ],
-        "parent_samples": ["TEST_TISSUE-SAMPLE_LIVER"],
+        "preservation_type": "Fresh"
+    },
+    {
+        "uuid": "7d9f406c-cc35-4a15-b966-8fa179a8bd87",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_CELL-CULTURE-SAMPLE_IPSC_FIBROBLAST",
+        "sample_sources": [
+            "TEST_CELL-CULTURE_IPSC_FIBROBLAST"
+        ],
         "preservation_type": "Fresh"
     }
 ]

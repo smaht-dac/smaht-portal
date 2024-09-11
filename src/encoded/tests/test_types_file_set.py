@@ -9,7 +9,11 @@ from .utils import (
     get_item
 )
 
-from ..item_utils import item as item_utils
+from ..item_utils import (
+    item as item_utils,
+    file as file_utils,
+    file_set as file_set_utils
+)
 
 FILE_SET_ID = "b98f9849-3b7f-4f2f-a58f-81100954e00d"
 
@@ -34,10 +38,10 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
 @pytest.mark.parametrize(
     "library,sequencing,expected_status",
     [
-        ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_PACBIO_30X-30H", 200), # FiberSeq and PacBio
+        ("TEST_LIBRARY_LUNG-HOMOGENATE","TEST_SEQUENCING_PACBIO_30X-30H", 200), # FiberSeq and PacBio
         ("","TEST_SEQUENCING_ONT-90X", 422), # FiberSeq and ONT
         ("","TEST_LIBRARY_HELA-HEK293", 422), # Cas9 Nanopore and PacBio
-        ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_ONT-90X", 422), # FiberSeq and ONT
+        ("TEST_LIBRARY_LUNG-HOMOGENATE","TEST_SEQUENCING_ONT-90X", 422), # FiberSeq and ONT
         ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_NOVASEQ-500X", 422), # bulk_wgs and ONT
         ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_ONT-90X", 200), #Cas9 Nanopore and ONT
         ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X", 200) #bulk_wgs and Illumina NovaSeqX
@@ -81,8 +85,8 @@ def test_validate_compatible_assay_and_sequencer_on_patch(
 @pytest.mark.parametrize(
     "library,sequencing,expected_status,index",
     [
-        ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_PACBIO_30X-30H", 201, 1), # FiberSeq and PacBio
-        ("TEST_LIBRARY_LIVER-HOMOGENATE","TEST_SEQUENCING_ONT-90X", 422, 2), # FiberSeq and ONT
+        ("TEST_LIBRARY_LUNG-HOMOGENATE","TEST_SEQUENCING_PACBIO_30X-30H", 201, 1), # FiberSeq and PacBio
+        ("TEST_LIBRARY_LUNG-HOMOGENATE","TEST_SEQUENCING_ONT-90X", 422, 2), # FiberSeq and ONT
         ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_NOVASEQ-500X", 422, 3), # bulk_wgs and ONT
         ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_ONT-90X", 201, 4), #Cas9 Nanopore and ONT
         ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X", 201, 5), #bulk_wgs and Illumina NovaSeqX
@@ -123,3 +127,12 @@ def test_validate_compatible_assay_and_sequencer_on_post(
     }
     post_item(es_testapp,post_body,'file_set',status=expected_status)
 
+
+@pytest.mark.workbook
+def test_files_status_retracted(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure `associated_files_retracted` calc_prop is working."""
+    status_search = get_search(
+        es_testapp,
+        "?type=FileSet&files_status_retracted=True",
+    )
+    assert len(status_search) == 1
