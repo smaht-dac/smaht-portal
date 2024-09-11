@@ -498,7 +498,7 @@ h3.submission-subtitle {
 	&[data-status="complete"]:before,						// Applicable to WorkflowRun.run_status + columnExtensionMap columns
 	&[data-status="protective"]:before {					// Applicable to ClinVar Clinical Significance
 		color: #fff;
-		background-color: #308756;
+		background-color: #299902;
 	}
 
 	// Greener Yellow
@@ -525,7 +525,7 @@ h3.submission-subtitle {
 	&[data-status="uploaded"]:before,						// Applicable to File.status
 	&[data-status="uploading"]:before {						// Applicable to File.status
 		color: #fff;
-		background-color: #d8bd22;
+		background-color: #F6D62D;
 	}
 
 	// Maroon/dark-red
@@ -544,7 +544,7 @@ h3.submission-subtitle {
 	&[data-status="obsolete"]:before,						// Applicable to File.status
 	&[data-status="error"]:before {							// Applicable to WorkflowRun.run_status + columnExtensionMap columns
 		color: #fff;
-		background-color: #a90d0b;
+		background-color: #B90F05;
 	}
 
 	// Purple
