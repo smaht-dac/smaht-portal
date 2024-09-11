@@ -510,7 +510,6 @@ h3.submission-subtitle {
 	// Green-Yellow
 	&[data-status="released to institution"]:before,		// Applicable to Item.status
 	&[data-status="in public review"]:before,				// Applicable to Item.status
-	&[data-status="uploading"]:before,						// Applicable to File.status
 	&[data-status="output_files_transferring"]:before,		// Applicable to WorkflowRun.run_status
 	&[data-status="output_file_transfer_finished"]:before {	// Applicable to WorkflowRun.run_status
 		color: #fff;
@@ -523,7 +522,8 @@ h3.submission-subtitle {
 	&[data-status="running"]:before,						// Applicable to WorkflowRun.run_status + columnExtensionMap columns
 	&[data-status="in progress"]:before, 					// Applicable to columnExtensionMap columns
 	&[data-status="incomplete"]:before, 					// Applicable to columnExtensionMap columns
-	&[data-status="uploaded"]:before {						// Applicable to File.status
+	&[data-status="uploaded"]:before,						// Applicable to File.status
+	&[data-status="uploading"]:before {						// Applicable to File.status
 		color: #fff;
 		background-color: #d8bd22;
 	}
