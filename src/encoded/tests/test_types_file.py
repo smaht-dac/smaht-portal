@@ -635,6 +635,8 @@ def test_assays(es_testapp: TestApp, workbook: None) -> None:
 def assert_assays_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'assays' calcprop matches file_sets.assay."""
     assays_from_calcprop = file_utils.get_assays(file)
+    # if assays_from_calcprop == []:
+    #     import pdb; pdb.set_trace()
     file_sets = file_utils.get_file_sets(file)
     libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
     assays = get_unique_values(libraries, library_utils.get_assay)
@@ -675,6 +677,8 @@ def test_analytes(es_testapp: TestApp, workbook: None) -> None:
 def assert_analytes_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'analytes' calcprop matches file_sets.libraries.analytes."""
     analytes_from_calcprop = file_utils.get_analytes(file)
+    # if analytes_from_calcprop == []:
+    #     import pdb; pdb.set_trace()
     file_sets = file_utils.get_file_sets(file)
     libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
     analytes = get_unique_values(libraries, library_utils.get_analytes)
@@ -719,6 +723,8 @@ def assert_samples_calcprop_includes_embeds(file: Dict[str, Any]) -> None:
     samples than are directly embedded.
     """
     samples_from_calcprop = file_utils.get_samples(file)
+    # if samples_from_calcprop == []:
+    #     import pdb; pdb.set_trace()
     file_sets = file_utils.get_file_sets(file)
     samples = get_unique_values(file_sets, file_set_utils.get_samples)
     if samples:
@@ -774,6 +780,8 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
 def assert_sample_sources_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'sample_sources' calcprop matches upstream sample sources."""
     sample_sources_from_calcprop = file_utils.get_sample_sources(file)
+    # if sample_sources_from_calcprop == []:
+    #     import pdb; pdb.set_trace()
     file_sets = file_utils.get_file_sets(file)
     libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
     analytes = get_unique_values(libraries, library_utils.get_analytes)
@@ -832,6 +840,8 @@ def assert_cell_line_donors_match_calcprop(
         request_handler, cell_lines, cell_line_utils.get_donor
     )
     donors = request_handler.get_items(donor_ids)
+    # if donors == []:
+    #     import pdb; pdb.set_trace()   
     assert_items_match(donors, file_utils.get_donors(file))
 
 
@@ -844,6 +854,8 @@ def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     samples = get_unique_values(analytes, analyte_utils.get_samples)
     sample_sources = get_unique_values(samples, sample_utils.get_sample_sources)
     donors = get_unique_values(sample_sources, tissue_utils.get_donor)
+    # if donors == []:
+    #     import pdb; pdb.set_trace()        
     assert_items_match(donors_from_calcprop, donors)
 
 
