@@ -25,7 +25,6 @@ Change Log
 * New protection of /ingestion-status endpoint (in ingestion/ingestion_status.py) for authenticated
   users only; and also limit /ingestion-status/{keys,keys_sorted,flush} to admin users only.
 
-
 0.92.0
 ======
 `PR244: SN FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/244>`_
@@ -51,6 +50,7 @@ Change Log
 
 0.90.1
 ======
+
 * Add operator `is_type` to QC thresholds schema
 
 
@@ -63,7 +63,6 @@ Change Log
 
 0.89.3
 ======
-
 `PR239: Add mei_detection_challenge_data enum ot dataset <https://github.com/smaht-dac/smaht-portal/pull/239>`_
 * Add `mei_detection_challenge_data` enum to `dataset`
 
@@ -130,7 +129,6 @@ Change Log
 
 0.85.0
 ======
-
 `PR 225: SN Improvements to automated submission spreadsheet <https://github.com/smaht-dac/smaht-portal/pull/226>`_
 * In `write-submission-spreadsheet`:
   * clean up args messages
@@ -142,7 +140,6 @@ Change Log
 
 0.84.0
 ======
-
 `PR 229`: SN Cell Culture upgrade `<https://github.com/smaht-dac/smaht-portal/pull/229>`_
 * Change `CellCulture.cell_line` property to be an array of strings linking to `CellLine`, rather than a string.
   * Adds an upgrader with test for `cell_culture`
@@ -156,7 +153,6 @@ Change Log
 
 0.83.0
 ======
-
 `PR226: SN Add tissue link to cell_culture <https://github.com/smaht-dac/smaht-portal/pull/226>`_
 * Add `parent_samples` link in `cell_culture_sample.json`
 * Add `tissue` link in `cell_culture.json`
