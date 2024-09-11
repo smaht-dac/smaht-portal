@@ -154,7 +154,7 @@ export const FileOverviewTable = (props) => {
         },
         // Status
         status: {
-            widthMap: { lg: 120, md: 120, sm: 100 },
+            widthMap: { lg: 140, md: 120, sm: 100 },
             colTitle: 'Status',
             render: function (result, parentProps) {
                 const value = result?.status;
