@@ -90,6 +90,8 @@ const FileViewHeader = (props) => {
     const { accession, status, description, notes_to_tsv } = context;
     const selectedFile = new Map([[context['@id'], context]]);
 
+    const accessionsOfInterest = ['SMAFI557D2E7', 'SMAFIB6EQLZM'];
+
     return (
         <div className="file-view-header">
             <div className="data-group data-row header">
@@ -105,6 +107,34 @@ const FileViewHeader = (props) => {
                     Download File
                 </SelectedItemsDownloadButton>
             </div>
+            {accessionsOfInterest.includes(accession) ? (
+                <div className="callout warning mt-2 mb-1">
+                    <p className="callout-text">
+                        <span className="flag">Attention:</span>
+                        The{' '}
+                        <a
+                            href="/SMAFI557D2E7"
+                            target="_blank"
+                            rel="noreferrer noopener">
+                            original BAM file
+                        </a>{' '}
+                        of COLO829-T standard ONT WGS data,{' '}
+                        <strong>
+                            SMHTCOLO829T-X-X-M45-D001-uswc-SMAFI557D2E7-sention_minimap2_202308.01_GRCh38.aligned.sorted.bam,
+                            was retracted due to missing methylation tags
+                        </strong>
+                        . The replacement BAM with proper tags is made{' '}
+                        <a
+                            href="/SMAFIB6EQLZM"
+                            target="_blank"
+                            rel="noreferrer noopener">
+                            available
+                        </a>{' '}
+                        here:
+                        SMHTCOLO829T-X-X-M45-D001-uwsc-SMAFIB6EQLZM-sention_minimap2_202308.01_GRch38.aligned.sorted.bam.
+                    </p>
+                </div>
+            ) : null}
             <div className="data-group data-row">
                 <div className="datum">
                     <span className="datum-title">File Accession </span>

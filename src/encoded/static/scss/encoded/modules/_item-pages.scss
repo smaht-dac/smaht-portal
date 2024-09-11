@@ -833,7 +833,7 @@ i.status-indicator-dot {
 	}
 }
 
-
+/* ShowHideInformationToggle component */
 .show-hide-information-toggle {
 
 	.toggle-information-container {
@@ -892,6 +892,37 @@ i.status-indicator-dot {
 			@include prefix(box-orient, vertical);
 		}
 	}	
+}
+
+.callout {
+	border-radius: 7px;
+	border-top-left-radius: 0.25rem;
+	border-bottom-left-radius: 0.25rem;
+	
+	&-text {
+		font-family: Inter;
+		color: #5D5E63;
+		font-size: 0.875rem;
+		padding: 8px;
+		line-height: 20px;
+
+		.flag {
+			font-weight: 600;
+		}
+		.headline {
+			font-weight: 600;
+		}
+	}
+	&.warning {
+		background-color: #FFF9F9;
+		border: 1px solid #F6D6D6;
+		border-left: 4px solid #BB3F3F;
+
+		.flag {
+			font-weight: 600;
+			color: #BB3F3F;
+		}
+	}
 }
 
 
