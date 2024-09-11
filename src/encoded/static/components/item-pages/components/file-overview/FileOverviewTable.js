@@ -176,7 +176,7 @@ export const FileOverviewTable = (props) => {
             widthMap: { lg: 190, md: 170, sm: 150 },
             colTitle: 'Notes',
             render: function (result, parentProps) {
-                const value = result?.tsv_notes;
+                const value = result?.notes_to_tsv?.[0];
                 if (!value) return null;
 
                 const popover = (
@@ -184,7 +184,16 @@ export const FileOverviewTable = (props) => {
                         <Popover.Title as="h3" className="mt-0">
                             TSV Notes
                         </Popover.Title>
-                        <Popover.Content>{value}</Popover.Content>
+                        <Popover.Content>
+                            {value}
+                            {result?.notes_to_tsv?.length > 1 ? (
+                                <a
+                                    href={result['@id']}
+                                    className="d-block mt-1">
+                                    View additional notes on File item
+                                </a>
+                            ) : null}
+                        </Popover.Content>
                     </Popover>
                 );
 
