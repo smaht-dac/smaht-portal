@@ -1,7 +1,8 @@
-from pyramid.view import view_config
 from snovault import collection, load_schema
 from snovault.util import debug_log, get_item_or_none
 from encoded.validator_decorators import link_related_validator
+
+from pyramid.view import view_config
 
 from .submitted_item import (
     SUBMITTED_ITEM_ADD_VALIDATORS,
@@ -59,8 +60,9 @@ def validate_molecule_specific_assay_on_add(context, request):
     data = request.json
     molecules = []
     for analyte in data['analytes']:
-        if (analyte := get_item_or_none(request, analyte, 'analytes')) is not None:
-            molecules += analyte_utils.get_molecule(analyte)
+        molecules += analyte_utils.get_molecule(
+            get_item_or_none(request, analyte, 'analytes')
+        )
     assay = get_item_or_none(request, data['assay'], 'assays')
     valid_molecules = assay_utils.get_valid_molecules(assay)
     if valid_molecules:

@@ -1,5 +1,6 @@
 from snovault import collection, load_schema
 from snovault.util import debug_log, get_item_or_none
+from encoded.validator_decorators import link_related_validator
 from pyramid.view import view_config
 
 
@@ -20,7 +21,6 @@ from ..item_utils import (
      unaligned_reads as ur_utils,
      file as file_utils
 )
-from encoded.validator_decorators import link_related_validator
 
 @collection(
     name="unaligned-reads",

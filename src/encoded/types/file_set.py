@@ -4,6 +4,7 @@ from pyramid.view import view_config
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
 from snovault.util import debug_log, get_item_or_none
+from encoded.validator_decorators import link_related_validator
 import structlog
 
 from .submitted_item import (
@@ -30,8 +31,6 @@ from .base import (
 )
 
 from .utils import get_properties, get_property_for_validation
-from encoded.validator_decorators import link_related_validator
-
 log = structlog.getLogger(__name__)
 
 
@@ -306,9 +305,9 @@ def validate_compatible_assay_and_sequencer_on_add(context, request):
     assays = []
     valid_sequencers = []
     for library in data['libraries']:
-        if (library := get_item_or_none(request, library, 'library')) is None:
-            continue
-        assay_aid = library_utils.get_assay(library)
+        assay_aid = library_utils.get_assay(
+            get_item_or_none(request, library, 'library')
+        )
         assay = get_item_or_none(request, assay_aid, 'assay')
         assays.append(
             item_utils.get_identifier(assay)

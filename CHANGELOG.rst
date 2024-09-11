@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.93.0
+0.94.0
 ======
 * Circa: 2024-08-19 (dmichaels)
 * Nested QC (QualityMetric) development.
@@ -24,6 +24,13 @@ Change Log
   still in the process of being computed (i.e. otherwise we could simply look at the file status an be done with it).
 * New protection of /ingestion-status endpoint (in ingestion/ingestion_status.py) for authenticated
   users only; and also limit /ingestion-status/{keys,keys_sorted,flush} to admin users only.
+
+
+0.93.0
+======
+* Effectively disable server-side validators which reference
+  linked objects for smaht-submitr, when the skip_links=True.
+
 
 0.92.0
 ======
