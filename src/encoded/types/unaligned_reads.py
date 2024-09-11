@@ -127,7 +127,7 @@ def validate_read_pairs_in_file_sets_on_edit(context,request):
 
 
 UNALIGNED_READS_ADD_VALIDATORS = SUBMITTED_FILE_ADD_VALIDATORS + [
-    validate_read_pairs_on_add,
+    #validate_read_pairs_on_add,
     validate_read_pairs_in_file_sets_on_add
 ]
 

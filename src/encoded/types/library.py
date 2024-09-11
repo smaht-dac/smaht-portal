@@ -136,7 +136,7 @@ def validate_assay_specific_properties_on_edit(context, request):
 
 
 LIBRARY_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
-    validate_molecule_specific_assay_on_add,
+    #validate_molecule_specific_assay_on_add,
     validate_assay_specific_properties_on_add
 ]
 

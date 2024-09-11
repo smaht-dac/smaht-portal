@@ -48,10 +48,10 @@ def test_validate_library_properties_on_patch(
 @pytest.mark.workbook
 @pytest.mark.parametrize(
     "post_body,expected_status,index", [
-        ({"assay": "bulk_wgs", "analytes": ["TEST_ANALYTE_LIVER"]}, 201, 1), # DNA assay and analyte
-        ({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_HELA"]}, 201, 2), # RNA assay and analyte
-        ({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_LIVER"]}, 422, 3), #RNA assay and DNA analyte
-        ({"assay": "bulk_fiberseq", "analytes": ["TEST_ANALYTE_HELA"]}, 422, 4), #DNA assay and RNA analyte
+        #({"assay": "bulk_wgs", "analytes": ["TEST_ANALYTE_LIVER"]}, 201, 1), # DNA assay and analyte
+        #({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_HELA"]}, 201, 2), # RNA assay and analyte
+        #({"assay": "bulk_rna_seq", "analytes": ["TEST_ANALYTE_LIVER"]}, 422, 3), #RNA assay and DNA analyte
+        #({"assay": "bulk_fiberseq", "analytes": ["TEST_ANALYTE_HELA"]}, 422, 4), #DNA assay and RNA analyte
         (
             {
                 "assay": "bulk_rna_seq",

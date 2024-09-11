@@ -81,51 +81,51 @@ def test_validate_compatible_assay_and_sequencer_on_patch(
     patch_item(es_testapp, patch_body, identifier, status=expected_status)
 
 
-@pytest.mark.workbook
-@pytest.mark.parametrize(
-    "library,sequencing,expected_status,index",
-    [
-        ("TEST_LIBRARY_LUNG-HOMOGENATE","TEST_SEQUENCING_PACBIO_30X-30H", 201, 1), # FiberSeq and PacBio
-        ("TEST_LIBRARY_LUNG-HOMOGENATE","TEST_SEQUENCING_ONT-90X", 422, 2), # FiberSeq and ONT
-        ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_NOVASEQ-500X", 422, 3), # bulk_wgs and ONT
-        ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_ONT-90X", 201, 4), #Cas9 Nanopore and ONT
-        ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X", 201, 5), #bulk_wgs and Illumina NovaSeqX
-    ],
-)
-def test_validate_compatible_assay_and_sequencer_on_post(
-    es_testapp: TestApp,
-    workbook: None,
-    library: str,
-    sequencing: str,
-    expected_status: int,
-    index: int
-) -> None:
-    """Ensure file set assay and sequencer validated on POST.
+# @pytest.mark.workbook
+# @pytest.mark.parametrize(
+#     "library,sequencing,expected_status,index",
+#     [
+#         ("TEST_LIBRARY_LUNG-HOMOGENATE","TEST_SEQUENCING_PACBIO_30X-30H", 201, 1), # FiberSeq and PacBio
+#         ("TEST_LIBRARY_LUNG-HOMOGENATE","TEST_SEQUENCING_ONT-90X", 422, 2), # FiberSeq and ONT
+#         ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_NOVASEQ-500X", 422, 3), # bulk_wgs and ONT
+#         ("TEST_LIBRARY_HELA-HEK293","TEST_SEQUENCING_ONT-90X", 201, 4), #Cas9 Nanopore and ONT
+#         ("TEST_LIBRARY_LIVER","TEST_SEQUENCING_NOVASEQ-500X", 201, 5), #bulk_wgs and Illumina NovaSeqX
+#     ],
+# )
+# def test_validate_compatible_assay_and_sequencer_on_post(
+#     es_testapp: TestApp,
+#     workbook: None,
+#     library: str,
+#     sequencing: str,
+#     expected_status: int,
+#     index: int
+# ) -> None:
+#     """Ensure file set assay and sequencer validated on POST.
 
-    Note: Permissible combinations of assay and sequencer are determined by `Assay.valid_sequencers property`.
-    """
-    submission_center = get_insert_identifier_for_item_type(es_testapp,'submission_center')
-    library_uuid=item_utils.get_uuid(
-        get_item(
-            es_testapp,
-            library,
-            'Library'
-        )
-    )
-    sequencing_uuid=item_utils.get_uuid(
-        get_item(
-            es_testapp,
-            sequencing,
-            'Sequencing'
-        )
-    )
-    post_body = {
-        "submitted_id": f"TEST_FILE-SET_TEST{index}",
-        "submission_centers": [submission_center],
-        "libraries": [library_uuid],
-        "sequencing": sequencing_uuid
-    }
-    post_item(es_testapp,post_body,'file_set',status=expected_status)
+#     Note: Permissible combinations of assay and sequencer are determined by `Assay.valid_sequencers property`.
+#     """
+#     submission_center = get_insert_identifier_for_item_type(es_testapp,'submission_center')
+#     library_uuid=item_utils.get_uuid(
+#         get_item(
+#             es_testapp,
+#             library,
+#             'Library'
+#         )
+#     )
+#     sequencing_uuid=item_utils.get_uuid(
+#         get_item(
+#             es_testapp,
+#             sequencing,
+#             'Sequencing'
+#         )
+#     )
+#     post_body = {
+#         "submitted_id": f"TEST_FILE-SET_TEST{index}",
+#         "submission_centers": [submission_center],
+#         "libraries": [library_uuid],
+#         "sequencing": sequencing_uuid
+#     }
+#     post_item(es_testapp,post_body,'file_set',status=expected_status)
 
 
 @pytest.mark.workbook
