@@ -105,7 +105,7 @@ export const FileViewTabs = (props) => {
 
     let warningsOnFileset = false;
     file_sets.forEach((file_set) => {
-        if (file_set.warningsOnFileset) {
+        if (file_set.files_status_retracted) {
             // tentative: need to update when get official name of calcprop
             warningsOnFileset = true;
         }
