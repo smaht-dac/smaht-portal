@@ -56,5 +56,16 @@
             "TEST_LIBRARY_LIVER-HOMOGENATE"
         ],
         "sequencing": "TEST_SEQUENCING_PACBIO_30X-30H"
+    },
+    {
+        "uuid": "6ae8d017-88f8-4fe7-8d6d-849f979836c9",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE-SET_LIVER_MERGED",
+        "libraries": [
+            "TEST_LIBRARY_LIVER_MERGED"
+        ],
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
     }
 ]

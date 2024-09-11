@@ -18,6 +18,7 @@ from ..item_utils import (
     item as item_utils,
     library as library_utils,
     sequencing as sequencing_utils,
+    sample as sample_utils
 )
 from ..item_utils.utils import (
     RequestHandler,
@@ -170,11 +171,11 @@ class FileSet(SubmittedItem):
         if len(samples) == 0:
             return None
         if len(samples) > 1:
-            if 'tissue' in samples:
-                samples_meta = request_handler.get_items(samples)
-                for sample_meta in samples_meta:
-                    if sample_meta.get('category') != 'Homogenate':
-                        return None # this should give some kind of warning. Should not have multiple intact tissue samples
+            samples_meta = request_handler.get_items(samples)
+            for sample_meta in samples_meta:
+                if sample_utils.is_tissue_sample(sample_meta) and sample_meta.get('category') != 'Homogenate':
+                    import pdb; pdb.set_trace()
+                    return None # this should give some kind of warning. Should not have multiple intact tissue samples
         if len(samples) == 1:
             sample = samples[0]
             if 'tissue' in sample:

@@ -62,5 +62,16 @@
             "TEST_ANALYTE_LIVER-HOMOGENATE"
         ],
         "assay": "bulk_fiberseq"
+    },
+    {
+        "uuid": "fbb206d8-a6ff-46cf-8417-fe636d0a6403",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY_LIVER_MERGED",
+        "analytes": [
+            "TEST_ANALYTE_LIVER_MERGED"
+        ],
+        "assay": "bulk_wgs"
     }
 ]
