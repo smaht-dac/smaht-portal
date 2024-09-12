@@ -7,10 +7,17 @@ smaht-portal
 Change Log
 ----------
 
-0.91.1
+0.93.0
 ======
-`PR241: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
-* Add downsampled hapmap tab
+* Effectively disable server-side validators which reference
+  linked objects for smaht-submitr, when the skip_links=True.
+
+
+0.92.0
+======
+`PR244: SN FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/244>`_
+* Create calcprop for FileSet, `files_status_retracted`, that returns "True" if a file in files has the status of `obsolete` or `retracted`
+* Embed `file_set.files_status_retracted` in File
 
 
 0.91.0

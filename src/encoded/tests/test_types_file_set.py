@@ -9,7 +9,11 @@ from .utils import (
     get_item
 )
 
-from ..item_utils import item as item_utils
+from ..item_utils import (
+    item as item_utils,
+    file as file_utils,
+    file_set as file_set_utils
+)
 
 FILE_SET_ID = "b98f9849-3b7f-4f2f-a58f-81100954e00d"
 
@@ -123,3 +127,12 @@ def test_validate_compatible_assay_and_sequencer_on_post(
     }
     post_item(es_testapp,post_body,'file_set',status=expected_status)
 
+
+@pytest.mark.workbook
+def test_files_status_retracted(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure `associated_files_retracted` calc_prop is working."""
+    status_search = get_search(
+        es_testapp,
+        "?type=FileSet&files_status_retracted=True",
+    )
+    assert len(status_search) == 1

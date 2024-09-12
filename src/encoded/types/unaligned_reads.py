@@ -1,5 +1,6 @@
 from snovault import collection, load_schema
 from snovault.util import debug_log, get_item_or_none
+from encoded.validator_decorators import link_related_validator
 from pyramid.view import view_config
 
 
@@ -37,6 +38,7 @@ class UnalignedReads(SubmittedFile):
         pass
 
 
+@link_related_validator
 def validate_read_pairs_on_add(context,request):
     """Check that file is R2 if it has `paired_with` and link of R2 files corresponds to an R1 file on add."""
     data = request.json
