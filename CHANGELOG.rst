@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.93.1
+======
+`PR241: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
+* Add downsampled hapmap tab
+
+
 0.93.0
 ======
 * Effectively disable server-side validators which reference
