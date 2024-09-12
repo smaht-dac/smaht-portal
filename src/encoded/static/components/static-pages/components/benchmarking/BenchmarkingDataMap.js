@@ -84,7 +84,7 @@ export const BenchmarkingDataMap = {
         callout: (
             <div className="callout warning">
                 <p className="callout-text">
-                    <span className="flag">Attention:</span>
+                    <span className="flag">Attention: </span>
                     The{' '}
                     <a
                         href="/SMAFI557D2E7"
