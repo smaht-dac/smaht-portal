@@ -4,6 +4,7 @@ from pyramid.view import view_config
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
 from snovault.util import debug_log, get_item_or_none
+from encoded.validator_decorators import link_related_validator
 import structlog
 
 from .submitted_item import (
@@ -108,21 +109,6 @@ class FileSet(SubmittedItem):
         if result:
             return result
         return
-
-    @calculated_property(
-        schema={
-            "title": "Files Status Retracted",
-            "type": "string",
-            "enum": [
-                "True",
-                "False"
-            ],
-        },
-    )
-    def files_status_retracted(
-        self, request: Request, files: Optional[List[str]] = None
-    ) -> Union[str, None]:
-        return self._get_files_status_retracted(request,files)
 
     @calculated_property(
         schema={
@@ -284,15 +270,8 @@ class FileSet(SubmittedItem):
             'assay': assay_part
         }
 
-    def _get_files_status_retracted(self, request, files):
-        """Get the status of rev linked files."""
-        result = None
-        if files:
-            request_handler = RequestHandler(request=request)
-            result = file_set_utils.get_associated_files_retracted(request_handler,files)
-        return result
 
-
+@link_related_validator
 def validate_compatible_assay_and_sequencer_on_add(context, request):
     """Check filesets to make sure they are linked to compatible library.assay and sequencing items on add.
     
