@@ -182,7 +182,7 @@ export const FileOverviewTable = (props) => {
                 const popover = (
                     <Popover id="popover-basic">
                         <Popover.Title as="h3" className="mt-0">
-                            TSV Notes
+                            Notes
                         </Popover.Title>
                         <Popover.Content>
                             {value}
@@ -206,7 +206,7 @@ export const FileOverviewTable = (props) => {
                             type="button"
                             className="btn btn-link btn-xs text-truncate">
                             <i className="icon icon-exclamation-triangle fas text-warning mr-05" />
-                            View TSV Notes
+                            View Notes
                         </button>
                     </OverlayTrigger>
                 );
