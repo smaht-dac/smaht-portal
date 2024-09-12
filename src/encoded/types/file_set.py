@@ -4,6 +4,7 @@ from pyramid.view import view_config
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
 from snovault.util import debug_log, get_item_or_none
+from encoded.validator_decorators import link_related_validator
 import structlog
 
 from .submitted_item import (
@@ -293,6 +294,7 @@ class FileSet(SubmittedItem):
         return result
 
 
+@link_related_validator
 def validate_compatible_assay_and_sequencer_on_add(context, request):
     """Check filesets to make sure they are linked to compatible library.assay and sequencing items on add.
     
