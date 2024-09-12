@@ -9,8 +9,8 @@ Change Log
 
 0.93.1
 ======
-`PR249: SN Fix FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/249>`_
-* For test_types_file.py tests for calculated properties, only check SubmittedFiles that are not retracted or obsolete status.
+`PR249: SN Revert FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/249>`_
+* Revert PR 244, removing `files_status_retracted` calc_prop from FileSet
 
 
 0.93.0
