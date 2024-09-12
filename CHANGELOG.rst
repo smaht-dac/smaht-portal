@@ -7,10 +7,16 @@ smaht-portal
 Change Log
 ----------
 
-0.92.1
+0.93.1
 ======
 `PR249: SN Fix FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/249>`_
 * For test_types_file.py tests for calculated properties, only check SubmittedFiles that are not retracted or obsolete status.
+
+
+0.93.0
+======
+* Effectively disable server-side validators which reference
+  linked objects for smaht-submitr, when the skip_links=True.
 
 
 0.92.0
