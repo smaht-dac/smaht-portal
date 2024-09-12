@@ -110,8 +110,7 @@ const FileViewHeader = (props) => {
             {accessionsOfInterest.includes(accession) ? (
                 <div className="callout warning mt-2 mb-1">
                     <p className="callout-text">
-                        <span className="flag">Attention:</span>
-                        The{' '}
+                        <span className="flag">Attention: </span> The{' '}
                         <a
                             href="/SMAFI557D2E7"
                             target="_blank"
