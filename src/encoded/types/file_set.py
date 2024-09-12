@@ -286,6 +286,9 @@ class FileSet(SubmittedItem):
         }
 
     def _get_files_status_retracted(self, request, files):
+        # TODO: xyzzy/dmichaels/20240912 ...
+        # This return None is obviously wrong but just for temporary testing.
+        return None
         """Get the status of rev linked files."""
         result = None
         if files:
