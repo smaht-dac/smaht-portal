@@ -105,8 +105,7 @@ export const FileViewTabs = (props) => {
 
     let warningsOnFileset = false;
     file_sets.forEach((file_set) => {
-        if (file_set.files_status_retracted) {
-            // tentative: need to update when get official name of calcprop
+        if (file_set.files_status_retracted === 'True') {
             warningsOnFileset = true;
         }
     });
@@ -114,7 +113,7 @@ export const FileViewTabs = (props) => {
     // Check whether there are any warnings on the files within Associated Files
     if (warningsOnFileset) {
         associatedFilesTitle = (
-            <div>
+            <div data-tip="Some associated files may have status 'redacted' or 'obsolete'. Please check for notes before downloading.">
                 <i className="icon fas icon-exclamation-triangle text-warning mr-05"></i>
                 Associated Files
             </div>
