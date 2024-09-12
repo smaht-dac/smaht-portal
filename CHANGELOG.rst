@@ -11,6 +11,7 @@ Change Log
 ======
 `PR241: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
 * Add downsampled hapmap tab
+* Update benchmarking descriptions
 
 
 0.93.0
