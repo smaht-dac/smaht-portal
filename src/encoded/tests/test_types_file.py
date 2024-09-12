@@ -762,7 +762,7 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
     assert submitted_file_with_sample_sources_search
     for submitted_file in submitted_file_with_sample_sources_search:
         assert_sample_sources_calcprop_matches_embeds(submitted_file)
-
+    
     output_file_with_sample_sources_search = search_type_for_key(
         es_testapp, "OutputFile", search_key
     )
@@ -831,7 +831,7 @@ def assert_cell_line_donors_match_calcprop(
     donor_ids = get_property_values_from_identifiers(
         request_handler, cell_lines, functools.partial(cell_line_utils.get_source_donor, request_handler)
     )
-    donors = request_handler.get_items(donor_ids)  
+    donors = request_handler.get_items(donor_ids)
     assert_items_match(donors, file_utils.get_donors(file))
 
 
