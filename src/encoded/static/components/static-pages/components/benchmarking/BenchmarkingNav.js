@@ -110,14 +110,14 @@ export const BenchmarkingUINav = (props) => {
 
 // TODO: See if this can be consolidated with the one on the homepage
 function ContextAwareToggle({ children, eventKey, callback }) {
-    const currentEventKey = useContext(AccordionContext);
+    const { activeEventKey } = useContext(AccordionContext);
 
     const decoratedOnClick = useAccordionButton(eventKey, (e) => {
         e.preventDefault();
         return callback && callback(eventKey);
     });
 
-    const isCurrentEventKey = currentEventKey === eventKey;
+    const isCurrentEventKey = activeEventKey === eventKey;
 
     const openStatusIconCls = isCurrentEventKey
         ? 'icon icon-angle-up fas text-secondary'
