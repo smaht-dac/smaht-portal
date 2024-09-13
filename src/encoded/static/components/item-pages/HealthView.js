@@ -358,7 +358,7 @@ const DatabaseCountsInfo = React.memo(function DatabaseCountsInfo(props) {
                 type="button"
                 className="btn btn-block btn-lg btn-outline-dark refresh-counts-button btn-block mt-2"
                 onClick={getCounts}>
-                <i className="icon icon-fw fas icon-sync me-1" />
+                <i className="icon icon-fw fas icon-sync me-08" />
                 Get Database Counts
             </button>
         );
@@ -369,14 +369,14 @@ const DatabaseCountsInfo = React.memo(function DatabaseCountsInfo(props) {
     if (db_es_total === 'loading...') {
         btnTitle = (
             <React.Fragment>
-                <i className="icon icon-fw fas icon-sync icon-spin me-1" />
+                <i className="icon icon-fw fas icon-sync icon-spin me-08" />
                 Fetching Database Counts
             </React.Fragment>
         );
     } else {
         btnTitle = (
             <React.Fragment>
-                <i className="icon icon-fw fas icon-sync me-1" />
+                <i className="icon icon-fw fas icon-sync me-08" />
                 Refresh Counts
             </React.Fragment>
         );

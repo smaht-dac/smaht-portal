@@ -686,7 +686,7 @@ function ProfileContactFields(props) {
 
 function ProfileContactFieldsIcon({ icon }) {
     return (
-        <i className={'visible-lg-inline icon icon-fw me-1 icon-' + icon} />
+        <i className={'visible-lg-inline icon icon-fw me-07 icon-' + icon} />
     );
 }
 
@@ -823,13 +823,13 @@ export function ImpersonateUserForm({ updateAppSessionState }) {
                             href="/search/?type=User"
                             target="_blank"
                             className="btn btn-secondary btn-md mt-2 me-2">
-                            <i className="icon icon-fw icon-users fas me-1" />
+                            <i className="icon icon-fw icon-users fas me-08" />
                             View Users
                         </a>
                         <button
                             type="submit"
                             className="btn btn-primary btn-md mt-2">
-                            <i className="icon icon-fw icon-user-ninja fas me-1" />
+                            <i className="icon icon-fw icon-user-ninja fas me-08" />
                             Impersonate
                         </button>
                     </form>

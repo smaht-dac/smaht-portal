@@ -916,7 +916,7 @@ class UsageChartsCountByDropdown extends React.PureComponent {
         const dropdownTitle = menuOptions.get(currCountBy);
 
         return (
-            <div className="d-inline-block me-1">
+            <div className="d-inline-block me-05">
                 <DropdownButton size="sm" id={"select_count_for_" + chartID}
                     onSelect={this.handleSelection} title={dropdownTitle}>
                     {_.map([ ...menuOptions.entries() ], function([ k, title ]){
@@ -1025,7 +1025,7 @@ export function UsageStatsView(props){
                             <input type="range" id="input_range_y_scale_power" className='w-75'
                                 min={scaleRangeMin} max={scaleRangeMax} step={scaleRangeStep} value={scale['yAxisPower']} data-tip={scaleRangeTooltip}
                                 onChange={(e) => setScale({ yAxisScale: scale['yAxisScale'], yAxisPower: e.target.valueAsNumber })} />
-                            <span className='ms-1'>{scale['yAxisPower']}</span>
+                            <span className='ms-05'>{scale['yAxisPower']}</span>
                         </div>
                     </div>
                 </div>

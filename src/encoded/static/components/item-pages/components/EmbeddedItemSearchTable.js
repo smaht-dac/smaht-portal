@@ -175,7 +175,7 @@ export const SearchTableTitle = React.memo(function (props) {
                     href={currentSearchHref}
                     className="btn btn-primary pull-right d-flex align-items-center"
                     data-tip="Run embedded search query in Browse/Search View">
-                    <i className="icon icon-fw fas icon-external-link-alt me-1 align-baseline"></i>
+                    <i className="icon icon-fw fas icon-external-link-alt me-08 align-baseline"></i>
                     <span>Open In Search View</span>
                 </a>
             ) : null}

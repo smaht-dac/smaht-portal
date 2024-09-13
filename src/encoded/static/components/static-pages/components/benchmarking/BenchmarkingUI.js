@@ -29,7 +29,7 @@ export const BenchmarkingLayout = ({
     return (
         <div className="benchmarking-layout">
             <div className="page-description row">
-                <div className="information-container col-auto col-lg-9">
+                <div className="information-container col-auto col-lg-9 position-relative">
                     <div className="title-container">
                         <h2 className="title">{title}</h2>
                     </div>

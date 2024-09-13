@@ -445,7 +445,7 @@ export class GroupByDropdown extends React.PureComponent {
                                 {dateRangeOptionItems}
                             </DropdownButton>
                             <div className="d-flex custom-date-range">
-                                <span className="text-300 pt-05 d-none d-md-inline-block me-1">Custom:</span>
+                                <span className="text-300 pt-05 d-none d-md-inline-block me-05">Custom:</span>
                                 <input id="submission_data_range_from" type="date"
                                     className="form-control" value={tempDateRangeFrom || ''}
                                     onChange={(e) => { this.setState({ "tempDateRangeFrom": e.target.value }); }}
@@ -1096,9 +1096,7 @@ export class AreaChart extends React.PureComponent {
                 return (
                     <div className={"label-bg" + (isToLeft ? ' to-left' : '') + (hasCloseButton ? ' has-close-button' : '')}>
                         {hasCloseButton &&
-                            <button className="close float-start" type="button" onClick={(e) => { e.stopPropagation(); tProps.removeTooltip(); }}>
-                                <span>×</span>
-                            </button>
+                            <button className="btn-close float-start" type="button" onClick={(e) => { e.stopPropagation(); tProps.removeTooltip(); }} />
                         }
                         <h5 className={"text-500 mt-0 clearfix" + (isEmpty ? ' mb-0' : ' mb-11')}>
                             { dateString }{ total ? <span className="text-700 text-large pull-right" style={{ marginTop: -2 }}>&nbsp;&nbsp; { total }</span> : null }

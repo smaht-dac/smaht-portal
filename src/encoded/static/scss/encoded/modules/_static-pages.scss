@@ -218,7 +218,15 @@
 			white-space: -pre-wrap; /* Opera 4-6 */    
 			white-space: -o-pre-wrap; /* Opera 7 */    
 			word-wrap: break-word; /* Internet Explorer 5.5+ */
-		}
+		}	
+	}
+
+	a {
+		text-decoration: none;
+	}
+
+	a:hover {
+		text-decoration: underline;
 	}
 }
 
@@ -1835,7 +1843,7 @@ body[data-pathname^="/data/benchmarking"] {
 		.benchmarking-layout-container {
 			width: 100%;
 			.benchmarking-layout{
-				>nav.nav-tabs {
+				>nav.nav-tabs, .nav-item {
 					.nav-link {
 						color: #5D5E63;
 						font-family: Inter;
@@ -2158,7 +2166,7 @@ body[data-pathname^="/data/benchmarking"] {
 						border: 1px solid #DEE2E6;
 						width: 26px;
 						height: 26px;
-						right: -13px;
+						right: -23px;
 						z-index: 2;
 						background-color: #FCFDFF;
 						color: #343741;

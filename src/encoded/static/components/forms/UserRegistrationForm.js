@@ -576,7 +576,7 @@ class LookupProjectField extends React.PureComponent {
                             <button
                                 type="button"
                                 onClick={onClear}
-                                className="btn btn-secondary me-1">
+                                className="btn btn-secondary me-05">
                                 Clear
                             </button>
                         ) : null}
