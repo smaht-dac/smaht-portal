@@ -21,13 +21,13 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 				.#{$abbrev}t#{$infix}-#{$util-size} {
 					#{$prop}-top: $util-size * 0.625rem !important;
 				}
-				.#{$abbrev}r#{$infix}-#{$util-size} {
+				.#{$abbrev}e#{$infix}-#{$util-size} {
 					#{$prop}-right: $util-size * 0.625rem !important;
 				}
 				.#{$abbrev}b#{$infix}-#{$util-size} {
 					#{$prop}-bottom: $util-size * 0.625rem !important;
 				}
-				.#{$abbrev}l#{$infix}-#{$util-size} {
+				.#{$abbrev}s#{$infix}-#{$util-size} {
 					#{$prop}-left: $util-size * 0.625rem !important;
 				}
 
@@ -35,13 +35,13 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 					.#{$abbrev}t#{$infix}-#{$util-size}#{$util-mini-size} {
 						#{$prop}-top: $util-size * 0.625rem + ($util-mini-size * 0.0625rem) !important;
 					}
-					.#{$abbrev}r#{$infix}-#{$util-size}#{$util-mini-size} {
+					.#{$abbrev}e#{$infix}-#{$util-size}#{$util-mini-size} {
 						#{$prop}-right: $util-size * 0.625rem + ($util-mini-size * 0.0625rem) !important;
 					}
 					.#{$abbrev}b#{$infix}-#{$util-size}#{$util-mini-size} {
 						#{$prop}-bottom: $util-size * 0.625rem + ($util-mini-size * 0.0625rem) !important;
 					}
-					.#{$abbrev}l#{$infix}-#{$util-size}#{$util-mini-size} {
+					.#{$abbrev}s#{$infix}-#{$util-size}#{$util-mini-size} {
 						#{$prop}-left: $util-size * 0.625rem + ($util-mini-size * 0.0625rem) !important;
 					}
 				}
@@ -76,6 +76,11 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 .text-muted {
 	/* Default was gray-600, which is same as text-secondary. Making text-muted a little lighter */
 	color: $gray-500 !important;
+}
+
+.text-secondary {
+	/* Default was gray-600, which is same as text-secondary. Making text-muted a little lighter */
+	color: $gray-600 !important;
 }
 
 
@@ -167,8 +172,51 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 	@include button-outline-variant($primary, #ffffff, $primary-dark, $primary-dark);
 }
 
+.btn.btn-outline-dark {
+	@include button-outline-variant($dark, #fff, $dark, $dark);
+}
+
 .btn.btn-primary {
 	@include button-variant($primary, $primary);
+}
+
+.btn.btn-info {
+	@include button-variant($info, $info, #fff);
+	&:hover {
+		color: #fff;
+	}
+	&:disabled {
+		color: #fff;
+		pointer-events: none !important
+	}
+}
+
+.btn.btn-success {
+	@include button-variant($success, $success, #fff);
+	&:disabled {
+		color: #fff;
+		pointer-events: none !important
+	}
+}
+
+.btn.btn-danger {
+	@include button-variant($danger, $danger, #fff);
+}
+
+.alert {
+	&-info {
+		color: #28567a;
+		background-color: #dbedfb;
+		border-color: #cde6f9;
+	}
+	&-danger {
+		background-color: #fee5e5;
+	}
+	&-warning {
+		color: #774d24;
+		background-color: #faeada;
+		border-color: #f8e1cb;
+	}
 }
 
 
