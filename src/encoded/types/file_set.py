@@ -112,21 +112,6 @@ class FileSet(SubmittedItem):
 
     @calculated_property(
         schema={
-            "title": "Files Status Retracted",
-            "type": "string",
-            "enum": [
-                "True",
-                "False"
-            ],
-        },
-    )
-    def files_status_retracted(
-        self, request: Request, files: Optional[List[str]] = None
-    ) -> Union[str, None]:
-        return self._get_files_status_retracted(request,files)
-
-    @calculated_property(
-        schema={
             "title": "MetaWorkflowRuns",
             "type": "array",
             "items": {
@@ -284,14 +269,6 @@ class FileSet(SubmittedItem):
             'sequencing': sequencing_part,
             'assay': assay_part
         }
-
-    def _get_files_status_retracted(self, request, files):
-        """Get the status of rev linked files."""
-        result = None
-        if files:
-            request_handler = RequestHandler(request=request)
-            result = file_set_utils.get_associated_files_retracted(request_handler,files)
-        return result
 
 
 @link_related_validator

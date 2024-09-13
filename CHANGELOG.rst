@@ -9,9 +9,8 @@ Change Log
 
 0.93.1
 ======
-`PR241: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
-* Add downsampled hapmap tab
-* Update benchmarking descriptions
+`PR249: SN Revert FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/249>`_
+* Revert PR 244, removing `files_status_retracted` calc_prop from FileSet
 
 
 0.93.0
