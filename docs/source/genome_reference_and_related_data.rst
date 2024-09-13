@@ -12,44 +12,76 @@ Genome Alignment & Variant Calling
 .. raw:: html
 
     <div class="table-responsive"> 
-        <table class="table table-borderless table-sm text-left" style="width: 1200px;">
+        <table class="table table-borderless table-sm text-left" style="width: 825px;">
             <thead class="thead-smaht">
                 <tr>
                     <th>File</th>
                     <th>Description</th>
                     <th>Date Created</th>
-                    <th>Size</th>
+                    <th style="width: 80px;">Size</th>
                     <th><i class="icon fas icon-download"></i></th>
                 </tr>
             </thead>
             <tbody class="table-border-inner">
                 <tr>
-                    <td>GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz</td>
-                    <td>GRCh38 reference human genome without ALT contigs, used in SMaHT; <a href="#">(File Source)</a></td>
-                    <td>01-01-1000</td>
-                    <td>3.4 GB</td>
-                    <td><a href="#"><i class="icon fas icon-download"></i></a></td>
+                    <td>
+                        <a href="/f5ad62fa-5a76-4cf3-bf66-3b71d740be22" rel="noreferrer noopener" target="_blank">
+                            GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bwa_index.tar.gz (SMAFIA6PK1S1.bwt)
+                        </a>
+                    </td>
+                    <td>
+                        Complete genome reference BWT index. Version GCA_000001405.15 for build hg38/GRCh38. Does NOT include ALT contigs.
+                        <a href="https://smaht-dac.github.io/pipelines-docs/DOCS/REFERENCE_FILES/Genome_Builds/1_Build_GRCh38.html" rel="noreferrer noopener" target="_blank">
+                            (View Source)
+                        </a>
+                    </td>
+                    <td>12-13-2023</td>
+                    <td>2.89 GB</td>
+                    <td>
+                        <a href="/reference-files/f5ad62fa-5a76-4cf3-bf66-3b71d740be22/@@download/SMAFIA6PK1S1.bwt">
+                            <i class="icon fas icon-download"></i>
+                        </a>
+                    </td>
                 </tr>
                 <tr>
-                    <td>(index files for GRCh39 for bwa-mem)</td>
-                    <td>GRCh38 reference human genome index for bwa-mem</td>
-                    <td>01-01-1000</td>
-                    <td>3.2 GB</td>
-                    <td><a href="#"><i class="icon fas icon-download"></i></a></td>
+                    <td>
+                        <a href="/cca516c0-3931-4fbe-bc2c-c26fe9ba23fa" rel="noreferrer noopener" target="_blank">
+                            GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz (SMAFI23ELK2A.fa)
+                        </a>
+                    </td>
+                    <td>
+                        Complete genome reference sequence in FASTA format. Version GCA_000001405.15 for build hg38/GRCh38. Does NOT include ALT contigs.
+                        <a href="https://smaht-dac.github.io/pipelines-docs/DOCS/REFERENCE_FILES/Genome_Builds/1_Build_GRCh38.html" rel="noreferrer noopener" target="_blank">
+                            (View Source)
+                        </a>
+                    </td>
+                    <td>12-13-2023</td>
+                    <td>2.93 GB</td>
+                    <td>
+                        <a href="/reference-files/cca516c0-3931-4fbe-bc2c-c26fe9ba23fa/@@download/SMAFI23ELK2A.fa">
+                            <i class="icon fas icon-download"></i>
+                        </a>
+                    </td>
                 </tr>
                 <tr>
-                    <td>(Mutect2 index file)</td>
-                    <td>Index file used for Mutect2</td>
-                    <td>01-01-1000</td>
-                    <td>3.1 MB</td>
-                    <td><a href="#"><i class="icon fas icon-download"></i></a></td>
-                </tr>
-                <tr>
-                    <td>("mils" known SNV/Indel VCF file for local realignment)</td>
-                    <td>Known SNV and Indel sites used for local realignment (software info to update here)</td>
-                    <td>01-01-1000</td>
-                    <td>3.1 MB</td>
-                    <td><a href="#"><i class="icon fas icon-download"></i></a></td>
+                    <td>
+                        <a href="/4b672f38-50b1-47bb-a2f8-a7b6c6c62fb8" rel="noreferrer noopener" target="_blank">
+                            Mills_and_1000G_gold_standard.indels.hg38.vcf.gz (SMAFIPOL9T5R.vcf.gz)
+                        </a>
+                    </td>
+                    <td>
+                        Mills and 1000G Gold Standard indels. Build hg38/GRCh38.
+                        <a href="https://smaht-dac.github.io/pipelines-docs/DOCS/REFERENCE_FILES/Variant_Catalogs/2_Mills_and_1kGP.html" rel="noreferrer noopener" target="_blank">
+                            (View Source)
+                        </a>
+                    </td>
+                    <td>12-13-2023</td>
+                    <td>2.89 GB</td>
+                    <td>
+                        <a href="/reference-files/4b672f38-50b1-47bb-a2f8-a7b6c6c62fb8/@@download/SMAFIPOL9T5R.vcf.gz">
+                            <i class="icon fas icon-download"></i>
+                        </a>
+                    </td>
                 </tr>
             </tbody>
         </table>
