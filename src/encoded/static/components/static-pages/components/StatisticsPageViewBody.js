@@ -949,6 +949,7 @@ export function UsageStatsView(props){
         return <div className="stats-charts-container" key="charts" id="usage"><LoadingIcon/></div>;
     }
 
+    const [isTransposed, setIsTransposed] = useState(true);
     const [tableToggle, setTableToggle] = useState({});
     const handleToggleTable = function (chartKey) {
         const newTableToggle = _.extend({}, tableToggle, { [chartKey]: !(tableToggle[chartKey] || false) });
@@ -1002,10 +1003,13 @@ export function UsageStatsView(props){
             <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
                 groupByTitle="Show" outerClassName={"dropdown-container mb-0" + (isSticky ? " sticky-top" : "")}>
                 <div className="d-inline-block mr-15 pt-08">
-                    <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
+                    <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle} data-tip="Toggle between smooth/sharp edges">Smooth Edges</Checkbox>
                 </div>
                 <div className="d-inline-block mr-3 mb-2 pt-08">
-                    <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Show as cumulative sum</Checkbox>
+                    <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle} data-tip="Show as cumulative sum">Cumulative Sum</Checkbox>
+                </div>
+                <div className="d-inline-block mr-3 mb-2 pt-08">
+                    <Checkbox checked={isTransposed} onChange={() => setIsTransposed(!isTransposed)} data-tip="Transpose data table">Transpose Data</Checkbox>
                 </div>
                 <div className="d-block d-md-inline-block pt-08">
                     <div className="d-md-flex">
@@ -1045,7 +1049,7 @@ export function UsageStatsView(props){
 
                     <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
-                    <AreaChartContainer {...commonContainerProps} id="file_downloads"
+                    <AreaChartContainer {...commonContainerProps} id="file_downloads" key="file_downloads"
                         title={<h5 className="text-400 mt-0">Total File Count</h5>}
                         extraButtons={[
                             <AnalyticsRawDataToggle
@@ -1063,10 +1067,10 @@ export function UsageStatsView(props){
                             session={session}
                             dateRoundInterval={dateRoundInterval}
                             containerId="content_file_downloads"
-                            isTransposed />
+                            isTransposed={isTransposed} />
                     }
 
-                    <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" defaultHeight={300}
+                    <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" key="file_downloads_volume" defaultHeight={300}
                         title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
                         extraButtons={[
                             <AnalyticsRawDataToggle
@@ -1085,7 +1089,7 @@ export function UsageStatsView(props){
                             session={session}
                             dateRoundInterval={dateRoundInterval}
                             containerId="content_file_downloads_volume"
-                            isTransposed />
+                            isTransposed={isTransposed} />
                     }
 
                     <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
@@ -1108,7 +1112,7 @@ export function UsageStatsView(props){
                         </h3>
                     </div>
 
-                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads" defaultHeight={300}
+                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads" key="top_file_downloads" defaultHeight={300}
                         title={<h5 className="text-400 mt-0">Total File Count</h5>}
                         extraButtons={[
                             <AnalyticsRawDataToggle
@@ -1128,10 +1132,10 @@ export function UsageStatsView(props){
                             session={session}
                             dateRoundInterval={dateRoundInterval}
                             containerId="content_top_file_downloads"
-                            isTransposed />
+                            isTransposed={isTransposed} />
                     }
 
-                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" defaultHeight={350}
+                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" key="top_file_downloads_volume" defaultHeight={350}
                         title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
                         extraButtons={[
                             <AnalyticsRawDataToggle
@@ -1151,7 +1155,7 @@ export function UsageStatsView(props){
                             session={session}
                             dateRoundInterval={dateRoundInterval}
                             containerId="content_top_file_downloads_volume"
-                            isTransposed />
+                            isTransposed={isTransposed} />
                     }
 
                     <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
@@ -1164,7 +1168,7 @@ export function UsageStatsView(props){
 
                 <ColorScaleProvider resetScalesWhenChange={file_views}>
 
-                    <AreaChartContainer {...commonContainerProps} id="file_views"
+                    <AreaChartContainer {...commonContainerProps} id="file_views" key="file_views"
                         title={
                             <h3 className="charts-group-title">
                                 <span className="d-block d-sm-inline">File Views</span><span className="text-300 d-none d-sm-inline"> - </span>
@@ -1172,7 +1176,7 @@ export function UsageStatsView(props){
                             </h3>
                         }
                         extraButtons={[
-                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" />,
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" key="file_views_count_by_dd" />,
                             <AnalyticsRawDataToggle
                                 toggled={tableToggle["file_views"] || false}
                                 toggleChanged={() => handleToggleTable("file_views")}
@@ -1189,7 +1193,7 @@ export function UsageStatsView(props){
                             session={session}
                             dateRoundInterval={dateRoundInterval}
                             containerId="content_file_views"
-                            isTransposed />
+                            isTransposed={isTransposed} />
                     }
 
                 </ColorScaleProvider>
@@ -1200,7 +1204,7 @@ export function UsageStatsView(props){
 
                 <ColorScaleProvider resetScaleLegendWhenChange={sessions_by_country}>
 
-                    <AreaChartContainer {...commonContainerProps} id="sessions_by_country"
+                    <AreaChartContainer {...commonContainerProps} id="sessions_by_country" key="sessions_by_country"
                         title={
                             <h3 className="charts-group-title">
                                 <span className="d-block d-sm-inline">{
@@ -1213,7 +1217,7 @@ export function UsageStatsView(props){
                         }
                         subTitle={enableSessionByCountryChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}
                         extraButtons={[
-                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" />,
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" key="sessions_by_country_count_by_dd" />,
                             <AnalyticsRawDataToggle
                                 toggled={tableToggle["sessions_by_country"] || false}
                                 toggleChanged={() => handleToggleTable("sessions_by_country")}
@@ -1232,7 +1236,7 @@ export function UsageStatsView(props){
                             session={session}
                             dateRoundInterval={dateRoundInterval}
                             containerId="content_sessions_by_country"
-                            isTransposed />
+                            isTransposed={isTransposed} />
                     }
 
                 </ColorScaleProvider>
@@ -1244,7 +1248,7 @@ export function UsageStatsView(props){
 
                 <ColorScaleProvider resetScaleLegendWhenChange={fields_faceted}>
 
-                    <AreaChartContainer {...commonContainerProps} id="fields_faceted"
+                    <AreaChartContainer {...commonContainerProps} id="fields_faceted" key="fields_faceted"
                         title={
                             <h3 className="charts-group-title">
                                 <span className="d-block d-sm-inline">Top Fields Faceted</span>
@@ -1574,7 +1578,7 @@ const AnalyticsRawDataTable = React.memo((props) => {
                         </span>
                     ) : (
                         <a
-                            href={`/search/?type=TrackingItem&google_analytics.for_date=${result.date}&google_analytics.date_increment=${dateRoundInterval === 'month' ? 'monthly' : 'daily'}`}
+                            href={`/search/?type=TrackingItem&google_analytics.for_date=${result.display_title}&google_analytics.date_increment=${dateRoundInterval === 'month' ? 'monthly' : 'daily'}`}
                             target="_blank" rel="noreferrer noopener">
                             {result.display_title} ({totalValue})
                         </a>
@@ -1594,7 +1598,7 @@ const AnalyticsRawDataTable = React.memo((props) => {
                     noSort: true,
                     widthMap: { 'lg': 140, 'md': 120, 'sm': 120 },
                     render: function (result) {
-                        return <span className="value text-right">{roundValue(result[c], valueLabel)}</span>;
+                        return <span className={"value text-right" + (result[c] !== 0 ? " font-weight-bold" : "")}>{roundValue(result[c], valueLabel)}</span>;
                     }
                 };
                 return m;
@@ -1605,7 +1609,6 @@ const AnalyticsRawDataTable = React.memo((props) => {
 
         // create @graph
         const result = _.map(processData, function (d) {
-            console.log('xxx d:', d);
             return {
                 display_title: isTransposed ? (d.termDisplayAs || d.term) : d.date,
                 '@id': isTransposed ? d.term : d.date,
@@ -1641,6 +1644,7 @@ const AnalyticsRawDataTable = React.memo((props) => {
         tableColumnClassName: "col-12",
         facetColumnClassName: "d-none",
         stickyFirstColumn: true,
+        isOwnPage: false,
         termTransformFxn: Term.toName,
         placeholderReplacementFxn: function () { }
     };
