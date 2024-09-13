@@ -65,14 +65,14 @@ function ContextAwareToggle({
     setCurrentTier,
     link,
 }) {
-    const currentEventKey = useContext(AccordionContext);
+    const { activeEventKey } = useContext(AccordionContext);
 
     const decoratedOnClick = useAccordionButton(
         eventKey,
         () => callback && callback(eventKey)
     );
 
-    const isCurrentEventKey = currentEventKey === eventKey;
+    const isCurrentEventKey = activeEventKey === eventKey;
 
     const openStatusIconCls = isCurrentEventKey
         ? 'icon icon-minus fas'
