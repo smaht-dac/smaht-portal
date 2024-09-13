@@ -573,7 +573,7 @@ def test_get_ordered_properties(
         ),
         (  # Array type
             Property("foo", value_type="array", array_subtype="string"),
-            "Type:  string  (Multiple values allowed. Use '|' as a delimiter)\nRequired:  No",
+            "Type:  string  (Multiple values allowed. Use '|' as a delimiter.)\nRequired:  No",
         ),
         (  # Possibly required
             Property("foo", exclusive_requirements=["bar", "bu"]),
