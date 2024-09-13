@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from snovault.util import debug_log
+from snovault.util import debug_log, get_item_or_none
 from dcicutils.misc_utils import ignored
 from snovault.search.search import search
 from snovault.search.search_utils import make_search_subreq
@@ -17,8 +17,13 @@ RESTRICTED = "restricted"
 STATUS = "status"
 O2_PATH = "o2_path"
 SUBMITTED_FILE = "SubmittedFile"
+OUTPUT_FILE = "OutputFile"
 FILE_FORMAT = "file_format"
 DISPLAY_TITLE = "display_title"
+QUALITY_METRICS = "quality_metrics"
+UUID = "uuid"
+ACCESSION = "accession"
+OVERALL_QUALITY_STATUS = "overall_quality_status"
 
 WASHU_GCC = "WASHU GCC"
 BCM_GCC = "BCM GCC"
@@ -61,7 +66,12 @@ def get_submission_status(context, request):
         file_group_color_map = {}
         for res in search_res:
             file_set = res
-            file_set["submitted_files"] = process_files_metadata(res.get("files", []))
+            files = res.get("files", [])
+            meta_workflow_runs = res.get("meta_workflow_runs", [])
+            file_set["submitted_files"] = get_submitted_files_info(files)
+            file_set["output_files"] = get_output_files_info(
+                request, files, meta_workflow_runs
+            )
 
             if "file_group" in file_set:
                 fg = file_set["file_group"]
@@ -171,23 +181,62 @@ def add_submission_status_search_filters(
         search_params["date_created.to"] = filter["fileset_created_to"]
 
 
-def process_files_metadata(files_metadata):
+def get_output_files_info(request, files, mwfrs):
+    output_files = list(filter(lambda f: OUTPUT_FILE in f["@type"], files))
+    output_files_qc = []
+
+    # Get the output files that are on the file set
+    for file in output_files:
+        qc_result = get_qc_result(file)
+        output_files_qc.append(qc_result)
+
+    # Go through all alignment MetaWorkflowRuns and collect the output files with QCs.
+    # This requires retrieval of the individual MWFRs with embeddings. This is expensive
+    # but we don't want to embedd all of this information into the file set
+    for mwfr in mwfrs:
+        final_status = mwfr.get("final_status")
+        mwf_categories = mwfr.get("meta_workflow", {}).get("category", [])
+        if final_status != "completed" or "Alignment" not in mwf_categories:
+            continue
+        mwfr_item = get_item_or_none(
+            request, mwfr[UUID], "meta-workflow-runs", "embedded"
+        )
+        wfrs = mwfr_item.get("workflow_runs", [])
+        for wfr in wfrs:
+            outputs = wfr.get("output", [])
+            for output in outputs:
+                if "file" not in output:
+                    continue
+                file = output["file"]
+                if QUALITY_METRICS not in file:
+                    continue
+                qc_result = get_qc_result(file)
+                output_files_qc.append(qc_result)
+
+    # Remove duplicates. Happens when the final output files have been released
+    output_files_qc_unique = list({v[ACCESSION]: v for v in output_files_qc}.values())
+
+    return {
+        "output_files_qc": output_files_qc_unique,
+    }
+
+
+def get_submitted_files_info(files_metadata):
     is_upload_complete = True
-    num_files_copied_to_o2 = 0
     file_formats = []
     submitted_files = list(
         filter(lambda f: SUBMITTED_FILE in f["@type"], files_metadata)
     )
+    submitted_files_qc = []
     for file in submitted_files:
         if file[STATUS] == UPLOADING:
             is_upload_complete = False
         file_formats.append(file.get(FILE_FORMAT, {}).get(DISPLAY_TITLE))
 
-    for file in files_metadata:
-        if O2_PATH in file:
-            num_files_copied_to_o2 += 1
+        qc_result = get_qc_result(file)
+        submitted_files_qc.append(qc_result)
 
-    # Make it unqique
+    # Make it unique
     file_formats = list(set(file_formats))
 
     date_uploaded = None
@@ -211,8 +260,24 @@ def process_files_metadata(files_metadata):
         "num_fileset_files": len(files_metadata),
         "date_uploaded": date_uploaded,
         "file_formats": ", ".join(file_formats),
-        "num_files_copied_to_o2": num_files_copied_to_o2,
+        "submitted_files_qc": submitted_files_qc,
     }
+
+
+def get_qc_result(file):
+    qc_result = {
+        DISPLAY_TITLE: file[DISPLAY_TITLE],
+        UUID: file[UUID],
+        ACCESSION: file[ACCESSION],
+        QUALITY_METRICS: [],
+    }
+    if QUALITY_METRICS in file:
+        qms = file[QUALITY_METRICS]
+        qc_result[QUALITY_METRICS] = [
+            {OVERALL_QUALITY_STATUS: qm[OVERALL_QUALITY_STATUS], UUID: qm[UUID]}
+            for qm in qms
+        ]
+    return qc_result
 
 
 def search_total(context, request, search_params):

@@ -11,6 +11,9 @@ def _build_meta_workflow_run_embedded_list():
         "meta_workflow.category",
         "meta_workflow.name",  # Required for foursight checks
         "meta_workflow.version",
+
+        "workflow_runs.output.file.quality_metrics.overall_quality_status",
+        "workflow_runs.output.file.accession"
     ]
 
 

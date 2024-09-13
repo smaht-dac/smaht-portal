@@ -348,6 +348,7 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.samples.sample_sources.donor",
         "file_sets.files_status_retracted",
 
+        "quality_metrics.overall_quality_status",
         # For manifest
         "sequencing.sequencer.display_title",
 

@@ -12,6 +12,8 @@ import {
     getLink,
     createBadge,
     createWarningIcon,
+    getQcResults,
+    getQcResultsSummary,
 } from './submissionStatusUtils';
 
 import {
@@ -38,6 +40,7 @@ class SubmissionStatusComponent extends React.PureComponent {
             fileSetIdSearch: '',
             numTotalFileSets: 0,
             visibleCommentInputs: [],
+            submittedFilesVisibility: [],
             comments: {},
             newComments: {},
             isUserAdmin: userDetails.details.groups?.includes('admin'),
@@ -350,6 +353,20 @@ class SubmissionStatusComponent extends React.PureComponent {
         );
     };
 
+    toggleSubmittedFiles = (fileset) => {
+        const sfv = [...this.state.submittedFilesVisibility];
+        if (sfv.includes(fileset.uuid)) {
+            const index = sfv.indexOf(fileset.uuid);
+            sfv.splice(index, 1);
+        } else {
+            sfv.push(fileset.uuid);
+        }
+
+        this.setState((prevState) => ({
+            submittedFilesVisibility: sfv,
+        }));
+    };
+
     patchComment = (fs_uuid, filesets, comments) => {
         const payload = {
             comments: comments,
@@ -492,6 +509,20 @@ class SubmissionStatusComponent extends React.PureComponent {
                 }
             });
 
+            const submittedFilesQc = getQcResults(
+                fs.submitted_files.submitted_files_qc
+            );
+            const submittedFilesQcSummary = getQcResultsSummary(
+                fs.submitted_files.submitted_files_qc
+            );
+
+            const areSubmittedFilesExpanded =
+                this.state.submittedFilesVisibility.includes(fs.uuid);
+
+            const outputFilesQc = getQcResults(
+                fs.output_files.output_files_qc, true
+            );
+
             return (
                 <tr key={fs.accession}>
                     <td
@@ -532,18 +563,30 @@ class SubmissionStatusComponent extends React.PureComponent {
                         </small>
                     </td>
                     <td>
-                        <div className="ss-line-height-140">
-                            {fs.submitted_files.num_files_copied_to_o2 ==
-                            fs.submitted_files.num_fileset_files
-                                ? ''
-                                : createWarningIcon()}
-                            {fs.submitted_files.num_files_copied_to_o2} /{' '}
-                            {fs.submitted_files.num_fileset_files} files
-                        </div>
+                        <small className="d-block text-secondary ss-line-height-140">
+                            Submitted files / QC
+                            <span
+                                className={
+                                    areSubmittedFilesExpanded
+                                        ? 'far icon icon-fw icon-minus-square pl-1 clickable'
+                                        : 'far icon icon-fw icon-plus-square pl-1 clickable'
+                                }
+                                onClick={() =>
+                                    this.toggleSubmittedFiles(fs)
+                                }></span>
+                        </small>
+                        <small className="ss-line-height-140 mt-1">
+                            {areSubmittedFilesExpanded
+                                ? submittedFilesQc
+                                : submittedFilesQcSummary}
+                        </small>
 
-                        <div className="ss-line-height-140 small">
-                            have O2 path set
-                        </div>
+                        <small className="d-block text-secondary ss-line-height-140 mt-1">
+                            Processed files / QC
+                        </small>
+                        <small className="ss-line-height-140 mt-1">
+                            {outputFilesQc}
+                        </small>
                     </td>
                     <td>
                         <div className="p-1">{mwfrs}</div>
@@ -614,7 +657,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 </div>
                             </th>
                             <th className="text-left">Submission</th>
-                            <th className="text-left">O2 status</th>
+                            <th className="text-left">QC status</th>
                             <th className="text-left">MetaWorkflowRuns</th>
                             <th className="text-left">
                                 Tags{' '}
