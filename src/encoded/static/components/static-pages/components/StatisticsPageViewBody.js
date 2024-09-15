@@ -14,7 +14,8 @@ import { Checkbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/f
 import { console, ajax, analytics, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { navigate } from './../../util';
 import { Term } from './../../util/Schemas';
-import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
+import { ColumnCombiner, CustomColumnController, SortController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
+import { ControlsAndResults } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/ControlsAndResults';
 import {
     StatsViewController, GroupByDropdown, ColorScaleProvider,
     AreaChart, AreaChartContainer, LoadingIcon, ErrorIcon, HorizontalD3ScaleLegend,
@@ -996,6 +997,7 @@ export function UsageStatsView(props){
     const { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep } = UsageStatsView.getYScaleDefaults(scale['yAxisScale']);
 
     const isSticky = !_.any(_.values(tableToggle), (v)=> v === true);
+    const commonTableProps = { windowWidth, href, session, isTransposed, dateRoundInterval };
 
     return (
         <div className="stats-charts-container" key="charts" id="usage">
@@ -1063,11 +1065,8 @@ export function UsageStatsView(props){
                     {tableToggle.file_downloads &&
                         <AnalyticsRawDataTable data={file_downloads}
                             key={'dt_file_downloads'}
-                            href={href}
-                            session={session}
-                            dateRoundInterval={dateRoundInterval}
-                            containerId="content_file_downloads"
-                            isTransposed={isTransposed} />
+                            {...commonTableProps}
+                            containerId="content_file_downloads" />
                     }
 
                     <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" key="file_downloads_volume" defaultHeight={300}
@@ -1085,11 +1084,8 @@ export function UsageStatsView(props){
                         <AnalyticsRawDataTable data={file_downloads_volume} 
                             key={'dt_file_downloads_volume'}
                             valueLabel="GB"
-                            href={href}
-                            session={session}
-                            dateRoundInterval={dateRoundInterval}
-                            containerId="content_file_downloads_volume"
-                            isTransposed={isTransposed} />
+                            {...commonTableProps}
+                            containerId="content_file_downloads_volume" />
                     }
 
                     <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
@@ -1128,11 +1124,8 @@ export function UsageStatsView(props){
                         <AnalyticsRawDataTable data={top_file_downloads} 
                             key={'dt_top_file_downloads'}
                             valueLabel="GB"
-                            href={href}
-                            session={session}
-                            dateRoundInterval={dateRoundInterval}
-                            containerId="content_top_file_downloads"
-                            isTransposed={isTransposed} />
+                            {...commonTableProps}
+                            containerId="content_top_file_downloads" />
                     }
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" key="top_file_downloads_volume" defaultHeight={350}
@@ -1151,11 +1144,8 @@ export function UsageStatsView(props){
                         <AnalyticsRawDataTable data={top_file_downloads_volume} 
                             key={'dt_top_file_downloads_volume'}
                             valueLabel="GB"
-                            href={href}
-                            session={session}
-                            dateRoundInterval={dateRoundInterval}
-                            containerId="content_top_file_downloads_volume"
-                            isTransposed={isTransposed} />
+                            {...commonTableProps}
+                            containerId="content_top_file_downloads_volume" />
                     }
 
                     <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
@@ -1189,11 +1179,8 @@ export function UsageStatsView(props){
                     {tableToggle.file_views &&
                         <AnalyticsRawDataTable data={file_views} 
                             key={'dt_file_views'}
-                            href={href}
-                            session={session}
-                            dateRoundInterval={dateRoundInterval}
-                            containerId="content_file_views"
-                            isTransposed={isTransposed} />
+                            {...commonTableProps}
+                            containerId="content_file_views" />
                     }
 
                 </ColorScaleProvider>
@@ -1232,11 +1219,8 @@ export function UsageStatsView(props){
                     {tableToggle.sessions_by_country &&
                         <AnalyticsRawDataTable data={sessions_by_country} 
                             key={'dt_sessions_by_country'}
-                            href={href}
-                            session={session}
-                            dateRoundInterval={dateRoundInterval}
-                            containerId="content_sessions_by_country"
-                            isTransposed={isTransposed} />
+                            {...commonTableProps}
+                            containerId="content_sessions_by_country" />
                     }
 
                 </ColorScaleProvider>
@@ -1522,8 +1506,9 @@ const ChartSubTitle = memoize(function ({ title, data, invalidDateRange }) {
  * converts aggregates to SearchView-compatible context objects and displays in table
  */
 const AnalyticsRawDataTable = React.memo((props) => {
-    const { data, valueLabel = null, session, containerId = '', href, dateRoundInterval, isTransposed = false } = props;
+    const { data, valueLabel = null, session, containerId = '', href, dateRoundInterval, isTransposed = false, children, windowWidth } = props;
     const [columns, setColumns] = useState({});
+    const [columnDefinitions, setColumnDefinitions] = useState([]);
     const [graph, setGraph] = useState([]);
 
     const transposeData = (data) => {
@@ -1606,6 +1591,8 @@ const AnalyticsRawDataTable = React.memo((props) => {
         }
 
         setColumns(cols);
+        const colDefs = _.map(_.pairs(cols), function (p) { return { field: p[0], ...p[1] } });
+        setColumnDefinitions(colDefs);
 
         // create @graph
         const result = _.map(processData, function (d) {
@@ -1617,7 +1604,7 @@ const AnalyticsRawDataTable = React.memo((props) => {
                     m2[isTransposed ? c.date : c.term] = c.total;
                     return m2;
                 }, {}),
-                '@type': ['CustomAnalyticsItem'],
+                '@type': ['Item'],
                 'date_created': isTransposed ? d.term : d.date
             };
         });
@@ -1633,14 +1620,17 @@ const AnalyticsRawDataTable = React.memo((props) => {
             columns: columns || [],
             facets: null
         },
+        results: graph || [],
         currentAction: null,
         columns,
         columnExtensionMap: columns,
+        columnDefinitions: columnDefinitions,
+        columnWidths: {},
         session,
         schemas: null,
         facets: null,
-        maxHeight: 150,
-        maxResultsBodyHeight: 150,
+        maxHeight: 500,
+        maxResultsBodyHeight: 500,
         tableColumnClassName: "col-12",
         facetColumnClassName: "d-none",
         stickyFirstColumn: true,
@@ -1651,7 +1641,11 @@ const AnalyticsRawDataTable = React.memo((props) => {
 
     return (
         <div className="container" id={containerId}>
-            <CommonSearchView {...passProps} />
+            <CustomColumnController {...{ windowWidth }} hiddenColumns={{}} columnDefinitions={columnDefinitions} context={passProps.context}>
+                <SortController>
+                    <ControlsAndResults {...passProps} />
+                </SortController>
+            </CustomColumnController>
         </div>
     );
 });
