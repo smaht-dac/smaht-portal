@@ -15,6 +15,14 @@ Change Log
 * Add "Genome Reference & Related Data" page
 
 
+0.93.2
+======
+`PR 240: fix: SN TPC samples annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/240>`_
+* In `commands/create_annotated_filename.py`:
+  * Grab unique `aliquot_ids` so that files with tissue samples from TPC are not considered to have merged aliquots
+  e.g. file has identical samples `ST001-1A-001A1` from GCC and `ST001-1A-001A1` from TPC. The TPC item is used for metadata cross-checking, and shouldn't be considered when checking if samples were merged for analyte extraction.
+
+
 0.93.1
 ======
 `PR249: SN Revert FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/249>`_
