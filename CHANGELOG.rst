@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.95.1
+======
+`PR247: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
+* Add downsampled hapmap tab
+* Update benchmarking descriptions
+
+
 0.95.0
 ======
 `PR 215: Bm genome reference <https://github.com/smaht-dac/smaht-portal/pull/215>`_
