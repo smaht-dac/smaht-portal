@@ -2,9 +2,10 @@
 Genome Reference & Related Data
 ==================================
 
-This is a data repository of reference files.
+This is a data repository of human genome reference files that are used in the standard alignment pipeline for the SMaHT Network by the Data Analysis Center (DAC).
 
-Reference files include the human reference genome used in our standard alignment pipeline, and reference files used for the SMaHT benchmarking analyses such as the truth sets, annotated genomic regions, etc.
+Reference files include the GRCh38 human reference genome sequence file and its index file for the bwa-mem aligner, as well as known indel sites used for local realignment.
+
 
 Genome Alignment & Variant Calling
 ----------------------------------
