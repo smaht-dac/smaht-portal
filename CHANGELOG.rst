@@ -7,12 +7,32 @@ smaht-portal
 Change Log
 ----------
 
-0.92.1
+0.93.2
 ======
 `PR 240: fix: SN TPC samples annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/240>`_
 * In `commands/create_annotated_filename.py`:
   * Grab unique `aliquot_ids` so that files with tissue samples from TPC are not considered to have merged aliquots
   e.g. file has identical samples `ST001-1A-001A1` from GCC and `ST001-1A-001A1` from TPC. The TPC item is used for metadata cross-checking, and shouldn't be considered when checking if samples were merged for analyte extraction.
+
+
+0.93.1
+======
+`PR249: SN Revert FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/249>`_
+* Revert PR 244, removing `files_status_retracted` calc_prop from FileSet
+
+
+0.93.0
+======
+* Effectively disable server-side validators which reference
+  linked objects for smaht-submitr, when the skip_links=True.
+
+
+0.92.0
+======
+`PR244: SN FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/244>`_
+* Create calcprop for FileSet, `files_status_retracted`, that returns "True" if a file in files has the status of `obsolete` or `retracted`
+* Embed `file_set.files_status_retracted` in File
+
 
 0.91.0
 ======

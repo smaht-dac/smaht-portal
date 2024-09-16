@@ -9,7 +9,9 @@ from .utils import (
     get_item
 )
 
-from ..item_utils import item as item_utils
+from ..item_utils import (
+    item as item_utils,
+)
 
 FILE_SET_ID = "b98f9849-3b7f-4f2f-a58f-81100954e00d"
 
@@ -122,4 +124,3 @@ def test_validate_compatible_assay_and_sequencer_on_post(
         "sequencing": sequencing_uuid
     }
     post_item(es_testapp,post_body,'file_set',status=expected_status)
-
