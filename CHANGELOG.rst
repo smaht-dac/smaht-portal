@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.93.3
+======
+`PR 252: feat: add manifest type to button <https://github.com/smaht-dac/smaht-portal/pull/252>`_
+* Add manifest type to download manifest button
+
+
 0.93.2
 ======
 `PR 240: fix: SN TPC samples annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/240>`_
