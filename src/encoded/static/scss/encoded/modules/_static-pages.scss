@@ -226,7 +226,9 @@
 		}	
 	}
 
-	p>a {
+	p>a,
+	h4>a,
+	ul>li>a {
 		text-decoration: none;
 
 		&:hover {

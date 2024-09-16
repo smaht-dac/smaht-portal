@@ -54,21 +54,6 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 	}
 }
 
-
-/**** Ports from Bootstrap v5, these can be deleted if/when we upgrade to Bootstrap 5 *****/
-
-.pe-none {
-	/* @see https://getbootstrap.com/docs/5.0/utilities/interactions/#pointer-events */
-	pointer-events: none;
-}
-
-.pe-auto {
-	/* @see https://getbootstrap.com/docs/5.0/utilities/interactions/#pointer-events */
-	pointer-events: auto;
-}
-
-/**** End Ports from Bootstrap5 ****/
-
 /**************************************
  ************* Text Styles ************
  **************************************/
@@ -77,13 +62,6 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 	/* Default was gray-600, which is same as text-secondary. Making text-muted a little lighter */
 	color: $gray-500 !important;
 }
-
-.text-secondary {
-	/* Default was gray-600, which is same as text-secondary. Making text-muted a little lighter */
-	color: $gray-600 !important;
-}
-
-
 
 /**************************************
  ************ Button Styles ***********
@@ -126,6 +104,8 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 		@include button-size(1px, 5px, 0.825rem, 1.5);
 		font-weight: 400;
 		padding-top: 2px;
+		border-radius: $border-radius-sm;
+		line-height: 1.5;
 	}
 }
 
@@ -135,6 +115,8 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
     @include button-size(1px, 5px, 0.825rem, 1.5);
     font-weight: 400;
     padding-top: 2px;
+	border-radius: $border-radius-sm;
+	line-height: 1.5;
 }
 
 .btn-xs.rounded,
@@ -168,14 +150,6 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 	}
 }
 
-.btn.btn-outline-primary {
-	@include button-outline-variant($primary, #ffffff, $primary-dark, $primary-dark);
-}
-
-.btn.btn-outline-dark {
-	@include button-outline-variant($dark, #fff, $dark, $dark);
-}
-
 .btn.btn-primary {
 	@include button-variant($primary, $primary);
 }
@@ -202,23 +176,6 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 .btn.btn-danger {
 	@include button-variant($danger, $danger, #fff);
 }
-
-.alert {
-	&-info {
-		color: #28567a;
-		background-color: #dbedfb;
-		border-color: #cde6f9;
-	}
-	&-danger {
-		background-color: #fee5e5;
-	}
-	&-warning {
-		color: #774d24;
-		background-color: #faeada;
-		border-color: #f8e1cb;
-	}
-}
-
 
 /* Moving caret to always right position */
 .dropdown-toggle.btn {
@@ -281,7 +238,6 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 		}
 	}
 }
-
 
 /**************************************
  ************ Form Inputs *************
@@ -376,11 +332,6 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 			/* Unset default .h1-.h6 styling of bottom+top margin. */
 			margin-top: 0;
 			margin-bottom: 0;
-
-			&.h4 + button.btn-close {
-				/* Default size for Modal.Title is h4; increase close button icon size (experimental) */
-				font-size: 1.8em;
-			}
 		}
 	}
 

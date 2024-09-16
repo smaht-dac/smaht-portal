@@ -497,7 +497,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 						align-items: flex-end;
 						margin-left: 10px;
 
-						.nav-item {
+						.nav-item > button {
 							color: #5D5E63;
 							font-size: 1rem;
 							font-weight: 400;

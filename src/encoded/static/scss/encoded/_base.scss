@@ -136,10 +136,19 @@ $dark:          #343a40;
 
 $primary-dark: darken($primary, 15%);
 
-// Will be extended in bootstrap's _variables.scss with Bootstrap orig colors (warning, success, primary, etc).
-// And then used to create utility classes 'text-primary-dark', 'bg-primary-dark', etc.
+// Previously, Bootstrap extended $theme-colors with default colors like warning, success, and primary.
+// However, as of Bootstrap v5, Bootstrap has removed the default Sass map merging to simplify customization and prevent redundant values.
+// Now, we need to explicitly define all values in the Sass maps for $theme-colors.
 $theme-colors: (
-    "primary-dark": $primary-dark
+  "primary": $primary,
+  "secondary": $secondary,
+  "success": $success,
+  "info": $info,
+  "warning": $warning,
+  "danger": $danger,
+  "light": $light,
+  "dark": $dark,
+  "primary-dark": $primary-dark
 );
 
 // override 1.5, to help center text

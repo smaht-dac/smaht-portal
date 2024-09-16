@@ -1042,6 +1042,7 @@ body[data-current-action="multiselect"] {
                                 position: relative;
                                 > .level-1-title {
                                     text-shadow: 0 0 0;
+                                    text-decoration: none;
                                     &:before {
                                         font-family: $fa-font-family;
                                         font-weight: 900;
