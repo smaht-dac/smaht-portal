@@ -940,7 +940,7 @@
             "edf6c0f5-e051-4c4e-8e22-99dfde0b8501"
         ],
         "table-of-contents": {
-            "enabled": true,
+            "enabled": false,
             "header-depth": 4
         },
         "uuid": "192a220e-64c8-4ec3-93d9-4e4218f0a7fe",
