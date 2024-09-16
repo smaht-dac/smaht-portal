@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.93.3
+======
+`PR247: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
+* Add downsampled hapmap tab
+* Update benchmarking descriptions
+
+
 0.93.2
 ======
 `PR 240: fix: SN TPC samples annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/240>`_
