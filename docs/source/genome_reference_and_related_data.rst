@@ -31,6 +31,7 @@ Genome Alignment & Variant Calling
                     </td>
                     <td>
                         Complete genome reference BWT index. Version GCA_000001405.15 for build hg38/GRCh38. Does NOT include ALT contigs.
+                        <br/>
                         <a href="https://smaht-dac.github.io/pipelines-docs/DOCS/REFERENCE_FILES/Genome_Builds/1_Build_GRCh38.html" rel="noreferrer noopener" target="_blank">
                             (View Source)
                         </a>
@@ -51,6 +52,7 @@ Genome Alignment & Variant Calling
                     </td>
                     <td>
                         Complete genome reference sequence in FASTA format. Version GCA_000001405.15 for build hg38/GRCh38. Does NOT include ALT contigs.
+                        <br/>
                         <a href="https://smaht-dac.github.io/pipelines-docs/DOCS/REFERENCE_FILES/Genome_Builds/1_Build_GRCh38.html" rel="noreferrer noopener" target="_blank">
                             (View Source)
                         </a>
@@ -70,7 +72,8 @@ Genome Alignment & Variant Calling
                         </a>
                     </td>
                     <td>
-                        Mills and 1000G Gold Standard indels. Build hg38/GRCh38.
+                        Mills and 1000 Genomes Gold Standard indels. Build hg38/GRCh38.
+                        <br/>
                         <a href="https://smaht-dac.github.io/pipelines-docs/DOCS/REFERENCE_FILES/Variant_Catalogs/2_Mills_and_1kGP.html" rel="noreferrer noopener" target="_blank">
                             (View Source)
                         </a>
