@@ -27,7 +27,7 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
     """ Ensure we generate a reasonable looking group when file set data is present """
     res = es_testapp.get('/file-sets/b98f9849-3b7f-4f2f-a58f-81100954e00d/').json
     file_merge_group = res['file_group']
-    assert file_merge_group['sample_source'] == 'TEST_TISSUE-SAMPLE_LIVER-DNA'
+    assert file_merge_group['sample_source'] == 'TEST_TISSUE-SAMPLE_LIVER'
     assert file_merge_group['sequencing'] == 'illumina_novaseqx-Paired-end-150-R9'
     assert file_merge_group['assay'] == 'bulk_wgs'
 
@@ -38,7 +38,7 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
     [
         ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-PACBIO_30X-30H", 200), # FiberSeq and PacBio
         ("","TEST_SEQUENCING_DNA-ONT-90X", 422), # FiberSeq and ONT
-        ("","TEST_LIBRARY_HELA-HEK293-DNA", 422), # Cas9 Nanopore and PacBio
+        ("TEST_LIBRARY_HELA-HEK293-DNA","", 422), # Cas9 Nanopore and PacBio
         ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-ONT-90X", 422), # FiberSeq and ONT
         ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 422), # bulk_wgs and ONT
         ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-ONT-90X", 200), #Cas9 Nanopore and ONT
@@ -46,7 +46,7 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
         ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 200), # RNA with target_read_count
         ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 422), # RNA with target_coverage
         ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 422), # DNA with target_read_count
-        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING-DNA-NOVASEQ-500X", 200), # DNA with target_coverage
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 200), # DNA with target_coverage
     ],
 )
 def test_validate_compatible_library_and_sequencer_on_patch(
@@ -58,7 +58,7 @@ def test_validate_compatible_library_and_sequencer_on_patch(
 ) -> None:
     """Ensure file set assay and sequencer validated on PATCH.
 
-    Note: Permissible combinations of assay and sequencer are determined by `Assay.valid_sequencers property`.
+    Note: Permissible combinations of assay and sequencer are determined by `Assay.valid_sequencers property` and based off of molecule-specific properties of sequencing i.
     """
     patch_body = {}
     if library:

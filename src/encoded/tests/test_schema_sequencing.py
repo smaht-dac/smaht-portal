@@ -11,10 +11,10 @@ from .utils import delete_field, get_item_from_search
     "patch_body,delete_fields,expected_status",
     [
         ({}, "", 200),
-        ({"target_coverage": 200.0}, "target_read_count", 200),
         ({"target_read_count": 200}, "target_coverage", 200),
         ({"target_coverage": 200.0, "target_read_count": 200}, "", 200),
         ({}, "target_coverage,target_read_count", 422),
+        ({"target_coverage": 200.0}, "target_read_count", 200),
     ],
 )
 def test_any_of_requirements(

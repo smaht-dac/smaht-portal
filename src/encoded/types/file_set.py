@@ -339,10 +339,10 @@ def validate_molecule_sequencing_properties_on_edit(context, request):
 
 
 def check_molecule_sequencing_properties(request, libraries: List[str], sequencing: str):
-    """Check at the FileSet level if Sequencing molecule specific properties are present.
+    """Check at the FileSet level if Sequencing molecule-specific properties are present.
 
     If 'RNA' is in libraries.analytes.molecule, sequencing.target_read_count is present.
-    If 'DNA' is in libraries.analytes.molecule, sequencing.target_coverage is precent
+    If 'DNA' is in libraries.analytes.molecule, sequencing.target_coverage is present
     """
     molecules = []
     for library in libraries:

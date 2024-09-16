@@ -15,7 +15,7 @@ from ..item_utils import item as item_utils
         (
             {
                 "assay": "bulk_rna_seq",
-                "analytes": ["TEST_ANALYTE_HELA"],
+                "analytes": ["TEST_ANALYTE_HELA-RNA"],
                 "concatenated_reads": "Yes",
                 "target_monomer_size": 10000
             }, 422
@@ -23,7 +23,7 @@ from ..item_utils import item as item_utils
         (
             {
                 "assay": "bulk_mas_iso_seq",
-                "analytes": ["TEST_ANALYTE_HELA"],
+                "analytes": ["TEST_ANALYTE_HELA-RNA"],
                 "concatenated_reads": "Yes",
                 "target_monomer_size": 10000
             }, 200 #MAS ISO-Seq properties and compatible assay
@@ -39,7 +39,7 @@ def test_validate_rna_library_properties_on_patch(
     """Ensure RNA library assay, and analytes, and RNA properties validated on PATCH."""
     identifier = item_utils.get_uuid(
         get_item_from_search(
-            es_testapp, 'library', add_on="&analytes.molecule=RNA"
+            es_testapp, 'library', add_on="&assay.display_title=RNA-Seq"
         )
     )
     patch_item(es_testapp, patch_body, identifier, status=expected_status)
@@ -59,10 +59,9 @@ def test_validate_dna_library_properties_on_patch(
     expected_status: int
 ) -> None:
     """Ensure DNA library assay, and analytes, and DNA properties validated on PATCH."""
-    import pdb; pdb.set_trace()
     identifier = item_utils.get_uuid(
         get_item_from_search(
-            es_testapp, 'library', add_on="&analytes.molecule=RNA"
+            es_testapp, 'library', add_on="&analytes.molecule=DNA"
         )
     )
     patch_item(es_testapp, patch_body, identifier, status=expected_status)

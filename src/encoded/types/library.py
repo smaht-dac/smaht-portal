@@ -32,7 +32,10 @@ ASSAY_DEPENDENT = {
 
 def _build_library_embedded_list():
     """Embeds for search on libraries."""
-    return []
+    return [
+        "analytes.molecule",
+        "library_preparation.strand",
+    ]
 
 
 @collection(
