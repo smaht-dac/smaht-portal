@@ -13,8 +13,10 @@ from .utils import delete_field, get_item_from_search
         ({}, "", 200),
         ({"target_coverage": 200.0}, "target_read_count", 200),
         ({"target_read_count": 200}, "target_coverage", 200),
-        ({"target_coverage": 200.0, "target_read_count": 200}, "", 200),
-        ({}, "target_coverage,target_read_count", 422),
+        ({"on_target_rate": 200}, "target_read_count", 200),
+        ({"target_coverage": 200.0, "target_read_count": 200}, "on_target_rate", 200),
+        ({"target_coverage": 200.0, "on_target_rate": 200}, "target_read_count", 200),
+        ({}, "target_coverage,target_read_count,on_target_coverage", 422),
     ],
 )
 def test_any_of_requirements(
