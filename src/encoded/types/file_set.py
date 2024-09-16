@@ -175,7 +175,6 @@ class FileSet(SubmittedItem):
             samples_meta = request_handler.get_items(samples)
             for sample_meta in samples_meta:
                 if sample_utils.is_tissue_sample(sample_meta) and sample_meta.get('category') != 'Homogenate':
-                    import pdb; pdb.set_trace()
                     return None # this should give some kind of warning. Should not have multiple intact tissue samples
         if len(samples) == 1:
             sample = samples[0]
