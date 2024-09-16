@@ -45,7 +45,7 @@ Genome Alignment & Variant Calling
                         </a>
                     </td>
                     <td class="px-2 text-right">12-13-2023</td>
-                    <td class="px-2">2.89 GB</td>
+                    <td class="px-2 text-right">2.89 GB</td>
                 </tr>
                 <tr class="sticky-first-column">
                     <td class="px-2">
@@ -68,7 +68,7 @@ Genome Alignment & Variant Calling
                         </a>
                     </td>
                     <td class="px-2 text-right">12-13-2023</td>
-                    <td class="px-2">2.93 GB</td>
+                    <td class="px-2 text-right">2.93 GB</td>
                 </tr>
                 <tr class="sticky-first-column">
                     <td class="px-2">
@@ -91,7 +91,7 @@ Genome Alignment & Variant Calling
                         </a>
                     </td>
                     <td class="px-2 text-right">12-13-2023</td>
-                    <td class="px-2">2.89 GB</td>
+                    <td class="px-2 text-right">2.89 GB</td>
                 </tr>
             </tbody>
         </table>
