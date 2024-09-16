@@ -7,10 +7,11 @@ smaht-portal
 Change Log
 ----------
 
-0.93.3
+0.94.0
 ======
-`PR 252: feat: add manifest type to button <https://github.com/smaht-dac/smaht-portal/pull/252>`_
-* Add manifest type to download manifest button
+`PR251: SN Donor schema update <https://github.com/smaht-dac/smaht-portal/pull/251>`_
+Add property `tpc_submitted` for whether or not the donor was submitted by the TPC
+Include a maximum value of 90 for `age` to remove identifiable information
 
 
 0.93.2
