@@ -95,6 +95,18 @@
             "type": "number",
             "minimum": 0
         },
+        "antibody": {
+            "title": "Antibody",
+            "description":"Antibody used for affinity enrichment",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "H3K4me3",
+                    "RNAPII"
+                ]
+            }
+        },
         "barcode_sequences": {
             "title": "Barcode Sequences",
             "description": "Barcode sequence for multiplexed sequencing",
@@ -125,6 +137,16 @@
             "type": "number",
             "minimum": 0
         },
+        "guide_sequence": {
+            "title": "Guide Sequence",
+            "description": "Guide sequence. Relevant for Cas9 capture experiments",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string"
+            }
+        },
         "insert_coefficient_of_variation": {
             "title": "Insert Coefficient of Variation",
             "description": "Coefficient of variation of the length of the sample molecule in the fragments to be sequenced",
@@ -154,6 +176,16 @@
             "description": "Date of library preparation",
             "type": "string",
             "format": "date"
+        },
+        "dna_target": {
+            "title": "DNA Target",
+            "description": "DNA target used in insert selection",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string"
+            }
         },
         "target_fragment_size": {
             "title": "Target fragment size",

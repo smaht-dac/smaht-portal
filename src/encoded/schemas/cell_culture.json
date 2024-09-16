@@ -21,6 +21,11 @@
         },
         {
             "required": [
+                "tissue_samples"
+            ]
+        },
+        {
+            "required": [
                 "tissue"
             ]
         }
@@ -116,6 +121,17 @@
             "type": "integer",
             "minimum": 0
         },
+        "tissue": {
+            "title": "Tissue",
+            "description": "Tissue the cell culture was derived from",
+            "type": "array",
+            "minItem": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Tissue"
+            }
+        },
         "cell_line": {
             "title": "Cell Line",
             "description": "Cell line used for the cell culture",
@@ -125,13 +141,15 @@
                 "linkTo": "CellLine"
             }
         },
-        "tissue": {
-            "title": "Tissue",
-            "description": "Tissue used for the cell culture",
+        "tissue_samples": {
+            "title": "Tissue Samples",
+            "description":"Tissue samples the cell culture was derived from",
             "type": "array",
+            "minItem": 1,
+            "uniqueItems": true,
             "items": {
                 "type": "string",
-                "linkTo": "Tissue"
+                "linkTo": "Sample"
             }
         },
         "submitted_id": {
