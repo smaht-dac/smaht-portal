@@ -92,7 +92,7 @@ const ChallengeTable = (props) => {
         // Description
         description: {
             colTitle: 'Description',
-            widthMap: { lg: 480, md: 380, sm: 280 },
+            widthMap: { lg: 600, md: 500, sm: 400 },
             render: function (result) {
                 return result?.description;
             },
@@ -107,8 +107,8 @@ const ChallengeTable = (props) => {
         },
         // File Size
         file_size: {
-            colTitle: 'File Size',
-            widthMap: { lg: 105, md: 100, sm: 100 },
+            colTitle: 'Size',
+            widthMap: { lg: 95, md: 80, sm: 75 },
             render: function (result, parentProps) {
                 const value = result?.file_size;
                 if (!value) return null;

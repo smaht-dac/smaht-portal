@@ -66,7 +66,7 @@ class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
         if chain_files:
             return chain_files
         return
-    
+
     @calculated_property(
         schema = {
             "title": "Donor",
@@ -102,14 +102,13 @@ class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
         if seq_files:
             return seq_files
         return
-    
+
     def _get_cell_lines(
         self, request: Request, derived_from: List[str]
     ) -> List[str]:
         """Get the cell line source associated with the assembly, if applicable."""
         request_handler = RequestHandler(request=request)
         return dsa_utils.get_cell_lines(self.properties,request_handler)
-
 
     def _get_donors(
         self, request: Request, derived_from: List[str]

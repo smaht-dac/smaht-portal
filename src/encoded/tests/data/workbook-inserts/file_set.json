@@ -51,10 +51,21 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE-SET_LIVER-HOMOGENATE-DNA",
+        "submitted_id": "TEST_FILE-SET_LUNG-HOMOGENATE-DNA",
         "libraries": [
-            "TEST_LIBRARY_LIVER-HOMOGENATE-DNA"
+            "TEST_LIBRARY_LUNG-HOMOGENATE-DNA"
         ],
         "sequencing": "TEST_SEQUENCING_DNA-PACBIO_30X-30H"
+    },
+    {
+        "uuid": "0f50e72d-13c7-422e-9f8a-4e42ce927b87",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE-SET_IPSC_FIBROBLAST-DNA",
+        "libraries": [
+            "TEST_LIBRARY_IPSC_FIBROBLAST-DNA"
+        ],
+        "sequencing": "TEST_SEQUENCING_DNA-NOVASEQ-500X"
     }
 ]

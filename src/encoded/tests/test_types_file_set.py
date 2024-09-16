@@ -9,7 +9,9 @@ from .utils import (
     get_item
 )
 
-from ..item_utils import item as item_utils
+from ..item_utils import (
+    item as item_utils,
+)
 
 FILE_SET_ID = "b98f9849-3b7f-4f2f-a58f-81100954e00d"
 
@@ -34,10 +36,10 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
 @pytest.mark.parametrize(
     "library,sequencing,expected_status",
     [
-        ("TEST_LIBRARY_LIVER-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-PACBIO_30X-30H", 200), # FiberSeq and PacBio
+        ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-PACBIO_30X-30H", 200), # FiberSeq and PacBio
         ("","TEST_SEQUENCING_DNA-ONT-90X", 422), # FiberSeq and ONT
         ("","TEST_LIBRARY_HELA-HEK293-DNA", 422), # Cas9 Nanopore and PacBio
-        ("TEST_LIBRARY_LIVER-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-ONT-90X", 422), # FiberSeq and ONT
+        ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-ONT-90X", 422), # FiberSeq and ONT
         ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 422), # bulk_wgs and ONT
         ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-ONT-90X", 200), #Cas9 Nanopore and ONT
         ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 200), #bulk_wgs and Illumina NovaSeqX
@@ -85,8 +87,8 @@ def test_validate_compatible_library_and_sequencer_on_patch(
 @pytest.mark.parametrize(
     "library,sequencing,expected_status,index",
     [
-        ("TEST_LIBRARY_LIVER-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-PACBIO_30X-30H", 201, 1), # FiberSeq and PacBio
-        ("TEST_LIBRARY_LIVER-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-ONT-90X", 422, 2), # FiberSeq and ONT
+        ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-PACBIO_30X-30H", 201, 1), # FiberSeq and PacBio
+        ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-ONT-90X", 422, 2), # FiberSeq and ONT
         ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 422, 3), # bulk_wgs and ONT
         ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-ONT-90X", 201, 4), #Cas9 Nanopore and ONT
         ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 201, 5), #bulk_wgs and Illumina NovaSeqX

@@ -78,7 +78,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_LIVER-HOMOGENATE-DNA",
+        "submitted_id": "TEST_ANALYTE_LUNG-HOMOGENATE-DNA",
         "molecule_detail": [
             "Total DNA"
         ],
@@ -86,7 +86,23 @@
             "DNA"
         ],
         "samples": [
-            "TEST_TISSUE-SAMPLE_LIVER-HOMOGENATE"
+            "TEST_TISSUE-SAMPLE_LUNG-HOMOGENATE"
+        ]
+    },
+    {
+        "uuid": "be28cc9e-0af0-4274-b592-740602ce84cd",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ANALYTE_IPSC_FIBROBLAST-DNA",
+        "molecule_detail": [
+            "Total DNA"
+        ],
+        "molecule": [
+            "DNA"
+        ],
+        "samples": [
+            "TEST_CELL-CULTURE-SAMPLE_IPSC_FIBROBLAST"
         ]
     }
 ]
