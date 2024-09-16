@@ -7,11 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-0.93.3
+0.95.0
 ======
-`PR247: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
-* Add downsampled hapmap tab
-* Update benchmarking descriptions
+`PR 215: Bm genome reference <https://github.com/smaht-dac/smaht-portal/pull/215>`_
+
+* Add "Resources" to navigation
+* Add "Genome Reference & Related Data" page
+
+
+0.94.0
+======
+`PR251: SN Donor schema update <https://github.com/smaht-dac/smaht-portal/pull/251>`_
+Add property `tpc_submitted` for whether or not the donor was submitted by the TPC
+Include a maximum value of 90 for `age` to remove identifiable information
 
 
 0.93.2
