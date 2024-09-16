@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.94.0
+======
+`PR 215: Bm genome reference <https://github.com/smaht-dac/smaht-portal/pull/215>`_
+
+* Add "Resources" to navigation
+* Add "Genome Reference & Related Data" page
+
+
 0.93.1
 ======
 `PR249: SN Revert FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/249>`_
