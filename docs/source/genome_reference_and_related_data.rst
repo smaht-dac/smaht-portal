@@ -13,7 +13,7 @@ Genome Alignment & Variant Calling
 
     <hr />
     <div class="table-responsive"> 
-        <table class="table table-borderless table-sm text-left" style="width: 1200px;">
+        <table class="table table-borderless table-sm text-left" style="min-width: 1200px;">
             <thead class="thead-smaht">
                 <tr class="sticky-first-column">
                     <th class="px-2"><i class="icon fas icon-download"></i></th>
