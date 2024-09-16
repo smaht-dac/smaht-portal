@@ -12,7 +12,7 @@ Genome Alignment & Variant Calling
 .. raw:: html
 
     <div class="table-responsive"> 
-        <table class="table table-borderless table-sm text-left" style="width: 825px;">
+        <table class="table table-borderless table-sm text-left" style="width: 1200px;">
             <thead class="thead-smaht">
                 <tr>
                     <th><i class="icon fas icon-download"></i></th>
@@ -31,7 +31,9 @@ Genome Alignment & Variant Calling
                     </td>
                     <td>
                         <a href="/f5ad62fa-5a76-4cf3-bf66-3b71d740be22" rel="noreferrer noopener" target="_blank">
-                            GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bwa_index.tar.gz (SMAFIA6PK1S1.bwt)
+                            GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bwa_index.tar.gz
+                            <br/>
+                            (SMAFIA6PK1S1.bwt)
                         </a>
                     </td>
                     <td>
@@ -52,7 +54,9 @@ Genome Alignment & Variant Calling
                     </td>
                     <td>
                         <a href="/cca516c0-3931-4fbe-bc2c-c26fe9ba23fa" rel="noreferrer noopener" target="_blank">
-                            GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz (SMAFI23ELK2A.fa)
+                            GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
+                            <br/>
+                            (SMAFI23ELK2A.fa)
                         </a>
                     </td>
                     <td>
@@ -73,7 +77,9 @@ Genome Alignment & Variant Calling
                     </td>
                     <td>
                         <a href="/4b672f38-50b1-47bb-a2f8-a7b6c6c62fb8" rel="noreferrer noopener" target="_blank">
-                            Mills_and_1000G_gold_standard.indels.hg38.vcf.gz (SMAFIPOL9T5R.vcf.gz)
+                            Mills_and_1000G_gold_standard.indels.hg38.vcf.gz
+                            <br/>
+                            (SMAFIPOL9T5R.vcf.gz)
                         </a>
                     </td>
                     <td>
