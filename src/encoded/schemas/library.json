@@ -98,11 +98,14 @@
         "antibody": {
             "title": "Antibody",
             "description":"Antibody used for affinity enrichment",
-            "type": "string",
-            "suggested_enum": [
-                "H3K4me3",
-                "RNAPII"
-            ]
+            "type": "array",
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "H3K4me3",
+                    "RNAPII"
+                ]
+            }
         },
         "barcode_sequences": {
             "title": "Barcode Sequences",

@@ -57,9 +57,9 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_LIBRARY_LIVER-HOMOGENATE",
+        "submitted_id": "TEST_LIBRARY_LUNG-HOMOGENATE",
         "analytes": [
-            "TEST_ANALYTE_LIVER-HOMOGENATE"
+            "TEST_ANALYTE_LUNG-HOMOGENATE"
         ],
         "assay": "bulk_fiberseq"
     },
@@ -71,6 +71,17 @@
         "submitted_id": "TEST_LIBRARY_LIVER_MERGED",
         "analytes": [
             "TEST_ANALYTE_LIVER_MERGED"
+        ],
+        "assay": "bulk_wgs"
+    },
+    {
+        "uuid": "cebf54cd-3a6d-48a8-89b7-481701620196",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY_IPSC_FIBROBLAST",
+        "analytes": [
+            "TEST_ANALYTE_IPSC_FIBROBLAST"
         ],
         "assay": "bulk_wgs"
     }
