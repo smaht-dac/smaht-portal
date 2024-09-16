@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.94.0
+======
+`PR251: SN Donor schema update <https://github.com/smaht-dac/smaht-portal/pull/251>`_
+Add property `tpc_submitted` for whether or not the donor was submitted by the TPC
+Include a maximum value of 90 for `age` to remove identifiable information
+
+
 0.93.1
 ======
 `PR249: SN Revert FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/249>`_
