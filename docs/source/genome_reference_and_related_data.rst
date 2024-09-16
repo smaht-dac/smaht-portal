@@ -14,7 +14,7 @@ Genome Alignment & Variant Calling
     <div class="table-responsive"> 
         <table class="table table-borderless table-sm text-left" style="width: 1200px;">
             <thead class="thead-smaht">
-                <tr>
+                <tr class="sticky-first-column">
                     <th><i class="icon fas icon-download"></i></th>
                     <th>File</th>
                     <th>Description</th>
@@ -23,7 +23,7 @@ Genome Alignment & Variant Calling
                 </tr>
             </thead>
             <tbody class="table-border-inner">
-                <tr>
+                <tr class="sticky-first-column">
                     <td>
                         <a href="/reference-files/f5ad62fa-5a76-4cf3-bf66-3b71d740be22/@@download/SMAFIA6PK1S1.bwt">
                             <i class="icon fas icon-download"></i>
@@ -46,7 +46,7 @@ Genome Alignment & Variant Calling
                     <td>12-13-2023</td>
                     <td>2.89 GB</td>
                 </tr>
-                <tr>
+                <tr class="sticky-first-column">
                     <td>
                         <a href="/reference-files/cca516c0-3931-4fbe-bc2c-c26fe9ba23fa/@@download/SMAFI23ELK2A.fa">
                             <i class="icon fas icon-download"></i>
@@ -69,7 +69,7 @@ Genome Alignment & Variant Calling
                     <td>12-13-2023</td>
                     <td>2.93 GB</td>
                 </tr>
-                <tr>
+                <tr class="sticky-first-column">
                     <td>
                         <a href="/reference-files/4b672f38-50b1-47bb-a2f8-a7b6c6c62fb8/@@download/SMAFIPOL9T5R.vcf.gz">
                             <i class="icon fas icon-download"></i>
