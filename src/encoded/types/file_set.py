@@ -348,7 +348,7 @@ def validate_compatible_assay_and_sequencer_on_edit(context, request):
 
 
 FILE_SET_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
-    #validate_compatible_assay_and_sequencer_on_add
+    validate_compatible_assay_and_sequencer_on_add
 ]
 
 @view_config(
