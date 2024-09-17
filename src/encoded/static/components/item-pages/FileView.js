@@ -64,7 +64,7 @@ const FileViewTitle = (props) => {
                             <li className="breadcrumb-list-item" key={i}>
                                 <a
                                     className={
-                                        'breadcrumb-list-item-link' +
+                                        'breadcrumb-list-item-link link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover' +
                                         (href ? '' : ' no-link')
                                     }
                                     href={href}>
