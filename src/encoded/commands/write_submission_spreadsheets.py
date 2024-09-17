@@ -76,6 +76,7 @@ POPULATE_ORDER = [
     "LibraryPreparation",
     "Analyte",
     "AnalytePreparation",
+    "PreparationKit",
     "Treatment",
     "CellSample",
     "CellCultureSample",
@@ -188,6 +189,7 @@ def get_spreadsheets(
         example: bool = False,
     ) -> List[Spreadsheet]:
     submission_schemas = get_all_submission_schemas(request_handler)
+    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,gcc=gcc,tpc=tpc)
     if example:
         example_fields = get_example_fields(EXAMPLE_FILE_UUIDS,GCC_SUBMISSION_ITEMS)
         submission_schemas = get_ordered_submission_schemas(submission_schemas,order=POPULATE_ORDER)
@@ -200,8 +202,11 @@ def get_spreadsheets(
                 request_handler,unlinked_spreadsheet,example_fields
             )
             spreadsheets.append(spreadsheet)
-        return spreadsheets
-    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,gcc=gcc,tpc=tpc)
+        if gcc:
+            order = GCC_SUBMISSION_ITEMS
+        elif items:
+            order = items
+        return reorder_spreadsheets(spreadsheets,order)
     if items:
         return [
             get_spreadsheet(item, submission_schema)
@@ -213,6 +218,15 @@ def get_spreadsheets(
         for item, submission_schema in ordered_submission_schemas.items()
     ]
 
+
+def reorder_spreadsheets(spreadsheets: List[Spreadsheet], order: List[str]):
+    """Reorder spreadsheets in a specific order."""
+    new_spreadsheets = []
+    for item in order:
+        for spreadsheet in spreadsheets:
+            if spreadsheet.item == item:
+                new_spreadsheets.append(spreadsheet)
+    return new_spreadsheets
 
 def delete_existing_sheets(sheets_client: SheetsClient) -> None:
     """Delete existing sheets from Google Sheets."""
@@ -744,7 +758,7 @@ def get_example_spreadsheet(
         example = get_submission_examples(request_handler,example_fields,seed=True)
     else:
         example = get_submission_examples(request_handler,example_fields,item_type=item)
-    properties = get_properties(submission_schema)
+    properties = get_properties(item, submission_schema)
     return Spreadsheet(
         item=item,
         properties=properties,
