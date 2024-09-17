@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.95.1
+======
+`PR 254: Bm doc tweaks <https://github.com/smaht-dac/smaht-portal/pull/254>`_
+
+* Update links to go to newest documentation
+* Add a tip with a warning about submissions
+
+
 0.95.0
 ======
 `PR 215: Bm genome reference <https://github.com/smaht-dac/smaht-portal/pull/215>`_
