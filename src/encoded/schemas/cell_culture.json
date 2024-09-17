@@ -23,6 +23,11 @@
             "required": [
                 "tissue_samples"
             ]
+        },
+        {
+            "required": [
+                "tissue"
+            ]
         }
     ],
     "additionalProperties": false,
