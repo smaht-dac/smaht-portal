@@ -174,7 +174,7 @@
 				right: 6px;
 				top: 6px;
 
-				@include media-breakpoint-down(lg){
+				@include media-breakpoint-down(xl){
 					right: -20px;
 					top: 2px;
 				}
@@ -284,7 +284,7 @@
 		//}
 	}
 
-	@include media-breakpoint-down(lg){
+	@include media-breakpoint-down(xl){
 		> ol.inner {
 			border-top: 1px solid #eee;
 		}
@@ -2130,6 +2130,10 @@ body[data-pathname^="/data/benchmarking"] {
 			
 							> a {
 								color: #717378;
+
+								&:hover {
+									text-decoration-color: $secondary !important;
+								}
 							}
 			
 							&.top {
@@ -2148,6 +2152,7 @@ body[data-pathname^="/data/benchmarking"] {
 								
 								> a {
 									color: #343741;
+									text-decoration-color: $dark !important;
 								}
 							}
 						}

@@ -34,7 +34,7 @@
 
 }
 
-@include media-breakpoint-down(sm){
+@include media-breakpoint-down(md){
     .facet-charts {
         height : auto !important;
         margin-top: 20px;
@@ -419,7 +419,7 @@
 
 }
 
-@include media-breakpoint-down(sm){
+@include media-breakpoint-down(md){
     .bar-plot-chart {
         position: relative;
     }
@@ -631,7 +631,7 @@
     }
 }
 
-@include media-breakpoint-down(sm){
+@include media-breakpoint-down(md){
     .bar-plot-chart-controls-wrapper {
         position: relative;
 
@@ -1156,7 +1156,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
         }
 
         .dropdown-container-col {
-            @include media-breakpoint-down(lg) {
+            @include media-breakpoint-down(xl) {
                 margin-bottom: 20px;
 
                 button.btn {
@@ -1188,7 +1188,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
                 }
             }
 
-            @include media-breakpoint-down(lg) {
+            @include media-breakpoint-down(xl) {
                 display: block !important;
 
                 .custom-date-range {
@@ -1363,7 +1363,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
         background-color: #F1F9FF;
     }
     &#usage {
-        @include media-breakpoint-down(md) {
+        @include media-breakpoint-down(lg) {
             h3 {
                 font-size: 1rem;
             }
@@ -1373,7 +1373,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
                 text-overflow: ellipsis;
             }
         }
-        @include media-breakpoint-down(xs) {
+        @include media-breakpoint-down(md) {
             .dropdown .btn {
                 margin-top: 10px;
             }

@@ -482,7 +482,7 @@ div.navbar-fixed-top {
                                 max-width: 200px; //120px;
                             }
     
-                            @include media-breakpoint-between(lg, xl) {
+                            @include media-breakpoint-between(lg, xxl) {
                                 max-width: 300px; // 150px;
                                 margin-left: 15px;
                             }
@@ -838,7 +838,7 @@ body[data-current-action="multiselect"] {
             background-color: rgba(28,28,30,.7);
         }
 
-        @include media-breakpoint-between(sm, md) {
+        @include media-breakpoint-between(sm, lg) {
             top: 0px;
         }
 
@@ -849,7 +849,7 @@ body[data-current-action="multiselect"] {
         body.is-full-screen {
             top: $navbar-small-height;
 
-            @include media-breakpoint-down(md) {
+            @include media-breakpoint-down(lg) {
                 top: 0px;
             }
         }
@@ -1142,7 +1142,7 @@ body[data-current-action="multiselect"] {
             }
         }
 
-        @include media-breakpoint-down(md) {
+        @include media-breakpoint-down(lg) {
             .big-dropdown-menu {
                 max-height: 100vh;
                 height: 100vh;
