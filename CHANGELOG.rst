@@ -7,10 +7,47 @@ smaht-portal
 Change Log
 ----------
 
+0.97.0
+======
+`PR238: SN Add valid_molecules required <https://github.com/smaht-dac/smaht-portal/pull/238>`_
+* Add `valid_molecules` as a required property for Assay
+
+
+0.96.0
+======
+`PR255: SN Add on_target_rate <https://github.com/smaht-dac/smaht-portal/pull/255>`_
+* Add property `on_target_rate` to Sequencing that is included in the `anyOf` with `target_coverage` and `target_read_count`
+
+
+0.95.1
+======
+`PR 254: Bm doc tweaks <https://github.com/smaht-dac/smaht-portal/pull/254>`_
+
+* Update links to go to newest documentation
+* Add a tip with a warning about submissions
+
+
+0.95.0
+======
+`PR 215: Bm genome reference <https://github.com/smaht-dac/smaht-portal/pull/215>`_
+
+* Add "Resources" to navigation
+* Add "Genome Reference & Related Data" page
+
+
 0.94.0
 ======
-`PR233: SN Add valid_molecules required <https://github.com/smaht-dac/smaht-portal/pull/238>`_
-* Add `valid_molecules` as a required property for Assay
+`PR251: SN Donor schema update <https://github.com/smaht-dac/smaht-portal/pull/251>`_
+Add property `tpc_submitted` for whether or not the donor was submitted by the TPC
+Include a maximum value of 90 for `age` to remove identifiable information
+
+
+0.93.2
+======
+`PR 240: fix: SN TPC samples annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/240>`_
+* In `commands/create_annotated_filename.py`:
+  * Grab unique `aliquot_ids` so that files with tissue samples from TPC are not considered to have merged aliquots
+  e.g. file has identical samples `ST001-1A-001A1` from GCC and `ST001-1A-001A1` from TPC. The TPC item is used for metadata cross-checking, and shouldn't be considered when checking if samples were merged for analyte extraction.
 
 
 0.93.1
