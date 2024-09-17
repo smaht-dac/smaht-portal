@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.96.1
+======
+`PR257: SN Update DSA calc_prop <https://github.com/smaht-dac/smaht-portal/pull/257>`_
+* Change DSA calc prop for non-fasta files `supplementary_files`
+
+
 0.96.0
 ======
 `PR255: SN Add on_target_rate <https://github.com/smaht-dac/smaht-portal/pull/255>`_
