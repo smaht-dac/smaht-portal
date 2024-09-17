@@ -7,13 +7,21 @@ smaht-portal
 Change Log
 ----------
 
-0.95.1
+0.95.2
 ======
 `PR 253: SN file_group update <https://github.com/smaht-dac/smaht-portal/pull/253>`_
 * Add to `file_group` calc_prop to accommodate FileSets with multiple samples
   * If samples are homogenate tissue samples, `sample_source` is the Tissue
   * If samples are cell culture samples, `sample_source` is the CellCulture
   * If samples are intact tissue samples, `sample_source` is TissueSample (not mergeable)
+
+
+0.95.1
+======
+`PR 254: Bm doc tweaks <https://github.com/smaht-dac/smaht-portal/pull/254>`_
+
+* Update links to go to newest documentation
+* Add a tip with a warning about submissions
 
 
 0.95.0
