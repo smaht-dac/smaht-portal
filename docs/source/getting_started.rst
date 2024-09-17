@@ -75,6 +75,11 @@ An example of a filled out workbook ready for submission can be found |example_w
 
    <a href="https://docs.google.com/spreadsheets/d/1bnPIH6f3biLBL9R8mEgvBemLP3nbsyyCrJQuOstcm_I/edit?usp=sharing" target="_blank">here</a>
 
+.. TIP::
+   The submission template is in flux. Please double check with DAC about getting the most up-to-date template before starting metadata submission!
+
+|
+
 Formatting Files for Submission
 ===============================
 Most commonly, the file format recommended for metadata submission to SMaHT Portal, is an Excel spreadsheet file (e.g. ``your_metadata_file.xlsx``), comprised of one or more sheets. Note these important aspects of using the Excel spreadsheet format:
