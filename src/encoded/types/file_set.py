@@ -1,20 +1,41 @@
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Optional
 
+from pyramid.view import view_config
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
+from snovault.util import debug_log, get_item_or_none
+from encoded.validator_decorators import link_related_validator
 import structlog
 
-from .submitted_item import SubmittedItem
+from .submitted_item import (
+    SUBMITTED_ITEM_ADD_VALIDATORS,
+    SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS,
+    SUBMITTED_ITEM_EDIT_PUT_VALIDATORS,
+    SubmittedItem,
+)
 from ..item_utils import (
+    assay as assay_utils,
     file_set as file_set_utils,
     item as item_utils,
     library as library_utils,
     sequencing as sequencing_utils,
+    sample as sample_utils
 )
-from ..item_utils.utils import RequestHandler, get_property_value_from_identifier
+from ..item_utils.utils import (
+    RequestHandler,
+    get_property_value_from_identifier,
+    get_property_values_from_identifiers
+)
 from ..utils import load_extended_descriptions_in_schemas
 
 
+from .base import (
+    collection_add,
+    item_edit,
+    Item
+)
+
+from .utils import get_properties, get_property_for_validation
 log = structlog.getLogger(__name__)
 
 
@@ -24,7 +45,6 @@ log = structlog.getLogger(__name__)
 SINGLE_CELL_ASSAY_CODES = [
     '016', '012', '014', '105', '104', '103', '013', '011', '010'
 ]
-
 
 def _build_file_set_embedded_list():
     """Embeds for search on file sets."""
@@ -75,6 +95,9 @@ class FileSet(SubmittedItem):
         "files": ("File", "file_sets"),
         "meta_workflow_runs": ("MetaWorkflowRun", "file_sets"),
     }
+
+    class Collection(Item.Collection):
+        pass
 
     @calculated_property(
         schema={
@@ -146,18 +169,25 @@ class FileSet(SubmittedItem):
         samples = library_utils.get_samples(
             library, request_handler=request_handler
         )
-        if len(samples) > 1 or len(samples) == 0:
-            return None  # there is too much complexity
-
+        if len(samples) == 0:
+            return None
+        if len(samples) > 1:
+            samples_meta = request_handler.get_items(samples)
+            for sample_meta in samples_meta:
+                if sample_utils.is_tissue_sample(sample_meta) and sample_meta.get('category') != 'Homogenate':
+                    return None # this should give some kind of warning. Should not have multiple intact tissue samples
+        if len(samples) == 1:
+            sample = samples[0]
+            if 'tissue' in sample:
+                sample_meta = request_handler.get_item(sample)
+                if sample_meta.get('category') != 'Homogenate':
+                    return get_property_value_from_identifier(
+                        request_handler, sample, item_utils.get_submitted_id
+                    )
         # If we are a tissue sample, generate this based on the sample field, not the sample
         # sources field
-        sample = samples[0]
-        if 'tissue' in sample:
-            return get_property_value_from_identifier(
-                request_handler, sample, item_utils.get_submitted_id
-            )
 
-        # If we get here, we are not a tissue sample and should rely on sample sources
+        # If we get here, we are a Homogenate tissue sample or cell line and should rely on sample sources
         sample_sources = library_utils.get_sample_sources(
             library, request_handler=request_handler
         )
@@ -249,3 +279,109 @@ class FileSet(SubmittedItem):
             'sequencing': sequencing_part,
             'assay': assay_part
         }
+
+
+@link_related_validator
+def validate_compatible_assay_and_sequencer_on_add(context, request):
+    """Check filesets to make sure they are linked to compatible library.assay and sequencing items on add.
+    
+    The assays with `valid_sequencers` property may need to be updated as new techologies come out 
+    or are added to the portal.
+    """
+    data = request.json
+    assays = []
+    valid_sequencers = []
+    for library in data['libraries']:
+        assay_aid = library_utils.get_assay(
+            get_item_or_none(request, library, 'library')
+        )
+        assay = get_item_or_none(request, assay_aid, 'assay')
+        assays.append(
+            item_utils.get_identifier(assay)
+        )
+        valid_sequencers += assay_utils.get_valid_sequencers(assay)
+    sequencer_aid = sequencing_utils.get_sequencer(
+        get_item_or_none(request, data['sequencing'], 'sequencing')
+    )
+    sequencer = item_utils.get_identifier(
+        get_item_or_none(request, sequencer_aid, 'sequencer')
+    )
+    if valid_sequencers:
+        if sequencer not in valid_sequencers:
+            msg = f"Sequencer {sequencer} is not allowed for assay {assay}. Valid sequencers are {','.join(valid_sequencers)}"
+            return request.errors.add('body', 'FileSet: invalid links', msg)
+    return request.validated.update({})
+
+
+def validate_compatible_assay_and_sequencer_on_edit(context, request):
+    """Check filesets to make sure they are linked to compatible library.assay and sequencing items on edit.
+    
+    The assays with `valid_sequencers` property may need to be updated as new techologies come out 
+    or are added to the portal.
+    """
+    existing_properties = get_properties(context)
+    properties_to_update = get_properties(request)
+    libraries = get_property_for_validation('libraries', existing_properties, properties_to_update)
+    assays = []
+    valid_sequencers = []
+    for library in libraries:
+        assay_aid = library_utils.get_assay(
+            get_item_or_none(request, library, 'library')
+        )
+        assay = get_item_or_none(request, assay_aid, 'assay')
+        assays.append(
+            item_utils.get_identifier(assay)
+        )
+        valid_sequencers += assay_utils.get_valid_sequencers(assay)
+    sequencing = get_property_for_validation('sequencing', existing_properties, properties_to_update)
+    sequencer_aid = sequencing_utils.get_sequencer(
+        get_item_or_none(request, sequencing, 'sequencing')
+    )
+    sequencer = item_utils.get_identifier(
+        get_item_or_none(request, sequencer_aid, 'sequencer')
+    )
+    if valid_sequencers:
+        if sequencer not in valid_sequencers:
+            msg = f"Sequencer {sequencer} is not allowed for assay {assays}. Valid sequencers are {','.join(valid_sequencers)}"
+            return request.errors.add('body', 'FileSet: invalid links', msg)
+    return request.validated.update({})
+
+
+FILE_SET_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
+    validate_compatible_assay_and_sequencer_on_add
+]
+
+@view_config(
+    context=FileSet.Collection,
+    permission='add',
+    request_method='POST',
+    validators=FILE_SET_ADD_VALIDATORS,
+)
+@debug_log
+def file_set_add(context, request, render=None):
+    return collection_add(context, request, render)
+
+
+FILE_SET_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
+    validate_compatible_assay_and_sequencer_on_edit
+]
+
+FILE_SET_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
+    validate_compatible_assay_and_sequencer_on_edit
+]
+
+@view_config(
+    context=FileSet,
+    permission='edit',
+    request_method='PUT',
+    validators=FILE_SET_EDIT_PUT_VALIDATORS,
+)
+@view_config(
+    context=FileSet,
+    permission='edit',
+    request_method='PATCH',
+    validators=FILE_SET_EDIT_PATCH_VALIDATORS,
+)
+@debug_log
+def file_set_edit(context, request, render=None):
+    return item_edit(context, request, render)

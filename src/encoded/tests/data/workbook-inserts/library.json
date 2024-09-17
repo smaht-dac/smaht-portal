@@ -28,7 +28,7 @@
         "a260_a280_ratio": 3.2,
         "fragment_mean_length": 150.7,
         "insert_mean_length": 150.2,
-        "assay": "bulk_wgs"
+        "assay": "bulk_rna_seq"
     },
     {
         "uuid": "225356c9-7a02-4ad9-9214-f45ae8eeffec",
@@ -39,7 +39,7 @@
         "analytes": [
             "TEST_ANALYTE_HELA_ONLY"
         ],
-        "assay": "bulk_wgs"
+        "assay": "bulk_mas_iso_seq"
     },
     {
         "uuid": "fa00fbc9-360f-4974-9760-3e36b1b8bdba",
@@ -50,16 +50,38 @@
         "analytes": [
             "TEST_ANALYTE_HELA-HEK293"
         ],
-        "assay": "bulk_wgs"
+        "assay": "cas9_nanopore"
     },
     {
         "uuid": "c9464515-db14-475e-af1a-16cc87bfcbbb",
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_LIBRARY_LIVER-HOMOGENATE",
+        "submitted_id": "TEST_LIBRARY_LUNG-HOMOGENATE",
         "analytes": [
-            "TEST_ANALYTE_LIVER-HOMOGENATE"
+            "TEST_ANALYTE_LUNG-HOMOGENATE"
+        ],
+        "assay": "bulk_fiberseq"
+    },
+    {
+        "uuid": "fbb206d8-a6ff-46cf-8417-fe636d0a6403",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY_LIVER_MERGED",
+        "analytes": [
+            "TEST_ANALYTE_LIVER_MERGED"
+        ],
+        "assay": "bulk_wgs"
+    },
+    {
+        "uuid": "cebf54cd-3a6d-48a8-89b7-481701620196",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY_IPSC_FIBROBLAST",
+        "analytes": [
+            "TEST_ANALYTE_IPSC_FIBROBLAST"
         ],
         "assay": "bulk_wgs"
     }

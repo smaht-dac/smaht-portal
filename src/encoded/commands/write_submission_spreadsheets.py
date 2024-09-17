@@ -494,6 +494,8 @@ class Property:
     format_: str = ""
     requires: Optional[List[str]] = None
     exclusive_requirements: Optional[List[str]] = None
+    allow_commas: Optional[bool] = False
+    allow_multiplier_suffix: Optional[bool] = False
     search: Optional[str] = ""
 
 
@@ -538,6 +540,8 @@ def get_property(item: str, property_name: str, property_schema: Dict[str, Any])
         format_=schema_utils.get_format(property_schema),
         requires=get_corequirements(property_schema),
         exclusive_requirements=get_exclusive_requirements(property_schema),
+        allow_commas=is_allow_commas(property_schema),
+        allow_multiplier_suffix=is_allow_multiplier_suffix(property_schema),
         search=get_search_url(property_schema)
     )
 
@@ -630,6 +634,16 @@ def get_corequirements(property_schema: Dict[str, Any]) -> List[str]:
 def get_exclusive_requirements(property_schema: Dict[str, Any]) -> List[str]:
     """Get the exclusive requirements for the property."""
     return property_schema.get(SubmissionSchemaConstants.REQUIRED_IF_NOT_ONE_OF) or []
+
+
+def is_allow_commas(property_schema: Dict[str, Any]) -> bool:
+    """Check if allow_commas is present in the property."""
+    return property_schema.get("allow_commas", False)
+
+
+def is_allow_multiplier_suffix(property_schema: Dict[str, Any]) -> bool:
+    """Check if allow_multiplier is present in the property."""
+    return property_schema.get("allow_multiplier_suffix", False)
 
 
 def write_spreadsheet(
@@ -844,6 +858,7 @@ def get_comment_text(property_: Property) -> str:
     indent = "  "
     comment_lines += get_comment_description(property_, indent)
     comment_lines += get_comment_value_type(property_, indent)
+    comment_lines += get_comment_numbers(property_, indent)
     comment_lines += get_comment_enum(property_, indent)
     comment_lines += get_comment_examples(property_, indent)
     comment_lines += get_comment_link(property_, indent)
@@ -868,7 +883,7 @@ def get_comment_value_type(property_: Property, indent: str) -> List[str]:
             return [
                 (
                     f"Type:{indent}{property_.array_subtype}"
-                    f"{indent}(Multiple values allowed. Use '|' as a delimiter)"
+                    f"{indent}(Multiple values allowed. Use '|' as a delimiter.)"
                 )
             ]
         else:
@@ -926,6 +941,16 @@ def get_comment_note(property_: Property, indent: str) -> List[str]:
     if property_.comment:
         return [f"Note:{indent}{property_.comment}"]
     return []
+
+
+def get_comment_numbers(property_: Property, indent: str) -> List[str]:
+    """Get comment for allow_commas and allow_multiplier_suffix."""
+    comment = []
+    if property_.allow_commas:
+        comment.append(f"{indent} Commas allowed (e.g. 1,000,000)")
+    if property_.allow_multiplier_suffix:
+        comment.append(f"{indent} Abbreviations allowed, such as 1M for 1000000 or 10.5kb for 10500 bp")
+    return comment
 
 
 def get_comment_search(property_: Property, indent: str) -> List[str]:

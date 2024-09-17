@@ -43,11 +43,6 @@ ALIGNED_READS_EXTENSION = "aligned"
 PHASED_EXTENSION = "phased"
 SORTED_EXTENSION = "sorted"
 
-CNV_VARIANT_TYPE = "cnv"
-MEI_VARIANT_TYPE = "mei"
-SNV_VARIANT_TYPE = "snv"
-SV_VARIANT_TYPE = "sv"
-
 MALE_SEX_ABBREVIATION = "M"
 FEMALE_SEX_ABBREVIATION = "F"
 
@@ -637,6 +632,7 @@ def get_aliquot_id(
     tissue_samples: List[Dict[str], Any],
 ) -> FilenamePart:
     """Get tissue aliquot ID for file."""
+
     parts = []
     if cell_culture_mixtures or cell_lines:
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
@@ -650,13 +646,39 @@ def get_aliquot_id_from_samples(tissue_samples: List[Dict[str], Any]) -> Filenam
 
     Some special handling required to transform aliquot ID from
     metadata to that of the filename.
+    Duplicate tissue samples from TPC are ignored by grabbing only unique aliquot_ids.
+    If the external_id indicates it is a benchmarking or production tissue_sample, check for mergability of tissue sample aliquots
     """
     aliquot_ids = [
         get_aliquot_id_from_tissue_sample(sample) for sample in tissue_samples
     ]
+    aliquot_ids = [id for id in set(aliquot_ids)] # Get unique ids to remove TPC duplicates
+    bench_or_prod = [ tissue_sample_utils.is_benchmarking(sample) or tissue_sample_utils.is_production(sample) for sample in tissue_samples]
+    if all(bench_or_prod):
+        if len(aliquot_ids) > 1:
+            aliquot_ids = get_multiple_aliquot_id_from_samples(aliquot_ids)
     return get_filename_part_for_values(
         aliquot_ids, "tissue aliquot ID", source_name="sample"
     )
+
+
+def get_multiple_aliquot_id_from_samples(ids: List[str]):
+    """Get filename part for files merged from multiple tissue sample aliquots.
+    
+    `aliquot_id` is the first two or three numbers indicating the tissue sample aliquot (e.g. 01 or 001) and `core_id` is the last two values which are either an alpha-numeric code for Core or Specimen samples (e.g. A1), or XX for Homogenate samples.
+    """
+    aliquot_ids = []
+    core_ids = []
+    for id in ids:
+        aliquot_id = id[:-2]
+        core_id = id[-2:] # grab last two alphanumerals
+        aliquot_ids.append(aliquot_id) if aliquot_id not in aliquot_ids else aliquot_ids
+        core_ids.append(core_id) if core_id not in core_ids else core_ids
+    if len(aliquot_ids) == 1 and len(core_ids) > 1:
+        aliquot_core_id =  [f"{aliquot_ids[0]}MC"]
+    else:
+       aliquot_core_id = ["MAMC"]
+    return aliquot_core_id
 
 
 def get_aliquot_id_from_tissue_sample(tissue_sample: Dict[str, Any]) -> str:
@@ -787,12 +809,11 @@ def get_analysis(
     """
     software_and_versions = get_software_and_versions(software)
     reference_genome_code = item_utils.get_code(reference_genome)
-    variant_types = get_variant_types(file)
-    errors = get_analysis_errors(file, reference_genome_code, variant_types)
+    errors = get_analysis_errors(file, reference_genome_code)
     if errors:
         return get_filename_part(errors=errors)
     value = get_analysis_value(
-        software_and_versions, reference_genome_code, variant_types
+        software_and_versions, reference_genome_code
     )
     if file_format_utils.is_chain_file(file_extension):
         value = f"{value}{ANALYSIS_INFO_SEPARATOR}{get_chain_file_value(file)}"
@@ -804,35 +825,29 @@ def get_analysis(
 
 
 def get_analysis_errors(
-    file: Dict[str, Any], reference_genome_code: str, variant_types: str
+    file: Dict[str, Any], reference_genome_code: str
 ) -> List[str]:
     """Get analysis errors for file by file type."""
     errors = []
     if file_utils.is_unaligned_reads(file):
         if reference_genome_code:
             errors.append("Unexpected reference genome code found")
-        if variant_types:
-            errors.append("Unexpected variant type found")
     if file_utils.is_aligned_reads(file):
         if not reference_genome_code:
             errors.append("No reference genome code found")
-        if variant_types:
-            errors.append("Unexpected variant type found")
     if file_utils.is_variant_calls(file):
         if not reference_genome_code:
             errors.append("No reference genome code found")
-        if not variant_types:
-            errors.append("No variant type found")
     return errors
 
 
 def get_analysis_value(
-    software_and_versions: str, reference_genome_code: str, variant_types: str
+    software_and_versions: str, reference_genome_code: str
 ) -> str:
     """Get analysis value for filename."""
     to_write = [
         string
-        for string in [software_and_versions, reference_genome_code, variant_types]
+        for string in [software_and_versions, reference_genome_code]
         if string
     ]
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
@@ -890,20 +905,6 @@ def get_software_codes_missing_versions(
         for item in software_items
         if not item_utils.get_version(item)
     ]
-
-
-def get_variant_types(file: Dict[str, Any]) -> str:
-    """Get variant types for VCF files."""
-    result = []
-    if file_utils.has_single_nucleotide_variants(file):
-        result.append(SNV_VARIANT_TYPE)
-    if file_utils.has_copy_number_variants(file):
-        result.append(CNV_VARIANT_TYPE)
-    if file_utils.has_structural_variants(file):
-        result.append(SV_VARIANT_TYPE)
-    if file_utils.has_mobile_element_insertions(file):
-        result.append(MEI_VARIANT_TYPE)
-    return ANALYSIS_INFO_SEPARATOR.join(sorted(result))
 
 
 def get_chain_file_value(file: Dict[str, Any]) -> str:

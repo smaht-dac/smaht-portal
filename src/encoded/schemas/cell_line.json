@@ -81,6 +81,28 @@
             "type": "string",
             "format": "uri"
         },
+        "parent_cell_lines": {
+            "title": "Parent Cell Lines",
+            "description":"Cell lines the cell line was derived from",
+            "type": "array",
+            "minItem": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "CellLine"
+            }
+        },
+        "tissue_samples": {
+            "title": "Tissue Samples",
+            "description":"Tissue samples the cell line  was derived from",
+            "type": "array",
+            "minItem": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Sample"
+            }
+        },
         "donor": {
             "title": "Donor",
             "description": "Donor associated with the cell line",
