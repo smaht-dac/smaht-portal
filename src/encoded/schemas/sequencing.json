@@ -105,7 +105,7 @@
         },
         "on_target_rate": {
             "title": "On Target Rate",
-            "description": "TBD. Relevant for target capture sequencing",
+            "description": "Expected rate of enrichment signals from the target of interest on the ends of reads. Relevant for target capture sequencing",
             "type": "number",
             "minimum": 0
         },
