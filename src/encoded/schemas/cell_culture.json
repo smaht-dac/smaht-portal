@@ -116,6 +116,17 @@
             "type": "integer",
             "minimum": 0
         },
+        "tissue": {
+            "title": "Tissue",
+            "description": "Tissue the cell culture was derived from",
+            "type": "array",
+            "minItem": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Tissue"
+            }
+        },
         "cell_line": {
             "title": "Cell Line",
             "description": "Cell line used for the cell culture",
