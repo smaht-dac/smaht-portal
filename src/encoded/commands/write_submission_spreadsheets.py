@@ -61,7 +61,8 @@ WORKBOOK_FILENAME = "submission_workbook.xlsx"
 
 OVERVIEW_GUIDELINES_SHEET_ID = "1hDz22YGyLsgnoC0QeZwmf6zk0guZ9930yEFi1huhV20"
 EXAMPLE_FILE_UUIDS=["4e142999-5d48-4dcd-b7d6-558e5960e69b",
-                    "d4020a63-338c-4103-8461-417d09df5cbd"
+                    "d4020a63-338c-4103-8461-417d09df5cbd",
+                    "f382f84c-f590-49f2-9f62-e852e2c30647"
                     ]
 
 POPULATE_ORDER = [
