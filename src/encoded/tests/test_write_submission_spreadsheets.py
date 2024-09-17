@@ -300,6 +300,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
             {},
             Property(
                 name="bar",
+                item="Foo",
                 description="",
                 value_type="",
                 required=False,
@@ -331,6 +332,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
             },
             Property(
                 name="baz",
+                item="Foo",
                 description="Baz",
                 value_type="number",
                 required=True,
@@ -363,6 +365,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
             },
             Property(
                 name="baz",
+                item="Foo",
                 description="Baz",
                 value_type="number",
                 required=True,
@@ -387,7 +390,7 @@ def test_get_property(
 
     For more complicated attributes, see respective unit tests.
     """
-    property_ = get_property(property_name, property_schema)
+    property_ = get_property('Foo',property_name, property_schema)
     assert property_ == expected
 
 
@@ -412,6 +415,7 @@ def test_get_property(
             [
                 Property(
                     name="baz#0.foo",
+                    item="Foo",
                     description="Foo",
                     value_type="number",
                     required=False,
@@ -428,6 +432,7 @@ def test_get_property(
                 ),
                 Property(
                     name="baz#1.foo",
+                    item="Foo",
                     description="Foo",
                     value_type="number",
                     required=False,
@@ -451,7 +456,7 @@ def test_get_nested_properties(
 ) -> None:
     """Test get_nested_properties from schema.
     """
-    property_ = get_nested_properties(property_name, property_schema)
+    property_ = get_nested_properties("Foo",property_name, property_schema)
     assert property_ == expected
 
 
@@ -571,7 +576,7 @@ def test_get_ordered_properties(
         ),
         (  # Array type
             Property("foo", value_type="array", array_subtype="string"),
-            "Type:  string  (Multiple values allowed)\nRequired:  No",
+            "Type:  string  (Multiple values allowed. Use '|' as a delimiter.)\nRequired:  No",
         ),
         (  # Possibly required
             Property("foo", exclusive_requirements=["bar", "bu"]),

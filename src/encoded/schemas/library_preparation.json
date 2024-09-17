@@ -1,5 +1,6 @@
 {
     "title": "Library Preparation",
+    "description": "Library Preparation items contain more detailed information on library preparation protocols.",
     "$id": "/profiles/library_preparation.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -124,6 +125,22 @@
                 ]
             }
         },
+        "enzymes": {
+            "title": "Enzymes",
+            "description": "Enzymes used in fragmentation. Required if fragmentation_method contains Restriction Enzyme or Transposase",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "Mung Bean Nuclease",
+                    "HpyCH4V",
+                    "AluI",
+                    "Tn5"
+                ]
+            }
+        },
         "size_selection_method": {
             "title": "Size Selection Method",
             "description": "Method for selecting fragment sizes",
@@ -155,5 +172,32 @@
             "description": "Whether trimming adapter sequence is recommended",
             "type": "boolean"
         }
-    }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "fragmentation_method": {
+                        "contains": {
+                            "anyOf": [
+                                {"const": "Restriction Enzyme"},
+                                {"const": "Transposase"}
+                            ]
+                        }
+                    }
+                },
+                "required": ["fragmentation_method"]
+            },
+            "then": {
+                "required": ["enzymes"]
+            },
+            "else": {
+                "not": {
+                        "required": [
+                            "enzymes"
+                        ]
+                    }
+            }
+        }
+    ]
 }

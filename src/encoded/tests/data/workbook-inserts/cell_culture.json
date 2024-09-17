@@ -5,7 +5,7 @@
             "smaht"
         ],
         "submitted_id": "TEST_CELL-CULTURE_HELA",
-        "cell_line": "TEST_CELL-LINE_HELA",
+        "cell_line": ["TEST_CELL-LINE_HELA"],
         "culture_duration": 15,
         "culture_start_date": "2023-12-25",
         "growth_medium": "EMEM",
@@ -17,6 +17,22 @@
             "smaht"
         ],
         "submitted_id": "TEST_CELL-CULTURE_HEK293",
-        "cell_line": "TEST_CELL-LINE_HEK293"
+        "cell_line": ["TEST_CELL-LINE_HEK293"]
+    },
+    {
+        "uuid": "3e1597a2-00b7-4953-b0d3-bb96344b1d28",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_CELL-CULTURE_LIVER",
+        "tissue_samples": ["TEST_TISSUE-SAMPLE_LIVER"]
+    },
+    {
+        "uuid": "d52b739b-6299-4f76-bdea-357e6acb2f28",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_CELL-CULTURE_IPSC_FIBROBLAST",
+        "cell_line": ["TEST_CELL-LINE_IPSC_FIBROBLAST"]
     }
 ]

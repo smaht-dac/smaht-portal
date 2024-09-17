@@ -1,5 +1,6 @@
 {
     "title": "Cell Culture Sample",
+    "description": "A Cell Culture Sample item represents an individual sample taken from a Cell Culture.",
     "$id": "/profiles/cell_culture_sample.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -35,6 +36,9 @@
         },
         {
             "$ref": "mixins.json#/protocols"
+        },
+        {
+            "$ref": "mixins.json#/parent_samples"
         },
         {
             "$ref": "mixins.json#/schema_version"

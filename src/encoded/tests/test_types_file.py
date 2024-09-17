@@ -761,7 +761,7 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
     assert submitted_file_with_sample_sources_search
     for submitted_file in submitted_file_with_sample_sources_search:
         assert_sample_sources_calcprop_matches_embeds(submitted_file)
-
+    
     output_file_with_sample_sources_search = search_type_for_key(
         es_testapp, "OutputFile", search_key
     )
@@ -826,9 +826,9 @@ def assert_cell_line_donors_match_calcprop(
     file: Dict[str, Any],
     cell_lines: List[Dict[str, Any]],
 ) -> None:
-    """Ensure cell line donors match calcprop."""
+    """Ensure cell line donors match calcprop.""" 
     donor_ids = get_property_values_from_identifiers(
-        request_handler, cell_lines, cell_line_utils.get_donor
+        request_handler, cell_lines, functools.partial(cell_line_utils.get_source_donor, request_handler)
     )
     donors = request_handler.get_items(donor_ids)
     assert_items_match(donors, file_utils.get_donors(file))
@@ -842,7 +842,7 @@ def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     analytes = get_unique_values(libraries, library_utils.get_analytes)
     samples = get_unique_values(analytes, analyte_utils.get_samples)
     sample_sources = get_unique_values(samples, sample_utils.get_sample_sources)
-    donors = get_unique_values(sample_sources, tissue_utils.get_donor)
+    donors = get_unique_values(sample_sources, tissue_utils.get_donor)     
     assert_items_match(donors_from_calcprop, donors)
 
 
@@ -998,6 +998,12 @@ def assert_data_generation_summary_matches_expected(
         )
         for sequencing in sequencings
     ] if sequencings else []
+    expected_target_coverage = [
+        sequencing_utils.get_target_coverage(
+            get_item(es_testapp, item_utils.get_uuid(sequencing))
+        )
+        for sequencing in sequencings
+    ] if sequencings else []
     assert_values_match_if_present(
         data_generation_summary, "data_category", expected_data_category
     )
@@ -1013,6 +1019,9 @@ def assert_data_generation_summary_matches_expected(
     assert_values_match_if_present(data_generation_summary, "assays", expected_assays)
     assert_values_match_if_present(
         data_generation_summary, "sequencing_platforms", expected_platforms
+    )
+    assert_values_match_if_present(
+        data_generation_summary,"target_group_coverage",expected_target_coverage
     )
 
 

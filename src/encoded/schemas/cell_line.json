@@ -1,5 +1,6 @@
 {
     "title": "Cell Line",
+    "description": "A Cell Line is a high-level item that represents a specific immortalized cell line, such as COLO829BL",
     "$id": "/profiles/cell_line.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -79,6 +80,28 @@
             "description": "URL for vendor information on the cell line",
             "type": "string",
             "format": "uri"
+        },
+        "parent_cell_lines": {
+            "title": "Parent Cell Lines",
+            "description":"Cell lines the cell line was derived from",
+            "type": "array",
+            "minItem": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "CellLine"
+            }
+        },
+        "tissue_samples": {
+            "title": "Tissue Samples",
+            "description":"Tissue samples the cell line  was derived from",
+            "type": "array",
+            "minItem": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Sample"
+            }
         },
         "donor": {
             "title": "Donor",

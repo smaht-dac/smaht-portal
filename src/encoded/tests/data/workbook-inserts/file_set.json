@@ -33,7 +33,7 @@
         "libraries": [
             "TEST_LIBRARY_HELA_ONLY"
         ],
-        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
+        "sequencing": "TEST_SEQUENCING_PACBIO_30X-30H"
     },
     {
         "uuid": "e8e1885a-705a-46d7-8937-5969d30280f0",
@@ -44,16 +44,27 @@
         "libraries": [
             "TEST_LIBRARY_HELA-HEK293"
         ],
-        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
+        "sequencing": "TEST_SEQUENCING_ONT-90X"
     },
     {
         "uuid": "8a55c725-eb48-4ef9-9a54-9271bdf11239",
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE-SET_LIVER-HOMOGENATE",
+        "submitted_id": "TEST_FILE-SET_LUNG-HOMOGENATE",
         "libraries": [
-            "TEST_LIBRARY_LIVER-HOMOGENATE"
+            "TEST_LIBRARY_LUNG-HOMOGENATE"
+        ],
+        "sequencing": "TEST_SEQUENCING_PACBIO_30X-30H"
+    },
+    {
+        "uuid": "0f50e72d-13c7-422e-9f8a-4e42ce927b87",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE-SET_IPSC_FIBROBLAST",
+        "libraries": [
+            "TEST_LIBRARY_IPSC_FIBROBLAST"
         ],
         "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
     }

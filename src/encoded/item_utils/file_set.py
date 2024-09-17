@@ -2,9 +2,11 @@ from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
 from . import (
+    item as item_utils,
     library as library_utils,
     sample as sample_utils,
     sequencing as sequencing_utils,
+    file as file_utils,
 )
 from .utils import (
     RequestHandler,
@@ -47,7 +49,7 @@ def get_samples(
         result = get_property_values_from_identifiers(
             request_handler,
             get_libraries(file_set),
-            partial(library_utils.get_samples, request_handler=request_handler),
+            partial(library_utils.get_all_samples, request_handler=request_handler),
         )
     return result
 

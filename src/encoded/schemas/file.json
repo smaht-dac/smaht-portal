@@ -54,6 +54,9 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/version"
         }
     ],
     "properties": {
@@ -81,6 +84,19 @@
                 "public",
                 "restricted"
             ]
+        },
+        "external_quality_metrics": {
+            "description": "Link to externally-generated QC metrics associated with file",
+            "items": {
+                "description": "Associated QC report",
+                "linkTo": "ExternalQualityMetric",
+                "title": "Quality Metric",
+                "type": "string"
+            },
+            "minItems": 1,
+            "title": "External Quality Metrics",
+            "type": "array",
+            "uniqueItems": true
         },
         "file_format": {
             "$merge": "encoded_core:schemas/file.json#/properties/file_format",
@@ -194,6 +210,10 @@
                 "title": "Notes to tsv file",
                 "type": "string"
             }
+        },
+        "version": {
+            "type": "string",
+            "permission": "restricted_fields"
         }
     },
     "facets": {

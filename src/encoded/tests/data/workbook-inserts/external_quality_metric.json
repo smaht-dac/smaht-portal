@@ -1,0 +1,40 @@
+[
+    {
+        "uuid": "6ce8de9d-31d0-4d2d-9dba-55a16dfd7ce0",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_EXTERNAL-QUALITY-METRIC_HELA-HEK293-VCF",
+        "category": [
+            "Testing"
+        ],
+        "qc_values": [
+            {
+                "key": "foo",
+                "value": "bar",
+                "tooltip": "Description of how foo was derived"
+            },
+            {
+                "key": "bar",
+                "value": 25
+            },
+            {
+                "key": "fu",
+                "value": 252.4
+            },
+            {
+                "key": "bur",
+                "value": false
+            },
+            {
+                "key": "baz",
+                "value": [
+                    "foo",
+                    5,
+                    true,
+                    -3.5
+                ]
+            }
+        ]
+    }
+]

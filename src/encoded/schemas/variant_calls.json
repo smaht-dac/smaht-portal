@@ -1,5 +1,6 @@
 {
     "title": "Variant Calls",
+    "description": "Files containing variant calls",
     "$id": "/profiles/variant_calls.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -25,6 +26,9 @@
         },
         {
             "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
         },
         {
             "$ref": "mixins.json#/file_links"
@@ -93,6 +97,34 @@
                     "SNV",
                     "SV"
                 ]
+            }
+        },
+        "comparators": {
+            "title": "Comparators",
+            "description": "Link to comparator sample files used for normal matching",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "external_databases": {
+            "title": "External Databases",
+            "description": "External databases used for filtering variant calls",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "dbSNP v2.0",
+                    "gnomAD v4.0"
+                ]
+            }
+        },
+        "filtering_methods": {
+            "title": "Filtering Methods",
+            "description": "Filtering methods used in variant calling",
+            "type": "array",
+            "items": {
+                "type": "string"
             }
         },
         "schema_version": {

@@ -1,5 +1,6 @@
 {
     "title": "Sequencing",
+    "description": "Sequencing items contain information on the sequencing of libraries.",
     "$id": "/profiles/sequencing.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -73,7 +74,13 @@
         "flow_cell": {
             "title": "Flow Cell",
             "description": "Flow cell used for sequencing",
-            "type": "string"
+            "type": "string",
+            "suggested_enum": [
+                "R10.4.1",
+                "R9.4.1",
+                "25B",
+                "10B"
+            ]
         },
         "movie_length": {
             "title": "Movie Length",
@@ -107,7 +114,9 @@
             "title": "Target Read Length",
             "description": "Expected read length for the sequencing (bp)",
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "allow_commas": true,
+            "allow_multiplier_suffix": true
         },
         "target_monomer_length": {
             "title": "Target Monomer Length",

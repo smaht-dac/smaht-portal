@@ -1,5 +1,6 @@
 {
     "title": "Donor Specific Assembly",
+    "description": "A genome assembly generated from an individual donor.",
     "$id": "/profiles/donor_specific_assembly.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -76,7 +77,9 @@
             "title": "Contig N50",
             "description": "N50 of contigs: the sequence length of the shortest contig at 50% of the total assembly length (bp)",
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "allow_commas": true,
+            "allow_multiplier_suffix": true
         },
         "gaps_between_scaffolds": {
             "title": "Gaps Between Scaffolds",
@@ -95,13 +98,17 @@
             "title": "Genome Size",
             "description": "The size of both combined assembled haplotypes (bp)",
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "allow_commas": true,
+            "allow_multiplier_suffix": true
         },
         "largest_contig_size": {
             "title": "Largest Contig Size",
             "description": "Size of the largest contig in the assembly (bp)",
             "type": "integer",
-            "minumum": 0
+            "minumum": 0,
+            "allow_commas": true,
+            "allow_multiplier_suffix": true
         },
         "number_of_chromosomes": {
             "title": "Number of Chromosomes",
@@ -198,7 +205,9 @@
             "title": "Scaffold N50",
             "description": "N50 of scaffolds: the sequence length of the shortest scaffold at 50% of the total assembly length (bp)",
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "allow_commas": true,
+            "allow_multiplier_suffix": true
         },
         "title": {
             "description": "Title of the assembly (e.g. ST001_DSA)"
@@ -207,7 +216,9 @@
             "title": "Total Ungapped Length",
             "description": "Total ungapped length of the assembly (bp)",
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "allow_commas": true,
+            "allow_multiplier_suffix": true
         },
         "quality_value": {
             "title": "Quality Value",

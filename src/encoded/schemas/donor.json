@@ -1,5 +1,6 @@
 {
     "title": "Donor",
+    "description": "Individuals who donated tissues",
     "$id": "/profiles/donor.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -62,9 +63,10 @@
         },
         "age": {
             "title": "Age",
-            "description": "Age of the donor (years)",
+            "description": "Age of the donor (years). Note: donor age above 90 is represented as 90 to remove identifiable information.",
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 90
         },
         "body_mass_index": {
             "title": "Body Mass Index",
@@ -103,6 +105,15 @@
             "description": "Weight of the donor (kg)",
             "type": "number",
             "minimum": 0
+        },
+        "tpc_submitted": {
+            "title": "TPC Submitted",
+            "description": "Whether the donor was submitted by the TPC",
+            "type": "string",
+            "enum": [
+                "True",
+                "False"
+            ]
         }
     },
     "facets": {

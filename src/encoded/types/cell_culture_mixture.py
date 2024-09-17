@@ -5,7 +5,9 @@ from snovault import calculated_property, collection, load_schema
 
 from .cell_culture import CellCulture
 from .utils import get_item
-
+from ..item_utils import (
+    cell_culture as cell_culture_utils
+)
 
 def _build_cell_culture_mixture_embedded_list():
     """Embeds for CellCultureMixture."""
@@ -53,12 +55,10 @@ class CellCultureMixture(CellCulture):
                 get_item(request, cell_culture_id, collection="CellCulture")
                 for cell_culture_id in cell_culture_ids
             ]
-            cell_lines = set(
-                [
-                    cell_culture.get("cell_line") for cell_culture in cell_cultures
-                    if cell_culture.get("cell_line")
-                ]
-            )
+            cell_lines = []
+            for cell_culture in cell_cultures:
+                if cell_line := cell_culture_utils.get_cell_line(cell_culture):
+                    cell_lines += cell_line
             if cell_lines:
-                result = sorted(list(cell_lines))
+                result = sorted(list(set(cell_lines)))
         return result
