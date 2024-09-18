@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Union, Optional
+from typing import Any, Dict, List, Union
 
 from pyramid.view import view_config
 from pyramid.request import Request
@@ -24,7 +24,6 @@ from ..item_utils import (
 from ..item_utils.utils import (
     RequestHandler,
     get_property_value_from_identifier,
-    get_property_values_from_identifiers
 )
 from ..utils import load_extended_descriptions_in_schemas
 
