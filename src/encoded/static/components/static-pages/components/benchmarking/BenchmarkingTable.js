@@ -117,21 +117,31 @@ export const BenchmarkingTable = (props) => {
             },
         },
         // Data Category
-        data_type: {
+        data_category: {
             colTitle: 'Data Category',
-            widthMap: { lg: 155, md: 155, sm: 150 },
-        },
-        // Variant Type
-        variant_type: {
-            colTitle: 'Variant Type',
             render: function (result, parentProps) {
-                const { variant_type = [] } = result || {};
-                if (variant_type.length === 0) {
+                const { data_category = [] } = result || {};
+                if (data_category.length === 0) {
                     return null;
-                } else if (variant_type.length === 1) {
-                    return variant_type[0];
+                } else if (data_category.length === 1) {
+                    return data_category[0];
                 } else {
-                    return variant_type.join(', ');
+                    return data_category.join(', ');
+                }
+            },
+        },
+        // Data Type
+        data_type: {
+            colTitle: 'Variant Type',
+            widthMap: { lg: 155, md: 155, sm: 150 },
+            render: function (result, parentProps) {
+                const { data_type = [] } = result || {};
+                if (data_type.length === 0) {
+                    return null;
+                } else if (data_type.length === 1) {
+                    return data_type[0];
+                } else {
+                    return data_type.join(', ');
                 }
             },
         },
