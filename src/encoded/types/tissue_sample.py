@@ -22,16 +22,8 @@ from .utils import (
     get_property_for_validation,
 )
 from ..item_utils import (
-    submission_center as sub_center_utils,
-    item as item_utils,
-    tissue_sample as tissue_sample_utils,
     tissue as tissue_utils,
-    donor as donor_utils
-)
-from ..item_utils.utils import (
-    get_property_value_from_identifier,
-    get_property_values_from_identifiers,
-    RequestHandler,
+    donor as donor_utils,
 )
 
 HOMOGENATE_EXTERNAL_ID_REGEX = "^[A-Z0-9]{3,}-[0-9][A-Z]-[0-9]{3}X$"

@@ -14,11 +14,12 @@ from .utils import (
 @pytest.mark.parametrize(
     "patch_body,delete_fields,expected_status",
     [
-        ({"category": "Homogenate", "core_size": "1.5"}, "", 422),
-        ({"category": "Specimen"}, "core_size", 200),
-        ({"category": "Core"}, "core_size", 200), # We'll eventually want to make this invalid
+        ({"category": "Homogenate","external_id": "SMHT001-1A-101X", "core_size": "1.5"}, "", 422),
+        ({"category": "Core", "external_id": "SMHT001-1A-101A1"}, "core_size", 200), # We'll eventually want to make this invalid
+        ({"category": "Specimen", "external_id": "SMHT001-1A-101S1"}, "core_size", 200),
         (
             {
+                "external_id": "SMHT001-1A-101A1",
                 "category": "Core",
                 "core_size": "1.5",
             },
