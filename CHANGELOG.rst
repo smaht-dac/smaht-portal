@@ -13,6 +13,15 @@ Change Log
 * Add `valid_molecules` as a required property for Assay
 
 
+0.96.1
+======
+`PR 253: SN file_group update <https://github.com/smaht-dac/smaht-portal/pull/253>`_
+* Add to `file_group` calc_prop to accommodate FileSets with multiple samples
+  * If samples are homogenate tissue samples, `sample_source` is the Tissue
+  * If samples are cell culture samples, `sample_source` is the CellCulture
+  * If samples are intact tissue samples, `sample_source` is TissueSample (not mergeable)
+
+
 0.96.0
 ======
 `PR255: SN Add on_target_rate <https://github.com/smaht-dac/smaht-portal/pull/255>`_
