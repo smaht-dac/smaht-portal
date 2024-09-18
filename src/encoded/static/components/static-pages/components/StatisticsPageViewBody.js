@@ -280,7 +280,7 @@ export const commonParsingFxn = {
 
             const currentItem = {
                 'date'      : for_date,
-                'count'     : cumulativeSum ? totalSessionsToDate : totalSessions,
+                'count'     : totalSessions,//cumulativeSum ? totalSessionsToDate : totalSessions,
                 'total'     : cumulativeSum ? totalSessionsToDate : totalSessions,
                 'children': _.values(groupedTermsObj).map(function (termItem) {
                     const cloned = { ...termItem };
@@ -322,7 +322,26 @@ export const commonParsingFxn = {
 
         commonParsingFxn.fillMissingChildBuckets(aggsList, Array.from(termsInAllItems));
 
-        return aggsList;
+        // remove children term if all is zero
+        const filterZeroTotalTerms = (list) => {
+            const termTotals = {};
+
+            list.forEach(item => {
+                item.children.forEach(child => {
+                    if (!termTotals[child.term]) {
+                        termTotals[child.term] = 0;
+                    }
+                    termTotals[child.term] += child.total;
+                });
+            });
+
+            return list.map(item => ({
+                ...item,
+                children: item.children.filter(child => termTotals[child.term] !== 0),
+            }));
+        };
+
+        return filterZeroTotalTerms(aggsList);
     }
 };
 
@@ -997,7 +1016,7 @@ export function UsageStatsView(props){
     const { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep } = UsageStatsView.getYScaleDefaults(scale['yAxisScale']);
 
     const isSticky = !_.any(_.values(tableToggle), (v)=> v === true);
-    const commonTableProps = { windowWidth, href, session, isTransposed, dateRoundInterval };
+    const commonTableProps = { windowWidth, href, session, isTransposed, dateRoundInterval, cumulativeSum };
 
     return (
         <div className="stats-charts-container" key="charts" id="usage">
@@ -1506,7 +1525,7 @@ const ChartSubTitle = memoize(function ({ title, data, invalidDateRange }) {
  * converts aggregates to SearchView-compatible context objects and displays in table
  */
 const AnalyticsRawDataTable = React.memo((props) => {
-    const { data, valueLabel = null, session, containerId = '', href, dateRoundInterval, isTransposed = false, children, windowWidth } = props;
+    const { data, valueLabel = null, session, containerId = '', href, dateRoundInterval, isTransposed = false, children, windowWidth, cumulativeSum } = props;
     const [columns, setColumns] = useState({});
     const [columnDefinitions, setColumnDefinitions] = useState([]);
     const [graph, setGraph] = useState([]);
@@ -1555,17 +1574,17 @@ const AnalyticsRawDataTable = React.memo((props) => {
                 widthMap: { 'lg': 250, 'md': 250, 'sm': 250 },
                 render: function (result) {
                     // overall sum
-                    const totalValue = roundValue(_.reduce(result.children, (sum, child) => sum + child.total, 0), valueLabel);
+                    const overallSum = roundValue(result.overall_sum || 0, valueLabel);
 
                     return isTransposed ? (
                         <span className="value text-truncate text-left">
-                            {result.display_title} ({totalValue})
+                            {result.display_title} ({overallSum})
                         </span>
                     ) : (
                         <a
                             href={`/search/?type=TrackingItem&google_analytics.for_date=${result.display_title}&google_analytics.date_increment=${dateRoundInterval === 'month' ? 'monthly' : 'daily'}`}
                             target="_blank" rel="noreferrer noopener">
-                            {result.display_title} ({totalValue})
+                            {result.display_title} ({overallSum}
                         </a>
                     );
                 }
@@ -1599,12 +1618,12 @@ const AnalyticsRawDataTable = React.memo((props) => {
             return {
                 display_title: isTransposed ? (d.termDisplayAs || d.term) : d.date,
                 '@id': isTransposed ? d.term : d.date,
-                children: d.children, // Ekleyerek toplam değeri hesaplarken kullanacağız
                 ..._.reduce(d.children, (m2, c) => {
-                    m2[isTransposed ? c.date : c.term] = c.total;
+                    m2[isTransposed ? c.date : c.term] = c.count;
                     return m2;
                 }, {}),
                 '@type': ['Item'],
+                'overall_sum': !cumulativeSum ? (d.total || 0) : (d.children.length > 0 ? d.children[d.children.length - 1].total : 0),
                 'date_created': isTransposed ? d.term : d.date
             };
         });
