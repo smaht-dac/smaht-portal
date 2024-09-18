@@ -12,8 +12,6 @@ from .utils import (
     get_item_from_search,
     patch_item,
     post_item,
-    delete_field,
-    get_insert_identifier_for_item_type
 )
 
 @pytest.mark.workbook

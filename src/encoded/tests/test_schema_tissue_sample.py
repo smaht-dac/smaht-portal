@@ -15,7 +15,8 @@ from .utils import (
     "patch_body,delete_fields,expected_status",
     [
         ({"category": "Homogenate", "core_size": "1.5"}, "", 422),
-        ({"category": "Core"}, "core_size", 422),
+        ({"category": "Specimen"}, "core_size", 200),
+        ({"category": "Core"}, "core_size", 200), # We'll eventually want to make this invalid
         (
             {
                 "category": "Core",

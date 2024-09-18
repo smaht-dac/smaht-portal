@@ -26,7 +26,7 @@ def get_tissues(
         return [
             sample_source
             for sample_source in sample_sources
-            if tissue.is_tissue(request_handler.get_item(sample_source,'SampleSource'))
+            if tissue.is_tissue(request_handler.get_item(sample_source))
         ]
     return [
         sample_source

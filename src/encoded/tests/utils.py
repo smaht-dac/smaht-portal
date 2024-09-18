@@ -384,23 +384,16 @@ def replace_affiliations(
 
     Assumes submission_centers property is valid. Can check schemas if
     assumption no longer holds.
-    Replace submitted_id to match provided submission center if present
     """
-    code = submission_center.get("code")
     insert_without_affiliation = {
         key: value
         for key, value in item_insert.items()
-        if key not in ["submission_centers", "consortia","submitted_id"]
+        if key not in ["submission_centers", "consortia"]
     }
-    new_insert = {
+    return {
         **insert_without_affiliation,
         "submission_centers": [submission_center["uuid"]],
     }
-    if submitted_id := item_insert.get("submitted_id"):
-        type_unique_id = "_".join(submitted_id.split("_")[-2:])#get type and unique identifnier without center code
-        new_insert['submitted_id'] = f"{code.upper()}_{type_unique_id}"
-    return new_insert
-
 
 
 def post_identifying_insert(

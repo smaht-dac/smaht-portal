@@ -55,17 +55,6 @@ def is_homogenate(properties: Dict[str, Any]) -> bool:
     return get_category(properties) == "Homogenate"
 
 
-def get_tissue_submission_centers(properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None) -> List[Union[None, str]]:
-    """Get submission_centers of sample_sources tissue from properties."""
-    tissues = sample_utils.get_tissues(properties)
-    if request_handler:
-        submission_centers = []
-        for tissue in tissues:
-            center = item_utils.get_submission_centers(request_handler.get_item(tissue))
-            submission_centers.append(center) if center not in submission_centers else submission_centers
-    return []
-
-
 def is_core_external_id(properties: Dict[str, Any]) -> bool:
     """Check if external_id matches core sample regex from benchmarking or production."""
     external_id = item_utils.get_external_id(properties)

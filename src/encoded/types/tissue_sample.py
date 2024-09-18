@@ -44,7 +44,6 @@ def _build_tissue_sample_embedded_list() -> List[str]:
         # Columns/facets for search
         "sample_sources.external_id",
         "sample_sources.donor.external_id",
-        "submission_centers.identifier"
     ]
 
 
