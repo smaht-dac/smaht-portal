@@ -83,7 +83,8 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#truthset',
                 title: 'Truth Set',
-                searchHref: '/search/?type=File', //&status=released&status=restricted&status=public&dataset=colo829_snv_indel_challenge_data&tags=truth_set',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829_snv_indel_challenge_data&tags=truth_set',
                 facetsToHide: [
                     'dataset',
                     'file_sets.libraries.analytes.samples.sample_sources.code',
