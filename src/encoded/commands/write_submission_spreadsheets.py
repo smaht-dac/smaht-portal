@@ -883,7 +883,7 @@ def get_comment_value_type(property_: Property, indent: str) -> List[str]:
             return [
                 (
                     f"Type:{indent}{property_.array_subtype}"
-                    f"{indent}(Multiple values allowed. Use '|' as a delimiter)"
+                    f"{indent}(Multiple values allowed. Use '|' as a delimiter.)"
                 )
             ]
         else:
