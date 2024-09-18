@@ -1015,7 +1015,7 @@ export function UsageStatsView(props){
 
     const { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep } = UsageStatsView.getYScaleDefaults(scale['yAxisScale']);
 
-    const isSticky = !_.any(_.values(tableToggle), (v)=> v === true);
+    const isSticky = true; //!_.any(_.values(tableToggle), (v)=> v === true);
     const commonTableProps = { windowWidth, href, session, isTransposed, dateRoundInterval, cumulativeSum };
 
     return (
@@ -1584,7 +1584,7 @@ const AnalyticsRawDataTable = React.memo((props) => {
                         <a
                             href={`/search/?type=TrackingItem&google_analytics.for_date=${result.display_title}&google_analytics.date_increment=${dateRoundInterval === 'month' ? 'monthly' : 'daily'}`}
                             target="_blank" rel="noreferrer noopener">
-                            {result.display_title} ({overallSum}
+                            {result.display_title} ({overallSum})
                         </a>
                     );
                 }
@@ -1654,8 +1654,7 @@ const AnalyticsRawDataTable = React.memo((props) => {
         facetColumnClassName: "d-none",
         stickyFirstColumn: true,
         isOwnPage: false,
-        termTransformFxn: Term.toName,
-        placeholderReplacementFxn: function () { }
+        termTransformFxn: Term.toName
     };
 
     return (
