@@ -7,10 +7,109 @@ smaht-portal
 Change Log
 ----------
 
+0.96.4
+======
+`PR 252: feat: add manifest type to button <https://github.com/smaht-dac/smaht-portal/pull/252>`_
+* Add manifest type to download manifest button
+
+
+0.96.3
+======
+`PR247: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
+* Add downsampled hapmap tab
+* Update benchmarking descriptions
+
+
+0.96.2
+======
+`PR 258: Usage Stats Updates <https://github.com/smaht-dac/smaht-portal/pull/258>`_
+
+* Adds data table view
+* Links to data table view to related tracking-item
+
+
+0.96.1
+======
+`PR 253: SN file_group update <https://github.com/smaht-dac/smaht-portal/pull/253>`_
+
+* Add to `file_group` calc_prop to accommodate FileSets with multiple samples
+
+  * If samples are homogenate tissue samples, `sample_source` is the Tissue
+  * If samples are cell culture samples, `sample_source` is the CellCulture
+  * If samples are intact tissue samples, `sample_source` is TissueSample (not mergeable)
+
+
+0.96.0
+======
+`PR255: SN Add on_target_rate <https://github.com/smaht-dac/smaht-portal/pull/255>`_
+
+* Add property `on_target_rate` to Sequencing that is included in the `anyOf` with `target_coverage` and `target_read_count`
+
+
+0.95.1
+======
+`PR 254: Bm doc tweaks <https://github.com/smaht-dac/smaht-portal/pull/254>`_
+
+* Update links to go to newest documentation
+* Add a tip with a warning about submissions
+
+
+0.95.0
+======
+`PR 215: Bm genome reference <https://github.com/smaht-dac/smaht-portal/pull/215>`_
+
+* Add "Resources" to navigation
+* Add "Genome Reference & Related Data" page
+
+
+0.94.0
+======
+`PR251: SN Donor schema update <https://github.com/smaht-dac/smaht-portal/pull/251>`_
+Add property `tpc_submitted` for whether or not the donor was submitted by the TPC
+Include a maximum value of 90 for `age` to remove identifiable information
+
+
+0.93.2
+======
+`PR 240: fix: SN TPC samples annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/240>`_
+* In `commands/create_annotated_filename.py`:
+  * Grab unique `aliquot_ids` so that files with tissue samples from TPC are not considered to have merged aliquots
+  e.g. file has identical samples `ST001-1A-001A1` from GCC and `ST001-1A-001A1` from TPC. The TPC item is used for metadata cross-checking, and shouldn't be considered when checking if samples were merged for analyte extraction.
+
+
+0.93.1
+======
+`PR249: SN Revert FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/249>`_
+* Revert PR 244, removing `files_status_retracted` calc_prop from FileSet
+
+
+0.93.0
+======
+* Effectively disable server-side validators which reference
+  linked objects for smaht-submitr, when the skip_links=True.
+
+
+0.92.0
+======
+`PR244: SN FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/244>`_
+* Create calcprop for FileSet, `files_status_retracted`, that returns "True" if a file in files has the status of `obsolete` or `retracted`
+* Embed `file_set.files_status_retracted` in File
+
+
+0.91.0
+======
+`PR234: SN Cell Line links <https://github.com/smaht-dac/smaht-portal/pull/234>`_
+* Allow `CellLine` to link to itself with `parent_cell_lines`
+* Allow `CellLine` to link to `TissueSample` (`Sample`) with `tissue_samples`
+* Allow `CellCulture` to link to `TissueSample`. Keeping `Tissue` link for now, to remove later.
+* Add a calculated property to `CellLine`, `source_donor`, that gets the donor information, if present, from `donor`, `tissue_samples`, or `parent_cell_lines`
+
+
 0.90.2
 ======
-`PR 227: feat: VCF comparator and software information <https://github.com/smaht-dac/smaht-portal/pull/227>`_
-* Provide table for VCF files' comparator and software
+`PR 245: SN Make antibody an array <https://github.com/smaht-dac/smaht-portal/pull/245>`_
+* In Library, make `antibody` and array of strings
+* Small fix to submission template delimiter description
 
 
 0.90.1
