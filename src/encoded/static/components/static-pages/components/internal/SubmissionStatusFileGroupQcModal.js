@@ -13,6 +13,7 @@ import {
     fallbackCallback,
     formatQcValue,
     getQcBagdeType,
+    shortenStringKeepBothEnds,
 } from './submissionStatusUtils';
 
 class FileGroupQCModalComponent extends React.PureComponent {
@@ -30,7 +31,6 @@ class FileGroupQCModalComponent extends React.PureComponent {
             processedFiles: [],
             parentReloadNecessary: false,
         };
-        console.log(this.state.currentFileSet);
     }
 
     componentDidMount() {
@@ -72,8 +72,6 @@ class FileGroupQCModalComponent extends React.PureComponent {
                     (file) => file.is_output_file
                 );
 
-                console.log(processedFiles);
-                console.log(allFileSets);
                 this.setState({
                     initialLoading: false,
                     submittedFiles: submittedFiles,
@@ -195,7 +193,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
         ];
         let numTableColumns = 1;
         files.forEach((file) => {
-            if(!this.state.visibleFileSets.includes(file.fileset_uuid)){
+            if (!this.state.visibleFileSets.includes(file.fileset_uuid)) {
                 return;
             }
             const tags = this.state.isUserAdmin
@@ -203,10 +201,17 @@ class FileGroupQCModalComponent extends React.PureComponent {
                 : '';
             header.push(
                 <th>
-                    {file.display_title}
+                    <span className="text-wrap" title={file.display_title}>
+                        {file.accession}
+                    </span>
                     <br />
-                    <small className="text-wrap">
-                        {file.fileset_submitted_id}
+                    <small
+                        className="text-wrap"
+                        title={file.fileset_submitted_id}>
+                        {shortenStringKeepBothEnds(
+                            file.fileset_submitted_id,
+                            18
+                        )}
                     </small>
                     <br />
                     <span className="text-wrap">{tags}</span>
@@ -221,7 +226,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
             const qc_key = qc_value_derived_from_to_key[qc_derived_from];
             const row = [<td className="text-left">{qc_key}</td>];
             files.forEach((file) => {
-                if(!this.state.visibleFileSets.includes(file.fileset_uuid)){
+                if (!this.state.visibleFileSets.includes(file.fileset_uuid)) {
                     return;
                 }
                 if (!file.qc_values_dict.hasOwnProperty(qc_derived_from)) {
@@ -261,7 +266,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
             );
         } else {
             return (
-                <div class="table-responsive">
+                <div className="table-responsive">
                     <table className="table table-hover table-striped table-bordered table-sm">
                         <thead>
                             <tr>{header}</tr>
@@ -274,7 +279,9 @@ class FileGroupQCModalComponent extends React.PureComponent {
     };
 
     toggleFileset = (e, uuid) => {
-        const visibleFileSets = JSON.parse(JSON.stringify(this.state.visibleFileSets));
+        const visibleFileSets = JSON.parse(
+            JSON.stringify(this.state.visibleFileSets)
+        );
         const index = visibleFileSets.indexOf(uuid);
         if (index === -1) {
             visibleFileSets.push(uuid);
@@ -282,9 +289,9 @@ class FileGroupQCModalComponent extends React.PureComponent {
             visibleFileSets.splice(index, 1);
         }
         this.setState({
-            visibleFileSets: visibleFileSets
+            visibleFileSets: visibleFileSets,
         });
-    }
+    };
 
     hideModal = () => {
         this.props.closeModal(null, this.state.parentReloadNecessary);
@@ -326,14 +333,14 @@ class FileGroupQCModalComponent extends React.PureComponent {
 
         const filesetList = Object.keys(this.state.allFileSets).map((uuid) => {
             const fs = this.state.allFileSets[uuid];
-            const isChecked = fs["uuid"] === this.state.currentFileSet.uuid;
+            const isChecked = fs['uuid'] === this.state.currentFileSet.uuid;
             return (
-                <li key={fs["uuid"]}>
+                <li key={fs['uuid']}>
                     <Form.Check
                         defaultChecked={isChecked}
                         type="checkbox"
-                        id={fs["submitted_id"]}
-                        label={fs["submitted_id"]}
+                        id={fs['submitted_id']}
+                        label={fs['submitted_id']}
                         onChange={(e) => this.toggleFileset(e, uuid)}
                     />
                 </li>

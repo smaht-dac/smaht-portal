@@ -147,3 +147,14 @@ export const getQcResultsSummary = (qc_results) => {
         }
     });
 };
+
+export function shortenStringKeepBothEnds(str, maxLength) {
+    if (str.length <= maxLength) {
+        return str;  
+    }
+    const partLength = Math.floor((maxLength - 3) / 2); 
+    const start = str.substring(0, partLength);
+    const end = str.substring(str.length - partLength);
+    
+    return start + '...' + end;
+}
