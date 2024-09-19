@@ -26,16 +26,12 @@ export const FileOverviewTableController = (props) => {
         context,
     } = props;
 
-    const originalColExtMap =
-        EmbeddedItemSearchTable.defaultProps.columnExtensionMap;
-
     return (
         <SelectedItemsController
             {...{ context, href }}
             currentAction={'multiselect'}>
             <FileOverviewTable
                 associatedFilesSearchHref={associatedFilesSearchHref}
-                columnExtensionMap={originalColExtMap}
                 {...{
                     context,
                     session,

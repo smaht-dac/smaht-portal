@@ -1245,7 +1245,10 @@ export class AreaChart extends React.PureComponent {
 }
 
 
-export function LoadingIcon(props){
+export function LoadingIcon({
+    children = "Loading Chart Data",
+    ...props
+}) {
     const { children } = props;
     return (
         <div className="mt-5 mb-5 text-center">
@@ -1254,9 +1257,11 @@ export function LoadingIcon(props){
         </div>
     );
 }
-LoadingIcon.defaultProps = { 'children' : "Loading Chart Data" };
 
-export function ErrorIcon(props){
+export function ErrorIcon({
+    children = "Loading failed. Please try again later.",
+    ...props
+}) {
     const { children } = props;
     return (
         <div className="mt-5 mb-5 text-center">
@@ -1265,7 +1270,6 @@ export function ErrorIcon(props){
         </div>
     );
 }
-ErrorIcon.defaultProps = { 'children' : "Loading failed. Please try again later." };
 
 
 

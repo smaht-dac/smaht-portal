@@ -10,14 +10,17 @@ import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/ut
 import { columnExtensionMap as columnExtensionMapSMaHT } from './../../browse/columnExtensionMap';
 import { EmbeddedSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
 
-export function EmbeddedItemSearchTable(props) {
+export function EmbeddedItemSearchTable({
+    columnExtensionMap = columnExtensionMapSMaHT,
+    facets = undefined,
+    ...props
+}) {
     const {
         embeddedTableHeader: propEmbeddedTableHeader,
         embeddedTableFooter,
         /** @deprecated in favor of embeddedTableHeader */
         title,
         children,
-        facets,
         session,
         schemas: propSchemas,
         defaultOpenIndices,
@@ -25,7 +28,6 @@ export function EmbeddedItemSearchTable(props) {
         maxFacetsBodyHeight,
         maxResultsBodyHeight,
         columns,
-        columnExtensionMap,
         // May not be present which prevents VirtualHrefController from navigating upon mount. Useful if want to init with filterSet search or in other place.
         searchHref,
         aboveTableComponent,
@@ -117,10 +119,6 @@ export function EmbeddedItemSearchTable(props) {
         </div>
     );
 }
-EmbeddedItemSearchTable.defaultProps = {
-    columnExtensionMap: columnExtensionMapSMaHT,
-    facets: undefined, // Default to those from search response.
-};
 
 /**
  * This is used as a placeholder for JSX static content, not used within broader UI.
