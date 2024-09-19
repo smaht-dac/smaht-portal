@@ -1,6 +1,7 @@
 'use strict';
 import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import React from 'react';
+import * as d3 from 'd3';
 
 export const formatDate = (date_str) => {
     if (!date_str) {
@@ -25,16 +26,38 @@ export const getLink = (identifier, title) => {
     );
 };
 
+export const formatQcValue = (value) => {
+    if (isInteger(value)) {
+        return d3.format(',')(value);
+    } else if (isFloat(value)) {
+        return d3.format(',.4f')(value);
+    } else {
+        return value;
+    }
+};
+
+function isInteger(num) {
+    return Number.isInteger(num);
+}
+
+function isFloat(num) {
+    return Number(num) === num && num % 1 !== 0;
+}
+
 export const createBadge = (type, description) => {
     const cn = 'badge text-white badge-' + type;
     return <span className={cn}>{description}</span>;
 };
 
-export const createBadgeLink = (type, identifier, description) => {
+export const createQcBadgeLink = (type, identifier, description) => {
     const cn = 'badge text-white badge-' + type;
     const href = '/' + identifier;
+    const tooltip =
+        description === 'NA'
+            ? 'QC available, but Overal Quality Status not assigned.'
+            : 'Overal Quality Status: ' + description;
     return (
-        <a className={cn} target="_blank" href={href}>
+        <a className={cn} target="_blank" href={href} data-tip={tooltip}>
             {description}
         </a>
     );
@@ -53,13 +76,13 @@ export const fallbackCallback = (errResp, xhr) => {
     console.error(errResp);
 };
 
-const getQcBagdeType = (overallQualityStatus) => {
+export const getQcBagdeType = (flag) => {
     let badgeType = 'secondary';
-    if (overallQualityStatus === 'Pass') {
+    if (flag === 'Pass') {
         badgeType = 'success';
-    } else if (overallQualityStatus === 'Warn') {
+    } else if (flag === 'Warn') {
         badgeType = 'warning';
-    } else if (overallQualityStatus === 'Fail') {
+    } else if (flag === 'Fail') {
         badgeType = 'danger';
     }
     return badgeType;
@@ -74,7 +97,7 @@ export const getQcResults = (qc_results, showCopyBtn = false) => {
             const overallQualityStatus = qm.overall_quality_status;
             const qc_uuid = qm.uuid;
             const badgeType = getQcBagdeType(overallQualityStatus);
-            return createBadgeLink(badgeType, qc_uuid, overallQualityStatus);
+            return createQcBadgeLink(badgeType, qc_uuid, overallQualityStatus);
         });
         const href = '/' + qc_info.uuid;
         const copyBtn = showCopyBtn ? (

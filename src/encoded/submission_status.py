@@ -34,7 +34,68 @@ UWSC_GCC = "UWSC GCC"
 
 def includeme(config):
     config.add_route("get_submission_status", "/get_submission_status/")
+    config.add_route("get_file_group_qc", "/get_file_group_qc/")
     config.scan(__name__)
+
+
+@view_config(route_name="get_file_group_qc", request_method="POST")
+@debug_log
+def get_file_group_qc(context, request):
+    try:
+        post_params = request.json_body
+        file_set_uuid = post_params.get("fileSetUuid")
+        file_group = post_params.get("fileGroup")
+
+        files_with_qcs = []
+
+        # Search for fileset with same file group
+        search_params = {}
+        search_params["type"] = FILESET
+
+        if file_group:
+            # Search for fileset with same file group
+            search_params["file_group.assay"] = file_group["assay"]
+            search_params["file_group.sample_source"] = file_group["sample_source"]
+            search_params["file_group.sequencing"] = file_group["sequencing"]
+            search_params["file_group.submission_center"] = file_group[
+                "submission_center"
+            ]
+        else:  # Just search for the current file set
+            search_params["uuid"] = file_set_uuid
+
+        subreq = make_search_subreq(
+            request, f"/search?{urlencode(search_params, True)}", inherit_user=True
+        )
+        search_res = search(context, subreq)["@graph"]
+        for fs in search_res:
+            files = fs.get("files", [])
+            meta_workflow_runs = fs.get("meta_workflow_runs", [])
+            submitted_file_qc_infos = get_submitted_files_info(files).get("qc_infos")
+            output_file_qc_infos = get_output_files_info(
+                request, files, meta_workflow_runs
+            ).get("qc_infos")
+
+            for f in submitted_file_qc_infos + output_file_qc_infos:
+                for qm in f["quality_metrics"]:
+                    qm_item = get_item_or_none(request, qm[UUID], "quality-metrics")
+                    files_with_qcs.append({
+                        "accession": f["accession"],
+                        "display_title": f["display_title"],
+                        "is_output_file": f["is_output_file"],
+                        "fileset_submitted_id": fs.get("submitted_id"),
+                        "fileset_tags": fs.get("tags"),
+                        "fileset_uuid": fs.get(UUID),
+                        "quality_metric": qm_item,
+                    })
+
+        return {
+            "files_with_qcs": files_with_qcs,
+        }
+
+    except Exception as e:
+        return {
+            "error": f"Error when trying to get file group QC data: {e}",
+        }
 
 
 @view_config(route_name="get_submission_status", request_method="POST")
@@ -76,11 +137,13 @@ def get_submission_status(context, request):
             if "file_group" in file_set:
                 fg = file_set["file_group"]
                 fg_str = f"{fg['submission_center']}_{fg['sample_source']}_{fg['sequencing']}_{fg['assay']}"
-                file_set["file_group"] = fg_str
+                file_set["file_group_str"] = fg_str
+                file_set["file_group"] = fg
                 # Place holder that will be replaced in the next step
                 file_group_color_map[fg_str] = None
             else:
-                file_set["file_group"] = "No file group assigned"
+                file_set["file_group_str"] = "No file group assigned"
+                file_set["file_group"] = None
                 file_set["file_group_color"] = "#eeeeee"
             file_sets.append(file_set)
 
@@ -92,7 +155,7 @@ def get_submission_status(context, request):
             file_group_color_map[fg] = fg_colors[i]
         for fs in file_sets:
             if "file_group_color" not in fs:
-                fs["file_group_color"] = file_group_color_map[fs["file_group"]]
+                fs["file_group_color"] = file_group_color_map[fs["file_group_str"]]
 
     except Exception as e:
         return {
@@ -187,7 +250,7 @@ def get_output_files_info(request, files, mwfrs):
 
     # Get the output files that are on the file set
     for file in output_files:
-        qc_result = get_qc_result(file)
+        qc_result = get_qc_result(file, is_output_file=True)
         output_files_qc.append(qc_result)
 
     # Go through all alignment MetaWorkflowRuns and collect the output files with QCs.
@@ -210,14 +273,14 @@ def get_output_files_info(request, files, mwfrs):
                 file = output["file"]
                 if QUALITY_METRICS not in file:
                     continue
-                qc_result = get_qc_result(file)
+                qc_result = get_qc_result(file, is_output_file=True)
                 output_files_qc.append(qc_result)
 
     # Remove duplicates. Happens when the final output files have been released
     output_files_qc_unique = list({v[ACCESSION]: v for v in output_files_qc}.values())
 
     return {
-        "output_files_qc": output_files_qc_unique,
+        "qc_infos": output_files_qc_unique,
     }
 
 
@@ -233,7 +296,7 @@ def get_submitted_files_info(files_metadata):
             is_upload_complete = False
         file_formats.append(file.get(FILE_FORMAT, {}).get(DISPLAY_TITLE))
 
-        qc_result = get_qc_result(file)
+        qc_result = get_qc_result(file, is_output_file=False)
         submitted_files_qc.append(qc_result)
 
     # Make it unique
@@ -260,21 +323,25 @@ def get_submitted_files_info(files_metadata):
         "num_fileset_files": len(files_metadata),
         "date_uploaded": date_uploaded,
         "file_formats": ", ".join(file_formats),
-        "submitted_files_qc": submitted_files_qc,
+        "qc_infos": submitted_files_qc,
     }
 
 
-def get_qc_result(file):
+def get_qc_result(file, is_output_file):
     qc_result = {
         DISPLAY_TITLE: file[DISPLAY_TITLE],
         UUID: file[UUID],
         ACCESSION: file[ACCESSION],
         QUALITY_METRICS: [],
+        "is_output_file": is_output_file
     }
     if QUALITY_METRICS in file:
         qms = file[QUALITY_METRICS]
         qc_result[QUALITY_METRICS] = [
-            {OVERALL_QUALITY_STATUS: qm[OVERALL_QUALITY_STATUS], UUID: qm[UUID]}
+            {
+                OVERALL_QUALITY_STATUS: qm.get(OVERALL_QUALITY_STATUS, "NA"),
+                UUID: qm[UUID],
+            }
             for qm in qms
         ]
     return qc_result

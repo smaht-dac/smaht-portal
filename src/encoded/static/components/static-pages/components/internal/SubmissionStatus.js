@@ -24,6 +24,8 @@ import {
 
 import { SubmissionStatusFilter } from './SubmissionStatusFilter';
 
+import { FileGroupQCModal } from './SubmissionStatusFileGroupQcModal';
+
 class SubmissionStatusComponent extends React.PureComponent {
     constructor(props) {
         super(props);
@@ -44,6 +46,7 @@ class SubmissionStatusComponent extends React.PureComponent {
             comments: {},
             newComments: {},
             isUserAdmin: userDetails.details.groups?.includes('admin'),
+            modal: null,
         };
     }
 
@@ -399,6 +402,26 @@ class SubmissionStatusComponent extends React.PureComponent {
         return <ul>{comments}</ul>;
     };
 
+    toggleFileGroupQc = (fs, reload=false) => {
+        if (this.state.modal) {
+            this.setState({
+                modal: null,
+            });
+            if(reload){
+                this.refresh();
+            }
+            return;
+        }
+        this.setState({
+            modal: (
+                <FileGroupQCModal
+                    closeModal={this.toggleFileGroupQc}
+                    fileSet={fs}
+                    isUserAdmin={this.state.isUserAdmin}></FileGroupQCModal>
+            ),
+        });
+    };
+
     getSubmissionTableBody = () => {
         const tbody = this.state.fileSets.map((fs) => {
             const sequencer = fs.sequencing?.sequencer;
@@ -509,25 +532,21 @@ class SubmissionStatusComponent extends React.PureComponent {
                 }
             });
 
-            const submittedFilesQc = getQcResults(
-                fs.submitted_files.submitted_files_qc
-            );
+            const submittedFilesQc = getQcResults(fs.submitted_files.qc_infos);
             const submittedFilesQcSummary = getQcResultsSummary(
-                fs.submitted_files.submitted_files_qc
+                fs.submitted_files.qc_infos
             );
 
             const areSubmittedFilesExpanded =
                 this.state.submittedFilesVisibility.includes(fs.uuid);
 
-            const outputFilesQc = getQcResults(
-                fs.output_files.output_files_qc, true
-            );
+            const outputFilesQc = getQcResults(fs.output_files.qc_infos, true);
 
             return (
                 <tr key={fs.accession}>
                     <td
                         className="p-0"
-                        data-tip={'File group: ' + fs.file_group}
+                        data-tip={'File group: ' + fs.file_group_str}
                         style={{
                             backgroundColor: fs.file_group_color,
                             width: '5px',
@@ -586,6 +605,14 @@ class SubmissionStatusComponent extends React.PureComponent {
                         </small>
                         <small className="ss-line-height-140 mt-1">
                             {outputFilesQc}
+                        </small>
+
+                        <small className="d-block text-secondary ss-line-height-140 mt-2">
+                            <div
+                                className='ss-link'
+                                onClick={() => this.toggleFileGroupQc(fs)}>
+                                Review File Group QC
+                            </div>
                         </small>
                     </td>
                     <td>
@@ -671,6 +698,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                     </thead>
                     <tbody>{this.getSubmissionTableBody()}</tbody>
                 </table>
+                {this.state.modal}
             </React.Fragment>
         );
     }
