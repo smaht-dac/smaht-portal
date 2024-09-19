@@ -646,11 +646,13 @@ def get_aliquot_id_from_samples(tissue_samples: List[Dict[str], Any]) -> Filenam
 
     Some special handling required to transform aliquot ID from
     metadata to that of the filename.
+    Duplicate tissue samples from TPC are ignored by grabbing only unique aliquot_ids.
     If the external_id indicates it is a benchmarking or production tissue_sample, check for mergability of tissue sample aliquots
     """
     aliquot_ids = [
         get_aliquot_id_from_tissue_sample(sample) for sample in tissue_samples
     ]
+    aliquot_ids = [id for id in set(aliquot_ids)] # Get unique ids to remove TPC duplicates
     bench_or_prod = [ tissue_sample_utils.is_benchmarking(sample) or tissue_sample_utils.is_production(sample) for sample in tissue_samples]
     if all(bench_or_prod):
         if len(aliquot_ids) > 1:
