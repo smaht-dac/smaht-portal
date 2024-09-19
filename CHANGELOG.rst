@@ -13,10 +13,33 @@ Change Log
 * Add `valid_molecules` as a required property for Assay
 
 
+0.96.4
+======
+`PR 252: feat: add manifest type to button <https://github.com/smaht-dac/smaht-portal/pull/252>`_
+* Add manifest type to download manifest button
+
+
+0.96.3
+======
+`PR247: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
+* Add downsampled hapmap tab
+* Update benchmarking descriptions
+
+
+0.96.2
+======
+`PR 258: Usage Stats Updates <https://github.com/smaht-dac/smaht-portal/pull/258>`_
+
+* Adds data table view
+* Links to data table view to related tracking-item
+
+
 0.96.1
 ======
 `PR 253: SN file_group update <https://github.com/smaht-dac/smaht-portal/pull/253>`_
+
 * Add to `file_group` calc_prop to accommodate FileSets with multiple samples
+
   * If samples are homogenate tissue samples, `sample_source` is the Tissue
   * If samples are cell culture samples, `sample_source` is the CellCulture
   * If samples are intact tissue samples, `sample_source` is TissueSample (not mergeable)
@@ -25,6 +48,7 @@ Change Log
 0.96.0
 ======
 `PR255: SN Add on_target_rate <https://github.com/smaht-dac/smaht-portal/pull/255>`_
+
 * Add property `on_target_rate` to Sequencing that is included in the `anyOf` with `target_coverage` and `target_read_count`
 
 
