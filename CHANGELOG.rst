@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.97.0
+======
+`PR 227: feat: VCF comparator and software information <https://github.com/smaht-dac/smaht-portal/pull/227>`_
+* Provide table for VCF files' comparator and software
+
+
 0.96.4
 ======
 `PR 252: feat: add manifest type to button <https://github.com/smaht-dac/smaht-portal/pull/252>`_
