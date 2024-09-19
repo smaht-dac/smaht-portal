@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.97.0
+======
+`PR238: SN Add valid_molecules required <https://github.com/smaht-dac/smaht-portal/pull/238>`_
+* Add `valid_molecules` as a required property for Assay
+
+
 0.96.4
 ======
 `PR 252: feat: add manifest type to button <https://github.com/smaht-dac/smaht-portal/pull/252>`_
