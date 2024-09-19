@@ -4,6 +4,7 @@ from pyramid.view import view_config
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
 from snovault.util import debug_log, get_item_or_none
+from encoded.validator_decorators import link_related_validator
 import structlog
 
 from .submitted_item import (
@@ -18,8 +19,13 @@ from ..item_utils import (
     item as item_utils,
     library as library_utils,
     sequencing as sequencing_utils,
+    sample as sample_utils
 )
-from ..item_utils.utils import RequestHandler, get_property_value_from_identifier
+from ..item_utils.utils import (
+    RequestHandler,
+    get_property_value_from_identifier,
+    get_property_values_from_identifiers
+)
 from ..utils import load_extended_descriptions_in_schemas
 
 
@@ -115,21 +121,6 @@ class FileSet(SubmittedItem):
 
     @calculated_property(
         schema={
-            "title": "Files Status Retracted",
-            "type": "string",
-            "enum": [
-                "True",
-                "False"
-            ],
-        },
-    )
-    def files_status_retracted(
-        self, request: Request, files: Optional[List[str]] = None
-    ) -> Union[str, None]:
-        return self._get_files_status_retracted(request,files)
-
-    @calculated_property(
-        schema={
             "title": "MetaWorkflowRuns",
             "type": "array",
             "items": {
@@ -182,18 +173,23 @@ class FileSet(SubmittedItem):
         samples = library_utils.get_samples(
             library, request_handler=request_handler
         )
-        if len(samples) > 1 or len(samples) == 0:
-            return None  # there is too much complexity
-
+        if len(samples) == 0:
+            return None
+        if len(samples) > 1:
+            samples_meta = request_handler.get_items(samples)
+            for sample_meta in samples_meta:
+                if sample_utils.is_tissue_sample(sample_meta) and sample_meta.get('category') != 'Homogenate':
+                    return None # this should give some kind of warning. Should not have multiple intact tissue samples
+        if len(samples) == 1:
+            sample = samples[0]
+            if 'tissue' in sample:
+                sample_meta = request_handler.get_item(sample)
+                if sample_meta.get('category') != 'Homogenate':
+                    return get_property_value_from_identifier(
+                        request_handler, sample, item_utils.get_submitted_id
+                    )
         # If we are a tissue sample, generate this based on the sample field, not the sample
         # sources field
-        sample = samples[0]
-        if 'tissue' in sample:
-            sample_meta = request_handler.get_item(sample)
-            if sample_meta.get('category') != 'Homogenate':
-                return get_property_value_from_identifier(
-                    request_handler, sample, item_utils.get_submitted_id
-                )
 
         # If we get here, we are a Homogenate tissue sample or cell line and should rely on sample sources
         sample_sources = library_utils.get_sample_sources(
@@ -288,15 +284,8 @@ class FileSet(SubmittedItem):
             'assay': assay_part
         }
 
-    def _get_files_status_retracted(self, request, files):
-        """Get the status of rev linked files."""
-        result = None
-        if files:
-            request_handler = RequestHandler(request=request)
-            result = file_set_utils.get_associated_files_retracted(request_handler,files)
-        return result
 
-
+@link_related_validator
 def validate_compatible_assay_and_sequencer_on_add(context, request):
     """Check filesets to make sure they are linked to compatible library.assay and sequencing items on add.
     

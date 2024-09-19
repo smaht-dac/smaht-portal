@@ -62,7 +62,7 @@
             "default": "1"
         },
         "version": {
-            "pattern": "^[A-Za-z0-9_-.]{3,}$"
+            "description": "Version of the assembly"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_DONOR-SPECIFIC-ASSEMBLY_[A-Z0-9-_.]{4,}$"
