@@ -1666,7 +1666,7 @@ const AnalyticsDataTable = React.memo((props) => {
                     return memo2;
                 }, {}),
                 '@type': ['Item'],
-                'overall_sum': !cumulativeSum ? (d.total || 0) : (d.children.length > 0 ? d.children[d.children.length - 1].total : 0),
+                'overall_sum': !cumulativeSum ? (d.total || 0) : _.reduce(d.children, (memo, c) => memo + c.count, 0),
                 'date_created': isTransposed ? d.term : d.date
             };
         });
