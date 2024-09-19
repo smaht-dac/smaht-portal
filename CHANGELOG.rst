@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.96.4
+======
+`PR 252: feat: add manifest type to button <https://github.com/smaht-dac/smaht-portal/pull/252>`_
+* Add manifest type to download manifest button
+
+
 0.96.3
 ======
 `PR247: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
