@@ -307,7 +307,7 @@ export const commonParsingFxn = {
                         currentItem.children.push({
                             'term': term,
                             'termDisplayAs': typeof termDisplayAsFunc === 'function' ? termDisplayAsFunc(term) : null,
-                            'count': termTotals[term].count,
+                            'count': 0,
                             'total': termTotals[term].total,
                             'date': for_date
                         });
