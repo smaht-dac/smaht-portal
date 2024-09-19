@@ -488,9 +488,7 @@ const AccessKeyTableRow = React.memo(function AccessKeyTableRow({
 
 export default class UserView extends React.Component {
     static onEditableFieldSave(nextContext) {
-        store.dispatch({
-            type: { context: nextContext },
-        });
+        store.dispatch({ type: 'CONTEXT', payload: nextContext });
     }
 
     static propTypes = {
