@@ -65,7 +65,7 @@ A workbook containing worksheets for each item type with all properties availabl
 
 .. |template_workbook| raw:: html
 
-   <a href="https://docs.google.com/spreadsheets/d/1sEXIA3JvCd35_PFHLj2BC-ZyImin4T-TtoruUe6dKT4/edit?usp=sharing" target="_blank">here</a>
+   <a href="https://docs.google.com/spreadsheets/d/1LEaS5QTwm86iZjjKt3tKRe_P31sE9-aJZ7tMINxw3ZM/edit?usp=sharing" target="_blank">here</a>
 
 This workbook is a Google Sheet, and you can make a copy of it to your own Google Drive, or download it as an Excel file. For detailed information on an individual property, refer to its tooltip in the template by clicking or hovering over the column name.
 
@@ -73,7 +73,12 @@ An example of a filled out workbook ready for submission can be found |example_w
 
 .. |example_workbook| raw:: html
 
-   <a href="https://docs.google.com/spreadsheets/d/1b5W-8iBEvWfnJQFkcrO9_rG-K7oJEIJlaLr6ZH5qjjA/edit?usp=sharing" target="_blank">here</a>
+   <a href="https://docs.google.com/spreadsheets/d/1bnPIH6f3biLBL9R8mEgvBemLP3nbsyyCrJQuOstcm_I/edit?usp=sharing" target="_blank">here</a>
+
+.. TIP::
+   The submission template is in flux. Please double check with DAC about getting the most up-to-date template before starting metadata submission!
+
+|
 
 Formatting Files for Submission
 ===============================
