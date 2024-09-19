@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.96.3
+======
+`PR247: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
+* Add downsampled hapmap tab
+* Update benchmarking descriptions
+
+
 0.96.2
 ======
 `PR 258: Usage Stats Updates <https://github.com/smaht-dac/smaht-portal/pull/258>`_
