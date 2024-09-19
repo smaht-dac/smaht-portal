@@ -9,6 +9,7 @@ import * as d3 from 'd3';
 import { sub, add, startOfMonth, startOfDay, endOfMonth, endOfDay, toDate, format as formatDate } from 'date-fns';
 import DropdownItem from 'react-bootstrap/esm/DropdownItem';
 import DropdownButton from 'react-bootstrap/esm/DropdownButton';
+import Modal from 'react-bootstrap/esm/Modal';
 
 import { Checkbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Checkbox';
 import { console, ajax, analytics, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
@@ -16,6 +17,8 @@ import { navigate } from './../../util';
 import { Term } from './../../util/Schemas';
 import { ColumnCombiner, CustomColumnController, SortController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
 import { ControlsAndResults } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/ControlsAndResults';
+import { ItemDetailList } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/ItemDetailList';
+
 import {
     StatsViewController, GroupByDropdown, ColorScaleProvider,
     AreaChart, AreaChartContainer, LoadingIcon, ErrorIcon, HorizontalD3ScaleLegend,
@@ -280,14 +283,14 @@ export const commonParsingFxn = {
 
             const currentItem = {
                 'date'      : for_date,
-                'count'     : totalSessions,//cumulativeSum ? totalSessionsToDate : totalSessions,
+                'count'     : cumulativeSum ? totalSessionsToDate : totalSessions,
                 'total'     : cumulativeSum ? totalSessionsToDate : totalSessions,
                 'children': _.values(groupedTermsObj).map(function (termItem) {
                     const cloned = { ...termItem };
                     if (cumulativeSum) {
                         let { count = 0, total = 0 } = termTotals[termItem.term] || {};
                         total += (termItem.total || 0);
-                        count += (termItem.count || 0);
+                        count = (termItem.count || 0);
                         termTotals[termItem.term] = { total, count };
 
                         cloned.count = count;
@@ -952,7 +955,7 @@ class UsageChartsCountByDropdown extends React.PureComponent {
 
 export function UsageStatsView(props){
     const {
-        loadingStatus, mounted, href, session, groupByOptions, handleGroupByChange, currentGroupBy, windowWidth,
+        loadingStatus, mounted, href, session, schemas, groupByOptions, handleGroupByChange, currentGroupBy, windowWidth,
         changeCountByForChart, countBy,
         // Passed in from StatsChartViewAggregator:
         sessions_by_country, chartToggles, fields_faceted,
@@ -1016,7 +1019,7 @@ export function UsageStatsView(props){
     const { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep } = UsageStatsView.getYScaleDefaults(scale['yAxisScale']);
 
     const isSticky = true; //!_.any(_.values(tableToggle), (v)=> v === true);
-    const commonTableProps = { windowWidth, href, session, isTransposed, dateRoundInterval, cumulativeSum };
+    const commonTableProps = { windowWidth, href, session, schemas, isTransposed, dateRoundInterval, cumulativeSum };
 
     return (
         <div className="stats-charts-container" key="charts" id="usage">
@@ -1073,7 +1076,7 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="file_downloads" key="file_downloads"
                         title={<h5 className="text-400 mt-0">Total File Count</h5>}
                         extraButtons={[
-                            <AnalyticsRawDataToggle
+                            <AnalyticsDataTableToggle
                                 toggled={tableToggle["file_downloads"] || false}
                                 toggleChanged={() => handleToggleTable("file_downloads")}
                                 key="file_downloads_toggle" />
@@ -1082,7 +1085,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {tableToggle.file_downloads &&
-                        <AnalyticsRawDataTable data={file_downloads}
+                        <AnalyticsDataTable data={file_downloads}
                             key={'dt_file_downloads'}
                             {...commonTableProps}
                             containerId="content_file_downloads" />
@@ -1091,7 +1094,7 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" key="file_downloads_volume" defaultHeight={300}
                         title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
                         extraButtons={[
-                            <AnalyticsRawDataToggle
+                            <AnalyticsDataTableToggle
                                 toggled={tableToggle["file_downloads_volume"] || false}
                                 toggleChanged={() => handleToggleTable("file_downloads_volume")}
                                 key="file_downloads_volume_toggle" />
@@ -1100,7 +1103,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {tableToggle.file_downloads_volume &&
-                        <AnalyticsRawDataTable data={file_downloads_volume} 
+                        <AnalyticsDataTable data={file_downloads_volume} 
                             key={'dt_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
@@ -1130,7 +1133,7 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="top_file_downloads" key="top_file_downloads" defaultHeight={300}
                         title={<h5 className="text-400 mt-0">Total File Count</h5>}
                         extraButtons={[
-                            <AnalyticsRawDataToggle
+                            <AnalyticsDataTableToggle
                                 toggled={tableToggle["top_file_downloads"] || false}
                                 toggleChanged={() => handleToggleTable("top_file_downloads")}
                                 key="top_file_downloads_toggle" />
@@ -1140,9 +1143,8 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {tableToggle.top_file_downloads &&
-                        <AnalyticsRawDataTable data={top_file_downloads} 
+                        <AnalyticsDataTable data={top_file_downloads} 
                             key={'dt_top_file_downloads'}
-                            valueLabel="GB"
                             {...commonTableProps}
                             containerId="content_top_file_downloads" />
                     }
@@ -1150,7 +1152,7 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" key="top_file_downloads_volume" defaultHeight={350}
                         title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
                         extraButtons={[
-                            <AnalyticsRawDataToggle
+                            <AnalyticsDataTableToggle
                                 toggled={tableToggle["top_file_downloads_volume"] || false}
                                 toggleChanged={() => handleToggleTable("top_file_downloads_volume")}
                                 key="top_file_downloads_volume_toggle" />
@@ -1160,7 +1162,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {tableToggle.top_file_downloads_volume &&
-                        <AnalyticsRawDataTable data={top_file_downloads_volume} 
+                        <AnalyticsDataTable data={top_file_downloads_volume} 
                             key={'dt_top_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
@@ -1186,7 +1188,7 @@ export function UsageStatsView(props){
                         }
                         extraButtons={[
                             <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" key="file_views_count_by_dd" />,
-                            <AnalyticsRawDataToggle
+                            <AnalyticsDataTableToggle
                                 toggled={tableToggle["file_views"] || false}
                                 toggleChanged={() => handleToggleTable("file_views")}
                                 key="file_views_toggle" />
@@ -1196,7 +1198,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {tableToggle.file_views &&
-                        <AnalyticsRawDataTable data={file_views} 
+                        <AnalyticsDataTable data={file_views} 
                             key={'dt_file_views'}
                             {...commonTableProps}
                             containerId="content_file_views" />
@@ -1224,7 +1226,7 @@ export function UsageStatsView(props){
                         subTitle={enableSessionByCountryChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}
                         extraButtons={[
                             <UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" key="sessions_by_country_count_by_dd" />,
-                            <AnalyticsRawDataToggle
+                            <AnalyticsDataTableToggle
                                 toggled={tableToggle["sessions_by_country"] || false}
                                 toggleChanged={() => handleToggleTable("sessions_by_country")}
                                 key="sessions_by_country_toggle" />
@@ -1236,7 +1238,7 @@ export function UsageStatsView(props){
 
 
                     {tableToggle.sessions_by_country &&
-                        <AnalyticsRawDataTable data={sessions_by_country} 
+                        <AnalyticsDataTable data={sessions_by_country} 
                             key={'dt_sessions_by_country'}
                             {...commonTableProps}
                             containerId="content_sessions_by_country" />
@@ -1353,7 +1355,7 @@ export function SubmissionsStatsView(props) {
         'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250
     };
     const xDomain = convertDataRangeToXDomain(currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo);
-    const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum: cumulativeSum, xDomain };
+    const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum, xDomain };
     const groupByProps = {
         currentGroupBy, groupByOptions, handleGroupByChange,
         currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange, loadingStatus
@@ -1522,13 +1524,37 @@ const ChartSubTitle = memoize(function ({ title, data, invalidDateRange }) {
 });
 
 /**
+ * 
+ * @param {*} props 
+ * @returns 
+ */
+const AnalyticsDataTableToggle = function (props) {
+    const { toggled, toggleChanged } = props;
+    const buttonClassName = "btn btn-sm mr-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+    return (
+        <button type="button" className={buttonClassName} onClick={toggleChanged} data-tip="Toggle data table view">
+            <i className={"icon icon-fw fas icon-table"} />
+        </button>
+    );
+}
+AnalyticsDataTableToggle.propTypes = {
+    toggled: PropTypes.bool.isRequired,
+    toggleChanged: PropTypes.func.isRequired
+}
+
+/**
  * converts aggregates to SearchView-compatible context objects and displays in table
  */
-const AnalyticsRawDataTable = React.memo((props) => {
-    const { data, valueLabel = null, session, containerId = '', href, dateRoundInterval, isTransposed = false, children, windowWidth, cumulativeSum } = props;
+const AnalyticsDataTable = React.memo((props) => {
+    const {
+        data, valueLabel = null, session, schemas, containerId = '', 
+        href, dateRoundInterval, isTransposed = false, windowWidth, cumulativeSum,
+     } = props;
     const [columns, setColumns] = useState({});
     const [columnDefinitions, setColumnDefinitions] = useState([]);
     const [graph, setGraph] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [modalForDate, setModalForDate] = useState();
 
     const transposeData = (data) => {
         const result = [];
@@ -1547,15 +1573,13 @@ const AnalyticsRawDataTable = React.memo((props) => {
             });
         });
 
-        return result;
+        return _.sortBy(result, (r) => -r.total);
     };
 
     const roundValue = function (value, label, threshold = 0.01) {
-        let roundedValue = value;
-        if (value !== 0) {
-            roundedValue = (value >= threshold && value % 1 > 0) ? Math.round(value * 100) / 100 : (value >= threshold ? value : ('<' + threshold))
-        }
-        return label && roundValue !== 0 ? roundedValue + ' ' + label : roundedValue;
+        if (value === 0) return value;
+        const roundedValue = (value >= threshold && value % 1 > 0) ? Math.round(value * 100) / 100 : (value >= threshold ? value : ('<' + threshold));
+        return label ? roundedValue + ' ' + label : roundedValue;
     }
 
     useEffect(() => {
@@ -1568,7 +1592,7 @@ const AnalyticsRawDataTable = React.memo((props) => {
         // date or term column based on transposed or not
         let cols = {
             'display_title': {
-                title: isTransposed ? 'Item' : 'Date',
+                title: isTransposed ? 'Term' : 'Date',
                 type: 'string',
                 noSort: true,
                 widthMap: { 'lg': 250, 'md': 250, 'sm': 250 },
@@ -1581,11 +1605,15 @@ const AnalyticsRawDataTable = React.memo((props) => {
                             {result.display_title} ({overallSum})
                         </span>
                     ) : (
-                        <a
-                            href={`/search/?type=TrackingItem&google_analytics.for_date=${result.display_title}&google_analytics.date_increment=${dateRoundInterval === 'month' ? 'monthly' : 'daily'}`}
-                            target="_blank" rel="noreferrer noopener">
-                            {result.display_title} ({overallSum})
-                        </a>
+                            <a href='#'
+                                onClick={(e) => {
+                                    setModalForDate(result.display_title);
+                                    setShowModal(true);
+                                    e.preventDefault();
+                                }}
+                                data-tip="Show details">
+                                {result.display_title} ({overallSum})
+                            </a>
                     );
                 }
             }
@@ -1595,17 +1623,32 @@ const AnalyticsRawDataTable = React.memo((props) => {
         const [item] = processData;
         if (item && Array.isArray(item.children) && item.children.length > 0) {
             const keys = isTransposed ? _.pluck(item.children, 'date') : _.pluck(item.children, 'term');
-            cols = _.reduce(keys, (m, c) => {
-                m[c] = {
-                    title: c,
+            cols = _.reduce(keys, (memo, dataKey) => {
+                memo[dataKey] = {
+                    title: dataKey,
                     type: 'integer',
                     noSort: true,
-                    widthMap: { 'lg': 140, 'md': 120, 'sm': 120 },
+                    widthMap: { 'lg': 140, 'md': 120, 'sm': 120 },                  
                     render: function (result) {
-                        return <span className={"value text-right" + (result[c] !== 0 ? " font-weight-bold" : "")}>{roundValue(result[c], valueLabel)}</span>;
+                        if (result[dataKey] !== 0) {
+                            return (
+                                <a href='#'
+                                    onClick={(e) => {
+                                        setModalForDate(isTransposed ? dataKey : result.display_title);
+                                        setShowModal(true);
+                                        e.preventDefault();
+                                    }}
+                                    data-tip="Show details"
+                                    className="value text-right font-weight-bold">
+                                    {roundValue(result[dataKey], valueLabel)}
+                                </a>
+                            );
+                        } else {
+                            return <span className="value text-right">0</span>
+                        }
                     }
                 };
-                return m;
+                return memo;
             }, { ...cols });
         }
 
@@ -1618,9 +1661,9 @@ const AnalyticsRawDataTable = React.memo((props) => {
             return {
                 display_title: isTransposed ? (d.termDisplayAs || d.term) : d.date,
                 '@id': isTransposed ? d.term : d.date,
-                ..._.reduce(d.children, (m2, c) => {
-                    m2[isTransposed ? c.date : c.term] = c.count;
-                    return m2;
+                ..._.reduce(d.children, (memo2, c) => {
+                    memo2[isTransposed ? c.date : c.term] = c.count;
+                    return memo2;
                 }, {}),
                 '@type': ['Item'],
                 'overall_sum': !cumulativeSum ? (d.total || 0) : (d.children.length > 0 ? d.children[d.children.length - 1].total : 0),
@@ -1652,28 +1695,80 @@ const AnalyticsRawDataTable = React.memo((props) => {
         maxResultsBodyHeight: 500,
         tableColumnClassName: "col-12",
         facetColumnClassName: "d-none",
+        defaultColAlignment: "text-right",
         stickyFirstColumn: true,
         isOwnPage: false,
         termTransformFxn: Term.toName
     };
 
+    const modalProps = {
+        ...{ dateRoundInterval, schemas },
+        forDate: modalForDate,
+        onTrackingItemViewerCancel: () => setShowModal(false)
+    };
+
     return (
-        <div className="container" id={containerId}>
-            <CustomColumnController {...{ windowWidth }} hiddenColumns={{}} columnDefinitions={columnDefinitions} context={passProps.context}>
-                <SortController>
-                    <ControlsAndResults {...passProps} />
-                </SortController>
-            </CustomColumnController>
-        </div>
+        <React.Fragment>
+            <div className="container" id={containerId}>
+                <CustomColumnController {...{ windowWidth }} hiddenColumns={{}} columnDefinitions={columnDefinitions} context={passProps.context}>
+                    <SortController>
+                        <ControlsAndResults {...passProps} />
+                    </SortController>
+                </CustomColumnController>
+            </div>
+            {showModal && <TrackingItemViewerModal {...modalProps} />}
+        </React.Fragment>
     );
 });
 
-const AnalyticsRawDataToggle = function (props) {
-    const { toggled, toggleChanged } = props;
-    const buttonClassName = "btn btn-sm mr-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+const TrackingItemViewerModal = React.memo(function (props) {
+    const { schemas, forDate, dateRoundInterval='day', reportName, onTrackingItemViewerCancel } = props;
+
+    const [isLoading, setIsLoading] = useState(true);
+    const [trackingItem, setTrackingItem] = useState();
+    const dateIncrement = (dateRoundInterval === 'month') ? 'monthly' : 'daily';
+    const href=`/search/?type=TrackingItem&google_analytics.for_date=${forDate}&google_analytics.date_increment=${dateIncrement}`;
+    
+    useEffect(() => {
+        ajax.load(
+            href,
+            (resp) => {
+                const graph = resp['@graph'] || [];
+                setTrackingItem(graph.length > 0 ? graph[0] : null);
+                setIsLoading(false);
+            },
+            'GET',
+            (err) => {
+                Alerts.queue({
+                    title: 'Fetching tracking items failed',
+                    message:
+                        'Check your internet connection or if you have been logged out due to expired session.',
+                    style: 'danger',
+                });
+                setIsLoading(false);
+            }
+        );
+    }, [forDate, dateRoundInterval, reportName]);
+
     return (
-        <button type="button" className={buttonClassName} onClick={toggleChanged} data-tip="Toggle data table view">
-            <i className={"icon icon-fw fas icon-table"} />
-        </button>
+        <Modal show size="xl" onHide={onTrackingItemViewerCancel}>
+            <Modal.Header closeButton>
+                <Modal.Title>{forDate}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                {isLoading ?
+                    <span className="pull-right">
+                        <i className="account-icon icon icon-spin icon-circle-notch fas align-middle" />
+                    </span> :
+                    <ItemDetailList context={trackingItem} collapsed={false} schemas={schemas} />
+                }
+            </Modal.Body>
+        </Modal>
     );
+});
+TrackingItemViewerModal.propTypes = {
+    forDate: PropTypes.string.isRequired,
+    dateRoundInterval: PropTypes.oneOf(['daily', 'monthly']),
+    onTrackingItemViewerCancel: PropTypes.func.isRequired,
+    schemas: PropTypes.object
 }
