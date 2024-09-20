@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import memoize from 'memoize-one';
@@ -9,10 +9,16 @@ import * as d3 from 'd3';
 import { sub, add, startOfMonth, startOfDay, endOfMonth, endOfDay, toDate, format as formatDate } from 'date-fns';
 import DropdownItem from 'react-bootstrap/esm/DropdownItem';
 import DropdownButton from 'react-bootstrap/esm/DropdownButton';
+import Modal from 'react-bootstrap/esm/Modal';
 
 import { Checkbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Checkbox';
 import { console, ajax, analytics, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { navigate } from './../../util';
+import { Term } from './../../util/Schemas';
+import { ColumnCombiner, CustomColumnController, SortController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
+import { ControlsAndResults } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/ControlsAndResults';
+import { ItemDetailList } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/ItemDetailList';
+
 import {
     StatsViewController, GroupByDropdown, ColorScaleProvider,
     AreaChart, AreaChartContainer, LoadingIcon, ErrorIcon, HorizontalD3ScaleLegend,
@@ -284,7 +290,7 @@ export const commonParsingFxn = {
                     if (cumulativeSum) {
                         let { count = 0, total = 0 } = termTotals[termItem.term] || {};
                         total += (termItem.total || 0);
-                        count += (termItem.count || 0);
+                        count = (termItem.count || 0);
                         termTotals[termItem.term] = { total, count };
 
                         cloned.count = count;
@@ -301,7 +307,7 @@ export const commonParsingFxn = {
                         currentItem.children.push({
                             'term': term,
                             'termDisplayAs': typeof termDisplayAsFunc === 'function' ? termDisplayAsFunc(term) : null,
-                            'count': termTotals[term].count,
+                            'count': 0,
                             'total': termTotals[term].total,
                             'date': for_date
                         });
@@ -319,7 +325,26 @@ export const commonParsingFxn = {
 
         commonParsingFxn.fillMissingChildBuckets(aggsList, Array.from(termsInAllItems));
 
-        return aggsList;
+        // remove children term if all is zero
+        const filterZeroTotalTerms = (list) => {
+            const termTotals = {};
+
+            list.forEach(item => {
+                item.children.forEach(child => {
+                    if (!termTotals[child.term]) {
+                        termTotals[child.term] = 0;
+                    }
+                    termTotals[child.term] += child.total;
+                });
+            });
+
+            return list.map(item => ({
+                ...item,
+                children: item.children.filter(child => termTotals[child.term] !== 0),
+            }));
+        };
+
+        return filterZeroTotalTerms(aggsList);
     }
 };
 
@@ -552,7 +577,6 @@ const aggregationsToChartData = {
                     break;
             }
 
-            // const termDisplayAsFunc = function(item){ return item.file_type && item.file_title ? `${item.file_title} (${item.file_type})` : item.term };
             const termDisplayAsFunc = function(item){ return item.file_title ? item.file_title : (item.file_type ? `${item.term} (${item.file_type})` : item.term) };
 
             return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
@@ -653,6 +677,7 @@ export const submissionsAggsToChartData = _.pick(aggregationsToChartData,
     'files_uploaded', 'file_volume_uploaded',
     'files_released', 'file_volume_released'
 );
+
 
 export const usageAggsToChartData = _.pick(aggregationsToChartData,
     'file_downloads',  'file_downloads_volume',
@@ -854,7 +879,6 @@ export class SubmissionStatsViewController extends React.PureComponent {
 }
 
 
-
 class UsageChartsCountByDropdown extends React.PureComponent {
 
     constructor(props){
@@ -867,7 +891,7 @@ class UsageChartsCountByDropdown extends React.PureComponent {
         changeCountByForChart(chartID, evtKey);
         if (chartID == 'file_downloads') {
             changeCountByForChart('file_downloads_volume', evtKey);
-        } else  if (chartID == 'top_file_downloads') {
+        } else if (chartID == 'top_file_downloads') {
             changeCountByForChart('top_file_downloads_volume', evtKey);
         }
     }
@@ -931,13 +955,29 @@ class UsageChartsCountByDropdown extends React.PureComponent {
 
 export function UsageStatsView(props){
     const {
-        loadingStatus, mounted, session, groupByOptions, handleGroupByChange, currentGroupBy, windowWidth,
+        loadingStatus, mounted, href, session, schemas, groupByOptions, handleGroupByChange, currentGroupBy, windowWidth,
         changeCountByForChart, countBy,
         // Passed in from StatsChartViewAggregator:
         sessions_by_country, chartToggles, fields_faceted,
         file_downloads, file_downloads_volume, top_file_downloads, top_file_downloads_volume, file_views,
+        // settings
         smoothEdges, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
     } = props;
+
+    if (loadingStatus === 'failed'){
+        return <div className="stats-charts-container" key="charts" id="usage"><ErrorIcon/></div>;
+    }
+
+    if (!mounted || (loadingStatus === 'loading' && (!file_downloads && !sessions_by_country))){
+        return <div className="stats-charts-container" key="charts" id="usage"><LoadingIcon/></div>;
+    }
+
+    const [isTransposed, setIsTransposed] = useState(true);
+    const [tableToggle, setTableToggle] = useState({});
+    const handleToggleTable = function (chartKey) {
+        const newTableToggle = _.extend({}, tableToggle, { [chartKey]: !(tableToggle[chartKey] || false) });
+        setTableToggle(newTableToggle);
+    }
 
     const [ scale, setScale ] = useState({ yAxisScale: 'Pow', yAxisPower: 0.5 });
     const { anyExpandedCharts, commonXDomain, dateRoundInterval } = useMemo(function(){
@@ -964,14 +1004,6 @@ export function UsageStatsView(props){
         };
     }, [ currentGroupBy, anyExpandedCharts ]);
 
-    if (loadingStatus === 'failed'){
-        return <div className="stats-charts-container" key="charts" id="usage"><ErrorIcon/></div>;
-    }
-
-    if (!mounted || (loadingStatus === 'loading' && (!file_downloads && !sessions_by_country))){
-        return <div className="stats-charts-container" key="charts" id="usage"><LoadingIcon/></div>;
-    }
-
     const commonContainerProps = { 'onToggle' : onChartToggle, chartToggles, windowWidth, 'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250 };
     const commonChartProps = {
         dateRoundInterval,
@@ -984,30 +1016,24 @@ export function UsageStatsView(props){
     const sessionsByCountryChartHeight = ['page_title', 'page_url'].indexOf(countBy.sessions_by_country) > -1 ? 500 : commonContainerProps.defaultHeight;
     const enableSessionByCountryChartTooltipItemClick = (countBy.sessions_by_country === 'page_url');
 
-    let showScaleRange = true;
-    let scaleRangeTooltip = '';
-    let scaleRangeMin, scaleRangeMax, scaleRangeStep;
-    //set defaults
-    if (scale['yAxisScale'] === 'Pow') {
-        scaleRangeMin = 0; scaleRangeMax = 1; scaleRangeStep = 0.1;
-        scaleRangeTooltip = 'exponent';
-    } else if (scale['yAxisScale'] === 'Symlog') {
-        scaleRangeMin = 0; scaleRangeMax = 100; scaleRangeStep = 0.5;
-        scaleRangeTooltip = 'constant';
-    } else {
-        showScaleRange = false;
-    }
+    const { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep } = UsageStatsView.getYScaleDefaults(scale['yAxisScale']);
+
+    const isSticky = true; //!_.any(_.values(tableToggle), (v)=> v === true);
+    const commonTableProps = { windowWidth, href, session, schemas, isTransposed, dateRoundInterval, cumulativeSum };
 
     return (
         <div className="stats-charts-container" key="charts" id="usage">
 
             <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
-                groupByTitle="Show" outerClassName="dropdown-container mb-0 sticky-top">
+                groupByTitle="Show" outerClassName={"dropdown-container mb-0" + (isSticky ? " sticky-top" : "")}>
                 <div className="d-inline-block mr-15 pt-08">
-                    <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
+                    <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle} data-tip="Toggle between smooth/sharp edges">Smooth Edges</Checkbox>
                 </div>
                 <div className="d-inline-block mr-3 mb-2 pt-08">
-                    <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Show as cumulative sum</Checkbox>
+                    <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle} data-tip="Show as cumulative sum">Cumulative Sum</Checkbox>
+                </div>
+                <div className="d-inline-block mr-3 mb-2 pt-08">
+                    <Checkbox checked={isTransposed} onChange={() => setIsTransposed(!isTransposed)} data-tip="Transpose data table">Transpose Data</Checkbox>
                 </div>
                 <div className="d-block d-md-inline-block pt-08">
                     <div className="d-md-flex">
@@ -1047,13 +1073,42 @@ export function UsageStatsView(props){
 
                     <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
-                    <AreaChartContainer {...commonContainerProps} id="file_downloads" title={<h5 className="text-400 mt-0">Total File Count</h5>}>
+                    <AreaChartContainer {...commonContainerProps} id="file_downloads" key="file_downloads"
+                        title={<h5 className="text-400 mt-0">Total File Count</h5>}
+                        extraButtons={[
+                            <AnalyticsDataTableToggle
+                                toggled={tableToggle["file_downloads"] || false}
+                                toggleChanged={() => handleToggleTable("file_downloads")}
+                                key="file_downloads_toggle" />
+                        ]}>
                         <AreaChart {...commonChartProps} data={file_downloads} {...scale} />
                     </AreaChartContainer>
 
-                    <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" defaultHeight={300} title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}>
+                    {tableToggle.file_downloads &&
+                        <AnalyticsDataTable data={file_downloads}
+                            key={'dt_file_downloads'}
+                            {...commonTableProps}
+                            containerId="content_file_downloads" />
+                    }
+
+                    <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" key="file_downloads_volume" defaultHeight={300}
+                        title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
+                        extraButtons={[
+                            <AnalyticsDataTableToggle
+                                toggled={tableToggle["file_downloads_volume"] || false}
+                                toggleChanged={() => handleToggleTable("file_downloads_volume")}
+                                key="file_downloads_volume_toggle" />
+                        ]}>
                         <AreaChart {...commonChartProps} data={file_downloads_volume} yAxisLabel="GB" {...scale} />
                     </AreaChartContainer>
+
+                    {tableToggle.file_downloads_volume &&
+                        <AnalyticsDataTable data={file_downloads_volume} 
+                            key={'dt_file_downloads_volume'}
+                            valueLabel="GB"
+                            {...commonTableProps}
+                            containerId="content_file_downloads_volume" />
+                    }
 
                     <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
 
@@ -1075,17 +1130,44 @@ export function UsageStatsView(props){
                         </h3>
                     </div>
 
-                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads" defaultHeight={300}
+                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads" key="top_file_downloads" defaultHeight={300}
                         title={<h5 className="text-400 mt-0">Total File Count</h5>}
+                        extraButtons={[
+                            <AnalyticsDataTableToggle
+                                toggled={tableToggle["top_file_downloads"] || false}
+                                toggleChanged={() => handleToggleTable("top_file_downloads")}
+                                key="top_file_downloads_toggle" />
+                        ]}
                         subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
                         <AreaChart {...commonChartProps} data={top_file_downloads} showTooltipOnHover={false} {...scale} />
                     </AreaChartContainer>
 
-                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" defaultHeight={350}
+                    {tableToggle.top_file_downloads &&
+                        <AnalyticsDataTable data={top_file_downloads} 
+                            key={'dt_top_file_downloads'}
+                            {...commonTableProps}
+                            containerId="content_top_file_downloads" />
+                    }
+
+                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" key="top_file_downloads_volume" defaultHeight={350}
                         title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
+                        extraButtons={[
+                            <AnalyticsDataTableToggle
+                                toggled={tableToggle["top_file_downloads_volume"] || false}
+                                toggleChanged={() => handleToggleTable("top_file_downloads_volume")}
+                                key="top_file_downloads_volume_toggle" />
+                        ]}
                         subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
                         <AreaChart {...commonChartProps} data={top_file_downloads_volume} showTooltipOnHover={false} yAxisLabel="GB" {...scale} />
                     </AreaChartContainer>
+
+                    {tableToggle.top_file_downloads_volume &&
+                        <AnalyticsDataTable data={top_file_downloads_volume} 
+                            key={'dt_top_file_downloads_volume'}
+                            valueLabel="GB"
+                            {...commonTableProps}
+                            containerId="content_top_file_downloads_volume" />
+                    }
 
                     <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
 
@@ -1097,17 +1179,30 @@ export function UsageStatsView(props){
 
                 <ColorScaleProvider resetScalesWhenChange={file_views}>
 
-                    <AreaChartContainer {...commonContainerProps} id="file_views"
+                    <AreaChartContainer {...commonContainerProps} id="file_views" key="file_views"
                         title={
                             <h3 className="charts-group-title">
                                 <span className="d-block d-sm-inline">File Views</span><span className="text-300 d-none d-sm-inline"> - </span>
                                 <span className="text-300">{UsageStatsView.titleExtensions['file_views'][countBy.file_views]}</span>
                             </h3>
                         }
-                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" />}
+                        extraButtons={[
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" key="file_views_count_by_dd" />,
+                            <AnalyticsDataTableToggle
+                                toggled={tableToggle["file_views"] || false}
+                                toggleChanged={() => handleToggleTable("file_views")}
+                                key="file_views_toggle" />
+                        ]}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
                         <AreaChart {...commonChartProps} data={file_views} {...scale} />
                     </AreaChartContainer>
+
+                    {tableToggle.file_views &&
+                        <AnalyticsDataTable data={file_views} 
+                            key={'dt_file_views'}
+                            {...commonTableProps}
+                            containerId="content_file_views" />
+                    }
 
                 </ColorScaleProvider>
 
@@ -1117,7 +1212,7 @@ export function UsageStatsView(props){
 
                 <ColorScaleProvider resetScaleLegendWhenChange={sessions_by_country}>
 
-                    <AreaChartContainer {...commonContainerProps} id="sessions_by_country"
+                    <AreaChartContainer {...commonContainerProps} id="sessions_by_country" key="sessions_by_country"
                         title={
                             <h3 className="charts-group-title">
                                 <span className="d-block d-sm-inline">{
@@ -1129,11 +1224,25 @@ export function UsageStatsView(props){
                             </h3>
                         }
                         subTitle={enableSessionByCountryChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}
-                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" />}
+                        extraButtons={[
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" key="sessions_by_country_count_by_dd" />,
+                            <AnalyticsDataTableToggle
+                                toggled={tableToggle["sessions_by_country"] || false}
+                                toggleChanged={() => handleToggleTable("sessions_by_country")}
+                                key="sessions_by_country_toggle" />
+                        ]}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}
                         defaultHeight={sessionsByCountryChartHeight}>
                         <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} {...scale} />
                     </AreaChartContainer>
+
+
+                    {tableToggle.sessions_by_country &&
+                        <AnalyticsDataTable data={sessions_by_country} 
+                            key={'dt_sessions_by_country'}
+                            {...commonTableProps}
+                            containerId="content_sessions_by_country" />
+                    }
 
                 </ColorScaleProvider>
 
@@ -1144,7 +1253,7 @@ export function UsageStatsView(props){
 
                 <ColorScaleProvider resetScaleLegendWhenChange={fields_faceted}>
 
-                    <AreaChartContainer {...commonContainerProps} id="fields_faceted"
+                    <AreaChartContainer {...commonContainerProps} id="fields_faceted" key="fields_faceted"
                         title={
                             <h3 className="charts-group-title">
                                 <span className="d-block d-sm-inline">Top Fields Faceted</span>
@@ -1199,6 +1308,22 @@ UsageStatsView.titleExtensions = {
         'sessions': 'by unique users'
     }
 };
+UsageStatsView.getYScaleDefaults = function (yScale) {
+    let showScaleRange = true;
+    let scaleRangeTooltip = '';
+    let scaleRangeMin, scaleRangeMax, scaleRangeStep;
+    //set defaults
+    if (yScale === 'Pow') {
+        scaleRangeMin = 0; scaleRangeMax = 1; scaleRangeStep = 0.1;
+        scaleRangeTooltip = 'exponent';
+    } else if (yScale === 'Symlog') {
+        scaleRangeMin = 0; scaleRangeMax = 100; scaleRangeStep = 0.5;
+        scaleRangeTooltip = 'constant';
+    } else {
+        showScaleRange = false;
+    }
+    return { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep };
+}
 UsageStatsView.yScaleLabels = {
     'Linear': 'Linear',
     'Symlog': 'Log',
@@ -1230,7 +1355,7 @@ export function SubmissionsStatsView(props) {
         'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250
     };
     const xDomain = convertDataRangeToXDomain(currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo);
-    const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum: cumulativeSum, xDomain };
+    const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum, xDomain };
     const groupByProps = {
         currentGroupBy, groupByOptions, handleGroupByChange,
         currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange, loadingStatus
@@ -1397,3 +1522,253 @@ const ChartSubTitle = memoize(function ({ title, data, invalidDateRange }) {
     }
     return title || null;
 });
+
+/**
+ * 
+ * @param {*} props 
+ * @returns 
+ */
+const AnalyticsDataTableToggle = function (props) {
+    const { toggled, toggleChanged } = props;
+    const buttonClassName = "btn btn-sm mr-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+    return (
+        <button type="button" className={buttonClassName} onClick={toggleChanged} data-tip="Toggle data table view">
+            <i className={"icon icon-fw fas icon-table"} />
+        </button>
+    );
+}
+AnalyticsDataTableToggle.propTypes = {
+    toggled: PropTypes.bool.isRequired,
+    toggleChanged: PropTypes.func.isRequired
+}
+
+/**
+ * converts aggregates to SearchView-compatible context objects and displays in table
+ */
+const AnalyticsDataTable = React.memo((props) => {
+    const {
+        data, valueLabel = null, session, schemas, containerId = '', 
+        href, dateRoundInterval, isTransposed = false, windowWidth, cumulativeSum,
+     } = props;
+    const [columns, setColumns] = useState({});
+    const [columnDefinitions, setColumnDefinitions] = useState([]);
+    const [graph, setGraph] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [modalForDate, setModalForDate] = useState();
+
+    const transposeData = (data) => {
+        const result = [];
+        const termMap = {};
+
+        data.forEach(({ date, children }) => {
+            children.forEach(({ term, count, total }) => {
+                if (!termMap[term]) {
+                    termMap[term] = { term, count: 0, total: 0, children: [] };
+                    result.push(termMap[term]);
+                }
+
+                termMap[term].children.push({ date, count, total });
+                termMap[term].count += count;
+                termMap[term].total += total;
+            });
+        });
+
+        return _.sortBy(result, (r) => -r.total);
+    };
+
+    const roundValue = function (value, label, threshold = 0.01) {
+        if (value === 0) return value;
+        const roundedValue = (value >= threshold && value % 1 > 0) ? Math.round(value * 100) / 100 : (value >= threshold ? value : ('<' + threshold));
+        return label ? roundedValue + ' ' + label : roundedValue;
+    }
+
+    useEffect(() => {
+        if (!Array.isArray(data) || data.length === 0) {
+            return;
+        }
+
+        const processData = isTransposed ? transposeData(data) : data;
+
+        // date or term column based on transposed or not
+        let cols = {
+            'display_title': {
+                title: isTransposed ? 'Term' : 'Date',
+                type: 'string',
+                noSort: true,
+                widthMap: { 'lg': 250, 'md': 250, 'sm': 250 },
+                render: function (result) {
+                    // overall sum
+                    const overallSum = roundValue(result.overall_sum || 0, valueLabel);
+
+                    return isTransposed ? (
+                        <span className="value text-truncate text-left">
+                            {result.display_title} ({overallSum})
+                        </span>
+                    ) : (
+                            <a href='#'
+                                onClick={(e) => {
+                                    setModalForDate(result.display_title);
+                                    setShowModal(true);
+                                    e.preventDefault();
+                                }}
+                                data-tip="Show details">
+                                {result.display_title} ({overallSum})
+                            </a>
+                    );
+                }
+            }
+        };
+
+        // create columns and columnExtensionMap
+        const [item] = processData;
+        if (item && Array.isArray(item.children) && item.children.length > 0) {
+            const keys = isTransposed ? _.pluck(item.children, 'date') : _.pluck(item.children, 'term');
+            cols = _.reduce(keys, (memo, dataKey) => {
+                memo[dataKey] = {
+                    title: dataKey,
+                    type: 'integer',
+                    noSort: true,
+                    widthMap: { 'lg': 140, 'md': 120, 'sm': 120 },                  
+                    render: function (result) {
+                        if (result[dataKey] !== 0) {
+                            return (
+                                <a href='#'
+                                    onClick={(e) => {
+                                        setModalForDate(isTransposed ? dataKey : result.display_title);
+                                        setShowModal(true);
+                                        e.preventDefault();
+                                    }}
+                                    data-tip="Show details"
+                                    className="value text-right font-weight-bold">
+                                    {roundValue(result[dataKey], valueLabel)}
+                                </a>
+                            );
+                        } else {
+                            return <span className="value text-right">0</span>
+                        }
+                    }
+                };
+                return memo;
+            }, { ...cols });
+        }
+
+        setColumns(cols);
+        const colDefs = _.map(_.pairs(cols), function (p) { return { field: p[0], ...p[1] } });
+        setColumnDefinitions(colDefs);
+
+        // create @graph
+        const result = _.map(processData, function (d) {
+            return {
+                display_title: isTransposed ? (d.termDisplayAs || d.term) : d.date,
+                '@id': isTransposed ? d.term : d.date,
+                ..._.reduce(d.children, (memo2, c) => {
+                    memo2[isTransposed ? c.date : c.term] = c.count;
+                    return memo2;
+                }, {}),
+                '@type': ['Item'],
+                'overall_sum': !cumulativeSum ? (d.total || 0) : _.reduce(d.children, (memo, c) => memo + c.count, 0),
+                'date_created': isTransposed ? d.term : d.date
+            };
+        });
+        setGraph(result);
+    }, [data, isTransposed]);
+
+    const passProps = {
+        isFullscreen: false,
+        href,
+        context: {
+            '@graph': graph || [],
+            total: graph?.length || 0,
+            columns: columns || [],
+            facets: null
+        },
+        results: graph || [],
+        currentAction: null,
+        columns,
+        columnExtensionMap: columns,
+        columnDefinitions: columnDefinitions,
+        columnWidths: {},
+        session,
+        schemas: null,
+        facets: null,
+        maxHeight: 500,
+        maxResultsBodyHeight: 500,
+        tableColumnClassName: "col-12",
+        facetColumnClassName: "d-none",
+        defaultColAlignment: "text-right",
+        stickyFirstColumn: true,
+        isOwnPage: false,
+        termTransformFxn: Term.toName
+    };
+
+    const modalProps = {
+        ...{ dateRoundInterval, schemas },
+        forDate: modalForDate,
+        onTrackingItemViewerCancel: () => setShowModal(false)
+    };
+
+    return (
+        <React.Fragment>
+            <div className="container" id={containerId}>
+                <CustomColumnController {...{ windowWidth }} hiddenColumns={{}} columnDefinitions={columnDefinitions} context={passProps.context}>
+                    <SortController>
+                        <ControlsAndResults {...passProps} />
+                    </SortController>
+                </CustomColumnController>
+            </div>
+            {showModal && <TrackingItemViewerModal {...modalProps} />}
+        </React.Fragment>
+    );
+});
+
+const TrackingItemViewerModal = React.memo(function (props) {
+    const { schemas, forDate, dateRoundInterval='day', reportName, onTrackingItemViewerCancel } = props;
+
+    const [isLoading, setIsLoading] = useState(true);
+    const [trackingItem, setTrackingItem] = useState();
+    const dateIncrement = (dateRoundInterval === 'month') ? 'monthly' : 'daily';
+    const href=`/search/?type=TrackingItem&google_analytics.for_date=${forDate}&google_analytics.date_increment=${dateIncrement}`;
+    
+    useEffect(() => {
+        ajax.load(
+            href,
+            (resp) => {
+                const graph = resp['@graph'] || [];
+                setTrackingItem(graph.length > 0 ? graph[0] : null);
+                setIsLoading(false);
+            },
+            'GET',
+            (err) => {
+                Alerts.queue({
+                    title: 'Fetching tracking items failed',
+                    message:
+                        'Check your internet connection or if you have been logged out due to expired session.',
+                    style: 'danger',
+                });
+                setIsLoading(false);
+            }
+        );
+    }, [forDate, dateRoundInterval, reportName]);
+
+    return (
+        <Modal show size="xl" onHide={onTrackingItemViewerCancel}>
+            <Modal.Header closeButton>
+                <Modal.Title>{forDate}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                {isLoading ?
+                    <span className="pull-right">
+                        <i className="account-icon icon icon-spin icon-circle-notch fas align-middle" />
+                    </span> :
+                    <ItemDetailList context={trackingItem} collapsed={false} schemas={schemas} />
+                }
+            </Modal.Body>
+        </Modal>
+    );
+});
+TrackingItemViewerModal.propTypes = {
+    forDate: PropTypes.string.isRequired,
+    dateRoundInterval: PropTypes.oneOf(['daily', 'monthly']),
+    onTrackingItemViewerCancel: PropTypes.func.isRequired,
+    schemas: PropTypes.object
+}
