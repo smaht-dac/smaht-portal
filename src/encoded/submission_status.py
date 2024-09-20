@@ -47,6 +47,7 @@ def get_file_group_qc(context, request):
         file_group = post_params.get("fileGroup")
 
         files_with_qcs = []
+        filesets = {}
 
         # Search for fileset with same file group
         search_params = {}
@@ -75,6 +76,13 @@ def get_file_group_qc(context, request):
                 request, files, meta_workflow_runs
             ).get("qc_infos")
 
+            filesets[fs.get(UUID)] = {
+                "uuid": fs.get(UUID),
+                "tags": fs.get("tags"),
+                "comments": fs.get("comments", []),
+                "submitted_id": fs.get("submitted_id"),
+            }
+
             for f in submitted_file_qc_infos + output_file_qc_infos:
                 for qm in f["quality_metrics"]:
                     qm_item = get_item_or_none(request, qm[UUID], "quality-metrics")
@@ -83,13 +91,13 @@ def get_file_group_qc(context, request):
                         "display_title": f["display_title"],
                         "is_output_file": f["is_output_file"],
                         "fileset_submitted_id": fs.get("submitted_id"),
-                        "fileset_tags": fs.get("tags"),
                         "fileset_uuid": fs.get(UUID),
                         "quality_metric": qm_item,
                     })
 
         return {
             "files_with_qcs": files_with_qcs,
+            "filesets": filesets
         }
 
     except Exception as e:

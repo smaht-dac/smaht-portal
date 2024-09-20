@@ -143,18 +143,48 @@ export const getQcResultsSummary = (qc_results) => {
         if (i + 1 === unique_statuses.length) {
             return badge;
         } else {
-            return <div>{badge} / </div>;
+            return <span>{badge} / </span>;
         }
     });
 };
 
+export const getCommentsList = (
+    fsUuid,
+    fsComments,
+    isUserAdmin,
+    removeCommentFct,
+    prefix = "",
+) => {
+    if (!fsComments) {
+        return;
+    }
+    const comments = [];
+    fsComments.forEach((c) => {
+        const trashSymbol = isUserAdmin ? (
+            <span
+                className="far icon icon-fw icon-trash-alt text-muted pl-1 clickable"
+                onClick={() => removeCommentFct(fsUuid, c)}></span>
+        ) : (
+            ''
+        );
+        comments.push(
+            <li className="ss-line-height-140">
+                {prefix}<strong>{c}</strong>
+                {trashSymbol}
+            </li>
+        );
+    });
+
+    return <ul>{comments}</ul>;
+};
+
 export function shortenStringKeepBothEnds(str, maxLength) {
     if (str.length <= maxLength) {
-        return str;  
+        return str;
     }
-    const partLength = Math.floor((maxLength - 3) / 2); 
+    const partLength = Math.floor((maxLength - 3) / 2);
     const start = str.substring(0, partLength);
     const end = str.substring(str.length - partLength);
-    
+
     return start + '...' + end;
 }

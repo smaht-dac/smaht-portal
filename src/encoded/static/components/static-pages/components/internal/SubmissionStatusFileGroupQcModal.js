@@ -14,6 +14,7 @@ import {
     formatQcValue,
     getQcBagdeType,
     shortenStringKeepBothEnds,
+    getCommentsList,
 } from './submissionStatusUtils';
 
 class FileGroupQCModalComponent extends React.PureComponent {
@@ -24,12 +25,15 @@ class FileGroupQCModalComponent extends React.PureComponent {
             initialLoading: true,
             loading: false,
             currentFileSet: this.props.fileSet,
-            allFileSets: {},
+            fileSets: {},
             visibleFileSets: [this.props.fileSet.uuid],
             isUserAdmin: this.props.isUserAdmin,
             submittedFiles: [],
             processedFiles: [],
             parentReloadNecessary: false,
+            commentInputVisible: false,
+            newComment: '',
+            estimatedTotalCoverage: 'NA',
         };
     }
 
@@ -50,7 +54,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
                     console.error(resp.error);
                     return;
                 }
-                const allFileSets = {};
+                const allFileSets = resp.filesets;
                 const files = resp.files_with_qcs;
                 // We need to reformat the QC values so that we have fast access to
                 // individual values
@@ -58,11 +62,6 @@ class FileGroupQCModalComponent extends React.PureComponent {
                     file['qc_values_dict'] = this.reformatQcValues(
                         file.quality_metric?.qc_values
                     );
-                    allFileSets[file.fileset_uuid] = {
-                        uuid: file.fileset_uuid,
-                        tags: file.fileset_tags,
-                        submitted_id: file.fileset_submitted_id,
-                    };
                 });
 
                 const submittedFiles = files.filter(
@@ -76,7 +75,9 @@ class FileGroupQCModalComponent extends React.PureComponent {
                     initialLoading: false,
                     submittedFiles: submittedFiles,
                     processedFiles: processedFiles,
-                    allFileSets: allFileSets,
+                    fileSets: allFileSets,
+                    estimatedTotalCoverage:
+                        this.getEstimatedCoverage(processedFiles),
                 });
             },
             'POST',
@@ -94,8 +95,29 @@ class FileGroupQCModalComponent extends React.PureComponent {
         return result;
     };
 
+    getEstimatedCoverage = (processedFiles) => {
+        const coverage_metric = 'bamstats:estimate_average_coverage';
+        const filesSeen = [];
+        let estimated_coverage = 0;
+        if(processedFiles.length === 0){
+            return "NA";
+        }
+        for (const pf of processedFiles) {
+            const qcValues = pf['qc_values_dict'];
+            if (coverage_metric in qcValues) {
+                if (filesSeen.includes(pf.accession)) {
+                    continue;
+                }
+                const cov = qcValues[coverage_metric]['value'];
+                estimated_coverage += cov;
+                filesSeen.push(pf.accession);
+            }
+        }
+        return formatQcValue(estimated_coverage);
+    };
+
     toggleTag = (fileSetUuid, tag) => {
-        const allFileSets = JSON.parse(JSON.stringify(this.state.allFileSets));
+        const allFileSets = JSON.parse(JSON.stringify(this.state.fileSets));
         const currentFileSetTags = allFileSets[fileSetUuid]['tags'];
         if (currentFileSetTags.includes(tag)) {
             const index = currentFileSetTags.indexOf(tag);
@@ -119,7 +141,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
                             return;
                         } else {
                             this.setState({
-                                allFileSets: allFileSets,
+                                fileSets: allFileSets,
                                 parentReloadNecessary: true,
                                 loading: false,
                             });
@@ -136,7 +158,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
     getFileSetTags = (filesetUuid) => {
         const relevantTags = ['reviewed', 'ready_to_release'];
         const filesetStatusTags = relevantTags.map((tag) => {
-            const fileSetTags = this.state.allFileSets[filesetUuid]['tags'];
+            const fileSetTags = this.state.fileSets[filesetUuid]['tags'];
             const badgeType =
                 fileSetTags && fileSetTags.includes(tag) ? 'info' : 'lighter';
 
@@ -293,6 +315,65 @@ class FileGroupQCModalComponent extends React.PureComponent {
         });
     };
 
+    handleToggleCommentInputField = (e) => {
+        if (e) {
+            e.preventDefault();
+        }
+        this.setState((prevState) => ({
+            commentInputVisible: !prevState.commentInputVisible,
+        }));
+    };
+
+    handleCommentInput = (comment) => {
+        this.setState({
+            newComment: comment,
+        });
+    };
+
+    addComment = () => {
+        this.setState({
+            loading: true,
+        });
+        const comment = this.state.newComment;
+        if (!comment) {
+            return;
+        }
+        this.handleToggleCommentInputField(null);
+        const fileSets = JSON.parse(JSON.stringify(this.state.fileSets));
+
+        for (const fsUuid in fileSets) {
+            const fileSet = fileSets[fsUuid];
+            fileSet.comments.push(comment);
+            const payload = {
+                comments: fileSet.comments,
+            };
+            ajax.load(
+                fileSet.uuid,
+                (resp) => {
+                    if (resp.status !== 'success') {
+                        console.error(resp);
+                        return;
+                    }
+                },
+                'PATCH',
+                fallbackCallback,
+                JSON.stringify(payload)
+            );
+        }
+
+        this.setState(
+            (prevState) => ({
+                fileSets: fileSets,
+                loading: false,
+                parentReloadNecessary: true,
+                newComment: '',
+            }),
+            function () {
+                this.forceUpdate();
+            }
+        );
+    };
+
     hideModal = () => {
         this.props.closeModal(null, this.state.parentReloadNecessary);
     };
@@ -331,8 +412,16 @@ class FileGroupQCModalComponent extends React.PureComponent {
             return <span key={assay}>{assay}</span>;
         });
 
-        const filesetList = Object.keys(this.state.allFileSets).map((uuid) => {
-            const fs = this.state.allFileSets[uuid];
+        const filesetList = Object.keys(this.state.fileSets).map((uuid) => {
+            const fs = this.state.fileSets[uuid];
+            const comments = getCommentsList(
+                uuid,
+                fs.comments,
+                false, // Removing comments from the modal is currently disabled / not yet implemented
+                null, // Removing comments from the modal is currently disabled / not yet implemented
+                'Comment: '
+            );
+
             const isChecked = fs['uuid'] === this.state.currentFileSet.uuid;
             return (
                 <li key={fs['uuid']}>
@@ -343,9 +432,44 @@ class FileGroupQCModalComponent extends React.PureComponent {
                         label={fs['submitted_id']}
                         onChange={(e) => this.toggleFileset(e, uuid)}
                     />
+                    {comments}
                 </li>
             );
         });
+
+        const addCommentSection = (
+            <span className={this.state.isUserAdmin ? 'ml-1' : 'collapse'}>
+                <a
+                    href="#"
+                    onClick={(e) => this.handleToggleCommentInputField(e)}>
+                    <i className="icon fas icon-plus-circle icon-fw"></i>
+                    Add comment to all filesets
+                </a>
+                <div
+                    className={
+                        this.state.commentInputVisible
+                            ? 'input-group input-group-sm mb-1'
+                            : 'collapse'
+                    }>
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Your comment"
+                        value={this.state.newComment}
+                        onChange={(e) =>
+                            this.handleCommentInput(e.target.value)
+                        }
+                    />
+                    <div className="input-group-append">
+                        <div className="input-group-text">
+                            <i
+                                className="fas icon icon-save clickable"
+                                onClick={() => this.addComment()}></i>
+                        </div>
+                    </div>
+                </div>
+            </span>
+        );
 
         const modalBody = (
             <div>
@@ -357,13 +481,16 @@ class FileGroupQCModalComponent extends React.PureComponent {
                     <li key="ssfgm-seq">
                         <strong>Sequencer:</strong>{' '}
                         {currentFileSet.sequencing?.sequencer?.display_title}{' '}
-                        (Target coverage: <strong>{targeCoverage}x</strong>)
+                        (Target coverage: <strong>{targeCoverage}x</strong>,
+                        Calculated coverage:{' '}
+                        <strong>{this.state.estimatedTotalCoverage}x</strong>)
                     </li>
                     <li key="ssfgm-assay">
                         <strong>Assay:</strong> {assays}
                     </li>
                     <li key="ssfgm-filesets">
                         <strong>Filesets:</strong>
+                        {addCommentSection}
                         <ul className="ss-fileset-list list-unstyled font-weight-normal">
                             {filesetList}
                         </ul>

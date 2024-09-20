@@ -14,6 +14,7 @@ import {
     createWarningIcon,
     getQcResults,
     getQcResultsSummary,
+    getCommentsList
 } from './submissionStatusUtils';
 
 import {
@@ -268,14 +269,14 @@ class SubmissionStatusComponent extends React.PureComponent {
         }));
     };
 
-    removeComment = (fs, comment) => {
+    removeComment = (fsUuid, comment) => {
         this.setState((prevState) => ({
             loading: true,
         }));
         const filesets = JSON.parse(JSON.stringify(this.state.fileSets));
         let newCommentsForRelevantFileset = [];
         filesets.forEach((fileset) => {
-            if (fileset.uuid === fs.uuid) {
+            if (fileset.uuid === fsUuid) {
                 newCommentsForRelevantFileset = fileset.comments ?? [];
                 newCommentsForRelevantFileset =
                     newCommentsForRelevantFileset.filter(function (e) {
@@ -284,7 +285,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 fileset['comments'] = newCommentsForRelevantFileset;
             }
         });
-        this.patchComment(fs.uuid, filesets, newCommentsForRelevantFileset);
+        this.patchComment(fsUuid, filesets, newCommentsForRelevantFileset);
     };
 
     addComment = (fs) => {
@@ -377,31 +378,6 @@ class SubmissionStatusComponent extends React.PureComponent {
         this.patchFileset(fs_uuid, filesets, payload);
     };
 
-    getComments = (fs) => {
-        const fs_comments = fs.comments;
-        if (!fs_comments) {
-            return;
-        }
-        const comments = [];
-        fs_comments.forEach((c) => {
-            const trashSymbol = this.state.isUserAdmin ? (
-                <span
-                    className="far icon icon-fw icon-trash-alt text-muted pl-1 clickable"
-                    onClick={() => this.removeComment(fs, c)}></span>
-            ) : (
-                ''
-            );
-            comments.push(
-                <li className="ss-line-height-140">
-                    <strong>{c}</strong>
-                    {trashSymbol}
-                </li>
-            );
-        });
-
-        return <ul>{comments}</ul>;
-    };
-
     toggleFileGroupQc = (fs, reload=false) => {
         if (this.state.modal) {
             this.setState({
@@ -466,7 +442,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                     <ul>
                         {fs_details}
                         {this.getCommentInputField(fs)}
-                        {this.getComments(fs)}
+                        {getCommentsList(fs.uuid, fs.comments, this.state.isUserAdmin, this.removeComment)}
                     </ul>
                 </small>
             );
