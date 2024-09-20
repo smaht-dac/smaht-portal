@@ -905,7 +905,8 @@ const SelectedItemsDownloadStartButton = React.memo(
                     className="btn btn-primary mt-0 me-1 btn-block-xs-only"
                     data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
                     <i className="icon icon-fw icon-download fas me-1" />
-                    Download Manifest
+                    Download <b>{isAWSDownload ? 'AWS CLI ' : 'cURL'}</b>{' '}
+                    Manifest
                 </button>
             </form>
         );

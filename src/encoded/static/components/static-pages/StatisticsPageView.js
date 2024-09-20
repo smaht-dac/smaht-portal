@@ -143,7 +143,7 @@ export default class StatisticsPageView extends React.PureComponent {
         };
         return (
             <dynamicImports.GroupByController groupByOptions={groupByOptions} initialGroupBy="daily60">
-                <dynamicImports.UsageStatsViewController {..._.pick(this.props, 'session', 'windowWidth', 'href')}>
+                <dynamicImports.UsageStatsViewController {..._.pick(this.props, 'session', 'windowWidth', 'href', 'schemas')}>
                     <dynamicImports.StatsChartViewAggregator {...{ shouldReaggregate }} aggregationsToChartData={dynamicImports.usageAggsToChartData}>
                         <dynamicImports.UsageStatsView />
                     </dynamicImports.StatsChartViewAggregator>
