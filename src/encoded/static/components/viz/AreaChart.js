@@ -1263,7 +1263,6 @@ export function LoadingIcon({
     children = "Loading Chart Data",
     ...props
 }) {
-    const { children } = props;
     return (
         <div className="mt-5 mb-5 text-center">
             <i className="icon icon-fw icon-spin icon-circle-notch icon-2x fas" style={{ opacity : 0.5 }}/>
@@ -1276,7 +1275,6 @@ export function ErrorIcon({
     children = "Loading failed. Please try again later.",
     ...props
 }) {
-    const { children } = props;
     return (
         <div className="mt-5 mb-5 text-center">
             <i className="icon icon-fw icon-times icon-2x fas"/>
