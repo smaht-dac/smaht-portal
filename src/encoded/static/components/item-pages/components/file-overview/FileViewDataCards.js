@@ -40,7 +40,7 @@ const DataCard = ({ header = '', data = [] }) => {
  * function for extracting the property's value (if available) from [context].
  * Used to populate the data cards in the FileViewDataCards component.
  */
-const file_properties = [
+const default_file_properties = [
     {
         title: 'Annotated Name',
         getProp: (context = {}) =>
@@ -74,7 +74,7 @@ const file_properties = [
         },
     },
 ];
-const data_information = [
+const default_data_information = [
     {
         title: 'Data Category',
         getProp: (context = {}) =>
@@ -105,18 +105,8 @@ const data_information = [
         getProp: (context = {}) =>
             context?.data_generation_summary?.sequencing_platforms?.join(', '),
     },
-    {
-        title: 'Dataset Target Coverage',
-        getProp: (context = {}) => {
-            const cov = context?.data_generation_summary?.target_group_coverage;
-            if (cov && cov.length > 0) {
-                return cov[0] + 'X';
-            }
-            return null;
-        },
-    },
 ];
-const sample_information = [
+const default_sample_information = [
     {
         title: 'Description',
         getProp: (context = {}) =>
@@ -147,6 +137,31 @@ const sample_information = [
  * @param {object} context the context of the item being viewed
  */
 export const FileViewDataCards = ({ context = {} }) => {
+    let file_properties = default_file_properties;
+    let data_information = default_data_information;
+    let sample_information = default_sample_information;
+
+    // For BAM files with WGS assays, add target coverage to data information
+    if (
+        context.file_summary.file_format === 'bam' &&
+        context.assays.some((a) => a.display_title.includes('WGS'))
+    ) {
+        data_information = [
+            ...default_data_information,
+            {
+                title: 'Dataset Target Coverage',
+                getProp: (context = {}) => {
+                    const cov =
+                        context?.data_generation_summary?.target_group_coverage;
+                    if (cov && cov.length > 0) {
+                        return cov[0] + 'X';
+                    }
+                    return null;
+                },
+            },
+        ];
+    }
+
     return (
         <div className="data-cards-container">
             <DataCard
