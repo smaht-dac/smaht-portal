@@ -482,7 +482,7 @@ div.navbar-fixed-top {
                                 max-width: 200px; //120px;
                             }
     
-                            @include media-breakpoint-between(lg, xxl) {
+                            @include media-breakpoint-between(lg, xl) {
                                 max-width: 300px; // 150px;
                                 margin-left: 15px;
                             }
