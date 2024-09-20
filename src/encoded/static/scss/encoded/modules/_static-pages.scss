@@ -218,17 +218,10 @@
 			white-space: -pre-wrap; /* Opera 4-6 */    
 			white-space: -o-pre-wrap; /* Opera 7 */    
 			word-wrap: break-word; /* Internet Explorer 5.5+ */
-			text-decoration: none;
-
-			&:hover {
-				text-decoration: underline;
-			}
 		}	
 	}
 
-	p>a,
-	h4>a,
-	ul>li>a {
+	a {
 		text-decoration: none;
 
 		&:hover {
