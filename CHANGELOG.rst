@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.98.0
+======
+`PR256: SN Write automated example <https://github.com/smaht-dac/smaht-portal/pull/256>`_
+* In `commands/write_submission_spreadsheets.py`:
+  * Add argument `--example` that will pull metadata from a template uuid to fill out an example submission spreadsheet for the current schema
+
+
 0.97.0
 ======
 `PR238: SN Add valid_molecules required <https://github.com/smaht-dac/smaht-portal/pull/238>`_
