@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.98.0
+======
+`PR23: SN Donor Calc Props <https://github.com/smaht-dac/smaht-portal/pull/223>`_
+* Add rev_link calc props for `Donor`: `death_circumstances`, `demographic`, `family_history`, `medical_history`, `tissue_collection`
+* Add rev_link calc props for `MedicalHistory`: `diagnosis`, `exposure`, `medical_treatment`
+* Adds tests for all calc_props for these two items
+
+
 0.97.0
 ======
 `PR238: SN Add valid_molecules required <https://github.com/smaht-dac/smaht-portal/pull/238>`_
