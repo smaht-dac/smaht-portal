@@ -47,5 +47,27 @@
             "TEST_CELL-CULTURE-MIXTURE_HELA-HEK293"
         ],
         "preservation_type": "Frozen"
+    },
+    {
+        "uuid": "a26d1fa1-e63f-4f0d-81a9-905b5d7834d5",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_CELL-CULTURE-SAMPLE_LIVER",
+        "sample_sources": [
+            "TEST_CELL-CULTURE_LIVER"
+        ],
+        "preservation_type": "Fresh"
+    },
+    {
+        "uuid": "7d9f406c-cc35-4a15-b966-8fa179a8bd87",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_CELL-CULTURE-SAMPLE_IPSC_FIBROBLAST",
+        "sample_sources": [
+            "TEST_CELL-CULTURE_IPSC_FIBROBLAST"
+        ],
+        "preservation_type": "Fresh"
     }
 ]

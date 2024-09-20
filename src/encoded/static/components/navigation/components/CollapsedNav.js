@@ -127,8 +127,28 @@ function DataNavItem(props) {
                     linkToTopLevelDirPage={false}
                 />
                 <BigDropdownPageTreeMenu
-                    childrenToHide={['data/benchmarking']}
+                    childrenToHide={['data/benchmarking', 'data/analysis']}
                 />
+            </BigDropdownNavItem>
+        </BigDropdownPageLoader>
+    );
+}
+
+function ResourcesNavItem(props) {
+    const { session, ...navItemProps } = props;
+    // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
+    return (
+        <BigDropdownPageLoader treeURL="/resources" session={session}>
+            <BigDropdownNavItem
+                {...navItemProps}
+                id="resources-menu-item"
+                navItemHref="/resources"
+                navItemContent="Resources">
+                <BigDropdownPageTreeMenuIntroduction
+                    titleIcon="info-circle fas"
+                    linkToTopLevelDirPage={false}
+                />
+                <BigDropdownPageTreeMenu disableLinksOnLevel1Titles />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
     );
@@ -160,6 +180,7 @@ function LeftNavAuthenticated(props) {
             <DataNavItem {...props} />
             <DocsNavItem {...props} />
             <AboutNavItem {...props} />
+            <ResourcesNavItem {...props} />
         </div>
     );
 }

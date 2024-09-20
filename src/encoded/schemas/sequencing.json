@@ -1,5 +1,6 @@
 {
     "title": "Sequencing",
+    "description": "Sequencing items contain information on the sequencing of libraries.",
     "$id": "/profiles/sequencing.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -24,6 +25,11 @@
         {
             "required": [
                 "target_read_count"
+            ]
+        },
+        {
+            "required": [
+                "on_target_rate"
             ]
         }
     ],
@@ -73,7 +79,13 @@
         "flow_cell": {
             "title": "Flow Cell",
             "description": "Flow cell used for sequencing",
-            "type": "string"
+            "type": "string",
+            "suggested_enum": [
+                "R10.4.1",
+                "R9.4.1",
+                "25B",
+                "10B"
+            ]
         },
         "movie_length": {
             "title": "Movie Length",
@@ -91,6 +103,12 @@
                 "Single-end"
             ]
         },
+        "on_target_rate": {
+            "title": "On Target Rate",
+            "description": "Expected rate of enrichment signals from the target of interest on the ends of reads. Relevant for target capture sequencing",
+            "type": "number",
+            "minimum": 0
+        },
         "target_coverage": {
             "title": "Target Coverage",
             "description": "Expected coverage for the sequencing",
@@ -107,7 +125,9 @@
             "title": "Target Read Length",
             "description": "Expected read length for the sequencing (bp)",
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "allow_commas": true,
+            "allow_multiplier_suffix": true
         },
         "target_monomer_length": {
             "title": "Target Monomer Length",

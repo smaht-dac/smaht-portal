@@ -1,5 +1,6 @@
 {
     "title": "Analyte",
+    "description": "Analyte items contain information on molecules extracted from samples for subsequent analysis.",
     "$id": "/profiles/analyte.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -367,6 +368,45 @@
             ]
         }
     },
+    "anyOf": [
+        {
+            "properties": {
+                "molecule": {
+                    "not": {
+                        "contains": {
+                            "const": "DNA"
+                        }
+                    }
+                }
+            },
+            "allOf": [
+                {"not": { "required": ["genomic_quality_number"]}},
+                {"not": { "required": ["genomic_quality_number_instrument"]}},
+                {"not": { "required": ["genomic_quality_size_threshold"]}},
+                {"not": { "required": ["dna_integrity_number"]}},
+                {"not": { "required": ["dna_integrity_number_instrument"]}},
+                {"not": { "required": ["dna_quality_number"]}},
+                {"not": { "required": ["dna_quality_number_instrument"]}},
+                {"not": { "required": ["dna_quality_size_threshold"]}}
+            ]
+        },
+        {
+            "properties": {
+                "molecule": {
+                    "not": {
+                        "contains": {
+                            "const": "RNA"
+                        }
+                    }
+                }
+            },
+            "allOf": [
+                {"not": { "required": ["rna_integrity_number"]}},
+                {"not": { "required": ["rna_integrity_number_instrument"]}},
+                {"not": { "required": ["ribosomal_rna_ratio"]}}
+            ]
+        }
+    ],
     "facets": {
         "submission_centers.display_title": {
             "title": "Submitted By"
