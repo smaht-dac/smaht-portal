@@ -5,7 +5,10 @@ export const VcfComparatorTable = ({ context }) => {
     return (
         <div className="vcf-comparator-table-container">
             <div className="content">
-                <h3 className="header">Comparator</h3>
+                <div className="comparator-information mb-2">
+                    <h3 className="header">Comparator</h3>
+                    <span>{context?.comparator?.join(', ') ?? '-'}</span>
+                </div>
                 <h3 className="header">Software</h3>
                 <table className="vcf-comparator-table-container table table-responsive">
                     <thead>
