@@ -42,7 +42,7 @@ export function gridContainerWidth(windowWidth = null) {
     // Subtract 20 for padding/margins.
     switch (responsiveGridState(windowWidth)) {
         case 'xxl': 
-            return 1320;
+            return 1300;
         case 'xl':
             return 1120;
         case 'lg':
