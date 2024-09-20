@@ -1362,6 +1362,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
         border-bottom: 2px solid #f4f4f4;
         background-color: #F1F9FF;
     }
+
     &#usage {
         @include media-breakpoint-down(lg) {
             h3 {
@@ -1377,7 +1378,25 @@ $workflow-node-color-type-global-context: #ffb3b3;
             .dropdown .btn {
                 margin-top: 10px;
             }
-        }       
+        }
+
+        .search-view-controls-and-results {
+            .above-results-table-row {
+                .right-buttons button[data-tip="Sort multiple columns"] {
+                    display: none;
+                }
+            }
+            .search-headers-column-block {
+                &[data-first-visible-column=true] {
+                    .column-title {
+                        color: #ffffff !important;
+                    }
+                }
+            }
+            .search-result-column-block[data-field="display_title"] {
+                padding-left: 0px !important;
+            }
+        }
     }
 
 }

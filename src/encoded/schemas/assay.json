@@ -6,7 +6,8 @@
     "required": [
         "code",
         "identifier",
-        "title"
+        "title",
+        "valid_molecules"
     ],
     "anyOf": [
         {

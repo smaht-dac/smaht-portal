@@ -547,19 +547,33 @@ export class ColorScaleProvider extends React.PureComponent {
         });
     }
 
-    render(){
+    render() {
         const { children, className } = this.props;
-        const newChildren = React.Children.map(children, (child, childIndex) => {
+
+        // Helper function to handle children recursively
+        const processChild = (child) => {
             if (!child) return null;
             if (typeof child.type === 'string') {
-                return child; // Not component instance
+                return child; // Not a component instance
             }
+
+            if (child.type === React.Fragment) {
+                // If the child is a Fragment, recursively process its children
+                return (
+                    <React.Fragment>
+                        {React.Children.map(child.props.children, processChild)}
+                    </React.Fragment>
+                );
+            }
+            // For other components, clone and pass additional props
             return React.cloneElement(
                 child,
-                _.extend({}, _.omit(this.props, 'children'), { 'updateColorStore' : this.updateColorStore }, this.state)
+                _.extend({}, _.omit(this.props, 'children'), { 'updateColorStore': this.updateColorStore }, this.state)
             );
-        });
-        return <div className={className || null}>{ newChildren }</div>;
+        };
+
+        const newChildren = React.Children.map(children, processChild);
+        return <div className={className || null}>{newChildren}</div>;
     }
 
 }
