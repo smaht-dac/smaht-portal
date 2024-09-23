@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import {
     OverlayTrigger,
     Popover,
@@ -36,7 +36,7 @@ const PopoverContents = ({ data }) => {
 };
 
 // Component serving as a trigger for the Bootstrap Popover component
-const OverlayTriggerContent = ({ ref, value, data, ...triggerHandler }) => {
+const OverlayTriggerContent = forwardRef(({ value, data, ...triggerHandler }, ref) => {
     return (
         <div
             className="stackrow-item-container clickable"
@@ -47,7 +47,7 @@ const OverlayTriggerContent = ({ ref, value, data, ...triggerHandler }) => {
             </span>
         </div>
     );
-};
+});
 
 /**
  * Renders an item to be shown on the table.
