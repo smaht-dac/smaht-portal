@@ -1601,7 +1601,7 @@ const AnalyticsDataTable = React.memo((props) => {
                     const overallSum = roundValue(result.overall_sum || 0, valueLabel);
 
                     return isTransposed ? (
-                        <span className="value text-truncate text-left">
+                        <span className="value text-truncate text-start">
                             {result.display_title} ({overallSum})
                         </span>
                     ) : (
@@ -1639,12 +1639,12 @@ const AnalyticsDataTable = React.memo((props) => {
                                         e.preventDefault();
                                     }}
                                     data-tip="Show details"
-                                    className="value text-right font-weight-bold">
+                                    className="value text-end font-weight-bold">
                                     {roundValue(result[dataKey], valueLabel)}
                                 </a>
                             );
                         } else {
-                            return <span className="value text-right">0</span>
+                            return <span className="value text-end">0</span>
                         }
                     }
                 };
@@ -1695,7 +1695,7 @@ const AnalyticsDataTable = React.memo((props) => {
         maxResultsBodyHeight: 500,
         tableColumnClassName: "col-12",
         facetColumnClassName: "d-none",
-        defaultColAlignment: "text-right",
+        defaultColAlignment: "text-end",
         stickyFirstColumn: true,
         isOwnPage: false,
         termTransformFxn: Term.toName
