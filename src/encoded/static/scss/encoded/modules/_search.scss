@@ -565,6 +565,14 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 			}
 			>.modal-footer {
 				background-color: #F8F8F8;
+
+				form {
+					button[type="submit"] {
+						b {
+							font-weight: 600;
+						}
+					}
+				}
 			}
 		}
 	}
