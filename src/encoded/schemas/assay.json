@@ -72,15 +72,6 @@
         "code": {
             "pattern": "^[0-9]{3}$"
         },
-        "sampling_type": {
-            "title": "Sampling Type",
-            "description": "Type of sampling of assay",
-            "type": "string",
-            "enum": [
-                "Single-Cell",
-                "Bulk"
-            ]
-        },
         "amplification_type": {
             "title": "Amplification Type",
             "description": "Type of amplification used in assay",
@@ -92,6 +83,20 @@
                     "MALBAC",
                     "PCR",
                     "PCR-Free"
+                ]
+            }
+        },
+        "sampling_type": {
+            "title": "Sampling Type",
+            "description": "Type of sampling of assay",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Bulk",
+                    "Single-Cell",
+                    "Single-Molecule",
+                    "Single-Nucleus"
                 ]
             }
         },

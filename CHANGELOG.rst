@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.98.0
+======
+`PR260: SN Add assay and vcf properties <https://github.com/smaht-dac/smaht-portal/pull/260>`_
+* Add properties `sampling_type` and `amplification_type` to Assay
+* Add property `mode` to VariantCalls
+* Fix `age` maximum to 89 for Donor
+* Adjust enum for `insert_selection_method` for LibraryPreparation to be "rRNA Depletion" instead of "RRNA Depletion" and add "PolyA Enrichment" in addition to/to replace "PolyT Enrichment"
+
+
 0.97.0
 ======
 `PR238: SN Add valid_molecules required <https://github.com/smaht-dac/smaht-portal/pull/238>`_
