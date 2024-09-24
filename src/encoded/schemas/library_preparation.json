@@ -119,8 +119,9 @@
                     "Affinity Enrichment",
                     "Hybrid Selection",
                     "PCR",
+                    "PolyA Enrichment",
                     "PolyT Enrichment",
-                    "RRNA Depletion",
+                    "rRNA Depletion",
                     "Not applicable"
                 ]
             }
