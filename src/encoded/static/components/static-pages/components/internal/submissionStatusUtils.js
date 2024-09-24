@@ -76,6 +76,17 @@ export const fallbackCallback = (errResp, xhr) => {
     console.error(errResp);
 };
 
+export const getTargetCoverage = (sequencing) => {
+    let targeCoverage = <span>Target coverage: NAx</span>;
+    if(sequencing?.target_coverage){
+        targeCoverage = <span>Target coverage: <strong>{sequencing?.target_coverage}x</strong></span>;
+    }else if (sequencing?.target_read_count){
+        const readCount = d3.format(',')(sequencing?.target_read_count);
+        targeCoverage = <span>Target read count: <strong>{readCount}</strong></span>;
+    }
+    return targeCoverage;
+}
+
 export const getQcBagdeType = (flag) => {
     let badgeType = 'secondary';
     if (flag === 'Pass') {

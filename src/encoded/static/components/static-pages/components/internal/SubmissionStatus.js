@@ -14,7 +14,8 @@ import {
     createWarningIcon,
     getQcResults,
     getQcResultsSummary,
-    getCommentsList
+    getCommentsList,
+    getTargetCoverage
 } from './submissionStatusUtils';
 
 import {
@@ -26,6 +27,8 @@ import {
 import { SubmissionStatusFilter } from './SubmissionStatusFilter';
 
 import { FileGroupQCModal } from './SubmissionStatusFileGroupQcModal';
+
+import * as d3 from 'd3';
 
 class SubmissionStatusComponent extends React.PureComponent {
     constructor(props) {
@@ -401,7 +404,7 @@ class SubmissionStatusComponent extends React.PureComponent {
     getSubmissionTableBody = () => {
         const tbody = this.state.fileSets.map((fs) => {
             const sequencer = fs.sequencing?.sequencer;
-            const targeCoverage = fs.sequencing?.target_coverage || 'NA';
+            const targetCoverage = getTargetCoverage(fs.sequencing);
             const status_badge_type =
                 fs.status == 'released' ? 'success' : 'warning';
             const status = createBadge(status_badge_type, fs.status);
@@ -409,8 +412,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 <li className="ss-line-height-140">Status: {status}</li>,
                 <li className="ss-line-height-140">
                     Sequencer:{' '}
-                    {getLink(sequencer?.uuid, sequencer?.display_title)} (Target
-                    coverage: {targeCoverage}x)
+                    {getLink(sequencer?.uuid, sequencer?.display_title)} ({targetCoverage})
                 </li>,
             ];
 

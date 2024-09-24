@@ -15,6 +15,7 @@ import {
     getQcBagdeType,
     shortenStringKeepBothEnds,
     getCommentsList,
+    getTargetCoverage,
 } from './submissionStatusUtils';
 
 class FileGroupQCModalComponent extends React.PureComponent {
@@ -99,12 +100,13 @@ class FileGroupQCModalComponent extends React.PureComponent {
         const coverage_metric = 'bamstats:estimate_average_coverage';
         const filesSeen = [];
         let estimated_coverage = 0;
-        if(processedFiles.length === 0){
-            return "NA";
+        if (processedFiles.length === 0) {
+            return 'NA';
         }
         for (const pf of processedFiles) {
             const qcValues = pf['qc_values_dict'];
             if (coverage_metric in qcValues) {
+                // If there are multiple QM items for the same file we don't want to count the coverage more than once
                 if (filesSeen.includes(pf.accession)) {
                     continue;
                 }
@@ -113,7 +115,9 @@ class FileGroupQCModalComponent extends React.PureComponent {
                 filesSeen.push(pf.accession);
             }
         }
-        return formatQcValue(estimated_coverage);
+        return estimated_coverage > 0.0
+            ? formatQcValue(estimated_coverage)
+            : 'NA';
     };
 
     toggleTag = (fileSetUuid, tag) => {
@@ -404,8 +408,17 @@ class FileGroupQCModalComponent extends React.PureComponent {
             return this.getModal(modalBody);
         }
 
-        const targeCoverage =
-            currentFileSet.sequencing?.target_coverage || 'NA';
+        const targetCoverage = getTargetCoverage(currentFileSet.sequencing);
+
+        const estimatedCoverage =
+            this.state.estimatedTotalCoverage === 'NA' ? (
+                ''
+            ) : (
+                <span>
+                    , Calculated coverage:{' '}
+                    <strong>{this.state.estimatedTotalCoverage}x</strong>
+                </span>
+            );
 
         const assays = currentFileSet.libraries?.map((lib) => {
             const assay = lib.assay?.display_title;
@@ -480,10 +493,9 @@ class FileGroupQCModalComponent extends React.PureComponent {
                     </li>
                     <li key="ssfgm-seq">
                         <strong>Sequencer:</strong>{' '}
-                        {currentFileSet.sequencing?.sequencer?.display_title}{' '}
-                        (Target coverage: <strong>{targeCoverage}x</strong>,
-                        Calculated coverage:{' '}
-                        <strong>{this.state.estimatedTotalCoverage}x</strong>)
+                        {currentFileSet.sequencing?.sequencer?.display_title} (
+                        {targetCoverage}
+                        {estimatedCoverage})
                     </li>
                     <li key="ssfgm-assay">
                         <strong>Assay:</strong> {assays}
