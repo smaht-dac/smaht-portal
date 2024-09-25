@@ -25,6 +25,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
         this.state = {
             initialLoading: true,
             loading: false,
+            warnings: [],
             currentFileSet: this.props.fileSet,
             fileSets: {},
             visibleFileSets: [this.props.fileSet.uuid],
@@ -77,6 +78,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
                     submittedFiles: submittedFiles,
                     processedFiles: processedFiles,
                     fileSets: allFileSets,
+                    warnings: resp.warnings,
                     estimatedTotalCoverage:
                         this.getEstimatedCoverage(processedFiles),
                 });
@@ -484,8 +486,18 @@ class FileGroupQCModalComponent extends React.PureComponent {
             </span>
         );
 
+        const warnings = this.state.warnings.map((warning) => {
+            return (
+                <div className="alert alert-warning">
+                    <i className="icon icon-exclamation-circle fas mr-1" />
+                    {warning}
+                </div>
+            );
+        });
+
         const modalBody = (
             <div>
+                {warnings}
                 <ul>
                     <li key="ssfgm-fg">
                         <strong>File group:</strong>{' '}

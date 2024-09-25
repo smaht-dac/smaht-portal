@@ -45,13 +45,18 @@ def get_file_group_qc(context, request):
         post_params = request.json_body
         file_set_uuid = post_params.get("fileSetUuid")
         file_group = post_params.get("fileGroup")
+        warnings = []
 
         files_with_qcs = []
         filesets = {}
 
+        MAX_FILESETS = 50
+        MAX_QUALITY_METRICS_ITEMS = 100
+
         # Search for fileset with same file group
         search_params = {}
         search_params["type"] = FILESET
+        search_params["limit"] = MAX_FILESETS
 
         if file_group:
             # Search for fileset with same file group
@@ -68,6 +73,14 @@ def get_file_group_qc(context, request):
             request, f"/search?{urlencode(search_params, True)}", inherit_user=True
         )
         search_res = search(context, subreq)["@graph"]
+
+        if len(search_res) == MAX_FILESETS:
+            warnings.append(
+                f"Only {MAX_FILESETS} file sets have been loaded for this file group"
+            )
+
+        total_submitted_files_qms = 0
+
         for fs in search_res:
             files = fs.get("files", [])
             meta_workflow_runs = fs.get("meta_workflow_runs", [])
@@ -83,21 +96,62 @@ def get_file_group_qc(context, request):
                 "submitted_id": fs.get("submitted_id"),
             }
 
+            # We need to control the number of QualityMetrics objects that we need to retrieve
+            # for submitted files. We don't cap the QualityMetrics objects for output files. These
+            # are controlled by the number of filesets we load.
+            qms_to_get = []
+            for f in output_file_qc_infos:
+                for qm in f.get("quality_metrics",[]):
+                    print(qm[UUID])
+                    qms_to_get.append(qm[UUID])
+
+            for f in submitted_file_qc_infos:
+                if total_submitted_files_qms >= MAX_QUALITY_METRICS_ITEMS:
+                    break
+                for qm in f.get("quality_metrics",[]):
+                    qms_to_get.append(qm[UUID])
+                total_submitted_files_qms += 1
+
+            # Get all QualityMetrics items at once via search (for the fileset)
+            qm_search_params=[("type", "QualityMetric")]
+            qm_search_params=[("limit", 2*MAX_QUALITY_METRICS_ITEMS)]
+            for uuid in qms_to_get:
+                qm_search_params.append(("uuid", uuid))
+            subreq = make_search_subreq(
+                request, f"/search?{urlencode(qm_search_params, True)}", inherit_user=True
+            )
+            qm_search_res = search(context, subreq)["@graph"]
+
+            # Collect all QualityMetrics items that were retrieved here
+            quality_metrics_items = {}
+            for qm in qm_search_res:
+                quality_metrics_items[qm[UUID]] = qm
+        
             for f in submitted_file_qc_infos + output_file_qc_infos:
-                for qm in f["quality_metrics"]:
-                    qm_item = get_item_or_none(request, qm[UUID], "quality-metrics")
-                    files_with_qcs.append({
-                        "accession": f["accession"],
-                        "display_title": f["display_title"],
-                        "is_output_file": f["is_output_file"],
-                        "fileset_submitted_id": fs.get("submitted_id"),
-                        "fileset_uuid": fs.get(UUID),
-                        "quality_metric": qm_item,
-                    })
+                for qm in f.get("quality_metrics",[]):
+                    if qm[UUID] not in quality_metrics_items: 
+                        # This will only happen if there were too many submitted files
+                        continue
+                    files_with_qcs.append(
+                        {
+                            "accession": f["accession"],
+                            "display_title": f["display_title"],
+                            "is_output_file": f["is_output_file"],
+                            "fileset_submitted_id": fs.get("submitted_id"),
+                            "fileset_uuid": fs.get(UUID),
+                            "quality_metric": quality_metrics_items[qm[UUID]],
+                        }
+                    )
+
+        if total_submitted_files_qms >= MAX_QUALITY_METRICS_ITEMS:
+            warnings.append(
+                f"Only {MAX_QUALITY_METRICS_ITEMS} submitted files have been loaded."
+            )
 
         return {
             "files_with_qcs": files_with_qcs,
-            "filesets": filesets
+            "filesets": filesets,
+            "warnings": warnings,
         }
 
     except Exception as e:
@@ -341,7 +395,7 @@ def get_qc_result(file, is_output_file):
         UUID: file[UUID],
         ACCESSION: file[ACCESSION],
         QUALITY_METRICS: [],
-        "is_output_file": is_output_file
+        "is_output_file": is_output_file,
     }
     if QUALITY_METRICS in file:
         qms = file[QUALITY_METRICS]
