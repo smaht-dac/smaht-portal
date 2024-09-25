@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.97.1
+======
+`PR257: SN Update DSA calc_prop <https://github.com/smaht-dac/smaht-portal/pull/257>`_
+* Change DSA calc prop for non-fasta files `supplementary_files`
+
+
 0.97.0
 ======
 `PR238: SN Add valid_molecules required <https://github.com/smaht-dac/smaht-portal/pull/238>`_
