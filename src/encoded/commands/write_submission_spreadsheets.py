@@ -58,8 +58,6 @@ a new token.
 ITEM_SPREADSHEET_SUFFIX = "_submission.xlsx"
 WORKBOOK_FILENAME = "submission_workbook.xlsx"
 
-
-OVERVIEW_GUIDELINES_SHEET_ID = "1hDz22YGyLsgnoC0QeZwmf6zk0guZ9930yEFi1huhV20"
 EXAMPLE_FILE_UUIDS=["4e142999-5d48-4dcd-b7d6-558e5960e69b",
                     "d4020a63-338c-4103-8461-417d09df5cbd",
                     "f382f84c-f590-49f2-9f62-e852e2c30647"
@@ -81,10 +79,10 @@ POPULATE_ORDER = [
     "Treatment",
     "CellSample",
     "CellCultureSample",
-    "TissueSample",
     "CellCultureMixture",
     "CellCulture",
     "CellLine",
+    "TissueSample",
     "Tissue",
     "Donor"
 ]
@@ -110,11 +108,11 @@ GCC_SUBMISSION_ITEMS = [
     "Donor",
     "Tissue",
     "TissueSample",
-    "CellSample",
     "CellLine",
     "CellCulture",
     "CellCultureMixture",
     "CellCultureSample",
+    "CellSample",
     "Analyte",
     "AnalytePreparation",
     "PreparationKit",
@@ -136,22 +134,20 @@ DSA_SUBMISSION_ITEMS = [
     "Software"
 ]
 
+MULTI_TYPE_ITEMS = [
+    'CellCultureMixture'
+]
+
 
 @dataclass(frozen=True)
 class SheetsClient:
     client: googleapiclient.discovery.Resource
     sheet_id: str
-    cover_sheet_id: str
 
     def get_worksheets(self) -> List[Dict[str, Any]]:
         """Get the worksheets from Google Sheets."""
         sheet = self.client.get(spreadsheetId=self.sheet_id).execute()
         return sheet["sheets"]
-    
-    def get_coversheet(self) -> List[Dict[str, Any]]:
-        """Get the Overview/Guidelines sheet from Google Sheets."""
-        sheet = self.client.get(spreadsheetId=self.cover_sheet_id).execute()
-        sheet["sheets"] 
 
     def submit_requests(self, requests: List[Dict[str, Any]]) -> None:
         """Submit requests to Google Sheets."""
@@ -257,19 +253,6 @@ def get_delete_sheet_request(sheet_id: int) -> Dict[str, Any]:
     return {"deleteSheet": {"sheetId": sheet_id}}
 
 
-def add_overview_sheet(
-    sheets_client: SheetsClient,
-    spreadsheets: List[Spreadsheet]
-) -> None:
-    """Add Overview/Guidelines sheet to spreadsheet."""
-    requests = []
-    for sheet in sheets_client.get_coversheet():
-        index = get_worksheet_id(sheet)
-        requests.append(get_copy_sheet_request(sheets_client.cover_sheet_id,index,sheets_client.sheet_id))
-    if requests:
-        sheets_client.submit_requests(requests)
-
-
 def update_or_add_spreadsheets(
     sheets_client: SheetsClient, spreadsheets: List[Spreadsheet]
 ) -> None:
@@ -299,19 +282,6 @@ def get_update_sheet_title_request(
             },
             "fields": "title",
         }
-    }
-
-
-def get_copy_sheet_request(cover_sheet_id: str,index: int, sheet_id: str) -> Dict[str, Any]:
-    """Get request to copy a sheet."""
-    return {
-        "copyTo": {
-            "properties": {
-                "spreadsheetId": cover_sheet_id,
-                "sheetId": index
-            }
-        },
-        "destinationSpreadsheetId": sheet_id
     }
 
 
@@ -382,7 +352,7 @@ def get_cell_value(property_: Property) -> Dict[str, Any]:
 
 def get_example_cell_value(value: Union[str, List]) -> Dict[str, Any]:
     """Get the example cell value."""
-    if is_array(value):
+    if is_list(value):
         value=get_example_list(value)
     return {
         "userEnteredValue": {"stringValue": str(value)},
@@ -398,6 +368,7 @@ def get_empty_cell():
         "userEnteredValue": {},
         "userEnteredFormat": {}
     }
+
 
 def get_example_values(spreadsheet: Spreadsheet) -> List[Dict[str, Any]]:
     """Get example values for the Google spreadsheet"""
@@ -475,10 +446,10 @@ def write_all_spreadsheets(
     submission_schemas = get_all_submission_schemas(request_handler)
     log.info(f"Writing submission spreadsheets to: {output}")
     if workbook:
-        write_workbook(output, submission_schemas, separate_comments=separate_comments)
+        write_workbook(output, submission_schemas, request_handler, separate_comments=separate_comments)
     else:
         write_spreadsheets(
-            output, submission_schemas, separate_comments=separate_comments
+            output, submission_schemas, request_handler, separate_comments=separate_comments
         )
 
 
@@ -504,19 +475,21 @@ def write_item_spreadsheets(
     if not submission_schemas:
         log.error("No submission schemas found for given items. Exiting...")
         return
-    log.info(
-        f"Writing submission spreadsheets to {output} for items:"
-        f" {submission_schemas.keys()}"
-    )
-    if example and workbook:
-        write_example_workbook(output,submission_schemas,tpc=tpc,gcc=gcc,request_handler=request_handler)
-    elif example:
-        write_example_spreadsheets(output,submission_schemas,request_handler=request_handler)
-    elif workbook:
-        write_workbook(output, submission_schemas,separate_comments=separate_comments,tpc=tpc,gcc=gcc)
+    if example:
+        log.info(
+            f"Writing example submission spreadsheets to {output} for items:"
+            f" {submission_schemas.keys()}"
+        )
+    else:
+        log.info(
+            f"Writing submission spreadsheets to {output} for items:"
+            f" {submission_schemas.keys()}"
+        )
+    if workbook:
+        write_workbook(output, submission_schemas, request_handler, separate_comments=separate_comments, tpc=tpc, gcc=gcc, example=example)
     else:
         write_spreadsheets(
-            output, submission_schemas,separate_comments=separate_comments
+            output, submission_schemas, request_handler, separate_comments=separate_comments, example=example
         )
 
 
@@ -548,40 +521,24 @@ def get_submission_schema_endpoint(item: str) -> Dict[str, Any]:
 def write_workbook(
     output: Path,
     submission_schemas: Dict[str, Any],
+    request_handler: RequestHandler,
     tpc: bool = False,
     gcc: bool = False,
-    separate_comments: bool = False
+    separate_comments: bool = False,
+    example: bool = False
 ) -> None:
     """Write a single workbook containing all submission spreadsheets."""
     workbook = openpyxl.Workbook()
     ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,tpc=tpc,gcc=gcc)
     write_workbook_sheets(
-        workbook, ordered_submission_schemas, separate_comments=separate_comments
+        workbook, ordered_submission_schemas, request_handler, separate_comments=separate_comments, example=example
     )
     file_path = Path(output, WORKBOOK_FILENAME)
     save_workbook(workbook, file_path)
-    log.info(f"Workbook written to: {file_path}")
-
-
-def write_example_workbook(
-    output: Path,
-    submission_schemas: Dict[str, Any],
-    request_handler: RequestHandler,
-    tpc: bool = False,
-    gcc: bool = False,
-    separate_comments: bool = False
-) -> None:
-    """Write a single workbook containing all submission spreadsheets.
-    
-    Currently writes out sheets in reverse order."""
-    workbook = openpyxl.Workbook()
-    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,tpc=tpc,gcc=gcc)
-    write_example_workbook_sheets(
-        workbook, ordered_submission_schemas,request_handler=request_handler, separate_comments=separate_comments
-    )
-    file_path = Path(output, WORKBOOK_FILENAME)
-    save_workbook(workbook, file_path)
-    log.info(f"Example workbook written to: {file_path}")
+    if example:
+        log.info(f"Example workbook written to: {file_path}")
+    else:
+        log.info(f"Workbook written to: {file_path}")
 
 
 def get_ordered_submission_schemas(
@@ -606,23 +563,6 @@ def get_ordered_submission_schemas(
     return result
 
 
-def write_workbook_sheets(
-    workbook: openpyxl.Workbook,
-    submission_schemas: Dict[str, Dict[str, Any]],
-    separate_comments: bool = False,
-) -> None:
-    """Write workbook sheets for given schemas."""
-    for index, (item, submission_schema) in enumerate(submission_schemas.items()):
-        spreadsheet = get_spreadsheet(item, submission_schema)
-        if index == 0:
-            worksheet = workbook.active
-            set_sheet_name(worksheet, spreadsheet)
-            write_properties(worksheet, spreadsheet.properties, separate_comments)
-        else:
-            worksheet = workbook.create_sheet(title=spreadsheet.item)
-            write_properties(worksheet, spreadsheet.properties, separate_comments)
-
-
 @dataclass
 class ExampleFields:
     """Data struct for keeping track of linked items in example spreadsheets.
@@ -643,59 +583,65 @@ def get_example_fields(seed_files: List[str],items = List[str]) -> ExampleFields
     )
 
 
-def write_spreadsheets(
-    output: Path,
-    submission_schemas: Dict[str, Any],
-    separate_comments: bool = False
+def write_workbook_sheets(
+    workbook: openpyxl.Workbook,
+    submission_schemas: Dict[str, Dict[str, Any]],
+    request_handler: RequestHandler,
+    separate_comments: bool = False,
+    example: bool = False
 ) -> None:
-    """Write submission spreadsheets."""
-    for item, submission_schema in submission_schemas.items():
-        spreadsheet = get_spreadsheet(item, submission_schema)
-        write_spreadsheet(output, spreadsheet, separate_comments)
+    """Write workbook sheets for given schemas."""
+    if example:
+        spreadsheets = []
+        example_fields = get_example_fields(EXAMPLE_FILE_UUIDS,GCC_SUBMISSION_ITEMS)
+        submission_schemas = get_ordered_submission_schemas(submission_schemas,order=POPULATE_ORDER)
+        for index, (item, submission_schema) in enumerate(submission_schemas.items()):
+            unlinked_spreadsheet = get_example_spreadsheet(
+                item, request_handler, example_fields, submission_schema
+            )
+            spreadsheet, example_fields = get_linked_spreadsheet(
+                request_handler, unlinked_spreadsheet, example_fields
+            )
+            spreadsheets.append(spreadsheet)
+        ordered_spreadsheets = reorder_spreadsheets(spreadsheets, GCC_SUBMISSION_ITEMS)
+    else:
+        ordered_spreadsheets = []
+        for index, (item, submission_schema) in enumerate(submission_schemas.items()):
+            spreadsheet = get_spreadsheet(item, submission_schema)
+            ordered_spreadsheets.append(spreadsheet)
+    for index, spreadsheet in enumerate(ordered_spreadsheets):
+        if index == 0:
+            worksheet = workbook.active
+            set_sheet_name(worksheet, spreadsheet)
+            write_properties(worksheet, spreadsheet.properties, separate_comments, examples=spreadsheet.examples)
+        else:
+            worksheet = workbook.create_sheet(title=spreadsheet.item)
+            write_properties(worksheet, spreadsheet.properties, separate_comments, examples=spreadsheet.examples)
 
 
-def write_example_spreadsheets(
+def write_spreadsheets(
     output: Path,
     submission_schemas: Dict[str, Any],
     request_handler: RequestHandler,
     separate_comments: bool = False,
+    example: bool = False
 ) -> None:
-    """Write example submission spreadsheets."""
-    example_fields = get_example_fields(EXAMPLE_FILE_UUIDS,GCC_SUBMISSION_ITEMS)
-    submission_schemas = get_ordered_submission_schemas(submission_schemas,order=POPULATE_ORDER)
-    for item, submission_schema in submission_schemas.items():
-        unlinked_spreadsheet = get_example_spreadsheet(
-            item,request_handler,example_fields,submission_schema
-        )
-        spreadsheet,example_fields = get_linked_spreadsheet(
-            request_handler,unlinked_spreadsheet,example_fields
-        )
-        write_example_spreadsheet(output, spreadsheet, separate_comments)
-
-
-def write_example_workbook_sheets(
-    workbook: openpyxl.Workbook,
-    submission_schemas: Dict[str, Dict[str, Any]],
-    request_handler: RequestHandler,
-    separate_comments: bool = False
-) -> None:
-    """Write example workbook sheets for given schemas."""
-    example_fields = get_example_fields(EXAMPLE_FILE_UUIDS,GCC_SUBMISSION_ITEMS)
-    submission_schemas = get_ordered_submission_schemas(submission_schemas,order=POPULATE_ORDER)
-    for index, (item, submission_schema) in enumerate(submission_schemas.items()):
-        unlinked_spreadsheet = get_example_spreadsheet(
-            item,request_handler,example_fields,submission_schema
-        )
-        spreadsheet, example_fields = get_linked_spreadsheet(
-            request_handler,unlinked_spreadsheet,example_fields
-        )
-        if index == 0:
-            worksheet = workbook.active
-            set_sheet_name(worksheet, spreadsheet)
-            write_properties(worksheet, spreadsheet.properties, separate_comments,examples=spreadsheet.examples)
-        else:
-            worksheet = workbook.create_sheet(title=spreadsheet.item)
-            write_properties(worksheet, spreadsheet.properties, separate_comments,examples=spreadsheet.examples)
+    """Write submission spreadsheets."""
+    if example:
+        example_fields = get_example_fields(EXAMPLE_FILE_UUIDS,GCC_SUBMISSION_ITEMS)
+        submission_schemas = get_ordered_submission_schemas(submission_schemas,order=POPULATE_ORDER)
+        for item, submission_schema in submission_schemas.items():
+            unlinked_spreadsheet = get_example_spreadsheet(
+                item,request_handler,example_fields,submission_schema
+            )
+            spreadsheet,example_fields = get_linked_spreadsheet(
+                request_handler,unlinked_spreadsheet,example_fields
+            )
+            write_spreadsheet(output, spreadsheet, separate_comments, example=example)
+    else:
+        for item, submission_schema in submission_schemas.items():
+            spreadsheet = get_spreadsheet(item, submission_schema)
+            write_spreadsheet(output, spreadsheet, separate_comments)
 
 
 @dataclass(frozen=True)
@@ -774,10 +720,8 @@ def get_submission_examples(
     seed: bool = False
     ):
     """Get examples of property values for items."""
-    if seed:
-        return [request_handler.get_item(obj_id) for obj_id in example_fields.seed_files]
-    else:
-        return [request_handler.get_item(obj_id) for obj_id in example_fields.fields[item_type]]
+    items = example_fields.seed_files if seed else example_fields.fields[item_type]
+    return [request_handler.get_item(obj_id) for obj_id in items]
 
 
 def get_linked_spreadsheet(
@@ -824,16 +768,22 @@ def get_id_list(
 def update_example_fields(item: Dict[str,Any],example_fields: ExampleFields):
     """Update value of example field for linked submitted item.
     
-    Currently I think the only item that might match multiple keys is CellCultureMixture but may need to update later
+    For item types with multiple submitted items in the type list, get the type to use from MULTI_TYPE_ITEMS. Currently, the only item that matches multiple keys is CellCultureMixture but may need to update later
     """
     key = [value for value in item['@type'] if value in example_fields.fields.keys()]
     if len(key)>1:
-        key = ["CellCultureMixture"] # I think this is the only case
+        overlap = [match for match in set(MULTI_TYPE_ITEMS) & set(key)]
+        key = overlap
     if key:
         atid = item.get("@id","")
         if atid not in example_fields.fields[key[0]]:
             example_fields.fields[key[0]].append(atid) 
     return example_fields
+
+
+def is_cell_culture_mixture(properties: Dict[str, Any]) -> bool:
+    """Check if item is a cell culture mixture."""
+    return "CellCultureMixture" in properties.get('@type',[])
 
 
 def get_linked_item_id(response: Dict[str,Any]):
@@ -992,16 +942,6 @@ def get_exclusive_requirements(property_schema: Dict[str, Any]) -> List[str]:
     return property_schema.get(SubmissionSchemaConstants.REQUIRED_IF_NOT_ONE_OF) or []
 
 
-def write_example_spreadsheet(
-    output: Path, spreadsheet: Spreadsheet, separate_comments: bool = False
-) -> None:
-    """Write example spreadsheet to file"""
-    file_path = get_output_file_path(output, spreadsheet)
-    workbook = generate_workbook(spreadsheet, separate_comments=separate_comments)
-    save_workbook(workbook, file_path)
-    log.info(f"Example spreadsheet written to: {file_path}")
-
-
 def is_allow_commas(property_schema: Dict[str, Any]) -> bool:
     """Check if allow_commas is present in the property."""
     return property_schema.get("allow_commas", False)
@@ -1013,14 +953,17 @@ def is_allow_multiplier_suffix(property_schema: Dict[str, Any]) -> bool:
 
 
 def write_spreadsheet(
-    output: Path, spreadsheet: Spreadsheet, separate_comments: bool = False
+    output: Path, spreadsheet: Spreadsheet, separate_comments: bool = False, example: bool = False
 ) -> None:
     """Write spreadsheet to file"""
     file_path = get_output_file_path(output, spreadsheet)
     workbook = generate_workbook(spreadsheet, separate_comments=separate_comments)
     save_workbook(workbook, file_path)
-    log.info(f"Spreadsheet written to: {file_path}")
-
+    if example:
+        log.info(f"Example spreadsheet written to: {file_path}")
+    else:
+        log.info(f"Spreadsheet written to: {file_path}")
+    
 
 def get_output_file_path(output: Path, spreadsheet: Spreadsheet) -> Path:
     """Get the output file path"""
@@ -1179,7 +1122,7 @@ def write_example(
     value: Any,
 ) -> None:
     """Write example of property value to the worksheet"""
-    if is_array(value):
+    if is_list(value):
         value=get_example_list(value)
     row =  row  # cells 1-indexed, start with 2
     cell = worksheet.cell(row=row, column=index, value=value)
@@ -1197,8 +1140,8 @@ def write_empty(
     cell.font = openpyxl.styles.Font(name=FONT, size=FONT_SIZE)
 
 
-def is_array(value):
-    """Returns True if value is an array."""
+def is_list(value):
+    """Returns True if value is a list."""
     return type(value) is list
 
 
@@ -1489,18 +1432,16 @@ def main():
     if args.all and args.item:
         parser.error("Cannot specify both all and item")
     if args.example:
-        if args.google and args.gcc:
+        if args.google:
             log.info(f"Google Sheet ID: {args.google}")
             log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-            log.info("Writing GCC submission example to Google sheet")
             spreadsheet_client = get_google_sheet_client(args.google)
-            update_google_sheets(spreadsheet_client, request_handler,gcc=True,example=True)
-        elif args.google and args.item:
-            log.info(f"Google Sheet ID: {args.google}")
-            log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-            log.info(f"Writing submission example to Google sheet for item(s): {args.item}")
-            spreadsheet_client = get_google_sheet_client(args.google)
-            update_google_sheets(spreadsheet_client, request_handler,items=args.item,example=True)
+            if args.gcc:
+                log.info("Writing GCC submission example to Google sheet")
+                update_google_sheets(spreadsheet_client, request_handler,gcc=True,example=True)
+            elif args.item:
+                log.info(f"Writing submission example to Google sheet for item(s): {args.item}")
+                update_google_sheets(spreadsheet_client, request_handler,items=args.item,example=True)
         elif args.item:
             log.info(f"Writing example submission spreadsheets for item(s): {args.item}")
             write_item_spreadsheets(
@@ -1524,52 +1465,25 @@ def main():
             )
         else: 
             parser.error("--example argument currently only works for individual item lists or --gcc")
-    elif args.google and args.all:
-        log.info(f"Google Sheet ID: {args.google}")
-        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-        spreadsheet_client = get_google_sheet_client(args.google)
-        update_google_sheets(spreadsheet_client, request_handler)
-    elif args.google and args.gcc:
-        log.info(f"Google Sheet ID: {args.google}")
-        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-        log.info("Writing GCC submission Google sheet")
-        spreadsheet_client = get_google_sheet_client(args.google)
-        update_google_sheets(spreadsheet_client, request_handler,gcc=True)
-    elif args.google and args.tpc:
-        log.info(f"Google Sheet ID: {args.google}")
-        log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-        log.info("Writing TPC submission Google sheet")
-        spreadsheet_client = get_google_sheet_client(args.google)
-        update_google_sheets(spreadsheet_client, request_handler,tpc=True)
-    # Google spreadsheets
     else:
         if args.google:
+            log.info(f"Google Sheet ID: {args.google}")
+            log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
+            spreadsheet_client = get_google_sheet_client(args.google)
             if args.all:
-                log.info(f"Google Sheet ID: {args.google}")
-                log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-                spreadsheet_client = get_google_sheet_client(args.google)
                 update_google_sheets(spreadsheet_client, request_handler)
             elif args.gcc:
-                log.info(f"Google Sheet ID: {args.google}")
-                log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
                 log.info("Writing GCC submission Google sheet")
-                spreadsheet_client = get_google_sheet_client(args.google)
                 update_google_sheets(spreadsheet_client, request_handler,gcc=True)
             elif args.tpc:
-                log.info(f"Google Sheet ID: {args.google}")
-                log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
                 log.info("Writing TPC submission Google sheet")
-                spreadsheet_client = get_google_sheet_client(args.google)
                 update_google_sheets(spreadsheet_client, request_handler,tpc=True)
             elif args.item:
-                log.info(f"Google Sheet ID: {args.google}")
-                log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
                 log.info(f"Writing submission Google sheet for item(s): {args.item}")
-                spreadsheet_client = get_google_sheet_client(args.google)
                 update_google_sheets(spreadsheet_client, request_handler,items=args.item)
             else:
                 parser.error("No items specified to write or update Google spreadsheets for")
-        elif args.workbook and args.all:
+        elif args.all:
             log.info("Writing all submission spreadsheets")
             write_all_spreadsheets(
                 args.output,
@@ -1577,7 +1491,7 @@ def main():
                 workbook=args.workbook,
                 separate_comments=args.separate,
             )
-        elif args.workbook and args.tpc:
+        elif args.tpc:
             log.info("Writing TPC submission spreadsheet")
             write_item_spreadsheets(
                 args.output,
@@ -1588,7 +1502,7 @@ def main():
                 gcc = False,
                 separate_comments=args.separate,
             )
-        elif args.workbook and args.gcc:
+        elif args.gcc:
             log.info("Writing GCC/TTD submission spreadsheet")
             write_item_spreadsheets(
                 args.output,
@@ -1623,7 +1537,7 @@ def get_google_sheet_client(sheet_id: str) -> SheetsClient:
     """Get Google Sheet to write/update."""
     credentials = get_google_credentials()
     service = build("sheets", "v4", credentials=credentials)
-    return SheetsClient(service.spreadsheets(), sheet_id, OVERVIEW_GUIDELINES_SHEET_ID)
+    return SheetsClient(service.spreadsheets(), sheet_id)
 
 
 def get_google_credentials() -> Dict[str, Any]:
