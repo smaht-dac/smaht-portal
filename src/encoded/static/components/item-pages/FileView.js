@@ -179,7 +179,9 @@ const FileViewHeader = (props) => {
                     <div className="datum description">
                         <span className="datum-title">Notes </span>
                         <span className="vertical-divider">|</span>
-                        <ShowHideInformationToggle id="show-hide-tsv-notes">
+                        <ShowHideInformationToggle
+                            id="show-hide-tsv-notes"
+                            useToggle={notes_to_tsv.length > 1}>
                             <ul className="list-unstyled">
                                 {notes_to_tsv.map((note, i) => (
                                     <li
