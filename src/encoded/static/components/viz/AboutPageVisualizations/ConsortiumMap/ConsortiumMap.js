@@ -77,17 +77,19 @@ const ConsortiumTable = () => {
     });
 
     return (
-        <table className="table table-sm table-striped table-hover table-responsive">
-            <thead className="consortium-table-header bg-white">
-                <tr>
-                    <th></th>
-                    <th>Principal Investigators</th>
-                    <th>Institution</th>
-                    <th>Project title</th>
-                </tr>
-            </thead>
-            <tbody>{centerRows}</tbody>
-        </table>
+        <div className="table-responsive">
+            <table className="table table-sm table-striped">
+                <thead className="consortium-table-header">
+                    <tr>
+                        <th></th>
+                        <th>Principal Investigators</th>
+                        <th>Institution</th>
+                        <th>Project title</th>
+                    </tr>
+                </thead>
+                <tbody>{centerRows}</tbody>
+            </table>
+        </div>
     );
 };
 
