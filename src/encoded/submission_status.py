@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from snovault.util import debug_log, get_item_or_none
+from snovault.util import debug_log
 from dcicutils.misc_utils import ignored
 from snovault.search.search import search
 from snovault.search.search_utils import make_search_subreq
@@ -31,6 +31,8 @@ NYGC_GCC = "NYGC GCC"
 BROAD_GCC = "BROAD GCC"
 UWSC_GCC = "UWSC GCC"
 
+MAX_FILESETS = 30
+
 
 def includeme(config):
     config.add_route("get_submission_status", "/get_submission_status/")
@@ -50,13 +52,13 @@ def get_file_group_qc(context, request):
         files_with_qcs = []
         filesets = {}
 
-        MAX_FILESETS = 50
+        MAX_FG_FILESETS = 50
         MAX_QUALITY_METRICS_ITEMS = 100
 
         # Search for fileset with same file group
         search_params = {}
         search_params["type"] = FILESET
-        search_params["limit"] = MAX_FILESETS
+        search_params["limit"] = MAX_FG_FILESETS
 
         if file_group:
             # Search for fileset with same file group
@@ -74,19 +76,23 @@ def get_file_group_qc(context, request):
         )
         search_res = search(context, subreq)["@graph"]
 
-        if len(search_res) == MAX_FILESETS:
+        if len(search_res) == MAX_FG_FILESETS:
             warnings.append(
-                f"Only {MAX_FILESETS} file sets have been loaded for this file group"
+                f"Only {MAX_FG_FILESETS} file sets have been loaded for this file group"
             )
 
         total_submitted_files_qms = 0
+
+        # Get all relevant MetaWorkflow run here at once. It's too expensice to retrieve them
+        # individually later
+        all_alignment_mwfrs = get_all_alignments_mwfrs(context, request, search_res)
 
         for fs in search_res:
             files = fs.get("files", [])
             meta_workflow_runs = fs.get("meta_workflow_runs", [])
             submitted_file_qc_infos = get_submitted_files_info(files).get("qc_infos")
             output_file_qc_infos = get_output_files_info(
-                request, files, meta_workflow_runs
+                files, meta_workflow_runs, all_alignment_mwfrs
             ).get("qc_infos")
 
             filesets[fs.get(UUID)] = {
@@ -102,7 +108,6 @@ def get_file_group_qc(context, request):
             qms_to_get = []
             for f in output_file_qc_infos:
                 for qm in f.get("quality_metrics",[]):
-                    print(qm[UUID])
                     qms_to_get.append(qm[UUID])
 
             for f in submitted_file_qc_infos:
@@ -177,7 +182,7 @@ def get_submission_status(context, request):
         # Generate search
         search_params = {}
         search_params["type"] = FILESET
-        search_params["limit"] = min(post_params.get("limit", 30), 30)
+        search_params["limit"] = min(post_params.get("limit", MAX_FILESETS), MAX_FILESETS)
         search_params["from"] = post_params["from"]
         search_params["sort"] = f"-date_created"
         add_submission_status_search_filters(search_params, filter, fileSetSearchId)
@@ -185,6 +190,11 @@ def get_submission_status(context, request):
             request, f"/search?{urlencode(search_params, True)}", inherit_user=True
         )
         search_res = search(context, subreq)["@graph"]
+
+        # Get all relevant MetaWorkflow run here at once. It's too expensice to retrieve them
+        # individually later
+        all_alignment_mwfrs = get_all_alignments_mwfrs(context, request, search_res)
+
         file_sets = []
         file_group_color_map = {}
         for res in search_res:
@@ -193,7 +203,7 @@ def get_submission_status(context, request):
             meta_workflow_runs = res.get("meta_workflow_runs", [])
             file_set["submitted_files"] = get_submitted_files_info(files)
             file_set["output_files"] = get_output_files_info(
-                request, files, meta_workflow_runs
+                files, meta_workflow_runs, all_alignment_mwfrs
             )
 
             if "file_group" in file_set:
@@ -306,7 +316,7 @@ def add_submission_status_search_filters(
         search_params["date_created.to"] = filter["fileset_created_to"]
 
 
-def get_output_files_info(request, files, mwfrs):
+def get_output_files_info(files, mwfrs, all_alignment_mwfrs):
     output_files = list(filter(lambda f: OUTPUT_FILE in f["@type"], files))
     output_files_qc = []
 
@@ -316,16 +326,10 @@ def get_output_files_info(request, files, mwfrs):
         output_files_qc.append(qc_result)
 
     # Go through all alignment MetaWorkflowRuns and collect the output files with QCs.
-    # This requires retrieval of the individual MWFRs with embeddings. This is expensive
-    # but we don't want to embedd all of this information into the file set
     for mwfr in mwfrs:
-        final_status = mwfr.get("final_status")
-        mwf_categories = mwfr.get("meta_workflow", {}).get("category", [])
-        if final_status != "completed" or "Alignment" not in mwf_categories:
+        if mwfr[UUID] not in all_alignment_mwfrs:
             continue
-        mwfr_item = get_item_or_none(
-            request, mwfr[UUID], "meta-workflow-runs", "embedded"
-        )
+        mwfr_item = all_alignment_mwfrs[mwfr[UUID]]
         wfrs = mwfr_item.get("workflow_runs", [])
         for wfr in wfrs:
             outputs = wfr.get("output", [])
@@ -407,6 +411,37 @@ def get_qc_result(file, is_output_file):
             for qm in qms
         ]
     return qc_result
+
+def get_all_alignments_mwfrs(context, request, filesets_from_search):
+    mwfrs = {}
+    uuids_to_get = []
+    for fs in filesets_from_search:
+            mwfrs_fs = fs.get("meta_workflow_runs", [])
+            for mwfr in mwfrs_fs:
+                final_status = mwfr.get("final_status")
+                mwf_categories = mwfr.get("meta_workflow", {}).get("category", [])
+                if final_status != "completed" or "Alignment" not in mwf_categories:
+                    continue
+                uuids_to_get.append(mwfr[UUID])
+
+    if not uuids_to_get:
+        return mwfrs
+
+    # Get all MetaWorkflowRun items at once via search
+    search_params=[("type", "MetaWorkflowRun")]
+    search_params=[("limit", 2*MAX_FILESETS)]
+    for uuid in uuids_to_get:
+        search_params.append(("uuid", uuid))
+    subreq = make_search_subreq(
+        request, f"/search?{urlencode(search_params, True)}", inherit_user=True
+    )
+    search_res = search(context, subreq)["@graph"]
+
+    for r in search_res:
+        mwfrs[r[UUID]] = r
+
+    return mwfrs
+
 
 
 def search_total(context, request, search_params):
