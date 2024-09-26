@@ -1,11 +1,14 @@
 'use strict';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     DotRouter,
     DotRouterTab,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+
 import { FileOverviewTableController } from './FileOverviewTable';
+import ReactTooltip from 'react-tooltip';
 
 /**
  * DotRouterTab content for displaying the files in the same file set as the
@@ -99,26 +102,40 @@ const QCOverviewTab = ({ context }) => {
 
 export const FileViewTabs = (props) => {
     const { context } = props;
-    const { file_sets = [] } = context || {};
+    const { file_sets = [], uuid } = context || {};
 
-    let associatedFilesTitle = 'Associated Files';
+    const [associatedFilesTitle, setAssociatedFilesTitle] =
+        useState('Associated Files');
 
-    let warningsOnFileset = false;
-    file_sets.forEach((file_set) => {
-        if (file_set.files_status_retracted === 'True') {
-            warningsOnFileset = true;
-        }
-    });
+    useEffect(() => {
+        let fileset_uuid_query_params = '';
+        file_sets.forEach((file_set) => {
+            fileset_uuid_query_params += '&file_sets.uuid=' + file_set.uuid;
+        });
 
-    // Check whether there are any warnings on the files within Associated Files
-    if (warningsOnFileset) {
-        associatedFilesTitle = (
-            <div data-tip="Some associated files may have status 'redacted' or 'obsolete'. Please check for notes before downloading.">
-                <i className="icon fas icon-exclamation-triangle text-danger mr-05"></i>
-                Associated Files
-            </div>
+        const searchURL =
+            `/search/?type=File&uuid!=${uuid}&status=retracted&status=obsolete` +
+            fileset_uuid_query_params;
+
+        ajax.load(
+            searchURL,
+            (resp) => {
+                setAssociatedFilesTitle(
+                    <div data-tip="Some associated files may have status 'redacted' or 'obsolete'. Please check for notes before downloading.">
+                        <i className="icon fas icon-exclamation-triangle text-danger mr-05"></i>
+                        Associated Files
+                    </div>
+                );
+                ReactTooltip.rebuild();
+            },
+            'GET',
+            (err) => {
+                if (err.notification !== 'No results found') {
+                    console.log('ERROR FileViewTabs resp', err);
+                }
+            }
         );
-    }
+    }, []);
 
     return (
         <div className="tabs-container">
