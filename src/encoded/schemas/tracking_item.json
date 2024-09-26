@@ -261,7 +261,15 @@
                                     },
                                     "dataset" : {
                                         "type" : "string",
-                                        "title" : "Dataset"
+                                        "title" : "Sample Type"
+                                    },
+                                    "file_type" : {
+                                        "type" : "string",
+                                        "title" : "File Type"
+                                    },
+                                    "sequencer" : {
+                                        "type" : "string",
+                                        "title" : "Sequencing Platform"
                                     }
                                 }
                             }
@@ -380,14 +388,41 @@
 
                         "file_downloads_by_dataset": {
                             "type": "array",
-                            "title": "File Downloads by Dataset",
-                            "description": "File Downloads segmented by dataset",
+                            "title": "File Downloads by Sample Type",
+                            "description": "File Downloads segmented by sample type",
                             "items": {
                                 "type" : "object",
                                 "properties": {
                                     "dataset" : {
                                         "type" : "string",
-                                        "title" : "Dataset"
+                                        "title" : "Sample Type"
+                                    },
+                                    "downloads_count" : {
+                                        "type" : "integer",
+                                        "title" : "Downloads"
+                                    },
+                                    "downloads_size" : {
+                                        "type" : "integer",
+                                        "title" : "Cumalative Filesize"
+                                    },
+                                    "range_queries" : {
+                                        "type" : "integer",
+                                        "title" : "Range Query Count"
+                                    }
+                                }
+                            }
+                        },
+
+                        "file_downloads_by_sequencer": {
+                            "type": "array",
+                            "title": "File Downloads by Sequencing Platform",
+                            "description": "File Downloads segmented by sample type",
+                            "items": {
+                                "type" : "object",
+                                "properties": {
+                                    "sequencer" : {
+                                        "type" : "string",
+                                        "title" : "Sequencing Platform"
                                     },
                                     "downloads_count" : {
                                         "type" : "integer",
@@ -474,7 +509,7 @@
                                     },
                                     "dataset" : {
                                         "type" : "string",
-                                        "title" : "Dataset"
+                                        "title" : "Sample Type"
                                     }
                                 }
                             }
