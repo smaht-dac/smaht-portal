@@ -497,6 +497,10 @@ const aggregationsToChartData = {
                     useReport = 'file_downloads_by_dataset';
                     groupingKey = 'dataset'; // Dataset
                     break;
+                case 'sequencer':
+                    useReport = 'file_downloads_by_sequencer';
+                    groupingKey = 'sequencer'; // Sequencing Platform
+                    break;
                 default: //file type
                     useReport = 'file_downloads_by_filetype';
                     groupingKey = "file_type"; // File Type
@@ -523,6 +527,10 @@ const aggregationsToChartData = {
                 case 'dataset':
                     useReport = 'file_downloads_by_dataset';
                     groupingKey = 'dataset'; // Dataset
+                    break;
+                case 'sequencer':
+                    useReport = 'file_downloads_by_sequencer';
+                    groupingKey = 'sequencer'; // Sequencing Platform
                     break;
                 default: //file type
                     useReport = 'file_downloads_by_filetype';
@@ -651,6 +659,9 @@ const aggregationsToChartData = {
                 case 'file_detail_views_by_dataset':
                     termBucketField = 'dataset';
                     break;
+                case 'file_detail_views_by_sequencer':
+                    termBucketField = 'sequencer';
+                    break;
                 case 'file_list_views':
                     countKey = 'list_views';
                     break;
@@ -722,6 +733,7 @@ export class UsageStatsViewController extends React.PureComponent {
                     "sessions_by_page",
                     "file_downloads_by_assay_type",
                     "file_downloads_by_dataset",
+                    "file_downloads_by_sequencer",
                     "file_downloads_by_filetype",
                     "file_downloads_by_country",
                     "top_files_downloaded",
@@ -906,7 +918,8 @@ class UsageChartsCountByDropdown extends React.PureComponent {
             case 'file_downloads':
                 menuOptions.set('filetype',   <React.Fragment><i className="icon fas icon-fas icon-file-alt mr-1"/>File Downloads by File Type</React.Fragment>);
                 menuOptions.set('assay_type', <React.Fragment><i className="icon fas icon-fas icon-vial mr-1"/>File Downloads by Assay Type</React.Fragment>);
-                menuOptions.set('dataset',    <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>File Downloads by Dataset</React.Fragment>);
+                menuOptions.set('dataset',    <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>File Downloads by Sample Type</React.Fragment>);
+                menuOptions.set('sequencer',    <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>File Downloads by Sequencing Platform</React.Fragment>);
                 break;
             case 'top_file_downloads':
                 menuOptions.set('top_files_10',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 10</React.Fragment>);
@@ -917,7 +930,8 @@ class UsageChartsCountByDropdown extends React.PureComponent {
             case 'file_views':
                 menuOptions.set('file_detail_views_by_file_type',  <React.Fragment><i className="icon fas icon-fw icon-file-alt mr-1"/>Detail Views by File Type</React.Fragment>);
                 menuOptions.set('file_detail_views_by_assay_type', <React.Fragment><i className="icon fas icon-fw icon-vial mr-1"/>Detail Views by Assay Type</React.Fragment>);
-                menuOptions.set('file_detail_views_by_dataset',    <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Dataset</React.Fragment>);
+                menuOptions.set('file_detail_views_by_dataset',    <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Sample Type</React.Fragment>);
+                menuOptions.set('file_detail_views_by_sequencer',    <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Seqeuncing Platform</React.Fragment>);
                 menuOptions.set('file_list_views',                 <React.Fragment><i className="icon fas icon-fas icon-list-ul mr-1"/>Appearance in Search Results</React.Fragment>);
                 menuOptions.set('file_clicks',                      <React.Fragment><i className="icon fas icon-fas icon-mouse-pointer mr-1"/>Search Result Click</React.Fragment>);
                 // menuOptions.set('metadata_tsv_by_country',  <React.Fragment><i className="icon fas icon-fas icon-file mr-1"/>Metadata.tsv Files Count by Country</React.Fragment>);
@@ -1182,7 +1196,7 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="file_views" key="file_views"
                         title={
                             <h3 className="charts-group-title">
-                                <span className="d-block d-sm-inline">File Views</span><span className="text-300 d-none d-sm-inline"> - </span>
+                                <span className="d-block d-sm-inline">File Overview Page Views</span><span className="text-300 d-none d-sm-inline"> - </span>
                                 <span className="text-300">{UsageStatsView.titleExtensions['file_views'][countBy.file_views]}</span>
                             </h3>
                         }
@@ -1281,7 +1295,8 @@ UsageStatsView.titleExtensions = {
         'file_clicks': 'clicks from results',
         'file_detail_views_by_file_type': 'by file type',
         'file_detail_views_by_assay_type': 'by assay type',
-        'file_detail_views_by_dataset': 'by dataset',
+        'file_detail_views_by_dataset': 'by sample type',
+        'file_detail_views_by_sequencer': 'by sequencing platform',
     },
     'sessions_by_country': {
         'views_by_country': 'by country',
@@ -1295,7 +1310,8 @@ UsageStatsView.titleExtensions = {
     'file_downloads': {
         'assay_type': 'by assay type',
         'filetype': 'by file type',
-        'dataset': 'by dataset'
+        'dataset': 'by sample type',
+        'sequencer': 'by sequencing platform'
     },
     'top_file_downloads': {
         'top_files_10': 'top 10',
