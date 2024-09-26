@@ -371,7 +371,7 @@ def get_empty_cell():
 
 
 def get_example_values(spreadsheet: Spreadsheet) -> List[Dict[str, Any]]:
-    """Get example values for the Google spreadsheet"""
+    """Get example values for the Google spreadsheet."""
     ordered_properties = get_ordered_properties(spreadsheet.properties)
     values = [{"values": [get_cell_value(property_) for property_ in ordered_properties]}]
     for idx, example in enumerate(spreadsheet.examples):
@@ -768,7 +768,7 @@ def get_id_list(
 def update_example_fields(item: Dict[str,Any],example_fields: ExampleFields):
     """Update value of example field for linked submitted item.
     
-    For item types with multiple submitted items in the type list, get the type to use from MULTI_TYPE_ITEMS. Currently, the only item that matches multiple keys is CellCultureMixture but may need to update later
+    For item types with multiple submitted items in the type list, get the type to use from MULTI_TYPE_ITEMS. Currently, the only item that matches multiple keys is CellCultureMixture but may need to update later.
     """
     key = [value for value in item['@type'] if value in example_fields.fields.keys()]
     if len(key)>1:
@@ -779,11 +779,6 @@ def update_example_fields(item: Dict[str,Any],example_fields: ExampleFields):
         if atid not in example_fields.fields[key[0]]:
             example_fields.fields[key[0]].append(atid) 
     return example_fields
-
-
-def is_cell_culture_mixture(properties: Dict[str, Any]) -> bool:
-    """Check if item is a cell culture mixture."""
-    return "CellCultureMixture" in properties.get('@type',[])
 
 
 def get_linked_item_id(response: Dict[str,Any]):
@@ -1081,14 +1076,15 @@ def get_required_non_links(properties: List[Property]) -> List[Property]:
 
 
 def get_non_required_non_links(properties: List[Property]) -> List[Property]:
-    """Get non-required non-link properties."""
-    return sort_properties_alphabetically(
-        [
-            property_
-            for property_ in properties
-            if not property_.required and not property_.link
-        ]
-    )
+    """Get non-required non-link properties.
+    
+    No longer sort alphabetically.
+    """
+    return [
+        property_
+        for property_ in properties
+        if not property_.required and not property_.link
+    ]
 
 
 def get_required_links(properties: List[Property]) -> List[Property]:
