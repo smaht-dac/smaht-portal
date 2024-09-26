@@ -114,7 +114,7 @@ export const FileViewTabs = (props) => {
         });
 
         const searchURL =
-            `/search/?type=File&uuid!=${uuid}&status=retracted&status=obsolete` +
+            `/search/?type=File&uuid!=${uuid}&status=retracted&status=obsolete&notes_to_tsv!=No+value` +
             fileset_uuid_query_params;
 
         ajax.load(
