@@ -38,6 +38,9 @@
             "$ref": "mixins.json#/code"
         },
         {
+            "$ref": "mixins.json#/category"
+        },
+        {
             "$ref": "mixins.json#/description"
         },
         {
@@ -72,19 +75,28 @@
         "code": {
             "pattern": "^[0-9]{3}$"
         },
-        "amplification_type": {
-            "title": "Amplification Type",
-            "description": "Type of amplification used in assay",
-            "type": "array",
-            "items": {
-                "type": "string",
-                "enum": [
-                    "PTA",
-                    "MALBAC",
-                    "PCR",
-                    "PCR-Free"
-                ]
-            }
+        "category": {
+            "description": "Category of assay",
+            "type": "string",
+            "enum": [
+                "Duplex-seq",
+                "RNA-seq",
+                "WGS",
+                "Ultralong WGS",
+                "Cut&Tag",
+                "Fiber-seq",
+                "Hi-C",
+                "NT-seq",
+                "DLP+",
+                "MAS-ISO-seq",
+                "STORM-seq",
+                "Tranquil-seq",
+                "Dip-C",
+                "Cas9 Targeted Nanopore",
+                "ATAC-seq",
+                "HAT-seq",
+                "VISTA-seq"
+            ]
         },
         "sampling_type": {
             "title": "Sampling Type",

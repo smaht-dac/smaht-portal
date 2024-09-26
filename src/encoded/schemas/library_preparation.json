@@ -143,8 +143,8 @@
             }
         },
         "rna_seq_protocol": {
-            "title": "RNASeq Protocol",
-            "description": "Protocol used for RNASeq assays",
+            "title": "RNA-seq Protocol",
+            "description": "Protocol used for RNA-seq assays",
             "type": "string",
             "enum": [
                 "Watchmaker",
