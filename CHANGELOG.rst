@@ -7,13 +7,26 @@ smaht-portal
 Change Log
 ----------
 
-0.98.0
+0.99.0
 ======
 `PR260: SN Add assay and vcf properties <https://github.com/smaht-dac/smaht-portal/pull/260>`_
 * Add properties `sampling_type` and `amplification_type` to Assay
 * Add property `mode` to VariantCalls
 * Fix `age` maximum to 89 for Donor
-* Adjust enum for `insert_selection_method` for LibraryPreparation to be "rRNA Depletion" instead of "RRNA Depletion" and add "PolyA Enrichment" in addition to/to replace "PolyT Enrichment"
+* Add property `rna_seq_protocol` to LibraryPreparation and adjust enums for `insert_selection_method`
+
+
+0.98.0
+======
+`PR256: SN Write automated example <https://github.com/smaht-dac/smaht-portal/pull/256>`_
+* In `commands/write_submission_spreadsheets.py`:
+  * Add argument `--example` that will pull metadata from a template uuid to fill out an example submission spreadsheet for the current schema
+
+
+0.97.1
+======
+`PR257: SN Update DSA calc_prop <https://github.com/smaht-dac/smaht-portal/pull/257>`_
+* Change DSA calc prop for non-fasta files `supplementary_files`
 
 
 0.97.0

@@ -142,6 +142,15 @@
                 ]
             }
         },
+        "rna_seq_protocol": {
+            "title": "RNASeq Protocol",
+            "description": "Protocol used for RNASeq assays",
+            "type": "string",
+            "enum": [
+                "Watchmaker",
+                "TruSeq"
+            ]
+        },
         "size_selection_method": {
             "title": "Size Selection Method",
             "description": "Method for selecting fragment sizes",
