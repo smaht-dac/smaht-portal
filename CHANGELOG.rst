@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.98.1
+======
+`PR264: SN remove tissue from cell culture  <https://github.com/smaht-dac/smaht-portal/pull/264>`_
+* Remove tissue link from CellCulture as part of switch to TissueSample link
+
+
 0.98.0
 ======
 `PR256: SN Write automated example <https://github.com/smaht-dac/smaht-portal/pull/256>`_
