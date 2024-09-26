@@ -121,6 +121,9 @@ $link-color: #428bca;
 /** Setup some other variables for tables, etc. **/
 $expset-table-border-color : #eee;
 
+$table-striped-bg-factor:     .05;
+$table-striped-bg:            rgba(#fff, $table-striped-bg-factor);
+
 
 $primary:       #0E74D2;
 $secondary:     #6c757d;
