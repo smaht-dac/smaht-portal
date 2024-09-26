@@ -173,7 +173,7 @@ export const FileOverviewTable = (props) => {
         },
         // Notes
         tsv_notes: {
-            widthMap: { lg: 190, md: 170, sm: 150 },
+            widthMap: { lg: 160, md: 150, sm: 140 },
             colTitle: 'Notes',
             render: function (result, parentProps) {
                 const { notes_to_tsv = [] } = result;
