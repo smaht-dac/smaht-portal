@@ -10,7 +10,7 @@ Change Log
 0.99.0
 ======
 `PR260: SN Add assay and vcf properties <https://github.com/smaht-dac/smaht-portal/pull/260>`_
-* Add properties `sampling_type` and 'assay_type' to Assay
+* Add properties `sampling_type` and 'category' to Assay
 * Add property `mode` to VariantCalls
 * Fix `age` maximum to 89 for Donor
 * Add property `rna_seq_protocol` to LibraryPreparation and adjust enums for `insert_selection_method`
