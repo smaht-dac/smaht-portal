@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.98.1
+======
+`PR246: feat: homepage updates <https://github.com/smaht-dac/smaht-portal/pull/246>`_
+* Implements new announcements panel
+* Reorganizes homepage timeline tier structure
+
+
 0.98.0
 ======
 `PR256: SN Write automated example <https://github.com/smaht-dac/smaht-portal/pull/256>`_
