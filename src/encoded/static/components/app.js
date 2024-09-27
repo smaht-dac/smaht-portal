@@ -2250,6 +2250,7 @@ class BodyElement extends React.PureComponent {
         } = this;
         const overlaysContainer = this.overlaysContainerRef.current;
         const innerOverlaysContainer = this.innerOverlaysContainerRef.current;
+        const { is_mobile_browser: isMobileBrowser = false } = context;
 
         if (hasError) return this.renderErrorState();
 
@@ -2295,6 +2296,8 @@ class BodyElement extends React.PureComponent {
             innerOverlaysContainer,
             alerts,
         };
+
+        const tooltipGlobalEventOff = isMobileBrowser ? 'click' : undefined;
 
         return (
             // We skip setting `props.dangerouslySetInnerHTML` if mounted, since this data is only used for initializing over server-side-rendered HTML.
@@ -2374,14 +2377,15 @@ class BodyElement extends React.PureComponent {
 
                 <div id="overlays-container" ref={this.overlaysContainerRef} />
 
-                <ReactTooltip
-                    effect="solid"
-                    globalEventOff="click"
-                    key="tooltip"
-                    uuid="primary-tooltip-fake-uuid"
-                    afterHide={this.onAfterTooltipHide}
-                    ref={this.tooltipRef}
-                />
+                {mounted ?
+                    <ReactTooltip
+                        effect="solid"
+                        globalEventOff={tooltipGlobalEventOff}
+                        key="tooltip"
+                        uuid="primary-tooltip-fake-uuid"
+                        afterHide={this.onAfterTooltipHide}
+                        ref={this.tooltipRef}
+                    /> : null}
             </body>
         );
     }
