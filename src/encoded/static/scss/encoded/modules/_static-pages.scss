@@ -2332,6 +2332,10 @@ Unique styling of Submission Status page
 .ss-line-height-140 {
     line-height: 140%;
 }
+.ss-qc-review-fixed-thead {
+    top: 0px;
+	z-index: 200 !important;
+}
 .ss-fixed-thead {
     top: 40px;
 	z-index: 200 !important;
@@ -2342,6 +2346,18 @@ Unique styling of Submission Status page
 }
 .ss-padding-top-3 {
 	padding-top: 3px;
+}
+.ss-fileset-list label{
+	font-weight: 400;
+}
+.ss-link {
+	color: #428bca;
+    text-decoration: none;
+	cursor: pointer;
+}
+.ss-link:hover {
+    color: #2a6496;
+    text-decoration: underline;
 }
 .badge-lighter {
     color: #fff;
