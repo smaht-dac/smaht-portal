@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.99.0
+======
+`PR261: Bring QC information to the Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/261>`_
+* New version of Submission Status page
+
+
 0.98.0
 ======
 `PR256: SN Write automated example <https://github.com/smaht-dac/smaht-portal/pull/256>`_
