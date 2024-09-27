@@ -2412,6 +2412,24 @@ body[data-pathname^="/data/benchmarking"] {
 }
 
 /** Utilities for static page tables **/
+
+thead.thead-smaht,
+tbody.table-border-inner {
+	tr.sticky-first-column {
+		position: sticky;
+		left: 0;
+		> th:first-of-type,
+		> td:first-of-type {
+			position: sticky;
+			left: 0;
+			border-right: 1px solid rgba(0, 0, 0, 0.05);
+		}
+		> td:first-of-type {
+			background-color: #ffffff;
+		}
+	}
+}
+
 thead.thead-smaht tr>th {
 	background-color: $baby-20;
 }
