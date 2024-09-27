@@ -59,8 +59,8 @@ Each file type available in the database accepts a limited selection of file for
 
    <a href="/search/?type=FileFormat&valid_item_types=VariantCalls", target="_blank">VariantCalls</a>
 
-,
-.. |SupplementaryFile| raw::html
+
+.. |SupplementaryFile| raw:: html
 
    <a href="/search/?type=FileFormat&valid_item_types=SupplementaryFile", target="_blank">SupplementaryFile</a>
 
@@ -89,14 +89,6 @@ To link to data submitted by other consortium members, you can use values for an
 .. |Donors| raw:: html
 
    <a href="/search/?type=Donor", target="_blank">Donors</a>
-
-
-|DonorSpecificAssembly|
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. |DonorSpecificAssembly| raw:: html
-
-   <a href="/search/?type=DonorSpecificAssembly", target="blank">DonorSpecificAssembly</a>
 
 
 |Tissues|
@@ -153,6 +145,14 @@ To link to data submitted by other consortium members, you can use values for an
 .. |Files| raw:: html
 
    <a href="/search/?type=File", target="_blank">Files</a>
+
+
+|DonorSpecificAssembly|
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. |DonorSpecificAssembly| raw:: html
+
+   <a href="/search/?type=DonorSpecificAssembly", target="blank">DonorSpecificAssembly</a>
 
 
 |Software|
