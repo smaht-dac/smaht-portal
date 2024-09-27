@@ -42,6 +42,7 @@ Each file type available in the database accepts a limited selection of file for
 * For |UnalignedReads|
 * For |AlignedReads|
 * For |VariantCalls|
+* For |SupplementaryFile|
 
 
 .. |UnalignedReads| raw:: html
@@ -57,6 +58,10 @@ Each file type available in the database accepts a limited selection of file for
 .. |VariantCalls| raw:: html
 
    <a href="/search/?type=FileFormat&valid_item_types=VariantCalls", target="_blank">VariantCalls</a>
+
+.. |SupplementaryFile| raw::html
+
+   <a href="/search/?type=FileFormat&valid_item_types=SupplementaryFile" target="_blank">SupplementaryFile</a>
 
 
 |ReferenceGenomes|
