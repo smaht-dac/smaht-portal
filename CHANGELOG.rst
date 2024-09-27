@@ -7,11 +7,10 @@ smaht-portal
 Change Log
 ----------
 
-0.98.1
+0.99.0
 ======
-`PR246: feat: homepage updates <https://github.com/smaht-dac/smaht-portal/pull/246>`_
-* Implements new announcements panel
-* Reorganizes homepage timeline tier structure
+`PR261: Bring QC information to the Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/261>`_
+* New version of Submission Status page
 
 
 0.98.0
