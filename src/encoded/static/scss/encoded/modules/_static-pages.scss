@@ -707,29 +707,180 @@ body[data-path="/"]>#application>#layout {
 
 
 		.container {
-			// position: relative;
-
 			.notifications-panel {
+				display: flex;
+				flex-direction: column;
+				gap: 20px;
+				margin-top: 20px;
+				margin-bottom: 50px;
+				padding: 20px 30px;
+				width: 100%;
+				background-color: $cobalt-10;
+				border: 1px solid #A9A9FF;
+				box-shadow: 0 1px 5px -1px rgba(0, 0, 0, 0.1333333333);
+				@include prefix(border-radius, $homepage-card-border-radius);
+
 				.section {
+					display: flex;
+					flex-direction: column;
+					flex: 1;
+
+					&-header {
+						font-size: 1.25rem;
+						color: $homepage-header-text-color;
+						font-weight: 600;
+						margin-bottom: 1rem;
+					}
+					&-body {
+						padding: 8px;
+						border: 1px solid #8C9EFE;
+						border-radius: 6px;
+					}
+
 					&.data-release-tracker {
-						display: none;
+						display: flex;
+						.section-body {
+							background-color: white;
+							padding: 20px;
+
+							.data-release-item-container {
+								.content {
+									position: relative;
+									padding-left: 20px;
+									padding-bottom: 16px;
+									
+									.header {
+										display: flex;
+										justify-content: space-between;
+										padding: 2px 8px;
+										background-color: rgba(167, 255, 202, 0.5);
+										color: #014B11;
+										font-weight: 700;
+										font-size: 0.875rem;
+										border-radius: 3px;
+
+										&:before {
+											content: "";
+											display: block;
+											position: absolute;
+											top: 8px;
+											left: -5px;
+											width: 11px;
+											height: 11px;
+											border-radius: 100%;
+											background-color: #2B28BD;
+										}
+									}
+									.body {
+										padding-left: 8px;
+										color: #485983;
+										font-size: 0.875rem;
+
+										.title {
+											margin: 10px 0px 0px 0px;
+											color: #485983;
+											font-weight: 700;
+										}
+
+										ul {
+											margin-top: 0px;
+											padding-left: 5px;
+											list-style-position: inside;
+											li {
+												font-weight: 300;
+											}
+										}
+									}
+									&:before {
+										content: "";
+										display: block;
+										position: absolute;
+										top: 10px;
+										left: 0;
+										width: 1px;
+										height: 100%;
+										background-color: #2B28BD;
+									}
+								}
+
+								&:last-of-type {
+									.content {
+										padding-bottom: 5px;
+										&:before {
+											display: none;
+										}
+									}
+								}
+							}
+						}
 					}
 					&.announcements {
-						display: none;
+						display: flex;
+
+						.section-body {
+							background-color: #EEF6FE;
+							border: 1px solid #8C9EFE;
+							display: flex;
+							flex-direction: column;
+							gap: 8px;
+							padding: 8px;
+							border: none;
+							
+							.announcement-container {
+								background-color: white;
+								border: 1px solid #C0CAFF;
+								padding: 8px;
+								border-radius: 6px;
+								
+								.header {
+									font-size: 0.625rem;
+									color: #485983;
+									margin-top: 0px;
+									margin-bottom: 5px;
+									text-transform: uppercase;
+								}
+								.body {
+									font-size: 0.75rem;
+									margin-top: 0px;
+									color: #485983;
+								}
+							}
+						}
 					}
+					&.about-consortium {
+						display: flex;
+						flex-direction: column;
+						padding: 0px;
+						border: none;
+						box-shadow: none;
+
+						.section-header {
+							color: $homepage-header-text-color;
+						}
+
+						.section-body {
+							padding: 0px;
+							background-color: transparent;
+							border: none;
+
+							.about-consortium-links {
+								flex-direction: column;
+								gap: 10px;
+								
+								.link-container {
+									a {
+										width: 100%;
+										margin-bottom: 0px;
+									}
+								}
+							}
+						}
+						
+					}
+
 				}
 		
 				.about-consortium {
-					padding: 20px 30px;
-					width: 100%;
-					background-color: $cobalt-10;
-					border: 1px solid $cobalt-30;
-					box-shadow: 0 1px 5px -1px rgba(0, 0, 0, 0.1333333333);
-					@include prefix(border-radius, $homepage-card-border-radius);
-					// box-shadow: none;
-					// border: none;
-					// display: flex;
-					// flex-direction: column;
 			
 					.section-header {
 						color: #416485;
@@ -779,14 +930,21 @@ body[data-path="/"]>#application>#layout {
 
 
 	@media screen and (min-width: 992px) {
-		.about-consortium {
-			&-links {
-				gap: 20px;
-
-				.link-container {
-					flex: 1;
-					a {
-						margin-bottom: auto;
+		.homepage-contents {
+			.container {
+				.notifications-panel {
+					flex-direction: row;
+					.about-consortium {
+						&-links {
+							gap: 20px;
+			
+							.link-container {
+								flex: 1;
+								a {
+									margin-bottom: auto;
+								}
+							}
+						}
 					}
 				}
 			}
@@ -804,15 +962,20 @@ body[data-path="/"]>#application>#layout {
 					flex-direction: column;
 					justify-content: flex-start;
 					gap: 50px;
+					margin-bottom: auto;
 					padding: 40px 18px;
 					background-color: $cobalt-10;
 					height: 100%;
 					right: 0px;
 					width: 300px;
+					border-right: none;
+					border-bottom: none;
 					border-left: 1px solid #A9A9FF;
 					border-top: 1px solid #A9A9FF;
 					border-radius: 34px 0px 0px 0px;
+					box-shadow: 0px 0px 10px 5px #cfdefb66;
 					animation: from-right 100ms;
+					
 
 
 					@keyframes from-right {
@@ -823,80 +986,6 @@ body[data-path="/"]>#application>#layout {
 							transform: translateX(0);
 						}
 					}
-
-					.section {
-						display: flex;
-						flex-direction: column;
-
-						&-header {
-							font-size: 1.25rem;
-							color: $homepage-header-text-color;
-							font-weight: 600;
-							margin-bottom: 1rem;
-						}
-						&-body {
-							padding: 8px;
-							border: 1px solid #8C9EFE;
-							border-radius: 6px;
-						}
-
-						&.data-release-tracker {
-							display: flex;
-							.section-body {
-								background-color: white;
-							}
-						}
-						&.announcements {
-							display: flex;
-
-							.section-body {
-								background-color: #EEF6FE;
-								
-								.announcement-container {
-									background-color: white;
-									padding: 8px;
-									font-size: 0.75rem;
-									border-radius: 6px;
-									border: 1px solid #C0CAFF;
-									color: #485983;
-								}
-							}
-						}
-						&.about-consortium {
-							display: flex;
-							flex-direction: column;
-							padding: 0px;
-							border: none;
-							box-shadow: none;
-
-							.section-header {
-								color: $homepage-header-text-color;
-							}
-
-							.section-body {
-								padding: 0px;
-								background-color: transparent;
-								border: none;
-
-								.about-consortium-links {
-									flex-direction: column;
-									gap: 10px;
-									
-									.link-container {
-										a {
-											width: 100%;
-											margin-bottom: 0px;
-										}
-									}
-								}
-							}
-							
-						}
-
-					}
-
-					
-					
 				}
 			}
 		}
@@ -908,6 +997,12 @@ body[data-path="/"]>#application>#layout {
 				.notifications-panel {
 					width: 400px;
 					padding: 38px 27px;
+
+					.section.data-release-tracker {
+						.section-body {
+							padding: 30px 20px;
+						}
+					}
 				}
 			}
 		}

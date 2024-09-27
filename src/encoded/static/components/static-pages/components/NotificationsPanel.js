@@ -1,21 +1,78 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
 
-export const NotificationsPanel = ({ alerts }) => {
+const announcements = [
+    {
+        title: 'Note',
+        body: 'The raw sequence files, i.e. unaligned BAM and FASTQ, and the data from the benchmarking tissue samples that were not distributed by TPC will be available upon request at this time (through Globus).',
+    },
+    {
+        title: 'New Features',
+        body: 'The SMaHT Data Portal, V1 Benchmarking release, now makes benchmarking data available for download for authenticated consortium members. Users can continue to obtain the access keys for metadata submission.',
+    },
+    {
+        title: 'Attention Users',
+        body: 'The V1 Benchmarking data portal will be open to SMaHT consortium members only at this time.',
+    },
+];
+
+const AnnouncementCard = ({ title = '', body = '' }) => {
+    return (
+        <div className="announcement-container">
+            <h5 className="header">{title}</h5>
+            <p className="body">{body}</p>
+        </div>
+    );
+};
+
+// const dataReleaseItems = [
+//     {
+//         header:
+//     }
+// ]
+
+const DataReleaseItem = () => {
+    return (
+        <div className="data-release-item-container">
+            <div className="content">
+                <div className="header">
+                    <span>August 1, 2024</span>
+                    <span className="count">15 Files</span>
+                </div>
+                <div className="body">
+                    <h6 className="title">COLO829T</h6>
+                    <ul>
+                        <li>10 Illumina Bulk WGS BAM files</li>
+                    </ul>
+                    <h6 className="title">Donor ST003 - Brain</h6>
+                    <ul>
+                        <li>5 Illumina Bulk WGS BAM files</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export const NotificationsPanel = () => {
     return (
         <div className="notifications-panel container">
             <div className="data-release-tracker section">
                 <h3 className="section-header">Data Release Tracker</h3>
-                <div className="section-body"></div>
+                <div className="section-body">
+                    <DataReleaseItem />
+                    <DataReleaseItem />
+                </div>
             </div>
             <div className="announcements section">
                 <h3 className="section-header">Announcements</h3>
                 <div className="section-body">
-                    {alerts.map((alert, index) => {
+                    {announcements.map((announcement, index) => {
                         return (
-                            <div className="announcement-container">
-                                {alert.message}
-                            </div>
+                            <AnnouncementCard
+                                title={announcement.title}
+                                body={announcement.body}
+                            />
                         );
                     })}
                 </div>
