@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.98.1
+0.99.1
 ======
 `PR246: feat: homepage updates <https://github.com/smaht-dac/smaht-portal/pull/246>`_
 * Implement new announcements panel
