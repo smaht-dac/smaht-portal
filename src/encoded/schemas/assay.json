@@ -81,7 +81,7 @@
             "enum": [
                 "Bulk WGS",
                 "WGA",
-                "Duplex-sewq WGS",
+                "Duplex-seq WGS",
                 "Single-cell WGS",
                 "Bulk RNA-seq",
                 "Single-cell RNA-seq",
