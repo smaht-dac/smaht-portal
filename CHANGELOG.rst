@@ -15,6 +15,7 @@ Change Log
 * Fix `age` maximum to 89 for Donor
 * Add property `rna_seq_protocol` to LibraryPreparation and adjust enums for `insert_selection_method`
 
+
 0.99.1
 ======
 `PR264: SN remove tissue from cell culture  <https://github.com/smaht-dac/smaht-portal/pull/264>`_
