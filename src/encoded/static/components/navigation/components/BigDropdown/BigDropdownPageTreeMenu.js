@@ -34,7 +34,7 @@ export function BigDropdownPageTreeMenuIntroduction(props) {
             {...{ windowHeight, windowWidth, titleIcon, isActive }}>
             <h4 className="mt-0 mb-0">
                 {linkToTopLevelDirPage ? (
-                    <a href={'/' + pathName} className="link-underline link-underline-opacity-0">{display_title}</a>
+                    <a href={'/' + pathName}>{display_title}</a>
                 ) : (
                     display_title
                 )}
@@ -147,7 +147,7 @@ export function BigDropdownPageTreeMenu(props) {
                           return (
                               <a
                                   className={
-                                      'level-2-title text-small link-underline link-underline-opacity-0' +
+                                      'level-2-title text-small' +
                                       (urlParts.pathname.indexOf(
                                           childLevel2.identifier
                                       ) > -1
@@ -212,7 +212,7 @@ function Level1Title({ childPageItem, active, disableLinks }) {
     return (
         <div className={'level-1-title-container' + (active ? ' active' : '')}>
             <a
-                className="level-1-title text-medium link-underline link-underline-opacity-0"
+                className="level-1-title text-medium"
                 href={'/' + identifier}
                 data-tip={description}
                 data-delay-show={500}
@@ -250,19 +250,19 @@ function CustomStaticLinks({ pathName, href }) {
 
                                 <div className="level-3">
                                     <a
-                                        className="level-3-title text-small d-block link-underline link-underline-opacity-0"
+                                        className="level-3-title text-small d-block"
                                         href="/data/benchmarking/COLO829"
                                         id="menutree-linkto-colo829_page">
                                         <span>COLO829</span>
                                     </a>
                                     <a
-                                        className="level-3-title text-small d-block link-underline link-underline-opacity-0"
+                                        className="level-3-title text-small d-block"
                                         href="/data/benchmarking/HapMap"
                                         id="menutree-linkto-hapmap_page">
                                         <span>HapMap</span>
                                     </a>
                                     <a
-                                        className="level-3-title text-small d-block link-underline link-underline-opacity-0"
+                                        className="level-3-title text-small d-block"
                                         href="/data/benchmarking/iPSC-fibroblasts"
                                         id="menutree-linkto-ipscfirbro_page">
                                         <span>iPSC and Fibroblasts</span>
@@ -277,25 +277,25 @@ function CustomStaticLinks({ pathName, href }) {
                                 </div>
                                 <div className="level-3">
                                     <a
-                                        className="level-3-title text-small d-block link-underline link-underline-opacity-0"
+                                        className="level-3-title text-small d-block"
                                         href="/data/benchmarking/donor-st001"
                                         id="menutree-linkto-lung_page">
                                         <span>Donor ST001</span>
                                     </a>
                                     <a
-                                        className="level-3-title text-small d-block link-underline link-underline-opacity-0"
+                                        className="level-3-title text-small d-block"
                                         href="/data/benchmarking/donor-st002"
                                         id="menutree-linkto-liver_page">
                                         <span>Donor ST002</span>
                                     </a>
                                     <a
-                                        className="level-3-title text-small d-block link-underline link-underline-opacity-0"
+                                        className="level-3-title text-small d-block"
                                         href="/data/benchmarking/donor-st003"
                                         id="menutree-linkto-liver_page">
                                         <span>Donor ST003</span>
                                     </a>
                                     <a
-                                        className="level-3-title text-small d-block link-underline link-underline-opacity-0"
+                                        className="level-3-title text-small d-block"
                                         href="/data/benchmarking/donor-st004"
                                         id="menutree-linkto-liver_page">
                                         <span>Donor ST004</span>
@@ -325,7 +325,7 @@ function CustomStaticLinks({ pathName, href }) {
 
                                 <div className="level-3">
                                     <a
-                                        className="level-3-title text-small d-block link-underline link-underline-opacity-0"
+                                        className="level-3-title text-small d-block"
                                         href="/data/analysis/colo829-snv-indel-detection"
                                         id="menutree-linkto-lung_page">
                                         <span>

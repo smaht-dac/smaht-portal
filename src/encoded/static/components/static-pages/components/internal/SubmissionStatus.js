@@ -219,7 +219,7 @@ class SubmissionStatusComponent extends React.PureComponent {
             <React.Fragment>
                 <a
                     href="#"
-                    className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
+                    className="link-underline-hover"
                     onClick={(e) =>
                         this.handleToggleCommentInputField(e, fs.uuid)
                     }>

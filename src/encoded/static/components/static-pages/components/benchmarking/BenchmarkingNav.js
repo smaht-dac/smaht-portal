@@ -231,7 +231,7 @@ const BenchmarkingUINavLink = (props) => {
             className={`sidenav-link ${isActive ? 'active' : ''} ${
                 isTop ? 'top' : ''
             } ${cls}`}>
-            <a className="link-underline link-underline-opacity-0 link-underline-opacity-100-hover" {...{ href }}>{title}</a>
+            <a className="link-underline-hover" {...{ href }}>{title}</a>
         </li>
     );
 };

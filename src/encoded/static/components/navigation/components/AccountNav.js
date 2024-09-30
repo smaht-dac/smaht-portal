@@ -170,7 +170,7 @@ function UserActionsMenu(props) {
                 }
                 key={actionID}>
                 <a
-                    className="level-1-title text-medium d-block link-underline link-underline-opacity-0"
+                    className="level-1-title text-medium d-block"
                     href={getActionURL(action, href)}
                     id={'menutree-linkto-' + targetHref.replace(/\//g, '_')}>
                     {prepend}
@@ -186,7 +186,7 @@ function UserActionsMenu(props) {
             className="mb-0 border-0"
             {...{ windowWidth, windowHeight }}>
             <h4 className="mb-0 mt-0 text-truncate">
-                <a href={viewProfileURL} className="link-underline link-underline-opacity-0">{introTitle}</a>
+                <a href={viewProfileURL}>{introTitle}</a>
             </h4>
             <div className="description">Manage your account</div>
         </BigDropdownIntroductionWrapper>
@@ -213,7 +213,7 @@ function LogoutLink({ performLogout, isLoading = false }) {
     return (
         <div className="level-1-title-container">
             <a
-                className="level-1-title text-medium d-block link-underline link-underline-opacity-0"
+                className="level-1-title text-medium d-block"
                 onClick={performLogout}
                 id="logoutbtn"
                 href="#">

@@ -402,6 +402,15 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 				}
 			}
 		}
+
+		a {
+			text-decoration: none;
+			text-underline-offset: 0.125em;
+		
+			&:hover {
+				text-decoration: underline !important;
+			}
+		}
 	}
 }
 

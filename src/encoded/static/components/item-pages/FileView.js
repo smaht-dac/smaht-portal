@@ -64,7 +64,7 @@ const FileViewTitle = (props) => {
                             <li className="breadcrumb-list-item" key={i}>
                                 <a
                                     className={
-                                        'breadcrumb-list-item-link link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover' +
+                                        'breadcrumb-list-item-link link-underline-hover' +
                                         (href ? '' : ' no-link')
                                     }
                                     href={href}>
@@ -123,7 +123,7 @@ const FileViewHeader = (props) => {
                     <span className="vertical-divider">|</span>
                     <ViewJSONAction href={context['@id']}>
                         <a
-                            className="view-json link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover"
+                            className="view-json link-underline-hover"
                             aria-label="Open JSON code in new tab"
                             tabIndex="0">
                             <i className="icon icon-file-code far"></i>

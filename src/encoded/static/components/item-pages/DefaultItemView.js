@@ -255,7 +255,7 @@ export default class DefaultItemView extends React.PureComponent {
                         message: (
                             <span>
                                 You have been redirected from{' '}
-                                <a href={ourOldItem['@id']} className="link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover">
+                                <a href={ourOldItem['@id']} className="link-underline-hover">
                                     {redirected_from_accession}
                                 </a>
                                 , which this item ({context.accession})
@@ -639,7 +639,7 @@ const ItemActionsTabMenu = React.memo(function ItemActionsTabMenu(props) {
             );
         }
         return (
-            <a className="menu-option link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover" key={name || idx} href={href}>
+            <a className="menu-option link-underline-hover" key={name || idx} href={href}>
                 {innerTitle}
             </a>
         );
@@ -689,7 +689,7 @@ function ViewJSONAction({ href, children }) {
 const ViewJSONMenuOption = React.memo(function ViewJSONMenuOption({ href }) {
     return (
         <ViewJSONAction href={href}>
-            <a className="menu-option link-offset-2 link-underline link-underline-opacity-0 link-underline-opacity-100-hover" href="#">
+            <a className="menu-option link-underline-hover" href="#">
                 <div className="row">
                     <div className="col-auto icon-container">
                         <i className="icon icon-fw fas icon-code" />
