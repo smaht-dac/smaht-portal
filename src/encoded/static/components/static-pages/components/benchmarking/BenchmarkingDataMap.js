@@ -80,6 +80,34 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829blt_in_silico',
             },
+            {
+                eventKey: '#truthset',
+                title: 'Truth Set',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829_snv_indel_challenge_data&tags=truth_set',
+                facetsToHide: [
+                    'dataset',
+                    'file_sets.libraries.analytes.samples.sample_sources.code',
+                    'status',
+                    'validation_errors.name',
+                    'file_sets.libraries.assay.display_title',
+                    'file_sets.sequencing.sequencer.display_title',
+                    'sequencing_center.display_title',
+                    'software.display_title',
+                    'tags',
+                ],
+                columns: {
+                    '@type': {},
+                    access_status: {},
+                    annotated_filename: {},
+                    data_type: {},
+                    'file_format.display_title': {},
+                    data_category: {},
+                    'submission_centers.display_title': {},
+                    date_created: {},
+                    file_size: {},
+                },
+            },
         ],
         callout: (
             <div className="callout warning">
