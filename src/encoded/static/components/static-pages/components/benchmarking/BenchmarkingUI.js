@@ -36,17 +36,7 @@ export const BenchmarkingLayout = ({
                             (showInformation ? ' expanded' : ' collapsed')
                         }
                         id="benchmarking-page-description-container">
-                        <div className={cls}>
-                            {description}
-                            <p className="disclaimer">
-                                <span className="">Note:</span> The raw sequence
-                                files, i.e. unaligned BAM and FASTQ, and the
-                                data from the benchmarking tissue samples that
-                                were not distributed by TPC will be available
-                                upon request at this time &#40;through
-                                Globus&#41;.
-                            </p>
-                        </div>
+                        <div className={cls}>{description}</div>
                         {callout}
                         <button
                             type="button"
