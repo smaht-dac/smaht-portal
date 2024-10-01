@@ -1622,6 +1622,15 @@ File Overview Styles
 										.value {
 											text-align: left;
 										}
+
+										a {
+											text-decoration: none;
+											text-underline-offset: 0.125em;
+
+											&:hover {
+												text-decoration: underline !important;
+											}
+										}
 									}
 			
 									&[data-first-visible-column]{
