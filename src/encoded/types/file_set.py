@@ -64,16 +64,21 @@ def _build_file_set_embedded_list():
         # Sequencing/Sequencer LinkTo - used in file_merge_group
         "sequencing.submitted_id",
         "sequencing.target_coverage",
+        "sequencing.target_read_count",
         "sequencing.read_type",
         "sequencing.target_read_length",
         "sequencing.flow_cell",
         "sequencing.sequencer.identifier",
 
+        "files.accession",
         "files.o2_path",
         "files.upload_key",
         "files.file_format.display_title",
         "files.file_status_tracking",
+        "files.quality_metrics.overall_quality_status",
+        
         "meta_workflow_runs.meta_workflow.display_title",
+        "meta_workflow_runs.meta_workflow.category",
         "meta_workflow_runs.accession",
         "meta_workflow_runs.final_status",
         "meta_workflow_runs.date_created",

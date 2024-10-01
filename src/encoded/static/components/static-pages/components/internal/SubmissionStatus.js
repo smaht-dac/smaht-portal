@@ -12,6 +12,10 @@ import {
     getLink,
     createBadge,
     createWarningIcon,
+    getQcResults,
+    getQcResultsSummary,
+    getCommentsList,
+    getTargetCoverage
 } from './submissionStatusUtils';
 
 import {
@@ -21,6 +25,10 @@ import {
 } from './submissionStatusConfig';
 
 import { SubmissionStatusFilter } from './SubmissionStatusFilter';
+
+import { FileGroupQCModal } from './SubmissionStatusFileGroupQcModal';
+
+import * as d3 from 'd3';
 
 class SubmissionStatusComponent extends React.PureComponent {
     constructor(props) {
@@ -38,9 +46,11 @@ class SubmissionStatusComponent extends React.PureComponent {
             fileSetIdSearch: '',
             numTotalFileSets: 0,
             visibleCommentInputs: [],
+            submittedFilesVisibility: [],
             comments: {},
             newComments: {},
             isUserAdmin: userDetails.details.groups?.includes('admin'),
+            modal: null,
         };
     }
 
@@ -263,14 +273,14 @@ class SubmissionStatusComponent extends React.PureComponent {
         }));
     };
 
-    removeComment = (fs, comment) => {
+    removeComment = (fsUuid, comment) => {
         this.setState((prevState) => ({
             loading: true,
         }));
         const filesets = JSON.parse(JSON.stringify(this.state.fileSets));
         let newCommentsForRelevantFileset = [];
         filesets.forEach((fileset) => {
-            if (fileset.uuid === fs.uuid) {
+            if (fileset.uuid === fsUuid) {
                 newCommentsForRelevantFileset = fileset.comments ?? [];
                 newCommentsForRelevantFileset =
                     newCommentsForRelevantFileset.filter(function (e) {
@@ -279,7 +289,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 fileset['comments'] = newCommentsForRelevantFileset;
             }
         });
-        this.patchComment(fs.uuid, filesets, newCommentsForRelevantFileset);
+        this.patchComment(fsUuid, filesets, newCommentsForRelevantFileset);
     };
 
     addComment = (fs) => {
@@ -351,6 +361,20 @@ class SubmissionStatusComponent extends React.PureComponent {
         );
     };
 
+    toggleSubmittedFiles = (fileset) => {
+        const sfv = [...this.state.submittedFilesVisibility];
+        if (sfv.includes(fileset.uuid)) {
+            const index = sfv.indexOf(fileset.uuid);
+            sfv.splice(index, 1);
+        } else {
+            sfv.push(fileset.uuid);
+        }
+
+        this.setState((prevState) => ({
+            submittedFilesVisibility: sfv,
+        }));
+    };
+
     patchComment = (fs_uuid, filesets, comments) => {
         const payload = {
             comments: comments,
@@ -358,35 +382,30 @@ class SubmissionStatusComponent extends React.PureComponent {
         this.patchFileset(fs_uuid, filesets, payload);
     };
 
-    getComments = (fs) => {
-        const fs_comments = fs.comments;
-        if (!fs_comments) {
+    toggleFileGroupQc = (fs, reload=false) => {
+        if (this.state.modal) {
+            this.setState({
+                modal: null,
+            });
+            if(reload){
+                this.refresh();
+            }
             return;
         }
-        const comments = [];
-        fs_comments.forEach((c) => {
-            const trashSymbol = this.state.isUserAdmin ? (
-                <span
-                    className="far icon icon-fw icon-trash-alt text-muted ps-1 clickable"
-                    onClick={() => this.removeComment(fs, c)}></span>
-            ) : (
-                ''
-            );
-            comments.push(
-                <li className="ss-line-height-140">
-                    <strong>{c}</strong>
-                    {trashSymbol}
-                </li>
-            );
+        this.setState({
+            modal: (
+                <FileGroupQCModal
+                    closeModal={this.toggleFileGroupQc}
+                    fileSet={fs}
+                    isUserAdmin={this.state.isUserAdmin}></FileGroupQCModal>
+            ),
         });
-
-        return <ul>{comments}</ul>;
     };
 
     getSubmissionTableBody = () => {
         const tbody = this.state.fileSets.map((fs) => {
             const sequencer = fs.sequencing?.sequencer;
-            const targeCoverage = fs.sequencing?.target_coverage || 'NA';
+            const targetCoverage = getTargetCoverage(fs.sequencing);
             const status_badge_type =
                 fs.status == 'released' ? 'success' : 'warning';
             const status = createBadge(status_badge_type, fs.status);
@@ -394,8 +413,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 <li className="ss-line-height-140">Status: {status}</li>,
                 <li className="ss-line-height-140">
                     Sequencer:{' '}
-                    {getLink(sequencer?.uuid, sequencer?.display_title)} (Target
-                    coverage: {targeCoverage}x)
+                    {getLink(sequencer?.uuid, sequencer?.display_title)} ({targetCoverage})
                 </li>,
             ];
 
@@ -427,7 +445,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                     <ul>
                         {fs_details}
                         {this.getCommentInputField(fs)}
-                        {this.getComments(fs)}
+                        {getCommentsList(fs.uuid, fs.comments, this.state.isUserAdmin, this.removeComment)}
                     </ul>
                 </small>
             );
@@ -493,11 +511,21 @@ class SubmissionStatusComponent extends React.PureComponent {
                 }
             });
 
+            const submittedFilesQc = getQcResults(fs.submitted_files.qc_infos);
+            const submittedFilesQcSummary = getQcResultsSummary(
+                fs.submitted_files.qc_infos
+            );
+
+            const areSubmittedFilesExpanded =
+                this.state.submittedFilesVisibility.includes(fs.uuid);
+
+            const outputFilesQc = getQcResults(fs.output_files.qc_infos, true);
+
             return (
                 <tr key={fs.accession}>
                     <td
                         className="p-0"
-                        data-tip={'File group: ' + fs.file_group}
+                        data-tip={'File group: ' + fs.file_group_str}
                         style={{
                             backgroundColor: fs.file_group_color,
                             width: '5px',
@@ -533,18 +561,38 @@ class SubmissionStatusComponent extends React.PureComponent {
                         </small>
                     </td>
                     <td>
-                        <div className="ss-line-height-140">
-                            {fs.submitted_files.num_files_copied_to_o2 ==
-                            fs.submitted_files.num_fileset_files
-                                ? ''
-                                : createWarningIcon()}
-                            {fs.submitted_files.num_files_copied_to_o2} /{' '}
-                            {fs.submitted_files.num_fileset_files} files
-                        </div>
+                        <small className="d-block text-secondary ss-line-height-140">
+                            Submitted files / QC
+                            <span
+                                className={
+                                    areSubmittedFilesExpanded
+                                        ? 'far icon icon-fw icon-minus-square ps-1 clickable'
+                                        : 'far icon icon-fw icon-plus-square ps-1 clickable'
+                                }
+                                onClick={() =>
+                                    this.toggleSubmittedFiles(fs)
+                                }></span>
+                        </small>
+                        <small className="ss-line-height-140 mt-1">
+                            {areSubmittedFilesExpanded
+                                ? submittedFilesQc
+                                : submittedFilesQcSummary}
+                        </small>
 
-                        <div className="ss-line-height-140 small">
-                            have O2 path set
-                        </div>
+                        <small className="d-block text-secondary ss-line-height-140 mt-1">
+                            Processed files / QC
+                        </small>
+                        <small className="ss-line-height-140 mt-1">
+                            {outputFilesQc}
+                        </small>
+
+                        <small className="d-block text-secondary ss-line-height-140 mt-2">
+                            <div
+                                className='ss-link'
+                                onClick={() => this.toggleFileGroupQc(fs)}>
+                                Review File Group QC
+                            </div>
+                        </small>
                     </td>
                     <td>
                         <div className="p-1">{mwfrs}</div>
@@ -615,7 +663,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 </div>
                             </th>
                             <th className="text-start">Submission</th>
-                            <th className="text-start">O2 status</th>
+                            <th className="text-start">QC status</th>
                             <th className="text-start">MetaWorkflowRuns</th>
                             <th className="text-start">
                                 Tags{' '}
@@ -629,6 +677,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                     </thead>
                     <tbody>{this.getSubmissionTableBody()}</tbody>
                 </table>
+                {this.state.modal}
             </React.Fragment>
         );
     }
