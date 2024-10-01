@@ -1,7 +1,10 @@
 'use strict';
 
 import React from 'react';
-import { bytesToLargerUnit } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
+import {
+    bytesToLargerUnit,
+    capitalizeSentence,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 
 /**
@@ -41,6 +44,18 @@ const DataCard = ({ header = '', data = [] }) => {
  * Used to populate the data cards in the FileViewDataCards component.
  */
 const file_properties = [
+    {
+        title: 'Status',
+        getProp: (context = {}) => (
+            <>
+                <i
+                    className="status-indicator-dot mr-07"
+                    data-status={context?.status}
+                />
+                {capitalizeSentence(context?.status)}
+            </>
+        ),
+    },
     {
         title: 'Annotated Name',
         getProp: (context = {}) =>

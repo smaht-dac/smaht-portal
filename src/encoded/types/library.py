@@ -1,5 +1,6 @@
 from snovault import collection, load_schema
 from snovault.util import debug_log, get_item_or_none
+from encoded.validator_decorators import link_related_validator
 
 from pyramid.view import view_config
 
@@ -49,6 +50,7 @@ class Library(SubmittedItem):
     class Collection(Item.Collection):
         pass
 
+@link_related_validator
 def validate_molecule_specific_assay_on_add(context, request):
     """Check that analyte.molecule includes the correct molecule for molecule-specific assays.
     
