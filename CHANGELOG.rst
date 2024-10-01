@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.99.3
+======
+`PR 231: Bm file overview updates <https://github.com/smaht-dac/smaht-portal/pull/231>`_
+
+* Change warning banner on COLO829
+* Improve status indicators to File Overview Page
+* Add support for tsv notes
+* Ajax in related files to display status indicator warning for files with obsolete & retracted statuses and available notes
+
+
 0.99.2
 ======
 `PR 242: BM colo829 truth set <https://github.com/smaht-dac/smaht-portal/pull/242>`_

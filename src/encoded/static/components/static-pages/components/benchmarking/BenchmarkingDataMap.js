@@ -113,13 +113,24 @@ export const BenchmarkingDataMap = {
             <div className="callout warning">
                 <p className="callout-text">
                     <span className="flag">Attention: </span>
-                    <span className="headline">
-                        Illumina WGS BAMs from COLO829-BL, COLO829-T, and
-                        COLO829-BLT50 from UW have been reprocessed{' '}
-                    </span>
-                    to include the local realignment step. If you downloaded
-                    these datasets <u>before May 6</u>, please download them
-                    again for your benchmarking analyses.
+                    The{' '}
+                    <a
+                        href="/SMAFI557D2E7"
+                        target="_blank"
+                        rel="noreferrer noopener">
+                        original BAM file
+                    </a>{' '}
+                    of COLO829-T standard ONT WGS data{' '}
+                    <strong>
+                        was retracted due to missing methylation tags
+                    </strong>
+                    . The replacement BAM with proper tags is made{' '}
+                    <a
+                        href="/SMAFIB6EQLZM"
+                        target="_blank"
+                        rel="noreferrer noopener">
+                        available here.
+                    </a>
                 </p>
             </div>
         ),
