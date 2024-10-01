@@ -639,7 +639,7 @@ const ItemActionsTabMenu = React.memo(function ItemActionsTabMenu(props) {
             );
         }
         return (
-            <a className="menu-option link-underline-hover" key={name || idx} href={href}>
+            <a className="menu-option" key={name || idx} href={href}>
                 {innerTitle}
             </a>
         );
@@ -689,7 +689,7 @@ function ViewJSONAction({ href, children }) {
 const ViewJSONMenuOption = React.memo(function ViewJSONMenuOption({ href }) {
     return (
         <ViewJSONAction href={href}>
-            <a className="menu-option link-underline-hover" href="#">
+            <a className="menu-option" href="#">
                 <div className="row">
                     <div className="col-auto icon-container">
                         <i className="icon icon-fw fas icon-code" />
