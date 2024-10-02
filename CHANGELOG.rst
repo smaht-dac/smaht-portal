@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.100.0
+======
+`PR260: SN Add assay and vcf properties <https://github.com/smaht-dac/smaht-portal/pull/260>`_
+* Add property 'category' to Assay
+* Add property `mode` to VariantCalls
+* Fix `age` maximum to 89 for Donor
+* Add property `rna_seq_protocol` to LibraryPreparation and adjust enums for `insert_selection_method`
+
+
 0.99.3
 ======
 `PR 231: Bm file overview updates <https://github.com/smaht-dac/smaht-portal/pull/231>`_

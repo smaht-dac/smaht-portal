@@ -127,6 +127,15 @@
                 "type": "string"
             }
         },
+        "mode": {
+            "title": "Mode",
+            "description": "Mode used for variant calling",
+            "type": "string",
+            "enum": [
+                "Paired",
+                "Single Sample"
+            ]
+        },
         "schema_version": {
             "default": "2"
         },
