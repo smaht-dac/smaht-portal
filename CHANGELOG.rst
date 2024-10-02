@@ -7,6 +7,33 @@ smaht-portal
 Change Log
 ----------
 
+0.100.0
+======
+`PR260: SN Add assay and vcf properties <https://github.com/smaht-dac/smaht-portal/pull/260>`_
+* Add property 'category' to Assay
+* Add property `mode` to VariantCalls
+* Fix `age` maximum to 89 for Donor
+* Add property `rna_seq_protocol` to LibraryPreparation and adjust enums for `insert_selection_method`
+
+
+0.99.3
+======
+`PR 231: Bm file overview updates <https://github.com/smaht-dac/smaht-portal/pull/231>`_
+
+* Change warning banner on COLO829
+* Improve status indicators to File Overview Page
+* Add support for tsv notes
+* Ajax in related files to display status indicator warning for files with obsolete & retracted statuses and available notes
+
+
+0.99.2
+======
+`PR 242: BM colo829 truth set <https://github.com/smaht-dac/smaht-portal/pull/242>`_
+
+* Add COLO829 Truth Set Tab to benchmarking page
+* Add a way to change facets and columns from BenchmarkingDataMap
+
+
 0.99.1
 ======
 `PR264: SN remove tissue from cell culture  <https://github.com/smaht-dac/smaht-portal/pull/264>`_
