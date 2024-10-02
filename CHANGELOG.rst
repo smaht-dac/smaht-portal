@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.101.0
+======
+`PR267: SN Add target_read_count <https://github.com/smaht-dac/smaht-portal/pull/267>`_
+* Add `target_read_count` to File `data_generation_summary`
+
+
 0.100.0
 ======
 `PR260: SN Add assay and vcf properties <https://github.com/smaht-dac/smaht-portal/pull/260>`_
