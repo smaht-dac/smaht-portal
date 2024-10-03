@@ -13,6 +13,12 @@ Change Log
 * Add `target_read_count` to File `data_generation_summary`
 
 
+0.100.1
+=====
+`PR268: SN Validator Fix <https://github.com/smaht-dac/smaht-portal/pull/268>`_
+* Add decorator link_related_validator to edit validators as well as add
+
+
 0.100.0
 ======
 `PR260: SN Add assay and vcf properties <https://github.com/smaht-dac/smaht-portal/pull/260>`_
