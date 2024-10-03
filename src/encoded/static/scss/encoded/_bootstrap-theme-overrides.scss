@@ -99,7 +99,7 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 }
 
 // Note: Temporary; use btn-sm styling for buttons on tablet and mobile
-@media (max-width: 576px) {
+@include media-breakpoint-down(sm){
 	.btn {
 		@include button-size(1px, 5px, 0.825rem, 1.5);
 		font-weight: 400;

@@ -797,7 +797,7 @@ export default class App extends React.PureComponent {
                 JWT.remove();
             } else if (session === true && existingSession === false) {
                 // Remove lingering 'logged out' alerts if have logged in.
-                Alerts.deQueue([Alerts.LoggedOut/*, NotLoggedInAlert*/]);
+                Alerts.deQueue([Alerts.LoggedOut, NotLoggedInAlert]);
             }
             if (typeof callback === 'function') {
                 callback(session, userInfo);
