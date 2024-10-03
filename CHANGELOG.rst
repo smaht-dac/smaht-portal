@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.100.1
+======
+`PR259: fix: only show target coverage for wgs bam files <https://github.com/smaht-dac/smaht-portal/pull/259>`_
+* Use default properties
+* Only show total target coverage for wgs bam
+
+
 0.100.0
 ======
 `PR260: SN Add assay and vcf properties <https://github.com/smaht-dac/smaht-portal/pull/260>`_
