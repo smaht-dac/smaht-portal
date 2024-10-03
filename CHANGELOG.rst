@@ -7,11 +7,56 @@ smaht-portal
 Change Log
 ----------
 
+0.100.0
+======
+`PR260: SN Add assay and vcf properties <https://github.com/smaht-dac/smaht-portal/pull/260>`_
+* Add property 'category' to Assay
+* Add property `mode` to VariantCalls
+* Fix `age` maximum to 89 for Donor
+* Add property `rna_seq_protocol` to LibraryPreparation and adjust enums for `insert_selection_method`
+
+
+0.99.3
+======
+`PR 231: Bm file overview updates <https://github.com/smaht-dac/smaht-portal/pull/231>`_
+
+* Change warning banner on COLO829
+* Improve status indicators to File Overview Page
+* Add support for tsv notes
+* Ajax in related files to display status indicator warning for files with obsolete & retracted statuses and available notes
+
+
+0.99.2
+======
+`PR 242: BM colo829 truth set <https://github.com/smaht-dac/smaht-portal/pull/242>`_
+
+* Add COLO829 Truth Set Tab to benchmarking page
+* Add a way to change facets and columns from BenchmarkingDataMap
+
+
+0.99.1
+======
+`PR264: SN remove tissue from cell culture  <https://github.com/smaht-dac/smaht-portal/pull/264>`_
+* Remove tissue link from CellCulture as part of switch to TissueSample link
+
+
+0.99.0
+======
+`PR261: Bring QC information to the Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/261>`_
+* New version of Submission Status page
+
+
+0.98.0
+======
+`PR256: SN Write automated example <https://github.com/smaht-dac/smaht-portal/pull/256>`_
+* In `commands/write_submission_spreadsheets.py`:
+  * Add argument `--example` that will pull metadata from a template uuid to fill out an example submission spreadsheet for the current schema
+
+
 0.97.1
 ======
-`PR259: fix: only show target coverage for wgs bam files <https://github.com/smaht-dac/smaht-portal/pull/259>`_
-* Use default properties
-* Only show total target coverage for wgs bam
+`PR257: SN Update DSA calc_prop <https://github.com/smaht-dac/smaht-portal/pull/257>`_
+* Change DSA calc prop for non-fasta files `supplementary_files`
 
 
 0.97.0
