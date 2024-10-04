@@ -17,7 +17,7 @@
     <h3>Release History</h3>
 
     <div class="table-responsive"> 
-        <table class="table table-borderless table-sm text-center">
+        <table class="table table-borderless table-sm text-start">
             <thead class="thead-smaht-purple">
                 <tr>
                     <th className="pl-1">Release Version</th>
