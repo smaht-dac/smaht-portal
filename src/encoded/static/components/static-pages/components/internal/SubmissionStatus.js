@@ -489,7 +489,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                     fs.tags && fs.tags.includes(tag) ? 'info' : 'lighter';
 
                 if (this.state.isUserAdmin) {
-                    const cn = 'badge clickable badge-' + badgeType;
+                    const cn = 'badge clickable bg-' + badgeType;
                     return (
                         <React.Fragment>
                             <div
@@ -501,7 +501,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                         </React.Fragment>
                     );
                 } else {
-                    const cn = 'badge badge-' + badgeType;
+                    const cn = 'badge bg-' + badgeType;
                     return (
                         <React.Fragment>
                             <div className={cn}>{tag}</div>

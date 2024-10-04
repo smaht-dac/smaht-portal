@@ -45,12 +45,12 @@ function isFloat(num) {
 }
 
 export const createBadge = (type, description) => {
-    const cn = 'badge text-white badge-' + type;
+    const cn = 'badge text-white bg-' + type;
     return <span className={cn}>{description}</span>;
 };
 
 export const createQcBadgeLink = (type, identifier, description) => {
-    const cn = 'badge text-white badge-' + type;
+    const cn = 'badge text-white bg-' + type;
     const href = '/' + identifier;
     const tooltip =
         description === 'NA'

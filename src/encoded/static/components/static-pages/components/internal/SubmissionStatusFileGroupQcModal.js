@@ -168,7 +168,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
             const badgeType =
                 fileSetTags && fileSetTags.includes(tag) ? 'info' : 'lighter';
 
-            const cn = 'badge clickable mx-1 badge-' + badgeType;
+            const cn = 'badge clickable mx-1 bg-' + badgeType;
             return (
                 <span
                     className={cn}

@@ -705,7 +705,7 @@ const DataDownloadOverviewStats = React.memo(function DataDownloadOverviewStats(
 const ModalCodeTabTitle = () => {
     return (
         <span className="nav-item-title">
-            AWS CLI <span className="badge badge-secondary">faster</span>
+            AWS CLI <span className="badge bg-secondary">faster</span>
         </span>
     );
 };
