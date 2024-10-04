@@ -6,7 +6,8 @@ import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/
 export const TableControllerWithSelections = (props) => {
     // Mostly serves as an intermediary/wrapper HOC to make selectedItemsController methods
     // and props available in child table's aboveTableComponent
-    const { searchHref, schemas, facets, session, href, context } = props;
+    const { searchHref, schemas, facets, session, href, context, tabMap } =
+        props;
 
     if (!searchHref) {
         return (
@@ -26,6 +27,7 @@ export const TableControllerWithSelections = (props) => {
                 href,
                 context,
                 facets,
+                tabMap,
             });
         });
     };
