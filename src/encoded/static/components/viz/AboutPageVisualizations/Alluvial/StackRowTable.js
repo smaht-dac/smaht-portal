@@ -108,7 +108,7 @@ const StackRowTopLabel = ({ assayType }) => {
                             ) : null}
                             {assayType.link && (
                                 <a
-                                    className="read-more"
+                                    className="read-more link-underline-hover"
                                     href={assayType.link}
                                     target="blank_">
                                     Read more

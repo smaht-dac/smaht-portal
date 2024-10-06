@@ -245,7 +245,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                             this.handleCommentInput(fs, e.target.value)
                         }
                     />
-                    <div className="input-group-append">
+                    <div className="input-group">
                         <div className="input-group-text">
                             <i
                                 className="fas icon icon-save clickable"

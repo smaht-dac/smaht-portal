@@ -571,6 +571,11 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 						}
 					}
 				}
+
+				>div {
+					padding-left: 10px;
+					padding-right: 10px;
+				}
 			}
 			>.modal-footer {
 				background-color: #F8F8F8;

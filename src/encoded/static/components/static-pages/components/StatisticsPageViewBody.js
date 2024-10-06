@@ -1639,7 +1639,7 @@ const AnalyticsDataTable = React.memo((props) => {
                                         e.preventDefault();
                                     }}
                                     data-tip="Show details"
-                                    className="value text-end font-weight-bold">
+                                    className="value text-end fw-bold">
                                     {roundValue(result[dataKey], valueLabel)}
                                 </a>
                             );

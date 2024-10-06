@@ -139,7 +139,7 @@ const TabTitle = ({ title, searchHref = '' }) => {
     return (
         <span className="nav-link-title">
             {title}
-            <span className="badge bg-secondary">
+            <span className="badge">
                 {fileCount === null ? '-' : fileCount}
             </span>
         </span>

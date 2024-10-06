@@ -9,7 +9,7 @@ body .__react_component_tooltip {
 	z-index: 9999 !important;
 
     max-width: 630px;
-    @include media-breakpoint-down(md) {
+    @include media-breakpoint-down(sm) {
         max-width : 400px;
     }
     @include media-breakpoint-down(md) {

@@ -2088,6 +2088,7 @@ body[data-pathname^="/data/benchmarking"] {
 			.benchmarking-nav-container {
 				display: flex;
 				min-height: calc(100vh - 236px);
+				padding: 0;
 	
 				.benchmarking-nav {
 					width: 100%;
@@ -2171,7 +2172,7 @@ body[data-pathname^="/data/benchmarking"] {
 						border: 1px solid #DEE2E6;
 						width: 26px;
 						height: 26px;
-						right: -23px;
+						right: -13px;
 						z-index: 2;
 						background-color: #FCFDFF;
 						color: #343741;

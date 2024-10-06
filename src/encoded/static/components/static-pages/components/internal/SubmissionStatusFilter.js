@@ -13,7 +13,7 @@ import {
 
 const DEFAULT_SELECT = (
     <React.Fragment>
-        <select className="custom-select" defaultValue="all">
+        <select className="form-select" defaultValue="all">
             <option value="all">All</option>
         </select>
     </React.Fragment>
@@ -97,7 +97,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         return (
             <React.Fragment>
                 <select
-                    className="custom-select"
+                    className="form-select"
                     defaultValue={defaultValue}
                     onChange={(e) =>
                         this.setFilter(filterName, e.target.value)

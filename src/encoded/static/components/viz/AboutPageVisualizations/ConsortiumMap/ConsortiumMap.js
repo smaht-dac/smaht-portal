@@ -121,7 +121,7 @@ const ConsortiumPopoverContent = ({ data }) => {
                 <h4 className="consortium-popover-header">Project</h4>
                 <div className="consortium-popover-content">{data.project}</div>
             </div>
-            <i className="d-block small">
+            <i className="d-block small fw-normal">
                 Click this marker to open the NIH project page in a new tab.
             </i>
         </div>

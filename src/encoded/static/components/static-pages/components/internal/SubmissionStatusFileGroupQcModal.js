@@ -475,7 +475,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
                             this.handleCommentInput(e.target.value)
                         }
                     />
-                    <div className="input-group-append">
+                    <div className="input-group">
                         <div className="input-group-text">
                             <i
                                 className="fas icon icon-save clickable"
