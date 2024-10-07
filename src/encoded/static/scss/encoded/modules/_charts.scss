@@ -1397,8 +1397,26 @@ $workflow-node-color-type-global-context: #ffb3b3;
                 padding-left: 0px !important;
             }
         }
+
     }
 
+}
+
+body[data-path="/statistics"] {
+    .tracking-item-viewer {
+        div[data-for-field="reports"] + div.data-display {
+            .list-item {
+                .item-label, .item-value {
+                    max-width: 100% !important;
+                    flex: 0 0 100% !important;
+                }
+                .item-label {
+                    margin-top: 20px;
+                    font-size: 110%;
+                }
+            }
+        } 
+    }
 }
 
 
