@@ -73,6 +73,7 @@ def validate_molecule_specific_assay_on_add(context, request):
     return request.validated.update({})
     
 
+@link_related_validator
 def validate_molecule_specific_assay_on_edit(context, request):
     """Check that analyte.molecule includes the correct molecule for molecule-specific assays.
     
