@@ -280,7 +280,7 @@ def get_donors(
                     request_handler, tissues, tissue.get_donor
                 )
                 + get_property_values_from_identifiers(
-                    request_handler, cell_lines, cell_line.get_donor
+                    request_handler, cell_lines, partial(cell_line.get_source_donor, request_handler)
                 )
             )
         )

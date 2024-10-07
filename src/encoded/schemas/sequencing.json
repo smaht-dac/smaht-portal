@@ -26,6 +26,11 @@
             "required": [
                 "target_read_count"
             ]
+        },
+        {
+            "required": [
+                "on_target_rate"
+            ]
         }
     ],
     "additionalProperties": false,
@@ -97,6 +102,12 @@
                 "Paired-end",
                 "Single-end"
             ]
+        },
+        "on_target_rate": {
+            "title": "On Target Rate",
+            "description": " An expected ratio, the number of reads with enrichment signals for the targeted element versus the overall reads sequenced. Relevant for target capture sequencing",
+            "type": "number",
+            "minimum": 0
         },
         "target_coverage": {
             "title": "Target Coverage",

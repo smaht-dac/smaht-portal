@@ -2248,6 +2248,24 @@ body[data-pathname^="/data/benchmarking"] {
 }
 
 /** Utilities for static page tables **/
+
+thead.thead-smaht,
+tbody.table-border-inner {
+	tr.sticky-first-column {
+		position: sticky;
+		left: 0;
+		> th:first-of-type,
+		> td:first-of-type {
+			position: sticky;
+			left: 0;
+			border-right: 1px solid rgba(0, 0, 0, 0.05);
+		}
+		> td:first-of-type {
+			background-color: #ffffff;
+		}
+	}
+}
+
 thead.thead-smaht tr>th {
 	background-color: $baby-20;
 }
@@ -2314,6 +2332,10 @@ Unique styling of Submission Status page
 .ss-line-height-140 {
     line-height: 140%;
 }
+.ss-qc-review-fixed-thead {
+    top: 0px;
+	z-index: 200 !important;
+}
 .ss-fixed-thead {
     top: 40px;
 	z-index: 200 !important;
@@ -2324,6 +2346,18 @@ Unique styling of Submission Status page
 }
 .ss-padding-top-3 {
 	padding-top: 3px;
+}
+.ss-fileset-list label{
+	font-weight: 400;
+}
+.ss-link {
+	color: #428bca;
+    text-decoration: none;
+	cursor: pointer;
+}
+.ss-link:hover {
+    color: #2a6496;
+    text-decoration: underline;
 }
 .badge-lighter {
     color: #fff;
