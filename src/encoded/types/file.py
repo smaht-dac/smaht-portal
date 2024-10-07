@@ -191,6 +191,7 @@ class CalcPropConstants:
     DATA_GENERATION_ASSAYS = "assays"
     DATA_GENERATION_SEQUENCING_PLATFORMS = "sequencing_platforms"
     DATA_GENERATION_TARGET_COVERAGE = "target_group_coverage"
+    DATA_GENERATION_TARGET_READ_COUNT = "target_read_count"
     DATA_GENERATION_SCHEMA = {
         "title": "Data Generation Summary",
         "description": "Summary of data generation",
@@ -237,6 +238,13 @@ class CalcPropConstants:
             },
             DATA_GENERATION_TARGET_COVERAGE: {
                 "title": "Target Group Coverage",
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            DATA_GENERATION_TARGET_READ_COUNT: {
+                "title": "Target Read Count",
                 "type": "array",
                 "items": {
                     "type": "string"
@@ -337,6 +345,7 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.libraries.assay",
         "file_sets.sequencing.sequencer",
         "file_sets.sequencing.target_coverage",
+        "file_sets.sequencing.target_read_count",
 
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
@@ -852,6 +861,13 @@ class File(Item, CoreFile):
                     request_handler,
                     file_utils.get_sequencings(file_properties, request_handler),
                     sequencing_utils.get_target_coverage
+                )
+            ),
+            constants.DATA_GENERATION_TARGET_READ_COUNT: (
+                get_property_values_from_identifiers(
+                    request_handler,
+                    file_utils.get_sequencings(file_properties, request_handler),
+                    sequencing_utils.get_target_read_count
                 )
             )
         }
