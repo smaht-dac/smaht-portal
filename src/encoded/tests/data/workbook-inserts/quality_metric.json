@@ -26,15 +26,6 @@
             {
                 "key": "bur",
                 "value": false
-            },
-            {
-                "key": "baz",
-                "value": [
-                    "foo",
-                    5,
-                    true,
-                    -3.5
-                ]
             }
         ]
     }
