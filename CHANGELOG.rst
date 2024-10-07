@@ -7,6 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+0.101.0
+=======
+* Added scripts/opensearch-dashboard-start.bash and Makefile target opensearch-dashboard-starto
+  now that we are using OpenSearch rather than ElasticSearch we seem to need this rather than Kibana.
+* Simplified Makefile for deploy1/1a/1b/2 for dcicsnovault 11.21.1 changes;
+  related to allowing smaht-portal and cgap-portal to run at the same time locally.
+* Added /files/upload_file_size endpoint (types/file.py); for use by smaht-submitr to determine if a file to
+  upload has already been uploaded; and get its size as a side-effect; returns HTTP 200 if found otherwise 404);
+  in particular we want to check if it has been uploaded but is still marked as 'uploading' because its md5 is
+  still in the process of being computed (i.e. otherwise we could simply look at the file status an be done with it).
+* New protection of /ingestion-status endpoint used by smaht-submitr (in ingestion/ingestion_status.py) for
+  authenticated users only; and also limit /ingestion-status/{keys,keys_sorted,flush} to admin users only.
+
+
 0.100.1
 =====
 `PR268: SN Validator Fix <https://github.com/smaht-dac/smaht-portal/pull/268>`_
