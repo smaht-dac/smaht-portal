@@ -123,9 +123,17 @@ const default_data_information = [
     {
         title: 'Dataset Target Coverage',
         getProp: (context = {}) => {
-            const cov = context?.data_generation_summary?.target_group_coverage;
-            if (cov && cov.length > 0) {
-                return cov[0] + 'X';
+            if (
+                context?.file_format?.display_title === 'bam' &&
+                context?.data_generation_summary?.assays?.some((assay) =>
+                    assay.includes('WGS')
+                )
+            ) {
+                const cov =
+                    context?.data_generation_summary?.target_group_coverage;
+                if (cov && cov.length > 0) {
+                    return cov[0] + 'X';
+                }
             }
             return null;
         },
@@ -133,9 +141,16 @@ const default_data_information = [
     {
         title: 'Dataset Target Read Count',
         getProp: (context = {}) => {
-            const cov = context?.data_generation_summary?.target_read_count;
-            if (cov && cov.length > 0) {
-                return cov[0] + 'X';
+            if (
+                context?.data_generation_summary?.assays?.some((assay) =>
+                    assay.includes('RNA-seq')
+                )
+            ) {
+                const count =
+                    context?.data_generation_summary?.target_read_count;
+                if (count && count.length > 0) {
+                    return count[0];
+                }
             }
             return null;
         },
