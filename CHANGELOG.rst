@@ -8,10 +8,9 @@ Change Log
 ----------
 
 0.100.1
-======
-`PR259: fix: only show target coverage for wgs bam files <https://github.com/smaht-dac/smaht-portal/pull/259>`_
-* Use default properties
-* Only show total target coverage for wgs bam
+=====
+`PR268: SN Validator Fix <https://github.com/smaht-dac/smaht-portal/pull/268>`_
+* Add decorator link_related_validator to edit validators as well as add
 
 
 0.100.0

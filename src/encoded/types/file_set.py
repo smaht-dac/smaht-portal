@@ -318,6 +318,7 @@ def validate_compatible_assay_and_sequencer_on_add(context, request):
     return request.validated.update({})
 
 
+@link_related_validator
 def validate_compatible_assay_and_sequencer_on_edit(context, request):
     """Check filesets to make sure they are linked to compatible library.assay and sequencing items on edit.
     
