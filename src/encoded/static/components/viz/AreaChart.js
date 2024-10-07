@@ -64,7 +64,7 @@ export class StatsViewController extends React.PureComponent {
     }
 
     performAggRequests(){
-        const { searchURIs, href } = this.props;
+        const { searchURIs, href, transformResultItems } = this.props;
         const resultStateToSet = {};
         const hrefParts = href && memoizedUrlParse(href); // href may not be passed in.
         const ownHost = hrefParts && hrefParts.host;
@@ -87,7 +87,7 @@ export class StatsViewController extends React.PureComponent {
                 failureCallback();
                 return;
             }
-            resultStateToSet['resp' + key] = resp;
+            resultStateToSet['resp' + key] = typeof transformResultItems === 'function' ? transformResultItems(resp) : resp;
             uponAllRequestsCompleteCallback();
         };
 
@@ -1236,7 +1236,10 @@ export class AreaChart extends React.PureComponent {
     }
 
     render(){
-        const { data, width, height, transitionDuration, margin, showTooltipOnHover = true } = this.props;
+        const { data, width, height, transitionDuration, margin, showTooltipOnHover = true, show = true } = this.props;
+        if (!show) {
+            return null;
+        }
         if (!data || this.state.drawingError) {
             return <div>Error</div>;
         }
