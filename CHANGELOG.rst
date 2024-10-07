@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.100.2
+======
+`PR259: fix: only show target coverage for wgs bam files <https://github.com/smaht-dac/smaht-portal/pull/259>`_
+* Use default properties
+* Only show total target coverage for wgs bam
+* Show 
+
+
 0.100.1
 =====
 `PR268: SN Validator Fix <https://github.com/smaht-dac/smaht-portal/pull/268>`_
