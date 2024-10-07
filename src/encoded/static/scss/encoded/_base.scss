@@ -124,6 +124,7 @@ $link-color: #428bca;
 /** Setup some other variables for tables, etc. **/
 $expset-table-border-color : #eee;
 
+$table-color:               #212529;
 $table-striped-bg-factor:     .05;
 $table-striped-bg:            rgba(#fff, $table-striped-bg-factor);
 
@@ -186,6 +187,11 @@ $popover-body-padding-x: .75rem;
 /* Alerts */
 $alert-padding-y: .75rem;
 $alert-padding-x: 1.25rem;
+
+/* List Groups */
+$list-group-item-padding-y: .75rem;
+$list-group-item-padding-x: 1.25rem;
+
 
 /****************************/
 /** FontAwesome Icon Stuff **/

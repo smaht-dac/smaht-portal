@@ -1175,6 +1175,7 @@ body[data-pathname^="/users/"] {
 							border-left: none;
 							border-right: none;
 							th {
+								padding: 12px;
 								background-color: transparent;
 								border:none;
 							}
@@ -1185,6 +1186,7 @@ body[data-pathname^="/users/"] {
 						width: 100%;
 						border-bottom: 1px solid #eee;
 						td {
+							padding: 12px;
 							border-top: none;
 							&.access-key-buttons {
 								display:flex;
