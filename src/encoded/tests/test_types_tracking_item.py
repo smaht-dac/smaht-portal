@@ -40,7 +40,8 @@ def google_analytics_tracking_data():
                 ]
             },
             "for_date": "2023-12-19",
-            "date_increment": "daily"}
+            "date_increment": "daily"
+        }
     }
 
 
