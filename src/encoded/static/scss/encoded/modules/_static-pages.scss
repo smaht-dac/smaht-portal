@@ -1843,36 +1843,42 @@ body[data-pathname^="/data/benchmarking"] {
 		.benchmarking-layout-container {
 			width: 100%;
 			.benchmarking-layout{
-				>nav.nav-tabs, .nav-item {
-					.nav-link {
-						color: #5D5E63;
-						font-family: Inter;
-						font-size: 1rem;
-						font-weight: 400; 
-		
-						&.active {
-							color: #343741;
-							font-weight: 600; 
-							border-top: 4px solid #E99415;
+				>.nav-tabs {
+					>.nav-item {
+						.nav-link {
+							color: #5D5E63;
+							font-family: Inter;
+							font-size: 1rem;
+							font-weight: 400; 
 
-							.badge {
-								color: #343741;
+							&:not(.active) {
+								border-bottom: none;
 							}
-						}
-						&.disabled {
-							color: #9BA5B7;
-						}
-
-						&-title {
-							display: flex;
-							justify-content: center;
-		
-							.badge {
-								background-color: #F2F2F2;
-								color: #5D5E63;
-								margin: auto;
-								margin-left: 5px;
-								font-weight: 600;
+			
+							&.active {
+								color: #343741;
+								font-weight: 600; 
+								border-top: 4px solid #E99415;
+	
+								.badge {
+									color: #343741;
+								}
+							}
+							&.disabled {
+								color: #9BA5B7;
+							}
+	
+							&-title {
+								display: flex;
+								justify-content: center;
+			
+								.badge {
+									background-color: #F2F2F2;
+									color: #5D5E63;
+									margin: auto;
+									margin-left: 5px;
+									font-weight: 600;
+								}
 							}
 						}
 					}
