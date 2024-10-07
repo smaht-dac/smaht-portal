@@ -1850,10 +1850,7 @@ body[data-pathname^="/data/benchmarking"] {
 							font-family: Inter;
 							font-size: 1rem;
 							font-weight: 400; 
-
-							&:not(.active) {
-								border-bottom: none;
-							}
+							border-bottom: none;
 			
 							&.active {
 								color: #343741;
