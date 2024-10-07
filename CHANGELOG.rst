@@ -12,7 +12,7 @@ Change Log
 `PR259: fix: only show target coverage for wgs bam files <https://github.com/smaht-dac/smaht-portal/pull/259>`_
 * Use default properties
 * Only show total target coverage for wgs bam
-* Show 
+* Show N/A where read count is not available
 
 
 0.100.1

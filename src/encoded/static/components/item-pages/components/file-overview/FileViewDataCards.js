@@ -120,6 +120,26 @@ const default_data_information = [
         getProp: (context = {}) =>
             context?.data_generation_summary?.sequencing_platforms?.join(', '),
     },
+    {
+        title: 'Dataset Target Coverage',
+        getProp: (context = {}) => {
+            const cov = context?.data_generation_summary?.target_group_coverage;
+            if (cov && cov.length > 0) {
+                return cov[0] + 'X';
+            }
+            return null;
+        },
+    },
+    {
+        title: 'Dataset Target Read Count',
+        getProp: (context = {}) => {
+            const cov = context?.data_generation_summary?.target_read_count;
+            if (cov && cov.length > 0) {
+                return cov[0] + 'X';
+            }
+            return null;
+        },
+    },
 ];
 const default_sample_information = [
     {
@@ -155,27 +175,6 @@ export const FileViewDataCards = ({ context = {} }) => {
     let file_properties = default_file_properties;
     let data_information = default_data_information;
     let sample_information = default_sample_information;
-
-    // For BAM files with WGS assays, add target coverage to data information
-    if (
-        context.file_summary.file_format === 'bam' &&
-        context.assays.some((a) => a.display_title.includes('WGS'))
-    ) {
-        data_information = [
-            ...default_data_information,
-            {
-                title: 'Dataset Target Coverage',
-                getProp: (context = {}) => {
-                    const cov =
-                        context?.data_generation_summary?.target_group_coverage;
-                    if (cov && cov.length > 0) {
-                        return cov[0] + 'X';
-                    }
-                    return null;
-                },
-            },
-        ];
-    }
 
     return (
         <div className="data-cards-container">
