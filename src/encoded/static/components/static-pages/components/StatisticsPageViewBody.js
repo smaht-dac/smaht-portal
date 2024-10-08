@@ -1190,8 +1190,15 @@ export function UsageStatsView(props){
 
     const isSticky = true; //!_.any(_.values(tableToggle), (v)=> v === true);
     const commonTableProps = { windowWidth, href, session, schemas, isTransposed, dateRoundInterval, cumulativeSum, chartToggles };
-
-    const showChart = (btnKey, defaultValue = false) => typeof chartToggles.chart?.[btnKey] === 'undefined' ? defaultValue : chartToggles.chart?.[btnKey];
+    
+    let topFileSetLimit = 0;
+    if (countBy.top_file_set_downloads && countBy.top_file_set_downloads.indexOf('top_files_') === 0) {
+        topFileSetLimit = parseInt(countBy.top_file_set_downloads.substring('top_files_'.length));
+    }
+    let topFilesLimit = 0;
+    if (countBy.top_file_downloads && countBy.top_file_downloads.indexOf('top_files_') === 0) {
+        topFilesLimit = parseInt(countBy.top_file_downloads.substring('top_files_'.length));
+    }
 
     return (
         <div className="stats-charts-container" key="charts" id="usage">
@@ -1258,8 +1265,7 @@ export function UsageStatsView(props){
                     }
 
                     <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" key="file_downloads_volume" defaultHeight={300}
-                        title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                        extraButtons={[]}>
+                        title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}>
                         {chartToggles.chart?.file_downloads_volume ?
                             <AreaChart {...commonChartProps} data={file_downloads_volume} yAxisLabel="GB" {...scale} />
                             : <React.Fragment />
@@ -1303,7 +1309,8 @@ export function UsageStatsView(props){
                         <StatisticsDataTable data={top_file_set_downloads}
                             key={'dt_top_file_set_downloads'}
                             {...commonTableProps}
-                            containerId="content_top_file_set_downloads" />
+                            containerId="content_top_file_set_downloads"
+                            limit={topFileSetLimit} excludeNones={true} />
                     }
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads_volume" key="top_file_set_downloads_volume" 
@@ -1319,7 +1326,8 @@ export function UsageStatsView(props){
                             key={'dt_top_file_set_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
-                            containerId="content_top_file_set_downloads_volume" />
+                            containerId="content_top_file_set_downloads_volume"
+                            limit={topFileSetLimit} excludeNones={true} />
                     }
 
                 </ColorScaleProvider>
@@ -1350,7 +1358,8 @@ export function UsageStatsView(props){
                         <StatisticsDataTable data={top_file_downloads} 
                             key={'dt_top_file_downloads'}
                             {...commonTableProps}
-                            containerId="content_top_file_downloads" />
+                            containerId="content_top_file_downloads"
+                            limit={topFilesLimit} excludeNones={true} />
                     }
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" key="top_file_downloads_volume" defaultHeight={350}
@@ -1368,7 +1377,8 @@ export function UsageStatsView(props){
                             key={'dt_top_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
-                            containerId="content_top_file_downloads_volume" />
+                            containerId="content_top_file_downloads_volume"
+                            limit={topFilesLimit} excludeNones={true} />
                     }
 
                     <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
@@ -1744,6 +1754,7 @@ const StatisticsDataTable = React.memo((props) => {
     const {
         data, valueLabel = null, session, schemas, containerId = '', 
         href, dateRoundInterval, isTransposed = false, windowWidth, cumulativeSum,
+        limit = 0, excludeNones = false // limit and excludeNones are evaluated for only transposed data
      } = props;
     const [columns, setColumns] = useState({});
     const [columnDefinitions, setColumnDefinitions] = useState([]);
@@ -1757,6 +1768,11 @@ const StatisticsDataTable = React.memo((props) => {
 
         data.forEach(({ date, children }) => {
             children.forEach(({ term, count, total }) => {
+                // remove None-like values
+                if (excludeNones && ['N/A', 'None', '(not set)'].indexOf(term) !== -1) {
+                    return;
+                }
+
                 if (!termMap[term]) {
                     termMap[term] = { term, count: 0, total: 0, children: [] };
                     result.push(termMap[term]);
@@ -1782,7 +1798,7 @@ const StatisticsDataTable = React.memo((props) => {
             return;
         }
 
-        const processData = isTransposed ? transposeData(data) : data;
+        const processData = isTransposed ? transposeData(data).slice(0, limit > 0 ? limit : undefined) : data;
 
         // date or term column based on transposed or not
         let cols = {
