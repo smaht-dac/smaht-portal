@@ -97,7 +97,7 @@ def get_file_group_qc(context, request):
 
             filesets[fs.get(UUID)] = {
                 "uuid": fs.get(UUID),
-                "tags": fs.get("tags"),
+                "tags": fs.get("tags", []),
                 "comments": fs.get("comments", []),
                 "submitted_id": fs.get("submitted_id"),
             }
