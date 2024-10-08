@@ -2,19 +2,19 @@
 Links to Existing Data
 =========================
 
-Metadata in the portal is connected by linking item types together:
+Metadata in the portal is connected by linking item types together.
+A simplified version of the data model is shown below, with items linking together to indicate how files were derived from experiments, samples, and donors.
+ 
 
 .. image:: /static/img/docs/data_model.png
   :target: /static/img/docs/data_model.png
   :alt: Data Model Image
 
 
-A simplified version of the data model is shown here, with items linking together to indicate how files were derived from experiments, samples, and donors.
-This allows for clear interpretation of the origin of sequence data. 
-
+This allows for clear interpretation of the origin of sequence data.
 References to existing data are frequently required to submit new data. The links below will display all options available for referencing data already in the database.
 
-In the submission spreadsheet (See <a href="/docs/submission/getting-started-with-submissions", target="_blank">Getting Started with Submissions</a>), columns that are italicized indicate fields that should be unique identifiers for items of another time.
+In the submission spreadsheet (See <a href="/docs/submission/getting-started-with-submissions", target="_blank">Getting Started with Submissions</a>), columns that are italicized indicate fields that should be unique identifiers for items of another type.
 For example, FileSet items require links to Library and Sequencing items.
 
 .. image:: /static/img/docs/file_set_screenshot.png
@@ -36,8 +36,6 @@ Values for the following columns in the submission spreadsheet are unique identi
 * `sequencer`
 * `assay`
 * `file_format`
-
-`file_format` is a special case in that the accepted values for this field depend on the item type. For instance, if you are submitting VariantCalls items, the only accepted file formats are vcf or vcf.gz, so this field will only accept the unique identifiers for those two FileFormat items (i.e. `vcf` or `vcf_gz`)
 
 To link to DAC-controlled data, you can use values for any of the following properties:
 
@@ -72,6 +70,8 @@ The links below show the existing items present in the portal by item type.
 
 FileFormats
 ^^^^^^^^^^^
+
+`file_format` is a special case in that the accepted values for this field depend on the item type. For instance, if you are submitting VariantCalls items, the only accepted file formats are vcf or vcf.gz, so this field will only accept the unique identifiers for those two FileFormat items (i.e. `vcf` or `vcf_gz`)
 
 Each file type available in the database accepts a limited selection of file formats. Use the following links to see options for the following file types:
 
@@ -109,6 +109,7 @@ To link to data submitted by other consortium members, you can use values for an
 * `uuid`
 * `accession`
 
+Use the following links to see options for the following submitted types:
 
 |Donors|
 ^^^^^^^^
