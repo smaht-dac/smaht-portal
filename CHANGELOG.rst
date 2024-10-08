@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.102.2
+======
+`PR259: fix: only show target coverage for wgs bam files <https://github.com/smaht-dac/smaht-portal/pull/259>`_
+* Use default properties
+* Only show total target coverage for wgs bam
+* Show N/A where read count is not available
+
+
 0.102.1
 =======
 * Bugfix on Submission Status page. Could not set tags from Review File Group Qc modal when there were no tags present
