@@ -38,6 +38,9 @@
             "$ref": "mixins.json#/code"
         },
         {
+            "$ref": "mixins.json#/category"
+        },
+        {
             "$ref": "mixins.json#/description"
         },
         {
@@ -71,6 +74,23 @@
         },
         "code": {
             "pattern": "^[0-9]{3}$"
+        },
+        "category": {
+            "description": "Category of assay",
+            "type": "string",
+            "enum": [
+                "Bulk WGS",
+                "WGA",
+                "Duplex-seq WGS",
+                "Single-cell WGS",
+                "Bulk RNA-seq",
+                "Single-cell RNA-seq",
+                "Cut&Tag",
+                "Hi-C",
+                "Dip-C",
+                "Repeat Element Targeted Sequencing",
+                "ATAC-seq"
+            ]
         },
         "schema_version": {
             "default": "1"
