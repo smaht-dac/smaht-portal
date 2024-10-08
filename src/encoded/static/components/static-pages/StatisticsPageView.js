@@ -147,6 +147,11 @@ export default class StatisticsPageView extends React.PureComponent {
             'table': dataKeys.reduce((acc, key) => { acc[key] = false; return acc; }, {}),
             'expanded': dataKeys.reduce((acc, key) => { acc[key] = false; return acc; }, {})
         }
+        // override
+        initialChartToggles.table['top_file_set_downloads'] = true;
+        initialChartToggles.chart['top_file_set_downloads'] = false;
+        initialChartToggles.table['top_file_set_downloads_volume'] = true;
+        initialChartToggles.chart['top_file_set_downloads_volume'] = false;
         return (
             <dynamicImports.GroupByController groupByOptions={groupByOptions} initialGroupBy="daily60">
                 <dynamicImports.UsageStatsViewController {..._.pick(this.props, 'session', 'windowWidth', 'href', 'schemas')}>
