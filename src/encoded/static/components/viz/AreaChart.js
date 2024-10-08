@@ -805,7 +805,6 @@ export class AreaChart extends React.PureComponent {
             if (pastProps.data !== nextProps.data) shouldDrawNewChart = true;
             if (pastProps.curveFxn !== nextProps.curveFxn) shouldDrawNewChart = true;
             if (pastProps.colorScale !== nextProps.colorScale) shouldDrawNewChart = true;
-            console.log('xxx nextProps:', nextProps);
             if (shouldDrawNewChart) console.info('Will redraw chart');
 
             return shouldDrawNewChart;
