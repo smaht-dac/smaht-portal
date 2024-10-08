@@ -12,7 +12,7 @@ Change Log
 `PR 235: Sn ExternalQualityMetric submission template <https://github.com/smaht-dac/smaht-portal/pull/235>`_
 * In `commands/write_submission_spreadsheets.py`:
   * Add `--eqm [dsa duplexseq]` argument that grabs `tooltip`, `key`, and `derived_from` from the appropriate `ExternalQualityMetric` template and writes out to a new tab in the spreadsheet
-  * Change ordering of columns so that non-required non-link properties are not sorted alphabetically
+* Remove properties from DonorSpecificAssembly that are now on ExternalQualityMetric
 
 
 0.102.1

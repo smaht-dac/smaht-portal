@@ -1519,6 +1519,8 @@ def main():
         parser.error("Cannot specify both all and item")
     if args.eqm and args.example:
          parser.error("Currently cannot specify both eqm and example")
+    if args.eqm and args.tpc:
+        parser.error("Cannot specify both eqm and tpc")
     eqm = None
     if args.eqm:
         log.info(f"Grabbing ExternalQualityMetric template for {args.eqm}")
