@@ -1251,7 +1251,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.file_downloads &&
-                        <AnalyticsDataTable data={file_downloads}
+                        <StatisticsDataTable data={file_downloads}
                             key={'dt_file_downloads'}
                             {...commonTableProps}
                             containerId="content_file_downloads" />
@@ -1267,7 +1267,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.file_downloads_volume &&
-                        <AnalyticsDataTable data={file_downloads_volume}
+                        <StatisticsDataTable data={file_downloads_volume}
                             key={'dt_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
@@ -1289,7 +1289,7 @@ export function UsageStatsView(props){
                         <ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'top_file_set_downloads' }} />
                     </div>
 
-                    <HorizontalD3ScaleLegend {...{ loadingStatus }} />
+                    {/* <HorizontalD3ScaleLegend {...{ loadingStatus }} /> */}
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads" key="top_file_set_downloads" defaultHeight={300}
                         title={<h5 className="text-400 mt-0">Total Count</h5>}>
@@ -1300,7 +1300,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_set_downloads &&
-                        <AnalyticsDataTable data={top_file_set_downloads}
+                        <StatisticsDataTable data={top_file_set_downloads}
                             key={'dt_top_file_set_downloads'}
                             {...commonTableProps}
                             containerId="content_top_file_set_downloads" />
@@ -1315,7 +1315,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_set_downloads_volume &&
-                        <AnalyticsDataTable data={top_file_set_downloads_volume}
+                        <StatisticsDataTable data={top_file_set_downloads_volume}
                             key={'dt_top_file_set_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
@@ -1347,7 +1347,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_downloads &&
-                        <AnalyticsDataTable data={top_file_downloads} 
+                        <StatisticsDataTable data={top_file_downloads} 
                             key={'dt_top_file_downloads'}
                             {...commonTableProps}
                             containerId="content_top_file_downloads" />
@@ -1364,7 +1364,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_downloads_volume &&
-                        <AnalyticsDataTable data={top_file_downloads_volume} 
+                        <StatisticsDataTable data={top_file_downloads_volume} 
                             key={'dt_top_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
@@ -1394,7 +1394,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.file_views &&
-                        <AnalyticsDataTable data={file_views} 
+                        <StatisticsDataTable data={file_views} 
                             key={'dt_file_views'}
                             {...commonTableProps}
                             containerId="content_file_views" />
@@ -1424,7 +1424,7 @@ export function UsageStatsView(props){
 
 
                     {chartToggles.table?.sessions_by_country &&
-                        <AnalyticsDataTable data={sessions_by_country} 
+                        <StatisticsDataTable data={sessions_by_country} 
                             key={'dt_sessions_by_country'}
                             {...commonTableProps}
                             containerId="content_sessions_by_country" />
@@ -1740,7 +1740,7 @@ const ChartContainerTitle = function ({ titleMap, countBy, chartKey }) {
 /**
  * converts aggregates to SearchView-compatible context objects and displays in table
  */
-const AnalyticsDataTable = React.memo((props) => {
+const StatisticsDataTable = React.memo((props) => {
     const {
         data, valueLabel = null, session, schemas, containerId = '', 
         href, dateRoundInterval, isTransposed = false, windowWidth, cumulativeSum,
