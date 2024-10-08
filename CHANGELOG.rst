@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.102.2
+======
+`PR 224: feat: error state for homepage timeline <https://github.com/smaht-dac/smaht-portal/pull/224>`_
+* Implement error state for homepage timeline
+
+
 0.102.1
 =======
 * Bugfix on Submission Status page. Could not set tags from Review File Group Qc modal when there were no tags present
