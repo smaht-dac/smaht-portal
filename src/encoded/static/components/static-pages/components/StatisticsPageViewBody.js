@@ -831,7 +831,6 @@ export class UsageStatsViewController extends React.PureComponent {
                     "top_files_downloaded",
                     "metadata_tsv_by_country",
                     "views_by_file",
-                    "views_by_experiment_set",
                     "for_date"
                 ];
 
@@ -1150,12 +1149,6 @@ export function UsageStatsView(props){
     }
 
     const [isTransposed, setIsTransposed] = useState(true);
-    const [chartTableToggles, setChartTableToggles] = useState({});
-    const handleChartTableToggle = function (chartKey) {
-        const newChartTableToggles = _.extend({}, chartTableToggles, { [chartKey]: !(chartTableToggles[chartKey] || false) });
-        setChartTableToggles(newChartTableToggles);
-    }
-
     const [ scale, setScale ] = useState({ yAxisScale: 'Pow', yAxisPower: 0.5 });
     const { anyExpandedCharts, commonXDomain, dateRoundInterval } = useMemo(function(){
         const { fromDate: propFromDate, untilDate: propUntilDate } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
@@ -1175,7 +1168,7 @@ export function UsageStatsView(props){
             dateRoundInterval = 'year';
         }
         return {
-            anyExpandedCharts: _.any(_.values(chartToggles)),
+            anyExpandedCharts: _.any(_.values(chartToggles.expanded || {})),
             commonXDomain: [fromDate, untilDate],
             dateRoundInterval
         };
@@ -1196,9 +1189,9 @@ export function UsageStatsView(props){
     const { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep } = UsageStatsView.getYScaleDefaults(scale['yAxisScale']);
 
     const isSticky = true; //!_.any(_.values(tableToggle), (v)=> v === true);
-    const commonTableProps = { windowWidth, href, session, schemas, isTransposed, dateRoundInterval, cumulativeSum };
+    const commonTableProps = { windowWidth, href, session, schemas, isTransposed, dateRoundInterval, cumulativeSum, chartToggles };
 
-    const showChart = (btnKey, defaultValue = false) => typeof chartTableToggles[btnKey] === 'undefined' ? defaultValue : chartTableToggles[btnKey];
+    const showChart = (btnKey, defaultValue = false) => typeof chartToggles.chart?.[btnKey] === 'undefined' ? defaultValue : chartToggles.chart?.[btnKey];
 
     return (
         <div className="stats-charts-container" key="charts" id="usage">
@@ -1250,19 +1243,14 @@ export function UsageStatsView(props){
                     <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
                     <AreaChartContainer {...commonContainerProps} id="file_downloads" key="file_downloads"
-                        title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                        extraButtons={[
-                            <ChartTableToggle
-                                chartOn={chartTableToggles["file_downloads_chart"] || true}
-                                tableOn={chartTableToggles["file_downloads_table"] || false}
-                                toggleChart={() => handleChartTableToggle("file_downloads_chart")}
-                                toggleTable={() => handleChartTableToggle("file_downloads_table")}
-                                key="file_downloads_toggle" />
-                        ]}>
-                        <AreaChart {...commonChartProps} data={file_downloads} {...scale} show={showChart('file_downloads_chart', true)} />
+                        title={<h5 className="text-400 mt-0">Total File Count</h5>}>
+                        {chartToggles.chart?.file_downloads ?
+                            <AreaChart {...commonChartProps} data={file_downloads} {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
-                    {chartTableToggles.file_downloads_table &&
+                    {chartToggles.table?.file_downloads &&
                         <AnalyticsDataTable data={file_downloads}
                             key={'dt_file_downloads'}
                             {...commonTableProps}
@@ -1271,19 +1259,15 @@ export function UsageStatsView(props){
 
                     <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" key="file_downloads_volume" defaultHeight={300}
                         title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                        extraButtons={[
-                            <ChartTableToggle
-                                chartOn={chartTableToggles["file_downloads_volume_chart"] || true}
-                                tableOn={chartTableToggles["file_downloads_volume_table"] || false}
-                                toggleChart={() => handleChartTableToggle("file_downloads_volume_chart")}
-                                toggleTable={() => handleChartTableToggle("file_downloads_volume_table")}
-                                key="file_downloads_volume_toggle" />
-                        ]}>
-                        <AreaChart {...commonChartProps} data={file_downloads_volume} yAxisLabel="GB" {...scale} />
+                        extraButtons={[]}>
+                        {chartToggles.chart?.file_downloads_volume ?
+                            <AreaChart {...commonChartProps} data={file_downloads_volume} yAxisLabel="GB" {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
-                    {chartTableToggles.file_downloads_volume_table &&
-                        <AnalyticsDataTable data={file_downloads_volume} 
+                    {chartToggles.table?.file_downloads_volume &&
+                        <AnalyticsDataTable data={file_downloads_volume}
                             key={'dt_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
@@ -1308,43 +1292,29 @@ export function UsageStatsView(props){
                     <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads" key="top_file_set_downloads" defaultHeight={300}
-                        title={<h5 className="text-400 mt-0">Total Count</h5>}
-                        extraButtons={[
-                            <ChartTableToggle
-                                chartOn={chartTableToggles["top_file_set_downloads_chart"] || false}
-                                tableOn={chartTableToggles["top_file_set_downloads_table"] || false}
-                                toggleChart={() => handleChartTableToggle("top_file_set_downloads_chart")}
-                                toggleTable={() => handleChartTableToggle("top_file_set_downloads_table")}
-                                key="top_file_set_downloads_toggle" />
-                        ]}
-                        // subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}
-                        >
-                        <AreaChart {...commonChartProps} data={top_file_set_downloads} showTooltipOnHover={true} {...scale} />
+                        title={<h5 className="text-400 mt-0">Total Count</h5>}>
+                        {chartToggles.chart?.top_file_set_downloads ?
+                            <AreaChart {...commonChartProps} data={top_file_set_downloads} showTooltipOnHover={true} {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
-                    {chartTableToggles.top_file_set_downloads_table &&
+                    {chartToggles.table?.top_file_set_downloads &&
                         <AnalyticsDataTable data={top_file_set_downloads}
                             key={'dt_top_file_set_downloads'}
                             {...commonTableProps}
                             containerId="content_top_file_set_downloads" />
                     }
 
-                    <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads_volume" key="top_file_set_downloads_volume" defaultHeight={350}
-                        title={<h5 className="text-400 mt-0">Total Size (GB)</h5>}
-                        extraButtons={[
-                            <ChartTableToggle
-                                chartOn={chartTableToggles["top_file_set_downloads_volume_chart"] || true}
-                                tableOn={chartTableToggles["top_file_set_downloads_volume_table"] || false}
-                                toggleChart={() => handleChartTableToggle("top_file_set_downloads_volume_chart")}
-                                toggleTable={() => handleChartTableToggle("top_file_set_downloads_volume_table")}
-                                key="top_file_set_downloads_volume_toggle" />
-                        ]}
-                        // subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}
-                        >
-                        <AreaChart {...commonChartProps} data={top_file_set_downloads_volume} showTooltipOnHover={true} yAxisLabel="GB" {...scale} />
+                    <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads_volume" key="top_file_set_downloads_volume" 
+                        defaultHeight={350} title={<h5 className="text-400 mt-0">Total Size (GB)</h5>}>
+                        {chartToggles.chart?.top_file_set_downloads_volume ?
+                            <AreaChart {...commonChartProps} data={top_file_set_downloads_volume} showTooltipOnHover={true} yAxisLabel="GB" {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
-                    {chartTableToggles.top_file_set_downloads_volume_table &&
+                    {chartToggles.table?.top_file_set_downloads_volume &&
                         <AnalyticsDataTable data={top_file_set_downloads_volume}
                             key={'dt_top_file_set_downloads_volume'}
                             valueLabel="GB"
@@ -1367,21 +1337,16 @@ export function UsageStatsView(props){
                         <ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'top_file_downloads' }} />
                     </div>
 
-                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads" key="top_file_downloads" defaultHeight={300}
-                        title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                        extraButtons={[
-                            <ChartTableToggle
-                                chartOn={chartTableToggles["top_file_downloads_chart"] || true}
-                                tableOn={chartTableToggles["top_file_downloads_table"] || false}
-                                toggleChart={() => handleChartTableToggle("top_file_downloads_chart")}
-                                toggleTable={() => handleChartTableToggle("top_file_downloads_table")}
-                                key="top_file_downloads_toggle" />
-                        ]}
+                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads" key="top_file_downloads"
+                        defaultHeight={300} title={<h5 className="text-400 mt-0">Total File Count</h5>}
                         subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
-                        <AreaChart {...commonChartProps} data={top_file_downloads} showTooltipOnHover={false} {...scale} />
+                        {chartToggles.chart?.top_file_downloads ?
+                            <AreaChart {...commonChartProps} data={top_file_downloads} showTooltipOnHover={false} {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
-                    {chartTableToggles.top_file_downloads_table &&
+                    {chartToggles.table?.top_file_downloads &&
                         <AnalyticsDataTable data={top_file_downloads} 
                             key={'dt_top_file_downloads'}
                             {...commonTableProps}
@@ -1390,19 +1355,15 @@ export function UsageStatsView(props){
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" key="top_file_downloads_volume" defaultHeight={350}
                         title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                        extraButtons={[
-                            <ChartTableToggle
-                                chartOn={chartTableToggles["top_file_downloads_volume_chart"] || true}
-                                tableOn={chartTableToggles["top_file_downloads_volume_table"] || false}
-                                toggleChart={() => handleChartTableToggle("top_file_downloads_volume_chart")}
-                                toggleTable={() => handleChartTableToggle("top_file_downloads_volume_table")}
-                                key="top_file_downloads_volume_toggle" />
-                        ]}
+                        extraButtons={[]}
                         subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
-                        <AreaChart {...commonChartProps} data={top_file_downloads_volume} showTooltipOnHover={false} yAxisLabel="GB" {...scale} />
+                        {chartToggles.chart?.top_file_downloads_volume ?
+                            <AreaChart {...commonChartProps} data={top_file_downloads_volume} showTooltipOnHover={false} yAxisLabel="GB" {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
-                    {chartTableToggles.top_file_downloads_volume_table &&
+                    {chartToggles.table?.top_file_downloads_volume &&
                         <AnalyticsDataTable data={top_file_downloads_volume} 
                             key={'dt_top_file_downloads_volume'}
                             valueLabel="GB"
@@ -1423,19 +1384,16 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="file_views" key="file_views"
                         title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'file_views' }} />}
                         extraButtons={[
-                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" key="file_views_count_by_dd" />,
-                            <ChartTableToggle
-                                chartOn={chartTableToggles["file_views_chart"] || true}
-                                tableOn={chartTableToggles["file_views_table"] || false}
-                                toggleChart={() => handleChartTableToggle("file_views_chart")}
-                                toggleTable={() => handleChartTableToggle("file_views_table")}
-                                key="file_views_toggle" />
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" key="file_views_count_by_dd" />
                         ]}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
-                        <AreaChart {...commonChartProps} data={file_views} {...scale} />
+                        {chartToggles.chart?.file_views ?
+                            <AreaChart {...commonChartProps} data={file_views} {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
-                    {chartTableToggles.file_views_table &&
+                    {chartToggles.table?.file_views &&
                         <AnalyticsDataTable data={file_views} 
                             key={'dt_file_views'}
                             {...commonTableProps}
@@ -1454,21 +1412,18 @@ export function UsageStatsView(props){
                         title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'sessions_by_country' }} />}
                         subTitle={enableSessionByCountryChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}
                         extraButtons={[
-                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" key="sessions_by_country_count_by_dd" />,
-                            <ChartTableToggle
-                                chartOn={chartTableToggles["sessions_by_country_chart"] || true}
-                                tableOn={chartTableToggles["sessions_by_country_table"] || false}
-                                toggleChart={() => handleChartTableToggle("sessions_by_country_chart")}
-                                toggleTable={() => handleChartTableToggle("sessions_by_country_table")}
-                                key="sessions_by_country_toggle" />
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" key="sessions_by_country_count_by_dd" />
                         ]}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}
                         defaultHeight={sessionsByCountryChartHeight}>
-                        <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} {...scale} />
+                        {chartToggles.chart?.sessions_by_country ?
+                            <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
 
-                    {chartTableToggles.sessions_by_country_table &&
+                    {chartToggles.table?.sessions_by_country &&
                         <AnalyticsDataTable data={sessions_by_country} 
                             key={'dt_sessions_by_country'}
                             {...commonTableProps}
@@ -1487,16 +1442,14 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="fields_faceted" key="fields_faceted"
                         title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'fields_faceted' }} />}
                         extraButtons={[
-                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="fields_faceted" />,
-                            <ChartTableToggle
-                                chartOn={chartTableToggles["fields_faceted_chart"] || true}
-                                tableOn={chartTableToggles["fields_faceted_table"] || false}
-                                toggleChart={() => handleChartTableToggle("fields_faceted_chart")}
-                                toggleTable={() => handleChartTableToggle("fields_faceted_table")}
-                                key="fields_faceted_toggle" />
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="fields_faceted" />
                         ]}
-                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
-                        <AreaChart {...commonChartProps} data={fields_faceted} {...scale} />
+                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}
+                        hideTableButton>
+                        {chartToggles.chart?.fields_faceted ?
+                            <AreaChart {...commonChartProps} data={fields_faceted} {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
 
@@ -1622,13 +1575,15 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploading"
                     title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploading} />}>
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploading} />}
+                    hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={files_uploading} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_uploading"
                     title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploading} />}>
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploading} />}
+                    hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={file_volume_uploading} yAxisLabel="GB" />
                 </AreaChartContainer>
 
@@ -1642,13 +1597,15 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploaded"
                     title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploaded} />}>
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploaded} />}
+                    hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={files_uploaded} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_uploaded"
                     title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploaded} />}>
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploaded} />}
+                    hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={file_volume_uploaded} yAxisLabel="GB" />
                 </AreaChartContainer>
 
@@ -1663,13 +1620,15 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="files_released"
                     title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_released} />}>
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_released} />}
+                    hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={files_released} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_released"
                     title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_released} />}>
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_released} />}
+                    hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={file_volume_released} yAxisLabel="GB" />
                 </AreaChartContainer>
 
@@ -1776,33 +1735,6 @@ const ChartContainerTitle = function ({ titleMap, countBy, chartKey }) {
             }
         </h3>
     );
-}
-
-/**
- * toggle for showing/hiding analytics data table view
- * @param {*} props - {toggled - bool, toggleChanged - func}
- * @returns to
- */
-const ChartTableToggle = function (props) {
-    const { chartOn, tableOn, toggleChart, toggleTable } = props;
-    const chartButtonClassName = "btn btn-sm mr-05 " + (chartOn ? "btn-primary" : "btn-outline-dark");
-    const tableButtonClassName = "btn btn-sm mr-05 " + (tableOn ? "btn-primary" : "btn-outline-dark");
-    return (
-        <React.Fragment>
-            <button type="button" className={chartButtonClassName} onClick={toggleChart} data-tip="Toggle chart view">
-                <i className={"icon icon-fw fas icon-chart-bar"} />
-            </button>
-            <button type="button" className={tableButtonClassName} onClick={toggleTable} data-tip="Toggle data table view">
-                <i className={"icon icon-fw fas icon-table"} />
-            </button>
-        </React.Fragment>
-    );
-}
-ChartTableToggle.propTypes = {
-    chartOn: PropTypes.bool.isRequired,
-    tableOn: PropTypes.bool.isRequired,
-    toggleChart: PropTypes.func.isRequired,
-    toggleTable: PropTypes.func.isRequired
 }
 
 /**
