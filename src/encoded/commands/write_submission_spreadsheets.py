@@ -501,7 +501,7 @@ def write_item_spreadsheets(
             f" {submission_schemas.keys()}"
         )
     if workbook:
-        write_workbook(output, submission_schemas, request_handler, separate_comments=separate_comments,tpc=tpc,gcc=gcc, eqm=eqm, example=example)
+        write_workbook(output, submission_schemas, request_handler, separate_comments=separate_comments, tpc=tpc, gcc=gcc, eqm=eqm, example=example)
     else:
         write_spreadsheets(
             output, submission_schemas, request_handler, separate_comments=separate_comments, eqm=eqm, example=example
