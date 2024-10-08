@@ -16,6 +16,7 @@ References to existing data are frequently required to submit new data. The link
 
 In the submission spreadsheet (See <a href="/docs/submission/getting-started-with-submissions", target="_blank">Getting Started with Submissions</a>), columns that are italicized indicate fields that should be unique identifiers for items of another time.
 For example, FileSet items require links to Library and Sequencing items.
+
 .. image:: /static/img/docs/file_set_screenshot.png
   :target: /static/img/docs/file_set_screenshot.png
   :alt: FileSet Screenshot
@@ -30,6 +31,7 @@ For data types submitted by your own or another submission center, the unique id
 DAC-Controlled Data
 --------------------
 Values for the following columns in the submission spreadsheet are unique identifiers for pre-existing items that are controlled by DAC:
+
 * `reference_genome`
 * `sequencer`
 * `assay`
@@ -42,6 +44,7 @@ To link to DAC-controlled data, you can use values for any of the following prop
 * `identifier`
 * `uuid`
 * `accession`
+
 The links below show the existing items present in the portal by item type.
 
 |Sequencers|
@@ -49,7 +52,7 @@ The links below show the existing items present in the portal by item type.
 
 .. |Sequencers| raw:: html
 
-  <a href="/search/?type=Sequencer", target="_blank">Sequencers</a>
+   <a href="/search/?type=Sequencer", target="_blank">Sequencers</a>
 
 
 |Assays|
@@ -57,14 +60,15 @@ The links below show the existing items present in the portal by item type.
 
 .. |Assays| raw:: html
 
-  <a href="/search/?type=Assay", target="_blank">Assays</a>
+   <a href="/search/?type=Assay", target="_blank">Assays</a>
 
 |ReferenceGenomes|
 ^^^^^^^^^^^^^^^^^^
 
 .. |ReferenceGenomes| raw:: html
 
-  <a href="/search/?type=ReferenceGenome", target="_blank">ReferenceGenomes</a>
+   <a href="/search/?type=ReferenceGenome", target="_blank">ReferenceGenomes</a>
+
 
 FileFormats
 ^^^^^^^^^^^
@@ -74,23 +78,24 @@ Each file type available in the database accepts a limited selection of file for
 * For |UnalignedReads|
 * For |AlignedReads|
 * For |VariantCalls|
-
+* For |SupplementaryFile|
 
 .. |UnalignedReads| raw:: html
 
-  <a href="/search/?type=FileFormat&valid_item_types=UnalignedReads", target="_blank">UnalignedReads</a>
+   <a href="/search/?type=FileFormat&valid_item_types=UnalignedReads", target="_blank">UnalignedReads</a>
 
 
 .. |AlignedReads| raw:: html
 
-  <a href="/search/?type=FileFormat&valid_item_types=AlignedReads", target="_blank">AlignedReads</a>
+   <a href="/search/?type=FileFormat&valid_item_types=AlignedReads", target="_blank">AlignedReads</a>
 
 
 .. |VariantCalls| raw:: html
 
-  <a href="/search/?type=FileFormat&valid_item_types=VariantCalls", target="_blank">VariantCalls</a>
+   <a href="/search/?type=FileFormat&valid_item_types=VariantCalls", target="_blank">VariantCalls</a>
 
-.. |SupplementaryFiile| raw:html
+
+.. |SupplementaryFile| raw:: html
 
   <a href="/search/?type=FileFormat&valid_item_types=SupplementaryFile", target="_blank">SupplementaryFile</a>
 
@@ -176,7 +181,7 @@ To link to data submitted by other consortium members, you can use values for an
    <a href="/search/?type=Software", target="_blank">Software</a>
 
 |DonorSpecificAssembly|
-^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 .. |DonorSpecificAssembly| raw:: html
 
