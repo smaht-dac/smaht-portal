@@ -501,10 +501,10 @@ def write_item_spreadsheets(
             f" {submission_schemas.keys()}"
         )
     if workbook:
-        write_workbook(output, submission_schemas, separate_comments=separate_comments,tpc=tpc,gcc=gcc, eqm=eqm, example=example)
+        write_workbook(output, submission_schemas, request_handler, separate_comments=separate_comments,tpc=tpc,gcc=gcc, eqm=eqm, example=example)
     else:
         write_spreadsheets(
-            output, submission_schemas, separate_comments=separate_comments, eqm=eqm, example=example
+            output, submission_schemas, request_handler, separate_comments=separate_comments, eqm=eqm, example=example
         )
 
 
@@ -562,7 +562,7 @@ def write_workbook(
     workbook = openpyxl.Workbook()
     ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,tpc=tpc,gcc=gcc)
     write_workbook_sheets(
-        workbook, ordered_submission_schemas, separate_comments=separate_comments, eqm=eqm, example=example
+        workbook, ordered_submission_schemas, request_handler, separate_comments=separate_comments, eqm=eqm, example=example
     )
     file_path = Path(output, WORKBOOK_FILENAME)
     save_workbook(workbook, file_path)
@@ -1517,7 +1517,8 @@ def main():
         parser.error("Cannot specify both all and gcc")
     if args.all and args.item:
         parser.error("Cannot specify both all and item")
-    # Google spreadsheets
+    if args.eqm and args.example:
+         parser.error("Currently cannot specify both eqm and example")
     eqm = None
     if args.eqm:
         log.info(f"Grabbing ExternalQualityMetric template for {args.eqm}")
@@ -1561,6 +1562,7 @@ def main():
             parser.error("--example argument currently only works for individual item lists or --gcc")
     else:
         if args.google:
+            # Google spreadsheets
             log.info(f"Google Sheet ID: {args.google}")
             log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
             spreadsheet_client = get_google_sheet_client(args.google)
