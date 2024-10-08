@@ -31,7 +31,8 @@ $badge-border-radius: .25em;
 $badge-color: #fff;
 
 $dropdown-link-hover-bg: #ddd;
-
+$dropdown-item-padding-y:  .25rem;
+$dropdown-item-padding-x:  1.5rem;
 
 /*****************************/
 /****     Typography      ****/
@@ -71,6 +72,8 @@ $container-max-widths: (
   xxl: 1320px,
   xxxl: 1600px
 );
+
+$body-color: #495057;
 
 $border-radius:                             .25rem;
 $border-radius-base:                        3px;
@@ -127,6 +130,11 @@ $expset-table-border-color : #eee;
 $table-color:               #212529;
 $table-striped-bg-factor:     .05;
 $table-striped-bg:            rgba(#fff, $table-striped-bg-factor);
+$table-cell-padding-y:        .75rem;
+$table-cell-padding-x:        .75rem;
+$table-cell-padding-y-sm:     .3rem;
+$table-cell-padding-x-sm:     .3rem;
+
 
 
 $primary:       #0E74D2;

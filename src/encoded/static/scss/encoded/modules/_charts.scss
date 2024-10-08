@@ -1156,6 +1156,8 @@ $workflow-node-color-type-global-context: #ffb3b3;
         }
 
         .dropdown-container-col {
+            padding-left: 10px;
+            padding-right: 10px;
             @include media-breakpoint-down(xl) {
                 margin-bottom: 20px;
 
