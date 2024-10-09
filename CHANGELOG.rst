@@ -7,6 +7,70 @@ smaht-portal
 Change Log
 ----------
 
+0.102.2
+======
+`PR 224: feat: error state for homepage timeline <https://github.com/smaht-dac/smaht-portal/pull/224>`_
+* Implement error state for homepage timeline
+
+
+0.102.1
+=======
+* Bugfix on Submission Status page. Could not set tags from Review File Group Qc modal when there were no tags present
+
+
+0.102.0
+=======
+`PR267: SN Add target_read_count <https://github.com/smaht-dac/smaht-portal/pull/267>`_
+* Add `target_read_count` to File `data_generation_summary`
+
+
+0.101.0
+=======
+* Added scripts/opensearch-dashboard-start.bash and Makefile target opensearch-dashboard-starto
+  now that we are using OpenSearch rather than ElasticSearch we seem to need this rather than Kibana.
+* Simplified Makefile for deploy1/1a/1b/2 for dcicsnovault 11.21.1 changes;
+  related to allowing smaht-portal and cgap-portal to run at the same time locally.
+* Added /files/upload_file_size endpoint (types/file.py); for use by smaht-submitr to determine if a file to
+  upload has already been uploaded; and get its size as a side-effect; returns HTTP 200 if found otherwise 404);
+  in particular we want to check if it has been uploaded but is still marked as 'uploading' because its md5 is
+  still in the process of being computed (i.e. otherwise we could simply look at the file status an be done with it).
+* New protection of /ingestion-status endpoint used by smaht-submitr (in ingestion/ingestion_status.py) for
+  authenticated users only; and also limit /ingestion-status/{keys,keys_sorted,flush} to admin users only.
+
+
+0.100.1
+=====
+`PR268: SN Validator Fix <https://github.com/smaht-dac/smaht-portal/pull/268>`_
+* Add decorator link_related_validator to edit validators as well as add
+
+
+0.100.0
+======
+`PR260: SN Add assay and vcf properties <https://github.com/smaht-dac/smaht-portal/pull/260>`_
+* Add property 'category' to Assay
+* Add property `mode` to VariantCalls
+* Fix `age` maximum to 89 for Donor
+* Add property `rna_seq_protocol` to LibraryPreparation and adjust enums for `insert_selection_method`
+
+
+0.99.3
+======
+`PR 231: Bm file overview updates <https://github.com/smaht-dac/smaht-portal/pull/231>`_
+
+* Change warning banner on COLO829
+* Improve status indicators to File Overview Page
+* Add support for tsv notes
+* Ajax in related files to display status indicator warning for files with obsolete & retracted statuses and available notes
+
+
+0.99.2
+======
+`PR 242: BM colo829 truth set <https://github.com/smaht-dac/smaht-portal/pull/242>`_
+
+* Add COLO829 Truth Set Tab to benchmarking page
+* Add a way to change facets and columns from BenchmarkingDataMap
+
+
 0.99.1
 ======
 `PR264: SN remove tissue from cell culture  <https://github.com/smaht-dac/smaht-portal/pull/264>`_
