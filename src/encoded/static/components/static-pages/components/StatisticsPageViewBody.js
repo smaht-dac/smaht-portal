@@ -809,22 +809,26 @@ export const usageAggsToChartData = _.pick(aggregationsToChartData,
 
 export class UsageStatsViewController extends React.PureComponent {
 
-    static getSearchReqMomentsForTimePeriod(currentGroupBy = "daily60"){
+    static getSearchReqMomentsForTimePeriod(currentGroupBy = "daily:60") {
         let untilDate = new Date();
         let fromDate;
-        if (currentGroupBy === 'monthly'){ // 1 yr (12 mths)
-            untilDate = sub(startOfMonth(untilDate), { minutes: 1 }); // Last minute of previous month
-            fromDate = toDate(untilDate);
-            fromDate = sub(fromDate, { months: 12 }); // Go back 12 months
-        } else if (currentGroupBy === 'daily30'){ // 30 days
+
+        if (currentGroupBy.startsWith("daily:")) {
+            const days = parseInt(currentGroupBy.split(":")[1], 10); // Extract the number after 'daily:'
             untilDate = sub(untilDate, { days: 1 });
-            fromDate = toDate(untilDate);
-            fromDate = sub(fromDate, { days: 30 }); // Go back 30 days
-        }else if (currentGroupBy === 'daily60'){ // 60 days
-            untilDate = sub(untilDate, { days: 1 });
-            fromDate = toDate(untilDate);
-            fromDate = sub(fromDate, { days: 60 }); // Go back 60 days
+            fromDate = sub(untilDate, { days }); // Go back the specified number of days
+        } else if (currentGroupBy.startsWith("monthly:")) {
+            const months = currentGroupBy.split(":")[1];
+            if (months === "All") { // Special case for 'monthly:All'
+                fromDate = new Date("2023-12-31");
+                untilDate = sub(startOfMonth(untilDate), { minutes: 1 }); // Last minute of previous month
+            } else {
+                const numMonths = parseInt(months, 10); // Extract the number after 'monthly:'
+                untilDate = sub(startOfMonth(untilDate), { minutes: 1 }); // Last minute of previous month
+                fromDate = sub(untilDate, { months: numMonths }); // Go back the specified number of months
+            }
         }
+
         return { fromDate, untilDate };
     }
 
@@ -852,7 +856,7 @@ export class UsageStatsViewController extends React.PureComponent {
                     "for_date"
                 ];
 
-                const date_increment = currentGroupBy === 'monthly' ? 'monthly' : 'daily';
+                const date_increment = currentGroupBy.startsWith('monthly') ? 'monthly' : 'daily';
 
                 let uri = '/search/?type=TrackingItem&tracking_type=google_analytics&sort=-google_analytics.for_date&format=json';
 
@@ -1178,15 +1182,15 @@ export function UsageStatsView(props){
         // We want all charts to share the same x axis. Here we round to date boundary.
         // Minor issue is that file downloads are stored in UTC/GMT while analytics are in EST timezone..
         // TODO improve on this somehow, maybe pass prop to FileDownload chart re: timezone parsing of some sort.
-        if (currentGroupBy === 'daily30' || currentGroupBy === 'daily60') {
+        if (currentGroupBy.startsWith('daily:')) {
             fromDate = add(startOfDay(propFromDate), { minutes: 15 });
             untilDate = add(endOfDay(propUntilDate), { minutes: 45 });
             dateRoundInterval = 'day';
-        } else if (currentGroupBy === 'monthly') {
+        } else if (currentGroupBy.startsWith('monthly:')) {
             fromDate = endOfMonth(propFromDate); // Not rly needed.
             untilDate = sub(endOfMonth(propUntilDate), { days: 1 });
             dateRoundInterval = 'month';
-        } else if (currentGroupBy === 'yearly') { // Not yet implemented
+        } else if (currentGroupBy.startsWith('yearly')) { // Not yet implemented
             dateRoundInterval = 'year';
         }
         return {
@@ -1320,7 +1324,7 @@ export function UsageStatsView(props){
                     {/* <HorizontalD3ScaleLegend {...{ loadingStatus }} /> */}
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads" key="top_file_set_downloads" defaultHeight={300}
-                        title={<h5 className="text-400 mt-0">Total Count</h5>}>
+                        title={<h5 className="text-400 mt-0">Total Count for Daily Downloads</h5>}>
                         {chartToggles.chart?.top_file_set_downloads ?
                             <AreaChart {...commonChartProps} data={top_file_set_downloads} showTooltipOnHover={true} {...scale} />
                             : <React.Fragment />
@@ -1336,7 +1340,7 @@ export function UsageStatsView(props){
                     }
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads_volume" key="top_file_set_downloads_volume" 
-                        defaultHeight={350} title={<h5 className="text-400 mt-0">Total Size (GB)</h5>}>
+                        defaultHeight={350} title={<h5 className="text-400 mt-0">Total Size for Daily Downloads (GB)</h5>}>
                         {chartToggles.chart?.top_file_set_downloads_volume ?
                             <AreaChart {...commonChartProps} data={top_file_set_downloads_volume} showTooltipOnHover={true} yAxisLabel="GB" {...scale} />
                             : <React.Fragment />
@@ -1368,7 +1372,7 @@ export function UsageStatsView(props){
                     </div>
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_downloads" key="top_file_downloads"
-                        defaultHeight={300} title={<h5 className="text-400 mt-0">Total File Count</h5>}
+                        defaultHeight={300} title={<h5 className="text-400 mt-0">Total File Count for Daily Downloads</h5>}
                         subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
                         {chartToggles.chart?.top_file_downloads ?
                             <AreaChart {...commonChartProps} data={top_file_downloads} showTooltipOnHover={false} {...scale} />
@@ -1385,7 +1389,7 @@ export function UsageStatsView(props){
                     }
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" key="top_file_downloads_volume" defaultHeight={350}
-                        title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
+                        title={<h5 className="text-400 mt-0">Total File Size for Daily Downloads (GB)</h5>}
                         extraButtons={[]}
                         subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
                         {chartToggles.chart?.top_file_downloads_volume ?
