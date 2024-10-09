@@ -742,7 +742,7 @@ const aggregationsToChartData = {
 
             switch (countBy) {
                 case 'file_detail_views_by_file_type':
-                    termBucketField = 'file_type_extended'; // Assay Type
+                    termBucketField = 'file_type_extended'; // File Type
                     break;
                 case 'file_detail_views_by_assay_type':
                     termBucketField = 'assay_type_extended'; // Assay Type
@@ -753,16 +753,34 @@ const aggregationsToChartData = {
                 case 'file_detail_views_by_sequencer':
                     termBucketField = 'sequencer'; // Sequencing Platform
                     break;
-                case 'file_list_views':
+                case 'file_list_views_by_file_type':
+                    termBucketField = 'file_type_extended'; // File Type
                     countKey = 'list_views';
                     break;
-                case 'file_clicks':
+                case 'file_list_views_by_assay_type':
+                    termBucketField = 'assay_type_extended'; // Assay Type
+                    countKey = 'list_views';
+                    break;
+                case 'file_list_views_by_dataset':
+                    termBucketField = 'dataset'; // Sample Type
+                    countKey = 'list_views';
+                    break;
+                case 'file_clicks_by_file_type':
+                    termBucketField = 'file_type_extended'; // File Type
+                    countKey = 'list_clicks';
+                    break;
+                case 'file_clicks_by_assay_type':
+                    termBucketField = 'assay_type_extended'; // Assay Type
+                    countKey = 'list_clicks';
+                    break;
+                case 'file_clicks_by_dataset':
+                    termBucketField = 'dataset'; // Sample Type
                     countKey = 'list_clicks';
                     break;
                 case 'metadata_tsv_by_country':
                     useReport = 'metadata_tsv_by_country';
-                    termBucketField = 'country';
-                    countKey = 'downloads_count_with_range_queries';
+                    termBucketField = 'source';
+                    countKey = 'total_files';
                     break;
                 default:
                     break;
@@ -1084,23 +1102,27 @@ class UsageChartsCountByDropdown extends React.PureComponent {
                 menuOptions.set('top_files_10',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 10</React.Fragment>);
                 menuOptions.set('top_files_25',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 25</React.Fragment>);
                 menuOptions.set('top_files_50',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 50 (may load slowly)</React.Fragment>);
-                menuOptions.set('top_files_100',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 100 (may load slowly)</React.Fragment>);
+                menuOptions.set('top_files_100', <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 100 (may load slowly)</React.Fragment>);
                 break;
             case 'file_views':
                 menuOptions.set('file_detail_views_by_file_type',  <React.Fragment><i className="icon fas icon-fw icon-file-alt mr-1"/>Detail Views by File Type</React.Fragment>);
                 menuOptions.set('file_detail_views_by_assay_type', <React.Fragment><i className="icon fas icon-fw icon-vial mr-1"/>Detail Views by Assay Type</React.Fragment>);
                 menuOptions.set('file_detail_views_by_dataset',    <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Sample Type</React.Fragment>);
                 // menuOptions.set('file_detail_views_by_sequencer',    <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Seqeuncing Platform</React.Fragment>);
-                menuOptions.set('file_list_views',                 <React.Fragment><i className="icon fas icon-fas icon-list-ul mr-1"/>Appearance in Search Results</React.Fragment>);
-                menuOptions.set('file_clicks',                      <React.Fragment><i className="icon fas icon-fas icon-mouse-pointer mr-1"/>Search Result Click</React.Fragment>);
-                // menuOptions.set('metadata_tsv_by_country',  <React.Fragment><i className="icon fas icon-fas icon-file mr-1"/>Metadata.tsv Files Count by Country</React.Fragment>);
+                menuOptions.set('file_list_views_by_file_type',    <React.Fragment><i className="icon fas icon-fas icon-file-alt mr-1"/>Appearances in Search Results by File Type</React.Fragment>);
+                menuOptions.set('file_list_views_by_assay_type',   <React.Fragment><i className="icon fas icon-fas icon-vial mr-1"/>Appearances in Search Results by Assay Type</React.Fragment>);
+                menuOptions.set('file_list_views_by_dataset',      <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>Appearances in Search Results by Sample Type</React.Fragment>);
+                menuOptions.set('file_clicks_by_file_type',        <React.Fragment><i className="icon fas icon-fas icon-file-alt mr-1"/>Result Clicks by File Type</React.Fragment>);
+                menuOptions.set('file_clicks_by_assay_type',       <React.Fragment><i className="icon fas icon-fas icon-vial mr-1"/>Result Clicks by Assay Type</React.Fragment>);
+                menuOptions.set('file_clicks_by_dataset',          <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>Result Clicks by Sample Type</React.Fragment>);
+                menuOptions.set('metadata_tsv_by_country',         <React.Fragment><i className="icon fas icon-fas icon-file mr-1"/>Metadata.tsv Generation by Location</React.Fragment>);
                 break;
             case 'sessions_by_country':
                 menuOptions.set('views_by_country',    <React.Fragment><i className="icon icon-fw fas icon-map-marker mr-1" />Page Views by Country</React.Fragment>);
                 menuOptions.set('views_by_city',       <React.Fragment><i className="icon icon-fw fas icon-map-marker-alt mr-1" />Page Views by City</React.Fragment>);
                 menuOptions.set('device_category',     <React.Fragment><i className="icon icon-fw fas icon-laptop mr-1" />Page Views by Device</React.Fragment>);
-                menuOptions.set('page_title',          <React.Fragment><i className="icon icon-fw fas icon-font mr-1" />Page Views by Title (may load slowly)</React.Fragment>);
-                menuOptions.set('page_url',            <React.Fragment><i className="icon icon-fw fas icon-link mr-1" />Page Views by Url (may load slowly)</React.Fragment>);
+                // menuOptions.set('page_title',          <React.Fragment><i className="icon icon-fw fas icon-font mr-1" />Page Views by Title (may load slowly)</React.Fragment>);
+                // menuOptions.set('page_url',            <React.Fragment><i className="icon icon-fw fas icon-link mr-1" />Page Views by Url (may load slowly)</React.Fragment>);
                 menuOptions.set('sessions_by_country', <React.Fragment><i className="icon icon-fw fas icon-user-friends mr-1" />Unique Users by Country</React.Fragment>);
                 menuOptions.set('sessions_by_city',    <React.Fragment><i className="icon icon-fw fas icon-street-view mr-1" />Unique Users by City</React.Fragment>);
                 break;
@@ -1445,7 +1467,7 @@ export function UsageStatsView(props){
                 : null }
 
 
-            { fields_faceted ?
+            {/* { fields_faceted ?
 
                 <ColorScaleProvider resetScaleLegendWhenChange={fields_faceted}>
 
@@ -1465,16 +1487,20 @@ export function UsageStatsView(props){
 
                 </ColorScaleProvider>
 
-                : null }
+                : null } */}
 
         </div>
     );
 }
 UsageStatsView.titleMap = {
     'file_views': {
-        'metadata_tsv_by_country': ['File Views', 'metadata.tsv files'],
-        'file_list_views': ['File Views', 'appearances in results'],
-        'file_clicks': ['File Views', 'clicks from results'],
+        'metadata_tsv_by_country': ['Total Files In Metadata.tsv', 'by location'],
+        'file_list_views_by_file_type': ['File Appearances In Search Results', 'by file type'],
+        'file_list_views_by_assay_type': ['File Appearances In Search Results', 'by assay type'],
+        'file_list_views_by_dataset': ['File Appearances In Search Results', 'by sample type'],
+        'file_clicks_by_file_type': ['File Search Result Clicks', 'by file type'],
+        'file_clicks_by_assay_type': ['File Search Result Clicks', 'by assay type'],
+        'file_clicks_by_dataset': ['File Search Result Clicks', 'by sample type'],
         'file_detail_views_by_file_type': ['File Overview Page Views', 'by file type'],
         'file_detail_views_by_assay_type': ['File Overview Page Views', 'by assay type'],
         'file_detail_views_by_dataset': ['File Overview Page Views', 'by sample type'],
@@ -1806,14 +1832,15 @@ const StatisticsDataTable = React.memo((props) => {
                 title: isTransposed ? 'Term' : 'Date',
                 type: 'string',
                 noSort: true,
-                widthMap: isTransposed ? { 'lg': 300, 'md': 300, 'sm': 300 } : { 'lg': 200, 'md': 200, 'sm': 200 },
+                widthMap: isTransposed ? { 'lg': 400, 'md': 200, 'sm': 200 } : { 'lg': 200, 'md': 200, 'sm': 200 },
                 render: function (result) {
                     // overall sum
                     const overallSum = roundValue(result.overall_sum || 0, valueLabel);
+                    const tooltip = `${result.display_title} (${overallSum})`;
 
                     return isTransposed ? (
-                        <span className="value text-truncate text-left">
-                            {result.display_title} ({overallSum})
+                        <span className="value text-truncate text-left" data-tip={tooltip.length > 40 ? tooltip : null}>
+                            {result.display_title} <strong>({overallSum})</strong>
                         </span>
                     ) : (
                             <a href='#'
@@ -1823,7 +1850,7 @@ const StatisticsDataTable = React.memo((props) => {
                                     e.preventDefault();
                                 }}
                                 data-tip="Show details">
-                                {result.display_title} ({overallSum})
+                                {result.display_title} <strong>({overallSum})</strong>
                             </a>
                     );
                 }
@@ -1894,14 +1921,10 @@ const StatisticsDataTable = React.memo((props) => {
             facets: null
         },
         results: graph || [],
-        currentAction: null,
         columns,
         columnExtensionMap: columns,
         columnDefinitions: columnDefinitions,
-        columnWidths: {},
         session,
-        schemas: null,
-        facets: null,
         maxHeight: 500,
         maxResultsBodyHeight: 500,
         tableColumnClassName: "col-12",
