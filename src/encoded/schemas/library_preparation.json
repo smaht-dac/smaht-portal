@@ -200,13 +200,6 @@
             },
             "then": {
                 "required": ["enzymes"]
-            },
-            "else": {
-                "not": {
-                        "required": [
-                            "enzymes"
-                        ]
-                    }
             }
         }
     ]
