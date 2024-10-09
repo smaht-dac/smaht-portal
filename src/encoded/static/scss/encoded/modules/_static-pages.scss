@@ -643,7 +643,7 @@ body[data-path="/"]>#application>#layout {
 		}
 		// Full screen - Height of the navbar & footer at full height
 		// @TODO use variables for the heights
-		min-height: calc(100vh - 130px); 
+		min-height: calc(100vh - 130px);
 	}
 
 	.homepage-contents {
@@ -707,6 +707,10 @@ body[data-path="/"]>#application>#layout {
 
 
 		.container {
+			.homepage-figure-container {
+				justify-content: center;
+				align-items: center;
+			}
 			.notifications-panel {
 				display: flex;
 				flex-direction: column;
@@ -956,6 +960,20 @@ body[data-path="/"]>#application>#layout {
 		position: relative;
 		.homepage-contents {
 			.container {
+				margin-left: 50px;
+
+				.timeline-container {
+					margin-left: 0px;
+				}
+
+				.homepage-figure-container {
+					justify-content: start;
+					
+					.homepage-figure {
+						width: 630px;
+					}
+				}
+
 				.notifications-panel {
 					position: absolute;
 					display: flex;
@@ -967,7 +985,7 @@ body[data-path="/"]>#application>#layout {
 					background-color: $cobalt-10;
 					height: 100%;
 					right: 0px;
-					width: 300px;
+					width: 350px;
 					border-right: none;
 					border-bottom: none;
 					border-left: 1px solid #A9A9FF;
@@ -994,6 +1012,11 @@ body[data-path="/"]>#application>#layout {
 		position: relative;
 		.homepage-contents {
 			.container {
+
+				.homepage-figure-container {
+					justify-content: center;
+				}
+
 				.notifications-panel {
 					width: 400px;
 					padding: 38px 27px;

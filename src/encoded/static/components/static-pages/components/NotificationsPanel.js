@@ -77,7 +77,7 @@ export const NotificationsPanel = () => {
                     })}
                 </div>
             </div>
-            <div className="about-consortium mb-3 section">
+            {/* <div className="about-consortium mb-3 section">
                 <h3 className="section-header">About the Consortium</h3>
                 <div className="section-body">
                     <div className="about-consortium-links">
@@ -116,7 +116,7 @@ export const NotificationsPanel = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 };

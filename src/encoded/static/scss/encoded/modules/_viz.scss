@@ -423,12 +423,24 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             }
         }
     }
-    @media screen and (min-width: 1500px) {
+    @include media-breakpoint-up(xxl) {
+        .latest-release {
+            margin-left: 20px;
+        }
         .timeline-item {
+            padding-left: 20px;
+
             &-header {
                 h3 {
-                    font-size: 1.5rem;
+                    font-size: 1.25rem;
                 }
+            }
+
+            .timeline-marker {
+                width: 15px;
+                height: 15px;
+                min-height: 15px;
+                left: -8px;
             }
         }
     }
