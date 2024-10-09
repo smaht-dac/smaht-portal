@@ -1380,6 +1380,10 @@ $workflow-node-color-type-global-context: #ffb3b3;
             }
         }
 
+        .chart-group h5 {
+            font-weight: 600 !important;
+        }
+
         .search-view-controls-and-results {
             .above-results-table-row {
                 .right-buttons button[data-tip="Sort multiple columns"],
@@ -1396,6 +1400,12 @@ $workflow-node-color-type-global-context: #ffb3b3;
             }
             .search-result-column-block[data-field="display_title"] {
                 padding-left: 0px !important;
+            }
+        }
+
+        #content_top_file_set_downloads, #content_top_file_set_downloads_volume {
+            .search-result-row .search-result-column-block[data-field="display_title"] {
+                font-size: 90% !important;
             }
         }
 
