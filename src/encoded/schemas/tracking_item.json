@@ -499,7 +499,7 @@
                                         "title" : "List Name",
                                         "description": "The source where the metadata.tsv file is generated"
                                     },
-                                    "files_count" : {
+                                    "total_files" : {
                                         "type" : "integer",
                                         "title" : "Files Count",
                                         "description": "Total files count included within the file"
