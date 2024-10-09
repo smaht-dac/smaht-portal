@@ -31,6 +31,11 @@ const TierSelector = ({ currentTier, setCurrentTier }) => {
                 className={currentTier === 2 ? 'active' : ''}>
                 <span>Tier 2</span>
             </button>
+            <button
+                onClick={() => setCurrentTier(3)}
+                className={currentTier === 3 ? 'active' : ''}>
+                <span>Tier 3</span>
+            </button>
         </div>
     );
 };
