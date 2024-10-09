@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import {
     OverlayTrigger,
     Popover,
-    PopoverContent,
-    PopoverTitle,
+    PopoverBody,
+    PopoverHeader,
 } from 'react-bootstrap';
 import tableData from './data/stackrow_data.json';
 import graph from './data/alluvial_data.json';
@@ -36,7 +36,7 @@ const PopoverContents = ({ data }) => {
 };
 
 // Component serving as a trigger for the Bootstrap Popover component
-const OverlayTriggerContent = ({ ref, value, data, ...triggerHandler }) => {
+const OverlayTriggerContent = forwardRef(({ value, data, ...triggerHandler }, ref) => {
     return (
         <div
             className="stackrow-item-container clickable"
@@ -47,7 +47,7 @@ const OverlayTriggerContent = ({ ref, value, data, ...triggerHandler }) => {
             </span>
         </div>
     );
-};
+});
 
 /**
  * Renders an item to be shown on the table.
@@ -66,15 +66,15 @@ const StackRowItem = ({ value = 0, data = [], data_generator = '' }) => {
                     rootClose
                     overlay={
                         <Popover id="popover-consortium-data-alluvial-table">
-                            <PopoverTitle>
+                            <PopoverHeader>
                                 {value +
                                     (value > 1
                                         ? ' sequencing platforms'
                                         : ' sequencing platform')}
-                            </PopoverTitle>
-                            <PopoverContent>
+                            </PopoverHeader>
+                            <PopoverBody>
                                 <PopoverContents data={data} />
-                            </PopoverContent>
+                            </PopoverBody>
                         </Popover>
                     }>
                     <OverlayTriggerContent value={value} data={data} />
@@ -101,20 +101,20 @@ const StackRowTopLabel = ({ assayType }) => {
                         aria-labelledby={`Details about ${assayType.display_name}.`}
                         onMouseEnter={() => setShowPopover(true)}
                         onMouseLeave={() => setShowPopover(false)}>
-                        <PopoverTitle>{assayType.display_name}</PopoverTitle>
-                        <PopoverContent>
+                        <PopoverHeader>{assayType.display_name}</PopoverHeader>
+                        <PopoverBody>
                             {assayType.description ? (
                                 <p>{assayType.description}</p>
                             ) : null}
                             {assayType.link && (
                                 <a
-                                    className="read-more"
+                                    className="read-more link-underline-hover"
                                     href={assayType.link}
                                     target="blank_">
                                     Read more
                                 </a>
                             )}
-                        </PopoverContent>
+                        </PopoverBody>
                     </Popover>
                 }>
                 <span

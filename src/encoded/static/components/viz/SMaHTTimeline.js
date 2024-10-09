@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useCallback } from 'react';
 import {
     Accordion,
     AccordionContext,
-    useAccordionToggle,
+    useAccordionButton,
 } from 'react-bootstrap';
 import Card from 'react-bootstrap/esm/Card';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
@@ -29,7 +29,7 @@ const TimelineItem = ({
                 className="timeline-marker"
                 onClick={() => setCurrentTier(itemKey)}></div>
             <div className="timeline-item-header">
-                <h3 className="text-left">
+                <h3 className="text-start">
                     {title}&nbsp;
                     {subtitle ? (
                         <i className="timeline-item-subheader">
@@ -77,14 +77,14 @@ function ContextAwareToggle({
     isError,
     loadData,
 }) {
-    const currentEventKey = useContext(AccordionContext);
+    const { activeEventKey } = useContext(AccordionContext);
 
-    const decoratedOnClick = useAccordionToggle(
+    const decoratedOnClick = useAccordionButton(
         eventKey,
         () => callback && callback(eventKey)
     );
 
-    const isCurrentEventKey = currentEventKey === eventKey;
+    const isCurrentEventKey = activeEventKey === eventKey;
 
     const openStatusIconCls = isCurrentEventKey
         ? 'icon icon-minus fas'
@@ -101,7 +101,7 @@ function ContextAwareToggle({
                 }}>
                 <div className="d-flex justify-start">
                     {!isError && (
-                        <i className={openStatusIconCls + ' m-auto mr-1'} />
+                        <i className={openStatusIconCls + ' m-auto me-1'} />
                     )}
                     {children}
                 </div>
@@ -163,7 +163,7 @@ function TimelineAccordionDrawer(props) {
                         isError,
                         loadData,
                     }}>
-                    <span className="text-left">{title}</span>
+                    <span className="text-start">{title}</span>
                 </ContextAwareToggle>
             </Card.Header>
             <Accordion.Collapse {...{ eventKey }}>

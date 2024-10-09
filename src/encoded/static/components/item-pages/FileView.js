@@ -65,7 +65,7 @@ const FileViewTitle = (props) => {
                             <li className="breadcrumb-list-item" key={i}>
                                 <a
                                     className={
-                                        'breadcrumb-list-item-link' +
+                                        'breadcrumb-list-item-link link-underline-hover' +
                                         (href ? '' : ' no-link')
                                     }
                                     href={href}>
@@ -98,12 +98,12 @@ const FileViewHeader = (props) => {
                 <h1 className="header-text">File Overview</h1>
                 <SelectedItemsDownloadButton
                     id="download_tsv_multiselect"
-                    className="btn btn-primary btn-sm mr-05 align-items-center download-file-button"
+                    className="btn btn-primary btn-sm me-05 align-items-center download-file-button"
                     session={session}
                     selectedItems={selectedFile}
                     disabled={false}
                     analyticsAddItemsToCart>
-                    <i className="icon icon-download fas mr-07" />
+                    <i className="icon icon-download fas me-07" />
                     Download File
                 </SelectedItemsDownloadButton>
             </div>
@@ -114,7 +114,8 @@ const FileViewHeader = (props) => {
                         <a
                             href="/SMAFI557D2E7"
                             target="_blank"
-                            rel="noreferrer noopener">
+                            rel="noreferrer noopener"
+                            className="link-underline-hover">
                             original BAM file
                         </a>{' '}
                         of COLO829-T standard ONT WGS data{' '}
@@ -125,7 +126,8 @@ const FileViewHeader = (props) => {
                         <a
                             href="/SMAFIB6EQLZM"
                             target="_blank"
-                            rel="noreferrer noopener">
+                            rel="noreferrer noopener"
+                            className="link-underline-hover">
                             available here.
                         </a>
                     </p>
@@ -150,7 +152,7 @@ const FileViewHeader = (props) => {
                     <span className="vertical-divider">|</span>
                     <ViewJSONAction href={context['@id']}>
                         <a
-                            className="view-json"
+                            className="view-json link-underline-hover"
                             aria-label="Open JSON code in new tab"
                             tabIndex="0">
                             <i className="icon icon-file-code far"></i>

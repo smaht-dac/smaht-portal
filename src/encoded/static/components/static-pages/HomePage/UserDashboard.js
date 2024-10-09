@@ -25,7 +25,7 @@ export const UserDashboard = React.memo(function UserDashboard({
             <div className="dashboard-header">
                 <div className="container-wide d-flex align-items-center justify-content-between">
                     <div className="align-items-center d-flex">
-                        <i className="icon icon-fw icon-home fas mr-1" />
+                        <i className="icon icon-fw icon-home fas me-1" />
                         <h5 className="mt-0 mb-0 text-400">Home Dashboard</h5>
                     </div>
                 </div>

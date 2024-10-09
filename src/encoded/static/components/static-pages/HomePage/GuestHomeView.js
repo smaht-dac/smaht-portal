@@ -59,7 +59,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                         />
                     </div>
                 </div>
-                <div className="row no-gutters">
+                <div className="row g-0">
                     <Card className="about-consortium col-12 w-100 mb-3">
                         <h3 className="">About the Consortium</h3>
                         <div className="row">
@@ -71,7 +71,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     role="button"
                                     className="w-100 py-2 btn">
                                     NIH SMaHT Homepage
-                                    <i className="icon-external-link-alt icon icon-xs fas ml-2" />
+                                    <i className="icon-external-link-alt icon fas ms-2" />
                                 </a>
                             </div>
                             <div className="col-12 col-lg-4">
@@ -82,7 +82,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     role="button"
                                     className="w-100 py-2 btn">
                                     SMaHT OC Homepage
-                                    <i className="icon-external-link-alt icon icon-xs fas ml-2" />
+                                    <i className="icon-external-link-alt icon fas ms-2" />
                                 </a>
                             </div>
                             <div className="col-12 col-lg-4">
@@ -93,7 +93,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     role="button"
                                     className="w-100 py-2 btn">
                                     SMaHT Overview Video
-                                    <i className="icon-external-link-alt icon text-xs fas ml-2" />
+                                    <i className="icon-external-link-alt icon fas ms-2" />
                                 </a>
                             </div>
                             {/** @TODO: Link might change */}
@@ -102,7 +102,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                                     href="/about"
                                     role="button"
                                     className="w-100 py-2 btn">
-                                    SMaHT Consortium Map <span className="font-italic">(coming soon)</span>
+                                    SMaHT Consortium Map <span className="fst-italic">(coming soon)</span>
                                 </a>
                             </div> */}
                         </div>

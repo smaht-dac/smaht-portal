@@ -37,6 +37,7 @@ if (mode === 'production') {
 }
 
 const rules = [
+    { test: /\.m?js/, resolve: { fullySpecified: false } },
     // Strip @jsx pragma in react-forms, which makes babel abort
     {
         test: /\.js$/,

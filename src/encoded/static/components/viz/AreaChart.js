@@ -295,8 +295,8 @@ export class GroupByController extends React.PureComponent {
 
     static defaultProps = {
         'groupByOptions' : {
-            'data_generation_summary.submission_centers'    : <span><i className="icon icon-fw fas icon-university mr-1"/>Submission Center</span>,
-            'dataset'                                       : <span><i className="icon icon-fw fas icon-database mr-1"/>Sample</span>,
+            'data_generation_summary.submission_centers'    : <span><i className="icon icon-fw fas icon-university me-1"/>Submission Center</span>,
+            'dataset'                                       : <span><i className="icon icon-fw fas icon-database me-1"/>Sample</span>,
         },
         'initialGroupBy' : 'data_generation_summary.submission_centers'
     };
@@ -445,7 +445,7 @@ export class GroupByDropdown extends React.PureComponent {
                                 {dateRangeOptionItems}
                             </DropdownButton>
                             <div className="d-flex custom-date-range">
-                                <span className="text-300 pt-05 d-none d-md-inline-block mr-05">Custom:</span>
+                                <span className="text-300 pt-05 d-none d-md-inline-block me-05">Custom:</span>
                                 <input id="submission_data_range_from" type="date"
                                     className="form-control" value={tempDateRangeFrom || ''}
                                     onChange={(e) => { this.setState({ "tempDateRangeFrom": e.target.value }); }}
@@ -457,7 +457,7 @@ export class GroupByDropdown extends React.PureComponent {
                             </div>
                         </div>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-3 align-top pl-1">
+                    <div className="dropdown-container-col col-12 col-lg-3 align-top ps-1">
                         <div className="text-500 d-block mb-1">Settings</div>
                         {children}
                     </div>
@@ -473,7 +473,7 @@ export class GroupByDropdown extends React.PureComponent {
                         {groupByOptionItems}
                     </DropdownButton>
                 </div>
-                <div className="dropdown-container-col col-12 col-lg-9 align-top pl-1">
+                <div className="dropdown-container-col col-12 col-lg-9 align-top ps-1">
                     <div className="text-500 d-block mb-1">Settings</div>
                     {children}
                 </div>
@@ -1110,9 +1110,7 @@ export class AreaChart extends React.PureComponent {
                 return (
                     <div className={"label-bg" + (isToLeft ? ' to-left' : '') + (hasCloseButton ? ' has-close-button' : '')}>
                         {hasCloseButton &&
-                            <button className="close float-left" type="button" onClick={(e) => { e.stopPropagation(); tProps.removeTooltip(); }}>
-                                <span>×</span>
-                            </button>
+                            <button className="btn-close float-start" type="button" onClick={(e) => { e.stopPropagation(); tProps.removeTooltip(); }} />
                         }
                         <h5 className={"text-500 mt-0 clearfix" + (isEmpty ? ' mb-0' : ' mb-11')}>
                             { dateString }{ total ? <span className="text-700 text-large pull-right" style={{ marginTop: -2 }}>&nbsp;&nbsp; { total }</span> : null }
@@ -1261,8 +1259,10 @@ export class AreaChart extends React.PureComponent {
 }
 
 
-export function LoadingIcon(props){
-    const { children } = props;
+export function LoadingIcon({
+    children = "Loading Chart Data",
+    ...props
+}) {
     return (
         <div className="mt-5 mb-5 text-center">
             <i className="icon icon-fw icon-spin icon-circle-notch icon-2x fas" style={{ opacity : 0.5 }}/>
@@ -1270,10 +1270,11 @@ export function LoadingIcon(props){
         </div>
     );
 }
-LoadingIcon.defaultProps = { 'children' : "Loading Chart Data" };
 
-export function ErrorIcon(props){
-    const { children } = props;
+export function ErrorIcon({
+    children = "Loading failed. Please try again later.",
+    ...props
+}) {
     return (
         <div className="mt-5 mb-5 text-center">
             <i className="icon icon-fw icon-times icon-2x fas"/>
@@ -1281,7 +1282,6 @@ export function ErrorIcon(props){
         </div>
     );
 }
-ErrorIcon.defaultProps = { 'children' : "Loading failed. Please try again later." };
 
 
 
@@ -1290,7 +1290,7 @@ export class AreaChartContainer extends React.Component {
     static isExpanded(props){
         const { windowWidth, chartToggles, id } = props;
         const gridState = layout.responsiveGridState(windowWidth);
-        if (gridState && gridState !== 'xl') return false;
+        if (gridState && (gridState !== 'xl' || gridState !== 'xxl')) return false;
         return !!((chartToggles || {})[id]);
     }
 
