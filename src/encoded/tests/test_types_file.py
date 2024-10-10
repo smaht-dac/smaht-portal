@@ -998,11 +998,18 @@ def assert_data_generation_summary_matches_expected(
         )
         for sequencing in sequencings
     ] if sequencings else []
-    expected_target_coverage = [
-        sequencing_utils.get_target_coverage(
-            get_item(es_testapp, item_utils.get_uuid(sequencing))
-        )
-        for sequencing in sequencings
+
+    expected_target_coverage = [ target_coverage 
+        for sequencing in sequencings                     
+        if (target_coverage := sequencing_utils.get_target_coverage(
+                get_item(es_testapp, item_utils.get_uuid(sequencing))
+            ))
+        ] if sequencings else []
+    expected_target_read_count = [ target_coverage 
+        for sequencing in sequencings                     
+        if (target_coverage := sequencing_utils.get_target_read_count(
+                get_item(es_testapp, item_utils.get_uuid(sequencing))
+            ))
     ] if sequencings else []
     assert_values_match_if_present(
         data_generation_summary, "data_category", expected_data_category
@@ -1022,6 +1029,9 @@ def assert_data_generation_summary_matches_expected(
     )
     assert_values_match_if_present(
         data_generation_summary,"target_group_coverage",expected_target_coverage
+    )
+    assert_values_match_if_present(
+        data_generation_summary,"target_read_count",expected_target_read_count
     )
 
 
