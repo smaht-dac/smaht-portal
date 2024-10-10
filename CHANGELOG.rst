@@ -14,17 +14,17 @@ Change Log
 
 * New/Updated charts:
 
-    * File downloads
-    * Top file set downloads by file type - file format
-    * File detail views by file type - file format
-    * File search result appearances by file type - file format
-    * File search result clicks by file type - file format
-    * Metadata.tsv included file counts by location
+  * File downloads
+  * Top file set downloads by file type - file format
+  * File detail views by file type - file format
+  * File search result appearances by file type - file format
+  * File search result clicks by file type - file format
+  * Metadata.tsv included file counts by location
 
 * New options:
 
-    * 6-12-18 months and All date interval options added
-    * Toggle for charts
+  * 6-12-18 months and All date interval options added
+  * Toggle for charts
 
 
 
