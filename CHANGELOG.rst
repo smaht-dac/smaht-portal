@@ -7,6 +7,27 @@ smaht-portal
 Change Log
 ----------
 
+0.103.0
+======
+
+`PR 273: GA4 & Usage Statistics Follow-up <https://github.com/smaht-dac/smaht-portal/pull/273>`_
+
+* New/Updated charts:
+
+    * File downloads
+    * Top file set downloads by file type - file format
+    * File detail views by file type - file format
+    * File search result appearances by file type - file format
+    * File search result clicks by file type - file format
+    * Metadata.tsv included file counts by location
+
+* New options:
+
+    * 6-12-18 months and All date interval options added
+    * Toggle for charts
+
+
+
 0.102.2
 ======
 `PR 224: feat: error state for homepage timeline <https://github.com/smaht-dac/smaht-portal/pull/224>`_
