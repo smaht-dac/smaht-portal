@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.103.1
+`PR 272: SN Enzymes optional <https://github.com/smaht-dac/smaht-portal/pull/224>`_
+* Make property `enzymes` in LibraryPreparation optional if `fragmentation_method` does not contain "Transposase" or "Restriction Enzyme", otherwise required
+
+
 0.103.0
 =======
 

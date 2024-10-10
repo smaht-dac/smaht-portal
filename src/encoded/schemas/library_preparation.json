@@ -100,6 +100,7 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Mechanical",
                     "Sonication",
                     "Restriction Enzyme",
                     "Transposase",
@@ -200,13 +201,6 @@
             },
             "then": {
                 "required": ["enzymes"]
-            },
-            "else": {
-                "not": {
-                        "required": [
-                            "enzymes"
-                        ]
-                    }
             }
         }
     ]

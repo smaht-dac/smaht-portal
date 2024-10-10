@@ -24,12 +24,12 @@ def test_library_preparation(
 @pytest.mark.parametrize(
     "patch_body,status",
     [
-        ({"enzymes": ["AluI"]}, 422),
+        ({"enzymes": ["AluI"]}, 200),
         ({"fragmentation_method": ["Sonication"]}, 200),
         ({"fragmentation_method": ["Restriction Enzyme"]}, 422),
         ({"fragmentation_method": ["Restriction Enzyme"], "enzymes": ["AluI"]}, 200),
-       ({"fragmentation_method": ["Transposase"], "enzymes": ["Tn5"]}, 200),
-       ({"fragmentation_method": ["Sonication"], "enzymes": ["AluI"]}, 422),
+       ({"fragmentation_method": ["Transposase"]}, 422),
+       ({"fragmentation_method": ["Sonication"], "enzymes": ["AluI"]}, 200),
     ],
 )
 def test_enzyme_conditional(
