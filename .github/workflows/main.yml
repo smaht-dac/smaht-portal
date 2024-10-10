@@ -26,12 +26,13 @@ jobs:
     strategy:
       matrix:
         test_type: [ 'UNIT', 'DOCKER' ]
+        node_version: ['20']
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.11
 
