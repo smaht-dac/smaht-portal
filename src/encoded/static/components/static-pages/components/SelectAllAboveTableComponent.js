@@ -363,7 +363,7 @@ const SelectedItemsDownloadModal = function (props) {
             },
             {
                 items: Array.isArray(products) ? products : null,
-                list_name: extData.item_list_name,
+                list_name: `${extData.item_list_name} (${isAWSDownload ? 'AWS CLI' : 'cURL'})`,
                 value: itemCountUnique || itemList.length || 0,
                 filters: analytics.getStringifiedCurrentFilters(
                     (context && context.filters) || null
@@ -862,7 +862,7 @@ const SelectedItemsDownloadStartButton = React.memo(
                                     ? products
                                     : null,
                                 payment_type: 'Metadata.tsv Download',
-                                list_name: extData.item_list_name,
+                                list_name: `${extData.item_list_name} (${isAWSDownload ? 'AWS CLI' : 'cURL'})`,
                                 value: (products && products.length) || 0,
                                 // filters: analytics.getStringifiedCurrentFilters((context && context.filters) || null)
                             }
@@ -872,7 +872,7 @@ const SelectedItemsDownloadStartButton = React.memo(
 
                 return { onClick };
             },
-            [selectedItems]
+            [selectedItems, isAWSDownload]
         );
 
         return (

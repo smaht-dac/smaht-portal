@@ -31,7 +31,7 @@ def google_analytics_tracking_data():
                         "file_item_id": "/output-files/74523dca-9230-49d8-a07e-b7852e052716/",
                         "file_title": "SMHTCOLO829BL-X-X-M45-C005-uwsc-SMAFIPVP9ZN6-sentieon_bwamem_202308.01_GRCh38.aligned.sorted.bam",
                         "generated_by": "(not set)",
-                        "downloads_count_with_range_queries": 0,
+                        "total_files": 0,
                         "list_views": 2,
                         "list_clicks": 0,
                         "detail_views": 4,
@@ -40,7 +40,8 @@ def google_analytics_tracking_data():
                 ]
             },
             "for_date": "2023-12-19",
-            "date_increment": "daily"}
+            "date_increment": "daily"
+        }
     }
 
 
