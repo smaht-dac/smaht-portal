@@ -489,17 +489,25 @@ const aggregationsToChartData = {
 
             let useReport, groupingKey, countKey = 'downloads_count';
             switch (countBy) {
+                case 'filetype':
+                    useReport = 'file_downloads_by_filetype';
+                    groupingKey = 'file_type_extended'; // File Type
+                    break;
                 case 'assay_type':
                     useReport = 'file_downloads_by_assay_type';
-                    groupingKey = 'assay_type'; // Assay Type
+                    groupingKey = 'assay_type_extended'; // Assay Type
                     break;
                 case 'dataset':
                     useReport = 'file_downloads_by_dataset';
                     groupingKey = 'dataset'; // Dataset
                     break;
+                case 'sequencer':
+                    useReport = 'file_downloads_by_sequencer';
+                    groupingKey = 'sequencer'; // Sequencing Platform
+                    break;
                 default: //file type
                     useReport = 'file_downloads_by_filetype';
-                    groupingKey = "file_type"; // File Type
+                    groupingKey = "file_type_extended"; // File Type
                     break;
             }
 
@@ -516,23 +524,114 @@ const aggregationsToChartData = {
 
             let useReport, groupingKey, countKey = 'downloads_size';
             switch (countBy) {
+                case 'filetype':
+                    useReport = 'file_downloads_by_filetype';
+                    groupingKey = 'file_type_extended'; // File Type
+                    break;
                 case 'assay_type':
                     useReport = 'file_downloads_by_assay_type';
-                    groupingKey = 'assay_type'; // Assay Type
+                    groupingKey = 'assay_type_extended'; // Assay Type
                     break;
                 case 'dataset':
                     useReport = 'file_downloads_by_dataset';
                     groupingKey = 'dataset'; // Dataset
                     break;
+                case 'sequencer':
+                    useReport = 'file_downloads_by_sequencer';
+                    groupingKey = 'sequencer'; // Sequencing Platform
+                    break;
                 default: //file type
                     useReport = 'file_downloads_by_filetype';
-                    groupingKey = "file_type"; // File Type
+                    groupingKey = "file_type_extended"; // File Type
                     break;
             }
 
             //convert volume to GB
             const gigabyte = 1024 * 1024 * 1024;
             const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum);
+            if (result && Array.isArray(result) && result.length > 0) {
+                _.forEach(result, (r) => {
+                    r.total = r.total / gigabyte;
+                    r.count = r.count / gigabyte;
+                    if (r.children && Array.isArray(r.children) && r.children.length > 0) {
+                        _.forEach(r.children, (c) => {
+                            c.total = c.total / gigabyte;
+                            c.count = c.count / gigabyte;
+                        });
+                    }
+                });
+            }
+            return result;
+        }
+    },
+    'top_file_set_downloads' : {
+        'requires'  : "TrackingItem",
+        'function'  : function(resp, props){
+            if (!resp || !resp['@graph']) return null;
+            const { countBy : { top_file_downloads : countBy } } = props;
+
+            let useReport = 'top_files_downloaded';
+            let groupingKey = 'file_set'; // File
+            const countKey = 'downloads_count'; // Download Count
+            let topCount = 0; // all
+
+            switch (countBy) {
+                case 'top_files_10':
+                    topCount = 10;
+                    break;
+                case 'top_files_25':
+                    topCount = 25;
+                    break;
+                case 'top_files_50':
+                    topCount = 50;
+                    break;
+                case 'top_files_100':
+                    topCount = 100;
+                    break;
+                default:
+                    // Handle unknown cases if needed
+                    break;
+            }
+
+            const termDisplayAsFunc = function(item){ return item.file_title ? item.file_title : (item.file_type ? `${item.term} (${item.file_type})` : item.term) };
+
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
+        }
+    },
+    'top_file_set_downloads_volume' : {
+        'requires'  : "TrackingItem",
+        'function'  : function(resp, props){
+            if (!resp || !resp['@graph']) return null;
+            const { countBy : { top_file_downloads_volume : countBy } } = props;
+
+            const useReport = 'top_files_downloaded';
+            const groupingKey = 'file_set'; // File Set
+            const countKey = 'downloads_size'; // Download Size
+            let topCount = 0; // all
+
+            switch (countBy) {
+                case 'top_files_10':
+                    topCount = 10;
+                    break;
+                case 'top_files_25':
+                    topCount = 25;
+                    break;
+                case 'top_files_50':
+                    topCount = 50;
+                    break;
+                case 'top_files_100':
+                    topCount = 100;
+                    break;
+                default:
+                    // Handle unknown cases if needed
+                    break;
+            }
+
+            const termDisplayAsFunc = function(item){ return item.file_type && item.file_title ? `${item.file_title} (${item.file_type})` : item.term };
+            
+            //convert volume to GB
+            const gigabyte = 1024 * 1024 * 1024;
+            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
             if (result && Array.isArray(result) && result.length > 0) {
                 _.forEach(result, (r) => {
                     r.total = r.total / gigabyte;
@@ -643,24 +742,45 @@ const aggregationsToChartData = {
 
             switch (countBy) {
                 case 'file_detail_views_by_file_type':
-                    // No changes needed
+                    termBucketField = 'file_type_extended'; // File Type
                     break;
                 case 'file_detail_views_by_assay_type':
-                    termBucketField = 'assay_type';
+                    termBucketField = 'assay_type_extended'; // Assay Type
                     break;
                 case 'file_detail_views_by_dataset':
-                    termBucketField = 'dataset';
+                    termBucketField = 'dataset'; // Sample Type
                     break;
-                case 'file_list_views':
+                case 'file_detail_views_by_sequencer':
+                    termBucketField = 'sequencer'; // Sequencing Platform
+                    break;
+                case 'file_list_views_by_file_type':
+                    termBucketField = 'file_type_extended'; // File Type
                     countKey = 'list_views';
                     break;
-                case 'file_clicks':
+                case 'file_list_views_by_assay_type':
+                    termBucketField = 'assay_type_extended'; // Assay Type
+                    countKey = 'list_views';
+                    break;
+                case 'file_list_views_by_dataset':
+                    termBucketField = 'dataset'; // Sample Type
+                    countKey = 'list_views';
+                    break;
+                case 'file_clicks_by_file_type':
+                    termBucketField = 'file_type_extended'; // File Type
+                    countKey = 'list_clicks';
+                    break;
+                case 'file_clicks_by_assay_type':
+                    termBucketField = 'assay_type_extended'; // Assay Type
+                    countKey = 'list_clicks';
+                    break;
+                case 'file_clicks_by_dataset':
+                    termBucketField = 'dataset'; // Sample Type
                     countKey = 'list_clicks';
                     break;
                 case 'metadata_tsv_by_country':
                     useReport = 'metadata_tsv_by_country';
-                    termBucketField = 'country';
-                    countKey = 'downloads_count_with_range_queries';
+                    termBucketField = 'source';
+                    countKey = 'total_files';
                     break;
                 default:
                     break;
@@ -682,28 +802,33 @@ export const submissionsAggsToChartData = _.pick(aggregationsToChartData,
 export const usageAggsToChartData = _.pick(aggregationsToChartData,
     'file_downloads',  'file_downloads_volume',
     'top_file_downloads',  'top_file_downloads_volume',
+    'top_file_set_downloads',  'top_file_set_downloads_volume',
     'sessions_by_country', 'fields_faceted','file_views'
 );
 
 
 export class UsageStatsViewController extends React.PureComponent {
 
-    static getSearchReqMomentsForTimePeriod(currentGroupBy = "daily60"){
+    static getSearchReqMomentsForTimePeriod(currentGroupBy = "daily:60") {
         let untilDate = new Date();
         let fromDate;
-        if (currentGroupBy === 'monthly'){ // 1 yr (12 mths)
-            untilDate = sub(startOfMonth(untilDate), { minutes: 1 }); // Last minute of previous month
-            fromDate = toDate(untilDate);
-            fromDate = sub(fromDate, { months: 12 }); // Go back 12 months
-        } else if (currentGroupBy === 'daily30'){ // 30 days
+
+        if (currentGroupBy.startsWith("daily:")) {
+            const days = parseInt(currentGroupBy.split(":")[1], 10); // Extract the number after 'daily:'
             untilDate = sub(untilDate, { days: 1 });
-            fromDate = toDate(untilDate);
-            fromDate = sub(fromDate, { days: 30 }); // Go back 30 days
-        }else if (currentGroupBy === 'daily60'){ // 60 days
-            untilDate = sub(untilDate, { days: 1 });
-            fromDate = toDate(untilDate);
-            fromDate = sub(fromDate, { days: 60 }); // Go back 60 days
+            fromDate = sub(untilDate, { days }); // Go back the specified number of days
+        } else if (currentGroupBy.startsWith("monthly:")) {
+            const months = currentGroupBy.split(":")[1];
+            if (months === "All") { // Special case for 'monthly:All'
+                fromDate = new Date("2023-12-31");
+                untilDate = sub(startOfMonth(untilDate), { minutes: 1 }); // Last minute of previous month
+            } else {
+                const numMonths = parseInt(months, 10); // Extract the number after 'monthly:'
+                untilDate = sub(startOfMonth(untilDate), { minutes: 1 }); // Last minute of previous month
+                fromDate = sub(untilDate, { months: numMonths }); // Go back the specified number of months
+            }
         }
+
         return { fromDate, untilDate };
     }
 
@@ -722,16 +847,16 @@ export class UsageStatsViewController extends React.PureComponent {
                     "sessions_by_page",
                     "file_downloads_by_assay_type",
                     "file_downloads_by_dataset",
+                    "file_downloads_by_sequencer",
                     "file_downloads_by_filetype",
                     "file_downloads_by_country",
                     "top_files_downloaded",
                     "metadata_tsv_by_country",
                     "views_by_file",
-                    "views_by_experiment_set",
                     "for_date"
                 ];
 
-                const date_increment = currentGroupBy === 'monthly' ? 'monthly' : 'daily';
+                const date_increment = currentGroupBy.startsWith('monthly') ? 'monthly' : 'daily';
 
                 let uri = '/search/?type=TrackingItem&tracking_type=google_analytics&sort=-google_analytics.for_date&format=json';
 
@@ -768,8 +893,10 @@ export class UsageStatsViewController extends React.PureComponent {
 
         Object.keys(usageAggsToChartData).forEach(function(k){
             if (k === 'file_downloads' || k === 'file_downloads_volume'){
-                countBy[k] = 'filetype'; // For file_downloads, countBy is treated as 'groupBy'.
+                countBy[k] = 'assay_type'; // For file_downloads, countBy is treated as 'groupBy'.
             } else if (k === 'top_file_downloads' || k === 'top_file_downloads_volume'){
+                countBy[k] = 'top_files_10'; // For top_file_downloads, countBy is treated as 'groupBy'.
+            } else if (k === 'top_file_set_downloads' || k === 'top_file_set_downloads_volume'){
                 countBy[k] = 'top_files_10'; // For top_file_downloads, countBy is treated as 'groupBy'.
             } else if (k === 'file_views'){
                 countBy[k] = 'file_detail_views_by_assay_type';
@@ -794,8 +921,71 @@ export class UsageStatsViewController extends React.PureComponent {
         }, 0);
     }
 
-    render(){
-        return <StatsViewController {...this.props} {...this.state} changeCountByForChart={this.changeCountByForChart}/>;
+    transformResultItems(result) {
+        // do not transform
+        if (!result || typeof result !== 'object' || !result['@graph'] ||
+            !Array.isArray(result['@graph'] || result['@graph'].length === 0)) {
+            return result;
+        }
+
+        const format = function (value1, value2) {
+            if (value1 && value2 && value1 !== "None" && value2 !== "None") {
+                return `${value1} (${value2})`
+            } else if (value1 && value1 !== "None") {
+                return value1;
+            } else if (value2 && value2 !== "None") {
+                return `N/A (${value2})`;
+            }
+            return 'N/A';
+        }
+        
+        result['@graph'].forEach(function (resultItem) {
+            const {
+                google_analytics: {
+                    reports: {
+                        file_downloads_by_filetype = [],
+                        file_downloads_by_assay_type = [],
+                        views_by_file = [],
+                        top_files_downloaded = [] } = {} } = {} } = resultItem;
+            // file_downloads_by_filetype
+            if (file_downloads_by_filetype.length > 0) {
+                file_downloads_by_filetype.forEach(function (fd) {
+                    const { file_type, file_format = '-' } = fd;
+                    fd.file_type_extended = format(file_type, file_format);
+                });
+            }
+            // file_downloads_by_assay_type
+            if (file_downloads_by_assay_type.length > 0) {
+                file_downloads_by_assay_type.forEach(function (fd) {
+                    const { assay_type, sequencer = '-' } = fd;
+                    fd.assay_type_extended = format(assay_type, sequencer);
+                });
+            }
+            // views_by_file
+            if (views_by_file.length > 0) {
+                views_by_file.forEach(function (vf) {
+                    const { file_type, file_format = '-', assay_type, sequencer = "-" } = vf;
+                    vf.file_type_extended = format(file_type, file_format);
+                    vf.assay_type_extended = format(assay_type, sequencer);
+                });
+            }
+
+            // top_file_downloads
+            if (top_files_downloaded.length > 0) {
+                top_files_downloaded.forEach(function (tfd) {
+                    if (!tfd.file_set) {
+                        tfd.file_set = "N/A";
+                    }
+                });
+            }
+        });
+
+        return result;
+    }
+
+    render() {
+        return <StatsViewController {...this.props} {...this.state}
+            changeCountByForChart={this.changeCountByForChart} transformResultItems={this.transformResultItems} />;
     }
 }
 
@@ -893,6 +1083,8 @@ class UsageChartsCountByDropdown extends React.PureComponent {
             changeCountByForChart('file_downloads_volume', evtKey);
         } else if (chartID == 'top_file_downloads') {
             changeCountByForChart('top_file_downloads_volume', evtKey);
+        } else if (chartID == 'top_file_set_downloads') {
+            changeCountByForChart('top_file_set_downloads_volume', evtKey);
         }
     }
 
@@ -906,28 +1098,35 @@ class UsageChartsCountByDropdown extends React.PureComponent {
             case 'file_downloads':
                 menuOptions.set('filetype',   <React.Fragment><i className="icon fas icon-fas icon-file-alt mr-1"/>File Downloads by File Type</React.Fragment>);
                 menuOptions.set('assay_type', <React.Fragment><i className="icon fas icon-fas icon-vial mr-1"/>File Downloads by Assay Type</React.Fragment>);
-                menuOptions.set('dataset',    <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>File Downloads by Dataset</React.Fragment>);
+                menuOptions.set('dataset',    <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>File Downloads by Sample Type</React.Fragment>);
+                // menuOptions.set('sequencer',    <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>File Downloads by Sequencing Platform</React.Fragment>);
                 break;
             case 'top_file_downloads':
+            case 'top_file_set_downloads':
                 menuOptions.set('top_files_10',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 10</React.Fragment>);
                 menuOptions.set('top_files_25',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 25</React.Fragment>);
                 menuOptions.set('top_files_50',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 50 (may load slowly)</React.Fragment>);
-                menuOptions.set('top_files_100',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 100 (may load slowly)</React.Fragment>);
+                menuOptions.set('top_files_100', <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 100 (may load slowly)</React.Fragment>);
                 break;
             case 'file_views':
                 menuOptions.set('file_detail_views_by_file_type',  <React.Fragment><i className="icon fas icon-fw icon-file-alt mr-1"/>Detail Views by File Type</React.Fragment>);
                 menuOptions.set('file_detail_views_by_assay_type', <React.Fragment><i className="icon fas icon-fw icon-vial mr-1"/>Detail Views by Assay Type</React.Fragment>);
-                menuOptions.set('file_detail_views_by_dataset',    <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Dataset</React.Fragment>);
-                menuOptions.set('file_list_views',                 <React.Fragment><i className="icon fas icon-fas icon-list-ul mr-1"/>Appearance in Search Results</React.Fragment>);
-                menuOptions.set('file_clicks',                      <React.Fragment><i className="icon fas icon-fas icon-mouse-pointer mr-1"/>Search Result Click</React.Fragment>);
-                // menuOptions.set('metadata_tsv_by_country',  <React.Fragment><i className="icon fas icon-fas icon-file mr-1"/>Metadata.tsv Files Count by Country</React.Fragment>);
+                menuOptions.set('file_detail_views_by_dataset',    <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Sample Type</React.Fragment>);
+                // menuOptions.set('file_detail_views_by_sequencer',    <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Seqeuncing Platform</React.Fragment>);
+                menuOptions.set('file_list_views_by_file_type',    <React.Fragment><i className="icon fas icon-fas icon-file-alt mr-1"/>Appearances in Search Results by File Type</React.Fragment>);
+                menuOptions.set('file_list_views_by_assay_type',   <React.Fragment><i className="icon fas icon-fas icon-vial mr-1"/>Appearances in Search Results by Assay Type</React.Fragment>);
+                menuOptions.set('file_list_views_by_dataset',      <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>Appearances in Search Results by Sample Type</React.Fragment>);
+                menuOptions.set('file_clicks_by_file_type',        <React.Fragment><i className="icon fas icon-fas icon-file-alt mr-1"/>Result Clicks by File Type</React.Fragment>);
+                menuOptions.set('file_clicks_by_assay_type',       <React.Fragment><i className="icon fas icon-fas icon-vial mr-1"/>Result Clicks by Assay Type</React.Fragment>);
+                menuOptions.set('file_clicks_by_dataset',          <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>Result Clicks by Sample Type</React.Fragment>);
+                menuOptions.set('metadata_tsv_by_country',         <React.Fragment><i className="icon fas icon-fas icon-file mr-1"/>Metadata.tsv Generation by Location</React.Fragment>);
                 break;
             case 'sessions_by_country':
                 menuOptions.set('views_by_country',    <React.Fragment><i className="icon icon-fw fas icon-map-marker mr-1" />Page Views by Country</React.Fragment>);
                 menuOptions.set('views_by_city',       <React.Fragment><i className="icon icon-fw fas icon-map-marker-alt mr-1" />Page Views by City</React.Fragment>);
                 menuOptions.set('device_category',     <React.Fragment><i className="icon icon-fw fas icon-laptop mr-1" />Page Views by Device</React.Fragment>);
-                menuOptions.set('page_title',          <React.Fragment><i className="icon icon-fw fas icon-font mr-1" />Page Views by Title (may load slowly)</React.Fragment>);
-                menuOptions.set('page_url',            <React.Fragment><i className="icon icon-fw fas icon-link mr-1" />Page Views by Url (may load slowly)</React.Fragment>);
+                // menuOptions.set('page_title',          <React.Fragment><i className="icon icon-fw fas icon-font mr-1" />Page Views by Title (may load slowly)</React.Fragment>);
+                // menuOptions.set('page_url',            <React.Fragment><i className="icon icon-fw fas icon-link mr-1" />Page Views by Url (may load slowly)</React.Fragment>);
                 menuOptions.set('sessions_by_country', <React.Fragment><i className="icon icon-fw fas icon-user-friends mr-1" />Unique Users by Country</React.Fragment>);
                 menuOptions.set('sessions_by_city',    <React.Fragment><i className="icon icon-fw fas icon-street-view mr-1" />Unique Users by City</React.Fragment>);
                 break;
@@ -959,7 +1158,10 @@ export function UsageStatsView(props){
         changeCountByForChart, countBy,
         // Passed in from StatsChartViewAggregator:
         sessions_by_country, chartToggles, fields_faceted,
-        file_downloads, file_downloads_volume, top_file_downloads, top_file_downloads_volume, file_views,
+        file_downloads, file_downloads_volume,
+        top_file_downloads, top_file_downloads_volume,
+        top_file_set_downloads, top_file_set_downloads_volume,
+        file_views,
         // settings
         smoothEdges, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
     } = props;
@@ -973,12 +1175,6 @@ export function UsageStatsView(props){
     }
 
     const [isTransposed, setIsTransposed] = useState(true);
-    const [tableToggle, setTableToggle] = useState({});
-    const handleToggleTable = function (chartKey) {
-        const newTableToggle = _.extend({}, tableToggle, { [chartKey]: !(tableToggle[chartKey] || false) });
-        setTableToggle(newTableToggle);
-    }
-
     const [ scale, setScale ] = useState({ yAxisScale: 'Pow', yAxisPower: 0.5 });
     const { anyExpandedCharts, commonXDomain, dateRoundInterval } = useMemo(function(){
         const { fromDate: propFromDate, untilDate: propUntilDate } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
@@ -986,19 +1182,19 @@ export function UsageStatsView(props){
         // We want all charts to share the same x axis. Here we round to date boundary.
         // Minor issue is that file downloads are stored in UTC/GMT while analytics are in EST timezone..
         // TODO improve on this somehow, maybe pass prop to FileDownload chart re: timezone parsing of some sort.
-        if (currentGroupBy === 'daily30' || currentGroupBy === 'daily60') {
+        if (currentGroupBy.startsWith('daily:')) {
             fromDate = add(startOfDay(propFromDate), { minutes: 15 });
             untilDate = add(endOfDay(propUntilDate), { minutes: 45 });
             dateRoundInterval = 'day';
-        } else if (currentGroupBy === 'monthly') {
+        } else if (currentGroupBy.startsWith('monthly:')) {
             fromDate = endOfMonth(propFromDate); // Not rly needed.
             untilDate = sub(endOfMonth(propUntilDate), { days: 1 });
             dateRoundInterval = 'month';
-        } else if (currentGroupBy === 'yearly') { // Not yet implemented
+        } else if (currentGroupBy.startsWith('yearly')) { // Not yet implemented
             dateRoundInterval = 'year';
         }
         return {
-            anyExpandedCharts: _.any(_.values(chartToggles)),
+            anyExpandedCharts: _.any(_.values(chartToggles.expanded || {})),
             commonXDomain: [fromDate, untilDate],
             dateRoundInterval
         };
@@ -1019,7 +1215,16 @@ export function UsageStatsView(props){
     const { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep } = UsageStatsView.getYScaleDefaults(scale['yAxisScale']);
 
     const isSticky = true; //!_.any(_.values(tableToggle), (v)=> v === true);
-    const commonTableProps = { windowWidth, href, session, schemas, isTransposed, dateRoundInterval, cumulativeSum };
+    const commonTableProps = { windowWidth, href, session, schemas, isTransposed, dateRoundInterval, cumulativeSum, chartToggles };
+    
+    let topFileSetLimit = 0;
+    if (countBy.top_file_set_downloads && countBy.top_file_set_downloads.indexOf('top_files_') === 0) {
+        topFileSetLimit = parseInt(countBy.top_file_set_downloads.substring('top_files_'.length));
+    }
+    let topFilesLimit = 0;
+    if (countBy.top_file_downloads && countBy.top_file_downloads.indexOf('top_files_') === 0) {
+        topFilesLimit = parseInt(countBy.top_file_downloads.substring('top_files_'.length));
+    }
 
     return (
         <div className="stats-charts-container" key="charts" id="usage">
@@ -1065,58 +1270,97 @@ export function UsageStatsView(props){
                         <div className="pull-right mt-05">
                             <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_downloads" />
                         </div>
-                        <h3 className="charts-group-title">
-                            <span className="d-block d-sm-inline">File Downloads<sup>*</sup></span><span className="text-300 d-none d-sm-inline"> - </span>
-                            <span className="text-300">{UsageStatsView.titleExtensions['file_downloads'][countBy.file_downloads]}</span>
-                        </h3>
+                        <ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'file_downloads' }} />
                     </div>
 
                     <HorizontalD3ScaleLegend {...{ loadingStatus }} />
 
                     <AreaChartContainer {...commonContainerProps} id="file_downloads" key="file_downloads"
-                        title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                        extraButtons={[
-                            <AnalyticsDataTableToggle
-                                toggled={tableToggle["file_downloads"] || false}
-                                toggleChanged={() => handleToggleTable("file_downloads")}
-                                key="file_downloads_toggle" />
-                        ]}>
-                        <AreaChart {...commonChartProps} data={file_downloads} {...scale} />
+                        title={<h5 className="text-400 mt-0">Total File Count</h5>}>
+                        {chartToggles.chart?.file_downloads ?
+                            <AreaChart {...commonChartProps} data={file_downloads} {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
-                    {tableToggle.file_downloads &&
-                        <AnalyticsDataTable data={file_downloads}
+                    {chartToggles.table?.file_downloads &&
+                        <StatisticsDataTable data={file_downloads}
                             key={'dt_file_downloads'}
                             {...commonTableProps}
                             containerId="content_file_downloads" />
                     }
 
                     <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" key="file_downloads_volume" defaultHeight={300}
-                        title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                        extraButtons={[
-                            <AnalyticsDataTableToggle
-                                toggled={tableToggle["file_downloads_volume"] || false}
-                                toggleChanged={() => handleToggleTable("file_downloads_volume")}
-                                key="file_downloads_volume_toggle" />
-                        ]}>
-                        <AreaChart {...commonChartProps} data={file_downloads_volume} yAxisLabel="GB" {...scale} />
+                        title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}>
+                        {chartToggles.chart?.file_downloads_volume ?
+                            <AreaChart {...commonChartProps} data={file_downloads_volume} yAxisLabel="GB" {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
-                    {tableToggle.file_downloads_volume &&
-                        <AnalyticsDataTable data={file_downloads_volume} 
+                    {chartToggles.table?.file_downloads_volume &&
+                        <StatisticsDataTable data={file_downloads_volume}
                             key={'dt_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
                             containerId="content_file_downloads_volume" />
                     }
 
-                    <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
-
                 </ColorScaleProvider>
 
                 : null }
 
-            { top_file_downloads ?
+            {top_file_set_downloads ?
+
+                <ColorScaleProvider resetScalesWhenChange={top_file_set_downloads}>
+
+                    <div className="clearfix">
+                        <div className="pull-right mt-05">
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="top_file_set_downloads" />
+                        </div>
+                        <ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'top_file_set_downloads' }} />
+                    </div>
+
+                    {/* <HorizontalD3ScaleLegend {...{ loadingStatus }} /> */}
+
+                    <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads" key="top_file_set_downloads" defaultHeight={300}
+                        title={<h5 className="text-400 mt-0">Total Count for Daily Downloads</h5>}>
+                        {chartToggles.chart?.top_file_set_downloads ?
+                            <AreaChart {...commonChartProps} data={top_file_set_downloads} showTooltipOnHover={true} {...scale} />
+                            : <React.Fragment />
+                        }
+                    </AreaChartContainer>
+
+                    {chartToggles.table?.top_file_set_downloads &&
+                        <StatisticsDataTable data={top_file_set_downloads}
+                            key={'dt_top_file_set_downloads'}
+                            {...commonTableProps}
+                            containerId="content_top_file_set_downloads"
+                            limit={topFileSetLimit} excludeNones={true} />
+                    }
+
+                    <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads_volume" key="top_file_set_downloads_volume" 
+                        defaultHeight={350} title={<h5 className="text-400 mt-0">Total Size for Daily Downloads (GB)</h5>}>
+                        {chartToggles.chart?.top_file_set_downloads_volume ?
+                            <AreaChart {...commonChartProps} data={top_file_set_downloads_volume} showTooltipOnHover={true} yAxisLabel="GB" {...scale} />
+                            : <React.Fragment />
+                        }
+                    </AreaChartContainer>
+
+                    {chartToggles.table?.top_file_set_downloads_volume &&
+                        <StatisticsDataTable data={top_file_set_downloads_volume}
+                            key={'dt_top_file_set_downloads_volume'}
+                            valueLabel="GB"
+                            {...commonTableProps}
+                            containerId="content_top_file_set_downloads_volume"
+                            limit={topFileSetLimit} excludeNones={true} />
+                    }
+
+                </ColorScaleProvider>
+
+                : null}
+
+            { top_file_downloads && false ?
 
                 <ColorScaleProvider resetScalesWhenChange={top_file_downloads}>
                 
@@ -1124,49 +1368,43 @@ export function UsageStatsView(props){
                         <div className="pull-right mt-05">
                             <UsageChartsCountByDropdown {...countByDropdownProps} chartID="top_file_downloads" />
                         </div>
-                        <h3 className="charts-group-title">
-                            <span className="d-block d-sm-inline">Top File Downloads<sup>*</sup></span><span className="text-300 d-none d-sm-inline"> - </span>
-                            <span className="text-300">{UsageStatsView.titleExtensions['top_file_downloads'][countBy.top_file_downloads]}</span>
-                        </h3>
+                        <ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'top_file_downloads' }} />
                     </div>
 
-                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads" key="top_file_downloads" defaultHeight={300}
-                        title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                        extraButtons={[
-                            <AnalyticsDataTableToggle
-                                toggled={tableToggle["top_file_downloads"] || false}
-                                toggleChanged={() => handleToggleTable("top_file_downloads")}
-                                key="top_file_downloads_toggle" />
-                        ]}
+                    <AreaChartContainer {...commonContainerProps} id="top_file_downloads" key="top_file_downloads"
+                        defaultHeight={300} title={<h5 className="text-400 mt-0">Total File Count for Daily Downloads</h5>}
                         subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
-                        <AreaChart {...commonChartProps} data={top_file_downloads} showTooltipOnHover={false} {...scale} />
+                        {chartToggles.chart?.top_file_downloads ?
+                            <AreaChart {...commonChartProps} data={top_file_downloads} showTooltipOnHover={false} {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
-                    {tableToggle.top_file_downloads &&
-                        <AnalyticsDataTable data={top_file_downloads} 
+                    {chartToggles.table?.top_file_downloads &&
+                        <StatisticsDataTable data={top_file_downloads} 
                             key={'dt_top_file_downloads'}
                             {...commonTableProps}
-                            containerId="content_top_file_downloads" />
+                            containerId="content_top_file_downloads"
+                            limit={topFilesLimit} excludeNones={true} />
                     }
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" key="top_file_downloads_volume" defaultHeight={350}
-                        title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                        extraButtons={[
-                            <AnalyticsDataTableToggle
-                                toggled={tableToggle["top_file_downloads_volume"] || false}
-                                toggleChanged={() => handleToggleTable("top_file_downloads_volume")}
-                                key="top_file_downloads_volume_toggle" />
-                        ]}
+                        title={<h5 className="text-400 mt-0">Total File Size for Daily Downloads (GB)</h5>}
+                        extraButtons={[]}
                         subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
-                        <AreaChart {...commonChartProps} data={top_file_downloads_volume} showTooltipOnHover={false} yAxisLabel="GB" {...scale} />
+                        {chartToggles.chart?.top_file_downloads_volume ?
+                            <AreaChart {...commonChartProps} data={top_file_downloads_volume} showTooltipOnHover={false} yAxisLabel="GB" {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
-                    {tableToggle.top_file_downloads_volume &&
-                        <AnalyticsDataTable data={top_file_downloads_volume} 
+                    {chartToggles.table?.top_file_downloads_volume &&
+                        <StatisticsDataTable data={top_file_downloads_volume} 
                             key={'dt_top_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
-                            containerId="content_top_file_downloads_volume" />
+                            containerId="content_top_file_downloads_volume"
+                            limit={topFilesLimit} excludeNones={true} />
                     }
 
                     <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
@@ -1180,25 +1418,19 @@ export function UsageStatsView(props){
                 <ColorScaleProvider resetScalesWhenChange={file_views}>
 
                     <AreaChartContainer {...commonContainerProps} id="file_views" key="file_views"
-                        title={
-                            <h3 className="charts-group-title">
-                                <span className="d-block d-sm-inline">File Views</span><span className="text-300 d-none d-sm-inline"> - </span>
-                                <span className="text-300">{UsageStatsView.titleExtensions['file_views'][countBy.file_views]}</span>
-                            </h3>
-                        }
+                        title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'file_views' }} />}
                         extraButtons={[
-                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" key="file_views_count_by_dd" />,
-                            <AnalyticsDataTableToggle
-                                toggled={tableToggle["file_views"] || false}
-                                toggleChanged={() => handleToggleTable("file_views")}
-                                key="file_views_toggle" />
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_views" key="file_views_count_by_dd" />
                         ]}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
-                        <AreaChart {...commonChartProps} data={file_views} {...scale} />
+                        {chartToggles.chart?.file_views ?
+                            <AreaChart {...commonChartProps} data={file_views} {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
-                    {tableToggle.file_views &&
-                        <AnalyticsDataTable data={file_views} 
+                    {chartToggles.table?.file_views &&
+                        <StatisticsDataTable data={file_views} 
                             key={'dt_file_views'}
                             {...commonTableProps}
                             containerId="content_file_views" />
@@ -1213,32 +1445,22 @@ export function UsageStatsView(props){
                 <ColorScaleProvider resetScaleLegendWhenChange={sessions_by_country}>
 
                     <AreaChartContainer {...commonContainerProps} id="sessions_by_country" key="sessions_by_country"
-                        title={
-                            <h3 className="charts-group-title">
-                                <span className="d-block d-sm-inline">{
-                                    countBy.sessions_by_country === 'sessions_by_country' || countBy.sessions_by_country === 'sessions_by_city' ?
-                                        'Unique Users' : 'Page Views'
-                                }</span>
-                                <span className="text-300 d-none d-sm-inline"> - </span>
-                                <span className="text-300">{UsageStatsView.titleExtensions['sessions_by_country'][countBy.sessions_by_country]}</span>
-                            </h3>
-                        }
+                        title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'sessions_by_country' }} />}
                         subTitle={enableSessionByCountryChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}
                         extraButtons={[
-                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" key="sessions_by_country_count_by_dd" />,
-                            <AnalyticsDataTableToggle
-                                toggled={tableToggle["sessions_by_country"] || false}
-                                toggleChanged={() => handleToggleTable("sessions_by_country")}
-                                key="sessions_by_country_toggle" />
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" key="sessions_by_country_count_by_dd" />
                         ]}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}
                         defaultHeight={sessionsByCountryChartHeight}>
-                        <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} {...scale} />
+                        {chartToggles.chart?.sessions_by_country ?
+                            <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} {...scale} />
+                            : <React.Fragment />
+                        }
                     </AreaChartContainer>
 
 
-                    {tableToggle.sessions_by_country &&
-                        <AnalyticsDataTable data={sessions_by_country} 
+                    {chartToggles.table?.sessions_by_country &&
+                        <StatisticsDataTable data={sessions_by_country} 
                             key={'dt_sessions_by_country'}
                             {...commonTableProps}
                             containerId="content_sessions_by_country" />
@@ -1249,63 +1471,75 @@ export function UsageStatsView(props){
                 : null }
 
 
-            { fields_faceted ?
+            {/* { fields_faceted ?
 
                 <ColorScaleProvider resetScaleLegendWhenChange={fields_faceted}>
 
                     <AreaChartContainer {...commonContainerProps} id="fields_faceted" key="fields_faceted"
-                        title={
-                            <h3 className="charts-group-title">
-                                <span className="d-block d-sm-inline">Top Fields Faceted</span>
-                                <span className="text-300 d-none d-sm-inline"> - </span>
-                                <span className="text-300">{ UsageStatsView.titleExtensions['fields_faceted'][countBy.fields_faceted] }</span>
-                            </h3>
+                        title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'fields_faceted' }} />}
+                        extraButtons={[
+                            <UsageChartsCountByDropdown {...countByDropdownProps} chartID="fields_faceted" />
+                        ]}
+                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}
+                        hideTableButton>
+                        {chartToggles.chart?.fields_faceted ?
+                            <AreaChart {...commonChartProps} data={fields_faceted} {...scale} />
+                            : <React.Fragment />
                         }
-                        extraButtons={<UsageChartsCountByDropdown {...countByDropdownProps} chartID="fields_faceted" />}
-                        legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
-                        <AreaChart {...commonChartProps} data={fields_faceted} {...scale} />
                     </AreaChartContainer>
 
 
                 </ColorScaleProvider>
 
-                : null }
+                : null } */}
 
         </div>
     );
 }
-UsageStatsView.titleExtensions = {
+UsageStatsView.titleMap = {
     'file_views': {
-        'metadata_tsv_by_country': 'metadata.tsv files',
-        'file_list_views': 'appearances in results',
-        'file_clicks': 'clicks from results',
-        'file_detail_views_by_file_type': 'by file type',
-        'file_detail_views_by_assay_type': 'by assay type',
-        'file_detail_views_by_dataset': 'by dataset',
+        'metadata_tsv_by_country': ['Total Files In Metadata.tsv', 'by location'],
+        'file_list_views_by_file_type': ['File Appearances In Search Results', 'by file type'],
+        'file_list_views_by_assay_type': ['File Appearances In Search Results', 'by assay type'],
+        'file_list_views_by_dataset': ['File Appearances In Search Results', 'by sample type'],
+        'file_clicks_by_file_type': ['File Search Result Clicks', 'by file type'],
+        'file_clicks_by_assay_type': ['File Search Result Clicks', 'by assay type'],
+        'file_clicks_by_dataset': ['File Search Result Clicks', 'by sample type'],
+        'file_detail_views_by_file_type': ['File Overview Page Views', 'by file type'],
+        'file_detail_views_by_assay_type': ['File Overview Page Views', 'by assay type'],
+        'file_detail_views_by_dataset': ['File Overview Page Views', 'by sample type'],
+        'file_detail_views_by_sequencer': ['File Overview Page Views', 'by sequencing platform'],
     },
     'sessions_by_country': {
-        'views_by_country': 'by country',
-        'views_by_city': 'by city',
-        'sessions_by_country': 'by country',
-        'sessions_by_city': 'by city',
-        'device_category': 'by device category',
-        'page_title': 'by page title',
-        'page_url': 'by page url'
+        'views_by_country': ['Page Views', 'by country'],
+        'views_by_city': ['Page Views', 'by city'],
+        'sessions_by_country': ['Unique Users', 'by country'],
+        'sessions_by_city': ['Unique Users', 'by city'],
+        'device_category': ['Page Views', 'by device category'],
+        'page_title': ['Page Views', 'by page title'],
+        'page_url': ['Page Views', 'by page url']
     },
     'file_downloads': {
-        'assay_type': 'by assay type',
-        'filetype': 'by file type',
-        'dataset': 'by dataset'
+        'assay_type': ['File Downloads', 'by assay type'],
+        'filetype': ['File Downloads', 'by file type'],
+        'dataset': ['File Downloads', 'by sample type'],
+        'sequencer': ['File Downloads', 'by sequencing platform']
     },
     'top_file_downloads': {
-        'top_files_10': 'top 10',
-        'top_files_25': 'top 25',
-        'top_files_50': 'top 50',
-        'top_files_100': 'top 100'
+        'top_files_10': ['Top File Downloads', 'top 10'],
+        'top_files_25': ['Top File Downloads', 'top 25'],
+        'top_files_50': ['Top File Downloads', 'top 50'],
+        'top_files_100': ['Top File Downloads', 'top 100']
+    },
+    'top_file_set_downloads': {
+        'top_files_10': ['Top File Set Downloads', 'top 10'],
+        'top_files_25': ['Top File Set Downloads', 'top 25'],
+        'top_files_50': ['Top File Set Downloads', 'top 50'],
+        'top_files_100': ['Top File Set Downloads', 'top 100'],
     },
     'fields_faceted': {
-        'views': 'by search result instance',
-        'sessions': 'by unique users'
+        'views': ['Top Fields Faceted', 'by search result instance'],
+        'sessions': ['Top Fields Faceted', 'by unique users']
     }
 };
 UsageStatsView.getYScaleDefaults = function (yScale) {
@@ -1329,7 +1563,6 @@ UsageStatsView.yScaleLabels = {
     'Symlog': 'Log',
     'Pow': 'Pow'
 }
-
 
 export function SubmissionsStatsView(props) {
     const {
@@ -1382,13 +1615,15 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploading"
                     title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploading} />}>
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploading} />}
+                    hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={files_uploading} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_uploading"
                     title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploading} />}>
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploading} />}
+                    hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={file_volume_uploading} yAxisLabel="GB" />
                 </AreaChartContainer>
 
@@ -1402,13 +1637,15 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploaded"
                     title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploaded} />}>
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploaded} />}
+                    hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={files_uploaded} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_uploaded"
                     title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploaded} />}>
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploaded} />}
+                    hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={file_volume_uploaded} yAxisLabel="GB" />
                 </AreaChartContainer>
 
@@ -1423,13 +1660,15 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="files_released"
                     title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_released} />}>
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_released} />}
+                    hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={files_released} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_released"
                     title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_released} />}>
+                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_released} />}
+                    hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={file_volume_released} yAxisLabel="GB" />
                 </AreaChartContainer>
 
@@ -1523,32 +1762,29 @@ const ChartSubTitle = memoize(function ({ title, data, invalidDateRange }) {
     return title || null;
 });
 
-/**
- * 
- * @param {*} props 
- * @returns 
- */
-const AnalyticsDataTableToggle = function (props) {
-    const { toggled, toggleChanged } = props;
-    const buttonClassName = "btn btn-sm mr-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+const ChartContainerTitle = function ({ titleMap, countBy, chartKey }) {
+    const [primary, secondary] = titleMap[chartKey][countBy[chartKey]];
     return (
-        <button type="button" className={buttonClassName} onClick={toggleChanged} data-tip="Toggle data table view">
-            <i className={"icon icon-fw fas icon-table"} />
-        </button>
+        <h3 className="charts-group-title">
+            <span className="d-block d-sm-inline">{primary}</span>
+            {secondary &&
+                <React.Fragment>
+                    <span className="text-300 d-none d-sm-inline"> - </span>
+                    <span className="text-300">{secondary}</span>
+                </React.Fragment>
+            }
+        </h3>
     );
-}
-AnalyticsDataTableToggle.propTypes = {
-    toggled: PropTypes.bool.isRequired,
-    toggleChanged: PropTypes.func.isRequired
 }
 
 /**
  * converts aggregates to SearchView-compatible context objects and displays in table
  */
-const AnalyticsDataTable = React.memo((props) => {
+const StatisticsDataTable = React.memo((props) => {
     const {
         data, valueLabel = null, session, schemas, containerId = '', 
         href, dateRoundInterval, isTransposed = false, windowWidth, cumulativeSum,
+        limit = 0, excludeNones = false // limit and excludeNones are evaluated for only transposed data
      } = props;
     const [columns, setColumns] = useState({});
     const [columnDefinitions, setColumnDefinitions] = useState([]);
@@ -1562,6 +1798,11 @@ const AnalyticsDataTable = React.memo((props) => {
 
         data.forEach(({ date, children }) => {
             children.forEach(({ term, count, total }) => {
+                // remove None-like values
+                if (excludeNones && ['N/A', 'None', '(not set)'].indexOf(term) !== -1) {
+                    return;
+                }
+
                 if (!termMap[term]) {
                     termMap[term] = { term, count: 0, total: 0, children: [] };
                     result.push(termMap[term]);
@@ -1587,7 +1828,7 @@ const AnalyticsDataTable = React.memo((props) => {
             return;
         }
 
-        const processData = isTransposed ? transposeData(data) : data;
+        const processData = isTransposed ? transposeData(data).slice(0, limit > 0 ? limit : undefined) : data;
 
         // date or term column based on transposed or not
         let cols = {
@@ -1595,14 +1836,15 @@ const AnalyticsDataTable = React.memo((props) => {
                 title: isTransposed ? 'Term' : 'Date',
                 type: 'string',
                 noSort: true,
-                widthMap: { 'lg': 250, 'md': 250, 'sm': 250 },
+                widthMap: isTransposed ? { 'lg': 400, 'md': 200, 'sm': 200 } : { 'lg': 200, 'md': 200, 'sm': 200 },
                 render: function (result) {
                     // overall sum
                     const overallSum = roundValue(result.overall_sum || 0, valueLabel);
+                    const tooltip = `${result.display_title} (${overallSum})`;
 
                     return isTransposed ? (
-                        <span className="value text-truncate text-left">
-                            {result.display_title} ({overallSum})
+                        <span className="value text-truncate text-left" data-tip={tooltip.length > 40 ? tooltip : null}>
+                            {result.display_title} <strong>({overallSum})</strong>
                         </span>
                     ) : (
                             <a href='#'
@@ -1612,7 +1854,7 @@ const AnalyticsDataTable = React.memo((props) => {
                                     e.preventDefault();
                                 }}
                                 data-tip="Show details">
-                                {result.display_title} ({overallSum})
+                                {result.display_title} <strong>({overallSum})</strong>
                             </a>
                     );
                 }
@@ -1683,14 +1925,10 @@ const AnalyticsDataTable = React.memo((props) => {
             facets: null
         },
         results: graph || [],
-        currentAction: null,
         columns,
         columnExtensionMap: columns,
         columnDefinitions: columnDefinitions,
-        columnWidths: {},
         session,
-        schemas: null,
-        facets: null,
         maxHeight: 500,
         maxResultsBodyHeight: 500,
         tableColumnClassName: "col-12",
@@ -1721,6 +1959,9 @@ const AnalyticsDataTable = React.memo((props) => {
     );
 });
 
+/**
+ * displays relevant tracking item (fetched via ajax call) in item detail list
+ */
 const TrackingItemViewerModal = React.memo(function (props) {
     const { schemas, forDate, dateRoundInterval='day', reportName, onTrackingItemViewerCancel } = props;
 
@@ -1751,7 +1992,7 @@ const TrackingItemViewerModal = React.memo(function (props) {
     }, [forDate, dateRoundInterval, reportName]);
 
     return (
-        <Modal show size="xl" onHide={onTrackingItemViewerCancel}>
+        <Modal show size="xl" onHide={onTrackingItemViewerCancel} className="tracking-item-viewer">
             <Modal.Header closeButton>
                 <Modal.Title>{forDate}</Modal.Title>
             </Modal.Header>
