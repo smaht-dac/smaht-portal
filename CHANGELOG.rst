@@ -9,7 +9,7 @@ Change Log
 
 0.104.0
 =======
-* dmichaels / 2024-10-11
+* 2024-10-11/dmichaels
 * Updated dcicutils version (8.16.1) for vulnerabilities.
 
 
