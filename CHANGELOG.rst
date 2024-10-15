@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+
+0.104.2
+=======
+`PR 274: chore: add new TEnCATS assay to table <https://github.com/smaht-dac/smaht-portal/pull/274>`_
+
+* Update assay table with new TEnCATS assay
+
+
 0.104.1
 =======
 `PR 272: SN Enzymes optional <https://github.com/smaht-dac/smaht-portal/pull/224>`_
