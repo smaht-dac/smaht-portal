@@ -823,7 +823,6 @@ def get_analysis(
     value = get_analysis_value(
         software_and_versions, reference_genome_code
     )
-    import pdb; pdb.set_trace()
     if file_format_utils.is_chain_file(file_extension):
         value = f"{value}{ANALYSIS_INFO_SEPARATOR}{get_chain_file_value(file)}"
     if not value:
