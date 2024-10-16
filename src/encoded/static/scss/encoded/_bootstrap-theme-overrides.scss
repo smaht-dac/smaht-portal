@@ -244,6 +244,12 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 	}
 }
 
+.btn-close {
+	&:focus {
+		box-shadow: none;
+	}
+}
+
 /**************************************
  ************ Form Inputs *************
  **************************************/
@@ -338,6 +344,12 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 			margin-top: 0;
 			margin-bottom: 0;
 		}
+
+		.btn-close {
+			font-size: 1.2em;
+			padding: 1rem 1rem;
+			margin: -1rem -1rem -1rem auto;
+		}
 	}
 
 	.modal-content {
@@ -346,6 +358,14 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 			font-family: inherit;
 		}
 
+	}
+}
+
+.modal-dialog.modal-lg {
+	.modal-header {
+		.btn-close {
+    		margin: -1.9rem -1rem -1rem auto;
+		}
 	}
 }
 
