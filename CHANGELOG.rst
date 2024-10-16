@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.105.0
+0.105.1
 =======
 `PR 277 DSA Release <https://github.com/smaht-dac/smaht-portal/pull/277>`_
 * In `commands/release-file.py` and `commands/create-annotated-filenames.py`, for DSA fasta files and chain files
