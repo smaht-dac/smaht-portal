@@ -250,7 +250,7 @@ export const commonParsingFxn = {
             const { google_analytics : {
                 reports : {
                     [reportName] : currentReport = []
-                }, // `currentReport` => List of JSON objects (report entries, 1 per unique dimension value) - Note: 1 per unique dimension may not be valid for post processing report items in smaht-foursight 
+                } = {}, // `currentReport` => List of JSON objects (report entries, 1 per unique dimension value) - Note: 1 per unique dimension may not be valid for post processing report items in smaht-foursight 
                 for_date
             } } = trackingItem;
 
