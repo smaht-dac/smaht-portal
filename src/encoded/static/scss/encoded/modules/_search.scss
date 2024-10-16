@@ -407,7 +407,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 			text-decoration: none;
 			text-underline-offset: 0.125em;
 		
-			&:hover {
+			&:not(.btn):hover {
 				text-decoration: underline !important;
 			}
 		}
