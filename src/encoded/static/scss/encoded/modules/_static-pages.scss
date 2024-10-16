@@ -719,8 +719,8 @@ body[data-path="/"]>#application>#layout {
 				margin-bottom: 50px;
 				padding: 20px 30px;
 				width: 100%;
-				background-color: $cobalt-10;
-				border: 1px solid #A9A9FF;
+				background-color: rgba(207, 222, 251, 0.6);
+				border: 1px solid rgba(169, 169, 255, 0.6);
 				box-shadow: 0 1px 5px -1px rgba(0, 0, 0, 0.1333333333);
 				@include prefix(border-radius, $homepage-card-border-radius);
 
@@ -982,16 +982,14 @@ body[data-path="/"]>#application>#layout {
 					gap: 50px;
 					margin-bottom: auto;
 					padding: 40px 18px;
-					background-color: $cobalt-10;
 					height: 100%;
 					right: 0px;
 					width: 350px;
 					border-right: none;
 					border-bottom: none;
-					border-left: 1px solid #A9A9FF;
-					border-top: 1px solid #A9A9FF;
+					border-left: 1px solid rgba(169, 169, 255, 0.6);
+					border-top: 1px solid rgba(169, 169, 255, 0.6);
 					border-radius: 34px 0px 0px 0px;
-					box-shadow: 0px 0px 10px 5px #cfdefb66;
 					animation: from-right 100ms;
 					
 
