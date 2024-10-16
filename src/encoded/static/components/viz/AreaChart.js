@@ -632,7 +632,7 @@ export class HorizontalD3ScaleLegend extends React.Component {
 
     renderColorItem([term, color], idx, all){
         return (
-            <div className="col-sm-4 col-md-3 col-lg-3 mb-03 text-truncate" key={term} data-tip={term.length > 25 ? term : null}>
+            <div className="col-sm-12 col-md-6 col-lg-6 col-xl-3 mb-03 text-truncate" key={term} data-tip={term.length > 25 ? term : null}>
                 <div className="color-patch" style={{ 'backgroundColor': color }} data-term={term} />
                 { term }
             </div>
@@ -1307,7 +1307,7 @@ export class AreaChartContainer extends React.Component {
         switch(typeKey) {
             case 'expanded':
                 const gridState = layout.responsiveGridState(windowWidth);
-                if (gridState && (gridState !== 'xl' || gridState !== 'xxl')) return false;
+                if (gridState && ['lg', 'xl', 'xxl'].indexOf(gridState) === -1) return false;
                 return !!value;
             default:
                 return !!value
@@ -1381,7 +1381,7 @@ export class AreaChartContainer extends React.Component {
             );
         }
         const gridState = layout.responsiveGridState(windowWidth);
-        if (['xs', 'sm'].indexOf(gridState) === -1) {
+        if (['xs', 'sm', 'md'].indexOf(gridState) === -1) {
             const toggled = AreaChartContainer.isToggled(this.props, 'expanded');
             const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
             buttons.push(
