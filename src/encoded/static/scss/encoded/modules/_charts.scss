@@ -1367,6 +1367,13 @@ $workflow-node-color-type-global-context: #ffb3b3;
 
     &#usage {
         @include media-breakpoint-down(lg) {
+            .chart-group .dropdown .btn {
+                max-width: 200px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+        @include media-breakpoint-down(md) {
             h3 {
                 font-size: 1rem;
             }
@@ -1376,8 +1383,8 @@ $workflow-node-color-type-global-context: #ffb3b3;
                 text-overflow: ellipsis;
             }
         }
-        @include media-breakpoint-down(md) {
-            .dropdown .btn {
+        @include media-breakpoint-down(xs) {
+            .chart-group .dropdown .btn {
                 margin-top: 10px;
             }
         }
