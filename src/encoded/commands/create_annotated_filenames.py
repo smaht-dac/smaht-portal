@@ -756,12 +756,15 @@ def get_sequencing_and_assay_codes(
     sequencers: List[Dict[str], Any],
     assays: List[Dict[str], Any],
 ) -> FilenamePart:
-    """Get sequencing and assay codes for file."""
+    """Get sequencing and assay codes for file.
+    
+    Returns XX for Reference Genome and Reference Conversion files.
+    """
     sequencing_codes = get_sequencing_codes(sequencers)
     assay_codes = get_assay_codes(assays)
     if len(sequencing_codes) == 1 and len(assay_codes) == 1:
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
-    elif file_constants.DATA_CATEGORY_REFERENCE_GENOME in file.get("data_category",""):
+    elif file_constants.DATA_CATEGORY_REFERENCE_GENOME in file.get("data_category","") or file_constants.DATA_CATEGORY_REFERENCE_CONVERSION in file.get("data_category",""):
         return get_filename_part(value="XX")
     errors = []
     if not sequencing_codes:
@@ -820,6 +823,7 @@ def get_analysis(
     value = get_analysis_value(
         software_and_versions, reference_genome_code
     )
+    import pdb; pdb.set_trace()
     if file_format_utils.is_chain_file(file_extension):
         value = f"{value}{ANALYSIS_INFO_SEPARATOR}{get_chain_file_value(file)}"
     if not value:

@@ -198,7 +198,7 @@ class FileRelease:
         )
         mwfrs = ff_utils.search_metadata(search_filter, key=self.key)
         if len(mwfrs) != 1:
-            if file_constants.DATA_CATEGORY_REFERENCE_GENOME not in self.file["data_category"]:
+            if file_constants.DATA_CATEGORY_REFERENCE_GENOME not in self.file["data_category"] and file_constants.DATA_CATEGORY_REFERENCE_CONVERSION not in self.file["data_category"]:
                 self.print_error_and_exit(
                     (
                         f"Expected exactly one associated MetaWorkflowRun, got"
