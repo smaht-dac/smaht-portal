@@ -198,12 +198,15 @@ class FileRelease:
         )
         mwfrs = ff_utils.search_metadata(search_filter, key=self.key)
         if len(mwfrs) != 1:
-            self.print_error_and_exit(
-                (
-                    f"Expected exactly one associated MetaWorkflowRun, got"
-                    f" {len(mwfrs)}: {search_filter}"
+            if file_constants.DATA_CATEGORY_REFERENCE_GENOME not in self.file["data_category"]:
+                self.print_error_and_exit(
+                    (
+                        f"Expected exactly one associated MetaWorkflowRun, got"
+                        f" {len(mwfrs)}: {search_filter}"
+                    )
                 )
-            )
+            else:
+                return []
         mwfr = mwfrs[0]
         file_sets = meta_workflow_run_utils.get_file_sets(mwfr)
         # Might need to be more general in the future
@@ -454,6 +457,9 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
+                file_constants.DATA_CATEGORY_REFERENCE_CONVERSION: (
+                    file_constants.ACCESS_STATUS_OPEN
+                )
             },
             IPSC: {
                 file_constants.DATA_CATEGORY_SEQUENCING_READS: (
@@ -465,6 +471,9 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
+                file_constants.DATA_CATEGORY_REFERENCE_CONVERSION: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                )
             },
             self.TISSUE: {
                 file_constants.DATA_CATEGORY_SEQUENCING_READS: (
@@ -476,6 +485,12 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
+                file_constants.DATA_CATEGORY_REFERENCE_GENOME: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_REFERENCE_CONVERSION: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                )
             },
         }
         if dataset in [

@@ -419,7 +419,9 @@ def get_annotated_filename(
         associated_items.donors, associated_items.sample_sources
     )
     sequencing_and_assay_codes = get_sequencing_and_assay_codes(
-        associated_items.sequencers, associated_items.assays
+        associated_items.file, 
+        associated_items.sequencers, 
+        associated_items.assays
     )
     sequencing_center_code = get_sequencing_center_code(
         associated_items.sequencing_center
@@ -750,6 +752,7 @@ def get_sex_abbreviation(sex: str) -> str:
 
 
 def get_sequencing_and_assay_codes(
+    file: List[Dict[str, Any]],
     sequencers: List[Dict[str], Any],
     assays: List[Dict[str], Any],
 ) -> FilenamePart:
@@ -758,6 +761,8 @@ def get_sequencing_and_assay_codes(
     assay_codes = get_assay_codes(assays)
     if len(sequencing_codes) == 1 and len(assay_codes) == 1:
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
+    elif file_constants.DATA_CATEGORY_REFERENCE_GENOME in file.get("data_category",""):
+        return get_filename_part(value="XX")
     errors = []
     if not sequencing_codes:
         errors.append("No sequencing code found")
