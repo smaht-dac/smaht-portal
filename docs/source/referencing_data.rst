@@ -14,7 +14,7 @@ A simplified version of the data model is shown below, with items linking togeth
 This allows for clear interpretation of the origin of sequence data.
 References to existing data are frequently required to submit new data. The links below will display all options available for referencing data already in the database.
 
-In the submission spreadsheet (See <a href="/docs/submission/getting-started-with-submissions", target="_blank">Getting Started with Submissions</a>), columns that are italicized indicate fields that should be unique identifiers for items of another type.
+In the submission spreadsheet (See `Getting Started with Submissions <docs/submission/getting-started-with-submissions>`_), columns that are italicized indicate fields that should be unique identifiers for items of another type.
 For example, FileSet items require links to Library and Sequencing items.
 
 .. image:: /static/img/docs/file_set_screenshot.png
