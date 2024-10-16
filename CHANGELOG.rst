@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+`PR 266: Node v20 Upgrade <https://github.com/smaht-dac/smaht-portal/pull/266>`_
+
+0.105.0
+=====
+
+* Node 18 to 20 upgrade including GitHub actions
+
+
 0.104.2
 =======
 
