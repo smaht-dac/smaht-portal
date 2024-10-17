@@ -866,8 +866,7 @@ def get_analysis_value(
 def get_software_and_versions(file: Dict[str, Any], software: List[Dict[str, Any]]) -> str:
     """Get software and accompanying versions for file.
 
-    Currently only looking for software items with codes, as these are
-    expected to be the software used for naming.
+    Currently looking for software items with codes, as these are expected to be the software used for naming, with the exception of SupplementaryFile items, where lower case title is used.
     """
     if supp_file_utils.is_supplementary_file(file):
         software_with_codes = get_software_with_title(software)
