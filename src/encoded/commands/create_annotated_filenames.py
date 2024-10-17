@@ -815,7 +815,7 @@ def get_analysis(
     Some error handling here for missing data by file type, but not
     exhaustive and allowing for some flexibility in what is expected.
     """
-    software_and_versions = get_software_and_versions(software)
+    software_and_versions = get_software_and_versions(file, software)
     reference_genome_code = item_utils.get_code(reference_genome)
     errors = get_analysis_errors(file, reference_genome_code)
     if errors:
@@ -826,7 +826,6 @@ def get_analysis(
     if file_format_utils.is_chain_file(file_extension):
         value = ANALYSIS_INFO_SEPARATOR.join([value,get_chain_file_value(file)]) if value else get_chain_file_value(file)
     if file_format_utils.is_fasta_file(file_extension):
-        import pdb; pdb.set_trace()
         value = f"{value}{ANALYSIS_INFO_SEPARATOR}{DSA_INFO_VALUE}"
     if not value:
         if file_utils.is_unaligned_reads(file):  # Think this is the only case (?)
@@ -864,18 +863,21 @@ def get_analysis_value(
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
 
 
-def get_software_and_versions(software: List[Dict[str, Any]]) -> str:
+def get_software_and_versions(file: Dict[str, Any], software: List[Dict[str, Any]]) -> str:
     """Get software and accompanying versions for file.
 
     Currently only looking for software items with codes, as these are
     expected to be the software used for naming.
     """
-    software_with_codes = get_software_with_codes(software)
+    if supp_file_utils.is_supplementary_file(file):
+        software_with_codes = get_software_with_title(software)
+    else:
+        software_with_codes = get_software_with_codes(software)
     if not software_with_codes:
         return ""
     software_with_codes_and_versions = get_software_with_versions(software_with_codes)
     if len(software_with_codes) == len(software_with_codes_and_versions):
-        return get_software_and_versions_string(software_with_codes_and_versions)
+        return get_software_and_versions_string(file, software_with_codes_and_versions)
     missing_versions = get_software_codes_missing_versions(software_with_codes)
     logger.warning(f"Missing versions for software items: {missing_versions}.")
     return ""
@@ -888,6 +890,13 @@ def get_software_with_codes(
     return [item for item in software_items if item_utils.get_code(item)]
 
 
+def get_software_with_title(
+    software_items: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    """Get software items with title."""
+    return [item for item in software_items if item_utils.get_title(item)]
+
+
 def get_software_with_versions(
     software_items: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
@@ -895,16 +904,29 @@ def get_software_with_versions(
     return [item for item in software_items if item_utils.get_version(item)]
 
 
-def get_software_and_versions_string(software_items: List[Dict[str, Any]]) -> str:
+def get_software_and_versions_string(
+        file: Dict[str, Any],
+        software_items: List[Dict[str, Any]]
+    ) -> str:
     """Get string representation of software and versions."""
-    sorted_software_items = sorted(software_items, key=item_utils.get_code)
-    return ANALYSIS_INFO_SEPARATOR.join(
-        [
-            f"{item_utils.get_code(item)}{ANALYSIS_INFO_SEPARATOR}"
-            f"{item_utils.get_version(item)}"
-            for item in sorted_software_items
-        ]
-    )
+    if supp_file_utils.is_supplementary_file(file):
+        sorted_software_items = sorted(software_items, key=item_utils.get_title)
+        return ANALYSIS_INFO_SEPARATOR.join(
+            [
+                f"{item_utils.get_title(item).lower()}{ANALYSIS_INFO_SEPARATOR}"
+                f"{item_utils.get_version(item)}"
+                for item in sorted_software_items
+            ]
+        )
+    else:
+        sorted_software_items = sorted(software_items, key=item_utils.get_code)
+        return ANALYSIS_INFO_SEPARATOR.join(
+            [
+                f"{item_utils.get_code(item)}{ANALYSIS_INFO_SEPARATOR}"
+                f"{item_utils.get_version(item)}"
+                for item in sorted_software_items
+            ]
+        )
 
 
 def get_software_codes_missing_versions(
