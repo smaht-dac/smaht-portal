@@ -24,6 +24,7 @@ from encoded.item_utils import (
     sample_source as sample_source_utils,
     submitted_file as submitted_file_utils,
     tissue as tissue_utils,
+    supplementary_file as supp_file_utils
 )
 from encoded.item_utils.constants import (
     file as file_constants,
@@ -198,7 +199,7 @@ class FileRelease:
         )
         mwfrs = ff_utils.search_metadata(search_filter, key=self.key)
         if len(mwfrs) != 1:
-            if file_constants.DATA_CATEGORY_REFERENCE_GENOME not in self.file["data_category"] and file_constants.DATA_CATEGORY_REFERENCE_CONVERSION not in self.file["data_category"]:
+            if not supp_file_utils.is_reference_genome(self.file) and not supp_file_utils.is_reference_conversion(self.file):
                 self.print_error_and_exit(
                     (
                         f"Expected exactly one associated MetaWorkflowRun, got"
