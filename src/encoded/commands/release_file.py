@@ -457,6 +457,9 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
+                file_constants.DATA_CATEGORY_REFERENCE_GENOME: (
+                    file_constants.ACCESS_STATUS_OPEN
+                ),
                 file_constants.DATA_CATEGORY_REFERENCE_CONVERSION: (
                     file_constants.ACCESS_STATUS_OPEN
                 )
@@ -469,6 +472,9 @@ class FileRelease:
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_REFERENCE_GENOME: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_REFERENCE_CONVERSION: (
