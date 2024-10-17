@@ -10,7 +10,7 @@ Change Log
 0.105.1
 ======
 
-`PR259: fix: only show target coverage for wgs bam files <https://github.com/smaht-dac/smaht-portal/pull/259>`_
+`PR259: fix: target coverage and read count <https://github.com/smaht-dac/smaht-portal/pull/259>`_
 
 * Show total target coverage for wgs bam
 * Show target read count for rna-seq
