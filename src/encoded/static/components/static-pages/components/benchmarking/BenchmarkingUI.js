@@ -26,7 +26,7 @@ export const BenchmarkingLayout = ({
     return (
         <div className="benchmarking-layout">
             <div className="page-description row">
-                <div className="information-container col-auto col-lg-9">
+                <div className="information-container col-auto col-lg-9 position-relative">
                     <div className="title-container">
                         <h2 className="title">{title}</h2>
                     </div>
@@ -58,7 +58,7 @@ export const BenchmarkingLayout = ({
                 {showBamQCLink && (
                     <div className="col-auto mb-2 mb-lg-0 col-lg-3">
                         <a
-                            className="btn btn-outline-secondary btn-sm float-right"
+                            className="btn btn-outline-secondary btn-sm float-end"
                             href={'/bam-qc-overview' + bamQCHash}
                             rel="noreferrer noopener"
                             target="_blank">
@@ -139,7 +139,7 @@ const TabTitle = ({ title, searchHref = '' }) => {
     return (
         <span className="nav-link-title">
             {title}
-            <span className="badge badge-secondary">
+            <span className="badge">
                 {fileCount === null ? '-' : fileCount}
             </span>
         </span>

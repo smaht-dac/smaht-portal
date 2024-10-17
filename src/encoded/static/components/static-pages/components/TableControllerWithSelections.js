@@ -3,22 +3,16 @@ import PropTypes from 'prop-types';
 
 import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
 
-import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedItemSearchTable';
-
 export const TableControllerWithSelections = (props) => {
     // Mostly serves as an intermediary/wrapper HOC to make selectedItemsController methods
     // and props available in child table's aboveTableComponent
     const { searchHref, schemas, facets, session, href, context, tabMap } =
         props;
 
-    // Some fields will/can be overriden in child component
-    const originalColExtMap =
-        EmbeddedItemSearchTable.defaultProps.columnExtensionMap;
-
     if (!searchHref) {
         return (
             <div className="tbd-notice mt-2">
-                Data: <span className="font-italic">Coming Soon</span>
+                Data: <span className="fst-italic">Coming Soon</span>
             </div>
         );
     }
@@ -27,7 +21,6 @@ export const TableControllerWithSelections = (props) => {
     const renderChildren = () => {
         return React.Children.map(props.children, (child) => {
             return React.cloneElement(child, {
-                columnExtensionMap: originalColExtMap,
                 session,
                 searchHref,
                 schemas,

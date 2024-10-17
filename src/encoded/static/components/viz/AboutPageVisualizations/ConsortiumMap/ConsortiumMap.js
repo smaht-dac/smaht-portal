@@ -12,8 +12,8 @@ import lab_links from './data/lab_links.json';
 import {
     OverlayTrigger,
     Popover,
-    PopoverTitle,
-    PopoverContent,
+    PopoverHeader,
+    PopoverBody,
     Tooltip,
     Tab,
     Tabs,
@@ -34,7 +34,7 @@ const ConsortiumTable = () => {
             const pis = c['pis'].map((p, j) => {
                 return j === 0 && lab_links[p] ? (
                     <div className="text-nowrap" key={j}>
-                        <a href={lab_links[p]} target="_blank">
+                        <a href={lab_links[p]} target="_blank" className="link-underline-hover">
                             {p}
                         </a>
                     </div>
@@ -58,15 +58,15 @@ const ConsortiumTable = () => {
                             <div className="px-1">{c['center-type-short']}</div>
                         </OverlayTrigger>
                     </td>
-                    <td className="align-middle border-right">{pis}</td>
-                    <td className="align-middle border-right">
+                    <td className="align-middle border-end">{pis}</td>
+                    <td className="align-middle border-end">
                         {c?.table_institution_name ?? c['institution']}
                     </td>
                     <td className="align-middle">
                         {c['project']} <br />
                         <small>
                             Project number:{' '}
-                            <a href={c['url']} target="_blank" rel="noreferrer">
+                            <a href={c['url']} target="_blank" rel="noreferrer" className="link-underline-hover">
                                 {c['project-number']}
                             </a>
                         </small>
@@ -77,22 +77,24 @@ const ConsortiumTable = () => {
     });
 
     return (
-        <table className="table table-sm table-striped table-hover table-responsive">
-            <thead className="consortium-table-header bg-white">
-                <tr>
-                    <th></th>
-                    <th>Principal Investigators</th>
-                    <th>Institution</th>
-                    <th>Project title</th>
-                </tr>
-            </thead>
-            <tbody>{centerRows}</tbody>
-        </table>
+        <div className="table-responsive">
+            <table className="table table-sm table-striped">
+                <thead className="consortium-table-header">
+                    <tr>
+                        <th></th>
+                        <th>Principal Investigators</th>
+                        <th>Institution</th>
+                        <th>Project title</th>
+                    </tr>
+                </thead>
+                <tbody>{centerRows}</tbody>
+            </table>
+        </div>
     );
 };
 
 /**
- * Contents placed inside of a React Bootstrap PopoverContent component
+ * Contents placed inside of a React Bootstrap PopoverBody component
  */
 const ConsortiumPopoverContent = ({ data }) => {
     return (
@@ -119,7 +121,7 @@ const ConsortiumPopoverContent = ({ data }) => {
                 <h4 className="consortium-popover-header">Project</h4>
                 <div className="consortium-popover-content">{data.project}</div>
             </div>
-            <i className="d-block small">
+            <i className="d-block small fw-normal">
                 Click this marker to open the NIH project page in a new tab.
             </i>
         </div>
@@ -396,14 +398,14 @@ export const ConsortiumMap = () => {
                         placement="bottom"
                         flip={true}>
                         <Popover id="popover-consortium-map">
-                            <PopoverTitle>
+                            <PopoverHeader>
                                 {overlayTarget.current?.data['center-type']}
-                            </PopoverTitle>
-                            <PopoverContent>
+                            </PopoverHeader>
+                            <PopoverBody>
                                 <ConsortiumPopoverContent
                                     data={overlayTarget.current?.data}
                                 />
-                            </PopoverContent>
+                            </PopoverBody>
                         </Popover>
                     </Overlay>
                 </div>

@@ -72,7 +72,7 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
 .. raw:: html
 
     <div class="table-responsive">
-        <table class="table table-striped table-sm text-left">
+        <table class="table table-striped table-sm text-start">
             <thead class="thead-smaht table-borderless">
                 <tr>
                     <th style="min-width:95px">Protocol ID</th>
@@ -142,7 +142,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
 .. raw:: html
 
     <div class="table-responsive">
-        <table class="table table-striped table-sm text-left">
+        <table class="table table-striped table-sm text-start">
             <thead class="thead-smaht table-borderless">
                 <tr>
                     <th style="min-width:95px">Protocol ID</th>
@@ -358,45 +358,45 @@ Table 3A. Sequencing platform codes.
             <thead class="thead-smaht table-borderless">
                 <tr>
                     <th class="text-center" width="25%">SMaHT code</th>
-                    <th class="text-left">Sequencing platform</th>
+                    <th class="text-start">Sequencing platform</th>
                 </tr>
             </thead>
             <tbody class="table-border-inner">
                 <tr>
                     <td class="text-center">A</td>
-                    <td class="text-left">Illumina NovaSeq X</td>
+                    <td class="text-start">Illumina NovaSeq X</td>
                 </tr>
                 <tr>
                     <td class="text-center">B</td>
-                    <td class="text-left">PacBio Revio HiFi</td>
+                    <td class="text-start">PacBio Revio HiFi</td>
                 </tr>
                 <tr>
                     <td class="text-center">C</td>
-                    <td class="text-left">Illumina NovaSeq 6000</td>
+                    <td class="text-start">Illumina NovaSeq 6000</td>
                 </tr>
                 <tr>
                     <td class="text-center">D</td>
-                    <td class="text-left">ONT PromethION 24</td>
+                    <td class="text-start">ONT PromethION 24</td>
                 </tr>
                 <tr>
                     <td class="text-center">E</td>
-                    <td class="text-left">ONT PromethION 2 Solo</td>
+                    <td class="text-start">ONT PromethION 2 Solo</td>
                 </tr>
                 <tr>
                     <td class="text-center">F</td>
-                    <td class="text-left">ONT MinION Mk1B</td>
+                    <td class="text-start">ONT MinION Mk1B</td>
                 </tr>
                 <tr>
                     <td class="text-center">G</td>
-                    <td class="text-left">Illumina HiSeq X</td>
+                    <td class="text-start">Illumina HiSeq X</td>
                 </tr>
                 <tr>
                     <td class="text-center">H</td>
-                    <td class="text-left">Illumina NovaSeq X Plus</td>
+                    <td class="text-start">Illumina NovaSeq X Plus</td>
                 </tr>
                 <tr>
-                    <td class="cell-small-text text-left">(set the codes as data are generated on different sequencing platforms and submitted to DAC)</td>
-                    <td class="text-left">ONT MinION, Ultima Genomics, PacBio Onso, Element Aviti, PacBio Sequel</td>
+                    <td class="cell-small-text text-start">(set the codes as data are generated on different sequencing platforms and submitted to DAC)</td>
+                    <td class="text-start">ONT MinION, Ultima Genomics, PacBio Onso, Element Aviti, PacBio Sequel</td>
                 </tr>
             </tbody>
         </table>
@@ -410,7 +410,7 @@ Table 3B. Experimental Assay Codes.
 .. raw:: html
 
     <div class="table-responsive">
-        <table class="table table-sm text-left">
+        <table class="table table-sm text-start">
             <thead class="thead-smaht table-borderless">
                 <tr>
                     <th>Code</th>

@@ -233,7 +233,7 @@ export const ProgressModal = React.memo(function ProgressModal(props) {
                 {finished ? (
                     <button
                         type="button"
-                        className="mt-24 btn btn-block btn-primary"
+                        className="mt-24 btn w-100 btn-primary"
                         onClick={onHide}>
                         Close
                     </button>

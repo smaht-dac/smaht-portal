@@ -46,7 +46,7 @@ export const BenchmarkingDataMap = {
                     COLO829BL cells at a mixture ratio of 1:50 (COLO829BLT50).
                 </p>
                 <p>
-                    <span className="font-italic">In silico</span> COLO829BLT50
+                    <span className="fst-italic">In silico</span> COLO829BLT50
                     BAM files were created by sampling and merging COLO829T and
                     COLO829BL Illumina WGS data at a mixture ratio of 1:50 at
                     varying sequencing depths (100 - 500X).
@@ -117,7 +117,8 @@ export const BenchmarkingDataMap = {
                     <a
                         href="/SMAFI557D2E7"
                         target="_blank"
-                        rel="noreferrer noopener">
+                        rel="noreferrer noopener"
+                        className="link-underline-hover">
                         original BAM file
                     </a>{' '}
                     of COLO829-T standard ONT WGS data{' '}
@@ -128,7 +129,8 @@ export const BenchmarkingDataMap = {
                     <a
                         href="/SMAFIB6EQLZM"
                         target="_blank"
-                        rel="noreferrer noopener">
+                        rel="noreferrer noopener"
+                        className="link-underline-hover">
                         available here.
                     </a>
                 </p>

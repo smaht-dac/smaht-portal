@@ -30,16 +30,12 @@ export const FileOverviewTableController = (props) => {
         context,
     } = props;
 
-    const originalColExtMap =
-        EmbeddedItemSearchTable.defaultProps.columnExtensionMap;
-
     return (
         <SelectedItemsController
             {...{ context, href }}
             currentAction={'multiselect'}>
             <FileOverviewTable
                 associatedFilesSearchHref={associatedFilesSearchHref}
-                columnExtensionMap={originalColExtMap}
                 {...{
                     context,
                     session,
@@ -112,7 +108,8 @@ export const FileOverviewTable = (props) => {
                         <a
                             href={atId}
                             target="_blank"
-                            rel="noreferrer noopener">
+                            rel="noreferrer noopener"
+                            className="link-underline-hover">
                             {annotated_filename || display_title}
                         </a>
                     </span>
@@ -162,7 +159,7 @@ export const FileOverviewTable = (props) => {
                 return (
                     <span className="value">
                         <i
-                            className="status-indicator-dot mr-07"
+                            className="status-indicator-dot me-07"
                             data-status={value}
                         />
                         {capitalizeSentence(value)}
@@ -184,14 +181,14 @@ export const FileOverviewTable = (props) => {
 
                 const popover = (
                     <Popover id="popover-basic">
-                        <Popover.Title as="h3" className="mt-0">
+                        <Popover.Header as="h3" className="mt-0">
                             Notes
-                        </Popover.Title>
-                        <Popover.Content>
+                        </Popover.Header>
+                        <Popover.Body>
                             {notes_to_tsv.map((note, i) => {
                                 return <p key={i}>{note}</p>;
                             })}
-                        </Popover.Content>
+                        </Popover.Body>
                     </Popover>
                 );
 
@@ -203,7 +200,7 @@ export const FileOverviewTable = (props) => {
                         <button
                             type="button"
                             className="btn btn-link btn-xs text-truncate">
-                            <i className="icon icon-exclamation-triangle fas text-warning mr-05" />
+                            <i className="icon icon-exclamation-triangle fas text-warning me-05" />
                             View Notes
                         </button>
                     </OverlayTrigger>
@@ -334,13 +331,13 @@ const FileOverviewAboveTableComponent = (props) => {
 
     return (
         <div className="d-flex w-100 mb-05">
-            <div className="col-auto ml-0 pl-0">
+            <div className="col-auto ms-0 ps-0">
                 <span className="text-400" id="results-count">
                     {totalResultCount}
                 </span>{' '}
                 Results
             </div>
-            <div className="ml-auto col-auto mr-0 pr-0">
+            <div className="ms-auto col-auto me-0 pe-0">
                 <SelectAllFilesButton
                     {...selectedFileProps}
                     context={context}
@@ -348,10 +345,10 @@ const FileOverviewAboveTableComponent = (props) => {
                 <SelectedItemsDownloadButton
                     id="download_tsv_multiselect"
                     disabled={selectedItems?.size === 0}
-                    className="btn btn-primary btn-sm mr-05 align-items-center"
+                    className="btn btn-primary btn-sm me-05 align-items-center"
                     {...{ selectedItems, session }}
                     analyticsAddItemsToCart>
-                    <i className="icon icon-download fas mr-07" />
+                    <i className="icon icon-download fas me-07" />
                     Download {selectedItems?.size} Selected Files
                 </SelectedItemsDownloadButton>
             </div>
