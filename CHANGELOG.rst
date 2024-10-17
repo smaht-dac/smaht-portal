@@ -7,14 +7,35 @@ smaht-portal
 Change Log
 ----------
 
+`PR 266: Node v20 Upgrade <https://github.com/smaht-dac/smaht-portal/pull/266>`_
+
+0.105.0
+=====
+
+* Node 18 to 20 upgrade including GitHub actions
+
+
+0.104.2
+=======
+
+`PR 276: Updates for Statistics Legend Section & Mobile UI <https://github.com/smaht-dac/smaht-portal/pull/276>`_
+
+* Adjust legend's items size for sm to xl displays
+* Truncate long text for dropdown text for lg and md displays
+* Fix toggle display for upcoming xxl displays upon react-bootstrap v2 upgrade
+
+
 0.104.1
 =======
-`PR 272: SN Enzymes optional <https://github.com/smaht-dac/smaht-portal/pull/224>`_
+
+`PR 272: SN Enzymes optional <https://github.com/smaht-dac/smaht-portal/pull/272>`_
+
 * Make property `enzymes` in LibraryPreparation optional if `fragmentation_method` does not contain "Transposase" or "Restriction Enzyme", otherwise required
 
 
 0.104.0
 =======
+
 * 2024-10-11/dmichaels
 * Updated dcicutils version (8.16.1) for vulnerabilities.
 
