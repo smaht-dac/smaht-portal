@@ -358,17 +358,16 @@ class FileRelease:
             item_utils.get_accession(file_set) for file_set in self.file_sets
         ]
         annotated_filename_info = self.get_annotated_filename_info()
-
         # Add file to file set and set status to released
         patch_body = {
             item_constants.UUID: item_utils.get_uuid(self.file),
             item_constants.STATUS: item_constants.STATUS_RELEASED,
-            file_constants.FILE_SETS: file_set_accessions,
             file_constants.DATASET: dataset,
             file_constants.ACCESS_STATUS: access_status,
             file_constants.ANNOTATED_FILENAME: annotated_filename_info.filename,
         }
-
+        if not supp_file_utils.is_reference_conversion(self.file) and not supp_file_utils.is_reference_genome(self.file):
+            patch_body[file_constants.FILE_SET] = file_set_accessions
         # Take the extra files from the annotated filename object if available.
         # They will have the correct filenames
         if annotated_filename_info.patch_dict:
