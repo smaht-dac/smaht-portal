@@ -776,23 +776,20 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             .selector-buttons {
                 button {
                     font-size: 1rem;
-                    width: 140px;
+                    width: 180px;
                 }
     
                 .backdrop {
-                    width: 140px;
+                    width: 180px;
     
                     &.tier-0 {
                         left: 5px;
                     }
                     &.tier-1 {
-                        left: 145px;
+                        left: 185px;
                     }
                     &.tier-2 {
-                        left: 285px;
-                    }
-                    &.tier-3 {
-                        left: 425px;
+                        left: 365px;
                     }
                 }
             }
