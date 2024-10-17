@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.105.1
+=======
+`PR 278: SN Update file facets <https://github.com/smaht-dac/smaht-portal/pull/278>`_
+Remove variant_type from facets and columns and add data_category
+
+
 `PR 266: Node v20 Upgrade <https://github.com/smaht-dac/smaht-portal/pull/266>`_
 
 0.105.0
