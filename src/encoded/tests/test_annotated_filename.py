@@ -634,14 +634,17 @@ def test_get_analysis(
     assert_filename_part_matches(result, expected, errors)
 
 
+SUPPLEMENTARY_FILE = {'@type': ["SupplementaryFile"]}
+OTHER_FILE = {'@type': ["VariantCals"]}
 @pytest.mark.parametrize(
-    "software,expected",
+    "file,software,expected",
     [
-        ([], ""),
-        ([{"version": "2.3.4"}], ""),
-        ([{"code": "foo", "version": "1.2.3"}], "foo_1.2.3"),
-        ([{"code": "foo", "version": "1.2.3"}, {"version": "2.3.4"}], "foo_1.2.3"),
+        (OTHER_FILE,[], ""),
+        (OTHER_FILE,[{"version": "2.3.4"}], ""),
+        (OTHER_FILE,[{"code": "foo", "version": "1.2.3"}], "foo_1.2.3"),
+        (OTHER_FILE,[{"code": "foo", "version": "1.2.3"}, {"version": "2.3.4"}], "foo_1.2.3"),
         (
+            OTHER_FILE,
             [
                 {"code": "foo", "version": "1.2.3"},
                 {"version": "2.3.4"},
@@ -649,13 +652,16 @@ def test_get_analysis(
             ],
             "bar_3.4.5_foo_1.2.3",
         ),
+        (SUPPLEMENTARY_FILE,[{"title": "Foo", "version": "1.2.3"}], "foo_1.2.3"),
     ],
 )
 def test_get_software_and_versions(
-    software: List[Dict[str, Any]], expected: str
+    file: Dict[str, Any],
+    software: List[Dict[str, Any]],
+    expected: str
 ) -> None:
     """Test software names and versions retrieval."""
-    result = get_software_and_versions(software)
+    result = get_software_and_versions(file ,software)
     assert result == expected
 
 
