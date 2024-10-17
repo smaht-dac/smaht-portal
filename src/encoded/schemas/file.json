@@ -217,9 +217,6 @@
         }
     },
     "facets": {
-        "variant_type": {
-            "title": "Variant Type"
-        },
         "file_sets.libraries.assay.display_title": {
             "title": "Experimental Assay"
         },
@@ -234,6 +231,9 @@
             "title": "Data Format"
         },
         "data_type": {
+            "title": "Data Type"
+        },
+        "data_category": {
             "title": "Data Category"
         },
         "sequencing_center.display_title": {
@@ -256,9 +256,6 @@
         "annotated_filename": {
             "title": "File"
         },
-        "variant_type": {
-            "title": "Variant Type"
-        },
         "file_sets.libraries.assay.display_title": {
             "title": "Assay"
         },
@@ -269,6 +266,9 @@
             "title": "Data Format"
         },
         "data_type": {
+            "title": "Data Type"
+        },
+        "data_category": {
             "title": "Data Category"
         },
         "sequencing_center.display_title": {
