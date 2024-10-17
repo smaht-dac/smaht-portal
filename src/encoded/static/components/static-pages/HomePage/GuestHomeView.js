@@ -46,7 +46,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                         </h2>
                     </div>
                 </div>
-                <div className="row my-2 flex-column flex-lg-row">
+                <div className="homepage-timeline-figure-container row flex-column flex-lg-row">
                     <div className="col-12 col-lg-4 col-xl-5 col-xxl-4">
                         <SMaHTTimeline
                             currentTier={currentTier}

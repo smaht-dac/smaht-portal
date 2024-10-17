@@ -705,8 +705,12 @@ body[data-path="/"]>#application>#layout {
 		}
 
 
-
 		.container {
+			
+			.homepage-timeline-figure-container {
+				margin-top: 20px;
+			}
+
 			.homepage-figure-container {
 				justify-content: center;
 				align-items: center;
@@ -955,6 +959,9 @@ body[data-path="/"]>#application>#layout {
 	@media screen and (min-width: 992px) {
 		.homepage-contents {
 			.container {
+				.homepage-timeline-figure-container {
+					margin-top: 32px;
+				}
 				.notifications-panel {
 					flex-direction: row;
 					.about-consortium {
@@ -981,17 +988,22 @@ body[data-path="/"]>#application>#layout {
 			.container {
 				margin-left: 50px;
 
+				.homepage-timeline-figure-container {
+					margin-top: 30px;
+				}
 				.timeline-container {
 					margin-left: 0px;
 				}
 
 				.homepage-figure-container {
+					margin-left: 25px;
 					justify-content: start;
 					
 					.homepage-figure {
 						width: 630px;
 					}
 				}
+
 
 				.notifications-panel {
 					position: absolute;
