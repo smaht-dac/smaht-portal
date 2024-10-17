@@ -7,11 +7,16 @@ smaht-portal
 Change Log
 ----------
 
-`PR 266: Node v20 Upgrade <https://github.com/smaht-dac/smaht-portal/pull/266>`_
+0.105.1
+=======
+`PR 277 DSA Release <https://github.com/smaht-dac/smaht-portal/pull/277>`_
+* In `commands/release-file.py` and `commands/create-annotated-filenames.py`:
+  * Assay and sequencer codes value set to XX for DSA fasta files and chain files
+  * For Supplementary Files, use `title` instead of `code` for software part of annotated filename
 
 0.105.0
-=====
-
+=======
+`PR 266: Node v20 Upgrade <https://github.com/smaht-dac/smaht-portal/pull/266>`_
 * Node 18 to 20 upgrade including GitHub actions
 
 
