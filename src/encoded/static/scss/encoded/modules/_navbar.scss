@@ -640,6 +640,7 @@ div.navbar-fixed-top {
 
             &:hover, &:active, &:focus {
                 background-color: rgba(91, 117, 149, 0.2784313725);
+                box-shadow: none;
             }
 
             > i.icon {

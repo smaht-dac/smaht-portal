@@ -100,7 +100,7 @@ $navbar-full-height : 80px;
 $navbar-small-height : 40px; /* Bootstrap navbar default */
 $navbar-transition-length: .3s;
 $navbar-transition-easing: ease-out;
-$navbar-separator-color : shift-color($navbar-link-color, -80%) !default;
+$navbar-separator-color : scale-color($navbar-link-color, $alpha: -80%) !default;
 
 $footer-border-color: $slate-20;
 $footer-background-color: $slate-10;

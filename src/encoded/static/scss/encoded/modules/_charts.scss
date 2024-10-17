@@ -1383,7 +1383,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
                 text-overflow: ellipsis;
             }
         }
-        @include media-breakpoint-down(xs) {
+        @include media-breakpoint-down(sm) {
             .chart-group .dropdown .btn {
                 margin-top: 10px;
             }
