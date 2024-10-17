@@ -469,6 +469,7 @@ def test_get_donor_sex_and_age_parts(
 
 
 SOME_FILE = {"data_category": ["Aligned Reads"]}
+REFERENCE_FILE = {"data_category": ["Reference Genome"]}
 SEQUENCER_CODE = "A"
 SOME_SEQUENCER = {"code": SEQUENCER_CODE}
 ANOTHER_SEQUENCER = {"code": "B"}
@@ -485,6 +486,7 @@ ANOTHER_ASSAY = {"code": "002"}
         (SOME_FILE,[], [SOME_ASSAY], "", True),
         (SOME_FILE,[SOME_SEQUENCER], [SOME_ASSAY], f"{SEQUENCER_CODE}{ASSAY_CODE}", False),
         (SOME_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY], "", True),
+        (REFERENCE_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "XX", False),
         (SOME_FILE,[SOME_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "", True),
         (SOME_FILE,[SOME_SEQUENCER, SOME_ITEM], [SOME_ASSAY], "", True),
     ],
