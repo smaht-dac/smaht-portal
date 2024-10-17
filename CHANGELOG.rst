@@ -7,12 +7,66 @@ smaht-portal
 Change Log
 ----------
 
+`PR 266: Node v20 Upgrade <https://github.com/smaht-dac/smaht-portal/pull/266>`_
+
+0.105.0
+=====
+
+* Node 18 to 20 upgrade including GitHub actions
+
+
+0.104.2
+=======
+
+`PR 276: Updates for Statistics Legend Section & Mobile UI <https://github.com/smaht-dac/smaht-portal/pull/276>`_
+
+* Adjust legend's items size for sm to xl displays
+* Truncate long text for dropdown text for lg and md displays
+* Fix toggle display for upcoming xxl displays upon react-bootstrap v2 upgrade
+
+
+0.104.1
+=======
+
+`PR 272: SN Enzymes optional <https://github.com/smaht-dac/smaht-portal/pull/272>`_
+
+* Make property `enzymes` in LibraryPreparation optional if `fragmentation_method` does not contain "Transposase" or "Restriction Enzyme", otherwise required
+
+
+0.104.0
+=======
+
+* 2024-10-11/dmichaels
+* Updated dcicutils version (8.16.1) for vulnerabilities.
+
+
+0.103.0
+=======
+
+`PR 273: GA4 & Usage Statistics Follow-up <https://github.com/smaht-dac/smaht-portal/pull/273>`_
+
+* New/Updated charts:
+
+  * File downloads
+  * Top file set downloads by file type - file format
+  * File detail views by file type - file format
+  * File search result appearances by file type - file format
+  * File search result clicks by file type - file format
+  * Metadata.tsv included file counts by location
+
+* New options:
+
+  * 6-12-18 months and All date interval options added
+  * Toggle for charts
+
+
+
 0.102.2
-======
-`PR259: fix: only show target coverage for wgs bam files <https://github.com/smaht-dac/smaht-portal/pull/259>`_
-* Use default properties
-* Only show total target coverage for wgs bam
-* Show N/A where read count is not available
+=======
+
+`PR 224: feat: error state for homepage timeline <https://github.com/smaht-dac/smaht-portal/pull/224>`_
+
+* Implement error state for homepage timeline
 
 
 0.102.1
@@ -23,6 +77,7 @@ Change Log
 0.102.0
 =======
 `PR267: SN Add target_read_count <https://github.com/smaht-dac/smaht-portal/pull/267>`_
+
 * Add `target_read_count` to File `data_generation_summary`
 
 
@@ -41,14 +96,16 @@ Change Log
 
 
 0.100.1
-=====
+=======
 `PR268: SN Validator Fix <https://github.com/smaht-dac/smaht-portal/pull/268>`_
+
 * Add decorator link_related_validator to edit validators as well as add
 
 
 0.100.0
-======
+=======
 `PR260: SN Add assay and vcf properties <https://github.com/smaht-dac/smaht-portal/pull/260>`_
+
 * Add property 'category' to Assay
 * Add property `mode` to VariantCalls
 * Fix `age` maximum to 89 for Donor
@@ -88,31 +145,37 @@ Change Log
 0.98.0
 ======
 `PR256: SN Write automated example <https://github.com/smaht-dac/smaht-portal/pull/256>`_
+
 * In `commands/write_submission_spreadsheets.py`:
+
   * Add argument `--example` that will pull metadata from a template uuid to fill out an example submission spreadsheet for the current schema
 
 
 0.97.1
 ======
 `PR257: SN Update DSA calc_prop <https://github.com/smaht-dac/smaht-portal/pull/257>`_
+
 * Change DSA calc prop for non-fasta files `supplementary_files`
 
 
 0.97.0
 ======
 `PR238: SN Add valid_molecules required <https://github.com/smaht-dac/smaht-portal/pull/238>`_
+
 * Add `valid_molecules` as a required property for Assay
 
 
 0.96.4
 ======
 `PR 252: feat: add manifest type to button <https://github.com/smaht-dac/smaht-portal/pull/252>`_
+
 * Add manifest type to download manifest button
 
 
 0.96.3
 ======
 `PR247: feat: add downsampled tab <https://github.com/smaht-dac/smaht-portal/pull/247>`_
+
 * Add downsampled hapmap tab
 * Update benchmarking descriptions
 
@@ -162,21 +225,24 @@ Change Log
 0.94.0
 ======
 `PR251: SN Donor schema update <https://github.com/smaht-dac/smaht-portal/pull/251>`_
-Add property `tpc_submitted` for whether or not the donor was submitted by the TPC
-Include a maximum value of 90 for `age` to remove identifiable information
+
+* Add property `tpc_submitted` for whether or not the donor was submitted by the TPC
+* Include a maximum value of 90 for `age` to remove identifiable information
 
 
 0.93.2
 ======
 `PR 240: fix: SN TPC samples annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/240>`_
+
 * In `commands/create_annotated_filename.py`:
-  * Grab unique `aliquot_ids` so that files with tissue samples from TPC are not considered to have merged aliquots
-  e.g. file has identical samples `ST001-1A-001A1` from GCC and `ST001-1A-001A1` from TPC. The TPC item is used for metadata cross-checking, and shouldn't be considered when checking if samples were merged for analyte extraction.
+
+  * Grab unique `aliquot_ids` so that files with tissue samples from TPC are not considered to have merged aliquots e.g. file has identical samples `ST001-1A-001A1` from GCC and `ST001-1A-001A1` from TPC. The TPC item is used for metadata cross-checking, and shouldn't be considered when checking if samples were merged for analyte extraction.
 
 
 0.93.1
 ======
 `PR249: SN Revert FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/249>`_
+
 * Revert PR 244, removing `files_status_retracted` calc_prop from FileSet
 
 
@@ -189,6 +255,7 @@ Include a maximum value of 90 for `age` to remove identifiable information
 0.92.0
 ======
 `PR244: SN FileSet calcprop <https://github.com/smaht-dac/smaht-portal/pull/244>`_
+
 * Create calcprop for FileSet, `files_status_retracted`, that returns "True" if a file in files has the status of `obsolete` or `retracted`
 * Embed `file_set.files_status_retracted` in File
 
@@ -196,6 +263,7 @@ Include a maximum value of 90 for `age` to remove identifiable information
 0.91.0
 ======
 `PR234: SN Cell Line links <https://github.com/smaht-dac/smaht-portal/pull/234>`_
+
 * Allow `CellLine` to link to itself with `parent_cell_lines`
 * Allow `CellLine` to link to `TissueSample` (`Sample`) with `tissue_samples`
 * Allow `CellCulture` to link to `TissueSample`. Keeping `Tissue` link for now, to remove later.
@@ -218,6 +286,7 @@ Include a maximum value of 90 for `age` to remove identifiable information
 0.90.0
 ======
 `PR241: SN Add properties to library <https://github.com/smaht-dac/smaht-portal/pull/241>`_
+
 * Add properties `dna_target`, `guide_sequence`, and `antibody` to Library schema
 * Change property `restriction_enzymes` to `enzymes` in LibraryPreparation (recently added property so it is empty in the portal) to apply for transposase enzymes as well and update associated tests.
 
@@ -225,6 +294,7 @@ Include a maximum value of 90 for `age` to remove identifiable information
 0.89.3
 ======
 `PR239: Add mei_detection_challenge_data enum ot dataset <https://github.com/smaht-dac/smaht-portal/pull/239>`_
+
 * Add `mei_detection_challenge_data` enum to `dataset`
 
 
@@ -260,6 +330,7 @@ Include a maximum value of 90 for `age` to remove identifiable information
 ======
 
 `PR 219: SN Metadata Custom Validators<https://github.com/smaht-dac/smaht-portal/pull/219>`_
+
 * Add custom validators for metadata audit checks with tests for POST and PATCH:
   * Update `assay.json``` schema to include properties `valid_molecules` and `valid_sequencers` to assist in validation. Will need to patch current assay items for this to function
   * In `FileSet`, check that the combination of `libraries.analytes.assay` and `sequencing.sequencer` are compatible
@@ -273,6 +344,7 @@ Include a maximum value of 90 for `age` to remove identifiable information
 ======
 
 `PR 230: SN Update annotated_filenames <https://github.com/smaht-dac/smaht-portal/pull/230>`_
+
 * In `commands/create_annotated_filenames.py`:
   * For annotated filenames, update `aliquot_id` to be `[aliquot_id]MC` if multiple benchmarking or production tissue samples from the same tissue aliquot but multiple cores (e.g. ST001-1A-001A1 and ST001-1A-001B2) and` MAMC` if from multiple tissue samples from different tissue aliquots
   * Remove the variant type from the end of annotated filenames for vcfs
@@ -291,6 +363,7 @@ Include a maximum value of 90 for `age` to remove identifiable information
 0.85.0
 ======
 `PR 225: SN Improvements to automated submission spreadsheet <https://github.com/smaht-dac/smaht-portal/pull/226>`_
+
 * In `write-submission-spreadsheet`:
   * clean up args messages
   * Add functionality for` --item` working with `--google`
@@ -302,6 +375,7 @@ Include a maximum value of 90 for `age` to remove identifiable information
 0.84.0
 ======
 `PR 229`: SN Cell Culture upgrade `<https://github.com/smaht-dac/smaht-portal/pull/229>`_
+
 * Change `CellCulture.cell_line` property to be an array of strings linking to `CellLine`, rather than a string.
   * Adds an upgrader with test for `cell_culture`
 
@@ -1529,7 +1603,7 @@ Submission Status page updates:
 
 
 0.16.0
-=====
+======
 
 * Adds `/peak-metadata` support for retrieving facet information from the metadata.tsv
 
