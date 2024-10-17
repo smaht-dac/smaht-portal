@@ -46,6 +46,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         font-size: 0.75rem;
         margin-left: 35px;
         color: $homepage-subtitle-text-color;
+        align-items: center;
 
         b {
             font-weight: 600;
@@ -60,6 +61,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 opacity: 0.5;
                 margin: auto;
             }
+        }
+
+        .icon.text-warning {
+            margin: auto 0px;
         }
     }
 
@@ -214,7 +219,20 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             }
                         }
                     }
-    
+
+                    .retry {
+                        position: absolute;
+                        right: 10px;
+                        top: 50%;
+                        transform: translate(0%,-50%);
+                        // color: $link-color;
+
+                        &:hover {
+                            // color: $link-hover-color;
+                            cursor: pointer;
+                            text-decoration: underline;
+                        }
+                    }
                 }
 
                 &-body {
@@ -269,6 +287,10 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                                     margin-bottom: -2px;
                                 }
                             }
+                        }
+
+                        .icon.text-warning {
+                            margin: auto 10px auto auto;
                         }
                     }
                 }
