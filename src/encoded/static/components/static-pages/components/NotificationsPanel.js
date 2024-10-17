@@ -3,22 +3,25 @@ import { Card } from 'react-bootstrap';
 
 const announcements = [
     {
+        type: 'info',
         title: 'Note',
         body: 'The raw sequence files, i.e. unaligned BAM and FASTQ, and the data from the benchmarking tissue samples that were not distributed by TPC will be available upon request at this time (through Globus).',
     },
     {
+        type: 'feature',
         title: 'New Features',
         body: 'The SMaHT Data Portal, V1 Benchmarking release, now makes benchmarking data available for download for authenticated consortium members. Users can continue to obtain the access keys for metadata submission.',
     },
     {
+        type: 'warning',
         title: 'Attention Users',
         body: 'The V1 Benchmarking data portal will be open to SMaHT consortium members only at this time.',
     },
 ];
 
-const AnnouncementCard = ({ title = '', body = '' }) => {
+const AnnouncementCard = ({ title = '', body = '', type = 'info' }) => {
     return (
-        <div className="announcement-container">
+        <div className={`announcement-container ${type}`}>
             <h5 className="header">{title}</h5>
             <p className="body">{body}</p>
         </div>
@@ -36,7 +39,7 @@ const DataReleaseItem = () => {
         <div className="data-release-item-container">
             <div className="content">
                 <div className="header">
-                    <span>August 1, 2024</span>
+                    <span>New Release: August 1, 2024</span>
                     <span className="count">15 Files</span>
                 </div>
                 <div className="body">
@@ -72,6 +75,7 @@ export const NotificationsPanel = () => {
                             <AnnouncementCard
                                 title={announcement.title}
                                 body={announcement.body}
+                                type={announcement.type}
                             />
                         );
                     })}
