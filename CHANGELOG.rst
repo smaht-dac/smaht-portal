@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.105.1
+=======
+
+`PR246: feat: homepage updates <https://github.com/smaht-dac/smaht-portal/pull/246>`_
+
+* Implement new announcements panel
+* Reorganizes homepage timeline tier structure
+
+
 `PR 266: Node v20 Upgrade <https://github.com/smaht-dac/smaht-portal/pull/266>`_
 
 0.105.0
