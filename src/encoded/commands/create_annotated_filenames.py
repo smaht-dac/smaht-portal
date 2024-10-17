@@ -764,7 +764,7 @@ def get_sequencing_and_assay_codes(
     assay_codes = get_assay_codes(assays)
     if len(sequencing_codes) == 1 and len(assay_codes) == 1:
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
-    elif file_constants.DATA_CATEGORY_REFERENCE_GENOME in file.get("data_category","") or file_constants.DATA_CATEGORY_REFERENCE_CONVERSION in file.get("data_category",""):
+    elif supp_file_utils.is_reference_conversion(file) or supp_file_utils.is_reference_genome(file):
         return get_filename_part(value="XX")
     errors = []
     if not sequencing_codes:
