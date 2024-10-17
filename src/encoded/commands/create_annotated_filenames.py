@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 FILENAME_SEPARATOR = "-"
 ANALYSIS_INFO_SEPARATOR = "_"
 CHAIN_FILE_INFO_SEPARATOR = "To"
-
+DSA_INFO_VALUE = "dsa"
 
 DEFAULT_PROJECT_ID = constants.PRODUCTION_PREFIX
 DEFAULT_ABSENT_FIELD = "X"
@@ -824,7 +824,10 @@ def get_analysis(
         software_and_versions, reference_genome_code
     )
     if file_format_utils.is_chain_file(file_extension):
-        value = f"{value}{ANALYSIS_INFO_SEPARATOR}{get_chain_file_value(file)}"
+        value = ANALYSIS_INFO_SEPARATOR.join([value,get_chain_file_value(file)]) if value else get_chain_file_value(file)
+    if file_format_utils.is_fasta_file(file_extension):
+        import pdb; pdb.set_trace()
+        value = f"{value}{ANALYSIS_INFO_SEPARATOR}{DSA_INFO_VALUE}"
     if not value:
         if file_utils.is_unaligned_reads(file):  # Think this is the only case (?)
             return get_filename_part(value=DEFAULT_ABSENT_FIELD)
