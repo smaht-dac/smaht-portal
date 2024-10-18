@@ -242,6 +242,7 @@ class FileRelease:
         self.add_release_items_to_patchdict(
             self.quality_metrics_zips, "Compressed QC metrics file"
         )
+
         self.add_release_items_to_patchdict(self.file_sets, "FileSet")
         self.add_release_items_to_patchdict(self.sequencings, "Sequencing")
         self.add_release_items_to_patchdict(self.libraries, "Library")
@@ -367,7 +368,7 @@ class FileRelease:
             file_constants.ANNOTATED_FILENAME: annotated_filename_info.filename,
         }
         if not supp_file_utils.is_reference_conversion(self.file) and not supp_file_utils.is_reference_genome(self.file):
-            patch_body[file_constants.FILE_SET] = file_set_accessions
+            patch_body[file_constants.FILE_SETS] = file_set_accessions
         # Take the extra files from the annotated filename object if available.
         # They will have the correct filenames
         if annotated_filename_info.patch_dict:
