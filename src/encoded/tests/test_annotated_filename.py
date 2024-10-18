@@ -540,6 +540,13 @@ SOME_CHAIN_FILE = {
     "source_assembly": REFERENCE_GENOME_CODE,
     "target_assembly": TARGET_GENOME_CODE
 }
+SOME_FASTA_FILE = {
+    "data_type": ["SupplementaryFile"],
+    "donor_specific_assembly": "Some_DSA"
+}
+ANOTHER_FASTA_FILE = {
+    "data_type": ["SupplementaryFile"],
+}
 SOME_SOMATIC_VARIANT_CALLS = {"data_category": ["Somatic Variant Calls"]}
 SOME_VARIANT_CALLS = {
     "data_category": ["Somatic Variant Calls"],
@@ -558,6 +565,11 @@ VCF_FILE_EXTENSION = {
 CHAIN_FILE_EXTENSION = {
     "identifier": "CHAIN",
     "standard_file_extension": "chain.gz",
+    "valid_item_types": ["SupplementaryFile"]
+}
+FASTA_FILE_EXTENSION = {
+    "identifier": "FASTA",
+    "standard_file_extension": "fa",
     "valid_item_types": ["SupplementaryFile"]
 }
 
@@ -617,6 +629,22 @@ CHAIN_FILE_EXTENSION = {
             {},
             CHAIN_FILE_EXTENSION,
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}To{TARGET_GENOME_CODE}",
+            False,
+        ),
+        (
+            SOME_FASTA_FILE,
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            FASTA_FILE_EXTENSION,
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_dsa",
+            False,
+        ),
+        (
+            ANOTHER_FASTA_FILE,
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            FASTA_FILE_EXTENSION,
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}",
             False,
         ),
     ],

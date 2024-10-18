@@ -367,7 +367,7 @@ class FileRelease:
             file_constants.ACCESS_STATUS: access_status,
             file_constants.ANNOTATED_FILENAME: annotated_filename_info.filename,
         }
-        if not supp_file_utils.is_reference_conversion(self.file) and not supp_file_utils.is_reference_genome(self.file):
+        if file_set_accessions:
             patch_body[file_constants.FILE_SETS] = file_set_accessions
         # Take the extra files from the annotated filename object if available.
         # They will have the correct filenames

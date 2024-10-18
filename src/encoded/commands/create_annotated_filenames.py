@@ -752,7 +752,7 @@ def get_sex_abbreviation(sex: str) -> str:
 
 
 def get_sequencing_and_assay_codes(
-    file: List[Dict[str, Any]],
+    file: Dict[str, Any],
     sequencers: List[Dict[str], Any],
     assays: List[Dict[str], Any],
 ) -> FilenamePart:
@@ -825,7 +825,7 @@ def get_analysis(
     )
     if file_format_utils.is_chain_file(file_extension):
         value = ANALYSIS_INFO_SEPARATOR.join([value,get_chain_file_value(file)]) if value else get_chain_file_value(file)
-    if file_format_utils.is_fasta_file(file_extension):
+    elif file_format_utils.is_fasta_file(file_extension) and supp_file_utils.get_donor_specific_assembly(file):
         value = f"{value}{ANALYSIS_INFO_SEPARATOR}{DSA_INFO_VALUE}"
     if not value:
         if file_utils.is_unaligned_reads(file):  # Think this is the only case (?)
