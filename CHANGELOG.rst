@@ -7,10 +7,27 @@ smaht-portal
 Change Log
 ----------
 
-`PR 266: Node v20 Upgrade <https://github.com/smaht-dac/smaht-portal/pull/266>`_
+
+0.106.0
+=======
+
+`PR 263: React bootstrap v2, React 18, Redux and Misc. Npm Packages Upgrade <https://github.com/smaht-dac/smaht-portal/pull/263>`_
+
+* Upgrade: React v17 to v18
+* Upgrade: Redux v4 to v5 (there are breaking changes in store and dispatchers. SPC is updated to support both new and legacy usage)
+* Upgrade: auth0-Lock v11 to v12
+* Upgrade: gulp.js v4 to v5
+* Upgrade: react-workflow-viz (animation updates to eliminate findDOMNode errors)
+* Fix: User Content updates to fix markdown, jsx, and HTML static section rendering
+* Upgrade: Bootstrap v5
+* Upgrade: React-Bootstrap v2
+* Upgrade: FontAwesome v6
+
 
 0.105.0
 =====
+
+`PR 266: Node v20 Upgrade <https://github.com/smaht-dac/smaht-portal/pull/266>`_
 
 * Node 18 to 20 upgrade including GitHub actions
 

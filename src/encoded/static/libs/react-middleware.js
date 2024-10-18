@@ -3,7 +3,7 @@
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import fs from 'fs';
-import { store, mapStateToProps } from './../store';
+import { store, mapStateToProps, batchDispatch } from './../store';
 import { Provider, connect } from 'react-redux';
 import {
     JWT,
@@ -27,10 +27,10 @@ export function appRenderFxn(body, res) {
 
     const context = JSON.parse(body);
     const disp_dict = {
-        context: context,
-        href: res.getHeader('X-Request-URL') || object.itemUtil.atId(context),
-        lastBuildTime: lastBuildTime,
-        alerts: [], // Always have fresh alerts per request, else subprocess will re-use leftover global vars/vals.
+        'context'           : context,
+        'href'              : res.getHeader('X-Request-URL') || object.itemUtil.atId(context),
+        'lastBuildTime'  : lastBuildTime,
+        'alerts'            : [] // Always have fresh alerts per request, else subprocess will re-use leftover global vars/vals.
     };
 
     // Subprocess-middleware re-uses process on prod. Might have left-over data from prev request.
@@ -56,9 +56,7 @@ export function appRenderFxn(body, res) {
     }
     // End JWT token grabbing
 
-    store.dispatch({
-        type: disp_dict,
-    });
+    batchDispatch(store, disp_dict);
 
     var markup, AppWithReduxProps;
 
@@ -73,8 +71,8 @@ export function appRenderFxn(body, res) {
         );
     } catch (err) {
         store.dispatch({
-            type: 'context',
-            value: {
+            type: 'SET_CONTEXT',
+            payload: {
                 '@type': ['RenderingError', 'error'],
                 status: 'error',
                 code: 500,
