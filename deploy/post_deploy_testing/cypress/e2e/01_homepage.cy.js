@@ -22,29 +22,17 @@ describe('Home Page', function () {
 
     it('Timeline dropdowns work as expected', () => {
         /* ==== Generated with Cypress Studio ==== */
-        cy.get(
-            ':nth-child(1) > .timeline-content > .accordion > :nth-child(1) > .card-header > .d-flex > .border-0 > div > .icon'
-        ).click();
-        cy.get(
-            ':nth-child(1) > .timeline-content > .accordion > :nth-child(1) > .card-header > .d-flex > .border-0 > div > .icon'
-        ).click();
-        cy.get(
-            ':nth-child(1) > .timeline-content > .accordion > :nth-child(1) > .collapse > .card-body'
-        ).click();
-        cy.get(
-            ':nth-child(3) > .card-header > .d-flex > .border-0 > div > .icon'
-        ).click();
-        cy.get(
-            ':nth-child(4) > .card-header > .d-flex > .border-0 > div > .icon'
-        ).click();
-        cy.get(
-            ':nth-child(2) > .timeline-content > .accordion > .card > .card-header > .d-flex > .border-0 > div > .icon'
-        ).click();
-        cy.get(
-            ':nth-child(3) > .timeline-content > .accordion > .card > .card-header > .d-flex > .border-0 > div > .icon'
-        ).click();
+        cy.get('#timeline .timeline-item .accordion .card-header-button').first().click({ force: true });
+        cy.get('#timeline .timeline-item .accordion .card-header-button').first().click({ force: true });
+    
+        cy.get('#timeline .timeline-item .accordion .accordion-collapse.show .card-body').should('be.visible');
+    
+        cy.get('#timeline .timeline-item:nth-child(3) .card-header-button').click({ force: true });
+        cy.get('#timeline .timeline-item:nth-child(4) .card-header-button').click({ force: true });
+    
+        cy.get('#timeline .timeline-item:nth-child(2) .accordion .card-header-button').first().click({ force: true });
+        cy.get('#timeline .timeline-item:nth-child(3) .card-header-button').click({ force: true });
         /* ==== End Cypress Studio ==== */
-        cy.end();
     });
 
     it('Navbar dropdowns work as expected when logged in', () => {

@@ -17,21 +17,21 @@
     <h3>Release History</h3>
 
     <div class="table-responsive"> 
-        <table class="table table-borderless table-sm text-left">
+        <table class="table table-borderless table-sm text-start">
             <thead class="thead-smaht-purple">
                 <tr>
-                    <th className="pl-1">Release Version</th>
-                    <th className="pl-1">Description</th>
-                    <th className="pl-1">Release date</th>
-                    <th className="pl-1">Document</th>
+                    <th className="ps-1">Release Version</th>
+                    <th className="ps-1">Description</th>
+                    <th className="ps-1">Release date</th>
+                    <th className="ps-1">Document</th>
                 </tr>
             </thead>
             <tbody class="table-border-inner">
                 <tr>
-                    <td className="pl-1">V1.0 [Latest]</td>
-                    <td className="pl-1">COLO829 SNV/indel detection challenge - SNV truth set and related datasets</td>
-                    <td className="pl-1">August 29, 2024</td>
-                    <td className="pl-1">
+                    <td className="ps-1">V1.0 [Latest]</td>
+                    <td className="ps-1">COLO829 SNV/indel detection challenge - SNV truth set and related datasets</td>
+                    <td className="ps-1">August 29, 2024</td>
+                    <td className="ps-1">
                         <a href="/static/files/SMaHT_Benchmark_SNVIndel_Challenge-DataRelease_V1_Aug12-2024.pdf" download>
                             <i className="icon fas icon-file-pdf text-danger icon-lg"></i>
                         </a>

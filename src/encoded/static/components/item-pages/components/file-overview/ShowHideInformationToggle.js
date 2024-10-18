@@ -23,7 +23,7 @@ export const ShowHideInformationToggle = ({ id, cls, children, useToggle }) => {
                     <i
                         className={`icon icon-angle-${
                             showInformation ? 'up' : 'down'
-                        } fas mr-05`}></i>
+                        } fas me-05`}></i>
                     <span className="toggle-information-text">
                         Show{showInformation ? ' less' : ' more'}
                     </span>
