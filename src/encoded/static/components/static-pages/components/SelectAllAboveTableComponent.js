@@ -47,13 +47,13 @@ export const SelectAllAboveTableComponent = React.memo(
 
         return (
             <div className="d-flex w-100 mb-05">
-                <div className="col-auto ml-0 pl-0">
+                <div className="col-auto ms-0 ps-0">
                     <span className="text-400" id="results-count">
                         {totalResultCount}
                     </span>{' '}
                     Results
                 </div>
-                <div className="ml-auto col-auto mr-0 pr-0">
+                <div className="ms-auto col-auto me-0 pe-0">
                     <SelectAllFilesButton
                         {...selectedFileProps}
                         {...{ context }}
@@ -61,10 +61,10 @@ export const SelectAllAboveTableComponent = React.memo(
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
-                        className="btn btn-primary btn-sm mr-05 align-items-center"
+                        className="btn btn-primary btn-sm me-05 align-items-center"
                         {...{ selectedItems, session }}
                         analyticsAddItemsToCart>
-                        <i className="icon icon-download fas mr-03" />
+                        <i className="icon icon-download fas me-03" />
                         Download {selectedItems.size} Selected Files
                     </SelectedItemsDownloadButton>
                 </div>
@@ -197,14 +197,14 @@ export class SelectAllFilesButton extends React.PureComponent {
         const isAllSelected = this.isAllSelected();
         const isEnabled = this.isEnabled();
         const iconClassName =
-            'mr-05 icon icon-fw icon-' +
+            'me-05 icon icon-fw icon-' +
             (selecting
                 ? 'circle-notch icon-spin fas'
                 : isAllSelected
                 ? 'square far'
                 : 'check-square far');
         const cls =
-            'btn btn-sm mr-05 align-items-center ' +
+            'btn btn-sm me-05 align-items-center ' +
             (isAllSelected ? 'btn-secondary' : 'btn-outline-secondary');
         const tooltip =
             !isAllSelected && !isEnabled
@@ -420,9 +420,9 @@ const SelectedItemsDownloadModal = function (props) {
             onHide={onHide}
             size="lg">
             <Modal.Header closeButton>
-                <Modal.Title className="pl-2 d-flex align-items-center">
+                <Modal.Title className="ps-2 d-flex align-items-center">
                     <img
-                        className="mr-1"
+                        className="me-1"
                         src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
                         height="47"
                     />
@@ -434,13 +434,14 @@ const SelectedItemsDownloadModal = function (props) {
                 <div className="col-auto mb-4 px-3">
                     <h2 className="text-larger">SMaHT Policy</h2>
                     <hr className="my-2" />
-                    <ul className="pl-2">
+                    <ul className="ps-2">
                         <li className="mb-1">
                             <strong>Data Use:</strong> Please read the{' '}
                             <a
                                 href="https://smaht.org/policies/"
                                 target="_blank"
-                                rel="noreferrer noopener">
+                                rel="noreferrer noopener"
+                                className="link-underline-hover">
                                 SMaHT Data Use Policy
                             </a>{' '}
                             for the use of open- and protected-access data.
@@ -450,7 +451,8 @@ const SelectedItemsDownloadModal = function (props) {
                             <a
                                 href="https://smaht.org/policies/"
                                 target="_blank"
-                                rel="noreferrer noopener">
+                                rel="noreferrer noopener"
+                                className="link-underline-hover">
                                 SMaHT Publication Policy
                             </a>
                             .
@@ -463,11 +465,11 @@ const SelectedItemsDownloadModal = function (props) {
                 />
                 <div className="col-auto mb-4">
                     <h2 className="text-larger">
-                        <i className="fas icon-exclamation-triangle text-danger mr-1" />{' '}
+                        <i className="fas icon-exclamation-triangle text-danger me-1" />{' '}
                         Important Reminders
                     </h2>
                     <hr className="my-2" />
-                    <ul className="pl-2">
+                    <ul className="ps-2">
                         <li className="mb-1">
                             You{' '}
                             <span className="text-600">
@@ -491,7 +493,8 @@ const SelectedItemsDownloadModal = function (props) {
                             <a
                                 href="/docs/user-guide/manifest"
                                 target="_blank"
-                                rel="noreferrer noopener">
+                                rel="noreferrer noopener"
+                                className="link-underline-hover">
                                 here
                             </a>
                             .
@@ -501,7 +504,7 @@ const SelectedItemsDownloadModal = function (props) {
                 <div className="col-auto mb-4">
                     <h2 className="text-larger">Instructions for Download</h2>
                     <hr className="my-2" />
-                    <ol className="pl-2">
+                    <ol className="ps-2">
                         <li className="mb-1">
                             Please press the &quot;Download&quot; button below
                             to save the manifest file which contains download
@@ -521,7 +524,8 @@ const SelectedItemsDownloadModal = function (props) {
                         instructions{' '}
                         <a
                             href="/docs/access/how-to-download-files#downloading-files-with-the-aws-cli"
-                            target="_blank">
+                            target="_blank"
+                            className="link-underline-hover">
                             here
                         </a>
                         .
@@ -672,7 +676,7 @@ const DataDownloadOverviewStats = React.memo(function DataDownloadOverviewStats(
                     <div className="tsv-metadata-stat-title text-smaller text-uppercase text-600">
                         Extra Files
                         <i
-                            className="icon icon-info-circle fas ml-03"
+                            className="icon icon-info-circle fas ms-03"
                             data-tip="Extra files associated with selected files (e.g. index file of BAM (*.bai) or CRAM (*.crai)) are included in the download by default. These files are found in the manifest file."
                         />
                     </div>
@@ -701,7 +705,7 @@ const DataDownloadOverviewStats = React.memo(function DataDownloadOverviewStats(
 const ModalCodeTabTitle = () => {
     return (
         <span className="nav-item-title">
-            AWS CLI <span className="badge badge-secondary">faster</span>
+            AWS CLI <span className="badge">faster</span>
         </span>
     );
 };
@@ -898,9 +902,9 @@ const SelectedItemsDownloadStartButton = React.memo(
                     type="submit"
                     name="Download"
                     onClick={onClick}
-                    className="btn btn-primary mt-0 mr-1 btn-block-xs-only"
+                    className="btn btn-primary mt-0 me-1 btn-block-xs-only"
                     data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
-                    <i className="icon icon-fw icon-download fas mr-1" />
+                    <i className="icon icon-fw icon-download fas me-1" />
                     Download <b>{isAWSDownload ? 'AWS CLI ' : 'cURL'}</b>{' '}
                     Manifest
                 </button>

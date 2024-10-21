@@ -79,7 +79,7 @@ export const NotLoggedInAlert = {
     message: (
         <span>
             You are currently browsing as guest, please{' '}
-            <a onClick={onAlertLoginClick} href="#loginbtn">
+            <a onClick={onAlertLoginClick} href="#loginbtn" className="link-underline-hover">
                 login
             </a>{' '}
             if you have an account.

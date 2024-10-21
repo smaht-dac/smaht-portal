@@ -49,7 +49,7 @@ const default_file_properties = [
         getProp: (context = {}) => (
             <>
                 <i
-                    className="status-indicator-dot mr-07"
+                    className="status-indicator-dot me-07"
                     data-status={context?.status}
                 />
                 {capitalizeSentence(context?.status)}
