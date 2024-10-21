@@ -143,7 +143,7 @@ const default_data_information = [
         getProp: (context = {}) => {
             if (
                 context?.data_generation_summary?.assays?.some((assay) =>
-                    assay.includes('RNA-seq')
+                    assay.includes('RNA-Seq')
                 )
             ) {
                 const count =
