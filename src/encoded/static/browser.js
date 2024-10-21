@@ -2,11 +2,11 @@
 // Entry point for browser, compiled into bundle[.chunkHash].js.
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 
 import App from './components';
 var domready = require('domready');
-import { store, mapStateToProps } from './store';
+import { store, mapStateToProps, batchDispatch } from './store';
 import { Provider, connect } from 'react-redux';
 import { patchedConsoleInstance as console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/patched-console';
 import * as JWT from '@hms-dbmi-bgm/shared-portal-components/es/components/util/json-web-token';
@@ -61,21 +61,23 @@ if (typeof window !== 'undefined' && window.document && !window.TEST_RUNNER) {
         // into <script data-prop-name={ propName }> elements.
         const initialReduxStoreState = getRenderedProps(document);
         delete initialReduxStoreState.user_details; // Stored into localStorage.
-        store.dispatch({ type: initialReduxStoreState });
+
+        batchDispatch(store, initialReduxStoreState);
 
         const AppWithReduxProps = connect(mapStateToProps)(App);
+        let app;
 
         try {
-            ReactDOM.hydrate(
+            app = ReactDOM.hydrateRoot(
+                document,
                 <Provider store={store}>
                     <AppWithReduxProps />
-                </Provider>,
-                document
+                </Provider>
             );
         } catch (e) {
             console.error('INVARIANT ERROR', e); // To debug
             // So we can get printout and compare diff of renders.
-            window.app = require('react-dom/server').renderToString(
+            app = require('react-dom/server').renderToString(
                 <Provider store={store}>
                     <AppWithReduxProps />
                 </Provider>
@@ -84,6 +86,10 @@ if (typeof window !== 'undefined' && window.document && !window.TEST_RUNNER) {
 
         // Set <html> class depending on browser features
         BrowserFeat.setHtmlFeatClass();
+
+        // Simplify debugging
+        window.app = app;
+        window.React = React;
     });
 }
 
