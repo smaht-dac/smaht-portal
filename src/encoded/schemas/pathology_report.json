@@ -1,0 +1,284 @@
+{
+    "title": "Pathology Report",
+    "description": "A pathology report for a tissue sample",
+    "$id": "/profiles/pathology_report.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "submission_centers",
+        "submitted_id",
+        "tissue_sample"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/version"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "PR"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_PATHOLOGY-REPORT_[A-Z0-9-_.]{4,}$"
+        },
+        "additional_notes": {
+            "title": "Additional Notes",
+            "description": "Additional notes or other findings related to the sample",
+            "type": "string"
+        },
+        "final_review_determination": {
+            "title": "Final Review Determination",
+            "description": "Final review determination of pathology report for the sample",
+            "type": "string"
+        },
+        "is_indeterminate": {
+            "title": "Is Indeterminate",
+            "description": "Whether the tissue sample is indeterminate",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "non_target_tissues": {
+            "title": "Non-Target Tissues",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "non_target_tissue_subtype",
+                    "non_target_tissue_present"
+                ],
+                "properties": {
+                    "non_target_tissue_subtype": {
+                        "title": "Non-Target Tissue Subtype",
+                        "description": "Subtype of non-target tissue in sample",
+                        "type": "string",
+                        "enum": [
+                            "Fibroadipose",
+                            "Lymphoid",
+                            "Other"
+                        ]
+                    },
+                    "non_target_tissue_present": {
+                        "title": "Non-Target Tissue Present",
+                        "description": "Whether the non-target tissue subtype was present in the sample",
+                        "type": "string",
+                        "enum": [
+                            "Yes",
+                            "No"
+                        ]
+                    },
+                    "non_target_tissue_percentage": {
+                        "title": "Non-Target Tissue Subtype Percentage",
+                        "description": "Percentage of the sample that was the non-target tissue subtype (%)",
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                    },
+                    "non_target_tissue_description": {
+                        "title": "Non-Target Tissue Description",
+                        "description": "Description of other non-target tissue present in the sample",
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "outcome": {
+            "title": "Outcome",
+            "description": "Outcome of the pathology report",
+            "type": "string",
+            "enum": [
+                "Acceptable",
+                "Unacceptable"
+            ]
+        },
+        "orientation_issue": {
+            "title": "Orientation Issue",
+            "description": "Whether there was an orientation issue with the slide",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "orientation_issue_description": {
+            "title": "Orientation Issue Details",
+            "description": "Description of the orientation issue(s)",
+            "type": "string"
+        },
+        "pathologic_findings": {
+            "title": "Pathologic Findings",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "finding_type",
+                    "finding_description"
+                ],
+                "properties": {
+                    "finding_type": {
+                        "title": "Pathologic Finding Type",
+                        "description": "Type of pathologic/unexpected finding present in the sample",
+                        "type": "string",
+                        "enum": [
+                            "Inflammation",
+                            "Metaplasia",
+                            "Neoplasia/Tumor/Carcinoma",
+                            "Other"
+                        ]
+                    },
+                    "finding_description": {
+                        "title": "Pathologic Finding Description",
+                        "description": "Description of pathologic/unexpected finding",
+                        "type": "string"
+                    },
+                    "finding_percentage": {
+                        "title": "Pathologic Finding Percentage",
+                        "description": "Percentage of the sample that displayed the pathologic finding (%)",
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                    }
+                }
+            }
+        },
+        "slide_histology_matches_label": {
+            "title": "Slide Histology Matches Label",
+            "description": "Whether the slide histology matches the tissue label",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "slide_quality_issue": {
+            "title": "Slide Quality Issue",
+            "desciption": "Whether there was a slide quality issue",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "slide_quality_issue_description": {
+            "title": "Slide Quality Issue Details",
+            "desciption": "Description of slide quality issue(s)",
+            "type": "string"
+        },
+        "tissue_autolysis_score": {
+            "title": "Overall Tissue Autolysis Score",
+            "description": "Overall tissue autolysis score of the sample. 0=None, 1=mild , 2=moderate, 3=severe",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+        },
+        "tissue_name": {
+            "title": "Tissue Name",
+            "desciption": "Name of the type of tissue the sample was taken from",
+            "type": "string",
+            "enum": [
+                "Brain",
+                "Adrenal",
+                "Aorta",
+                "Ascending Colon",
+                "Descending Colon",
+                "Esophagus",
+                "Heart Ventricle",
+                "Liver",
+                "Lung",
+                "Muscle",
+                "Ovary",
+                "Skin",
+                "Testis"
+            ]
+        },
+        "target_tissues": {
+            "title": "Target Tissues",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "target_tissue_subtype",
+                    "target_tissue_present"
+                ],
+                "properties": {
+                    "target_tissue_subtype": {
+                        "title": "Target Tissue Subtype",
+                        "description": "Subtype of target tissue in sample",
+                        "type": "string"
+                    },
+                    "target_tissue_present": {
+                        "title": "Target Tissue Present",
+                        "description": "Whether the target tissue subtype was present in the sample",
+                        "type": "string",
+                        "enum": [
+                            "Yes",
+                            "No"
+                        ]
+                    },
+                    "target_tissue_percentage": {
+                        "title": "Target Tissue Subtype Percentage",
+                        "description": "Percentage of the sample that was the target tissue subtype (%)",
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                    }
+                }
+            }
+        },
+        "unacceptable_description": {
+            "title": "Unacceptable Description",
+            "description": "Description of unacceptable review determination",
+            "type": "string"
+        },
+        "tissue_sample": {
+            "title": "Tissue Sample",
+            "description": "Link to associated tissue sample",
+            "type": "string",
+            "linkTo": "TissueSample"
+        }
+    }
+}
