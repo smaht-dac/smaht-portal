@@ -22,7 +22,7 @@
         "libraries": [
             "TEST_LIBRARY_HELA"
         ],
-        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
+        "sequencing": "TEST_SEQUENCING_RNA-NOVASEQ-500X"
     },
     {
         "uuid": "b9f0f412-927f-4129-b165-f6a99935a44f",

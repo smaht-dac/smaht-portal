@@ -366,5 +366,24 @@
         "time_zone": "US/Eastern",
         "first_name": "Sarah",
         "last_name": "Nicholson"
+    },
+    {
+        "email": "onurcank.karatay@gmail.com",
+        "uuid": "8dbf2270-64ef-45c0-bb79-3bfda938e63c",
+        "groups": [
+            "admin"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submits_for": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "time_zone": "US/Eastern",
+        "first_name": "Onurcan",
+        "last_name": "Karatay"
     }
 ]

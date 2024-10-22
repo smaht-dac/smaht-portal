@@ -78,7 +78,7 @@ const ChallengeTable = (props) => {
                 } = result || {};
 
                 return (
-                    <span className="value text-left">
+                    <span className="value text-start">
                         <a
                             href={atId}
                             target="_blank"
@@ -113,7 +113,7 @@ const ChallengeTable = (props) => {
                 const value = result?.file_size;
                 if (!value) return null;
                 return (
-                    <span className="value text-right">
+                    <span className="value text-end">
                         {valueTransforms.bytesToLargerUnit(value)}
                     </span>
                 );

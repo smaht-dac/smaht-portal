@@ -14,13 +14,13 @@ Genome Alignment & Variant Calling
 
     <hr />
     <div class="table-responsive"> 
-        <table class="table table-borderless table-sm text-left" style="min-width: 1200px;">
+        <table class="table table-borderless table-sm text-start" style="min-width: 1200px;">
             <thead class="thead-smaht">
                 <tr class="sticky-first-column">
                     <th class="px-2"><i class="icon fas icon-download"></i></th>
                     <th class="px-2">File</th>
                     <th class="px-2">Description</th>
-                    <th class="px-2 text-right">Date Created</th>
+                    <th class="px-2 text-end">Date Created</th>
                     <th class="px-2 text-center" style="width: 80px;">Size</th>
                 </tr>
             </thead>
@@ -45,8 +45,8 @@ Genome Alignment & Variant Calling
                             (View Source)
                         </a>
                     </td>
-                    <td class="px-2 text-right">12-13-2023</td>
-                    <td class="px-2 text-right">2.89 GB</td>
+                    <td class="px-2 text-end">12-13-2023</td>
+                    <td class="px-2 text-end">2.89 GB</td>
                 </tr>
                 <tr class="sticky-first-column">
                     <td class="px-2">
@@ -68,8 +68,8 @@ Genome Alignment & Variant Calling
                             (View Source)
                         </a>
                     </td>
-                    <td class="px-2 text-right">12-13-2023</td>
-                    <td class="px-2 text-right">2.93 GB</td>
+                    <td class="px-2 text-end">12-13-2023</td>
+                    <td class="px-2 text-end">2.93 GB</td>
                 </tr>
                 <tr class="sticky-first-column">
                     <td class="px-2">
@@ -91,8 +91,8 @@ Genome Alignment & Variant Calling
                             (View Source)
                         </a>
                     </td>
-                    <td class="px-2 text-right">12-13-2023</td>
-                    <td class="px-2 text-right">2.89 GB</td>
+                    <td class="px-2 text-end">12-13-2023</td>
+                    <td class="px-2 text-end">2.89 GB</td>
                 </tr>
             </tbody>
         </table>

@@ -225,21 +225,6 @@
                                         "type" : "string",
                                         "title" : "Item Type 2"
                                     },
-                                    "downloads_count_with_range_queries" : {
-                                        "type" : "integer",
-                                        "title" : "Downloads and Range Queries",
-                                        "description": "Combined sum of all download and range query requests."
-                                    },
-                                    "downloads_count" : {
-                                        "type" : "integer",
-                                        "title" : "Downloads",
-                                        "description": "All file download requests which are not range queries."
-                                    },
-                                    "downloads_size" : {
-                                        "type" : "integer",
-                                        "title" : "Downloads and Range Queries",
-                                        "description": "Cumalitive sum of all files' filesize that was authorized for egress."
-                                    },
                                     "detail_views" : {
                                         "type" : "integer",
                                         "title" : "Detail Views",
@@ -259,9 +244,21 @@
                                         "type" : "string",
                                         "title" : "Assay Type"
                                     },
+                                    "file_format": {
+                                        "type" : "string",
+                                        "title" : "File Format"
+                                    },
                                     "dataset" : {
                                         "type" : "string",
-                                        "title" : "Dataset"
+                                        "title" : "Sample Type"
+                                    },
+                                    "file_type" : {
+                                        "type" : "string",
+                                        "title" : "File Type"
+                                    },
+                                    "sequencer" : {
+                                        "type" : "string",
+                                        "title" : "Sequencing Platform"
                                     }
                                 }
                             }
@@ -335,6 +332,10 @@
                                         "type" : "string",
                                         "title" : "File Type"
                                     },
+                                    "file_format": {
+                                        "type" : "string",
+                                        "title" : "File Format"
+                                    },
                                     "downloads_count" : {
                                         "type" : "integer",
                                         "title" : "Downloads"
@@ -362,6 +363,10 @@
                                         "type" : "string",
                                         "title" : "Assay Type"
                                     },
+                                    "sequencer": {
+                                        "type" : "string",
+                                        "title" : "Sequencing Platform"
+                                    },
                                     "downloads_count" : {
                                         "type" : "integer",
                                         "title" : "Downloads"
@@ -380,14 +385,41 @@
 
                         "file_downloads_by_dataset": {
                             "type": "array",
-                            "title": "File Downloads by Dataset",
-                            "description": "File Downloads segmented by dataset",
+                            "title": "File Downloads by Sample Type",
+                            "description": "File Downloads segmented by sample type",
                             "items": {
                                 "type" : "object",
                                 "properties": {
                                     "dataset" : {
                                         "type" : "string",
-                                        "title" : "Dataset"
+                                        "title" : "Sample Type"
+                                    },
+                                    "downloads_count" : {
+                                        "type" : "integer",
+                                        "title" : "Downloads"
+                                    },
+                                    "downloads_size" : {
+                                        "type" : "integer",
+                                        "title" : "Cumalative Filesize"
+                                    },
+                                    "range_queries" : {
+                                        "type" : "integer",
+                                        "title" : "Range Query Count"
+                                    }
+                                }
+                            }
+                        },
+
+                        "file_downloads_by_sequencer": {
+                            "type": "array",
+                            "title": "File Downloads by Sequencing Platform",
+                            "description": "File Downloads segmented by sample type",
+                            "items": {
+                                "type" : "object",
+                                "properties": {
+                                    "sequencer" : {
+                                        "type" : "string",
+                                        "title" : "Sequencing Platform"
                                     },
                                     "downloads_count" : {
                                         "type" : "integer",
@@ -419,6 +451,10 @@
                                     "file_item_id" : {
                                         "type" : "string",
                                         "title" : "File Item Id"
+                                    },
+                                    "file_set": {
+                                        "type": "string",
+                                        "title": "File Set"
                                     },
                                     "generated_by" : {
                                         "type" : "string",
@@ -463,7 +499,7 @@
                                         "title" : "List Name",
                                         "description": "The source where the metadata.tsv file is generated"
                                     },
-                                    "files_count" : {
+                                    "total_files" : {
                                         "type" : "integer",
                                         "title" : "Files Count",
                                         "description": "Total files count included within the file"
@@ -474,7 +510,7 @@
                                     },
                                     "dataset" : {
                                         "type" : "string",
-                                        "title" : "Dataset"
+                                        "title" : "Sample Type"
                                     }
                                 }
                             }
