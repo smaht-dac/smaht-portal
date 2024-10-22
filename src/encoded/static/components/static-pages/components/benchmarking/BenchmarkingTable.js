@@ -132,7 +132,7 @@ export const BenchmarkingTable = (props) => {
         },
         // Data Type
         data_type: {
-            colTitle: 'Variant Type',
+            colTitle: 'Data Type',
             widthMap: { lg: 155, md: 155, sm: 150 },
             render: function (result, parentProps) {
                 const { data_type = [] } = result || {};
