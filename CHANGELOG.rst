@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.107.2
+=======
+
+`PR 265: Bm links to existing data <https://github.com/smaht-dac/smaht-portal/pull/265>`_
+
+* Add two new links for SupplementaryFile and DonorSpecificAssembly items
+
+
 0.107.1
 =======
 
