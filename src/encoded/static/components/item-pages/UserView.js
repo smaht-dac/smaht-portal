@@ -187,7 +187,7 @@ class SyncedAccessKeyTable extends React.PureComponent {
                         </p>
 
                         <div className="row mt-15">
-                            <div className="col-5 text-500 text-right no-user-select">
+                            <div className="col-5 text-500 text-end no-user-select">
                                 Access Key ID
                             </div>
                             <div className="col-7">
@@ -197,7 +197,7 @@ class SyncedAccessKeyTable extends React.PureComponent {
                             </div>
                         </div>
                         <div className="row mt-05">
-                            <div className="col-5 text-500 text-right no-user-select">
+                            <div className="col-5 text-500 text-end no-user-select">
                                 Secret Access Key
                             </div>
                             <div className="col-7">
@@ -269,7 +269,7 @@ class SyncedAccessKeyTable extends React.PureComponent {
                                 <Modal.Header closeButton>
                                     <Modal.Title className="text-400">
                                         Access key{' '}
-                                        <span className="text-monospace">
+                                        <span className="font-monospace">
                                             {foundItem.access_key_id}
                                         </span>{' '}
                                         has been deleted.
@@ -347,7 +347,7 @@ class SyncedAccessKeyTable extends React.PureComponent {
                     <button
                         type="button"
                         id="add-access-key"
-                        className="btn btn-success"
+                        className="btn btn-primary"
                         onClick={this.handleCreate}>
                         Generate Access Key
                     </button>
@@ -363,7 +363,7 @@ function AccessKeyTableContainer({ children, bodyClassName = 'card-body' }) {
         <div className="access-keys-container card mt-36">
             <div className="card-header">
                 <h3 className="">
-                    <i className="icon icon-fw icon-key fas mr-12" />
+                    <i className="icon icon-fw icon-key fas me-12" />
                     Access Keys
                 </h3>
             </div>
@@ -386,27 +386,29 @@ const AccessKeyTable = React.memo(function AccessKeyTable({
     }
 
     return (
-        <table className="table table-responsive-md access-keys-table bg-white">
-            <thead>
-                <tr>
-                    <th>Access Key ID</th>
-                    <th>Created</th>
-                    <th>Expires</th>
-                    <th>Description</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {accessKeys.map(function (accessKey, idx) {
-                    return (
-                        <AccessKeyTableRow
-                            {...{ onDelete, onResetSecret, accessKey, idx }}
-                            key={idx}
-                        />
-                    );
-                })}
-            </tbody>
-        </table>
+        <div className="table-responsive-md">
+            <table className="table access-keys-table bg-white">
+                <thead>
+                    <tr>
+                        <th>Access Key ID</th>
+                        <th>Created</th>
+                        <th>Expires</th>
+                        <th>Description</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {accessKeys.map(function (accessKey, idx) {
+                        return (
+                            <AccessKeyTableRow
+                                {...{ onDelete, onResetSecret, accessKey, idx }}
+                                key={idx}
+                            />
+                        );
+                    })}
+                </tbody>
+            </table>
+        </div>
     );
 });
 
@@ -488,9 +490,7 @@ const AccessKeyTableRow = React.memo(function AccessKeyTableRow({
 
 export default class UserView extends React.Component {
     static onEditableFieldSave(nextContext) {
-        store.dispatch({
-            type: { context: nextContext },
-        });
+        store.dispatch({ type: 'CONTEXT', payload: nextContext });
     }
 
     static propTypes = {
@@ -686,7 +686,7 @@ function ProfileContactFields(props) {
 
 function ProfileContactFieldsIcon({ icon }) {
     return (
-        <i className={'visible-lg-inline icon icon-fw mr-07 icon-' + icon} />
+        <i className={'visible-lg-inline icon icon-fw me-07 icon-' + icon} />
     );
 }
 
@@ -697,7 +697,7 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
         <div className="card organizations h-100">
             <div className="card-header">
                 <h3 className="block-title">
-                    <i className="icon icon-users fas icon-fw mr-12" />
+                    <i className="icon icon-users fas icon-fw me-12" />
                     Organizations
                 </h3>
             </div>
@@ -705,7 +705,7 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
                 <ul className="list-group list-group-flush list-unstyled border-bottom-0">
                     <div className="list-group-item pt-0">
                         <div className="row consortia">
-                            <div className="col-md-3 text-left text-md-right">
+                            <div className="col-md-3 text-start text-md-end">
                                 <label htmlFor="consortia" className="text-500">
                                     Consortia
                                 </label>
@@ -728,7 +728,7 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
                 <ul className="list-group list-group-flush list-unstyled border-top-0 mt-0">
                     <div className="list-group-item">
                         <div className="row submission-centers">
-                            <div className="col-md-3 text-left text-md-right">
+                            <div className="col-md-3 text-start text-md-end">
                                 <label
                                     htmlFor="submission_centers"
                                     className="text-500">
@@ -822,14 +822,14 @@ export function ImpersonateUserForm({ updateAppSessionState }) {
                         <a
                             href="/search/?type=User"
                             target="_blank"
-                            className="btn btn-secondary btn-md mt-2 mr-2">
-                            <i className="icon icon-fw icon-users fas mr-08" />
+                            className="btn btn-secondary btn-md mt-2 me-2">
+                            <i className="icon icon-fw icon-users fas me-08" />
                             View Users
                         </a>
                         <button
                             type="submit"
                             className="btn btn-primary btn-md mt-2">
-                            <i className="icon icon-fw icon-user-ninja fas mr-08" />
+                            <i className="icon icon-fw icon-user-ninja fas me-08" />
                             Impersonate
                         </button>
                     </form>

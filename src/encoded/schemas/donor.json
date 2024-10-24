@@ -63,10 +63,10 @@
         },
         "age": {
             "title": "Age",
-            "description": "Age of the donor (years). Note: donor age above 90 is represented as 90 to remove identifiable information.",
+            "description": "Age of the donor (years). Note: donor age above 89 is represented as 89 to remove identifiable information.",
             "type": "integer",
             "minimum": 0,
-            "maximum": 90
+            "maximum": 89
         },
         "body_mass_index": {
             "title": "Body Mass Index",

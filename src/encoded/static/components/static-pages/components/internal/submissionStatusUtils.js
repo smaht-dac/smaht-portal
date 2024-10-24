@@ -45,12 +45,12 @@ function isFloat(num) {
 }
 
 export const createBadge = (type, description) => {
-    const cn = 'badge text-white badge-' + type;
+    const cn = 'badge text-white bg-' + type;
     return <span className={cn}>{description}</span>;
 };
 
 export const createQcBadgeLink = (type, identifier, description) => {
-    const cn = 'badge text-white badge-' + type;
+    const cn = 'badge text-white bg-' + type;
     const href = '/' + identifier;
     const tooltip =
         description === 'NA'
@@ -129,7 +129,7 @@ export const getQcResults = (qc_results, showCopyBtn = false) => {
                     {qc_info.accession}
                 </a>
                 {copyBtn}
-                <span className="pl-1">{qcTags}</span>
+                <span className="ps-1">{qcTags}</span>
             </div>
         );
     });
@@ -173,7 +173,7 @@ export const getCommentsList = (
     fsComments.forEach((c) => {
         const trashSymbol = isUserAdmin ? (
             <span
-                className="far icon icon-fw icon-trash-alt text-muted pl-1 clickable"
+                className="far icon icon-fw icon-trash-alt text-muted ps-1 clickable"
                 onClick={() => removeCommentFct(fsUuid, c)}></span>
         ) : (
             ''

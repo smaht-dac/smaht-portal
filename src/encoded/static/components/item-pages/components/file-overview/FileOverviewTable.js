@@ -1,15 +1,19 @@
 import React from 'react';
-import { EmbeddedItemSearchTable } from '../EmbeddedItemSearchTable';
+import { OverlayTrigger, Popover } from 'react-bootstrap';
+
+import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import {
     SelectedItemsController,
     SelectionItemCheckbox,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
+
 import {
     SelectAllFilesButton,
     SelectedItemsDownloadButton,
 } from '../../../static-pages/components/SelectAllAboveTableComponent';
+import { EmbeddedItemSearchTable } from '../EmbeddedItemSearchTable';
 
 /**
  * Wraps the File Overview Table in a SelectedItemsController component, which
@@ -26,16 +30,12 @@ export const FileOverviewTableController = (props) => {
         context,
     } = props;
 
-    const originalColExtMap =
-        EmbeddedItemSearchTable.defaultProps.columnExtensionMap;
-
     return (
         <SelectedItemsController
             {...{ context, href }}
             currentAction={'multiselect'}>
             <FileOverviewTable
                 associatedFilesSearchHref={associatedFilesSearchHref}
-                columnExtensionMap={originalColExtMap}
                 {...{
                     context,
                     session,
@@ -108,7 +108,8 @@ export const FileOverviewTable = (props) => {
                         <a
                             href={atId}
                             target="_blank"
-                            rel="noreferrer noopener">
+                            rel="noreferrer noopener"
+                            className="link-underline-hover">
                             {annotated_filename || display_title}
                         </a>
                     </span>
@@ -150,15 +151,59 @@ export const FileOverviewTable = (props) => {
         },
         // Status
         status: {
-            widthMap: { lg: 120, md: 120, sm: 100 },
+            widthMap: { lg: 140, md: 120, sm: 100 },
             colTitle: 'Status',
             render: function (result, parentProps) {
                 const value = result?.status;
                 if (!value) return null;
                 return (
                     <span className="value">
-                        {value.charAt(0).toUpperCase() + value.slice(1)}
+                        <i
+                            className="status-indicator-dot me-07"
+                            data-status={value}
+                        />
+                        {capitalizeSentence(value)}
                     </span>
+                );
+            },
+            noSort: true,
+        },
+        // Notes
+        tsv_notes: {
+            widthMap: { lg: 160, md: 150, sm: 140 },
+            colTitle: 'Notes',
+            render: function (result, parentProps) {
+                const { notes_to_tsv = [] } = result;
+
+                if (notes_to_tsv.length === 0) {
+                    return null;
+                }
+
+                const popover = (
+                    <Popover id="popover-basic">
+                        <Popover.Header as="h3" className="mt-0">
+                            Notes
+                        </Popover.Header>
+                        <Popover.Body>
+                            {notes_to_tsv.map((note, i) => {
+                                return <p key={i}>{note}</p>;
+                            })}
+                        </Popover.Body>
+                    </Popover>
+                );
+
+                return (
+                    <OverlayTrigger
+                        trigger="click"
+                        placement="top"
+                        overlay={popover}>
+                        <button
+                            type="button"
+                            className="btn btn-link btn-xs text-truncate">
+                            <i className="icon icon-exclamation-triangle fas text-warning me-05" />
+                            View Notes
+                        </button>
+                    </OverlayTrigger>
                 );
             },
             noSort: true,
@@ -243,6 +288,7 @@ export const FileOverviewTable = (props) => {
                     'software.display_title': {},
                     'software.version': {},
                     status: {},
+                    tsv_notes: {},
                     release_date: {},
                     file_size: {},
                 }}
@@ -285,13 +331,13 @@ const FileOverviewAboveTableComponent = (props) => {
 
     return (
         <div className="d-flex w-100 mb-05">
-            <div className="col-auto ml-0 pl-0">
+            <div className="col-auto ms-0 ps-0">
                 <span className="text-400" id="results-count">
                     {totalResultCount}
                 </span>{' '}
                 Results
             </div>
-            <div className="ml-auto col-auto mr-0 pr-0">
+            <div className="ms-auto col-auto me-0 pe-0">
                 <SelectAllFilesButton
                     {...selectedFileProps}
                     context={context}
@@ -299,10 +345,10 @@ const FileOverviewAboveTableComponent = (props) => {
                 <SelectedItemsDownloadButton
                     id="download_tsv_multiselect"
                     disabled={selectedItems?.size === 0}
-                    className="btn btn-primary btn-sm mr-05 align-items-center"
+                    className="btn btn-primary btn-sm me-05 align-items-center"
                     {...{ selectedItems, session }}
                     analyticsAddItemsToCart>
-                    <i className="icon icon-download fas mr-07" />
+                    <i className="icon icon-download fas me-07" />
                     Download {selectedItems?.size} Selected Files
                 </SelectedItemsDownloadButton>
             </div>

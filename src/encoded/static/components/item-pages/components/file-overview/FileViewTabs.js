@@ -1,11 +1,14 @@
 'use strict';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     DotRouter,
     DotRouterTab,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/DotRouter';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+
 import { FileOverviewTableController } from './FileOverviewTable';
+import ReactTooltip from 'react-tooltip';
 
 /**
  * DotRouterTab content for displaying the files in the same file set as the
@@ -98,6 +101,42 @@ const QCOverviewTab = ({ context }) => {
 };
 
 export const FileViewTabs = (props) => {
+    const { context } = props;
+    const { file_sets = [], uuid } = context || {};
+
+    const [associatedFilesTitle, setAssociatedFilesTitle] =
+        useState('Associated Files');
+
+    useEffect(() => {
+        let fileset_uuid_query_params = '';
+        file_sets.forEach((file_set) => {
+            fileset_uuid_query_params += '&file_sets.uuid=' + file_set.uuid;
+        });
+
+        const searchURL =
+            `/search/?type=File&uuid!=${uuid}&status=retracted&status=obsolete&notes_to_tsv!=No+value` +
+            fileset_uuid_query_params;
+
+        ajax.load(
+            searchURL,
+            (resp) => {
+                setAssociatedFilesTitle(
+                    <div data-tip="Some associated files may have status 'redacted' or 'obsolete'. Please check for notes before downloading.">
+                        <i className="icon fas icon-exclamation-triangle text-warning me-05"></i>
+                        Associated Files
+                    </div>
+                );
+                ReactTooltip.rebuild();
+            },
+            'GET',
+            (err) => {
+                if (err.notification !== 'No results found') {
+                    console.log('ERROR FileViewTabs resp', err);
+                }
+            }
+        );
+    }, []);
+
     return (
         <div className="tabs-container">
             <DotRouter
@@ -107,7 +146,7 @@ export const FileViewTabs = (props) => {
                 prependDotPath="file-overview">
                 <DotRouterTab
                     dotPath=".associated-files"
-                    tabTitle="Associated Files"
+                    tabTitle={associatedFilesTitle}
                     arrowTabs={false}
                     default>
                     <AssociatedFilesTab {...props} />
