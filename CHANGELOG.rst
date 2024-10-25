@@ -7,19 +7,58 @@ smaht-portal
 Change Log
 ----------
 
-0.105.1
+0.107.3
 =======
 
 `PR246: feat: homepage updates <https://github.com/smaht-dac/smaht-portal/pull/246>`_
 
-* Implement new announcements panel
-* Reorganizes homepage timeline tier structure
+* Implement new announcements panel on homepage
 
 
-`PR 266: Node v20 Upgrade <https://github.com/smaht-dac/smaht-portal/pull/266>`_
+0.107.2
+=======
+
+`PR 265: Bm links to existing data <https://github.com/smaht-dac/smaht-portal/pull/265>`_
+
+* Add two new links for SupplementaryFile and DonorSpecificAssembly items
+
+
+0.107.1
+=======
+
+`PR 281: Access table button and table styles <https://github.com/smaht-dac/smaht-portal/pull/281>`_
+
+* Bug fix: Make link buttons not underlined and access keys table reponsive for small and mid-size screens
+
+
+0.107.0
+=======
+`PR 235: Sn ExternalQualityMetric submission template <https://github.com/smaht-dac/smaht-portal/pull/235>`_
+* In `commands/write_submission_spreadsheets.py`:
+  * Add `--eqm [dsa duplexseq]` argument that grabs `tooltip`, `key`, and `derived_from` from the appropriate `ExternalQualityMetric` template and writes out to a new tab in the spreadsheet
+* Remove properties from DonorSpecificAssembly that are now on ExternalQualityMetric
+
+
+0.106.0
+=======
+
+`PR 263: React bootstrap v2, React 18, Redux and Misc. Npm Packages Upgrade <https://github.com/smaht-dac/smaht-portal/pull/263>`_
+
+* Upgrade: React v17 to v18
+* Upgrade: Redux v4 to v5 (there are breaking changes in store and dispatchers. SPC is updated to support both new and legacy usage)
+* Upgrade: auth0-Lock v11 to v12
+* Upgrade: gulp.js v4 to v5
+* Upgrade: react-workflow-viz (animation updates to eliminate findDOMNode errors)
+* Fix: User Content updates to fix markdown, jsx, and HTML static section rendering
+* Upgrade: Bootstrap v5
+* Upgrade: React-Bootstrap v2
+* Upgrade: FontAwesome v6
+
 
 0.105.0
 =====
+
+`PR 266: Node v20 Upgrade <https://github.com/smaht-dac/smaht-portal/pull/266>`_
 
 * Node 18 to 20 upgrade including GitHub actions
 

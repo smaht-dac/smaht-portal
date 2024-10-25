@@ -423,6 +423,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                                 By signing up, you are agreeing to our{' '}
                                 <a
                                     href="/help/about/privacy-policy"
+                                    className="link-underline-hover"
                                     target="_blank"
                                     rel="noreferrer noopener">
                                     Privacy Policy
@@ -437,12 +438,14 @@ export default class UserRegistrationForm extends React.PureComponent {
                     </div>
 
                     <div className="clearfix">
-                        <button
-                            type="submit"
-                            disabled={!maySubmit}
-                            className="btn btn-lg btn-primary text-300 btn-block mt-2">
-                            Sign Up
-                        </button>
+                        <div className="d-grid gap-1">
+                            <button
+                                type="submit"
+                                disabled={!maySubmit}
+                                className="btn btn-lg btn-primary text-300 mt-2">
+                                Sign Up
+                            </button>
+                        </div>
                     </div>
                 </form>
 
@@ -545,6 +548,7 @@ class LookupProjectField extends React.PureComponent {
                     <div style={LookupProjectField.fieldTitleColStyle}>
                         <a
                             href={object.itemUtil.atId(currentProjectDetails)}
+                            className="link-underline-hover"
                             target="_blank"
                             data-tip="View project in new tab"
                             rel="noopener noreferrer"
@@ -566,7 +570,7 @@ class LookupProjectField extends React.PureComponent {
 
         return (
             <React.Fragment>
-                <div className="flexrow ml-0 mr-0">
+                <div className="flexrow ms-0 me-0">
                     {currProjectTitle}
                     <div className="field-buttons">
                         {currentProjectDetails &&
@@ -574,7 +578,7 @@ class LookupProjectField extends React.PureComponent {
                             <button
                                 type="button"
                                 onClick={onClear}
-                                className="btn btn-secondary mr-05">
+                                className="btn btn-secondary me-05">
                                 Clear
                             </button>
                         ) : null}
