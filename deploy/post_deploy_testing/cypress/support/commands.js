@@ -263,7 +263,7 @@ Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
         .click()
         .end()
         .get(navUserAcctLoginBtnSelector)
-        .should('contain', 'Log In')
+        .should('contain', 'Login')
         .end()
         .get('#slow-load-container')
         .should('not.have.class', 'visible')
