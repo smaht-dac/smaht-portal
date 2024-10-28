@@ -175,7 +175,7 @@
         },
         "neuropathology_onset": {
             "title": "Neuropathology Onset",
-            "desciption": "Onset of infectious or vascular neuropathology in the sample",
+            "description": "Onset of infectious or vascular neuropathology in the sample",
             "type": "string",
             "enum": [
                 "Acute",
@@ -298,7 +298,7 @@
         },
         "slide_quality_issue": {
             "title": "Slide Quality Issue",
-            "desciption": "Whether there was a slide quality issue",
+            "description": "Whether there was a slide quality issue",
             "type": "string",
             "enum": [
                 "Yes",
@@ -307,7 +307,7 @@
         },
         "slide_quality_issue_description": {
             "title": "Slide Quality Issue Details",
-            "desciption": "Description of slide quality issue(s)",
+            "description": "Description of slide quality issue(s)",
             "type": "string"
         },
         "tissue_autolysis_score": {
@@ -319,7 +319,7 @@
         },
         "tissue_name": {
             "title": "Tissue Name",
-            "desciption": "Name of the type of tissue the sample was taken from",
+            "description": "Name of the type of tissue the sample was taken from",
             "type": "string",
             "enum": [
                 "Brain",
@@ -411,7 +411,7 @@
         },
         "tbi_location": {
             "title": "Traumatic Brain Injury Location",
-            "desciption": "Location of traumatic brain injury in the sample",
+            "description": "Location of traumatic brain injury in the sample",
             "type": "string",
             "enum": [
                 "Lobes",
@@ -444,7 +444,7 @@
         },
         "vascular_neuropathology_infarct_type": {
             "title": "Vascular Neuropathology Infarct Type",
-            "desciption": "Infarct type of vascular neuropathology in the sample",
+            "description": "Infarct type of vascular neuropathology in the sample",
             "type": "string",
             "enum": [
                 "Macroinfarcts",
@@ -453,7 +453,7 @@
         },
         "vascular_neuropathology_details": {
             "title": "Vascular Neuropathology Details",
-            "desciption": "Details of vascular neuropathology in the sample",
+            "description": "Details of vascular neuropathology in the sample",
             "type": "string",
             "enum": [
                 "Accute Hemorrhage",
