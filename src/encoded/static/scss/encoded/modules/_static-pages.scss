@@ -156,6 +156,11 @@
 		
 		ul {
 			margin-top: 1rem;
+			padding-left: 2.5rem;
+		}
+
+		ol {
+			padding-left: 2.5rem;
 		}
 
 		pre {
@@ -174,7 +179,7 @@
 				right: 6px;
 				top: 6px;
 
-				@include media-breakpoint-down(lg){
+				@include media-breakpoint-down(xl){
 					right: -20px;
 					top: 2px;
 				}
@@ -218,6 +223,14 @@
 			white-space: -pre-wrap; /* Opera 4-6 */    
 			white-space: -o-pre-wrap; /* Opera 7 */    
 			word-wrap: break-word; /* Internet Explorer 5.5+ */
+		}	
+	}
+
+	a {
+		text-decoration: none;
+
+		&:hover {
+			text-decoration: underline;
 		}
 	}
 }
@@ -269,7 +282,7 @@
 		//}
 	}
 
-	@include media-breakpoint-down(lg){
+	@include media-breakpoint-down(xl){
 		> ol.inner {
 			border-top: 1px solid #eee;
 		}
@@ -626,7 +639,7 @@ body[data-path="/"]>#application>#layout {
 					font-size: 1rem;
 				};
 
-				button.close {
+				button.btn-close {
 					position:absolute;
 					top: 16px;
 					right: 25px;
@@ -1835,36 +1848,39 @@ body[data-pathname^="/data/benchmarking"] {
 		.benchmarking-layout-container {
 			width: 100%;
 			.benchmarking-layout{
-				>nav.nav-tabs {
-					.nav-link {
-						color: #5D5E63;
-						font-family: Inter;
-						font-size: 1rem;
-						font-weight: 400; 
-		
-						&.active {
-							color: #343741;
-							font-weight: 600; 
-							border-top: 4px solid #E99415;
-
-							.badge {
+				>.nav-tabs {
+					>.nav-item {
+						.nav-link {
+							color: #5D5E63;
+							font-family: Inter;
+							font-size: 1rem;
+							font-weight: 400; 
+							border-bottom: none;
+			
+							&.active {
 								color: #343741;
+								font-weight: 600; 
+								border-top: 4px solid #E99415;
+	
+								.badge {
+									color: #343741;
+								}
 							}
-						}
-						&.disabled {
-							color: #9BA5B7;
-						}
-
-						&-title {
-							display: flex;
-							justify-content: center;
-		
-							.badge {
-								background-color: #F2F2F2;
-								color: #5D5E63;
-								margin: auto;
-								margin-left: 5px;
-								font-weight: 600;
+							&.disabled {
+								color: #9BA5B7;
+							}
+	
+							&-title {
+								display: flex;
+								justify-content: center;
+			
+								.badge {
+									background-color: #F2F2F2;
+									color: #5D5E63;
+									margin: auto;
+									margin-left: 5px;
+									font-weight: 600;
+								}
 							}
 						}
 					}
@@ -2080,6 +2096,7 @@ body[data-pathname^="/data/benchmarking"] {
 			.benchmarking-nav-container {
 				display: flex;
 				min-height: calc(100vh - 236px);
+				padding: 0;
 	
 				.benchmarking-nav {
 					width: 100%;
@@ -2115,6 +2132,10 @@ body[data-pathname^="/data/benchmarking"] {
 			
 							> a {
 								color: #717378;
+
+								&:hover {
+									text-decoration-color: $secondary !important;
+								}
 							}
 			
 							&.top {
@@ -2133,6 +2154,7 @@ body[data-pathname^="/data/benchmarking"] {
 								
 								> a {
 									color: #343741;
+									text-decoration-color: $dark !important;
 								}
 							}
 						}
@@ -2359,7 +2381,7 @@ Unique styling of Submission Status page
     color: #2a6496;
     text-decoration: underline;
 }
-.badge-lighter {
+.badge.bg-lighter {
     color: #fff;
     background-color: #c1c1c1;
 }

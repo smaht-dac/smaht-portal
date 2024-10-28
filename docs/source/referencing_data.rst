@@ -97,6 +97,12 @@ Each file type available in the database accepts a limited selection of file for
 
 .. |SupplementaryFile| raw:: html
 
+   <a href="/search/?type=FileFormat&valid_item_types=SupplementaryFile", target="_blank">SupplementaryFile</a>
+
+
+|ReferenceGenomes|
+^^^^^^^^^^^^^^^^^^
+
   <a href="/search/?type=FileFormat&valid_item_types=SupplementaryFile", target="_blank">SupplementaryFile</a>
 
 
@@ -174,16 +180,18 @@ Use the following links to see options for the following submitted types:
 
    <a href="/search/?type=File", target="_blank">Files</a>
 
-|Software|
-^^^^^^^^^^
-
-.. |Software| raw:: html
-
-   <a href="/search/?type=Software", target="_blank">Software</a>
 
 |DonorSpecificAssembly|
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. |DonorSpecificAssembly| raw:: html
 
-   <a href="/search/?type=DonorSpecificAssembly", target="_blank">DonorSpecificAssembly</a>
+   <a href="/search/?type=DonorSpecificAssembly", target="blank">DonorSpecificAssembly</a>
+
+
+|Software|
+^^^^^^^^^^
+
+.. |Software| raw:: html
+
+   <a href="/search/?type=Software", target="_blank">Software</a>

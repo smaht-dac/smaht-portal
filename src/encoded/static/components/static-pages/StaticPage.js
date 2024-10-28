@@ -170,8 +170,12 @@ export const StaticEntryContent = React.memo(function StaticEntryContent(
     return <div className={cls}>{renderedContent}</div>;
 });
 
-const CustomWrapper = React.memo(function CustomWrapper(props) {
-    const { children, tableOfContents, title, context, windowWidth } = props;
+const CustomWrapper = React.memo(function CustomWrapper({
+    tableOfContents = false,
+    tocListStyles = ['decimal', 'lower-alpha', 'lower-roman'],
+    ...props
+}) {
+    const { children, title, context, windowWidth } = props;
     const toc =
         (context && context['table-of-contents']) ||
         (tableOfContents && typeof tableOfContents === 'object'
@@ -227,11 +231,6 @@ const CustomWrapper = React.memo(function CustomWrapper(props) {
         </div>
     );
 });
-CustomWrapper.defaultProps = {
-    //'contentColSize' : 12,
-    tableOfContents: false,
-    tocListStyles: ['decimal', 'lower-alpha', 'lower-roman'],
-};
 
 /**
  * This component shows an alert on mount if have been redirected from a different page, and
