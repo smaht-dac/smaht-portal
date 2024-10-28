@@ -79,6 +79,109 @@
                 "No"
             ]
         },
+        "infectious_neuropathology_infection_type": {
+            "title": "Infection Type",
+            "description": "Infection type of infectious neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Bacterial",
+                "Viral",
+                "Fungal",
+                "Parasitic",
+                "Other"
+            ]
+        },
+        "infectious_neuropathology_pattern_type": {
+            "title": "Pattern Type",
+            "description": "Pattern type of infectiuos neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Diffuse",
+                "Focal",
+                "Regional"
+            ]
+        },
+        "inflammatory_neuropathology_type": {
+            "title": "Inflammatory Neuropathology Type",
+            "description": "Type of inflammatory neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Multiple Sclerosis.",
+                "Guillain-Barre",
+                "Meningitis",
+                "Encephalitis",
+                "Myelitis",
+                "Other"
+            ]
+        },
+        "metabolic_neuropathology_type": {
+            "title": "Metabolic Neuropathology Type",
+            "description": "Type of metabolic neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Hepatic Encephalopathy",
+                "Renal Encephalopathy",
+                "Other"
+            ]
+        },
+        "neoplastic_neuropathology_type": {
+            "title": "Neoplastic Neuropathology Type",
+            "description": "Type of neoplastic neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Primary",
+                "Secondary",
+                "Benign",
+                "Malignant"
+            ]
+        },
+        "neoplastic_neuropathology_details": {
+            "title": "Neoplastic Neuropathology Details",
+            "description": "Details of neoplastic neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Intra-axial",
+                "Extra-axial",
+                "Other"
+            ]
+        },
+        "neurodegenerative_neuropathology_type": {
+            "title": "Neurodegenerative Neuropathology Type",
+            "description": "Type of neurodegenerative neuropathology present in the sample",
+            "type": "string",
+            "enum": [
+                "Primary Age-Related Taupath",
+                "Age-Related Tau Astrogliosis",
+                "Other"
+            ]
+        },
+        "neuropathology_artifact_type": {
+            "title": "Artifact Type",
+            "description": "Type of artifacts present in the sample",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Decomposition/Autolysis",
+                    "Swiss Cheese",
+                    "Saw Artifact",
+                    "Brainstem Ascension Stress",
+                    "Cerebellum Ascension Stress",
+                    "Underfixed",
+                    "Foreign Body",
+                    "Other"
+                ]
+            }
+        },
+        "neuropathology_onset": {
+            "title": "Neuropathology Onset",
+            "desciption": "Onset of infectious or vascular neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Acute",
+                "Chronic"
+            ]
+        },
         "non_target_tissues": {
             "title": "Non-Target Tissues",
             "type": "array",
@@ -269,10 +372,95 @@
                 }
             }
         },
+        "tbi_chronic_type": {
+            "title": "Chronic Traumatic Brain Injury Type",
+            "description": "Type of chronic traumatic brain injury",
+            "type": "string",
+            "enum": [
+                "Chronic Traumatic Brain Injury",
+                "Chronic Traumatic Encephalopathy",
+                "Not Applicable"
+            ]
+        },
+        "tbi_edema_present": {
+            "title": "Edema Present",
+            "description": "Whether edema is present in the sample",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "tbi_hemorrhage_present": {
+            "title": "Hemorrhage Present",
+            "description": "Whether hemorrage is present in the sample",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "tbi_herniation_present": {
+            "title": "Herniation Present",
+            "description": "Whether herniation is present in the sample",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "tbi_location": {
+            "title": "Traumatic Brain Injury Location",
+            "desciption": "Location of traumatic brain injury in the sample",
+            "type": "string",
+            "enum": [
+                "Lobes",
+                "Brainstem",
+                "Cerebellum"
+            ]
+        },
+        "tbi_stage": {
+            "title": "Traumatic Brain Injury Stage",
+            "description": "Stage of traumatic brain injury in the sample",
+            "type": "string",
+            "enum": [
+                "Low",
+                "High"
+            ] 
+        },
+        "tbi_type": {
+            "title": "Traumatic Brain Injury Type",
+            "description": "Type of traumatic brain injury present in the sample",
+            "type": "string",
+            "enum": [
+                "Blunt",
+                "Penetrating"
+            ]
+        },
         "unacceptable_description": {
             "title": "Unacceptable Description",
             "description": "Description of unacceptable review determination",
             "type": "string"
+        },
+        "vascular_neuropathology_infarct_type": {
+            "title": "Vascular Neuropathology Infarct Type",
+            "desciption": "Infarct type of vascular neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Macroinfarcts",
+                "Microinfarcts"
+            ]
+        },
+        "vascular_neuropathology_details": {
+            "title": "Vascular Neuropathology Details",
+            "desciption": "Details of vascular neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Accute Hemorrhage",
+                "Organizing",
+                "Remote",
+                "Other"
+            ]
         },
         "tissue_sample": {
             "title": "Tissue Sample",
