@@ -100,12 +100,6 @@ Each file type available in the database accepts a limited selection of file for
    <a href="/search/?type=FileFormat&valid_item_types=SupplementaryFile", target="_blank">SupplementaryFile</a>
 
 
-|ReferenceGenomes|
-^^^^^^^^^^^^^^^^^^
-
-  <a href="/search/?type=FileFormat&valid_item_types=SupplementaryFile", target="_blank">SupplementaryFile</a>
-
-
 Data Submitted by the Consortium
 --------------------------------
 
