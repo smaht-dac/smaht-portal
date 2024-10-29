@@ -7,7 +7,8 @@
     "required": [
         "submission_centers",
         "submitted_id",
-        "tissue_sample"
+        "tissue_sample",
+        "tissue_name"
     ],
     "identifyingProperties": [
         "accession",
@@ -59,6 +60,43 @@
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_PATHOLOGY-REPORT_[A-Z0-9-_.]{4,}$"
+        },
+        "orientation_issue": {
+            "title": "Orientation Issue",
+            "description": "Whether there was an orientation issue with the slide",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "orientation_issue_description": {
+            "title": "Orientation Issue Details",
+            "description": "Description of the orientation issue(s)",
+            "type": "string"
+        },
+        "slide_histology_matches_label": {
+            "title": "Slide Histology Matches Label",
+            "description": "Whether the slide histology matches the tissue label",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "slide_quality_issue": {
+            "title": "Slide Quality Issue",
+            "description": "Whether there was a slide quality issue",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "slide_quality_issue_description": {
+            "title": "Slide Quality Issue Details",
+            "description": "Description of slide quality issue(s)",
+            "type": "string"
         },
         "additional_notes": {
             "title": "Additional Notes",
@@ -135,6 +173,11 @@
                 "Malignant"
             ]
         },
+        "neoplastic_neuropathology_origin_location": {
+            "title": "Neoplastic Neuropathology Origin Location",
+            "description": "Origin location of neoplastic neuropathology in the sample",
+            "type": "string"
+        },
         "neoplastic_neuropathology_details": {
             "title": "Neoplastic Neuropathology Details",
             "description": "Details of neoplastic neuropathology in the sample",
@@ -200,7 +243,9 @@
                         "enum": [
                             "Fibroadipose",
                             "Lymphoid",
-                            "Other"
+                            "Other",
+                            "Epididymis",
+                            "Rete testes"
                         ]
                     },
                     "non_target_tissue_present": {
@@ -215,9 +260,13 @@
                     "non_target_tissue_percentage": {
                         "title": "Non-Target Tissue Subtype Percentage",
                         "description": "Percentage of the sample that was the non-target tissue subtype (%)",
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 100
+                        "type": "string",
+                        "enum": [
+                            "<10",
+                            "11-25",
+                            "26-49",
+                            ">50"
+                        ]
                     },
                     "non_target_tissue_description": {
                         "title": "Non-Target Tissue Description",
@@ -235,20 +284,6 @@
                 "Acceptable",
                 "Unacceptable"
             ]
-        },
-        "orientation_issue": {
-            "title": "Orientation Issue",
-            "description": "Whether there was an orientation issue with the slide",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No"
-            ]
-        },
-        "orientation_issue_description": {
-            "title": "Orientation Issue Details",
-            "description": "Description of the orientation issue(s)",
-            "type": "string"
         },
         "pathologic_findings": {
             "title": "Pathologic Findings",
@@ -280,35 +315,16 @@
                     "finding_percentage": {
                         "title": "Pathologic Finding Percentage",
                         "description": "Percentage of the sample that displayed the pathologic finding (%)",
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 100
+                        "type": "string",
+                        "enum": [
+                            "<10",
+                            "11-25",
+                            "26-49",
+                            ">50"
+                        ]
                     }
                 }
             }
-        },
-        "slide_histology_matches_label": {
-            "title": "Slide Histology Matches Label",
-            "description": "Whether the slide histology matches the tissue label",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No"
-            ]
-        },
-        "slide_quality_issue": {
-            "title": "Slide Quality Issue",
-            "description": "Whether there was a slide quality issue",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No"
-            ]
-        },
-        "slide_quality_issue_description": {
-            "title": "Slide Quality Issue Details",
-            "description": "Description of slide quality issue(s)",
-            "type": "string"
         },
         "tissue_autolysis_score": {
             "title": "Overall Tissue Autolysis Score",
@@ -351,7 +367,27 @@
                     "target_tissue_subtype": {
                         "title": "Target Tissue Subtype",
                         "description": "Subtype of target tissue in sample",
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "Aorta",
+                            "Brain",
+                            "Cortex",
+                            "Dermis",
+                            "Endocardium",
+                            "Epicardium",
+                            "Epidermis",
+                            "Fallopian Tube",
+                            "Leydig Cells",
+                            "Liver",
+                            "Lung",
+                            "Medulla",
+                            "Mucosa",
+                            "Muscularis propria",
+                            "Myocardium",
+                            "Ovarian Follicles",
+                            "Semniferous Tubules",
+                            "Skeletal Muscle"
+                        ]
                     },
                     "target_tissue_present": {
                         "title": "Target Tissue Present",
@@ -365,9 +401,20 @@
                     "target_tissue_percentage": {
                         "title": "Target Tissue Subtype Percentage",
                         "description": "Percentage of the sample that was the target tissue subtype (%)",
-                        "type": "number",
+                        "type": "string",
+                        "enum": [
+                            "<10",
+                            "11-25",
+                            "26-49",
+                            ">50"
+                        ]
+                    },
+                    "target_tissue_autolysis_score": {
+                        "title": "Target Tissue Autolysis Score",
+                        "description": "Autolysis score of the target tissue in the sample. 0=None, 1=mild , 2=moderate, 3=severe",
+                        "type": "integer",
                         "minimum": 0,
-                        "maximum": 100
+                        "maximum": 3
                     }
                 }
             }
