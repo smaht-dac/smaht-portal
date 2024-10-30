@@ -9,6 +9,10 @@ describe('Home Page', function () {
         });
     });
 
+    after(function () {
+        cy.logoutSMaHT();
+    });
+
     it('Header text is correct', () => {
         cy.get('.homepage-wrapper > .homepage-contents h1').contains(
             'Somatic Mosaicism across Human Tissues Data Portal'
@@ -39,9 +43,9 @@ describe('Home Page', function () {
                                     .should('have.class', 'show');
                             } else {
                                 cy.wrap($button)
-                                .parents('.card')
-                                .find('.accordion-collapse')
-                                .should('not.have.class', 'show');
+                                    .parents('.card')
+                                    .find('.accordion-collapse')
+                                    .should('not.have.class', 'show');
                             }
                         });
                 });
@@ -64,7 +68,7 @@ describe('Home Page', function () {
             }
         });
     });
-    
+
 
     it('Navbar dropdowns work as expected when logged in', () => {
         /* ==== Generated with Cypress Studio ==== */
