@@ -776,14 +776,14 @@ body[data-path="/"]>#application>#layout {
 										display: flex;
 										justify-content: space-between;
 										padding: 2px 8px;
-										background-color: rgba(195 255 219 / 50%);
-										color: #014B11;
+										background-color: #ecf2fe;
+										color: #1310BC;
 										font-weight: 700;
 										font-size: 0.625rem;
 										border-radius: 3px;
 
 										.count {
-											color: rgb(1 75 17 / 75%);
+											color: hsla(241, 84%, 40%, 0.6);
 										}
 
 										&:before {
@@ -831,6 +831,17 @@ body[data-path="/"]>#application>#layout {
 										background-color: #2B28BD;
 									}
 								}
+								&:first-of-type {
+									.content {
+										.header {
+											background-color: rgba(195 255 219 / 50%);
+											color: #014B11;
+											.count {
+												color: rgb(1 75 17 / 75%);
+											}
+										}
+									}
+								}
 
 								&:last-of-type {
 									.content {
@@ -858,7 +869,7 @@ body[data-path="/"]>#application>#layout {
 							.announcement-container {
 								background-color: rgba(255, 255, 255, 0.8);
 								border: 1px solid #C0CAFF;
-								padding: 8px;
+								padding: 12px;
 								border-radius: 9px;
 								
 								.header {

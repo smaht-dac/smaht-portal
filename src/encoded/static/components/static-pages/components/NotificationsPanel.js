@@ -57,6 +57,29 @@ const DataReleaseItem = () => {
     );
 };
 
+const DataReleaseItem2 = () => {
+    return (
+        <div className="data-release-item-container">
+            <div className="content">
+                <div className="header">
+                    <span>New Release: July 18, 2024</span>
+                    <span className="count">15 Files</span>
+                </div>
+                <div className="body">
+                    <h6 className="title">COLO829T</h6>
+                    <ul>
+                        <li>10 Illumina Bulk WGS BAM files</li>
+                    </ul>
+                    <h6 className="title">Donor ST003 - Brain</h6>
+                    <ul>
+                        <li>5 Illumina Bulk WGS BAM files</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export const NotificationsPanel = () => {
     return (
         <div className="notifications-panel container">
@@ -64,7 +87,7 @@ export const NotificationsPanel = () => {
                 <h3 className="section-header">Data Release Tracker</h3>
                 <div className="section-body">
                     <DataReleaseItem />
-                    <DataReleaseItem />
+                    <DataReleaseItem2 />
                 </div>
             </div>
             <div className="announcements section">
