@@ -2,7 +2,7 @@
 Account Creation
 ================
 
-.. TIP::
+.. IMPORTANT::
     Please read the entire document before creating your Google account!
 
 
@@ -40,7 +40,7 @@ The DAC uses the `OAuth authentication system <https://auth0.com/intro-to-iam/wh
 
 |
 
-.. TIP::
+.. NOTE::
     You will create and USE A GOOGLE ACCOUNT, NOT A GMAIL ACCOUNT. Learn more about setting up Google Accounts `here <https://support.google.com/google-ads/answer/1722060?hl=en>`_.
 
 |
