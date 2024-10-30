@@ -14,7 +14,7 @@ How to Create a Data Portal Account
 Step 1: (for SMaHT Network Members) Get Registered with SMaHT OC
 ----------------------------------------------------------------
 
-Currently, Portal access is granted only to SMaHT network members verified by the Network Organization Center (OC). Please email the OC at `smahtsupport@gowustl.onmicrosoft.com <mailto:smahtsupport@gowustl.onmicrosoft.com>`_ to be registered. Please CC your PI in this e-mail for the verification process.
+Currently, portal access is granted only to SMaHT network members registered and verified by the Network Organization Center (OC). Please email the OC at `smahtsupport@gowustl.onmicrosoft.com <mailto:smahtsupport@gowustl.onmicrosoft.com>`_ to be registered. Please CC your PI in this e-mail for the verification process.
 
 To complete registration, Network members should provide their institutional email address in the SMaHT Network Directory from the OC. Note that you will need to use this email address to log into the SMaHT data portal. In order to be verified, users need to put complete information in the SMaHT Network Directory.
 
@@ -50,7 +50,7 @@ The DAC uses the `OAuth authentication system <https://auth0.com/intro-to-iam/wh
 
 |
 
-In order to create the Google Account linked to your institutional email (not your Gmail!), you can set it up by visiting the `Google account creation page <https://accounts.google.com/SignUpWithoutGmail>`_ with the non-gmail option. Register this account with your institutional email address.
+To create the Google Account linked to your institutional email (not your Gmail!), you can set it up by visiting the `Google account creation page <https://accounts.google.com/SignUpWithoutGmail>`_ with the non-gmail option. Register this account with your institutional email address.
 
 
 .. TIP::
