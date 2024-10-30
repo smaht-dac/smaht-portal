@@ -2,8 +2,7 @@
 Linking to Existing Data
 =========================
 
-Metadata in the portal is connected by linking item types together. 
-A simplified version of the data model is shown below, with items linking together to indicate how files were derived from experiments, samples, and donors.
+Metadata in the portal is connected by linking item types together. A simplified version of the data model is shown below, with items linking together to indicate how files were derived from experiments, samples, and donors.
  
 
 .. image:: /static/img/docs/data_model.png
@@ -11,11 +10,10 @@ A simplified version of the data model is shown below, with items linking togeth
   :alt: Data Model Image
 
 
-This structure allows for clear interpretation of the origin of sequence data. 
-References to existing data are frequently required to submit new data. The links below will display all options available for referencing data already in the database.
 
-In the submission spreadsheet (See `Getting Started with Submissions <docs/submission/getting-started-with-submissions>`_), columns that are italicized indicate fields that should be unique identifiers for items of another type. 
-For example, FileSet items require links to Library and Sequencing items.
+This structure allows for clear interpretation of the origin of sequence data. References to existing data are frequently required to submit new data. The links below will display all options available for referencing data already in the database.
+
+In the submission spreadsheet (See `Getting Started with Submissions <docs/submission/getting-started-with-submissions>`_), columns that are italicized indicate fields that should be unique identifiers for items of another type. For example, FileSet items require links to Library and Sequencing items.
 
 .. image:: /static/img/docs/file_set_screenshot.png
   :target: /static/img/docs/file_set_screenshot.png
