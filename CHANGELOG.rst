@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.107.3
+=======
+`PR 274: chore: add new TEnCATS assay to table <https://github.com/smaht-dac/smaht-portal/pull/274>`_
+
+* Update assay table with new TEnCATS assay
+
 
 =======
 0.107.2
