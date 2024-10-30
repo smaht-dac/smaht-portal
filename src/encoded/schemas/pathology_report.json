@@ -8,7 +8,8 @@
         "submission_centers",
         "submitted_id",
         "tissue_sample",
-        "tissue_name"
+        "tissue_name",
+        "outcome"
     ],
     "identifyingProperties": [
         "accession",
@@ -61,56 +62,35 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_PATHOLOGY-REPORT_[A-Z0-9-_.]{4,}$"
         },
-        "orientation_issue": {
-            "title": "Orientation Issue",
-            "description": "Whether there was an orientation issue with the slide",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No"
-            ]
-        },
-        "orientation_issue_description": {
-            "title": "Orientation Issue Details",
-            "description": "Description of the orientation issue(s)",
-            "type": "string"
-        },
-        "slide_histology_matches_label": {
-            "title": "Slide Histology Matches Label",
-            "description": "Whether the slide histology matches the tissue label",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No"
-            ]
-        },
-        "slide_quality_issue": {
-            "title": "Slide Quality Issue",
-            "description": "Whether there was a slide quality issue",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No"
-            ]
-        },
-        "slide_quality_issue_description": {
-            "title": "Slide Quality Issue Details",
-            "description": "Description of slide quality issue(s)",
-            "type": "string"
-        },
         "additional_notes": {
             "title": "Additional Notes",
             "description": "Additional notes or other findings related to the sample",
             "type": "string"
         },
+        "adrenal_sample_location": {
+            "title": "Adrenal Sample Location",
+            "description": "Location from which adrenal sample was taken",
+            "type": "string",
+            "enum": [
+                "Left Adrenal",
+                "Right Adrenal"
+            ]
+        },
+        "brain_sample_location": {
+            "title": "Brain Sample Location",
+            "description": "Location from which brain sample was taken",
+            "type": "string",
+            "enum": [
+                "Cerebellum Left Hemisphere",
+                "Frontal Lobe Left Hemisphere",
+                "Hippocampus Left Hemisphere",
+                "Hippocampus Right Hemisphere",
+                "Temporal Lobe Left Hemisphere"
+            ]
+        },
         "final_review_determination": {
             "title": "Final Review Determination",
-            "description": "Final review determination of pathology report for the sample",
-            "type": "string"
-        },
-        "is_indeterminate": {
-            "title": "Is Indeterminate",
-            "description": "Whether the tissue sample is indeterminate",
+            "description": "Whether a final review determination was made for the sample",
             "type": "string",
             "enum": [
                 "Yes",
@@ -152,6 +132,15 @@
                 "Other"
             ]
         },
+        "is_indeterminate": {
+            "title": "Is Indeterminate",
+            "description": "Whether the tissue sample is indeterminate",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
         "metabolic_neuropathology_type": {
             "title": "Metabolic Neuropathology Type",
             "description": "Type of metabolic neuropathology in the sample",
@@ -190,7 +179,7 @@
         },
         "neurodegenerative_neuropathology_type": {
             "title": "Neurodegenerative Neuropathology Type",
-            "description": "Type of neurodegenerative neuropathology present in the sample",
+            "description": "Type of neurodegenerative neuropathology in the sample",
             "type": "string",
             "enum": [
                 "Primary Age-Related Taupath",
@@ -259,13 +248,13 @@
                     },
                     "non_target_tissue_percentage": {
                         "title": "Non-Target Tissue Subtype Percentage",
-                        "description": "Percentage of the sample that was the non-target tissue subtype (%)",
+                        "description": "Percentage range of the sample that was the non-target tissue subtype (%)",
                         "type": "string",
                         "enum": [
-                            "<10",
-                            "11-25",
-                            "26-49",
-                            ">50"
+                            "[0-10]",
+                            "[11-25]]",
+                            "[26-49]",
+                            "[50-100]"
                         ]
                     },
                     "non_target_tissue_description": {
@@ -285,6 +274,15 @@
                 "Unacceptable"
             ]
         },
+        "ovary_sample_location": {
+            "title": "Ovary Sample Location",
+            "description": "Location from which ovary sample was taken",
+            "type": "string",
+            "enum": [
+                "Left Ovary",
+                "Right Ovary"
+            ]
+        },
         "pathologic_findings": {
             "title": "Pathologic Findings",
             "type": "array",
@@ -293,7 +291,7 @@
                 "additionalProperties": false,
                 "required": [
                     "finding_type",
-                    "finding_description"
+                    "finding_present"
                 ],
                 "properties": {
                     "finding_type": {
@@ -307,6 +305,15 @@
                             "Other"
                         ]
                     },
+                    "finding_present": {
+                        "title": "Pathologic Finding Present",
+                        "description": "Whether pathologic/unexpected finding is present in the sample",
+                        "type": "string",
+                        "enum": [
+                            "Yes",
+                            "No"
+                        ]
+                    },
                     "finding_description": {
                         "title": "Pathologic Finding Description",
                         "description": "Description of pathologic/unexpected finding",
@@ -314,17 +321,35 @@
                     },
                     "finding_percentage": {
                         "title": "Pathologic Finding Percentage",
-                        "description": "Percentage of the sample that displayed the pathologic finding (%)",
+                        "description": "Percentage range of the sample that displayed the pathologic/unexpected finding (%)",
                         "type": "string",
                         "enum": [
-                            "<10",
-                            "11-25",
-                            "26-49",
-                            ">50"
+                            "[0-10]",
+                            "[11-25]]",
+                            "[26-49]",
+                            "[50-100]"
                         ]
                     }
                 }
             }
+        },
+        "skin_sample_location": {
+            "title": "Skin Sample Location",
+            "description": "Location from which skin sample was taken",
+            "type": "string",
+            "enum": [
+                "Skin Calf",
+                "Skin Abdomen"
+            ]
+        },
+        "testis_sample_location": {
+            "title": "Testis Sample Location",
+            "description": "Location from which testis sample was taken",
+            "type": "string",
+            "enum": [
+                "Left Testis",
+                "Right Testis"
+            ]
         },
         "tissue_autolysis_score": {
             "title": "Overall Tissue Autolysis Score",
@@ -361,7 +386,8 @@
                 "additionalProperties": false,
                 "required": [
                     "target_tissue_subtype",
-                    "target_tissue_present"
+                    "target_tissue_present",
+                    "target_tissue_percentage"
                 ],
                 "properties": {
                     "target_tissue_subtype": {
@@ -369,7 +395,6 @@
                         "description": "Subtype of target tissue in sample",
                         "type": "string",
                         "enum": [
-                            "Aorta",
                             "Brain",
                             "Cortex",
                             "Dermis",
@@ -385,8 +410,10 @@
                             "Muscularis propria",
                             "Myocardium",
                             "Ovarian Follicles",
+                            "Ovarian Stroma",
                             "Semniferous Tubules",
-                            "Skeletal Muscle"
+                            "Skeletal Muscle",
+                            "Vessel"
                         ]
                     },
                     "target_tissue_present": {
@@ -400,13 +427,13 @@
                     },
                     "target_tissue_percentage": {
                         "title": "Target Tissue Subtype Percentage",
-                        "description": "Percentage of the sample that was the target tissue subtype (%)",
+                        "description": "Percentage range of the sample that was the target tissue subtype (%)",
                         "type": "string",
                         "enum": [
-                            "<10",
-                            "11-25",
-                            "26-49",
-                            ">50"
+                            "[0-10]",
+                            "[11-25]]",
+                            "[26-49]",
+                            "[50-100]"
                         ]
                     },
                     "target_tissue_autolysis_score": {
@@ -421,7 +448,7 @@
         },
         "tbi_chronic_type": {
             "title": "Chronic Traumatic Brain Injury Type",
-            "description": "Type of chronic traumatic brain injury",
+            "description": "Type of chronic traumatic brain injury in the sample",
             "type": "string",
             "enum": [
                 "Chronic Traumatic Brain Injury",
@@ -509,11 +536,93 @@
                 "Other"
             ]
         },
+        "histology": {
+            "title": "Histology",
+            "description": "Link to associated histology",
+            "type": "string",
+            "linkTo": "Histology"
+        },
         "tissue_sample": {
             "title": "Tissue Sample",
             "description": "Link to associated tissue sample",
             "type": "string",
             "linkTo": "TissueSample"
         }
-    }
+    },
+    "allOf": [
+        {
+            "if": {
+                "not": {
+                    "properties": {
+                        "tissue_name": {
+                            "const": "Brain"
+                        }
+                    }
+                }
+                
+            },
+            "then": {
+                "allOf": [
+                    {"not": {"required": ["brain_sample_location"]}},
+                    {"not": {"required": ["neuropathology_onset"]}},
+                    {"not": {"required": ["infectious_neuropathology_pattern_type"]}},
+                    {"not": {"required": ["infectious_neuropathology_infection_type"]}},
+                    {"not": {"required": ["inflammatory_neuropathology_type"]}},
+                    {"not": {"required": ["neoplastic_neuropathology_type"]}},
+                    {"not": {"required": ["neoplastic_neuropathology_details"]}},
+                    {"not": {"required": ["neoplastic_neuropathology_origin_location"]}},
+                    {"not": {"required": ["tbi_type"]}},
+                    {"not": {"required": ["tbi_hemorrhage_present"]}},
+                    {"not": {"required": ["tbi_edema_present"]}},
+                    {"not": {"required": ["tbi_herniation_present"]}},
+                    {"not": {"required": ["tbi_chronic_type"]}},
+                    {"not": {"required": ["tbi_stage"]}},
+                    {"not": {"required": ["tbi_location"]}},
+                    {"not": {"required": ["vascular_neuropathology_infarct_type"]}},
+                    {"not": {"required": ["vascular_neuropathology_details"]}},
+                    {"not": {"required": ["neurodegenerative_neuropathology_type"]}},
+                    {"not": {"required": ["metabolic_neuropathology_type"]}},
+                    {"not": {"required": ["neuropathology_artifact_type"]}}
+                ]
+            }
+        },
+        {
+            "if": {
+                "not": {
+                    "properties": {
+                        "tissue_name": {
+                            "const": "Adrenal"
+                        }
+                    }
+                }
+                
+            },
+            "then": {
+                "not": {
+                    "required": [
+                        "adrenal_sample_location"
+                    ]
+                }
+            }
+        },
+        {
+            "if": {
+                "not": {
+                    "properties": {
+                        "tissue_name": {
+                            "const": "Skin"
+                        }
+                    }
+                }
+                
+            },
+            "then": {    
+                "not": {
+                    "required": [
+                        "skin_sample_location"
+                    ]
+               }
+            }
+        }
+    ]
 }
