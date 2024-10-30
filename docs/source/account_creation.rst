@@ -1,9 +1,14 @@
-================
-Account Creation
-================
+===================================
+How to Create a Data Portal Account
+===================================
 
 .. IMPORTANT::
     Please read the entire document before creating your Google account!
+
+.. NOTE::
+    Currently, the data access is granted to the Network members with an account to the data portal.
+
+|
 
 
 Step 1: (for SMaHT Network Members) Get Registered with SMaHT OC
