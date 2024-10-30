@@ -697,11 +697,12 @@ body[data-path="/"]>#application>#layout {
 		.homepage-header {
 			display: flex;
 			flex-direction: column;
-			padding-top: 8px;
+			padding-top: 0px;
 
 			h1 {
-				font-size: 1.563rem;
+				font-size: 2rem;
 				margin-top: 0px;
+				margin-bottom: 5px;
 			}
 			h2 {
 				font-size: 1rem;
@@ -719,7 +720,6 @@ body[data-path="/"]>#application>#layout {
 
 
 		.container {
-			
 			.homepage-timeline-figure-container {
 				margin-top: 20px;
 			}
@@ -1002,7 +1002,7 @@ body[data-path="/"]>#application>#layout {
 				margin-left: 50px;
 
 				.homepage-timeline-figure-container {
-					margin-top: 30px;
+					margin-top: 15px;
 				}
 				.timeline-container {
 					margin-left: 0px;
@@ -1011,9 +1011,10 @@ body[data-path="/"]>#application>#layout {
 				.homepage-figure-container {
 					margin-left: 25px;
 					justify-content: start;
+
 					
 					.homepage-figure {
-						width: 630px;
+						width: 615px;
 					}
 				}
 
@@ -1061,9 +1062,22 @@ body[data-path="/"]>#application>#layout {
 		position: relative;
 		.homepage-contents {
 			.container {
+				.homepage-header {
+					margin-top: 25px;
 
+					h1 {
+						font-size: 2.125rem;
+					}
+					h2 {
+						font-size: 1.25rem;
+					}
+				}
+				.homepage-timeline-figure-container {
+					margin-top: 50px;
+				}
 				.homepage-figure-container {
 					justify-content: center;
+					margin-left: 0px;
 				}
 
 				.notifications-panel {
