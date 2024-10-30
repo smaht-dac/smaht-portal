@@ -8,21 +8,80 @@ Change Log
 ----------
 
 
+=======
+0.107.2
+=======
+
+`PR 265: Bm links to existing data <https://github.com/smaht-dac/smaht-portal/pull/265>`_
+
+* Add two new links for SupplementaryFile and DonorSpecificAssembly items
+
+
+0.107.1
+=======
+
+`PR 281: Access table button and table styles <https://github.com/smaht-dac/smaht-portal/pull/281>`_
+
+* Bug fix: Make link buttons not underlined and access keys table reponsive for small and mid-size screens
+
+
+0.107.0
+=======
+
+`PR 235: Sn ExternalQualityMetric submission template <https://github.com/smaht-dac/smaht-portal/pull/235>`_
+
+* In `commands/write_submission_spreadsheets.py`:
+  
+  * Add `--eqm [dsa duplexseq]` argument that grabs `tooltip`, `key`, and `derived_from` from the appropriate `ExternalQualityMetric` template and writes out to a new tab in the spreadsheet
+
+* Remove properties from DonorSpecificAssembly that are now on ExternalQualityMetric
+
+
+0.106.0
+=======
+
+`PR 263: React bootstrap v2, React 18, Redux and Misc. Npm Packages Upgrade <https://github.com/smaht-dac/smaht-portal/pull/263>`_
+
+* Upgrade: React v17 to v18
+* Upgrade: Redux v4 to v5 (there are breaking changes in store and dispatchers. SPC is updated to support both new and legacy usage)
+* Upgrade: auth0-Lock v11 to v12
+* Upgrade: gulp.js v4 to v5
+* Upgrade: react-workflow-viz (animation updates to eliminate findDOMNode errors)
+* Fix: User Content updates to fix markdown, jsx, and HTML static section rendering
+* Upgrade: Bootstrap v5
+* Upgrade: React-Bootstrap v2
+* Upgrade: FontAwesome v6
+
+
+0.105.0
+=====
+
+`PR 266: Node v20 Upgrade <https://github.com/smaht-dac/smaht-portal/pull/266>`_
+
+* Node 18 to 20 upgrade including GitHub actions
+
+
 0.104.2
 =======
-`PR 274: chore: add new TEnCATS assay to table <https://github.com/smaht-dac/smaht-portal/pull/274>`_
 
-* Update assay table with new TEnCATS assay
+`PR 276: Updates for Statistics Legend Section & Mobile UI <https://github.com/smaht-dac/smaht-portal/pull/276>`_
+
+* Adjust legend's items size for sm to xl displays
+* Truncate long text for dropdown text for lg and md displays
+* Fix toggle display for upcoming xxl displays upon react-bootstrap v2 upgrade
 
 
 0.104.1
 =======
-`PR 272: SN Enzymes optional <https://github.com/smaht-dac/smaht-portal/pull/224>`_
+
+`PR 272: SN Enzymes optional <https://github.com/smaht-dac/smaht-portal/pull/272>`_
+
 * Make property `enzymes` in LibraryPreparation optional if `fragmentation_method` does not contain "Transposase" or "Restriction Enzyme", otherwise required
 
 
 0.104.0
 =======
+
 * 2024-10-11/dmichaels
 * Updated dcicutils version (8.16.1) for vulnerabilities.
 

@@ -250,7 +250,7 @@ export const commonParsingFxn = {
             const { google_analytics : {
                 reports : {
                     [reportName] : currentReport = []
-                }, // `currentReport` => List of JSON objects (report entries, 1 per unique dimension value) - Note: 1 per unique dimension may not be valid for post processing report items in smaht-foursight 
+                } = {}, // `currentReport` => List of JSON objects (report entries, 1 per unique dimension value) - Note: 1 per unique dimension may not be valid for post processing report items in smaht-foursight 
                 for_date
             } } = trackingItem;
 
@@ -1096,50 +1096,50 @@ class UsageChartsCountByDropdown extends React.PureComponent {
 
         switch(chartID) {
             case 'file_downloads':
-                menuOptions.set('filetype',   <React.Fragment><i className="icon fas icon-fas icon-file-alt mr-1"/>File Downloads by File Type</React.Fragment>);
-                menuOptions.set('assay_type', <React.Fragment><i className="icon fas icon-fas icon-vial mr-1"/>File Downloads by Assay Type</React.Fragment>);
-                menuOptions.set('dataset',    <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>File Downloads by Sample Type</React.Fragment>);
-                // menuOptions.set('sequencer',    <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>File Downloads by Sequencing Platform</React.Fragment>);
+                menuOptions.set('filetype',   <React.Fragment><i className="icon fas icon-fas icon-file-alt me-1"/>File Downloads by File Type</React.Fragment>);
+                menuOptions.set('assay_type', <React.Fragment><i className="icon fas icon-fas icon-vial me-1"/>File Downloads by Assay Type</React.Fragment>);
+                menuOptions.set('dataset',    <React.Fragment><i className="icon fas icon-fas icon-database me-1"/>File Downloads by Sample Type</React.Fragment>);
+                // menuOptions.set('sequencer',    <React.Fragment><i className="icon fas icon-fas icon-database me-1"/>File Downloads by Sequencing Platform</React.Fragment>);
                 break;
             case 'top_file_downloads':
             case 'top_file_set_downloads':
-                menuOptions.set('top_files_10',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 10</React.Fragment>);
-                menuOptions.set('top_files_25',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 25</React.Fragment>);
-                menuOptions.set('top_files_50',  <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 50 (may load slowly)</React.Fragment>);
-                menuOptions.set('top_files_100', <React.Fragment><i className="icon far icon-fas icon-folder mr-1"/>Top 100 (may load slowly)</React.Fragment>);
+                menuOptions.set('top_files_10',  <React.Fragment><i className="icon far icon-fas icon-folder me-1"/>Top 10</React.Fragment>);
+                menuOptions.set('top_files_25',  <React.Fragment><i className="icon far icon-fas icon-folder me-1"/>Top 25</React.Fragment>);
+                menuOptions.set('top_files_50',  <React.Fragment><i className="icon far icon-fas icon-folder me-1"/>Top 50 (may load slowly)</React.Fragment>);
+                menuOptions.set('top_files_100', <React.Fragment><i className="icon far icon-fas icon-folder me-1"/>Top 100 (may load slowly)</React.Fragment>);
                 break;
             case 'file_views':
-                menuOptions.set('file_detail_views_by_file_type',  <React.Fragment><i className="icon fas icon-fw icon-file-alt mr-1"/>Detail Views by File Type</React.Fragment>);
-                menuOptions.set('file_detail_views_by_assay_type', <React.Fragment><i className="icon fas icon-fw icon-vial mr-1"/>Detail Views by Assay Type</React.Fragment>);
-                menuOptions.set('file_detail_views_by_dataset',    <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Sample Type</React.Fragment>);
-                // menuOptions.set('file_detail_views_by_sequencer',    <React.Fragment><i className="icon fas icon-fw icon-database mr-1"/>Detail Views by Seqeuncing Platform</React.Fragment>);
-                menuOptions.set('file_list_views_by_file_type',    <React.Fragment><i className="icon fas icon-fas icon-file-alt mr-1"/>Appearances in Search Results by File Type</React.Fragment>);
-                menuOptions.set('file_list_views_by_assay_type',   <React.Fragment><i className="icon fas icon-fas icon-vial mr-1"/>Appearances in Search Results by Assay Type</React.Fragment>);
-                menuOptions.set('file_list_views_by_dataset',      <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>Appearances in Search Results by Sample Type</React.Fragment>);
-                menuOptions.set('file_clicks_by_file_type',        <React.Fragment><i className="icon fas icon-fas icon-file-alt mr-1"/>Result Clicks by File Type</React.Fragment>);
-                menuOptions.set('file_clicks_by_assay_type',       <React.Fragment><i className="icon fas icon-fas icon-vial mr-1"/>Result Clicks by Assay Type</React.Fragment>);
-                menuOptions.set('file_clicks_by_dataset',          <React.Fragment><i className="icon fas icon-fas icon-database mr-1"/>Result Clicks by Sample Type</React.Fragment>);
-                menuOptions.set('metadata_tsv_by_country',         <React.Fragment><i className="icon fas icon-fas icon-file mr-1"/>Metadata.tsv Generation by Location</React.Fragment>);
+                menuOptions.set('file_detail_views_by_file_type',  <React.Fragment><i className="icon fas icon-fw icon-file-alt me-1"/>Detail Views by File Type</React.Fragment>);
+                menuOptions.set('file_detail_views_by_assay_type', <React.Fragment><i className="icon fas icon-fw icon-vial me-1"/>Detail Views by Assay Type</React.Fragment>);
+                menuOptions.set('file_detail_views_by_dataset',    <React.Fragment><i className="icon fas icon-fw icon-database me-1"/>Detail Views by Sample Type</React.Fragment>);
+                // menuOptions.set('file_detail_views_by_sequencer',    <React.Fragment><i className="icon fas icon-fw icon-database me-1"/>Detail Views by Seqeuncing Platform</React.Fragment>);
+                menuOptions.set('file_list_views_by_file_type',    <React.Fragment><i className="icon fas icon-fas icon-file-alt me-1"/>Appearances in Search Results by File Type</React.Fragment>);
+                menuOptions.set('file_list_views_by_assay_type',   <React.Fragment><i className="icon fas icon-fas icon-vial me-1"/>Appearances in Search Results by Assay Type</React.Fragment>);
+                menuOptions.set('file_list_views_by_dataset',      <React.Fragment><i className="icon fas icon-fas icon-database me-1"/>Appearances in Search Results by Sample Type</React.Fragment>);
+                menuOptions.set('file_clicks_by_file_type',        <React.Fragment><i className="icon fas icon-fas icon-file-alt me-1"/>Result Clicks by File Type</React.Fragment>);
+                menuOptions.set('file_clicks_by_assay_type',       <React.Fragment><i className="icon fas icon-fas icon-vial me-1"/>Result Clicks by Assay Type</React.Fragment>);
+                menuOptions.set('file_clicks_by_dataset',          <React.Fragment><i className="icon fas icon-fas icon-database me-1"/>Result Clicks by Sample Type</React.Fragment>);
+                menuOptions.set('metadata_tsv_by_country',         <React.Fragment><i className="icon fas icon-fas icon-file me-1"/>Metadata.tsv Generation by Location</React.Fragment>);
                 break;
             case 'sessions_by_country':
-                menuOptions.set('views_by_country',    <React.Fragment><i className="icon icon-fw fas icon-map-marker mr-1" />Page Views by Country</React.Fragment>);
-                menuOptions.set('views_by_city',       <React.Fragment><i className="icon icon-fw fas icon-map-marker-alt mr-1" />Page Views by City</React.Fragment>);
-                menuOptions.set('device_category',     <React.Fragment><i className="icon icon-fw fas icon-laptop mr-1" />Page Views by Device</React.Fragment>);
-                // menuOptions.set('page_title',          <React.Fragment><i className="icon icon-fw fas icon-font mr-1" />Page Views by Title (may load slowly)</React.Fragment>);
-                // menuOptions.set('page_url',            <React.Fragment><i className="icon icon-fw fas icon-link mr-1" />Page Views by Url (may load slowly)</React.Fragment>);
-                menuOptions.set('sessions_by_country', <React.Fragment><i className="icon icon-fw fas icon-user-friends mr-1" />Unique Users by Country</React.Fragment>);
-                menuOptions.set('sessions_by_city',    <React.Fragment><i className="icon icon-fw fas icon-street-view mr-1" />Unique Users by City</React.Fragment>);
+                menuOptions.set('views_by_country',    <React.Fragment><i className="icon icon-fw fas icon-map-marker me-1" />Page Views by Country</React.Fragment>);
+                menuOptions.set('views_by_city',       <React.Fragment><i className="icon icon-fw fas icon-map-marker-alt me-1" />Page Views by City</React.Fragment>);
+                menuOptions.set('device_category',     <React.Fragment><i className="icon icon-fw fas icon-laptop me-1" />Page Views by Device</React.Fragment>);
+                // menuOptions.set('page_title',          <React.Fragment><i className="icon icon-fw fas icon-font me-1" />Page Views by Title (may load slowly)</React.Fragment>);
+                // menuOptions.set('page_url',            <React.Fragment><i className="icon icon-fw fas icon-link me-1" />Page Views by Url (may load slowly)</React.Fragment>);
+                menuOptions.set('sessions_by_country', <React.Fragment><i className="icon icon-fw fas icon-user-friends me-1" />Unique Users by Country</React.Fragment>);
+                menuOptions.set('sessions_by_city',    <React.Fragment><i className="icon icon-fw fas icon-street-view me-1" />Unique Users by City</React.Fragment>);
                 break;
             default:
-                menuOptions.set('views',    <React.Fragment><i className="icon icon-fw fas icon-eye mr-1"/>Views</React.Fragment>);
-                menuOptions.set('sessions', <React.Fragment><i className="icon icon-fw fas icon-user mr-1"/>Unique Users</React.Fragment>);
+                menuOptions.set('views',    <React.Fragment><i className="icon icon-fw fas icon-eye me-1"/>Views</React.Fragment>);
+                menuOptions.set('sessions', <React.Fragment><i className="icon icon-fw fas icon-user me-1"/>Unique Users</React.Fragment>);
             break;
         }
         
         const dropdownTitle = menuOptions.get(currCountBy);
 
         return (
-            <div className="d-inline-block mr-05">
+            <div className="d-inline-block me-05">
                 <DropdownButton size="sm" id={"select_count_for_" + chartID}
                     onSelect={this.handleSelection} title={dropdownTitle}>
                     {_.map([ ...menuOptions.entries() ], function([ k, title ]){
@@ -1231,18 +1231,18 @@ export function UsageStatsView(props){
 
             <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
                 groupByTitle="Show" outerClassName={"dropdown-container mb-0" + (isSticky ? " sticky-top" : "")}>
-                <div className="d-inline-block mr-15 pt-08">
+                <div className="d-inline-block me-15 pt-08">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle} data-tip="Toggle between smooth/sharp edges">Smooth Edges</Checkbox>
                 </div>
-                <div className="d-inline-block mr-3 mb-2 pt-08">
+                <div className="d-inline-block me-3 mb-2 pt-08">
                     <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle} data-tip="Show as cumulative sum">Cumulative Sum</Checkbox>
                 </div>
-                <div className="d-inline-block mr-3 mb-2 pt-08">
+                <div className="d-inline-block me-3 mb-2 pt-08">
                     <Checkbox checked={isTransposed} onChange={() => setIsTransposed(!isTransposed)} data-tip="Transpose data table">Transpose Data</Checkbox>
                 </div>
                 <div className="d-block d-md-inline-block pt-08">
                     <div className="d-md-flex">
-                        <span className="text-500 mr-1">Y-Axis scale:</span>
+                        <span className="text-500 me-1">Y-Axis scale:</span>
                         <div className='mb-15'>
                             <DropdownButton
                                 title={(scale && scale['yAxisScale'] && UsageStatsView.yScaleLabels[scale['yAxisScale']]) || '-'}
@@ -1252,11 +1252,11 @@ export function UsageStatsView(props){
                                 <DropdownItem eventKey={'Symlog'} key={'scale-log'} >{UsageStatsView.yScaleLabels['Symlog']}</DropdownItem>
                             </DropdownButton>
                         </div>
-                        <div className={"ml-md-15" + (showScaleRange ? " d-block d-md-inline-block" : " d-none")}>
+                        <div className={"ms-md-15" + (showScaleRange ? " d-block d-md-inline-block" : " d-none")}>
                             <input type="range" id="input_range_y_scale_power" className='w-75'
                                 min={scaleRangeMin} max={scaleRangeMax} step={scaleRangeStep} value={scale['yAxisPower']} data-tip={scaleRangeTooltip}
                                 onChange={(e) => setScale({ yAxisScale: scale['yAxisScale'], yAxisPower: e.target.valueAsNumber })} />
-                            <span className='ml-05'>{scale['yAxisPower']}</span>
+                            <span className='ms-05'>{scale['yAxisPower']}</span>
                         </div>
                     </div>
                 </div>
@@ -1373,7 +1373,7 @@ export function UsageStatsView(props){
 
                     <AreaChartContainer {...commonContainerProps} id="top_file_downloads" key="top_file_downloads"
                         defaultHeight={300} title={<h5 className="text-400 mt-0">Total File Count for Daily Downloads</h5>}
-                        subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
+                        subTitle={<h4 className="fw-normal text-secondary">Click bar to view details</h4>}>
                         {chartToggles.chart?.top_file_downloads ?
                             <AreaChart {...commonChartProps} data={top_file_downloads} showTooltipOnHover={false} {...scale} />
                             : <React.Fragment />
@@ -1391,7 +1391,7 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="top_file_downloads_volume" key="top_file_downloads_volume" defaultHeight={350}
                         title={<h5 className="text-400 mt-0">Total File Size for Daily Downloads (GB)</h5>}
                         extraButtons={[]}
-                        subTitle={<h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}>
+                        subTitle={<h4 className="fw-normal text-secondary">Click bar to view details</h4>}>
                         {chartToggles.chart?.top_file_downloads_volume ?
                             <AreaChart {...commonChartProps} data={top_file_downloads_volume} showTooltipOnHover={false} yAxisLabel="GB" {...scale} />
                             : <React.Fragment />
@@ -1407,7 +1407,7 @@ export function UsageStatsView(props){
                             limit={topFilesLimit} excludeNones={true} />
                     }
 
-                    <p className='font-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
+                    <p className='fst-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
 
                 </ColorScaleProvider>
 
@@ -1446,7 +1446,7 @@ export function UsageStatsView(props){
 
                     <AreaChartContainer {...commonContainerProps} id="sessions_by_country" key="sessions_by_country"
                         title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'sessions_by_country' }} />}
-                        subTitle={enableSessionByCountryChartTooltipItemClick && <h4 className="font-weight-normal text-secondary">Click bar to view details</h4>}
+                        subTitle={enableSessionByCountryChartTooltipItemClick && <h4 className="fw-normal text-secondary">Click bar to view details</h4>}
                         extraButtons={[
                             <UsageChartsCountByDropdown {...countByDropdownProps} chartID="sessions_by_country" key="sessions_by_country_count_by_dd" />
                         ]}
@@ -1599,7 +1599,7 @@ export function SubmissionsStatsView(props) {
         <div className="stats-charts-container" key="charts" id="submissions">
 
             <GroupByDropdown {...groupByProps} groupByTitle="Group Charts Below By" dateRangeTitle="Date" outerClassName="dropdown-container mb-15 sticky-top">
-                <div className="d-inline-block mr-15">
+                <div className="d-inline-block me-15">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                 </div>
                 <div className="d-inline-block">
@@ -1754,10 +1754,10 @@ const convertDataRangeToXDomain = memoize(function (rangePreset = 'all', rangeFr
 
 const ChartSubTitle = memoize(function ({ title, data, invalidDateRange }) {
     if (invalidDateRange === true) {
-        return <h4 className="font-weight-normal text-secondary">Invalid date range</h4>;
+        return <h4 className="fw-normal text-secondary">Invalid date range</h4>;
     }
     if (!data || (Array.isArray(data) && data.length === 0)) {
-        return <h4 className="font-weight-normal text-secondary">No data to display</h4>;
+        return <h4 className="fw-normal text-secondary">No data to display</h4>;
     }
     return title || null;
 });
@@ -1843,7 +1843,7 @@ const StatisticsDataTable = React.memo((props) => {
                     const tooltip = `${result.display_title} (${overallSum})`;
 
                     return isTransposed ? (
-                        <span className="value text-truncate text-left" data-tip={tooltip.length > 40 ? tooltip : null}>
+                        <span className="value text-truncate text-start" data-tip={tooltip.length > 40 ? tooltip : null}>
                             {result.display_title} <strong>({overallSum})</strong>
                         </span>
                     ) : (
@@ -1881,12 +1881,12 @@ const StatisticsDataTable = React.memo((props) => {
                                         e.preventDefault();
                                     }}
                                     data-tip="Show details"
-                                    className="value text-right font-weight-bold">
+                                    className="value text-end fw-bold">
                                     {roundValue(result[dataKey], valueLabel)}
                                 </a>
                             );
                         } else {
-                            return <span className="value text-right">0</span>
+                            return <span className="value text-end">0</span>
                         }
                     }
                 };
@@ -1933,7 +1933,7 @@ const StatisticsDataTable = React.memo((props) => {
         maxResultsBodyHeight: 500,
         tableColumnClassName: "col-12",
         facetColumnClassName: "d-none",
-        defaultColAlignment: "text-right",
+        defaultColAlignment: "text-end",
         stickyFirstColumn: true,
         isOwnPage: false,
         termTransformFxn: Term.toName

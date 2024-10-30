@@ -19,7 +19,7 @@ import ErrorPage from './static-pages/ErrorPage';
 import { NavigationBar } from './navigation/NavigationBar';
 import { NotLoggedInAlert } from './navigation/components/LoginNavItem';
 import { Footer } from './Footer';
-import { store } from './../store';
+import { store, batchDispatch } from './../store';
 
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 import {
@@ -128,7 +128,7 @@ export default class App extends React.PureComponent {
 
         const { context, href } = props;
 
-        Alerts.setStore(store);
+        Alerts.setStore(store, false);
 
         const analyticsID = getGoogleAnalyticsTrackingID(href) || null;
 
@@ -206,7 +206,7 @@ export default class App extends React.PureComponent {
         const windowHref =
             (window && window.location && window.location.href) || href;
         if (href !== windowHref) {
-            store.dispatch({ type: { href: windowHref } });
+            store.dispatch({ type: 'SET_HREF', payload: windowHref });
         }
 
         const analyticsOptions = _.extend(
@@ -419,8 +419,9 @@ export default class App extends React.PureComponent {
 
             // TODO: Remove this temporary alert in first official launch version in 2024
             Alerts.queue({
-                style: 'info',
-                message: (
+                'title' : '',
+                'style': 'info',
+                'message': (
                     <>
                         <div>
                             <b>New Features:</b> The SMaHT Data Portal, V1
@@ -753,12 +754,12 @@ export default class App extends React.PureComponent {
                 this.currentNavigationRequest.abort();
                 this.currentNavigationRequest = null;
             }
-            store.dispatch({
-                type: {
-                    href: windowHref,
-                    context: event.state,
-                },
-            });
+
+            const dispatchDict = {
+                href: windowHref,
+                context: event.state
+            };
+            batchDispatch(store, dispatchDict);
         }
 
         // Always async update in case of server side changes.
@@ -813,13 +814,7 @@ export default class App extends React.PureComponent {
      * @returns {void}
      */
     onHashChange(event) {
-        store.dispatch({
-            type: {
-                href: document
-                    .querySelector('link[rel="canonical"]')
-                    .getAttribute('href'),
-            },
-        });
+        store.dispatch({ type: 'SET_HREF', payload: document.querySelector('link[rel="canonical"]').getAttribute('href') });
     }
 
     /**
@@ -1054,7 +1049,7 @@ export default class App extends React.PureComponent {
                     reduxDispatchDict.href = targetHref + hashAppendage;
                 }
                 if (_.keys(reduxDispatchDict).length > 0) {
-                    store.dispatch({ type: reduxDispatchDict });
+                    batchDispatch(store, reduxDispatchDict);
                 }
                 return false;
             }
@@ -1155,13 +1150,8 @@ export default class App extends React.PureComponent {
                     }
 
                     reduxDispatchDict.context = response;
-                    store.dispatch({
-                        type: _.extend(
-                            {},
-                            reduxDispatchDict,
-                            includeReduxDispatch
-                        ),
-                    });
+                    const payloadReduxDispatchDict = _.extend({}, reduxDispatchDict, includeReduxDispatch);
+                    batchDispatch(store, payloadReduxDispatchDict);
                     return response;
                 })
                 .then((response) => {
@@ -1371,9 +1361,9 @@ export default class App extends React.PureComponent {
         let status;
 
         // `canonical` is meant to refer to the definitive URI for current resource.
-        // For example, https://data.4dnucleome.org/some-item, http://data.4dnucleome.org/some-item, http://www.data.4dnucleome.org/some-item
+        // For example, https://data.smaht.org/some-item, http://data.smaht.org/some-item, http://www.data.smaht.org/some-item
         // refer to same item, and `canonical` URL is the one that should be used when referring to or citing "/some-item".
-        // In our case, it is "https://data.4dnucleome.org/"; this canonical code may be deprecated as we always redirect to https and
+        // In our case, it is "https://data.smaht.org/"; this canonical code may be deprecated as we always redirect to https and
         // [wwww.]4dnuclome.org is a separate domain/site.
 
         if (context.canonical_uri) {
@@ -1452,7 +1442,7 @@ export default class App extends React.PureComponent {
         // `lastBuildTime` is used for both CSS and JS because is most likely they change at the same time on production from recompiling
 
         return (
-            <html lang="en">
+            <html lang="en" suppressHydrationWarning={true}>
                 <head>
                     <meta charSet="utf-8" />
                     <meta
@@ -2260,13 +2250,14 @@ class BodyElement extends React.PureComponent {
         } = this;
         const overlaysContainer = this.overlaysContainerRef.current;
         const innerOverlaysContainer = this.innerOverlaysContainerRef.current;
+        const { is_mobile_browser: isMobileBrowser = false } = context;
 
         if (hasError) return this.renderErrorState();
 
         let innerContainerMinHeight;
         if (mounted && windowHeight) {
             const rgs = responsiveGridState(windowWidth);
-            if ({ xl: 1, lg: 1, md: 1 }[rgs]) {
+            if ({ xxl:1, xl: 1, lg: 1, md: 1 }[rgs]) {
                 innerContainerMinHeight =
                     // Hardcoded:
                     // - minus top nav full height, footer, [testWarning]
@@ -2306,6 +2297,8 @@ class BodyElement extends React.PureComponent {
             alerts,
         };
 
+        const tooltipGlobalEventOff = isMobileBrowser ? 'click' : undefined;
+
         return (
             // We skip setting `props.dangerouslySetInnerHTML` if mounted, since this data is only used for initializing over server-side-rendered HTML.
             <body
@@ -2314,7 +2307,8 @@ class BodyElement extends React.PureComponent {
                 onSubmit={onBodySubmit}
                 data-path={hrefParts.path}
                 data-pathname={hrefParts.pathname}
-                className={this.bodyClassName()}>
+                className={this.bodyClassName()}
+                suppressHydrationWarning={true}>
                 <script
                     data-prop-name="context"
                     type="application/json"
@@ -2383,14 +2377,15 @@ class BodyElement extends React.PureComponent {
 
                 <div id="overlays-container" ref={this.overlaysContainerRef} />
 
-                <ReactTooltip
-                    effect="solid"
-                    globalEventOff="click"
-                    key="tooltip"
-                    uuid="primary-tooltip-fake-uuid"
-                    afterHide={this.onAfterTooltipHide}
-                    ref={this.tooltipRef}
-                />
+                {mounted ?
+                    <ReactTooltip
+                        effect="solid"
+                        globalEventOff={tooltipGlobalEventOff}
+                        key="tooltip"
+                        uuid="primary-tooltip-fake-uuid"
+                        afterHide={this.onAfterTooltipHide}
+                        ref={this.tooltipRef}
+                    /> : null}
             </body>
         );
     }
