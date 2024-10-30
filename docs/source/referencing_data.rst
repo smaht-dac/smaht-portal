@@ -2,7 +2,7 @@
 Linking to Existing Data
 =========================
 
-Metadata in the portal is connected by linking item types together. A simplified version of the data model is shown below, with items linking together to indicate how files were derived from experiments, samples, and donors. A simplified representation of how items link together is shown below.
+Metadata in the portal is connected by linking item types together. A simplified version of the data model is shown below, with items linking together to indicate how files were derived from experiments, samples, and donors.
  
 
 .. image:: /static/img/docs/data_model.png
