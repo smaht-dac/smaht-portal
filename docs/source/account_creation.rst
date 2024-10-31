@@ -37,16 +37,16 @@ Step 3: Create a Google Account using Your Institutional Email
 
 The DAC uses the `OAuth authentication system <https://auth0.com/intro-to-iam/what-is-oauth-2>`_ which will allow you to login using a Google account linked to your institutional email address in the SMaHT Network Directory. To use your institutional email address to log into the portal, you will need a Google Account registered with that email address.
 
+.. NOTE::
+    You will create and USE A GOOGLE ACCOUNT, NOT A GMAIL ACCOUNT. Learn more about setting up Google Accounts `here <https://support.google.com/google-ads/answer/1722060?hl=en>`_.
+
+|
+
 |
 
 .. image:: /static/img/docs/account_creation_institutional_email.png
    :target: /static/img/docs/account_creation_institutional_email.png
    :alt: Google Account Creation Image (Use Your Institutional Email)
-
-|
-
-.. NOTE::
-    You will create and USE A GOOGLE ACCOUNT, NOT A GMAIL ACCOUNT. Learn more about setting up Google Accounts `here <https://support.google.com/google-ads/answer/1722060?hl=en>`_.
 
 |
 
