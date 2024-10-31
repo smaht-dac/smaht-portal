@@ -857,11 +857,7 @@ class File(Item, CoreFile):
                 )
             ),
             constants.DATA_GENERATION_TARGET_COVERAGE: (
-                get_property_values_from_identifiers(
-                    request_handler,
-                    file_utils.get_sequencings(file_properties, request_handler),
-                    sequencing_utils.get_target_coverage
-                )
+                self._get_group_coverage(request_handler, file_properties)
             ),
             constants.DATA_GENERATION_TARGET_READ_COUNT: (
                 get_property_values_from_identifiers(
@@ -874,6 +870,20 @@ class File(Item, CoreFile):
         return {
             key: value for key, value in to_include.items() if value
         }
+    
+    def _get_group_coverage(
+        self, request_handler: Request, file_properties: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """"Get group coverage for display on file overview page.
+        
+        Use override_group_coverage if present, otherwise grab target_coverage from sequencing."""
+        if (override_group_coverage := file_utils.get_override_group_coverage(file_properties)):
+            return [override_group_coverage]
+        return get_property_values_from_identifiers(
+            request_handler,
+            file_utils.get_sequencings(file_properties, request_handler),
+            sequencing_utils.get_target_coverage
+        )
 
     def _get_sample_summary(
         self, request: Request, file_sets: Optional[List[str]] = None
