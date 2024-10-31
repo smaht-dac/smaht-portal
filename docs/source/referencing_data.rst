@@ -22,16 +22,6 @@ In the submission spreadsheet (See `Getting Started with Submissions <docs/submi
 
 For data types submitted by your own or another submission center, the unique identifier can be the submitted_id or accession of the item.
 
-In the submission spreadsheet (See `Getting Started with Submissions <docs/submission/getting-started-with-submissions>`_), columns that are italicized indicate fields that should be unique identifiers for items of another type.
-For example, FileSet items require links to Library and Sequencing items.
-
-.. image:: /static/img/docs/file_set_screenshot.png
-  :target: /static/img/docs/file_set_screenshot.png
-  :alt: FileSet Screenshot
-
-
-For data types submitted by your own or another submission center, the unique identifier can be the submitted_id or accession of the item.
-
 .. TIP::
   You need to be logged in to the SMaHT data portal in order to actually see the data at the links below.
 
@@ -58,7 +48,7 @@ To find an existing identifier, accession, or UUID on the portal, you can use th
 
 .. |Sequencers| raw:: html
 
-   <a href="/search/?type=Sequencer", target="_blank">Sequencers</a>
+   <a href="/search/?type=Sequencer" target="_blank">Sequencers</a>
 
 
 |Assays|
@@ -66,14 +56,14 @@ To find an existing identifier, accession, or UUID on the portal, you can use th
 
 .. |Assays| raw:: html
 
-   <a href="/search/?type=Assay", target="_blank">Assays</a>
+   <a href="/search/?type=Assay" target="_blank">Assays</a>
 
 |ReferenceGenomes|
 ^^^^^^^^^^^^^^^^^^
 
 .. |ReferenceGenomes| raw:: html
 
-   <a href="/search/?type=ReferenceGenome", target="_blank">ReferenceGenomes</a>
+   <a href="/search/?type=ReferenceGenome" target="_blank">ReferenceGenomes</a>
 
 
 FileFormats
@@ -90,22 +80,22 @@ Each file type available in the database accepts a limited selection of file for
 
 .. |UnalignedReads| raw:: html
 
-   <a href="/search/?type=FileFormat&valid_item_types=UnalignedReads", target="_blank">UnalignedReads</a>
+   <a href="/search/?type=FileFormat&valid_item_types=UnalignedReads" target="_blank">UnalignedReads</a>
 
 
 .. |AlignedReads| raw:: html
 
-   <a href="/search/?type=FileFormat&valid_item_types=AlignedReads", target="_blank">AlignedReads</a>
+   <a href="/search/?type=FileFormat&valid_item_types=AlignedReads" target="_blank">AlignedReads</a>
 
 
 .. |VariantCalls| raw:: html
 
-   <a href="/search/?type=FileFormat&valid_item_types=VariantCalls", target="_blank">VariantCalls</a>
+   <a href="/search/?type=FileFormat&valid_item_types=VariantCalls" target="_blank">VariantCalls</a>
 
 
 .. |SupplementaryFile| raw:: html
 
-   <a href="/search/?type=FileFormat&valid_item_types=SupplementaryFile", target="_blank">SupplementaryFile</a>
+   <a href="/search/?type=FileFormat&valid_item_types=SupplementaryFile" target="_blank">SupplementaryFile</a>
 
 
 Data Submitted by the Consortium
@@ -124,7 +114,7 @@ To find Submitted IDs for existing items, you can use the links below. These lin
 
 .. |Donors| raw:: html
 
-   <a href="/search/?type=Donor", target="_blank">Donors</a>
+   <a href="/search/?type=Donor" target="_blank">Donors</a>
 
 
 |Tissues|
@@ -132,7 +122,7 @@ To find Submitted IDs for existing items, you can use the links below. These lin
 
 .. |Tissues| raw:: html
 
-   <a href="/search/?type=Tissue", target="_blank">Tissues</a>
+   <a href="/search/?type=Tissue" target="_blank">Tissues</a>
 
 
 |CellCultures|
@@ -140,7 +130,7 @@ To find Submitted IDs for existing items, you can use the links below. These lin
 
 .. |CellCultures| raw:: html
 
-   <a href="/search/?type=CellCulture", target="_blank">CellCultures</a>
+   <a href="/search/?type=CellCulture" target="_blank">CellCultures</a>
 
 
 |Samples|
@@ -148,7 +138,7 @@ To find Submitted IDs for existing items, you can use the links below. These lin
 
 .. |Samples| raw:: html
 
-   <a href="/search/?type=Sample", target="_blank">Samples</a>
+   <a href="/search/?type=Sample" target="_blank">Samples</a>
 
 
 |Analytes|
@@ -156,7 +146,7 @@ To find Submitted IDs for existing items, you can use the links below. These lin
 
 .. |Analytes| raw:: html
 
-   <a href="/search/?type=Analyte", target="_blank">Analytes</a>
+   <a href="/search/?type=Analyte" target="_blank">Analytes</a>
 
 
 |Libraries|
@@ -164,7 +154,7 @@ To find Submitted IDs for existing items, you can use the links below. These lin
 
 .. |Libraries| raw:: html
 
-   <a href="/search/?type=Library", target="_blank">Libraries</a>
+   <a href="/search/?type=Library" target="_blank">Libraries</a>
 
 
 |FileSets|
@@ -172,7 +162,7 @@ To find Submitted IDs for existing items, you can use the links below. These lin
 
 .. |FileSets| raw:: html
 
-   <a href="/search/?type=FileSet", target="_blank">FileSets</a>
+   <a href="/search/?type=FileSet" target="_blank">FileSets</a>
 
 
 |Files|
@@ -180,7 +170,7 @@ To find Submitted IDs for existing items, you can use the links below. These lin
 
 .. |Files| raw:: html
 
-   <a href="/search/?type=File", target="_blank">Files</a>
+   <a href="/search/?type=File" target="_blank">Files</a>
 
 
 |DonorSpecificAssembly|
@@ -188,7 +178,7 @@ To find Submitted IDs for existing items, you can use the links below. These lin
 
 .. |DonorSpecificAssembly| raw:: html
 
-   <a href="/search/?type=DonorSpecificAssembly", target="blank">DonorSpecificAssembly</a>
+   <a href="/search/?type=DonorSpecificAssembly" target="blank">DonorSpecificAssembly</a>
 
 
 |Software|
@@ -196,4 +186,4 @@ To find Submitted IDs for existing items, you can use the links below. These lin
 
 .. |Software| raw:: html
 
-   <a href="/search/?type=Software", target="_blank">Software</a>
+   <a href="/search/?type=Software" target="_blank">Software</a>
