@@ -16,7 +16,7 @@ Step 1: (for SMaHT Network Members) Get Registered with SMaHT OC
 
 Currently, portal access is granted only to SMaHT network members registered and verified by the Network Organization Center (OC). Please email the OC at `smahtsupport@gowustl.onmicrosoft.com <mailto:smahtsupport@gowustl.onmicrosoft.com>`_ to be registered. Please CC your PI in this e-mail for the verification process.
 
-To complete registration, Network members should provide their institutional email address in the SMaHT Network Directory from the OC. Note that you will need to use this email address to log into the SMaHT data portal. In order to be verified, users need to put complete information in the SMaHT Network Directory.
+To complete registration, Network members should provide **their institutional email address** in the SMaHT Network Directory from the OC, which you need to use to log into the SMaHT Data Portal. In order to be verified, users need to put complete information in the SMaHT Network Directory.
 
 
 
@@ -35,7 +35,7 @@ We will notify you once you are in our database. In the meantime, you can move o
 Step 3: Create a Google Account using Your Institutional Email
 --------------------------------------------------------------
 
-The DAC uses the `OAuth authentication system <https://auth0.com/intro-to-iam/what-is-oauth-2>`_ which will allow you to login with a Google account associated with the institutional email address you provided to DAC and OC. In order to use your institutional email address to log into the portal, you will need a Google Account registered with that email address.
+The DAC uses the `OAuth authentication system <https://auth0.com/intro-to-iam/what-is-oauth-2>`_ which will allow you to login using a Google account linked to your institutional email address in the SMaHT Network Directory. To use your institutional email address to log into the portal, you will need a Google Account registered with that email address.
 
 |
 
