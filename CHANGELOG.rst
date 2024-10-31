@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+
+0.107.5
+======
+
+`PR259: fix: target coverage and read count <https://github.com/smaht-dac/smaht-portal/pull/259>`_
+
+* Show total target coverage for wgs bam
+* Show target read count for rna-seq
+* Show N/A where unavailable
+
+
 0.107.4
 =======
 `PR 271: SN Links to Existing Data <https://github.com/smaht-dac/smaht-portal/pull/271>`_
