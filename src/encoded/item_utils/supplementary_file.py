@@ -82,7 +82,8 @@ def get_sequencings(
     """Get sequencings associated with file."""
     if request_handler:
         return get_property_values_from_identifiers(
-            request_handler, get_derived_from_file_sets(properties), 
+            request_handler,
+            get_derived_from_file_sets(properties, request_handler), 
             file_set_utils.get_sequencing
         )
     return properties.get("sequencing", [])

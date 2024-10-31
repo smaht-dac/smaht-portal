@@ -549,7 +549,7 @@ def test_libraries(es_testapp: TestApp, workbook: None) -> None:
 def assert_libraries_calcprop_matches_embeds(file: Dict[str, Any],request_handler: Optional[RequestHandler] = None) -> None:
     """Ensure 'libraries' calcprop matches file_sets.libraries."""
     if supp_file_utils.is_supplementary_file(file):
-        libraries_from_calcprop = item_utils.get_uuid(supp_file_utils.get_libraries(file))
+        libraries_from_calcprop = supp_file_utils.get_libraries(file)
         file_sets = supp_file_utils.get_derived_from_file_sets(file, request_handler)
         libraries_from_file_set = request_handler.get_items(
             get_property_values_from_identifiers(
@@ -612,6 +612,7 @@ def test_sequencing(es_testapp: TestApp, workbook: None) -> None:
 def assert_sequencing_calcprop_matches_embeds(file: Dict[str, Any], request_handler: Optional[RequestHandler] = None) -> None:
     """Ensure 'sequencing' calcprop matches file_sets.sequencing."""
     if supp_file_utils.is_supplementary_file(file):
+        import pdb; pdb.set_trace()
         sequencing_from_calcprop = supp_file_utils.get_sequencings(file)
         file_sets = supp_file_utils.get_derived_from_file_sets(file, request_handler)
         sequencing_from_file_set = request_handler.get_items(
@@ -668,7 +669,6 @@ def test_assays(es_testapp: TestApp, workbook: None) -> None:
 def assert_assays_calcprop_matches_embeds(file: Dict[str, Any], request_handler: Optional[RequestHandler] = None) -> None:
     """Ensure 'assays' calcprop matches file_sets.assay."""
     if supp_file_utils.is_supplementary_file(file):
-        import pdb; pdb.set_trace()
         assays_from_calcprop = supp_file_utils.get_assays(file)
         file_sets = supp_file_utils.get_derived_from_file_sets(file, request_handler)
         libraries = request_handler.get_items(
@@ -869,13 +869,42 @@ def assert_sample_sources_calcprop_matches_embeds(file: Dict[str, Any], request_
     if supp_file_utils.is_supplementary_file(file):
         sample_sources_from_calcprop = supp_file_utils.get_sample_sources(file)
         file_sets = supp_file_utils.get_derived_from_file_sets(file, request_handler)
+        libraries = request_handler.get_items(
+            get_property_values_from_identifiers(
+                request_handler,
+                file_sets,
+                file_set_utils.get_libraries
+            )
+        )
+        analytes = request_handler.get_items(
+            get_property_values_from_identifiers(
+                request_handler,
+                libraries,
+                library_utils.get_analytes
+            )
+        )
+        samples = request_handler.get_items(
+            get_property_values_from_identifiers(
+                request_handler,
+                analytes,
+                analyte_utils.get_samples
+            )
+        )
+        sample_sources = request_handler.get_items(
+            get_property_values_from_identifiers(
+                request_handler,
+                samples,
+                sample_utils.get_sample_sources
+            )
+        )
+        import pdb; pdb.set_trace()
     else:
         sample_sources_from_calcprop = file_utils.get_sample_sources(file)
         file_sets = file_utils.get_file_sets(file)
-    libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
-    analytes = get_unique_values(libraries, library_utils.get_analytes)
-    samples = get_unique_values(analytes, analyte_utils.get_samples)
-    sample_sources = get_unique_values(samples, sample_utils.get_sample_sources)
+        libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
+        analytes = get_unique_values(libraries, library_utils.get_analytes)
+        samples = get_unique_values(analytes, analyte_utils.get_samples)
+        sample_sources = get_unique_values(samples, sample_utils.get_sample_sources)
     assert_items_match(sample_sources_from_calcprop, sample_sources)
 
 
