@@ -191,7 +191,6 @@
 		}
 
 		.admonition {
-			background-color: #F7F2F8;
 			padding: 12px;
   			line-height: 24px;
   			margin-top: 24px;
@@ -214,21 +213,37 @@
 					margin-right: 4px;
 				}
 			}
-		}
 
-		.admonition.note {
-			background-color: #EEF4FF;
-
-			.admonition-title {
-				background-color: #5170AA;
+			&.tip {
+				background-color: #F7F2F8;
+	
+				.admonition-title {
+					background-color: #9278AF;
+				}
 			}
-		}
 
-		.admonition.important {
-			background-color: #EDFAE7;
+			&.note {
+				background-color: #EEF4FF;
 
-			.admonition-title {
-				background-color: #428446;
+				.admonition-title {
+					background-color: #5170AA;
+				}
+			}
+
+			&.important {
+				background-color: #EDFAE7;
+	
+				.admonition-title {
+					background-color: #428446;
+				}
+			}
+
+			&.info {
+				background-color: #F5FAFF;
+				.admonition-title {
+					background-color: #283887;
+				}
+		
 			}
 		}
 
@@ -1769,35 +1784,6 @@ div#popover-consortium-data-alluvial-table {
 	
 	span {
 		font-weight: 600;
-	}
-}
-
-// styles for tips and alerts - called "admonition" in RST pages
-.admonition {
-	padding: 12px;
-	line-height: 24px;
-	margin-top: 24px;
-
-	.admonition-title {
-		font-weight: 700;
-		display: block;
-		color: #fff;
-		padding: 6px 12px;
-		margin: -12px -12px 12px;
-	}
-	
-	&.tip {
-		background-color: #F7F2F8;
-		.admonition-title {
-			background-color: #9278AF;
-		}
-	}
-	&.info {
-		background-color: #F5FAFF;
-		.admonition-title {
-			background-color: #283887;
-		}
-
 	}
 }
 
