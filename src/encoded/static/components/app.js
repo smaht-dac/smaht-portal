@@ -1361,9 +1361,9 @@ export default class App extends React.PureComponent {
         let status;
 
         // `canonical` is meant to refer to the definitive URI for current resource.
-        // For example, https://data.4dnucleome.org/some-item, http://data.4dnucleome.org/some-item, http://www.data.4dnucleome.org/some-item
+        // For example, https://data.smaht.org/some-item, http://data.smaht.org/some-item, http://www.data.smaht.org/some-item
         // refer to same item, and `canonical` URL is the one that should be used when referring to or citing "/some-item".
-        // In our case, it is "https://data.4dnucleome.org/"; this canonical code may be deprecated as we always redirect to https and
+        // In our case, it is "https://data.smaht.org/"; this canonical code may be deprecated as we always redirect to https and
         // [wwww.]4dnuclome.org is a separate domain/site.
 
         if (context.canonical_uri) {

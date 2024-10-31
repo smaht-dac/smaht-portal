@@ -7,11 +7,46 @@ smaht-portal
 Change Log
 ----------
 
+0.107.4
+=======
+`PR 271: SN Links to Existing Data <https://github.com/smaht-dac/smaht-portal/pull/271>`_
+
+* Update text descriptions and add images for Links to Existing Data page
+
+
+0.107.3
+=======
+`PR 274: chore: add new TEnCATS assay to table <https://github.com/smaht-dac/smaht-portal/pull/274>`_
+
+* Update assay table with new TEnCATS assay
+
+
+=======
+0.107.2
+=======
+
+`PR 265: Bm links to existing data <https://github.com/smaht-dac/smaht-portal/pull/265>`_
+
+* Add two new links for SupplementaryFile and DonorSpecificAssembly items
+
+
+0.107.1
+=======
+
+`PR 281: Access table button and table styles <https://github.com/smaht-dac/smaht-portal/pull/281>`_
+
+* Bug fix: Make link buttons not underlined and access keys table reponsive for small and mid-size screens
+
+
 0.107.0
 =======
+
 `PR 235: Sn ExternalQualityMetric submission template <https://github.com/smaht-dac/smaht-portal/pull/235>`_
+
 * In `commands/write_submission_spreadsheets.py`:
+  
   * Add `--eqm [dsa duplexseq]` argument that grabs `tooltip`, `key`, and `derived_from` from the appropriate `ExternalQualityMetric` template and writes out to a new tab in the spreadsheet
+
 * Remove properties from DonorSpecificAssembly that are now on ExternalQualityMetric
 
 
