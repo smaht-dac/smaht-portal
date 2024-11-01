@@ -167,7 +167,7 @@ Table 1. Protocol IDs for SMaHT benchmarking tissues.
 | \* 1J and 1L tissues are collected, but not utilized for study.
 | \*\* Cores made (intact tissue).
 
-Table 1B. Protocol IDs for SMaHT production tissues.
+Table 2. Protocol IDs for SMaHT production tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
@@ -181,7 +181,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 </tr>
             </thead>
             <tbody class="table-border-inner">
-            <tr>
+                <tr>
                     <td>3A</td>
                     <td>Blood, Whole</td>
                     <td>Frozen</td>
@@ -323,8 +323,8 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 </tr>
                 <tr>
                     <td>3AC*</td>
-                    <td>Skin, Calf</td>
-                    <td>Fresh</td>
+                    <td>Dermal Fibroblast</td>
+                    <td>Cultured Cells</td>
                 </tr>
                 <tr>
                     <td>3AD</td>
@@ -357,16 +357,40 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                     <td>Fixed</td>
                 </tr>
                 <tr>
-                    <td>3AJ**</td>
+                    <td>3AJ</td>
                     <td>Brain</td>
                     <td>Fresh</td>
+                </tr>
+                <tr>
+                    <td>3AK</td>
+                    <td>Frontal Lobe, Brain, Left hemisphere</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3AL</td>
+                    <td>Temporal Lobe, Brain, Left hemisphere</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3AM</td>
+                    <td>Cerebellum, Brain, Left hemisphere</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3AN</td>
+                    <td>Hippocampus, Brain, Left hemisphere</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3AO</td>
+                    <td>Hippocampus, Brain, Left hemisphere</td>
+                    <td>Frozen</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-| \* 3AC will be used to isolate fibroblasts. Could potentially still use "3AC" protocol for fibroblasts, but will need discussion.
-| \*\* 3AJ Will be frozen and subsectioned by NBB-Maryland. Will need subsection IDs from NBB-Maryland.
+| \* Fibroblasts isolated from fresh calf skin.
 
 
 Part 2: Base Schema, Platform, and Assay Codes
