@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.107.5
+=======
+`PR 283: SN Ploidy fix <https://github.com/smaht-dac/smaht-portal/pull/283>`_
+
+* Re-add `ploidy` property to DonorSpecificAssembly
+
 0.107.4
 =======
 `PR 271: SN Links to Existing Data <https://github.com/smaht-dac/smaht-portal/pull/271>`_
