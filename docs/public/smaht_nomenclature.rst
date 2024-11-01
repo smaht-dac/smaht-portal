@@ -468,191 +468,223 @@ Table 3B. Experimental Assay Codes.
             <thead class="thead-smaht table-borderless">
                 <tr>
                     <th>Code</th>
-                    <th>DNA/RNA/Others</th>
-                    <th>Assay Level</th>
-                    <th>Assay Type</th>
+                    <th>Assay Name</th>
+                    <th>Description</th>
                 </tr>
             </thead>
             <tbody class="table-border-inner">
                 <tr>
                     <td>000</td>
-                    <td>Null or N/A</td>
                     <td></td>
-                    <td></td>
+                    <td>(Null or not-applicable)</td>
                 </tr>
-                <tr class="table-stripe-secondary text-600">
-                    <td></td>
-                    <td>DNA below</td>
-                    <td></td>
-                    <td></td>
+                <tr class="table-stripe-secondary text-600 fst-italic">
+                    <td colspan="3">[001-100: DNA-based assays]</td>
                 </tr>
                 <tr>
                     <td>001</td>
-                    <td>DNA, PCR-free</td>
-                    <td>Bulk</td>
-                    <td>Whole genome sequencing (WGS)</td>
+                    <td>WGS</td>
+                    <td>DNA, PCR-free, Bulk, Whole genome sequencing (WGS)</td>
                 </tr>
                 <tr>
                     <td>002</td>
-                    <td>DNA</td>
-                    <td>Bulk</td>
-                    <td>WGS</td>
+                    <td>PCR WGS</td>
+                    <td>DNA PCR, Bulk, WGS</td>
                 </tr>
                 <tr>
                     <td>003</td>
-                    <td>DNA</td>
-                    <td>Bulk</td>
-                    <td>Ultra-Long HMW WGS</td>
+                    <td>Ultra-Long WGS</td>
+                    <td>DNA, PCR-free, Bulk, Ultra-Long WGS</td>
                 </tr>
                 <tr>
                     <td>004</td>
-                    <td>DNA</td>
-                    <td>Bulk</td>
                     <td>Fiber-seq</td>
+                    <td>DNA, PCR-free, Bulk, Fiber-seq</td>
                 </tr>
                 <tr>
                     <td>005</td>
-                    <td>DNA</td>
-                    <td>Bulk</td>
                     <td>Hi-C</td>
+                    <td>DNA, Bulk, Hi-C</td>
                 </tr>
                 <tr>
                     <td>006</td>
-                    <td>DNA</td>
-                    <td>Bulk</td>
-                    <td>NTSeq</td>
+                    <td>Bulk NTSeq</td>
+                    <td>DNA, Bulk, NTSeq</td>
                 </tr>
                 <tr>
                     <td>007</td>
-                    <td>DNA</td>
-                    <td>Single-molecule</td>
                     <td>CODEC</td>
+                    <td>DNA, Bulk, Duplex-seq, CODEC</td>
                 </tr>
                 <tr>
                     <td>008</td>
-                    <td>DNA</td>
-                    <td>Single-molecule</td>
-                    <td>Duplex sequencing</td>
+                    <td>Bot-seq</td>
+                    <td>DNA, Bulk, Duplex-seq, Bot-seq</td>
                 </tr>
                 <tr>
                     <td>009</td>
-                    <td>DNA</td>
-                    <td>Single-molecule</td>
                     <td>NanoSeq</td>
+                    <td>DNA, Bulk, Duplex-seq, NanoSeq</td>
                 </tr>
                 <tr>
                     <td>010</td>
-                    <td>DNA</td>
-                    <td>Single-molecule, single-cell</td>
                     <td>scNanoSeq</td>
+                    <td>DNA, Single-cell, Duplex-seq, scNanoSeq</td>
                 </tr>
                 <tr>
                     <td>011</td>
-                    <td>DNA</td>
-                    <td>Single-cell</td>
                     <td>DLP+</td>
+                    <td>DNA, Single-cell, DLP+</td>
                 </tr>
                 <tr>
                     <td>012</td>
-                    <td>DNA</td>
-                    <td>Single-cell</td>
-                    <td>MALBAC-amplified WGS</td>
+                    <td>Microbulk MALBAC WGS</td>
+                    <td>DNA, Microbulk, MALBAC-amplified WGS</td>
                 </tr>
                 <tr>
                     <td>013</td>
-                    <td>DNA</td>
-                    <td>Single-cell</td>
-                    <td>PTA-amplified WGS</td>
+                    <td>Single-cell MALBAC WGS</td>
+                    <td>DNA, Single-cell, MALBAC-amplified WGS</td>
                 </tr>
                 <tr>
                     <td>014</td>
-                    <td>DNA</td>
-                    <td>Single-cell</td>
-                    <td>scDip-C</td>
+                    <td>Microbulk PTA WGS</td>
+                    <td>DNA, Microbulk, PTA-amplified WGS</td>
                 </tr>
                 <tr>
                     <td>015</td>
-                    <td>DNA</td>
-                    <td>Single-molecule</td>
-                    <td>CompDuplex-seq</td>
+                    <td>Single-cell PTA WGS</td>
+                    <td>DNA, Single-cell, PTA-amplified WGS</td>
                 </tr>
                 <tr>
                     <td>016</td>
-                    <td>DNA</td>
-                    <td>Single-molecule, single-cell</td>
-                    <td>scCompDuplex-seq</td>
+                    <td>scDip-C</td>
+                    <td>DNA, Single-cell, scDip-C</td>
                 </tr>
                 <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td class="cell-small-text pt-1 pb-1">(include additional DNA assays)</td>
+                    <td>017</td>
+                    <td>CompDuplex-seq</td>
+                    <td>DNA, Bulk, Duplex-seq, CompDuplex-seq</td>
                 </tr>
-                <tr class="table-stripe-secondary text-600">
-                    <td></td>
-                    <td>RNA below</td>
-                    <td></td>
-                    <td></td>
+                <tr>
+                    <td>018</td>
+                    <td>scCompDuplex-seq</td>
+                    <td>DNA, Single-cell, Duplex-seq, scCompDuplex-seq</td>
+                </tr>
+                <tr>
+                    <td>019</td>
+                    <td>Strand-seq</td>
+                    <td>DNA, Bulk, Strand-seq</td>
+                </tr>
+                <tr>
+                    <td>020</td>
+                    <td>scStrand-seq</td>
+                    <td>DNA, Single-cell, scStrand-seq</td>
+                </tr>
+                <tr>
+                    <td>021</td>
+                    <td>HiDEF-seq</td>
+                    <td>DNA, Bulk, Duplex-seq, HiDEF-seq</td>
+                </tr>
+                <tr>
+                    <td>022</td>
+                    <td>HAT-seq</td>
+                    <td>DNA, Bulk, HAT-seq</td>
+                </tr>
+                <tr>
+                    <td>023</td>
+                    <td>Microbulk HAT-seq</td>
+                    <td>DNA, Microbulk, PTA-amplified HAT-seq</td>
+                </tr>
+                <tr>
+                    <td>024</td>
+                    <td>scHAT-seq</td>
+                    <td>DNA, Single-cell, PTA-amplified, HAT-seq</td>
+                </tr>
+                <tr>
+                    <td>025</td>
+                    <td>VISTA-seq</td>
+                    <td>DNA, Bulk, Duplex-seq, VISTA-seq</td>
+                </tr>
+                <tr>
+                    <td>026</td>
+                    <td>Microbulk VISTA-seq</td>
+                    <td>DNA, Microbulk, Duplex-seq, VISTA-seq</td>
+                </tr>
+                <tr>
+                    <td>027</td>
+                    <td>scVISTA-seq</td>
+                    <td>DNA, Single-cell, Duplex-seq, VISTA-seq</td>
+                </tr>
+                <tr>
+                    <td>028</td>
+                    <td>TEnCATS</td>
+                    <td>DNA, Bulk, TEnCATS</td>
+                </tr>
+                <tr>
+                    <td>029</td>
+                    <td>L1-ONT</td>
+                    <td>DNA, Bulk, L1-ONT</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="pb-3 pt-07"></td>
+                </tr>
+                <tr class="table-stripe-secondary fst-italic text-600">
+                    <td colspan="3">[101-200: RNA-based assays]</td>
                 </tr>
                 <tr>
                     <td>101</td>
-                    <td>RNA</td>
-                    <td>Bulk</td>
                     <td>RNA-seq</td>
+                    <td>RNA, Bulk, RNA-seq</td>
                 </tr>
                 <tr>
                     <td>102</td>
-                    <td>RNA</td>
-                    <td>Bulk</td>
-                    <td>MAS-ISO-Seq</td>
+                    <td>Kinnex</td>
+                    <td>RNA, Bulk, Kinnex</td>
                 </tr>
                 <tr>
                     <td>103</td>
-                    <td>RNA</td>
-                    <td>Single-cell/nucleus</td>
-                    <td>snRNA-Seq</td>
+                    <td>snRNA-seq</td>
+                    <td>RNA, Single-cell, snRNA-seq</td>
                 </tr>
                 <tr>
                     <td>104</td>
-                    <td>RNA</td>
-                    <td>Single-cell/nucleus</td>
                     <td>STORM-Seq</td>
+                    <td>RNA, Single-cell, STORM-seq</td>
                 </tr>
                 <tr>
                     <td>105</td>
-                    <td>RNA</td>
-                    <td>Single-cell/nucleus</td>
                     <td>Tranquil-Seq</td>
+                    <td>RNA, Single-cell, Tranquil-seq</td>
                 </tr>
                 <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td class="cell-small-text pt-1 pb-1">(include additional RNA assays)</td>
+                    <td colspan="3" class="pb-3 pt-07"></td>
                 </tr>
-                <tr class="table-stripe-secondary text-600">
-                    <td></td>
-                    <td>Epigenetics below</td>
-                    <td></td>
-                    <td></td>
+                <tr class="table-stripe-secondary fst-italic text-600">
+                    <td colspan="3">[201-300: Chromatin-based assays]</td>
                 </tr>
                 <tr>
                     <td>201</td>
-                    <td></td>
-                    <td></td>
-                    <td class="cell-small-text pt-1 pb-1">(include additional epigenetic assays)</td>
-                </tr>
-                <tr class="table-stripe-secondary text-600">
-                    <td></td>
-                    <td>Others below</td>
-                    <td></td>
-                    <td></td>
+                    <td>ATAC-seq</td>
+                    <td>Chromatin, Bulk, ATAC-seq</td>
                 </tr>
                 <tr>
-                    <td>301</td>
-                    <td></td>
-                    <td></td>
-                    <td class="cell-small-text ">(include additional assays)</td>
+                    <td>202</td>
+                    <td>CUT&Tag</td>
+                    <td>Chromatin, Bulk, CUT&Tag</td>
+                </tr>
+                <tr>
+                    <td>203</td>
+                    <td>varCUT&Tag</td>
+                    <td>Chromatin, Bulk, varCUT&Tag</td>
+                </tr>
+                <tr>
+                    <td>204</td>
+                    <td>sc-varCUT&Tag</td>
+                    <td>Chromatin, Single-cell, sc-varCUT&Tag</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="pb-3 pt-07"></td>
                 </tr>
             </tbody>
         </table>
