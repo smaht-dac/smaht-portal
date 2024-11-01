@@ -77,7 +77,7 @@ Naming Schema
 
 
 
-Table 1A. Protocol IDs for SMaHT benchmarking tissues.
+Table 1. Protocol IDs for SMaHT benchmarking tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
@@ -96,6 +96,11 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Liver</td>
                     <td>Frozen; homogenized</td>
                 </tr>
+                <tr class="text-muted fst-italic">
+                    <td>1B</td>
+                    <td>unassigned</td>
+                    <td>N/A</td>
+                </tr>
                 <tr>
                     <td>1C</td>
                     <td>Liver</td>
@@ -106,6 +111,11 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Lung</td>
                     <td>Frozen; homogenized</td>
                 </tr>
+                <tr class="text-muted fst-italic">
+                    <td>1E</td>
+                    <td>unassigned</td>
+                    <td>N/A</td>
+                </tr>
                 <tr>
                     <td>1F</td>
                     <td>Lung</td>
@@ -115,6 +125,11 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>1G</td>
                     <td>Colon</td>
                     <td>Frozen; homogenized</td>
+                </tr>
+                <tr class="text-muted fst-italic">
+                    <td>1H</td>
+                    <td>unassigned</td>
+                    <td>N/A</td>
                 </tr>
                 <tr>
                     <td>1I</td>
@@ -135,6 +150,11 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>1L*</td>
                     <td>Skin</td>
                     <td>Fixed</td>
+                </tr>
+                <tr class="text-muted fst-italic">
+                    <td>1M/N/O/P</td>
+                    <td>unassigned</td>
+                    <td>N/A</td>
                 </tr>
                 <tr>
                     <td>1Q</td>
