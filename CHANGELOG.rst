@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.109.0
+=======
+* 2024-11-04/dmichaels
+* Fix for unexpected-sid validation-error (snovaul5t11.23.0).
+* Updated rsa library version (4.9) from vulnerability scan alerts for CVE-2020-13757).
+* Updated idna library version (3.10) (from vulnerability scan alerts for CVE-2024-3651).
+
+
 0.108.0
 =======
 `PR 279: BM Create Account Doc <https://github.com/smaht-dac/smaht-portal/pull/279>`_
