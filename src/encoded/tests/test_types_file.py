@@ -520,17 +520,13 @@ def test_libraries(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    request_handler = RequestHandler(test_app=es_testapp)
     search_key = "file_sets.libraries.uuid"
     file_without_libraries_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
     assert file_without_libraries_search
     for file in file_without_libraries_search:
-        if supp_file_utils.is_supplementary_file(file):
-            assert_libraries_calcprop_matches_embeds(file, request_handler)
-        else:
-            assert not file_utils.get_libraries(file)
+        assert not file_utils.get_libraries(file)
     submitted_file_with_libraries_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
     )
@@ -546,22 +542,11 @@ def test_libraries(es_testapp: TestApp, workbook: None) -> None:
         assert_libraries_calcprop_matches_embeds(output_file)
 
 
-def assert_libraries_calcprop_matches_embeds(file: Dict[str, Any],request_handler: Optional[RequestHandler] = None) -> None:
+def assert_libraries_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'libraries' calcprop matches file_sets.libraries."""
-    if supp_file_utils.is_supplementary_file(file):
-        libraries_from_calcprop = supp_file_utils.get_libraries(file)
-        file_sets = supp_file_utils.get_derived_from_file_sets(file, request_handler)
-        libraries_from_file_set = request_handler.get_items(
-            get_property_values_from_identifiers(
-                request_handler,
-                file_sets,
-                file_set_utils.get_libraries
-            )
-        )
-    else:
-        libraries_from_calcprop = file_utils.get_libraries(file)
-        file_sets = file_utils.get_file_sets(file)
-        libraries_from_file_set = get_unique_values(file_sets, file_set_utils.get_libraries)
+    libraries_from_calcprop = file_utils.get_libraries(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries_from_file_set = get_unique_values(file_sets, file_set_utils.get_libraries)
     assert_items_match(libraries_from_calcprop, libraries_from_file_set)
 
 
@@ -582,17 +567,13 @@ def test_sequencing(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    request_handler = RequestHandler(test_app=es_testapp)
     search_key = "file_sets.sequencing.uuid"
     file_without_sequencing_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
     assert file_without_sequencing_search
     for file in file_without_sequencing_search:
-        if supp_file_utils.is_supplementary_file(file):
-            assert_sequencing_calcprop_matches_embeds(file, request_handler)
-        else:
-            assert not file_utils.get_sequencings(file)
+        assert not file_utils.get_sequencings(file)
 
     submitted_file_with_sequencing_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
@@ -609,25 +590,13 @@ def test_sequencing(es_testapp: TestApp, workbook: None) -> None:
         assert_sequencing_calcprop_matches_embeds(output_file)
 
 
-def assert_sequencing_calcprop_matches_embeds(file: Dict[str, Any], request_handler: Optional[RequestHandler] = None) -> None:
+def assert_sequencing_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'sequencing' calcprop matches file_sets.sequencing."""
-    if supp_file_utils.is_supplementary_file(file):
-        import pdb; pdb.set_trace()
-        sequencing_from_calcprop = supp_file_utils.get_sequencings(file)
-        file_sets = supp_file_utils.get_derived_from_file_sets(file, request_handler)
-        sequencing_from_file_set = request_handler.get_items(
-            get_property_values_from_identifiers(
-                request_handler,
-                file_sets,
-                file_set_utils.get_sequencing
-            )
-        )
-    else:
-        sequencing_from_calcprop = file_utils.get_sequencings(file)
-        file_sets = file_utils.get_file_sets(file)
-        sequencing_from_file_set = get_unique_values(
-            file_sets, file_set_utils.get_sequencing
-        )
+    sequencing_from_calcprop = file_utils.get_sequencings(file)
+    file_sets = file_utils.get_file_sets(file)
+    sequencing_from_file_set = get_unique_values(
+        file_sets, file_set_utils.get_sequencing
+    )
     assert_items_match(sequencing_from_calcprop, sequencing_from_file_set)
 
 
@@ -639,24 +608,20 @@ def test_assays(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    request_handler = RequestHandler(test_app=es_testapp)
     search_key = "file_sets.libraries.assay.uuid"
     file_without_assays_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
     assert file_without_assays_search
     for file in file_without_assays_search:
-        if supp_file_utils.is_supplementary_file(file):
-            assert_assays_calcprop_matches_embeds(file, request_handler)
-        else:
-            assert not file_utils.get_assays(file)
+        assert not file_utils.get_assays(file)
 
     submitted_file_with_assays_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
     )
     assert submitted_file_with_assays_search
     for submitted_file in submitted_file_with_assays_search:
-        assert_assays_calcprop_matches_embeds(submitted_file, request_handler)
+        assert_assays_calcprop_matches_embeds(submitted_file)
 
     output_file_with_assays_search = search_type_for_key(
         es_testapp, "OutputFile", search_key
@@ -666,30 +631,12 @@ def test_assays(es_testapp: TestApp, workbook: None) -> None:
         assert_assays_calcprop_matches_embeds(output_file)
 
 
-def assert_assays_calcprop_matches_embeds(file: Dict[str, Any], request_handler: Optional[RequestHandler] = None) -> None:
+def assert_assays_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'assays' calcprop matches file_sets.assay."""
-    if supp_file_utils.is_supplementary_file(file):
-        assays_from_calcprop = supp_file_utils.get_assays(file)
-        file_sets = supp_file_utils.get_derived_from_file_sets(file, request_handler)
-        libraries = request_handler.get_items(
-            get_property_values_from_identifiers(
-                request_handler,
-                file_sets,
-                file_set_utils.get_libraries
-            )
-        )
-        assays = request_handler.get_items(
-            get_property_values_from_identifiers(
-                request_handler,
-                libraries,
-                library_utils.get_assay
-            )
-        )
-    else:
-        assays_from_calcprop = file_utils.get_assays(file)
-        file_sets = file_utils.get_file_sets(file)
-        libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
-        assays = get_unique_values(libraries, library_utils.get_assay)
+    assays_from_calcprop = file_utils.get_assays(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
+    assays = get_unique_values(libraries, library_utils.get_assay)
     assert_items_match(assays_from_calcprop, assays)
 
 
@@ -708,17 +655,14 @@ def test_analytes(es_testapp: TestApp, workbook: None) -> None:
     )
     assert file_without_analytes_search
     for file in file_without_analytes_search:
-        if supp_file_utils.is_supplementary_file(file):
-            assert_analytes_calcprop_matches_embeds(file, request_handler)
-        else:
-            assert not file_utils.get_analytes(file)
+        assert not file_utils.get_analytes(file)
 
     submitted_file_with_analytes_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
     )
     assert submitted_file_with_analytes_search
     for submitted_file in submitted_file_with_analytes_search:
-        assert_analytes_calcprop_matches_embeds(submitted_file, request_handler)
+        assert_analytes_calcprop_matches_embeds(submitted_file)
 
     output_file_with_analytes_search = search_type_for_key(
         es_testapp, "OutputFile", search_key
@@ -728,30 +672,12 @@ def test_analytes(es_testapp: TestApp, workbook: None) -> None:
         assert_analytes_calcprop_matches_embeds(output_file)
 
 
-def assert_analytes_calcprop_matches_embeds(file: Dict[str, Any], request_handler: Optional[RequestHandler] = None) -> None:
+def assert_analytes_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'analytes' calcprop matches file_sets.libraries.analytes."""
-    if supp_file_utils.is_supplementary_file(file):
-        analytes_from_calcprop = supp_file_utils.get_analytes(file)
-        file_sets = supp_file_utils.get_derived_from_file_sets(file, request_handler)
-        libraries = request_handler.get_items(
-            get_property_values_from_identifiers(
-                request_handler,
-                file_sets,
-                file_set_utils.get_libraries
-            )
-        )
-        analytes = request_handler.get_items(
-            get_property_values_from_identifiers(
-                request_handler,
-                libraries,
-                library_utils.get_analytes
-            )
-        )
-    else:
-        analytes_from_calcprop = file_utils.get_analytes(file)
-        file_sets = file_utils.get_file_sets(file)
-        libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
-        analytes = get_unique_values(libraries, library_utils.get_analytes)
+    analytes_from_calcprop = file_utils.get_analytes(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
+    analytes = get_unique_values(libraries, library_utils.get_analytes)
     assert_items_match(analytes_from_calcprop, analytes)
 
 
@@ -763,24 +689,20 @@ def test_samples(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    request_handler = RequestHandler(test_app = es_testapp)
     search_key = "file_sets.libraries.analytes.samples.uuid"
     file_without_samples_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
     assert file_without_samples_search
     for file in file_without_samples_search:
-        if supp_file_utils.is_supplementary_file(file):
-            assert_samples_calcprop_includes_embeds(file, request_handler)
-        else:
-            assert not file_utils.get_samples(file)
+        assert not file_utils.get_samples(file)
 
     submitted_file_with_samples_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
     )
     assert submitted_file_with_samples_search
     for submitted_file in submitted_file_with_samples_search:
-        assert_samples_calcprop_includes_embeds(submitted_file, request_handler)
+        assert_samples_calcprop_includes_embeds(submitted_file)
 
     output_file_with_samples_search = search_type_for_key(
         es_testapp, "OutputFile", search_key
@@ -790,32 +712,21 @@ def test_samples(es_testapp: TestApp, workbook: None) -> None:
         assert_samples_calcprop_includes_embeds(output_file)
 
 
-def assert_samples_calcprop_includes_embeds(file: Dict[str, Any], request_handler: Optional[RequestHandler] = None) -> None:
+def assert_samples_calcprop_includes_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'samples' calcprop includes file_sets.libraries.analytes.samples.
 
     Due to inclusion of parent samples, the calcprop may include more
     samples than are directly embedded.
     """
-    if supp_file_utils.is_supplementary_file(file):
-        samples_from_calcprop = supp_file_utils.get_samples(file)
-        file_sets = supp_file_utils.get_derived_from_file_sets(file, request_handler)
-        samples = request_handler.get_items(
-            get_property_values_from_identifiers(
-                request_handler,
-                file_sets,
-                file_set_utils.get_samples
-            )
-        )
+    samples_from_calcprop = file_utils.get_samples(file)
+    file_sets = file_utils.get_file_sets(file)
+    samples = get_unique_values(file_sets, file_set_utils.get_samples)
+    if samples:
+        assert_items_present(samples, samples_from_calcprop)
     else:
-        samples_from_calcprop = file_utils.get_samples(file)
-        file_sets = file_utils.get_file_sets(file)
-        samples = get_unique_values(file_sets, file_set_utils.get_samples)
-        if samples:
-            assert_items_present(samples, samples_from_calcprop)
-        else:
-            libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
-            analytes = get_unique_values(libraries, library_utils.get_analytes)
-            samples = get_unique_values(analytes, analyte_utils.get_samples)
+        libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
+        analytes = get_unique_values(libraries, library_utils.get_analytes)
+        samples = get_unique_values(analytes, analyte_utils.get_samples)
     assert_items_present(samples, samples_from_calcprop)
 
 
@@ -837,17 +748,13 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
 
     Calcprop expected on SubmittedFile and OutputFile.
     """
-    request_handler = RequestHandler(test_app = es_testapp)
     search_key = "file_sets.libraries.analytes.samples.sample_sources.uuid"
     file_without_sample_sources_search = search_type_for_key(
         es_testapp, "File", search_key, exists=False
     )
     assert file_without_sample_sources_search
     for file in file_without_sample_sources_search:
-        if supp_file_utils.is_supplementary_file(file):
-            assert_sample_sources_calcprop_matches_embeds(file, request_handler)
-        else:
-            assert not file_utils.get_sample_sources(file)
+        assert not file_utils.get_sample_sources(file)
 
     submitted_file_with_sample_sources_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
@@ -864,47 +771,14 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
         assert_sample_sources_calcprop_matches_embeds(output_file)
 
 
-def assert_sample_sources_calcprop_matches_embeds(file: Dict[str, Any], request_handler: Optional[RequestHandler] = None) -> None:
+def assert_sample_sources_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     """Ensure 'sample_sources' calcprop matches upstream sample sources."""
-    if supp_file_utils.is_supplementary_file(file):
-        sample_sources_from_calcprop = supp_file_utils.get_sample_sources(file)
-        file_sets = supp_file_utils.get_derived_from_file_sets(file, request_handler)
-        libraries = request_handler.get_items(
-            get_property_values_from_identifiers(
-                request_handler,
-                file_sets,
-                file_set_utils.get_libraries
-            )
-        )
-        analytes = request_handler.get_items(
-            get_property_values_from_identifiers(
-                request_handler,
-                libraries,
-                library_utils.get_analytes
-            )
-        )
-        samples = request_handler.get_items(
-            get_property_values_from_identifiers(
-                request_handler,
-                analytes,
-                analyte_utils.get_samples
-            )
-        )
-        sample_sources = request_handler.get_items(
-            get_property_values_from_identifiers(
-                request_handler,
-                samples,
-                sample_utils.get_sample_sources
-            )
-        )
-        import pdb; pdb.set_trace()
-    else:
-        sample_sources_from_calcprop = file_utils.get_sample_sources(file)
-        file_sets = file_utils.get_file_sets(file)
-        libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
-        analytes = get_unique_values(libraries, library_utils.get_analytes)
-        samples = get_unique_values(analytes, analyte_utils.get_samples)
-        sample_sources = get_unique_values(samples, sample_utils.get_sample_sources)
+    sample_sources_from_calcprop = file_utils.get_sample_sources(file)
+    file_sets = file_utils.get_file_sets(file)
+    libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
+    analytes = get_unique_values(libraries, library_utils.get_analytes)
+    samples = get_unique_values(analytes, analyte_utils.get_samples)
+    sample_sources = get_unique_values(samples, sample_utils.get_sample_sources)
     assert_items_match(sample_sources_from_calcprop, sample_sources)
 
 
@@ -927,15 +801,11 @@ def test_donors(es_testapp: TestApp, workbook: None) -> None:
     assert file_without_donors_search
     request_handler = RequestHandler(test_app=es_testapp)
     for file in file_without_donors_search:
-        if supp_file_utils.is_supplementary_file(file):
-            cell_lines = supp_file_utils.get_cell_lines(file, request_handler)
-            assert_cell_line_donors_match_calcprop(file, request_handler, cell_lines)
+        cell_lines = file_utils.get_cell_lines(file, request_handler)
+        if cell_lines:
+            assert_cell_line_donors_match_calcprop(request_handler, file, cell_lines)
         else:
-            cell_lines = file_utils.get_cell_lines(file, request_handler)
-            if cell_lines:
-                assert_cell_line_donors_match_calcprop(request_handler, file, cell_lines)
-            else:
-                assert not file_utils.get_donors(file)
+            assert not file_utils.get_donors(file)
 
     submitted_file_with_donors_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
@@ -962,10 +832,7 @@ def assert_cell_line_donors_match_calcprop(
         request_handler, cell_lines, functools.partial(cell_line_utils.get_source_donor, request_handler)
     )
     donors = request_handler.get_items(donor_ids)
-    if supp_file_utils.is_supplementary_file(file):
-        assert_items_match(donors, supp_file_utils.get_donors(file))
-    else:
-        assert_items_match(donors, file_utils.get_donors(file))
+    assert_items_match(donors, file_utils.get_donors(file))
 
 
 def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
@@ -1216,13 +1083,13 @@ def assert_sample_summary_matches_expected(
     request_handler = RequestHandler(test_app=es_testapp)
     sample_summary = file_utils.get_sample_summary(file)
     if supp_file_utils.is_supplementary_file(file):
-        analytes = supp_file_utils.get_analytes(file)
+        analytes = supp_file_utils.get_analytes(file, request_handler)
         samples = [
             get_item(es_testapp, item_utils.get_uuid(sample))
-            for sample in supp_file_utils.get_samples(file)
+            for sample in supp_file_utils.get_samples(file, request_handler)
         ]
-        tissues = supp_file_utils.get_tissues(file)
-        donors = supp_file_utils.get_donors(file)
+        tissues = supp_file_utils.get_tissues(file, request_handler)
+        donors = supp_file_utils.get_donors(file, request_handler)
     else:
         analytes = file_utils.get_analytes(file)
         samples = [
