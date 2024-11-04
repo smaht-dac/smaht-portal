@@ -314,6 +314,10 @@ describe('Benchmarking Layout Test', function () {
                 }).end();
         });
 
+        after(function () {
+            cy.logoutSMaHT();
+        })
+
         it('Should collapse all facets', function () {
             cy.get('#slow-load-container').should('not.have.class', 'visible').end()
                 .get('.benchmarking-layout .icon-circle-notch').should('not.exist').end()
