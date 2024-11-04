@@ -8,6 +8,16 @@ describe('Deployment/CI Search View Tests', function () {
 
         before(function () {
             cy.visit('/search/', { headers: cypressVisitHeaders });
+            cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false }).end()
+                .get(navUserAcctDropdownBtnSelector)
+                .should('not.contain.text', 'Login')
+                .then((accountListItem) => {
+                    expect(accountListItem.text()).to.contain('SCM');
+                }).end();
+        });
+
+        after(function () {
+            cy.logoutSMaHT();
         });
 
         it('Has at least 50 results for /search/?type=Item', function () {
@@ -16,6 +26,80 @@ describe('Deployment/CI Search View Tests', function () {
                     expect($searchResultElems.length).to.equal(10);
                 }).end()
                 .searchPageTotalResultCount().should('be.greaterThan', 50);
+        });
+
+        it('Search `File` from Dropdown and Verify Link Selection', function () {
+            // Type "File" in the search input
+            cy.get('.facets-column .facets-container .expandable-list .form-control[type="search"]').type('File');
+
+            // Verify that all facet list elements contain "File"
+            cy.get('.facet-list-element[data-key]').each(($el) => {
+                cy.wrap($el).should('contain.text', 'File'); // Check each element for the text "File"
+            });
+
+            // Verify that unwanted results are not visible
+            cy.get('.facet-list-element[data-key]').should('not.contain.text', 'NotExpectedResult'); // Ensure unwanted result is absent
+
+            // Click on the "File" link
+            cy.get('li[data-key="File"] a').click();
+
+            // Verify the page title contains "File"
+            cy.get('#page-title-container .page-title').should('contain', 'File');
+        });
+
+        it('Should show/hide columns and ensure correct behavior in the results table', function () {
+            cy.get('.above-results-table-row button[data-tip="Configure visible columns"]').click().should('have.class', 'active');
+            cy.get('.search-result-config-panel').should('have.class', 'show');
+            cy.get('.search-result-config-panel .row .checkbox.clickable:not(.is-active)')
+                .first()
+                .click()
+                .should('have.class', 'is-active')
+                .find('label input')
+                .invoke('val')
+                .then((value) => {
+                    cy.get(`.search-results-container .search-headers-row div[data-field="${value}"]`)
+                        .should('exist')
+                        .then(($div) => {
+                            expect($div).to.have.attr('data-field', value);
+                        });
+
+
+                    cy.get(`.search-result-config-panel .row .checkbox.clickable.is-active input[value="${value}"]`)
+                        .click()
+                        .should('not.have.class', 'is-active')
+                        .then(() => {
+                            cy.get(`.search-results-container .search-headers-row div[data-field="${value}"]`)
+                                .should('not.exist');
+                        });
+                });
+
+            cy.get('.search-result-config-panel .close-button').click({ force: true })
+                .get('.search-result-config-panel').should('not.have.class', 'active');
+        });
+
+        it('Should redirect to detail view and check if the title matches data-tip', function () {
+            cy.get('.results-column .result-table-row div.search-result-column-block[data-field="display_title"] .title-block')
+                .first()
+                .scrollIntoView()
+                .then(($element) => {
+                    const dataTipValue = $element.attr('data-tip');
+
+                    cy.wrap($element)
+                        .find('a')
+                        .click({ force: true });
+
+                    cy.get('.file-view-title h1.file-view-title-text')
+                        .invoke('text')
+                        .then((text) => {
+                            expect(text.trim()).to.eq(dataTipValue);
+                        });
+                });
+        });
+
+        it('Should trigger batch files download modal and close it successfully', function () {
+            cy.get('#download_tsv_multiselect').click({ force: true }).end()
+                .get('div.modal.batch-files-download-modal').should('have.class', 'show').end()
+                .get('.modal-header .btn-close').click().end();
         });
 
     });
@@ -63,7 +147,7 @@ describe('Deployment/CI Search View Tests', function () {
             cy.logoutSMaHT();
         });
 
-        it('/files/ should redirect to /search/?type=File', function(){
+        it('/files/ should redirect to /search/?type=File', function () {
             cy.visit('/files/', { headers: cypressVisitHeaders }).location('search').should('include', 'type=File').end()
                 .location('pathname').should('include', '/search/');
         });

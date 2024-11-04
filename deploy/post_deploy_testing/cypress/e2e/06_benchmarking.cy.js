@@ -42,13 +42,6 @@ describe('Benchmarking Layout Test', function () {
         });
 
         it('Click & visit each page from menu, ensure ToC exists and works.', function () {
-            cy.on('uncaught:exception', (err) => {
-                if (err.message.includes("Did not get back a search response") || err.message.includes("return response;")) {
-                    Cypress.log({ name: "Negligible JSON err.", message: "Hit error re: non-serializable function; fixed in subsequent deploys." });
-                    return false;
-                }
-            });
-
             cy.get(dataNavBarItemSelectorStr).should('have.class', 'dropdown-toggle').click()
                 .should('have.class', 'dropdown-open-for')
                 .then(() => {
@@ -135,13 +128,6 @@ describe('Benchmarking Layout Test', function () {
         });
 
         it('Tests the collapsing and expanding of the toggle button.', function () {
-            cy.on('uncaught:exception', (err) => {
-                if (err.message.includes("Did not get back a search response") || err.message.includes("return response;")) {
-                    Cypress.log({ name: "Negligible JSON err.", message: "Hit error re: non-serializable function; fixed in subsequent deploys." });
-                    return false;
-                }
-            });
-
             cy.get('.benchmarking-nav-container .toggle-button')
                 .click({ force: true })
                 .should('have.attr', 'aria-expanded', 'false')
@@ -167,21 +153,10 @@ describe('Benchmarking Layout Test', function () {
         });
 
         after(function () {
-            cy.on('uncaught:exception', (err) => {
-                if (err.message.includes("Did not get back a search response")) {
-                    return false;
-                }
-            });
             cy.logoutSMaHT();
         });
 
         it('should check all checkboxes', () => {
-            cy.on('uncaught:exception', (err) => {
-                if (err.message.match(/hydrat/i) || err.message.includes("Did not get back a search response")) {
-                    return false;
-                }
-            });
-
             cy.get('#page-title-container .page-title').should('have.text', 'COLO829').end()
                 .get('.search-results-container .search-result-row .search-result-column-block input[type="checkbox"]').each(($checkBox) => {
                     checkFileCheckbox($checkBox).end();
@@ -254,13 +229,6 @@ describe('Benchmarking Layout Test', function () {
             let externalDataCount, initialDataCount, includeDataCount;
 
             // Handle specific uncaught exceptions
-            cy.on('uncaught:exception', (err) => {
-                if (err.message.includes("Did not get back a search response")) {
-                    Cypress.log({ name: "Negligible JSON err.", message: "Hit error re: non-serializable function; fixed in subsequent deploys." });
-                    return false;
-                }
-            });
-
             cy.get('#slow-load-container').should('not.have.class', 'visible').end()
                 .get('.benchmarking-layout .icon-circle-notch').should('not.exist').end()
                 .get('.search-results-container .icon-circle-notch').should('not.exist').end();
@@ -337,13 +305,6 @@ describe('Benchmarking Layout Test', function () {
 
     context('Embedded Search Container', function () {
         before(function () {
-            cy.on('uncaught:exception', (err) => {
-                if (err.message.includes("Did not get back a search response") || err.message.includes("return response;")) {
-                    Cypress.log({ name: "Negligible JSON err.", message: "Hit error re: non-serializable function; fixed in subsequent deploys." });
-                    return false;
-                }
-            });
-
             cy.visit('/data/benchmarking/COLO829', { headers: cypressVisitHeaders });
             cy.loginSMaHT({ email: 'cypress-main-scientist@cypress.hms.harvard.edu', useEnvToken: false }).end()
                 .get(navUserAcctDropdownBtnSelector)
