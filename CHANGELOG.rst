@@ -7,11 +7,42 @@ smaht-portal
 Change Log
 ----------
 
-0.108.0
+0.109.0
 =======
 `PR 280 SN Assay info <https://github.com/smaht-dac/smaht-portal/pull/280>`_
 * Add `amplification_method`, `cell_isolation_method`, and `molecule_specificity` properties to Assay
 
+0.108.0
+=======
+`PR 279: BM Create Account Doc <https://github.com/smaht-dac/smaht-portal/pull/279>`_
+
+* Rework create account documentation to be clearer.
+* Add some new styling to support various versions of RST admonitions
+* Remove variant_type column and facet.
+* Rename data_type column.
+
+
+0.107.5
+=======
+`PR 283: SN Ploidy fix <https://github.com/smaht-dac/smaht-portal/pull/283>`_
+
+* Re-add `ploidy` property to DonorSpecificAssembly
+
+0.107.4
+=======
+`PR 271: SN Links to Existing Data <https://github.com/smaht-dac/smaht-portal/pull/271>`_
+
+* Update text descriptions and add images for Links to Existing Data page
+
+
+0.107.3
+=======
+`PR 274: chore: add new TEnCATS assay to table <https://github.com/smaht-dac/smaht-portal/pull/274>`_
+
+* Update assay table with new TEnCATS assay
+
+
+=======
 0.107.2
 =======
 
