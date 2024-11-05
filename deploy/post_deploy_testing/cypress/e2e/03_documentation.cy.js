@@ -91,32 +91,49 @@ describe('Documentation Page & Content Tests', function () {
                                 cy.title().should('equal', titleText + ' – SMaHT Data Portal').end();
                                 prevTitle = titleText;
 
+                                // Verify the presence of <pre> elements and ensure each one is not empty.
+                                cy.document().then((doc) => {
+                                    const elements = doc.querySelectorAll('.rst-container > div > pre');
+                                    if (elements.length > 0) {
+                                        cy.get('.rst-container > div > pre').each(($pre) => {
+                                            const textContent = $pre.text().trim();
+                                            expect(textContent).to.not.be.empty;
+                                        });
+                                    } else {
+                                        cy.log('No <pre> elements found under .rst-container > div');
+                                    }
+                                });
+
+                                // Variable to track if we've encountered a page with a Table of Contents
                                 if (!haveWeSeenPageWithTableOfContents) {
-                                    cy.window().then((w) => {
-                                        if (w.document.querySelectorAll('div.table-of-contents li.table-content-entry a').length > 0) {
+                                    cy.window().then((win) => {
+                                        const tocItems = win.document.querySelectorAll('div.table-of-contents li.table-content-entry a');
+
+                                        if (tocItems.length > 0) {
                                             haveWeSeenPageWithTableOfContents = true;
-                                            const origScrollTop = w.scrollY;
-                                            cy.wrap(w).scrollTo('top', { ensureScrollable: false }).end()
-                                                .get('div.table-of-contents li.table-content-entry a').last().then(($linkItem) => {
-                                                    const linkHref = $linkItem.attr('href');
-                                                    cy.wrap($linkItem).scrollIntoView()
-                                                        .get(linkHref)
-                                                        .should('be.visible')
-                                                        .click({ force: true }).end();
-                                                    cy.get(escapeElementWithNumericId(linkHref)).should('be.visible').then(() => {
-                                                        expect(w.scrollY).to.not.equal(origScrollTop);
+                                            const originalScrollY = win.scrollY;
+
+                                            // Scroll to top for a consistent starting point
+                                            cy.scrollTo('top', { ensureScrollable: false }).then(() => {
+                                                // Select the last Table of Contents link item
+                                                cy.get('div.table-of-contents li.table-content-entry a').last().then(($link) => {
+                                                    const linkHref = $link.attr('href');
+
+                                                    // Ensure the target element of the link is visible after clicking
+                                                    cy.wrap($link).click({ force: true });
+                                                    cy.get(escapeElementWithNumericId(linkHref)).wait(1000).should('be.visible').then(() => {
+                                                        expect(win.scrollY).to.not.equal(originalScrollY);
                                                         finish(titleText);
                                                     });
                                                 });
+                                            });
                                         } else {
                                             finish(titleText);
                                         }
                                     });
-
                                 } else {
                                     finish(titleText);
                                 }
-
                             });
                         }
                         cy.wrap($listItems.eq(0)).should('be.visible').click({ force: true }).then(function ($linkElem) {
