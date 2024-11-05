@@ -24,6 +24,19 @@ const escapeElementWithNumericId = (selector) => {
     return /^#\d/.test(selector) ? `[id="${selector.substring(1)}"]` : selector;
 };
 
+// Helper function to switch tabs and check the command content
+function verifyTabContent(tabKey, expectedText) {
+    cy.get(`div.code-snippet-container > ul.nav-pills > li.nav-item > button.nav-link[data-rr-ui-event-key="${tabKey}"]`)
+        .click()
+        .should('have.class', 'active');
+
+    cy.get('.code-snippet-container > div.tab-content > div.tab-pane.active.show > div.curl-command-wrapper > pre')
+        .invoke('text')
+        .then((text) => {
+            expect(text).to.include(expectedText);
+        });
+}
+
 describe('Benchmarking Layout Test', function () {
 
     context('Navigation and Redirection', function () {
@@ -179,7 +192,12 @@ describe('Benchmarking Layout Test', function () {
                 .then((text) => {
                     expect(selectedCheckFileNumberCount).to.equal(parseInt(text));
                 });
-            cy.get('.fade.show.modal-backdrop').click({ force: true }).end();
+
+            // Use the helper function to test each tab
+            verifyTabContent('curl', 'curl');
+            verifyTabContent('aws', 'AWS_ACCESS_KEY_ID');
+
+            cy.get('.modal-header > .btn-close').click({ force: true }).end();
         });
 
         it('should uncheck all checkboxes', () => {
