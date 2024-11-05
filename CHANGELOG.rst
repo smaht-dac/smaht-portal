@@ -13,6 +13,7 @@ Change Log
 * Fix for unexpected-sid validation-error (snovaul5t11.23.0).
 * Updated rsa library version (4.9) from vulnerability scan alerts for CVE-2020-13757).
 * Updated idna library version (3.10) (from vulnerability scan alerts for CVE-2024-3651).
+* Fix in download_cli to check for dbgap group user exactly like the download endpoint.
 
 
 0.108.0
