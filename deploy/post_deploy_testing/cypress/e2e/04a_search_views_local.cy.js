@@ -52,6 +52,7 @@ describe('Deployment/CI Search View Tests', function () {
             cy.get('.search-result-config-panel').should('have.class', 'show');
             cy.get('.search-result-config-panel .row .checkbox.clickable:not(.is-active)')
                 .first()
+                .scrollIntoView()
                 .click()
                 .should('have.class', 'is-active')
                 .find('label input')
@@ -100,6 +101,36 @@ describe('Deployment/CI Search View Tests', function () {
             cy.get('#download_tsv_multiselect').click({ force: true }).end()
                 .get('div.modal.batch-files-download-modal').should('have.class', 'show').end()
                 .get('.modal-header .btn-close').click().end();
+        });
+
+        it('Verifies that the data-status of the status indicator dot and status group are equal', function () {
+            cy.get('.status-indicator-dot').invoke('data', 'status').then((indicatorStatus) => {
+                cy.get('.status-group').invoke('data', 'status').then((groupStatus) => {
+                    expect(indicatorStatus).to.equal(groupStatus);
+                });
+            });
+        });
+
+        it('Checks for the exclamation icon in the tab navigation and verifies its presence in the content if it exists', function () {
+            // Wait for "Initializing..." to disappear
+            cy.get('.react-infinite-container h3')
+                .contains('Initializing...')
+                .should('not.exist');
+
+            // Check that loading icons do not exist
+            cy.get('.benchmarking-layout .icon-circle-notch').should('not.exist');
+            cy.get('.search-results-container .icon-circle-notch').should('not.exist');
+
+            cy.get('.tab-router .dot-tab-nav-list').then($navList => {
+                const iconExists = $navList[0].querySelector('i.icon-exclamation-triangle') !== null;
+
+                if (iconExists) {
+                    cy.get('div.tab-router-contents > div.content i.icon-exclamation-triangle')
+                        .should('exist');
+                } else {
+                    cy.log('The exclamation icon is not present in the tab navigation list.');
+                }
+            });
         });
 
     });
