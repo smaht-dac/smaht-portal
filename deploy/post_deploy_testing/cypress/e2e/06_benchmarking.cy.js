@@ -211,13 +211,15 @@ describe('Benchmarking Layout Test', function () {
                 const originalFileText = $origTotalResults.text();
                 allResultTotalCount = parseInt(originalFileText.match(/\d+/)[0]);
 
-                cy.get('#select-all-files-button').click({ force: true }).end();
+                cy.get('#select-all-files-button').click({ force: true }).end()
+                    .get('#select-all-files-button i.icon-circle-notch').should('not.exist').end();
                 cy.get('#download_tsv_multiselect').invoke('text').then((text) => {
                     const selectedFile = parseInt(text.match(/\d+/)[0]);
                     expect(allResultTotalCount).to.equal(selectedFile);
                 });
 
-                cy.get('#select-all-files-button').click({ force: true }).end();
+                cy.get('#select-all-files-button').click({ force: true }).end()
+                    .get('#select-all-files-button i.icon-circle-notch').should('not.exist').end();
                 cy.get('#download_tsv_multiselect').invoke('text').then((text) => {
                     const selectedFile = parseInt(text.match(/\d+/)[0]);
                     expect(selectedFile).to.equal(0);

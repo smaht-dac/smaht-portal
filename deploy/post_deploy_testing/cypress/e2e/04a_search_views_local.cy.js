@@ -22,8 +22,9 @@ describe('Deployment/CI Search View Tests', function () {
 
         it('Has at least 50 results for /search/?type=Item', function () {
             cy.location('search').should('include', 'type=Item').end()
+                .get('div.search-result-row.loading').should('not.exist').end()
                 .get('.search-results-container .search-result-row').then(($searchResultElems) => {
-                    expect($searchResultElems.length).to.equal(10);
+                    expect($searchResultElems.length).to.equal(20);
                 }).end()
                 .searchPageTotalResultCount().should('be.greaterThan', 50);
         });
@@ -79,20 +80,19 @@ describe('Deployment/CI Search View Tests', function () {
         });
 
         it('Should redirect to detail view and check if the title matches data-tip', function () {
-            cy.get('.results-column .result-table-row div.search-result-column-block[data-field="display_title"] .title-block')
+            cy.get('.results-column .result-table-row div.search-result-column-block[data-field="display_title"] .title-block a')
                 .first()
                 .scrollIntoView()
                 .then(($element) => {
-                    const dataTipValue = $element.attr('data-tip');
 
+                    const textContent = $element.text();
                     cy.wrap($element)
-                        .find('a')
                         .click({ force: true });
 
                     cy.get('.file-view-title h1.file-view-title-text')
                         .invoke('text')
                         .then((text) => {
-                            expect(text.trim()).to.eq(dataTipValue);
+                            expect(text.trim()).to.eq(textContent);
                         });
                 });
         });
