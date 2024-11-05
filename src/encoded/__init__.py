@@ -49,6 +49,7 @@ def include_encoded(config):
     config.include('encoded.benchmarking')
     config.include('encoded.upgrade')
     config.include('encoded.submission_status')
+    config.include('encoded.qc_overview')
     config.include('encoded.ingestion.ingestion_status')
     config.include('encoded.ingestion.metadata_template')
     config.include('encoded.validators')

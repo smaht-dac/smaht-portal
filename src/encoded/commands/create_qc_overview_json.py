@@ -17,7 +17,8 @@ SEARCH_QUERY = (
     "&submission_centers.display_title=BCM+GCC"
     "&field=uuid"
     "&type=FileSet"
-    "&limit=20&from=0"  # for testing
+    "&limit=10000"
+    #"&limit=20&from=0"  # for testing
     # "&accession=SMAFSUG9JCW6"
 )
 
@@ -92,7 +93,7 @@ class FileStats:
 
             tissues = []
             for ssc in sample_source_codes:
-                tissues.append(tissue_code_to_word(code) or '?')
+                tissues.append(tissue_code_to_word(ssc) or '?')
 
             sample_source_codes = ", ".join(sample_source_codes)
             tissues = ", ".join(tissues)
