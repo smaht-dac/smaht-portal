@@ -98,10 +98,41 @@ describe('Deployment/CI Search View Tests', function () {
         });
 
         it('Should trigger batch files download modal and close it successfully', function () {
-            cy.get('#download_tsv_multiselect').click({ force: true }).end()
-                .get('div.modal.batch-files-download-modal').should('have.class', 'show').end()
-                .get('.modal-header .btn-close').click().end();
+            let fileSize;
+
+            cy.get('.datum').each(($el) => {
+                if ($el.find('.datum-title').text().trim() === 'Size') {
+                    cy.wrap($el).find('.datum-value').invoke('text').then((text) => {
+                        fileSize = text.trim();
+                    });
+                }
+            });
+
+            cy.get('#download_tsv_multiselect').click({ force: true })
+                .get('div.modal.batch-files-download-modal').should('have.class', 'show');
+
+            cy.get('.tsv-metadata-stat .icon-circle-notch').should('not.exist')
+                .get('.tsv-metadata-stat-title').each(($title) => {
+                    if ($title.text().trim() === 'Selected Files Size') {
+                        cy.wrap($title).next('.tsv-metadata-stat')
+                            .invoke('text').then((selectedSize) => {
+                                selectedSize = selectedSize.trim();
+
+                                expect(selectedSize).to.equal(fileSize);
+                            });
+                    }
+                });
+
+            cy.get('.btn-close').should('be.visible').click()
+                .get('div.modal.batch-files-download-modal').should('not.exist')
         });
+
+        it('Should switch between tabs and apply active class', function () {
+            cy.get('.tabs-bar-outer > .tabs-bar > a.tab-item[data-tab-for="details"]')
+                .click({ force: true }).should('have.class', 'active').end()
+                .get('.tabs-bar-outer > .tabs-bar > a.tab-item[data-tab-for="file-overview"]')
+                .click({ force: true }).should('have.class', 'active').end();
+        })
 
         it('Verifies that the data-status of the status indicator dot and status group are equal', function () {
             cy.get('.status-indicator-dot').invoke('data', 'status').then((indicatorStatus) => {
@@ -121,10 +152,16 @@ describe('Deployment/CI Search View Tests', function () {
             cy.get('.benchmarking-layout .icon-circle-notch').should('not.exist');
             cy.get('.search-results-container .icon-circle-notch').should('not.exist');
 
-            cy.get('.tab-router .dot-tab-nav-list').then($navList => {
-                const iconExists = $navList[0].querySelector('i.icon-exclamation-triangle') !== null;
+            cy.document().then((doc) => {
+                const iconExists = doc.querySelectorAll('.tab-router .dot-tab-nav-list i.icon-exclamation-triangle').length > 0;
 
-                if (iconExists) {
+                let dataExists = false
+                const resultCountElem = doc.querySelector('#results-count');
+                if (resultCountElem && parseInt(resultCountElem.textContent) > 0) {
+                    dataExists = true;
+                }
+
+                if (iconExists && dataExists) {
                     cy.get('div.tab-router-contents > div.content i.icon-exclamation-triangle')
                         .should('exist').scrollIntoView().end();
 
