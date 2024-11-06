@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.109.0
+=======
+`PR 280 SN Assay info <https://github.com/smaht-dac/smaht-portal/pull/280>`_
+* Add `amplification_method`, `cell_isolation_method`, and `molecule_specificity` properties to Assay
+
 0.108.0
 =======
 `PR 279: BM Create Account Doc <https://github.com/smaht-dac/smaht-portal/pull/279>`_
