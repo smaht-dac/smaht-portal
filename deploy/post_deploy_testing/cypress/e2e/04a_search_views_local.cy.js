@@ -126,7 +126,15 @@ describe('Deployment/CI Search View Tests', function () {
 
                 if (iconExists) {
                     cy.get('div.tab-router-contents > div.content i.icon-exclamation-triangle')
-                        .should('exist');
+                        .should('exist').scrollIntoView().end();
+
+                    cy.get('.search-result-column-block[data-field="tsv_notes"] .btn.btn-link').each(($button) => {
+                        cy.wrap($button).click({ force: true })
+                            .get('.popover.show').should('exist');
+
+                        cy.wrap($button).click({ force: true })
+                            .get('.popover.show').should('not.exist');
+                    });
                 } else {
                     cy.log('The exclamation icon is not present in the tab navigation list.');
                 }
