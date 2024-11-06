@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.109.1
+=======
+`PR 286 Sn DSA Sample Information <https://github.com/smaht-dac/smaht-portal/pull/286>`_
+* Modify calculated properties for Supplementary File to show up in File Overview Page: `sample_summary` and `data_generation_summary` to pull from `DonorSpecificAssembly.derived_from.file_sets`
+
 0.109.0
 =======
 `PR 280 SN Assay info <https://github.com/smaht-dac/smaht-portal/pull/280>`_
