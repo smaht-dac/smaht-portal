@@ -125,8 +125,11 @@ const default_data_information = [
         getProp: (context = {}) => {
             if (
                 context?.file_format?.display_title === 'bam' &&
-                context?.data_generation_summary?.assays?.some((assay) =>
-                    assay.includes('WGS')
+                context?.data_generation_summary?.assays?.some(
+                    (assay) =>
+                        assay.includes('WGS') ||
+                        assay.includes('Fiber-seq') ||
+                        assay.includes('Hi-C')
                 )
             ) {
                 const cov =
@@ -142,8 +145,10 @@ const default_data_information = [
         title: 'Dataset Target Read Count',
         getProp: (context = {}) => {
             if (
-                context?.data_generation_summary?.assays?.some((assay) =>
-                    assay.includes('RNA-Seq')
+                context?.data_generation_summary?.assays?.some(
+                    (assay) =>
+                        assay.includes('RNA-Seq') ||
+                        assay.includes('MAS-ISO-Seq')
                 )
             ) {
                 const count =
