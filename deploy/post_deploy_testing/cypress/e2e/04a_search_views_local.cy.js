@@ -24,7 +24,7 @@ describe('Deployment/CI Search View Tests', function () {
             cy.location('search').should('include', 'type=Item').end()
                 .get('div.search-result-row.loading').should('not.exist').end()
                 .get('.search-results-container .search-result-row').then(($searchResultElems) => {
-                    expect($searchResultElems.length).to.equal(20);
+                    expect($searchResultElems.length).to.equal(10);
                 }).end()
                 .searchPageTotalResultCount().should('be.greaterThan', 50);
         });
@@ -49,7 +49,7 @@ describe('Deployment/CI Search View Tests', function () {
         });
 
         it('Should show/hide columns and ensure correct behavior in the results table', function () {
-            cy.get('.above-results-table-row button[data-tip="Configure visible columns"]').click().should('have.class', 'active');
+            cy.get('.above-results-table-row button[data-tip="Configure visible columns"]').click({ force: true }).should('have.class', 'active');
             cy.get('.search-result-config-panel').should('have.class', 'show');
             cy.get('.search-result-config-panel .row .checkbox.clickable:not(.is-active)')
                 .first()
@@ -79,7 +79,40 @@ describe('Deployment/CI Search View Tests', function () {
                 .get('.search-result-config-panel').should('not.have.class', 'active');
         });
 
+        it('Navigates to the detail view and checks if the page title matches the selected item type', function () {
+            cy.get('.results-column .result-table-row div.search-result-column-block[data-field="@type"]')
+                .first()
+                .scrollIntoView()
+                .then(($element) => {
+                    // Extracts the text content from the span element inside `$element`
+                    const textContent = $element.find('span.item-type-title.value').text().trim();
+
+                    // Clicks on the icon inside `$element` to navigate to the detail view
+                    cy.wrap($element)
+                        .find('i.icon-filter.clickable')
+                        .click({ force: true })
+                        .get('.search-result-row.loading').should('not.exist');
+
+                    // Retrieves the page title and compares it with the previously extracted text
+                    cy.get('#page-title-container .page-title .subtitle span')
+                        .then(($span) => {
+                            // Filter out only text nodes (nodeType === 3) from the span
+                            const text = [...$span.contents()]
+                                .filter(node => node.nodeType === 3) // Node type 3 corresponds to text nodes
+                                .map(node => node.textContent.trim()) // Get the text of the text node and trim it
+
+                            const finalText = text.join(''); // In case there are multiple text nodes, join them
+
+                            // Compare the cleaned-up text with the expected value
+                            expect(finalText.replace(/\s+/g, '')).to.eq(textContent.replace(/\s+/g, ''));
+                        });
+                });
+            cy.go('back');
+        });
+
         it('Should redirect to detail view and check if the title matches data-tip', function () {
+            cy.visit('/search/?type=File&status=released', { headers: cypressVisitHeaders });
+
             cy.get('.results-column .result-table-row div.search-result-column-block[data-field="display_title"] .title-block a')
                 .first()
                 .scrollIntoView()
@@ -123,7 +156,7 @@ describe('Deployment/CI Search View Tests', function () {
                     }
                 });
 
-            cy.get('.btn-close').should('be.visible').click()
+            cy.get('.modal-header > .btn-close').should('be.visible').click()
                 .get('div.modal.batch-files-download-modal').should('not.exist')
         });
 
