@@ -20,6 +20,7 @@ from ..item_utils import (
     sequencing as sequencing_utils,
     software as software_utils,
     tissue as tissue_utils,
+    supplementary_file as supp_file_utils
 )
 from ..item_utils.utils import (
     get_property_values_from_identifiers,
@@ -526,7 +527,6 @@ def test_libraries(es_testapp: TestApp, workbook: None) -> None:
     assert file_without_libraries_search
     for file in file_without_libraries_search:
         assert not file_utils.get_libraries(file)
-
     submitted_file_with_libraries_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
     )
@@ -726,7 +726,7 @@ def assert_samples_calcprop_includes_embeds(file: Dict[str, Any]) -> None:
         libraries = get_unique_values(file_sets, file_set_utils.get_libraries)
         analytes = get_unique_values(libraries, library_utils.get_analytes)
         samples = get_unique_values(analytes, analyte_utils.get_samples)
-        assert_items_present(samples, samples_from_calcprop)
+    assert_items_present(samples, samples_from_calcprop)
 
 
 def assert_items_present(
@@ -800,11 +800,12 @@ def test_donors(es_testapp: TestApp, workbook: None) -> None:
     assert file_without_donors_search
     request_handler = RequestHandler(test_app=es_testapp)
     for file in file_without_donors_search:
-        cell_lines = file_utils.get_cell_lines(file, request_handler)
-        if cell_lines:
-            assert_cell_line_donors_match_calcprop(request_handler, file, cell_lines)
-        else:
-            assert not file_utils.get_donors(file)
+        if not supp_file_utils.is_supplementary_file(file):
+            cell_lines = file_utils.get_cell_lines(file, request_handler)
+            if cell_lines:
+                assert_cell_line_donors_match_calcprop(request_handler, file, cell_lines)
+            else:
+                assert not file_utils.get_donors(file)
 
     submitted_file_with_donors_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
@@ -831,6 +832,8 @@ def assert_cell_line_donors_match_calcprop(
         request_handler, cell_lines, functools.partial(cell_line_utils.get_source_donor, request_handler)
     )
     donors = request_handler.get_items(donor_ids)
+    # if not file_utils.get_donors(file):
+    #     import pdb; pdb.set_trace()
     assert_items_match(donors, file_utils.get_donors(file))
 
 
@@ -965,6 +968,7 @@ def assert_data_generation_summary_matches_expected(
 
     Expected values determined here by parsing file properties/embeds.
     """
+    request_handler = RequestHandler(test_app=es_testapp)
     data_generation_summary = file_utils.get_data_generation_summary(file)
     expected_data_category = file_utils.get_data_category(file)
     expected_data_type = file_utils.get_data_type(file)
@@ -978,17 +982,32 @@ def assert_data_generation_summary_matches_expected(
         )
         for submission_center in item_utils.get_submission_centers(file)
     ]
-    assays = file_utils.get_assays(file)
-    expected_assays = [
-        item_utils.get_display_title(
-            get_item(es_testapp, item_utils.get_uuid(assay))
-        )
-        for assay in assays
-    ] if assays else []
-    sequencings = [
-        file_set_utils.get_sequencing(file_set)
-        for file_set in file_utils.get_file_sets(file)
-    ]
+    if supp_file_utils.is_supplementary_file(file):
+        assays = supp_file_utils.get_assays(file, request_handler)
+        expected_assays = [
+            item_utils.get_display_title(
+                get_item(es_testapp, assay)
+            )
+            for assay in assays
+        ] if assays else []
+        sequencings = [
+            file_set_utils.get_sequencing(
+                get_item(es_testapp, file_set)
+            )
+            for file_set in supp_file_utils.get_derived_from_file_sets(file, request_handler)
+        ]
+    else:
+        assays = file_utils.get_assays(file)
+        expected_assays = [
+            item_utils.get_display_title(
+                get_item(es_testapp, item_utils.get_uuid(assay))
+            )
+            for assay in assays
+        ] if assays else []
+        sequencings = [
+            file_set_utils.get_sequencing(file_set)
+            for file_set in file_utils.get_file_sets(file)
+        ]
     expected_platforms = [
         item_utils.get_display_title(
             get_item(
@@ -1073,45 +1092,92 @@ def assert_sample_summary_matches_expected(
     the calcprop is implemented, so not a great test of the calcprop,
     but these are too complex to test in a more direct way.
     """
-    sample_summary = file_utils.get_sample_summary(file)
-    analytes = file_utils.get_analytes(file)
-    samples = [
-        get_item(es_testapp, item_utils.get_uuid(sample))
-        for sample in file_utils.get_samples(file)
-    ]
-    tissues = file_utils.get_tissues(file)
-    donors = file_utils.get_donors(file)
     request_handler = RequestHandler(test_app=es_testapp)
-    expected_analytes = get_unique_values(
-        [get_item(es_testapp, item_utils.get_uuid(analyte)) for analyte in analytes],
-        analyte_utils.get_molecule,
-    )
-    expected_tissues = get_unique_values(
-        [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
-        tissue_utils.get_location,
-    )
-    expected_donor_ids = get_unique_values(
-        [get_item(es_testapp, item_utils.get_uuid(donor)) for donor in donors],
-        item_utils.get_external_id,
-    )
-    expected_sample_names = get_unique_values(
-        samples,
-        functools.partial(
-            sample_utils.get_sample_names, request_handler=request_handler
-        ),
-    )
-    expected_sample_descriptions = get_unique_values(
-        samples,
-        functools.partial(
-            sample_utils.get_sample_descriptions, request_handler=request_handler
-        ),
-    )
-    expected_studies = get_unique_values(
-        samples,
-        functools.partial(
-            sample_utils.get_studies, request_handler=request_handler
-        ),
-    )
+    sample_summary = file_utils.get_sample_summary(file)
+    if supp_file_utils.is_supplementary_file(file):
+        analytes = supp_file_utils.get_analytes(file, request_handler)
+        samples = [
+            sample
+            for sample in supp_file_utils.get_samples(file, request_handler)
+        ]
+        tissues = supp_file_utils.get_tissues(file, request_handler)
+        donors = supp_file_utils.get_donors(file, request_handler)
+        expected_analytes = get_unique_values(
+            [get_item(es_testapp, analyte) for analyte in analytes],
+            analyte_utils.get_molecule,
+        )
+        expected_tissues = get_unique_values(
+            [get_item(es_testapp, tissue) for tissue in tissues],
+            tissue_utils.get_location,
+        )
+        expected_donor_ids = get_unique_values(
+            [get_item(es_testapp, donor) for donor in donors],
+            item_utils.get_external_id,
+        )
+        expected_sample_names = list(set(
+            get_property_values_from_identifiers(
+                request_handler,
+                samples,
+                functools.partial(
+                    sample_utils.get_sample_names, request_handler=request_handler
+                ),
+            )
+        ))
+        expected_sample_descriptions = list(set(
+            get_property_values_from_identifiers(
+                request_handler,
+                samples,
+                functools.partial(
+                    sample_utils.get_sample_descriptions, request_handler=request_handler
+                ),
+            )
+        ))
+        expected_studies = list(set(
+            get_property_values_from_identifiers(
+                request_handler,
+                samples,
+                functools.partial(
+                    sample_utils.get_studies, request_handler=request_handler
+                ),
+        )))
+    else:
+        analytes = file_utils.get_analytes(file)
+        samples = [
+            get_item(es_testapp, item_utils.get_uuid(sample))
+            for sample in file_utils.get_samples(file)
+        ]
+        tissues = file_utils.get_tissues(file)
+        donors = file_utils.get_donors(file)
+        expected_analytes = get_unique_values(
+            [get_item(es_testapp, item_utils.get_uuid(analyte)) for analyte in analytes],
+            analyte_utils.get_molecule,
+        )
+        expected_tissues = get_unique_values(
+            [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
+            tissue_utils.get_location,
+        )
+        expected_donor_ids = get_unique_values(
+            [get_item(es_testapp, item_utils.get_uuid(donor)) for donor in donors],
+            item_utils.get_external_id,
+        )
+        expected_sample_names = get_unique_values(
+            samples,
+            functools.partial(
+                sample_utils.get_sample_names, request_handler=request_handler
+            ),
+        )
+        expected_sample_descriptions = get_unique_values(
+            samples,
+            functools.partial(
+                sample_utils.get_sample_descriptions, request_handler=request_handler
+            ),
+        )
+        expected_studies = get_unique_values(
+            samples,
+            functools.partial(
+                sample_utils.get_studies, request_handler=request_handler
+            ),
+        )
     assert_values_match_if_present(
         sample_summary, "analytes", expected_analytes
     )

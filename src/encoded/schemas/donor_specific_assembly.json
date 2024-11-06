@@ -24,6 +24,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/code"
+        },
+        {
             "$ref": "mixins.json#/description"
         },
         {
@@ -63,6 +66,9 @@
         },
         "version": {
             "description": "Version of the assembly"
+        },
+        "code": {
+            "pattern": "^[A-Za-z0-9]{3,}$"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_DONOR-SPECIFIC-ASSEMBLY_[A-Z0-9-_.]{4,}$"

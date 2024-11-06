@@ -421,3 +421,8 @@ def get_associated_files_status(
             get_file_sets(file),
             partial(file_set.get_associated_files_status, request_handler, at_id)
     )
+
+
+def get_override_group_coverage(file: Dict[str, Any]) -> str:
+    """Get override group coverage from properties."""
+    return file.get("override_group_coverage","")
