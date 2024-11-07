@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.110.0
+=======
+`PR 287 SN Override Coverage <https://github.com/smaht-dac/smaht-portal/pull/287`_
+* Add property to file, `override_group_coverage` that displays in `data_generation_summary` calculated property for the File Overview page, which takes precedence  over `file_set.sequencing.target_coverage` if set
+
+
 0.109.0
 =======
 `PR 280 SN Assay info <https://github.com/smaht-dac/smaht-portal/pull/280>`_
