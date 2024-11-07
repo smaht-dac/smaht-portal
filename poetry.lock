@@ -1035,14 +1035,14 @@ files = [
 
 [[package]]
 name = "dcicsnovault"
-version = "11.22.0.1b4"
+version = "11.23.0"
 description = "Storage support for 4DN Data Portals."
 category = "main"
 optional = false
 python-versions = "<3.13,>=3.9"
 files = [
-    {file = "dcicsnovault-11.22.0.1b4-py3-none-any.whl", hash = "sha256:c5c385c9441f431b30d6944034fa087beaa92e6c8d348b52ba17a39fed0bbdbd"},
-    {file = "dcicsnovault-11.22.0.1b4.tar.gz", hash = "sha256:7e28935b4710780a09c1a326bda7514d1833db8dcc7a0fbf5bb0f040d9df9784"},
+    {file = "dcicsnovault-11.23.0-py3-none-any.whl", hash = "sha256:5ab18fa0c5427fdeb83d3944cc11ee49234e986c8836845c54b79493a6077b65"},
+    {file = "dcicsnovault-11.23.0.tar.gz", hash = "sha256:44f1169d2d59b1b0015cbde116b9b21e98ba4cca42f905b9ced3a544d10ba423"},
 ]
 
 [package.dependencies]
@@ -1094,14 +1094,14 @@ xlrd = ">=1.0.0,<2.0.0"
 
 [[package]]
 name = "dcicutils"
-version = "8.16.1"
+version = "8.16.2"
 description = "Utility package for interacting with the 4DN Data Portal and other 4DN resources"
 category = "main"
 optional = false
 python-versions = "<3.13,>=3.8.1"
 files = [
-    {file = "dcicutils-8.16.1-py3-none-any.whl", hash = "sha256:6bd36178154b18b29ab1a10cedeaae695af6ccd4ee807233bc7e1a2874529ec5"},
-    {file = "dcicutils-8.16.1.tar.gz", hash = "sha256:9f588cf39081e46e6f47f2762b50d25eb85907dff121bedf6f6aace99b8d752d"},
+    {file = "dcicutils-8.16.2-py3-none-any.whl", hash = "sha256:76b2c76b8b22d048c0ac66807932aefab27dfb36a7ab7c0ea3b7b54a95db50c4"},
+    {file = "dcicutils-8.16.2.tar.gz", hash = "sha256:4345f8d61d0f8f30fa54bcc403fb65ece7f0a4344c5c3d7f32bde0e96995c5cb"},
 ]
 
 [package.dependencies]
@@ -4475,4 +4475,4 @@ test = ["zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.1,<3.13"
-content-hash = "049cf7ab125b5c4c1abf7491b6aa10e165ba0f28e813196017d4f2bcc723a167"
+content-hash = "00f45b7a8d9344f452b22458db98c940cd1dc659a181d344d960b8d3fadd24fa"
