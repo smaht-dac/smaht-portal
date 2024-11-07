@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.110.0
+=======
+`PR 288 SN comparators description <https://github.com/smaht-dac/smaht-portal/pull/288>`_
+
+* Add property comparators_description to variant_calls.json, which contains a string description comparators and is required if comparators is present
+
+
 0.109.0
 =======
 `PR 280 SN Assay info <https://github.com/smaht-dac/smaht-portal/pull/280>`_
