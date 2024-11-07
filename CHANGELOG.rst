@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.109.0
+0.110.0
 =======
 * 2024-11-04/dmichaels
 * Fix for unexpected-sid validation-error (snovaul5t11.23.0).
@@ -15,6 +15,12 @@ Change Log
 * Updated idna library version (3.10) (from vulnerability scan alerts for CVE-2024-3651).
 * Fix in download_cli to check for dbgap group user exactly like the download endpoint.
 
+
+0.109.0
+=======
+
+`PR 280 SN Assay info <https://github.com/smaht-dac/smaht-portal/pull/280>`_
+* Add `amplification_method`, `cell_isolation_method`, and `molecule_specificity` properties to Assay
 
 0.108.0
 =======
