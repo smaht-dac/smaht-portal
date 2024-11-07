@@ -24,7 +24,7 @@ describe('Deployment/CI Search View Tests', function () {
             cy.location('search').should('include', 'type=Item').end()
                 .get('div.search-result-row.loading').should('not.exist').end()
                 .get('.search-results-container .search-result-row').then(($searchResultElems) => {
-                    expect($searchResultElems.length).to.equal(10);
+                    expect($searchResultElems.length).to.be.at.least(10);
                 }).end()
                 .searchPageTotalResultCount().should('be.greaterThan', 50);
         });

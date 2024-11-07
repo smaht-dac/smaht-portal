@@ -245,7 +245,7 @@ describe('Benchmarking Layout Test', function () {
             cy.logoutSMaHT();
         });
 
-        it('Switch between included and excluded properties in facets, exclude a term and check ExpSet counts', function () {
+        it('Switch between included and excluded properties in facets, exclude a term', function () {
             let externalDataCount, initialDataCount, includeDataCount;
 
             // Handle specific uncaught exceptions
@@ -275,9 +275,7 @@ describe('Benchmarking Layout Test', function () {
                 cy.wrap($term)
                     .scrollIntoView()
                     .should('be.visible')
-                    .click({ force: true })
-                    /*.get('span.facet-selector i.icon')
-                    .should('have.class', 'icon-minus-square')*/.end();
+                    .click({ force: true }).end();
             }).end();
 
             // Verify count after exclusion
