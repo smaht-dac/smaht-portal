@@ -217,9 +217,6 @@
         }
     },
     "facets": {
-        "variant_type": {
-            "title": "Variant Type"
-        },
         "file_sets.libraries.assay.display_title": {
             "title": "Experimental Assay"
         },
@@ -255,9 +252,6 @@
         },
         "annotated_filename": {
             "title": "File"
-        },
-        "variant_type": {
-            "title": "Variant Type"
         },
         "file_sets.libraries.assay.display_title": {
             "title": "Assay"
