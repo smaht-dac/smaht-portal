@@ -19,6 +19,11 @@
         "submitted_id",
         "uuid"
     ],
+    "dependentRequired": {
+        "comparators": [
+            "comparators_description"
+        ]
+    },
     "additionalProperties": false,
     "mixinProperties": [
         {
@@ -102,6 +107,14 @@
         "comparators": {
             "title": "Comparators",
             "description": "Link to comparator sample files used for normal matching",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "comparators_description": {
+            "title": "Comparators Description",
+            "description": "Description of comparator samples used for normal matching",
             "type": "array",
             "items": {
                 "type": "string"
