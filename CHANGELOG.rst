@@ -7,16 +7,10 @@ smaht-portal
 Change Log
 ----------
 
-
-0.108.1
-======
-
-`PR259: fix: target coverage and read count <https://github.com/smaht-dac/smaht-portal/pull/259>`_
-
-* Show total target coverage for wgs bam
-* Show target read count for rna-seq
-* Show N/A where unavailable
-
+0.109.0
+=======
+`PR 280 SN Assay info <https://github.com/smaht-dac/smaht-portal/pull/280>`_
+* Add `amplification_method`, `cell_isolation_method`, and `molecule_specificity` properties to Assay
 
 0.108.0
 =======
