@@ -998,13 +998,17 @@ def assert_data_generation_summary_matches_expected(
         )
         for sequencing in sequencings
     ] if sequencings else []
+    if (override_coverage := file_utils.get_override_group_coverage(file)):
+        expected_target_coverage = [override_coverage]
+    else:
+        expected_target_coverage = [ target_coverage 
+            for sequencing in sequencings
+                
+            if (target_coverage := sequencing_utils.get_target_coverage(
+                    get_item(es_testapp, item_utils.get_uuid(sequencing))
+                ))
 
-    expected_target_coverage = [ target_coverage 
-        for sequencing in sequencings                     
-        if (target_coverage := sequencing_utils.get_target_coverage(
-                get_item(es_testapp, item_utils.get_uuid(sequencing))
-            ))
-        ] if sequencings else []
+            ] if sequencings else []
     expected_target_read_count = [ target_coverage 
         for sequencing in sequencings                     
         if (target_coverage := sequencing_utils.get_target_read_count(

@@ -71,7 +71,7 @@
             "Aligned Reads",
             "In Silico Generated"
         ],
-        "override_group_coverage": 30,
+        "override_group_coverage": 150,
         "alignment_details": [
             "Sorted"
         ],
