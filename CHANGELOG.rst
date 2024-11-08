@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.110.1
+=======
+`PR 289 SN Add assay facets <https://github.com/smaht-dac/smaht-portal/pull/289>`_
+
+* Add facets to Assay search view
+
+
 0.110.0
 =======
 * 2024-11-04/dmichaels
