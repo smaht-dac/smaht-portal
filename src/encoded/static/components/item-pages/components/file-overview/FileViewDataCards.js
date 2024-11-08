@@ -146,6 +146,8 @@ const default_data_information = [
         title: 'Dataset Target Read Count',
         getProp: (context = {}) => {
             if (
+                context?.file_format?.display_title === 'bam' &&
+                context?.data_type.some((d) => d === 'Aligned Reads') &&
                 context?.data_generation_summary?.assays?.some(
                     (assay) =>
                         assay.includes('RNA-Seq') ||
