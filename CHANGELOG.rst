@@ -7,18 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-
-0.109.1
-======
-`PR259: fix: target coverage and read count <https://github.com/smaht-dac/smaht-portal/pull/259>`_
-
-* Show total target coverage for aligned wgs, fiber-seq, or hi-c bam
-* Show target read count for rna-seq and mas-iso-seq
-* Show N/A where unavailable
+0.110.0
+=======
+* 2024-11-04/dmichaels
+* Fix for unexpected-sid validation-error (snovault 11.23.0).
+* Updated rsa library version (4.9) from vulnerability scan alerts for CVE-2020-13757).
+* Updated idna library version (3.10) (from vulnerability scan alerts for CVE-2024-3651).
+* Fix in download_cli to check for dbgap group user exactly like the download endpoint.
 
 
 0.109.0
 =======
+
 `PR 280 SN Assay info <https://github.com/smaht-dac/smaht-portal/pull/280>`_
 * Add `amplification_method`, `cell_isolation_method`, and `molecule_specificity` properties to Assay
 

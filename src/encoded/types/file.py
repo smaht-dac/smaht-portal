@@ -995,6 +995,12 @@ def post_upload(context, request):
 @debug_log
 def download_cli(context, request):
     """ Creates download credentials for files intended for use with awscli/rclone """
+    # 2024-11-05/dmichaels - limit to dbgap users like download
+    # Noticeed this endpoint lacked appropriate checking for dbgap
+    # group users which should be exactly like the download endpoint.
+    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
+        raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
+                            'Please check with DAC/your PI about your status.')
     return CoreDownloadCli(context, request)
 
 
