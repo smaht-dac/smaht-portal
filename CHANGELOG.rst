@@ -7,14 +7,25 @@ smaht-portal
 Change Log
 ----------
 
-0.110.0
+0.111.0
 =======
 `PR 287 SN Override Coverage <https://github.com/smaht-dac/smaht-portal/pull/287`_
 * Add property to file, `override_group_coverage` that displays in `data_generation_summary` calculated property for the File Overview page, which takes precedence  over `file_set.sequencing.target_coverage` if set
 
 
+0.110.0
+=======
+
+* 2024-11-04/dmichaels
+* Fix for unexpected-sid validation-error (snovault 11.23.0).
+* Updated rsa library version (4.9) from vulnerability scan alerts for CVE-2020-13757).
+* Updated idna library version (3.10) (from vulnerability scan alerts for CVE-2024-3651).
+* Fix in download_cli to check for dbgap group user exactly like the download endpoint.
+
+
 0.109.0
 =======
+
 `PR 280 SN Assay info <https://github.com/smaht-dac/smaht-portal/pull/280>`_
 * Add `amplification_method`, `cell_isolation_method`, and `molecule_specificity` properties to Assay
 
