@@ -155,5 +155,22 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_VARIANT-CALLS_[A-Z0-9-_.]{4,}$"
         }
-    }
+    },
+    "anyOf": [
+        {
+            "not": {
+                "properties": {
+                    "mode": { "const": "Paired" }
+                },
+                "required": [
+                    "mode"
+                ]
+            }
+        },
+        { 
+            "required": [
+                "comparators_description"
+            ]
+        }
+  ]
 }
