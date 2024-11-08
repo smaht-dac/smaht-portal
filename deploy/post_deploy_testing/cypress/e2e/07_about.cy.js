@@ -2,11 +2,11 @@ import { cypressVisitHeaders } from "../support";
 
 describe('About Layout Tests', function () {
 
-    context('Consortium Member Interactions and Count Validation', function () {
-        before(function () {
-            cy.visit('/', { headers: cypressVisitHeaders });
-        });
+    before(function () {
+        cy.visit('/', { headers: cypressVisitHeaders });
+    });
 
+    context('Consortium Member Data Validation and Interactions', function () {
         it('Verifies that the consortium member count matches the number found in the table', function () {
             cy.get('#about-menu-item').should('have.class', 'dropdown-toggle').click().should('have.class', 'dropdown-open-for').then(() => {
                 cy.get('#menutree-linkto-about_consortium_awardees').click().end()
@@ -53,11 +53,7 @@ describe('About Layout Tests', function () {
 
     });
 
-    context('Consortium Data Interactions Validation', function () {
-        before(function () {
-            cy.visit('/', { headers: cypressVisitHeaders });
-        });
-
+    context('Consortium Data Interactions', function () {
         it('Verifies hover interactions for data consortium elements', function () {
             cy.get('#about-menu-item').should('have.class', 'dropdown-toggle').click().should('have.class', 'dropdown-open-for').then(() => {
                 cy.get('#menutree-linkto-about_consortium_data').click().end()

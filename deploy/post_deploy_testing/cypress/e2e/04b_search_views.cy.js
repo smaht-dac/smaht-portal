@@ -3,7 +3,7 @@ import { navUserAcctDropdownBtnSelector } from "../support/selectorVars";
 
 describe('Post-Deployment Search View Tests', function () {
 
-    context('/search/?type=Item', function () {
+    context('Search Page Validation (Item Type)', function () {
 
         before(function () {
             cy.visit('/search/', { headers: cypressVisitHeaders });

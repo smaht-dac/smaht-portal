@@ -39,21 +39,21 @@ function verifyTabContent(tabKey, expectedText) {
 
 describe('Benchmarking Layout Test', function () {
 
-    context('Navigation and Redirection', function () {
-        before(function () {
-            cy.visit('/', { headers: cypressVisitHeaders });
-            cy.loginSMaHT({ email: 'cypress-main-scientist@cypress.hms.harvard.edu', useEnvToken: false }).end()
-                .get(navUserAcctDropdownBtnSelector)
-                .should('not.contain.text', 'Login')
-                .then((accountListItem) => {
-                    expect(accountListItem.text()).to.contain('SCM');
-                }).end();
-        });
+    before(function () {
+        cy.visit('/', { headers: cypressVisitHeaders });
+        cy.loginSMaHT({ email: 'cypress-main-scientist@cypress.hms.harvard.edu', useEnvToken: false }).end()
+            .get(navUserAcctDropdownBtnSelector)
+            .should('not.contain.text', 'Login')
+            .then((accountListItem) => {
+                expect(accountListItem.text()).to.contain('SCM');
+            }).end();
+    });
 
-        after(function () {
-            cy.logoutSMaHT();
-        });
+    after(function () {
+        cy.logoutSMaHT();
+    });
 
+    context('Navigation and Page Redirection', function () {
         it('Click & visit each page from menu, ensure ToC exists and works.', function () {
             cy.get(dataNavBarItemSelectorStr).should('have.class', 'dropdown-toggle').click()
                 .should('have.class', 'dropdown-open-for')
@@ -150,33 +150,21 @@ describe('Benchmarking Layout Test', function () {
                 .should('have.attr', 'aria-expanded', 'true')
                 .get('.benchmarking-ui-container').should('have.class', 'show-nav').end();
         });
-
     });
 
-    context('Data Selection', function () {
+    context('File Selection and Download Validation', function () {
         before(function () {
-            cy.visit('/', { headers: cypressVisitHeaders });
-            cy.loginSMaHT({ email: 'cypress-main-scientist@cypress.hms.harvard.edu', useEnvToken: false }).end()
-                .get(navUserAcctDropdownBtnSelector)
-                .should('not.contain.text', 'Login')
-                .then((accountListItem) => {
-                    expect(accountListItem.text()).to.contain('SCM');
-                }).end();
             cy.visit('/data/benchmarking/COLO829', { headers: cypressVisitHeaders });
         });
 
-        after(function () {
-            cy.logoutSMaHT();
-        });
-
-        it('should check all checkboxes', () => {
+        it('Should check all checkboxes', () => {
             cy.get('#page-title-container .page-title').should('have.text', 'COLO829').end()
                 .get('.search-results-container .search-result-row .search-result-column-block input[type="checkbox"]').each(($checkBox) => {
                     checkFileCheckbox($checkBox).end();
                 });
         });
 
-        it('should match selected files count with the displayed count', () => {
+        it('Should match selected files count with the displayed count', () => {
             cy.get('#download_tsv_multiselect').then(($selectedIndexCount) => {
                 const selectedFileText = $selectedIndexCount.text();
                 const selectedFileCount = parseInt(selectedFileText.match(/\d+/)[0]);
@@ -184,7 +172,7 @@ describe('Benchmarking Layout Test', function () {
             });
         });
 
-        it('should click download and validate selected files metadata', () => {
+        it('Should click download and validate selected files metadata', () => {
             cy.get('#download_tsv_multiselect').click({ force: true });
             cy.get('.tsv-metadata-stat-title').contains('Selected Files')
                 .siblings('.tsv-metadata-stat')
@@ -200,13 +188,13 @@ describe('Benchmarking Layout Test', function () {
             cy.get('.modal-header > .btn-close').click({ force: true }).end();
         });
 
-        it('should uncheck all checkboxes', () => {
+        it('Should uncheck all checkboxes', () => {
             cy.get('.search-results-container .search-result-row .search-result-column-block input[type="checkbox"]').each(($checkBox) => {
                 unCheckFileCheckbox($checkBox);
             });
         });
 
-        it('should validate original total results count', () => {
+        it('Should validate original total results count', () => {
             cy.get('#results-count').then(($origTotalResults) => {
                 const originalFileText = $origTotalResults.text();
                 allResultTotalCount = parseInt(originalFileText.match(/\d+/)[0]);
@@ -228,21 +216,22 @@ describe('Benchmarking Layout Test', function () {
         });
     });
 
-    context('Facets', function () {
-
-        before(function () {
-            cy.visit('/', { headers: cypressVisitHeaders });
-            cy.loginSMaHT({ email: 'cypress-main-scientist@cypress.hms.harvard.edu', useEnvToken: false }).end()
-                .get(navUserAcctDropdownBtnSelector)
-                .should('not.contain.text', 'Login')
-                .then((accountListItem) => {
-                    expect(accountListItem.text()).to.contain('SCM');
-                }).end();
-            cy.visit('/data/benchmarking/COLO829', { headers: cypressVisitHeaders });
-        });
-
-        after(function () {
-            cy.logoutSMaHT();
+    context('Facet Interaction and Filtering Validation', function () {
+        it('Verify Column Sorting Icon Transitions', function () {
+            cy.get('div.search-headers-column-block[data-column-key="annotated_filename"] .column-sort-icon > i.icon-sort-down')
+                .scrollIntoView()
+                .click({ force: true })
+                .then(($icon) => {
+                    cy.wrap($icon).should('not.have.class', 'icon-circle-notch');
+                })
+                .click({ force: true })
+                .then(($icon) => {
+                    cy.wrap($icon).should('not.have.class', 'icon-circle-notch');
+                })
+                .then(() => {
+                    cy.get('div.search-headers-column-block[data-column-key="annotated_filename"] .column-sort-icon > i')
+                        .should('have.class', 'icon-sort-up');
+                });
         });
 
         it('Switch between included and excluded properties in facets, exclude a term', function () {
@@ -321,21 +310,7 @@ describe('Benchmarking Layout Test', function () {
         });
     });
 
-    context('Embedded Search Container', function () {
-        before(function () {
-            cy.visit('/data/benchmarking/COLO829', { headers: cypressVisitHeaders });
-            cy.loginSMaHT({ email: 'cypress-main-scientist@cypress.hms.harvard.edu', useEnvToken: false }).end()
-                .get(navUserAcctDropdownBtnSelector)
-                .should('not.contain.text', 'Login')
-                .then((accountListItem) => {
-                    expect(accountListItem.text()).to.contain('SCM');
-                }).end();
-        });
-
-        after(function () {
-            cy.logoutSMaHT();
-        })
-
+    context('Embedded Search Container Functionality', function () {
         it('Should collapse all facets', function () {
             cy.get('#slow-load-container').should('not.have.class', 'visible').end()
                 .get('.benchmarking-layout .icon-circle-notch').should('not.exist').end()

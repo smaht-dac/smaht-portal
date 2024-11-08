@@ -4,20 +4,24 @@ import { navUserAcctDropdownBtnSelector } from '../support/selectorVars';
 
 describe('Deployment/CI Search View Tests', function () {
 
+    before(function () {
+        cy.visit('/', { headers: cypressVisitHeaders });
+        cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false }).end()
+            .get(navUserAcctDropdownBtnSelector)
+            .should('not.contain.text', 'Login')
+            .then((accountListItem) => {
+                expect(accountListItem.text()).to.contain('SCM');
+            }).end();
+    });
+
+    after(function () {
+        cy.logoutSMaHT();
+    });
+
     context('/search/?type=Item', function () {
 
         before(function () {
             cy.visit('/search/', { headers: cypressVisitHeaders });
-            cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false }).end()
-                .get(navUserAcctDropdownBtnSelector)
-                .should('not.contain.text', 'Login')
-                .then((accountListItem) => {
-                    expect(accountListItem.text()).to.contain('SCM');
-                }).end();
-        });
-
-        after(function () {
-            cy.logoutSMaHT();
         });
 
         it('Has at least 50 results for /search/?type=Item', function () {
@@ -34,7 +38,7 @@ describe('Deployment/CI Search View Tests', function () {
             cy.get('.facets-column .facets-container .expandable-list .form-control[type="search"]').type('File');
 
             // Verify that all facet list elements contain "File"
-            cy.get('.facet-list-element[data-key]').each(($el) => {
+            cy.get('div.facet.open[data-field="type"] .facet-list-element[data-key]').each(($el) => {
                 cy.wrap($el).should('contain.text', 'File'); // Check each element for the text "File"
             });
 
@@ -249,11 +253,10 @@ describe('Deployment/CI Search View Tests', function () {
             cy.visit('/pages', { headers: cypressVisitHeaders }).end();
             cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false }).end()
                 .get(navUserAcctDropdownBtnSelector)
-                .should('not.contain.text', 'Login').end();
-        });
-
-        after(function () {
-            cy.logoutSMaHT();
+                .should('not.contain.text', 'Login')
+                .then((accountListItem) => {
+                    expect(accountListItem.text()).to.contain('SCM');
+                }).end();
         });
 
         it('/files/ should redirect to /search/?type=File', function () {
