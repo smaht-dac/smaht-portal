@@ -1,47 +1,244 @@
 [
     {
-        "code": "bcm",
-        "title": "BCM GCC",
-        "status": "released",
-        "aliases": [
-            "bcm_gcc:bcm_gcc"
-        ],
-        "identifier": "bcm_gcc",
-        "description": "Baylor College of Medicine",
-        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
-        "uuid": "f5446853-630e-474c-ba51-35b7e992269b"
+        "identifier": "washu_oc",
+        "code": "washuoc",
+        "date_created": "2024-01-31T15:09:01.321105+00:00",
+        "description": "Washington University in St. Louis Wang OC",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "WASHU OC",
+        "uuid": "32c6c9dc-7a8b-461b-b51a-0ac723ad8f18",
+        "status": "public"
     },
     {
-        "code": "washu",
-        "title": "WASHU GCC",
-        "status": "public",
-        "aliases": [
-            "washu_gcc:washu_gcc"
-        ],
-        "identifier": "washu_gcc",
-        "description": "Washington University in St. Louis GCC",
-        "uuid": "6030743e-631e-48e5-876d-df336066fa6e"
+        "identifier": "ndri_tpc",
+        "code": "ndri",
+        "date_created": "2024-01-31T14:45:40.603934+00:00",
+        "description": "National Disease Research Interchange (NDRI) Bell TPC",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "NDRI TPC",
+        "uuid": "e00ca5a4-bbd6-4c3b-9044-8c3e35490984",
+        "status": "public"
     },
     {
-        "code": "mayo",
-        "title": "MAYO TTD",
-        "status": "released",
-        "aliases": [
-            "mayo_ttd:mayo_ttd"
-        ],
+        "identifier": "wcnygc_ttd",
+        "code": "wcnygc",
+        "date_created": "2024-01-31T14:42:33.567759+00:00",
+        "description": "Weill Cornell Medicine & New York Genome Center Landau TTD",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "WCNYGC TTD",
+        "uuid": "5c2a7846-4d99-4e99-a2c9-b4dd67cf1d00",
+        "status": "public"
+    },
+    {
+        "identifier": "uutah_ttd",
+        "code": "uutah",
+        "date_created": "2024-01-31T14:41:56.012144+00:00",
+        "description": "University of Utah Marth TTD",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "UUTAH TTD",
+        "uuid": "619c9fab-4685-44f6-90f5-a4ace93b1932",
+        "status": "public"
+    },
+    {
+        "identifier": "umass_ttd",
+        "code": "umass",
+        "date_created": "2024-01-31T14:41:21.494840+00:00",
+        "description": "University of Massachusetts Fazzio TTD",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "UMASS TTD",
+        "uuid": "23972a38-a728-42ad-8b3a-2fda39653af3",
+        "status": "public"
+    },
+    {
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "identifier": "stfd_ttd",
+        "code": "stfd",
+        "date_created": "2024-01-26T16:32:52.193521+00:00",
+        "description": "Stanford University Urban TTD",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "STFD TTD",
+        "last_modified": {
+            "date_modified": "2024-09-16T17:15:33.974258+00:00",
+            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf"
+        },
+        "uuid": "a7fd0f47-304b-421f-a7fa-545b8af91244",
+        "status": "public"
+    },
+    {
+        "identifier": "nyu_ttd",
+        "code": "nyu",
+        "date_created": "2024-01-26T16:32:11.721817+00:00",
+        "description": "New York University Evrony TTD",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "NYU TTD",
+        "uuid": "acecf232-404e-4341-9e8d-f065f9e3961f",
+        "status": "public"
+    },
+    {
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "identifier": "mayo_ttd",
+        "code": "mayo",
+        "date_created": "2024-01-26T16:26:36.985212+00:00",
         "description": "Mayo Clinic Abyzov TTD",
-        "uuid": "7a7021f8-2f90-4aac-80c8-72d5e03c5bd1"
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "MAYO TTD",
+        "uuid": "d530e9b9-04bd-481f-bf2f-c53e351fa0aa",
+        "status": "public"
     },
     {
-        "code": "uwsc",
-        "title": "UWSC GCC",
-        "status": "released",
-        "aliases": [
-            "uwsc_gcc:uwsc_gcc"
-        ],
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "identifier": "cwru_ttd",
+        "code": "cwru",
+        "date_created": "2024-01-26T16:25:09.345928+00:00",
+        "description": "Case Western Reserve University Jin TTD",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "CWRU TTD",
+        "uuid": "47a1e892-5542-416c-b9cc-c93f4afd643d",
+        "status": "public"
+    },
+    {
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "identifier": "broad1_ttd",
+        "code": "broad1",
+        "date_created": "2024-01-26T16:23:39.012958+00:00",
+        "description": "Broad Institute Chen TTD",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "BROAD1 TTD",
+        "uuid": "c927d398-a9cf-4603-ad28-8ddfe88c7ffd",
+        "status": "public"
+    },
+    {
+        "identifier": "dfci_ttd",
+        "code": "dfci",
+        "date_created": "2024-01-26T16:22:40.565455+00:00",
+        "description": "Dana-Farber Cancer Institute Burns TTD",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "DFCI TTD",
+        "uuid": "4d453907-8a18-474e-85d0-8d8158e5a9ff",
+        "status": "public"
+    },
+    {
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "identifier": "bch2_ttd",
+        "code": "bch2",
+        "date_created": "2024-01-26T16:20:56.834971+00:00",
+        "description": "Boston Children's Hospital Choudhury TTD",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "BCH2 TTD",
+        "uuid": "7bc5691a-8720-45a1-ae9b-4d9d80b43e6a",
+        "status": "public"
+    },
+    {
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "identifier": "bch1_ttd",
+        "code": "bch1",
+        "date_created": "2024-01-26T16:20:41.679003+00:00",
+        "description": "Boston Children's Hospital Walsh TTD",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "BCH1 TTD",
+        "uuid": "230e6fed-df21-4371-b630-f0dce63aefca",
+        "status": "public"
+    },
+    {
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "identifier": "bcm2_ttd",
+        "code": "bcm2",
+        "date_created": "2024-01-26T16:16:47.235298+00:00",
+        "description": "Baylor College of Medicine Sedlazeck TTD",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "BCM2 TTD",
+        "uuid": "61ab7548-b13b-4b62-ae0e-f9c19119af21",
+        "status": "public"
+    },
+    {
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "identifier": "bcm1_ttd",
+        "code": "bcm1",
+        "date_created": "2023-12-15T19:26:55.726249+00:00",
+        "description": "Baylor College of Medicine Zong TTD",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "BCM1 TTD",
+        "uuid": "3c0a5056-a253-472c-a313-18c3f4a9b554",
+        "status": "public"
+    },
+    {
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "identifier": "bcm_gcc",
+        "code": "bcm",
+        "date_created": "2023-12-13T16:23:50.860869+00:00",
+        "description": "Baylor College of Medicine GCC",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "BCM GCC",
+        "uuid": "f8da20ff-1b39-4a8f-af46-1c82ee601374",
+        "status": "public"
+    },
+    {
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "identifier": "washu_gcc",
+        "code": "washu",
+        "date_created": "2023-12-13T14:34:08.865108+00:00",
+        "description": "Washington University in St. Louis GCC",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "WASHU GCC",
+        "uuid": "055cfde3-f82c-4d32-851d-b8061c7e2b95",
+        "status": "public"
+    },
+    {
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "identifier": "nygc_gcc",
+        "code": "nygc",
+        "date_created": "2023-12-13T14:32:54.879773+00:00",
+        "description": "New York Genome Center GCC",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "NYGC GCC",
+        "uuid": "e4af0e4b-0217-4624-8715-9a8942201dcd",
+        "status": "public"
+    },
+    {
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "identifier": "broad_gcc",
+        "code": "broad",
+        "date_created": "2023-12-13T14:31:57.296016+00:00",
+        "description": "Broad Institute GCC",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "BROAD GCC",
+        "uuid": "51e0ae88-8ff9-40c2-ae59-c8ca3c085717",
+        "status": "public"
+    },
+    {
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "identifier": "umich_ttd",
+        "code": "umich",
+        "date_created": "2023-12-13T14:30:24.037515+00:00",
+        "description": "University of Michigan TTD",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "UMICH TTD",
+        "uuid": "66352171-aba7-4847-8f94-a017700dc627",
+        "status": "public"
+    },
+    {
+        "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "identifier": "uwsc_gcc",
+        "code": "uwsc",
+        "date_created": "2023-12-12T21:09:38.778253+00:00",
         "description": "University of Washington & Seattle Children\u2019s Hospital GCC",
-        "uuid": "3cd5a0a8-96e0-4eb1-862d-526509efb9b3"
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "UWSC GCC",
+        "uuid": "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d",
+        "status": "public"
+    },
+    {
+        "identifier": "smaht_dac",
+        "code": "dac",
+        "date_created": "2023-12-12T20:21:09.371478+00:00",
+        "description": "SMaHT Data Analysis Center",
+        "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
+        "title": "HMS DAC",
+        "last_modified": {
+            "date_modified": "2024-02-01T12:36:35.216401+00:00",
+            "modified_by": "3202fd57-44d2-44fb-a131-afb1e43d8ae5"
+        },
+        "uuid": "9626d82e-8110-4213-ac75-0a50adf890ff",
+        "status": "public"
     }
 ]

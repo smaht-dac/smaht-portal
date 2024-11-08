@@ -11,7 +11,7 @@
         "description": "Demultiplexes Illumina short-read sequences and converts BCL basecall files to FASTQ sequence files",
         "submitted_id": "BCM_SOFTWARE_BCL2FASTQ2",
         "submission_centers": [
-            "f5446853-630e-474c-ba51-35b7e992269b"
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
         ],
         "uuid": "add23b46-651a-4c12-9cc6-6ef0a3f0bc6b"
     },
@@ -28,7 +28,7 @@
         "description": "ONT basecalling software, also known as guppy version 7.1.4",
         "submitted_id": "BCM_SOFTWARE_DORADO",
         "submission_centers": [
-            "f5446853-630e-474c-ba51-35b7e992269b"
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
         ],
         "uuid": "d1bea302-fcfb-4df6-8cbd-4e2294856c33"
     },
@@ -44,7 +44,7 @@
         "description": "PacBio's demultiplexing software",
         "submitted_id": "BCM_SOFTWARE_LIMA",
         "submission_centers": [
-            "f5446853-630e-474c-ba51-35b7e992269b"
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
         ],
         "uuid": "697a98a5-48fe-4386-82d4-6b4b8eb2524f"
     },
@@ -61,7 +61,7 @@
         "description": "core software that controls the ONT sequencer, which does on-instrument sequencing and basecalling",
         "submitted_id": "BCM_SOFTWARE_MINKNOW",
         "submission_centers": [
-            "f5446853-630e-474c-ba51-35b7e992269b"
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
         ],
         "uuid": "e158625d-f195-4a34-803d-f30d37081a05"
     },
@@ -78,7 +78,7 @@
         "description": "PacBio Revio's instrument control software that controls the on-instrument basecalling and hifi reads generation",
         "submitted_id": "BCM_SOFTWARE_REVIO-ICS",
         "submission_centers": [
-            "f5446853-630e-474c-ba51-35b7e992269b"
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
         ],
         "uuid": "a8ebafac-7802-4199-9007-558821240a5a"
     },
@@ -94,7 +94,7 @@
         "description": "used to concatenate 1000+ unaligned bams into single bam or fastq",
         "submitted_id": "BCM_SOFTWARE_SAMTOOLS",
         "submission_centers": [
-            "f5446853-630e-474c-ba51-35b7e992269b"
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
         ],
         "uuid": "b30edc76-c541-467c-b2e9-016ded7b6155"
     },
@@ -110,7 +110,7 @@
         "description": "PacBio's suite of software tools for various data analyses",
         "submitted_id": "BCM_SOFTWARE_SMRTLINK",
         "submission_centers": [
-            "f5446853-630e-474c-ba51-35b7e992269b"
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
         ],
         "uuid": "df4655b6-2dfe-4607-acdd-f9936fb64216"
     }

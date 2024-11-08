@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.110.1
+=======
+* 2024-11-08/dmichaels
+* Updated some demo_inserts data files to make them more consistent with what is in production;
+  i.e. e.g. some of the submission-center uuids here were in conflict with production which
+  impedes local development when exporting from production and importing locally.
+
+
 0.110.0
 =======
 * 2024-11-04/dmichaels
