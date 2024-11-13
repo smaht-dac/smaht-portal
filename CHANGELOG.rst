@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.111.0
+=======
+`PR 291 SN recovery_datetime <https://github.com/smaht-dac/smaht-portal/pull/291>`_
+
+* Add `recovery_datetime` to Tissue Collection, to then remove this property from Tissue, as this can be considered identifying information
+
+
 0.110.1
 ======
 `PR259: fix: target coverage and read count <https://github.com/smaht-dac/smaht-portal/pull/259>`_
