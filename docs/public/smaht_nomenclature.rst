@@ -77,7 +77,7 @@ Naming Schema
 
 
 
-Table 1. Protocol IDs for SMaHT benchmarking tissues.
+Table 1A. Protocol IDs for SMaHT benchmarking tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
@@ -167,7 +167,7 @@ Table 1. Protocol IDs for SMaHT benchmarking tissues.
 | \* 1J and 1L tissues are collected, but not utilized for study.
 | \*\* Cores made (intact tissue).
 
-Table 2. Protocol IDs for SMaHT production tissues.
+Table 1B. Protocol IDs for SMaHT production tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
