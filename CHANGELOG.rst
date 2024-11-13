@@ -10,7 +10,17 @@ Change Log
 0.111.0
 =======
 `PR 287 SN Override Coverage <https://github.com/smaht-dac/smaht-portal/pull/287`_
+
 * Add property to file, `override_group_coverage` that displays in `data_generation_summary` calculated property for the File Overview page, which takes precedence  over `file_set.sequencing.target_coverage` if set
+
+
+0.110.1
+======
+`PR259: fix: target coverage and read count <https://github.com/smaht-dac/smaht-portal/pull/259>`_
+
+* Show total target coverage for aligned wgs, fiber-seq, or hi-c bam
+* Show target read count for rna-seq and mas-iso-seq
+* Show N/A where unavailable
 
 
 0.110.0
@@ -59,7 +69,6 @@ Change Log
 * Update assay table with new TEnCATS assay
 
 
-=======
 0.107.2
 =======
 
