@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.110.1
+======
+`PR259: fix: target coverage and read count <https://github.com/smaht-dac/smaht-portal/pull/259>`_
+
+* Show total target coverage for aligned wgs, fiber-seq, or hi-c bam
+* Show target read count for rna-seq and mas-iso-seq
+* Show N/A where unavailable
+
+
 0.110.0
 =======
 * 2024-11-04/dmichaels
@@ -52,7 +61,6 @@ Change Log
 * Update assay table with new TEnCATS assay
 
 
-=======
 0.107.2
 =======
 
