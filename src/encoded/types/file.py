@@ -155,7 +155,7 @@ class CalcPropConstants:
                 "title": "Annotated Name",
                 "type": "string",
             },
-            FILE_SUMMARY_ACCESS_STATUS : {
+            FILE_SUMMARY_ACCESS_STATUS: {
                 "title": "Access",
                 "type": "string",
             },
@@ -327,7 +327,6 @@ class CalcPropConstants:
     }
 
 
-
 def show_upload_credentials(
     request: Optional[Request] = None,
     context: Optional[str] = None,
@@ -389,6 +388,8 @@ class File(Item, CoreFile):
     rev = {
         "meta_workflow_run_inputs": ("MetaWorkflowRun", "input.files.file"),
         "meta_workflow_run_outputs": ("MetaWorkflowRun", "workflow_runs.output.file"),
+        'workflow_run_inputs': ('WorkflowRun', 'input_files.value'),
+        'workflow_run_outputs': ('WorkflowRun', 'output_files.value'),
     }
     STATUS_TO_CHECK_REVISIONS = [
         'uploading',
@@ -610,6 +611,32 @@ class File(Item, CoreFile):
         if result:
             return result
         return
+    
+    @calculated_property(schema={
+        "title": "Input of Workflow Runs",
+        "description": "All workflow runs that this file serves as an input to",
+        "type": "array",
+        "items": {
+            "title": "Input of Workflow Run",
+            "type": ["string", "object"],
+            "linkTo": "WorkflowRun"
+        }
+    })
+    def workflow_run_inputs(self, request):
+        return self.rev_link_atids(request, "workflow_run_inputs")
+
+    @calculated_property(schema={
+        "title": "Output of Workflow Runs",
+        "description": "All workflow runs that this file serves as an output from",
+        "type": "array",
+        "items": {
+            "title": "Output of Workflow Run",
+            "type": "string",
+            "linkTo": "WorkflowRun"
+        }
+    })
+    def workflow_run_outputs(self, request):
+        return self.rev_link_atids(request, "workflow_run_outputs")    
 
     @calculated_property(schema=CalcPropConstants.LIBRARIES_SCHEMA)
     def libraries(
