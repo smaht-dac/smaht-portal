@@ -7,12 +7,28 @@ smaht-portal
 Change Log
 ----------
 
-0.110.1
+0.111.1
 =======
 * 2024-11-08/dmichaels
 * Updated some demo_inserts data files to make them more consistent with what is in production;
   i.e. e.g. some of the submission-center uuids here were in conflict with production which
   impedes local development when exporting from production and importing locally.
+
+
+0.111.0
+=======
+`PR 291 SN recovery_datetime <https://github.com/smaht-dac/smaht-portal/pull/291>`_
+
+* Add `recovery_datetime` to Tissue Collection, to then remove this property from Tissue, as this can be considered identifying information
+
+
+0.110.1
+======
+`PR259: fix: target coverage and read count <https://github.com/smaht-dac/smaht-portal/pull/259>`_
+
+* Show total target coverage for aligned wgs, fiber-seq, or hi-c bam
+* Show target read count for rna-seq and mas-iso-seq
+* Show N/A where unavailable
 
 
 0.110.0
@@ -60,7 +76,6 @@ Change Log
 * Update assay table with new TEnCATS assay
 
 
-=======
 0.107.2
 =======
 
