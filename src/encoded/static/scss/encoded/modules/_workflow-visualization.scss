@@ -1,0 +1,62 @@
+@import "./../../../../../../node_modules/@hms-dbmi-bgm/react-workflow-viz/src/styles";
+
+.workflow-chart-outer-container {
+
+    .workflow-chart-inner-container {
+
+        overflow-x: initial !important;
+        //overflow-y: initial !important;
+
+        .nodes-layer {
+            .node {
+                font-size: 0.9rem;
+            }
+        }
+
+        @include media-breakpoint-up(md){
+            .state-container {
+                display: flex;
+                > .scroll-container-wrapper {
+                    flex: 1 0;
+                }
+                > .detail-pane-container {
+                    &[data-is-open="true"] {
+                        border-left-color: #ddd !important;
+                    }
+                }
+            }
+        }
+
+        .state-container {
+            @include visualization-detail-pane;
+        }
+
+    }
+}
+
+.meta-workflow-view-container .workflow-chart-outer-container .workflow-chart-inner-container .scroll-container {
+    height: calc(100vh - 214px) !important; // Need to override styles from react-workflow-viz graph
+}
+
+.workflow-chart-detail-pane-modal-header {
+    .title-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        label {
+            font-weight: 400;
+            margin-bottom: 1px;
+            color: #777;
+        }
+
+        h3 {
+            font-weight: 300;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: $body-color;
+        }
+    }
+}
