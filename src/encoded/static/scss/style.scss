@@ -37,7 +37,8 @@
 @import "encoded/typography";
 @import "encoded/layout";
 
-@import "encoded/modules/forms",
+@import "encoded/modules/common-visualization-detail-pane",
+        "encoded/modules/forms",
         "encoded/modules/navbar",
         "encoded/modules/tables",
         "encoded/modules/search",
@@ -46,4 +47,5 @@
         "encoded/modules/item-pages",
         "encoded/modules/static-pages",
         "encoded/modules/slide-in-pane",
+        "encoded/modules/workflow-visualization",
         "encoded/modules/viz";
