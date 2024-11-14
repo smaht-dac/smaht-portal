@@ -13,6 +13,8 @@ Change Log
 * Updated some demo_inserts data files to make them more consistent with what is in production;
   i.e. e.g. some of the submission-center uuids here were in conflict with production which
   impedes local development when exporting from production and importing locally.
+* Added /debug_user_principals endpoint for debugging/troubleshooting/undestanding only;
+  this will simply return the list of principals for the calling user.
 
 
 0.111.0
