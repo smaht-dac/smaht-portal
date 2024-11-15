@@ -57,5 +57,32 @@
             "TEST_SOFTWARE_BWA-MEM"
         ],
         "reference_genome": "GRCh38"
+    },
+    {
+        "uuid": "f8a26c8f-f532-4913-b797-ab786cb4f992",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ALIGNED-READS_DOWNSAMPLED",
+        "data_category": [
+            "Sequencing Reads"
+        ],
+        "data_type": [
+            "Aligned Reads",
+            "In Silico Generated"
+        ],
+        "override_group_coverage": 150,
+        "alignment_details": [
+            "Sorted"
+        ],
+        "file_format": "BAM",
+        "filename": "some_downsampled_bam.bam",
+        "file_sets": [
+            "TEST_FILE-SET_LIVER"
+        ],
+        "software": [
+            "TEST_SOFTWARE_BWA-MEM"
+        ],
+        "reference_genome": "GRCh38"
     }
 ]

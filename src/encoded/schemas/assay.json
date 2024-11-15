@@ -75,6 +75,19 @@
         "code": {
             "pattern": "^[0-9]{3}$"
         },
+        "schema_version": {
+            "default": "1"
+        },
+        "amplification_method": {
+            "title": "Amplification Method",
+            "description": "Amplification method used in the assay",
+            "type": "string",
+            "enum": [
+                "PCR-free",
+                "PCR",
+                "WGA"
+            ]
+        },
         "category": {
             "description": "Category of assay",
             "type": "string",
@@ -92,8 +105,25 @@
                 "ATAC-seq"
             ]
         },
-        "schema_version": {
-            "default": "1"
+        "cell_isolation_method": {
+            "title": "Cell Isolation Method",
+            "description": "Method of isolating cells used in the assay",
+            "type": "string",
+            "enum": [
+                "Bulk",
+                "Single-cell",
+                "Microbulk"
+            ]
+        },
+        "molecule_specificity": {
+            "title": "Molecule Specificity",
+            "description": "Level of specificity of sequencing molecules",
+            "type": "string",
+            "enum": [
+                "Single-molecule",
+                "Duplex-sequencing",
+                "Not Applicable"
+            ]
         },
         "valid_molecules": {
             "title": "Valid Molecules",

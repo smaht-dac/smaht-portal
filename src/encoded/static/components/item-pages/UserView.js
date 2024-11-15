@@ -386,27 +386,29 @@ const AccessKeyTable = React.memo(function AccessKeyTable({
     }
 
     return (
-        <table className="table table-responsive-md access-keys-table bg-white">
-            <thead>
-                <tr>
-                    <th>Access Key ID</th>
-                    <th>Created</th>
-                    <th>Expires</th>
-                    <th>Description</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {accessKeys.map(function (accessKey, idx) {
-                    return (
-                        <AccessKeyTableRow
-                            {...{ onDelete, onResetSecret, accessKey, idx }}
-                            key={idx}
-                        />
-                    );
-                })}
-            </tbody>
-        </table>
+        <div className="table-responsive-md">
+            <table className="table access-keys-table bg-white">
+                <thead>
+                    <tr>
+                        <th>Access Key ID</th>
+                        <th>Created</th>
+                        <th>Expires</th>
+                        <th>Description</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {accessKeys.map(function (accessKey, idx) {
+                        return (
+                            <AccessKeyTableRow
+                                {...{ onDelete, onResetSecret, accessKey, idx }}
+                                key={idx}
+                            />
+                        );
+                    })}
+                </tbody>
+            </table>
+        </div>
     );
 });
 

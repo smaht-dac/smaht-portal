@@ -211,15 +211,18 @@
                 "type": "string"
             }
         },
+        "override_group_coverage": {
+            "title": "Group Coverage Override",
+            "desciption": "An override count for expected group coverage from sequencing that is used in the File Overview page if present, particularly for downsampled files",
+            "type": "number",
+            "minimum": 0
+        },
         "version": {
             "type": "string",
             "permission": "restricted_fields"
         }
     },
     "facets": {
-        "variant_type": {
-            "title": "Variant Type"
-        },
         "file_sets.libraries.assay.display_title": {
             "title": "Experimental Assay"
         },
@@ -255,9 +258,6 @@
         },
         "annotated_filename": {
             "title": "File"
-        },
-        "variant_type": {
-            "title": "Variant Type"
         },
         "file_sets.libraries.assay.display_title": {
             "title": "Assay"

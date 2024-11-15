@@ -67,33 +67,6 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_DONOR-SPECIFIC-ASSEMBLY_[A-Z0-9-_.]{4,}$"
         },
-        "contig_l50": {
-            "title": "Contig L50",
-            "description": "L50 of contigs: the count of the smallest number of contigs whose total length makes up 50% of the assembly size",
-            "type": "integer",
-            "minimum": 0
-        },
-        "contig_n50": {
-            "title": "Contig N50",
-            "description": "N50 of contigs: the sequence length of the shortest contig at 50% of the total assembly length (bp)",
-            "type": "integer",
-            "minimum": 0,
-            "allow_commas": true,
-            "allow_multiplier_suffix": true
-        },
-        "gaps_between_scaffolds": {
-            "title": "Gaps Between Scaffolds",
-            "description": "Number of gaps between scaffolds",
-            "type": "integer",
-            "minimum": 0
-        },
-        "gc_content": {
-            "title": "GC Content",
-            "description": "GC content of assembly excluding N (%)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        },
         "genome_size": {
             "title": "Genome Size",
             "description": "The size of both combined assembled haplotypes (bp)",
@@ -102,130 +75,18 @@
             "allow_commas": true,
             "allow_multiplier_suffix": true
         },
-        "largest_contig_size": {
-            "title": "Largest Contig Size",
-            "description": "Size of the largest contig in the assembly (bp)",
-            "type": "integer",
-            "minumum": 0,
-            "allow_commas": true,
-            "allow_multiplier_suffix": true
-        },
-        "number_of_chromosomes": {
-            "title": "Number of Chromosomes",
-            "description": "Number of chromosomes in the assembly",
-            "type": "integer",
-            "minimum": 0
-        },
-        "number_of_contigs": {
-            "title": "Number of Contigs",
-            "description": "Number of contigs in the assembly",
-            "type": "integer",
-            "minumum": 0
-        },
-        "number_of_scaffolds": {
-            "title": "Number of Scaffolds",
-            "description": "Number of scaffolds in the assembly",
-            "type": "integer",
-            "minimum": 0
-        },
-        "percent_single_copy_hap1": {
-            "title": "Percent Single Copy Hap1 (%)",
-            "description": "Percentage of highly conserved genes with a single copy present in the Hap1 assembly (BUSCO)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        },
-        "percent_single_copy_hap2": {
-            "title": "Percent Single Copy Hap2 (%)",
-            "description": "Percentage of highly conserved genes with a single copy present in the Hap2 assembly (BUSCO)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        },
-        "percent_multi_copy_hap1": {
-            "title": "Percent Multiple Copy Hap1 (%)",
-            "description": "Percentage of highly conserved genes with multiple copies present in the Hap1 assembly (BUSCO)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        },
-        "percent_multi_copy_hap2": {
-            "title": "Percent Multiple Copy Hap2 (%)",
-            "description": "Percentage of highly conserved genes with multiple copies present in the Hap2 assembly (BUSCO)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        },
-        "percent_fragmented_hap1": {
-            "title": "Percent Fragmented Hap1 (%)",
-            "description": "Percentage of highly conserved genes with fragmented representation in the Hap1 assembly (BUSCO)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        },
-        "percent_fragmented_hap2": {
-            "title": "Percent Fragmented Hap2 (%)",
-            "description": "Percentage of highly conserved genes with fragmented representation in the Hap2 assembly (BUSCO)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        },
-        "percent_missing_hap1": {
-            "title": "Percent Missing Hap1 (%)",
-            "description": "Percentage of highly conserved genes that are missing from the Hap1 assembly (BUSCO)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        },
-        "percent_missing_hap2": {
-            "title": "Percent Missing Hap2 (%)",
-            "description": "Percentage of highly conserved genes that are missing from the Hap2 assembly (BUSCO)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        },
         "ploidy": {
             "title": "Ploidy",
-            "description": "Ploidy of assembly",
+            "description": "Ploidy of the assembly",
             "type": "string",
-            "default": "Diploid",
-            "enum": [
-                "Aneuploid",
+            "suggested_enum": [
                 "Diploid",
-                "Haploid"   
+                "Haploid",
+                "Aneuploid"
             ]
-        },
-        "scaffold_l50": {
-            "title": "Scaffold L50",
-            "description": "L50 of scaffolds: the count of the smallest number of scaffolds whose total length makes up 50% of the assembly size",
-            "type": "integer",
-            "minimum": 0
-        },
-        "scaffold_n50": {
-            "title": "Scaffold N50",
-            "description": "N50 of scaffolds: the sequence length of the shortest scaffold at 50% of the total assembly length (bp)",
-            "type": "integer",
-            "minimum": 0,
-            "allow_commas": true,
-            "allow_multiplier_suffix": true
         },
         "title": {
             "description": "Title of the assembly (e.g. ST001_DSA)"
-        },
-        "total_ungapped_length": {
-            "title": "Total Ungapped Length",
-            "description": "Total ungapped length of the assembly (bp)",
-            "type": "integer",
-            "minimum": 0,
-            "allow_commas": true,
-            "allow_multiplier_suffix": true
-        },
-        "quality_value": {
-            "title": "Quality Value",
-            "description": "Consensus quality value (QV) of the assembly (from Merqury)",
-            "type": "number",
-            "minimum": 0,
-            "maximum": 50
         },
         "derived_from": {
             "title": "Derived From",
@@ -236,17 +97,6 @@
             "items": {
                 "type": "string",
                 "linkTo": "File"
-            }
-        },
-        "software": {
-            "title": "Software",
-            "description": "Link to software used to generate the assembly",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "Software"
             }
         }
     },

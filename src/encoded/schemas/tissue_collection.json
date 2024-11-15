@@ -97,6 +97,19 @@
                 ]
             }
         },
+        "recovery_datetime": {
+            "title": "Recovery Datetime",
+            "description": "Date and time of tissue recovery",
+            "type": "string",
+            "anyOf": [
+                {
+                    "format": "date-time"
+                },
+                {
+                    "format": "date"
+                }
+            ]
+        },
         "recovery_interval": {
             "title": "Recovery Interval",
             "description": "Total time interval of tissue collection (minutes)",
