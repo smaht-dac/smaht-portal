@@ -101,6 +101,7 @@
         },
         "comparators": {
             "title": "Comparators",
+            "description": "Comparator sample files used for normal matching",
             "type": "array",
             "items": {
                 "type": "object",
@@ -109,7 +110,7 @@
                 ],
                 "properties": {
                     "comparator_description": {
-                        "title": "Comparators Description",
+                        "title": "Comparator Description",
                         "description": "Description of comparator sample file used for normal matching",
                         "type": "string"
                     },
