@@ -530,7 +530,7 @@ ANOTHER_SOFTWARE_CODE = "bar"
 ANOTHER_SOFTWARE_VERSION = "2.3.4"
 ANOTHER_SOFTWARE = {"code": ANOTHER_SOFTWARE_CODE, "version": ANOTHER_SOFTWARE_VERSION}
 REFERENCE_GENOME_CODE = "GRCh38"
-TARGET_GENOME_CODE = "HELA_DSA"
+TARGET_GENOME_CODE = "Hela_DSA"
 
 SOME_REFERENCE_GENOME = {"code": REFERENCE_GENOME_CODE}
 SOME_UNALIGNED_READS = {"data_type": ["Unaligned Reads"]}
@@ -542,7 +542,8 @@ SOME_CHAIN_FILE = {
 }
 SOME_FASTA_FILE = {
     "data_type": ["SupplementaryFile"],
-    "donor_specific_assembly": "Some_DSA"
+    "donor_specific_assembly": "Some_DSA",
+    "haplotype": "hapX"
 }
 ANOTHER_FASTA_FILE = {
     "data_type": ["SupplementaryFile"],
@@ -636,7 +637,7 @@ FASTA_FILE_EXTENSION = {
             [SOME_SOFTWARE, SOME_ITEM],
             {},
             FASTA_FILE_EXTENSION,
-            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_dsa",
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_hapX",
             False,
         ),
         (
@@ -680,7 +681,7 @@ OTHER_FILE = {'@type': ["VariantCals"]}
             ],
             "bar_3.4.5_foo_1.2.3",
         ),
-        (SUPPLEMENTARY_FILE,[{"title": "Foo", "version": "1.2.3"}], "foo_1.2.3"),
+        (SUPPLEMENTARY_FILE,[{"title": "Foo", "version": "1.2.3"}], ""),
     ],
 )
 def test_get_software_and_versions(

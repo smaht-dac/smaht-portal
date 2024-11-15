@@ -50,6 +50,11 @@ def get_reference_genome(properties: Dict[str, Any]) -> Union[str, Dict[str, Any
     return properties.get("reference_genome", "")
 
 
+def get_haplotype(properties: Dict[str, Any]) -> Union[str, Dict[str, Any], None]:
+    """Get haplotype from properties."""
+    return properties.get("haplotype", "")
+
+
 def get_derived_from(
     properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[Union[str, Dict[str, Any]]]:

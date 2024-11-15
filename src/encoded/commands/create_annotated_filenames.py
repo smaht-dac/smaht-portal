@@ -22,6 +22,7 @@ from encoded.item_utils import (
     supplementary_file as supp_file_utils,
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
+    donor_specific_assembly as dsa_utils
 )
 from encoded.item_utils.constants import file as file_constants
 from encoded.item_utils.utils import RequestHandler
@@ -429,7 +430,10 @@ def get_annotated_filename(
     accession = get_accession(file)
     file_extension = get_file_extension(file, associated_items.file_format)
     analysis_info = get_analysis(
-        file, associated_items.software, associated_items.reference_genome,associated_items.file_format
+        file,
+        associated_items.software,
+        associated_items.reference_genome,
+        associated_items.file_format
     )
     errors = collect_errors(
         project_id,
@@ -808,7 +812,7 @@ def get_analysis(
     file: Dict[str, Any],
     software: List[Dict[str, Any]],
     reference_genome: Dict[str, Any],
-    file_extension: Dict[str, Any],
+    file_extension: Dict[str, Any]
 ) -> FilenamePart:
     """Get analysis info for file.
 
@@ -826,7 +830,8 @@ def get_analysis(
     if file_format_utils.is_chain_file(file_extension):
         value = ANALYSIS_INFO_SEPARATOR.join([value,get_chain_file_value(file)]) if value else get_chain_file_value(file)
     elif file_format_utils.is_fasta_file(file_extension) and supp_file_utils.get_donor_specific_assembly(file):
-        value = f"{value}{ANALYSIS_INFO_SEPARATOR}{DSA_INFO_VALUE}"
+        if (haplotype := supp_file_utils.get_haplotype(file)):
+            value = f"{value}{ANALYSIS_INFO_SEPARATOR}{haplotype}"
     if not value:
         if file_utils.is_unaligned_reads(file):  # Think this is the only case (?)
             return get_filename_part(value=DEFAULT_ABSENT_FIELD)
@@ -866,12 +871,9 @@ def get_analysis_value(
 def get_software_and_versions(file: Dict[str, Any], software: List[Dict[str, Any]]) -> str:
     """Get software and accompanying versions for file.
 
-    Currently looking for software items with codes, as these are expected to be the software used for naming, with the exception of SupplementaryFile items, where lower case title is used.
+    Currently looking for software items with codes, as these are expected to be the software used for naming.
     """
-    if supp_file_utils.is_supplementary_file(file):
-        software_with_codes = get_software_with_title(software)
-    else:
-        software_with_codes = get_software_with_codes(software)
+    software_with_codes = get_software_with_codes(software)
     if not software_with_codes:
         return ""
     software_with_codes_and_versions = get_software_with_versions(software_with_codes)
