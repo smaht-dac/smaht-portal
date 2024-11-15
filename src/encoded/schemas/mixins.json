@@ -345,7 +345,9 @@
                 "lb_ipsc_60",
                 "tissue",
                 "colo829_snv_indel_challenge_data",
-                "mei_detection_challenge_data"
+                "mei_detection_challenge_data",
+                "hapmap_challenge_data",
+                "ipsc_challenge_data"
             ]
         }
     },
