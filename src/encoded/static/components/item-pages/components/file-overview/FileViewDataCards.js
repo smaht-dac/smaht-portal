@@ -43,7 +43,7 @@ const DataCard = ({ header = '', data = [] }) => {
  * function for extracting the property's value (if available) from [context].
  * Used to populate the data cards in the FileViewDataCards component.
  */
-const file_properties = [
+const default_file_properties = [
     {
         title: 'Status',
         getProp: (context = {}) => (
@@ -89,7 +89,7 @@ const file_properties = [
         },
     },
 ];
-const data_information = [
+const default_data_information = [
     {
         title: 'Data Category',
         getProp: (context = {}) =>
@@ -123,15 +123,48 @@ const data_information = [
     {
         title: 'Dataset Target Coverage',
         getProp: (context = {}) => {
-            const cov = context?.data_generation_summary?.target_group_coverage;
-            if (cov && cov.length > 0) {
-                return cov[0] + 'X';
+            if (
+                context?.file_format?.display_title === 'bam' &&
+                context?.data_type.some((d) => d === 'Aligned Reads') &&
+                context?.data_generation_summary?.assays?.some(
+                    (assay) =>
+                        assay.includes('WGS') ||
+                        assay.includes('Fiber-seq') ||
+                        assay.includes('Hi-C')
+                )
+            ) {
+                const cov =
+                    context?.data_generation_summary?.target_group_coverage;
+                if (cov && cov.length > 0) {
+                    return cov[0] + 'X';
+                }
+            }
+            return null;
+        },
+    },
+    {
+        title: 'Dataset Target Read Count',
+        getProp: (context = {}) => {
+            if (
+                context?.file_format?.display_title === 'bam' &&
+                context?.data_type.some((d) => d === 'Aligned Reads') &&
+                context?.data_generation_summary?.assays?.some(
+                    (assay) =>
+                        assay.includes('RNA-Seq') ||
+                        assay.includes('MAS-ISO-Seq')
+                )
+            ) {
+                const count =
+                    context?.data_generation_summary?.target_read_count;
+                if (count && count.length > 0) {
+                    return count[0];
+                }
             }
             return null;
         },
     },
 ];
-const sample_information = [
+const default_sample_information = [
     {
         title: 'Description',
         getProp: (context = {}) =>
@@ -162,6 +195,10 @@ const sample_information = [
  * @param {object} context the context of the item being viewed
  */
 export const FileViewDataCards = ({ context = {} }) => {
+    let file_properties = default_file_properties;
+    let data_information = default_data_information;
+    let sample_information = default_sample_information;
+
     return (
         <div className="data-cards-container">
             <DataCard
