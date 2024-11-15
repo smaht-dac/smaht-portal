@@ -19,11 +19,6 @@
         "submitted_id",
         "uuid"
     ],
-    "dependentRequired": {
-        "comparators": [
-            "comparators_description"
-        ]
-    },
     "additionalProperties": false,
     "mixinProperties": [
         {
@@ -106,18 +101,24 @@
         },
         "comparators": {
             "title": "Comparators",
-            "description": "Link to comparator sample files used for normal matching",
             "type": "array",
             "items": {
-                "type": "string"
-            }
-        },
-        "comparators_description": {
-            "title": "Comparators Description",
-            "description": "Description of comparator samples used for normal matching",
-            "type": "array",
-            "items": {
-                "type": "string"
+                "type": "object",
+                "required": [
+                    "comparator_description"
+                ],
+                "properties": {
+                    "comparator_description": {
+                        "title": "Comparators Description",
+                        "description": "Description of comparator sample file used for normal matching",
+                        "type": "string"
+                    },
+                    "comparator_file": {
+                        "title": "Comparator File",
+                        "description": "Accession ID of comparator sample file used for normal matching",
+                        "type": "string"
+                    }
+                }
             }
         },
         "external_databases": {
@@ -169,7 +170,7 @@
         },
         { 
             "required": [
-                "comparators_description"
+                "comparators"
             ]
         }
   ]
