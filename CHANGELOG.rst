@@ -11,7 +11,7 @@ Change Log
 =======
 `PR 288 SN comparators description <https://github.com/smaht-dac/smaht-portal/pull/288>`_
 
-* Add property comparators_description to variant_calls.json, which contains a string description comparators and is required if comparators is present
+* Make `comparators` an array of objects with paired properties `comparator_description` and `comparator_file` to variant_calls.json, with at least `comparator_description` required if `mode` is "Paired"
 
 
 0.112.0
