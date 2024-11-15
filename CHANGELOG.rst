@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.112.0
+=======
+`PR 287 SN Override Coverage <https://github.com/smaht-dac/smaht-portal/pull/287`_
+
+* Add property to file, `override_group_coverage` that displays in `data_generation_summary` calculated property for the File Overview page, which takes precedence  over `file_set.sequencing.target_coverage` if set
+
 0.111.0
 =======
 `PR 291 SN recovery_datetime <https://github.com/smaht-dac/smaht-portal/pull/291>`_
@@ -25,6 +31,7 @@ Change Log
 
 0.110.0
 =======
+
 * 2024-11-04/dmichaels
 * Fix for unexpected-sid validation-error (snovault 11.23.0).
 * Updated rsa library version (4.9) from vulnerability scan alerts for CVE-2020-13757).
