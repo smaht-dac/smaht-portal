@@ -19,7 +19,7 @@ SEARCH_QUERY = (
     "&type=FileSet"
     "&limit=10000"
     #"&limit=20&from=0"  # for testing
-    # "&accession=SMAFSUG9JCW6"
+    #"&accession=SMAFSADRYKW2"
 )
 
 
@@ -35,6 +35,16 @@ SEQUENCER = "sequencer"
 STATUS = "status"
 DELETED = "deleted"
 COMPLETED = "completed"
+
+#Supported assays
+WGS = "WGS"
+RNA_SEQ = "RNA-seq"
+
+WGS_ASSAYS = ["WGS", "Ultra-Long WGS", "PCR WGS"]
+RNA_ASSAYS = ["RNA-seq"]
+
+# long read sequencers
+LONG_READ_SEQS = ["ONT PromethION 24", "PacBio Revio"]
 
 
 class FileStats:
@@ -64,8 +74,13 @@ class FileStats:
             submission_centers.sort()
             submission_centers = ", ".join(submission_centers)
             assays = [l[ASSAY]["display_title"] for l in fileset[LIBRARIES]]
-            assays.sort()
-            assays = ", ".join(assays)
+
+            assay = None
+            if set(assays) & set(WGS_ASSAYS):
+                assay = WGS
+            elif set(assays) & set(RNA_ASSAYS):
+                assay = RNA_SEQ
+  
 
             sequencer = fileset[SEQUENCING][SEQUENCER]["display_title"]
             sample_source_codes = []
@@ -104,7 +119,7 @@ class FileStats:
                 continue
 
             # Search the aligned BAM and extract quality metrics from it
-            final_ouput_file = self.get_final_ouput_file(mwfr, assays)
+            final_ouput_file = self.get_final_ouput_file(mwfr, assay)
             if not final_ouput_file:
                 self.warnings.append(
                     f"Warning: Fileset {fileset[ACCESSION]} has no final output file"
@@ -117,11 +132,19 @@ class FileStats:
             result["bam_file_status"] = final_ouput_file[STATUS]
             result["submission_center"] = submission_centers
             result["tags"] = tags
-            result["assay"] = assays
+            if assay:
+                result["assay"] = assay
             result["sequencer"] = sequencer
             result["sample_source"] = sample_source_codes
-            result["tissue"] = tissues
+            if tissues != "?":
+                result["tissue"] = tissues
+                result["tissue_or_cell_line"] = "tissue"
+            else:
+                result["tissue_or_cell_line"] = "cell_line"
+            result["read_length"] = "long" if sequencer in LONG_READ_SEQS else "short"
             result["quality_metrics"] = {}
+
+
 
             qm = self.get_quality_metrics(final_ouput_file)
             qc_values = qm["qc_values"]
@@ -183,14 +206,15 @@ class FileStats:
 
     def get_final_ouput_file(self, mwfr, assay):
         workflow_runs = mwfr["workflow_runs"]
-        mode = "RNA" if assay == "RNA-seq" else "WGS"
+        mode = "RNA" if assay == RNA_SEQ else WGS
+
         for workflow_run in workflow_runs:
             if (mode == "WGS" and workflow_run["name"] == "samtools_merge") or (
                 mode == "RNA" and workflow_run["name"] == "sentieon_Dedup"
             ):
                 file_uuid = workflow_run["output"][0]["file"][UUID]
                 file = get_item(file_uuid)
-                if file["output_status"] == "Final Output":
+                if file["output_status"] == "Final Output" and (file["status"] not in ["deleted", "retracted"]):
                     return file
 
     def get_quality_metrics(self, file):
