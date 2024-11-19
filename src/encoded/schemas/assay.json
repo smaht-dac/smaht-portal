@@ -174,7 +174,8 @@
     },
     "facets": {
         "category": {
-            "title": "Category"
+            "title": "Category",
+            "group_by_field": "category"
         },
         "valid_molecules": {
             "title": "Molecule"
