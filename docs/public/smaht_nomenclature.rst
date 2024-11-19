@@ -517,8 +517,8 @@ Table 3A. Sequencing platform codes.
 
 
 
-Table 3B. Experimental Assay Codes.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Table 3B. Experimental Assay Codes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
 
@@ -749,6 +749,185 @@ Table 3B. Experimental Assay Codes.
         </table>
     </div>
 
+Table 4. SMaHT data generation center codes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+    <table>
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Category</th>
+                <th>Institute</th>
+                <th>Contact PI</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>bcm</td>
+                <td>GCC</td>
+                <td>Baylor College of Medicine</td>
+                <td>Richard Gibbs</td>
+            </tr>
+            <tr>
+                <td>broad</td>
+                <td>GCC</td>
+                <td>Broad Institute</td>
+                <td>Kristin Ardlie</td>
+            </tr>
+            <tr>
+                <td>nygc</td>
+                <td>GCC</td>
+                <td>New York Genome Center</td>
+                <td>Soren Germer</td>
+            </tr>
+            <tr>
+                <td>uwsc</td>
+                <td>GCC</td>
+                <td>University of Washington & Seattle Children’s Hospital</td>
+                <td>Jimmy Bennett</td>
+            </tr>
+            <tr>
+                <td>washu</td>
+                <td>GCC</td>
+                <td>Washington University in St. Louis</td>
+                <td>Ting Wang</td>
+            </tr>
+        </tbody>
+    </table>
+    <table>
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Category</th>
+                <th>Institute</th>
+                <th>Contact PI</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>bcm1</td>
+                <td>TTD</td>
+                <td>Baylor College of Medicine</td>
+                <td>Chuck Zong</td>
+            </tr>
+            <tr>
+                <td>bcm2</td>
+                <td>TTD</td>
+                <td>Baylor College of Medicine</td>
+                <td>Fritz Sedlazeck</td>
+            </tr>
+            <tr>
+                <td>bch1</td>
+                <td>TTD</td>
+                <td>Boston Children’s Hospital</td>
+                <td>Christopher Walsh</td>
+            </tr>
+            <tr>
+                <td>bch2</td>
+                <td>TTD</td>
+                <td>Boston Children’s Hospital</td>
+                <td>Sangita Choudhury</td>
+            </tr>
+            <tr>
+                <td>broad1</td>
+                <td>TTD</td>
+                <td>Broad Institute</td>
+                <td>Fei Chen</td>
+            </tr>
+            <tr>
+                <td>cwru</td>
+                <td>TTD</td>
+                <td>Case Western Reserve University</td>
+                <td>Fulai Jin</td>
+            </tr>
+            <tr>
+                <td>dfci</td>
+                <td>TTD</td>
+                <td>Dana-Farber Cancer Institute</td>
+                <td>Kathleen Burns</td>
+            </tr>
+            <tr>
+                <td>mayo</td>
+                <td>TTD</td>
+                <td>Mayo Clinic</td>
+                <td>Alexej Arbyzov</td>
+            </tr>
+            <tr>
+                <td>nyu</td>
+                <td>TTD</td>
+                <td>New York University</td>
+                <td>Gilad Evrony</td>
+            </tr>
+            <tr>
+                <td>stfd</td>
+                <td>TTD</td>
+                <td>Stanford University</td>
+                <td>Alexander Urban</td>
+            </tr>
+            <tr>
+                <td>umass</td>
+                <td>TTD</td>
+                <td>University of Massachusetts</td>
+                <td>Thomas Fazzio</td>
+            </tr>
+            <tr>
+                <td>umich</td>
+                <td>TTD</td>
+                <td>University of Michigan</td>
+                <td>Ryan Mills</td>
+            </tr>
+            <tr>
+                <td>uutah</td>
+                <td>TTD</td>
+                <td>University of Utah</td>
+                <td>Gabor Marth</td>
+            </tr>
+            <tr>
+                <td>wcnygc</td>
+                <td>TTD</td>
+                <td>Weill Cornell Medicine & New York Genome Center</td>
+                <td>Dan Landau</td>
+            </tr>
+        </tbody>
+    </table>
+    <table>
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Category</th>
+                <th>Institute</th>
+                <th>Contact PI</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>dac</td>
+                <td>DAC</td>
+                <td>Harvard Medical School</td>
+                <td>Peter Park</td>
+            </tr>
+        </tbody>
+    </table>
+    <table>
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Category</th>
+                <th>Institute</th>
+                <th>Contact PI</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>tpc</td>
+                <td>TPC</td>
+                <td>National Disease Research Interchange (NDRI)</td>
+                <td>Thomas Bell</td>
+            </tr>
+        </tbody>
+    </table>
 
 
 Part 3: File Name breakdown
