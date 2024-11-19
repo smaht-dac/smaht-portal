@@ -7,16 +7,23 @@ smaht-portal
 Change Log
 ----------
 
+0.112.2
+=======
+`PR 289 SN Add assay facets <https://github.com/smaht-dac/smaht-portal/pull/289>`_
+
+* Add facets to Assay search view
+
+
 0.112.1
 =======
-`PR 292 SN dataset enums<https://github.com/smaht-dac/smaht-portal/pull/292`_
+`PR 292 SN dataset enums<https://github.com/smaht-dac/smaht-portal/pull/292>`_
 
 * Add `hapmap_snv_indel_challenge_data` and `ipsc_snv_indel_challenge_data` to dataset enums list
 
 
 0.112.0
 =======
-`PR 287 SN Override Coverage <https://github.com/smaht-dac/smaht-portal/pull/287`_
+`PR 287 SN Override Coverage <https://github.com/smaht-dac/smaht-portal/pull/287>`_
 
 * Add property to file, `override_group_coverage` that displays in `data_generation_summary` calculated property for the File Overview page, which takes precedence  over `file_set.sequencing.target_coverage` if set
 

@@ -171,5 +171,23 @@
         "code": {
             "title": "Code"
         }
+    },
+    "facets": {
+        "category": {
+            "title": "Category",
+            "group_by_field": "category"
+        },
+        "valid_molecules": {
+            "title": "Molecule"
+        },
+        "molecule_specificity": {
+            "title": "Molecule Specificity"
+        },
+        "cell_isolation_method": {
+            "title": "Cell Isolation Method"
+        },
+        "amplification_method": {
+            "title": "Amplification Method"
+        }
     }
 }
