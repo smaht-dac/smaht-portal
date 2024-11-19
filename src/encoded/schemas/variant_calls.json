@@ -99,14 +99,6 @@
                 ]
             }
         },
-        "comparators": {
-            "title": "Comparators",
-            "description": "Link to comparator sample files used for normal matching",
-            "type": "array",
-            "items": {
-                "type": "string"
-            }
-        },
         "comparator_description": {
             "title": "Comparator Description",
             "description": "Description of comparator sample files used for normal matching",
