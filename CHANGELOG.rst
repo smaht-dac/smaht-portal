@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.111.1
+0.112.2
 =======
 * 2024-11-08/dmichaels
 * Updated some demo_inserts data files to make them more consistent with what is in production;
@@ -15,6 +15,21 @@ Change Log
   impedes local development when exporting from production and importing locally.
 * Added /debug_user_principals endpoint for debugging/troubleshooting/undestanding only;
   this will simply return the list of principals for the calling user.
+* Updated dcicutils to latest version (8.16.4).
+
+
+0.112.1
+=======
+`PR 292 SN dataset enums<https://github.com/smaht-dac/smaht-portal/pull/292`_
+
+* Add `hapmap_snv_indel_challenge_data` and `ipsc_snv_indel_challenge_data` to dataset enums list
+
+
+0.112.0
+=======
+`PR 287 SN Override Coverage <https://github.com/smaht-dac/smaht-portal/pull/287`_
+
+* Add property to file, `override_group_coverage` that displays in `data_generation_summary` calculated property for the File Overview page, which takes precedence  over `file_set.sequencing.target_coverage` if set
 
 
 0.111.0
@@ -35,6 +50,7 @@ Change Log
 
 0.110.0
 =======
+
 * 2024-11-04/dmichaels
 * Fix for unexpected-sid validation-error (snovault 11.23.0).
 * Updated rsa library version (4.9) from vulnerability scan alerts for CVE-2020-13757).
