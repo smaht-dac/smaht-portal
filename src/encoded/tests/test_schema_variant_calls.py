@@ -23,7 +23,7 @@ from ..item_utils import item as item_utils
 def test_mode_comparators_dependent_required(
     es_testapp: TestApp, workbook: None, patch_body: Dict[str, Any], status: int
 ) -> None:
-    """Ensure comparators_description is required if comparators is present and comparators_description is required if mode is Paired."""
+    """Ensure comparators_description is required if mode is Paired."""
     uuid = item_utils.get_uuid(
         get_item_from_search(
             es_testapp,
