@@ -12,7 +12,7 @@
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],
         "uuid": "beb12f96-624b-4fb8-afd5-8c637f5c0b97",
-        "valid_molecules": ["DNA"]
+        "valid_molecules": ["RNA"]
     },
     {
         "code": "001",
