@@ -16,23 +16,9 @@ from ..item_utils import item as item_utils
     [
         ({"mode": "Single Sample"}, 200),
         ({"mode": "Paired"}, 422),
-        ({"mode": "Singe Sample","comparators": [
-            {"comparator_file": "SMAURV9YIJWF"}
-            ]}, 422),
-        ({"mode": "Paired","comparators": [
-            {"comparator_file": "SMAURV9YIJWF"}
-            ]}, 422),
-        ({"mode": "Singe Sample","comparators": [
-            {"comparator_description": "HELA"}
-            ]}, 422),
-        ({"mode": "Paired","comparators": [
-            {"comparator_description": "HELA"}
-            ]}, 200),
-        ({"mode": "Paired","comparators": [
-            {"comparator_description": "HELA",
-             "comparator_file": "SMAURV9YIJWF"}
-            ]}, 200),
-    ],
+        ({"mode": "Singe Sample", "comparator_description": "HELA"}, 422),
+        ({"mode": "Paired", "comparator_description": "HELA"}, 200),
+    ]
 )
 def test_mode_comparators_dependent_required(
     es_testapp: TestApp, workbook: None, patch_body: Dict[str, Any], status: int

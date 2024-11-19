@@ -101,27 +101,16 @@
         },
         "comparators": {
             "title": "Comparators",
-            "description": "Comparator sample files used for normal matching",
+            "description": "Link to comparator sample files used for normal matching",
             "type": "array",
             "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                    "comparator_description"
-                ],
-                "properties": {
-                    "comparator_description": {
-                        "title": "Comparator Description",
-                        "description": "Description of comparator sample file used for normal matching",
-                        "type": "string"
-                    },
-                    "comparator_file": {
-                        "title": "Comparator File",
-                        "description": "Accession ID of comparator sample file used for normal matching",
-                        "type": "string"
-                    }
-                }
+                "type": "string"
             }
+        },
+        "comparator_description": {
+            "title": "Comparator Description",
+            "description": "Description of comparator sample files used for normal matching",
+            "type": "string"
         },
         "external_databases": {
             "title": "External Databases",
@@ -172,7 +161,7 @@
         },
         { 
             "required": [
-                "comparators"
+                "comparator_description"
             ]
         }
   ]
