@@ -78,7 +78,7 @@
         "file_format": "BAM",
         "filename": "some_downsampled_bam.bam",
         "file_sets": [
-            "TEST_FILE-SET_LIVER"
+            "TEST_FILE-SET_LIVER-DNA"
         ],
         "software": [
             "TEST_SOFTWARE_BWA-MEM"
