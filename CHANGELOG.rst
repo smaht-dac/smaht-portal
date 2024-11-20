@@ -13,7 +13,7 @@ Change Log
 
 * Add custom validator to FileSet to ensure that `sequencing.target_coverage` is present if `libraries.analytes.molecule` contains "DNA" and `sequencing.target_read_count` is present if `libraries.analytes.molecule` contains "RNA"
 * Refactor custom validators
-* Specify molecule type in `submitted_ids`` for workbook-inserts to keep track across tests
+* Specify molecule type in `submitted_ids` for workbook-inserts to keep track across tests
 
 
 0.112.3
