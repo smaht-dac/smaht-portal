@@ -1,0 +1,54 @@
+import structlog
+from pyramid.view import view_config
+from webob.multidict import MultiDict
+from pyramid.httpexceptions import HTTPFound
+from urllib.parse import urlencode
+from snovault.search.search import search
+from snovault.util import debug_log
+
+log = structlog.getLogger(__name__)
+
+# 2024-11-19/dmichaels: Adapted from fourfront for C4-1184.
+
+def includeme(config):
+    config.add_route('browse', '/browse{slash:/?}')
+    config.scan(__name__)
+
+
+# DEFAULT_BROWSE_TYPE = "FileSet"
+DEFAULT_BROWSE_TYPE = "OutputFile"
+DEFAULT_BROWSE_PARAM_LISTS = {
+    "type": [DEFAULT_BROWSE_TYPE],
+    "additional_facet": ["file_size"]
+}
+
+@view_config(route_name='browse', request_method='GET', permission='search')
+@debug_log
+def browse(context, request, search_type=DEFAULT_BROWSE_TYPE, return_generator=False):
+    """
+    Simply use search results for browse view
+    Redirect to proper URL w. params if needed
+    """
+    orig_params = request.params
+    for k,vals in DEFAULT_BROWSE_PARAM_LISTS.items():
+        if k not in orig_params or orig_params[k] not in vals:
+            # Redirect to DEFAULT_BROWSE_PARAM_LISTS URL
+            next_qs = MultiDict()
+            for k2, v2list in DEFAULT_BROWSE_PARAM_LISTS.items():
+                for v2 in v2list:
+                    next_qs.add(k2, v2)
+            # Preserve other keys that arent in DEFAULT_BROWSE_PARAM_LISTS
+            for k2, v2 in orig_params.items():
+                if k2 not in DEFAULT_BROWSE_PARAM_LISTS:
+                    next_qs.add(k2, v2)
+            # next_qs.add("redirected_from", str(request.path_qs))
+            return HTTPFound(
+                location=str(request.path) + '?' +  urlencode(next_qs),
+                detail="Redirected from " + str(request.path_info)
+            )
+
+    # TODO
+    # Returning forced_type="Search" for now as there is not
+    # yet any "Browse" UI for /browse; only "Search" for /search. 
+    # return search(context, request, search_type, return_generator, forced_type="Search")
+    return search(context, request, search_type, return_generator, forced_type="Browse")

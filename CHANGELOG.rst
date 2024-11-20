@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.113.0
+=======
+* 2024-11-20/dmichaels
+* Added module browse.py for /browse; adapted from fourfront/.../search.py/browse.
+
+
 0.112.3
 =======
 * 2024-11-08/dmichaels
