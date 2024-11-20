@@ -36,17 +36,17 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
 @pytest.mark.parametrize(
     "library,sequencing,expected_status",
     [
-        ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-PACBIO_30X-30H", 200), # FiberSeq and PacBio
-        ("","TEST_SEQUENCING_DNA-ONT-90X", 422), # FiberSeq and ONT
+        ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_PACBIO_30X-30H-DNA", 200), # FiberSeq and PacBio
+        ("","TEST_SEQUENCING_ONT-90X-DNA", 422), # FiberSeq and ONT
         ("TEST_LIBRARY_HELA-HEK293-DNA","", 422), # Cas9 Nanopore and PacBio
-        ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-ONT-90X", 422), # FiberSeq and ONT
-        ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 422), # bulk_wgs and ONT
-        ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-ONT-90X", 200), #Cas9 Nanopore and ONT
-        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 200), #bulk_wgs and Illumina NovaSeqX
-        ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 200), # RNA with target_read_count
-        ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 422), # RNA with target_coverage
-        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 422), # DNA with target_read_count
-        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 200), # DNA with target_coverage
+        ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_ONT-90X-DNA", 422), # FiberSeq and ONT
+        ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 422), # bulk_wgs and ONT
+        ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_ONT-90X-DNA", 200), #Cas9 Nanopore and ONT
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 200), #bulk_wgs and Illumina NovaSeqX
+        ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 200), # RNA with target_read_count
+        ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 422), # RNA with target_coverage
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 422), # DNA with target_read_count
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 200), # DNA with target_coverage
     ],
 )
 def test_validate_compatible_library_and_sequencer_on_patch(
@@ -58,7 +58,7 @@ def test_validate_compatible_library_and_sequencer_on_patch(
 ) -> None:
     """Ensure file set assay and sequencer validated on PATCH.
 
-    Note: Permissible combinations of assay and sequencer are determined by `Assay.valid_sequencers property` and based off of molecule-specific properties of sequencing i.
+    Note: Permissible combinations of assay and sequencer are determined by `Assay.valid_sequencers property` and based off of molecule-specific properties of sequencing.
     """
     patch_body = {}
     if library:
@@ -87,15 +87,15 @@ def test_validate_compatible_library_and_sequencer_on_patch(
 @pytest.mark.parametrize(
     "library,sequencing,expected_status,index",
     [
-        ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-PACBIO_30X-30H", 201, 1), # FiberSeq and PacBio
-        ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_DNA-ONT-90X", 422, 2), # FiberSeq and ONT
-        ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 422, 3), # bulk_wgs and ONT
-        ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_DNA-ONT-90X", 201, 4), #Cas9 Nanopore and ONT
-        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 201, 5), #bulk_wgs and Illumina NovaSeqX
-        ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 201, 6), # RNA with target_read_count
-        ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 422, 7), # RNA with target_coverage
-        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_RNA-NOVASEQ-500X", 422, 8), # DNA with target_read_count
-        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_DNA-NOVASEQ-500X", 201, 9), # DNA with target_coverage
+        ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_PACBIO_30X-30H-DNA", 201, 1), # FiberSeq and PacBio
+        ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_ONT-90X-DNA", 422, 2), # FiberSeq and ONT
+        ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 422, 3), # bulk_wgs and ONT
+        ("TEST_LIBRARY_HELA-HEK293-DNA","TEST_SEQUENCING_ONT-90X-DNA", 201, 4), #Cas9 Nanopore and ONT
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 201, 5), #bulk_wgs and Illumina NovaSeqX
+        ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 201, 6), # RNA with target_read_count
+        ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 422, 7), # RNA with target_coverage
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 422, 8), # DNA with target_read_count
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 201, 9), # DNA with target_coverage
     ],
 )
 def test_validate_compatible_library_and_sequencer_on_post(
@@ -108,7 +108,7 @@ def test_validate_compatible_library_and_sequencer_on_post(
 ) -> None:
     """Ensure file set assay and sequencer validated on POST.
 
-    Note: Permissible combinations of assay and sequencer are determined by `Assay.valid_sequencers property`.
+   Note: Permissible combinations of assay and sequencer are determined by `Assay.valid_sequencers property` and based off of molecule-specific properties of sequencing.
     """
     submission_center = get_insert_identifier_for_item_type(es_testapp,'submission_center')
     library_uuid=item_utils.get_uuid(
