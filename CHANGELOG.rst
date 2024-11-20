@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.113.0
+=======
+`PR 296 SN Sequencing validation <https://github.com/smaht-dac/smaht-portal/pull/296>`
+
+* Add custom validator to FileSet to ensure that `sequencing.target_coverage` is present if `libraries.analytes.molecule` contains "DNA" and `sequencing.target_read_count` is present if `libraries.analytes.molecule` contains "RNA"
+* Refactor custom validators
+
+
 0.112.3
 =======
 * 2024-11-08/dmichaels
