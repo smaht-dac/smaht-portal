@@ -11,6 +11,7 @@ Change Log
 =======
 * 2024-11-20/dmichaels
 * Added module browse.py for /browse; adapted from fourfront/.../search.py/browse.
+  This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1184
 
 
 0.112.3
