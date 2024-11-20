@@ -16,10 +16,15 @@ def includeme(config):
 
 
 # DEFAULT_BROWSE_TYPE = "FileSet"
-DEFAULT_BROWSE_TYPE = "OutputFile"
+# DEFAULT_BROWSE_TYPE = "UnalignedReads"
+# DEFAULT_BROWSE_TYPE = "OutputFile"
+
+DEFAULT_BROWSE_TYPE = "File"
+DEFAULT_BROWSE_FACETS = ["file_size"]
+
 DEFAULT_BROWSE_PARAM_LISTS = {
     "type": [DEFAULT_BROWSE_TYPE],
-    "additional_facet": ["file_size"]
+    "additional_facet": DEFAULT_BROWSE_FACETS
 }
 
 @view_config(route_name='browse', request_method='GET', permission='search')
@@ -48,7 +53,5 @@ def browse(context, request, search_type=DEFAULT_BROWSE_TYPE, return_generator=F
             )
 
     # TODO
-    # Returning forced_type="Search" for now as there is not
-    # yet any "Browse" UI for /browse; only "Search" for /search. 
-    # return search(context, request, search_type, return_generator, forced_type="Search")
+    # No real /browse specific UI yet; initially just basically copied static/components/SearchView.js to BrowseView.js.
     return search(context, request, search_type, return_generator, forced_type="Browse")
